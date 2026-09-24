@@ -12,5 +12,6 @@ while i<len(args):
  if a=='-c':cmd+=['-c',str(root/'native/yuv-backend.c')];i+=2;continue
  cmd.append(a);i+=1
 cmd.insert(1,'-I'+str(root/'build/sources/mpv'))
-subprocess.run(cmd,cwd=entry['directory'],env={**os.environ,'EM_CONFIG':str(root/'build/gap.emscripten')},check=True)
-rgb=cmd.copy();rgb[rgb.index('-c')+1]=str(root/'build/sources/mpv/video/out/libmpv_sw.c');rgb[rgb.index('-o')+1]=str(out/'rgb.o');rgb.insert(1,'-Drender_backend_sw=render_backend_rgb');subprocess.run(rgb,cwd=entry['directory'],env={**os.environ,'EM_CONFIG':str(root/'build/gap.emscripten')},check=True)
+cmd.insert(1,'-ffile-prefix-map='+str(root)+'=/demuxe')
+subprocess.run(cmd,cwd=entry['directory'],check=True)
+rgb=cmd.copy();rgb[rgb.index('-c')+1]=str(root/'build/sources/mpv/video/out/libmpv_sw.c');rgb[rgb.index('-o')+1]=str(out/'rgb.o');rgb.insert(1,'-Drender_backend_sw=render_backend_rgb');subprocess.run(rgb,cwd=entry['directory'],check=True)

@@ -1,3 +1,3 @@
 // SPDX-License-Identifier: Apache-2.0
 import {serve as base} from '../pipeline-qualification/server.mjs';
-export const serve=()=>base({pagePath:'experiments/software-yuv-integration/page.html',mediaPaths:process.env.BENCH_MEDIA_ROOT?{movie:process.env.BENCH_MEDIA_ROOT+'/movie.mp4'}:{}});
+export const serve=()=>base({pagePath:'experiments/software-yuv-integration/page.html',mediaPaths:{...(process.env.BENCH_MEDIA_ROOT?{movie:process.env.BENCH_MEDIA_ROOT+'/movie.mp4'}:{}),mpeg2ts:'build/yuv-cpu-investigation/mpeg2-ac3.ts',mpeg2ps:'build/yuv-cpu-investigation/mpeg2-mp2.mpg',mpeg4avi:'build/yuv-cpu-investigation/mpeg4-mp3.avi',prores:'build/yuv-cpu-investigation/prores-pcm.mov',odd:'build/yuv-cpu-investigation/odd-yuv420p.mkv',sample:'build/yuv-cpu-investigation/mpeg2-ac3.ts',rotation:'build/yuv-cpu-investigation/rotation.mp4'}});

@@ -31,7 +31,6 @@ if mpv_subtitles and 'web/engine-subtitles/service.wasm' not in build['artifacts
 if args.release_tag:
  # Optional assets remain subject to clean source correspondence here and
  # mandatory exact-archive optional evidence in verify-beta-release.py.
- if args.yuv:raise SystemExit('The clean beta release record covers only the standard engines')
  sdk=pathlib.Path(build['sdk'])
  for name,digest in build['sdkSources'].items():
   if hashlib.sha256((sdk/'upstream/emscripten'/name).read_bytes()).hexdigest()!=digest:raise SystemExit('SDK source changed: '+name)
@@ -73,10 +72,10 @@ while pending:
    if declaration.is_file():pending.append(str(declaration.relative_to(root)))
 for name in ['mpv-subtitle-worker.js','native-ass-worker.js','audio-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','fallback-stream-policy.js','split-mp4.js','native-remux-player.js','worker-remux-controller.js','native-mse-worker.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','hybrid-preflight.js','prepared-engine.js','cheap-mp4-probe.js','selected-mp4-view.js','progressive-mp4.js','video-codec-config.js','remux-packaging.js']:
  add('web/'+name)
+add('web/yuv-presenter.js')
 for name in json.loads((root/'third_party/shaka-player.json').read_text())['files']:add(name)
-engines={'remux':('engine-remux','remux'),'hybrid':('engine-hybrid','player'),'software':('engine-software-full','player')}
+engines={'remux':('engine-remux','remux'),'hybrid':('engine-hybrid','player'),'software':('engine-software-yuv','player'),'software-rgb':('engine-software-full','player')}
 if mpv_subtitles:engines['subtitles']=('engine-subtitles','service')
-if args.yuv:engines['experimental-yuv']=('engine-software-yuv','player');add('web/yuv-presenter.js')
 if args.adaptation_build:
  adaptation=args.adaptation_build.resolve();record=json.loads((adaptation/'manifest.json').read_text())
  if record.get('apiVersion')!=2:raise SystemExit('Preparation interface mismatch; rebuild matching assets')
@@ -148,7 +147,8 @@ if args.ass_build:
  files['web/engine-ass/manifest.json']=(json.dumps({'sourceBuildVerification':source_verification,'apiVersion':record['apiVersion'],'sources':record['sources'],'sdk':record['sdk'],'files':{pathlib.Path(k).name:v for k,v in record['files'].items() if pathlib.Path(k).suffix in ['.mjs','.wasm']},'sourceCompanion':{'filename':source_out.name,'sha256':hashlib.sha256(source_out.read_bytes()).hexdigest()},'qualification':'External Native ASS; clean library correspondence verified; exact-archive release verification remains mandatory'},indent=2)+'\n').encode()
 for folder,stem in engines.values():
  for ext in ['mjs','wasm']:add(f'web/{folder}/{stem}.{ext}')
-for name in ['fixtures/DejaVuSans.ttf','fixtures/FONT-LICENSE.txt','sources.lock.json','toolchain.lock.json','docs/BETA.md','docs/COMPATIBILITY-EXPANSION.md','docs/LICENSING.md','docs/LGPL-RELINK.md','docs/UPSTREAM-MODIFICATIONS.md','docs/RELEASE.md']:add(name)
+for name in ['fixtures/DejaVuSans.ttf','fixtures/FONT-LICENSE.txt','sources.lock.json','toolchain.lock.json','docs/BETA.md','docs/CAPABILITIES.md','docs/SOFTWARE-YUV-PRESENTER.md','docs/INTEGRATION.md','docs/COMPATIBILITY-EXPANSION.md','docs/LICENSING.md','docs/LGPL-RELINK.md','docs/UPSTREAM-MODIFICATIONS.md','docs/RELEASE.md']:add(name)
+files['docs/CAPABILITIES.md']=re.sub(rb'/(?:Users|Volumes|private/var)/[^\s`]+',b'[local evidence path omitted from runtime package]',files['docs/CAPABILITIES.md'])
 for name in LEGAL:add(name)
 if build:
  # Absolute host paths belong in the source companion, not the installed runtime.
@@ -174,7 +174,7 @@ package['exports']['./package.json']='./package.json'
 files['package.json']=(json.dumps(package,indent=2)+'\n').encode()
 files['license-map.json']=encoded(license_policy.package_map(files,'player'))
 license_policy.check_package(files,'player')
-manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':[*(['native-direct-mpv'] if mpv_subtitles else []),'native-direct',*(['native-remux-mpv'] if mpv_subtitles else []),'native-remux','shaka-mse','hybrid','software'],'adaptiveStreaming':{'backend':'shaka-mse','version':project['dependencies']['shaka-player'],'assets':'third_party/shaka-player.json','lazy':True},'engines':engines,'optionalQualificationRequired':bool(args.ass_build or args.adaptation_build or mpv_subtitles),'defaultSoftwarePresenter':'rgb','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'experimentalYUV':'Seek endurance and sustained-movie qualification remain open'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
+manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':[*(['native-direct-mpv'] if mpv_subtitles else []),'native-direct',*(['native-remux-mpv'] if mpv_subtitles else []),'native-remux','shaka-mse','hybrid','software'],'adaptiveStreaming':{'backend':'shaka-mse','version':project['dependencies']['shaka-player'],'assets':'third_party/shaka-player.json','lazy':True},'engines':engines,'optionalQualificationRequired':bool(args.ass_build or args.adaptation_build or mpv_subtitles),'defaultSoftwarePresenter':'auto','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'softwareYUV':'Qualified decoded-frame subset only; see docs/SOFTWARE-YUV-PRESENTER.md'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
 files['release-manifest.json']=(json.dumps(manifest,indent=2)+'\n').encode()
 # Reject host-specific paths and credential material, including strings in Wasm.
 for name,data in files.items():

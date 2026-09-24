@@ -87,8 +87,10 @@ export type PlayerOptions = {
    * Wasm and packet allocations, not opaque browser/GPU memory. */
   experimentalBackgroundPromotion?: {maxKnownBytes:number};
   nativeRemux?: 'auto' | 'never' | 'always';
-  /** Optional Software presenter; RGB remains the default. */
-  softwarePresenter?: 'rgb' | 'experimental-yuv';
+  /** Software chooses YUV for qualified decoded frames and RGB otherwise.
+   * `rgb` is a comparison/compatibility override; the older experimental value
+   * remains an alias for the same qualified YUV policy. */
+  softwarePresenter?: 'auto' | 'rgb' | 'experimental-yuv';
   width?: number;
   height?: number;
   videoFilters?: string;

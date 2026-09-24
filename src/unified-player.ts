@@ -125,7 +125,7 @@ export class Player extends EventTarget {
   private planDecisions:Array<ReturnType<typeof planAdmission>[number]&{browserCapability?:BrowserMediaCapability}>=[];
   private admissionContext:{nativeReason?:string;automatic:boolean}={automatic:false};
   private nativeRemux: 'auto' | 'never' | 'always';
-  private softwarePresenter: 'rgb' | 'experimental-yuv';
+  private softwarePresenter: 'auto' | 'rgb' | 'experimental-yuv';
   private settings: Settings;
   private configuredTrackPolicy:TrackPolicy;
   get trackPolicy():TrackPolicy{return this.source?.trackPolicy??this.configuredTrackPolicy;}
@@ -194,8 +194,8 @@ export class Player extends EventTarget {
     if(options.allowLossyAudio!==undefined&&typeof options.allowLossyAudio!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid lossy audio permission');
     if(this.audioAdaptation==='opus'&&options.allowLossyAudio!==true)throw new PlayerError('INVALID_ARGUMENT','Opus adaptation requires allowLossyAudio: true');
     this.nativeRemux=options.nativeRemux ?? 'auto';
-    this.softwarePresenter=options.softwarePresenter??'rgb';
-    if(!['rgb','experimental-yuv'].includes(this.softwarePresenter))throw new PlayerError('INVALID_ARGUMENT','Invalid software presenter');
+    this.softwarePresenter=options.softwarePresenter??'auto';
+    if(!['auto','rgb','experimental-yuv'].includes(this.softwarePresenter))throw new PlayerError('INVALID_ARGUMENT','Invalid software presenter');
     if(!['auto','never','always'].includes(this.nativeRemux))throw new PlayerError('INVALID_ARGUMENT','Invalid native remux policy');
     this.width = options.width ?? 640;this.height = options.height ?? 360;dimensions(this.width, this.height);
     this.settings = {pause: true, volume: 100, speed: 1, aid: 'auto', sid: 'auto', subtitles: true, vf: filterChain(options.videoFilters ?? ''), af: filterChain(options.audioFilters ?? ''), gain:options.audioGain??1};
@@ -397,7 +397,7 @@ export class Player extends EventTarget {
     const selected=preparationComponents(components);
     if(this.promotionRunning)this.cancelPromotion();
     if(this.destroyed||this.activeOperation)return this.preparationTask;
-    this.preparation??=new EnginePreparation(this.assetBase,this.softwarePresenter==='experimental-yuv'?'engine-software-yuv':'engine-software-full',()=>{if(!this.destroyed)this.dispatchEvent(new CustomEvent('preparationchange',{detail:freeze(this.preparationProgress)}));});
+    this.preparation??=new EnginePreparation(this.assetBase,this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv',()=>{if(!this.destroyed)this.dispatchEvent(new CustomEvent('preparationchange',{detail:freeze(this.preparationProgress)}));});
     return this.preparationTask=this.preparation.warm(selected);
   }
   private async create(mode: PlaybackMode, aid='auto', adaptation?:'flac'|'opus', forcePreparation=false, planId?:string, loadTimeoutMs?:number): Promise<Session> {
@@ -407,7 +407,7 @@ export class Player extends EventTarget {
     surface.style.cssText = 'display:none;width:100%;background:#000';
     // Import before allocating workers; destroy during import cannot orphan an engine.
     const module = planId?.startsWith('shaka-') ? await this.interruptible(import('./internal/shaka-backend.js')) : mode === 'native' ? await this.interruptible(import('./internal/native-player.js')) : await this.interruptible(import('./internal/wasm-player.js'));
-    const prepared=mode==='native'?undefined:await this.interruptible(this.preparation?.readyEngine(mode==='hybrid'?'engine-hybrid':this.softwarePresenter==='experimental-yuv'?'engine-software-yuv':'engine-software-full')??Promise.resolve(undefined));
+    const prepared=mode==='native'?undefined:await this.interruptible(this.preparation?.readyEngine(mode==='hybrid'?'engine-hybrid':this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv')??Promise.resolve(undefined));
     this.assertOperation();
     this.root.append(surface);
     try {

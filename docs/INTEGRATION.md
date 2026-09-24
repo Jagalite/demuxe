@@ -133,8 +133,11 @@ CORP where applicable, range and representation requirements. The complete
 checkout is not a published npm distribution. A standalone, offline-installable
 beta candidate and clean-consumer instructions are available in [BETA.md](BETA.md).
 
-Build the JS/API with `npm run build`. Software uses `web/engine-software-full`
-from `npm run build:software-full`. Hybrid uses `web/engine-hybrid` from
+Build the JS/API with `npm run build`. Software normally uses
+`web/engine-software-yuv` from `npm run build:software-yuv`, selecting YUV for
+qualified decoded frames and RGB otherwise. `web/engine-software-full` from
+`npm run build:software-full` remains the explicit RGB comparison override.
+Hybrid uses `web/engine-hybrid` from
 `npm run build:hybrid`; Native remux uses `web/engine-remux` from `npm run build:remux`.
 These engine build scripts use the pinned local FFmpeg/Emscripten toolchain; see
 [build prerequisites and commands](MEDIA-ROUTING.md). Worker filenames are implementation
@@ -168,4 +171,5 @@ Beta output scope: Hybrid and Software negotiate stereo, 5.1 or 7.1 PCM with an
 explicit stereo fallback or rejection policy. Software can tone-map tagged HDR
 to SDR. Physical surround/HDR fidelity, Safari/mobile coverage and
 hour-long stability remain separate qualification gates. Exactly three public
-modes are preserved; the optional Software YUV presenter is experimental.
+modes are preserved; the bounded Software YUV admission is documented in
+[SOFTWARE-YUV-PRESENTER.md](SOFTWARE-YUV-PRESENTER.md).

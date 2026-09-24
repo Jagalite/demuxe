@@ -26,6 +26,7 @@ mkdir -p "$WEBMPV_MANIFEST_DIR"
 bash scripts/build.sh
 bash scripts/build-playback-deps.sh
 npm run build:software-full
+npm run build:software-yuv
 python3 experiments/retained-subtitles/compile-hook.py
 npm run build:hybrid
 npm run build:remux

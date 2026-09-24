@@ -12,6 +12,7 @@ while i<len(args):
  if a=='-c':out += ['-c',str(root/'experiments/retained-subtitles/vo_libmpv.c')];i+=2;continue
  out.append(a);i+=1
 out.insert(1,'-I'+str(root/'build/sources/mpv/video/out'))
+out.insert(1,'-ffile-prefix-map='+str(root)+'=/demuxe')
 (root/'build/retained-subs/compile-command.json').write_text(json.dumps(out,indent=2)+'\n')
 env=dict(os.environ,EM_CONFIG=os.environ.get('WEBMPV_EM_CONFIG',str(root/'build/gap.emscripten')))
 subprocess.run(out,cwd=entry['directory'],env=env,check=True)

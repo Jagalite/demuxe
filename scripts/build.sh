@@ -82,7 +82,7 @@ meson_lib fribidi -Ddocs=false -Dbin=false -Dtests=false
 meson_lib harfbuzz -Dfreetype=enabled -Dtests=disabled -Dutilities=disabled
 meson_lib libass -Drequire-system-font-provider=false
 meson_lib libplacebo -Ddemos=false -Dtests=false
-if [ ! -f "$PREFIX/lib/libxml2.a" ]; then
+if [ ! -f "$PREFIX/lib/libxml2.a" ] || [ ! -f build/obj-libxml2/config.h ]; then
   emcmake cmake -S build/sources/libxml2 -B build/obj-libxml2 -G Ninja -DCMAKE_INSTALL_PREFIX="$PREFIX" \
     -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DLIBXML2_WITH_PROGRAMS=OFF \
     -DLIBXML2_WITH_TESTS=OFF -DLIBXML2_WITH_PYTHON=OFF -DLIBXML2_WITH_ICONV=OFF \
@@ -91,7 +91,7 @@ if [ ! -f "$PREFIX/lib/libxml2.a" ]; then
   cmake --build build/obj-libxml2 -j "${DEMUXE_JOBS:-${WEBMPV_JOBS:-6}}"
   cmake --install build/obj-libxml2
 fi
-if [ ! -f "$PREFIX/lib/libavcodec.a" ] || ! grep -q '#define CONFIG_DASH_DEMUXER 1' build/obj-ffmpeg/config_components.h; then
+if [ ! -f "$PREFIX/lib/libavcodec.a" ] || [ ! -f build/obj-ffmpeg/config.h ] || [ ! -f build/obj-ffmpeg/config_components.h ] || ! grep -q '#define CONFIG_DASH_DEMUXER 1' build/obj-ffmpeg/config_components.h; then
   mkdir -p build/obj-ffmpeg
   (cd build/obj-ffmpeg
     emconfigure ../sources/ffmpeg/configure --prefix="$PREFIX" --target-os=none --arch=wasm32 \

@@ -40,14 +40,17 @@ engine, worker or AudioWorklet. mpv and remux require isolation.
 
 `index.js` and `index.d.ts` expose the reusable API. `web/generated/` contains its
 bindings; `web/` contains workers, presentation, source I/O and AudioWorklet modules.
-`web/engine-remux/`, `web/engine-hybrid/` and `web/engine-software-full/` contain
+`web/engine-remux/`, `web/engine-hybrid/`, `web/engine-software-yuv/` and
+`web/engine-software-full/` contain
 engine modules and Wasm. `fixtures/DejaVuSans.ttf` is the bundled subtitle font.
 `third_party/` and the font license retain notices. No test media is bundled.
 
-The manifest names three modes, automatic plan order, software default and every
-runtime asset's SHA-256. Build hashes are provenance, not playback qualification.
-`--yuv` adds the optional YUV asset and presenter; it never changes the RGB default.
-Without that asset, requesting the experimental option fails explicitly.
+The manifest names three modes, automatic plan order, software presenter policy
+and every runtime asset's SHA-256. Build hashes are provenance, not playback
+qualification. The default Software engine selects the qualified YUV path from
+decoded frame properties and uses RGB for all other frames. The `--yuv` packaging
+flag remains accepted for older automation; both presenter assets are now standard.
+See [the exact admission predicate](SOFTWARE-YUV-PRESENTER.md).
 
 ## Engine build recipe and reproducibility boundary
 
@@ -79,9 +82,10 @@ stereo, 5.1 and 7.1 PCM with device negotiation. Software offers explicit HDR-to
 tone mapping. The [compatibility expansion](COMPATIBILITY-EXPANSION.md) defines
 input limits, subtitle APIs and streaming support. Mode changes reopen sources and are not gapless.
 
-Software YUV stays experimental. Keep intermittent filtered-seek failures and failed
-movie comparisons visible. A passing retry or short ASS CPU improvement cannot close
-those blockers. Before release, prioritize physical A/V/priming, long-duration
+Software YUV is admitted only for the documented decoded-frame subset. Keep
+intermittent filtered-seek failures and failed movie comparisons visible. A
+passing retry or short ASS CPU improvement cannot close those blockers. Before
+release, prioritize physical A/V/priming, long-duration
 memory/resource stability, repeated seeks, broader sample-description transitions,
 physical HDR/audio-layout measurements, browser/device qualification and lifecycle cleanup against
 the exact packaged hashes. No additional public mode is needed for this work.
@@ -101,4 +105,4 @@ is a per-read bound, not a bound on an entire seek or open operation. Generic
 RangeReader consumers retain the 15-second default. See
 [buffering qualification](BUFFERING-VALIDATION.md) for the playback retry-window
 change and interruption tests. This correction
-does not promote YUV or establish physical A/V/endurance qualification.
+does not establish physical A/V/endurance qualification.

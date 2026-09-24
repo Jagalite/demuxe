@@ -98,7 +98,7 @@ export declare class WasmPlayer extends EventTarget {
         disableBrowserCodecs?: boolean;
         measureOutput?: boolean;
         mode?: 'hybrid' | 'software';
-        softwarePresenter?: 'rgb' | 'experimental-yuv';
+        softwarePresenter?: 'auto' | 'rgb' | 'experimental-yuv';
     });
     private sendTiming;
     private fail;

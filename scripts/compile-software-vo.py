@@ -38,5 +38,6 @@ while i < len(args):
     command.append(arg)
     i += 1
 command.insert(1, '-I' + str(root / 'build/sources/mpv/video/out'))
+command.insert(1, '-ffile-prefix-map=' + str(root) + '=/demuxe')
 (outdir / 'compile-command.json').write_text(json.dumps(command, indent=2) + '\n')
 subprocess.run(command, cwd=entry['directory'], env=os.environ.copy(), check=True)

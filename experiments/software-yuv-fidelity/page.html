@@ -1,0 +1,20 @@
+<!doctype html><meta charset="utf-8"><canvas id="video"></canvas><script type="module">
+import {YUVPresenter} from '/web/yuv-presenter.js';
+window.renderFrame=({w,h,dw,dh,planes,strides,src,dst,system,full,mode,chroma,filter,subtitle})=>{
+ const canvas=document.querySelector('canvas');canvas.width=dw;canvas.height=dh;
+ const presenter=new YUVPresenter(canvas);
+ let snapshot={surface:null};
+ if(subtitle){const surface=new OffscreenCanvas(subtitle.w,subtitle.h),context=surface.getContext('2d');const pixels=new Uint8ClampedArray(subtitle.w*subtitle.h*4);for(let i=0;i<pixels.length;i+=4)pixels.set(subtitle.rgba,i);context.putImageData(new ImageData(pixels,subtitle.w,subtitle.h),0,0);snapshot={surface,x:subtitle.x,y:subtitle.y};}
+ presenter.subtitles.read=()=>snapshot;
+ if(filter==='nearest')for(let i=0;i<3;i++){presenter.gl.bindTexture(presenter.gl.TEXTURE_2D,presenter.textures[i]);for(const p of [presenter.gl.TEXTURE_MIN_FILTER,presenter.gl.TEXTURE_MAG_FILTER])presenter.gl.texParameteri(presenter.gl.TEXTURE_2D,p,presenter.gl.NEAREST);}
+ const heap=new Uint8Array(planes.reduce((n,p)=>n+p.length,0));let offset=0;const ptr=[];
+ for(const plane of planes){ptr.push(offset);heap.set(plane,offset);offset+=plane.length;}
+ const d={w,h,planes:ptr,strides,src:src||[0,0,w,h],dst:dst||[0,0,dw,dh],system,full,pts:0,rotate:0,
+  chroma:chroma??(mode==='left'?[-.5,0]:mode==='top-left'?[-.5,-.5]:[0,0])};
+ presenter.draw({HEAPU8:heap},d);
+ const pixels=new Uint8Array(dw*dh*4);presenter.gl.readPixels(0,0,dw,dh,presenter.gl.RGBA,presenter.gl.UNSIGNED_BYTE,pixels);
+ presenter.destroy();
+ const flipped=[];for(let row=dh-1;row>=0;row--)flipped.push(...pixels.subarray(row*dw*4,(row+1)*dw*4));
+ return flipped;
+};
+</script>

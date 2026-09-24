@@ -126,7 +126,7 @@ def verify(root, baseline=None):
         raise ValueError('Full FFmpeg produced libpostproc')
     maps = {}
     external = forbidden_external_libraries((root / 'build/sources/ffmpeg/configure').read_text())
-    for engine in ('baseline', 'software', 'hybrid', 'remux', 'subtitles'):
+    for engine in ('baseline', 'software', 'software-yuv', 'hybrid', 'remux', 'subtitles'):
         path = root / f'build/link-maps/{engine}.map'
         text = path.read_text()
         if not text.strip():
@@ -145,7 +145,7 @@ def verify(root, baseline=None):
         raise ValueError('Subtitle service uses another FFmpeg component build')
     if pathlib.Path(subtitle['mpvBuildRoot']).resolve() != root.resolve():
         raise ValueError('Subtitle service uses external mpv build')
-    for folder, stem in [('engine', 'player'), ('engine-software-full', 'player'),
+    for folder, stem in [('engine', 'player'), ('engine-software-full', 'player'), ('engine-software-yuv', 'player'),
                          ('engine-hybrid', 'player'), ('engine-remux', 'remux'),
                          ('engine-subtitles', 'service')]:
         linked = root / 'web' / folder / (stem + '.mjs')

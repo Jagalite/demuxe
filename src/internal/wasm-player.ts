@@ -42,7 +42,7 @@ export class WasmPlayer extends EventTarget {
   properties = new Map<string, unknown>();
   readonly ready: Promise<void>;
 
-  constructor(canvas:HTMLCanvasElement, {prepared,buffering=bufferingPolicy(),disableBrowserCodecs=false,measureOutput=false,mode='software',softwarePresenter='rgb',audioOutput='stereo',audioFallback='stereo',resourceLimits={},fonts=[],assetBase=new URL('../../../',import.meta.url)}: {prepared?:{module?:WebAssembly.Module;font?:ArrayBuffer};buffering?:BufferingPolicy;assetBase?:URL;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';resourceLimits?:ResourceLimits;fonts?:FontAsset[];disableBrowserCodecs?:boolean;measureOutput?:boolean;mode?:'hybrid'|'software';softwarePresenter?:'rgb'|'experimental-yuv'}={}) {
+  constructor(canvas:HTMLCanvasElement, {prepared,buffering=bufferingPolicy(),disableBrowserCodecs=false,measureOutput=false,mode='software',softwarePresenter='auto',audioOutput='stereo',audioFallback='stereo',resourceLimits={},fonts=[],assetBase=new URL('../../../',import.meta.url)}: {prepared?:{module?:WebAssembly.Module;font?:ArrayBuffer};buffering?:BufferingPolicy;assetBase?:URL;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';resourceLimits?:ResourceLimits;fonts?:FontAsset[];disableBrowserCodecs?:boolean;measureOutput?:boolean;mode?:'hybrid'|'software';softwarePresenter?:'auto'|'rgb'|'experimental-yuv'}={}) {
     super();this.buffering=buffering;
     const decoder=mode==='hybrid'?'webcodecs':'software';
     if(!crossOriginIsolated) throw new Error('This player requires a secure, cross-origin isolated page.');

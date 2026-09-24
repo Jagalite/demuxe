@@ -1,0 +1,13 @@
+<!doctype html><meta charset="utf-8"><style>html,body{margin:0;background:#000}#surface,canvas{width:var(--w,64px);height:var(--h,48px)}</style><div id="surface"></div>
+<script type="module">
+import {Player} from '/web/generated/index.js';
+window.openFixture=async(variant,url,width=64,height=48,target=0)=>{
+ document.documentElement.style.setProperty('--w',width+'px');document.documentElement.style.setProperty('--h',height+'px');
+ window.errors=[];window.player=new Player(document.querySelector('#surface'),{mode:'software',...(variant==='rgb'?{softwarePresenter:'rgb'}:{}),width,height});
+ player.addEventListener('error',e=>errors.push(String(e.detail)));
+ await player.openRemote({url});await player.play();
+ await new Promise((resolve,reject)=>{const end=performance.now()+12000;const tick=()=>{if((player.diagnostics.backend?.rendered??player.diagnostics.backend?.yuv?.frames??0)>3)return resolve();if(performance.now()>end||errors.length)return reject(Error(JSON.stringify(errors)));setTimeout(tick,30)};tick();});
+ await player.pause();if(target)await player.seek(target);await new Promise(r=>setTimeout(r,500));
+ return {videoParams:player.properties.get('video-params'),backend:player.diagnostics.backend,errors};
+};
+</script>

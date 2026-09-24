@@ -13,7 +13,7 @@ window.start=async({variant,url,file,target=0,subtitles=false,filters='',sourceO
   window.player=new RemuxPlayer(video);await player.open(file?{file}:{options:{url,...sourceOptions},videoTrack,audioTrack,...(refresh?{refreshAuthorization:async()=>({headers:{Authorization:'Bearer refreshed'}})}:{})},target);await player.play();
  }else{
   const {Player}=await import('/web/generated/index.js');
-  window.player=new Player(document.querySelector('#surface'),{mode:variant==='yuv'?'software':variant,width:1920,height:1080,softwarePresenter:variant==='yuv'?'experimental-yuv':'rgb'});
+  window.player=new Player(document.querySelector('#surface'),{mode:['yuv','auto'].includes(variant)?'software':variant,width:1920,height:1080,...(variant==='auto'?{}:{softwarePresenter:variant==='yuv'?'experimental-yuv':'rgb'})});
   player.addEventListener('error',e=>errors.push(e.detail));player.addEventListener('output',e=>outputs.push(e.detail));
   if(filters)await player.setVideoFilters(filters);await player.openRemote({url});
   if(subtitles)await player.selectTrack('sub','1');if(target)await player.seek(target);await player.play();

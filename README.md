@@ -16,6 +16,17 @@ track policies permit it and actual output passes verification. Ordinary files
 keep their existing Direct/Remux/Hybrid/Software paths. Shaka loads only when its
 plan is needed. See [streaming architecture](docs/STREAMING.md).
 
+Within Software, the production presenter uses YUV/WebGL2 only for decoded
+SDR 8-bit planar YUV420P frames meeting the [exact frame and color admission
+contract](docs/SOFTWARE-YUV-PRESENTER.md). Other frames use mpv RGB conversion
+and an RGBA WebGL upload; the explicit RGB override uses the legacy 2D canvas
+path. Matched paused-frame checks cover the bounded RGB fallback cases.
+Diagnostics report the active presenter and any YUV rejection reason. The
+`softwarePresenter: 'rgb'` override remains available for comparisons. The
+historical CPU table below predates this presenter change; the [matched
+production YUV comparison](results/software-yuv-integration/PRODUCTION-YUV-2026-09-23.md)
+is a separate campaign and must not be mixed with older numbers.
+
 This is a developer beta with representative
 Chrome/Firefox evidence, not a promise of universal codec or browser support.
 

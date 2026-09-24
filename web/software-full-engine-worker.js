@@ -3,6 +3,8 @@ import {preparedEngine} from './prepared-engine.js';
 let audioChannels=2;
 let previewSnapshot;
 let YUVPresenter,uploader,gpuPauseIntent;
+let presenterPolicy='auto',activePresenter='pending',yuvRejectionReason=null;
+const yuvRejections=['qualified','pixel-format','odd-source-dimensions','source-crop','rotation','color-matrix','color-range','chroma-location','transfer','color-primaries','plane-layout','source-color-metadata'];
 function installPresenter(canvas,prior){
  uploader=new YUVPresenter(canvas);
  if(prior)uploader.stats={...prior,liveTextures:4,contextRestores:(prior.contextRestores||0)+1};
@@ -14,6 +16,9 @@ let decoderWorker,decoderStats;
 
 let engine, canvas, context, timer, audio, pcm, nativeAudio, epoch = -1, forwarded = 0;
 let renderMs=0,copyMs=0,maxRenderMs=0;
+let profileEnabled=false;
+const emptyProfile=()=>({ticks:0,renderFrames:0,renderNulls:0,renderFrameMs:0,renderNullMs:0,audioMs:0,eventMs:0,imageMs:0,wasmCopyMs:0,alphaMs:0,putImageDataMs:0,presentedMs:0,imageAllocations:0,workerMessages:0,ioMessages:0,diagnosticsPosts:0,diagnosticsMs:0});
+let profile=emptyProfile();
 let rendered = 0, sourceRendered = 0, ticks = 0, force = true, closing = false, presentedPosition=0, frameImage, measureOutput=false, wasWhite=false;
 let ioWorker,ioStats,ioReady,ioClose,ioSession=0,pendingTarget=null,restarted=false,position=0;
 let internalId=0x80000000,demuxFormat='',seekPrerollSeconds=0;
@@ -33,12 +38,14 @@ function releaseSeek(){if(pendingTarget!==null&&restarted&&Math.abs(position-pen
 async function closeIO(){if(!ioWorker)return;const old=ioWorker;engine._web_io_cancel();await new Promise(resolve=>{ioClose=resolve;old.postMessage({type:'close'});setTimeout(resolve,1500);});old.terminate();ioWorker=null;ioClose=null;engine.ccall('web_io_root',null,['number','string'],[0,'']);}
 async function openRemote(data){
   sourceRendered=0;
+  activePresenter=uploader?'pending':'rgb';yuvRejectionReason=uploader?null:(yuvRejectionReason??'forced-rgb');
   await closeIO();
   const pointer=engine._web_io_ptr();
   ioWorker=new Worker(new URL('./io-worker.js',import.meta.url),{type:'module'});
   const info=await new Promise((resolve,reject)=>{
     const timeout=setTimeout(()=>reject(Error('Remote open timed out')),20000);
     ioWorker.onmessage=({data:message})=>{
+      if(profileEnabled)profile.ioMessages++;
       if(message.type==='ready'){clearTimeout(timeout);resolve(message.info);}
       else if(message.type==='error'){clearTimeout(timeout);reject(Error(message.message));post({type:'error',id:data.id,message:message.message});}
       else if(message.type==='stats')ioStats=message.stats;
@@ -91,7 +98,10 @@ function pumpAudio() {
 function tick() {
   if (closing) return;
   try {
+    const audioStart=profileEnabled?performance.now():0;
     pumpAudio();
+    if(profileEnabled)profile.audioMs+=performance.now()-audioStart;
+    const eventStart=profileEnabled?performance.now():0;
     for (let i = 0; i < 64; i++) {
       const ptr = engine._web_event();
       if (!ptr) break;
@@ -118,21 +128,31 @@ function tick() {
       if(event.event==='log-message')post({type:'log',message:event.prefix+': '+event.text});
       post({type:'event', event});
     }
+    if(profileEnabled)profile.eventMs+=performance.now()-eventStart;
     if(uploader?.lost)return;
     const renderStart=performance.now();
     const ptr = engine._web_render(canvas.width, canvas.height, +force);
     const renderDuration=performance.now()-renderStart;
+    if(profileEnabled){profile.ticks++;profile[ptr?'renderFrames':'renderNulls']++;profile[ptr?'renderFrameMs':'renderNullMs']+=renderDuration;}
     force = false;
     if (ptr && pendingTarget===null) {
       renderMs+=renderDuration;maxRenderMs=Math.max(maxRenderMs,renderDuration);const copyStart=performance.now();
       if(!uploader){
-      if(!frameImage||frameImage.width!==canvas.width||frameImage.height!==canvas.height)frameImage=new ImageData(canvas.width,canvas.height);
+      const imageStart=profileEnabled?performance.now():0;
+      if(!frameImage||frameImage.width!==canvas.width||frameImage.height!==canvas.height){frameImage=new ImageData(canvas.width,canvas.height);if(profileEnabled)profile.imageAllocations++;}
+      if(profileEnabled)profile.imageMs+=performance.now()-imageStart;
+      const wasmCopyStart=profileEnabled?performance.now():0;
       const bytes=frameImage.data;bytes.set(engine.HEAPU8.subarray(ptr,ptr+bytes.length));
+      const alphaStart=profileEnabled?performance.now():0;
+      if(profileEnabled)profile.wasmCopyMs+=alphaStart-wasmCopyStart;
       for (let i = 3; i < bytes.length; i += 4) bytes[i] = 255;
+      const putStart=profileEnabled?performance.now():0;
+      if(profileEnabled)profile.alphaMs+=putStart-alphaStart;
       context.putImageData(frameImage, 0, 0);
+      if(profileEnabled)profile.putImageDataMs+=performance.now()-putStart;
       if(measureOutput){const at=(8*canvas.width+8)*4;const white=bytes[at]>225&&bytes[at+1]>225&&bytes[at+2]>225;if(white&&!wasWhite)post({type:'output',data:{kind:'flash',wallTime:performance.timeOrigin+performance.now(),position}});wasWhite=white;}
       }
-      copyMs+=performance.now()-copyStart;engine._web_presented();
+      copyMs+=performance.now()-copyStart;const presentedStart=profileEnabled?performance.now():0;engine._web_presented();if(profileEnabled)profile.presentedMs+=performance.now()-presentedStart;
       rendered++;sourceRendered++;presentedPosition=position;
       if(previewSnapshot){
         const id=previewSnapshot;previewSnapshot=undefined;
@@ -143,22 +163,30 @@ function tick() {
       }
     }
     ticks++;
-    if(performance.now()>=nextDiagnostics||(ptr&&sourceRendered<=5)){nextDiagnostics=performance.now()+200;post({type:'diagnostics', data:{softwarePresenter:uploader?'experimental-yuv':'rgb',yuv:uploader?{...uploader.stats}:undefined,pumpTicks:ticks,rendered,renderMs,copyMs,maxRenderMs, heapBytes:engine.HEAPU8.byteLength, epoch, path:'wasm', decoder:decoderStats?.active?'webcodecs':'software',decoderStats, demuxFormat,seekPrerollSeconds,presentedPosition, ioPending:(Atomics.load(engine.HEAPU32,engine._web_io_ptr()>>>2)&7)===1, ioSerial:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+1), interruptions:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+14), io:ioStats, seeking:pendingTarget!==null, position, queuedFrames:(Atomics.load(audio,0)-Atomics.load(audio,1))>>>0}});}
+    if(performance.now()>=nextDiagnostics||(ptr&&sourceRendered<=5)){const diagnosticsStart=profileEnabled?performance.now():0;nextDiagnostics=performance.now()+200;post({type:'diagnostics', data:{softwarePresenter:activePresenter,softwarePresenterPolicy:presenterPolicy,yuvRejectionReason,yuv:uploader?{...uploader.stats}:undefined,profile:profileEnabled?{...profile}:undefined,pumpTicks:ticks,rendered,renderMs,copyMs,maxRenderMs, heapBytes:engine.HEAPU8.byteLength, epoch, path:'wasm', decoder:decoderStats?.active?'webcodecs':'software',decoderStats, demuxFormat,seekPrerollSeconds,presentedPosition, ioPending:(Atomics.load(engine.HEAPU32,engine._web_io_ptr()>>>2)&7)===1, ioSerial:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+1), interruptions:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+14), io:ioStats, seeking:pendingTarget!==null, position, queuedFrames:(Atomics.load(audio,0)-Atomics.load(audio,1))>>>0}});if(profileEnabled){profile.diagnosticsPosts++;profile.diagnosticsMs+=performance.now()-diagnosticsStart;}}
   } catch (error) {pumpFailed=true;clearInterval(timer);post({type:'error',message:String(error.stack || error)}); }
 }
 self.onmessage = async ({data}) => {
+  if(profileEnabled)profile.workerMessages++;
   try {
     if (data.type === 'init') {
       if (data.disableBrowserCodecs) for (const name of ['VideoDecoder','AudioDecoder','VideoFrame']) Object.defineProperty(globalThis,name,{value:undefined, configurable:true});
       measureOutput=!!data.measureOutput;
       canvas = data.canvas;
-      if(data.softwarePresenter==='experimental-yuv'){({YUVPresenter}=await import('./yuv-presenter.js'));installPresenter(canvas);}else context=canvas.getContext('2d',{alpha:false});
+      presenterPolicy=data.softwarePresenter??'auto';
+      if(presenterPolicy!=='rgb'){
+        ({YUVPresenter}=await import('./yuv-presenter.js'));
+        try{installPresenter(canvas);}catch(error){
+          if(!String(error).includes('WebGL2 unavailable'))throw error;
+          context=canvas.getContext('2d',{alpha:false});activePresenter='rgb';yuvRejectionReason='webgl2-unavailable';
+        }
+      }else {context=canvas.getContext('2d',{alpha:false});activePresenter='rgb';yuvRejectionReason='forced-rgb';}
       audio = new Int32Array(data.audio, 0, 16);
       pcm = new Float32Array(data.audio, 64);
       if(data.decoder!=='software')throw Error('This build supports software decoding only');
       const createEngine=(await import(uploader?'./engine-software-yuv/player.mjs':'./engine-software-full/player.mjs')).default;
-      engine = await createEngine({...preparedEngine(data.compiledWasm),printErr:message=>post({type:'log',message}),print:message=>post({type:'log',message})});
-      if(uploader){engine.failOutput=message=>{pumpFailed=true;post({type:'error',message});};engine.drawYUV=d=>{try{uploader.draw(engine,d);}catch(e){engine.failOutput(String(e));}};engine.drawRGB=(...a)=>{try{uploader.drawRGB(engine,...a);}catch(e){engine.failOutput(String(e));}};}
+      engine = await createEngine({...preparedEngine(uploader||presenterPolicy==='rgb'?data.compiledWasm:undefined),printErr:message=>post({type:'log',message}),print:message=>post({type:'log',message})});
+      if(uploader){engine.failOutput=message=>{pumpFailed=true;post({type:'error',message});};engine.drawYUV=d=>{try{uploader.draw(engine,d);activePresenter='yuv';yuvRejectionReason=null;}catch(e){engine.failOutput(String(e));}};engine.drawRGB=(ptr,w,h,stride,pts,reason,rotate,swapped,separateOSD)=>{try{uploader.drawRGB(engine,ptr,w,h,stride,pts,rotate,swapped,separateOSD);activePresenter='rgb';yuvRejectionReason=yuvRejections[reason]??'unknown';}catch(e){engine.failOutput(String(e));}};}
       if (closing) return;
       engine.FS.mkdir('/fonts');
       engine.FS.writeFile('/fonts/DejaVuSans.ttf', new Uint8Array(data.font));
@@ -189,6 +217,8 @@ self.onmessage = async ({data}) => {
       schedulePump();
       post({type:'ready', browserCodecsAbsent:['VideoDecoder','AudioDecoder','VideoFrame'].every(name=>typeof globalThis[name]==='undefined')});
     } else if(data.type==='experimental-context-loss'&&uploader){const ext=uploader.gl.getExtension('WEBGL_lose_context');if(!ext)throw Error('Context loss test unavailable');ext.loseContext();setTimeout(()=>{if(!closing)ext.restoreContext();},250);
+    } else if (data.type === 'profile') {
+      profileEnabled=!!data.enabled;profile=emptyProfile();
     } else if (data.type === 'timing' && engine) {
       Atomics.store(engine.HEAPU32, (nativeAudio >>> 2) + 5, data.latencyUs);
       Atomics.store(engine.HEAPU32, (nativeAudio >>> 2) + 6, +data.running);

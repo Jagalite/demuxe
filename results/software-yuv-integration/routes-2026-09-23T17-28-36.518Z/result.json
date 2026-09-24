@@ -1,0 +1,2135 @@
+[
+  {
+    "name": "mpeg2ts",
+    "setting": "auto",
+    "chrome": "153.0.8010.53",
+    "state": {
+      "mode": "software",
+      "automatic": true,
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "selection": {
+        "automatic": true,
+        "attempts": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct: Browser canPlayType rejects selected video mpeg2video + audio ac-3 for video/mp2t"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux-mpv: mpv subtitle service requires qualified embedded file subtitles"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux: Demuxe packet-copy AC3 initialization is not qualified; use direct playback or decoded audio"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "shaka-mse: Shaka is only used for adaptive HLS/DASH sources"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid: Demuxe has no browser bridge configuration contract for mpeg2video"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for mpeg2video"
+          },
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "backend": {
+        "softwarePresenter": "rgb",
+        "pumpTicks": 51,
+        "rendered": 4,
+        "renderMs": 26.615000009536743,
+        "copyMs": 13.114999994635582,
+        "maxRenderMs": 10.75500001013279,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "mpegts",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 0.03866666666666667,
+        "ioPending": false,
+        "ioSerial": 248,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 14930064,
+          "requests": 57,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 14942208,
+          "peakCacheBytes": 14942208,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "20393112",
+          "reads": 230,
+          "seeks": 3,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.03866666666666667,
+        "queuedFrames": 7680,
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ],
+          "settings": {
+            "cache": "yes",
+            "demuxer-max-bytes": "33554432",
+            "demuxer-max-back-bytes": "8388608",
+            "demuxer-cache-state": {
+              "cache-end": 1.8560000000000003,
+              "reader-pts": 2.220446049250313e-16,
+              "cache-duration": 1.856,
+              "eof": false,
+              "underrun": false,
+              "idle": false,
+              "total-bytes": 1028808,
+              "fw-bytes": 982464,
+              "raw-input-rate": 2570906,
+              "debug-low-level-seeks": 0,
+              "debug-byte-level-seeks": 2,
+              "debug-ts-last": 3.3666666666666667,
+              "ts-per-stream": [
+                {
+                  "type": "video",
+                  "cache-duration": 1.9333333333333333,
+                  "reader-pts": 1.4333333333333333,
+                  "cache-end": 3.3666666666666667
+                },
+                {
+                  "type": "audio",
+                  "cache-duration": 1.856,
+                  "reader-pts": 1.4280000000000002,
+                  "cache-end": 3.2840000000000003
+                }
+              ],
+              "bof-cached": true,
+              "eof-cached": false,
+              "seekable-ranges": [
+                {
+                  "start": 2.220446049250313e-16,
+                  "end": 1.572
+                }
+              ]
+            },
+            "paused-for-cache": false,
+            "cache-buffering-state": 100
+          }
+        }
+      },
+      "videoParams": {
+        "pixelformat": "yuv420p",
+        "average-bpp": 12,
+        "w": 960,
+        "h": 540,
+        "dw": 960,
+        "dh": 540,
+        "crop-x": 0,
+        "crop-y": 0,
+        "crop-w": 960,
+        "crop-h": 540,
+        "aspect": 1.7777777777777777,
+        "aspect-name": "16:9",
+        "par": 1,
+        "sar": 1.7777777777777777,
+        "sar-name": "16:9",
+        "colormatrix": "bt.601",
+        "colorlevels": "limited",
+        "primaries": "bt.709",
+        "gamma": "bt.1886",
+        "sig-peak": 0,
+        "light": "display",
+        "chroma-location": "mpeg2/4/h264",
+        "stereo-in": "mono",
+        "rotate": 0
+      },
+      "videoCodec": "MPEG-2 video",
+      "audioCodec": "ac3",
+      "errors": []
+    },
+    "workersAfter": 1
+  },
+  {
+    "name": "mpeg2ts",
+    "setting": "rgb",
+    "chrome": "153.0.8010.53",
+    "state": {
+      "mode": "software",
+      "automatic": false,
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "selection": {
+        "automatic": false,
+        "attempts": [
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "backend": {
+        "softwarePresenter": "rgb",
+        "pumpTicks": 47,
+        "rendered": 4,
+        "renderMs": 27.34500001370907,
+        "copyMs": 14.5,
+        "maxRenderMs": 11.365000009536743,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "mpegts",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 0.03866666666666667,
+        "ioPending": true,
+        "ioSerial": 304,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 18862224,
+          "requests": 72,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 16777216,
+          "peakCacheBytes": 16777216,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "20393112",
+          "reads": 288,
+          "seeks": 3,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.03866666666666667,
+        "queuedFrames": 6144,
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ],
+          "settings": {
+            "cache": "yes",
+            "demuxer-max-bytes": "33554432",
+            "demuxer-max-back-bytes": "8388608",
+            "demuxer-cache-state": {
+              "cache-end": 1.7600000000000002,
+              "reader-pts": 2.220446049250313e-16,
+              "cache-duration": 1.76,
+              "eof": false,
+              "underrun": false,
+              "idle": false,
+              "total-bytes": 963792,
+              "fw-bytes": 917448,
+              "raw-input-rate": 2966306,
+              "debug-low-level-seeks": 0,
+              "debug-byte-level-seeks": 2,
+              "debug-ts-last": 3.2333333333333334,
+              "ts-per-stream": [
+                {
+                  "type": "video",
+                  "cache-duration": 1.8,
+                  "reader-pts": 1.4333333333333333,
+                  "cache-end": 3.2333333333333334
+                },
+                {
+                  "type": "audio",
+                  "cache-duration": 1.76,
+                  "reader-pts": 1.4280000000000002,
+                  "cache-end": 3.188
+                }
+              ],
+              "bof-cached": true,
+              "eof-cached": false,
+              "seekable-ranges": [
+                {
+                  "start": 2.220446049250313e-16,
+                  "end": 1.572
+                }
+              ]
+            },
+            "paused-for-cache": false,
+            "cache-buffering-state": 100
+          }
+        }
+      },
+      "videoParams": {
+        "pixelformat": "yuv420p",
+        "average-bpp": 12,
+        "w": 960,
+        "h": 540,
+        "dw": 960,
+        "dh": 540,
+        "crop-x": 0,
+        "crop-y": 0,
+        "crop-w": 960,
+        "crop-h": 540,
+        "aspect": 1.7777777777777777,
+        "aspect-name": "16:9",
+        "par": 1,
+        "sar": 1.7777777777777777,
+        "sar-name": "16:9",
+        "colormatrix": "bt.601",
+        "colorlevels": "limited",
+        "primaries": "bt.709",
+        "gamma": "bt.1886",
+        "sig-peak": 0,
+        "light": "display",
+        "chroma-location": "mpeg2/4/h264",
+        "stereo-in": "mono",
+        "rotate": 0
+      },
+      "videoCodec": "MPEG-2 video",
+      "audioCodec": "ac3",
+      "errors": []
+    },
+    "workersAfter": 1
+  },
+  {
+    "name": "mpeg2ts",
+    "setting": "yuv",
+    "chrome": "153.0.8010.53",
+    "state": {
+      "mode": "software",
+      "automatic": false,
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "selection": {
+        "automatic": false,
+        "attempts": [
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "backend": {
+        "softwarePresenter": "experimental-yuv",
+        "yuv": {
+          "fallbackFrames": 0,
+          "rgbCopyBytes": 0,
+          "frames": 3,
+          "videoUploads": 9,
+          "videoUploadBytes": 2332800,
+          "planeCopyBytes": 2332800,
+          "stagingAllocations": 3,
+          "rgbAllocations": 0,
+          "subtitleUploads": 0,
+          "subtitleUploadBytes": 0,
+          "videoReadbacks": 0,
+          "liveTextures": 4,
+          "peakStagingBytes": 777600,
+          "drawMs": 3.7250000089406967,
+          "planeCopyMs": 0.6649999767541885,
+          "uploadSubmitMs": 0.4749999940395355,
+          "shaderSubmitMs": 0.12999999523162842,
+          "overlayMs": 0.15000000596046448,
+          "lastPts": 0.03866666666666667
+        },
+        "pumpTicks": 48,
+        "rendered": 4,
+        "renderMs": 6.079999998211861,
+        "copyMs": 0,
+        "maxRenderMs": 4.1099999994039536,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "mpegts",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 0.03866666666666667,
+        "ioPending": true,
+        "ioSerial": 248,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 15978640,
+          "requests": 61,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 15990784,
+          "peakCacheBytes": 15990784,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "20393112",
+          "reads": 245,
+          "seeks": 3,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.03866666666666667,
+        "queuedFrames": 6144,
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ],
+          "settings": {
+            "cache": "yes",
+            "demuxer-max-bytes": "33554432",
+            "demuxer-max-back-bytes": "8388608",
+            "demuxer-cache-state": {
+              "cache-end": 1.3760000000000003,
+              "reader-pts": 2.220446049250313e-16,
+              "cache-duration": 1.3760000000000001,
+              "eof": false,
+              "underrun": false,
+              "idle": false,
+              "total-bytes": 768376,
+              "fw-bytes": 722032,
+              "raw-input-rate": 3003855,
+              "debug-low-level-seeks": 0,
+              "debug-byte-level-seeks": 2,
+              "debug-ts-last": 2.8666666666666667,
+              "ts-per-stream": [
+                {
+                  "type": "video",
+                  "cache-duration": 1.4333333333333333,
+                  "reader-pts": 1.4333333333333333,
+                  "cache-end": 2.8666666666666667
+                },
+                {
+                  "type": "audio",
+                  "cache-duration": 1.3760000000000001,
+                  "reader-pts": 1.4280000000000002,
+                  "cache-end": 2.8040000000000003
+                }
+              ],
+              "bof-cached": true,
+              "eof-cached": false,
+              "seekable-ranges": [
+                {
+                  "start": 2.220446049250313e-16,
+                  "end": 1.1720000000000002
+                }
+              ]
+            },
+            "paused-for-cache": false,
+            "cache-buffering-state": 100
+          }
+        }
+      },
+      "videoParams": {
+        "pixelformat": "yuv420p",
+        "average-bpp": 12,
+        "w": 960,
+        "h": 540,
+        "dw": 960,
+        "dh": 540,
+        "crop-x": 0,
+        "crop-y": 0,
+        "crop-w": 960,
+        "crop-h": 540,
+        "aspect": 1.7777777777777777,
+        "aspect-name": "16:9",
+        "par": 1,
+        "sar": 1.7777777777777777,
+        "sar-name": "16:9",
+        "colormatrix": "bt.601",
+        "colorlevels": "limited",
+        "primaries": "bt.709",
+        "gamma": "bt.1886",
+        "sig-peak": 0,
+        "light": "display",
+        "chroma-location": "mpeg2/4/h264",
+        "stereo-in": "mono",
+        "rotate": 0
+      },
+      "videoCodec": "MPEG-2 video",
+      "audioCodec": "ac3",
+      "errors": []
+    },
+    "workersAfter": 1
+  },
+  {
+    "name": "mpeg2ps",
+    "setting": "auto",
+    "chrome": "153.0.8010.53",
+    "state": {
+      "mode": "software",
+      "automatic": true,
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "selection": {
+        "automatic": true,
+        "attempts": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct: Selected audio has no browser capability mapping; preparation or decoded audio is required"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux-mpv: mpv subtitle service requires qualified embedded file subtitles"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux: Demuxe has no packet-copy video construction contract for mpeg2video"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "shaka-mse: Shaka is only used for adaptive HLS/DASH sources"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid: Demuxe has no browser bridge configuration contract for mpeg2video"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for mpeg2video"
+          },
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "backend": {
+        "softwarePresenter": "rgb",
+        "pumpTicks": 48,
+        "rendered": 4,
+        "renderMs": 26.820000007748604,
+        "copyMs": 13.510000005364418,
+        "maxRenderMs": 11.29500000178814,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "mpeg",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 0.04335555555555556,
+        "ioPending": true,
+        "ioSerial": 267,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 15978640,
+          "requests": 61,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 15990784,
+          "peakCacheBytes": 15990784,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "19894272",
+          "reads": 247,
+          "seeks": 3,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.04335555555555556,
+        "queuedFrames": 7424,
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ],
+          "settings": {
+            "cache": "yes",
+            "demuxer-max-bytes": "33554432",
+            "demuxer-max-back-bytes": "8388608",
+            "demuxer-cache-state": {
+              "cache-end": 1.6560001111111111,
+              "reader-pts": 1.1111111120065686e-7,
+              "cache-duration": 1.656,
+              "eof": false,
+              "underrun": false,
+              "idle": false,
+              "total-bytes": 1083640,
+              "fw-bytes": 1037584,
+              "raw-input-rate": 3997069,
+              "debug-low-level-seeks": 0,
+              "debug-byte-level-seeks": 2,
+              "debug-ts-last": 2.566666666666667,
+              "ts-per-stream": [
+                {
+                  "type": "video",
+                  "cache-duration": 2.0333333333333337,
+                  "reader-pts": 0.5333333333333333,
+                  "cache-end": 2.566666666666667
+                },
+                {
+                  "type": "audio",
+                  "cache-duration": 1.6560000000000001,
+                  "reader-pts": 0.5233111111111112,
+                  "cache-end": 2.179311111111111
+                }
+              ],
+              "bof-cached": true,
+              "eof-cached": false,
+              "seekable-ranges": [
+                {
+                  "start": 1.1111111120065686e-7,
+                  "end": 1.632000111111111
+                }
+              ]
+            },
+            "paused-for-cache": false,
+            "cache-buffering-state": 100
+          }
+        }
+      },
+      "videoParams": {
+        "pixelformat": "yuv420p",
+        "average-bpp": 12,
+        "w": 960,
+        "h": 540,
+        "dw": 960,
+        "dh": 540,
+        "crop-x": 0,
+        "crop-y": 0,
+        "crop-w": 960,
+        "crop-h": 540,
+        "aspect": 1.7777777777777777,
+        "aspect-name": "16:9",
+        "par": 1,
+        "sar": 1.7777777777777777,
+        "sar-name": "16:9",
+        "colormatrix": "bt.601",
+        "colorlevels": "limited",
+        "primaries": "bt.709",
+        "gamma": "bt.1886",
+        "sig-peak": 0,
+        "light": "display",
+        "chroma-location": "mpeg2/4/h264",
+        "stereo-in": "mono",
+        "rotate": 0
+      },
+      "videoCodec": "MPEG-2 video",
+      "audioCodec": "mp2",
+      "errors": []
+    },
+    "workersAfter": 1
+  },
+  {
+    "name": "mpeg2ps",
+    "setting": "rgb",
+    "chrome": "153.0.8010.53",
+    "state": {
+      "mode": "software",
+      "automatic": false,
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "selection": {
+        "automatic": false,
+        "attempts": [
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "backend": {
+        "softwarePresenter": "rgb",
+        "pumpTicks": 47,
+        "rendered": 4,
+        "renderMs": 26.63500002026558,
+        "copyMs": 13.529999986290932,
+        "maxRenderMs": 10.815000012516975,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "mpeg",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 0.04335555555555556,
+        "ioPending": true,
+        "ioSerial": 303,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 18075792,
+          "requests": 69,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 16777216,
+          "peakCacheBytes": 16777216,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "19894272",
+          "reads": 282,
+          "seeks": 3,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.04335555555555556,
+        "queuedFrames": 5376,
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ],
+          "settings": {
+            "cache": "yes",
+            "demuxer-max-bytes": "33554432",
+            "demuxer-max-back-bytes": "8388608",
+            "demuxer-cache-state": {
+              "cache-end": 1.6560001111111111,
+              "reader-pts": 1.1111111120065686e-7,
+              "cache-duration": 1.656,
+              "eof": false,
+              "underrun": false,
+              "idle": false,
+              "total-bytes": 1083640,
+              "fw-bytes": 1037584,
+              "raw-input-rate": 3860902,
+              "debug-low-level-seeks": 0,
+              "debug-byte-level-seeks": 2,
+              "debug-ts-last": 2.566666666666667,
+              "ts-per-stream": [
+                {
+                  "type": "video",
+                  "cache-duration": 2.0333333333333337,
+                  "reader-pts": 0.5333333333333333,
+                  "cache-end": 2.566666666666667
+                },
+                {
+                  "type": "audio",
+                  "cache-duration": 1.6560000000000001,
+                  "reader-pts": 0.5233111111111112,
+                  "cache-end": 2.179311111111111
+                }
+              ],
+              "bof-cached": true,
+              "eof-cached": false,
+              "seekable-ranges": [
+                {
+                  "start": 1.1111111120065686e-7,
+                  "end": 1.632000111111111
+                }
+              ]
+            },
+            "paused-for-cache": false,
+            "cache-buffering-state": 100
+          }
+        }
+      },
+      "videoParams": {
+        "pixelformat": "yuv420p",
+        "average-bpp": 12,
+        "w": 960,
+        "h": 540,
+        "dw": 960,
+        "dh": 540,
+        "crop-x": 0,
+        "crop-y": 0,
+        "crop-w": 960,
+        "crop-h": 540,
+        "aspect": 1.7777777777777777,
+        "aspect-name": "16:9",
+        "par": 1,
+        "sar": 1.7777777777777777,
+        "sar-name": "16:9",
+        "colormatrix": "bt.601",
+        "colorlevels": "limited",
+        "primaries": "bt.709",
+        "gamma": "bt.1886",
+        "sig-peak": 0,
+        "light": "display",
+        "chroma-location": "mpeg2/4/h264",
+        "stereo-in": "mono",
+        "rotate": 0
+      },
+      "videoCodec": "MPEG-2 video",
+      "audioCodec": "mp2",
+      "errors": []
+    },
+    "workersAfter": 1
+  },
+  {
+    "name": "mpeg2ps",
+    "setting": "yuv",
+    "chrome": "153.0.8010.53",
+    "state": {
+      "mode": "software",
+      "automatic": false,
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "selection": {
+        "automatic": false,
+        "attempts": [
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "backend": {
+        "softwarePresenter": "experimental-yuv",
+        "yuv": {
+          "fallbackFrames": 0,
+          "rgbCopyBytes": 0,
+          "frames": 3,
+          "videoUploads": 9,
+          "videoUploadBytes": 2332800,
+          "planeCopyBytes": 2332800,
+          "stagingAllocations": 3,
+          "rgbAllocations": 0,
+          "subtitleUploads": 0,
+          "subtitleUploadBytes": 0,
+          "videoReadbacks": 0,
+          "liveTextures": 4,
+          "peakStagingBytes": 777600,
+          "drawMs": 3.3299999982118607,
+          "planeCopyMs": 0.5849999934434891,
+          "uploadSubmitMs": 0.5,
+          "shaderSubmitMs": 0.14000000059604645,
+          "overlayMs": 0.1550000011920929,
+          "lastPts": 0.04335555555555556
+        },
+        "pumpTicks": 46,
+        "rendered": 4,
+        "renderMs": 5.520000010728836,
+        "copyMs": 0.005000010132789612,
+        "maxRenderMs": 3.8900000005960464,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "mpeg",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 0.04335555555555556,
+        "ioPending": true,
+        "ioSerial": 263,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 16765072,
+          "requests": 64,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 16777216,
+          "peakCacheBytes": 16777216,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "19894272",
+          "reads": 259,
+          "seeks": 3,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.04335555555555556,
+        "queuedFrames": 6144,
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ],
+          "settings": {
+            "cache": "yes",
+            "demuxer-max-bytes": "33554432",
+            "demuxer-max-back-bytes": "8388608",
+            "demuxer-cache-state": {
+              "cache-end": 1.6560001111111111,
+              "reader-pts": 1.1111111120065686e-7,
+              "cache-duration": 1.656,
+              "eof": false,
+              "underrun": false,
+              "idle": false,
+              "total-bytes": 1051880,
+              "fw-bytes": 1005824,
+              "raw-input-rate": 3865160,
+              "debug-low-level-seeks": 0,
+              "debug-byte-level-seeks": 2,
+              "debug-ts-last": 2.179311111111111,
+              "ts-per-stream": [
+                {
+                  "type": "video",
+                  "cache-duration": 1.9666666666666668,
+                  "reader-pts": 0.5333333333333333,
+                  "cache-end": 2.5
+                },
+                {
+                  "type": "audio",
+                  "cache-duration": 1.6560000000000001,
+                  "reader-pts": 0.5233111111111112,
+                  "cache-end": 2.179311111111111
+                }
+              ],
+              "bof-cached": true,
+              "eof-cached": false,
+              "seekable-ranges": [
+                {
+                  "start": 1.1111111120065686e-7,
+                  "end": 1.632000111111111
+                }
+              ]
+            },
+            "paused-for-cache": false,
+            "cache-buffering-state": 100
+          }
+        }
+      },
+      "videoParams": {
+        "pixelformat": "yuv420p",
+        "average-bpp": 12,
+        "w": 960,
+        "h": 540,
+        "dw": 960,
+        "dh": 540,
+        "crop-x": 0,
+        "crop-y": 0,
+        "crop-w": 960,
+        "crop-h": 540,
+        "aspect": 1.7777777777777777,
+        "aspect-name": "16:9",
+        "par": 1,
+        "sar": 1.7777777777777777,
+        "sar-name": "16:9",
+        "colormatrix": "bt.601",
+        "colorlevels": "limited",
+        "primaries": "bt.709",
+        "gamma": "bt.1886",
+        "sig-peak": 0,
+        "light": "display",
+        "chroma-location": "mpeg2/4/h264",
+        "stereo-in": "mono",
+        "rotate": 0
+      },
+      "videoCodec": "MPEG-2 video",
+      "audioCodec": "mp2",
+      "errors": []
+    },
+    "workersAfter": 1
+  },
+  {
+    "name": "mpeg4avi",
+    "setting": "auto",
+    "chrome": "153.0.8010.53",
+    "state": {
+      "mode": "software",
+      "automatic": true,
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "selection": {
+        "automatic": true,
+        "attempts": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+          },
+          {
+            "mode": "native",
+            "outcome": "failed",
+            "reason": "native-direct: PlayerError: Native media operation failed (4): PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux-mpv: mpv subtitle service requires qualified embedded file subtitles"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux: Demuxe has no packet-copy video construction contract for mpeg4"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "shaka-mse: Shaka is only used for adaptive HLS/DASH sources"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid: Demuxe has no browser bridge configuration contract for mpeg4"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for mpeg4"
+          },
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "backend": {
+        "softwarePresenter": "rgb",
+        "pumpTicks": 51,
+        "rendered": 4,
+        "renderMs": 28.099999994039536,
+        "copyMs": 14.334999978542328,
+        "maxRenderMs": 11.409999996423721,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "avi",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 0.06666666666666667,
+        "ioPending": false,
+        "ioSerial": 359,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 17607272,
+          "requests": 68,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 16777216,
+          "peakCacheBytes": 16777216,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "20367298",
+          "reads": 334,
+          "seeks": 5,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.06666666666666667,
+        "queuedFrames": 6144,
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ],
+          "settings": {
+            "cache": "yes",
+            "demuxer-max-bytes": "33554432",
+            "demuxer-max-back-bytes": "8388608",
+            "demuxer-cache-state": {
+              "cache-end": 5.833333333333333,
+              "reader-pts": 0.1,
+              "cache-duration": 5.733333333333333,
+              "eof": false,
+              "underrun": false,
+              "idle": false,
+              "total-bytes": 3285504,
+              "fw-bytes": 3221312,
+              "raw-input-rate": 2242400,
+              "debug-low-level-seeks": 0,
+              "debug-byte-level-seeks": 4,
+              "debug-ts-last": 5.856,
+              "ts-per-stream": [
+                {
+                  "type": "video",
+                  "cache-duration": 5.733333333333333,
+                  "reader-pts": 0.1,
+                  "cache-end": 5.833333333333333
+                },
+                {
+                  "type": "audio",
+                  "cache-duration": 5.856,
+                  "reader-pts": 0,
+                  "cache-end": 5.856
+                }
+              ],
+              "bof-cached": true,
+              "eof-cached": false,
+              "seekable-ranges": [
+                {
+                  "start": 0,
+                  "end": 5.6
+                }
+              ]
+            },
+            "paused-for-cache": false,
+            "cache-buffering-state": 100
+          }
+        }
+      },
+      "videoParams": {
+        "pixelformat": "yuv420p",
+        "average-bpp": 12,
+        "w": 960,
+        "h": 540,
+        "dw": 960,
+        "dh": 540,
+        "crop-x": 0,
+        "crop-y": 0,
+        "crop-w": 960,
+        "crop-h": 540,
+        "aspect": 1.7777777777777777,
+        "aspect-name": "16:9",
+        "par": 1,
+        "sar": 1.7777777777777777,
+        "sar-name": "16:9",
+        "colormatrix": "bt.601",
+        "colorlevels": "limited",
+        "primaries": "bt.709",
+        "gamma": "bt.1886",
+        "sig-peak": 0,
+        "light": "display",
+        "chroma-location": "mpeg2/4/h264",
+        "stereo-in": "mono",
+        "rotate": 0
+      },
+      "videoCodec": "MPEG-4 part 2",
+      "audioCodec": "mp3",
+      "errors": []
+    },
+    "workersAfter": 1
+  },
+  {
+    "name": "mpeg4avi",
+    "setting": "rgb",
+    "chrome": "153.0.8010.53",
+    "state": {
+      "mode": "software",
+      "automatic": false,
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "selection": {
+        "automatic": false,
+        "attempts": [
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "backend": {
+        "softwarePresenter": "rgb",
+        "pumpTicks": 53,
+        "rendered": 4,
+        "renderMs": 26.724999994039536,
+        "copyMs": 13.400000005960464,
+        "maxRenderMs": 10.444999992847443,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "avi",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 0.06666666666666667,
+        "ioPending": false,
+        "ioSerial": 391,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 20410922,
+          "requests": 79,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 16777216,
+          "peakCacheBytes": 16777216,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "20367298",
+          "reads": 391,
+          "seeks": 5,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.06666666666666667,
+        "queuedFrames": 6144,
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ],
+          "settings": {
+            "cache": "yes",
+            "demuxer-max-bytes": "33554432",
+            "demuxer-max-back-bytes": "8388608",
+            "demuxer-cache-state": {
+              "cache-end": 3,
+              "reader-pts": 0.1,
+              "cache-duration": 2.9,
+              "eof": false,
+              "underrun": false,
+              "idle": false,
+              "total-bytes": 1637200,
+              "fw-bytes": 1573008,
+              "raw-input-rate": 2194475,
+              "debug-low-level-seeks": 0,
+              "debug-byte-level-seeks": 4,
+              "debug-ts-last": 3,
+              "ts-per-stream": [
+                {
+                  "type": "video",
+                  "cache-duration": 2.9,
+                  "reader-pts": 0.1,
+                  "cache-end": 3
+                },
+                {
+                  "type": "audio",
+                  "cache-duration": 3,
+                  "reader-pts": 0,
+                  "cache-end": 3
+                }
+              ],
+              "bof-cached": true,
+              "eof-cached": false,
+              "seekable-ranges": [
+                {
+                  "start": 0,
+                  "end": 2.8
+                }
+              ]
+            },
+            "paused-for-cache": false,
+            "cache-buffering-state": 100
+          }
+        }
+      },
+      "videoParams": {
+        "pixelformat": "yuv420p",
+        "average-bpp": 12,
+        "w": 960,
+        "h": 540,
+        "dw": 960,
+        "dh": 540,
+        "crop-x": 0,
+        "crop-y": 0,
+        "crop-w": 960,
+        "crop-h": 540,
+        "aspect": 1.7777777777777777,
+        "aspect-name": "16:9",
+        "par": 1,
+        "sar": 1.7777777777777777,
+        "sar-name": "16:9",
+        "colormatrix": "bt.601",
+        "colorlevels": "limited",
+        "primaries": "bt.709",
+        "gamma": "bt.1886",
+        "sig-peak": 0,
+        "light": "display",
+        "chroma-location": "mpeg2/4/h264",
+        "stereo-in": "mono",
+        "rotate": 0
+      },
+      "videoCodec": "MPEG-4 part 2",
+      "audioCodec": "mp3",
+      "errors": []
+    },
+    "workersAfter": 1
+  },
+  {
+    "name": "mpeg4avi",
+    "setting": "yuv",
+    "chrome": "153.0.8010.53",
+    "state": {
+      "mode": "software",
+      "automatic": false,
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "selection": {
+        "automatic": false,
+        "attempts": [
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "backend": {
+        "softwarePresenter": "experimental-yuv",
+        "yuv": {
+          "fallbackFrames": 0,
+          "rgbCopyBytes": 0,
+          "frames": 3,
+          "videoUploads": 9,
+          "videoUploadBytes": 2332800,
+          "planeCopyBytes": 2332800,
+          "stagingAllocations": 3,
+          "rgbAllocations": 0,
+          "subtitleUploads": 0,
+          "subtitleUploadBytes": 0,
+          "videoReadbacks": 0,
+          "liveTextures": 4,
+          "peakStagingBytes": 777600,
+          "drawMs": 3.939999997615814,
+          "planeCopyMs": 0.7099999785423279,
+          "uploadSubmitMs": 0.4650000035762787,
+          "shaderSubmitMs": 0.18000000715255737,
+          "overlayMs": 0.16500000655651093,
+          "lastPts": 0.06666666666666667
+        },
+        "pumpTicks": 54,
+        "rendered": 4,
+        "renderMs": 6.575000002980232,
+        "copyMs": 0.004999995231628418,
+        "maxRenderMs": 4.280000001192093,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "avi",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 0.06666666666666667,
+        "ioPending": true,
+        "ioSerial": 388,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 20228712,
+          "requests": 78,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 16777216,
+          "peakCacheBytes": 16777216,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "20367298",
+          "reads": 383,
+          "seeks": 5,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.06666666666666667,
+        "queuedFrames": 6656,
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ],
+          "settings": {
+            "cache": "yes",
+            "demuxer-max-bytes": "33554432",
+            "demuxer-max-back-bytes": "8388608",
+            "demuxer-cache-state": {
+              "cache-end": 3.8333333333333335,
+              "reader-pts": 0.1,
+              "cache-duration": 3.7333333333333334,
+              "eof": false,
+              "underrun": false,
+              "idle": false,
+              "total-bytes": 2131400,
+              "fw-bytes": 2067208,
+              "raw-input-rate": 2283416,
+              "debug-low-level-seeks": 0,
+              "debug-byte-level-seeks": 4,
+              "debug-ts-last": 3.8333333333333335,
+              "ts-per-stream": [
+                {
+                  "type": "video",
+                  "cache-duration": 3.7333333333333334,
+                  "reader-pts": 0.1,
+                  "cache-end": 3.8333333333333335
+                },
+                {
+                  "type": "audio",
+                  "cache-duration": 3.8160000000000003,
+                  "reader-pts": 0,
+                  "cache-end": 3.8160000000000003
+                }
+              ],
+              "bof-cached": true,
+              "eof-cached": false,
+              "seekable-ranges": [
+                {
+                  "start": 0,
+                  "end": 3.6
+                }
+              ]
+            },
+            "paused-for-cache": false,
+            "cache-buffering-state": 100
+          }
+        }
+      },
+      "videoParams": {
+        "pixelformat": "yuv420p",
+        "average-bpp": 12,
+        "w": 960,
+        "h": 540,
+        "dw": 960,
+        "dh": 540,
+        "crop-x": 0,
+        "crop-y": 0,
+        "crop-w": 960,
+        "crop-h": 540,
+        "aspect": 1.7777777777777777,
+        "aspect-name": "16:9",
+        "par": 1,
+        "sar": 1.7777777777777777,
+        "sar-name": "16:9",
+        "colormatrix": "bt.601",
+        "colorlevels": "limited",
+        "primaries": "bt.709",
+        "gamma": "bt.1886",
+        "sig-peak": 0,
+        "light": "display",
+        "chroma-location": "mpeg2/4/h264",
+        "stereo-in": "mono",
+        "rotate": 0
+      },
+      "videoCodec": "MPEG-4 part 2",
+      "audioCodec": "mp3",
+      "errors": []
+    },
+    "workersAfter": 1
+  },
+  {
+    "name": "prores",
+    "setting": "auto",
+    "chrome": "153.0.8010.53",
+    "state": {
+      "mode": "software",
+      "automatic": true,
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "selection": {
+        "automatic": true,
+        "attempts": [
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct-mpv: mpv subtitle service requires qualified embedded file subtitles"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-direct: Selected audio has no browser capability mapping; preparation or decoded audio is required"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux-mpv: mpv subtitle service requires qualified embedded file subtitles"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-remux: Demuxe has no packet-copy video construction contract for prores"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "shaka-mse: Shaka is only used for adaptive HLS/DASH sources"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-flac: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "native",
+            "outcome": "skipped",
+            "reason": "native-opus: Audio adaptation requires explicit profile or qualified automatic lossless policy"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid: Demuxe has no browser bridge configuration contract for prores"
+          },
+          {
+            "mode": "hybrid",
+            "outcome": "skipped",
+            "reason": "hybrid-audio-filter: Demuxe has no browser bridge configuration contract for prores"
+          },
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "backend": {
+        "softwarePresenter": "rgb",
+        "pumpTicks": 45,
+        "rendered": 4,
+        "renderMs": 25.024999976158142,
+        "copyMs": 12.309999987483025,
+        "maxRenderMs": 10.629999995231628,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "mov,mp4,m4a,3gp,3g2,mj2",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 0.041666666666666664,
+        "ioPending": false,
+        "ioSerial": 56,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 11975752,
+          "requests": 47,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 12320768,
+          "peakCacheBytes": 12320768,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "11968877",
+          "reads": 56,
+          "seeks": 3,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.041666666666666664,
+        "queuedFrames": 5376,
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ],
+          "settings": {
+            "cache": "yes",
+            "demuxer-max-bytes": "33554432",
+            "demuxer-max-back-bytes": "8388608",
+            "demuxer-cache-state": {
+              "cache-duration": 0,
+              "eof": false,
+              "underrun": true,
+              "idle": false,
+              "total-bytes": 0,
+              "fw-bytes": 0,
+              "raw-input-rate": 663685,
+              "debug-low-level-seeks": 0,
+              "debug-byte-level-seeks": 1,
+              "ts-per-stream": [],
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            },
+            "paused-for-cache": false,
+            "cache-buffering-state": 100
+          }
+        }
+      },
+      "videoParams": {
+        "pixelformat": "yuv422p10",
+        "average-bpp": 32,
+        "w": 640,
+        "h": 360,
+        "dw": 640,
+        "dh": 360,
+        "crop-x": 0,
+        "crop-y": 0,
+        "crop-w": 640,
+        "crop-h": 360,
+        "aspect": 1.7777777777777777,
+        "aspect-name": "16:9",
+        "par": 1,
+        "sar": 1.7777777777777777,
+        "sar-name": "16:9",
+        "colormatrix": "bt.601",
+        "colorlevels": "limited",
+        "primaries": "bt.709",
+        "gamma": "bt.1886",
+        "sig-peak": 0,
+        "light": "display",
+        "chroma-location": "mpeg2/4/h264",
+        "stereo-in": "mono",
+        "rotate": 0
+      },
+      "videoCodec": "Apple ProRes (iCodec Pro)",
+      "audioCodec": "pcm_s16le",
+      "errors": []
+    },
+    "workersAfter": 1
+  },
+  {
+    "name": "prores",
+    "setting": "rgb",
+    "chrome": "153.0.8010.53",
+    "state": {
+      "mode": "software",
+      "automatic": false,
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "selection": {
+        "automatic": false,
+        "attempts": [
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "backend": {
+        "softwarePresenter": "rgb",
+        "pumpTicks": 46,
+        "rendered": 4,
+        "renderMs": 28.75,
+        "copyMs": 14.65999998152256,
+        "maxRenderMs": 10.91499999165535,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "mov,mp4,m4a,3gp,3g2,mj2",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 0.041666666666666664,
+        "ioPending": false,
+        "ioSerial": 56,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 11975752,
+          "requests": 47,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 12320768,
+          "peakCacheBytes": 12320768,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "11968877",
+          "reads": 56,
+          "seeks": 3,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.041666666666666664,
+        "queuedFrames": 7168,
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ],
+          "settings": {
+            "cache": "yes",
+            "demuxer-max-bytes": "33554432",
+            "demuxer-max-back-bytes": "8388608",
+            "demuxer-cache-state": {
+              "cache-duration": 0,
+              "eof": false,
+              "underrun": true,
+              "idle": false,
+              "total-bytes": 0,
+              "fw-bytes": 0,
+              "raw-input-rate": 684704,
+              "debug-low-level-seeks": 0,
+              "debug-byte-level-seeks": 1,
+              "ts-per-stream": [],
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            },
+            "paused-for-cache": false,
+            "cache-buffering-state": 100
+          }
+        }
+      },
+      "videoParams": {
+        "pixelformat": "yuv422p10",
+        "average-bpp": 32,
+        "w": 640,
+        "h": 360,
+        "dw": 640,
+        "dh": 360,
+        "crop-x": 0,
+        "crop-y": 0,
+        "crop-w": 640,
+        "crop-h": 360,
+        "aspect": 1.7777777777777777,
+        "aspect-name": "16:9",
+        "par": 1,
+        "sar": 1.7777777777777777,
+        "sar-name": "16:9",
+        "colormatrix": "bt.601",
+        "colorlevels": "limited",
+        "primaries": "bt.709",
+        "gamma": "bt.1886",
+        "sig-peak": 0,
+        "light": "display",
+        "chroma-location": "mpeg2/4/h264",
+        "stereo-in": "mono",
+        "rotate": 0
+      },
+      "videoCodec": "Apple ProRes (iCodec Pro)",
+      "audioCodec": "pcm_s16le",
+      "errors": []
+    },
+    "workersAfter": 1
+  },
+  {
+    "name": "prores",
+    "setting": "yuv",
+    "chrome": "153.0.8010.53",
+    "state": {
+      "mode": "software",
+      "automatic": false,
+      "plan": {
+        "id": "software",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "existing",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "existing mpv source/track contract",
+        "prerequisites": "cross-origin isolation",
+        "subtitles": "mpv/libass",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "existing mpv allocation, PCM ring and retained-frame limits",
+        "fallback": "terminal"
+      },
+      "selection": {
+        "automatic": false,
+        "attempts": [
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "backend": {
+        "softwarePresenter": "experimental-yuv",
+        "yuv": {
+          "fallbackFrames": 3,
+          "rgbCopyBytes": 24883200,
+          "frames": 3,
+          "videoUploads": 3,
+          "videoUploadBytes": 24883200,
+          "planeCopyBytes": 0,
+          "stagingAllocations": 0,
+          "rgbAllocations": 1,
+          "subtitleUploads": 0,
+          "subtitleUploadBytes": 0,
+          "videoReadbacks": 0,
+          "liveTextures": 4,
+          "peakStagingBytes": 0,
+          "drawMs": 0,
+          "planeCopyMs": 0,
+          "uploadSubmitMs": 0,
+          "shaderSubmitMs": 0,
+          "overlayMs": 0,
+          "lastPts": 0.041666666666666664
+        },
+        "pumpTicks": 46,
+        "rendered": 4,
+        "renderMs": 37.21500000357628,
+        "copyMs": 0,
+        "maxRenderMs": 16.359999999403954,
+        "heapBytes": 134217728,
+        "epoch": 2,
+        "path": "wasm",
+        "decoder": "software",
+        "demuxFormat": "mov,mp4,m4a,3gp,3g2,mj2",
+        "seekPrerollSeconds": 1,
+        "presentedPosition": 0.041666666666666664,
+        "ioPending": false,
+        "ioSerial": 56,
+        "interruptions": 0,
+        "io": {
+          "fetchedBytes": 11975752,
+          "requests": 47,
+          "retries": 0,
+          "aborts": 0,
+          "cacheBytes": 12320768,
+          "peakCacheBytes": 12320768,
+          "activeBytes": 0,
+          "peakActiveBytes": 262144,
+          "size": "11968877",
+          "reads": 56,
+          "seeks": 3,
+          "interruptions": 0
+        },
+        "seeking": false,
+        "position": 0.041666666666666664,
+        "queuedFrames": 7424,
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ],
+          "settings": {
+            "cache": "yes",
+            "demuxer-max-bytes": "33554432",
+            "demuxer-max-back-bytes": "8388608",
+            "demuxer-cache-state": {
+              "cache-duration": 0,
+              "eof": false,
+              "underrun": true,
+              "idle": false,
+              "total-bytes": 0,
+              "fw-bytes": 0,
+              "raw-input-rate": 692781,
+              "debug-low-level-seeks": 0,
+              "debug-byte-level-seeks": 1,
+              "ts-per-stream": [],
+              "bof-cached": false,
+              "eof-cached": false,
+              "seekable-ranges": []
+            },
+            "paused-for-cache": false,
+            "cache-buffering-state": 100
+          }
+        }
+      },
+      "videoParams": {
+        "pixelformat": "yuv422p10",
+        "average-bpp": 32,
+        "w": 640,
+        "h": 360,
+        "dw": 640,
+        "dh": 360,
+        "crop-x": 0,
+        "crop-y": 0,
+        "crop-w": 640,
+        "crop-h": 360,
+        "aspect": 1.7777777777777777,
+        "aspect-name": "16:9",
+        "par": 1,
+        "sar": 1.7777777777777777,
+        "sar-name": "16:9",
+        "colormatrix": "bt.601",
+        "colorlevels": "limited",
+        "primaries": "bt.709",
+        "gamma": "bt.1886",
+        "sig-peak": 0,
+        "light": "display",
+        "chroma-location": "mpeg2/4/h264",
+        "stereo-in": "mono",
+        "rotate": 0
+      },
+      "videoCodec": "Apple ProRes (iCodec Pro)",
+      "audioCodec": "pcm_s16le",
+      "errors": []
+    },
+    "workersAfter": 1
+  }
+]

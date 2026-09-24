@@ -165,7 +165,9 @@ The locked-source engine recipe is `bash scripts/build-beta-engines.sh`. It buil
 portable dav1d and zimg into a separate playback dependency prefix. The complete
 patch series is replayed against verified upstream archives before updating source
 files, so overlapping patches remain idempotent and unrecognized edits are preserved.
-Optional YUV must be rebuilt with `npm run build:software-yuv`; it stays experimental.
+The standard Software build now includes `npm run build:software-yuv`. Only the
+decoded-frame subset in [SOFTWARE-YUV-PRESENTER.md](SOFTWARE-YUV-PRESENTER.md)
+uses YUV; remaining frames use RGB.
 
 Generate functional fixtures with `npm run fixtures:compatibility`. This requires a
 host FFmpeg with SVT-AV1 and the existing DejaVu font archive. HDR reference generation

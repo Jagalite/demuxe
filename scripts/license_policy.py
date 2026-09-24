@@ -239,6 +239,7 @@ class Policy:
             expected_artifacts = {f'web/{folder}/{stem}.{ext}'
                                   for folder, stem in [('engine-hybrid', 'player'),
                                                        ('engine-software-full', 'player'),
+                                                       ('engine-software-yuv', 'player'),
                                                        ('engine-remux', 'remux'),
                                                        ('engine-subtitles', 'service')]
                                   for ext in ['mjs', 'wasm']}

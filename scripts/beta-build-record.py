@@ -29,7 +29,7 @@ else:
  start=json.loads(record.read_text())
  if start['inputs']!=inputs():raise SystemExit('Build inputs changed while building')
  subprocess.run(['python3',str(root/'scripts/verify-lgpl-closure.py')],check=True)
- configs=['build/cross.ini','build/obj-libxml2/config.h','build/software-vo/compile-command.json','build/obj-mpv/config.h','build/obj-mpv/meson-info/intro-buildoptions.json','build/obj-mpv/compile_commands.json','build/prefix/lib/pkgconfig/mpv.pc','build/obj-ffmpeg/config.h','build/obj-ffmpeg/config_components.h','build/obj-ffmpeg/ffbuild/config.mak','build/obj-software-full-ffmpeg/config.h','build/obj-software-full-ffmpeg/config_components.h','build/obj-software-full-ffmpeg/ffbuild/config.mak','build/obj-software-full-ffmpeg/configure-request','build/native-remux/ffmpeg/config.h','build/native-remux/ffmpeg/config_components.h','build/native-remux/ffmpeg/ffbuild/config.mak','build/retained-subs/compile-command.json','build/subtitle-service/link-command.json','build/subtitle-service/manifest.json','build/lgpl-closure.json','build/beta.emscripten',*[f'build/link-maps/{name}.map' for name in ['baseline','software','hybrid','remux','subtitles']]]
+ configs=['build/cross.ini','build/obj-libxml2/config.h','build/software-vo/compile-command.json','build/obj-mpv/config.h','build/obj-mpv/meson-info/intro-buildoptions.json','build/obj-mpv/compile_commands.json','build/prefix/lib/pkgconfig/mpv.pc','build/obj-ffmpeg/config.h','build/obj-ffmpeg/config_components.h','build/obj-ffmpeg/ffbuild/config.mak','build/obj-software-full-ffmpeg/config.h','build/obj-software-full-ffmpeg/config_components.h','build/obj-software-full-ffmpeg/ffbuild/config.mak','build/obj-software-full-ffmpeg/configure-request','build/native-remux/ffmpeg/config.h','build/native-remux/ffmpeg/config_components.h','build/native-remux/ffmpeg/ffbuild/config.mak','build/retained-subs/compile-command.json','build/subtitle-service/link-command.json','build/subtitle-service/manifest.json','build/lgpl-closure.json','build/beta.emscripten',*[f'build/link-maps/{name}.map' for name in ['baseline','software','software-yuv','hybrid','remux','subtitles']]]
  def license_at(file,gpl):
   text=(root/file).read_text()
   for name,value in [('GPL',gpl),('VERSION3',0),('NONFREE',0)]:
@@ -39,7 +39,7 @@ else:
  opts=json.loads((root/'build/obj-mpv/meson-info/intro-buildoptions.json').read_text())
  if next(o['value']for o in opts if o['name']=='gpl'):raise SystemExit('Expected LGPL mpv build')
  artifacts={}
- for folder,stem in [('engine-hybrid','player'),('engine-software-full','player'),('engine-remux','remux'),('engine-subtitles','service')]:
+ for folder,stem in [('engine-hybrid','player'),('engine-software-full','player'),('engine-software-yuv','player'),('engine-remux','remux'),('engine-subtitles','service')]:
   for ext in ['wasm','mjs']:
    p=root/'web'/folder/(stem+'.'+ext);artifacts[str(p.relative_to(root))]={'bytes':p.stat().st_size,'sha256':sha(p)}
  tools={}
