@@ -14,6 +14,11 @@ export class NativeMpvSubtitles {
     pending = new Map();
     sequence = 0;
     revision = 0;
+    timingEpoch = 0;
+    deadlineEpoch = -1;
+    staticQualified = false;
+    pumpTimer;
+    pumpBusy = false;
     stopped = false;
     enabled = false;
     busy = false;
@@ -28,7 +33,7 @@ export class NativeMpvSubtitles {
     ready;
     tracks = [];
     service = {};
-    stats = { position: -1, renders: 0, bitmapUpdates: 0, bytes: 0, peakBytes: 0, discarded: 0 };
+    stats = { position: -1, renders: 0, bitmapUpdates: 0, bytes: 0, peakBytes: 0, discarded: 0, stateUpdates: 0, scheduler: 'frame' };
     constructor(video, time, base, fonts, file, failed, defaultStreamIndex) {
         this.video = video;
         this.time = time;
@@ -54,6 +59,19 @@ export class NativeMpvSubtitles {
             this.worker.onmessage = ({ data }) => { if (data.type === 'closed') {
                 this.closed?.();
                 return;
+            } if (data.type === 'subtitleTimingChanged') {
+                this.timingEpoch = data.epoch >>> 0;
+                if (this.staticQualified)
+                    void this.pump();
+                return;
+            } if (data.type === 'subtitleDeadline') {
+                if (this.staticQualified && data.epoch === this.deadlineEpoch && !this.video.paused && !document.hidden) {
+                    if (this.time() + .004 >= data.target)
+                        this.invalidate();
+                    else
+                        void this.pump();
+                }
+                return;
             } const p = this.pending.get(data.id); if (!p) {
                 data.bitmap?.close();
                 return;
@@ -62,11 +80,14 @@ export class NativeMpvSubtitles {
             this.worker.onmessageerror = () => this.fail(Error('Subtitle worker message failure'));
             this.observer = new ResizeObserver(() => this.invalidate());
             this.observer.observe(video);
-            for (const event of ['seeked', 'seeking', 'pause', 'play', 'ratechange', 'loadedmetadata']) {
-                const listener = () => this.invalidate();
+            for (const event of ['seeked', 'seeking', 'pause', 'play', 'ratechange', 'loadedmetadata', 'ended']) {
+                const listener = () => { this.syncPump(); this.invalidate(); };
                 video.addEventListener(event, listener);
                 this.handlers.push(() => video.removeEventListener(event, listener));
             }
+            const visibility = () => { this.syncPump(); this.invalidate(); };
+            document.addEventListener('visibilitychange', visibility);
+            this.handlers.push(() => document.removeEventListener('visibilitychange', visibility));
             const fullscreen = () => { if (document.fullscreenElement === video)
                 this.fail(Error('Native mpv subtitles requires fullscreen on the player container, not the video element'));
             else
@@ -126,6 +147,52 @@ export class NativeMpvSubtitles {
         clearTimeout(p.timer);
         p.reject(error);
     } this.pending.clear(); this.destroy(); this.failed(error); }
+    syncPump() {
+        const running = this.staticQualified && this.enabled && !this.changingTrack && !this.video.paused && !this.video.ended && !document.hidden;
+        if (running) {
+            if (!this.pumpTimer) {
+                this.pumpTimer = setInterval(() => { void this.pump(); }, 100);
+                void this.pump();
+            }
+        }
+        else {
+            if (this.pumpTimer) {
+                clearInterval(this.pumpTimer);
+                this.pumpTimer = undefined;
+            }
+            this.deadlineEpoch = -1;
+            if (this.staticQualified && !this.stopped)
+                void this.request('cancelDeadline').catch(error => this.fail(error));
+        }
+    }
+    async pump() {
+        if (this.pumpBusy || this.stopped || !this.staticQualified || !this.enabled || this.changingTrack || this.video.paused || this.video.ended || document.hidden)
+            return;
+        this.pumpBusy = true;
+        try {
+            const result = await this.request('pump', { seconds: this.time(), rate: this.video.playbackRate, running: true });
+            if (this.stopped)
+                return;
+            this.service = result.service ?? this.service;
+            if (!result.qualified) {
+                this.staticQualified = false;
+                this.stats.scheduler = 'frame';
+                this.syncPump();
+                this.invalidate();
+                return;
+            }
+            this.stats.stateUpdates++;
+            this.deadlineEpoch = result.schedule?.epoch ?? -1;
+            if (result.timingChanged)
+                this.invalidate();
+        }
+        catch (error) {
+            this.fail(error);
+        }
+        finally {
+            this.pumpBusy = false;
+        }
+    }
     async select(id) {
         await this.ready;
         const track = id === 'no' ? undefined : id === 'auto' ? (this.tracks.find(t => t.default) ?? this.tracks[0]) : this.tracks.find(t => t.id === id);
@@ -135,13 +202,20 @@ export class NativeMpvSubtitles {
             throw new PlayerError('UNSUPPORTED_FEATURE', 'Requested subtitle track was not enumerated by mpv');
         const previous = this.tracks.find(t => t.selected);
         this.changingTrack = true;
+        this.staticQualified = false;
+        this.stats.scheduler = 'frame';
+        this.syncPump();
         this.revision++;
         try {
             await this.request('select', { trackId: track?.mpvId ?? -2 });
             this.tracks.forEach(t => t.selected = t === track);
             this.verifiedTrack = undefined;
-            if (track)
+            if (track) {
                 await this.verify();
+                const profile = await this.request('profile');
+                this.staticQualified = !!profile.qualified;
+                this.stats.scheduler = this.staticQualified ? 'deadline' : 'frame';
+            }
         }
         catch (error) {
             if (!this.stopped) {
@@ -153,6 +227,7 @@ export class NativeMpvSubtitles {
         }
         finally {
             this.changingTrack = false;
+            this.syncPump();
             this.invalidate();
         }
     }
@@ -189,25 +264,34 @@ export class NativeMpvSubtitles {
     async currentText() {
         await this.ready;
         const width = Math.min(1920, this.video.videoWidth || this.video.width), height = Math.min(1080, this.video.videoHeight || this.video.height);
-        const result = await this.request('render', { seconds: this.time(), width, height, force: false });
+        const result = await this.request('render', { seconds: this.time(), width, height, force: false, static: this.staticQualified, rate: this.video.playbackRate, running: this.staticQualified && !this.video.paused && !document.hidden });
         result.bitmap?.close();
         return String(result.text ?? '');
     }
-    suspend(value) { this.changingTrack = value; this.revision++; if (!value)
+    /** Internal numeric timing probe. The current frame scheduler does not use it. */
+    async timingSnapshot(seconds = this.time()) {
+        await this.ready;
+        const revision = this.revision;
+        const result = await this.request('timing', { seconds });
+        const newerNotification = this.timingEpoch !== result.epoch && ((this.timingEpoch - result.epoch) >>> 0) < 0x80000000;
+        return { ...result, revision, stale: result.unstable || this.stopped || revision !== this.revision || newerNotification };
+    }
+    suspend(value) { this.changingTrack = value; this.revision++; this.syncPump(); if (!value)
         this.invalidate(); }
-    async seek(seconds) { this.changingTrack = true; this.revision++; this.canvas.getContext('2d')?.clearRect(0, 0, this.canvas.width, this.canvas.height); try {
+    async seek(seconds) { this.changingTrack = true; this.revision++; this.syncPump(); this.canvas.getContext('2d')?.clearRect(0, 0, this.canvas.width, this.canvas.height); try {
         await this.request('seek', { seconds });
     }
     finally {
         this.changingTrack = false;
+        this.syncPump();
         this.invalidate();
     } }
-    visible(value) { this.enabled = value; this.canvas.style.display = value ? 'block' : 'none'; this.invalidate(); }
+    visible(value) { this.enabled = value; this.canvas.style.display = value ? 'block' : 'none'; this.syncPump(); this.invalidate(); }
     invalidate() { this.revision++; this.last = ''; if (!this.stopped && !this.frame)
         this.frame = requestAnimationFrame(() => this.tick()); }
     tick() {
         this.frame = 0;
-        if (this.stopped || !this.enabled || this.changingTrack)
+        if (this.stopped || !this.enabled || this.changingTrack || this.staticQualified && document.hidden)
             return;
         const rect = this.video.getBoundingClientRect(), parent = this.video.parentElement.getBoundingClientRect();
         const ratio = this.video.videoWidth / this.video.videoHeight;
@@ -231,8 +315,18 @@ export class NativeMpvSubtitles {
         const seconds = this.time(), key = `${w}:${h}:${sourceWidth}:${sourceHeight}:${seconds}`, revision = this.revision;
         if (!this.busy && key !== this.last) {
             this.busy = true;
-            this.request('render', { seconds, width: w, height: h, sourceWidth, sourceHeight, force: this.lastRevision !== revision }).then(({ bitmap, size, unchanged, service }) => {
+            this.request('render', { seconds, width: w, height: h, sourceWidth, sourceHeight, force: this.lastRevision !== revision, static: this.staticQualified, rate: this.video.playbackRate, running: this.staticQualified && !this.video.paused && !this.video.ended && !document.hidden }).then(({ bitmap, size, unchanged, service, qualified, schedule }) => {
                 this.service = service;
+                if (this.staticQualified) {
+                    if (!qualified) {
+                        this.staticQualified = false;
+                        this.stats.scheduler = 'frame';
+                        this.syncPump();
+                        this.invalidate();
+                    }
+                    else
+                        this.deadlineEpoch = schedule?.epoch ?? -1;
+                }
                 if (this.stopped || !this.enabled || revision !== this.revision) {
                     bitmap?.close();
                     this.stats.discarded++;
@@ -259,9 +353,15 @@ export class NativeMpvSubtitles {
                 this.stats.bytes += size;
                 this.stats.peakBytes = Math.max(this.stats.peakBytes, size);
                 this.last = key;
-            }, error => this.fail(error)).finally(() => { this.busy = false; });
+            }, error => this.fail(error)).finally(() => {
+                this.busy = false;
+                // A static invalidation can arrive while this render is in flight.
+                // The old response is discarded above, so schedule its replacement.
+                if (this.staticQualified && !this.stopped && this.enabled && revision !== this.revision)
+                    this.invalidate();
+            });
         }
-        if (!this.video.paused || this.busy || this.last !== key)
+        if (!this.staticQualified && (!this.video.paused || this.busy || this.last !== key))
             this.frame = requestAnimationFrame(() => this.tick());
     }
     destroy() {
@@ -272,6 +372,9 @@ export class NativeMpvSubtitles {
         this.revision++;
         this.loading.abort();
         cancelAnimationFrame(this.frame);
+        if (this.pumpTimer)
+            clearInterval(this.pumpTimer);
+        this.pumpTimer = undefined;
         this.observer?.disconnect();
         this.handlers.forEach(f => f());
         this.worker.postMessage({ type: 'close' });

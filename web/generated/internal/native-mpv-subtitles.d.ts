@@ -14,6 +14,11 @@ export declare class NativeMpvSubtitles {
     private pending;
     private sequence;
     private revision;
+    private timingEpoch;
+    private deadlineEpoch;
+    private staticQualified;
+    private pumpTimer?;
+    private pumpBusy;
     private stopped;
     private enabled;
     private busy;
@@ -42,14 +47,20 @@ export declare class NativeMpvSubtitles {
         bytes: number;
         peakBytes: number;
         discarded: number;
+        stateUpdates: number;
+        scheduler: string;
     };
     constructor(video: HTMLVideoElement, time: () => number, base: URL, fonts: FontAsset[], file: File, failed: (e: Error) => void, defaultStreamIndex?: number | undefined);
     private request;
     private fail;
+    private syncPump;
+    private pump;
     select(id: string): Promise<void>;
     verify(): Promise<void>;
     /** Internal cue oracle for tests; never exposes media text in diagnostics. */
     currentText(): Promise<string>;
+    /** Internal numeric timing probe. The current frame scheduler does not use it. */
+    timingSnapshot(seconds?: number): Promise<any>;
     suspend(value: boolean): void;
     seek(seconds: number): Promise<void>;
     visible(value: boolean): void;

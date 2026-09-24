@@ -1,0 +1,157 @@
+--- a/sub/dec_sub.h
++++ b/sub/dec_sub.h
+@@ -68,6 +68,13 @@
+ struct sd_times sub_get_times(struct dec_sub *sub, double pts);
+ // Return subtitle lines in memory. Call talloc_free() on the return value.
+ struct sub_lines *sub_get_lines(struct dec_sub *sub);
++// Demuxe internal timing hook. Returns the first raw text-event start/end after
++// video PTS, before sub-lines plain-text deduplication. MP_NOPTS_VALUE means
++// no known future boundary; false means this decoder does not support the query.
++bool sub_next_raw_boundary(struct dec_sub *sub, double pts, double *next);
++// Called under dec_sub's lock after a decoder's known timing set may change.
++// The callback must not reenter mpv or retain the dec_sub pointer.
++void sub_set_timing_changed_cb(struct dec_sub *sub, void (*cb)(void *), void *ctx);
+ 
+ void sub_reset(struct dec_sub *sub);
+ void sub_select(struct dec_sub *sub, bool selected);
+--- a/sub/sd.h
++++ b/sub/sd.h
+@@ -53,6 +53,8 @@
+     char *(*get_text)(struct sd *sd, double pts, enum sd_text_type type);
+     struct sd_times (*get_times)(struct sd *sd, double pts);
+     struct sub_lines *(*get_lines)(struct sd *sd);
++    // Numeric event timing, deliberately independent of public sub-lines text.
++    double (*next_raw_boundary)(struct sd *sd, double pts);
+ };
+ 
+ // lavc_conv.c
+--- a/sub/dec_sub.c
++++ b/sub/dec_sub.c
+@@ -79,6 +79,8 @@
+ 
+     double last_vo_pts;
+     struct sd *sd;
++    void (*timing_changed)(void *);
++    void *timing_changed_ctx;
+ 
+     struct demux_packet *new_segment;
+     struct demux_packet **cached_pkts;
+@@ -253,6 +255,8 @@
+             MP_ERR(sub, "Can't change to new codec.\n");
+         }
+         sub->sd->driver->decode(sub->sd, sub->new_segment);
++        if (sub->timing_changed)
++            sub->timing_changed(sub->timing_changed_ctx);
+         talloc_free(sub->new_segment);
+         sub->new_segment = NULL;
+     }
+@@ -286,6 +290,8 @@
+         if (!pkt)
+             break;
+         sub->sd->driver->decode(sub->sd, pkt);
++        if (sub->timing_changed)
++            sub->timing_changed(sub->timing_changed_ctx);
+         MP_TARRAY_APPEND(sub, sub->cached_pkts, sub->num_cached_pkts, pkt);
+     }
+ 
+@@ -394,8 +400,11 @@
+             break;
+         }
+ 
+-        if (!(sub->preload_attempted && sub->sd->preload_ok))
++        if (!(sub->preload_attempted && sub->sd->preload_ok)) {
+             sub->sd->driver->decode(sub->sd, pkt);
++            if (sub->timing_changed)
++                sub->timing_changed(sub->timing_changed_ctx);
++        }
+     }
+     if (sub->cached_pkts && sub->num_cached_pkts) {
+         bool visible = is_packet_visible(sub->cached_pkts[sub->cached_pkt_pos], video_pts);
+@@ -413,6 +422,8 @@
+     int index = sub->cached_pkt_pos;
+     while (index < sub->num_cached_pkts) {
+         sub->sd->driver->decode(sub->sd, sub->cached_pkts[index]);
++        if (sub->timing_changed)
++            sub->timing_changed(sub->timing_changed_ctx);
+         ++index;
+     }
+     mp_mutex_unlock(&sub->lock);
+@@ -497,6 +508,8 @@
+     destroy_cached_pkts(sub);
+     demux_packet_pool_push(sub->packet_pool, sub->new_segment);
+     sub->new_segment = NULL;
++    if (sub->timing_changed)
++        sub->timing_changed(sub->timing_changed_ctx);
+     mp_mutex_unlock(&sub->lock);
+ }
+ 
+@@ -635,3 +648,29 @@
+     mp_mutex_unlock(&sub->lock);
+     return res;
+ }
++
++// Internal numeric timing access; no text is extracted or deduplicated.
++bool sub_next_raw_boundary(struct dec_sub *sub, double pts, double *next)
++{
++    if (!next)
++        return false;
++    mp_mutex_lock(&sub->lock);
++    bool supported = sub->sd->driver->next_raw_boundary != NULL;
++    *next = MP_NOPTS_VALUE;
++    if (supported) {
++        double raw = sub->sd->driver->next_raw_boundary(sub->sd,
++                                                         pts_to_subtitle(sub, pts));
++        if (raw != MP_NOPTS_VALUE)
++            *next = pts_from_subtitle(sub, raw);
++    }
++    mp_mutex_unlock(&sub->lock);
++    return supported;
++}
++
++void sub_set_timing_changed_cb(struct dec_sub *sub, void (*cb)(void *), void *ctx)
++{
++    mp_mutex_lock(&sub->lock);
++    sub->timing_changed = cb;
++    sub->timing_changed_ctx = ctx;
++    mp_mutex_unlock(&sub->lock);
++}
+--- a/sub/sd_ass.c
++++ b/sub/sd_ass.c
+@@ -1016,6 +1016,29 @@
+     talloc_free(ctx->copy_cache);
+ }
+ 
++// Keep every ASS event boundary, including overlapping events with identical
++// plain text but distinct styling. Public sub-lines remains deduplicated.
++static double next_raw_boundary(struct sd *sd, double pts)
++{
++    struct sd_ass_priv *ctx = sd->priv;
++    ASS_Track *track = ctx->ass_track;
++    double next = MP_NOPTS_VALUE;
++    for (int i = 0; i < track->n_events; i++) {
++        ASS_Event *event = &track->events[i];
++        if (!event->Text)
++            continue;
++        double start = event->Start / 1000.0;
++        double end = event->Duration == UNKNOWN_DURATION * 1000
++                   ? MP_NOPTS_VALUE : (event->Start + event->Duration) / 1000.0;
++        if (start > pts && (next == MP_NOPTS_VALUE || start < next))
++            next = start;
++        if (end != MP_NOPTS_VALUE && end > pts &&
++            (next == MP_NOPTS_VALUE || end < next))
++            next = end;
++    }
++    return next;
++}
++
+ static struct sub_lines *get_lines(struct sd *sd)
+ {
+     struct sd_ass_priv *ctx = sd->priv;
+@@ -1110,6 +1133,7 @@
+     .get_text = get_text,
+     .get_times = get_times,
+     .get_lines = get_lines,
++    .next_raw_boundary = next_raw_boundary,
+     .control = control,
+     .reset = reset,
+     .select = enable_output,

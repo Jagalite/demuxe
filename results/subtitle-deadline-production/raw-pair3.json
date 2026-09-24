@@ -1,0 +1,77 @@
+{
+  "createdAt": "2026-09-24T14:43:34.051Z",
+  "browser": "Chrome 153.0.8010.53",
+  "fixtures": {
+    "h264-srt": {
+      "path": "build/head-to-head/assets-component-isolation-01/fixtures/h264-srt/index.mkv",
+      "sha256": "7ef668ade53656365e494dae9b726eafa84f742c94ad6b27c4099000433ce45c"
+    },
+    "h264-movtext": {
+      "path": "build/head-to-head/assets-component-isolation-01/fixtures/h264-movtext/index.mp4",
+      "sha256": "baf81afff9cc30fc076a42e74368489cbd553b6ab14ca7b4b4b680b50d4d4cf1"
+    },
+    "h264-ass": {
+      "path": "build/head-to-head/assets-component-isolation-01/fixtures/h264-ass/index.mkv",
+      "sha256": "e22065a4e99a4e95d258d0133817fb4b7201a8db16a6efda4690638cf8b1c661"
+    }
+  },
+  "runtimeSha256": "69ee34b865a42821149571316a9a57f85e79e7de9b16e5d94d20717817e6d271",
+  "baselineOverride": "force staticQualified=false after profile RPC; same production Wasm/worker",
+  "trials": [
+    {
+      "name": "h264-ass",
+      "lane": "direct",
+      "pair": 3,
+      "mode": "old",
+      "passed": true,
+      "cueStart": {
+        "mediaTime": 0.460009,
+        "renderPts": 0.514852,
+        "count": 2
+      },
+      "measure": {
+        "duration": 8.010311875,
+        "route": "native-direct-mpv",
+        "scheduler": "frame",
+        "fullRendersPerSecond": 60.047599582382055,
+        "stateUpdatesPerSecond": 0,
+        "rendererCpu": 14.248059473963991,
+        "totalChromeCpu": 37.68220322882247,
+        "workerCpu": null,
+        "mediaAdvance": 7.9673549999999995
+      },
+      "cue": {
+        "text": "",
+        "avChains": 0
+      }
+    },
+    {
+      "name": "h264-ass",
+      "lane": "direct",
+      "pair": 3,
+      "mode": "new",
+      "passed": true,
+      "cueStart": {
+        "mediaTime": 0.460283,
+        "renderPts": 0.511365,
+        "count": 2
+      },
+      "measure": {
+        "duration": 8.004203250000002,
+        "route": "native-direct-mpv",
+        "scheduler": "deadline",
+        "fullRendersPerSecond": 0,
+        "stateUpdatesPerSecond": 9.994748696567642,
+        "rendererCpu": 5.778151623023816,
+        "totalChromeCpu": 38.9425768267441,
+        "workerCpu": null,
+        "mediaAdvance": 7.971047
+      },
+      "cue": {
+        "text": "",
+        "avChains": 0
+      }
+    }
+  ],
+  "passed": true
+}

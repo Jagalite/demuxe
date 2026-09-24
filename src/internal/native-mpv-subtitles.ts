@@ -10,6 +10,11 @@ export class NativeMpvSubtitles {
   private pending=new Map<number,{resolve:(value:any)=>void;reject:(e:Error)=>void;timer:ReturnType<typeof setTimeout>}>();
   private sequence=0;
   private revision=0;
+  private timingEpoch=0;
+  private deadlineEpoch=-1;
+  private staticQualified=false;
+  private pumpTimer?:ReturnType<typeof setInterval>;
+  private pumpBusy=false;
   private stopped=false;
   private enabled=false;
   private busy=false;
@@ -24,7 +29,7 @@ export class NativeMpvSubtitles {
   readonly ready:Promise<void>;
   tracks:Array<{id:string;mpvId:number;'ff-index':number;type:string;selected?:boolean;default?:boolean}>=[];
   service:Record<string,unknown>={};
-  readonly stats={position:-1,renders:0,bitmapUpdates:0,bytes:0,peakBytes:0,discarded:0};
+  readonly stats={position:-1,renders:0,bitmapUpdates:0,bytes:0,peakBytes:0,discarded:0,stateUpdates:0,scheduler:'frame'};
   constructor(private video:HTMLVideoElement,private time:()=>number,base:URL,fonts:FontAsset[],private file:File,private failed:(e:Error)=>void,private defaultStreamIndex?:number){
     if(!crossOriginIsolated)throw Error('Native mpv subtitles requires cross-origin isolation');
     this.canvas.className='demuxe-native-ass';this.canvas.style.cssText='position:absolute;pointer-events:none;display:none';
@@ -37,13 +42,15 @@ export class NativeMpvSubtitles {
     parent.style.position='relative';parent.append(this.canvas);
     video.style.objectFit='contain';
     video.disablePictureInPicture=true;video.disableRemotePlayback=true;
-    this.worker.onmessage=({data})=>{if(data.type==='closed'){this.closed?.();return;}const p=this.pending.get(data.id);if(!p){data.bitmap?.close();return;}clearTimeout(p.timer);this.pending.delete(data.id);data.error?p.reject(/^Error: Subtitle (?:decoder unavailable|decode failed|packet deadline exceeded|source load failed|selection failed|seek failed)/.test(data.error)?new PlayerError('UNSUPPORTED_FEATURE',data.error):Error(data.error)):p.resolve(data);};
+    this.worker.onmessage=({data})=>{if(data.type==='closed'){this.closed?.();return;}if(data.type==='subtitleTimingChanged'){this.timingEpoch=data.epoch>>>0;if(this.staticQualified)void this.pump();return;}if(data.type==='subtitleDeadline'){if(this.staticQualified&&data.epoch===this.deadlineEpoch&&!this.video.paused&&!document.hidden){if(this.time()+.004>=data.target)this.invalidate();else void this.pump();}return;}const p=this.pending.get(data.id);if(!p){data.bitmap?.close();return;}clearTimeout(p.timer);this.pending.delete(data.id);data.error?p.reject(/^Error: Subtitle (?:decoder unavailable|decode failed|packet deadline exceeded|source load failed|selection failed|seek failed)/.test(data.error)?new PlayerError('UNSUPPORTED_FEATURE',data.error):Error(data.error)):p.resolve(data);};
     this.worker.onerror=e=>{e.preventDefault();this.fail(Error(e.message||'Subtitle worker failed'));};
     this.worker.onmessageerror=()=>this.fail(Error('Subtitle worker message failure'));
     this.observer=new ResizeObserver(()=>this.invalidate());this.observer.observe(video);
-    for(const event of ['seeked','seeking','pause','play','ratechange','loadedmetadata']){
-      const listener=()=>this.invalidate();video.addEventListener(event,listener);this.handlers.push(()=>video.removeEventListener(event,listener));
+    for(const event of ['seeked','seeking','pause','play','ratechange','loadedmetadata','ended']){
+      const listener=()=>{this.syncPump();this.invalidate();};video.addEventListener(event,listener);this.handlers.push(()=>video.removeEventListener(event,listener));
     }
+    const visibility=()=>{this.syncPump();this.invalidate();};
+    document.addEventListener('visibilitychange',visibility);this.handlers.push(()=>document.removeEventListener('visibilitychange',visibility));
     const fullscreen=()=>{if(document.fullscreenElement===video)this.fail(Error('Native mpv subtitles requires fullscreen on the player container, not the video element'));else this.invalidate();};
     document.addEventListener('fullscreenchange',fullscreen);this.handlers.push(()=>document.removeEventListener('fullscreenchange',fullscreen));
     this.ready=(async()=>{
@@ -74,21 +81,40 @@ export class NativeMpvSubtitles {
     });
   }
   private fail(error:Error){if(this.stopped)return;for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(error);}this.pending.clear();this.destroy();this.failed(error);}
+  private syncPump(){
+    const running=this.staticQualified&&this.enabled&&!this.changingTrack&&!this.video.paused&&!this.video.ended&&!document.hidden;
+    if(running){if(!this.pumpTimer){this.pumpTimer=setInterval(()=>{void this.pump();},100);void this.pump();}}
+    else {if(this.pumpTimer){clearInterval(this.pumpTimer);this.pumpTimer=undefined;}this.deadlineEpoch=-1;if(this.staticQualified&&!this.stopped)void this.request('cancelDeadline').catch(error=>this.fail(error));}
+  }
+  private async pump(){
+    if(this.pumpBusy||this.stopped||!this.staticQualified||!this.enabled||this.changingTrack||this.video.paused||this.video.ended||document.hidden)return;
+    this.pumpBusy=true;
+    try{
+      const result=await this.request('pump',{seconds:this.time(),rate:this.video.playbackRate,running:true});
+      if(this.stopped)return;
+      this.service=result.service??this.service;
+      if(!result.qualified){this.staticQualified=false;this.stats.scheduler='frame';this.syncPump();this.invalidate();return;}
+      this.stats.stateUpdates++;
+      this.deadlineEpoch=result.schedule?.epoch??-1;
+      if(result.timingChanged)this.invalidate();
+    }catch(error){this.fail(error as Error);}
+    finally{this.pumpBusy=false;}
+  }
   async select(id:string){
     await this.ready;
     const track=id==='no'?undefined:id==='auto'?(this.tracks.find(t=>t.default)??this.tracks[0]):this.tracks.find(t=>t.id===id);
     if(track?.selected)return;
     if(!track&&id!=='no')throw new PlayerError('UNSUPPORTED_FEATURE','Requested subtitle track was not enumerated by mpv');
     const previous=this.tracks.find(t=>t.selected);
-    this.changingTrack=true;this.revision++;
+    this.changingTrack=true;this.staticQualified=false;this.stats.scheduler='frame';this.syncPump();this.revision++;
     try{
       await this.request('select',{trackId:track?.mpvId??-2});this.tracks.forEach(t=>t.selected=t===track);this.verifiedTrack=undefined;
-      if(track)await this.verify();
+      if(track){await this.verify();const profile=await this.request('profile');this.staticQualified=!!profile.qualified;this.stats.scheduler=this.staticQualified?'deadline':'frame';}
     }catch(error){
       if(!this.stopped){await this.request('select',{trackId:previous?.mpvId??-2});this.tracks.forEach(t=>t.selected=t===previous);this.verifiedTrack=undefined;}
       throw error;
     }
-    finally{this.changingTrack=false;this.invalidate();}
+    finally{this.changingTrack=false;this.syncPump();this.invalidate();}
   }
   async verify(){
     const selected=this.tracks.find(t=>t.selected);
@@ -113,14 +139,22 @@ export class NativeMpvSubtitles {
   async currentText(){
     await this.ready;
     const width=Math.min(1920,this.video.videoWidth||this.video.width),height=Math.min(1080,this.video.videoHeight||this.video.height);
-    const result=await this.request('render',{seconds:this.time(),width,height,force:false});result.bitmap?.close();return String(result.text??'');
+    const result=await this.request('render',{seconds:this.time(),width,height,force:false,static:this.staticQualified,rate:this.video.playbackRate,running:this.staticQualified&&!this.video.paused&&!document.hidden});result.bitmap?.close();return String(result.text??'');
   }
-  suspend(value:boolean){this.changingTrack=value;this.revision++;if(!value)this.invalidate();}
-  async seek(seconds:number){this.changingTrack=true;this.revision++;this.canvas.getContext('2d')?.clearRect(0,0,this.canvas.width,this.canvas.height);try{await this.request('seek',{seconds});}finally{this.changingTrack=false;this.invalidate();}}
-  visible(value:boolean){this.enabled=value;this.canvas.style.display=value?'block':'none';this.invalidate();}
+  /** Internal numeric timing probe. The current frame scheduler does not use it. */
+  async timingSnapshot(seconds=this.time()){
+    await this.ready;
+    const revision=this.revision;
+    const result=await this.request('timing',{seconds});
+    const newerNotification=this.timingEpoch!==result.epoch&&((this.timingEpoch-result.epoch)>>>0)<0x80000000;
+    return {...result,revision,stale:result.unstable||this.stopped||revision!==this.revision||newerNotification};
+  }
+  suspend(value:boolean){this.changingTrack=value;this.revision++;this.syncPump();if(!value)this.invalidate();}
+  async seek(seconds:number){this.changingTrack=true;this.revision++;this.syncPump();this.canvas.getContext('2d')?.clearRect(0,0,this.canvas.width,this.canvas.height);try{await this.request('seek',{seconds});}finally{this.changingTrack=false;this.syncPump();this.invalidate();}}
+  visible(value:boolean){this.enabled=value;this.canvas.style.display=value?'block':'none';this.syncPump();this.invalidate();}
   private invalidate(){this.revision++;this.last='';if(!this.stopped&&!this.frame)this.frame=requestAnimationFrame(()=>this.tick());}
   private tick(){
-    this.frame=0;if(this.stopped||!this.enabled||this.changingTrack)return;
+    this.frame=0;if(this.stopped||!this.enabled||this.changingTrack||this.staticQualified&&document.hidden)return;
     const rect=this.video.getBoundingClientRect(),parent=this.video.parentElement!.getBoundingClientRect();
     const ratio=this.video.videoWidth/this.video.videoHeight;
     let width=rect.width,height=rect.height;
@@ -133,8 +167,9 @@ export class NativeMpvSubtitles {
     const seconds=this.time(),key=`${w}:${h}:${sourceWidth}:${sourceHeight}:${seconds}`,revision=this.revision;
     if(!this.busy&&key!==this.last){
       this.busy=true;
-      this.request('render',{seconds,width:w,height:h,sourceWidth,sourceHeight,force:this.lastRevision!==revision}).then(({bitmap,size,unchanged,service}:{bitmap?:ImageBitmap;size:number;unchanged?:boolean;service:Record<string,unknown>})=>{
+      this.request('render',{seconds,width:w,height:h,sourceWidth,sourceHeight,force:this.lastRevision!==revision,static:this.staticQualified,rate:this.video.playbackRate,running:this.staticQualified&&!this.video.paused&&!this.video.ended&&!document.hidden}).then(({bitmap,size,unchanged,service,qualified,schedule}:{bitmap?:ImageBitmap;size:number;unchanged?:boolean;service:Record<string,unknown>;qualified?:boolean;schedule?:{epoch:number}})=>{
         this.service=service;
+        if(this.staticQualified){if(!qualified){this.staticQualified=false;this.stats.scheduler='frame';this.syncPump();this.invalidate();}else this.deadlineEpoch=schedule?.epoch??-1;}
         if(this.stopped||!this.enabled||revision!==this.revision){bitmap?.close();this.stats.discarded++;return;}
         this.lastRevision=revision;this.stats.position=seconds;
         if(unchanged){this.stats.renders++;this.last=key;return;}
@@ -143,14 +178,19 @@ export class NativeMpvSubtitles {
         this.canvas.width=w;this.canvas.height=h;const context=this.canvas.getContext('2d')!;
         if(bitmap){context.drawImage(bitmap,0,0);bitmap.close();}
         this.stats.renders++;this.stats.bitmapUpdates++;this.stats.bytes+=size;this.stats.peakBytes=Math.max(this.stats.peakBytes,size);this.last=key;
-      },error=>this.fail(error)).finally(()=>{this.busy=false;});
+      },error=>this.fail(error)).finally(()=>{
+        this.busy=false;
+        // A static invalidation can arrive while this render is in flight.
+        // The old response is discarded above, so schedule its replacement.
+        if(this.staticQualified&&!this.stopped&&this.enabled&&revision!==this.revision)this.invalidate();
+      });
     }
-    if(!this.video.paused||this.busy||this.last!==key)this.frame=requestAnimationFrame(()=>this.tick());
+    if(!this.staticQualified&&(!this.video.paused||this.busy||this.last!==key))this.frame=requestAnimationFrame(()=>this.tick());
   }
   destroy():Promise<void>{
     if(this.destruction)return this.destruction;
     this.destruction=new Promise(resolve=>{const timer=setTimeout(()=>{this.worker.terminate();resolve();},5000);this.closed=()=>{clearTimeout(timer);this.worker.terminate();resolve();};});this.stopped=true;this.revision++;this.loading.abort();cancelAnimationFrame(this.frame);
-    this.observer?.disconnect();this.handlers.forEach(f=>f());this.worker.postMessage({type:'close'});
+    if(this.pumpTimer)clearInterval(this.pumpTimer);this.pumpTimer=undefined;this.observer?.disconnect();this.handlers.forEach(f=>f());this.worker.postMessage({type:'close'});
     for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(Error('Subtitle renderer destroyed'));}this.pending.clear();
     this.canvas.remove();return this.destruction;
   }

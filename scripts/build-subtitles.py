@@ -11,10 +11,19 @@ import os
 import pathlib
 import re
 import shlex
+import shutil
 import subprocess
 
 repo = pathlib.Path(__file__).resolve().parents[1]
 base = pathlib.Path(os.environ.get('DEMUXE_MPV_BUILD_ROOT', str(repo))).resolve()
+if base == repo:
+    # Direct subtitle-service builds must not link an archive predating the
+    # locked raw-timing adaptation. The normal build already runs this replay.
+    subprocess.run(['python3', str(repo / 'scripts/apply-patches.py')], check=True)
+    subprocess.run(['ninja', '-C', str(base / 'build/obj-mpv'), 'libmpv.a'], check=True)
+    shutil.copy2(base / 'build/obj-mpv/libmpv.a', base / 'build/prefix/lib/libmpv.a')
+elif 'bool sub_next_raw_boundary(' not in (base / 'build/sources/mpv/sub/dec_sub.c').read_text():
+    raise SystemExit('External mpv build root lacks the maintained subtitle timing adaptation')
 out = repo / 'web/engine-subtitles'
 objects = repo / 'build/subtitle-service'
 for folder in [out, objects]:
@@ -100,6 +109,6 @@ engine_js.write_text('// SPDX-License-Identifier: LGPL-2.1-or-later\n' + engine_
 for name in ['service.mjs', 'service.wasm']:
     if re.search(rb'/(?:Users|Volumes|private/var)/', (out / name).read_bytes()):
         raise SystemExit('Build paths remain in subtitle engine: ' + name)
-inputs = ['native/subtitles/service.c', 'native/subtitles/bitmap.c', 'native/stream_bridge.c', 'native/stream_bridge.h', 'scripts/build-subtitles.py']
+inputs = ['native/subtitles/service.c', 'native/subtitles/bitmap.c', 'native/stream_bridge.c', 'native/stream_bridge.h', 'scripts/build-subtitles.py', 'sources.lock.json', 'patches/0014-subtitle-raw-timing.patch', 'patches/0015-subtitle-static-profile.patch']
 record = {'mpvBuildRoot': str(base), 'releaseQualified': False, 'maximumMemoryBytes': 134217728, 'initialMemoryBytes': 67108864, 'subtitleFFmpegConfigurationSHA256': hashlib.sha256(components.encode()).hexdigest(), 'subtitleFFmpegArchives': {'avcodec': hashlib.sha256((subtitle_ffmpeg / 'libavcodec/libavcodec.a').read_bytes()).hexdigest(), 'avutil': hashlib.sha256((subtitle_ffmpeg / 'libavutil/libavutil.a').read_bytes()).hexdigest(), 'dav1d': hashlib.sha256(dav1d_archive.read_bytes()).hexdigest()}, 'inputs': {name: hashlib.sha256((repo / name).read_bytes()).hexdigest() for name in inputs}, 'artifacts': {name: hashlib.sha256((out / name).read_bytes()).hexdigest() for name in ['service.mjs', 'service.wasm']}, 'normalizedConfigurationSHA256': hashlib.sha256(header.encode()).hexdigest()}
 (objects / 'manifest.json').write_text(json.dumps(record, indent=2) + '\n')

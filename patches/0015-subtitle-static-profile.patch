@@ -1,0 +1,127 @@
+--- a/sub/dec_sub.h
++++ b/sub/dec_sub.h
+@@ -72,6 +72,11 @@
+ // video PTS, before sub-lines plain-text deduplication. MP_NOPTS_VALUE means
+ // no known future boundary; false means this decoder does not support the query.
+ bool sub_next_raw_boundary(struct dec_sub *sub, double pts, double *next);
++// True only for text codecs whose currently known events can be scheduled
++// without frame cadence. ASS requires a complete preloaded event timeline.
++bool sub_static_timing_qualified(struct dec_sub *sub);
++bool sub_static_timing_ass_preload_needed(struct dec_sub *sub);
++bool sub_static_timing_mark_full_scan(struct dec_sub *sub);
+ // Called under dec_sub's lock after a decoder's known timing set may change.
+ // The callback must not reenter mpv or retain the dec_sub pointer.
+ void sub_set_timing_changed_cb(struct dec_sub *sub, void (*cb)(void *), void *ctx);
+--- a/sub/sd.h
++++ b/sub/sd.h
+@@ -55,6 +55,7 @@
+     struct sub_lines *(*get_lines)(struct sd *sd);
+     // Numeric event timing, deliberately independent of public sub-lines text.
+     double (*next_raw_boundary)(struct sd *sd, double pts);
++    bool (*has_animated_events)(struct sd *sd);
+ };
+ 
+ // lavc_conv.c
+--- a/sub/dec_sub.c
++++ b/sub/dec_sub.c
+@@ -69,6 +69,8 @@
+     int order;
+     double last_pkt_pts;
+     bool preload_attempted;
++    bool static_full_scan_complete;
++    bool static_scan_eof;
+     double video_fps;
+     double sub_speed;
+     bool sub_visible;
+@@ -382,6 +384,8 @@
+         // happen for interleaved subtitle streams, which never return "wait"
+         // when reading, unless min_pts is set.
+         if (st <= 0) {
++            if (st < 0)
++                sub->static_scan_eof = true;
+             *packets_read = st < 0 || (sub->last_pkt_pts != MP_NOPTS_VALUE &&
+                                        sub->last_pkt_pts > video_pts);
+             break;
+@@ -501,6 +505,7 @@
+ void sub_reset(struct dec_sub *sub)
+ {
+     mp_mutex_lock(&sub->lock);
++    sub->static_scan_eof = false;
+     if (sub->sd->driver->reset)
+         sub->sd->driver->reset(sub->sd);
+     sub->last_pkt_pts = MP_NOPTS_VALUE;
+@@ -667,6 +672,44 @@
+     return supported;
+ }
+ 
++bool sub_static_timing_qualified(struct dec_sub *sub)
++{
++    mp_mutex_lock(&sub->lock);
++    const char *codec = sub->codec->codec;
++    bool text = codec && (!strcmp(codec, "subrip") ||
++                          !strcmp(codec, "mov_text"));
++    bool ass = codec && (!strcmp(codec, "ass") || !strcmp(codec, "ssa"));
++    bool supported = sub->sd->driver->next_raw_boundary &&
++                     sub->sd->driver->has_animated_events;
++    bool complete = !ass || ((sub->preload_attempted ||
++                             sub->static_full_scan_complete) && sub->sd->preload_ok);
++    bool qualified = supported && (text || ass) && complete &&
++                     !sub->sd->driver->has_animated_events(sub->sd);
++    mp_mutex_unlock(&sub->lock);
++    return qualified;
++}
++
++bool sub_static_timing_ass_preload_needed(struct dec_sub *sub)
++{
++    mp_mutex_lock(&sub->lock);
++    const char *codec = sub->codec->codec;
++    bool needed = codec && (!strcmp(codec, "ass") || !strcmp(codec, "ssa")) &&
++                  sub->sd->driver->accept_packets_in_advance &&
++                  !sub->preload_attempted && !sub->static_full_scan_complete;
++    mp_mutex_unlock(&sub->lock);
++    return needed;
++}
++
++bool sub_static_timing_mark_full_scan(struct dec_sub *sub)
++{
++    mp_mutex_lock(&sub->lock);
++    bool complete = sub->static_scan_eof;
++    if (complete)
++        sub->static_full_scan_complete = true;
++    mp_mutex_unlock(&sub->lock);
++    return complete;
++}
++
+ void sub_set_timing_changed_cb(struct dec_sub *sub, void (*cb)(void *), void *ctx)
+ {
+     mp_mutex_lock(&sub->lock);
+--- a/sub/sd_ass.c
++++ b/sub/sd_ass.c
+@@ -1039,6 +1039,19 @@
+     return next;
+ }
+ 
++static bool has_animated_events(struct sd *sd)
++{
++    struct sd_ass_priv *ctx = sd->priv;
++    ASS_Track *track = ctx->ass_track;
++    for (int i = 0; i < track->n_events; i++) {
++        ASS_Event *event = &track->events[i];
++        if ((event->Effect && event->Effect[0]) ||
++            (event->Text && is_animated(event->Text)))
++            return true;
++    }
++    return false;
++}
++
+ static struct sub_lines *get_lines(struct sd *sd)
+ {
+     struct sd_ass_priv *ctx = sd->priv;
+@@ -1134,6 +1147,7 @@
+     .get_times = get_times,
+     .get_lines = get_lines,
+     .next_raw_boundary = next_raw_boundary,
++    .has_animated_events = has_animated_events,
+     .control = control,
+     .reset = reset,
+     .select = enable_output,
