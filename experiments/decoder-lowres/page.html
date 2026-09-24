@@ -1,0 +1,22 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!doctype html><meta charset="utf-8"><title>Decoder lowres experiment</title>
+<style>body{margin:0;background:#111}canvas{display:block;width:960px;height:540px}</style>
+<canvas id="screen"></canvas>
+<script type="module">
+import {WasmPlayer} from '/web/generated/internal/wasm-player.js';
+window.errors=[];
+window.start=async({url,lowres,width=960,height=540})=>{
+ const canvas=document.querySelector('canvas');canvas.width=width;canvas.height=height;canvas.style.width=`${width}px`;canvas.style.height=`${height}px`;
+ window.player=new WasmPlayer(canvas,{mode:'software',softwarePresenter:'auto'});
+ player.addEventListener('error',e=>errors.push(String(e.detail)));
+ await player.ready;
+ await player.command('set','vd-lavc-o',`max_pixels=8294400,lowres=${lowres}`);
+ await player.openRemote({url});
+ await player.play();
+ await waitFrame();return snapshot();
+};
+window.snapshot=()=>({position:player.properties.get('time-pos'),duration:player.properties.get('duration'),params:player.properties.get('video-params'),frames:player.diagnostics?.yuv?.frames??player.diagnostics?.rendered,drops:(player.properties.get('frame-drop-count')||0)+(player.properties.get('decoder-frame-drop-count')||0),audioUnderruns:player.audioDiagnostics().underruns,diagnostics:player.diagnostics,eof:player.properties.get('eof-reached'),errors});
+window.waitFrame=async()=>{const until=Date.now()+25000;while(Date.now()<until){if(snapshot().frames>0)return;await new Promise(r=>setTimeout(r,50));}throw Error('No presented frame: '+JSON.stringify(snapshot()));};
+window.seekTo=async t=>{await player.seek(t);await player.play();const until=Date.now()+15000;while(Date.now()<until){const s=snapshot();if(Math.abs(s.position-t)<.4&&!s.diagnostics?.seeking)return s;await new Promise(r=>setTimeout(r,50));}throw Error('Seek failed '+t+': '+JSON.stringify(snapshot()));};
+window.stop=()=>player.destroy();
+</script>

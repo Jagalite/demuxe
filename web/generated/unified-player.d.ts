@@ -59,6 +59,8 @@ export declare class Player extends EventTarget {
     private admissionContext;
     private nativeRemux;
     private softwarePresenter;
+    private decodeQuality;
+    private adaptiveFrameDrop;
     private settings;
     private configuredTrackPolicy;
     get trackPolicy(): TrackPolicy;

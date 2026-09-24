@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { bufferingPolicy, resolveBuffering, mpvBufferingOptions } from './buffering.js';
 import { PlayerError } from './errors.js';
+import { resolveDecodePolicy } from './decode-policy.js';
 /** One isolated software engine per player; bounded remote ranges and local File reads; ArrayBuffer inputs remain capped. */
 export class WasmPlayer extends EventTarget {
     loading = new AbortController();
@@ -35,7 +36,7 @@ export class WasmPlayer extends EventTarget {
     browserCodecsAbsent = false;
     properties = new Map();
     ready;
-    constructor(canvas, { prepared, buffering = bufferingPolicy(), disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'auto', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url) } = {}) {
+    constructor(canvas, { prepared, buffering = bufferingPolicy(), disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'auto', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url), decodeQuality = 'exact', adaptiveFrameDrop = false, videoTrack } = {}) {
         super();
         this.buffering = buffering;
         const decoder = mode === 'hybrid' ? 'webcodecs' : 'software';
@@ -157,7 +158,8 @@ export class WasmPlayer extends EventTarget {
                 if (this.destroyed)
                     throw new Error('Player destroyed during initialization');
                 const offscreen = canvas.transferControlToOffscreen();
-                this.worker.postMessage({ type: 'init', compiledWasm: prepared?.module, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0 }, [offscreen, font]);
+                const decodePolicy = resolveDecodePolicy({ codec: videoTrack?.codec, codedWidth: videoTrack?.width, codedHeight: videoTrack?.height, displayWidth: canvas.width, displayHeight: canvas.height, decodeQuality, maxDecodePixels: resourceLimits.maxDecodePixels ?? 8294400 });
+                this.worker.postMessage({ type: 'init', compiledWasm: prepared?.module, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0, decodeQuality, decodePolicy, adaptiveFrameDrop, videoTrack, displayWidth: canvas.width, displayHeight: canvas.height }, [offscreen, font]);
                 this.timing = setInterval(() => this.sendTiming(), 20);
                 this.sendTiming();
             })().catch(error => { clearTimeout(timeout); reject(new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + String(error), null, null, 'operation', true)); });

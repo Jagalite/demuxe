@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { BufferingPolicy, BufferingResolution } from '../types.js';
 import type { AudioOutput, FontAsset, ResourceLimits, SubtitleAsset, MediaInputOptions, StreamingOptions } from '../types.js';
+import type { DecodeQuality } from './decode-policy.js';
 export type PlayerEvent = {
     event: string;
     id?: number;
@@ -84,7 +85,7 @@ export declare class WasmPlayer extends EventTarget {
     browserCodecsAbsent: boolean;
     properties: Map<string, unknown>;
     readonly ready: Promise<void>;
-    constructor(canvas: HTMLCanvasElement, { prepared, buffering, disableBrowserCodecs, measureOutput, mode, softwarePresenter, audioOutput, audioFallback, resourceLimits, fonts, assetBase }?: {
+    constructor(canvas: HTMLCanvasElement, { prepared, buffering, disableBrowserCodecs, measureOutput, mode, softwarePresenter, audioOutput, audioFallback, resourceLimits, fonts, assetBase, decodeQuality, adaptiveFrameDrop, videoTrack }?: {
         prepared?: {
             module?: WebAssembly.Module;
             font?: ArrayBuffer;
@@ -99,6 +100,13 @@ export declare class WasmPlayer extends EventTarget {
         measureOutput?: boolean;
         mode?: 'hybrid' | 'software';
         softwarePresenter?: 'auto' | 'rgb' | 'experimental-yuv';
+        decodeQuality?: DecodeQuality;
+        adaptiveFrameDrop?: boolean;
+        videoTrack?: {
+            codec: string;
+            width?: number;
+            height?: number;
+        };
     });
     private sendTiming;
     private fail;

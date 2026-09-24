@@ -53,6 +53,10 @@ export type TrackTypePolicy = Readonly<{
 }>;
 export type TrackPolicy = Readonly<{audio?:TrackTypePolicy; subtitles?:TrackTypePolicy}>;
 export type PlayerOptions = {
+  /** Software decoder fidelity. Exact is the default. */
+  decodeQuality?: 'exact' | 'balanced' | 'performance';
+  /** Permit sustained overload to omit non-reference pictures on qualified codecs. */
+  adaptiveFrameDrop?: boolean;
   trackPolicy?:TrackPolicy;
   /** Download and compile selected components at construction; omitted means lazy loading. */
   prepare?:PreparationOptions;
@@ -123,6 +127,8 @@ export type Diagnostics = {
   audioGain?: number;
   toneMapping?: ToneMapping;
   resourceLimits?: ResourceLimits;
+  decodeQuality?: 'exact' | 'balanced' | 'performance';
+  adaptiveFrameDrop?: boolean;
   selection?: {automatic: boolean; attempts: Array<{mode: PlaybackMode | 'probe'; outcome: 'skipped' | 'failed' | 'selected'; reason: string}>};
   backend?: Record<string, unknown>;
 };

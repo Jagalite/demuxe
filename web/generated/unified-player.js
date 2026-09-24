@@ -139,6 +139,8 @@ export class Player extends EventTarget {
     admissionContext = { automatic: false };
     nativeRemux;
     softwarePresenter;
+    decodeQuality;
+    adaptiveFrameDrop;
     settings;
     configuredTrackPolicy;
     get trackPolicy() { return this.source?.trackPolicy ?? this.configuredTrackPolicy; }
@@ -228,6 +230,10 @@ export class Player extends EventTarget {
             throw new PlayerError('INVALID_ARGUMENT', 'Opus adaptation requires allowLossyAudio: true');
         this.nativeRemux = options.nativeRemux ?? 'auto';
         this.softwarePresenter = options.softwarePresenter ?? 'auto';
+        this.decodeQuality = options.decodeQuality ?? 'exact';
+        this.adaptiveFrameDrop = options.adaptiveFrameDrop ?? false;
+        if (!['exact', 'balanced', 'performance'].includes(this.decodeQuality) || typeof this.adaptiveFrameDrop !== 'boolean')
+            throw new PlayerError('INVALID_ARGUMENT', 'Invalid Software decode policy');
         if (!['auto', 'rgb', 'experimental-yuv'].includes(this.softwarePresenter))
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid software presenter');
         if (!['auto', 'never', 'always'].includes(this.nativeRemux))
@@ -424,7 +430,7 @@ export class Player extends EventTarget {
         return diagnostics?.buffering ?? resolveBuffering(this.buffering, this.mode !== 'native' ? 'mpv' : diagnostics?.plan === 'shaka-mse' ? 'shaka' : usesRemuxTracks(diagnostics?.plan) ? 'remux' : 'browser');
     }
     get diagnostics() {
-        return redact({ preview: this.preview.diagnostics, buffering: this.bufferingResolution(), mode: this.mode, plan: this.current ? executionPlan(this.mode, this.current.backend.diagnostics?.plan, this.settings.af, this.settings.gain, !!this.current.backend.diagnostics?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, backend: this.current?.backend.diagnostics });
+        return redact({ preview: this.preview.diagnostics, buffering: this.bufferingResolution(), mode: this.mode, plan: this.current ? executionPlan(this.mode, this.current.backend.diagnostics?.plan, this.settings.af, this.settings.gain, !!this.current.backend.diagnostics?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, backend: this.current?.backend.diagnostics });
     }
     audioDiagnostics() { return this.current?.backend.audioDiagnostics(); }
     emit(type, detail) {
@@ -545,7 +551,7 @@ export class Player extends EventTarget {
         try {
             const subtitleTracks = this.sourceInspection?.probe.tracks.filter(t => t.type === 'sub') ?? [];
             const defaultSubtitleStreamIndex = (subtitleTracks.find(t => t.default) ?? subtitleTracks[0])?.index;
-            backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? undefined : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering, loadTimeoutMs, defaultSubtitleStreamIndex) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared });
+            backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? undefined : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering, loadTimeoutMs, defaultSubtitleStreamIndex) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture) });
         }
         catch (error) {
             surface.remove();
@@ -989,8 +995,32 @@ export class Player extends EventTarget {
         this.emit('selectionchange', { ...attempt });
     }
     async select(source, settings, preserve, tracks, start = 0, target, priorAttempts = [], inspectOnly = false) {
-        if (!this.automatic && this.mode !== 'native')
+        if (!this.automatic && this.mode !== 'native') {
+            if (this.mode === 'software' && (this.decodeQuality !== 'exact' || this.adaptiveFrameDrop) && this.sourceInspection?.source !== source) {
+                // Explicit Software skips the normal tier probe. Quality admission still
+                // needs codec identity before mpv constructs its decoder.
+                const controller = this.inspection = new AbortController();
+                try {
+                    const { probeSource } = await this.interruptible(import(new URL('web/source-probe.js', this.assetBase).href));
+                    const transport = source.kind === 'local' ? { file: source.file instanceof File ? source.file : new File([source.file], 'media') } : (() => { const { refreshAuthorization, ...options } = source.options; return { options: { ...options, url: new URL(options.url, location.href).href }, refreshAuthorization }; })();
+                    const compiledWasm = await this.interruptible(this.preparation?.readyModule('engine-remux') ?? Promise.resolve(undefined));
+                    const probe = await probeSource(transport, controller.signal, undefined, compiledWasm);
+                    this.assertOperation();
+                    this.sourceInspection = { source, probe, settings: { aid: settings.aid, sid: settings.sid, subtitles: settings.subtitles } };
+                }
+                catch (error) {
+                    if (this.destroyed || this.activeOperation?.controller.signal.aborted || controller.signal.aborted || terminalSourceFailure(error))
+                        throw error;
+                    // The decoder remains usable when optional codec inspection cannot
+                    // classify a file; the unknown-codec policy permits exact only.
+                }
+                finally {
+                    if (this.inspection === controller)
+                        this.inspection = undefined;
+                }
+            }
             return this.replace(source, this.mode, settings, preserve, tracks, target);
+        }
         this.attempts = [];
         for (const attempt of priorAttempts)
             this.record(attempt);

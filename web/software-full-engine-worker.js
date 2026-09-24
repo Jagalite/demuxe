@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {preparedEngine} from './prepared-engine.js';
+import {resolveDecodePolicy,mpvDecoderOptions,nextAdaptiveState,supportsEmergencyFrameDrop,adaptiveDecodeSignal} from './generated/internal/decode-policy.js';
 let audioChannels=2;
 let previewSnapshot;
 let YUVPresenter,uploader,gpuPauseIntent;
@@ -22,8 +23,39 @@ let profile=emptyProfile();
 let rendered = 0, sourceRendered = 0, ticks = 0, force = true, closing = false, presentedPosition=0, frameImage, measureOutput=false, wasWhite=false;
 let ioWorker,ioStats,ioReady,ioClose,ioSession=0,pendingTarget=null,restarted=false,position=0;
 let internalId=0x80000000,demuxFormat='',seekPrerollSeconds=0;
+let decodePolicy,adaptiveFrameDrop=false,decodeInput,adaptiveReason='disabled';
+let adaptiveSampleAt=0,adaptiveDecoderDrops=0,adaptiveFrameDrops=0,adaptivePosition=0,adaptiveStreak=0,adaptiveDirection='',adaptiveSwitching=false,adaptiveCooldown=0;
+let decoderDrops=0,frameDrops=0,avsync=0,pausedForCache=false,playbackSpeed=1;
 const internalCommands=new Map();
 function internalCommand(args,done){const id=internalId++;internalCommands.set(id,done);submit(id,args);}
+function commandReady(args){return new Promise(resolve=>internalCommand(args,resolve));}
+function considerAdaptive(now){
+ if(!adaptiveFrameDrop||!decodePolicy||adaptiveSwitching||now<adaptiveCooldown||now-adaptiveSampleAt<2000)return;
+ const previous=adaptiveSampleAt;adaptiveSampleAt=now;
+ const deltaDecoderDrops=Math.max(0,decoderDrops-adaptiveDecoderDrops);
+ const deltaFrameDrops=Math.max(0,frameDrops-adaptiveFrameDrops),advance=position-adaptivePosition;
+ adaptiveDecoderDrops=decoderDrops;adaptiveFrameDrops=frameDrops;adaptivePosition=position;
+ if(!previous||paused||pausedForCache||pendingTarget!==null){adaptiveStreak=0;return;}
+ const eligible=supportsEmergencyFrameDrop(decodePolicy.codec);
+ if(!eligible){adaptiveReason='Codec has no qualified emergency frame skip';return;}
+ const {pressure,recovered}=adaptiveDecodeSignal({elapsedSeconds:(now-previous)/1000,playbackSpeed,advance,decoderDrops:deltaDecoderDrops,presentationDrops:deltaFrameDrops,avsync});
+ const direction=pressure?'pressure':recovered?'recovery':'';
+ adaptiveStreak=direction&&direction===adaptiveDirection?adaptiveStreak+1:direction?1:0;adaptiveDirection=direction;
+ let next=nextAdaptiveState(decodePolicy.adaptiveState,decodePolicy.codec,pressure,recovered,adaptiveStreak);
+ // Balanced/performance already use reduced reconstruction; do not restart
+ // the decoder to reapply an identical filter configuration.
+ if(pressure&&next==='reduced-reconstruction'&&decodePolicy.skipLoopFilter==='noref')next='drop-non-reference';
+ if(next===decodePolicy.adaptiveState)return;
+ const candidate=resolveDecodePolicy({...decodeInput,adaptiveState:next});
+ if(mpvDecoderOptions(candidate)===mpvDecoderOptions(decodePolicy)){
+  decodePolicy=candidate;adaptiveReason='Recovered to the requested reconstruction profile';adaptiveStreak=0;return;
+ }
+ adaptiveSwitching=true;adaptiveStreak=0;adaptiveCooldown=now+10000;
+ commandReady(['set','vd-lavc-o',mpvDecoderOptions(candidate)]).then(()=>{
+  decodePolicy=candidate;adaptiveReason=pressure?`Sustained decode pressure: ${deltaDecoderDrops} decoder drops, ${deltaFrameDrops} presentation drops, A/V offset ${avsync.toFixed(3)} s`:'Sustained recovery with synchronized playback';
+  adaptiveSwitching=false;
+ });
+}
 const CAPACITY = 8192;
 let paused=true,busyUntil=0,pumpFailed=false,nextDiagnostics=0;
 function schedulePump(delay=5){
@@ -113,6 +145,24 @@ function tick() {
         done(event.result);continue;
       }
       if(event.event==='property-change'&&event.name==='pause'){paused=!!event.data;busyUntil=performance.now()+300;}
+      if(event.event==='property-change'){
+        if(event.name==='decoder-frame-drop-count')decoderDrops=Number(event.data)||0;
+        if(event.name==='frame-drop-count')frameDrops=Number(event.data)||0;
+        if(event.name==='avsync')avsync=Number(event.data)||0;
+        if(event.name==='paused-for-cache')pausedForCache=!!event.data;
+        if(event.name==='speed'&&Number(event.data)>0){
+          playbackSpeed=Number(event.data);
+          adaptiveSampleAt=performance.now();adaptivePosition=position;
+          adaptiveDecoderDrops=decoderDrops;adaptiveFrameDrops=frameDrops;
+          adaptiveStreak=0;adaptiveDirection='';
+        }
+        if(event.name==='video-codec'&&decodePolicy?.codec==='unknown'&&event.data){
+          const label=String(event.data).toLowerCase();
+          const codec=label.includes('h.264')?'h264':label.includes('hevc')||label.includes('h.265')?'hevc':label.includes('mpeg-4 part 2')?'mpeg4':label.includes('mpeg-2')?'mpeg2video':label.includes('mpeg-1')?'mpeg1video':label.includes('av1')?'av1':label.includes('mjpeg')||label.includes('motion jpeg')?'mjpeg':label;
+          decodeInput={...decodeInput,codec};
+          decodePolicy={...decodePolicy,codec};
+        }
+      }
       if(event.event==='file-loaded'){
         // Configure from mpv's detected format before resolving the host's open.
         internalCommand(['expand-text','${file-format}'],format=>{
@@ -163,7 +213,8 @@ function tick() {
       }
     }
     ticks++;
-    if(performance.now()>=nextDiagnostics||(ptr&&sourceRendered<=5)){const diagnosticsStart=profileEnabled?performance.now():0;nextDiagnostics=performance.now()+200;post({type:'diagnostics', data:{softwarePresenter:activePresenter,softwarePresenterPolicy:presenterPolicy,yuvRejectionReason,yuv:uploader?{...uploader.stats}:undefined,profile:profileEnabled?{...profile}:undefined,pumpTicks:ticks,rendered,renderMs,copyMs,maxRenderMs, heapBytes:engine.HEAPU8.byteLength, epoch, path:'wasm', decoder:decoderStats?.active?'webcodecs':'software',decoderStats, demuxFormat,seekPrerollSeconds,presentedPosition, ioPending:(Atomics.load(engine.HEAPU32,engine._web_io_ptr()>>>2)&7)===1, ioSerial:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+1), interruptions:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+14), io:ioStats, seeking:pendingTarget!==null, position, queuedFrames:(Atomics.load(audio,0)-Atomics.load(audio,1))>>>0}});if(profileEnabled){profile.diagnosticsPosts++;profile.diagnosticsMs+=performance.now()-diagnosticsStart;}}
+    considerAdaptive(performance.now());
+    if(performance.now()>=nextDiagnostics||(ptr&&sourceRendered<=5)){const diagnosticsStart=profileEnabled?performance.now():0;nextDiagnostics=performance.now()+200;post({type:'diagnostics', data:{decodePolicy,adaptiveFrameDrop,adaptiveReason,adaptiveSwitching,softwarePresenter:activePresenter,softwarePresenterPolicy:presenterPolicy,yuvRejectionReason,yuv:uploader?{...uploader.stats}:undefined,profile:profileEnabled?{...profile}:undefined,pumpTicks:ticks,rendered,renderMs,copyMs,maxRenderMs, heapBytes:engine.HEAPU8.byteLength, epoch, path:'wasm', decoder:decoderStats?.active?'webcodecs':'software',decoderStats, demuxFormat,seekPrerollSeconds,presentedPosition, ioPending:(Atomics.load(engine.HEAPU32,engine._web_io_ptr()>>>2)&7)===1, ioSerial:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+1), interruptions:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+14), io:ioStats, seeking:pendingTarget!==null, position, queuedFrames:(Atomics.load(audio,0)-Atomics.load(audio,1))>>>0}});if(profileEnabled){profile.diagnosticsPosts++;profile.diagnosticsMs+=performance.now()-diagnosticsStart;}}
   } catch (error) {pumpFailed=true;clearInterval(timer);post({type:'error',message:String(error.stack || error)}); }
 }
 self.onmessage = async ({data}) => {
@@ -215,6 +266,13 @@ self.onmessage = async ({data}) => {
       if (result < 0) throw new Error(`mpv initialization failed: ${result}`);
       nativeAudio = engine._web_audio_ptr();
       schedulePump();
+      adaptiveFrameDrop=!!data.adaptiveFrameDrop;
+      decodeInput={codec:data.videoTrack?.codec,codedWidth:data.videoTrack?.width,codedHeight:data.videoTrack?.height,displayWidth:data.displayWidth,displayHeight:data.displayHeight,decodeQuality:data.decodeQuality??'exact',maxDecodePixels:data.maxDecodePixels??8294400};
+      decodePolicy=data.decodePolicy??resolveDecodePolicy(decodeInput);
+      adaptiveReason=adaptiveFrameDrop?'Waiting for sustained decoder pressure':'disabled';
+      // vd-lavc-o is sampled when mpv opens a decoder. Always retain max_pixels.
+      await commandReady(['set','vd-lavc-o',mpvDecoderOptions(decodePolicy)]);
+      await commandReady(['set','vd-lavc-threads',String(decodePolicy.threads)]);
       post({type:'ready', browserCodecsAbsent:['VideoDecoder','AudioDecoder','VideoFrame'].every(name=>typeof globalThis[name]==='undefined')});
     } else if(data.type==='experimental-context-loss'&&uploader){const ext=uploader.gl.getExtension('WEBGL_lose_context');if(!ext)throw Error('Context loss test unavailable');ext.loseContext();setTimeout(()=>{if(!closing)ext.restoreContext();},250);
     } else if (data.type === 'profile') {
