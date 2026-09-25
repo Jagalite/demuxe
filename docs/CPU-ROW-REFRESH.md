@@ -15,7 +15,7 @@ launch per round. The
 | H.264 + AAC / MP4 | Complete: 5 pass, Movi fail | [row report](../results/head-to-head/row-h264-aac-mp4-20260925-01/REPORT.md) |
 | H.264 + AAC / MKV | Complete: 5 pass, Movi fail | [row report](../results/head-to-head/row-h264-aac-mkv-20260925-01/REPORT.md) |
 | Dual-audio H.264 + AAC + AC-3 stereo / MKV | Measured in one Chrome: 4 pass, Movi fail; wide within-launch ranges | [row report](../results/head-to-head/row-h264-dual-audio-20260925-02/REPORT.md) |
-| H.264 + PCM24 / MKV | Measured in one Chrome: 4 correctness pass, AVPlayer fail; Movi CPU rejected in round 1 | [row report](../results/head-to-head/row-h264-pcm24-mkv-20260925-01/REPORT.md) |
+| H.264 + PCM24 / MKV | Auto rerun on current player: native-direct, 14.0% CPU median; other arms retain earlier campaign results | [Auto rerun](../results/head-to-head/pcm24-auto-rerun-20260925-01/REPORT.md), [earlier row report](../results/head-to-head/row-h264-pcm24-mkv-20260925-01/REPORT.md) |
 | H.264 + PCM24 / MKV + ASS | Screened: two Demuxe passes, three failures; CPU withheld for wide drift and unmatched host-ASS reference | [row report](../results/head-to-head/row-h264-pcm24-ass-20260925-01/REPORT.md) |
 
 Remaining CPU cells are pending. The
