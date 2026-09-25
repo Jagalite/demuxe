@@ -1,0 +1,694 @@
+{
+  "schema": 1,
+  "method": "Offline inspection of existing six-second diagnostic traces; no new playback runs.",
+  "timingCaution": "Event spans overlap and cover only instrumented work. Thread duration fields are retained as trace data, not an additive budget or a substitute for the separate 20-second CPU measurements.",
+  "arms": {
+    "A": {
+      "source": "results/hybrid-handoff/light-traces/A-trace.json.gz",
+      "sha256": "14e88ade62d4cb0307c699dfef700581fdad8e3f0ed6ac9846b50acbe537bcb7",
+      "profilerOverhead": {
+        "threads": [],
+        "totalThreadClockSpanMs": 0,
+        "caveat": "Sum of first-to-last observed thread CPU-clock spans, not a synchronized complete process CPU window. Diagnostic profiling was absent from CPU trials."
+      },
+      "decodedFrameDescriptors": {
+        "format:PIXEL_FORMAT_NV12 storage_type:OPAQUE coded_size:1920x1080 visible_rect:0,0 1920x1080 natural_size:1920x1080 timestamp:<var> color_space: {primaries:BT709, transfer:BT709_APPLE, matrix:BT709, range:LIMITED} hdr_metadata: {} shared_image: { format: (Y_UV, 420, 8unorm, ExtSamplerOff) usage: Gles2Read|RasterRead|DisplayRead|Scanout|WebgpuRead|MacosVideoToolbox label: VideoToolboxVideoDecoder }": 480
+      },
+      "sharedImageCreationSizes": {},
+      "events": {
+        "MojoVideoDecoder::OnVideoFrameDecoded": {
+          "count": 480,
+          "completeEvents": 480,
+          "threadDurationMs": 7.461,
+          "example": {
+            "phase": "X",
+            "pid": 34502,
+            "tid": 10432469,
+            "args": {
+              "frame": "format:PIXEL_FORMAT_NV12 storage_type:OPAQUE coded_size:1920x1080 visible_rect:0,0 1920x1080 natural_size:1920x1080 timestamp:4517000 color_space: {primaries:BT709, transfer:BT709_APPLE, matrix:BT709, range:LIMITED} hdr_metadata: {} shared_image: { format: (Y_UV, 420, 8unorm, ExtSamplerOff) usage: Gles2Read|RasterRead|DisplayRead|Scanout|WebgpuRead|MacosVideoToolbox label: VideoToolboxVideoDecoder }",
+              "release_token": "5FE8F2BFA9DAE3E9BF5ACD1D21BC69BD"
+            }
+          }
+        },
+        "MojoVideoFrameHandleReleaser::ReleaseVideoFrame": {
+          "count": 482,
+          "completeEvents": 482,
+          "threadDurationMs": 9.573,
+          "example": {
+            "phase": "X",
+            "pid": 34502,
+            "tid": 10432470,
+            "args": {
+              "release_token": "8E8C85009D9343023AC606208CC995CD"
+            }
+          }
+        },
+        "VideoFrameSubmitter::SubmitFrame": {
+          "count": 482,
+          "completeEvents": 482,
+          "threadDurationMs": 25.23,
+          "example": {
+            "phase": "X",
+            "pid": 34502,
+            "tid": 10432470,
+            "args": {
+              "frame": "format:PIXEL_FORMAT_NV12 storage_type:OPAQUE coded_size:1920x1080 visible_rect:0,0 1920x1080 natural_size:1920x1080 timestamp:4333000 color_space: {primaries:BT709, transfer:BT709_APPLE, matrix:BT709, range:LIMITED} hdr_metadata: {} shared_image: { format: (Y_UV, 420, 8unorm, ExtSamplerOff) usage: Gles2Read|RasterRead|DisplayRead|Scanout|WebgpuRead|MacosVideoToolbox label: VideoToolboxVideoDecoder }"
+            }
+          }
+        },
+        "VideoResourceUpdater::CreateForHardwareFrame": {
+          "count": 482,
+          "completeEvents": 468,
+          "threadDurationMs": 0.948,
+          "example": {
+            "phase": "X",
+            "pid": 34502,
+            "tid": 10432470,
+            "args": {}
+          }
+        },
+        "SharedImageStub::OnCreateSharedImage": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "SharedImageStub::OnDestroySharedImage": {
+          "count": 34,
+          "completeEvents": 34,
+          "threadDurationMs": 6.587,
+          "example": {
+            "phase": "X",
+            "pid": 34497,
+            "tid": 10432192,
+            "args": {}
+          }
+        },
+        "RasterDecoderImpl::DoBeginRasterCHROMIUM": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoRasterCHROMIUM": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoEndRasterCHROMIUM": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoEndRasterCHROMIUM::Flush": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "GpuChannel::ExecuteDeferredRequest": {
+          "count": 34,
+          "completeEvents": 34,
+          "threadDurationMs": 6.616,
+          "example": {
+            "phase": "X",
+            "pid": 34497,
+            "tid": 10432192,
+            "args": {}
+          }
+        },
+        "GPUTask": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "WebGPU": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "Display::DrawAndSwap": {
+          "count": 482,
+          "completeEvents": 482,
+          "threadDurationMs": 96.664,
+          "example": {
+            "phase": "X",
+            "pid": 34497,
+            "tid": 10432283,
+            "args": {}
+          }
+        },
+        "IOSurfaceImageBacking::WaitForCommandsToBeScheduled::Dawn": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "CommitPresentedFrameToCA": {
+          "count": 482,
+          "completeEvents": 482,
+          "threadDurationMs": 276.585,
+          "example": {
+            "phase": "X",
+            "pid": 34497,
+            "tid": 10432192,
+            "args": {
+              "now_to_display": 23099
+            }
+          }
+        },
+        "RasterDecoderImpl::DoReadbackARGBImagePixelsINTERNAL": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoReadbackYUVImagePixelsINTERNAL": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        }
+      }
+    },
+    "B": {
+      "source": "results/hybrid-handoff/light-traces/B-trace.json.gz",
+      "sha256": "45292fe6937caac868e013176fe3cab62a67012fddbd436be9c9c08015145853",
+      "profilerOverhead": {
+        "threads": [],
+        "totalThreadClockSpanMs": 0,
+        "caveat": "Sum of first-to-last observed thread CPU-clock spans, not a synchronized complete process CPU window. Diagnostic profiling was absent from CPU trials."
+      },
+      "decodedFrameDescriptors": {
+        "format:PIXEL_FORMAT_NV12 storage_type:OPAQUE coded_size:1920x1080 visible_rect:0,0 1920x1080 natural_size:1920x1080 timestamp:<var> color_space: {primaries:BT709, transfer:BT709_APPLE, matrix:BT709, range:LIMITED} hdr_metadata: {} shared_image: { format: (Y_UV, 420, 8unorm, ExtSamplerOff) usage: Gles2Read|RasterRead|DisplayRead|Scanout|WebgpuRead|MacosVideoToolbox label: VideoToolboxVideoDecoder }": 484
+      },
+      "sharedImageCreationSizes": {
+        "1920x1080": 483
+      },
+      "events": {
+        "MojoVideoDecoder::OnVideoFrameDecoded": {
+          "count": 484,
+          "completeEvents": 484,
+          "threadDurationMs": 3.314,
+          "example": {
+            "phase": "X",
+            "pid": 34942,
+            "tid": 10433593,
+            "args": {
+              "frame": "format:PIXEL_FORMAT_NV12 storage_type:OPAQUE coded_size:1920x1080 visible_rect:0,0 1920x1080 natural_size:1920x1080 timestamp:4183000 color_space: {primaries:BT709, transfer:BT709_APPLE, matrix:BT709, range:LIMITED} hdr_metadata: {} shared_image: { format: (Y_UV, 420, 8unorm, ExtSamplerOff) usage: Gles2Read|RasterRead|DisplayRead|Scanout|WebgpuRead|MacosVideoToolbox label: VideoToolboxVideoDecoder }",
+              "release_token": "ED5CB86E7F487126BBA619536BBCCDE6"
+            }
+          }
+        },
+        "MojoVideoFrameHandleReleaser::ReleaseVideoFrame": {
+          "count": 482,
+          "completeEvents": 482,
+          "threadDurationMs": 6.212,
+          "example": {
+            "phase": "X",
+            "pid": 34942,
+            "tid": 10433573,
+            "args": {
+              "release_token": "88D3439E0DA19896923C13367C323E10"
+            }
+          }
+        },
+        "VideoFrameSubmitter::SubmitFrame": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "VideoResourceUpdater::CreateForHardwareFrame": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "SharedImageStub::OnCreateSharedImage": {
+          "count": 483,
+          "completeEvents": 483,
+          "threadDurationMs": 114.42,
+          "example": {
+            "phase": "X",
+            "pid": 34937,
+            "tid": 10433320,
+            "args": {
+              "height": 1080,
+              "width": 1920
+            }
+          }
+        },
+        "SharedImageStub::OnDestroySharedImage": {
+          "count": 494,
+          "completeEvents": 494,
+          "threadDurationMs": 6.12,
+          "example": {
+            "phase": "X",
+            "pid": 34937,
+            "tid": 10433320,
+            "args": {}
+          }
+        },
+        "RasterDecoderImpl::DoBeginRasterCHROMIUM": {
+          "count": 482,
+          "completeEvents": 482,
+          "threadDurationMs": 13.936,
+          "example": {
+            "phase": "X",
+            "pid": 34937,
+            "tid": 10433320,
+            "args": {}
+          }
+        },
+        "RasterDecoderImpl::DoRasterCHROMIUM": {
+          "count": 482,
+          "completeEvents": 482,
+          "threadDurationMs": 18.988,
+          "example": {
+            "phase": "X",
+            "pid": 34937,
+            "tid": 10433320,
+            "args": {
+              "raster_id": 1
+            }
+          }
+        },
+        "RasterDecoderImpl::DoEndRasterCHROMIUM": {
+          "count": 482,
+          "completeEvents": 482,
+          "threadDurationMs": 74.396,
+          "example": {
+            "phase": "X",
+            "pid": 34937,
+            "tid": 10433320,
+            "args": {}
+          }
+        },
+        "RasterDecoderImpl::DoEndRasterCHROMIUM::Flush": {
+          "count": 482,
+          "completeEvents": 482,
+          "threadDurationMs": 68.121,
+          "example": {
+            "phase": "X",
+            "pid": 34937,
+            "tid": 10433320,
+            "args": {}
+          }
+        },
+        "GpuChannel::ExecuteDeferredRequest": {
+          "count": 2584,
+          "completeEvents": 2584,
+          "threadDurationMs": 503.713,
+          "example": {
+            "phase": "X",
+            "pid": 34937,
+            "tid": 10433320,
+            "args": {}
+          }
+        },
+        "GPUTask": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "WebGPU": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "Display::DrawAndSwap": {
+          "count": 474,
+          "completeEvents": 474,
+          "threadDurationMs": 52.668,
+          "example": {
+            "phase": "X",
+            "pid": 34937,
+            "tid": 10433399,
+            "args": {}
+          }
+        },
+        "IOSurfaceImageBacking::WaitForCommandsToBeScheduled::Dawn": {
+          "count": 474,
+          "completeEvents": 474,
+          "threadDurationMs": 3.309,
+          "example": {
+            "phase": "X",
+            "pid": 34937,
+            "tid": 10433320,
+            "args": {}
+          }
+        },
+        "CommitPresentedFrameToCA": {
+          "count": 474,
+          "completeEvents": 474,
+          "threadDurationMs": 64.183,
+          "example": {
+            "phase": "X",
+            "pid": 34937,
+            "tid": 10433320,
+            "args": {
+              "now_to_display": 23411
+            }
+          }
+        },
+        "RasterDecoderImpl::DoReadbackARGBImagePixelsINTERNAL": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoReadbackYUVImagePixelsINTERNAL": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        }
+      }
+    },
+    "C": {
+      "source": "results/hybrid-handoff/light-traces/C-trace.json.gz",
+      "sha256": "123022fd69fd67629535511b2864cfa464af5d72c9aa328e0c026175bd3c3eea",
+      "profilerOverhead": {
+        "threads": [],
+        "totalThreadClockSpanMs": 0,
+        "caveat": "Sum of first-to-last observed thread CPU-clock spans, not a synchronized complete process CPU window. Diagnostic profiling was absent from CPU trials."
+      },
+      "decodedFrameDescriptors": {
+        "format:PIXEL_FORMAT_NV12 storage_type:OPAQUE coded_size:1920x1080 visible_rect:0,0 1920x1080 natural_size:1920x1080 timestamp:<var> color_space: {primaries:BT709, transfer:BT709_APPLE, matrix:BT709, range:LIMITED} hdr_metadata: {} shared_image: { format: (Y_UV, 420, 8unorm, ExtSamplerOff) usage: Gles2Read|RasterRead|DisplayRead|Scanout|WebgpuRead|MacosVideoToolbox label: VideoToolboxVideoDecoder }": 482
+      },
+      "sharedImageCreationSizes": {},
+      "events": {
+        "MojoVideoDecoder::OnVideoFrameDecoded": {
+          "count": 482,
+          "completeEvents": 482,
+          "threadDurationMs": 4.312,
+          "example": {
+            "phase": "X",
+            "pid": 34965,
+            "tid": 10434187,
+            "args": {
+              "frame": "format:PIXEL_FORMAT_NV12 storage_type:OPAQUE coded_size:1920x1080 visible_rect:0,0 1920x1080 natural_size:1920x1080 timestamp:4150000 color_space: {primaries:BT709, transfer:BT709_APPLE, matrix:BT709, range:LIMITED} hdr_metadata: {} shared_image: { format: (Y_UV, 420, 8unorm, ExtSamplerOff) usage: Gles2Read|RasterRead|DisplayRead|Scanout|WebgpuRead|MacosVideoToolbox label: VideoToolboxVideoDecoder }",
+              "release_token": "E4D247FDB74671D202D7E8DBDF60E398"
+            }
+          }
+        },
+        "MojoVideoFrameHandleReleaser::ReleaseVideoFrame": {
+          "count": 481,
+          "completeEvents": 481,
+          "threadDurationMs": 8.676,
+          "example": {
+            "phase": "X",
+            "pid": 34965,
+            "tid": 10434151,
+            "args": {
+              "release_token": "934167D3A1277A12D967435D2C679E0B"
+            }
+          }
+        },
+        "VideoFrameSubmitter::SubmitFrame": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "VideoResourceUpdater::CreateForHardwareFrame": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "SharedImageStub::OnCreateSharedImage": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "SharedImageStub::OnDestroySharedImage": {
+          "count": 15,
+          "completeEvents": 15,
+          "threadDurationMs": 3.159,
+          "example": {
+            "phase": "X",
+            "pid": 34960,
+            "tid": 10433918,
+            "args": {}
+          }
+        },
+        "RasterDecoderImpl::DoBeginRasterCHROMIUM": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoRasterCHROMIUM": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoEndRasterCHROMIUM": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoEndRasterCHROMIUM::Flush": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "GpuChannel::ExecuteDeferredRequest": {
+          "count": 15,
+          "completeEvents": 15,
+          "threadDurationMs": 3.203,
+          "example": {
+            "phase": "X",
+            "pid": 34960,
+            "tid": 10433918,
+            "args": {}
+          }
+        },
+        "GPUTask": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "WebGPU": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "Display::DrawAndSwap": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "IOSurfaceImageBacking::WaitForCommandsToBeScheduled::Dawn": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "CommitPresentedFrameToCA": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoReadbackARGBImagePixelsINTERNAL": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoReadbackYUVImagePixelsINTERNAL": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        }
+      }
+    },
+    "D": {
+      "source": "results/hybrid-handoff/light-traces/D-trace.json.gz",
+      "sha256": "36d07feb1df753debb7f651d557227bbb020290d03e3edf09ebdda4b72d739c6",
+      "profilerOverhead": {
+        "threads": [],
+        "totalThreadClockSpanMs": 0,
+        "caveat": "Sum of first-to-last observed thread CPU-clock spans, not a synchronized complete process CPU window. Diagnostic profiling was absent from CPU trials."
+      },
+      "decodedFrameDescriptors": {
+        "format:PIXEL_FORMAT_NV12 storage_type:OPAQUE coded_size:1920x1080 visible_rect:0,0 1920x1080 natural_size:1920x1080 timestamp:<var> color_space: {primaries:BT709, transfer:BT709_APPLE, matrix:BT709, range:LIMITED} hdr_metadata: {} shared_image: { format: (Y_UV, 420, 8unorm, ExtSamplerOff) usage: Gles2Read|RasterRead|DisplayRead|Scanout|WebgpuRead|MacosVideoToolbox label: VideoToolboxVideoDecoder }": 481
+      },
+      "sharedImageCreationSizes": {},
+      "events": {
+        "MojoVideoDecoder::OnVideoFrameDecoded": {
+          "count": 481,
+          "completeEvents": 481,
+          "threadDurationMs": 3.461,
+          "example": {
+            "phase": "X",
+            "pid": 34988,
+            "tid": 10434766,
+            "args": {
+              "frame": "format:PIXEL_FORMAT_NV12 storage_type:OPAQUE coded_size:1920x1080 visible_rect:0,0 1920x1080 natural_size:1920x1080 timestamp:4150000 color_space: {primaries:BT709, transfer:BT709_APPLE, matrix:BT709, range:LIMITED} hdr_metadata: {} shared_image: { format: (Y_UV, 420, 8unorm, ExtSamplerOff) usage: Gles2Read|RasterRead|DisplayRead|Scanout|WebgpuRead|MacosVideoToolbox label: VideoToolboxVideoDecoder }",
+              "release_token": "E9887B8EB7E21D604D4E1CD31645A55C"
+            }
+          }
+        },
+        "MojoVideoFrameHandleReleaser::ReleaseVideoFrame": {
+          "count": 482,
+          "completeEvents": 482,
+          "threadDurationMs": 4.072,
+          "example": {
+            "phase": "X",
+            "pid": 34988,
+            "tid": 10434733,
+            "args": {
+              "release_token": "81B99828627472FB3748F3D5FFB375D0"
+            }
+          }
+        },
+        "VideoFrameSubmitter::SubmitFrame": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "VideoResourceUpdater::CreateForHardwareFrame": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "SharedImageStub::OnCreateSharedImage": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "SharedImageStub::OnDestroySharedImage": {
+          "count": 12,
+          "completeEvents": 12,
+          "threadDurationMs": 0.778,
+          "example": {
+            "phase": "X",
+            "pid": 34982,
+            "tid": 10434475,
+            "args": {}
+          }
+        },
+        "RasterDecoderImpl::DoBeginRasterCHROMIUM": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoRasterCHROMIUM": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoEndRasterCHROMIUM": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoEndRasterCHROMIUM::Flush": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "GpuChannel::ExecuteDeferredRequest": {
+          "count": 1517,
+          "completeEvents": 1517,
+          "threadDurationMs": 368.223,
+          "example": {
+            "phase": "X",
+            "pid": 34982,
+            "tid": 10434475,
+            "args": {}
+          }
+        },
+        "GPUTask": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "WebGPU": {
+          "count": 1505,
+          "completeEvents": 1505,
+          "threadDurationMs": 359.168,
+          "example": {
+            "phase": "X",
+            "pid": 34982,
+            "tid": 10434475,
+            "args": {}
+          }
+        },
+        "Display::DrawAndSwap": {
+          "count": 479,
+          "completeEvents": 479,
+          "threadDurationMs": 54.67,
+          "example": {
+            "phase": "X",
+            "pid": 34982,
+            "tid": 10434563,
+            "args": {}
+          }
+        },
+        "IOSurfaceImageBacking::WaitForCommandsToBeScheduled::Dawn": {
+          "count": 479,
+          "completeEvents": 479,
+          "threadDurationMs": 2.801,
+          "example": {
+            "phase": "X",
+            "pid": 34982,
+            "tid": 10434475,
+            "args": {}
+          }
+        },
+        "CommitPresentedFrameToCA": {
+          "count": 479,
+          "completeEvents": 479,
+          "threadDurationMs": 66.37,
+          "example": {
+            "phase": "X",
+            "pid": 34982,
+            "tid": 10434475,
+            "args": {
+              "now_to_display": 23416
+            }
+          }
+        },
+        "RasterDecoderImpl::DoReadbackARGBImagePixelsINTERNAL": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        },
+        "RasterDecoderImpl::DoReadbackYUVImagePixelsINTERNAL": {
+          "count": 0,
+          "completeEvents": 0,
+          "threadDurationMs": 0,
+          "example": null
+        }
+      }
+    }
+  }
+}
