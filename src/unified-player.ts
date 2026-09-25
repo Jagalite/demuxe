@@ -108,6 +108,7 @@ export class Player extends EventTarget {
   }
   private sourceInspection?:{source:Source;probe:Probe;settings:{aid:string;sid:string;subtitles:boolean}};
   private mpvSubtitleAssetsAvailable=false;
+  private selectiveAudioAssetsAvailable=false;
   private inspection?: AbortController;
   private recovering = false;
   private lifetime = new AbortController();
@@ -484,7 +485,23 @@ export class Player extends EventTarget {
     const selected=settings.aid==='no'?undefined:(source===this.source?this.publicSelections.get('audio'):undefined)??(explicit?`audio:stream:${explicit.index}`:undefined);
     const selectedAudio=selected?.startsWith('audio:stream:')?inspected?.probe.tracks.find(t=>t.type==='audio'&&`audio:stream:${t.index}`===selected):undefined;
     const inspectedSettings=inspected?{...inspected.settings,aid:settings.aid==='no'?'no':selectedAudio?.id??(settings.aid==='auto'?'auto':inspected.settings.aid)}:undefined;
+    const audioTracks=inspected?.probe.tracks.filter(t=>t.type==='audio')??[];
+    const selectiveAudio=inspectedSettings?.aid==='no'?undefined:inspectedSettings?.aid==='auto'?(audioTracks.find(t=>t.default)??audioTracks[0]):audioTracks.find(t=>t.id===inspectedSettings?.aid);
+    const selectiveVideo=inspected?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture);
+    const selectiveSubtitle=inspected?.probe.tracks.find(t=>t.type==='sub'&&(inspectedSettings?.sid==='auto'?t.default||subs[0]===t:t.id===inspectedSettings?.sid));
+    const selectiveVideoCapability=inspected?nativeBrowserCapabilities(inspected.probe,'no',{canPlayType:mime=>document.createElement('video').canPlayType(mime),isTypeSupported:typeof MediaSource==='undefined'?undefined:mime=>MediaSource.isTypeSupported(mime)}).remux:undefined;
+    const selectiveAudioReason=source.kind!=='local'?'Selective audio requires an inspected local file':!inspected?'Source inspection required':
+      !inspected.probe.format?.split(',').includes('matroska')?'Selective packet-copy qualification requires Matroska':
+      !Number.isFinite(inspected.probe.duration)||inspected.probe.duration<=0?'Selective audio requires finite media':
+      !selectiveVideo||!selectiveVideo.width||!selectiveVideo.height||selectiveVideo.width*selectiveVideo.height>1920*1080||!(selectiveVideo.codec==='h264'||selectiveVideo.codec==='hevc'&&selectiveVideo.codecString==='hev1.2.4.H123.90')?'H.264 or the qualified HEVC Main10 profile up to 1080p is required':
+      !selectiveAudio||!['ac3','dts'].includes(selectiveAudio.codec)||selectiveAudio.sampleRate!==48000||selectiveAudio.channels!==2?'Selected AC-3 or DTS must be 48 kHz stereo':
+      !this.selectiveAudioAssetsAvailable?'Selective audio engine or worklet assets are unavailable':
+      selectiveSubtitle&&settings.subtitles?'Embedded subtitles require a separately qualified composition':
+      [selectiveVideo,selectiveAudio].some(t=>!Number.isFinite(t.startTime)||!Number.isFinite(t.endTime))?'Selected track bounds are unavailable':
+      Math.abs(selectiveVideo.startTime!-selectiveAudio.startTime!)>.05||Math.abs(selectiveVideo.endTime!-selectiveAudio.endTime!)>.05?'Selected track offsets or tails exceed qualification':
+      selectiveVideoCapability?.status!=='supported'?selectiveVideoCapability?.reason??'Browser MSE video support is not established':undefined;
     const decisions:typeof this.planDecisions=planAdmission({automatic,...settings,
+      selectiveAudioQualified:!selectiveAudioReason,selectiveAudioReason,
       mpvSubtitles:this.mpvSubtitles,
       mpvSubtitleSourceQualified:this.mpvSubtitleAssetsAvailable&&source.kind==='local'&&!!inspected&&Number.isFinite(inspected.probe.duration)&&inspected.probe.duration>0&&(subs.length===1||subs.length===2&&subs.every(t=>t.codec==='subrip'))&&subs.every(t=>['ass','ssa','subrip','mov_text','hdmv_pgs_subtitle','dvd_subtitle'].includes(t.codec))&&((inspected.probe.format?.includes('matroska')&&subs.every(t=>t.codec!=='mov_text'))||((inspected.probe.format?.includes('mp4')||inspected.probe.format?.includes('mov'))&&subs.every(t=>t.codec==='mov_text')))&&settings.subtitles&&settings.sid!=='no',
       mpvSubtitleAVRejection:inspected?nativeRejection(inspected.probe,{...inspectedSettings!,subtitles:false}):'Source inspection required',
@@ -505,7 +522,7 @@ export class Player extends EventTarget {
       for(const plan of decisions){
         if(plan.mode==='hybrid'&&plan.eligible&&inspected.probe.hybridRejection){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason=inspected.probe.hybridRejection;}
         if(!plan.id.startsWith('native-'))continue;
-        const capability=plan.browserCapability=capabilities[plan.id.startsWith('native-direct')?'direct':plan.id.startsWith('native-flac')?'flac':plan.id.startsWith('native-opus')?'opus':'remux'];
+        const capability=plan.browserCapability=plan.id==='native-video-mpv-audio'?selectiveVideoCapability!:capabilities[plan.id.startsWith('native-direct')?'direct':plan.id.startsWith('native-flac')?'flac':plan.id.startsWith('native-opus')?'opus':'remux'];
         if(plan.eligible&&capability.status==='unsupported'){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason=capability.reason;}
         if(plan.eligible&&plan.id.startsWith('native-direct')&&capability.unqueriedAudio){plan.eligible=false;plan.code='QUALIFICATION_REQUIRED';plan.reason='Selected audio has no browser capability mapping; preparation or decoded audio is required';}
       }
@@ -727,7 +744,7 @@ export class Player extends EventTarget {
     this.attempts=[];
     for(const attempt of priorAttempts)this.record(attempt);
     let nativeReason: string | undefined;
-    if(start===0||this.sourceInspection?.source!==source){this.losslessInspection=undefined;this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;}
+    if(start===0||this.sourceInspection?.source!==source){this.losslessInspection=undefined;this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;}
     if(start===0&&!(settings.vf||settings.af||this.toneMapping!=='off')){
       if((source.kind==='local'&&source.input?.demuxer)||(source.kind==='remote'&&(source.options.demuxer||(source.options.format&&source.options.format!=='file')))){
         nativeReason=source.kind==='remote'?nativeManifestRejection(source.options,settings,!!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')):'Explicit demuxer requires FFmpeg';
@@ -764,6 +781,16 @@ export class Player extends EventTarget {
           if(publicAudio)aid=probe.tracks.find(t=>t.type==='audio'&&t.index===Number(publicAudio[1]))?.id??'missing';
           nativeReason=nativeRejection(probe,{...settings,aid,sid},document.createElement('video'));
           this.sourceInspection={source,probe,settings:{aid,sid,subtitles:settings.subtitles}};
+          if(source.kind==='local'&&probe.tracks.some(t=>t.type==='audio'&&['ac3','dts'].includes(t.codec))){
+            const names=['web/engine-selective/player.mjs','web/engine-selective/player.wasm','web/selective-sync-worklet.js'];
+            const assetController=new AbortController();
+            const abort=()=>assetController.abort();controller.signal.addEventListener('abort',abort,{once:true});
+            const deadline=setTimeout(abort,5000);
+            try{const responses=await Promise.all(names.map(name=>fetch(new URL(name,this.assetBase),{method:'HEAD',signal:assetController.signal})));this.selectiveAudioAssetsAvailable=responses.every(response=>response.ok);}
+            catch(error){if(controller.signal.aborted)throw error;}
+            finally{clearTimeout(deadline);controller.signal.removeEventListener('abort',abort);}
+            this.assertOperation();
+          }
           if(this.mpvSubtitles&&source.kind==='local'&&settings.subtitles&&sid!=='no'&&probe.tracks.some(t=>t.type==='sub')){
             // A package may omit the optional service. Keep the complete-file
             // fallback eligible without loading either asset into the page.
@@ -916,7 +943,7 @@ export class Player extends EventTarget {
       const policy=this.nativeRemux;
       const streaming=this.failedStreamingPlan(session);
       const tryRemux=!streaming&&this.mode==='native'&&(session.backend.diagnostics as {plan?:string})?.plan==='direct'&&policy!=='never';
-      const priorAttempts:SelectionAttempt[]=[...this.attempts.filter(attempt=>attempt.outcome!=='selected'),{mode:this.mode,outcome:'failed',reason:`Runtime playback failure: ${session.error?.message??'Playback backend became unavailable'}`}];
+      const priorAttempts:SelectionAttempt[]=[...this.attempts.filter(attempt=>attempt.outcome!=='selected'),{mode:this.mode,outcome:'failed',reason:`${plan.id}: Runtime playback failure: ${session.error?.message??'Playback backend became unavailable'}`}];
       try{
         if(tryRemux)this.nativeRemux='always';
         await this.select(this.source!,this.settings,true,this.nativeTracks,streaming||tryRemux?0:PLAYBACK_MODES.indexOf(this.mode)+1,undefined,priorAttempts);

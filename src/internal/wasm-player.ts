@@ -19,6 +19,7 @@ export class WasmPlayer extends EventTarget {
   private workerOwner: HTMLIFrameElement;
   private audioContext: AudioContext;
   private audioNode?: AudioWorkletNode;
+  private selectiveGain?: GainNode;
   private analyser?: AnalyserNode;
   private gainNode?: GainNode;
   private gainValue=1;
@@ -37,6 +38,7 @@ export class WasmPlayer extends EventTarget {
   private opening=false;
   private refreshAuthorization?:RemoteSource['refreshAuthorization'];
   private audioHeader: Int32Array;
+  private readonly audioOnly:boolean;
   private outputChannels: number;
   private requestedOutput: AudioOutput;
   private deviceChannels: number;
@@ -47,8 +49,8 @@ export class WasmPlayer extends EventTarget {
   properties = new Map<string, unknown>();
   readonly ready: Promise<void>;
 
-  constructor(canvas:HTMLCanvasElement, {prepared,buffering=bufferingPolicy(),disableBrowserCodecs=false,measureOutput=false,mode='software',softwarePresenter='auto',audioOutput='stereo',audioFallback='stereo',resourceLimits={},fonts=[],assetBase=new URL('../../../',import.meta.url),decodeQuality='exact',adaptiveFrameDrop=false,videoTrack,webgpuDecodeIntent}: {prepared?:{module?:WebAssembly.Module;font?:ArrayBuffer};buffering?:BufferingPolicy;assetBase?:URL;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';resourceLimits?:ResourceLimits;fonts?:FontAsset[];disableBrowserCodecs?:boolean;measureOutput?:boolean;mode?:'hybrid'|'software';softwarePresenter?:'auto'|'rgb'|'experimental-yuv';decodeQuality?:DecodeQuality;adaptiveFrameDrop?:boolean;videoTrack?:{codec:string;codecString?:string;webCodecsSupported?:boolean;width?:number;height?:number};webgpuDecodeIntent?:Partial<ExternalDecodeIntent>}={}) {
-    super();this.buffering=buffering;
+  constructor(canvas:HTMLCanvasElement, {prepared,buffering=bufferingPolicy(),disableBrowserCodecs=false,measureOutput=false,mode='software',softwarePresenter='auto',audioOutput='stereo',audioFallback='stereo',resourceLimits={},fonts=[],assetBase=new URL('../../../',import.meta.url),decodeQuality='exact',adaptiveFrameDrop=false,videoTrack,webgpuDecodeIntent}: {prepared?:{module?:WebAssembly.Module;font?:ArrayBuffer};buffering?:BufferingPolicy;assetBase?:URL;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';resourceLimits?:ResourceLimits;fonts?:FontAsset[];disableBrowserCodecs?:boolean;measureOutput?:boolean;mode?:'hybrid'|'software'|'selective-audio';softwarePresenter?:'auto'|'rgb'|'experimental-yuv';decodeQuality?:DecodeQuality;adaptiveFrameDrop?:boolean;videoTrack?:{codec:string;codecString?:string;webCodecsSupported?:boolean;width?:number;height?:number};webgpuDecodeIntent?:Partial<ExternalDecodeIntent>}={}) {
+    super();this.buffering=buffering;this.audioOnly=mode==='selective-audio';
     if(!crossOriginIsolated) throw new Error('This player requires a secure, cross-origin isolated page.');
     this.audioContext = new AudioContext({latencyHint:'interactive'});
     this.requestedOutput=audioOutput;this.deviceChannels=this.audioContext.destination.maxChannelCount;
@@ -63,9 +65,9 @@ export class WasmPlayer extends EventTarget {
     this.workerOwner.hidden=true;this.workerOwner.setAttribute('aria-hidden','true');
     canvas.ownerDocument.body.append(this.workerOwner);
     const owner=this.workerOwner.contentWindow as Window & typeof globalThis;
-    try {this.worker = new owner.Worker(new URL(mode==='hybrid'?'web/filter-retained-engine-worker.js?mode=retained':'web/software-full-engine-worker.js',assetBase),{type:'module'});}
+    try {this.worker = new owner.Worker(new URL(mode==='hybrid'||this.audioOnly?`web/filter-retained-engine-worker.js?mode=retained${this.audioOnly?'&audioOnly=1':''}`:'web/software-full-engine-worker.js',assetBase),{type:'module'});}
     catch(error){this.workerOwner.remove();void this.audioContext.close();throw error;}
-    const audio = new SharedArrayBuffer(64 + 8192 * this.outputChannels * 4);
+    const audio = new SharedArrayBuffer(64 + 8192 * this.outputChannels * 4 + (this.audioOnly?8192*16:0));
     this.audioHeader = new Int32Array(audio,0,16);
     this.ready = new Promise<void>((resolve,reject) => {
       this.rejectReady=reject;
@@ -99,7 +101,7 @@ export class WasmPlayer extends EventTarget {
       void (async()=>{
         const [font]=await Promise.all([
           prepared?.font?Promise.resolve(prepared.font):(async()=>{const response=await fetch(new URL('fixtures/DejaVuSans.ttf',assetBase),{signal:this.loading.signal});if(!response.ok)throw Error('Could not load the bundled subtitle font');return response.arrayBuffer();})(),
-          this.audioContext.audioWorklet.addModule(new URL('web/audio-worklet.js',assetBase)),
+          this.audioContext.audioWorklet.addModule(new URL(this.audioOnly?'web/selective-sync-worklet.js':'web/audio-worklet.js',assetBase)),
         ]);
         if(this.destroyed) throw new Error('Player destroyed during initialization');
         this.audioNode=new AudioWorkletNode(this.audioContext,'demuxe-pcm',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[this.outputChannels],channelCount:this.outputChannels,channelCountMode:'explicit',processorOptions:{buffer:audio,capacity:8192,channels:this.outputChannels,measureOutput}});
@@ -108,7 +110,7 @@ export class WasmPlayer extends EventTarget {
         this.audioNode.connect(this.analyser);this.audioNode.connect(this.audioContext.destination);
         if(this.destroyed) throw new Error('Player destroyed during initialization');
         const decodePolicy=resolveDecodePolicy({codec:videoTrack?.codec,codedWidth:videoTrack?.width,codedHeight:videoTrack?.height,displayWidth:canvas.width,displayHeight:canvas.height,decodeQuality,maxDecodePixels:resourceLimits.maxDecodePixels??8294400});
-        let decoder:'software'|'webcodecs'|'webgpu'=mode==='hybrid'?'webcodecs':'software';
+        let decoder:'software'|'webcodecs'|'webgpu'=mode==='hybrid'||this.audioOnly?'webcodecs':'software';
         let selectedDecodeIntent:ExternalDecodeIntent|undefined;
         if(mode==='hybrid'&&videoTrack?.codec){
           // The production registry is empty. Once a codec is qualified, probe
@@ -212,6 +214,17 @@ export class WasmPlayer extends EventTarget {
       await this.waitForEvent(event=>event.event==='property-change'&&event.name==='track-list'&&Array.isArray(event.data)&&event.data.length>0);
   }
   async command(...args:string[]):Promise<void> {await this.ready;return this.request({type:'command',args});}
+  /** Restricted internal handoff for the Native video + mpv audio plan. */
+  selectiveAudioState():{header:Int32Array;context:AudioContext;gain:GainNode} {
+    if(!this.audioOnly||!this.audioNode||this.destroyed)throw Error('Selective audio service is unavailable');
+    if(!this.selectiveGain){
+      const gain=this.audioContext.createGain();gain.gain.value=0;
+      this.audioNode.disconnect(this.audioContext.destination);
+      this.audioNode.connect(gain);gain.connect(this.audioContext.destination);
+      this.selectiveGain=gain;
+    }
+    return {header:this.audioHeader,context:this.audioContext,gain:this.selectiveGain};
+  }
   private async setPause(paused:boolean) {
     if(this.properties.get('pause')===paused){await this.command('set','pause',paused?'yes':'no');return;}
     await Promise.all([this.waitForEvent(e=>e.event==='property-change'&&e.name==='pause'&&e.data===paused),this.command('set','pause',paused?'yes':'no')]);

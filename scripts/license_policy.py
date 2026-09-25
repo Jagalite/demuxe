@@ -225,7 +225,7 @@ class Policy:
                 raise ValueError('Player archive requires verified engine build evidence')
             build = json.loads(files['engine-build.json'])
             licenses = build.get('licenses', {})
-            for name in ['baseline', 'hybrid', 'software', 'subtitles', 'remuxFFmpegLibrary']:
+            for name in ['baseline', 'hybrid', 'selective', 'software', 'subtitles', 'remuxFFmpegLibrary']:
                 if licenses.get(name) != LGPL:
                     raise ValueError('Combined engine license must be LGPL-2.1-or-later: ' + name)
             if licenses.get('remuxWrapper') != APACHE or licenses.get('mpvGPL') is not False:
@@ -238,6 +238,7 @@ class Policy:
                 raise ValueError('Verified generated LGPL closure evidence is missing')
             expected_artifacts = {f'web/{folder}/{stem}.{ext}'
                                   for folder, stem in [('engine-hybrid', 'player'),
+                                                       ('engine-selective', 'player'),
                                                        ('engine-software-full', 'player'),
                                                        ('engine-software-yuv', 'player'),
                                                        ('engine-remux', 'remux'),

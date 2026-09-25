@@ -4,16 +4,16 @@ import type { PlaybackMode } from '../types.js';
 export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-mpv";
     mode: "native";
@@ -23,16 +23,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct";
     mode: "native";
@@ -42,16 +42,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-mpv";
     mode: "native";
@@ -61,16 +61,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux";
     mode: "native";
@@ -80,16 +80,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-gain";
     mode: "native";
@@ -99,16 +99,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "shaka-mse";
     mode: "native";
@@ -118,16 +118,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "shaka-mse-gain";
     mode: "native";
@@ -137,16 +137,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-gain";
     mode: "native";
@@ -156,16 +156,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac";
     mode: "native";
@@ -175,16 +175,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-gain";
     mode: "native";
@@ -194,16 +194,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-ass";
     mode: "native";
@@ -213,16 +213,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-ass-gain";
     mode: "native";
@@ -232,16 +232,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-ass";
     mode: "native";
@@ -251,16 +251,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-ass-gain";
     mode: "native";
@@ -270,16 +270,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-ass";
     mode: "native";
@@ -289,16 +289,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-ass-gain";
     mode: "native";
@@ -308,16 +308,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-opus";
     mode: "native";
@@ -327,16 +327,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-opus-gain";
     mode: "native";
@@ -346,16 +346,35 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-video-mpv-audio";
+    mode: "native";
+    video: "packet-copy";
+    audio: "mpv-pcm-worklet";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid";
     mode: "hybrid";
@@ -365,16 +384,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter";
     mode: "hybrid";
@@ -384,16 +403,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-gain";
     mode: "hybrid";
@@ -403,16 +422,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter-gain";
     mode: "hybrid";
@@ -422,16 +441,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software-gain";
     mode: "software";
@@ -441,16 +460,16 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software";
     mode: "software";
@@ -468,16 +487,16 @@ export declare function featureRejection(mode: PlaybackMode, features: {
 export declare function executionPlan(mode: PlaybackMode, packaging: unknown, audioFilter: string, gain?: number, nativeASS?: boolean): Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-mpv";
     mode: "native";
@@ -487,16 +506,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct";
     mode: "native";
@@ -506,16 +525,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-mpv";
     mode: "native";
@@ -525,16 +544,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux";
     mode: "native";
@@ -544,16 +563,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-gain";
     mode: "native";
@@ -563,16 +582,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "shaka-mse";
     mode: "native";
@@ -582,16 +601,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "shaka-mse-gain";
     mode: "native";
@@ -601,16 +620,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-gain";
     mode: "native";
@@ -620,16 +639,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac";
     mode: "native";
@@ -639,16 +658,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-gain";
     mode: "native";
@@ -658,16 +677,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-ass";
     mode: "native";
@@ -677,16 +696,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-ass-gain";
     mode: "native";
@@ -696,16 +715,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-ass";
     mode: "native";
@@ -715,16 +734,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-ass-gain";
     mode: "native";
@@ -734,16 +753,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-ass";
     mode: "native";
@@ -753,16 +772,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-ass-gain";
     mode: "native";
@@ -772,16 +791,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-opus";
     mode: "native";
@@ -791,16 +810,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-opus-gain";
     mode: "native";
@@ -810,16 +829,35 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-video-mpv-audio";
+    mode: "native";
+    video: "packet-copy";
+    audio: "mpv-pcm-worklet";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    prerequisites: string;
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid";
     mode: "hybrid";
@@ -829,16 +867,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter";
     mode: "hybrid";
@@ -848,16 +886,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-gain";
     mode: "hybrid";
@@ -867,16 +905,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter-gain";
     mode: "hybrid";
@@ -886,16 +924,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software-gain";
     mode: "software";
@@ -905,16 +943,16 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 } | {
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
-        audio: "browser-media-element" | "mpv-pcm-worklet";
-        subtitle: "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
-        demux: "browser" | "mpv" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: "browser" | "mpv" | "ffmpeg-video-packet-copy+mpv-audio-demux" | "ffmpeg-preparation+mpv-subtitle-demux" | "browser+mpv-subtitle-demux" | "shaka-manifest-segments-mse" | "ffmpeg-preparation";
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
-    source: "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
+    source: "inspected finite local Matroska with qualified video and selected stereo software audio" | "inspected local file with qualified embedded subtitle tracks" | "authorized HLS/DASH adaptive source" | "qualified random-access file and selected codec packaging" | "browser-supported source and selected tracks" | "existing mpv source/track contract";
     prerequisites: string;
-    subtitles: "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
     fidelity: "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
-    resources: "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
+    resources: "two bounded local source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings; browser decoder allocations opaque" | "bounded local reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque" | "Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque" | "existing bounded remux buffers when used; browser decoder allocations are opaque" | "existing mpv allocation, PCM ring and retained-frame limits";
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software";
     mode: "software";
@@ -924,6 +962,8 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 }>;
 export type PlanRejectionCode = 'FEATURE_UNSUPPORTED' | 'POLICY_PROHIBITS_TRANSFORM' | 'QUALIFICATION_REQUIRED' | 'SOURCE_UNSUPPORTED' | 'DEPLOYMENT_UNAVAILABLE' | 'PLAN_NOT_REQUESTED' | 'ISOLATION_REQUIRED';
 export type PlanFacts = {
+    selectiveAudioQualified?: boolean;
+    selectiveAudioReason?: string;
     mpvSubtitles?: boolean;
     mpvSubtitleSourceQualified?: boolean;
     mpvSubtitleAVRejection?: string;
@@ -961,7 +1001,7 @@ export type PlanFacts = {
 export declare function planAdmission(f: PlanFacts): {
     code?: PlanRejectionCode | undefined;
     reason?: string | undefined;
-    id: "hybrid" | "software" | "native-direct-mpv" | "native-direct" | "native-remux-mpv" | "native-remux" | "native-direct-gain" | "shaka-mse" | "shaka-mse-gain" | "native-remux-gain" | "native-flac" | "native-flac-gain" | "native-direct-ass" | "native-direct-ass-gain" | "native-remux-ass" | "native-remux-ass-gain" | "native-flac-ass" | "native-flac-ass-gain" | "native-opus" | "native-opus-gain" | "hybrid-audio-filter" | "hybrid-gain" | "hybrid-audio-filter-gain" | "software-gain";
+    id: "hybrid" | "software" | "native-direct-mpv" | "native-direct" | "native-remux-mpv" | "native-remux" | "native-direct-gain" | "shaka-mse" | "shaka-mse-gain" | "native-remux-gain" | "native-flac" | "native-flac-gain" | "native-direct-ass" | "native-direct-ass-gain" | "native-remux-ass" | "native-remux-ass-gain" | "native-flac-ass" | "native-flac-ass-gain" | "native-opus" | "native-opus-gain" | "native-video-mpv-audio" | "hybrid-audio-filter" | "hybrid-gain" | "hybrid-audio-filter-gain" | "software-gain";
     mode: "native" | "hybrid" | "software";
     eligible: boolean;
 }[];

@@ -74,6 +74,7 @@ export declare class WasmPlayer extends EventTarget {
     private workerOwner;
     private audioContext;
     private audioNode?;
+    private selectiveGain?;
     private analyser?;
     private gainNode?;
     private gainValue;
@@ -92,6 +93,7 @@ export declare class WasmPlayer extends EventTarget {
     private opening;
     private refreshAuthorization?;
     private audioHeader;
+    private readonly audioOnly;
     private outputChannels;
     private requestedOutput;
     private deviceChannels;
@@ -114,7 +116,7 @@ export declare class WasmPlayer extends EventTarget {
         fonts?: FontAsset[];
         disableBrowserCodecs?: boolean;
         measureOutput?: boolean;
-        mode?: 'hybrid' | 'software';
+        mode?: 'hybrid' | 'software' | 'selective-audio';
         softwarePresenter?: 'auto' | 'rgb' | 'experimental-yuv';
         decodeQuality?: DecodeQuality;
         adaptiveFrameDrop?: boolean;
@@ -144,6 +146,12 @@ export declare class WasmPlayer extends EventTarget {
     }>;
     inspectMetadata(): Promise<void>;
     command(...args: string[]): Promise<void>;
+    /** Restricted internal handoff for the Native video + mpv audio plan. */
+    selectiveAudioState(): {
+        header: Int32Array;
+        context: AudioContext;
+        gain: GainNode;
+    };
     private setPause;
     private configureBuffering;
     play(): Promise<void>;

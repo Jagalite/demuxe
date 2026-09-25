@@ -29,6 +29,7 @@ npm run build:software-full
 npm run build:software-yuv
 python3 experiments/retained-subtitles/compile-hook.py
 npm run build:hybrid
+python3 scripts/build-selective-audio.py
 npm run build:remux
 python3 scripts/build-subtitles.py
 npm run build

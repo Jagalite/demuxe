@@ -286,7 +286,9 @@ EMSCRIPTEN_KEEPALIVE int rm_open(double size,int selected_video,int selected_aud
  audio=av_find_best_stream(in,AVMEDIA_TYPE_AUDIO,-1,-1,NULL,0);
  if(video<0)for(unsigned i=0;i<in->nb_streams;i++)if(in->streams[i]->codecpar->codec_type==AVMEDIA_TYPE_VIDEO){video=i;break;}
  if(audio<0)for(unsigned i=0;i<in->nb_streams;i++)if(in->streams[i]->codecpar->codec_type==AVMEDIA_TYPE_AUDIO){audio=i;break;}
- if(selected_video>=0)video=selected_video;if(selected_audio>=0)audio=selected_audio;
+ if(selected_video>=0)video=selected_video;
+ // -2 explicitly omits audio. -1 retains the historical automatic selection.
+ if(selected_audio==-2)audio=-1;else if(selected_audio>=0)audio=selected_audio;
  if((video<0&&audio<0)||(video>=0&&video>=in->nb_streams)||(audio>=0&&audio>=in->nb_streams))return reject("Invalid selected tracks");
  // Browser packet contracts are checked separately from FFmpeg demux availability.
  repair_dts=video>=0&&strstr(in->iformat->name,"matroska")!=NULL&&(in->streams[video]->codecpar->codec_id==AV_CODEC_ID_H264||in->streams[video]->codecpar->codec_id==AV_CODEC_ID_HEVC);is_ts=strstr(in->iformat->name,"mpegts")!=NULL;

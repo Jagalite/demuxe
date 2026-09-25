@@ -13,8 +13,16 @@ mode. Demuxe owns source classification, plan selection, state and fallback; Sha
 owns HLS/DASH parsing, segment scheduling, ABR, buffering, live/DVR and MSE.
 Simple browser-supported HLS VOD can retain Native Direct when its source and
 track policies permit it and actual output passes verification. Ordinary files
-keep their existing Direct/Remux/Hybrid/Software paths. Shaka loads only when its
-plan is needed. See [streaming architecture](docs/STREAMING.md).
+keep their existing Direct/Remux/Hybrid/Software paths. Qualified local files
+with browser-presentable video and selected AC-3 or DTS stereo audio can use
+the separate `native-video-mpv-audio` plan: the browser owns video, while mpv
+decodes audio into the PCM AudioWorklet. Unsupported combinations retain Hybrid
+and Software fallback. Current admission is deliberately narrow; see the
+[route policy](docs/PLAYBACK-TIER-POLICY.md#native-video-with-mpv-audio).
+Shaka loads only when its plan is needed. See [streaming architecture](docs/STREAMING.md).
+The [matched integrated selective-route report](results/selective-production/REPORT.md)
+records H.264/AC-3, H.264/DTS and HEVC Main10/AC-3 CPU and lifecycle results;
+the historical catalogue CPU cells below remain from their original campaigns.
 
 Within Software, the production presenter uses YUV/WebGL2 only for decoded
 SDR 8-bit planar YUV420P frames meeting the [exact frame and color admission
@@ -54,7 +62,7 @@ npx demuxe copy-assets public/assets/demuxe
 ```
 
 Serve the copied directory at `/assets/demuxe/`, preserving its relative tree.
-Hybrid, Software, audio adaptation, and the pthread Native remux runtime require cross-origin isolation headers:
+Hybrid, Software, selective mpv audio, audio adaptation, and the pthread Native remux runtime require cross-origin isolation headers:
 
 ```http
 Cross-Origin-Opener-Policy: same-origin

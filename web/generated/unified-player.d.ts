@@ -40,6 +40,7 @@ export declare class Player extends EventTarget {
     private schedulePromotion;
     private sourceInspection?;
     private mpvSubtitleAssetsAvailable;
+    private selectiveAudioAssetsAvailable;
     private inspection?;
     private recovering;
     private lifetime;

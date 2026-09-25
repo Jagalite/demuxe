@@ -116,7 +116,7 @@ export class RemuxPlayer {
     this.pending=data.buffers??[data.buffer];this.eof=!data.more;this.busy=this.pendingUpdates.size>0||this.sbs.some(s=>s.updating);this.stats.peakQueueDepth=Math.max(this.stats.peakQueueDepth,1);this.pump();
    }
   };
-  this.worker.postMessage({type:'init',fragmentDelivery:this.fragmentDelivery,mailbox:this.mailbox,size:ready.size,target,audioAdaptation:this.audioAdaptation,videoTrack:this.source.videoTrack,audioTrack:this.source.audioTrack});
+  this.worker.postMessage({type:'init',fragmentDelivery:this.fragmentDelivery,mailbox:this.mailbox,size:ready.size,target,audioAdaptation:this.audioAdaptation,videoTrack:this.source.videoTrack,audioTrack:this.source.videoOnly?-2:this.source.audioTrack});
   await new Promise((resolve,reject)=>{
    const deadline=performance.now()+20000;const check=()=>{
     if(generation!==this.generation){reject(new DOMException('Superseded','AbortError'));return;}

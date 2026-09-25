@@ -84,3 +84,10 @@ test('non-isolated deployment retains browser routes and excludes pthread prepar
  const decisions=planAdmission({...facts,isolated:false,nativeRemux:'always'});
  assert.equal(decisions.find(p=>p.id==='native-remux').code,'ISOLATION_REQUIRED');
 });
+test('selective native video plus mpv audio is finite and fail closed',()=>{
+ const id='native-video-mpv-audio',qualified={selectiveAudioQualified:true};
+ assert.ok(eligible(qualified).includes(id));
+ for(const extra of [{automatic:false},{isolated:false},{mse:false},{webAudio:false},{nativeRemux:'never'},{vf:'hflip'},{toneMapping:'hdr-to-sdr'},{af:'volume=.5'},{gain:.8},{audioOutput:'5.1'},{externalFormats:['ass']},{browserTextTracks:true},{selectiveAudioQualified:false,selectiveAudioReason:'Track bounds differ'}]){
+  assert.ok(!eligible({...qualified,...extra}).includes(id),JSON.stringify(extra));
+ }
+});

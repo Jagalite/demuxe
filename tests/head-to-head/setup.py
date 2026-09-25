@@ -98,7 +98,7 @@ def prepare(args):
         shutil.copyfile(REPO / name, target)
     run(['node', 'node_modules/typescript/bin/tsc', '--project', 'tsconfig.json', '--outDir', str(player / 'web/generated')])
     engines = {}
-    for name in ['engine-remux', 'engine-hybrid', 'engine-software-full', 'engine-subtitles', 'engine-adaptation', 'engine-ass']:
+    for name in ['engine-remux', 'engine-hybrid', 'engine-selective', 'engine-software-full', 'engine-software-yuv', 'engine-subtitles', 'engine-adaptation', 'engine-ass']:
         source = REPO / 'web' / name
         engines[name] = source.is_dir()
         if source.is_dir():

@@ -11,6 +11,7 @@ export class WasmPlayer extends EventTarget {
     workerOwner;
     audioContext;
     audioNode;
+    selectiveGain;
     analyser;
     gainNode;
     gainValue = 1;
@@ -29,6 +30,7 @@ export class WasmPlayer extends EventTarget {
     opening = false;
     refreshAuthorization;
     audioHeader;
+    audioOnly;
     outputChannels;
     requestedOutput;
     deviceChannels;
@@ -41,6 +43,7 @@ export class WasmPlayer extends EventTarget {
     constructor(canvas, { prepared, buffering = bufferingPolicy(), disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'auto', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url), decodeQuality = 'exact', adaptiveFrameDrop = false, videoTrack, webgpuDecodeIntent } = {}) {
         super();
         this.buffering = buffering;
+        this.audioOnly = mode === 'selective-audio';
         if (!crossOriginIsolated)
             throw new Error('This player requires a secure, cross-origin isolated page.');
         this.audioContext = new AudioContext({ latencyHint: 'interactive' });
@@ -68,14 +71,14 @@ export class WasmPlayer extends EventTarget {
         canvas.ownerDocument.body.append(this.workerOwner);
         const owner = this.workerOwner.contentWindow;
         try {
-            this.worker = new owner.Worker(new URL(mode === 'hybrid' ? 'web/filter-retained-engine-worker.js?mode=retained' : 'web/software-full-engine-worker.js', assetBase), { type: 'module' });
+            this.worker = new owner.Worker(new URL(mode === 'hybrid' || this.audioOnly ? `web/filter-retained-engine-worker.js?mode=retained${this.audioOnly ? '&audioOnly=1' : ''}` : 'web/software-full-engine-worker.js', assetBase), { type: 'module' });
         }
         catch (error) {
             this.workerOwner.remove();
             void this.audioContext.close();
             throw error;
         }
-        const audio = new SharedArrayBuffer(64 + 8192 * this.outputChannels * 4);
+        const audio = new SharedArrayBuffer(64 + 8192 * this.outputChannels * 4 + (this.audioOnly ? 8192 * 16 : 0));
         this.audioHeader = new Int32Array(audio, 0, 16);
         this.ready = new Promise((resolve, reject) => {
             this.rejectReady = reject;
@@ -147,7 +150,7 @@ export class WasmPlayer extends EventTarget {
                 const [font] = await Promise.all([
                     prepared?.font ? Promise.resolve(prepared.font) : (async () => { const response = await fetch(new URL('fixtures/DejaVuSans.ttf', assetBase), { signal: this.loading.signal }); if (!response.ok)
                         throw Error('Could not load the bundled subtitle font'); return response.arrayBuffer(); })(),
-                    this.audioContext.audioWorklet.addModule(new URL('web/audio-worklet.js', assetBase)),
+                    this.audioContext.audioWorklet.addModule(new URL(this.audioOnly ? 'web/selective-sync-worklet.js' : 'web/audio-worklet.js', assetBase)),
                 ]);
                 if (this.destroyed)
                     throw new Error('Player destroyed during initialization');
@@ -159,7 +162,7 @@ export class WasmPlayer extends EventTarget {
                 if (this.destroyed)
                     throw new Error('Player destroyed during initialization');
                 const decodePolicy = resolveDecodePolicy({ codec: videoTrack?.codec, codedWidth: videoTrack?.width, codedHeight: videoTrack?.height, displayWidth: canvas.width, displayHeight: canvas.height, decodeQuality, maxDecodePixels: resourceLimits.maxDecodePixels ?? 8294400 });
-                let decoder = mode === 'hybrid' ? 'webcodecs' : 'software';
+                let decoder = mode === 'hybrid' || this.audioOnly ? 'webcodecs' : 'software';
                 let selectedDecodeIntent;
                 if (mode === 'hybrid' && videoTrack?.codec) {
                     // The production registry is empty. Once a codec is qualified, probe
@@ -304,6 +307,20 @@ export class WasmPlayer extends EventTarget {
             await this.waitForEvent(event => event.event === 'property-change' && event.name === 'track-list' && Array.isArray(event.data) && event.data.length > 0);
     }
     async command(...args) { await this.ready; return this.request({ type: 'command', args }); }
+    /** Restricted internal handoff for the Native video + mpv audio plan. */
+    selectiveAudioState() {
+        if (!this.audioOnly || !this.audioNode || this.destroyed)
+            throw Error('Selective audio service is unavailable');
+        if (!this.selectiveGain) {
+            const gain = this.audioContext.createGain();
+            gain.gain.value = 0;
+            this.audioNode.disconnect(this.audioContext.destination);
+            this.audioNode.connect(gain);
+            gain.connect(this.audioContext.destination);
+            this.selectiveGain = gain;
+        }
+        return { header: this.audioHeader, context: this.audioContext, gain: this.selectiveGain };
+    }
     async setPause(paused) {
         if (this.properties.get('pause') === paused) {
             await this.command('set', 'pause', paused ? 'yes' : 'no');

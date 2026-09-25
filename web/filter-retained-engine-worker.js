@@ -8,6 +8,7 @@ let minFramePts=-Infinity;
 import {SubtitleOverlay} from './subtitle-overlay.js';
 const subtitles=new SubtitleOverlay();let frameGeneration=-1,minGeneration=-1;
 const skipCanvas=true;const quality=new URL(self.location.href).searchParams.get('quality')==='1';const mode=new URL(self.location.href).searchParams.get('mode');
+const audioOnly=new URL(self.location.href).searchParams.get('audioOnly')==='1';
 let canvasSubmissions=0;
 let videoPresenter;
 let selectedSerial=0,heldFrame,closingFrames=false;
@@ -120,6 +121,9 @@ function pumpAudio() {
   const nextEpoch = Atomics.load(h, at + 3);
   if (nextEpoch & 1) return;
   if (epoch !== nextEpoch) {
+    // An audio-only stream may enter EOF while the last PCM batch is still
+    // owned by the worklet. Preserve that final batch until it drains.
+    if(audioOnly&&Atomics.load(audio,7)&&epoch>=0&&Atomics.load(audio,0)>Atomics.load(audio,1))return;
     epoch = nextEpoch;
     forwarded = 0;
     Atomics.store(audio, 2, 0);
@@ -137,7 +141,10 @@ function pumpAudio() {
   if (Atomics.load(h, at + 3) !== epoch) return;
   if (count > CAPACITY) throw new Error('PCM capacity invariant violated');
   const source = (nativeAudio + 32) >>> 2;
+  const metadata=audioOnly?new Float64Array(pcm.buffer,64+CAPACITY*audioChannels*4,CAPACITY*2):null;
+  const nativeMetadata=audioOnly?new Float64Array(engine.HEAPU8.buffer,engine._web_sync_ptr(),CAPACITY*2):null;
   for (let i = 0; i < count; i++) {
+    if(audioOnly){const index=((forwarded+i)%CAPACITY)*2;metadata[index]=nativeMetadata[index];metadata[index+1]=nativeMetadata[index+1];}
     const index = ((forwarded + i) % CAPACITY) * audioChannels;
     for(let c=0;c<audioChannels;c++)pcm[index+c]=engine.HEAPF32[source+index+c];
   }
@@ -178,6 +185,11 @@ function tick() {
       if(event.event==='log-message')post({type:'log',message:event.prefix+': '+event.text});
       post({type:'event', event});
     }
+    if(audioOnly){ticks++;
+      if(performance.now()>=nextDiagnostics){nextDiagnostics=performance.now()+200;
+        post({type:'diagnostics',data:{audioOnly:true,pumpTicks:ticks,decoder:'none',decoderBackend:'none',videoRenderCalls:0,videoDecoderWorker:false,visibleCanvas:false,presenter:null,io:ioStats,position,queuedFrames:Math.max(0,Atomics.load(audio,0)-Atomics.load(audio,1))}});}
+      return;
+    }
     const renderStart=performance.now();
     const ptr = engine._web_render(canvas.width, canvas.height, +force);
     const renderDuration=performance.now()-renderStart;
@@ -205,14 +217,14 @@ self.onmessage = async ({data}) => {
       if (data.disableBrowserCodecs) for (const name of ['VideoDecoder','AudioDecoder','VideoFrame']) Object.defineProperty(globalThis,name,{value:undefined, configurable:true});
       measureOutput=!!data.measureOutput;
       canvas = data.canvas;
-      decoderBackend=data.decoder==='webgpu'?'webgpu':data.decoder==='webcodecs'?'webcodecs':'ffmpeg';
-      if(decoderBackend!=='webgpu'){
+      decoderBackend=audioOnly?'none':data.decoder==='webgpu'?'webgpu':data.decoder==='webcodecs'?'webcodecs':'ffmpeg';
+      if(!audioOnly&&decoderBackend!=='webgpu'){
         context = canvas.getContext('2d', {alpha:false});
         videoPresenter=new WebCodecsPresenter(canvas,context);
       }
       audio = new Int32Array(data.audio, 0, 16);
       pcm = new Float32Array(data.audio, 64);
-      const createEngine=(await import(data.decoder==='webcodecs'||data.decoder==='webgpu'?'./engine-hybrid/player.mjs':'./engine/player.mjs')).default;
+      const createEngine=(await import(audioOnly?'./engine-selective/player.mjs':data.decoder==='webcodecs'||data.decoder==='webgpu'?'./engine-hybrid/player.mjs':'./engine/player.mjs')).default;
       engine = await createEngine({...preparedEngine(data.compiledWasm),printErr:message=>post({type:'log',message}),print:message=>post({type:'log',message})});
       if (closing) return;
       engine.FS.mkdir('/fonts');
@@ -220,7 +232,7 @@ self.onmessage = async ({data}) => {
       for(const font of data.fonts??[])engine.FS.writeFile('/fonts/'+font.name,new Uint8Array(font.bytes));
       const fontSize=engine.FS.stat('/fonts/DejaVuSans.ttf').size;
       if(Number(fontSize) !== data.font.byteLength) throw new Error('Subtitle font write failed');
-      if(data.decoder==='webcodecs'){
+      if(data.decoder==='webcodecs'&&!audioOnly){
         decoderWorker=new Worker(new URL('./retained-decoder-worker.js',import.meta.url),{type:'module'});
         await new Promise((resolve,reject)=>{
           const deadline=setTimeout(()=>reject(Error('Decoder service initialization timed out')),5000);
@@ -235,7 +247,7 @@ self.onmessage = async ({data}) => {
           decoderWorker.postMessage({memory:engine.HEAPU8.buffer,pointer:engine._web_decoder_ptr(),disabled:data.disableBrowserCodecs,faultAfter:data.decoderFaultAfter});
         });
         engine._web_decoder_enable(2); // Retained frames cannot use software replay.
-      }else if(data.decoder==='webgpu'){
+      }else if(data.decoder==='webgpu'&&!audioOnly){
         // Missing runtime modules are asset failures and remain terminal.
         const [{WebGPUMailboxService},{WebGPUPresenter},{webgpuDecoderSupported},{webgpuRequiredFeatures}]=await Promise.all([
           import('./webgpu/mailbox-service.js'),import('./webgpu/presenter.js'),

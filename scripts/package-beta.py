@@ -70,7 +70,7 @@ while pending:
    pending.append(str(target.relative_to(root)))
    declaration=target.with_suffix('.d.ts')
    if declaration.is_file():pending.append(str(declaration.relative_to(root)))
-for name in ['mpv-subtitle-worker.js','native-ass-worker.js','audio-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','external-video-decoder.js','video-presenter.js','webgl-yuv-presenter.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','fallback-stream-policy.js','split-mp4.js','native-remux-player.js','worker-remux-controller.js','native-mse-worker.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','hybrid-preflight.js','prepared-engine.js','cheap-mp4-probe.js','selected-mp4-view.js','progressive-mp4.js','video-codec-config.js','remux-packaging.js']:
+for name in ['mpv-subtitle-worker.js','native-ass-worker.js','audio-worklet.js','selective-sync-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','external-video-decoder.js','video-presenter.js','webgl-yuv-presenter.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','fallback-stream-policy.js','split-mp4.js','native-remux-player.js','worker-remux-controller.js','native-mse-worker.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','hybrid-preflight.js','prepared-engine.js','cheap-mp4-probe.js','selected-mp4-view.js','progressive-mp4.js','video-codec-config.js','remux-packaging.js']:
  add('web/'+name)
 add('web/yuv-presenter.js')
 for name in ['codecs/registry.js','codecs/adapter.js','runtime.js','mailbox-service.js','presenter.js','diagnostics.js']:
@@ -87,7 +87,7 @@ for entry in registered.values():
   if not path.is_relative_to(root/'web/webgpu/codecs') or not path.is_file():raise SystemExit('Invalid qualified WebGPU codec asset: '+relative)
   add(str(path.relative_to(root)))
 for name in json.loads((root/'third_party/shaka-player.json').read_text())['files']:add(name)
-engines={'remux':('engine-remux','remux'),'hybrid':('engine-hybrid','player'),'software':('engine-software-yuv','player'),'software-rgb':('engine-software-full','player')}
+engines={'remux':('engine-remux','remux'),'hybrid':('engine-hybrid','player'),'selective':('engine-selective','player'),'software':('engine-software-yuv','player'),'software-rgb':('engine-software-full','player')}
 if mpv_subtitles:engines['subtitles']=('engine-subtitles','service')
 if args.adaptation_build:
  adaptation=args.adaptation_build.resolve();record=json.loads((adaptation/'manifest.json').read_text())

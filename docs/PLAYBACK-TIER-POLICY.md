@@ -6,6 +6,16 @@ Removing filters, disabling/deselecting subtitles, changing selected tracks, and
 
 `player.prepare(['inspector', 'hybrid', 'software'])` also works during playback when no media operation is active. It fetches and compiles immutable assets without opening media or audio devices. Fetches have deadlines and byte limits (32 MiB per engine, 8 MiB for the shared font). This is explicit asset warming, not verified playback.
 
+## Native video with mpv audio
+
+The finite `native-video-mpv-audio` execution plan sits before Hybrid in automatic selection. It copies only selected video packets through the existing remux producer to MSE and presents them with a browser video element. A separate local source reader lets mpv demux and decode the selected audio with `vid=no` and `sid=no`; the existing PCM ring and an AudioWorklet own output. There is no mpv video chain, WebCodecs video worker or visible Hybrid canvas. Diagnostics expose the plan ID, component ownership, PCM timeline, corrections and fallback reasons.
+
+Current automatic admission requires an inspected finite local Matroska file, a qualified browser MSE video configuration, cross-origin isolation, Web Audio, available selective engine assets, stereo output, default gain, and aligned finite track bounds. The selected video must be H.264 up to 1080p or the specifically qualified HEVC Main10 profile up to 1080p; the selected audio must be 48 kHz stereo AC-3 or DTS. Embedded or external subtitles, filters, tone mapping, audio transforms, remote sources, unqualified channel layouts, E-AC-3 and other codecs remain on existing plans. An explicit mode selection stays pinned. Video-only MSE capability is checked before admission and actual browser output plus PCM consumption are checked at runtime. Failed preparation, startup, output or service operation moves through the existing diagnosed fallback to Hybrid.
+
+The video element is the presentation clock. Each PCM block carries its media timestamp, rate and generation. A request to change rate becomes effective when its timestamped PCM boundary is audible, normally about 0.35–0.42 seconds later, while playback continues. Public `playbackRate` reports the effective visible rate; diagnostics separately show requested and pending rates. Routine rate changes do not seek. A seek increments the generation, stops old PCM publication, clears queued audio and establishes a new browser/audio baseline. EOF drain callbacks are reported separately from active playback underruns. Track switching reopens the source under the newly selected plan; no in-place decoder switch is assumed.
+
+This plan has two source readers and two Wasm services during preparation, so startup and memory can differ from Hybrid. The separate engine is built by `python3 scripts/build-selective-audio.py` and is included in the standard beta engine/package closure. Current qualification is Chrome on macOS; broader browser, subtitle composition, channel layout and codec admission require their own evidence.
+
 ## Native A/V with mpv subtitles
 
 ```js
