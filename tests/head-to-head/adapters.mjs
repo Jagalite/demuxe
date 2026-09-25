@@ -225,7 +225,12 @@ export async function selectAudioCodec(codec) {
   const track=tracks.find(t=>codecKey(t.codec)===key);
   if(!track)throw Error(`Audio codec ${codec} not found in public track list: ${JSON.stringify(tracks)}`);
   await player.selectAudioTrack(track.id);
-  const selected=player.state.audioTracks.find(t=>t.selected)??null;
+  const deadline=performance.now()+3000;
+  let selected=player.state.audioTracks.find(t=>t.selected)??null;
+  while((!selected||codecKey(selected.codec)!==key)&&performance.now()<deadline){
+    await new Promise(resolve=>setTimeout(resolve,25));
+    selected=player.state.audioTracks.find(t=>t.selected)??null;
+  }
   if(!selected||codecKey(selected.codec)!==key)throw Error(`Audio codec selection did not settle: ${codec}`);
   return plain({requestedCodec:codec,track,selected,route:player.diagnostics?.plan?.id??player.state.activeMode});
 }

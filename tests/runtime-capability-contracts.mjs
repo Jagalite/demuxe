@@ -32,6 +32,11 @@ test('missing HEVC remux configuration permits another backend without masking t
  for(const code of ['SOURCE_CHANGED','SOURCE_PERMISSION','ASSET_LOAD_FAILED','ABORTED'])assert.equal(compatibilityFailure(new PlayerError(code,message)),false);
  assert.equal(compatibilityFailure(new Error('Source transport: '+message)),false);
  assert.equal(compatibilityFailure(new Error('FFmpeg error -1: Missing HEVC parameter sets')),false);
+ const avc='FFmpeg error -1094995529: Selected AVC configuration changed; new initialization required';
+ for(const prefix of ['', 'Error: ', 'Error: Error: '])assert.equal(compatibilityFailure(new Error(prefix+avc)),true);
+ assert.equal(compatibilityFailure(new PlayerError('SOURCE_CHANGED',avc)),false);
+ assert.equal(compatibilityFailure(new Error('Source transport: '+avc)),false);
+ assert.equal(compatibilityFailure(new Error('FFmpeg error -1: Selected AVC configuration changed; new initialization required')),false);
 });
 
 test('retained timestamp collisions allow Software fallback with terminal errors preserved',()=>{

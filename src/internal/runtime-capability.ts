@@ -53,6 +53,10 @@ export function compatibilityFailure(error:unknown):boolean {
   // The device-local service owns only reconstruction. A diagnosed failure in
   // that service permits the existing route policy to reopen in Software.
   if(!(error instanceof PlayerError)&&error instanceof Error&&/^Hybrid WebGPU decoder: /.test(error.message)&&!/Source transport:|integrity|identity|HTTP |received \d{3}/i.test(error.message))return true;
+  // The remux worker uses "initialization" for an in-band AVC parameter-set
+  // change. Recognize only this exact media rejection before the generic asset
+  // classifier, which uses that word for module and Wasm startup failures.
+  if(!(error instanceof PlayerError)&&error instanceof Error&&/^(?:Error: )*FFmpeg error -1094995529: Selected AVC configuration changed; new initialization required$/.test(error.message.split('\n')[0]))return true;
   const code=playerError(error).code;
   if(['ABORTED','AUTOPLAY_BLOCKED','SOURCE_CHANGED','SOURCE_PERMISSION','NETWORK_TIMEOUT','ASSET_LOAD_FAILED','INVALID_ARGUMENT','ISOLATION_REQUIRED'].includes(code))return false;
   if(/Source transport:|integrity|identity|network|HTTP |received \d{3}/i.test(String(error)))return false;

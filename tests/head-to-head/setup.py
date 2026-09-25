@@ -92,6 +92,12 @@ def prepare(args):
     (player / 'web').mkdir(parents=True)
     for path in (REPO / 'web').glob('*.js'):
         shutil.copyfile(path, player / 'web' / path.name)
+    # These runtime imports sit below web/*.js. Snapshot the committed revision
+    # so unrelated local presenter experiments cannot enter release evidence.
+    for name in subprocess.check_output(['git', 'ls-files', 'web/webgpu'], cwd=REPO, text=True).splitlines():
+        target = player / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(subprocess.check_output(['git', 'show', 'HEAD:' + name], cwd=REPO))
     for name in shaka['files']:
         target = player / name
         target.parent.mkdir(parents=True, exist_ok=True)

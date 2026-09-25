@@ -23,6 +23,7 @@ const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'str
   'controlled-streaming':{type:'boolean',default:false},
   'streaming-backends':{type:'boolean',default:false},
   performance:{type:'boolean',default:false},exclusive:{type:'boolean',default:false},correctness:{type:'string'},rounds:{type:'string',default:'3'},
+  'diagnostic-failed-cpu':{type:'boolean',default:false},
   'measure-seconds':{type:'string',default:'20'},'warmup-seconds':{type:'string',default:'5'},list:{type:'boolean',default:false}}});
 if(args['component-trial']&&(!args.catalogue||args['demuxe-mode']!=='native'||!['subtitles','audio','dash','direct'].includes(args['component-trial'])))throw Error('Component trials require catalogue, explicit Native, and a known lab strategy');
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -53,9 +54,11 @@ if(!args.assets)throw Error('--assets is required; prepare a snapshot with setup
 if(!['chromium','firefox'].includes(args.browser))throw Error('Browser must be chromium or firefox');
 if(args['negative-control']&&!['cover','hide-subtitles'].includes(args['negative-control']))throw Error('Supported negative controls: cover, hide-subtitles');
 if(args.performance&&args['negative-control'])throw Error('Negative controls are correctness-only');
+if(args['diagnostic-failed-cpu']&&!args.performance)throw Error('Failed-player CPU diagnostics require --performance');
+if(args['diagnostic-failed-cpu']&&selected.some(c=>!['movi','libmedia'].includes(c.player)))throw Error('Failed-player CPU diagnostics are limited to Movi and AVPlayer');
 if(args.performance&&(!args.correctness||!args.headed||!args.exclusive||args.browser!=='chromium'))throw Error('Performance requires --correctness <run>/summary.json, --headed, Chromium and --exclusive (no concurrent builds/benchmarks)');
 const rounds=Number(args.rounds),measureSeconds=Number(args['measure-seconds']),warmupSeconds=Number(args['warmup-seconds']);
-if(args.performance&&(!Number.isInteger(rounds)||rounds<3||measureSeconds<20||warmupSeconds<5))throw Error('Performance requires at least 3 rounds, 5s warmup and 20s measurement');
+if(args.performance&&(!Number.isInteger(rounds)||rounds<(args['diagnostic-failed-cpu']?1:3)||measureSeconds<20||warmupSeconds<5))throw Error('Performance requires at least 3 accepted rounds (1 diagnostic round), 5s warmup and 20s measurement');
 const assets=path.resolve(args.assets),manifestBytes=await fs.readFile(path.join(assets,'manifest.json'));
 const manifest=JSON.parse(manifestBytes);
 if(args.performance&&manifest.fixture?.duration<warmupSeconds+measureSeconds+5)throw Error('Prepare a longer fixture for the requested measurement window');
@@ -253,8 +256,46 @@ async function measure(page,config,result,browser) {
     scope:'CDP-listed browser processes; excludes server, external media services and physical energy. Summed RSS can double count shared pages. Route-specific frame submission semantics; missing drop counters remain null.'};
 }
 
+async function measureFailedPlayer(page,config,result,browser) {
+  // This is diagnostic process use during a failed lifecycle, never an accepted
+  // playback CPU result or an input to cross-player efficiency comparisons.
+  const issues=[];
+  try{await deadline(page.evaluate(c=>api.start(c),config),20000,'open');}
+  catch(error){issues.push('open: '+String(error));}
+  try{await page.waitForFunction(()=>api.snapshot().position>.25,null,{timeout:10000});}
+  catch(error){issues.push('startup progress: '+String(error));}
+  await delay(warmupSeconds*1000);
+  const cdp=await browser.newBrowserCDPSession();
+  result.samples=[];
+  try{
+    for(let tick=0;tick<=measureSeconds;tick+=2){
+      const processes=(await cdp.send('SystemInfo.getProcessInfo')).processInfo;
+      const state=await page.evaluate(()=>api.snapshot()).catch(error=>{issues.push('snapshot: '+String(error));return null;});
+      result.samples.push({at:Date.now(),processes,state});
+      if(tick+2<=measureSeconds)await delay(2000);
+    }
+  }finally{await cdp.detach();}
+  const first=result.samples[0],last=result.samples.at(-1);
+  const wall=(last.at-first.at)/1000;
+  const ids=sample=>sample.processes.map(p=>p.id).sort().join(',');
+  const stable=result.samples.every(sample=>ids(sample)===ids(first));
+  const cpu=sample=>sample.processes.reduce((sum,p)=>sum+p.cpuTime,0);
+  const advance=Number.isFinite(first.state?.position)&&Number.isFinite(last.state?.position)?last.state.position-first.state.position:null;
+  if(!stable)issues.push('Chrome process IDs changed during the window');
+  if(advance===null||Math.abs(advance-wall)>1)issues.push('Playback did not advance at normal 1x cadence');
+  if(result.samples.some(sample=>sample.state?.errors?.length))issues.push('Player reported errors during the window');
+  if(result.samples.some(sample=>sample.state&&!sample.state.visible||sample.state&&!sample.state.focused))issues.push('Window lost foreground or focus');
+  try{validateFrameWindow(result.samples,config,Number(config.frameRate??manifest.fixture.fps));}
+  catch(error){issues.push('frame quality: '+String(error));}
+  result.diagnosticMeasurement={oneCorePercent:stable&&wall>0?100*(cpu(last)-cpu(first))/wall:null,
+    wallSeconds:wall,playbackAdvanceSeconds:advance,processIdsStable:stable,issues,
+    acceptedForComparison:false,scope:'Whole CDP-listed Chrome family during failed-player attempt; may include stalled, silent, missing or incorrect playback.'};
+}
+
 try {
-  const schedule=args.performance?[...new Set(selected.map(c=>c.fixture))].flatMap(fixture=>{const group=selected.filter(c=>c.fixture===fixture);return Array.from({length:rounds},(_,round)=>group.map((_,i)=>({...group[(i+round)%group.length],round:round+1}))).flat();}):selected;
+  const scheduledCases=args['diagnostic-failed-cpu']?selected.filter(c=>previous?.cases.some(p=>p.id===c.id&&p.status==='failed')):selected;
+  if(args['diagnostic-failed-cpu']){summary.selected=scheduledCases.map(c=>c.id);await save();}
+  const schedule=args.performance?[...new Set(scheduledCases.map(c=>c.fixture))].flatMap(fixture=>{const group=scheduledCases.filter(c=>c.fixture===fixture);return Array.from({length:rounds},(_,round)=>group.map((_,i)=>({...group[(i+round)%group.length],round:round+1}))).flat();}):scheduledCases;
   for(const c of schedule) {
     const result={...c,...(args['component-trial']?{componentTrial:args['component-trial']} : {}),status:'running',startedAt:new Date().toISOString(),console:[],requestFailures:[]};summary.cases.push(result);
     const recordName=c.id+(c.round?'.round-'+c.round:'');result.recordPath=recordName+'/result.json';
@@ -275,7 +316,11 @@ try {
         ...(args.browser==='chromium'&&args.channel?{channel:args.channel}:{}),
         args:args.browser==='chromium'?['--autoplay-policy=no-user-gesture-required']:[],timeout:20000});
       summary.browserIdentity=args.browser+'/'+active.version()+'/'+(args.channel||'bundled')+'/'+(args.headed?'headed':'headless');
-      if(args.performance&&(!performanceEligible(previous,summary,c.id)||!!previous.controlledStreaming!==args['controlled-streaming'])) {result.status='blocked';result.reason='No matching passed correctness record for these assets, harness, streaming policy and browser';continue;}
+      const prior=previous?.cases.find(record=>record.id===c.id);
+      const diagnosticEligible=args['diagnostic-failed-cpu']&&prior?.status==='failed'&&
+        previous.kind==='correctness'&&previous.assetsSHA256===summary.assetsSHA256&&
+        previous.harnessSHA256===summary.harnessSHA256&&previous.browserIdentity===summary.browserIdentity;
+      if(args.performance&&(!(args['diagnostic-failed-cpu']?diagnosticEligible:performanceEligible(previous,summary,c.id))||!!previous.controlledStreaming!==args['controlled-streaming'])) {result.status='blocked';result.reason='No matching correctness record for these assets, harness, streaming policy and browser';continue;}
       const context=await active.newContext({viewport:{width:960,height:540},deviceScaleFactor:1});
       page=await context.newPage();page.setDefaultTimeout(10000);
       page.on('console',m=>result.console.length<80&&result.console.push(m.text()));
@@ -284,9 +329,10 @@ try {
       page.on('response',r=>{if(r.status()>=400)result.requestFailures.push({url:r.url(),status:r.status()});});
       await page.goto(server.origin+'/harness/harness.html');await page.bringToFront();await page.waitForFunction(()=>window.api);
       const config={...c,...matrix.fixtures[c.fixture],...(args['controlled-streaming']&&c.player==='demuxe'&&['auto','native'].includes(c.lane)?{streaming:{maxBandwidth:100000000}}:{}),...(args['component-trial']?{componentTrial:args['component-trial']}:{})};
-      await (args.performance?measure(page,config,result,active):correctness(page,config,result,directory));
-      result.status='passed';
-      if(config.qualificationLimit){result.screenPassed=true;result.status='blocked';result.reason=config.qualificationLimit;}
+      await (args['diagnostic-failed-cpu']?measureFailedPlayer(page,config,result,active):args.performance?measure(page,config,result,active):correctness(page,config,result,directory));
+      result.status=args['diagnostic-failed-cpu']?'failed':'passed';
+      if(args['diagnostic-failed-cpu']){result.failureStage=prior.failureStage??'correctness';result.reason='Correctness failed: '+String(prior.reason??'unknown failure').split('\n')[0];result.correctnessRecord=prior.recordPath;}
+      if(config.qualificationLimit&&!args['diagnostic-failed-cpu']){result.screenPassed=true;result.status='blocked';result.reason=config.qualificationLimit;}
     } catch(error) {
       result.status='failed';result.failureStage=result.stage??'setup';result.reason=String(error.stack??error);
       if(c.player==='demuxe'&&result.requestFailures.some(r=>r.status===404&&Object.entries(manifest.engines).some(([name,exists])=>!exists&&r.url.includes('/'+name+'/')))){result.status='blocked';result.reason='Required current Demuxe engine assets are absent. '+result.reason;}
