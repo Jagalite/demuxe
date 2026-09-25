@@ -135,10 +135,11 @@ These are bounded complete-file playback tests, not an exhaustive compatibility
 matrix. See [component capabilities](docs/CAPABILITIES.md) for supported paths and
 [the complete-file catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md) for exact evidence.
 
-**CPU figures are cleared pending row-by-row remeasurement under the current
-protocol.** The table retains the historical bounded playback statuses and route
-labels. Its previous numbers are preserved in the
+**CPU figures are being refreshed row by row under the current protocol.**
+Unmeasured rows retain the historical bounded playback statuses and route labels.
+Previous numbers are preserved in the
 [historical CPU snapshot](docs/HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md).
+See the [row refresh index](docs/CPU-ROW-REFRESH.md) for completed measurements.
 
 - 🟢 Pass: bounded playback passed. `*` indicates a fidelity, profile or duration limit.
 - 🟣 Configured pass: a named alternative passed where the default failed.
@@ -152,7 +153,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 
 | Media format | Demuxe (software decode) | Native video | Demuxe (auto) | Movi 0.4.0 (default) | AVPlayer 1.3.1 (default) |
 | --- | --- | --- | --- | --- | --- |
-| H.264 + AAC / MP4 | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🟠 |
+| H.264 + AAC / MP4 | 🟢 (Pass) · 32.0% CPU | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · 13.0% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 32.4% CPU |
 | H.264 + AAC / MKV | 🟢 | 🟢 (Pass) | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🟠 |
 | Dual-audio H.264 + AAC + AC-3 stereo / MKV | 🟢 (Pass) | 🟢 (Pass) · default AAC | 🟢 (Pass) · native-direct · AC-3 switch: hybrid | 🔴 (Fail) | 🟢 (Pass) |
 | H.264 + PCM24 / MKV | 🟢 | 🟢 | 🟢 (Pass) · hybrid | 🟢 (Pass) | 🔴 (Fail) |

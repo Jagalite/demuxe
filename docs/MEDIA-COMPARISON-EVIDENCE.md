@@ -23,6 +23,8 @@ which cells have matching fixtures and browser launches. The single-browser
 first pass can identify drift and prioritize follow-up; its correlated rounds
 do not qualify a release CPU figure on their own. Update only the qualified
 row and its provenance once independent follow-up supports interpretation.
+The [row refresh index](CPU-ROW-REFRESH.md) links each completed row to its
+correctness, CPU, and interpretation records.
 
 ## Scope, campaigns and interpretation
 
