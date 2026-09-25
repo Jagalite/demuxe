@@ -54,7 +54,7 @@ export function nativeBrowserCapabilities(probe, aid, browser) {
         const tracks = selected.map(t => {
             const codecString = t === audio && adaptation ? adaptation : codec(t, probe.format, prepared);
             const raw = !prepared && selected.length === 1 && ((probe.format === 'flac' && t.codec === 'flac') || (probe.format === 'aac' && t.codec === 'aac'));
-            return { index: t.index, type: t.type, codec: t.codec, codecString, serializationComplete: (!!codecString || raw) && !(t.codec.startsWith('pcm_') && !(t === audio && adaptation)) };
+            return { index: t.index, type: t.type, codec: t.codec, codecString, ...(t === audio && adaptation ? { adapted: true } : {}), serializationComplete: (!!codecString || raw) && !(t.codec.startsWith('pcm_') && !(t === audio && adaptation)) };
         });
         const queries = [];
         const evidence = { status: 'unknown', api, tracks, queries };

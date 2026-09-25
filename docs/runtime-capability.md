@@ -248,3 +248,14 @@ Installed Safari follow-up: after the user enabled remote automation, Safari 26.
 passed four bounded route/lifecycle cases. See
 [Safari evidence](../results/browser-media-capability/SAFARI.md). AAC/MKV audio remains
 independently unobservable through the MSE capture path; it is not sample-qualified.
+
+Subtitle output verification propagates attempt cancellation through both sampled
+renders and the final timeline-restoration RPC. Cancelled requests retire their
+pending entries and deadlines; late bitmap replies are discarded by the existing
+worker dispatcher. The ordinary subtitle scheduler restores the current timeline
+after cancellation without delaying the rejected play request.
+
+Supplemental MSE decoding queries exclude statically rejected container alternatives.
+Each remaining query carries its `container` label; multiple alternatives are not
+presented as one chosen output format. Adapted audio is recorded as unqueried until
+actual output metadata is available, rather than reusing source bitrate/rate/layout.

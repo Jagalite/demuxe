@@ -175,7 +175,7 @@ export class NativePlayer extends EventTarget implements Backend {
   /** A paused candidate may prepare current data without presenting it. Only
    * verifyOutput can promote this evidence to executed playback. */
   async verifyStartup(expected?:{video:boolean;audio:boolean}, output=false,signal?:AbortSignal) {
-    signal?.throwIfAborted();this.assertActive();await this.mpvSubs?.verify();signal?.throwIfAborted();this.expectedOutput=expected??this.expectedOutput;
+    signal?.throwIfAborted();this.assertActive();await this.mpvSubs?.verify(signal);signal?.throwIfAborted();this.expectedOutput=expected??this.expectedOutput;
     expected=this.expectedOutput;
     if(this.mpvAudio)expected={...expected,video:true,audio:false};
     const previouslyVerified=this.capability.outputVerified===true;

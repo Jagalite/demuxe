@@ -4,6 +4,7 @@ import type { BrowserMediaCapability } from './browser-media-capability.js';
 export type DecodingQuery = {
     track: number;
     configuration: MediaDecodingConfiguration;
+    container?: string;
     status: 'answered' | 'unavailable' | 'timeout' | 'error';
     supported?: boolean;
     smooth?: boolean;

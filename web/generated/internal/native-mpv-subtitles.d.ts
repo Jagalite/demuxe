@@ -57,7 +57,7 @@ export declare class NativeMpvSubtitles {
     private syncPump;
     private pump;
     select(id: string): Promise<void>;
-    verify(): Promise<void>;
+    verify(signal?: AbortSignal): Promise<void>;
     /** Internal cue oracle for tests; never exposes media text in diagnostics. */
     currentText(): Promise<string>;
     /** Internal numeric timing probe. The current frame scheduler does not use it. */

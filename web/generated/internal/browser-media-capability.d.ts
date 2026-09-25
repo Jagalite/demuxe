@@ -9,6 +9,7 @@ export type BrowserMediaCapability = {
         codec: string;
         codecString?: string;
         serializationComplete: boolean;
+        adapted?: boolean;
     }>;
     queries: Array<{
         mime: string;

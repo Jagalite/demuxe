@@ -125,19 +125,23 @@ export class NativeMpvSubtitles {
             throw error;
         }
     }
-    request(type, data = {}) {
+    request(type, data = {}, signal) {
+        if (signal?.aborted)
+            return Promise.reject(signal.reason);
         if (this.stopped)
             return Promise.reject(Error('Subtitle renderer destroyed'));
         const id = ++this.sequence;
         return new Promise((resolve, reject) => {
+            const cleanup = () => { clearTimeout(timer); this.pending.delete(id); signal?.removeEventListener('abort', abort); };
+            const abort = () => { cleanup(); reject(signal.reason); };
             const timer = setTimeout(() => this.fail(Error('Subtitle worker deadline exceeded')), 25000);
-            this.pending.set(id, { resolve, reject, timer });
+            this.pending.set(id, { resolve: value => { cleanup(); resolve(value); }, reject: error => { cleanup(); reject(error); }, timer });
+            signal?.addEventListener('abort', abort, { once: true });
             try {
                 this.worker.postMessage({ id, type, ...data });
             }
             catch (error) {
-                clearTimeout(timer);
-                this.pending.delete(id);
+                cleanup();
                 reject(error);
             }
         });
@@ -232,7 +236,8 @@ export class NativeMpvSubtitles {
             this.invalidate();
         }
     }
-    async verify() {
+    async verify(signal) {
+        signal?.throwIfAborted();
         const selected = this.tracks.find(t => t.selected);
         if (!selected || this.verifiedTrack === selected.mpvId)
             return;
@@ -242,8 +247,9 @@ export class NativeMpvSubtitles {
         let visible = false;
         try {
             for (const seconds of samples) {
-                const result = await this.request('render', { seconds, width, height, force: true });
+                const result = await this.request('render', { seconds, width, height, force: true }, signal);
                 result.bitmap?.close();
+                signal?.throwIfAborted();
                 this.service = result.service;
                 if (result.hasOverlay) {
                     visible = true;
@@ -253,9 +259,14 @@ export class NativeMpvSubtitles {
         }
         finally {
             // Verification samples must not leave mpv ahead of the browser A/V clock.
-            const result = await this.request('render', { seconds: this.time(), width, height, force: true });
-            result.bitmap?.close();
-            this.service = result.service;
+            if (!signal?.aborted) {
+                const result = await this.request('render', { seconds: this.time(), width, height, force: true }, signal);
+                result.bitmap?.close();
+                signal?.throwIfAborted();
+                this.service = result.service;
+            }
+            else
+                this.invalidate();
         }
         if (!visible)
             throw new PlayerError('UNSUPPORTED_FEATURE', 'Selected subtitle track produced no output in the bounded startup window');

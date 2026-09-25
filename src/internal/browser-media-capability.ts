@@ -5,7 +5,7 @@ import type {Probe, ProbeTrack} from './selection.js';
 export type BrowserMediaCapability = {
   status:'supported'|'unsupported'|'unknown';
   api:'canPlayType'|'isTypeSupported';
-  tracks:Array<{index:number;type:string;codec:string;codecString?:string;serializationComplete:boolean}>;
+  tracks:Array<{index:number;type:string;codec:string;codecString?:string;serializationComplete:boolean;adapted?:boolean}>;
   queries:Array<{mime:string;result:string|boolean;adapter:string;negativeDecisive:boolean;reason?:string}>;
   decodingInfo?:import('./media-capabilities.js').DecodingEvidence;
   unqueriedAudio?:boolean;
@@ -55,7 +55,7 @@ export function nativeBrowserCapabilities(probe:Probe,aid:string,browser:Browser
     const tracks=selected.map(t=>{
       const codecString=t===audio&&adaptation?adaptation:codec(t,probe.format,prepared);
       const raw=!prepared&&selected.length===1&&((probe.format==='flac'&&t.codec==='flac')||(probe.format==='aac'&&t.codec==='aac'));
-      return {index:t.index,type:t.type,codec:t.codec,codecString,serializationComplete:(!!codecString||raw)&&!(t.codec.startsWith('pcm_')&&!(t===audio&&adaptation))};
+      return {index:t.index,type:t.type,codec:t.codec,codecString,...(t===audio&&adaptation?{adapted:true}:{}),serializationComplete:(!!codecString||raw)&&!(t.codec.startsWith('pcm_')&&!(t===audio&&adaptation))};
     });
     const queries:BrowserMediaCapability['queries']=[];
     const evidence:BrowserMediaCapability={status:'unknown',api,tracks,queries};

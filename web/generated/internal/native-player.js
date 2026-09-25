@@ -221,7 +221,7 @@ export class NativePlayer extends EventTarget {
     async verifyStartup(expected, output = false, signal) {
         signal?.throwIfAborted();
         this.assertActive();
-        await this.mpvSubs?.verify();
+        await this.mpvSubs?.verify(signal);
         signal?.throwIfAborted();
         this.expectedOutput = expected ?? this.expectedOutput;
         expected = this.expectedOutput;

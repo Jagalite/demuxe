@@ -90,3 +90,18 @@ test('audio adapters prefer decoding evidence without upgrading presence to deco
  assert.equal(observeBrowserAudio({audioTracks:[{enabled:true}]},true).strength,'presence');
  assert.equal(observeBrowserAudio({},true).ready,false);
 });
+
+test('play rejection cancels subtitle sampling and restoration RPCs without waiting for the worker',async()=>{
+ const {Player}=await import('../web/generated/unified-player.js');
+ const {NativeMpvSubtitles}=await import('../web/generated/internal/native-mpv-subtitles.js');
+ for(const phase of ['sample','restore']){
+  const service=Object.create(NativeMpvSubtitles.prototype);const sent=[];
+  Object.assign(service,{stopped:false,sequence:0,pending:new Map(),tracks:[{selected:true,mpvId:1}],video:{videoWidth:640,videoHeight:360,duration:10},time:()=>0,revision:0,frame:1,worker:{postMessage(message){sent.push(message);if(phase==='restore'&&sent.length===1)queueMicrotask(()=>service.pending.get(message.id)?.resolve({hasOverlay:true,service:{}}));}}});
+  const p=candidate();p.mpvSubs=service;
+  const denied=new DOMException('blocked','NotAllowedError');
+  await assert.rejects(()=>Player.prototype.playNativeVerified.call({},p,new Promise((_,reject)=>setTimeout(()=>reject(denied),30))),e=>e===denied);
+  assert.equal(service.pending.size,0);assert.equal(service.verifiedTrack,undefined);assert.equal(sent.length,phase==='sample'?1:2);assert.equal(p.capability.outputVerified,false);
+  service.worker.postMessage=message=>queueMicrotask(()=>service.pending.get(message.id)?.resolve({hasOverlay:true,service:{}}));
+  await service.verify();assert.equal(service.verifiedTrack,1);assert.equal(service.pending.size,0);
+ }
+});

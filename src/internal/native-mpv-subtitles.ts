@@ -71,13 +71,17 @@ export class NativeMpvSubtitles {
       throw error;
     }
   }
-  private request(type:string,data:Record<string,unknown>={}) {
+  private request(type:string,data:Record<string,unknown>={},signal?:AbortSignal) {
+    if(signal?.aborted)return Promise.reject(signal.reason);
     if(this.stopped)return Promise.reject(Error('Subtitle renderer destroyed'));
     const id=++this.sequence;
     return new Promise<any>((resolve,reject)=>{
+      const cleanup=()=>{clearTimeout(timer);this.pending.delete(id);signal?.removeEventListener('abort',abort);};
+      const abort=()=>{cleanup();reject(signal!.reason);};
       const timer=setTimeout(()=>this.fail(Error('Subtitle worker deadline exceeded')),25000);
-      this.pending.set(id,{resolve,reject,timer});
-      try{this.worker.postMessage({id,type,...data});}catch(error){clearTimeout(timer);this.pending.delete(id);reject(error);}
+      this.pending.set(id,{resolve:value=>{cleanup();resolve(value);},reject:error=>{cleanup();reject(error);},timer});
+      signal?.addEventListener('abort',abort,{once:true});
+      try{this.worker.postMessage({id,type,...data});}catch(error){cleanup();reject(error);}
     });
   }
   private fail(error:Error){if(this.stopped)return;for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(error);}this.pending.clear();this.destroy();this.failed(error);}
@@ -122,7 +126,8 @@ export class NativeMpvSubtitles {
     }
     finally{this.changingTrack=false;this.syncPump();this.invalidate();}
   }
-  async verify(){
+  async verify(signal?:AbortSignal){
+    signal?.throwIfAborted();
     const selected=this.tracks.find(t=>t.selected);
     if(!selected||this.verifiedTrack===selected.mpvId)return;
     const width=Math.min(1920,this.video.videoWidth||this.video.width),height=Math.min(1080,this.video.videoHeight||this.video.height);
@@ -131,12 +136,13 @@ export class NativeMpvSubtitles {
     let visible=false;
     try{
       for(const seconds of samples){
-        const result=await this.request('render',{seconds,width,height,force:true});result.bitmap?.close();this.service=result.service;
+        const result=await this.request('render',{seconds,width,height,force:true},signal);result.bitmap?.close();signal?.throwIfAborted();this.service=result.service;
         if(result.hasOverlay){visible=true;break;}
       }
     }finally{
       // Verification samples must not leave mpv ahead of the browser A/V clock.
-      const result=await this.request('render',{seconds:this.time(),width,height,force:true});result.bitmap?.close();this.service=result.service;
+      if(!signal?.aborted){const result=await this.request('render',{seconds:this.time(),width,height,force:true},signal);result.bitmap?.close();signal?.throwIfAborted();this.service=result.service;}
+      else this.invalidate();
     }
     if(!visible)throw new PlayerError('UNSUPPORTED_FEATURE','Selected subtitle track produced no output in the bounded startup window');
     this.verifiedTrack=selected.mpvId;

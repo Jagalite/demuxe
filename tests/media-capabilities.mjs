@@ -62,3 +62,20 @@ test('a late answer arriving before sibling queries settle survives publication'
   assert.equal(queries.cached(cap,source).queries[0].status,'answered');assert.equal(result.queries[1].status,'timeout');
  }finally{globalThis.setTimeout=oldSet;globalThis.clearTimeout=oldClear;}
 });
+
+test('supplemental MSE queries exclude rejected packaging and label each viable alternative',async()=>{
+ const p={...source,format:'webm',tracks:[{...source.tracks[0],codec:'vp8',codecString:'vp8'},{...source.tracks[1],codec:'opus',aacObject:undefined}]};
+ const cap=nativeBrowserCapabilities(p,'auto',{canPlayType:()=> 'probably',isTypeSupported:m=>m.startsWith('video/webm')}).remux;
+ const calls=[];const queries=new MediaCapabilityQueries(async c=>(calls.push(c),{supported:true,smooth:true,powerEfficient:true}));
+ const evidence=await queries.inspect(cap,p);assert.equal(cap.status,'supported');assert.equal(calls.length,2);
+ assert.ok(calls.every(c=>(c.video?.contentType??c.audio?.contentType).includes('/webm;')));assert.ok(evidence.queries.every(q=>q.container==='video/webm'));
+ const both=await queries.inspect(capabilities(p).remux,p);assert.deepEqual(new Set(both.queries.map(q=>q.container)),new Set(['video/mp4','video/webm']));
+});
+test('adapted audio never reuses source bitrate or layout as output metadata',async()=>{
+ const p={...source,tracks:[source.tracks[0],{...source.tracks[1],codec:'pcm_s24le',aacObject:undefined,bitrate:6912000,channels:6,sampleRate:96000}]};
+ for(const adaptation of ['flac','opus']){
+  const calls=[];const queries=new MediaCapabilityQueries(async c=>(calls.push(c),{supported:true,smooth:true,powerEfficient:true}));
+  const evidence=await queries.inspect(capabilities(p)[adaptation],p);
+  assert.deepEqual(evidence.unqueriedTracks,[1]);assert.ok(calls.every(c=>!c.audio));assert.match(evidence.reason,/output metadata/);
+ }
+});
