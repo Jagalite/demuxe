@@ -50,13 +50,13 @@ pp_filter_deps="gpl postproc"
             self.write(folder + '/config.h', config)
             self.write(folder + '/config_components.h', full)
         self.write('build/obj-software-full-ffmpeg/configure-request', '--disable-postproc --disable-asm\n')
-        for name in ('baseline', 'software', 'software-yuv', 'hybrid', 'remux', 'subtitles'):
+        for name in ('baseline', 'software', 'software-yuv', 'hybrid', 'selective', 'remux', 'subtitles'):
             self.write(f'build/link-maps/{name}.map', 'libmpv.a(ao.o)\n')
         self.write('build/subtitle-service/manifest.json', json.dumps({
             'mpvBuildRoot': str(self.root),
             'subtitleFFmpegConfigurationSHA256': hashlib.sha256(full.encode()).hexdigest()}))
         for folder, stem in [('engine', 'player'), ('engine-software-full', 'player'), ('engine-software-yuv', 'player'),
-                             ('engine-hybrid', 'player'), ('engine-remux', 'remux'),
+                             ('engine-hybrid', 'player'), ('engine-selective', 'player'), ('engine-remux', 'remux'),
                              ('engine-subtitles', 'service')]:
             self.write(f'web/{folder}/{stem}.mjs', '// SPDX-License-Identifier: LGPL-2.1-or-later\n')
 
