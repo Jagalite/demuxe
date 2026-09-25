@@ -56,6 +56,21 @@ can therefore change pixels at an end time omitted by `sub-lines`. The
 property solves the original distinct-text overlap counterexample but is not
 an authoritative list of every possible visual boundary.
 
+### Follow-up after checkpoint: undeduplicated-event proof
+
+The test-only `RAW_EVENTS=1` build replaces only mpv's `dec_sub.c` archive
+member in a copied archive and suppresses its plain-text line deduplication.
+It leaves the pinned source tree, production archive, and renderer unchanged.
+On the same styled ASS fixture, the timing property then reported both
+`[3,11]` and `[4,5]`. The deadline scheduler rendered `Same\nSame` at 4.2 s,
+`Same` at 5.002 s, and empty text at 11.034 s (`ass-same-raw.json`). The
+ordinary property reported only `[3,11]` and missed the 5 s clear. One
+snapshot took 0.21 ms inside the worker and 0.35 ms round trip; this is a
+functional probe, not a cost distribution or whole-player CPU measurement.
+This demonstrates that mpv already holds the needed raw timing. A production
+bridge should return bounded numeric boundaries directly, without changing
+the public `sub-lines` semantics or serializing every event's text.
+
 In the three-cue embedded SRT fixture, the list at 1.5 s and 5 s contained
 1–4 s and 200–210 s, but omitted the 380–390 s cue (`discovery.json`). At a
 199.5 s seek it still omitted 380 s; a later timing read gained it before

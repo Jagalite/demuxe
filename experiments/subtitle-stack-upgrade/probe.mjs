@@ -7,14 +7,24 @@ import {serve} from '../../experiments/pipeline-qualification/server.mjs';
 
 const root=resolve('results/subtitle-stack-upgrade');
 const mode=process.env.MODE??'overlap';
+const rawEvents=process.env.RAW_EVENTS==='1';
 const fixture=({discovery:'late-srt.mkv','discovery-late':'late-srt.mkv',ass:'mixed-ass.mkv',webvtt:'stress-webvtt.mkv',movtext:'stress-movtext.mp4',pgs:'h264-aac-pgs.mkv',vobsub:'h264-aac-vobsub.mkv'})[mode]??'stress-srt.mkv';
 const server=await serve();
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});
-const report={mode,fixture,chrome:browser.version(),points:[],renders:[],deadlines:[],invalidations:0};
+const report={mode,fixture,rawEvents,chrome:browser.version(),points:[],renders:[],deadlines:[],invalidations:0,diagnostics:[]};
 try{
  const page=await browser.newPage({viewport:{width:960,height:540}});
- await page.route('**/web/engine-subtitles/service.mjs',async route=>route.fulfill({contentType:'text/javascript',body:await readFile(root+'/engine/service.mjs')}));
- await page.route('**/web/engine-subtitles/service.wasm',async route=>route.fulfill({contentType:'application/wasm',body:await readFile(root+'/engine/service.wasm')}));
+ page.on('console',message=>{if(message.type()==='error')report.diagnostics.push('console: '+message.text());});
+ page.on('pageerror',error=>report.diagnostics.push('page: '+String(error)));
+ page.on('requestfailed',request=>report.diagnostics.push('fetch: '+request.url()+' '+request.failure()?.errorText));
+ page.on('worker',worker=>worker.on('close',()=>report.diagnostics.push('worker closed: '+worker.url())));
+ await page.route('**/web/engine-subtitles/service.mjs',async route=>{
+  let body=await readFile(root+'/engine/'+(rawEvents?'service-raw.mjs':'service.mjs'),'utf8');
+  if(rawEvents)body=body.replaceAll('service-raw.mjs','service.mjs').replaceAll('service-raw.wasm','service.wasm');
+  await route.fulfill({contentType:'text/javascript',body});
+ });
+ await page.route('**/web/engine-subtitles/service.wasm',async route=>route.fulfill({contentType:'application/wasm',body:await readFile(root+'/engine/'+(rawEvents?'service-raw.wasm':'service.wasm'))}));
+ if(rawEvents)await page.route('**/web/engine-subtitles/service-raw.wasm',async route=>route.fulfill({contentType:'application/wasm',body:await readFile(root+'/engine/service-raw.wasm')}));
  await page.route('**/web/mpv-subtitle-worker.js',async route=>{
   const response=await route.fetch();let source=await response.text();
   const target="}else if(d.type==='render'){";
@@ -100,4 +110,4 @@ try{
  Object.assign(report,end);
  await page.evaluate(()=>player.destroy());
 }catch(error){report.error=String(error.stack||error);console.error(report.error);}
-finally{await mkdir(root,{recursive:true});await writeFile(root+'/'+mode+'.json',JSON.stringify(report,null,2)+'\n');await browser.close();await server.close();}
+finally{await mkdir(root,{recursive:true});await writeFile(root+'/'+mode+(rawEvents?'-raw':'')+'.json',JSON.stringify(report,null,2)+'\n');await browser.close();await server.close();}
