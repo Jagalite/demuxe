@@ -1,0 +1,62 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!doctype html><meta charset="utf-8"><title>Real-packet ProRes WebGPU proof</title>
+<style>body{background:#111;color:#eee;font:14px system-ui}canvas{width:640px;height:360px}</style>
+<main><h1>Experiment-only ProRes playback</h1><div id="screen"></div></main>
+<script type="module">
+let worker, state = {messages:[], errors:[], loaded:false, ready:false, destroyed:false};
+const wait = predicate => new Promise((resolve,reject) => {
+  const timeout=setTimeout(() => reject(Error('experiment worker timeout')),30000);
+  const poll=()=>{
+    if(state.errors.length){clearTimeout(timeout);reject(Error(state.errors.at(-1)));return;}
+    if(predicate()){clearTimeout(timeout);resolve();return;}
+    setTimeout(poll,20);
+  }; poll();
+});
+window.startPlayback=async (mode,validate=false,poolLimit=8,backpressureProbeAt=null)=>{
+  if(worker)throw Error('Experiment already running');
+  state={messages:[],errors:[],loaded:false,ready:false,destroyed:false,started:performance.now()};
+  const canvas=document.createElement('canvas');canvas.width=640;canvas.height=360;
+  document.querySelector('#screen').replaceChildren(canvas);
+  worker=new Worker('/experiments/prores-real-packet-webgpu/worker.js',{type:'module'});
+  worker.onmessage=({data})=>{
+    if(data.type==='error')state.errors.push(...(data.data?.errors??['unknown worker error']));
+    if(data.type==='ready')state.ready=true;
+    if(data.type==='loaded')state.loaded=true;
+    if(data.type==='destroyed')state.destroyed=true;
+    if(data.type==='finalized')state.finalized=true;
+    if(data.type==='stats'||data.type==='loaded'||data.type==='destroyed'||data.type==='error'||data.type==='finalized')
+      state.latest=data.data;
+    state.messages.push({type:data.type,at:performance.now(),
+      ...(data.type==='log'?{message:data.message}:{})});
+  };
+  worker.onerror=event=>state.errors.push(String(event.message??'worker script failed to load'));
+  const [font,bytes,oracles]=await Promise.all([
+    fetch('/fixtures/DejaVuSans.ttf').then(r=>r.arrayBuffer()),
+    fetch('/fixture.mov').then(r=>r.arrayBuffer()),
+    validate?fetch('/oracle-hashes.json').then(r=>r.json()):Promise.resolve(null),
+  ]);
+  const offscreen=canvas.transferControlToOffscreen();
+  worker.postMessage({type:'init',mode,canvas:offscreen,font,sampleRate:48000,
+    oracleHashes:oracles?.frames??null,validatePixels:validate,poolLimit,
+    backpressureProbeAt},[offscreen,font]);
+  await wait(()=>state.ready);
+  worker.postMessage({type:'open',id:100,bytes},[bytes]);
+  await wait(()=>state.loaded);
+  state.playStarted=performance.now();
+  worker.postMessage({type:'command',id:101,args:['set','pause','no']});
+  return {mode,started:state.started,playStarted:state.playStarted};
+};
+window.playbackState=()=>({...state});
+window.requestStats=()=>worker?.postMessage({type:'stats'});
+window.finalizePlayback=async()=>{
+  state.finalized=false;worker?.postMessage({type:'finalize'});
+  await wait(()=>state.finalized);
+  return state.latest;
+};
+window.stopPlayback=async()=>{
+  worker?.postMessage({type:'destroy'});
+  await wait(()=>state.destroyed);
+  const result={...state};worker.terminate();worker=null;
+  return result;
+};
+</script>

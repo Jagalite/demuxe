@@ -40,6 +40,55 @@ struct VOut { @builtin(position) position: vec4f, @location(0) uv: vec2f };
                l-params.conversion.y*u*c-params.conversion.z*v*c,
                l+params.conversion.w*u*c,1.);
 }`;
+// Exact 10-bit planar code values can also remain in the decoder's storage
+// buffer. This avoids a device-local buffer-to-texture conversion pass. Luma
+// scales linearly; 4:2:2 chroma follows FFmpeg's two-luma-pixel sample hold.
+const bufferShader=`
+struct Params { crop: vec4f, range: vec4f, conversion: vec4f, rotation: vec4f, extent: vec4f };
+struct Layout { width: u32, height: u32, ySamples: u32, uvSamples: u32 };
+struct PlanarSamples { samples: array<u32> };
+@group(0) @binding(0) var<storage,read> planar: PlanarSamples;
+@group(0) @binding(1) var<uniform> params: Params;
+@group(0) @binding(2) var<uniform> frameLayout: Layout;
+struct VOut { @builtin(position) position: vec4f, @location(0) uv: vec2f };
+@vertex fn vertex(@builtin(vertex_index) id:u32)->VOut {
+  var positions=array<vec2f,3>(vec2f(-1.,-1.),vec2f(3.,-1.),vec2f(-1.,3.));
+  var out:VOut;out.position=vec4f(positions[id],0.,1.);
+  out.uv=vec2f((positions[id].x+1.)*.5,(1.-positions[id].y)*.5);return out;
+}
+fn codeAt(base:u32,width:u32,height:u32,x:i32,y:i32)->f32 {
+  let px=u32(clamp(x,0,i32(width)-1));
+  let py=u32(clamp(y,0,i32(height)-1));
+  return f32(planar.samples[base+py*width+px])*params.extent.z;
+}
+fn samplePlane(base:u32,width:u32,height:u32,uv:vec2f)->f32 {
+  let p=uv*vec2f(f32(width),f32(height))-vec2f(.5);
+  let x=i32(floor(p.x));let y=i32(floor(p.y));
+  let top=mix(codeAt(base,width,height,x,y),codeAt(base,width,height,x+1,y),fract(p.x));
+  let bottom=mix(codeAt(base,width,height,x,y+1),codeAt(base,width,height,x+1,y+1),fract(p.x));
+  return mix(top,bottom,fract(p.y));
+}
+fn sampleChroma(base:u32,width:u32,height:u32,uv:vec2f)->f32 {
+  let p=vec2i(floor(uv*vec2f(f32(width),f32(height))));
+  return codeAt(base,width,height,p.x,p.y);
+}
+@fragment fn fragment(input:VOut)->@location(0) vec4f {
+  let p=(input.uv-.5)*params.extent.xy;
+  let rotated=vec2f(params.rotation.x*p.x+params.rotation.y*p.y,
+                   -params.rotation.y*p.x+params.rotation.x*p.y)+.5;
+  let inBounds=all(rotated>=vec2f(0.))&&all(rotated<=vec2f(1.));
+  let uv=params.crop.xy+rotated*params.crop.zw;
+  let chromaUV=uv+params.rotation.zw;
+  let y=samplePlane(0u,frameLayout.width,frameLayout.height,uv);
+  let u=sampleChroma(frameLayout.ySamples,frameLayout.width/2u,frameLayout.height,chromaUV)-params.range.w;
+  let v=sampleChroma(frameLayout.ySamples+frameLayout.uvSamples,frameLayout.width/2u,frameLayout.height,chromaUV)-params.range.w;
+  let l=(y-params.range.x)*params.range.y;
+  let c=params.range.z;
+  if(!inBounds){return vec4f(0.,0.,0.,1.);}
+  return vec4f(l+params.conversion.x*v*c,
+               l-params.conversion.y*u*c-params.conversion.z*v*c,
+               l+params.conversion.w*u*c,1.);
+}`;
 const overlayShader=`
 @group(0) @binding(0) var linearSampler:sampler;
 @group(0) @binding(1) var image:texture_2d<f32>;
@@ -76,13 +125,19 @@ export class WebGPUPresenter {
     this.subtitleCanvas=new OffscreenCanvas(canvas.width,canvas.height);
     this.subtitleContext=this.subtitleCanvas.getContext('2d');
     this.subtitles=new SubtitleOverlay();
+    this.bufferPipeline=null;this.bufferLayout=null;
     this.overlayTexture=null;
     this.overlayStaging=null;
     this.frames=0;this.destroyed=false;
   }
   draw(frame,track,subtitleSnapshot){
     if(this.destroyed||this.runtime.deviceLost)throw Error('WebGPU presenter unavailable');
-    if(!/^I(?:420|422|444)(?:P(?:10|12|16))?$/.test(frame.pixelFormat)||frame.surface?.planes?.length!==3)throw Error('Unsupported WebGPU surface format');
+    const bufferBacked=frame.pixelFormat==='I422P10'&&frame.surface?.layout==='planar-u32'&&frame.surface?.buffer;
+    if(!/^I(?:420|422|444)(?:P(?:10|12|16))?$/.test(frame.pixelFormat)||
+      (!bufferBacked&&frame.surface?.planes?.length!==3))throw Error('Unsupported WebGPU surface format');
+    if(bufferBacked&&(!Number.isInteger(frame.width)||frame.width<2||frame.width%2||
+      !Number.isInteger(frame.height)||frame.height<1||
+      frame.surface.buffer.size<frame.width*frame.height*8))throw Error('Invalid WebGPU planar buffer surface');
     const g=retainedVideoGeometry(frame,this.canvas,track);
     const matrix=frame.color?.matrix;
     if(!['bt709','bt601','smpte170m','bt2020'].includes(matrix))throw Error('Unsupported WebGPU color matrix');
@@ -97,14 +152,30 @@ export class WebGPUPresenter {
       ...c,Math.cos(angle),Math.sin(angle),chroma[0],chroma[1],
       g.dst[2]/(g.width*g.scale),g.dst[3]/(g.height*g.scale),1/maximum,depth>10?1:0]);
     this.device.queue.writeBuffer(this.uniform,0,data);
-    const group=this.device.createBindGroup({layout:this.pipeline.getBindGroupLayout(0),entries:[
+    let pipeline=this.pipeline,group;
+    if(bufferBacked){
+      this.bufferPipeline??=this.runtime.pipeline(`planar-u32-present:${this.format}`,device=>device.createRenderPipeline({
+        layout:'auto',vertex:{module:device.createShaderModule({code:bufferShader}),entryPoint:'vertex'},
+        fragment:{module:device.createShaderModule({code:bufferShader}),entryPoint:'fragment',targets:[{format:this.format}]},
+        primitive:{topology:'triangle-list'},
+      }));
+      this.bufferLayout??=this.runtime.buffer({size:16,usage:0x40|0x08});
+      this.device.queue.writeBuffer(this.bufferLayout,0,new Uint32Array([
+        frame.width,frame.height,frame.width*frame.height,frame.width*frame.height/2]));
+      pipeline=this.bufferPipeline;
+      group=this.device.createBindGroup({layout:pipeline.getBindGroupLayout(0),entries:[
+        {binding:0,resource:{buffer:frame.surface.buffer}},
+        {binding:1,resource:{buffer:this.uniform}},
+        {binding:2,resource:{buffer:this.bufferLayout}},
+      ]});
+    }else group=this.device.createBindGroup({layout:pipeline.getBindGroupLayout(0),entries:[
       {binding:0,resource:this.sampler},
       ...frame.surface.planes.map((resource,index)=>({binding:index+1,resource})),
       {binding:4,resource:{buffer:this.uniform}},
     ]});
     const encoder=this.device.createCommandEncoder();
     const pass=encoder.beginRenderPass({colorAttachments:[{view:this.context.getCurrentTexture().createView(),loadOp:'clear',storeOp:'store',clearValue:{r:0,g:0,b:0,a:1}}]});
-    pass.setPipeline(this.pipeline);pass.setBindGroup(0,group);
+    pass.setPipeline(pipeline);pass.setBindGroup(0,group);
     pass.setViewport(g.dst[0],g.dst[1],g.dst[2],g.dst[3],0,1);
     pass.draw(3);
     if(subtitleSnapshot?.surface){
@@ -130,5 +201,5 @@ export class WebGPUPresenter {
     }
     pass.end();this.device.queue.submit([encoder.finish()]);this.frames++;
   }
-  destroy(){if(this.destroyed)return;this.destroyed=true;this.overlayTexture?.destroy();this.overlayTexture=null;this.overlayStaging=null;this.runtime.releaseBuffer(this.uniform);this.context.unconfigure();}
+  destroy(){if(this.destroyed)return;this.destroyed=true;this.overlayTexture?.destroy();this.overlayTexture=null;this.overlayStaging=null;this.runtime.releaseBuffer(this.uniform);if(this.bufferLayout)this.runtime.releaseBuffer(this.bufferLayout);this.context.unconfigure();}
 }

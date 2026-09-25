@@ -1,0 +1,17 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!doctype html>
+<meta charset="utf-8">
+<title>Device-local WebGPU ProRes presentation proof</title>
+<script>
+  window.runProof = manifest => new Promise((resolve, reject) => {
+    const worker = new Worker('/experiments/prores-presentation-webgpu/worker.js',
+      {type: 'module'});
+    worker.onmessage = event => {
+      worker.terminate();
+      if (event.data.error) reject(Error(event.data.error));
+      else resolve(event.data.result);
+    };
+    worker.onerror = event => {worker.terminate(); reject(Error(event.message));};
+    worker.postMessage({manifest});
+  });
+</script>

@@ -40,6 +40,12 @@ test('empty qualification registry preserves every production route',async()=>{
   const packageScript=await readFile('scripts/package-beta.py','utf8');
   assert.match(packageScript,/web\/webgpu\/codecs/);
   assert.match(packageScript,/registered\.values\(\)/);
+  assert.doesNotMatch(packageScript,/experiments\/prores-/);
+  const playbackWorker=await readFile('web/filter-retained-engine-worker.js','utf8');
+  assert.match(playbackWorker,/else if\(data\.decoder==='webgpu'\)\{/);
+  assert.doesNotMatch(playbackWorker,/^import .*webgpu\/(?:runtime|mailbox-service|presenter)\.js/m);
+  assert.match(playbackWorker,/import\('\.\/webgpu\/mailbox-service\.js'\)/);
+  assert.match(playbackWorker,/import\('\.\/webgpu\/presenter\.js'\)/);
   assert.throws(()=>assertWebGPUCodecAdapter({codec:'prores',queuedPackets:0},'prores'),/missing configure/);
   assert.equal(compatibilityFailure(Error('Hybrid WebGPU decoder: Error: WebGPU device lost')),true);
   assert.equal(compatibilityFailure(Error('Source transport: Hybrid WebGPU decoder: HTTP 403')),false);
@@ -113,12 +119,15 @@ test('GPU runtime is constructible with no codecs and releases bounded resources
   let resolveLoss,destroyedBuffers=0,destroyedTextures=0,destroyedDevice=0,lost=[];
   const device={lost:new Promise(resolve=>resolveLoss=resolve),createBuffer:()=>({destroy(){destroyedBuffers++;}}),
     createTexture:()=>({destroy(){destroyedTextures++;}}),destroy(){destroyedDevice++;}};
-  const gpu={requestAdapter:async()=>({requestDevice:async()=>device})};
+  let adapterRequests=0;
+  const gpu={requestAdapter:async()=>{adapterRequests++;return {requestDevice:async()=>device};}};
   const runtime=new WebGPUCodecRuntime({gpu,maxSurfaces:1,maxSurfaceBytes:4,maxPooledBufferBytes:64,
     maxLiveBufferBytes:128,maxPipelines:1,onDeviceLost:reason=>lost.push(reason)});
   assert.equal(assertExternalVideoDecoder(runtime),runtime);
   assert.equal(await runtime.configure('prores',{}),false);
+  assert.equal(adapterRequests,0); // An unregistered codec cannot acquire a GPU device.
   assert.equal(runtime.diagnostics.selected,false);
+  assert.equal(runtime.diagnostics.liveBufferBytes,0);
   assert.equal(runtime.diagnostics.decodeIntent,null);
   await runtime.acquireDevice();runtime.buffer({size:64,usage:8});runtime.pipeline('test',()=>({}));
   assert.throws(()=>runtime.pipeline('second',()=>({})),/pipeline cache bound/);
