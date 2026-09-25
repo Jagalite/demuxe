@@ -13,6 +13,8 @@ selection, acceptance checks, results, performance gates and limitations.
 - `render-catalogue.py`: refresh README/detailed tables from verified complete outcomes and explicit supplements.
 - `adapters.mjs`: public player APIs, marked audio checks, selected-track identity and switching for correctness.
 - `run.mjs`: serial runner, fresh outputs, per-case outcomes and gated performance.
+- `release-auto-report.py`: merges frozen Auto runs, bounded specialist screens and failed-player CPU diagnostics without promoting a screen or failure into a full pass.
+- `pack-release-evidence.py`: uses `zstd` to store losslessly compressed run summaries with original and archive hashes beside the release report; local screenshots and full run folders remain available for deeper inspection.
 - `explain-hybrid.py`: verify retained runs and generate per-row Native rejection/component explanations.
 - `probe-hybrid-mse.mjs`: record separate video/audio/combined MSE hints without claiming playback qualification.
 - `hls-fallback.mjs`: injected Native HLS rejection followed by real Hybrid output and cleanup.
@@ -53,8 +55,15 @@ seeks. Subtitle absence is a failure even when audio/video work. Each run captur
 harness source, fixture probes/provenance, asset hashes, screenshots, requests and
 per-case outcomes. Browser processes must actually exit between cases.
 
-These are bounded local-file screens, not CPU benchmarks or HDR/spatial-audio
-qualification. TrueHD repeats a ~0.107-second FATE regression sample; DTS-HD repeats
+These are bounded local-fixture URL screens, not HDR/spatial-audio qualification.
+The optional final `cpu1`, `cpu2` or `cpu3` argument records one 5-second warmup
+plus 20-second whole-Chrome CPU window per case, with normal-progress and stable
+process-ID gates. Run all three orders for a screened CPU median. A failed case
+keeps its failure and any CPU observation is diagnostic only. The `competitors`
+lane screens only default Movi and AVPlayer, including a CPU attempt after a
+failed screen. The `--specialist-from` option to `setup.py` imports an existing
+specialist catalogue only after its bitstreams match the copied fixture hashes.
+TrueHD repeats a ~0.107-second FATE regression sample; DTS-HD repeats
 a clean eight-second excerpt. The HDR10 picture is a 320×180 authored PQ/BT.2020-tagged
 synthetic pattern with mastering/content-light metadata, not reference movie
 imagery. DV video keeps its original in-band parameter-set representation and
@@ -66,5 +75,11 @@ Optional diagnostics use the final arguments `software fixture-id,...` or
 `auto` results in the README. Import a completed default screen into the CPU
 table with `render-native-cpu-table.py --specialist-screen <run>`; playback
 screening never manufactures CPU measurements or clears fidelity limitations.
+
+For the ordinary marked catalogue, `run.mjs --screened-cpu` accepts only a
+matching bounded Demuxe correctness screen and retains `blocked` status while
+recording three 20-second CPU windows. `--diagnostic-failed-cpu` accepts only
+matching failed Movi/AVPlayer correctness cases; its one-round whole-Chrome
+window is always labeled failed and excluded from efficiency comparisons.
 
 Repeat `--specialist-screen` in chronological order to apply exact-fixture rescreens. Each supplement must contain all four default players for its selected fixtures; forced Software records are rejected by this loader.

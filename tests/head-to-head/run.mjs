@@ -24,6 +24,7 @@ const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'str
   'streaming-backends':{type:'boolean',default:false},
   performance:{type:'boolean',default:false},exclusive:{type:'boolean',default:false},correctness:{type:'string'},rounds:{type:'string',default:'3'},
   'diagnostic-failed-cpu':{type:'boolean',default:false},
+  'screened-cpu':{type:'boolean',default:false},
   'measure-seconds':{type:'string',default:'20'},'warmup-seconds':{type:'string',default:'5'},list:{type:'boolean',default:false}}});
 if(args['component-trial']&&(!args.catalogue||args['demuxe-mode']!=='native'||!['subtitles','audio','dash','direct'].includes(args['component-trial'])))throw Error('Component trials require catalogue, explicit Native, and a known lab strategy');
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -56,6 +57,7 @@ if(args['negative-control']&&!['cover','hide-subtitles'].includes(args['negative
 if(args.performance&&args['negative-control'])throw Error('Negative controls are correctness-only');
 if(args['diagnostic-failed-cpu']&&!args.performance)throw Error('Failed-player CPU diagnostics require --performance');
 if(args['diagnostic-failed-cpu']&&selected.some(c=>!['movi','libmedia'].includes(c.player)))throw Error('Failed-player CPU diagnostics are limited to Movi and AVPlayer');
+if(args['screened-cpu']&&(!args.performance||args['diagnostic-failed-cpu']||selected.some(c=>c.player!=='demuxe')))throw Error('Screened CPU requires performance and Demuxe cases only');
 if(args.performance&&(!args.correctness||!args.headed||!args.exclusive||args.browser!=='chromium'))throw Error('Performance requires --correctness <run>/summary.json, --headed, Chromium and --exclusive (no concurrent builds/benchmarks)');
 const rounds=Number(args.rounds),measureSeconds=Number(args['measure-seconds']),warmupSeconds=Number(args['warmup-seconds']);
 if(args.performance&&(!Number.isInteger(rounds)||rounds<(args['diagnostic-failed-cpu']?1:3)||measureSeconds<20||warmupSeconds<5))throw Error('Performance requires at least 3 accepted rounds (1 diagnostic round), 5s warmup and 20s measurement');
@@ -88,6 +90,7 @@ for(const key of new Set(selected.map(c=>c.fixture).filter(key=>matrix.fixtures[
 const previous=args.correctness?JSON.parse(await fs.readFile(path.resolve(args.correctness))):null;
 const summary={schema:1,kind:args.performance?'performance':'correctness',startedAt:new Date().toISOString(),
   controlledStreaming:args['controlled-streaming'],streamingBackends:args['streaming-backends'],
+  screenedCpu:args['screened-cpu'],diagnosticFailedCpu:args['diagnostic-failed-cpu'],
   assets,assetsSHA256:hash(manifestBytes),harnessSHA256,sourceHashes,gitRevision:execFileSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'}).trim(),
   playerSourceRevision:manifest.git_revision,host:{platform:os.platform(),release:os.release(),architecture:os.arch(),cpus:os.cpus().length},
   command:{argv:process.argv,cwd:process.cwd()},
@@ -293,8 +296,9 @@ async function measureFailedPlayer(page,config,result,browser) {
 }
 
 try {
-  const scheduledCases=args['diagnostic-failed-cpu']?selected.filter(c=>previous?.cases.some(p=>p.id===c.id&&p.status==='failed')):selected;
-  if(args['diagnostic-failed-cpu']){summary.selected=scheduledCases.map(c=>c.id);await save();}
+  const scheduledCases=args['diagnostic-failed-cpu']?selected.filter(c=>previous?.cases.some(p=>p.id===c.id&&p.status==='failed')):
+    args['screened-cpu']?selected.filter(c=>previous?.cases.some(p=>p.id===c.id&&p.status==='blocked'&&p.screenPassed)):selected;
+  if(args['diagnostic-failed-cpu']||args['screened-cpu']){summary.selected=scheduledCases.map(c=>c.id);await save();}
   const schedule=args.performance?[...new Set(scheduledCases.map(c=>c.fixture))].flatMap(fixture=>{const group=scheduledCases.filter(c=>c.fixture===fixture);return Array.from({length:rounds},(_,round)=>group.map((_,i)=>({...group[(i+round)%group.length],round:round+1}))).flat();}):scheduledCases;
   for(const c of schedule) {
     const result={...c,...(args['component-trial']?{componentTrial:args['component-trial']} : {}),status:'running',startedAt:new Date().toISOString(),console:[],requestFailures:[]};summary.cases.push(result);
@@ -320,7 +324,10 @@ try {
       const diagnosticEligible=args['diagnostic-failed-cpu']&&prior?.status==='failed'&&
         previous.kind==='correctness'&&previous.assetsSHA256===summary.assetsSHA256&&
         previous.harnessSHA256===summary.harnessSHA256&&previous.browserIdentity===summary.browserIdentity;
-      if(args.performance&&(!(args['diagnostic-failed-cpu']?diagnosticEligible:performanceEligible(previous,summary,c.id))||!!previous.controlledStreaming!==args['controlled-streaming'])) {result.status='blocked';result.reason='No matching correctness record for these assets, harness, streaming policy and browser';continue;}
+      const screenedEligible=args['screened-cpu']&&prior?.status==='blocked'&&prior.screenPassed&&
+        previous.kind==='correctness'&&previous.assetsSHA256===summary.assetsSHA256&&
+        previous.harnessSHA256===summary.harnessSHA256&&previous.browserIdentity===summary.browserIdentity;
+      if(args.performance&&(!(args['diagnostic-failed-cpu']?diagnosticEligible:args['screened-cpu']?screenedEligible:performanceEligible(previous,summary,c.id))||!!previous.controlledStreaming!==args['controlled-streaming'])) {result.status='blocked';result.reason='No matching correctness record for these assets, harness, streaming policy and browser';continue;}
       const context=await active.newContext({viewport:{width:960,height:540},deviceScaleFactor:1});
       page=await context.newPage();page.setDefaultTimeout(10000);
       page.on('console',m=>result.console.length<80&&result.console.push(m.text()));
@@ -330,9 +337,10 @@ try {
       await page.goto(server.origin+'/harness/harness.html');await page.bringToFront();await page.waitForFunction(()=>window.api);
       const config={...c,...matrix.fixtures[c.fixture],...(args['controlled-streaming']&&c.player==='demuxe'&&['auto','native'].includes(c.lane)?{streaming:{maxBandwidth:100000000}}:{}),...(args['component-trial']?{componentTrial:args['component-trial']}:{})};
       await (args['diagnostic-failed-cpu']?measureFailedPlayer(page,config,result,active):args.performance?measure(page,config,result,active):correctness(page,config,result,directory));
-      result.status=args['diagnostic-failed-cpu']?'failed':'passed';
+      result.status=args['diagnostic-failed-cpu']?'failed':args['screened-cpu']?'blocked':'passed';
       if(args['diagnostic-failed-cpu']){result.failureStage=prior.failureStage??'correctness';result.reason='Correctness failed: '+String(prior.reason??'unknown failure').split('\n')[0];result.correctnessRecord=prior.recordPath;}
-      if(config.qualificationLimit&&!args['diagnostic-failed-cpu']){result.screenPassed=true;result.status='blocked';result.reason=config.qualificationLimit;}
+      if(args['screened-cpu']){result.screenMeasured=true;result.screenPassed=true;result.reason=config.qualificationLimit??prior.reason;result.correctnessRecord=prior.recordPath;}
+      else if(config.qualificationLimit&&!args['diagnostic-failed-cpu']){result.screenPassed=true;result.status='blocked';result.reason=config.qualificationLimit;}
     } catch(error) {
       result.status='failed';result.failureStage=result.stage??'setup';result.reason=String(error.stack??error);
       if(c.player==='demuxe'&&result.requestFailures.some(r=>r.status===404&&Object.entries(manifest.engines).some(([name,exists])=>!exists&&r.url.includes('/'+name+'/')))){result.status='blocked';result.reason='Required current Demuxe engine assets are absent. '+result.reason;}

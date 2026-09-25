@@ -201,7 +201,20 @@ def prepare(args):
             sys.path.insert(0, str(preparation))
             from expand import generate
             generate(fixtures, run, args.duration)
-    manifest = {'schema': 1, 'fixture_parent': fixture_parent, 'fixture': {'duration': args.duration, 'dimensions': [320,180], 'fps': 30},
+    specialist_parent = None
+    if args.specialist_from:
+        parent = Path(args.specialist_from).resolve()
+        source = parent / 'specialist.json'
+        specialist = json.loads(source.read_text())
+        for key, entry in specialist.items():
+            candidate = (out / 'fixtures' / entry['file']).resolve()
+            if not candidate.is_relative_to((out / 'fixtures').resolve()) or not candidate.is_file():
+                raise ValueError('Specialist fixture missing: ' + key)
+            if sha(candidate) != entry['sha256'] or sha(parent / 'fixtures' / entry['file']) != entry['sha256']:
+                raise ValueError('Specialist fixture hash mismatch: ' + key)
+        shutil.copyfile(source, out / 'specialist.json')
+        specialist_parent = {'snapshot': str(parent), 'sha256': sha(source)}
+    manifest = {'schema': 1, 'fixture_parent': fixture_parent, 'specialist_parent': specialist_parent, 'fixture': {'duration': args.duration, 'dimensions': [320,180], 'fps': 30},
                 'git_revision': run(['git', 'rev-parse', 'HEAD']).strip(),
                 'source_sha256': before, 'dirty_diff': run(['git', 'diff', '--', 'src', 'web']),
                 'engines': engines, 'optionalArchiveSHA256': optional_archive_sha,
@@ -220,6 +233,7 @@ if __name__ == '__main__':
     parser.add_argument('--output', required=True, help='New directory, normally under build/head-to-head/')
     parser.add_argument('--lab', help='Optional preserved lab cache. Every reused dependency is hash-checked.')
     parser.add_argument('--fixtures-from', help='Reuse a completed snapshot’s exact hash-verified fixtures with newly built runtime assets')
+    parser.add_argument('--specialist-from', help='Reuse a verified specialist catalogue whose bitstreams match --fixtures-from')
     parser.add_argument('--optional-archive', help='Use exact packaged optional ASS/adaptation assets and manifests')
     parser.add_argument('--expanded', action='store_true', help='Generate all planned catalogue fixtures or record preparation blockers')
     parser.add_argument('--duration', type=int, default=36)
