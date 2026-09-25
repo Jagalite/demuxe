@@ -15,6 +15,7 @@ launch per round. The
 | H.264 + AAC / MP4 | Complete: 5 pass, Movi fail | [row report](../results/head-to-head/row-h264-aac-mp4-20260925-01/REPORT.md) |
 | H.264 + AAC / MKV | Complete: 5 pass, Movi fail | [row report](../results/head-to-head/row-h264-aac-mkv-20260925-01/REPORT.md) |
 | Dual-audio H.264 + AAC + AC-3 stereo / MKV | Measured in one Chrome: 4 pass, Movi fail; wide within-launch ranges | [row report](../results/head-to-head/row-h264-dual-audio-20260925-02/REPORT.md) |
+| H.264 + PCM24 / MKV | Measured in one Chrome: 4 correctness pass, AVPlayer fail; Movi CPU rejected in round 1 | [row report](../results/head-to-head/row-h264-pcm24-mkv-20260925-01/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available
