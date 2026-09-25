@@ -57,7 +57,7 @@ export declare class NativeMpvAudio extends EventTarget {
     selectAudio(id: string): Promise<void>;
     volume(percent: number): Promise<void>;
     gainValue(value: number): Promise<void>;
-    verifyOutput(): Promise<void>;
+    verifyOutput(signal?: AbortSignal): Promise<void>;
     private finishEOF;
     get diagnostics(): {
         plan: string;

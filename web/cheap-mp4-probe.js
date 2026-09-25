@@ -41,22 +41,34 @@ function tracks(moov,video){
   const minf=boxes(one(mdia,'minf')),dref=one(boxes(one(minf,'dinf')),'dref');
   if(u32(dref,0)!==0||u32(dref,4)!==1)throw Error('Data references');
   const refs=boxes(dref,8);if(refs.length!==1||refs[0].type!=='url '||refs[0].b.length!==4||u32(refs[0].b,0)!==1)throw Error('External reference');
-  const stsd=one(boxes(one(minf,'stbl')),'stsd');if(u32(stsd,0)!==0||u32(stsd,4)!==1)throw Error('Multiple configurations');
+  const sampleTable=boxes(one(minf,'stbl'));
+  const stsd=one(sampleTable,'stsd');if(u32(stsd,0)!==0||u32(stsd,4)!==1)throw Error('Multiple configurations');
   const entries=boxes(stsd,8);if(entries.length!==1)throw Error('Sample entries');const entry=entries[0];
   if(new DataView(entry.b.buffer,entry.b.byteOffset,entry.b.byteLength).getUint16(6)!==1)throw Error('Data reference index');
-  let codec,mime,channels;
+  let codec,mime,channels;const metrics={};
   if(handler==='vide'){
    if(entry.type!=='avc1')throw Error('Video codec');
    const children=boxes(entry.b,78);if(children.some(x=>!['avcC','pasp','btrt','colr'].includes(x.type)))throw Error('Video extensions');
    for(const c of children.filter(x=>x.type==='colr')){const v=new DataView(c.b.buffer,c.b.byteOffset,c.b.byteLength);if(!['nclx','nclc'].includes(text(c.b,0))||[4,6,8].some(p=>v.getUint16(p)!==1))throw Error('Unqualified color');}
+   // Use declared dimensions, maximum bitrate and maximum sample rate only.
+   // Missing metadata must not be replaced with performance-query guesses.
+   metrics.width=new DataView(entry.b.buffer,entry.b.byteOffset,entry.b.byteLength).getUint16(24);
+   metrics.height=new DataView(entry.b.buffer,entry.b.byteOffset,entry.b.byteLength).getUint16(26);
+   const btrt=children.find(c=>c.type==='btrt')?.b;if(btrt?.length>=12&&u32(btrt,4)>0)metrics.bitrate=u32(btrt,4);
+   try{const mdhd=one(mdia,'mdhd'),stts=one(sampleTable,'stts');
+    const scale=u32(mdhd,mdhd[0]===1?20:12),count=u32(stts,4);
+    const deltas=count>0&&count<=4096&&stts.length===8+8*count?Array.from({length:count},(_,i)=>u32(stts,12+8*i)):[];
+    if(stts[0]===0&&scale>0&&deltas.length&&deltas.every(d=>d>0))metrics.framerate=scale/Math.min(...deltas);
+   }catch{/* Optional query metadata is unknown. */}
    const avc=one(children,'avcC');if(avc.length<7||avc[0]!==1||![66,77,100].includes(avc[1])||(avc[4]&3)!==3)throw Error('AVC configuration');
    mime='video/mp4; codecs="avc1.'+[...avc.subarray(1,4)].map(n=>n.toString(16).padStart(2,'0')).join('')+'"';codec='h264';
   }else{
    if(entry.type!=='mp4a'||entry.b[8]||entry.b[9])throw Error('Audio entry');
    const children=boxes(entry.b,28);if(children.some(x=>!['esds','btrt'].includes(x.type)))throw Error('Audio extensions');
+   metrics.sampleRate=u32(entry.b,24)>>>16;
    channels=aac(one(children,'esds'));codec='aac';mime='audio/mp4; codecs="mp4a.40.2"';
   }
-  result.push({id:'1',index:result.length,type:handler==='vide'?'video':'audio',codec,codecString:mime.split('\"')[1],default:true,...(channels?{channels,aacObject:2}:{})});
+  result.push({id:'1',index:result.length,type:handler==='vide'?'video':'audio',codec,codecString:mime.split('\"')[1],default:true,...metrics,...(channels?{channels,aacObject:2}:{})});
  }
  if(!seen.has('vide'))throw Error('No video');return result;
 }

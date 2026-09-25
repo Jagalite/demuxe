@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 import { WasmPlayer } from './wasm-player.js';
 import { PlayerError } from './errors.js';
-const wait = async (predicate, timeout = 5000) => {
+const wait = async (predicate, timeout = 5000, signal) => {
     const end = performance.now() + timeout;
     while (performance.now() < end) {
-        if (await predicate())
+        signal?.throwIfAborted();
+        if (await predicate()) {
+            signal?.throwIfAborted();
             return;
+        }
         await new Promise(resolve => setTimeout(resolve, 20));
     }
     throw Error('Selective audio convergence timed out');
@@ -325,8 +328,8 @@ export class NativeMpvAudio extends EventTarget {
     }
     volume(percent) { return this.engine.volume(percent); }
     gainValue(value) { return this.engine.gain(value); }
-    async verifyOutput() {
-        await wait(() => this.h(5) > 0 && this.points.some(p => p.kind === 'timeline' && p.generation === this.generation), 10000);
+    async verifyOutput(signal) {
+        await wait(() => this.h(5) > 0 && this.points.some(p => p.kind === 'timeline' && p.generation === this.generation), 10000, signal);
         const tracks = this.engine.properties.get('track-list');
         if (tracks?.some(t => t.type === 'video' && t.selected) || !tracks?.some(t => t.type === 'audio' && t.selected))
             throw Error('Selective audio output ownership changed');

@@ -8,11 +8,16 @@ export type BrowserMediaCapability = {
         type: string;
         codec: string;
         codecString?: string;
+        serializationComplete: boolean;
     }>;
     queries: Array<{
         mime: string;
         result: string | boolean;
+        adapter: string;
+        negativeDecisive: boolean;
+        reason?: string;
     }>;
+    decodingInfo?: import('./media-capabilities.js').DecodingEvidence;
     unqueriedAudio?: boolean;
     reason?: string;
 };

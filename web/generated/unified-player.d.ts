@@ -38,6 +38,7 @@ export declare class Player extends EventTarget {
     private tierConfiguration;
     private cancelPromotion;
     private schedulePromotion;
+    private readonly mediaCapabilityQueries;
     private sourceInspection?;
     private mpvSubtitleAssetsAvailable;
     private selectiveAudioAssetsAvailable;
@@ -151,6 +152,7 @@ export declare class Player extends EventTarget {
     setAudioFilters(value: string): Promise<void>;
     setAudioGain(value: number): Promise<void>;
     private setting;
+    private playNativeVerified;
     play(): Promise<void>;
     pause(): Promise<void>;
     seek(seconds: number): Promise<void>;

@@ -15,6 +15,8 @@ export type ProbeTrack = {
     aacObject?: number;
     attachedPicture?: boolean;
     sampleRate?: number;
+    bitrate?: number;
+    framerate?: number;
     initialPadding?: number;
     bits?: number;
     startTime?: number;

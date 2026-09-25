@@ -4,9 +4,9 @@ import {PlayerError} from './errors.js';
 
 type Timeline={kind:string;wallTime:number|null;mediaTime:number;rate:number;generation:number;epoch:number;audioFrame:number};
 type PendingRate={rate:number;generation:number;resolve:()=>void;reject:(error:Error)=>void;timer?:ReturnType<typeof setTimeout>;deadline:ReturnType<typeof setTimeout>};
-const wait=async(predicate:()=>boolean|Promise<boolean>,timeout=5000)=>{
+const wait=async(predicate:()=>boolean|Promise<boolean>,timeout=5000,signal?:AbortSignal)=>{
   const end=performance.now()+timeout;
-  while(performance.now()<end){if(await predicate())return;await new Promise(resolve=>setTimeout(resolve,20));}
+  while(performance.now()<end){signal?.throwIfAborted();if(await predicate()){signal?.throwIfAborted();return;}await new Promise(resolve=>setTimeout(resolve,20));}
   throw Error('Selective audio convergence timed out');
 };
 
@@ -196,8 +196,8 @@ export class NativeMpvAudio extends EventTarget {
   }
   volume(percent:number){return this.engine.volume(percent);}
   gainValue(value:number){return this.engine.gain(value);}
-  async verifyOutput(){
-    await wait(()=>this.h(5)>0&&this.points.some(p=>p.kind==='timeline'&&p.generation===this.generation),10000);
+  async verifyOutput(signal?:AbortSignal){
+    await wait(()=>this.h(5)>0&&this.points.some(p=>p.kind==='timeline'&&p.generation===this.generation),10000,signal);
     const tracks=this.engine.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined;
     if(tracks?.some(t=>t.type==='video'&&t.selected)||!tracks?.some(t=>t.type==='audio'&&t.selected))throw Error('Selective audio output ownership changed');
   }

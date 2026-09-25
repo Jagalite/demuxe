@@ -17,3 +17,8 @@ test('abort cancels an outstanding metadata stream',async()=>{
  const controller=new AbortController(),pending=cheapMP4Probe(file,controller.signal,supported);
  await new Promise(r=>setTimeout(r,0));controller.abort();await assert.rejects(pending,{name:'AbortError'});assert.equal(cancelled,true);
 });
+
+test('performance queries receive declared video dimensions/timing and audio sample rate',async()=>{
+ const {probe:p}=await probe(source);const v=p.tracks.find(t=>t.type==='video'),a=p.tracks.find(t=>t.type==='audio');
+ assert.ok(v.width>0&&v.height>0);assert.ok(v.framerate>0);assert.ok(a.sampleRate>0);
+});

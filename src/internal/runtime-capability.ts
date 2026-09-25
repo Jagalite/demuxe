@@ -2,7 +2,7 @@
 import {PlayerError, playerError} from './errors.js';
 
 export type CapabilityEvidence = {
-  apiHint?: string; prepared?:boolean; completedAtEOF?:boolean; outputVerified?:boolean; audioEvidence?:string; timing?:Record<string,number>; metadata?: boolean; sourceBufferCreated?: boolean;
+  audioEvidenceStrength?:import('./browser-evidence-adapters.js').AudioEvidenceStrength; audioObservation?:{initialBytes?:number;decodedBytes?:number;delta?:number;present?:boolean;enabledTrack?:boolean;clockAdvanced:boolean}; apiHint?: string; prepared?:boolean; completedAtEOF?:boolean; outputVerified?:boolean; audioEvidence?:string; timing?:Record<string,number>; metadata?: boolean; sourceBufferCreated?: boolean;
   initAccepted?: boolean; mediaAccepted?: boolean; decoderOutput?: boolean;
   videoPresented?: boolean; audioProgress?: boolean; audioDecoded?:boolean; audioDecoderConfigured?:boolean; playbackReady?: boolean;
 };
@@ -88,7 +88,7 @@ export function nativeMediaError(error:MediaError|null):Error {
   return new Error(`Source transport: ${message}`);
 }
 
-export class StartupEvidenceTimeout extends Error { readonly evidenceTimeout=true; constructor(stage:string){super(`Native ${stage} evidence timed out`);this.name='StartupEvidenceTimeout';} }
+export class StartupEvidenceTimeout extends Error { readonly evidenceTimeout=true; constructor(readonly stage:string){super(`Native ${stage} evidence timed out`);this.name='StartupEvidenceTimeout';} }
 /** Missing readiness is inconclusive, not proof of codec incompatibility. */
 export class NativeLoadTimeout extends StartupEvidenceTimeout {
   constructor(event:'loadeddata'|'loadedmetadata',readonly budgetMs=25000) {super(event);this.name='NativeLoadTimeout';this.message=`Native ${event} timed out`;}

@@ -101,8 +101,13 @@ export function nativeMediaError(error) {
     return new Error(`Source transport: ${message}`);
 }
 export class StartupEvidenceTimeout extends Error {
+    stage;
     evidenceTimeout = true;
-    constructor(stage) { super(`Native ${stage} evidence timed out`); this.name = 'StartupEvidenceTimeout'; }
+    constructor(stage) {
+        super(`Native ${stage} evidence timed out`);
+        this.stage = stage;
+        this.name = 'StartupEvidenceTimeout';
+    }
 }
 /** Missing readiness is inconclusive, not proof of codec incompatibility. */
 export class NativeLoadTimeout extends StartupEvidenceTimeout {

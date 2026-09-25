@@ -1,17 +1,22 @@
 // SPDX-License-Identifier: Apache-2.0
-// These are MIME/configuration mappings, never a table of browser support.
-// Profile-dependent codecs require source-derived configuration, not a guessed profile.
-function codec(track, format) {
+import { queryAdapter } from './browser-evidence-adapters.js';
+// Serialize inspected codec metadata into browser query vocabulary. This is
+// not a support table: only browser answers and runtime output decide support.
+function codec(track, format, prepared = false) {
     if (track.codecString)
         return track.codecString;
-    if (track.codec === 'aac')
-        return track.aacObject ? `mp4a.40.${track.aacObject}` : undefined;
-    if (format?.split(',').includes('wav')) {
+    if (track.codec === 'aac' && track.aacObject)
+        return `mp4a.40.${track.aacObject}`;
+    // Query vocabulary, never browser support. PCM tokens describe original
+    // WAV/Matroska only; do not pretend our MP4 packet-copy muxer emits them.
+    if (!prepared && format?.split(',').some(f => ['wav', 'matroska'].includes(f))) {
         if (/^pcm_(?:[su](?:16|24|32)le|u8)$/.test(track.codec))
             return '1';
         if (/^pcm_f(?:32|64)le$/.test(track.codec))
             return '3';
     }
+    // Standard codec identifiers without profile ambiguity. DTS deliberately
+    // remains unknown unless inspection supplies its actual profile string.
     return { ac3: 'ac-3', eac3: 'ec-3', mp3: 'mp3', opus: 'opus', vorbis: 'vorbis', flac: 'flac', alac: 'alac', vp8: 'vp8' }[track.codec];
 }
 function containers(probe, video) {
@@ -19,7 +24,7 @@ function containers(probe, video) {
     if (formats.some(f => ['mov', 'mp4', 'm4a', '3gp', '3g2', 'mj2'].includes(f)))
         return [`${kind}/mp4`];
     if (formats.includes('matroska'))
-        return ['video/x-matroska'];
+        return ['video/matroska', 'video/x-matroska'];
     if (formats.includes('webm'))
         return [`${kind}/webm`];
     if (formats.includes('ogg'))
@@ -44,9 +49,13 @@ export function nativeBrowserCapabilities(probe, aid, browser) {
     const audioTracks = probe.tracks.filter(t => t.type === 'audio');
     const audio = aid === 'no' ? undefined : aid === 'auto' ? (audioTracks.find(t => t.default) ?? audioTracks[0]) : audioTracks.find(t => t.id === aid);
     const selected = [video, audio].filter((t) => !!t);
-    const evaluate = (prepared, adaptation, audioVariant) => {
+    const evaluate = (prepared, adaptation) => {
         const api = prepared ? 'isTypeSupported' : 'canPlayType';
-        const tracks = selected.map(t => ({ index: t.index, type: t.type, codec: t.codec, codecString: t === audio && (adaptation || audioVariant) ? adaptation ?? audioVariant : codec(t, probe.format) }));
+        const tracks = selected.map(t => {
+            const codecString = t === audio && adaptation ? adaptation : codec(t, probe.format, prepared);
+            const raw = !prepared && selected.length === 1 && ((probe.format === 'flac' && t.codec === 'flac') || (probe.format === 'aac' && t.codec === 'aac'));
+            return { index: t.index, type: t.type, codec: t.codec, codecString, serializationComplete: (!!codecString || raw) && !(t.codec.startsWith('pcm_') && !(t === audio && adaptation)) };
+        });
         const queries = [];
         const evidence = { status: 'unknown', api, tracks, queries };
         if (!selected.length) {
@@ -61,7 +70,7 @@ export function nativeBrowserCapabilities(probe, aid, browser) {
         // codecs parameter makes otherwise supported raw files fail canPlayType.
         const bare = !prepared && tracks.length === 1 && ((types[0] === 'audio/flac' && audio?.codec === 'flac') || (types[0] === 'audio/aac' && audio?.codec === 'aac'));
         const mapped = tracks.filter(t => t.codecString);
-        const missing = tracks.filter(t => !t.codecString && !bare);
+        const missing = tracks.filter(t => (!t.codecString && !bare) || !t.serializationComplete);
         evidence.unqueriedAudio = missing.some(t => t.type === 'audio');
         if (!types.length) {
             evidence.reason = `No MIME mapping for inspected container ${probe.format ?? 'unknown'}`;
@@ -73,11 +82,12 @@ export function nativeBrowserCapabilities(probe, aid, browser) {
         }
         let unknown = false, accepted = false;
         for (const type of types) {
-            // A per-track query also catches missing audio when the video profile is unknown.
+            // Partial queries are diagnostic only; a veto requires complete serialization.
             const combinations = bare ? [[]] : [...mapped.map(t => [t.codecString]), ...(missing.length ? [] : [mapped.map(t => t.codecString)])];
             let rejected = false, uncertain = false;
             for (const codecs of combinations) {
                 const mime = bare ? type : `${type}; codecs="${codecs.join(',')}"`;
+                const adapter = queryAdapter(api, mime);
                 let result;
                 try {
                     if (prepared && !browser.isTypeSupported) {
@@ -91,18 +101,20 @@ export function nativeBrowserCapabilities(probe, aid, browser) {
                     continue;
                 }
                 if (!queries.some(q => q.mime === mime))
-                    queries.push({ mime, result });
-                if (result === false || result === '')
-                    rejected = true;
+                    queries.push({ mime, result, adapter: adapter.id, negativeDecisive: adapter.negativeDecisive, reason: adapter.reason });
+                if (result === false || result === '') {
+                    if (adapter.negativeDecisive)
+                        rejected = true;
+                    else
+                        uncertain = true;
+                }
                 else if (result !== true && result !== 'probably')
                     uncertain = true;
             }
-            if (!rejected) {
-                if (uncertain || missing.length)
-                    unknown = true;
-                else
-                    accepted = true;
-            }
+            if (missing.length || uncertain)
+                unknown = true;
+            else if (!rejected)
+                accepted = true;
         }
         evidence.status = accepted ? 'supported' : unknown ? 'unknown' : 'unsupported';
         if (evidence.status === 'unsupported')
@@ -111,18 +123,5 @@ export function nativeBrowserCapabilities(probe, aid, browser) {
             evidence.reason = missing.length ? 'Selected codec configuration is incomplete; runtime verification is required' : 'Browser capability is inconclusive; runtime verification is required';
         return evidence;
     };
-    const plan = (prepared, adaptation) => {
-        if (audio?.codec !== 'dts' || codec(audio) || adaptation)
-            return evaluate(prepared, adaptation);
-        // The inspector currently reports the DTS family, not its profile. Query
-        // the registered variants instead of guessing that every DTS track is core.
-        // A family-wide negative is decisive; one positive does not prove this file.
-        const variants = ['dtsc', 'dtsh', 'dtsl', 'dtse', 'dtsx', 'dtsy'].map(value => evaluate(prepared, undefined, value));
-        const unsupported = variants.every(v => v.status === 'unsupported');
-        return { ...variants[0], status: unsupported ? 'unsupported' : 'unknown',
-            tracks: variants[0].tracks.map(t => t.type === 'audio' ? { ...t, codecString: undefined } : t),
-            queries: variants.flatMap(v => v.queries).filter((q, i, all) => all.findIndex(p => p.mime === q.mime) === i),
-            reason: unsupported ? `Browser ${variants[0].api} rejects selected DTS audio in every queried profile` : 'DTS profile is unknown; runtime verification is required' };
-    };
-    return { direct: plan(false), remux: plan(true), flac: plan(true, 'flac'), opus: plan(true, 'opus') };
+    return { direct: evaluate(false), remux: evaluate(true), flac: evaluate(true, 'flac'), opus: evaluate(true, 'opus') };
 }

@@ -38,3 +38,55 @@ test('Native discovered live manifest without permission is terminal rather than
   const oldLocation=globalThis.location,oldFetch=globalThis.fetch;globalThis.location=new URL('https://app.test/');let fetched=false;globalThis.fetch=async()=>{fetched=true;throw Error('Must not probe after a policy rejection');};
   try{const p=candidate({duration:Infinity,canPlayType:()=> 'probably'});p.loadPlan=async(_source,direct)=>direct();p.load=async()=>{};await assert.rejects(p.openRemote({url:'https://media.test/live.m3u8',format:'hls'}),e=>e.code==='SOURCE_PERMISSION'&&!compatibilityFailure(e));assert.equal(fetched,false);}finally{globalThis.fetch=oldFetch;if(oldLocation===undefined)delete globalThis.location;else globalThis.location=oldLocation;}
 });
+
+test('delayed decoded audio is allowed within the output deadline and records fresh evidence',async()=>{
+ const p=candidate({webkitAudioDecodedByteCount:0,paused:false});
+ const verified=p.verifyStartup({video:true,audio:true},true);
+ setTimeout(()=>{p.video.webkitAudioDecodedByteCount=2048;p.video.currentTime=.1;p.video.getVideoPlaybackQuality=()=>({totalVideoFrames:1});},40);
+ await verified;assert.equal(p.capability.outputVerified,true);assert.equal(p.capability.audioObservation.delta,2048);
+});
+test('video and clock advancement alone cannot verify audio',async()=>{
+ const p=candidate({paused:false});const original=globalThis.setTimeout;
+ globalThis.setTimeout=(f,n,...args)=>original(f,n===10000?100:n,...args);
+ try{const verified=p.verifyStartup({video:true,audio:true},true);p.video.currentTime=.2;p.video.getVideoPlaybackQuality=()=>({totalVideoFrames:1});await assert.rejects(verified,StartupEvidenceTimeout);assert.notEqual(p.capability.outputVerified,true);assert.equal(p.capability.audioEvidence,'unobservable');}finally{globalThis.setTimeout=original;}
+});
+
+test('bounded local output trials preserve position without caching unknown as incompatibility',async()=>{
+ const {Player}=await import('../web/generated/unified-player.js');
+ for(const [kind,error,allowed] of [['local',new StartupEvidenceTimeout('output'),true],['remote',new StartupEvidenceTimeout('output'),false],['local',new PlayerError('SOURCE_PERMISSION','denied'),false],['local',new DOMException('activation required','NotAllowedError'),false]]){
+  const p=Object.create(Player.prototype),properties=new Map([['time-pos',2]]);let selected,cached=0;
+  const backend={properties,diagnostics:{plan:'direct'},play:()=>{properties.set('time-pos',9);return Promise.resolve();},pause:async()=>{},verifyOutput:async()=>{throw error;}};
+  Object.assign(p,{current:{backend},source:{kind},queued:0,destroyed:false,automatic:true,settings:{pause:true},nativeRemux:'auto',nativeTracks:[],enqueue:f=>f(),evidence:()=>({prepared:true}),failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;}});
+  Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct'}}}});
+  if(allowed){await p.play();assert.equal(selected[5],2);assert.equal(cached,0);assert.equal(p.nativeRemux,'auto');}
+  else{await assert.rejects(()=>p.play(),e=>e===error);assert.equal(selected,undefined);assert.equal(cached,0);}
+ }
+});
+
+test('enabled browser audio tracks provide explicit presence evidence without vendor counters',async()=>{
+ const p=candidate({paused:false,audioTracks:[{enabled:true}]});
+ const verified=p.verifyStartup({video:true,audio:true},true);setTimeout(()=>{p.video.currentTime=.1;p.video.getVideoPlaybackQuality=()=>({totalVideoFrames:1});},30);
+ await verified;assert.equal(p.capability.audioEvidence,'enabled-browser-audio-track-and-clock');assert.equal(p.capability.audioEvidenceStrength,'presence');assert.equal(p.capability.audioDecoded,false);assert.equal(p.capability.audioObservation.enabledTrack,true);
+});
+test('disabled browser audio tracks cannot qualify output',async()=>{
+ const original=globalThis.setTimeout;globalThis.setTimeout=(f,n,...args)=>original(f,n===10000?100:n,...args);
+ try{const p=candidate({paused:false,audioTracks:[{enabled:false}]});const verified=p.verifyStartup({video:true,audio:true},true);setTimeout(()=>{p.video.currentTime=.1;p.video.getVideoPlaybackQuality=()=>({totalVideoFrames:1});},30);await assert.rejects(verified,StartupEvidenceTimeout);}finally{globalThis.setTimeout=original;}
+});
+test('failed play cancels and settles its verifier before allowing a retry',async()=>{
+ const {Player}=await import('../web/generated/unified-player.js');
+ const p=candidate();await p.verifyStartup({video:true,audio:true});
+ const error=new DOMException('activation required','NotAllowedError');
+ await assert.rejects(()=>Player.prototype.playNativeVerified.call({},p,new Promise((_,reject)=>setTimeout(()=>reject(error),40))),e=>e===error);
+ assert.equal(p.cancelers.size,0);assert.equal(p.capability.outputVerified,false);
+ p.video.paused=false;const next=p.verifyOutput();setTimeout(()=>{p.video.webkitAudioDecodedByteCount=2048;p.video.currentTime=.1;p.video.getVideoPlaybackQuality=()=>({totalVideoFrames:1});},30);
+ await next;assert.equal(p.capability.outputVerified,true);assert.equal(p.cancelers.size,0);
+});
+
+test('audio adapters prefer decoding evidence without upgrading presence to decoded output',async()=>{
+ const {observeBrowserAudio}=await import('../web/generated/internal/browser-evidence-adapters.js');
+ assert.equal(observeBrowserAudio({webkitAudioDecodedByteCount:4,mozHasAudio:true},true).strength,'decoded');
+ assert.equal(observeBrowserAudio({webkitAudioDecodedByteCount:0,mozHasAudio:true},true).ready,false);
+ assert.equal(observeBrowserAudio({mozHasAudio:true},true).strength,'presence');
+ assert.equal(observeBrowserAudio({audioTracks:[{enabled:true}]},true).strength,'presence');
+ assert.equal(observeBrowserAudio({},true).ready,false);
+});

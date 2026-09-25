@@ -75,6 +75,15 @@ export declare class NativePlayer extends EventTarget implements Backend {
             notes: string[];
         };
         capability: {
+            audioEvidenceStrength?: import("./browser-evidence-adapters.js").AudioEvidenceStrength;
+            audioObservation?: {
+                initialBytes?: number;
+                decodedBytes?: number;
+                delta?: number;
+                present?: boolean;
+                enabledTrack?: boolean;
+                clockAdvanced: boolean;
+            };
             apiHint?: string;
             prepared?: boolean;
             completedAtEOF?: boolean;
@@ -195,8 +204,8 @@ export declare class NativePlayer extends EventTarget implements Backend {
     verifyStartup(expected?: {
         video: boolean;
         audio: boolean;
-    }, output?: boolean): Promise<void>;
-    verifyOutput(): Promise<void>;
+    }, output?: boolean, signal?: AbortSignal): Promise<void>;
+    verifyOutput(signal?: AbortSignal): Promise<void>;
     private startRemux;
     private loadPlan;
     open(file: File | ArrayBuffer): Promise<void>;

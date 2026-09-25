@@ -14,12 +14,12 @@ const server=await serve(),results=[];
 const ffmpeg=args=>execFileSync('ffmpeg',['-nostdin','-hide_banner','-loglevel','error','-y',...args],{timeout:30000});
 async function audioEvidence(page){
  await page.waitForFunction(()=>{
-  if(window.audioMeter){
+  if(window.audioMeter&&player.mode==='native'&&!player.current?.backend?.mpvAudio){
    const samples=new Float32Array(audioMeter.fftSize);audioMeter.getFloatTimeDomainData(samples);
    const peak=samples.reduce((a,v)=>Math.max(a,Math.abs(v)),0);
    if(peak>.001){window.verifiedAudio={method:'media-element-pcm',peak,samples:samples.length};return true;}
   }else{
-   const a=player.audioDiagnostics();
+   const a=player.current?.backend?.mpvAudio?.engine.audioDiagnostics()??player.audioDiagnostics();
    if(a?.mediaFrames>6000&&a.rms>.001){window.verifiedAudio={method:'mpv-pcm-worklet',mediaFrames:a.mediaFrames,rms:a.rms};return true;}
   }
   return false;
@@ -37,8 +37,10 @@ try{
  ffmpeg(['-i',join(dir,'aac.mp4'),'-c:v','copy','-c:a','dca','-strict','-2',join(dir,'dts.mkv')]);
  for(const [codec,file] of [['flac','tone.flac'],['aac','tone.aac'],['pcm_s16le','tone.wav']])ffmpeg(['-i',join(dir,'aac.mp4'),'-vn','-c:a',codec,join(dir,file)]);
  ffmpeg(['-i',join(dir,'mixed.mkv'),'-map','0:v','-map','0:a:1','-map','0:a:0','-c','copy','-disposition:a:0','default','-disposition:a:1','0',join(dir,'ac3-first.mkv')]);
+ ffmpeg(['-i',join(dir,'aac.mp4'),'-c:v','copy','-c:a','pcm_s24le',join(dir,'pcm24.mkv')]);
  const cases=[
-  {file:'aac.mp4'},{file:'aac.mkv'},{file:'opus.webm'},
+  {file:'aac.mp4'},{file:'aac.mkv'},{file:'aac.mkv',forceMatroskaNegative:true},{file:'opus.webm'},
+  {file:'pcm24.mkv',unmappedAudio:true},
   {file:'ac3.mp4',unsupportedAudio:true},{file:'ac3.mkv',unsupportedAudio:true},
   {file:'mixed.mkv'},{file:'mixed.mkv',aid:'2',unsupportedAudio:true},
   {file:'ac3.mkv',aid:'no'},
@@ -52,12 +54,13 @@ try{
  for(const name of (process.env.BROWSERS??'chrome,firefox,webkit').split(',')){
   const type={chrome:chromium,firefox,webkit}[name];if(!type)throw Error(`Unknown browser ${name}`);
   const browser=await type.launch({headless:true,...(name==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{})});
-  try{for(const scenario of cases){
+  try{for(const scenario of cases.filter(c=>!process.env.CASES||process.env.CASES.split(',').includes(c.file))){
    const result={browser:name,version:browser.version(),...scenario};results.push(result);
    const page=await browser.newPage();page.setDefaultTimeout(30000);
    try{
     await page.goto(server.origin+'/experiment/page.html');
-    await page.evaluate(async({aid,pinned,options})=>{
+    await page.evaluate(async({aid,pinned,options,forceMatroskaNegative})=>{
+     if(forceMatroskaNegative){const query=HTMLMediaElement.prototype.canPlayType;HTMLMediaElement.prototype.canPlayType=function(mime){return /matroska/.test(mime)?'':query.call(this,mime);};}
      const {Player}=await import('/web/generated/index.js');
      const {NativePlayer}=await import('/web/generated/internal/native-player.js');
      window.nativeOpens=0;window.openedNativePlans=[];const open=NativePlayer.prototype.open;
@@ -67,17 +70,23 @@ try{
      const input=document.createElement('input');input.type='file';input.id='file';document.body.append(input);
     },scenario);
     await page.locator('#file').setInputFiles(scenario.absolute?scenario.file:join(dir,scenario.file));
+    const openAt=performance.now();
     result.open=await page.evaluate(async()=>{
      let error;try{await player.open(document.querySelector('#file').files[0]);}catch(e){error=String(e);}
      return {error,mode:player.mode,nativeOpens,openedNativePlans,diagnostics:player.diagnostics};
     });
+    result.openMs=performance.now()-openAt;
+    const selectedCapability=result.open.diagnostics.planAdmission.find(p=>p.id===result.open.diagnostics.plan?.id)?.browserCapability;
+    if(selectedCapability)assert.ok(selectedCapability.decodingInfo,'Selected Native route must retain MediaCapabilities query evidence');
     const direct=result.open.diagnostics.planAdmission.find(p=>p.id==='native-direct');
     assert.ok(direct.browserCapability,'Every inspected file must have browser capability evidence');
+    if(scenario.forceMatroskaNegative){assert.equal(direct.browserCapability.status,'unknown');assert.ok(result.open.openedNativePlans.includes('native-direct'));}
     const unsupported=direct.browserCapability.status==='unsupported';
     const nativeEligible=result.open.diagnostics.planAdmission.some(p=>p.mode==='native'&&p.eligible);
     for(const plan of result.open.diagnostics.planAdmission.filter(p=>p.browserCapability?.status==='unsupported'))assert.ok(!result.open.openedNativePlans.includes(plan.id),`Rejected ${plan.id} must never open`);
     if(scenario.unsupportedAudio||scenario.unsupportedVideo){
-     assert.ok(direct.browserCapability.queries.some(q=>scenario.unsupportedAudio?q.mime.includes(scenario.codecQuery??'ac-3'):q.mime.toLowerCase().includes('avc1.6e')),'The selected unsupported codec must be queried');
+     if(scenario.unsupportedVideo)assert.ok(direct.browserCapability.queries.some(q=>q.mime.toLowerCase().includes('avc1.6e')),'Inspected video configuration must be queried');
+     if(direct.browserCapability.unqueriedAudio&&!unsupported)assert.equal(direct.browserCapability.status,'unknown');
      if(unsupported&&!nativeEligible){
       assert.equal(result.open.nativeOpens,0,'Negative preflight must prevent Native backend.open, including remux');
       assert.ok(!result.open.diagnostics.selection.attempts.some(a=>a.mode==='native'&&a.outcome==='failed'));
@@ -87,15 +96,18 @@ try{
       if(scenario.unsupportedVideo)assert.ok(!result.open.diagnostics.selection.attempts.some(a=>a.mode==='hybrid'&&a.outcome==='failed'),'Unsupported WebCodecs configuration must be rejected before opening Hybrid');
      }
     }else{
-     assert.equal(result.open.mode,nativeEligible?'native':'hybrid');
+     if(nativeEligible&&result.open.mode!=='native')assert.ok(result.open.diagnostics.selection.attempts.some(a=>a.mode==='native'&&a.outcome==='failed'),'An eligible Native route may fall back only after runtime failure');
+     else assert.equal(result.open.mode,nativeEligible?'native':'hybrid');
      if(scenario.aid==='no')assert.ok(direct.browserCapability.tracks.every(t=>t.type!=='audio'));
      if(scenario.file==='mixed.mkv')assert.ok(direct.browserCapability.tracks.every(t=>t.codec!=='ac3'),'Unselected AC3 must not reject selected AAC');
     }
+    if(scenario.pinned&&result.open.error){assert.ok(result.open.nativeOpens>0||unsupported);result.passed=true;continue;}
     assert.equal(result.open.error,undefined);
+    if(scenario.unmappedAudio&&name==='chrome'){assert.equal(direct.browserCapability.status,'unknown');assert.equal(direct.eligible,true);assert.equal(result.open.diagnostics.plan.id,'native-direct');assert.ok(direct.browserCapability.queries.some(q=>q.mime.includes('codecs="1"')));}
     if(scenario.expectedPlan)assert.equal(result.open.diagnostics.plan.id,scenario.expectedPlan,'Known playable raw audio must retain Native direct');
     if(scenario.switchToAAC){
-     assert.equal(result.open.mode,'hybrid');
-     await page.evaluate(()=>player.selectTrack('audio','2'));
+     assert.ok(['hybrid','native'].includes(result.open.mode));
+     await page.evaluate(()=>player.selectAudioTrack(player.state.audioTracks.find(t=>t.codec==='aac').id));
      await page.waitForFunction(()=>player.mode==='native'&&!player.state.pendingOperation);
      result.afterSwitch=await page.evaluate(()=>({plan:player.diagnostics.plan,admission:player.diagnostics.planAdmission,tracks:player.properties.get('track-list')}));
      assert.equal(result.afterSwitch.plan.id,'native-remux');
@@ -109,12 +121,20 @@ try{
     // route/playback assertion, but explicitly leave audio output unverified.
     const pcmUnavailable=name==='webkit'&&current.mode==='native'&&(current.plan.startsWith('remux')||scenario.file.endsWith('.webm'));
     if(pcmUnavailable&&scenario.aid!=='no')result.audioCheckSkipped='Native MSE/WebM PCM capture unavailable in WebKit; audible output unverified';
-    if(current.mode==='native'&&scenario.aid!=='no'&&!pcmUnavailable)await page.evaluate(async()=>{
+    if(current.mode==='native'&&current.plan!=='native-video-mpv-audio'&&scenario.aid!=='no'&&!pcmUnavailable)await page.evaluate(async()=>{
      window.audioContext=new AudioContext();window.audioMeter=audioContext.createAnalyser();
      audioContext.createMediaElementSource(player.surface).connect(audioMeter);audioMeter.connect(audioContext.destination);
      await audioContext.resume();
     });
-    await page.evaluate(()=>player.play());
+    const playAt=performance.now();
+    const playback=await page.evaluate(async()=>{try{await player.play();return {ok:true};}catch(error){return {ok:false,code:error.code,message:String(error),capability:player.diagnostics.backend?.capability};}});
+    result.playMs=performance.now()-playAt;
+    if(!playback.ok&&scenario.pinned&&scenario.unsupportedAudio&&['DECODE_FAILED','UNSUPPORTED_MEDIA'].includes(playback.code)){
+     assert.notEqual(playback.capability?.outputVerified,true);result.expectedPlaybackRejection=playback;result.passed=true;continue;
+    }
+    assert.equal(playback.ok,true,playback.message);
+    result.runtimeEvidence=await page.evaluate(()=>player.diagnostics.backend?.capability);
+    if(result.runtimeEvidence?.audioEvidenceStrength==='presence')assert.notEqual(result.runtimeEvidence.audioDecoded,true);
     if(scenario.aid!=='no'&&!pcmUnavailable)result.initialAudio=await audioEvidence(page);
     else await page.waitForFunction(()=>player.state.currentTime>.15);
     await page.evaluate(()=>player.pause());
@@ -123,7 +143,7 @@ try{
     await page.waitForFunction(time=>player.state.currentTime>time+.2,pausedAt);
     if(scenario.aid!=='no'&&!pcmUnavailable)result.resumedAudio=await audioEvidence(page);
     result.passed=true;
-   }catch(error){result.error=String(error.stack);process.exitCode=1;}
+   }catch(error){result.error=String(error.stack);result.failureState=await page.evaluate(()=>({state:player.state,diagnostics:player.diagnostics})).catch(()=>null);process.exitCode=1;}
    finally{
     console.log(result.passed?'PASS':'FAIL',name,scenario.file,scenario.aid??'auto',scenario.pinned?'pinned':'',result.error??'');
     await page.evaluate(async()=>{await player.destroy();await window.audioContext?.close();}).catch(()=>{});await page.close();

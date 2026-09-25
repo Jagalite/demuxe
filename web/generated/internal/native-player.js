@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { bufferingPolicy, resolveBuffering } from './buffering.js';
 import { plainVTT, BrowserCaptionUnsupported } from './plain-vtt.js';
+import { observeBrowserAudio } from './browser-evidence-adapters.js';
 import { nativeMediaError, compatibilityFailure, StartupEvidenceTimeout, NativeLoadTimeout } from './runtime-capability.js';
 import { PlayerError } from './errors.js';
 /** Browser media ownership, including listeners, pending loads and object URLs. */
@@ -217,9 +218,11 @@ export class NativePlayer extends EventTarget {
     expectedOutput;
     /** A paused candidate may prepare current data without presenting it. Only
      * verifyOutput can promote this evidence to executed playback. */
-    async verifyStartup(expected, output = false) {
+    async verifyStartup(expected, output = false, signal) {
+        signal?.throwIfAborted();
         this.assertActive();
         await this.mpvSubs?.verify();
+        signal?.throwIfAborted();
         this.expectedOutput = expected ?? this.expectedOutput;
         expected = this.expectedOutput;
         if (this.mpvAudio)
@@ -231,8 +234,11 @@ export class NativePlayer extends EventTarget {
             this.capability.videoPresented = false;
             this.capability.playbackReady = false;
             this.capability.audioProgress = false;
+            this.capability.audioEvidenceStrength = 'unknown';
+            this.capability.audioDecoded = false;
         }
         const v = this.video;
+        const initialAudioBytes = v.webkitAudioDecodedByteCount;
         const initialTime = v.currentTime, initialFrames = v.getVideoPlaybackQuality().totalVideoFrames;
         // A verified session may continue through a shorter track's silent or
         // frozen tail. Require fresh evidence from tracks still on the timeline.
@@ -245,8 +251,9 @@ export class NativePlayer extends EventTarget {
             let finished = false, classifying = false, frame = 0, presented = false;
             const finish = (error) => { if (finished)
                 return; finished = true; clearTimeout(timer); clearInterval(poll); if (frame)
-                v.cancelVideoFrameCallback(frame); this.cancelers.delete(cancel); error ? reject(error) : resolve(); };
+                v.cancelVideoFrameCallback(frame); this.cancelers.delete(cancel); signal?.removeEventListener('abort', aborted); error ? reject(error) : resolve(); };
             const cancel = (error) => finish(error);
+            const aborted = () => finish(signal?.reason ?? new DOMException('Verification cancelled', 'AbortError'));
             const check = () => {
                 if (this.stopped) {
                     finish(new Error('Player is destroyed'));
@@ -280,9 +287,11 @@ export class NativePlayer extends EventTarget {
                 const ready = v.readyState >= (!output && !this.remux && this.buffering.preload !== 'auto' ? 1 : 3) && !v.seeking && (!hasVideo || v.videoWidth > 0);
                 if (!ready)
                     return;
-                // Firefox may decode and advance video while dropping a selected audio
-                // track. Once current data is ready, mozHasAudio=false identifies that
-                // failed A/V route before it can be accepted as a paused candidate.
+                // A ready video can omit selected audio. Use browser runtime evidence,
+                // but an instantaneous zero counter is not a decode failure. Paused
+                // preparation does not claim output; play verification has a deadline.
+                if (active.audio)
+                    this.capability.audioObservation = { initialBytes: initialAudioBytes, decodedBytes: v.webkitAudioDecodedByteCount, delta: typeof initialAudioBytes === 'number' && typeof v.webkitAudioDecodedByteCount === 'number' ? v.webkitAudioDecodedByteCount - initialAudioBytes : undefined, present: v.mozHasAudio, enabledTrack: v.audioTracks ? Array.from(v.audioTracks).some(track => track.enabled) : undefined, clockAdvanced: v.currentTime > initialTime + .02 };
                 if (active.audio && v.readyState >= 3 && v.mozHasAudio === false) {
                     finish(new PlayerError('DECODE_FAILED', 'Native selected audio track produced no output'));
                     return;
@@ -298,12 +307,13 @@ export class NativePlayer extends EventTarget {
                     this.capability.videoPresented = true;
                     timing.firstFrame ??= performance.now();
                 }
-                const audioCount = v.webkitAudioDecodedByteCount;
-                const audioReady = !active.audio || (typeof audioCount === 'number' ? audioCount > 0 : typeof v.mozHasAudio === 'boolean' ? v.mozHasAudio && advancing : advancing);
-                // Readiness/clock fallback is explicitly weaker than decoded-sample evidence.
-                if (active.audio && audioReady) {
-                    this.capability.audioProgress = advancing;
-                    this.capability.audioEvidence = typeof audioCount === 'number' ? 'decoded-byte-counter' : typeof v.mozHasAudio === 'boolean' ? 'browser-audio-presence-and-clock' : 'browser-readiness-and-clock';
+                const audio = observeBrowserAudio(v, advancing);
+                const audioReady = !active.audio || audio.ready;
+                if (active.audio) {
+                    this.capability.audioEvidenceStrength = audio.strength;
+                    this.capability.audioEvidence = audio.adapter;
+                    this.capability.audioDecoded = audio.strength === 'decoded';
+                    this.capability.audioProgress = audioReady && advancing;
                 }
                 if (advancing && (!hasVideo || this.capability.videoPresented) && audioReady) {
                     this.capability.playbackReady = true;
@@ -318,6 +328,11 @@ export class NativePlayer extends EventTarget {
             }, 10000);
             const poll = setInterval(check, 25);
             this.cancelers.add(cancel);
+            signal?.addEventListener('abort', aborted, { once: true });
+            if (signal?.aborted) {
+                aborted();
+                return;
+            }
             if (output && typeof v.requestVideoFrameCallback === 'function')
                 frame = v.requestVideoFrameCallback(() => { if (!finished && !this.stopped) {
                     presented = true;
@@ -327,16 +342,26 @@ export class NativePlayer extends EventTarget {
         });
         if (output && this.mpvAudio) {
             try {
-                await this.mpvAudio.verifyOutput();
+                await this.mpvAudio.verifyOutput(signal);
+                signal?.throwIfAborted();
             }
             catch (error) {
+                signal?.throwIfAborted();
                 throw new PlayerError('DECODE_FAILED', 'Selective audio runtime output was not verified: ' + String(error));
             }
             this.capability.audioProgress = true;
             this.capability.audioEvidence = 'mpv-pcm-worklet-consumption';
+            this.capability.audioEvidenceStrength = 'consumed';
+            this.capability.audioDecoded = true;
         }
     }
-    verifyOutput() { return this.verifyStartup(this.expectedOutput, true); }
+    async verifyOutput(signal) { try {
+        await this.verifyStartup(this.expectedOutput, true, signal);
+    }
+    catch (error) {
+        this.capability.outputVerified = false;
+        throw error;
+    } }
     async startRemux(source, target = 0) {
         this.assertActive();
         if (source.file && !this.audioAdaptation && !this.selectiveAudio) {

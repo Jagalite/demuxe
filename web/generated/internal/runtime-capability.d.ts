@@ -1,5 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 export type CapabilityEvidence = {
+    audioEvidenceStrength?: import('./browser-evidence-adapters.js').AudioEvidenceStrength;
+    audioObservation?: {
+        initialBytes?: number;
+        decodedBytes?: number;
+        delta?: number;
+        present?: boolean;
+        enabledTrack?: boolean;
+        clockAdvanced: boolean;
+    };
     apiHint?: string;
     prepared?: boolean;
     completedAtEOF?: boolean;
@@ -53,6 +62,7 @@ export declare class RuntimeCapabilities {
 export declare function compatibilityFailure(error: unknown): boolean;
 export declare function nativeMediaError(error: MediaError | null): Error;
 export declare class StartupEvidenceTimeout extends Error {
+    readonly stage: string;
     readonly evidenceTimeout = true;
     constructor(stage: string);
 }

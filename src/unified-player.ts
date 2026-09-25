@@ -4,8 +4,9 @@ import type {BufferingPolicy, BufferingResolution} from './types.js';
 import {normalizeTrackPolicy,trackAllowed,defaultTrack,assertTrackSelection} from './internal/track-policy.js';
 import type {TrackPolicy} from './types.js';
 import {plainVTT, BrowserCaptionUnsupported} from './internal/plain-vtt.js';
-import {RuntimeCapabilities, compatibilityFailure, evidenceInterrupted, NativeLoadTimeout} from './internal/runtime-capability.js';
+import {RuntimeCapabilities, compatibilityFailure, evidenceInterrupted, NativeLoadTimeout, StartupEvidenceTimeout} from './internal/runtime-capability.js';
 import type {CapabilityEvidence} from './internal/runtime-capability.js';
+import {MediaCapabilityQueries} from './internal/media-capabilities.js';
 import {nativeBrowserCapabilities} from './internal/browser-media-capability.js';
 import type {BrowserMediaCapability} from './internal/browser-media-capability.js';
 import {featureRejection, executionPlan, qualifiedAudioFilter, planAdmission} from './internal/playback-plans.js';
@@ -106,6 +107,12 @@ export class Player extends EventTarget {
       },'switching',controller.signal,true).catch(()=>{}).finally(()=>{if(this.promotionController===controller)this.promotionController=undefined;});
     },200);
   }
+  private readonly mediaCapabilityQueries=new MediaCapabilityQueries(typeof navigator==='undefined'||!navigator.mediaCapabilities?.decodingInfo?undefined:config=>navigator.mediaCapabilities.decodingInfo(config),150,()=>{
+    if(this.destroyed)return;
+    const inspected=this.sourceInspection;if(!inspected||inspected.source!==this.source)return;
+    for(const plan of this.planDecisions)if(plan.browserCapability)plan.browserCapability.decodingInfo=this.mediaCapabilityQueries.cached(plan.browserCapability,inspected.probe);
+    this.schedulePublish();this.schedulePromotion();
+  });
   private sourceInspection?:{source:Source;probe:Probe;settings:{aid:string;sid:string;subtitles:boolean}};
   private mpvSubtitleAssetsAvailable=false;
   private selectiveAudioAssetsAvailable=false;
@@ -523,8 +530,8 @@ export class Player extends EventTarget {
         if(plan.mode==='hybrid'&&plan.eligible&&inspected.probe.hybridRejection){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason=inspected.probe.hybridRejection;}
         if(!plan.id.startsWith('native-'))continue;
         const capability=plan.browserCapability=plan.id==='native-video-mpv-audio'?selectiveVideoCapability!:capabilities[plan.id.startsWith('native-direct')?'direct':plan.id.startsWith('native-flac')?'flac':plan.id.startsWith('native-opus')?'opus':'remux'];
+        capability.decodingInfo=this.mediaCapabilityQueries.cached(capability,inspected.probe);
         if(plan.eligible&&capability.status==='unsupported'){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason=capability.reason;}
-        if(plan.eligible&&plan.id.startsWith('native-direct')&&capability.unqueriedAudio){plan.eligible=false;plan.code='QUALIFICATION_REQUIRED';plan.reason='Selected audio has no browser capability mapping; preparation or decoded audio is required';}
       }
     }else{
       for(const plan of decisions)if(plan.id.startsWith('native-'))plan.browserCapability={status:'unknown',api:plan.id.startsWith('native-direct')?'canPlayType':'isTypeSupported',tracks:[],queries:[],reason:'Source track inspection is unavailable; codec support has not been established'};
@@ -557,6 +564,8 @@ export class Player extends EventTarget {
       const rejection=candidates.find(p=>p.code==='ISOLATION_REQUIRED')??candidates.find(p=>p.code!=='PLAN_NOT_REQUESTED');
       throw new PlayerError(rejection?.code==='ISOLATION_REQUIRED'?'ISOLATION_REQUIRED':'UNSUPPORTED_FEATURE',rejection?.reason??'No qualified complete playback plan');
     }
+    const queried=admitted.find(p=>p.id===planId)?.browserCapability;
+    if(queried&&this.sourceInspection?.source===source){queried.decodingInfo=await this.mediaCapabilityQueries.inspect(queried,this.sourceInspection.probe);this.assertOperation();}
     if(mode==='native'&&attachments.length&&!attachments.every(a=>!!plainVTT(a))&&(!this.nativeASS||attachments.some(a=>!['ass','ssa'].includes(a.format))))throw Error('External mpv subtitles require Hybrid or Software');
     if(mode==='native'&&this.audioOutput!=='stereo')throw Error('Explicit PCM output layout requires Hybrid or Software');
     if (source.kind === 'local' && source.file instanceof ArrayBuffer && source.file.byteLength > 32 * 1024 * 1024) throw new Error('ArrayBuffer sources are limited to 32 MiB');
@@ -656,11 +665,12 @@ export class Player extends EventTarget {
       if (candidate.error) throw candidate.error;
       const actual=executionPlan(mode,(p.diagnostics as {plan?:string})?.plan,desired.af,desired.gain,!!(p.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay);
       if(!actual||actual.id!==planId||!admitted.some(plan=>plan.id===actual.id&&plan.eligible))throw new PlayerError('UNSUPPORTED_FEATURE','The prepared components do not match an admitted complete playback plan');
-      if (!desired.pause) {await p.play();if(mode==='native')await (p as Backend & {verifyOutput():Promise<void>}).verifyOutput();}
+      if (!desired.pause) {if(mode==='native')await this.playNativeVerified(p);else await p.play();}
       this.assertOperation();
       if(overlapping)await p.volume(this.muted?0:desired.volume);
       if(!preserve){this.sourceSerial++;this.publicSelections.clear();if(initialAudio)this.publicSelections.set('audio',`audio:stream:${initialAudio.index}`);if(initialSubtitle)this.publicSelections.set('sub',`sub:stream:${initialSubtitle.index}`);}
       this.sessionError=null;this.observedPlaying=false;this.observedWaiting=false;
+      if(queried&&this.sourceInspection?.source===source)queried.decodingInfo=this.mediaCapabilityQueries.cached(queried,this.sourceInspection.probe);
       this.planDecisions=admitted;this.runtimeCapabilities.admission(admitted);
       this.acceptEvidence(planId,candidate);
       this.preview.setSourceIdentity(`${this.sourceSerial}:${mode}`);
@@ -900,9 +910,10 @@ export class Player extends EventTarget {
         // A direct parser readiness deadline may try the already-admitted remux
         // route once, without caching a codec failure or broadening admission.
         const retryLocalLoad=error instanceof NativeLoadTimeout?this.localRemuxRetry(source,plan.id,settings):undefined;
+        const inconclusiveOutput=automatic&&source.kind==='local'&&error instanceof StartupEvidenceTimeout&&error.stage==='output';
         if(retryLocalLoad&&error instanceof NativeLoadTimeout&&error.budgetMs<25000)interruptedDirect={id:plan.id,remux:retryLocalLoad};
         if(compatible&&!evidenceInterrupted(error))this.tierAttempts.failure(source,this.tierConfiguration(settings),plan.id,String(error));
-        this.runtimeCapabilities.update(plan.id,evidenceInterrupted(error)?'untested':'failed',undefined,String(error),retryLocalLoad?undefined:compatible?'compatibility':'terminal');
+        this.runtimeCapabilities.update(plan.id,evidenceInterrupted(error)?'untested':'failed',undefined,String(error),retryLocalLoad||inconclusiveOutput?undefined:compatible?'compatibility':'terminal');
         this.record({mode:plan.mode,outcome:'failed',reason:`${plan.id}: ${String(error)}`});
         // Admission does not prove remux will work. A short scheduling trial
         // must not discard a playable original when its replacement is missing
@@ -922,7 +933,7 @@ export class Player extends EventTarget {
         }
         // Explicit plans keep a precise timeline rejection. Automatic
         // selection may still try Hybrid when this Native path cannot play it.
-        if(this.destroyed||this.activeOperation?.controller.signal.aborted||(!automatic&&playerError(error).code==='UNSUPPORTED_TIMELINE')||(!compatible&&!retryLocalLoad))throw error;
+        if(this.destroyed||this.activeOperation?.controller.signal.aborted||(!automatic&&playerError(error).code==='UNSUPPORTED_TIMELINE')||(!compatible&&!retryLocalLoad&&!inconclusiveOutput))throw error;
         if(error instanceof BrowserCaptionUnsupported)captionFailure=error.message;
         errors.push(`${plan.id}: ${String(error)}`);
       }
@@ -1031,24 +1042,34 @@ export class Player extends EventTarget {
   private setting(action: (p: Backend) => Promise<void>, update: () => void) {
     return this.enqueue(async () => {if (this.current) await action(this.current.backend);update();});
   }
+  private async playNativeVerified(backend:Backend,playing=backend.play()) {
+    const controller=new AbortController();
+    const verification=(backend as Backend & {verifyOutput(signal?:AbortSignal):Promise<void>}).verifyOutput(controller.signal);
+    try{await Promise.all([playing,verification]);}
+    finally{controller.abort();await verification.catch(()=>{});}
+  }
   play() {
+    // An unverified trial must not consume the user's requested playback position.
+    const trialSession=this.current,trialPosition=Math.max(0,Number(this.current?.backend.properties.get('time-pos'))||0);
+    const trialVerified=this.evidence(this.current).outputVerified===true;
     // Initiate resume before yielding the user's activation to the operation queue.
     const immediate=!this.destroyed&&this.queued===0&&this.current?this.current.backend.play():undefined;
     immediate?.catch(()=>{});
     return this.enqueue(async()=>{if(!this.current)throw Error('No source');const session=this.current;this.settings.pause=false;
       try{
-        await (immediate??session.backend.play());
-        if(this.mode==='native')await (session.backend as Backend & {verifyOutput():Promise<void>}).verifyOutput();
+        const playing=immediate??session.backend.play();
+        if(this.mode==='native')await this.playNativeVerified(session.backend,playing);else await playing;
         this.assertOperation();if(this.current===session){const plan=this.diagnostics.plan;if(plan)this.acceptEvidence(plan.id,session);}
       }catch(error){
-        if(this.automatic&&compatibilityFailure(error)&&this.source){
+        const inconclusiveOutput=this.source?.kind==='local'&&error instanceof StartupEvidenceTimeout&&error.stage==='output';
+        if(this.automatic&&(compatibilityFailure(error)||inconclusiveOutput)&&this.source){
           const streaming=this.failedStreamingPlan(session);
           const policy=this.nativeRemux,tryRemux=!streaming&&this.mode==='native'&&(session.backend.diagnostics as {plan?:string})?.plan==='direct'&&policy!=='never';
           const plan=this.diagnostics.plan;if(plan){
-            this.runtimeCapabilities.update(plan.id,'failed',this.evidence(session),String(error),'compatibility');
+            this.runtimeCapabilities.update(plan.id,inconclusiveOutput?'prepared':'failed',this.evidence(session),String(error),inconclusiveOutput?undefined:'compatibility');
             if(!evidenceInterrupted(error))this.tierAttempts.failure(this.source,this.tierConfiguration(this.settings),plan.id,String(error));
           }
-          try{if(tryRemux)this.nativeRemux='always';await this.select(this.source,this.settings,true,this.nativeTracks,streaming||tryRemux?0:PLAYBACK_MODES.indexOf(this.mode)+1);}finally{this.nativeRemux=policy;}
+          try{if(tryRemux)this.nativeRemux='always';await this.select(this.source,this.settings,true,this.nativeTracks,streaming||tryRemux?0:PLAYBACK_MODES.indexOf(this.mode)+1,session===trialSession&&!trialVerified?trialPosition:undefined);}finally{this.nativeRemux=policy;}
         }
         else {const plan=this.diagnostics.plan;if(plan&&evidenceInterrupted(error))this.runtimeCapabilities.update(plan.id,'prepared',this.evidence(session),String(error));this.settings.pause=true;await session.backend.pause().catch(()=>{});throw error;}
       }});
