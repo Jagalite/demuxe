@@ -171,8 +171,8 @@ authentication handling is bypassed. Explicit Native direct already avoids both
 inspectors and Wasm, and is checked separately in the clean consumer test.
 
 This optimizes a deliberately narrow implemented case, not every MP4 or every
-automatic Native selection. See `web/cheap-mp4-probe.js` and
-`tests/cheap-mp4-probe.mjs`. No additional public mode or codec transformation is added.
+automatic Native selection. See `web/simple-mp4-inspector.js` and
+`tests/simple-mp4-inspector.mjs`. No additional public mode or codec transformation is added.
 
 ## Source/session runtime evidence
 

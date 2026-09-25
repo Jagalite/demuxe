@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import {cheapMP4Probe} from './cheap-mp4-probe.js';
+import {inspectSimpleMP4} from './simple-mp4-inspector.js';
 // Immutable local view only. Offsets, sample tables and payload stay unchanged;
 // removed tracks' media remains present. This is never a redacted export.
 const text=(b,p)=>String.fromCharCode(...b.subarray(p,p+4));
@@ -46,7 +46,7 @@ export async function selectedMP4View(file,audioTrack,signal){
   for(const index of [1,2]){
    const metadata=moov.slice();for(const d of descriptors){if(d.type==='audio'&&d.index!==index)metadata.set([102,114,101,101],d.t.p+4);else metadata[d.tkhd.p+11]|=1;}
    const candidate=new File([file.slice(0,offset),metadata,file.slice(offset+moov.length)],'selected.mp4',{type:'video/mp4'});
-   const admitted=await cheapMP4Probe(candidate,signal);readBytes+=admitted.bytesRead;
+   const admitted=await inspectSimpleMP4(candidate,signal);readBytes+=admitted.bytesRead;
    if(!admitted.probe||admitted.probe.tracks.length!==2)throw Error('Selected destination profile rejected');
    if(index===selected)output=candidate;
   }

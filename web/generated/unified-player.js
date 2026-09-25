@@ -1175,9 +1175,9 @@ export class Player extends EventTarget {
                     // Immutable local bytes permit bounded inspection without an engine download.
                     // Remote identity/permission enforcement continues through the existing inspector.
                     if (source.kind === 'local' && this.nativeRemux !== 'always') {
-                        const { cheapMP4Probe } = await this.interruptible(import(new URL('web/cheap-mp4-probe.js', this.assetBase).href));
+                        const { inspectSimpleMP4 } = await this.interruptible(import(new URL('web/simple-mp4-inspector.js', this.assetBase).href));
                         const local = source.file instanceof File ? source.file : new File([source.file], 'media');
-                        const cheap = await cheapMP4Probe(local, controller.signal, document.createElement('video'));
+                        const cheap = await inspectSimpleMP4(local, controller.signal, document.createElement('video'));
                         probe = cheap.probe;
                         this.record({ mode: 'probe', outcome: probe ? 'selected' : 'skipped', reason: `Local MP4 metadata: ${cheap.bytesRead} bytes; ${probe ? 'no inspector Wasm required' : cheap.reason}` });
                         // The filename only bypasses an optimization: FFmpeg still inspects
