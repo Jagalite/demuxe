@@ -171,6 +171,7 @@ class LicenseBoundaries(unittest.TestCase):
         name = 'web/engine-hybrid/player.wasm'
         engine_names = [f'web/{folder}/{stem}.{ext}'
                         for folder, stem in [('engine-hybrid', 'player'),
+                                             ('engine-selective', 'player'),
                                              ('engine-software-full', 'player'),
                                              ('engine-software-yuv', 'player'),
                                              ('engine-remux', 'remux'),
@@ -178,7 +179,7 @@ class LicenseBoundaries(unittest.TestCase):
                         for ext in ['mjs', 'wasm']]
         for engine_name in engine_names:
             files[engine_name] = b'synthetic LGPL engine fixture'
-        record = {'baseline': LGPL, 'hybrid': LGPL, 'software': LGPL, 'subtitles': LGPL,
+        record = {'baseline': LGPL, 'hybrid': LGPL, 'selective': LGPL, 'software': LGPL, 'subtitles': LGPL,
                   'remuxWrapper': APACHE, 'remuxFFmpegLibrary': LGPL,
                   'baselineFFmpeg': 'LGPL version 2.1 or later',
                   'fullFFmpeg': 'LGPL version 2.1 or later',
