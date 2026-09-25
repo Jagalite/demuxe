@@ -140,6 +140,8 @@ Unmeasured rows retain the historical bounded playback statuses and route labels
 Previous numbers are preserved in the
 [historical CPU snapshot](docs/HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md).
 See the [row refresh index](docs/CPU-ROW-REFRESH.md) for completed measurements.
+New one-browser-per-row results use three correlated rounds; their ranges and
+idle trends are in each row report.
 
 - 🟢 Pass: bounded playback passed. `*` indicates a fidelity, profile or duration limit.
 - 🟣 Configured pass: a named alternative passed where the default failed.
@@ -155,7 +157,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | --- | --- | --- | --- | --- | --- |
 | H.264 + AAC / MP4 | 🟢 (Pass) · 32.0% CPU | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · 13.0% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 32.4% CPU |
 | H.264 + AAC / MKV | 🟢 (Pass) · 27.4% CPU | 🟢 (Pass) · 9.3% CPU | 🟢 (Pass) · 9.6% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 28.3% CPU |
-| Dual-audio H.264 + AAC + AC-3 stereo / MKV | 🟢 (Pass) | 🟢 (Pass) · default AAC | 🟢 (Pass) · native-direct · AC-3 switch: hybrid | 🔴 (Fail) | 🟢 (Pass) |
+| Dual-audio H.264 + AAC + AC-3 stereo / MKV | 🟢 (Pass) · 36.3% CPU | 🟢 (Pass) · 13.9% CPU · default AAC | 🟢 (Pass) · 11.3% CPU · native-direct · AC-3 switch: hybrid | 🔴 (Fail) | 🟢 (Pass) · 32.8% CPU |
 | H.264 + PCM24 / MKV | 🟢 | 🟢 | 🟢 (Pass) · hybrid | 🟢 (Pass) | 🔴 (Fail) |
 | H.264 + PCM24 / MKV + ASS | 🟢 | 🟢 | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC 5.1 / MP4 | 🟢 (Pass)* | 🟢 (Pass)\* | 🟢 (Pass)\* · native-direct | 🔴 (Fail) | 🟢 (Pass)\* |
