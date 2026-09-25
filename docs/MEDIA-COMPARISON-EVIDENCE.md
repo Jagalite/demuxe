@@ -19,10 +19,12 @@ Keep the historical snapshot intact. For each refreshed row, retain the exact
 fixture and browser configuration, correctness qualification, three accepted
 20-second windows, route and decoder observations, raw process CPU samples,
 ranges and rejected attempts. Compare players within one campaign and state
-which cells have matching fixtures and browser launches. The single-browser
-first pass can identify drift and prioritize follow-up; its correlated rounds
-do not qualify a release CPU figure on their own. Update only the qualified
-row and its provenance once independent follow-up supports interpretation.
+which cells have matching fixtures and browser launches. New README rows use
+one Chrome launch per fixture with three correlated rounds and per-round idle
+checks. Report the within-launch limit with each absolute figure; use an
+independent launch to investigate drift or surprising deltas. The multi-fixture
+single-browser campaign remains exploratory. Update only the qualified row and
+its provenance once its within-launch stability supports interpretation.
 The [row refresh index](CPU-ROW-REFRESH.md) links each completed row to its
 correctness, CPU, and interpretation records.
 

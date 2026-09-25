@@ -64,7 +64,8 @@ if(args['diagnostic-failed-cpu']&&selected.some(c=>!['movi','libmedia'].includes
 if(args['screened-cpu']&&(!args.performance||args['diagnostic-failed-cpu']||selected.some(c=>c.player!=='demuxe')))throw Error('Screened CPU requires performance and Demuxe cases only');
 if(args.performance&&(!args.correctness||!args.headed||!args.exclusive||args.browser!=='chromium'))throw Error('Performance requires --correctness <run>/summary.json, --headed, Chromium and --exclusive (no concurrent builds/benchmarks)');
 const rounds=Number(args.rounds),measureSeconds=Number(args['measure-seconds']),warmupSeconds=Number(args['warmup-seconds']);
-if(!['round','campaign'].includes(args['browser-scope'])||args['browser-scope']!=='round'&&!args.performance)throw Error('Browser scope must be round or campaign; campaign requires performance mode');
+if(!['round','row','campaign'].includes(args['browser-scope'])||args['browser-scope']!=='round'&&!args.performance)throw Error('Browser scope must be round, row or campaign; row/campaign require performance mode');
+if(args['browser-scope']==='row'&&new Set(selected.map(c=>c.fixture)).size!==1)throw Error('Row browser scope requires exactly one selected fixture');
 if(args.performance&&(!Number.isInteger(rounds)||rounds<(args['diagnostic-failed-cpu']?1:3)||measureSeconds<20||warmupSeconds<5))throw Error('Performance requires at least 3 accepted rounds (1 diagnostic round), 5s warmup and 20s measurement');
 const assets=path.resolve(args.assets),manifestBytes=await fs.readFile(path.join(assets,'manifest.json'));
 const manifest=JSON.parse(manifestBytes);
@@ -104,6 +105,7 @@ const summary={schema:1,benchmarkPolicy,kind:args.performance?'performance':'cor
     'Startup is API/wall timing, not first sound/photon. Correctness uses intrusive audio analysis and screenshots.',
     'Fresh browser contexts do not flush OS caches. Host-library subtitle overlays are explicitly labeled.']};
 if(args.performance&&args['browser-scope']==='campaign')summary.limits.push('Single Chrome launch across all fixtures and rounds: exploratory first pass; rounds do not demonstrate launch-to-launch reproducibility.');
+if(args.performance&&args['browser-scope']==='row')summary.limits.push('Single Chrome launch across all arms and rounds of one fixture: rounds are correlated; report idle/RSS drift and paired deltas; launch-to-launch reproducibility is unmeasured.');
 await fs.writeFile(path.join(output,'assets-manifest.json'),manifestBytes);
 if(args.catalogue)for(const name of ['fixtures/catalogue.json','commands.json']){const target=path.join(output,'files','preparation',name);await fs.mkdir(path.dirname(target),{recursive:true});await fs.copyFile(path.join(assets,name),target);}
 if(args.catalogue&&await fs.stat(path.join(assets,'preparation')).catch(()=>null))await fs.cp(path.join(assets,'preparation'),path.join(output,'files/preparation/sources'),{recursive:true});
@@ -303,7 +305,7 @@ try {
   if(args['diagnostic-failed-cpu']||args['screened-cpu']){summary.selected=scheduledCases.map(c=>c.id);await save();}
   const schedule=args.performance?[...new Set(scheduledCases.map(c=>c.fixture))].flatMap(fixture=>{const group=scheduledCases.filter(c=>c.fixture===fixture);return Array.from({length:rounds},(_,round)=>group.map((_,i)=>({...group[(i+round)%group.length],round:round+1}))).flat();}):scheduledCases;
   progress=new CampaignProgress({total:schedule.length,output:path.join(output,'progress.json'),estimateSeconds:args.performance?45:30});browserBlocks.progress=progress;
-  let previousFixture=null;
+  let previousFixture=null,previousRound=null;
   for(const [scheduleIndex,c] of schedule.entries()) {
     progress.start(c.id+(c.round?' round '+c.round:''));
     const result={...c,...(args['component-trial']?{componentTrial:args['component-trial']} : {}),status:'running',startedAt:new Date().toISOString(),console:[],requestFailures:[]};summary.cases.push(result);
@@ -324,11 +326,12 @@ try {
       if(args.performance){const proof=previous?.cases.find(p=>p.id===c.id);const expected=args['diagnostic-failed-cpu']?'failed':args['screened-cpu']?'blocked':'passed';if(!proof||proof.status!==expected){result.status='blocked';result.reason='No qualifying correctness result; CPU not attempted';continue;}}
       progress.phase('Chrome setup');
       if(args.performance){
-        const blockId=args['browser-scope']==='campaign'?'campaign:1':c.fixture+':'+c.round;
-        const idleSeconds=args['browser-scope']==='campaign'&&previousFixture!==null&&previousFixture!==c.fixture?benchmarkPolicy.startupIdleSeconds:undefined;
+        const blockId=args['browser-scope']==='campaign'?'campaign:1':args['browser-scope']==='row'?'row:'+c.fixture:c.fixture+':'+c.round;
+        const idleSeconds=args['browser-scope']==='campaign'&&previousFixture!==null&&previousFixture!==c.fixture||
+          args['browser-scope']==='row'&&previousRound!==null&&previousRound!==c.round?benchmarkPolicy.startupIdleSeconds:undefined;
         const block=await browserBlocks.acquire(blockId,{idleSeconds});
         active=block.browser;result.browserLaunch=block.identity;result.browserBlock=block.blockId;result.blockArm=block.armIndex;result.idleBeforeArm=block.idle;
-        previousFixture=c.fixture;
+        previousFixture=c.fixture;previousRound=c.round;
       }
       else if(args.browser==='firefox')active=await firefox.launch({headless:!args.headed,timeout:20000});
       else {const launched=await launchBenchmarkChrome({headless:!args.headed,channel:args.channel});active=launched.browser;result.browserLaunch=launched.identity;}

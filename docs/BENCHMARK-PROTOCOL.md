@@ -13,7 +13,8 @@ normalized. Main-catalogue correctness and CPU must match the browser version,
 configuration, fixtures and harness. If Chrome updates, rerun correctness under
 the new version. Do not combine browser versions in a reported median.
 
-CPU runs use one fresh Chrome profile per fixture/round comparison block, headed Chrome, a foreground page,
+README row CPU runs use one fresh Chrome profile per fixture across all arms and
+three rounds, headed Chrome, a foreground page,
 960×540 viewport and device scale 1. Playwright's existing default flags and the
 autoplay flag are retained. No GPU, decoder, frame-scheduling or routing override
 is introduced. There is no initialized-profile cloning or adaptive selection of
@@ -35,7 +36,7 @@ observation is a conservative provisional implementation, not a universal bound;
 completion proof is the requirement. See [the project-wide standard](TESTING-STANDARD.md).
 Between arms, close the old context, observe two seconds of idle in a temporary
 context, and create a fresh playback context. These brief observations are
-diagnostic, not precise baselines. Relaunch between blocks; correctness always
+diagnostic, not precise baselines. Relaunch between rows; correctness always
 uses separate fresh launches.
 After playback starts progressing, allow **5 seconds warmup**, then measure
 **20 seconds**, sampling every **2 seconds** against fixed monotonic deadlines.
@@ -51,7 +52,31 @@ The fixture server and external OS media services remain excluded. Summed RSS
 can double-count shared pages. Frame/progression/focus/error and teardown checks
 continue to gate accepted windows. Preserve failures and wide ranges.
 
-## Single-browser exploratory first pass
+## README row measurements: one browser per row
+
+Run one frozen fixture at a time with `--browser-scope row`. The runner rejects
+multiple selected fixtures in this mode. It gates Chrome once, rotates the arm
+order across three rounds, and creates a fresh context for each arm. It records
+20 seconds of idle before the first arm and at the start of rounds 2 and 3,
+plus two seconds between other arms. Inspect browser-process and whole-Chrome
+idle CPU, process counts, RSS, renderer/GPU/audio cost, route, dropped frames,
+and paired player deltas for buildup. Retain wide ranges or failed windows; do
+not trim them or silently restart Chrome. Investigate drift or surprising deltas
+with independent fresh launches before assigning a fine-grained cause.
+
+These three rounds share one Chrome launch, so they establish a within-launch
+comparison, not launch-to-launch reproducibility. State that limit beside each
+row's absolute CPU figures. Do not compare absolute figures from different rows
+as if they shared a browser or fixture. Correctness still uses fresh launches
+and must match the CPU run's fixture, harness and browser identity.
+
+Example, after matching correctness:
+
+```sh
+node tests/head-to-head/run.mjs --assets build/head-to-head/assets-release-supplement-20260925-04 --catalogue --include-software --headed --exclusive --performance --correctness <correctness>/summary.json --browser-scope row --cases video.default.aac-mp4,demuxe.auto.aac-mp4,demuxe.software.aac-mp4,libmedia.default.aac-mp4 --output <new-output-directory>
+```
+
+## Single-browser exploratory multi-fixture pass
 
 The main runner accepts `--browser-scope campaign` with `--performance --exclusive`.
 It launches and gates Chrome once for the entire selected set, then uses a fresh

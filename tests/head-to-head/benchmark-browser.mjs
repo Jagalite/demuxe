@@ -5,7 +5,7 @@ import {performance} from 'node:perf_hooks';
 import {chromium} from 'playwright';
 import {closeBrowserObserved} from './browser-exit.mjs';
 
-export const benchmarkPolicy={schema:3,browserLifetime:'one fixture/round comparison block; fresh context per arm',interArmIdleSeconds:2,profile:'fresh temporary Playwright profile per launch',
+export const benchmarkPolicy={schema:4,browserLifetime:'caller-declared comparison block; fresh context per arm',interArmIdleSeconds:2,profile:'fresh temporary Playwright profile per launch',
   startupGateSeconds:150,startupGate:'macOS Chrome hardware-key task completion; tracing off before measurement',startupIdleSeconds:20,warmupSeconds:5,measureSeconds:20,sampleIntervalSeconds:2,
   clock:'monotonic CPU-query midpoint; fixed sample deadlines',
   viewport:{width:960,height:540},deviceScaleFactor:1};

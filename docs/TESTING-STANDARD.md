@@ -41,11 +41,19 @@ media, GPU or decoder behavior to suppress unexplained load. Use the same settin
 and frozen, hashed fixtures across comparison arms. Run correctness before CPU.
 Avoid concurrent benchmarks/builds; record material host contention.
 
-For an exploratory first pass, `--browser-scope campaign` may keep one gated
+For the README row refresh, `--browser-scope row` keeps one gated Chrome launch
+for all arms and three rounds of exactly one fixture. A fresh context is used
+for every arm, and 20-second idle checks precede each round. Report the rounds
+as correlated within one launch, inspect CPU and RSS drift, and confirm
+surprising differences with independent launches. The row's absolute CPU
+figure does not establish launch-to-launch reproducibility. See the
+[row protocol](BENCHMARK-PROTOCOL.md#readme-row-measurements-one-browser-per-row).
+
+For an exploratory multi-fixture pass, `--browser-scope campaign` may keep one gated
 Chrome launch across selected fixtures and rounds. Record periodic idle/process
 and RSS evidence, and label its three rounds as correlated. The release renderer
 does not admit these rounds as independent release CPU evidence. See the
-[single-browser protocol](BENCHMARK-PROTOCOL.md#single-browser-exploratory-first-pass).
+[multi-fixture protocol](BENCHMARK-PROTOCOL.md#single-browser-exploratory-multi-fixture-pass).
 
 Default to three counterbalanced rounds with fresh arm contexts, 5 seconds playback
 warmup and 20 seconds measurement. Relaunch at declared block boundaries and gate
