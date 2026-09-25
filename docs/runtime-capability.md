@@ -243,3 +243,8 @@ remain prepared. Independent browser tests capture PCM where available.
 Shipped Safari requires separate WebDriver qualification; Playwright WebKit is not
 Safari. Safari 26.5.2 on this host refused a session because Allow remote automation
 is disabled. Browser settings were not changed to bypass that restriction.
+
+Installed Safari follow-up: after the user enabled remote automation, Safari 26.5.2
+passed four bounded route/lifecycle cases. See
+[Safari evidence](../results/browser-media-capability/SAFARI.md). AAC/MKV audio remains
+independently unobservable through the MSE capture path; it is not sample-qualified.
