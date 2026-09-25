@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Create the two extra comparison files without changing repository fixtures."""
 import hashlib
 import json

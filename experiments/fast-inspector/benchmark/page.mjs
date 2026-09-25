@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {nativeRejection, remuxRejection} from '../../../web/generated/internal/selection.js';
 import {nativeBrowserCapabilities} from '../../../web/generated/internal/browser-media-capability.js';
 
@@ -104,4 +105,46 @@ globalThis.openExistingRoute = async () => {
     attempts: player.diagnostics.selection?.attempts};}
   finally {player.destroy(); holder.remove();}
   return result;
+};
+globalThis.openWithForcedDirectFailure = async () => {
+  const {Player}=await import('../../../web/generated/index.js');
+  const {PlayerError}=await import('../../../web/generated/internal/errors.js');
+  const original=Player.prototype.replace;
+  let forced=false;
+  Player.prototype.replace=async function (...args) {
+    if(!forced&&['native-direct','native-direct-mpv'].includes(args[7])){
+      forced=true;
+      throw new PlayerError('UNSUPPORTED_MEDIA','Forced Direct compatibility failure for inspector fallback test');
+    }
+    return original.apply(this,args);
+  };
+  try{return {...await globalThis.openExistingRoute(),forced};}
+  finally{Player.prototype.replace=original;}
+};
+globalThis.openWithFastDirectAdmissionRejected = async () => {
+  const {Player}=await import('../../../web/generated/index.js');
+  const original=Player.prototype.admissible;
+  Player.prototype.admissible=function (...args) {
+    const plans=original.apply(this,args);
+    if(this.sourceInspection?.probe?.attachments)
+      for(const plan of plans)if(['native-direct','native-direct-mpv'].includes(plan.id)){
+        plan.eligible=false;plan.reason='Forced Fast Direct admission rejection for fallback test';
+      }
+    return plans;
+  };
+  try{return await globalThis.openExistingRoute();}
+  finally{Player.prototype.admissible=original;}
+};
+globalThis.openThenInspectBeyondDirect = async () => {
+  const {Player}=await import('../../../web/generated/index.js');
+  const holder=document.createElement('div');document.body.append(holder);
+  const player=new Player(holder,{assetBase:'/'});
+  try{
+    await player.open(file());
+    const initial=player.diagnostics.plan?.id;
+    await player.select(player.source,player.settings,true,player.nativeTracks,1,undefined,[],true);
+    return {initial,fastInspectedSourceRetained:player.fastInspectedSource===player.source,
+      attempts:player.diagnostics.selection?.attempts};
+  }catch(error){return {error:String(error?.stack??error)};}
+  finally{player.destroy();holder.remove();}
 };

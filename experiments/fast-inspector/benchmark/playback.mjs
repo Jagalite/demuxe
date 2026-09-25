@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Existing Player and playback routes, with an experiment-only inspector swap.
 import http from 'node:http';
 import {createReadStream} from 'node:fs';
@@ -24,6 +25,12 @@ if (option('labels')) {
   cases = [...new Map(screen.cases.filter(c => requested.has(c.label) && c.methods?.fast?.cold?.details?.status === 'qualified')
     .map(c => [c.label, c.fixture])).entries()];
 }
+if (option('matrix-labels')) {
+  const requested=new Set(option('matrix-labels').split(','));
+  const screen=JSON.parse(await readFile(path.join(here,'../result.json'),'utf8'));
+  cases=screen.cases.filter(c=>requested.has(c.label)).map(c=>[c.label,c.fixture]);
+}
+const openOnly=all||process.argv.includes('--open-only');
 const requests = [];
 const server = http.createServer(async (req, res) => {
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
@@ -46,14 +53,14 @@ const shim = await readFile(path.join(here, 'source-probe-shim.mjs'), 'utf8');
 const output = {schema: 1, date: new Date().toISOString(), browser: browser.version(), rows: []};
 try {
   for (const [label, fixture] of cases) for (let repetition = 0; repetition < Number(option('repeats') ?? (all ? 1 : 3)); repetition++)
-    for (const arm of repetition % 2 ? ['fast', 'current'] : ['current', 'fast']) {
+    for (const arm of option('arms')?.split(',') ?? (repetition % 2 ? ['fast', 'current'] : ['current', 'fast'])) {
       const context = await browser.newContext(), page = await context.newPage();
       if (arm === 'fast') await page.route('**/web/source-probe.js', route => route.fulfill({status: 200, contentType: 'text/javascript', body: shim}));
       const before = requests.length;
       try {
         await page.goto(`http://127.0.0.1:${server.address().port}/experiments/fast-inspector/benchmark/page.html`);
         await page.locator('#media').setInputFiles(path.isAbsolute(fixture) ? fixture : path.join(root, fixture));
-        const result = await page.evaluate(all ? () => globalThis.openExistingRoute() : () => globalThis.playExistingRoute());
+        const result = await page.evaluate(process.argv.includes('--resume-after-direct') ? () => globalThis.openThenInspectBeyondDirect() : process.argv.includes('--force-direct-failure') ? () => globalThis.openWithForcedDirectFailure() : process.argv.includes('--reject-fast-direct-admission') ? () => globalThis.openWithFastDirectAdmissionRejected() : openOnly ? () => globalThis.openExistingRoute() : () => globalThis.playExistingRoute());
         output.rows.push({label, fixture, repetition, arm, result, assets: requests.slice(before)});
         console.log(label, repetition, arm, result.selected, (result.firstPresentedMs ?? result.openMs)?.toFixed(1), result.error ? 'ERROR' : '');
       } catch (error) {output.rows.push({label, fixture, repetition, arm, error: String(error), assets: requests.slice(before)});}

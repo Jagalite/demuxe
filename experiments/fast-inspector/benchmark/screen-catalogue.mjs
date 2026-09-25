@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Broad, read-only metadata screen of locally available Demuxe fixture trees.
 import {execFileSync} from 'node:child_process';
 import {openAsBlob} from 'node:fs';

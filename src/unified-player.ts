@@ -114,6 +114,7 @@ export class Player extends EventTarget {
     this.schedulePublish();this.schedulePromotion();
   });
   private sourceInspection?:{source:Source;probe:Probe;settings:{aid:string;sid:string;subtitles:boolean}};
+  private fastInspectedSource?:Source;
   private mpvSubtitleAssetsAvailable=false;
   private selectiveAudioAssetsAvailable=false;
   private inspection?: AbortController;
@@ -729,6 +730,48 @@ export class Player extends EventTarget {
       // Unknown inspection still permits the existing WebCodecs trial.
     }finally{if(this.inspection===controller)this.inspection=undefined;}
   }
+  private async inspectWithFFmpeg(source:Source,controller:AbortController):Promise<Probe>{
+    const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
+    const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();
+    const compiledWasm=await this.interruptible(this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
+    this.assertOperation();
+    const probe:Probe=await probeSource(transport,controller.signal,undefined,compiledWasm);
+    this.assertOperation();
+    return probe;
+  }
+  private async checkInspectedAssets(source:Source,probe:Probe,settings:Settings,sid:string,controller:AbortController){
+    this.selectiveAudioAssetsAvailable=false;this.mpvSubtitleAssetsAvailable=false;
+    const available=async(names:string[])=>{
+      const assetController=new AbortController();
+      const abort=()=>assetController.abort();controller.signal.addEventListener('abort',abort,{once:true});
+      const deadline=setTimeout(abort,5000);
+      try{const responses=await Promise.all(names.map(name=>fetch(new URL(name,this.assetBase),{method:'HEAD',signal:assetController.signal})));return responses.every(response=>response.ok);}
+      catch(error){if(controller.signal.aborted)throw error;return false;}
+      finally{clearTimeout(deadline);controller.signal.removeEventListener('abort',abort);}
+    };
+    if(source.kind==='local'&&probe.tracks.some(t=>t.type==='audio'&&['ac3','dts'].includes(t.codec)))
+      this.selectiveAudioAssetsAvailable=await available(['web/engine-selective/player.mjs','web/engine-selective/player.wasm','web/selective-sync-worklet.js']);
+    if(this.mpvSubtitles&&source.kind==='local'&&settings.subtitles&&sid!=='no'&&probe.tracks.some(t=>t.type==='sub'))
+      this.mpvSubtitleAssetsAvailable=await available(['web/engine-subtitles/service.mjs','web/engine-subtitles/service.wasm']);
+    this.assertOperation();
+  }
+  private async inspectFallbackAfterFastFailure(source:Source,settings:Settings):Promise<string|undefined>{
+    this.fastInspectedSource=undefined;
+    const controller=this.inspection=new AbortController();
+    try{
+      const probe=await this.inspectWithFFmpeg(source,controller);
+      const inspectedSettings={aid:'auto',sid:'auto',subtitles:settings.subtitles};
+      this.sourceInspection={source,probe,settings:inspectedSettings};
+      await this.checkInspectedAssets(source,probe,settings,'auto',controller);
+      this.record({mode:'probe',outcome:'selected',reason:'FFmpeg reinspection after Fast Inspector Direct startup failure'});
+      return nativeRejection(probe,inspectedSettings);
+    }catch(error){
+      if(this.destroyed||this.activeOperation?.controller.signal.aborted||controller.signal.aborted||terminalSourceFailure(error))throw error;
+      this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;
+      this.record({mode:'probe',outcome:'failed',reason:`FFmpeg reinspection after Direct failure: ${String(error)}`});
+      return 'Native eligibility could not be established: '+String(error);
+    }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
+  }
   private async select(source: Source, settings: Settings, preserve: boolean, tracks: TextTrackSource[], start=0, target?: number, priorAttempts:SelectionAttempt[]=[],inspectOnly=false){
     if(!this.automatic&&this.mode!=='native'){
       if(this.mode==='hybrid')await this.inspectForQualifiedWebGPU(source,settings);
@@ -754,14 +797,18 @@ export class Player extends EventTarget {
     this.attempts=[];
     for(const attempt of priorAttempts)this.record(attempt);
     let nativeReason: string | undefined;
-    if(start===0||this.sourceInspection?.source!==source){this.losslessInspection=undefined;this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;}
+    if(start===0||this.sourceInspection?.source!==source){this.losslessInspection=undefined;this.sourceInspection=undefined;this.fastInspectedSource=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;}
+    // A later Direct playback failure can resume discovery beyond Native.
+    // Fast metadata only proves Direct admission; inspect before other plans.
+    if(start>0&&this.fastInspectedSource===source)
+      nativeReason=await this.inspectFallbackAfterFastFailure(source,settings);
     if(start===0&&!(settings.vf||settings.af||this.toneMapping!=='off')){
       if((source.kind==='local'&&source.input?.demuxer)||(source.kind==='remote'&&(source.options.demuxer||(source.options.format&&source.options.format!=='file')))){
         nativeReason=source.kind==='remote'?nativeManifestRejection(source.options,settings,!!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')):'Explicit demuxer requires FFmpeg';
       }else{
         const controller=this.inspection=new AbortController();
         try{
-          let probe:Probe|undefined;
+          let probe:Probe|undefined, fastProbe=false;
           // Immutable local bytes permit bounded inspection without an engine download.
           // Remote identity/permission enforcement continues through the existing inspector.
           if(source.kind==='local'&&this.nativeRemux!=='always'){
@@ -770,16 +817,28 @@ export class Player extends EventTarget {
             const cheap=await cheapMP4Probe(local,controller.signal,document.createElement('video'));
             probe=cheap.probe;
             this.record({mode:'probe',outcome:probe?'selected':'skipped',reason:`Local MP4 metadata: ${cheap.bytesRead} bytes; ${probe?'no inspector Wasm required':cheap.reason}`});
+            // The filename only bypasses an optimization: FFmpeg still inspects
+            // these known-unsupported families, whatever their actual bytes are.
+            if(!probe&&this.automatic&&!preserve&&!tracks.length&&settings.aid==='auto'&&settings.sid==='auto'&&globalThis.crossOriginIsolated&&!/\.(?:ogg|oga|opus|ts|m2ts)$/i.test(local.name)){
+              try{
+                const {inspectFastSource}=await this.interruptible(import(new URL('web/fast-source-inspector.js',this.assetBase).href));
+                const fast=await inspectFastSource(local,{signal:controller.signal});
+                this.assertOperation();
+                if(fast.status==='qualified'){
+                  probe=fast.evidence as Probe;fastProbe=true;
+                  this.record({mode:'probe',outcome:'selected',reason:`Fast local metadata: ${fast.bytesRead} bytes; routing admission pending`});
+                }else this.record({mode:'probe',outcome:'skipped',reason:`Fast local metadata: ${fast.bytesRead} bytes; ${fast.reason}`});
+              }catch(error){
+                if(controller.signal.aborted||this.activeOperation?.controller.signal.aborted||terminalSourceFailure(error))throw error;
+                this.record({mode:'probe',outcome:'skipped',reason:`Fast inspector unavailable: ${String(error)}`});
+              }
+            }
           }
           this.assertOperation();
-          const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();
-          if(!probe&&globalThis.crossOriginIsolated){
-            const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
-            const compiledWasm=await this.interruptible(this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
-            this.assertOperation();probe=await probeSource(transport,controller.signal,undefined,compiledWasm);
-          }
+          if(!probe&&globalThis.crossOriginIsolated)probe=await this.inspectWithFFmpeg(source,controller);
           if(!probe)this.record({mode:'probe',outcome:'skipped',reason:'Wasm inspection requires cross-origin isolation; browser-native routes remain available'});
           if(probe){
+          for(let inspectionPass=0;inspectionPass<2;inspectionPass++){
           if(source.kind==='remote'&&probe.identity)source.options.identity??=probe.identity;
           // Cross-mode track IDs reset to auto in replace(); preflight that same selection.
           let aid=preserve&&(this.mode==='native'||settings.aid==='no')?settings.aid:!this.source?settings.aid:'auto';
@@ -791,30 +850,20 @@ export class Player extends EventTarget {
           if(publicAudio)aid=probe.tracks.find(t=>t.type==='audio'&&t.index===Number(publicAudio[1]))?.id??'missing';
           nativeReason=nativeRejection(probe,{...settings,aid,sid},document.createElement('video'));
           this.sourceInspection={source,probe,settings:{aid,sid,subtitles:settings.subtitles}};
-          if(source.kind==='local'&&probe.tracks.some(t=>t.type==='audio'&&['ac3','dts'].includes(t.codec))){
-            const names=['web/engine-selective/player.mjs','web/engine-selective/player.wasm','web/selective-sync-worklet.js'];
-            const assetController=new AbortController();
-            const abort=()=>assetController.abort();controller.signal.addEventListener('abort',abort,{once:true});
-            const deadline=setTimeout(abort,5000);
-            try{const responses=await Promise.all(names.map(name=>fetch(new URL(name,this.assetBase),{method:'HEAD',signal:assetController.signal})));this.selectiveAudioAssetsAvailable=responses.every(response=>response.ok);}
-            catch(error){if(controller.signal.aborted)throw error;}
-            finally{clearTimeout(deadline);controller.signal.removeEventListener('abort',abort);}
-            this.assertOperation();
+          await this.checkInspectedAssets(source,probe,settings,sid,controller);
+          if(fastProbe){
+            const first=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,this.automatic).find(plan=>plan.eligible)?.id;
+            if(first!=='native-direct'&&first!=='native-direct-mpv'){
+              this.record({mode:'probe',outcome:'skipped',reason:`Fast metadata does not admit an existing Direct route (${first??'none'}); FFmpeg inspection required`});
+              fastProbe=false;this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;
+              if(globalThis.crossOriginIsolated){probe=await this.inspectWithFFmpeg(source,controller);continue;}
+              probe=undefined;nativeReason=undefined;
+              break;
+            }
+            this.fastInspectedSource=source;
+            this.record({mode:'probe',outcome:'selected',reason:`Fast Inspector admitted ${first} without remux inspector Wasm`});
           }
-          if(this.mpvSubtitles&&source.kind==='local'&&settings.subtitles&&sid!=='no'&&probe.tracks.some(t=>t.type==='sub')){
-            // A package may omit the optional service. Keep the complete-file
-            // fallback eligible without loading either asset into the page.
-            const assets=['web/engine-subtitles/service.mjs','web/engine-subtitles/service.wasm'];
-            const assetController=new AbortController();
-            const abort=()=>assetController.abort();
-            controller.signal.addEventListener('abort',abort,{once:true});
-            const deadline=setTimeout(abort,5000);
-            try{
-              const responses=await Promise.all(assets.map(name=>fetch(new URL(name,this.assetBase),{method:'HEAD',signal:assetController.signal})));
-              this.mpvSubtitleAssetsAvailable=responses.every(response=>response.ok);
-            }catch(error){if(controller.signal.aborted)throw error;}
-            finally{clearTimeout(deadline);controller.signal.removeEventListener('abort',abort);}
-            this.assertOperation();
+          break;
           }
           }
         }catch(error){
@@ -843,10 +892,10 @@ export class Player extends EventTarget {
   private localRemuxRetry(source:Source,planId:string,settings:Settings):string|undefined {
     // Match complete, existing plans: preserve gain and subtitle ownership.
     const remux=({'native-direct':'native-remux','native-direct-mpv':'native-remux-mpv','native-direct-gain':'native-remux-gain','native-direct-ass':'native-remux-ass','native-direct-ass-gain':'native-remux-ass-gain'} as Record<string,string>)[planId];
-    if(source.kind==='local'&&this.sourceInspection?.source===source&&remux&&this.planDecisions.some(p=>p.eligible&&p.id===remux)&&!this.tierAttempts.reason(source,this.tierConfiguration(settings),remux))return remux;
+    if(source.kind==='local'&&this.fastInspectedSource!==source&&this.sourceInspection?.source===source&&remux&&this.planDecisions.some(p=>p.eligible&&p.id===remux)&&!this.tierAttempts.reason(source,this.tierConfiguration(settings),remux))return remux;
   }
   private async discover(source:Source,settings:Settings,preserve:boolean,tracks:TextTrackSource[],target:number|undefined,automatic:boolean,pinnedMode?:PlaybackMode,start=0):Promise<void> {
-    const nativeReason=automatic?this.admissionContext.nativeReason:undefined;
+    let nativeReason=automatic?this.admissionContext.nativeReason:undefined;
     this.planDecisions=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic);
     this.runtimeCapabilities.begin(source,this.planDecisions);
     if(pinnedMode&&!this.planDecisions.some(p=>p.mode===pinnedMode&&p.eligible)){
@@ -936,6 +985,13 @@ export class Player extends EventTarget {
         if(this.destroyed||this.activeOperation?.controller.signal.aborted||(!automatic&&playerError(error).code==='UNSUPPORTED_TIMELINE')||(!compatible&&!retryLocalLoad&&!inconclusiveOutput))throw error;
         if(error instanceof BrowserCaptionUnsupported)captionFailure=error.message;
         errors.push(`${plan.id}: ${String(error)}`);
+        if(this.fastInspectedSource===source){
+          nativeReason=await this.inspectFallbackAfterFastFailure(source,settings);
+          this.admissionContext={nativeReason,automatic};
+          this.planDecisions=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic);
+          this.runtimeCapabilities.admission(this.planDecisions);
+          index=-1;
+        }
       }
     }
     throw Error('No playback route satisfied the source: '+(errors.join('; ')||this.planDecisions.map(p=>p.reason).filter(Boolean).join('; ')));
@@ -990,8 +1046,8 @@ export class Player extends EventTarget {
       source.trackPolicy=normalizeTrackPolicy({...this.configuredTrackPolicy,...normalizeTrackPolicy(options.trackPolicy)});
     } catch(error){return Promise.reject(playerError(error));}
     return this.enqueue(async()=>{
-      const inspection=this.sourceInspection,lossless=this.losslessInspection;
-      try{await this.select(source,this.settings,false,[]);}catch(error){if(this.source!==source){this.sourceInspection=inspection;this.losslessInspection=lossless;}throw error;}
+      const inspection=this.sourceInspection,lossless=this.losslessInspection,fastInspectedSource=this.fastInspectedSource;
+      try{await this.select(source,this.settings,false,[]);}catch(error){if(this.source!==source){this.sourceInspection=inspection;this.losslessInspection=lossless;this.fastInspectedSource=fastInspectedSource;}throw error;}
     },'opening',options.signal);
   }
   openRemote(source:RemoteSource, options:OpenOptions={}) {return this.open(source,options);}

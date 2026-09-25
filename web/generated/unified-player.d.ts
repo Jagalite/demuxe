@@ -40,6 +40,7 @@ export declare class Player extends EventTarget {
     private schedulePromotion;
     private readonly mediaCapabilityQueries;
     private sourceInspection?;
+    private fastInspectedSource?;
     private mpvSubtitleAssetsAvailable;
     private selectiveAudioAssetsAvailable;
     private inspection?;
@@ -137,6 +138,9 @@ export declare class Player extends EventTarget {
     private replace;
     private record;
     private inspectForQualifiedWebGPU;
+    private inspectWithFFmpeg;
+    private checkInspectedAssets;
+    private inspectFallbackAfterFastFailure;
     private select;
     private acceptEvidence;
     private evidence;

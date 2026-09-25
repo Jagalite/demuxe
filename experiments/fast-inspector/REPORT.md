@@ -1,6 +1,6 @@
 # Demuxe Fast Inspector: routing evidence experiment
 
-Experiment date: 2026-09-25. Demuxe HEAD: `f2e35538caf98e9e6e2efbbe1766e9b0fae1c8ea`. Browser: headless Google Chrome 153.0.8010.53 on the local macOS host. This directory is experiment-only; no production router or playback file was changed.
+Experiment date: 2026-09-25. Demuxe baseline HEAD: `f2e35538caf98e9e6e2efbbe1766e9b0fae1c8ea`. Browser: headless Google Chrome 153.0.8010.53 on the local macOS host. The original measurements preceded the guarded production integration described in §8.
 
 ## Conclusion
 
@@ -28,7 +28,7 @@ The experiment's `sufficientFor` is deliberately limited. Plain qualified files 
 
 ## 2. Prototype and guardrails
 
-[`benchmark/fast-inspector.mjs`](benchmark/fast-inspector.mjs) reads a maximum of 96 file slices and 2 MiB of source bytes, with a 1 MiB metadata-object cap. It returns `qualified` only after a bounded complete track census; otherwise it returns `unknown` with a reason. It never reads coded packets or builds sample tables/Clusters.
+The parser, now in [`web/fast-source-inspector.js`](../../web/fast-source-inspector.js) and re-exported by [`benchmark/fast-inspector.mjs`](benchmark/fast-inspector.mjs), reads a maximum of 96 file slices and 2 MiB of source bytes, with a 1 MiB metadata-object cap. It returns `qualified` only after a bounded complete track census; otherwise it returns `unknown` with a reason. It never reads coded packets or builds sample tables/Clusters.
 
 | Family | Implemented routing facts | Immediate unknown |
 |---|---|---|
@@ -128,3 +128,11 @@ Immediate FFmpeg fallbacks remain appropriate for unknown subtitle CodecIDs/samp
 10. **Smallest integration candidate?** Opt-in automatic local MKV/WebM and non-cheap MP4/MOV inspection for `native-direct`, then recognized single-subtitle `native-direct-mpv` files after explicit attachment/track parity and fallback gates. Retain detailed route and bytes telemetry.
 
 The subtitle-specific result is narrower but concrete: recognized subtitle metadata on eight focused files led to the same actual existing route without `engine-remux` inspection. All eight still used the existing mpv subtitle service; the experiment neither decodes nor renders subtitles.
+
+## 8. Production integration and review follow-up
+
+After the experiment, the bounded parser moved to [`web/fast-source-inspector.js`](../../web/fast-source-inspector.js). The benchmark's `fast-inspector.mjs` re-exports that same implementation. Automatic local inspection retains `cheapMP4Probe` first, then tries Fast Inspector only for ordinary local sources with automatic track selection and no external tracks. Known unsupported Ogg and TS filename families bypass the fast import. `unknown` and failure to admit an existing `native-direct` or `native-direct-mpv` plan use the unchanged FFmpeg inspector. Other playback implementations and explicit route policies are unchanged. A compatible Direct startup failure also re-inspects with FFmpeg before trying another plan. The review found and closed a second recovery path: a later Direct playback failure now re-inspects before resuming discovery at Hybrid or Software.
+
+The real `Player.open()` production-path smoke run in [`notes/production-route-smoke.json`](notes/production-route-smoke.json) selected the expected Direct plan on all **26/26** Fast-qualified focused fixtures (18 `native-direct`, eight `native-direct-mpv`); none requested `engine-remux/remux.wasm`. The simple H.264/AAC MP4 remained on `cheapMP4Probe` and did not request Fast Inspector. [`notes/production-fallback-smoke.json`](notes/production-fallback-smoke.json) records five unknown families reaching FFmpeg: fragmented MP4, ProRes MOV, Ogg Opus, Ogg Vorbis, and MPEG-TS. Forced compatibility failures on plain and subtitle MKV in [`notes/production-direct-failure.json`](notes/production-direct-failure.json) and [`notes/production-subtitle-direct-failure.json`](notes/production-subtitle-direct-failure.json) re-inspected and selected their existing remux plans. [`notes/production-admission-fallback.json`](notes/production-admission-fallback.json) verifies that failure to admit Direct from fast metadata re-inspects before route selection. These are functional browser smoke checks; the earlier paired timing measurements remain experimental, and no new statistically powered production latency claim is made.
+
+The review follow-up [`notes/production-later-failure-fallback.json`](notes/production-later-failure-fallback.json) exercises the resume-beyond-Direct inspection gate on the SRT MKV: Fast metadata is cleared and `engine-remux/remux.wasm` is requested before further route discovery. `npm run build` passes TypeScript and license checks. A beta packaging dry run stops at `Build record mismatch: scripts/package-beta.py` because the existing engine build record hashes the pre-change packaging script; packaging needs a fresh corresponding engine build record. The runtime asset list in that script now includes `fast-source-inspector.js`.
