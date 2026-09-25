@@ -5,7 +5,8 @@
 Latest subtitle routing supplement: [current-tree Native A/V + mpv subtitles](../results/head-to-head/mpv-subtitle-tier-20260923-06/REPORT.md).
 The Demuxe SRT, mov_text and ASS cells below now identify the automatic
 `native-direct-mpv` plan; old competitor results retain their original methods.
-The original PGS/VobSub rows still need Hybrid because of AC-3 audio. Their
+The original PGS/VobSub rows still need Hybrid because subtitle composition
+with unsupported audio is outside the selective route's admission. Their
 new H.264/AAC subtitle-isolation derivatives have no competitor screen.
 
 Latest Demuxe routing follow-up: [comparison gap closeout](COMPARISON-GAP-CLOSEOUT.md). The four Dolby Vision fixtures now pass auto mode through Software; the three PGS fixtures pass Hybrid. External ASS can retain qualified Native playback by default. The historical default failures below describe their original snapshots.

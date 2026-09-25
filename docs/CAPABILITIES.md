@@ -33,6 +33,10 @@ presentation, with mpv subtitle/timing ownership. Software uses FFmpeg video too
 Native retains one media-element A/V clock; Hybrid/Software retain mpv timing and
 PCM/output-latency feedback. WebCodecs use does not establish hardware acceleration,
 zero-copy output, or HDR fidelity.
+The separate `native-video-mpv-audio` plan places browser `<video>` presentation
+and mpv audio-only decode before Hybrid for qualified local Matroska with H.264
+or HEVC Main10 video and 48 kHz stereo AC-3 or DTS, without subtitles. E-AC-3,
+multichannel audio, remote sources and subtitle combinations are not admitted.
 
 The finite [plan registry](../src/internal/playback-plans.ts),
 [selected-source guards](../src/internal/selection.ts) and
@@ -158,8 +162,8 @@ Sources: [audio packet contracts](../native/remux/remux.c),
 | Vorbis | B | C WebM only | F | F | Pass | D → R → H → S | **functional/bounded**; video must fit WebM (VP8/VP9/AV1), no AVC+Vorbis prepared mux contract. |
 | FLAC, 16/24-bit stereo | B | C into MP4, STREAMINFO/sample depth | F | F | Pass | D → R → H → S | **functional/bounded**; Native decoding is browser-owned, not sample-exact output proof. |
 | FLAC 5.1 | B | C path | F | F | Limited | D → R → H → S | **functional/bounded** Native stereo-output screen; surround fidelity unqualified. |
-| AC-3 / E-AC-3 (not Atmos) | B; selected audio failed tested Chrome cases | C contract, browser acceptance may fail | F | F | Limited | H → S on tested platform; D/R if actually accepted elsewhere | **functional/bounded** decode; 5.1 screens do not qualify discrete channels. Existing lossless adapter rejects these codecs. |
-| DTS core, stereo / 5.1 | B; selected audio failed tested cases | No DTS copy contract | F | F | Limited | H → S | **functional/bounded** Hybrid and Software decoding; 5.1 output fidelity unqualified. DTS is not a software-video requirement. |
+| AC-3 / E-AC-3 (not Atmos) | B; selected audio failed tested Chrome cases | C contract, browser acceptance may fail | F | F | Limited | `native-video-mpv-audio` → H → S for qualified local stereo AC-3; E-AC-3 and 5.1 retain H → S; D/R if actually accepted elsewhere | **functional/bounded** AC-3 stereo with H.264/HEVC Main10 has a qualified selective route. E-AC-3 and discrete 5.1 remain unqualified there. Existing lossless adapter rejects these codecs. |
+| DTS core, stereo / 5.1 | B; selected audio failed tested cases | No DTS copy contract | F | F | Limited | `native-video-mpv-audio` → H → S for qualified local stereo; 5.1 retains H → S | **functional/bounded** stereo DTS core with H.264 has a qualified selective route. Hybrid and Software remain fallbacks; 5.1 output fidelity is unqualified. DTS is not a software-video requirement. |
 | DTS→FLAC selective adaptation | B unchanged source only | Not copy: optional adaptation guards | F original DTS | F original DTS | Not tested | H → S for current tested DTS inputs | **experimental / blocked** tested adaptation: 5.1 rejected by mono/stereo gate; stereo with unknown 16/24-bit precision rejected. Compiled `dca` is not successful adaptation evidence. |
 | DTS-HD MA 7.1 / extension fidelity | Tested picture without required audio | No DTS copy contract | F; bounded default lifecycle passed | F; explicit bounded lifecycle passed | Limited | H → S demonstrated with eligible HEVC | **functional/bounded** picture/audio/seek through Hybrid, using an eight-second real excerpt repeated to 36 seconds. No claim of MA extension decoding, losslessness or discrete 7.1 output. |
 | TrueHD / MLP stereo, 24-bit 48 kHz TrueHD fixture | B, ? | No copy contract | F shared audio path, route-specific ? | F | Not tested | S demonstrated; H candidate with eligible video | **functional/bounded** Software decode/seek; **untested** exact Hybrid variant. |

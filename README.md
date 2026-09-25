@@ -22,8 +22,9 @@ and Software fallback. Current admission is deliberately narrow; see the
 Shaka loads only when its plan is needed. See [streaming architecture](docs/STREAMING.md).
 The [matched integrated selective-route report](results/selective-production/REPORT.md)
 records H.264/AC-3, H.264/DTS and HEVC Main10/AC-3 CPU and lifecycle results.
-The Auto CPU cells below were refreshed in the 2026-09-25 release retest; the
-other CPU columns retain their earlier campaigns.
+Most Auto CPU cells below use the 2026-09-25 frozen-URL release retest. The
+three `native-video-mpv-audio` cells use the newer matched local-file production
+campaign; the other CPU columns retain their earlier campaigns.
 
 Within Software, the production presenter uses YUV/WebGL2 only for decoded
 SDR 8-bit planar YUV420P frames meeting the [exact frame and color admission
@@ -164,7 +165,7 @@ The [exploratory pass-cell CPU report](results/head-to-head/passing-cell-cpu-exp
 **These are bounded playback tests, not a format-support scorecard.** Movi
 0.4.0 and AVPlayer 1.3.1 are pinned versions. Their correctness cells below use
 [fresh default and configured-route tests](results/head-to-head/configured-alternatives-20260921-report-04/REPORT.md).
-The pass-cell supplemental campaign added historical CPU values to previously blank green cells. The Auto column was refreshed by the 2026-09-25 release retest, while the other CPU columns retain their original campaigns. The PCM24+ASS follow-up and routing-isolation supplement below have their own matched campaigns. Configured competitor reruns collected no CPU data. Forced software CPU values elsewhere are from the separate campaign linked above.
+The pass-cell supplemental campaign added historical CPU values to previously blank green cells. Most Auto cells use the 2026-09-25 release retest; the three cells labeled `native-video-mpv-audio` use the later matched local-file production campaign. The other CPU columns retain their original campaigns. The PCM24+ASS follow-up and routing-isolation supplement below have their own matched campaigns. Configured competitor reruns collected no CPU data. Forced software CPU values elsewhere are from the separate campaign linked above.
 
 For Movi and AVPlayer, **🟣 configured pass** means an explicitly named alternative
 passed while the default failed a named check. **🟠 Plays; … failed** means initial
@@ -242,7 +243,9 @@ round ranges. On the same 4K HEVC video packets with TrueHD + PGS, Auto kept
 browser WebCodecs video in Hybrid at 65.1% versus 127.9% forced Software.
 Those measurements do not replace or combine with the compatibility matrix.
 
-**Release Auto retest (2026-09-25):** The refreshed Auto cells use frozen URL fixtures and three accepted Chrome CPU rounds when available. Other CPU columns retain earlier campaigns and must not be compared directly. Screened specialist cells use bounded real bitstreams and do not establish HDR, spatial or physical output fidelity. Failed Movi/AVPlayer CPU figures are diagnostic observations during failed playback and are not efficiency comparisons. [Raw status, route, round ranges and exclusions](results/head-to-head/release-auto-20260925-report/REPORT.md).
+**Auto CPU provenance:** Most refreshed Auto cells use [2026-09-25 frozen-URL fixtures](results/head-to-head/release-auto-20260925-report/REPORT.md) and three accepted Chrome CPU rounds when available. The three cells labeled `native-video-mpv-audio` instead use the [newer matched local-file production campaign](results/selective-production/REPORT.md), because this route currently admits local files only. Those fixtures are H.264 High 1080p60 + 48 kHz stereo AC-3 or DTS core, and SDR HEVC Main10 1080p30 + 48 kHz stereo AC-3. These are different bitstreams from the older URL fixtures; CPU values from different campaigns are not fine-grained cross-row comparisons. Other CPU columns retain earlier campaigns. Screened specialist cells do not establish HDR, spatial or physical output fidelity. Failed Movi/AVPlayer CPU figures are diagnostic observations during failed playback, not efficiency comparisons.
+
+For these three qualified local-file combinations without subtitles, `native-video-mpv-audio` replaces Hybrid's retained-frame visible-canvas path with browser `<video>` presentation. Matched production mean savings versus Hybrid on the same files were **16.4 core points** for H.264/AC-3, **14.4** for H.264/DTS, and **11.0** for HEVC Main10/AC-3; these savings do not apply to other rows.
 
 | Media format | Demuxe (software decode) | Native video | Demuxe (auto) | Movi 0.4.0 (default) | AVPlayer 1.3.1 (default) |
 | --- | --- | --- | --- | --- | --- |
@@ -256,9 +259,9 @@ Those measurements do not replace or combine with the compatibility matrix.
 | H.264 + AC-3 5.1 / MKV | 🟢 (Pass)* · 68.8% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 65.5% CPU · hybrid | 🔴 (Fail) · 53.6% CPU (diagnostic) | 🟢 (Pass)* · 61.8% CPU |
 | H.264 + E-AC-3 5.1 / MKV | 🟢 (Pass)* · 49.6% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 63.8% CPU · hybrid | 🔴 (Fail) · 57.3% CPU (diagnostic) | **🟢 (Pass)\* · 38.5% CPU** |
 | H.264 + DTS core 5.1 / MKV | 🟢 (Pass)* · 65.8% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 67.1% CPU · hybrid | 🔴 (Fail) · 62.5% CPU (diagnostic) | **🟢 (Pass)\* · 60.5% CPU** |
-| H.264 + AC-3 stereo / MKV | **🟢 (Pass) · 52.5% CPU** | 🔴 (Fail) | 🟢 (Pass) · 64.5% CPU · hybrid | 🔴 (Fail) · 53.8% CPU (diagnostic) | 🟢 (Pass) · 57.8% CPU |
+| H.264 + AC-3 stereo / MKV | **🟢 (Pass) · 52.5% CPU** | 🔴 (Fail) | 🟢 (Pass) · 66.6% CPU · native-video-mpv-audio | 🔴 (Fail) · 53.8% CPU (diagnostic) | 🟢 (Pass) · 57.8% CPU |
 | H.264 + E-AC-3 stereo / MKV | 🟢 (Pass) · 61.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 64.8% CPU · hybrid | 🔴 (Fail) · 54.6% CPU (diagnostic) | 🟢 (Pass) · 56.8% CPU |
-| H.264 + DTS core stereo / MKV | 🟢 (Pass) · 64.0% CPU | 🔴 (Fail) | 🟢 (Pass) · 62.8% CPU · hybrid | 🔴 (Fail) · 64.8% CPU (diagnostic) | 🟢 (Pass) · 60.5% CPU |
+| H.264 + DTS core stereo / MKV | 🟢 (Pass) · 64.0% CPU | 🔴 (Fail) | 🟢 (Pass) · 68.0% CPU · native-video-mpv-audio | 🔴 (Fail) · 64.8% CPU (diagnostic) | 🟢 (Pass) · 60.5% CPU |
 | H.264 + FLAC stereo / MKV | 🟢 48.9% CPU | **🟢 23.0% CPU** | 🟢 (Pass) · 44.7% CPU · native-direct | 🔴 (Fail) · 53.6% CPU (diagnostic) | 🟠 35.7% CPU |
 | H.264 + FLAC 5.1 / MKV | 🟢 (Pass)* · 66.1% CPU† | **🟢 (Pass)\*** · 45.0% CPU† | 🟢 (Pass)\* · 46.2% CPU · native-direct | 🔴 (Fail) · 47.2% CPU (diagnostic) | **🟢 (Pass)\*** · 48.6% CPU† |
 | H.264 + Opus stereo / MKV | 🟢 48.0% CPU | 🟠 24.9% CPU | 🟢 (Pass) · 46.9% CPU · native-direct | **🟢 (Pass)** · 45.1% CPU† | 🟠 39.8% CPU |
@@ -268,7 +271,7 @@ Those measurements do not replace or combine with the compatibility matrix.
 | HEVC Main 8-bit + AAC / MP4 (hev1) | 🟢 50.6% CPU | **🟢 (Pass)** · 36.9% CPU† | 🟢 (Pass) · 47.5% CPU · native-direct | 🔴 (Fail) · 55.3% CPU (diagnostic) | 🟠 35.0% CPU |
 | HEVC Main 10-bit SDR + AAC / MP4 | 🟢 48.3% CPU | **🟢 (Pass)** · 46.2% CPU† | 🟢 (Pass) · 50.0% CPU · native-direct | 🔴 (Fail) · 54.7% CPU (diagnostic) | 🟠 38.7% CPU |
 | HEVC Main 10 4:2:2 + AAC / MKV | 🟢 (Pass)* · 71.1% CPU | **🟢 (Pass)\* · 49.9% CPU** | 🟢 (Pass)\* · 49.0% CPU · native-direct | 🟢 (Pass)* · CPU unavailable (three stalled windows) | 🟢 (Pass)* · 67.2% CPU |
-| HEVC Main 10-bit SDR + AC-3 / MKV | 🟢 47.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 67.5% CPU · hybrid | 🔴 (Fail) · 54.4% CPU (diagnostic) | 🟠 38.8% CPU |
+| HEVC Main 10-bit SDR + AC-3 / MKV | 🟢 47.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 60.9% CPU · native-video-mpv-audio | 🔴 (Fail) · 54.4% CPU (diagnostic) | 🟠 38.8% CPU |
 | HEVC Main 10-bit SDR + E-AC-3 / MKV | 🟢 47.5% CPU | 🔴 (Fail) | 🟢 (Pass) · 70.2% CPU · hybrid | 🔴 (Fail) · 54.1% CPU (diagnostic) | 🟠 39.1% CPU |
 | HEVC Main 10-bit SDR + DTS core / MKV | 🟢 54.2% CPU | 🔴 (Fail) | 🟢 (Pass) · 69.3% CPU · hybrid | 🔴 (Fail) · 61.4% CPU (diagnostic) | 🟠 42.6% CPU |
 | AV1 8-bit + AAC / MP4 | 🟢 45.5% CPU | **🟢 22.6% CPU** | 🟢 (Pass) · 42.9% CPU · native-direct | 🔴 (Fail) · 64.0% CPU (diagnostic) | 🟠 40.4% CPU |
@@ -338,7 +341,8 @@ trials of the previous 60 Hz subtitle scheduler and the production visual
 scheduler; they are workload-specific and do not include competitor reruns.
 The two H.264/AAC bitmap rows isolate subtitles by copying PGS/VobSub
 from the older AC-3 cases onto browser-compatible A/V. The original AC-3
-rows retain Hybrid for their audio requirement. Other-player cells on the
+subtitle rows retain Hybrid because subtitle composition is outside selective
+admission. Other-player cells on the
 older rows retain their separately linked historical results; the new bitmap
 derivatives were not run through those players. Their Demuxe CPU cells use
 fresh focused 20-second windows on the [unified subtitle scheduler](results/subtitle-visual-scheduling/REPORT.md).
