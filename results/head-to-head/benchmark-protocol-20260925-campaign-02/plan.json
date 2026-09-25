@@ -1,0 +1,40 @@
+{
+  "steps": [
+    {
+      "label": "Native pilot correctness",
+      "tests": 2,
+      "command": [
+        "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+        "tests/head-to-head/run.mjs",
+        "--assets",
+        "build/head-to-head/assets-release-supplement-20260925-04",
+        "--headed",
+        "--cases",
+        "video.default.aac-mp4,demuxe.auto.aac-mp4",
+        "--output",
+        "/Volumes/seed2/Projects/demuxe/results/head-to-head/benchmark-protocol-20260925-correctness-02"
+      ]
+    },
+    {
+      "label": "Native pilot CPU blocks",
+      "tests": 6,
+      "command": [
+        "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+        "tests/head-to-head/run.mjs",
+        "--assets",
+        "build/head-to-head/assets-release-supplement-20260925-04",
+        "--headed",
+        "--exclusive",
+        "--performance",
+        "--correctness",
+        "/Volumes/seed2/Projects/demuxe/results/head-to-head/benchmark-protocol-20260925-correctness-02/summary.json",
+        "--cases",
+        "video.default.aac-mp4,demuxe.auto.aac-mp4",
+        "--rounds",
+        "3",
+        "--output",
+        "/Volumes/seed2/Projects/demuxe/results/head-to-head/benchmark-protocol-20260925-cpu-02"
+      ]
+    }
+  ]
+}

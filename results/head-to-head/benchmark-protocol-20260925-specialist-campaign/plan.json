@@ -1,0 +1,46 @@
+{
+  "steps": [
+    {
+      "label": "Specialist correctness",
+      "tests": 1,
+      "command": [
+        "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+        "tests/head-to-head/specialist-screen.mjs",
+        "build/head-to-head/assets-release-specialist-20260925-05",
+        "results/head-to-head/benchmark-protocol-20260925-specialist-correctness",
+        "demuxe-auto",
+        "hevc10-aac-mkv"
+      ]
+    },
+    {
+      "label": "Specialist reused correctness CPU 1",
+      "tests": 1,
+      "command": [
+        "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+        "tests/head-to-head/specialist-screen.mjs",
+        "build/head-to-head/assets-release-specialist-20260925-05",
+        "results/head-to-head/benchmark-protocol-20260925-specialist-cpu1",
+        "demuxe-auto",
+        "hevc10-aac-mkv",
+        "cpu1",
+        "--correctness",
+        "results/head-to-head/benchmark-protocol-20260925-specialist-correctness/summary.json"
+      ]
+    },
+    {
+      "label": "Specialist reused correctness CPU 2",
+      "tests": 1,
+      "command": [
+        "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+        "tests/head-to-head/specialist-screen.mjs",
+        "build/head-to-head/assets-release-specialist-20260925-05",
+        "results/head-to-head/benchmark-protocol-20260925-specialist-cpu2",
+        "demuxe-auto",
+        "hevc10-aac-mkv",
+        "cpu2",
+        "--correctness",
+        "results/head-to-head/benchmark-protocol-20260925-specialist-correctness/summary.json"
+      ]
+    }
+  ]
+}

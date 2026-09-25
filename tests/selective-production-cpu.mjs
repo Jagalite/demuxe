@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Fresh, counterbalanced, production-route CPU windows after correctness gates.
-import {chromium} from 'playwright';
-import {execFileSync} from 'node:child_process';
+import {collectCpuWindow,summarizeCpu,benchmarkPolicy,CpuBrowserBlocks} from './head-to-head/benchmark-browser.mjs';
+import {CampaignProgress} from './head-to-head/campaign-progress.mjs';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {serve} from '../experiments/pipeline-qualification/server.mjs';
 
@@ -13,16 +13,21 @@ const cases={
 const names=process.argv.slice(2).length?process.argv.slice(2):Object.keys(cases);
 const out='results/selective-production/cpu-'+Date.now();await mkdir(out,{recursive:true});
 const server=await serve(),rows=[];
-const rssMiB=pid=>{try{return Number(execFileSync('ps',['-o','rss=','-p',String(pid)],{encoding:'utf8'}).trim())/1024;}catch{return null;}};
+const progress=new CampaignProgress({total:names.length*6,output:out+'/progress.json',estimateSeconds:45});
+const blocks=new CpuBrowserBlocks({progress});
+
 try{
  for(const name of names){
   if(!cases[name])throw Error('Unknown case '+name);
-  for(const [round,arm] of ['hybrid','selective','selective','hybrid'].entries()){
-   const browser=await chromium.launch({channel:'chrome',headless:false,args:['--autoplay-policy=no-user-gesture-required']});
-   const row={name,round,arm,browser:browser.version(),fixture:cases[name]};rows.push(row);
+  for(const {round,arm} of Array.from({length:3},(_,i)=>(i%2?['selective','hybrid']:['hybrid','selective']).map(arm=>({round:i+1,arm}))).flat()){
+   progress.start(name+' '+arm+' round '+round);
+   const launched=await blocks.acquire(name+':'+round),browser=launched.browser;
+   const row={name,round,arm,browserBlock:launched.blockId,blockArm:launched.armIndex,idleBeforeArm:launched.idle,browserLaunch:launched.identity,benchmarkPolicy,browser:browser.version(),fixture:cases[name]};rows.push(row);
+   let context;
    try{
-    const page=await browser.newPage({viewport:{width:960,height:540},deviceScaleFactor:1});
-    await page.goto(server.origin+'/experiment/page.html');
+    context=await browser.newContext({viewport:benchmarkPolicy.viewport,deviceScaleFactor:1});
+    const page=await context.newPage();
+    await page.goto(server.origin+'/experiment/page.html');await page.bringToFront();
     await page.evaluate(async arm=>{
       const {Player}=await import('/web/generated/index.js');
       window.player=new Player(document.querySelector('#surface'),{width:960,height:540,...(arm==='hybrid'?{mode:'hybrid'}:{})});
@@ -33,33 +38,28 @@ try{
     const begun=performance.now();await page.evaluate(()=>player.open(document.querySelector('#source').files[0]));await page.evaluate(()=>player.play());
     await page.waitForFunction(()=>player.state.currentTime>.2,undefined,{timeout:15000});
     row.startupMs=performance.now()-begun;
-    await page.waitForTimeout(4000);
+    progress.phase('warmup',5,23);await page.waitForTimeout(5000);progress.phase('measurement',20,3);
     const cdp=await browser.newBrowserCDPSession();
-    const snap=async()=>({at:performance.now(),processes:(await cdp.send('SystemInfo.getProcessInfo')).processInfo,
-      state:await page.evaluate(()=>({plan:player.diagnostics.plan?.id,position:player.state.currentTime,backend:player.diagnostics.backend,errors}))});
-    const first=await snap();await page.waitForTimeout(20000);const last=await snap();
-    const elapsed=(last.at-first.at)/1000,prior=new Map(first.processes.map(p=>[p.id,p]));
-    const roles={browser:0,renderer:0,gpu:0,audioService:0,other:0};let stable=first.processes.length===last.processes.length;
-    for(const p of last.processes){const before=prior.get(p.id);if(!before){stable=false;continue;}
-      const role=p.type==='browser'?'browser':p.type==='renderer'?'renderer':p.type==='GPU'?'gpu':p.type.includes('audio.mojom.AudioService')?'audioService':'other';
-      roles[role]+=100*(p.cpuTime-before.cpuTime)/elapsed;
-    }
-    row.elapsed=elapsed;row.stable=stable;row.roles=roles;row.whole=Object.values(roles).reduce((a,b)=>a+b,0);
-    row.rssMiB=last.processes.map(p=>rssMiB(p.id)).filter(x=>x!==null).reduce((a,b)=>a+b,0);
+    try{row.samples=await collectCpuWindow(cdp,()=>page.evaluate(()=>({plan:player.diagnostics.plan?.id,position:player.state.currentTime,backend:player.diagnostics.backend,errors,visible:document.visibilityState==='visible',focused:document.hasFocus()})));}finally{await cdp.detach();}
+    const first=row.samples[0],last=row.samples.at(-1),measurement=summarizeCpu(row.samples);
+    const elapsed=measurement.wallSeconds,stable=measurement.processIdsStable,roles=measurement.roles;
+    row.measurement=measurement;row.elapsed=elapsed;row.stable=stable;row.roles=roles?{browser:roles.browser,renderer:roles.renderer,gpu:roles.gpu,audioService:roles.audio,other:roles.utility+roles.other}:null;row.whole=measurement.oneCorePercent;
+    row.rssMiB=measurement.peakSummedRssKiB/1024;
     row.first={plan:first.state.plan,position:first.state.position,errors:first.state.errors};
     row.last={plan:last.state.plan,position:last.state.position,errors:last.state.errors,
       mpvAudio:last.state.backend?.mpvAudio,
       remux:last.state.backend?.remux,
       presentation:last.state.backend?.presentation,
       dropped:last.state.backend?.dropped};
-    row.accepted=stable&&!last.state.errors.length&&last.state.position-first.state.position>=19&&
+    row.accepted=stable&&row.samples.every(s=>!s.state.errors.length&&s.state.visible&&s.state.focused)&&Math.abs(last.state.position-first.state.position-elapsed)<1&&
       last.state.plan===(arm==='hybrid'?'hybrid':'native-video-mpv-audio')&&
       (arm==='hybrid'||last.state.backend?.mpvAudio?.preEofUnderruns===0);
     console.log(JSON.stringify({name,round,arm,accepted:row.accepted,whole:row.whole,...roles,startupMs:row.startupMs,rssMiB:row.rssMiB}));
     await page.evaluate(()=>player.destroy());await page.close();
-   }catch(error){row.error=String(error?.stack??error);console.error(name,round,arm,row.error);}
-   finally{await writeFile(out+'/result.json',JSON.stringify(rows,null,2)+'\n');await browser.close();}
+   }catch(error){row.accepted=false;row.error=String(error?.stack??error);console.error(name,round,arm,row.error);}
+   finally{try{await context?.close();}catch(error){row.accepted=false;row.cleanupError=String(error);await blocks.invalidate(error);}await writeFile(out+'/result.json',JSON.stringify(rows,null,2)+'\n');progress.finish(row.accepted?'passed':'failed');}
+
   }
  }
-}finally{await server.close();}
+}finally{progress.close();await blocks.close();for(const row of rows)if(blocks.records.find(b=>b.id===row.browserBlock)?.status==='failed'){row.accepted=false;row.blockError='Comparison block failed cleanup';}await writeFile(out+'/result.json',JSON.stringify(rows,null,2)+'\n');await writeFile(out+'/browser-blocks.json',JSON.stringify(blocks.records,null,2)+'\n');await server.close();}
 console.log(out);

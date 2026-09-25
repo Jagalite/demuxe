@@ -2,6 +2,14 @@
 
 # Contributing
 
+## Testing
+
+Follow [the project testing standard](docs/TESTING-STANDARD.md) for all tests,
+benchmarks, experiments and reruns. Browser steady-state measurements require
+startup completion evidence; correctness and startup tests have separate rules.
+
+## Contributions and licensing
+
 Contribute original reusable code under **Apache-2.0**,
 original player/integration code under **GPL-3.0-or-later**, and original reports
 and result data under **CC BY 4.0**, as mapped in `licensing/boundaries.json`.

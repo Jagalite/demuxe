@@ -29,6 +29,8 @@ def identity(a, b):
 def load_pair(paths, records, measurements, labels, *, diagnostic=False):
     correctness, performance = map(read, paths)
     assert correctness['kind'] == 'correctness' and performance['kind'] == 'performance'
+    if performance.get('browserScope') == 'campaign':
+        raise ValueError('Single-browser campaign is an exploratory first pass, not independent release CPU rounds')
     identity(correctness, performance)
     assert correctness.get('controlledStreaming') == performance.get('controlledStreaming')
     fixtures = read(Path(correctness['assets']) / 'fixtures/catalogue.json')
@@ -61,13 +63,14 @@ def cpu(record, data, *, diagnostic=False):
                 if (diagnostic or (screened and case['status'] == 'blocked' and case.get('screenMeasured'))
                     or case['status'] == 'passed') and case.get(field)
                 and isinstance(case[field].get('oneCorePercent'), (int, float))]
-    if not diagnostic and (len(accepted) < 3 or len({case['round'] for case in cases if case.get(field)}) < 3
+    required = 3
+    if not diagnostic and (len(accepted) < required or len({case['round'] for case in cases if case.get(field)}) < required
                            or any(not (case['status'] == 'passed' or screened and case['status'] == 'blocked'
                                        and case.get('screenMeasured')) for case in cases)):
         rejected = [f"round {case.get('round')}: {case.get('status')} at {case.get('failureStage', 'window')} — {first_reason(case)}"
                     for case in cases if case['status'] not in ('passed', 'blocked') or
                     case['status'] == 'blocked' and not case.get('screenMeasured')]
-        return None, 'Three complete accepted rounds required' + (': ' + '; '.join(rejected) if rejected else '')
+        return None, f'{required} complete accepted rounds required' + (': ' + '; '.join(rejected) if rejected else '')
     if not accepted:
         return None, 'CPU attempted; no stable process window'
     return {'median': statistics.median(accepted), 'min': min(accepted), 'max': max(accepted),
@@ -91,7 +94,7 @@ def render(args):
     specialist_cases = {}
     specialist_assets_hashes = set()
     if len(args.specialist_screen) != len(args.specialist_cpu):
-        raise ValueError('Each specialist screen needs its own three CPU rounds')
+        raise ValueError('Each specialist screen needs its own CPU round group')
     for screen_path, cpu_paths in zip(args.specialist_screen, args.specialist_cpu):
         specialist = read(screen_path)
         assert specialist['kind'] == 'specialist-basic-screen'
@@ -100,7 +103,15 @@ def render(args):
         if hashlib.sha256(specialist_manifest).hexdigest() != specialist['assetsSHA256']:
             raise ValueError('Specialist screen asset manifest mismatch')
         specialist_fixtures = read(specialist_assets / 'specialist.json')
+        if len({str(Path(path).resolve()) for path in cpu_paths}) != len(cpu_paths):
+            raise ValueError('Repeated specialist CPU round path')
         specialist_cpu_runs = [read(path) for path in cpu_paths]
+        for run in specialist_cpu_runs:
+            if (run.get('browser') != specialist.get('browser') or run.get('benchmarkPolicy') != specialist.get('benchmarkPolicy')
+                    or run.get('harnessSHA256') != specialist.get('harnessSHA256')):
+                raise ValueError('Specialist CPU browser/protocol differs from screen')
+        if specialist.get('benchmarkPolicy') and len({run.get('cpuRound') for run in specialist_cpu_runs}) != len(specialist_cpu_runs):
+            raise ValueError('Repeated specialist CPU round number')
         if any(run['assetsSHA256'] != specialist['assetsSHA256'] for run in specialist_cpu_runs):
             raise ValueError('Specialist CPU snapshot differs from screen')
         specialist_assets_hashes.add(specialist['assetsSHA256'])
@@ -154,6 +165,8 @@ def render(args):
                                        if specialist_case['status'] == 'passed' else first_reason(specialist_case)),
                                specialistScreen=specialist_case['recordPath'],
                                specialistSourceSHA256=specialist_fixture['sha256'], sourceSubstituted=substituted)
+            row['auto']['cpu'] = None
+            row['auto']['cpuUnavailable'] = 'Complete matching specialist CPU rounds required'
             if specialist_cpu_runs and specialist_case['status'] == 'passed':
                 samples = []
                 for run in specialist_cpu_runs:
@@ -161,9 +174,9 @@ def render(args):
                     if len(candidates) != 1 or candidates[0]['status'] != 'passed' or not candidates[0].get('cpu', {}).get('accepted'):
                         break
                     samples.append(candidates[0]['cpu']['oneCorePercent'])
-                if len(samples) == 3:
+                if len(samples) == len(specialist_cpu_runs) and len(samples) >= 3:
                     row['auto']['cpu'] = {'median': statistics.median(samples), 'min': min(samples), 'max': max(samples),
-                                          'rounds': 3, 'records': [str(path) for path in specialist_cpu_paths],
+                                          'rounds': len(samples), 'records': [str(path) for path in specialist_cpu_paths],
                                           'diagnostic': False, 'screened': True}
                     row['auto']['cpuUnavailable'] = None
         for player in ('movi', 'libmedia'):
@@ -338,7 +351,7 @@ if __name__ == '__main__':
     parser.add_argument('--campaign', nargs=2, action='append', default=[], metavar=('CORRECTNESS', 'PERFORMANCE'))
     parser.add_argument('--screened', nargs=2, action='append', default=[], metavar=('SCREEN', 'CPU'))
     parser.add_argument('--specialist-screen', action='append', default=[])
-    parser.add_argument('--specialist-cpu', nargs=3, action='append', default=[], metavar=('ROUND1', 'ROUND2', 'ROUND3'))
+    parser.add_argument('--specialist-cpu', nargs='+', action='append', default=[], metavar='ROUND')
     parser.add_argument('--specialist-competitor-screen', action='append', default=[])
     parser.add_argument('--competitor', nargs=2, action='append', default=[], metavar=('CORRECTNESS', 'DIAGNOSTIC'))
     parser.add_argument('--competitor-targets')
