@@ -53,6 +53,11 @@ selected mpv video track. [Per-phase evidence](../results/native-video-component
 | H.264 + AC-3 + plain external WebVTT | Audio split retained browser cues and browser video. |
 | H.264 + AC-3 5.1, requested 5.1 output | Hybrid, because the selective PCM service currently produces stereo. |
 
+The HEVC fallback above remains the recorded baseline. A [source-only seek
+fix](NATIVE-HEVC-SEEK.md) now handles random-access RASL pictures before DTS
+reconstruction; it has **not been built or tested**. The updated regression
+requires Native retention, but no new passing result is claimed.
+
 The [failure-injection regression](../tests/selective-production-fallback.mjs)
 checked absent assets, video preparation failure, audio module load failure,
 audio service failure, lost audio timeline, and ASS/PGS subtitle service

@@ -15,6 +15,7 @@
 #include <libavutil/pixdesc.h>
 static H264ParamSets ps;
 static int reorder,nal_size,is_avc,repair_dts,generic_video,hevc_video,mux_webm;
+static int hevc_picture_type,hevc_no_rasl,hevc_packet_metadata;
 static int64_t pts_queue[17],last_dts[64];
 static uint8_t config_nals[64][4096];static int config_sizes[64],config_count;
 static char video_codec[96],audio_codec[32],failure[160];
@@ -27,7 +28,19 @@ static void track_metadata(AVStream *stream){
 static int reject(const char *reason){snprintf(failure,sizeof(failure),"%s",reason);return AVERROR_INVALIDDATA;}
 EMSCRIPTEN_KEEPALIVE const char *rm_error(void){return failure;}
 static int visit_nal(const uint8_t*p,int n,int record){
- if(n<=0)return 0;int type=hevc_video?(p[0]>>1)&63:p[0]&31;if(hevc_video?(type<32||type>34):(type!=7&&type!=8))return 0;
+ if(n<=0)return 0;int type=hevc_video?(p[0]>>1)&63:p[0]&31;
+ if(hevc_video&&repair_dts&&!record&&type<32){
+  // Classify single-layer picture headers before omitting an access unit.
+  // Mixed layers/types must fall back rather than lose required slices.
+  if(n<2||(p[0]&0x81)||(p[1]&0xf8)||!(p[1]&7))return reject("Unsupported HEVC slice header for timestamp repair");
+  if(hevc_picture_type>=0&&hevc_picture_type!=type)return reject("Mixed HEVC picture types in selected packet");
+  hevc_picture_type=type;
+ }
+ // A decoder still processes non-VCL state when it suppresses RASL slices.
+ // Only AUD/filler are safe to omit with a whole packet; preserve all other
+ // auxiliary NALs by rejecting the selective remux instead of discarding them.
+ if(hevc_video&&repair_dts&&!record&&type>=32&&type!=35&&type!=38)hevc_packet_metadata=1;
+ if(hevc_video?(type<32||type>34):(type!=7&&type!=8))return 0;
  if(record){if(config_count>=64||n>4096)return reject("AVC parameter budget exceeded");memcpy(config_nals[config_count],p,n);config_sizes[config_count++]=n;return 0;}
  for(int i=0;i<config_count;i++)if(config_sizes[i]==n&&!memcmp(p,config_nals[i],n))return 0;
  return reject("Selected AVC configuration changed; new initialization required");
@@ -395,7 +408,7 @@ static int prepare_tail_seek(double target){
 #endif
 EMSCRIPTEN_KEEPALIVE int rm_start(double target){
  int seek_stream=video>=0?video:audio;
- close_output();eof=0;video_started=0;fragment_start=-1;fragment_count=0;aac_anchor=AV_NOPTS_VALUE;aac_count=0;for(int i=0;i<17;i++)pts_queue[i]=AV_NOPTS_VALUE;for(int i=0;i<64;i++)last_dts[i]=AV_NOPTS_VALUE;
+ close_output();eof=0;video_started=0;hevc_no_rasl=0;fragment_start=-1;fragment_count=0;aac_anchor=AV_NOPTS_VALUE;aac_count=0;for(int i=0;i<17;i++)pts_queue[i]=AV_NOPTS_VALUE;for(int i=0;i<64;i++)last_dts[i]=AV_NOPTS_VALUE;
  int tail_seek=0;
 #ifdef DEMUXE_AUDIO_ADAPTATION
  tail_seek=prepare_tail_seek(target);if(tail_seek<0)return tail_seek;
@@ -493,17 +506,34 @@ EMSCRIPTEN_KEEPALIVE int rm_step(void){
   if(idx==audio&&audio_bsf){r=repair_audio(packet,1);if(r<0)return r;}
   if(packet->pts==AV_NOPTS_VALUE)return reject("Missing selected packet PTS");
   if(idx==video){
-#ifdef DEMUXE_AUDIO_ADAPTATION
-   if(adapt_enabled)EM_ASM({if(!Module.videoFrames)Module.videoFrames=[];Module.videoFrames.push([$0,$1]);},packet->pts*av_q2d(src->time_base)-origin,packet->duration*av_q2d(src->time_base));
-#endif
    if(src->codecpar->codec_id==AV_CODEC_ID_VP9&&(packet->flags&AV_PKT_FLAG_KEY)){
     int same=EM_ASM_INT({const next=Module.parseVP9(HEAPU8.slice($0,$0+$1));return next.profile===Module.vp9.profile&&next.pixelFormat===Module.vp9.pixelFormat&&next.fullRange===Module.vp9.fullRange;},packet->data,packet->size);
     if(!same)return reject("Selected VP9 configuration changed; new initialization required");
    }
-   if(!video_started&&!idr(packet))return reject("Selected video must begin at an IDR");video_started=1;
+   if(!video_started&&!idr(packet))return reject("Selected video must begin at an IDR");
    size_t extra_size=0;uint8_t *extra=av_packet_get_side_data(packet,AV_PKT_DATA_NEW_EXTRADATA,&extra_size);
    if(extra&&(extra_size!=src->codecpar->extradata_size||memcmp(extra,src->codecpar->extradata,extra_size)))return reject("Selected video configuration changed; new initialization required");
+   hevc_picture_type=-1;hevc_packet_metadata=0;
    if(!generic_video||hevc_video){r=scan_nals(packet->data,packet->size,is_avc?nal_size:0,0);if(r<0)return r;}
+   if(hevc_video&&repair_dts){
+    if(hevc_picture_type<0)return reject("Missing HEVC picture in selected packet");
+    // Fresh random access at CRA (21), or BLA (16..18), has NoRaslOutputFlag.
+    // Its RASL pictures (8/9) can refer to the preceding GOP and are not output.
+    // Feeding their pre-CRA PTS into the seeded DTS queue can duplicate a seed
+    // (e.g. CRA 10000, RASL 9967 with duration 33). Omit these access units
+    // before timing/coverage accounting, as a decoder does at random access.
+    // A later CRA in continuous playback MUST retain its RASL pictures.
+    if(hevc_picture_type>=16&&hevc_picture_type<=21)
+     hevc_no_rasl=(hevc_picture_type>=16&&hevc_picture_type<=18)||(!video_started&&hevc_picture_type==21);
+    if(hevc_no_rasl&&(hevc_picture_type==8||hevc_picture_type==9)){
+     if(hevc_packet_metadata)return reject("Unsupported HEVC random-access leading packet metadata");
+     av_packet_unref(packet);continue;
+    }
+   }
+   video_started=1;
+#ifdef DEMUXE_AUDIO_ADAPTATION
+   if(adapt_enabled)EM_ASM({if(!Module.videoFrames)Module.videoFrames=[];Module.videoFrames.push([$0,$1]);},packet->pts*av_q2d(src->time_base)-origin,packet->duration*av_q2d(src->time_base));
+#endif
    if(repair_dts){
     if(pts_queue[0]==AV_NOPTS_VALUE){if(packet->duration<=0)return reject("Missing initial MKV packet duration");for(int j=0;j<reorder;j++)pts_queue[j]=packet->pts-(reorder-j)*packet->duration;}
     pts_queue[reorder]=packet->pts;for(int j=reorder;j>0&&pts_queue[j]<pts_queue[j-1];j--){int64_t t=pts_queue[j];pts_queue[j]=pts_queue[j-1];pts_queue[j-1]=t;}
