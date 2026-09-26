@@ -33,6 +33,7 @@ launch per round. The
 | HEVC Main 8-bit + AAC / MP4 (hvc1) | Four maintained passes and one MediaBunny screen; Movi failed near EOF; five viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-hevc-hvc1-20260926/REPORT.md) |
 | HEVC Main 8-bit + AAC / MP4 (hev1) | Four maintained passes and one MediaBunny screen; Movi failed near EOF; five viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-hevc-hev1-20260926/REPORT.md) |
 | HEVC Main 10-bit SDR + AAC / MP4 | Four maintained passes and one MediaBunny screen; Movi failed playback rate; five viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-hevc10-aac-20260926/REPORT.md) |
+| HEVC Main 10 4:2:2 + AAC / MKV | Five maintained passes and one MediaBunny screen; profile fidelity bounded; Movi CPU withheld after a stalled middle round | [row report](../experiments/mediabunny-investigation/notes/official-player-row-hevc422-aac-20260926/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available
