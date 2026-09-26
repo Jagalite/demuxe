@@ -18,6 +18,7 @@ const cases = [
   ['pcm24-mkv', 'H.264 + PCM24 / MKV', 'build/head-to-head/assets-expanded-03/fixtures/pcm.mkv'],
   ['pcm24-ass', 'H.264 + PCM24 / MKV + ASS', 'build/head-to-head/assets-expanded-03/fixtures/pcm.mkv'],
   ['h264-aac51', 'H.264 + AAC 5.1 / MP4', 'build/head-to-head/assets-release-supplement-20260925-04/fixtures/h264-aac51/index.mp4'],
+  ['h264-mp3', 'H.264 + MP3 stereo / MP4', 'build/head-to-head/assets-release-supplement-20260925-04/fixtures/h264-mp3/index.mp4'],
 ].filter(([id]) => !process.argv.some(arg => arg.startsWith('--case=')) || process.argv.includes(`--case=${id}`));
 if (!cases.length) throw Error('Unknown case');
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -37,7 +38,7 @@ try {
     page.on('pageerror', e => row.errors.push(e.message));
     await page.addInitScript(() => {
       const emptyTone = () => ({ samples: 0, squares: 0, intervals: 0, span: 0 });
-      window.__qualify = { draws: 0, starts: 0, tones: [emptyTone(), emptyTone()], sampleRate: 0 };
+      window.__qualify = { draws: 0, starts: 0, tones: [emptyTone(), emptyTone()], sampleRate: 0, bufferStats: [] };
       const originalDraw = CanvasRenderingContext2D.prototype.drawImage;
       CanvasRenderingContext2D.prototype.drawImage = function (...args) {
         if (this.canvas.closest?.('#player')) window.__qualify.draws++;
@@ -57,7 +58,7 @@ try {
             for (let i = 0; i < count; i++) squares += source[i] ** 2;
             // AAC encoder priming can produce a near-silent first buffer whose
             // noise zero crossings are unrelated to the marked signal.
-            if (count < 100 || Math.sqrt(squares / count) < 0.015) continue;
+            if (count < 100 || Math.sqrt(squares / count) < 0.05) continue;
             let first = -1, last = -1, crossings = 0;
             for (let i = 1; i < count; i++) {
               if (source[i - 1] <= 0 && source[i] > 0) {
@@ -70,6 +71,7 @@ try {
             }
             target.squares += squares;
             target.samples += count;
+            if (q.bufferStats.length < 30) q.bufferStats.push({ channel, sampleRate: this.buffer.sampleRate, count, crossings, span: last - first, rms: Math.sqrt(squares / count) });
             if (crossings >= 2) { target.intervals += crossings - 1; target.span += last - first; }
           }
         }
@@ -84,7 +86,7 @@ try {
       });
       return { position: document.querySelector('#current-time')?.textContent, duration: document.querySelector('#duration')?.textContent,
         error: document.querySelector('#error-element')?.textContent, warning: document.querySelector('#warning-element')?.textContent,
-        visible: getComputedStyle(document.querySelector('#player')).display !== 'none', draws: q.draws, audioStarts: q.starts, audio };
+        visible: getComputedStyle(document.querySelector('#player')).display !== 'none', draws: q.draws, audioStarts: q.starts, audio, bufferStats: q.bufferStats };
     });
     const resetAudio = () => page.evaluate(() => { window.__qualify.tones = [0, 1].map(() => ({ samples: 0, squares: 0, intervals: 0, span: 0 })); });
     const image = async name => {

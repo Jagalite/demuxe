@@ -161,7 +161,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + PCM24 / MKV | 🟢 (Pass) · 26.6% CPU | 🟢 (Pass) · 9.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 32.5% CPU |
 | H.264 + PCM24 / MKV + ASS | 🟢 | 🟢 | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) · external ASS unavailable |
 | H.264 + AAC 5.1 / MP4 | 🟢 (Pass)* · 35.1% CPU | 🟢 (Pass)\* · 14.8% CPU | 🟢 (Pass)\* · 14.8% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)\* · 33.4% CPU | 🟡 Screened* · 37.2% CPU |
-| H.264 + MP3 stereo / MP4 | 🟢 | 🟢 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🟠 | — |
+| H.264 + MP3 stereo / MP4 | 🟢 (Pass) · 33.6% CPU | 🟢 (Pass) · 13.3% CPU | 🟢 (Pass) · 14.3% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 34.2% CPU | 🟡 Screened · 34.7% CPU |
 | H.264 + AC-3 5.1 / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* · hybrid | 🔴 (Fail) | 🟢 (Pass)* | — |
 | H.264 + E-AC-3 5.1 / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* · hybrid | 🔴 (Fail) | 🟢 (Pass)\* | — |
 | H.264 + DTS core 5.1 / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* · hybrid | 🔴 (Fail) | 🟢 (Pass)\* | — |
@@ -241,6 +241,8 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 The external ASS row played video and audio in the MediaBunny example, but the required subtitle file could not be supplied through its controls. Its failure and the withheld CPU figures for the other players are documented in the [row evidence](experiments/mediabunny-investigation/notes/official-player-row-pcm24-ass-20260925/REPORT.md).
 
 The [AAC 5.1 row](experiments/mediabunny-investigation/notes/official-player-row-h264-aac51-20260925/REPORT.md) used one headed Chrome launch for all player CPU arms and three rotating rounds. Its `*` means stereo output was screened; six discrete output channels were not verified. Movi's CPU samples are diagnostic because its correctness screen failed.
+
+The [MP3/MP4 row](experiments/mediabunny-investigation/notes/official-player-row-h264-mp3-confirmed-20260925/REPORT.md) also used one Chrome launch across all six CPU arms and three rotating rounds. Its separate Auto follow-up investigated one low matched-run window; all windows are retained in the report. AVPlayer passed the fresh full screen, replacing its earlier partial-playback label.
 
 See [versions, evidence, and configured alternatives](docs/HEAD-TO-HEAD-ROUTES.md)
 and the [rerun guide](docs/HEAD-TO-HEAD.md).

@@ -20,7 +20,10 @@ if (!source || source.live || source.streamFormat) throw Error('Unknown or unsup
 const directory = path.resolve(output);
 await mkdir(directory, { recursive: false });
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
-const players = ['video', 'demuxe-auto', 'demuxe-software', 'movi', 'libmedia', 'mediabunny'];
+const allPlayers = ['video', 'demuxe-auto', 'demuxe-software', 'movi', 'libmedia', 'mediabunny'];
+const selected = process.argv.find(arg => arg.startsWith('--players='))?.slice(10);
+const players = selected ? selected.split(',') : allPlayers;
+if (!players.length || players.some(player => !allPlayers.includes(player))) throw Error('Unknown player selection');
 const result = { date: new Date().toISOString(), scope: 'One headed Chrome launch per row; fresh context per arm; rotating order; local URL for maintained players and local File for published MediaBunny example',
   fixture, source, fixtureSha256: sha256(await readFile(path.join(assets, 'fixtures', source.file))),
   assetManifestSha256: sha256(await readFile(path.join(assets, 'manifest.json'))), policy: benchmarkPolicy,

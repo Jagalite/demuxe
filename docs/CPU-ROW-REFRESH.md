@@ -18,6 +18,7 @@ launch per round. The
 | H.264 + PCM24 / MKV | Auto rerun on current player: native-direct, 14.0% CPU median; other arms retain earlier campaign results | [Auto rerun](../results/head-to-head/pcm24-auto-rerun-20260925-01/REPORT.md), [earlier row report](../results/head-to-head/row-h264-pcm24-mkv-20260925-01/REPORT.md) |
 | H.264 + PCM24 / MKV + ASS | Screened: two Demuxe passes, three failures; CPU withheld for wide drift and unmatched host-ASS reference | [row report](../results/head-to-head/row-h264-pcm24-ass-20260925-01/REPORT.md) |
 | H.264 + AAC 5.1 / MP4 | Screened stereo output for five arms; Movi failed; matched one-Chrome CPU for the screened arms | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-aac51-20260925/REPORT.md) |
+| H.264 + MP3 stereo / MP4 | Four maintained arms passed and Movi failed; MediaBunny screened; matched one-Chrome CPU with Auto outlier and follow-up | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-mp3-confirmed-20260925/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available
