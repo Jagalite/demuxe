@@ -28,6 +28,12 @@ static int reject(const char *reason){snprintf(failure,sizeof(failure),"%s",reas
 EMSCRIPTEN_KEEPALIVE const char *rm_error(void){return failure;}
 static int visit_nal(const uint8_t*p,int n,int record){
  if(n<=0)return 0;int type=hevc_video?(p[0]>>1)&63:p[0]&31;if(hevc_video?(type<32||type>34):(type!=7&&type!=8))return 0;
+ // Parameter-set RBSP ends in a nonzero stop-bit byte. Annex B permits
+ // trailing_zero_8bits between NAL units and after the final NAL; FFmpeg's
+ // extracted initialization and packet framing need not retain the same zeros.
+ // Compare the parameter-set bytes, not this byte-stream padding. Actual
+ // SPS/PPS/VPS changes still require a new initialization segment.
+ while(n>1&&p[n-1]==0)n--;
  if(record){if(config_count>=64||n>4096)return reject("AVC parameter budget exceeded");memcpy(config_nals[config_count],p,n);config_sizes[config_count++]=n;return 0;}
  for(int i=0;i<config_count;i++)if(config_sizes[i]==n&&!memcmp(p,config_nals[i],n))return 0;
  return reject("Selected AVC configuration changed; new initialization required");
