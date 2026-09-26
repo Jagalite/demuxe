@@ -209,6 +209,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     verifyOutput(signal?: AbortSignal): Promise<void>;
     private startRemux;
     private loadPlan;
+    private openServices;
     open(file: File | ArrayBuffer): Promise<void>;
     openRemote(source: RemoteSource): Promise<void>;
     private classifyDirectFailure;

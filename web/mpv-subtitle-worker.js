@@ -49,6 +49,8 @@ const seekDisplay=async seconds=>{
 };
 let chain=Promise.resolve();
 onmessage=({data:d})=>{
+ // Refresh replies must bypass the init/render chain waiting on that read.
+ if(d.type==='refreshed'){if(!closed)io?.postMessage(d);return;}
  // Closing must wake a blocked demux read without waiting behind a render RPC.
  if(d.type==='close'){
   closed=true;cancelDeadline();engine?._web_io_cancel();io?.postMessage({type:'close'});
@@ -75,10 +77,11 @@ onmessage=({data:d})=>{
      io.onmessage=({data:m})=>{
       if(m.type==='ready'){clearTimeout(timeout);resolve(m.info);}
       if(m.type==='stats')ioStats=m.stats;
+      if(m.type==='refresh')postMessage(m);
       if(m.type==='error'){clearTimeout(timeout);fatal=Error(m.message);reject(fatal);}
      };
      io.onerror=e=>{clearTimeout(timeout);fatal=Error(e.message);reject(fatal);};
-     io.postMessage({type:'init',memory:engine.HEAPU8.buffer,pointer:engine._web_io_ptr(),file:d.file,subtitleCacheBytes:4*1024*1024,subtitleMaxRequests:8192});
+     io.postMessage({type:'init',memory:engine.HEAPU8.buffer,pointer:engine._web_io_ptr(),file:d.file,options:d.options,canRefresh:d.canRefresh,subtitleCacheBytes:4*1024*1024,subtitleMaxRequests:8192});
     });
     check();engine._web_io_configure(1,BigInt(info.size));
     if(engine._subtitle_service_open()<0)throw Error('Subtitle source open failed');

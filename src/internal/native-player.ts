@@ -299,27 +299,30 @@ export class NativePlayer extends EventTarget implements Backend {
       await this.startRemux(source);
     } finally {this.opening=false;}
   }
+  private async openServices(source:File|RemoteSource) {
+    if(this.selectiveAudio){
+      const {NativeMpvAudio}=await import('./native-mpv-audio.js');this.assertActive();
+      this.video.muted=true;
+      this.mpvAudio=new NativeMpvAudio(this.video,()=>this.sourceTime(),this.assetBase,error=>this.emit('error',error));
+      await this.mpvAudio.open(source,this.initialAudioTrack);
+      this.assertActive();
+      await this.mpvAudio.volume(this.requestedVolume);await this.mpvAudio.gainValue(this.gainValue);
+      if(this.requestedRate!==1)await this.mpvAudio.rate(this.requestedRate);
+      this.refresh();
+    }
+    if(this.mpvSubtitlePlan){
+      const {NativeMpvSubtitles}=await import('./native-mpv-subtitles.js');this.assertActive();
+      this.mpvSubs=new NativeMpvSubtitles(this.video,()=>this.sourceTime(),this.assetBase,this.fonts,source,error=>this.emit('error',error),this.defaultSubtitleStreamIndex);
+      await this.mpvSubs.ready;this.assertActive();await this.mpvSubs.select('auto');this.mpvSubs.visible(false);this.refresh();
+    }
+  }
   async open(file: File | ArrayBuffer) {
     this.assertActive();
     const local=file instanceof File?file:new File([file],'media');
     this.objectURL=URL.createObjectURL(local);
     try {
       await this.loadPlan({file:local,audioTrack:this.initialAudioTrack,videoOnly:this.selectiveAudio},()=>this.load(this.objectURL!));
-      if(this.selectiveAudio){
-        const {NativeMpvAudio}=await import('./native-mpv-audio.js');this.assertActive();
-        this.video.muted=true;
-        this.mpvAudio=new NativeMpvAudio(this.video,()=>this.sourceTime(),this.assetBase,error=>this.emit('error',error));
-        try{await this.mpvAudio.open(local,this.initialAudioTrack);}catch(error){throw new PlayerError('DECODE_FAILED','Selective audio startup failed: '+String(error));}
-        this.assertActive();
-        await this.mpvAudio.volume(this.requestedVolume);await this.mpvAudio.gainValue(this.gainValue);
-        if(this.requestedRate!==1)await this.mpvAudio.rate(this.requestedRate);
-        this.refresh();
-      }
-      if(this.mpvSubtitlePlan){
-        const {NativeMpvSubtitles}=await import('./native-mpv-subtitles.js');this.assertActive();
-        this.mpvSubs=new NativeMpvSubtitles(this.video,()=>this.sourceTime(),this.assetBase,this.fonts,local,error=>this.emit('error',error),this.defaultSubtitleStreamIndex);
-        await this.mpvSubs.ready;this.assertActive();await this.mpvSubs.select('auto');this.mpvSubs.visible(false);this.refresh();
-      }
+      await this.openServices(local);
     }
     catch(error){URL.revokeObjectURL(this.objectURL);this.objectURL=undefined;
       if(this.selectiveAudio&&!(error instanceof PlayerError)&&!(error instanceof DOMException&&['AbortError','NotAllowedError'].includes(error.name)))throw new PlayerError('DECODE_FAILED','Selective video preparation failed: '+String(error));
@@ -327,12 +330,11 @@ export class NativePlayer extends EventTarget implements Backend {
   }
   async openRemote(source: RemoteSource) {
     this.assertActive();
-    if(this.selectiveAudio)throw new PlayerError('UNSUPPORTED_FEATURE','Selective audio currently requires a local inspected file');
     const url=new URL(source.url,location.href);
     if(!['http:','https:'].includes(url.protocol))throw Error('Remote sources require HTTP or HTTPS');
-    const requiresRemux=!!(source.headers||source.refreshAuthorization||source.allowedOrigins||source.immutable!==undefined||source.credentials==='omit');
+    const requiresRemux=!!(source.headers||source.refreshAuthorization||source.allowedOrigins||source.immutable!==undefined||source.credentials==='omit'||this.mpvSubtitlePlan);
     this.video.crossOrigin=source.credentials==='include'?'use-credentials':'anonymous';
-    await this.loadPlan({options:{...source,url:url.href},audioTrack:this.initialAudioTrack},async()=>{
+    await this.loadPlan({options:{...source,url:url.href},audioTrack:this.initialAudioTrack,videoOnly:this.selectiveAudio},async()=>{
       if(source.format&&source.format!=='file'){
         const mime=source.format==='hls'?'application/vnd.apple.mpegurl':'application/dash+xml';
         this.capability.apiHint=`canPlayType(${mime})=${this.video.canPlayType(mime)||'unknown'}`;
@@ -343,6 +345,7 @@ export class NativePlayer extends EventTarget implements Backend {
         if(source.format&&source.format!=='file'&&!Number.isFinite(this.video.duration))throw new PlayerError('SOURCE_PERMISSION','Native manifest has no finite VOD duration; live playback requires explicit Shaka live permission');
       }catch(error){throw await this.classifyDirectFailure(error);}
     },requiresRemux);
+    await this.openServices({...source,url:url.href});
   }
   private async classifyDirectFailure(error:unknown):Promise<unknown> {
     const source=this.remoteSource;

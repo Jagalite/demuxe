@@ -134,6 +134,7 @@ export declare class Player extends EventTarget {
     prepare(components?: PreparationOptions): Promise<PreparationReport>;
     private create;
     private settled;
+    private fileServicesSource;
     private admissible;
     private failedStreamingPlan;
     private replace;

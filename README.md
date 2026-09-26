@@ -13,12 +13,15 @@ mode. Demuxe owns source classification, plan selection, state and fallback; Sha
 owns HLS/DASH parsing, segment scheduling, ABR, buffering, live/DVR and MSE.
 Simple browser-supported HLS VOD can retain Native Direct when its source and
 track policies permit it and actual output passes verification. Ordinary files
-keep their existing Direct/Remux/Hybrid/Software paths. Qualified local files
-with browser-presentable video and selected AC-3 or DTS stereo audio can use
-the separate `native-video-mpv-audio` plan: the browser owns video, while mpv
-decodes audio into the PCM AudioWorklet. Unsupported combinations retain Hybrid
-and Software fallback. Current admission is deliberately narrow; see the
-[route policy](docs/PLAYBACK-TIER-POLICY.md#native-video-with-mpv-audio).
+keep their existing Direct/Remux/Hybrid/Software paths. Inspected finite files
+with browser-presentable video can use `native-video-mpv-audio`: the browser owns
+video, while mpv decodes selected audio into the PCM AudioWorklet. Embedded
+subtitles can use the mpv subtitle service alongside Native playback. These
+service paths accept local files and inspected HTTP(S) file URLs; URL readers
+preserve source identity and authorization. Unsupported combinations retain
+Hybrid and Software fallback. URL support is implemented but awaits runtime
+qualification; the existing local-file results retain their original scope.
+See the [route policy](docs/PLAYBACK-TIER-POLICY.md#native-video-with-mpv-audio).
 Shaka loads only when its plan is needed. See [streaming architecture](docs/STREAMING.md).
 The [matched integrated selective-route report](results/selective-production/REPORT.md)
 records H.264/AC-3, H.264/DTS and HEVC Main10/AC-3 CPU and lifecycle results.

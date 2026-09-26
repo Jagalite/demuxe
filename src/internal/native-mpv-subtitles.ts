@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import type {FontAsset} from '../types.js';
+import type {FontAsset, RemoteSource} from '../types.js';
 import {PlayerError} from './errors.js';
 /** mpv embedded subtitle rendering on the accepted media timeline. One bounded RPC at a time. */
 export class NativeMpvSubtitles {
@@ -30,7 +30,7 @@ export class NativeMpvSubtitles {
   tracks:Array<{id:string;mpvId:number;'ff-index':number;type:string;selected?:boolean;default?:boolean}>=[];
   service:Record<string,unknown>={};
   readonly stats={position:-1,renders:0,bitmapUpdates:0,bytes:0,peakBytes:0,discarded:0,stateUpdates:0,scheduler:'frame'};
-  constructor(private video:HTMLVideoElement,private time:()=>number,base:URL,fonts:FontAsset[],private file:File,private failed:(e:Error)=>void,private defaultStreamIndex?:number){
+  constructor(private video:HTMLVideoElement,private time:()=>number,base:URL,fonts:FontAsset[],private source:File|RemoteSource,private failed:(e:Error)=>void,private defaultStreamIndex?:number){
     if(!crossOriginIsolated)throw Error('Native mpv subtitles requires cross-origin isolation');
     this.canvas.className='demuxe-native-ass';this.canvas.style.cssText='position:absolute;pointer-events:none;display:none';
     if(!video.parentElement)throw Error('Missing Native presentation container');
@@ -42,7 +42,12 @@ export class NativeMpvSubtitles {
     parent.style.position='relative';parent.append(this.canvas);
     video.style.objectFit='contain';
     video.disablePictureInPicture=true;video.disableRemotePlayback=true;
-    this.worker.onmessage=({data})=>{if(data.type==='closed'){this.closed?.();return;}if(data.type==='subtitleTimingChanged'){this.timingEpoch=data.epoch>>>0;if(this.schedulerMode!=='fallback')void this.pump();return;}if(data.type==='subtitleDeadline'){if(this.schedulerMode==='deadline'&&data.epoch===this.deadlineEpoch&&!this.video.paused&&!document.hidden){if(this.time()+.004>=data.target)this.invalidate();else void this.pump();}return;}const p=this.pending.get(data.id);if(!p){data.bitmap?.close();return;}clearTimeout(p.timer);this.pending.delete(data.id);data.error?p.reject(/^Error: Subtitle (?:decoder unavailable|decode failed|packet deadline exceeded|source load failed|selection failed|seek failed)/.test(data.error)?new PlayerError('UNSUPPORTED_FEATURE',data.error):Error(data.error)):p.resolve(data);};
+    this.worker.onmessage=({data})=>{if(data.type==='refresh'){
+      const refresh=this.source instanceof File?undefined:this.source.refreshAuthorization;
+      void Promise.resolve().then(()=>{if(!refresh)throw Error('Authorization refresh unavailable');return refresh(data.resource);}).then(
+        update=>{if(!this.stopped)this.worker.postMessage({type:'refreshed',id:data.id,update});},
+        error=>{if(!this.stopped)this.worker.postMessage({type:'refreshed',id:data.id,error:String(error)});});return;
+    }if(data.type==='closed'){this.closed?.();return;}if(data.type==='subtitleTimingChanged'){this.timingEpoch=data.epoch>>>0;if(this.schedulerMode!=='fallback')void this.pump();return;}if(data.type==='subtitleDeadline'){if(this.schedulerMode==='deadline'&&data.epoch===this.deadlineEpoch&&!this.video.paused&&!document.hidden){if(this.time()+.004>=data.target)this.invalidate();else void this.pump();}return;}const p=this.pending.get(data.id);if(!p){data.bitmap?.close();return;}clearTimeout(p.timer);this.pending.delete(data.id);data.error?p.reject(/^Error: Subtitle (?:decoder unavailable|decode failed|packet deadline exceeded|source load failed|selection failed|seek failed)/.test(data.error)?new PlayerError('UNSUPPORTED_FEATURE',data.error):Error(data.error)):p.resolve(data);};
     this.worker.onerror=e=>{e.preventDefault();this.fail(Error(e.message||'Subtitle worker failed'));};
     this.worker.onmessageerror=()=>this.fail(Error('Subtitle worker message failure'));
     this.observer=new ResizeObserver(()=>this.invalidate());this.observer.observe(video);
@@ -60,7 +65,9 @@ export class NativeMpvSubtitles {
       if(!response.ok)throw Error('Subtitle default font unavailable');
       const bytes=await response.arrayBuffer();if(bytes.byteLength>8*1024*1024)throw Error('Subtitle font budget exceeded');
       if(this.stopped)throw Error('Subtitle renderer destroyed');
-      const result=await this.request('init',{file:this.file,fonts:[{name:'DejaVuSans.ttf',bytes},...fonts]});this.tracks=result.tracks;
+      const source=this.source;
+      const transport=source instanceof File?{file:source}:(()=>{const {refreshAuthorization,...options}=source;return {options,canRefresh:!!refreshAuthorization};})();
+      const result=await this.request('init',{...transport,fonts:[{name:'DejaVuSans.ttf',bytes},...fonts]});this.tracks=result.tracks;
       if(this.defaultStreamIndex!==undefined&&!this.tracks.some(track=>track['ff-index']===this.defaultStreamIndex))throw new PlayerError('UNSUPPORTED_FEATURE','Inspected subtitle stream was not enumerated by mpv');
       for(const track of this.tracks)track.default=track['ff-index']===this.defaultStreamIndex;
       } finally {clearTimeout(deadline);}

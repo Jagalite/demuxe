@@ -1,0 +1,76 @@
+PASS URL marked output after seeks, service ownership, auth, lifecycle, cleanup: h264-ac3
+PASS URL marked output after seeks, service ownership, auth, lifecycle, cleanup: h264-eac3
+PASS URL marked output after seeks, service ownership, auth, lifecycle, cleanup: h264-dts
+FAIL hevc10-ac3 AssertionError [ERR_ASSERTION]: hevc10-ac3: route changed after seek to 3
++ actual - expected
+
++ 'hybrid'
+- 'native-video-mpv-audio'
+
+PASS URL marked output after seeks, service ownership, auth, lifecycle, cleanup: h264-srt
+PASS URL marked output after seeks, service ownership, auth, lifecycle, cleanup: h264-movtext
+PASS URL marked output after seeks, service ownership, auth, lifecycle, cleanup: h264-ass
+PASS URL marked output after seeks, service ownership, auth, lifecycle, cleanup: h264-aac-pgs-isolation
+PASS URL marked output after seeks, service ownership, auth, lifecycle, cleanup: h264-aac-vobsub-isolation
+FAIL hevc-pgs AssertionError [ERR_ASSERTION]: hevc-pgs: route changed after seek to 3
++ actual - expected
+
++ 'hybrid'
+- 'native-video-mpv-audio-subtitles'
+
+PASS URL marked output after seeks, service ownership, auth, lifecycle, cleanup: h264-vobsub
+PASS URL marked output after seeks, service ownership, auth, lifecycle, cleanup: h264-ts
+node:internal/modules/run_main:104
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Failed cases; evidence: results/native-url-services/2026-09-26T14-50-45.819Z
++ actual - expected
+
++ [
++   {
++     error: 'AssertionError [ERR_ASSERTION]: hevc10-ac3: route changed after seek to 3\n' +
++       '+ actual - expected\n' +
++       '\n' +
++       "+ 'hybrid'\n" +
++       "- 'native-video-mpv-audio'\n",
++     name: 'hevc10-ac3'
++   },
++   {
++     error: 'AssertionError [ERR_ASSERTION]: hevc-pgs: route changed after seek to 3\n' +
++       '+ actual - expected\n' +
++       '\n' +
++       "+ 'hybrid'\n" +
++       "- 'native-video-mpv-audio-subtitles'\n",
++     name: 'hevc-pgs'
++   }
++ ]
+- []
+
+    at file:///Volumes/seed2/Projects/demuxe-native-url-fix/tests/native-url-services.mjs:134:8
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [
+    {
+      name: 'hevc10-ac3',
+      error: 'AssertionError [ERR_ASSERTION]: hevc10-ac3: route changed after seek to 3\n' +
+        '+ actual - expected\n' +
+        '\n' +
+        "+ 'hybrid'\n" +
+        "- 'native-video-mpv-audio'\n"
+    },
+    {
+      name: 'hevc-pgs',
+      error: 'AssertionError [ERR_ASSERTION]: hevc-pgs: route changed after seek to 3\n' +
+        '+ actual - expected\n' +
+        '\n' +
+        "+ 'hybrid'\n" +
+        "- 'native-video-mpv-audio-subtitles'\n"
+    }
+  ],
+  expected: [],
+  operator: 'deepStrictEqual'
+}
+
+Node.js v23.5.0

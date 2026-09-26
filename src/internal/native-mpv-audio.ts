@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {WasmPlayer} from './wasm-player.js';
-import {PlayerError} from './errors.js';
+import {PlayerError,playerError} from './errors.js';
+import type {RemoteSource} from '../types.js';
 
 type Timeline={kind:string;wallTime:number|null;mediaTime:number;rate:number;generation:number;epoch:number;audioFrame:number};
 type PendingRate={rate:number;generation:number;resolve:()=>void;reject:(error:Error)=>void;timer?:ReturnType<typeof setTimeout>;deadline:ReturnType<typeof setTimeout>};
@@ -58,7 +59,7 @@ export class NativeMpvAudio extends EventTarget {
     };
     this.frameCallback=video.requestVideoFrameCallback(frame);
   }
-  private fail(error:unknown){if(!this.stopped&&!this.failedOnce){this.failedOnce=true;this.failed(error instanceof PlayerError?error:new PlayerError('DECODE_FAILED','Selective audio service failed: '+String(error)));}}
+  private fail(error:unknown){if(!this.stopped&&!this.failedOnce){this.failedOnce=true;this.failed(playerError(error));}}
   private h(index:number){return Atomics.load(this.header,index);}
   private set(index:number,value:number){Atomics.store(this.header,index,value);}
   private cancelRate(reason:string){
@@ -111,21 +112,22 @@ export class NativeMpvAudio extends EventTarget {
     await new Promise(resolve=>setTimeout(resolve,12));
   };
   private fadeIn(){const at=this.context.currentTime;this.gain.gain.cancelScheduledValues(at);this.gain.gain.setValueAtTime(0,at);this.gain.gain.linearRampToValueAtTime(1,at+.008);}
-  async open(file:File,audioStream?:number){
+  async open(source:File|RemoteSource,audioStream?:number){
     await this.engine.ready;
     const state=this.engine.selectiveAudioState();this.header=state.header;this.context=state.context;this.gain=state.gain;
     await this.engine.command('set','vid','no');await this.engine.command('set','sid','no');
     if(audioStream!==undefined)await this.engine.command('set','aid',String(audioStream+1));
-    await this.engine.open(file);
+    if(source instanceof File)await this.engine.open(source);
+    else await this.engine.openRemote(source);
     await this.engine.inspectMetadata();
     let tracks=this.engine.properties.get('track-list') as Array<{id:string;type:string;selected?:boolean;'ff-index'?:number}>|undefined;
     if(audioStream!==undefined){
       const requested=tracks?.find(t=>t.type==='audio'&&t['ff-index']===audioStream);
-      if(!requested)throw Error('Selective requested audio stream is absent');
+      if(!requested)throw new PlayerError('DECODE_FAILED','Selective requested audio stream is absent');
       if(!requested.selected){await this.engine.selectTrack('audio',requested.id);await wait(()=>this.selectedStreamIndex===audioStream);}
       tracks=this.engine.properties.get('track-list') as typeof tracks;
     }
-    if(tracks?.some(t=>t.type==='video'&&t.selected)||!tracks?.some(t=>t.type==='audio'&&t.selected))throw Error('Selective mpv track ownership failed');
+    if(tracks?.some(t=>t.type==='video'&&t.selected)||!tracks?.some(t=>t.type==='audio'&&t.selected))throw new PlayerError('DECODE_FAILED','Selective mpv track ownership failed');
     this.driftTimer=setInterval(()=>this.observe(),250);
   }
   private async publish(startVideo:()=>Promise<void>){

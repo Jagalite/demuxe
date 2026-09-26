@@ -41,6 +41,12 @@ static int visit_nal(const uint8_t*p,int n,int record){
  // auxiliary NALs by rejecting the selective remux instead of discarding them.
  if(hevc_video&&repair_dts&&!record&&type>=32&&type!=35&&type!=38)hevc_packet_metadata=1;
  if(hevc_video?(type<32||type>34):(type!=7&&type!=8))return 0;
+ // Parameter-set RBSP ends in a nonzero stop-bit byte. Annex B permits
+ // trailing_zero_8bits between NAL units and after the final NAL; FFmpeg's
+ // extracted initialization and packet framing need not retain the same zeros.
+ // Compare the parameter-set bytes, not this byte-stream padding. Actual
+ // SPS/PPS/VPS changes still require a new initialization segment.
+ while(n>1&&p[n-1]==0)n--;
  if(record){if(config_count>=64||n>4096)return reject("AVC parameter budget exceeded");memcpy(config_nals[config_count],p,n);config_sizes[config_count++]=n;return 0;}
  for(int i=0;i<config_count;i++)if(config_sizes[i]==n&&!memcmp(p,config_nals[i],n))return 0;
  return reject("Selected AVC configuration changed; new initialization required");
@@ -157,6 +163,38 @@ static int idr(const AVPacket*q){
  const uint8_t*p=q->data;int n=q->size;
  if(is_avc){for(int i=0;i<n;){if(n-i<nal_size)return 0;unsigned size=0;for(int j=0;j<nal_size;j++)size=(size<<8)|p[i++];if(size>(unsigned)(n-i))return 0;if(size&&(p[i]&31)==5)return 1;i+=size;}}
  else for(int i=0;i+3<n;i++)if(!p[i]&&!p[i+1]&&p[i+2]==1&&(p[i+3]&31)==5)return 1;
+ return 0;
+}
+// A seek into an HEVC open GOP can return a key packet before a leading
+// picture whose PTS is earlier. Seeding from the key PTS alone can manufacture
+// a DTS equal to that real leading PTS. Inspect one bounded reorder window and
+// place the synthetic startup timestamps before its earliest presentation.
+// Retain every packet in decode order; neither source PTS nor payload changes.
+static int seed_hevc_reorder(void){
+ if(!repair_dts||!hevc_video||!reorder)return 0;
+ for(int i=0;i<prefetch_at;i++)av_packet_free(&prefetch[i]);
+ if(prefetch_at){memmove(prefetch,prefetch+prefetch_at,(prefetched-prefetch_at)*sizeof(*prefetch));prefetched-=prefetch_at;prefetch_at=0;}
+ int seen=0;int64_t earliest=INT64_MAX,duration=0,bytes=0;
+ for(int i=0;i<prefetched;i++)bytes+=prefetch[i]->size;
+ if(bytes>2*1024*1024)return reject("Unsupported HEVC reorder lookahead byte budget");
+ for(int i=0;seen<=reorder;i++){
+  if(i==prefetched){
+   if(prefetched>=256)return reject("Unsupported HEVC reorder lookahead packet budget");
+   AVPacket *q=av_packet_alloc();if(!q)return AVERROR(ENOMEM);
+   int r=av_read_frame(in,q);
+   if(r<0){av_packet_free(&q);if(r==AVERROR_EOF)break;return r;}
+   if(bytes+q->size>2*1024*1024){av_packet_free(&q);return reject("Unsupported HEVC reorder lookahead byte budget");}
+   bytes+=q->size;prefetch[prefetched++]=q;
+  }
+  AVPacket *q=prefetch[i];if(q->stream_index!=video)continue;
+  if(q->pts==AV_NOPTS_VALUE)return reject("Missing selected packet PTS");
+  if(!seen){if(!idr(q))return reject("Selected video must begin at an IDR");duration=q->duration;}
+  earliest=FFMIN(earliest,q->pts);seen++;
+ }
+ if(!seen)return reject("Unsupported HEVC reorder lookahead without video");
+ if(duration<=0)return reject("Missing initial MKV packet duration");
+ if(duration>INT64_MAX/reorder||earliest<=INT64_MIN+duration*reorder)return reject("Unsupported HEVC reorder timestamp range");
+ for(int j=0;j<reorder;j++)pts_queue[j]=earliest-(reorder-j)*duration;
  return 0;
 }
 static int repair_audio(AVPacket*q,int strict){
@@ -415,7 +453,10 @@ EMSCRIPTEN_KEEPALIVE int rm_start(double target){
 #endif
  if(target>0&&!tail_seek){if(is_ts){int r=seek_ts(target);if(r<0)return r;}else{clear_prefetch();int r=av_seek_frame(in,seek_stream,(int64_t)((target+origin)/av_q2d(in->streams[seek_stream]->time_base)),AVSEEK_FLAG_BACKWARD);if(r<0)return reject("Source seek failed or discontinuous timeline");avformat_flush(in);}}
  else if(position>0&&target<0){int r=av_seek_frame(in,seek_stream,(int64_t)(origin/av_q2d(in->streams[seek_stream]->time_base)),AVSEEK_FLAG_BACKWARD);if(r<0)return reject("Source seek failed or discontinuous timeline");avformat_flush(in);}
- int r=audio>=0?configure_audio(in->streams[audio]->codecpar):0;if(r<0)return r;
+ // Tail adaptation retains preroll from a different source position. Its
+ // qualification owns that packet boundary; do not extend it with lookahead.
+ int r=tail_seek?0:seed_hevc_reorder();if(r<0)return r;
+ r=audio>=0?configure_audio(in->streams[audio]->codecpar):0;if(r<0)return r;
 #ifdef DEMUXE_AUDIO_ADAPTATION
  if(adapt_enabled){r=adaptation_open();if(r<0)return r;}
 #endif
