@@ -11,7 +11,9 @@ const root = path.resolve(import.meta.dirname, '../../..');
 const out = path.resolve(process.argv.find(x => x.startsWith('--out='))?.slice(6)
   ?? path.join(import.meta.dirname, '../notes/official-player-qualification'));
 await mkdir(out, { recursive: true });
-const cases = [
+const requestedCase = process.argv.find(arg => arg.startsWith('--case='))?.slice(7);
+const catalogueAssets = process.argv.find(arg => arg.startsWith('--assets='))?.slice(9);
+const fixedCases = [
   ['aac-mp4', 'H.264 + AAC / MP4', 'build/head-to-head/assets-expanded-03/fixtures/aac.mp4'],
   ['aac-mkv', 'H.264 + AAC / MKV', 'build/head-to-head/assets-expanded-03/fixtures/aac.mkv'],
   ['dual-audio', 'Dual-audio H.264 + AAC + AC-3 stereo / MKV', 'build/head-to-head/assets-release-auto-fix-20260925-03/fixtures/h264-dual-audio/index.mkv'],
@@ -22,15 +24,25 @@ const cases = [
   ['h264-ac3', 'H.264 + AC-3 5.1 / MKV', 'build/head-to-head/assets-release-supplement-20260925-04/fixtures/h264-ac3/index.mkv'],
   ['h264-eac3', 'H.264 + E-AC-3 5.1 / MKV', 'build/head-to-head/assets-release-supplement-20260925-04/fixtures/h264-eac3/index.mkv'],
   ['h264-dts', 'H.264 + DTS core 5.1 / MKV', 'build/head-to-head/assets-release-supplement-20260925-04/fixtures/h264-dts/index.mkv'],
-].filter(([id]) => !process.argv.some(arg => arg.startsWith('--case=')) || process.argv.includes(`--case=${id}`));
+];
+let cases = fixedCases.filter(([id]) => !requestedCase || requestedCase === id);
+if (requestedCase && !cases.length) {
+  if (!catalogueAssets) throw Error('A catalogue-only case requires --assets=<frozen snapshot>');
+  const assets = path.resolve(root, catalogueAssets);
+  const catalogue = JSON.parse(await readFile(path.join(assets, 'fixtures/catalogue.json')));
+  const source = catalogue[requestedCase];
+  if (!source?.file || source.streamFormat || source.live || !source.video || !source.audio || source.subtitleCheck || source.subtitle)
+    throw Error('Fixture needs a separate published-player qualification contract: ' + requestedCase);
+  cases = [[requestedCase, source.label, path.join(assets, 'fixtures', source.file), source]];
+}
 if (!cases.length) throw Error('Unknown case');
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const time = text => { const [m, s] = String(text).split(':').map(Number); return m * 60 + s; };
 const browser = await chromium.launch({ headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', args: ['--autoplay-policy=no-user-gesture-required'] });
 const result = { date: new Date().toISOString(), browser: `Google Chrome ${browser.version()}`, player: 'https://mediabunny.dev/examples/media-player/', scope: 'Published player example, live deployment', cases: [] };
 try {
-  for (const [id, label, fixture] of cases) {
-    const file = path.join(root, fixture);
+  for (const [id, label, fixture, source] of cases) {
+    const file = path.resolve(root, fixture);
     const row = { id, label, fixture, sha256: createHash('sha256').update(await readFile(file)).digest('hex'), checks: {}, errors: [], limits: ['No 1.25x playback-rate control in the published player', 'No independently observable AudioContext or decoder cleanup'] };
     if (id === 'dual-audio') row.limits.push('Published player selects primary AAC; no AC-3 track-switch control');
     if (id === 'pcm24-ass') row.limits.push('This catalogue row requires an external ASS file; the example exposes no subtitle file input');
@@ -38,6 +50,8 @@ try {
     if (id === 'h264-ac3') row.limits.push('Stereo output check does not qualify six discrete output channels');
     if (id === 'h264-eac3') row.limits.push('Stereo output check does not qualify six discrete output channels');
     if (id === 'h264-dts') row.limits.push('Stereo output check does not qualify six discrete output channels');
+    if (source?.channels > 2) row.limits.push('Stereo output check does not qualify discrete multichannel output');
+    if (source?.qualificationLimit) row.limits.push(source.qualificationLimit);
     result.cases.push(row);
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
     const page = await context.newPage();
