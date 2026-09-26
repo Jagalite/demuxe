@@ -185,7 +185,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | AV1 + Opus / WebM | 🟢 (Pass) · 36.2% CPU | 🟢 (Pass) · 14.6% CPU | 🟢 (Pass) · 15.3% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 38.3% CPU | 🟡 Screened · 34.9% CPU |
 | VP9 8-bit + Opus / WebM | 🟢 (Pass) · 36.6% CPU | 🟢 (Pass) · 14.0% CPU | 🟢 (Pass) · 14.1% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 34.9% CPU | 🟡 Screened · 34.2% CPU |
 | VP9 10-bit SDR + Opus / WebM | 🟢 (Pass) · 36.4% CPU | 🟢 (Pass) · 16.6% CPU | 🟢 (Pass) · 17.1% CPU · native-direct | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened · 34.7% CPU |
-| VP8 + Vorbis / WebM | 🟢 | 🟢 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🟠 | — |
+| VP8 + Vorbis / WebM | 🟢 (Pass) · 34.8% CPU | 🟢 (Pass) · 13.4% CPU | 🟢 (Pass) · 14.7% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 35.6% CPU | 🟡 Screened · 32.8% CPU |
 | H.264 + AAC / MPEG-TS | 🟢 | 🔴 (Fail) | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🟠 | — |
 | MPEG-2 video + AC-3 / MPEG-TS | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · software | 🟢 (Pass) | 🟢 (Pass) | — |
 | Interlaced MPEG-2 + AC-3 stereo / MPEG-TS | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* · software · visible combing | 🔴 (Fail) | 🟢 (Pass)\* | — |
