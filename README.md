@@ -207,7 +207,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + AAC + VobSub / MKV (subtitle isolation) | 🟢 (Pass)* · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.3% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | AAC audio-only / M4A | 🟢 (Pass) · 10.6% CPU | 🟢 (Pass) · 2.4% CPU | 🟢 (Pass) · 3.2% CPU · native-direct | 🟢 (Pass) | 🟢 (Pass) · 9.9% CPU | 🟡 Screened · 45.4% CPU |
 | MP3 audio-only / MP3 | 🟢 (Pass) · 2.8% CPU | 🟢 (Pass) · 0.9% CPU | 🟢 (Pass) · 1.3% CPU · native-direct | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 10.1% CPU |
-| FLAC audio-only / FLAC | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🟢 (Pass) | 🟠 | — |
+| FLAC audio-only / FLAC | 🟢 (Pass) · 10.4% CPU | 🟢 (Pass) · 2.1% CPU | 🟢 (Pass) · 3.0% CPU · native-direct | 🟢 (Pass) | 🟢 (Pass) · 8.0% CPU | 🟡 Screened · 42.9% CPU |
 | Opus audio-only / Ogg | 🟢 | 🟢 | 🟢 (Pass) · native-direct | 🟢 (Pass) | 🔴 (Fail) | — |
 | Vorbis audio-only / Ogg | 🟢 | 🟢 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🔴 (Fail) | — |
 | PCM16 audio-only / WAV | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🟢 (Pass) | 🔴 (Fail) | — |
