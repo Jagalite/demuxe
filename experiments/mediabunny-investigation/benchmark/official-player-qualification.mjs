@@ -132,7 +132,7 @@ try {
       await sleep(400);
     };
     try {
-      await page.goto(result.player, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await page.goto(result.player, { waitUntil: 'networkidle', timeout: 30000 });
       if (!result.playerAsset) {
         const asset = await page.locator('script[src*="media-player"]').getAttribute('src');
         if (asset) { const url = new URL(asset, page.url()).href; const response = await page.request.get(url); result.playerAsset = { url, sha256: createHash('sha256').update(await response.body()).digest('hex') }; }
