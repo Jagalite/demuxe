@@ -174,7 +174,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + PCM16 stereo / MKV | 🟢 (Pass) · 12.9% CPU | 🟢 (Pass) · 34.8% CPU | 🟢 (Pass) · 14.2% CPU · native-direct | 🟢 (Pass) · 33.2% CPU | 🔴 (Fail) | 🟡 Screened · 32.5% CPU |
 | H.264 + PCM24 5.1 / MKV | 🟢 (Pass)* · 13.4% CPU | 🟢 (Pass)\* · 34.8% CPU | 🟢 (Pass)\* · 13.9% CPU · native-direct | 🟢 (Pass)\* · 26.1% CPU | 🔴 (Fail) | 🟡 Screened* · 34.5% CPU |
 | HEVC Main 8-bit + AAC / MP4 (hvc1) | 🟢 (Pass) · 14.8% CPU | 🟢 (Pass) · 35.1% CPU | 🟢 (Pass) · 15.8% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 33.1% CPU | 🟡 Screened · 41.1% CPU |
-| HEVC Main 8-bit + AAC / MP4 (hev1) | 🟢 | 🟢 (Pass) | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🟠 | — |
+| HEVC Main 8-bit + AAC / MP4 (hev1) | 🟢 (Pass) · 14.7% CPU | 🟢 (Pass) · 35.6% CPU | 🟢 (Pass) · 15.1% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 34.4% CPU | 🟡 Screened · 41.6% CPU |
 | HEVC Main 10-bit SDR + AAC / MP4 | 🟢 | 🟢 (Pass) | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🟠 | — |
 | HEVC Main 10 4:2:2 + AAC / MKV | 🟢 (Pass)* | 🟢 (Pass)\* | 🟢 (Pass)\* · native-direct | 🟢 (Pass)* | 🟢 (Pass)* | — |
 | HEVC Main 10-bit SDR + AC-3 / MKV | 🟢 | 🔴 (Fail) | 🟢 (Pass) · native-video-mpv-audio | 🔴 (Fail) | 🟠 | — |

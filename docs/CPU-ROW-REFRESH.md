@@ -31,6 +31,7 @@ launch per round. The
 | H.264 + PCM16 stereo / MKV | Four maintained passes and one MediaBunny screen; Auto now native-direct, Movi passed but CPU drifted; AVPlayer failed initial playback | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-pcm16-20260926/REPORT.md) |
 | H.264 + PCM24 5.1 / MKV | Four maintained stereo-output screens and one MediaBunny screen; Auto now native-direct; AVPlayer failed initial playback; Movi CPU range wide | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-pcm51-20260926/REPORT.md) |
 | HEVC Main 8-bit + AAC / MP4 (hvc1) | Four maintained passes and one MediaBunny screen; Movi failed near EOF; five viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-hevc-hvc1-20260926/REPORT.md) |
+| HEVC Main 8-bit + AAC / MP4 (hev1) | Four maintained passes and one MediaBunny screen; Movi failed near EOF; five viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-hevc-hev1-20260926/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available
