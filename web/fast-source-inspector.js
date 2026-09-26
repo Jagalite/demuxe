@@ -98,9 +98,12 @@ function audioEntry(type, b, a, z) {
     if (b[cfg] !== 0x40) unknown('Unsupported MP4 audio object');
     if (cfg + 13 >= cfgEnd) unknown('Short AAC decoder config');
     const [asc, ascEnd] = descriptor(cfg + 13, 5);
-    if (ascEnd - asc < 2) unknown('AAC configuration absent');
+    const ascLength = ascEnd - asc;
+    if (!(ascLength === 2 ||
+        (ascLength === 5 && b[asc + 2] === 0x56 && b[asc + 3] === 0xe5 && b[asc + 4] === 0)))
+      unknown('Complex AAC configuration');
     const object = b[asc] >> 3;
-    if (object !== 2) unknown('AAC profile outside cheap LC');
+    if (object !== 2 || (b[asc + 1] & 7)) unknown('AAC profile outside LC');
     return {codec: 'aac', codecString: 'mp4a.40.2', aacObject: 2};
   }
   if (type === '.mp3') return {codec: 'mp3', codecString: 'mp3'};
@@ -189,6 +192,7 @@ async function iso(src) {
       record = {id, index, type: kind, default: true, forced: false, lang, title: '', width, height,
         ...videoString(entryType, moov, data + 78, end)};
     } else if (kind === 'audio') {
+      if (moov[data + 8] || moov[data + 9]) unknown('Complex ISO audio sample entry');
       const channels = u16(moov, data + 16), sampleRate = u32(moov, data + 24) >>> 16;
       if (!channels || !sampleRate) unknown('Audio layout absent');
       record = {id, index, type: kind, default: true, forced: false, lang, title: '', channels, sampleRate,
