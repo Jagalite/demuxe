@@ -114,7 +114,12 @@ try {
           errors: [...(entry.pageErrors ?? []), ...(entry.after.errors ?? [])], route: entry.after.route ?? null };
         if (!entry.gate.stableProcesses || !Number.isFinite(entry.cpu.oneCorePercent) || Math.abs(advance - entry.cpu.wallSeconds) > 1 || !entry.gate.focused
           || entry.gate.errors.length || (frames !== null && frames < entry.cpu.wallSeconds * 25)
-          || (audioStarts !== null && audioStarts < entry.cpu.wallSeconds * 20)) throw Error('CPU acceptance gate failed: ' + JSON.stringify(entry.gate));
+          // FLAC blocks can be ~96 ms, yielding only about 10 source starts/s.
+          // The correctness screen checks audible stereo output; this gate checks
+          // that audio work continues throughout the CPU window.
+          || (audioStarts !== null && (audioStarts < entry.cpu.wallSeconds * 5
+            || entry.samples.some((sample, index) => index && sample.state.audioStarts <= entry.samples[index - 1].state.audioStarts))))
+          throw Error('CPU acceptance gate failed: ' + JSON.stringify(entry.gate));
         const [kind, lane] = player.startsWith('demuxe-') ? ['demuxe', player.slice(7)] : [player, 'default'];
         const proof = correctness?.cases?.find(item => item.id === `${kind}.${lane}.${fixture}`);
         entry.correctness = proof ? { status: proof.status, screenPassed: proof.screenPassed ?? false } : null;

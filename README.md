@@ -168,7 +168,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + AC-3 stereo / MKV | 🟢 (Pass) · 34.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.5% CPU · hybrid (URL) | 🔴 (Fail) | 🟢 (Pass) · 32.9% CPU | 🟡 Screened · 33.8% CPU |
 | H.264 + E-AC-3 stereo / MKV | 🟢 (Pass) · 35.4% CPU | 🔴 (Fail) | 🟢 (Pass) · 35.0% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass) · 33.6% CPU | 🟡 Screened · 34.4% CPU |
 | H.264 + DTS core stereo / MKV | 🟢 (Pass) · 34.6% CPU | 🔴 (Fail) | 🟢 (Pass) · 38.2% CPU · hybrid (URL) | 🔴 (Fail) | 🟢 (Pass) · 37.8% CPU | 🟡 Screened · 35.5% CPU |
-| H.264 + FLAC stereo / MKV | 🟢 | 🟢 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🟠 | — |
+| H.264 + FLAC stereo / MKV | 🟢 (Pass) · 13.2% CPU | 🟢 (Pass) · 34.7% CPU | 🟢 (Pass) · 13.7% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 33.7% CPU | 🟡 Screened · 33.1% CPU |
 | H.264 + FLAC 5.1 / MKV | 🟢 (Pass)* | 🟢 (Pass)\* | 🟢 (Pass)\* · native-direct | 🔴 (Fail) | 🟢 (Pass)\* | — |
 | H.264 + Opus stereo / MKV | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🟢 (Pass) | 🟠 | — |
 | H.264 + PCM16 stereo / MKV | 🟢 | 🟠 | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🔴 (Fail) | — |
