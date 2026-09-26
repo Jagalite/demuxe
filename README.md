@@ -166,7 +166,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + E-AC-3 5.1 / MKV | 🟢 (Pass)* · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 34.0% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass)\* · 32.8% CPU | 🟡 Screened* · 35.9% CPU |
 | H.264 + DTS core 5.1 / MKV | 🟢 (Pass)* · 37.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 37.1% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass)\* · 36.9% CPU | 🟡 Screened* · 38.5% CPU |
 | H.264 + AC-3 stereo / MKV | 🟢 (Pass) · 34.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.5% CPU · hybrid (URL) | 🔴 (Fail) | 🟢 (Pass) · 32.9% CPU | 🟡 Screened · 33.8% CPU |
-| H.264 + E-AC-3 stereo / MKV | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🟢 (Pass) | — |
+| H.264 + E-AC-3 stereo / MKV | 🟢 (Pass) · 35.4% CPU | 🔴 (Fail) | 🟢 (Pass) · 35.0% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass) · 33.6% CPU | 🟡 Screened · 34.4% CPU |
 | H.264 + DTS core stereo / MKV | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · native-video-mpv-audio | 🔴 (Fail) | 🟢 (Pass) | — |
 | H.264 + FLAC stereo / MKV | 🟢 | 🟢 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🟠 | — |
 | H.264 + FLAC 5.1 / MKV | 🟢 (Pass)* | 🟢 (Pass)\* | 🟢 (Pass)\* · native-direct | 🔴 (Fail) | 🟢 (Pass)\* | — |
@@ -251,6 +251,8 @@ The [E-AC-3 5.1 row](experiments/mediabunny-investigation/notes/official-player-
 The [DTS core 5.1 row](experiments/mediabunny-investigation/notes/official-player-row-h264-dts-20260926/REPORT.md) followed the same one-Chrome-per-row CPU protocol. Plain video failed initial playback and Movi failed the rate check; their CPU samples are diagnostic. The other four arms verified stereo output, with discrete 5.1 still unqualified.
 
 The [AC-3 stereo row](experiments/mediabunny-investigation/notes/official-player-row-h264-ac3-stereo-20260926/REPORT.md) used the same current Demuxe code with a frozen stereo fixture from the earlier catalogue. Auto selected Hybrid on the maintained players' local URL; an earlier local-File selective-audio result is a different input contract. CPU values are from this URL/File comparison campaign only.
+
+The [E-AC-3 stereo row](experiments/mediabunny-investigation/notes/official-player-row-h264-eac3-stereo-20260926/REPORT.md) screened all five maintained players and the official MediaBunny example. Four viable/screened arms received matched CPU windows; plain video and Movi kept their failed cells without diagnostic CPU numbers.
 
 See [versions, evidence, and configured alternatives](docs/HEAD-TO-HEAD-ROUTES.md)
 and the [rerun guide](docs/HEAD-TO-HEAD.md).
