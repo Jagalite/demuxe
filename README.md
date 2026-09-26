@@ -180,7 +180,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | HEVC Main 8-bit + AAC / MP4 (hev1) | 🟢 (Pass) · 35.6% CPU | 🟢 (Pass) · 14.7% CPU | 🟢 (Pass) · 15.1% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 34.4% CPU | 🟡 Screened · 41.6% CPU |
 | HEVC Main 10-bit SDR + AAC / MP4 | 🟢 (Pass) · 37.2% CPU | 🟢 (Pass) · 18.4% CPU | 🟢 (Pass) · 18.5% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 37.4% CPU | 🟡 Screened · 41.1% CPU |
 | HEVC Main 10 4:2:2 + AAC / MKV | 🟢 (Pass)* · 37.2% CPU | 🟢 (Pass)\* · 17.8% CPU | 🟢 (Pass)\* · 18.6% CPU · native-direct | 🟢 (Pass)* | 🟢 (Pass)* · 37.6% CPU | 🟡 Screened* · 41.4% CPU |
-| HEVC Main 10-bit SDR + AC-3 / MKV | 🟢 (Pass) · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 39.4% CPU · hybrid (URL) | 🔴 (Fail) | 🟢 (Pass) · 36.8% CPU | 🟡 Screened · 40.6% CPU |
+| HEVC Main 10-bit SDR + AC-3 / MKV | 🟢 (Pass) · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 32.4% CPU · native-video-mpv-audio (URL) | 🔴 (Fail) | 🟢 (Pass) · 36.8% CPU | 🟡 Screened · 40.6% CPU |
 | HEVC Main 10-bit SDR + E-AC-3 / MKV | 🟢 (Pass) · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 40.0% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass) · 36.9% CPU | 🟡 Screened · 42.0% CPU |
 | HEVC Main 10-bit SDR + DTS core / MKV | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🟢 (Pass) | 🟡 Screened |
 | AV1 8-bit + AAC / MP4 | 🟢 (Pass) · 36.7% CPU | 🟢 (Pass) · 13.6% CPU | 🟢 (Pass) · 14.2% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 37.2% CPU | 🟡 Screened · 33.5% CPU |
@@ -204,7 +204,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + AAC + embedded mov_text / MP4 | 🟢 (Pass) · 35.5% CPU | 🔴 (Fail) | 🟢 (Pass) · 37.5% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + styled ASS / MKV | 🟢 (Pass) · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.9% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AC-3 stereo + ASS / MKV | 🟢 (Pass) · 35.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.7% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| HEVC + AC-3 + PGS / MKV | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 40.6% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| HEVC + AC-3 + PGS / MKV | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.0% CPU · native-video-mpv-audio-subtitles | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AC-3 + VobSub / MKV | 🟢 (Pass) · 35.2% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 36.0% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + PGS / MKV (subtitle isolation) | 🟢 (Pass) · 36.0% CPU | 🔴 (Fail) | 🟢 (Pass) · 37.0% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + VobSub / MKV (subtitle isolation) | 🟢 (Pass)* · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.3% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
