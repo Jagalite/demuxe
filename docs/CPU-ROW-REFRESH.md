@@ -38,6 +38,7 @@ launch per round. The
 | HEVC Main 10-bit SDR + E-AC-3 / MKV | Three maintained passes and one MediaBunny screen; local URL Auto used Hybrid; plain video and Movi failed correctness | [row report](../experiments/mediabunny-investigation/notes/official-player-row-hevc10-eac3-20260926/REPORT.md) |
 | HEVC Main 10-bit SDR + DTS core / MKV | Correctness complete: three maintained passes, two failures, one MediaBunny screen; CPU unmeasured after two Chrome startup-gate rejections | [row report](../experiments/mediabunny-investigation/notes/official-player-row-hevc10-dts-20260926/REPORT.md) |
 | AV1 8-bit + AAC / MP4 | Four maintained passes and one MediaBunny screen; Movi failed near EOF; five viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-av1-aac-20260926/REPORT.md) |
+| AV1 10-bit SDR + Opus / MKV | Four maintained passes and one MediaBunny screen; Movi failed near EOF; five viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-av110-opus-20260926/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available
