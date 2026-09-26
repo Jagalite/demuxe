@@ -163,7 +163,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + AAC 5.1 / MP4 | 🟢 (Pass)* · 35.1% CPU | 🟢 (Pass)\* · 14.8% CPU | 🟢 (Pass)\* · 14.8% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)\* · 33.4% CPU | 🟡 Screened* · 37.2% CPU |
 | H.264 + MP3 stereo / MP4 | 🟢 (Pass) · 33.6% CPU | 🟢 (Pass) · 13.3% CPU | 🟢 (Pass) · 14.3% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 34.2% CPU | 🟡 Screened · 34.7% CPU |
 | H.264 + AC-3 5.1 / MKV | 🟢 (Pass)* · 36.6% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 36.6% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass)* | 🟡 Screened* |
-| H.264 + E-AC-3 5.1 / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* · hybrid | 🔴 (Fail) | 🟢 (Pass)\* | — |
+| H.264 + E-AC-3 5.1 / MKV | 🟢 (Pass)* · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 34.0% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass)\* · 32.8% CPU | 🟡 Screened* · 35.9% CPU |
 | H.264 + DTS core 5.1 / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* · hybrid | 🔴 (Fail) | 🟢 (Pass)\* | — |
 | H.264 + AC-3 stereo / MKV | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · native-video-mpv-audio | 🔴 (Fail) | 🟢 (Pass) | — |
 | H.264 + E-AC-3 stereo / MKV | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🟢 (Pass) | — |
@@ -245,6 +245,8 @@ The [AAC 5.1 row](experiments/mediabunny-investigation/notes/official-player-row
 The [MP3/MP4 row](experiments/mediabunny-investigation/notes/official-player-row-h264-mp3-confirmed-20260925/REPORT.md) also used one Chrome launch across all six CPU arms and three rotating rounds. Its separate Auto follow-up investigated one low matched-run window; all windows are retained in the report. AVPlayer passed the fresh full screen, replacing its earlier partial-playback label.
 
 The [AC-3 5.1 row](experiments/mediabunny-investigation/notes/official-player-row-h264-ac3-confirmed-20260925/REPORT.md) screened stereo output from the six-channel source. AVPlayer and MediaBunny CPU figures are withheld because an independent launch reversed their apparent ranking. Plain video and Movi failed correctness; their CPU samples are diagnostic only.
+
+The [E-AC-3 5.1 row](experiments/mediabunny-investigation/notes/official-player-row-h264-eac3-20260926/REPORT.md) used a refreshed Demuxe snapshot, one Chrome for all six CPU arms and three rotating rounds. Plain video and Movi failed correctness, so their CPU samples remain diagnostic. The four passing/screened players verified stereo output from the six-channel source, not discrete 5.1 fidelity.
 
 See [versions, evidence, and configured alternatives](docs/HEAD-TO-HEAD-ROUTES.md)
 and the [rerun guide](docs/HEAD-TO-HEAD.md).

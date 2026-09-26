@@ -20,6 +20,7 @@ const cases = [
   ['h264-aac51', 'H.264 + AAC 5.1 / MP4', 'build/head-to-head/assets-release-supplement-20260925-04/fixtures/h264-aac51/index.mp4'],
   ['h264-mp3', 'H.264 + MP3 stereo / MP4', 'build/head-to-head/assets-release-supplement-20260925-04/fixtures/h264-mp3/index.mp4'],
   ['h264-ac3', 'H.264 + AC-3 5.1 / MKV', 'build/head-to-head/assets-release-supplement-20260925-04/fixtures/h264-ac3/index.mkv'],
+  ['h264-eac3', 'H.264 + E-AC-3 5.1 / MKV', 'build/head-to-head/assets-release-supplement-20260925-04/fixtures/h264-eac3/index.mkv'],
 ].filter(([id]) => !process.argv.some(arg => arg.startsWith('--case=')) || process.argv.includes(`--case=${id}`));
 if (!cases.length) throw Error('Unknown case');
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -34,6 +35,7 @@ try {
     if (id === 'pcm24-ass') row.limits.push('This catalogue row requires an external ASS file; the example exposes no subtitle file input');
     if (id === 'h264-aac51') row.limits.push('Stereo output check does not qualify six discrete output channels');
     if (id === 'h264-ac3') row.limits.push('Stereo output check does not qualify six discrete output channels');
+    if (id === 'h264-eac3') row.limits.push('Stereo output check does not qualify six discrete output channels');
     result.cases.push(row);
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
     const page = await context.newPage();
