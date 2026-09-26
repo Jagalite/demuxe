@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {planAdmission} from '../web/generated/internal/playback-plans.js';
+import {planAdmission,executionPlan} from '../web/generated/internal/playback-plans.js';
 import {losslessAdaptationRejection} from '../web/generated/internal/selection.js';
 const facts={automatic:true,vf:'',af:'',gain:1,toneMapping:'off',hybridAudioFilters:false,allowLossy:false,nativeASS:false,externalFormats:[],browserTextTracks:false,audioOutput:'stereo',nativeRemux:'auto',manifest:false,requiresRemux:false,isolated:true,mse:true,webCodecs:true,webAudio:true};
 const eligible=extra=>planAdmission({...facts,...extra}).filter(p=>p.eligible).map(p=>p.id);
@@ -87,7 +87,18 @@ test('non-isolated deployment retains browser routes and excludes pthread prepar
 test('selective native video plus mpv audio is finite and fail closed',()=>{
  const id='native-video-mpv-audio',qualified={selectiveAudioQualified:true};
  assert.ok(eligible(qualified).includes(id));
- for(const extra of [{automatic:false},{isolated:false},{mse:false},{webAudio:false},{nativeRemux:'never'},{vf:'hflip'},{toneMapping:'hdr-to-sdr'},{af:'volume=.5'},{gain:.8},{audioOutput:'5.1'},{externalFormats:['ass']},{browserTextTracks:true},{selectiveAudioQualified:false,selectiveAudioReason:'Track bounds differ'}]){
+ assert.ok(eligible({...qualified,externalFormats:['browser-vtt'],browserTextTracks:true}).includes(id));
+ for(const extra of [{automatic:false},{isolated:false},{mse:false},{webAudio:false},{nativeRemux:'never'},{vf:'hflip'},{toneMapping:'hdr-to-sdr'},{af:'volume=.5'},{gain:.8},{audioOutput:'5.1'},{externalFormats:['ass']},{selectiveAudioQualified:false,selectiveAudioReason:'Track bounds differ'}]){
   assert.ok(!eligible({...qualified,...extra}).includes(id),JSON.stringify(extra));
+ }
+});
+test('selected embedded subtitles require the combined native video and mpv services plan',()=>{
+ const qualified={selectiveAudioQualified:true,mpvSubtitles:true,mpvSubtitleSourceQualified:true,selectedEmbeddedSubtitle:true};
+ const decisions=planAdmission({...facts,...qualified});
+ assert.equal(decisions.find(p=>p.id==='native-video-mpv-audio').eligible,false);
+ assert.equal(decisions.find(p=>p.id==='native-video-mpv-audio-subtitles').eligible,true);
+ assert.equal(executionPlan('native','native-video-mpv-audio-subtitles','').owners.subtitle,'mpv-subtitle-service');
+ for(const extra of [{mpvSubtitles:false},{mpvSubtitleSourceQualified:false},{audioOutput:'5.1'},{vf:'hflip'},{toneMapping:'hdr-to-sdr'},{mse:false},{webAudio:false}]){
+  assert.equal(planAdmission({...facts,...qualified,...extra}).find(p=>p.id==='native-video-mpv-audio-subtitles').eligible,false,JSON.stringify(extra));
  }
 });

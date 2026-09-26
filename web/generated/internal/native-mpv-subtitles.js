@@ -107,6 +107,8 @@ export class NativeMpvSubtitles {
                         throw Error('Subtitle renderer destroyed');
                     const result = await this.request('init', { file: this.file, fonts: [{ name: 'DejaVuSans.ttf', bytes }, ...fonts] });
                     this.tracks = result.tracks;
+                    if (this.defaultStreamIndex !== undefined && !this.tracks.some(track => track['ff-index'] === this.defaultStreamIndex))
+                        throw new PlayerError('UNSUPPORTED_FEATURE', 'Inspected subtitle stream was not enumerated by mpv');
                     for (const track of this.tracks)
                         track.default = track['ff-index'] === this.defaultStreamIndex;
                 }
@@ -150,7 +152,7 @@ export class NativeMpvSubtitles {
         return; for (const p of this.pending.values()) {
         clearTimeout(p.timer);
         p.reject(error);
-    } this.pending.clear(); this.destroy(); this.failed(error); }
+    } this.pending.clear(); this.destroy(); this.failed(error instanceof PlayerError ? error : new PlayerError('DECODE_FAILED', 'Subtitle service failed: ' + String(error))); }
     applyMode(mode) {
         const next = mode === 'deadline' || mode === 'animated' ? mode : 'fallback';
         if (this.schedulerMode === next)

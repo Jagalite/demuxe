@@ -18,17 +18,17 @@ test('promotion never retries the accepted or lower ranked plans',()=>{
  assert.deepEqual(preferredPlans(plans,'software').map(p=>p.id),['hybrid']);
  assert.deepEqual(preferredPlans(plans,'hybrid'),[]);assert.deepEqual(preferredPlans(plans,'absent'),[]);
 });
-test('playback decode failure retires the failed plan before fallback',async()=>{
+test('playback decode failure retires only the failed native plan before retrying other native plans',async()=>{
  const p=Object.create(Player.prototype),source={},failures=new TierAttempts(),selected=[];
  Object.assign(p,{source,automatic:true,currentMode:'native',destroyed:false,queued:0,
-  current:{backend:{diagnostics:{plan:'direct'},play:async()=>{throw new PlayerError('DECODE_FAILED','Missing selected audio');}}},
+  current:{backend:{properties:new Map(),diagnostics:{plan:'direct'},play:async()=>{throw new PlayerError('DECODE_FAILED','Missing selected audio');},verifyOutput:async()=>{},pause:async()=>{}}},
   settings:{pause:true},nativeRemux:'never',nativeTracks:[],tierAttempts:failures,
   runtimeCapabilities:{update(){}},evidence:()=>({}),failedStreamingPlan:()=>false,
   tierConfiguration:()=> 'same-settings',enqueue:async action=>action(),select:async(...args)=>selected.push(args)});
  Object.defineProperty(p,'diagnostics',{value:{plan:{id:'native-direct'}}});
  await p.play();
  assert.equal(selected.length,1);
- assert.equal(selected[0][4],1);
+ assert.equal(selected[0][4],0);
  assert.match(failures.reason(source,'same-settings','native-direct'),/Missing selected audio/);
  assert.equal(failures.reason({},'same-settings','native-direct'),undefined);
 });

@@ -7,7 +7,7 @@ const server=await serve();
 const browser=await chromium.launch({channel:'chrome',headless:false,args:['--autoplay-policy=no-user-gesture-required']});
 const fixture='results/unsupported-audio-cpu/20260924-three-arm-qualified/fixtures/h264-1080p60-ac3.mkv';
 try{
- for(const fault of ['missing-assets','preparation','audio-startup','runtime-audio','sync-controller','subtitle-ass','subtitle-pgs','eac3-unqualified'].filter(value=>!process.env.CASE||process.env.CASE===value)){
+ for(const fault of ['missing-assets','preparation','audio-startup','runtime-audio','sync-controller','subtitle-ass','subtitle-pgs','eac3-runtime-audio'].filter(value=>!process.env.CASE||process.env.CASE===value)){
   const page=await browser.newPage({viewport:{width:960,height:540}});page.setDefaultTimeout(70000);
   try{
    if(fault==='missing-assets')await page.route('**/web/engine-selective/**',route=>route.request().method()==='HEAD'?route.fulfill({status:404,body:''}):route.continue());
@@ -22,7 +22,7 @@ try{
     window.errors=[];player.addEventListener('error',event=>errors.push(String(event.detail)));
     const input=document.createElement('input');input.type='file';input.id='source';document.body.append(input);
    },fault);
-   await page.locator('#source').setInputFiles(fault==='subtitle-ass'?'build/selective-production/h264-ac3-ass.mkv':fault==='subtitle-pgs'?'build/selective-production/h264-ac3-pgs.mkv':fault==='eac3-unqualified'?'results/unsupported-audio-cpu/20260924-codec-variants/fixtures/h264-1080p60-eac3.mkv':fixture);
+   await page.locator('#source').setInputFiles(fault==='subtitle-ass'?'build/selective-production/h264-ac3-ass.mkv':fault==='subtitle-pgs'?'build/selective-production/h264-ac3-pgs.mkv':fault==='eac3-runtime-audio'?'results/unsupported-audio-cpu/20260924-codec-variants/fixtures/h264-1080p60-eac3.mkv':fixture);
    await page.evaluate(()=>player.open(document.querySelector('#source').files[0]));
    await page.evaluate(()=>player.play());
    await page.waitForFunction(()=>player.state.currentTime>.2,undefined,{timeout:10000});
@@ -38,11 +38,23 @@ try{
      await page.waitForFunction(()=>player.diagnostics.plan?.id==='hybrid',undefined,{timeout:20000});
      await page.waitForTimeout(250);
    }
+   if(fault==='eac3-runtime-audio'){
+     assert.equal(await page.evaluate(()=>player.diagnostics.plan?.id),'native-video-mpv-audio');
+     await page.evaluate(()=>player.current.backend.mpvAudio.fail(Error('Injected E-AC-3 audio service failure')));
+     await page.waitForFunction(()=>player.diagnostics.plan?.id==='hybrid',undefined,{timeout:20000});
+   }
+   if(fault==='subtitle-ass'||fault==='subtitle-pgs'){
+     assert.equal(await page.evaluate(()=>player.diagnostics.plan?.id),'native-video-mpv-audio-subtitles');
+     await page.evaluate(()=>player.current.backend.mpvSubs.fail(Error('Injected subtitle service failure')));
+     await page.waitForFunction(()=>player.diagnostics.plan?.id==='hybrid',undefined,{timeout:20000});
+   }
    const state=await page.evaluate(()=>({plan:player.diagnostics.plan?.id,attempts:player.diagnostics.selection?.attempts,runtime:player.diagnostics.runtimeCapabilities,position:player.state.currentTime,errors}));
    assert.equal(state.plan,'hybrid',JSON.stringify(state));
    assert.ok(state.position>.2,JSON.stringify(state));
    console.log(fault,JSON.stringify({plan:state.plan,position:state.position,attempts:state.attempts?.filter(a=>a.reason.includes('native-video-mpv-audio')),runtimeFailure:fault==='runtime-audio'?state.runtime:undefined}));
    await page.evaluate(()=>player.destroy());
+   for(let i=0;i<20&&page.workers().length;i++)await page.waitForTimeout(100);
+   assert.equal(page.workers().length,0,`${fault}: leaked workers after fallback`);
   }finally{await page.close();}
  }
 }finally{await browser.close();await server.close();}

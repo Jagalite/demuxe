@@ -43,6 +43,7 @@ export declare class Player extends EventTarget {
     private fastInspectedSource?;
     private mpvSubtitleAssetsAvailable;
     private selectiveAudioAssetsAvailable;
+    private selectiveAudioAssetsChecked;
     private inspection?;
     private recovering;
     private lifetime;
@@ -139,6 +140,7 @@ export declare class Player extends EventTarget {
     private record;
     private inspectForQualifiedWebGPU;
     private inspectWithFFmpeg;
+    private optionalAssetsAvailable;
     private checkInspectedAssets;
     private inspectFallbackAfterFastFailure;
     private select;

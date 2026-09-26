@@ -21,7 +21,7 @@ export function cachedRanges(value) {
         return null;
     return out.filter(r => r.end > 0).map(r => ({ start: Math.max(0, r.start), end: r.end }));
 }
-export function usesRemuxTracks(plan) { return (plan === 'remux' || plan === 'remux-mpv' || plan === 'native-video-mpv-audio') || plan === 'adapted-flac' || plan === 'adapted-opus'; }
+export function usesRemuxTracks(plan) { return plan === 'remux' || plan === 'remux-mpv' || !!plan?.startsWith('native-video-mpv-audio') || plan === 'adapted-flac' || plan === 'adapted-opus'; }
 export function trackKey(track, mode, plan) {
     const type = track.type;
     if (plan === 'shaka-mse')

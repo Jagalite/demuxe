@@ -16,7 +16,7 @@ export function cachedRanges(value:unknown):readonly TimeRange[]|null {
   return out.filter(r=>r.end>0).map(r=>({start:Math.max(0,r.start),end:r.end}));
 }
 export type RawTrack = Record<string, any>;
-export function usesRemuxTracks(plan?: string): boolean {return (plan==='remux'||plan==='remux-mpv'||plan==='native-video-mpv-audio')||plan==='adapted-flac'||plan==='adapted-opus';}
+export function usesRemuxTracks(plan?: string): boolean {return plan==='remux'||plan==='remux-mpv'||!!plan?.startsWith('native-video-mpv-audio')||plan==='adapted-flac'||plan==='adapted-opus';}
 export function trackKey(track: RawTrack, mode: PlaybackMode, plan?: string): string {
   const type = track.type;
   if(plan==='shaka-mse')return `${type}:shaka:${track.id}`;
