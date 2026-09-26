@@ -97,7 +97,7 @@ if args.adaptation_build:
  if record.get('cleanSourceBuild'):
   preparation_verification=json.loads(subprocess.check_output(['python3',str(root/'scripts/verify-audio-adaptation-build.py'),str(adaptation)],text=True))
  if record.get('linkSettings',{}).get('firstFragmentSeconds',0.5)!=0.5:raise SystemExit('Nondefault first-fragment sizing failed timestamp qualification; packaging is blocked')
- if args.release_tag and (not record['inputs'].get('opus') or record.get('linkSettings',{}).get('flacLevel')!=5):raise SystemExit('Tagged release must retain the published FLAC and explicit Opus preparation profiles')
+ if args.release_tag and (not record['inputs'].get('opus') or not record['inputs'].get('flac24')):raise SystemExit('Tagged release requires FLAC24 plus the published FLAC and explicit Opus preparation profiles')
  for filename in ['remux.mjs','remux.wasm']:
   expected=record['files'][str(adaptation/filename)]['sha256'];data=(adaptation/filename).read_bytes()
   if hashlib.sha256(data).hexdigest()!=expected:raise SystemExit('Adaptation artifact hash mismatch: '+filename)
@@ -124,7 +124,7 @@ if args.adaptation_build:
    archive.add(adaptation.parent/'preferred-source-hashes.json',arcname='preferred-source-hashes.json')
    archive.add(adaptation.parent/'ffmpeg/config_components.h',arcname='build/config_components.h')
    archive.add(root/'scripts/verify-audio-adaptation-build.py',arcname='demuxe/scripts/verify-audio-adaptation-build.py')
- files['web/engine-adaptation/manifest.json']=(json.dumps({'apiVersion':2,'sourceBuildVerification':preparation_verification,'inputs':record['inputs'],'files':{pathlib.Path(k).name:v for k,v in record['files'].items() if pathlib.Path(k).suffix in ['.mjs','.wasm']},'sourceCompanion':{'filename':source_out.name,'sha256':hashlib.sha256(source_out.read_bytes()).hexdigest()},'profiles':['flac','opus'] if record['inputs'].get('opus') else ['flac'],'linkSettings':record.get('linkSettings',{}),'qualification':'qualified file profiles; automatic FLAC requires explicit policy and source admission; Opus remains explicit and requires lossy permission'},indent=2)+'\n').encode()
+ files['web/engine-adaptation/manifest.json']=(json.dumps({'apiVersion':2,'sourceBuildVerification':preparation_verification,'inputs':record['inputs'],'files':{pathlib.Path(k).name:v for k,v in record['files'].items() if pathlib.Path(k).suffix in ['.mjs','.wasm']},'sourceCompanion':{'filename':source_out.name,'sha256':hashlib.sha256(source_out.read_bytes()).hexdigest()},'profiles':['flac']+(['opus'] if record['inputs'].get('opus') else [])+(['flac24'] if record['inputs'].get('flac24') else []),'linkSettings':record.get('linkSettings',{}),'qualification':'qualified file profiles; automatic FLAC24 requires source admission; integer FLAC and Opus remain explicit; Opus requires lossy permission'},indent=2)+'\n').encode()
  for name in ['COPYING.LGPLv2.1','LICENSE.md']:
   files['third_party/notices/ffmpeg-adaptation/'+name]=(source_root/name).read_bytes()
 if args.ass_build:

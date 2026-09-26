@@ -266,6 +266,21 @@ Transactional replacement is reserved for backends without an in-place gain meth
 Diagnostics expose `plan` and `audioGain`; feature capabilities include `audioGain`.
 See [current qualification and limitations](OPTIMIZATION-COMPLETION.md).
 
+### Default audio transcoding
+
+`audioPlayback: 'auto'` (default) tries direct/copy audio first, then selected-audio
+FLAC24 preparation with copied video, then the existing mpv/AudioWorklet fallback.
+`audioPlayback: 'worklet'` disables automatic transcoding. This is a construction
+option; it does not force browser-playable audio through mpv. The player element
+also exposes `.audioPlayback`, set before connecting it to the document.
+
+FLAC24 preserves decoded S16/S24 integer samples; higher precision PCM is rounded.
+It preserves sample rate and the established speaker layout in the encoded stream.
+See [supported inputs, limits and runtime assets](AUDIO-TRANSCODING.md).
+`automaticAudioAdaptation: 'lossless'` retains the narrower strict policy below
+and disables the default rounding-capable route. Explicit experimental profiles
+also retain their existing admission rules.
+
 ### Experimental selected-audio FLAC preparation
 
 `experimentalAudioAdaptation: 'flac'` enables explicit Native trials after ordinary

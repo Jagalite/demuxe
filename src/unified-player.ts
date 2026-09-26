@@ -19,7 +19,7 @@ import {freeze, ranges, cachedRanges, tracks, trackKey, usesRemuxTracks, mediaIn
 import type {RawTrack} from './internal/state.js';
 import type {PlayerState, PlayerEventMap, PlayerCapabilities, FeatureAvailability, SessionError, OperationKind, PendingOperation, OpenOptions, MediaSourceInput} from './types.js';
 import {PLAYBACK_MODES} from './types.js';
-import {nativeRejection,nativeManifestRejection,losslessAdaptationRejection,remuxRejection} from './internal/selection.js';
+import {nativeRejection,nativeManifestRejection,losslessAdaptationRejection,audioTranscodeRejection,remuxRejection} from './internal/selection.js';
 import type {PreparationOptions,PreparationReport} from './types.js';
 import type {Probe, SelectionAttempt} from './internal/selection.js';
 import type {AudioOutput, ToneMapping, FontAsset, SubtitleAsset, SubtitleOptions, ResourceLimits, MediaInputOptions, PlaybackMode, PlayerOptions, RemoteSource, TextTrackSource, Capabilities, Diagnostics, TrackType, PlaybackEvent} from './types.js';
@@ -78,7 +78,7 @@ export class Player extends EventTarget {
   private promotionRunning=false;
   private promotionController?:AbortController;
   private backgroundPromotion?:{maxKnownBytes:number};
-  private tierConfiguration(settings=this.settings){return JSON.stringify([settings.aid,settings.sid,settings.subtitles,settings.vf,settings.af,settings.gain,this.toneMapping,this.audioOutput,this.nativeRemux,this.mpvSubtitles,this.nativeASS,this.fonts.length,this.subtitleAssets.length,[...this.publicSelections]]);}
+  private tierConfiguration(settings=this.settings){return JSON.stringify([settings.aid,settings.sid,settings.subtitles,settings.vf,settings.af,settings.gain,this.toneMapping,this.audioOutput,this.audioPlayback,this.nativeRemux,this.mpvSubtitles,this.nativeASS,this.fonts.length,this.subtitleAssets.length,[...this.publicSelections]]);}
   private cancelPromotion(){clearTimeout(this.promotionTimer);this.promotionEpoch++;this.promotionController?.abort();if(this.promotionRunning){this.activeOperation?.controller.abort();this.inspection?.abort();void this.candidate?.backend.destroy().catch(()=>{});}}
   private schedulePromotion(){
     clearTimeout(this.promotionTimer);
@@ -127,6 +127,9 @@ export class Player extends EventTarget {
   private failedStreamingPlans = new WeakMap<Source,Set<string>>();
   private audioAdaptation?:'flac'|'opus';
   private automaticLossless=false;
+  private audioPlayback:'auto'|'worklet';
+  private transcodeAssetsAvailable=false;
+  private transcodeAssetsChecked=false;
   private losslessInspection?:{source:Source;reason?:string};
   private bufferedNativeSeeks:boolean;
   private hybridAudioFilters: boolean;
@@ -191,6 +194,8 @@ export class Player extends EventTarget {
     if(!['off','hdr-to-sdr'].includes(this.toneMapping))throw new PlayerError('INVALID_ARGUMENT','Invalid tone mapping policy');
     this.resourceLimits={maxDecodePixels:options.resourceLimits?.maxDecodePixels??8294400,maxAllocationBytes:options.resourceLimits?.maxAllocationBytes??134217728};
     if(!Number.isInteger(this.resourceLimits.maxDecodePixels)||this.resourceLimits.maxDecodePixels!<1||this.resourceLimits.maxDecodePixels!>8294400||!Number.isInteger(this.resourceLimits.maxAllocationBytes)||this.resourceLimits.maxAllocationBytes!<33554432||this.resourceLimits.maxAllocationBytes!>268435456)throw new PlayerError('INVALID_ARGUMENT','Invalid decode resource limits');
+    this.audioPlayback=options.audioPlayback??'auto';
+    if(!['auto','worklet'].includes(this.audioPlayback))throw new PlayerError('INVALID_ARGUMENT','audioPlayback must be auto or worklet');
     this.audioAdaptation=options.experimentalAudioAdaptation;
     if(options.automaticAudioAdaptation!==undefined&&options.automaticAudioAdaptation!=='lossless')throw new PlayerError('INVALID_ARGUMENT','Unsupported automatic audio adaptation policy');
     this.automaticLossless=options.automaticAudioAdaptation==='lossless';
@@ -419,7 +424,7 @@ export class Player extends EventTarget {
     this.preparation??=new EnginePreparation(this.assetBase,this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv',()=>{if(!this.destroyed)this.dispatchEvent(new CustomEvent('preparationchange',{detail:freeze(this.preparationProgress)}));});
     return this.preparationTask=this.preparation.warm(selected);
   }
-  private async create(mode: PlaybackMode, aid='auto', adaptation?:'flac'|'opus', forcePreparation=false, planId?:string, loadTimeoutMs?:number): Promise<Session> {
+  private async create(mode: PlaybackMode, aid='auto', adaptation?:'flac'|'opus'|'flac24', forcePreparation=false, planId?:string, loadTimeoutMs?:number): Promise<Session> {
     let backend: Backend;
     const surface = document.createElement(mode === 'native' ? 'video' : 'canvas');
     surface.width = this.width;surface.height = this.height;
@@ -514,6 +519,8 @@ export class Player extends EventTarget {
       !this.selectiveAudioAssetsAvailable?'Selective audio engine or worklet assets are unavailable':
       undefined;
     const decisions:typeof this.planDecisions=planAdmission({automatic,...settings,
+      audioPlayback:this.audioPlayback,transcodeAssetsAvailable:this.transcodeAssetsAvailable,
+      transcodeSourceRejection:!this.fileServicesSource(source)||!inspected?'Audio transcoding requires an inspected random-access file':audioTranscodeRejection(inspected.probe,inspectedSettings!),
       selectiveAudioQualified:!selectiveAudioReason,selectiveAudioReason,
       mpvSubtitles:this.mpvSubtitles,selectedEmbeddedSubtitle:!!(settings.subtitles&&selectiveSubtitle),
       mpvSubtitleSourceQualified:this.mpvSubtitleAssetsAvailable&&this.fileServicesSource(source)&&!!inspected&&Number.isFinite(inspected.probe.duration)&&inspected.probe.duration>0&&!!selectiveSubtitle&&settings.subtitles&&settings.sid!=='no',
@@ -535,7 +542,13 @@ export class Player extends EventTarget {
       for(const plan of decisions){
         if(plan.mode==='hybrid'&&plan.eligible&&inspected.probe.hybridRejection){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason=inspected.probe.hybridRejection;}
         if(!plan.id.startsWith('native-'))continue;
-        const capability=plan.browserCapability=plan.id.startsWith('native-video-mpv-audio')?selectiveVideoCapability!:capabilities[plan.id.startsWith('native-direct')?'direct':plan.id.startsWith('native-flac')?'flac':plan.id.startsWith('native-opus')?'opus':'remux'];
+        const capability=plan.browserCapability=plan.id.startsWith('native-video-mpv-audio')?selectiveVideoCapability!:capabilities[plan.id.startsWith('native-direct')?'direct':(plan.id.startsWith('native-flac')||plan.id.startsWith('native-transcode'))?'flac':plan.id.startsWith('native-opus')?'opus':'remux'];
+        // A browser may silently skip an unsupported default audio stream and
+        // decode another one. Decoded-byte progress cannot prove its identity.
+        // Inconclusive multi-audio Direct trials need selected-stream packaging.
+        if(plan.eligible&&plan.id.startsWith('native-direct')&&audioTracks.length>1&&inspectedSettings!.aid!=='no'&&capability.status!=='supported'){
+          plan.eligible=false;plan.code='SOURCE_UNSUPPORTED';plan.reason='Multiple audio streams require controlled selection when browser support is inconclusive';
+        }
         capability.decodingInfo=this.mediaCapabilityQueries.cached(capability,inspected.probe);
         if(plan.eligible&&capability.status==='unsupported'){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason=capability.reason;}
       }
@@ -585,7 +598,7 @@ export class Player extends EventTarget {
     const publicAudio=preserve&&mode==='native'?/^audio:stream:(\d+)$/.exec(this.publicSelections.get('audio')??''):null;
     const initialAudio=!preserve&&!old&&!['auto','no'].includes(settings.aid)?this.sourceInspection?.probe.tracks.find(t=>t.type==='audio'&&t.id===settings.aid):undefined;
     const initialSubtitle=!preserve&&!old&&!['auto','no'].includes(settings.sid)?this.sourceInspection?.probe.tracks.find(t=>t.type==='sub'&&t.id===settings.sid):undefined;
-    if(initialSubtitle&&(planId==='native-remux-mpv'||planId==='native-direct-mpv'||planId==='native-video-mpv-audio-subtitles'))desired.sid=String(initialSubtitle.index+1);
+    if(initialSubtitle&&(planId==='native-remux-mpv'||planId==='native-transcode-mpv'||planId==='native-direct-mpv'||planId==='native-video-mpv-audio-subtitles'))desired.sid=String(initialSubtitle.index+1);
     if(publicAudio||initialAudio)desired.aid=planId.startsWith('native-direct')?'auto':String((publicAudio?Number(publicAudio[1]):initialAudio!.index)+1);
     if(mode!=='native'&&initialAudio)desired.aid=initialAudio.id;
     const crossing=preserve&&this.automatic&&(mode==='native')!==(this.mode==='native');
@@ -612,7 +625,7 @@ export class Player extends EventTarget {
     // Reserve maximum explicit Wasm heaps plus configured packet queues. Browser
     // decoder/GPU allocations remain opaque and are not represented as a cap.
     const knownBytes=(session:Session)=>{const d=session.backend.diagnostics as {heapBytes?:number;remux?:{remux?:{heapBytes?:number}};mpvAudio?:{worker?:{heapBytes?:number}};mpvSubtitles?:{heapBytes?:number}};return (d.heapBytes??0)+(d.remux?.remux?.heapBytes??0)+(d.mpvAudio?Math.max(d.mpvAudio.worker?.heapBytes??0,128*1024*1024):0)+(d.mpvSubtitles?.heapBytes??0)+40*1024*1024;};
-    const reserve=(planId==='native-video-mpv-audio-subtitles'?384:planId==='native-remux-mpv'||planId==='native-direct-mpv'||planId==='native-video-mpv-audio'?256:128)*1024*1024+40*1024*1024;
+    const reserve=(planId==='native-video-mpv-audio-subtitles'?384:planId==='native-remux-mpv'||planId==='native-transcode-mpv'||planId==='native-direct-mpv'||planId==='native-video-mpv-audio'?256:128)*1024*1024+40*1024*1024;
     let resourceMonitor:ReturnType<typeof setInterval>|undefined;
     try {
       if(overlapping&&knownBytes(old!)+reserve>this.backgroundPromotion!.maxKnownBytes)throw new PlayerError('ABORTED','Background candidate exceeds known-allocation budget');
@@ -624,7 +637,7 @@ export class Player extends EventTarget {
           if(old!.error||this.observedWaiting||drops()>initialDrops||knownBytes(old!)+reserve>this.backgroundPromotion!.maxKnownBytes)this.cancelPromotion();
         },100);
       }
-      const adaptation=planId.startsWith('native-flac')?'flac':planId.startsWith('native-opus')?'opus':undefined;
+      const adaptation=planId.startsWith('native-transcode')?'flac24':planId.startsWith('native-flac')?'flac':planId.startsWith('native-opus')?'opus':undefined;
       candidate = this.candidate = await this.create(mode,desired.aid,adaptation,!planId.startsWith('native-direct'),planId,directLoadBudget);this.assertOperation();const p = candidate.backend;await this.interruptible(p.ready);
       this.assertOperation();
       const tone=this.toneMapping==='hdr-to-sdr'?'zscale=transfer=linear:npl=100,format=gbrpf32le,zscale=primaries=bt709,tonemap=tonemap=mobius:desat=0,zscale=transfer=bt709:matrix=bt709:range=limited,format=yuv420p':'';
@@ -753,7 +766,7 @@ export class Player extends EventTarget {
     finally{clearTimeout(deadline);controller.signal.removeEventListener('abort',abort);}
   }
   private async checkInspectedAssets(source:Source,probe:Probe,settings:Settings,sid:string,controller:AbortController){
-    this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;this.mpvSubtitleAssetsAvailable=false;
+    this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;this.transcodeAssetsAvailable=false;this.transcodeAssetsChecked=false;this.mpvSubtitleAssetsAvailable=false;
     if(this.mpvSubtitles&&this.fileServicesSource(source)&&settings.subtitles&&sid!=='no'&&probe.tracks.some(t=>t.type==='sub'))
       this.mpvSubtitleAssetsAvailable=await this.optionalAssetsAvailable(['web/engine-subtitles/service.mjs','web/engine-subtitles/service.wasm'],controller);
     this.assertOperation();
@@ -761,7 +774,7 @@ export class Player extends EventTarget {
   private async inspectFallbackAfterFastFailure(source:Source,settings:Settings):Promise<string|undefined>{
     this.fastInspectedSource=undefined;
     if(!globalThis.crossOriginIsolated){
-      this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;
+      this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;this.transcodeAssetsAvailable=false;this.transcodeAssetsChecked=false;
       return 'Wasm inspection requires cross-origin isolation';
     }
     const controller=this.inspection=new AbortController();
@@ -774,7 +787,7 @@ export class Player extends EventTarget {
       return nativeRejection(probe,inspectedSettings);
     }catch(error){
       if(this.destroyed||this.activeOperation?.controller.signal.aborted||controller.signal.aborted||terminalSourceFailure(error))throw error;
-      this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;
+      this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;this.transcodeAssetsAvailable=false;this.transcodeAssetsChecked=false;
       this.record({mode:'probe',outcome:'failed',reason:`FFmpeg reinspection after Direct failure: ${String(error)}`});
       return 'Native eligibility could not be established: '+String(error);
     }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
@@ -804,7 +817,7 @@ export class Player extends EventTarget {
     this.attempts=[];
     for(const attempt of priorAttempts)this.record(attempt);
     let nativeReason: string | undefined;
-    if(start===0||this.sourceInspection?.source!==source){this.losslessInspection=undefined;this.sourceInspection=undefined;this.fastInspectedSource=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;}
+    if(start===0||this.sourceInspection?.source!==source){this.losslessInspection=undefined;this.sourceInspection=undefined;this.fastInspectedSource=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;this.transcodeAssetsAvailable=false;this.transcodeAssetsChecked=false;}
     // A later Direct playback failure can resume discovery beyond Native.
     // Fast metadata only proves Direct admission; inspect before other plans.
     if(start>0&&this.fastInspectedSource===source)
@@ -858,7 +871,7 @@ export class Player extends EventTarget {
             const first=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,this.automatic).find(plan=>plan.eligible)?.id;
             if(first!=='native-direct'&&first!=='native-direct-mpv'){
               this.record({mode:'probe',outcome:'skipped',reason:`Fast metadata does not admit an existing Direct route (${first??'none'}); FFmpeg inspection required`});
-              fastProbe=false;this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;
+              fastProbe=false;this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;this.transcodeAssetsAvailable=false;this.transcodeAssetsChecked=false;
               if(globalThis.crossOriginIsolated){probe=await this.inspectWithFFmpeg(source,controller);continue;}
               probe=undefined;nativeReason=undefined;
               break;
@@ -936,7 +949,7 @@ export class Player extends EventTarget {
       }
       // Optional inspection and preparation are strictly after original-copy attempts.
       // Never let adaptation bypass subtitle/transport/filter semantic rejection.
-      if(automatic&&plan.id.startsWith('native-flac')&&this.automaticLossless&&!nativeReason&&this.sourceInspection?.source===source&&this.sourceInspection.probe.tracks.some(t=>t.type==='audio'&&['pcm_s16le','pcm_s24le'].includes(t.codec))&&!this.losslessInspection&&source.kind==='local'){
+      if(automatic&&plan.id.startsWith('native-flac')&&this.audioPlayback!=='worklet'&&this.automaticLossless&&!nativeReason&&this.sourceInspection?.source===source&&this.sourceInspection.probe.tracks.some(t=>t.type==='audio'&&['pcm_s16le','pcm_s24le'].includes(t.codec))&&!this.losslessInspection&&source.kind==='local'){
         const inspected=this.sourceInspection;
         const permitted=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic).find(p=>p.id===plan.id);
         if(permitted?.code==='SOURCE_UNSUPPORTED'){
@@ -949,6 +962,15 @@ export class Player extends EventTarget {
           this.planDecisions=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic);
           plan=this.planDecisions[index];this.runtimeCapabilities.admission(this.planDecisions);
         }
+      }
+      if(automatic&&plan.id.startsWith('native-transcode')&&!this.transcodeAssetsChecked&&this.audioPlayback==='auto'&&!this.audioAdaptation&&!this.automaticLossless&&plan.code==='DEPLOYMENT_UNAVAILABLE'&&plan.reason==='FLAC24 preparation assets are unavailable'){
+        const controller=this.inspection=new AbortController();
+        try{
+          this.transcodeAssetsAvailable=await this.optionalAssetsAvailable(['web/engine-adaptation/remux.mjs','web/engine-adaptation/remux.wasm'],controller);
+          this.assertOperation();this.transcodeAssetsChecked=true;
+        }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
+        this.planDecisions=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic);
+        plan=this.planDecisions[index];this.runtimeCapabilities.admission(this.planDecisions);
       }
       // The common native A/V path never pays for optional mpv-audio asset
       // probes. Check once only when discovery actually reaches a split plan.

@@ -13,9 +13,11 @@ mode. Demuxe owns source classification, plan selection, state and fallback; Sha
 owns HLS/DASH parsing, segment scheduling, ABR, buffering, live/DVR and MSE.
 Simple browser-supported HLS VOD can retain Native Direct when its source and
 track policies permit it and actual output passes verification. Ordinary files
-keep their existing Direct/Remux/Hybrid/Software paths. Inspected finite files
-with browser-presentable video can use `native-video-mpv-audio`: the browser owns
-video, while mpv decodes selected audio into the PCM AudioWorklet. Embedded
+prefer direct playback and packet copying. When the browser cannot play selected
+audio, Auto next tries `native-transcode`: selected audio is decoded to FLAC24
+while video packets are copied for browser decoding. Embedded subtitles use
+`native-transcode-mpv`. Unsupported cases retain `native-video-mpv-audio`, where
+mpv delivers decoded audio through AudioWorklet. Embedded
 subtitles can use the mpv subtitle service alongside Native playback. These
 service paths accept local files and inspected HTTP(S) file URLs; URL readers
 preserve source identity and authorization. Unsupported combinations retain
@@ -91,6 +93,16 @@ await player.play();
 // When finished: await player.destroy();
 ```
 
+`audioPlayback: 'auto'` is the default. Set `audioPlayback: 'worklet'` to disable
+automatic FLAC24 transcoding and retain mpv/AudioWorklet when audio decoding is
+needed. Browser-playable audio still uses direct/copy playback.
+
+**Audio precision:** FLAC24 preserves decoded 16/24-bit integer samples. Floating
+point and higher precision PCM is rounded to 24 bits; this is not a universally
+lossless path. No additional perceptual codec, resampling, or channel remix is
+applied by the transcoder. Browser speaker output remains device-dependent.
+See [audio transcoding and fallback](docs/AUDIO-TRANSCODING.md).
+
 Optionally prepare engine assets before the user chooses media:
 
 ```js
@@ -139,6 +151,9 @@ matrix. See [component capabilities](docs/CAPABILITIES.md) for supported paths a
 [the complete-file catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md) for exact evidence.
 
 **CPU figures are being refreshed row by row under the current protocol.**
+The recorded Auto routes and CPU figures below predate the default FLAC24 audio
+transcoding change; affected cells need a fresh row retest. See
+[audio transcoding](docs/AUDIO-TRANSCODING.md) for the new policy.
 Unmeasured rows retain the historical bounded playback statuses and route labels.
 Previous numbers are preserved in the
 [historical CPU snapshot](docs/HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md).

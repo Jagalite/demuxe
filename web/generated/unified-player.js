@@ -13,7 +13,7 @@ import { webgpuDecoderSupported, hasQualifiedWebGPUCodecs } from './internal/web
 import { PlayerError, playerError, redact } from './internal/errors.js';
 import { freeze, ranges, cachedRanges, tracks, trackKey, usesRemuxTracks, mediaInfo } from './internal/state.js';
 import { PLAYBACK_MODES } from './types.js';
-import { nativeRejection, nativeManifestRejection, losslessAdaptationRejection, remuxRejection } from './internal/selection.js';
+import { nativeRejection, nativeManifestRejection, losslessAdaptationRejection, audioTranscodeRejection, remuxRejection } from './internal/selection.js';
 import { backendPlan } from './internal/backend.js';
 import { PreviewController } from './preview/controller.js';
 import { SoftwarePreviewProvider } from './preview/software.js';
@@ -67,7 +67,7 @@ export class Player extends EventTarget {
     promotionRunning = false;
     promotionController;
     backgroundPromotion;
-    tierConfiguration(settings = this.settings) { return JSON.stringify([settings.aid, settings.sid, settings.subtitles, settings.vf, settings.af, settings.gain, this.toneMapping, this.audioOutput, this.nativeRemux, this.mpvSubtitles, this.nativeASS, this.fonts.length, this.subtitleAssets.length, [...this.publicSelections]]); }
+    tierConfiguration(settings = this.settings) { return JSON.stringify([settings.aid, settings.sid, settings.subtitles, settings.vf, settings.af, settings.gain, this.toneMapping, this.audioOutput, this.audioPlayback, this.nativeRemux, this.mpvSubtitles, this.nativeASS, this.fonts.length, this.subtitleAssets.length, [...this.publicSelections]]); }
     cancelPromotion() { clearTimeout(this.promotionTimer); this.promotionEpoch++; this.promotionController?.abort(); if (this.promotionRunning) {
         this.activeOperation?.controller.abort();
         this.inspection?.abort();
@@ -147,6 +147,9 @@ export class Player extends EventTarget {
     failedStreamingPlans = new WeakMap();
     audioAdaptation;
     automaticLossless = false;
+    audioPlayback;
+    transcodeAssetsAvailable = false;
+    transcodeAssetsChecked = false;
     losslessInspection;
     bufferedNativeSeeks;
     hybridAudioFilters;
@@ -220,6 +223,9 @@ export class Player extends EventTarget {
         this.resourceLimits = { maxDecodePixels: options.resourceLimits?.maxDecodePixels ?? 8294400, maxAllocationBytes: options.resourceLimits?.maxAllocationBytes ?? 134217728 };
         if (!Number.isInteger(this.resourceLimits.maxDecodePixels) || this.resourceLimits.maxDecodePixels < 1 || this.resourceLimits.maxDecodePixels > 8294400 || !Number.isInteger(this.resourceLimits.maxAllocationBytes) || this.resourceLimits.maxAllocationBytes < 33554432 || this.resourceLimits.maxAllocationBytes > 268435456)
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid decode resource limits');
+        this.audioPlayback = options.audioPlayback ?? 'auto';
+        if (!['auto', 'worklet'].includes(this.audioPlayback))
+            throw new PlayerError('INVALID_ARGUMENT', 'audioPlayback must be auto or worklet');
         this.audioAdaptation = options.experimentalAudioAdaptation;
         if (options.automaticAudioAdaptation !== undefined && options.automaticAudioAdaptation !== 'lossless')
             throw new PlayerError('INVALID_ARGUMENT', 'Unsupported automatic audio adaptation policy');
@@ -687,6 +693,8 @@ export class Player extends EventTarget {
                         !this.selectiveAudioAssetsAvailable ? 'Selective audio engine or worklet assets are unavailable' :
                             undefined;
         const decisions = planAdmission({ automatic, ...settings,
+            audioPlayback: this.audioPlayback, transcodeAssetsAvailable: this.transcodeAssetsAvailable,
+            transcodeSourceRejection: !this.fileServicesSource(source) || !inspected ? 'Audio transcoding requires an inspected random-access file' : audioTranscodeRejection(inspected.probe, inspectedSettings),
             selectiveAudioQualified: !selectiveAudioReason, selectiveAudioReason,
             mpvSubtitles: this.mpvSubtitles, selectedEmbeddedSubtitle: !!(settings.subtitles && selectiveSubtitle),
             mpvSubtitleSourceQualified: this.mpvSubtitleAssetsAvailable && this.fileServicesSource(source) && !!inspected && Number.isFinite(inspected.probe.duration) && inspected.probe.duration > 0 && !!selectiveSubtitle && settings.subtitles && settings.sid !== 'no',
@@ -713,7 +721,15 @@ export class Player extends EventTarget {
                 }
                 if (!plan.id.startsWith('native-'))
                     continue;
-                const capability = plan.browserCapability = plan.id.startsWith('native-video-mpv-audio') ? selectiveVideoCapability : capabilities[plan.id.startsWith('native-direct') ? 'direct' : plan.id.startsWith('native-flac') ? 'flac' : plan.id.startsWith('native-opus') ? 'opus' : 'remux'];
+                const capability = plan.browserCapability = plan.id.startsWith('native-video-mpv-audio') ? selectiveVideoCapability : capabilities[plan.id.startsWith('native-direct') ? 'direct' : (plan.id.startsWith('native-flac') || plan.id.startsWith('native-transcode')) ? 'flac' : plan.id.startsWith('native-opus') ? 'opus' : 'remux'];
+                // A browser may silently skip an unsupported default audio stream and
+                // decode another one. Decoded-byte progress cannot prove its identity.
+                // Inconclusive multi-audio Direct trials need selected-stream packaging.
+                if (plan.eligible && plan.id.startsWith('native-direct') && audioTracks.length > 1 && inspectedSettings.aid !== 'no' && capability.status !== 'supported') {
+                    plan.eligible = false;
+                    plan.code = 'SOURCE_UNSUPPORTED';
+                    plan.reason = 'Multiple audio streams require controlled selection when browser support is inconclusive';
+                }
                 capability.decodingInfo = this.mediaCapabilityQueries.cached(capability, inspected.probe);
                 if (plan.eligible && capability.status === 'unsupported') {
                     plan.eligible = false;
@@ -794,7 +810,7 @@ export class Player extends EventTarget {
         const publicAudio = preserve && mode === 'native' ? /^audio:stream:(\d+)$/.exec(this.publicSelections.get('audio') ?? '') : null;
         const initialAudio = !preserve && !old && !['auto', 'no'].includes(settings.aid) ? this.sourceInspection?.probe.tracks.find(t => t.type === 'audio' && t.id === settings.aid) : undefined;
         const initialSubtitle = !preserve && !old && !['auto', 'no'].includes(settings.sid) ? this.sourceInspection?.probe.tracks.find(t => t.type === 'sub' && t.id === settings.sid) : undefined;
-        if (initialSubtitle && (planId === 'native-remux-mpv' || planId === 'native-direct-mpv' || planId === 'native-video-mpv-audio-subtitles'))
+        if (initialSubtitle && (planId === 'native-remux-mpv' || planId === 'native-transcode-mpv' || planId === 'native-direct-mpv' || planId === 'native-video-mpv-audio-subtitles'))
             desired.sid = String(initialSubtitle.index + 1);
         if (publicAudio || initialAudio)
             desired.aid = planId.startsWith('native-direct') ? 'auto' : String((publicAudio ? Number(publicAudio[1]) : initialAudio.index) + 1);
@@ -837,7 +853,7 @@ export class Player extends EventTarget {
         // Reserve maximum explicit Wasm heaps plus configured packet queues. Browser
         // decoder/GPU allocations remain opaque and are not represented as a cap.
         const knownBytes = (session) => { const d = session.backend.diagnostics; return (d.heapBytes ?? 0) + (d.remux?.remux?.heapBytes ?? 0) + (d.mpvAudio ? Math.max(d.mpvAudio.worker?.heapBytes ?? 0, 128 * 1024 * 1024) : 0) + (d.mpvSubtitles?.heapBytes ?? 0) + 40 * 1024 * 1024; };
-        const reserve = (planId === 'native-video-mpv-audio-subtitles' ? 384 : planId === 'native-remux-mpv' || planId === 'native-direct-mpv' || planId === 'native-video-mpv-audio' ? 256 : 128) * 1024 * 1024 + 40 * 1024 * 1024;
+        const reserve = (planId === 'native-video-mpv-audio-subtitles' ? 384 : planId === 'native-remux-mpv' || planId === 'native-transcode-mpv' || planId === 'native-direct-mpv' || planId === 'native-video-mpv-audio' ? 256 : 128) * 1024 * 1024 + 40 * 1024 * 1024;
         let resourceMonitor;
         try {
             if (overlapping && knownBytes(old) + reserve > this.backgroundPromotion.maxKnownBytes)
@@ -852,7 +868,7 @@ export class Player extends EventTarget {
                         this.cancelPromotion();
                 }, 100);
             }
-            const adaptation = planId.startsWith('native-flac') ? 'flac' : planId.startsWith('native-opus') ? 'opus' : undefined;
+            const adaptation = planId.startsWith('native-transcode') ? 'flac24' : planId.startsWith('native-flac') ? 'flac' : planId.startsWith('native-opus') ? 'opus' : undefined;
             candidate = this.candidate = await this.create(mode, desired.aid, adaptation, !planId.startsWith('native-direct'), planId, directLoadBudget);
             this.assertOperation();
             const p = candidate.backend;
@@ -1095,6 +1111,8 @@ export class Player extends EventTarget {
     async checkInspectedAssets(source, probe, settings, sid, controller) {
         this.selectiveAudioAssetsAvailable = false;
         this.selectiveAudioAssetsChecked = false;
+        this.transcodeAssetsAvailable = false;
+        this.transcodeAssetsChecked = false;
         this.mpvSubtitleAssetsAvailable = false;
         if (this.mpvSubtitles && this.fileServicesSource(source) && settings.subtitles && sid !== 'no' && probe.tracks.some(t => t.type === 'sub'))
             this.mpvSubtitleAssetsAvailable = await this.optionalAssetsAvailable(['web/engine-subtitles/service.mjs', 'web/engine-subtitles/service.wasm'], controller);
@@ -1107,6 +1125,8 @@ export class Player extends EventTarget {
             this.mpvSubtitleAssetsAvailable = false;
             this.selectiveAudioAssetsAvailable = false;
             this.selectiveAudioAssetsChecked = false;
+            this.transcodeAssetsAvailable = false;
+            this.transcodeAssetsChecked = false;
             return 'Wasm inspection requires cross-origin isolation';
         }
         const controller = this.inspection = new AbortController();
@@ -1125,6 +1145,8 @@ export class Player extends EventTarget {
             this.mpvSubtitleAssetsAvailable = false;
             this.selectiveAudioAssetsAvailable = false;
             this.selectiveAudioAssetsChecked = false;
+            this.transcodeAssetsAvailable = false;
+            this.transcodeAssetsChecked = false;
             this.record({ mode: 'probe', outcome: 'failed', reason: `FFmpeg reinspection after Direct failure: ${String(error)}` });
             return 'Native eligibility could not be established: ' + String(error);
         }
@@ -1174,6 +1196,8 @@ export class Player extends EventTarget {
             this.mpvSubtitleAssetsAvailable = false;
             this.selectiveAudioAssetsAvailable = false;
             this.selectiveAudioAssetsChecked = false;
+            this.transcodeAssetsAvailable = false;
+            this.transcodeAssetsChecked = false;
         }
         // A later Direct playback failure can resume discovery beyond Native.
         // Fast metadata only proves Direct admission; inspect before other plans.
@@ -1245,6 +1269,8 @@ export class Player extends EventTarget {
                                     this.mpvSubtitleAssetsAvailable = false;
                                     this.selectiveAudioAssetsAvailable = false;
                                     this.selectiveAudioAssetsChecked = false;
+                                    this.transcodeAssetsAvailable = false;
+                                    this.transcodeAssetsChecked = false;
                                     if (globalThis.crossOriginIsolated) {
                                         probe = await this.inspectWithFFmpeg(source, controller);
                                         continue;
@@ -1347,7 +1373,7 @@ export class Player extends EventTarget {
             }
             // Optional inspection and preparation are strictly after original-copy attempts.
             // Never let adaptation bypass subtitle/transport/filter semantic rejection.
-            if (automatic && plan.id.startsWith('native-flac') && this.automaticLossless && !nativeReason && this.sourceInspection?.source === source && this.sourceInspection.probe.tracks.some(t => t.type === 'audio' && ['pcm_s16le', 'pcm_s24le'].includes(t.codec)) && !this.losslessInspection && source.kind === 'local') {
+            if (automatic && plan.id.startsWith('native-flac') && this.audioPlayback !== 'worklet' && this.automaticLossless && !nativeReason && this.sourceInspection?.source === source && this.sourceInspection.probe.tracks.some(t => t.type === 'audio' && ['pcm_s16le', 'pcm_s24le'].includes(t.codec)) && !this.losslessInspection && source.kind === 'local') {
                 const inspected = this.sourceInspection;
                 const permitted = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, nativeReason, automatic).find(p => p.id === plan.id);
                 if (permitted?.code === 'SOURCE_UNSUPPORTED') {
@@ -1367,6 +1393,22 @@ export class Player extends EventTarget {
                     plan = this.planDecisions[index];
                     this.runtimeCapabilities.admission(this.planDecisions);
                 }
+            }
+            if (automatic && plan.id.startsWith('native-transcode') && !this.transcodeAssetsChecked && this.audioPlayback === 'auto' && !this.audioAdaptation && !this.automaticLossless && plan.code === 'DEPLOYMENT_UNAVAILABLE' && plan.reason === 'FLAC24 preparation assets are unavailable') {
+                const controller = this.inspection = new AbortController();
+                try {
+                    this.transcodeAssetsAvailable = await this.optionalAssetsAvailable(['web/engine-adaptation/remux.mjs', 'web/engine-adaptation/remux.wasm'], controller);
+                    this.assertOperation();
+                    this.transcodeAssetsChecked = true;
+                }
+                finally {
+                    controller.abort();
+                    if (this.inspection === controller)
+                        this.inspection = undefined;
+                }
+                this.planDecisions = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, nativeReason, automatic);
+                plan = this.planDecisions[index];
+                this.runtimeCapabilities.admission(this.planDecisions);
             }
             // The common native A/V path never pays for optional mpv-audio asset
             // probes. Check once only when discovery actually reaches a split plan.

@@ -53,6 +53,9 @@ export declare class Player extends EventTarget {
     private failedStreamingPlans;
     private audioAdaptation?;
     private automaticLossless;
+    private audioPlayback;
+    private transcodeAssetsAvailable;
+    private transcodeAssetsChecked;
     private losslessInspection?;
     private bufferedNativeSeeks;
     private hybridAudioFilters;

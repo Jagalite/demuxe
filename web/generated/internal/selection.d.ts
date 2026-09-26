@@ -41,6 +41,11 @@ export declare function losslessAdaptationRejection(probe: Probe, settings: {
     sid: string;
     subtitles: boolean;
 }): string | undefined;
+/** Transcoding replaces selected audio only. Decoder output supplies the speaker
+ * layout; runtime packet/sample continuity and browser output remain mandatory. */
+export declare function audioTranscodeRejection(probe: Probe, settings: {
+    aid: string;
+}): string | undefined;
 /** A simple browser-supported HLS VOD may avoid a JS streaming engine. All
  * controlled adaptive behavior belongs to Shaka, then eligible mpv fallback.
  * A browser hint admits a trial; actual output is verified separately. */

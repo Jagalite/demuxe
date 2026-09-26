@@ -5,6 +5,7 @@
 #ifndef DEMUXE_FLAC_LEVEL
 #define DEMUXE_FLAC_LEVEL 5
 #endif
+#include <math.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/audio_fifo.h>
 #include <libavutil/samplefmt.h>
@@ -19,7 +20,7 @@ static int64_t adapt_video_packets,adapt_audio_frames,adapt_audio_packets;
 static double adapt_last_end;
 static int64_t adapt_discard_samples;
 static void adaptation_stats(void){
- EM_ASM({Module.adaptation=({codec:$9?'opus':'flac',videoPacketsCopied:$0,audioFramesDecoded:$1,audioSamplesDecoded:$2,audioSamplesEncoded:$3,audioPacketsEncoded:$4,sourceEnd:$5,videoFramesDecoded:0,videoFramesEncoded:0,sampleRate:$6,channels:$7,bits:$8,discardPaddingSamples:$10,encoderDelaySamples:$11});},(double)adapt_video_packets,(double)adapt_audio_frames,(double)adapt_decoded_samples,(double)adapt_encoded_samples,(double)adapt_audio_packets,adapt_last_end,adapt_encoder?adapt_encoder->sample_rate:0,adapt_encoder?adapt_encoder->ch_layout.nb_channels:0,adapt_encoder?adapt_encoder->bits_per_raw_sample:0,adapt_enabled==2,(double)adapt_discard_samples,adapt_encoder?adapt_encoder->initial_padding:0);
+ EM_ASM({Module.adaptation=({codec:$9?'opus':'flac',precision:$12?'24-bit PCM':'source integer',clippedSamples:0,videoPacketsCopied:$0,audioFramesDecoded:$1,audioSamplesDecoded:$2,audioSamplesEncoded:$3,audioPacketsEncoded:$4,sourceEnd:$5,videoFramesDecoded:0,videoFramesEncoded:0,sampleRate:$6,channels:$7,bits:$8,discardPaddingSamples:$10,encoderDelaySamples:$11});},(double)adapt_video_packets,(double)adapt_audio_frames,(double)adapt_decoded_samples,(double)adapt_encoded_samples,(double)adapt_audio_packets,adapt_last_end,adapt_encoder?adapt_encoder->sample_rate:0,adapt_encoder?adapt_encoder->ch_layout.nb_channels:0,adapt_encoder?adapt_encoder->bits_per_raw_sample:0,adapt_enabled==2,(double)adapt_discard_samples,adapt_encoder?adapt_encoder->initial_padding:0,adapt_enabled==3);
 }
 static void adaptation_close(void){
  avcodec_free_context(&adapt_decoder);avcodec_free_context(&adapt_encoder);
@@ -27,6 +28,13 @@ static void adaptation_close(void){
  av_audio_fifo_free(adapt_fifo);adapt_fifo=NULL;
 }
 static int adaptation_describe(AVCodecParameters *p){
+ if(adapt_enabled==3){
+  if(!avcodec_find_decoder(p->codec_id))return reject("Audio transcoding decoder unavailable");
+  if(p->sample_rate<8000||p->sample_rate>192000||p->ch_layout.nb_channels<1||p->ch_layout.nb_channels>8)return reject("Audio transcoding sample rate or channels outside budget");
+  if(p->ch_layout.order!=AV_CHANNEL_ORDER_NATIVE&&p->ch_layout.order!=AV_CHANNEL_ORDER_UNSPEC)return reject("Audio transcoding requires a speaker layout");
+  snprintf(audio_codec,sizeof(audio_codec),"flac");return 0;
+ }
+
  if(adapt_enabled==2&&(video<0||in->streams[video]->codecpar->codec_id!=AV_CODEC_ID_H264||(p->codec_id!=AV_CODEC_ID_PCM_S16LE&&p->codec_id!=AV_CODEC_ID_PCM_S24LE)))return reject("Opus profile is qualified only for copied H264 with selected PCM S16/S24 audio");
  if(p->codec_id!=AV_CODEC_ID_PCM_S16LE&&p->codec_id!=AV_CODEC_ID_PCM_S24LE&&p->codec_id!=AV_CODEC_ID_PCM_S32LE&&p->codec_id!=AV_CODEC_ID_FLAC&&p->codec_id!=AV_CODEC_ID_DTS)return reject("Audio codec is not qualified for lossless adaptation");
  if(p->sample_rate<=0||p->sample_rate>192000||(p->ch_layout.order!=AV_CHANNEL_ORDER_NATIVE&&p->ch_layout.order!=AV_CHANNEL_ORDER_UNSPEC)||p->ch_layout.nb_channels<1||p->ch_layout.nb_channels>2)return reject("FLAC adaptation requires an established mono/stereo layout and sample rate");
@@ -38,23 +46,74 @@ static int adaptation_describe(AVCodecParameters *p){
  if(adapt_enabled==2&&p->sample_rate!=48000)return reject("Opus adaptation requires 48 kHz input; resampling is not permitted");
  snprintf(audio_codec,sizeof(audio_codec),"%s",adapt_enabled==2?"opus":"flac");return 0;
 }
+static int adaptation_access_unit(const AVPacket *p){
+ enum AVCodecID codec=in->streams[audio]->codecpar->codec_id;
+ if(adapt_enabled==3&&(codec==AV_CODEC_ID_TRUEHD||codec==AV_CODEC_ID_MLP)&&
+    (p->size<8||(AV_RB16(p->data)&0xfff)*2!=p->size))return reject("Unsupported TrueHD/MLP access-unit framing");
+ return 0;
+}
+// Metadata probing deliberately opens no decoders. Establish the selected
+// audio layout from one decoded frame before writing the FLAC header, retaining
+// every packet for normal playback. Never guess an unspecified surround layout.
+static int adaptation_discover_layout(void){
+ AVFrame *f=av_frame_alloc();if(!f)return AVERROR(ENOMEM);
+ int r=AVERROR(EAGAIN),bytes=0;
+ for(int j=prefetch_at;j<prefetched;j++)bytes+=prefetch[j]->size;
+ for(int i=prefetch_at;i<256;i++){
+  if(i==prefetched){
+   AVPacket *q=av_packet_alloc();if(!q){r=AVERROR(ENOMEM);break;}
+   r=av_read_frame(in,q);if(r<0){av_packet_free(&q);break;}
+   bytes+=q->size;prefetch[prefetched++]=q;
+  }
+  if(bytes>2*1024*1024){r=reject("Audio layout discovery byte budget exceeded");break;}
+  AVPacket *q=prefetch[i];if(q->stream_index!=audio)continue;
+  r=adaptation_access_unit(q);if(r<0)break;
+  r=avcodec_send_packet(adapt_decoder,q);if(r<0)break;
+  r=avcodec_receive_frame(adapt_decoder,f);
+  if(r==AVERROR(EAGAIN))continue;
+  if(r<0)break;
+  if(f->sample_rate!=adapt_decoder->sample_rate||f->ch_layout.nb_channels!=in->streams[audio]->codecpar->ch_layout.nb_channels){r=reject("Decoded audio configuration differs from metadata");break;}
+  if(f->ch_layout.order==AV_CHANNEL_ORDER_UNSPEC&&f->ch_layout.nb_channels<=2){int n=f->ch_layout.nb_channels;av_channel_layout_uninit(&f->ch_layout);av_channel_layout_default(&f->ch_layout,n);}
+  if(f->ch_layout.order!=AV_CHANNEL_ORDER_NATIVE){r=reject("Decoded multichannel speaker layout is unavailable");break;}
+  // FLAC's channel count implies a canonical speaker map. Its encoder can
+  // merely warn for other native masks; do not silently relabel those speakers.
+  static const AVChannelLayout layouts[]={AV_CHANNEL_LAYOUT_MONO,AV_CHANNEL_LAYOUT_STEREO,AV_CHANNEL_LAYOUT_SURROUND,AV_CHANNEL_LAYOUT_QUAD,AV_CHANNEL_LAYOUT_5POINT0,AV_CHANNEL_LAYOUT_5POINT1,AV_CHANNEL_LAYOUT_6POINT1,AV_CHANNEL_LAYOUT_7POINT1};
+  int channels=f->ch_layout.nb_channels;
+  if(channels<1||channels>8||av_channel_layout_compare(&f->ch_layout,&layouts[channels-1])){r=reject("FLAC24 requires a canonical FLAC speaker layout; use AudioWorklet");break;}
+  av_channel_layout_uninit(&adapt_encoder->ch_layout);
+  r=av_channel_layout_copy(&adapt_encoder->ch_layout,&f->ch_layout);break;
+ }
+ av_frame_free(&f);avcodec_flush_buffers(adapt_decoder);
+ if(r>=0&&adapt_encoder->ch_layout.nb_channels)return 0;
+ return r<0&&r!=AVERROR(EAGAIN)?r:reject("Audio layout discovery packet budget exceeded");
+}
+static int adaptation_decoder_open(AVCodecParameters *p){
+ const AVCodec *dec=avcodec_find_decoder(p->codec_id);
+ adapt_decoder=avcodec_alloc_context3(dec);if(!adapt_decoder)return AVERROR(ENOMEM);
+ int r=avcodec_parameters_to_context(adapt_decoder,p);if(r<0)return r;
+ if(adapt_decoder->ch_layout.order==AV_CHANNEL_ORDER_UNSPEC&&(adapt_enabled!=3||p->ch_layout.nb_channels<=2)){int n=adapt_decoder->ch_layout.nb_channels;av_channel_layout_uninit(&adapt_decoder->ch_layout);av_channel_layout_default(&adapt_decoder->ch_layout,n);}
+ adapt_decoder->pkt_timebase=in->streams[audio]->time_base;adapt_decoder->thread_count=1;
+ int bits=p->codec_id==AV_CODEC_ID_PCM_S16LE?16:p->codec_id==AV_CODEC_ID_PCM_S24LE?24:p->bits_per_raw_sample;
+ adapt_decoder->request_sample_fmt=adapt_enabled==3?AV_SAMPLE_FMT_FLTP:bits==16?AV_SAMPLE_FMT_S16:AV_SAMPLE_FMT_S32;
+ return avcodec_open2(adapt_decoder,dec,NULL);
+}
 static int adaptation_open(void){
  if(audio<0)return reject("Audio adaptation requires a selected audio track");
  AVCodecParameters *p=in->streams[audio]->codecpar;
  int r=adaptation_describe(p);if(r<0)return r;
  const AVCodec *dec=avcodec_find_decoder(p->codec_id),*enc=avcodec_find_encoder(adapt_enabled==2?AV_CODEC_ID_OPUS:AV_CODEC_ID_FLAC);
  if(!dec||!enc)return reject("Required audio decoder/adaptation encoder unavailable");
- adapt_decoder=avcodec_alloc_context3(dec);adapt_encoder=avcodec_alloc_context3(enc);
- if(!adapt_decoder||!adapt_encoder)return AVERROR(ENOMEM);
- r=avcodec_parameters_to_context(adapt_decoder,p);if(r<0)return r;
- if(adapt_decoder->ch_layout.order==AV_CHANNEL_ORDER_UNSPEC){int n=adapt_decoder->ch_layout.nb_channels;av_channel_layout_uninit(&adapt_decoder->ch_layout);av_channel_layout_default(&adapt_decoder->ch_layout,n);}
- adapt_decoder->pkt_timebase=in->streams[audio]->time_base;adapt_decoder->thread_count=1;
- int bits=p->codec_id==AV_CODEC_ID_PCM_S16LE?16:p->codec_id==AV_CODEC_ID_PCM_S24LE?24:p->bits_per_raw_sample;
- adapt_decoder->request_sample_fmt=bits==16?AV_SAMPLE_FMT_S16:AV_SAMPLE_FMT_S32;
- r=avcodec_open2(adapt_decoder,dec,NULL);if(r<0)return r;
+ adapt_encoder=avcodec_alloc_context3(enc);if(!adapt_encoder)return AVERROR(ENOMEM);
+ r=adaptation_decoder_open(p);if(r<0)return r;
+ int bits=adapt_enabled==3?24:p->codec_id==AV_CODEC_ID_PCM_S16LE?16:p->codec_id==AV_CODEC_ID_PCM_S24LE?24:p->bits_per_raw_sample;
  adapt_encoder->sample_fmt=adapt_enabled==2?AV_SAMPLE_FMT_FLTP:bits==16?AV_SAMPLE_FMT_S16:AV_SAMPLE_FMT_S32;
  adapt_encoder->bits_per_raw_sample=adapt_enabled==2?0:bits;adapt_encoder->sample_rate=p->sample_rate;
- av_channel_layout_copy(&adapt_encoder->ch_layout,&adapt_decoder->ch_layout);
+ if(adapt_enabled==3){
+  r=adaptation_discover_layout();if(r<0)return r;
+  // A flush can retain codec synchronization learned during discovery. Reopen
+  // so replaying the retained preroll has exactly the original decode state.
+  avcodec_free_context(&adapt_decoder);r=adaptation_decoder_open(p);if(r<0)return r;
+ }else av_channel_layout_copy(&adapt_encoder->ch_layout,&adapt_decoder->ch_layout);
  adapt_encoder->time_base=(AVRational){1,p->sample_rate};adapt_encoder->thread_count=1;
  adapt_encoder->flags|=AV_CODEC_FLAG_GLOBAL_HEADER;adapt_encoder->compression_level=DEMUXE_FLAC_LEVEL;
  if(adapt_enabled==2){adapt_encoder->strict_std_compliance=FF_COMPLIANCE_EXPERIMENTAL;adapt_encoder->bit_rate=96000*p->ch_layout.nb_channels;}
@@ -95,12 +154,12 @@ static int adaptation_frames(void){
  int r;
  while((r=avcodec_receive_frame(adapt_decoder,adapt_decoded))>=0){
   AVFrame *f=adapt_decoded;int channels=adapt_encoder->ch_layout.nb_channels;
-  if(f->sample_rate!=adapt_encoder->sample_rate||av_channel_layout_compare(&f->ch_layout,&adapt_encoder->ch_layout)||av_get_packed_sample_fmt(f->format)!=(adapt_enabled==2?adapt_decoder->request_sample_fmt:adapt_encoder->sample_fmt))return reject("Decoded audio configuration/precision changed; lossless adaptation rejected");
+  if(f->sample_rate!=adapt_encoder->sample_rate||av_channel_layout_compare(&f->ch_layout,&adapt_encoder->ch_layout)||(adapt_enabled!=3&&av_get_packed_sample_fmt(f->format)!=(adapt_enabled==2?adapt_decoder->request_sample_fmt:adapt_encoder->sample_fmt)))return reject("Decoded audio configuration/precision changed; lossless adaptation rejected");
   if(f->pts==AV_NOPTS_VALUE)return reject("Missing decoded audio timestamp");
   int64_t pts=av_rescale_q(f->pts,adapt_decoder->pkt_timebase,adapt_encoder->time_base);
   if(adapt_first_pts==AV_NOPTS_VALUE)adapt_first_pts=pts-adapt_decoded_samples;
   int64_t tolerance=FFMAX(1,av_rescale_q(1,adapt_decoder->pkt_timebase,adapt_encoder->time_base));
-  if(llabs(pts-adapt_first_pts-adapt_decoded_samples)>tolerance)return reject("Decoded audio timeline discontinuity");
+  if(llabs(pts-adapt_first_pts-adapt_decoded_samples)>tolerance){char detail[200];snprintf(detail,sizeof(detail),"Decoded audio timeline discontinuity: pts=%lld expected=%lld samples=%lld tolerance=%lld",(long long)pts,(long long)(adapt_first_pts+adapt_decoded_samples),(long long)adapt_decoded_samples,(long long)tolerance);return reject(detail);}
   if(f->nb_samples<=0||f->nb_samples>65536)return reject("Decoded audio frame budget exceeded");
   int bytes=av_get_bytes_per_sample(f->format),planar=av_sample_fmt_is_planar(f->format);
   AVFrame *converted=av_frame_alloc();if(!converted)return AVERROR(ENOMEM);
@@ -109,6 +168,22 @@ static int adaptation_frames(void){
   r=av_frame_get_buffer(converted,0);if(r<0){av_frame_free(&converted);return r;}
   for(int i=0;i<f->nb_samples;i++)for(int c=0;c<channels;c++){
    const uint8_t *sample=planar?f->extended_data[c]+i*bytes:f->extended_data[0]+(i*channels+c)*bytes;
+   if(adapt_enabled==3){
+    double v=0;
+    switch(av_get_packed_sample_fmt(f->format)){
+     case AV_SAMPLE_FMT_S16:{int16_t n;memcpy(&n,sample,2);v=n/32768.0;break;}
+     case AV_SAMPLE_FMT_S32:{int32_t n;memcpy(&n,sample,4);v=n/2147483648.0;break;}
+     case AV_SAMPLE_FMT_FLT:{float n;memcpy(&n,sample,4);v=n;break;}
+     case AV_SAMPLE_FMT_DBL:memcpy(&v,sample,8);break;
+     default:av_frame_free(&converted);return reject("Unsupported decoded sample format");
+    }
+    if(!isfinite(v)||v>1||v< -1){av_frame_free(&converted);return reject("Decoded PCM exceeds FLAC range; use AudioWorklet");}
+    // Exact for S16/S24; round higher precision PCM. Saturate only the
+    // positive endpoint that lies within half a 24-bit quantization step.
+    double n=round(v*8388608.0);if(n>8388607)n=8388607;
+    int32_t value=(int32_t)((int64_t)n*256);
+    memcpy(converted->data[0]+(i*channels+c)*4,&value,4);continue;
+   }
    int32_t value=0;if(bytes==4){memcpy(&value,sample,4);if(value&255){av_frame_free(&converted);return reject("Decoded samples exceed established 24-bit precision");}}
    if(adapt_enabled==2){
     // Every admitted S16/S24 value has an exact binary32 representation. This
@@ -125,7 +200,8 @@ static int adaptation_frames(void){
  return r==AVERROR(EAGAIN)||r==AVERROR_EOF?0:r;
 }
 static int adaptation_packet(AVPacket *p){
- int r=avcodec_send_packet(adapt_decoder,p);if(r<0)return r;
+ int r=adaptation_access_unit(p);if(r<0)return r;
+ r=avcodec_send_packet(adapt_decoder,p);if(r<0)return r;
  return adaptation_frames();
 }
 static int adaptation_finish(void){
@@ -141,7 +217,7 @@ static int adaptation_finish(void){
 // before restarting the selected FLAC encoder at the target; sequential playback
 // keeps its encoder. Cumulative work/sample counters survive this reset.
 static int adaptation_seek_restart(void){
- if(adapt_enabled!=1)return reject("Tail preroll reset is qualified only for FLAC");
+ if(adapt_enabled!=1&&adapt_enabled!=3)return reject("Tail preroll reset is qualified only for FLAC");
  int r=adaptation_finish();if(r<0)return r;
  int64_t decoded=adapt_decoded_samples,encoded=adapt_encoded_samples,video_count=adapt_video_packets,frames=adapt_audio_frames,packets=adapt_audio_packets;double end=adapt_last_end;
  adaptation_close();r=adaptation_open();if(r<0)return r;

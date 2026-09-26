@@ -344,6 +344,16 @@ export class DemuxePlayerElement extends Base {
         this.setAttribute('src', String(value));
     else
         this.removeAttribute('src'); }
+    audioPlaybackConfiguration = 'auto';
+    /** Set before connecting the element. Native-playable audio stays unchanged. */
+    get audioPlayback() { return this.audioPlaybackConfiguration; }
+    set audioPlayback(value) {
+        if (this.core)
+            throw new PlayerError('INVALID_ARGUMENT', 'audioPlayback is fixed after initialization');
+        if (value !== 'auto' && value !== 'worklet')
+            throw new PlayerError('INVALID_ARGUMENT', 'audioPlayback must be auto or worklet');
+        this.audioPlaybackConfiguration = value;
+    }
     previewConfiguration;
     get previewOptions() { return this.previewConfiguration; }
     set previewOptions(value) { if (this.core)
@@ -396,7 +406,7 @@ export class DemuxePlayerElement extends Base {
                 return;
             try {
                 this.configuredAsset = this.getAttribute('asset-base');
-                const core = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, preview: this.previewConfiguration, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
+                const core = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, audioPlayback: this.audioPlaybackConfiguration, preview: this.previewConfiguration, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
                 this.dimensions = '';
                 this.trackSignature = '';
                 for (const type of [...PLAYER_EVENTS, 'preparationchange', 'modechange', 'selectionchange', 'mpv', 'log', 'source', 'output'])

@@ -54,7 +54,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private subsVisible;
     private cancelers;
     private listeners;
-    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined, buffering?: BufferingPolicy, loadTimeoutMs?: number, defaultSubtitleStreamIndex?: number | undefined);
+    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | "flac24" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined, buffering?: BufferingPolicy, loadTimeoutMs?: number, defaultSubtitleStreamIndex?: number | undefined);
     private emit;
     private assertActive;
     private wait;
@@ -222,6 +222,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
         audio: boolean;
     }, output?: boolean, signal?: AbortSignal): Promise<void>;
     verifyOutput(signal?: AbortSignal): Promise<void>;
+    private preparationError;
     private startRemux;
     private loadPlan;
     private openServices;

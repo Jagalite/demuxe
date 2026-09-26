@@ -66,6 +66,10 @@ export type PlayerOptions = {
   /** Package runtime root; includes web/ and fixtures/. Same-origin only. */
   assetBase?: string;
   audioOutput?: AudioOutput;
+  /** Auto (default) keeps playable audio unchanged, then tries FLAC24 transcoding
+   * before mpv/AudioWorklet. Higher precision decoded PCM is rounded to 24 bits.
+   * Worklet disables automatic transcoding; browser-playable audio stays native. */
+  audioPlayback?: 'auto' | 'worklet';
   audioFallback?: 'stereo' | 'reject';
   toneMapping?: ToneMapping;
   resourceLimits?: ResourceLimits;

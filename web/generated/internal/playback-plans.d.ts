@@ -12,7 +12,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-mpv";
@@ -31,7 +31,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct";
@@ -50,7 +50,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-mpv";
@@ -69,7 +69,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux";
@@ -88,7 +88,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-gain";
@@ -107,7 +107,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "shaka-mse";
@@ -126,7 +126,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "shaka-mse-gain";
@@ -145,7 +145,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-gain";
@@ -164,7 +164,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac";
@@ -183,7 +183,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-gain";
@@ -202,7 +202,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-ass";
@@ -221,7 +221,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-ass-gain";
@@ -240,7 +240,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-ass";
@@ -259,7 +259,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-ass-gain";
@@ -278,7 +278,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-ass";
@@ -297,7 +297,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-ass-gain";
@@ -316,7 +316,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-opus";
@@ -335,7 +335,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-opus-gain";
@@ -354,7 +354,45 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-transcode-mpv";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac24";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-transcode";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac24";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-video-mpv-audio";
@@ -373,7 +411,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-video-mpv-audio-subtitles";
@@ -392,7 +430,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid";
@@ -411,7 +449,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter";
@@ -430,7 +468,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-gain";
@@ -449,7 +487,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter-gain";
@@ -468,7 +506,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software-gain";
@@ -487,7 +525,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software";
@@ -514,7 +552,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-mpv";
@@ -533,7 +571,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct";
@@ -552,7 +590,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-mpv";
@@ -571,7 +609,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux";
@@ -590,7 +628,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-gain";
@@ -609,7 +647,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "shaka-mse";
@@ -628,7 +666,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "shaka-mse-gain";
@@ -647,7 +685,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-gain";
@@ -666,7 +704,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac";
@@ -685,7 +723,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-gain";
@@ -704,7 +742,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-ass";
@@ -723,7 +761,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-direct-ass-gain";
@@ -742,7 +780,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-ass";
@@ -761,7 +799,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-remux-ass-gain";
@@ -780,7 +818,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-ass";
@@ -799,7 +837,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-flac-ass-gain";
@@ -818,7 +856,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-opus";
@@ -837,7 +875,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-opus-gain";
@@ -856,7 +894,45 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-transcode-mpv";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac24";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-transcode";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac24";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-video-mpv-audio";
@@ -875,7 +951,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "native-video-mpv-audio-subtitles";
@@ -894,7 +970,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid";
@@ -913,7 +989,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter";
@@ -932,7 +1008,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-gain";
@@ -951,7 +1027,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "hybrid-audio-filter-gain";
@@ -970,7 +1046,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software-gain";
@@ -989,7 +1065,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     source: string;
     prerequisites: string;
     subtitles: "not admitted" | "qualified embedded tracks via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external ASS/SSA via pinned libass; container presentation only" | "browser text tracks" | "mpv/libass";
-    fidelity: "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
     resources: string;
     fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
     id: "software";
@@ -1000,6 +1076,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 }>;
 export type PlanRejectionCode = 'FEATURE_UNSUPPORTED' | 'POLICY_PROHIBITS_TRANSFORM' | 'QUALIFICATION_REQUIRED' | 'SOURCE_UNSUPPORTED' | 'DEPLOYMENT_UNAVAILABLE' | 'PLAN_NOT_REQUESTED' | 'ISOLATION_REQUIRED';
 export type PlanFacts = {
+    audioPlayback?: 'auto' | 'worklet';
+    transcodeSourceRejection?: string;
+    transcodeAssetsAvailable?: boolean;
     selectiveAudioQualified?: boolean;
     selectiveAudioReason?: string;
     mpvSubtitles?: boolean;
@@ -1040,7 +1119,7 @@ export type PlanFacts = {
 export declare function planAdmission(f: PlanFacts): {
     code?: PlanRejectionCode | undefined;
     reason?: string | undefined;
-    id: "hybrid" | "software" | "native-direct-mpv" | "native-direct" | "native-remux-mpv" | "native-remux" | "native-direct-gain" | "shaka-mse" | "shaka-mse-gain" | "native-remux-gain" | "native-flac" | "native-flac-gain" | "native-direct-ass" | "native-direct-ass-gain" | "native-remux-ass" | "native-remux-ass-gain" | "native-flac-ass" | "native-flac-ass-gain" | "native-opus" | "native-opus-gain" | "native-video-mpv-audio" | "native-video-mpv-audio-subtitles" | "hybrid-audio-filter" | "hybrid-gain" | "hybrid-audio-filter-gain" | "software-gain";
+    id: "hybrid" | "software" | "native-direct-mpv" | "native-direct" | "native-remux-mpv" | "native-remux" | "native-direct-gain" | "shaka-mse" | "shaka-mse-gain" | "native-remux-gain" | "native-flac" | "native-flac-gain" | "native-direct-ass" | "native-direct-ass-gain" | "native-remux-ass" | "native-remux-ass-gain" | "native-flac-ass" | "native-flac-ass-gain" | "native-opus" | "native-opus-gain" | "native-transcode-mpv" | "native-transcode" | "native-video-mpv-audio" | "native-video-mpv-audio-subtitles" | "hybrid-audio-filter" | "hybrid-gain" | "hybrid-audio-filter-gain" | "software-gain";
     mode: "native" | "hybrid" | "software";
     eligible: boolean;
 }[];

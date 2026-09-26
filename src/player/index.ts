@@ -257,6 +257,14 @@ export class DemuxePlayerElement extends Base {
   get ready(){return this.readiness;}
   get player():Player|undefined{return this.core;}
   get src(){return this.getAttribute('src')??'';} set src(value:string){if(value)this.setAttribute('src',String(value));else this.removeAttribute('src');}
+  private audioPlaybackConfiguration:'auto'|'worklet'='auto';
+  /** Set before connecting the element. Native-playable audio stays unchanged. */
+  get audioPlayback(){return this.audioPlaybackConfiguration;}
+  set audioPlayback(value:'auto'|'worklet'){
+    if(this.core)throw new PlayerError('INVALID_ARGUMENT','audioPlayback is fixed after initialization');
+    if(value!=='auto'&&value!=='worklet')throw new PlayerError('INVALID_ARGUMENT','audioPlayback must be auto or worklet');
+    this.audioPlaybackConfiguration=value;
+  }
   private previewConfiguration?:PreviewOptions|false;
   get previewOptions(){return this.previewConfiguration;}
   set previewOptions(value:PreviewOptions|false|undefined){if(this.core)throw new PlayerError('INVALID_ARGUMENT','previewOptions is fixed after initialization');this.previewConfiguration=value;}
@@ -275,7 +283,7 @@ export class DemuxePlayerElement extends Base {
     for(const name of ['trackPolicy','previewOptions','previewThumbnails','assetBase','labels','controls','poster','autoplay','muted','title','titleMode','showSourceControls','showDiagnostics','allowFileDrop','seekStep','controlsAutoHideDelay','src'])if(Object.prototype.hasOwnProperty.call(this,name)){const value=(this as any)[name];delete (this as any)[name];(this as any)[name]=value;}
     if(this.core)return;
     this.connecting=(async()=>{await this.cleanup;if(!this.isConnected||token!==this.connection||this.terminal)return;
-      try {this.configuredAsset=this.getAttribute('asset-base');const core=this.core=new Player(this.$('surface'),{assetBase:this.assetBase,preview:this.previewConfiguration,prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});this.dimensions='';this.trackSignature='';
+      try {this.configuredAsset=this.getAttribute('asset-base');const core=this.core=new Player(this.$('surface'),{assetBase:this.assetBase,audioPlayback:this.audioPlaybackConfiguration,preview:this.previewConfiguration,prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});this.dimensions='';this.trackSignature='';
         for(const type of [...PLAYER_EVENTS,'preparationchange','modechange','selectionchange','mpv','log','source','output'])core.addEventListener(type,event=>{
           if(this.core!==core||this.terminal)return;const detail=(event as CustomEvent).detail;
           if(type==='preparationchange')this.update(core.state);

@@ -1,0 +1,82 @@
+{
+  "source": "build/audio-transcode-formats-fixtures-03/vorbis.mkv",
+  "sourceSHA256": "1ce93974fabd0f5f5111d630ba3d5e18ffa338b7c6efe162561a4a60bda3d2ed",
+  "output": "results/audio-transcode-formats/production-formats-05/vorbis-prefix.mp4",
+  "outputSHA256": "902883da8688077cf9f81b233000a8b2bab67a367d9c9538e1009f225988d0a4",
+  "ffmpegVersion": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "seconds": 2,
+  "comparisons": [
+    {
+      "command": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-i",
+        "build/audio-transcode-formats-fixtures-03/vorbis.mkv",
+        "-map",
+        "0:a:0",
+        "-t",
+        "2",
+        "-f",
+        "f32le",
+        "-"
+      ],
+      "channels": [
+        {
+          "channel": 0,
+          "peakAbsError": 8.940696716308594e-08,
+          "rmsError": 3.498441292062454e-08
+        },
+        {
+          "channel": 1,
+          "peakAbsError": 0.27672533690929413,
+          "rmsError": 0.08664833680980848
+        }
+      ]
+    },
+    {
+      "command": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-cpuflags",
+        "0",
+        "-i",
+        "build/audio-transcode-formats-fixtures-03/vorbis.mkv",
+        "-map",
+        "0:a:0",
+        "-t",
+        "2",
+        "-f",
+        "f32le",
+        "-"
+      ],
+      "channels": [
+        {
+          "channel": 0,
+          "peakAbsError": 8.940696716308594e-08,
+          "rmsError": 3.5056566739558404e-08
+        },
+        {
+          "channel": 1,
+          "peakAbsError": 9.685754776000977e-08,
+          "rmsError": 3.502676070939675e-08
+        }
+      ]
+    }
+  ],
+  "outputDecodeCommand": [
+    "ffmpeg",
+    "-v",
+    "error",
+    "-i",
+    "results/audio-transcode-formats/production-formats-05/vorbis-prefix.mp4",
+    "-map",
+    "0:a:0",
+    "-t",
+    "2",
+    "-f",
+    "f32le",
+    "-"
+  ]
+}

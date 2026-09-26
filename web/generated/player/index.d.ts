@@ -147,6 +147,10 @@ export declare class DemuxePlayerElement extends Base {
     get player(): Player | undefined;
     get src(): string;
     set src(value: string);
+    private audioPlaybackConfiguration;
+    /** Set before connecting the element. Native-playable audio stays unchanged. */
+    get audioPlayback(): "auto" | "worklet";
+    set audioPlayback(value: 'auto' | 'worklet');
     private previewConfiguration?;
     get previewOptions(): PreviewOptions | false | undefined;
     set previewOptions(value: PreviewOptions | false | undefined);

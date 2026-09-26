@@ -2,6 +2,9 @@
 // Packet-copy bridge; optional build profile adds selected-audio-only FLAC preparation.
 #include <emscripten.h>
 #include <libavformat/avformat.h>
+#ifdef DEMUXE_AUDIO_ADAPTATION
+#include <libavformat/internal.h>
+#endif
 #include <libavcodec/bsf.h>
 #include <libavutil/avutil.h>
 #include <libavutil/mem.h>
@@ -126,7 +129,11 @@ static int configure_aac(AVCodecParameters*p,const uint8_t*adts,int n){
 #ifdef DEMUXE_AUDIO_ADAPTATION
 static int adapt_enabled;
 static int adaptation_describe(AVCodecParameters *p);
-EMSCRIPTEN_KEEPALIVE int rm_adapt_audio(int enabled){if(enabled!=0&&enabled!=1&&enabled!=2)return reject("Invalid adaptation policy");adapt_enabled=enabled;EM_ASM({Module.preparationInterface=2;});return 0;}
+EMSCRIPTEN_KEEPALIVE int rm_adapt_audio(int enabled){if(enabled!=0&&enabled!=1&&enabled!=2&&enabled!=3)return reject("Invalid adaptation policy");
+#ifndef DEMUXE_AUDIO_TRANSCODE
+if(enabled==3)return reject("FLAC24 transcoding profile is unavailable in this engine");
+#endif
+adapt_enabled=enabled;EM_ASM({Module.preparationInterface=2;});return 0;}
 #endif
 static int configure_audio(AVCodecParameters *p){
 #ifdef DEMUXE_AUDIO_ADAPTATION
@@ -341,6 +348,17 @@ EMSCRIPTEN_KEEPALIVE int rm_open(double size,int selected_video,int selected_aud
  // -2 explicitly omits audio. -1 retains the historical automatic selection.
  if(selected_audio==-2)audio=-1;else if(selected_audio>=0)audio=selected_audio;
  if((video<0&&audio<0)||(video>=0&&video>=in->nb_streams)||(audio>=0&&audio>=in->nb_streams))return reject("Invalid selected tracks");
+#ifdef DEMUXE_AUDIO_ADAPTATION
+ // Matroska already frames TrueHD access units. The byte-stream parser can
+ // attach a skipped pre-sync packet's PTS to the first major-sync unit after
+ // a video seek. Keep the container timestamp and let the selected decoder
+ // wait for sync; validate the complete access-unit contract before decoding.
+ if(adapt_enabled==3&&audio>=0&&strstr(in->iformat->name,"matroska")&&
+    (in->streams[audio]->codecpar->codec_id==AV_CODEC_ID_TRUEHD||in->streams[audio]->codecpar->codec_id==AV_CODEC_ID_MLP)){
+  FFStream *st=ffstream(in->streams[audio]);st->need_parsing=AVSTREAM_PARSE_NONE;
+  av_parser_close(st->parser);st->parser=NULL;
+ }
+#endif
  // Browser packet contracts are checked separately from FFmpeg demux availability.
  repair_dts=video>=0&&strstr(in->iformat->name,"matroska")!=NULL&&(in->streams[video]->codecpar->codec_id==AV_CODEC_ID_H264||in->streams[video]->codecpar->codec_id==AV_CODEC_ID_HEVC);is_ts=strstr(in->iformat->name,"mpegts")!=NULL;
  int r;
@@ -361,6 +379,9 @@ EMSCRIPTEN_KEEPALIVE int rm_open(double size,int selected_video,int selected_aud
  // WebM retains Opus discard padding, which the fragmented MP4 packet-copy
  // path does not represent. Prefer it whenever the selected video permits it.
  mux_webm=(video>=0&&in->streams[video]->codecpar->codec_id==AV_CODEC_ID_VP8)||(ap&&ap->codec_id==AV_CODEC_ID_VORBIS)||(ap&&ap->codec_id==AV_CODEC_ID_OPUS&&(video<0||in->streams[video]->codecpar->codec_id==AV_CODEC_ID_VP9||in->streams[video]->codecpar->codec_id==AV_CODEC_ID_AV1));
+#ifdef DEMUXE_AUDIO_ADAPTATION
+ if(adapt_enabled)mux_webm=adapt_enabled==2&&(video<0||in->streams[video]->codecpar->codec_id==AV_CODEC_ID_VP9||in->streams[video]->codecpar->codec_id==AV_CODEC_ID_AV1);
+#endif
  EM_ASM({Module.container=$0?'webm':'mp4';},mux_webm);
  if(is_ts&&(video<0||generic_video||(ap&&ap->codec_id!=AV_CODEC_ID_AAC)))return reject("TS timestamp repair requires AVC with optional AAC audio");
  if(is_ts&&ap){
@@ -392,6 +413,9 @@ EMSCRIPTEN_KEEPALIVE int rm_set_container(int webm){
  if(!in||out||(webm!=0&&webm!=1))return reject("Invalid mux selection state");
  enum AVCodecID v=video>=0?in->streams[video]->codecpar->codec_id:AV_CODEC_ID_NONE;
  enum AVCodecID a=audio>=0?in->streams[audio]->codecpar->codec_id:AV_CODEC_ID_NONE;
+#ifdef DEMUXE_AUDIO_ADAPTATION
+ if(adapt_enabled&&audio>=0)a=adapt_enabled==2?AV_CODEC_ID_OPUS:AV_CODEC_ID_FLAC;
+#endif
  if(webm){
   if(v!=AV_CODEC_ID_NONE&&v!=AV_CODEC_ID_VP8&&v!=AV_CODEC_ID_VP9&&v!=AV_CODEC_ID_AV1)return reject("Video incompatible with WebM");
   if(a!=AV_CODEC_ID_NONE&&a!=AV_CODEC_ID_OPUS&&a!=AV_CODEC_ID_VORBIS)return reject("Audio incompatible with WebM");
@@ -582,7 +606,13 @@ EMSCRIPTEN_KEEPALIVE int rm_step(void){
    }
   }
   if(packet->dts==AV_NOPTS_VALUE)return reject("Missing selected packet DTS");
-  if(last_dts[idx]!=AV_NOPTS_VALUE&&packet->dts<=last_dts[idx])return reject("Selected timeline discontinuity");last_dts[idx]=packet->dts;
+  int equal_audio_dts=0;
+#ifdef DEMUXE_AUDIO_ADAPTATION
+  // Sub-millisecond decoded audio (TrueHD) can share container ticks.
+  // PCM continuity is checked in sample units by adaptation_frames.
+  equal_audio_dts=adapt_enabled==3&&idx==audio;
+#endif
+  if(last_dts[idx]!=AV_NOPTS_VALUE&&(packet->dts<last_dts[idx]||(!equal_audio_dts&&packet->dts==last_dts[idx])))return reject("Selected timeline discontinuity");last_dts[idx]=packet->dts;
   double time=packet->dts==AV_NOPTS_VALUE?0:packet->dts*av_q2d(src->time_base)-origin;
   if(fragment_start<0)fragment_start=time;
   // Preserve the source timeline, including PTS-DTS reordering and A/V offsets.

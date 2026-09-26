@@ -13,7 +13,7 @@ type RemuxSource = {file?: File; options?: RemoteSource; audioTrack?: number; vi
 type RemuxTrack = {id: string; type: string; codec: string; selected: boolean};
 type RemuxController = {
   waitingForMedia?:boolean; onBufferingChange?:()=>void;
-  audioAdaptation?:'flac'|'opus'; generation?:number;
+  audioAdaptation?:'flac'|'opus'|'flac24'; generation?:number;
   windowed?:boolean; ranges?():[number,number][]; duration?:number; playbackPaused?:boolean; playbackEnded?:boolean;
   trackBounds?:{videoEnd:number;audioEnd:number};
   starting?: boolean; timelineBias: number; tracks?: RemuxTrack[]; onError?: (message: string) => void;
@@ -37,7 +37,7 @@ export class NativePlayer extends EventTarget implements Backend {
   private mpvSubs?:import('./native-mpv-subtitles.js').NativeMpvSubtitles;
   private mpvAudio?:import('./native-mpv-audio.js').NativeMpvAudio;
   private get selectiveAudio(){return this.requestedPlan?.startsWith('native-video-mpv-audio')??false;}
-  private get mpvSubtitlePlan(){return this.requestedPlan==='native-direct-mpv'||this.requestedPlan==='native-remux-mpv'||this.requestedPlan==='native-video-mpv-audio-subtitles';}
+  private get mpvSubtitlePlan(){return this.requestedPlan==='native-direct-mpv'||this.requestedPlan==='native-remux-mpv'||this.requestedPlan==='native-transcode-mpv'||this.requestedPlan==='native-video-mpv-audio-subtitles';}
   private ass?: import('./native-ass.js').NativeASS;
   private assAssets:SubtitleAsset[]=[];
   private assIndex=-1;
@@ -100,7 +100,7 @@ export class NativePlayer extends EventTarget implements Backend {
   private cancelers = new Set<(error: Error) => void>();
   private listeners: Array<() => void> = [];
 
-  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string, private buffering:BufferingPolicy=bufferingPolicy(), private loadTimeoutMs=25000, private defaultSubtitleStreamIndex?:number) {
+  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus'|'flac24', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string, private buffering:BufferingPolicy=bufferingPolicy(), private loadTimeoutMs=25000, private defaultSubtitleStreamIndex?:number) {
     super();
     video.playsInline = true;
     video.preload = this.buffering.preload;
@@ -164,7 +164,7 @@ export class NativePlayer extends EventTarget implements Backend {
       this.properties.set(name, data);this.emit('mpv', {event: 'property-change', name, data});
     }
   }
-  get planId(){return this.mpvAudio?this.requestedPlan:this.mpvSubs?(this.remux?'remux-mpv':'direct-mpv'):this.projection?'remux':this.remux?(this.adapted?`adapted-${this.audioAdaptation}`:'remux'):'direct';}
+  get planId(){return this.mpvSubs&&this.adapted&&this.audioAdaptation==='flac24'?'native-transcode-mpv':this.mpvAudio?this.requestedPlan:this.mpvSubs?(this.remux?'remux-mpv':'direct-mpv'):this.projection?'remux':this.remux?(this.adapted?`adapted-${this.audioAdaptation}`:'remux'):'direct';}
   get bufferingDiagnostics(){
     return {...resolveBuffering(this.buffering,this.remux?'remux':'browser'),settings:this.remux?.bufferingDiagnostics??{elementPreload:this.video.preload}};
   }
@@ -246,6 +246,12 @@ export class NativePlayer extends EventTarget implements Backend {
     if(output&&this.mpvAudio){try{await this.mpvAudio.verifyOutput(signal);signal?.throwIfAborted();}catch(error){signal?.throwIfAborted();throw new PlayerError('DECODE_FAILED','Selective audio runtime output was not verified: '+String(error));}this.capability.audioProgress=true;this.capability.audioEvidence='mpv-pcm-worklet-consumption';this.capability.audioEvidenceStrength='consumed';this.capability.audioDecoded=true;}
   }
   async verifyOutput(signal?:AbortSignal){try{await this.verifyStartup(this.expectedOutput,true,signal);}catch(error){this.capability.outputVerified=false;throw error;}}
+  private preparationError(error:unknown):unknown {
+    // These are explicit media/profile rejections from the selected audio engine.
+    // Source transport, asset failures and cancellations keep their original type.
+    if(this.audioAdaptation==='flac24'&&/^(?:Error: )*FFmpeg error -1094995529:/.test(String(error)))return new PlayerError('DECODE_FAILED',String(error));
+    return error;
+  }
   private async startRemux(source: RemuxSource, target=0) {
     this.assertActive();
     if(source.file&&!this.audioAdaptation&&!this.selectiveAudio){
@@ -277,11 +283,11 @@ export class NativePlayer extends EventTarget implements Backend {
       this.remux??=new RemuxPlayer(this.video,{buffering:{...resolveBuffering(this.buffering,'remux'),preload:this.buffering.preload},bufferedSeeks:this.bufferedSeeks,audioAdaptation:adapted?this.audioAdaptation:undefined,mseOwner:this.requestedPlan==='native-remux-mpv'||this.selectiveAudio?'window':'auto'}) as RemuxController;
       this.remux.onBufferingChange=()=>{if(!this.stopped)this.refresh();};
       this.remux.audioAdaptation=adapted?this.audioAdaptation:undefined;
-      this.remux.onError=message=>{if(!this.opening&&!this.stopped)this.emit('error',message);};
+      this.remux.onError=message=>{if(!this.opening&&!this.stopped)this.emit('error',this.preparationError(message));};
       await this.remux.open(transport,target);this.assertActive();
     };
     try{await attempt(!!this.requestedPlan&&!!this.audioAdaptation);}catch(error){
-      if(this.requestedPlan||this.stopped||!this.audioAdaptation||!String(error).includes('Audio codec has no browser MP4 packet contract'))throw error;
+      if(this.requestedPlan||this.stopped||!this.audioAdaptation||!String(error).includes('Audio codec has no browser MP4 packet contract'))throw this.preparationError(error);
       await attempt(true);
     }
     this.remuxSource=source;
@@ -386,6 +392,7 @@ export class NativePlayer extends EventTarget implements Backend {
   async seek(seconds:number){
     this.assertActive();this.mpvSubs?.suspend(true);
     try{if(this.mpvAudio)await this.mpvAudio.seek(seconds,async()=>{this.remux?.pause();await this.seekVideo(seconds);});else await this.seekVideo(seconds);await this.mpvSubs?.seek(seconds);}
+    catch(error){throw this.preparationError(error);}
     finally{this.mpvSubs?.suspend(false);}
   }
   private async seekVideo(seconds: number) {

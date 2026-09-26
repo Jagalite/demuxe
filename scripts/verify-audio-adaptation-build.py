@@ -48,12 +48,15 @@ def verify(engine):
                 raise ValueError('Preparation FFmpeg enabled forbidden external library: '+name)
     decoders=set(re.findall(r'^#define CONFIG_(\w+)_DECODER 1$',config,re.M))
     encoders=set(re.findall(r'^#define CONFIG_(\w+)_ENCODER 1$',config,re.M))
-    if decoders!={'PCM_S16LE','PCM_S24LE','PCM_S32LE','FLAC','DCA'}:
+    expected_decoders={'PCM_S16LE','PCM_S24LE','PCM_S32LE','FLAC','DCA'}
+    if record['inputs'].get('flac24'):expected_decoders|={'AC3','EAC3','TRUEHD','MLP','AAC','MP3','MP3FLOAT','OPUS','VORBIS','ALAC','PCM_F32LE','PCM_F64LE'}
+    if decoders!=expected_decoders:
         raise ValueError('Preparation decoder inventory changed')
     if encoders!=({'FLAC','OPUS'} if record['inputs'].get('opus') else {'FLAC'}):
         raise ValueError('Preparation encoder inventory changed')
     required=[base/'preferred-source-hashes.json',base/'ffmpeg/config.h',base/'ffmpeg/config_components.h',base/'ffmpeg/ffbuild/config.mak',engine/'remux.map',engine/'remux.mjs',engine/'remux.wasm']
     required += [base/'ffmpeg'/n/(n+'.a') for n in ['libavformat','libavcodec','libavutil']]
+    if record['inputs'].get('flac24'):required.append(base/'ffmpeg/libswresample/libswresample.a')
     if any(str(path) not in record['files'] for path in required):
         raise ValueError('Missing linked preparation inventory')
     if 'libpostproc' in (engine/'remux.map').read_text().lower():

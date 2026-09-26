@@ -175,3 +175,11 @@ source/tag, engine build, streaming, consumer or extra release requirements. No
 qualification script creates tags or publishes. See the current closeout evidence.
 
 When updating an existing copied runtime, `copy-assets` removes obsolete files only when their bytes still match the previous runtime manifest. Modified or unrelated files are preserved; unsafe obsolete paths are rejected. Empty directories are retained.
+
+## Default selected-audio transcoding
+
+The FLAC24 default fallback requires the preparation engine built with
+`--transcode --opus --flac-level 0`. Supply its engine directory through
+`package-beta.py --adaptation-build` to include the verified binaries and source
+companion. An installation without preparation assets retains mpv/AudioWorklet.
+See [audio transcoding](AUDIO-TRANSCODING.md) for precision and deployment details.

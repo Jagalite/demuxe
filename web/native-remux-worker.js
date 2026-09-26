@@ -30,27 +30,35 @@ self.onmessage=async({data})=>{
     postMessage({type:'probed',tracks,hybridRejection,duration:engine._rm_duration(),format:engine.format});return;
    }
    engine.emit=b=>{bytes+=b.length;if(bytes>8*1024*1024)throw Error('Fragment budget exceeded');if(delivery){delivery.push(b);if(!delivery.active)chunks.push(b);else chunks=[];}else chunks.push(b);};
-   if(data.audioAdaptation){if(!['flac','opus'].includes(data.audioAdaptation))throw Error('Unsupported adaptation profile');if(typeof engine._rm_adapt_audio!=='function')throw Error('Audio adaptation ABI unavailable');check(engine._rm_adapt_audio(data.audioAdaptation==='opus'?2:1));adaptationABI();}
+   if(data.audioAdaptation){if(!['flac','opus','flac24'].includes(data.audioAdaptation))throw Error('Unsupported adaptation profile');if(typeof engine._rm_adapt_audio!=='function')throw Error('Audio adaptation ABI unavailable');check(engine._rm_adapt_audio(data.audioAdaptation==='flac24'?3:data.audioAdaptation==='opus'?2:1));adaptationABI();}
    check(engine._rm_open(data.size,data.videoTrack??-1,data.audioTrack??-1));let duration=engine._rm_duration();
    const video=engine.videoConfig?videoCodecConfig({...engine.videoConfig,maxWidth:8192,maxHeight:8192}).configuration.codec:engine.UTF8ToString(engine._rm_video_codec());
    const audio=engine.UTF8ToString(engine._rm_audio_codec());
    const bounds=engine.trackBounds;
    if(data.audioAdaptation&&bounds?.videoEnd>0&&bounds?.audioEnd>0)duration=Math.max(bounds.videoEnd,bounds.audioEnd);
+   if(data.audioAdaptation==='flac24'&&bounds?.videoEnd>0&&bounds?.audioEnd>0&&Math.abs(bounds.videoEnd-bounds.audioEnd)>1)throw Error('Unsupported FLAC24 unequal-track tails; use AudioWorklet');
    if(data.audioAdaptation==='flac'&&bounds?.videoEnd>0&&bounds?.audioEnd>0&&Math.abs(bounds.videoEnd-bounds.audioEnd)>1){
     if(!engine.tracks.some(t=>t.selected&&t.type==='audio'&&['pcm_s16le','pcm_s24le'].includes(t.codec))||!engine.tracks.some(t=>t.selected&&t.type==='video'&&t.codec==='h264'))throw Error('Unsupported unequal-tail Native configuration; qualified H264 and PCM16/24 are required');
     const {SplitMP4}=await import('./split-mp4.js');splitter=new SplitMP4();engine.windowedTails=true;
    }
    const candidates=remuxPackaging(video,audio,engine.container);
    if(!candidates.length)throw Error('Selected codecs have no common browser remux packaging');
-   negotiation={candidates,duration,target:data.target||0};stats.remuxMs+=performance.now()-start;
+   const target=data.target||0;
+   // A seek into a short video-only tail still needs real audio preroll to
+   // discover the decoder layout and initialize FLAC/MSE. Keep presentation at
+   // the requested target; only move the demux start behind the completed audio.
+   // Longer unequal tails remain excluded above by the preparation budget.
+   const decodeTarget=data.audioAdaptation==='flac24'&&bounds?.audioEnd>0&&bounds.audioEnd<bounds.videoEnd&&target>=bounds.audioEnd
+    ?Math.max(0,bounds.audioEnd-.5):target;
+   negotiation={candidates,duration,target,decodeTarget};stats.remuxMs+=performance.now()-start;
    postMessage({type:'negotiate',candidates,duration,windowed:!!splitter,trackBounds:bounds,lanes:splitter?[`video/mp4; codecs="${video}"`,`audio/mp4; codecs="${audio}"`]:undefined});
   }else if(data.type==='select-container'){
    const selected=negotiation?.candidates.find(c=>c.container===data.container);
    if(!selected)throw Error('Invalid remux container selection');
-   const {duration,target}=negotiation;negotiation=null;progressiveEnabled=selected.container==='mp4'&&!splitter&&!engine.preparationInterface;
+   const {duration,target,decodeTarget}=negotiation;negotiation=null;progressiveEnabled=selected.container==='mp4'&&!splitter&&!engine.preparationInterface;
    if(engine.preparationInterface===2&&selected.container!=='webm'){const {MP4VideoTiming}=await import('./split-mp4.js');timing=new MP4VideoTiming();}
    check(engine._rm_set_container(selected.container==='webm'?1:0));
-   check(engine._rm_start(target));const buffer=flush().buffer;stats.remuxMs+=performance.now()-start;stats.heapBytes=engine.HEAPU8.byteLength;
+   check(engine._rm_start(decodeTarget));const buffer=flush().buffer;stats.remuxMs+=performance.now()-start;stats.heapBytes=engine.HEAPU8.byteLength;
    const presentationFrames=timing?.read(buffer),buffers=splitter?splitter.split(buffer):undefined;
    postMessage({type:'ready',producedAt:performance.timeOrigin+performance.now(),presentationFrames,duration,mime:selected.mime,tracks:engine.tracks,buffer:buffers?undefined:buffer,buffers,stats:{...stats}},buffers??[buffer]);
   }else if(data.type==='next'){

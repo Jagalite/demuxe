@@ -26,7 +26,7 @@ export class NativePlayer extends EventTarget {
     mpvSubs;
     mpvAudio;
     get selectiveAudio() { return this.requestedPlan?.startsWith('native-video-mpv-audio') ?? false; }
-    get mpvSubtitlePlan() { return this.requestedPlan === 'native-direct-mpv' || this.requestedPlan === 'native-remux-mpv' || this.requestedPlan === 'native-video-mpv-audio-subtitles'; }
+    get mpvSubtitlePlan() { return this.requestedPlan === 'native-direct-mpv' || this.requestedPlan === 'native-remux-mpv' || this.requestedPlan === 'native-transcode-mpv' || this.requestedPlan === 'native-video-mpv-audio-subtitles'; }
     ass;
     assAssets = [];
     assIndex = -1;
@@ -201,7 +201,7 @@ export class NativePlayer extends EventTarget {
             this.emit('mpv', { event: 'property-change', name, data });
         }
     }
-    get planId() { return this.mpvAudio ? this.requestedPlan : this.mpvSubs ? (this.remux ? 'remux-mpv' : 'direct-mpv') : this.projection ? 'remux' : this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct'; }
+    get planId() { return this.mpvSubs && this.adapted && this.audioAdaptation === 'flac24' ? 'native-transcode-mpv' : this.mpvAudio ? this.requestedPlan : this.mpvSubs ? (this.remux ? 'remux-mpv' : 'direct-mpv') : this.projection ? 'remux' : this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct'; }
     get bufferingDiagnostics() {
         return { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: this.remux?.bufferingDiagnostics ?? { elementPreload: this.video.preload } };
     }
@@ -367,6 +367,13 @@ export class NativePlayer extends EventTarget {
         this.capability.outputVerified = false;
         throw error;
     } }
+    preparationError(error) {
+        // These are explicit media/profile rejections from the selected audio engine.
+        // Source transport, asset failures and cancellations keep their original type.
+        if (this.audioAdaptation === 'flac24' && /^(?:Error: )*FFmpeg error -1094995529:/.test(String(error)))
+            return new PlayerError('DECODE_FAILED', String(error));
+        return error;
+    }
     async startRemux(source, target = 0) {
         this.assertActive();
         if (source.file && !this.audioAdaptation && !this.selectiveAudio) {
@@ -429,7 +436,7 @@ export class NativePlayer extends EventTarget {
                 this.refresh(); };
             this.remux.audioAdaptation = adapted ? this.audioAdaptation : undefined;
             this.remux.onError = message => { if (!this.opening && !this.stopped)
-                this.emit('error', message); };
+                this.emit('error', this.preparationError(message)); };
             await this.remux.open(transport, target);
             this.assertActive();
         };
@@ -438,7 +445,7 @@ export class NativePlayer extends EventTarget {
         }
         catch (error) {
             if (this.requestedPlan || this.stopped || !this.audioAdaptation || !String(error).includes('Audio codec has no browser MP4 packet contract'))
-                throw error;
+                throw this.preparationError(error);
             await attempt(true);
         }
         this.remuxSource = source;
@@ -617,6 +624,9 @@ export class NativePlayer extends EventTarget {
             else
                 await this.seekVideo(seconds);
             await this.mpvSubs?.seek(seconds);
+        }
+        catch (error) {
+            throw this.preparationError(error);
         }
         finally {
             this.mpvSubs?.suspend(false);

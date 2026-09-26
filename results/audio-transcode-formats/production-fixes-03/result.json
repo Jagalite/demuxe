@@ -1,0 +1,4585 @@
+{
+  "scope": "Experimental FLAC24 conversion; correctness only; no production routing or CPU qualification",
+  "fixtureManifest": {
+    "videoSource": "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+    "videoSourceSHA256": "01c9a4f8baf60365d692a643dcdd09a10b4a1a614ad6f59f4a2b9346609246de",
+    "duration": 18,
+    "cases": [
+      {
+        "id": "ac3",
+        "file": "build/audio-transcode-formats-fixtures-03/ac3.mkv",
+        "encoder": "ac3",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "ac3",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-b:a",
+          "192k",
+          "build/audio-transcode-formats-fixtures-03/ac3.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "9d8085a0ea023664a29514e15b828ca391851e1104b7dfef096ba3e225eca8a8",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "ac3",
+              "codec_long_name": "ATSC A/52A (AC-3)",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "mime_codec_string": "ac-3",
+              "sample_fmt": "fltp",
+              "sample_rate": "48000",
+              "channels": 2,
+              "channel_layout": "stereo",
+              "bits_per_sample": 0,
+              "initial_padding": 256,
+              "dmix_mode": "0",
+              "ltrt_cmixlev": "0.000000",
+              "ltrt_surmixlev": "0.000000",
+              "loro_cmixlev": "0.000000",
+              "loro_surmixlev": "0.000000",
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bit_rate": "192000",
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 ac3",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/ac3.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "462250",
+            "bit_rate": "203567",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "eac3",
+        "file": "build/audio-transcode-formats-fixtures-03/eac3.mkv",
+        "encoder": "eac3",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "eac3",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-b:a",
+          "192k",
+          "build/audio-transcode-formats-fixtures-03/eac3.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "7db85cfc0553ea265bd04fd7aa5069424ad799a4d80b88b7545afb42b5122b21",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "eac3",
+              "codec_long_name": "ATSC A/52B (AC-3, E-AC-3)",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "mime_codec_string": "ec-3",
+              "sample_fmt": "fltp",
+              "sample_rate": "48000",
+              "channels": 2,
+              "channel_layout": "stereo",
+              "bits_per_sample": 0,
+              "initial_padding": 256,
+              "dmix_mode": "0",
+              "ltrt_cmixlev": "0.000000",
+              "ltrt_surmixlev": "0.000000",
+              "loro_cmixlev": "0.000000",
+              "loro_surmixlev": "0.000000",
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bit_rate": "192000",
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 eac3",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/eac3.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "462238",
+            "bit_rate": "203561",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "dca",
+        "file": "build/audio-transcode-formats-fixtures-03/dca.mkv",
+        "encoder": "dca",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "dca",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-b:a",
+          "768k",
+          "build/audio-transcode-formats-fixtures-03/dca.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "021ea30207e34c1573c7baa250b5cac8eafd5c101360eddd1c5b42aa70ee5790",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "dts",
+              "codec_long_name": "DCA (DTS Coherent Acoustics)",
+              "profile": "DTS",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "sample_fmt": "fltp",
+              "sample_rate": "48000",
+              "channels": 2,
+              "channel_layout": "stereo",
+              "bits_per_sample": 0,
+              "initial_padding": 0,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bit_rate": "768000",
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 dca",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/dca.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "1766235",
+            "bit_rate": "777820",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "truehd",
+        "file": "build/audio-transcode-formats-fixtures-04/truehd.mkv",
+        "encoder": "truehd",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "truehd",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-sample_fmt",
+          "s32p",
+          "build/audio-transcode-formats-fixtures-04/truehd.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "d10c039150e38ceab1f50393b4a8a790c39064fa6aee1829f51a93ff46d706d9",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "truehd",
+              "codec_long_name": "TrueHD",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "sample_fmt": "s32",
+              "sample_rate": "48000",
+              "channels": 2,
+              "channel_layout": "stereo",
+              "bits_per_sample": 0,
+              "initial_padding": 0,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bits_per_raw_sample": "24",
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 truehd",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-04/truehd.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "2491025",
+            "bit_rate": "1097005",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "aac",
+        "file": "build/audio-transcode-formats-fixtures-03/aac.mkv",
+        "encoder": "aac",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "aac",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-b:a",
+          "192k",
+          "build/audio-transcode-formats-fixtures-03/aac.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "e29a058a79e98a0398350483b631a22ba7e1c3520ccabf23abeb7224d2bec1ac",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "aac",
+              "codec_long_name": "AAC (Advanced Audio Coding)",
+              "profile": "LC",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "mime_codec_string": "mp4a.40.2",
+              "sample_fmt": "fltp",
+              "sample_rate": "48000",
+              "channels": 2,
+              "channel_layout": "stereo",
+              "bits_per_sample": 0,
+              "initial_padding": 1024,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 5,
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 aac",
+                "DURATION": "00:00:18.021000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/aac.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "464013",
+            "bit_rate": "204343",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "libmp3lame",
+        "file": "build/audio-transcode-formats-fixtures-03/libmp3lame.mkv",
+        "encoder": "libmp3lame",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "libmp3lame",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-b:a",
+          "192k",
+          "build/audio-transcode-formats-fixtures-03/libmp3lame.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "22c75814284cc3f2c249f630a07b873e7badfd531ee489a604313109dc4a6f62",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "mp3",
+              "codec_long_name": "MP3 (MPEG audio layer 3)",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "mime_codec_string": "mp4a.40.34",
+              "sample_fmt": "fltp",
+              "sample_rate": "48000",
+              "channels": 2,
+              "channel_layout": "stereo",
+              "bits_per_sample": 0,
+              "initial_padding": 1105,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bit_rate": "192000",
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libmp3lame",
+                "DURATION": "00:00:18.023000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/libmp3lame.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "463776",
+            "bit_rate": "204239",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "libopus",
+        "file": "build/audio-transcode-formats-fixtures-03/libopus.mkv",
+        "encoder": "libopus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "libopus",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-b:a",
+          "192k",
+          "build/audio-transcode-formats-fixtures-03/libopus.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "62daecb2937983e559902321066003ef81057f6242e50d52046ca9411c5f321f",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "opus",
+              "codec_long_name": "Opus (Opus Interactive Audio Codec)",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "mime_codec_string": "opus",
+              "sample_fmt": "fltp",
+              "sample_rate": "48000",
+              "channels": 2,
+              "channel_layout": "stereo",
+              "bits_per_sample": 0,
+              "initial_padding": 312,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 19,
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libopus",
+                "DURATION": "00:00:18.008000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/libopus.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "584531",
+            "bit_rate": "257417",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "vorbis",
+        "file": "build/audio-transcode-formats-fixtures-03/vorbis.mkv",
+        "encoder": "vorbis",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "vorbis",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-b:a",
+          "192k",
+          "build/audio-transcode-formats-fixtures-03/vorbis.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "1ce93974fabd0f5f5111d630ba3d5e18ffa338b7c6efe162561a4a60bda3d2ed",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "vorbis",
+              "codec_long_name": "Vorbis",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "mime_codec_string": "vorbis",
+              "sample_fmt": "fltp",
+              "sample_rate": "48000",
+              "channels": 2,
+              "channel_layout": "stereo",
+              "bits_per_sample": 0,
+              "initial_padding": 1024,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 3296,
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 vorbis",
+                "DURATION": "00:00:18.021000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/vorbis.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "132295",
+            "bit_rate": "58260",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "flac",
+        "file": "build/audio-transcode-formats-fixtures-03/flac.mkv",
+        "encoder": "flac",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "flac",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-sample_fmt",
+          "s32",
+          "build/audio-transcode-formats-fixtures-03/flac.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "f52f0b6e2ddee236ded7612adf7f1559b2ca2b45e587a09a66ee3c906c77f8e6",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "flac",
+              "codec_long_name": "FLAC (Free Lossless Audio Codec)",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "mime_codec_string": "flac",
+              "sample_fmt": "s32",
+              "sample_rate": "48000",
+              "channels": 2,
+              "channel_layout": "stereo",
+              "bits_per_sample": 0,
+              "initial_padding": 0,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bits_per_raw_sample": "32",
+              "extradata_size": 34,
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 flac",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/flac.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "3570838",
+            "bit_rate": "1572536",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "alac",
+        "file": "build/audio-transcode-formats-fixtures-04/alac.mkv",
+        "encoder": "alac",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "alac",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-sample_fmt",
+          "s32p",
+          "build/audio-transcode-formats-fixtures-04/alac.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "bbdec1e2dc9c152580f6eaba63dee70325ac8f50746d6671451d6540153a1e73",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "alac",
+              "codec_long_name": "ALAC (Apple Lossless Audio Codec)",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "sample_fmt": "s32p",
+              "sample_rate": "48000",
+              "channels": 2,
+              "channel_layout": "stereo",
+              "bits_per_sample": 0,
+              "initial_padding": 0,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bits_per_raw_sample": "24",
+              "extradata_size": 36,
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 alac",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-04/alac.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "2477903",
+            "bit_rate": "1091226",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "pcm_s16le",
+        "file": "build/audio-transcode-formats-fixtures-03/pcm_s16le.mkv",
+        "encoder": "pcm_s16le",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "pcm_s16le",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "build/audio-transcode-formats-fixtures-03/pcm_s16le.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "2736b9f0668ce52fc68e1f518f6fe201ce5bf5d277bebb35080f0ab5a8a9856c",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "pcm_s16le",
+              "codec_long_name": "PCM signed 16-bit little-endian",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "sample_fmt": "s16",
+              "sample_rate": "48000",
+              "channels": 2,
+              "bits_per_sample": 16,
+              "initial_padding": 0,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bit_rate": "1536000",
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 pcm_s16le",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/pcm_s16le.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "3487830",
+            "bit_rate": "1535981",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "pcm_s24le",
+        "file": "build/audio-transcode-formats-fixtures-03/pcm_s24le.mkv",
+        "encoder": "pcm_s24le",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "pcm_s24le",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "build/audio-transcode-formats-fixtures-03/pcm_s24le.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "c933291807c6109ecc6c0bc973b1b80bd518b32f22f4fcd80260ff4f247bdcb0",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "pcm_s24le",
+              "codec_long_name": "PCM signed 24-bit little-endian",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "sample_fmt": "s32",
+              "sample_rate": "48000",
+              "channels": 2,
+              "bits_per_sample": 24,
+              "initial_padding": 0,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bit_rate": "2304000",
+              "bits_per_raw_sample": "24",
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 pcm_s24le",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/pcm_s24le.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "5215830",
+            "bit_rate": "2296963",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "pcm_f32le",
+        "file": "build/audio-transcode-formats-fixtures-03/pcm_f32le.mkv",
+        "encoder": "pcm_f32le",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "pcm_f32le",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "build/audio-transcode-formats-fixtures-03/pcm_f32le.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "3d65f1192c198867cbda80169cc8b06ef8a27c6e05ae667f803cb4369a655dc1",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "pcm_f32le",
+              "codec_long_name": "PCM 32-bit floating point little-endian",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "sample_fmt": "flt",
+              "sample_rate": "48000",
+              "channels": 2,
+              "bits_per_sample": 32,
+              "initial_padding": 0,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bit_rate": "3072000",
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 pcm_f32le",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/pcm_f32le.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "6943833",
+            "bit_rate": "3057946",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "aac-44100",
+        "file": "build/audio-transcode-formats-fixtures-03/aac-44100.mkv",
+        "encoder": "aac",
+        "sampleRate": 44100,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=44100:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "aac",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-b:a",
+          "192k",
+          "build/audio-transcode-formats-fixtures-03/aac-44100.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "3a1d2c6dcb4acd7a0365da8b8d7a10deeef3b833f5859c875707c90c8317dd5b",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "aac",
+              "codec_long_name": "AAC (Advanced Audio Coding)",
+              "profile": "LC",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "mime_codec_string": "mp4a.40.2",
+              "sample_fmt": "fltp",
+              "sample_rate": "44100",
+              "channels": 2,
+              "channel_layout": "stereo",
+              "bits_per_sample": 0,
+              "initial_padding": 1024,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 5,
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 aac",
+                "DURATION": "00:00:18.023000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/aac-44100.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "467978",
+            "bit_rate": "206089",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "flac-96000",
+        "file": "build/audio-transcode-formats-fixtures-03/flac-96000.mkv",
+        "encoder": "flac",
+        "sampleRate": 96000,
+        "channels": 2,
+        "layoutRequested": "stereo",
+        "frequencies": [
+          440,
+          880
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)':s=96000:d=18:c=stereo",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "flac",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-sample_fmt",
+          "s32",
+          "build/audio-transcode-formats-fixtures-03/flac-96000.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "341614f260f2f78c7ae534a7cdbd3616ebe8d8bea2281da77ddbe80d79fb315f",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "flac",
+              "codec_long_name": "FLAC (Free Lossless Audio Codec)",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "mime_codec_string": "flac",
+              "sample_fmt": "s32",
+              "sample_rate": "96000",
+              "channels": 2,
+              "channel_layout": "stereo",
+              "bits_per_sample": 0,
+              "initial_padding": 0,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bits_per_raw_sample": "32",
+              "extradata_size": 34,
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 flac",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/flac-96000.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "6709192",
+            "bit_rate": "2954614",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "ac3-mono",
+        "file": "build/audio-transcode-formats-fixtures-03/ac3-mono.mkv",
+        "encoder": "ac3",
+        "sampleRate": 48000,
+        "channels": 1,
+        "layoutRequested": "mono",
+        "frequencies": [
+          440
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=mono",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "ac3",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-b:a",
+          "192k",
+          "build/audio-transcode-formats-fixtures-03/ac3-mono.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "b1caf1c94096b967e4c59c0a54d193b2682b713c1d94923a0c0145e4c53ebc43",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "ac3",
+              "codec_long_name": "ATSC A/52A (AC-3)",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "mime_codec_string": "ac-3",
+              "sample_fmt": "fltp",
+              "sample_rate": "48000",
+              "channels": 1,
+              "channel_layout": "mono",
+              "bits_per_sample": 0,
+              "initial_padding": 256,
+              "dmix_mode": "0",
+              "ltrt_cmixlev": "0.000000",
+              "ltrt_surmixlev": "0.000000",
+              "loro_cmixlev": "0.000000",
+              "loro_surmixlev": "0.000000",
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bit_rate": "192000",
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 ac3",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/ac3-mono.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "462250",
+            "bit_rate": "203567",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "eac3-51",
+        "file": "build/audio-transcode-formats-fixtures-03/eac3-51.mkv",
+        "encoder": "eac3",
+        "sampleRate": 48000,
+        "channels": 6,
+        "layoutRequested": "5.1",
+        "frequencies": [
+          440,
+          880,
+          1320,
+          80,
+          1760,
+          2200
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(1320+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(80)*t)|0.1*sin(2*PI*(1760+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(2200+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=5.1",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "eac3",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-b:a",
+          "384k",
+          "build/audio-transcode-formats-fixtures-03/eac3-51.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "18b47ba01e2d3b79ab98a7736316c1257a008d664398e7d26518efce6bbef318",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "eac3",
+              "codec_long_name": "ATSC A/52B (AC-3, E-AC-3)",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "mime_codec_string": "ec-3",
+              "sample_fmt": "fltp",
+              "sample_rate": "48000",
+              "channels": 6,
+              "channel_layout": "5.1(side)",
+              "bits_per_sample": 0,
+              "initial_padding": 256,
+              "dmix_mode": "0",
+              "ltrt_cmixlev": "0.000000",
+              "ltrt_surmixlev": "0.000000",
+              "loro_cmixlev": "0.000000",
+              "loro_surmixlev": "0.000000",
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bit_rate": "384000",
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 eac3",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/eac3-51.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "894623",
+            "bit_rate": "393976",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "truehd-51",
+        "file": "build/audio-transcode-formats-fixtures-04/truehd-51.mkv",
+        "encoder": "truehd",
+        "sampleRate": 48000,
+        "channels": 6,
+        "layoutRequested": "5.1",
+        "frequencies": [
+          440,
+          880,
+          1320,
+          80,
+          1760,
+          2200
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(1320+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(80)*t)|0.1*sin(2*PI*(1760+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(2200+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=5.1",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "truehd",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-sample_fmt",
+          "s32p",
+          "build/audio-transcode-formats-fixtures-04/truehd-51.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "8aa63d93b27af826915c79283d41870d339d42a81b60ea826ba07bd12218301d",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "truehd",
+              "codec_long_name": "TrueHD",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "sample_fmt": "s32",
+              "sample_rate": "48000",
+              "channels": 6,
+              "channel_layout": "5.1(side)",
+              "bits_per_sample": 0,
+              "initial_padding": 0,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bits_per_raw_sample": "24",
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 truehd",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-04/truehd-51.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "6026530",
+            "bit_rate": "2653982",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      },
+      {
+        "id": "flac-71",
+        "file": "build/audio-transcode-formats-fixtures-03/flac-71.mkv",
+        "encoder": "flac",
+        "sampleRate": 48000,
+        "channels": 8,
+        "layoutRequested": "7.1",
+        "frequencies": [
+          440,
+          880,
+          1320,
+          80,
+          1760,
+          2200,
+          2640,
+          3080
+        ],
+        "command": [
+          "ffmpeg",
+          "-nostdin",
+          "-v",
+          "error",
+          "-i",
+          "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/source-hevc10.mkv",
+          "-f",
+          "lavfi",
+          "-i",
+          "aevalsrc='0.1*sin(2*PI*(440+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(880+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(1320+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(80)*t)|0.1*sin(2*PI*(1760+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(2200+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(2640+110*gte(t,4)+110*gte(t,8))*t)|0.1*sin(2*PI*(3080+110*gte(t,4)+110*gte(t,8))*t)':s=48000:d=18:c=7.1",
+          "-map",
+          "0:v:0",
+          "-map",
+          "1:a:0",
+          "-c:v",
+          "copy",
+          "-c:a",
+          "flac",
+          "-strict",
+          "-2",
+          "-t",
+          "18",
+          "-sample_fmt",
+          "s32",
+          "build/audio-transcode-formats-fixtures-03/flac-71.mkv"
+        ],
+        "returnCode": 0,
+        "stderr": "",
+        "sha256": "5cbb363f3d29679b9f38dc5f4dc504607b0a1c1468a9478283db58de4dca776d",
+        "probe": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "hevc",
+              "codec_long_name": "H.265 / HEVC (High Efficiency Video Coding)",
+              "profile": "Main 10",
+              "codec_type": "video",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "width": 320,
+              "height": 180,
+              "coded_width": 320,
+              "coded_height": 192,
+              "has_b_frames": 2,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "16:9",
+              "pix_fmt": "yuv420p10le",
+              "level": 60,
+              "color_range": "tv",
+              "chroma_location": "left",
+              "field_order": "progressive",
+              "view_ids_available": "",
+              "view_pos_available": "",
+              "r_frame_rate": "30/1",
+              "avg_frame_rate": "30/1",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "extradata_size": 2447,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 libx265",
+                "HANDLER_NAME": "VideoHandler",
+                "DURATION": "00:00:18.166000000"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "flac",
+              "codec_long_name": "FLAC (Free Lossless Audio Codec)",
+              "codec_type": "audio",
+              "codec_tag_string": "[0][0][0][0]",
+              "codec_tag": "0x0000",
+              "mime_codec_string": "flac",
+              "sample_fmt": "s32",
+              "sample_rate": "48000",
+              "channels": 8,
+              "channel_layout": "7.1",
+              "bits_per_sample": 0,
+              "initial_padding": 0,
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/1000",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "bits_per_raw_sample": "32",
+              "extradata_size": 34,
+              "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "non_diegetic": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0,
+                "multilayer": 0
+              },
+              "tags": {
+                "ENCODER": "Lavc62.28.102 flac",
+                "DURATION": "00:00:18.000000000"
+              }
+            }
+          ],
+          "format": {
+            "filename": "build/audio-transcode-formats-fixtures-03/flac-71.mkv",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "nb_stream_groups": 0,
+            "format_name": "matroska,webm",
+            "format_long_name": "Matroska / WebM",
+            "start_time": "0.000000",
+            "duration": "18.166000",
+            "size": "14053084",
+            "bit_rate": "6188741",
+            "probe_score": 100,
+            "tags": {
+              "MINOR_VERSION": "512",
+              "COMPATIBLE_BRANDS": "isomiso2avc1mp41",
+              "MAJOR_BRAND": "isom",
+              "ENCODER": "Lavf62.12.102"
+            }
+          }
+        }
+      }
+    ],
+    "preparationAttempts": [
+      "build/audio-transcode-formats-fixtures-03/manifest.json",
+      "build/audio-transcode-formats-fixtures-04/manifest.json"
+    ]
+  },
+  "engine": {
+    "dir": "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/engine-1790463562689735000",
+    "sha256": "0777b7d34f4bfdb68059bc43d70266f6b145e62798705ced5d406d6835ba763e",
+    "manifest": {
+      "apiVersion": 2,
+      "inputs": {
+        "ffmpeg": {
+          "name": "ffmpeg-adaptation",
+          "upstream": "https://github.com/FFmpeg/FFmpeg",
+          "revision": "n9.0.2",
+          "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+          "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+        },
+        "patches": {
+          "patches/ffmpeg-adaptation/0002-browser-nested-avio.patch": "4ceaf3185f152c596fc9617e47cc47cd2b264d6f8b2f098bbea8055b798da3ec",
+          "patches/ffmpeg-adaptation/0004-hls-ts-discontinuity-timeline.patch": "6635e6cb14090af54c20c526592df6cf4360cba0bb2e3199071688c37f146bb1",
+          "patches/ffmpeg-adaptation/0005-dfpwm-seek-reset.patch": "0f2e57a194e5d5f5ff23edb864084e5a1e9e05224a4ab1bb71e6598d614e9923",
+          "patches/ffmpeg-adaptation/0006-swf-audio-duration.patch": "e59e36d524f78b98862e5a484b4900e3ea28593d3a25fbc90a6f7f30d79b4c5f",
+          "patches/ffmpeg-adaptation/0007-nut-keyframe-recovery.patch": "b02b157a7a8f1dd3ddd65e541b4f3ae3057acb130044ddba97a148ece8cb0c95",
+          "patches/ffmpeg-adaptation/0008-hls-indexed-webvtt-seek.patch": "224da133f9c2b4c4243743145ec8d90845d98878eeb3535ace35d129b31f03ae",
+          "patches/ffmpeg-adaptation/0009-nut-discard-budget.patch": "9d6dde4654d72d4a810b60894befc2260185afd9fa91a9a6dd3f2dda71e343fe",
+          "patches/ffmpeg-adaptation/0010-strict-stream-resource-errors.patch": "f979b6232cef7ece804cbc7dcaf89788c109b9c8c0d4ce9fe6ac735267026e40",
+          "patches/ffmpeg-adaptation/0011-dash-continuous-fmp4.patch": "fe43a338fc469f38d10ff76b66ed56406fd4ccbacf8348dbb95351f107c2f3fd",
+          "patches/ffmpeg-adaptation/0012-demuxe-segment-plans.patch": "e4073571ea824fbeb68848e8918129bae172c2896503794fda085b8d8f47c705",
+          "patches/ffmpeg-adaptation/0013-demuxe-sparse-discovery.patch": "01c32d856f157845917d345f21ff3f4a36f1a0b38e5211a72e3a5bbdc20f537c",
+          "patches/ffmpeg-adaptation/0014-http-chunked-eof.patch": "b3b89b8e84da739a9e10de37eb9cd48e3fbe4104e63aac2b55ceb5da9238cad5",
+          "patches/ffmpeg-adaptation/0015-demuxe-live-hls-components.patch": "9516d75248ccd1f43281755410d3f7e3a58c94e917e02ec0e81840b296778486",
+          "patches/ffmpeg-adaptation/0016-demuxe-resource-retirement.patch": "199ff687d64e2f4d971c23ec352820bb21b1273e33def75bbcebdc7f125af1a7",
+          "patches/ffmpeg-adaptation/0017-demuxe-dash-period-session.patch": "0b5cadd65282139c04e21688e8fbdfa94813f9636461407e1aef5ce8b330fc9d",
+          "patches/ffmpeg-adaptation/0018-demuxe-discontinuity-retirement.patch": "1904f37c4cea150d35a82dabba4a82912d92d6d1bc4308b6b42a03589a889afd",
+          "patches/ffmpeg-adaptation/0019-demuxe-hls-window-anchor.patch": "1f20c83dab06c73c0e1345db1e38ccc36caa0df10e7e7f8962fd8c73b373f76e",
+          "patches/ffmpeg-adaptation/0020-mov-strict-sample-eof.patch": "f4d70438726c79d12d923893b8a8e322a43bc8415e816386a99217c25c3822ab",
+          "patches/ffmpeg-adaptation/0021-demuxe-dash-live-discovery.patch": "3ed99eda3249bd6d1d7e5319887b8923d4005ad6d73aab6a7faec9c4c45fa228"
+        },
+        "sdk": "4.0.14",
+        "flac24": "Selected audio decoding to FLAC24; higher precision PCM is rounded",
+        "opus": "FFmpeg native experimental Opus encoder; explicit lossy policy only"
+      },
+      "cleanSourceBuild": true,
+      "linkCommand": [
+        "emcc",
+        "-DDEMUXE_AUDIO_TRANSCODE=1",
+        "-O2",
+        "-DDEMUXE_FIRST_FRAGMENT_SECONDS=0.5",
+        "-DDEMUXE_FLAC_LEVEL=0",
+        "-DDEMUXE_AUDIO_ADAPTATION=1",
+        "-ffile-prefix-map=/Volumes/seed2/Projects/demuxe=/demuxe",
+        "-pthread",
+        "-msimd128",
+        "-I/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg",
+        "-I/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/source/FFmpeg-n9.0.2",
+        "/Volumes/seed2/Projects/demuxe/native/remux/remux.c",
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libavformat/libavformat.a",
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libavcodec/libavcodec.a",
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libswresample/libswresample.a",
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libavutil/libavutil.a",
+        "-Wl,-Map,/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/engine-1790463562689735000/remux.map",
+        "-sMODULARIZE=1",
+        "-sEXPORT_ES6=1",
+        "-sEXPORT_NAME=createRemux",
+        "-sENVIRONMENT=worker",
+        "-sINITIAL_MEMORY=67108864",
+        "-sMAXIMUM_MEMORY=134217728",
+        "-sALLOW_MEMORY_GROWTH=1",
+        "-sSTACK_SIZE=2097152",
+        "-sWASM_BIGINT=1",
+        "-sFILESYSTEM=0",
+        "-sEXPORTED_FUNCTIONS=[\"_rm_error\", \"_rm_probe\", \"_rm_open\", \"_rm_start\", \"_rm_set_container\", \"_rm_step\", \"_rm_close\", \"_rm_duration\", \"_rm_video_codec\", \"_rm_audio_codec\", \"_rm_adapt_audio\", \"_malloc\", \"_free\"]",
+        "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\",\"ccall\",\"UTF8ToString\"]",
+        "-o",
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/engine-1790463562689735000/remux.mjs"
+      ],
+      "linkSettings": {
+        "firstFragmentSeconds": 0.5,
+        "steadyFragmentSeconds": 0.5,
+        "flacLevel": 0
+      },
+      "files": {
+        "/Volumes/seed2/Projects/demuxe/native/remux/remux.c": {
+          "sha256": "26c6c33ceef513876af5bf3b2f032912a38bd58f4ef5ff4fe4abdc62f93fe513",
+          "bytes": 44303
+        },
+        "/Volumes/seed2/Projects/demuxe/native/adaptation/flac.h": {
+          "sha256": "a6522627be7726c945515644626c22396636aa0ba210c964dffcc070cab223da",
+          "bytes": 15415
+        },
+        "/Volumes/seed2/Projects/demuxe/scripts/build-audio-adaptation.py": {
+          "sha256": "0c5345b639a7959d32d010781c993b5189e6f2e0e55e12e60c33c362f9348ede",
+          "bytes": 7270
+        },
+        "/Volumes/seed2/Projects/demuxe/scripts/stamp-engine-license.py": {
+          "sha256": "cf531d1b6243e72e82f77821eb20e7b3b1a95d184c06cd9579a681a703c9eb36",
+          "bytes": 611
+        },
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/config.h": {
+          "sha256": "f69725b091840c9b1a261e902a2b07769058ccef79ebb20060fc7bc50c4d61f6",
+          "bytes": 24872
+        },
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/config_components.h": {
+          "sha256": "3a579cb795393300fd6df753d14f3b4bf59eda85b394862f4b716ffb43307553",
+          "bytes": 75690
+        },
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/ffbuild/config.mak": {
+          "sha256": "de6cfb2218251e8f39df3ef76fcde394d166c7142976203df0bd00a1f64c41ec",
+          "bytes": 89734
+        },
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/engine-1790463562689735000/remux.map": {
+          "sha256": "e84c26acbfd0f37142e4363e3e3d667a74a864e91852bd1ac3a439d66810b4fd",
+          "bytes": 1803611
+        },
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/engine-1790463562689735000/remux.mjs": {
+          "sha256": "97efd5033b142845cf23e8053c822b7769d746fd9b7804a20a780b9022de5d1d",
+          "bytes": 36995
+        },
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/engine-1790463562689735000/remux.wasm": {
+          "sha256": "0777b7d34f4bfdb68059bc43d70266f6b145e62798705ced5d406d6835ba763e",
+          "bytes": 4475838
+        },
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libavformat/libavformat.a": {
+          "sha256": "6b908b2ae570150ee7a16d0eaf00232c3b99691ce76454f97ac44791f2067a25",
+          "bytes": 2504592
+        },
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libavcodec/libavcodec.a": {
+          "sha256": "7a0238fc643001bc03fdf0344b61d52bab03261df6d7a4154a22ab3d64b42930",
+          "bytes": 4512856
+        },
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libswresample/libswresample.a": {
+          "sha256": "af8fe6ca3a9375dae9caf18b7e9ecd8bde76d7990ad3ee8bc68fb27cc19945c3",
+          "bytes": 111400
+        },
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libavutil/libavutil.a": {
+          "sha256": "011f5ae9e5745c362f62ade595a38e405a30f6ac691b8932b5f3e9434f695dd9",
+          "bytes": 1945662
+        },
+        "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/preferred-source-hashes.json": {
+          "sha256": "7e0c9bee51fb5f84090fb84df598c0aaf64d6b94ef94acb09399c0ebc2ddb59a",
+          "bytes": 1073595
+        }
+      },
+      "scope": "Optional bounded FLAC/Opus audio preparation; no video decoder/encoder configured; release qualification is separate"
+    }
+  },
+  "runtime": {
+    "web/native-remux-player.js": "28b2a9b9745bd2b2a26f03b86c99ede7557a277313dc60d9f0cff5c14363c847",
+    "web/native-remux-worker.js": "38c739a1cca857a61b728ac04fbe707dbea7ec7444c6af8d0e2167753e6313e2",
+    "web/native-remux-source-worker.js": "e817a707837a58ee2e62a4b4093315520784ab2bb7e3c2291dd48aefbaf2d4cc"
+  },
+  "trials": [
+    {
+      "id": "truehd",
+      "fixture": "build/audio-transcode-formats-fixtures-04/truehd.mkv",
+      "sha256": "d10c039150e38ceab1f50393b4a8a790c39064fa6aee1829f51a93ff46d706d9",
+      "errors": [],
+      "phases": [
+        {
+          "label": "audio-steady",
+          "attempt": 0,
+          "accepted": true,
+          "time": 1.269333,
+          "rate": 1,
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.07067552287542932,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.07069561039312909,
+              "hz": 878.90625
+            },
+            {
+              "channel": 2,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 3,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 4,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 5,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 6,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 7,
+              "rms": 0,
+              "hz": 5.859375
+            }
+          ]
+        },
+        {
+          "label": "steady",
+          "state": {
+            "time": 1.2777470000000002,
+            "duration": 18.166,
+            "videoTime": 2.277747,
+            "bias": 1,
+            "paused": false,
+            "ended": false,
+            "rate": 1,
+            "failures": [],
+            "adaptation": {
+              "codec": "flac",
+              "precision": "24-bit PCM",
+              "clippedSamples": 0,
+              "videoPacketsCopied": 197,
+              "audioFramesDecoded": 7800,
+              "audioSamplesDecoded": 312000,
+              "audioSamplesEncoded": 311040,
+              "audioPacketsEncoded": 270,
+              "sourceEnd": 6.566,
+              "videoFramesDecoded": 0,
+              "videoFramesEncoded": 0,
+              "sampleRate": 48000,
+              "channels": 2,
+              "bits": 24,
+              "discardPaddingSamples": 0,
+              "encoderDelaySamples": 0
+            },
+            "range": [
+              [
+                0,
+                6.48
+              ]
+            ],
+            "eof": false,
+            "frames": {}
+          }
+        },
+        {
+          "label": "pause",
+          "state": {
+            "time": 1.2799260000000001,
+            "duration": 18.166,
+            "videoTime": 2.279926,
+            "bias": 1,
+            "paused": true,
+            "ended": false,
+            "rate": 1,
+            "failures": [],
+            "adaptation": {
+              "codec": "flac",
+              "precision": "24-bit PCM",
+              "clippedSamples": 0,
+              "videoPacketsCopied": 197,
+              "audioFramesDecoded": 7800,
+              "audioSamplesDecoded": 312000,
+              "audioSamplesEncoded": 311040,
+              "audioPacketsEncoded": 270,
+              "sourceEnd": 6.566,
+              "videoFramesDecoded": 0,
+              "videoFramesEncoded": 0,
+              "sampleRate": 48000,
+              "channels": 2,
+              "bits": 24,
+              "discardPaddingSamples": 0,
+              "encoderDelaySamples": 0
+            },
+            "range": [
+              [
+                0,
+                6.48
+              ]
+            ],
+            "eof": false,
+            "frames": {}
+          }
+        },
+        {
+          "label": "audio-resume",
+          "attempt": 0,
+          "accepted": true,
+          "time": 1.5306670000000002,
+          "rate": 1,
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.07067969397480252,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.07070669901262323,
+              "hz": 878.90625
+            },
+            {
+              "channel": 2,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 3,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 4,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 5,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 6,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 7,
+              "rms": 0,
+              "hz": 5.859375
+            }
+          ]
+        },
+        {
+          "label": "audio-rate-0.5",
+          "attempt": 0,
+          "accepted": true,
+          "time": 1.866021,
+          "rate": 0.5,
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.07070183732528654,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.07074214207755249,
+              "hz": 878.90625
+            },
+            {
+              "channel": 2,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 3,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 4,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 5,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 6,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 7,
+              "rms": 0,
+              "hz": 5.859375
+            }
+          ]
+        },
+        {
+          "label": "rate-0.5",
+          "state": {
+            "time": 1.8710209999999998,
+            "duration": 18.166,
+            "videoTime": 2.871021,
+            "bias": 1,
+            "paused": false,
+            "ended": false,
+            "rate": 0.5,
+            "failures": [],
+            "adaptation": {
+              "codec": "flac",
+              "precision": "24-bit PCM",
+              "clippedSamples": 0,
+              "videoPacketsCopied": 212,
+              "audioFramesDecoded": 8400,
+              "audioSamplesDecoded": 336000,
+              "audioSamplesEncoded": 335232,
+              "audioPacketsEncoded": 291,
+              "sourceEnd": 7.166,
+              "videoFramesDecoded": 0,
+              "videoFramesEncoded": 0,
+              "sampleRate": 48000,
+              "channels": 2,
+              "bits": 24,
+              "discardPaddingSamples": 0,
+              "encoderDelaySamples": 0
+            },
+            "range": [
+              [
+                0,
+                6.984
+              ]
+            ],
+            "eof": false,
+            "frames": {}
+          }
+        },
+        {
+          "label": "audio-rate-2",
+          "attempt": 0,
+          "accepted": true,
+          "time": 3.356896,
+          "rate": 2,
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.07072695216495935,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.07073462975060936,
+              "hz": 878.90625
+            },
+            {
+              "channel": 2,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 3,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 4,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 5,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 6,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 7,
+              "rms": 0,
+              "hz": 5.859375
+            }
+          ]
+        },
+        {
+          "label": "rate-2",
+          "state": {
+            "time": 3.356896,
+            "duration": 18.166,
+            "videoTime": 4.356896,
+            "bias": 1,
+            "paused": false,
+            "ended": false,
+            "rate": 2,
+            "failures": [],
+            "adaptation": {
+              "codec": "flac",
+              "precision": "24-bit PCM",
+              "clippedSamples": 0,
+              "videoPacketsCopied": 407,
+              "audioFramesDecoded": 16200,
+              "audioSamplesDecoded": 648000,
+              "audioSamplesEncoded": 647424,
+              "audioPacketsEncoded": 562,
+              "sourceEnd": 13.566,
+              "videoFramesDecoded": 0,
+              "videoFramesEncoded": 0,
+              "sampleRate": 48000,
+              "channels": 2,
+              "bits": 24,
+              "discardPaddingSamples": 0,
+              "encoderDelaySamples": 0
+            },
+            "range": [
+              [
+                0,
+                13.488
+              ]
+            ],
+            "eof": false,
+            "frames": {}
+          }
+        },
+        {
+          "label": "audio-rate-1",
+          "attempt": 0,
+          "accepted": true,
+          "time": 4.065317,
+          "rate": 1,
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.07075518124786216,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.0707163283558893,
+              "hz": 878.90625
+            },
+            {
+              "channel": 2,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 3,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 4,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 5,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 6,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 7,
+              "rms": 0,
+              "hz": 5.859375
+            }
+          ]
+        },
+        {
+          "label": "rate-1",
+          "state": {
+            "time": 4.071563,
+            "duration": 18.166,
+            "videoTime": 5.071563,
+            "bias": 1,
+            "paused": false,
+            "ended": false,
+            "rate": 1,
+            "failures": [],
+            "adaptation": {
+              "codec": "flac",
+              "precision": "24-bit PCM",
+              "clippedSamples": 0,
+              "videoPacketsCopied": 407,
+              "audioFramesDecoded": 16200,
+              "audioSamplesDecoded": 648000,
+              "audioSamplesEncoded": 647424,
+              "audioPacketsEncoded": 562,
+              "sourceEnd": 13.566,
+              "videoFramesDecoded": 0,
+              "videoFramesEncoded": 0,
+              "sampleRate": 48000,
+              "channels": 2,
+              "bits": 24,
+              "discardPaddingSamples": 0,
+              "encoderDelaySamples": 0
+            },
+            "range": [
+              [
+                1.008,
+                13.488
+              ]
+            ],
+            "eof": false,
+            "frames": {}
+          }
+        },
+        {
+          "label": "audio-seek-12",
+          "attempt": 0,
+          "accepted": false,
+          "time": 12.557694,
+          "rate": 1,
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.07067374384076923,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.07071185585707493,
+              "hz": 878.90625
+            },
+            {
+              "channel": 2,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 3,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 4,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 5,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 6,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 7,
+              "rms": 0,
+              "hz": 5.859375
+            }
+          ]
+        },
+        {
+          "label": "audio-seek-12",
+          "attempt": 1,
+          "accepted": false,
+          "time": 12.816,
+          "rate": 1,
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.07067299081678831,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.07072391003863364,
+              "hz": 878.90625
+            },
+            {
+              "channel": 2,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 3,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 4,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 5,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 6,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 7,
+              "rms": 0,
+              "hz": 5.859375
+            }
+          ]
+        },
+        {
+          "label": "audio-seek-12",
+          "attempt": 2,
+          "accepted": true,
+          "time": 13.077333,
+          "rate": 1,
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.07067619382081058,
+              "hz": 662.109375
+            },
+            {
+              "channel": 1,
+              "rms": 0.07073367554812506,
+              "hz": 1101.5625
+            },
+            {
+              "channel": 2,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 3,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 4,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 5,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 6,
+              "rms": 0,
+              "hz": 5.859375
+            },
+            {
+              "channel": 7,
+              "rms": 0,
+              "hz": 5.859375
+            }
+          ]
+        },
+        {
+          "label": "seek-12",
+          "state": {
+            "time": 13.088,
+            "duration": 18.166,
+            "videoTime": 14.088,
+            "bias": 1,
+            "paused": false,
+            "ended": false,
+            "rate": 1,
+            "failures": [],
+            "adaptation": {
+              "codec": "flac",
+              "precision": "24-bit PCM",
+              "clippedSamples": 0,
+              "videoPacketsCopied": 542,
+              "audioFramesDecoded": 21600,
+              "audioSamplesDecoded": 864000,
+              "audioSamplesEncoded": 864000,
+              "audioPacketsEncoded": 750,
+              "sourceEnd": 18.166,
+              "videoFramesDecoded": 0,
+              "videoFramesEncoded": 0,
+              "sampleRate": 48000,
+              "channels": 2,
+              "bits": 24,
+              "discardPaddingSamples": 0,
+              "encoderDelaySamples": 0
+            },
+            "range": [
+              [
+                10.008,
+                18
+              ]
+            ],
+            "eof": false,
+            "frames": {}
+          }
+        }
+      ],
+      "media": [
+        {
+          "name": "playerPropertiesChanged",
+          "playerId": "300623A8ADC922A90B0C9113A3EDF17A",
+          "properties": [
+            {
+              "name": "kVideoDecoderName",
+              "value": "VideoToolboxVideoDecoder"
+            },
+            {
+              "name": "kAudioDecoderName",
+              "value": "SymphoniaAudioDecoder"
+            },
+            {
+              "name": "kVideoTracks",
+              "value": "[{\"alpha mode\":\"is_opaque\",\"codec\":\"hevc\",\"coded size\":\"320x180\",\"color space\":{\"matrix\":\"BT709\",\"primaries\":\"BT709\",\"range\":\"LIMITED\",\"transfer\":\"BT709\"},\"encryption scheme\":\"Unencrypted\",\"has extra data\":false,\"hdr metadata\":{},\"natural size\":\"320x180\",\"orientation\":\"0°\",\"profile\":\"hevc main 10\",\"visible rect\":\"0,0 320x180\"}]"
+            },
+            {
+              "name": "kFrameUrl",
+              "value": "http://127.0.0.1:49203/experiment/page.html"
+            },
+            {
+              "name": "kAudioTracks",
+              "value": "[{\"bytes per channel\":4,\"bytes per frame\":8,\"channel layout\":\"STEREO\",\"channels\":2,\"codec\":\"flac\",\"codec delay\":0,\"discard decoder delay\":true,\"encryption scheme\":\"Unencrypted\",\"has extra data\":true,\"profile\":\"unknown\",\"sample format\":\"Signed 24-bit\",\"samples per second\":48000,\"seek preroll\":\"0us\"}]"
+            },
+            {
+              "name": "kIsVideoDecryptingDemuxerStream",
+              "value": "false"
+            },
+            {
+              "name": "kResolution",
+              "value": "320x180"
+            },
+            {
+              "name": "kRendererName",
+              "value": "RendererImpl"
+            },
+            {
+              "name": "kIsPlatformVideoDecoder",
+              "value": "true"
+            },
+            {
+              "name": "kIsAudioDecryptingDemuxerStream",
+              "value": "false"
+            },
+            {
+              "name": "kFrameTitle",
+              "value": "AC-3 audio transcoding experiment"
+            },
+            {
+              "name": "kIsPlatformAudioDecoder",
+              "value": "false"
+            }
+          ]
+        }
+      ],
+      "startup": {
+        "openMs": 526.375
+      },
+      "error": "page.evaluate: Error: FFmpeg error -1094995529: Decoded audio timeline discontinuity: pts=139584 expected=139240 samples=40 tolerance=48\nError: FFmpeg error -1094995529: Decoded audio timeline discontinuity: pts=139584 expected=139240 samples=40 tolerance=48\n    at check (http://127.0.0.1:49203/web/native-remux-worker.js:12:30)\n    at self.onmessage (http://127.0.0.1:49203/web/native-remux-worker.js:59:15)\n    at check (http://127.0.0.1:49203/web/native-remux-worker.js:12:30)\n    at self.onmessage (http://127.0.0.1:49203/web/native-remux-worker.js:59:15)\n    at RemuxPlayer.fail (http://127.0.0.1:49203/web/native-remux-player.js:279:73)\n    at worker.onmessage (http://127.0.0.1:49203/web/native-remux-player.js:68:33)\n    at /Volumes/seed2/Projects/demuxe/experiments/audio-transcode-formats/run.mjs:53:38",
+      "failure": {
+        "failures": [],
+        "video": {
+          "time": 0,
+          "paused": true
+        },
+        "remux": {
+          "delivery": {
+            "mode": "separate",
+            "queuedParts": 0,
+            "queuedBytes": 0,
+            "pulling": true,
+            "busy": true,
+            "pending": false,
+            "updating": []
+          },
+          "buffering": {
+            "effectiveForwardSeconds": 5,
+            "playbackRate": 1,
+            "paused": true,
+            "waitingForMedia": false
+          },
+          "capability": {
+            "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"hev1.2.4.L60.90,flac\")=true",
+            "sourceBufferCreated": true,
+            "initAccepted": true
+          },
+          "stats": {
+            "fragments": [
+              {
+                "lane": 0,
+                "bytes": 3648,
+                "at": 411.6550000011921,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 63215,
+                "at": 426.40000000596046,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 66177,
+                "at": 434.68000000715256,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 65792,
+                "at": 442.3449999988079,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 66152,
+                "at": 448.4699999988079,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 65781,
+                "at": 454.3949999958277,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 66192,
+                "at": 460.4650000035763,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 62706,
+                "at": 465.9150000065565,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 66167,
+                "at": 472.0199999958277,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 70020,
+                "at": 477.5050000101328,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 70507,
+                "at": 483.60999999940395,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 70128,
+                "at": 815.6700000017881,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 70593,
+                "at": 1219.5600000023842,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 66835,
+                "at": 1823.9549999982119,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 70489,
+                "at": 2670.2999999970198,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 70132,
+                "at": 3272.2849999964237,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 70486,
+                "at": 3281.0700000077486,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 73943,
+                "at": 3289.380000010133,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 74401,
+                "at": 3297.755000010133,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 70505,
+                "at": 3305.8949999958277,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 74361,
+                "at": 3312.9249999970198,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 73993,
+                "at": 3319.454999998212,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 74382,
+                "at": 3325.6000000089407,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 73999,
+                "at": 3331.2999999970198,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 74456,
+                "at": 3336.810000002384,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 70523,
+                "at": 3415.765000000596,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 74364,
+                "at": 3620.5550000071526,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 74002,
+                "at": 3922.5250000059605,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 74360,
+                "at": 4814.605000004172,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 73988,
+                "at": 4820.189999997616,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 74401,
+                "at": 4825.4150000065565,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 70505,
+                "at": 4830.495000004768,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 74361,
+                "at": 4835.42499999702,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 73993,
+                "at": 4840.7900000065565,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 74382,
+                "at": 4846.960000008345,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 73999,
+                "at": 4965.465000003576,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 74456,
+                "at": 5370.885000005364,
+                "generation": 1
+              },
+              {
+                "lane": 0,
+                "bytes": 3648,
+                "at": 6013.475000008941,
+                "generation": 2
+              }
+            ],
+            "generatedBytes": 2562042,
+            "discardedBytes": 0,
+            "peakQueueDepth": 1,
+            "bufferedBytesUpperBound": 3648,
+            "peakBufferedBytesUpperBound": 1893949,
+            "peakBufferedSeconds": 13.488,
+            "seeks": [
+              {
+                "target": 0,
+                "started": 107.68000000715256
+              },
+              {
+                "target": 2,
+                "started": 5872.625
+              }
+            ],
+            "sessions": [
+              {
+                "generation": 1,
+                "target": 0,
+                "sourceSize": 2491025,
+                "firstPlayableMs": 333.3799999952316,
+                "firstPlayableSourceBytes": 196608,
+                "packaging": [
+                  {
+                    "container": "mp4",
+                    "mime": "video/mp4; codecs=\"hev1.2.4.L60.90,flac\"",
+                    "selected": true
+                  }
+                ],
+                "generatedBytes": 133040,
+                "fetchedBytesAtLeastSourceSize": false
+              },
+              {
+                "generation": 2,
+                "target": 2,
+                "sourceSize": 2491025,
+                "firstPlayableMs": null,
+                "firstPlayableSourceBytes": null,
+                "packaging": [
+                  {
+                    "container": "mp4",
+                    "mime": "video/mp4; codecs=\"hev1.2.4.L60.90,flac\"",
+                    "selected": true
+                  }
+                ]
+              }
+            ],
+            "errors": [
+              "FFmpeg error -1094995529: Decoded audio timeline discontinuity: pts=139584 expected=139240 samples=40 tolerance=48\nError: FFmpeg error -1094995529: Decoded audio timeline discontinuity: pts=139584 expected=139240 samples=40 tolerance=48\n    at check (http://127.0.0.1:49203/web/native-remux-worker.js:12:30)\n    at self.onmessage (http://127.0.0.1:49203/web/native-remux-worker.js:59:15)"
+            ],
+            "workers": 0,
+            "recoveries": [],
+            "gapSkips": [],
+            "producerDispatchLatencyMs": [
+              0.15478515625,
+              0.090087890625,
+              0.06494140625,
+              0.06982421875,
+              0.074951171875,
+              0.0849609375,
+              0.06494140625,
+              0.059814453125,
+              0.06494140625,
+              0.059814453125,
+              0.0849609375,
+              0.0849609375,
+              0.08984375,
+              0.1298828125,
+              0.099853515625,
+              0.06494140625,
+              0.08984375,
+              0.074951171875,
+              0.074951171875,
+              0.074951171875,
+              0.06982421875,
+              0.06982421875,
+              0.054931640625,
+              0.06005859375,
+              0.054931640625,
+              0.074951171875,
+              0.10986328125,
+              0.10498046875,
+              0.06494140625,
+              0.044921875,
+              0.06494140625,
+              0.050048828125,
+              0.06494140625,
+              0.104736328125,
+              0.08984375,
+              0.070068359375,
+              0.090087890625,
+              0.35498046875
+            ],
+            "appendLatencyMs": [
+              0.48999999463558197,
+              0.12000000476837158,
+              0.125,
+              0.09999999403953552,
+              0.10500000417232513,
+              0.0950000137090683,
+              0.10999999940395355,
+              0.10500000417232513,
+              0.10000000894069672,
+              0.09999999403953552,
+              0.125,
+              0.10499998927116394,
+              0.14999999105930328,
+              0.1850000023841858,
+              0.14499999582767487,
+              0.12000000476837158,
+              0.16499999165534973,
+              0.125,
+              0.12999999523162842,
+              0.11500000953674316,
+              0.11500000953674316,
+              0.10999999940395355,
+              0.09999999403953552,
+              0.0949999988079071,
+              0.0949999988079071,
+              0.11499999463558197,
+              0.14000000059604645,
+              0.1550000011920929,
+              0.09999999403953552,
+              0.07000000774860382,
+              0.07999999821186066,
+              0.07500000298023224,
+              0.09999999403953552,
+              0.10999999940395355,
+              0.11499999463558197,
+              0.10500000417232513,
+              0.17499999701976776,
+              0.32500000298023224
+            ],
+            "bufferedSeeks": 1,
+            "cancellations": [
+              {
+                "adaptation": {
+                  "codec": "flac",
+                  "precision": "24-bit PCM",
+                  "clippedSamples": 0,
+                  "videoPacketsCopied": 542,
+                  "audioFramesDecoded": 21600,
+                  "audioSamplesDecoded": 864000,
+                  "audioSamplesEncoded": 864000,
+                  "audioPacketsEncoded": 750,
+                  "sourceEnd": 18.166,
+                  "videoFramesDecoded": 0,
+                  "videoFramesEncoded": 0,
+                  "sampleRate": 48000,
+                  "channels": 2,
+                  "bits": 24,
+                  "discardPaddingSamples": 0,
+                  "encoderDelaySamples": 0
+                },
+                "generatedBytes": 2558394,
+                "pendingBytes": 0,
+                "retainedCompressedBytesUpperBound": 1183812,
+                "sourceFetchedBytes": 2491025,
+                "inFlightOutputUpperBound": 8388608
+              },
+              {
+                "generatedBytes": 3648,
+                "pendingBytes": 0,
+                "retainedCompressedBytesUpperBound": 3648,
+                "sourceFetchedBytes": 131443,
+                "inFlightOutputUpperBound": 8388608
+              }
+            ]
+          },
+          "source": {
+            "fetchedBytes": 131443,
+            "requests": 3,
+            "retries": 0,
+            "aborts": 0,
+            "cacheBytes": 196608,
+            "peakCacheBytes": 196608,
+            "activeBytes": 0,
+            "peakActiveBytes": 65536
+          },
+          "remux": {
+            "calls": 0,
+            "remuxMs": 111.34000000357628,
+            "generatedBytes": 3648,
+            "peakBatchBytes": 3648,
+            "heapBytes": 67108864,
+            "transport": "pthread",
+            "sharedHeap": true,
+            "gatherCopiedBytes": 3648,
+            "reusedOwnedBatches": 0
+          },
+          "windowed": false,
+          "presentationFloor": 0,
+          "trackBounds": {
+            "videoEnd": 18.166,
+            "audioEnd": 18
+          },
+          "ranges": [],
+          "timelineBias": 1,
+          "position": 0,
+          "quality": {},
+          "readyState": 1,
+          "logs": [
+            "[truehd @ 0x4dc1d0] Codec (truehd) not on whitelist 'demuxe_metadata_no_decode'",
+            "[matroska,webm @ 0x4e8db0] Failed to open codec in avformat_find_stream_info",
+            "[truehd @ 0x4dc1d0] Codec (truehd) not on whitelist 'demuxe_metadata_no_decode'",
+            "[truehd @ 0x4dc1d0] Codec (truehd) not on whitelist 'demuxe_metadata_no_decode'",
+            "[matroska,webm @ 0x4e8db0] Failed to open codec in avformat_find_stream_info",
+            "[truehd @ 0x4dc1d0] Codec (truehd) not on whitelist 'demuxe_metadata_no_decode'"
+          ]
+        }
+      }
+    }
+  ],
+  "browser": {
+    "startupReadiness": {
+      "status": "not-requested",
+      "purpose": "correctness or explicit startup measurement"
+    },
+    "configurationSHA256": "5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8",
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/153.0.8010.53",
+      "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+      "jsVersion": "15.3.76.13"
+    },
+    "channel": "chrome",
+    "effectiveArguments": [
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "--disable-field-trial-config",
+      "--disable-background-networking",
+      "--disable-background-timer-throttling",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-back-forward-cache",
+      "--disable-breakpad",
+      "--disable-client-side-phishing-detection",
+      "--disable-component-extensions-with-background-pages",
+      "--disable-component-update",
+      "--no-default-browser-check",
+      "--disable-default-apps",
+      "--disable-dev-shm-usage",
+      "--disable-extensions",
+      "--disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints",
+      "--enable-features=CDPScreenshotNewSurface",
+      "--allow-pre-commit-input",
+      "--disable-hang-monitor",
+      "--disable-ipc-flooding-protection",
+      "--disable-popup-blocking",
+      "--disable-prompt-on-repost",
+      "--disable-renderer-backgrounding",
+      "--force-color-profile=srgb",
+      "--metrics-recording-only",
+      "--no-first-run",
+      "--password-store=basic",
+      "--use-mock-keychain",
+      "--no-service-autorun",
+      "--export-tagged-pdf",
+      "--disable-search-engine-choice-screen",
+      "--unsafely-disable-devtools-self-xss-warnings",
+      "--edge-skip-compat-layer-relaunch",
+      "--enable-automation",
+      "--disable-infobars",
+      "--disable-search-engine-choice-screen",
+      "--disable-sync",
+      "--no-sandbox",
+      "--autoplay-policy=no-user-gesture-required",
+      "--user-data-dir=/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/playwright_chromiumdev_profile-ZQvj8O",
+      "--remote-debugging-pipe",
+      "--no-startup-window",
+      "--flag-switches-begin",
+      "--flag-switches-end"
+    ],
+    "headless": false,
+    "policy": {
+      "schema": 4,
+      "browserLifetime": "caller-declared comparison block; fresh context per arm",
+      "interArmIdleSeconds": 2,
+      "profile": "fresh temporary Playwright profile per launch",
+      "startupGateSeconds": 150,
+      "startupGate": "macOS Chrome hardware-key task completion; tracing off before measurement",
+      "startupIdleSeconds": 20,
+      "warmupSeconds": 5,
+      "measureSeconds": 20,
+      "sampleIntervalSeconds": 2,
+      "clock": "monotonic CPU-query midpoint; fixed sample deadlines",
+      "viewport": {
+        "width": 960,
+        "height": 540
+      },
+      "deviceScaleFactor": 1
+    }
+  }
+}

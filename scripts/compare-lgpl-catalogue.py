@@ -121,7 +121,7 @@ def compare(before_path, after_path):
         manifest = json.loads(path.read_text())
         if not manifest.get('sourceBuildVerification', {}).get('verified'):
             raise ValueError('Candidate optional engine lacks clean source verification: ' + folder)
-        if folder == 'engine-adaptation' and manifest.get('profiles') != ['flac', 'opus']:
+        if folder == 'engine-adaptation' and not {'flac','opus'}.issubset(manifest.get('profiles',[])):
             raise ValueError('Candidate lost the published FLAC/Opus preparation profiles')
     baseline_engines = {name: before_manifest['files'].get('demuxe/' + name, {}).get('sha256')
                         for name in ENGINE_NAMES}

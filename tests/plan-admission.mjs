@@ -2,7 +2,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {planAdmission,executionPlan} from '../web/generated/internal/playback-plans.js';
-import {losslessAdaptationRejection} from '../web/generated/internal/selection.js';
+import {losslessAdaptationRejection,audioTranscodeRejection} from '../web/generated/internal/selection.js';
 const facts={automatic:true,vf:'',af:'',gain:1,toneMapping:'off',hybridAudioFilters:false,allowLossy:false,nativeASS:false,externalFormats:[],browserTextTracks:false,audioOutput:'stereo',nativeRemux:'auto',manifest:false,requiresRemux:false,isolated:true,mse:true,webCodecs:true,webAudio:true};
 const eligible=extra=>planAdmission({...facts,...extra}).filter(p=>p.eligible).map(p=>p.id);
 test('ordinary automatic admission contains copy plans and never implicitly permits adaptation',()=>{
@@ -101,4 +101,28 @@ test('selected embedded subtitles require the combined native video and mpv serv
  for(const extra of [{mpvSubtitles:false},{mpvSubtitleSourceQualified:false},{audioOutput:'5.1'},{vf:'hflip'},{toneMapping:'hdr-to-sdr'},{mse:false},{webAudio:false}]){
   assert.equal(planAdmission({...facts,...qualified,...extra}).find(p=>p.id==='native-video-mpv-audio-subtitles').eligible,false,JSON.stringify(extra));
  }
+});
+
+test('automatic FLAC24 follows copy plans and obeys Worklet and lossless-only policies',()=>{
+ const extra={transcodeAssetsAvailable:true,transcodeSourceRejection:undefined};
+ const ids=eligible(extra);
+ assert.ok(ids.indexOf('native-transcode')>ids.indexOf('native-remux'));
+ assert.ok(ids.indexOf('native-transcode')<ids.indexOf('hybrid'));
+ assert.equal(executionPlan('native','adapted-flac24','').id,'native-transcode');
+ for(const blocked of [{audioPlayback:'worklet'},{automaticLossless:true},{automatic:false},{adaptation:'flac'},{transcodeAssetsAvailable:false},{transcodeSourceRejection:'Unknown layout'},{isolated:false},{mse:false},{nativeRemux:'never'},{audioOutput:'5.1'},{af:'volume=0.5'},{gain:.5},{manifest:true},{externalFormats:['browser-vtt']},{selectedEmbeddedSubtitle:true}])assert.ok(!eligible({...extra,...blocked}).includes('native-transcode'),JSON.stringify(blocked));
+ assert.ok(!eligible({...extra,automaticLossless:true,adaptationSourceQualified:true,audioPlayback:'worklet'}).includes('native-flac'));
+ const subtitled={...extra,selectedEmbeddedSubtitle:true,mpvSubtitles:true,mpvSubtitleSourceQualified:true};
+ assert.ok(eligible(subtitled).includes('native-transcode-mpv'));
+ assert.ok(!eligible({...subtitled,mpvSubtitles:false}).includes('native-transcode-mpv'));
+ assert.equal(executionPlan('native','native-transcode-mpv','').id,'native-transcode-mpv');
+});
+
+test('FLAC24 source admission follows the selected stream and finite file constraints',()=>{
+ const probe={duration:18,format:'matroska',tracks:[{type:'video',id:'1',index:0,codec:'hevc'},{type:'audio',id:'2',index:1,codec:'ac3',sampleRate:48000,channels:2},{type:'audio',id:'3',index:2,codec:'unknown',sampleRate:48000,channels:2}]};
+ assert.equal(audioTranscodeRejection(probe,{aid:'2'}),undefined);
+ assert.match(audioTranscodeRejection(probe,{aid:'3'}),/decoder/);
+ assert.match(audioTranscodeRejection(probe,{aid:'no'}),/decoder/);
+ assert.match(audioTranscodeRejection({...probe,duration:Infinity},{aid:'2'}),/finite/);
+ assert.match(audioTranscodeRejection({...probe,format:'mpegts'},{aid:'2'}),/file/);
+ assert.match(audioTranscodeRejection({...probe,tracks:[probe.tracks[0],{...probe.tracks[1],channels:0}]},{aid:'2'}),/channel/);
 });

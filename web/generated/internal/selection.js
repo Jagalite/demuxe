@@ -19,6 +19,23 @@ export function losslessAdaptationRejection(probe, settings) {
     if (!Number.isFinite(probe.duration) || probe.duration <= 0)
         return 'Automatic FLAC requires a finite duration';
 }
+/** Transcoding replaces selected audio only. Decoder output supplies the speaker
+ * layout; runtime packet/sample continuity and browser output remain mandatory. */
+export function audioTranscodeRejection(probe, settings) {
+    const video = probe.tracks.find(t => t.type === 'video' && !t.attachedPicture);
+    const tracks = probe.tracks.filter(t => t.type === 'audio');
+    const audio = settings.aid === 'no' ? undefined : settings.aid === 'auto' ? (tracks.find(t => t.default) ?? tracks[0]) : tracks.find(t => t.id === settings.aid);
+    if (!Number.isFinite(probe.duration) || probe.duration <= 0)
+        return 'Audio transcoding requires finite media';
+    if (!probe.format?.split(',').some(f => ['matroska', 'webm', 'mov', 'mp4', 'm4a'].includes(f)))
+        return 'Audio transcoding requires an inspected Matroska or MP4 file';
+    if (!video || !['h264', 'hevc', 'vp9', 'av1'].includes(video.codec))
+        return 'Selected video has no FLAC/MP4 packet-copy contract';
+    if (!audio || !['ac3', 'eac3', 'dts', 'dca', 'truehd', 'mlp', 'aac', 'mp3', 'opus', 'vorbis', 'flac', 'alac', 'pcm_s16le', 'pcm_s24le', 'pcm_s32le', 'pcm_f32le', 'pcm_f64le'].includes(audio.codec))
+        return 'Selected audio has no transcoding decoder';
+    if (!audio.sampleRate || audio.sampleRate < 8000 || audio.sampleRate > 192000 || !audio.channels || audio.channels < 1 || audio.channels > 8)
+        return 'Selected audio rate or channel count is outside the transcoding budget';
+}
 /** A simple browser-supported HLS VOD may avoid a JS streaming engine. All
  * controlled adaptive behavior belongs to Shaka, then eligible mpv fallback.
  * A browser hint admits a trial; actual output is verified separately. */
