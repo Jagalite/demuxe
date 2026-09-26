@@ -53,6 +53,7 @@ launch per round. The
 | H.264 video-only / MP4 | All five maintained players passed; MediaBunny screened marked video and silent output; six viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-silent-20260926/REPORT.md) |
 | H.264 High 10 + AAC / MKV | Four maintained passes and one MediaBunny screen with 10-bit fidelity unqualified; Movi failed near EOF; five viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-high10-20260926/REPORT.md) |
 | MPEG-2 video-only / MPEG-TS | Four maintained passes; plain video failed to open and MediaBunny found no track; four viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-mpeg2-video-only-20260926/REPORT.md) |
+| H.264 + AAC + embedded SRT / MKV | Demuxe Auto and Software passed required subtitle output; plain video, Movi, AVPlayer and MediaBunny missed it; two viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-srt-20260926/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available

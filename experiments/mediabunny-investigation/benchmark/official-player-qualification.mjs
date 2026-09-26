@@ -31,7 +31,7 @@ if (requestedCase && !cases.length) {
   const assets = path.resolve(root, catalogueAssets);
   const catalogue = JSON.parse(await readFile(path.join(assets, 'fixtures/catalogue.json')));
   const source = catalogue[requestedCase];
-  if (!source?.file || source.streamFormat || source.live || !source.video || source.subtitleCheck || source.subtitle)
+  if (!source?.file || source.streamFormat || source.live || !source.video)
     throw Error('Fixture needs a separate published-player qualification contract: ' + requestedCase);
   cases = [[requestedCase, source.label, path.join(assets, 'fixtures', source.file), source]];
 }
@@ -153,6 +153,17 @@ try {
       if (source?.audio === false) {
         if (first.state.audioStarts || second.state.audioStarts) throw Error('Video-only source emitted audio');
       } else if (![440, 880].every((hz, i) => first.state.audio[i].rms > 0.015 && Math.abs(first.state.audio[i].hz - hz) < 30)) throw Error('Marked stereo audio oracle failed: ' + JSON.stringify(first.state.audio));
+      if (source?.subtitleCheck || source?.subtitle) {
+        await sleep(500);
+        row.checks.subtitleControls = await page.locator('input[type="file"], track, [id*="subtitle"], [id*="caption"]').evaluateAll(elements => elements.map(element => ({ tag: element.tagName, id: element.id, accept: element.getAttribute('accept') })));
+        row.checks.subtitle = await image('subtitle');
+        row.checks.subtitle.visibleText = await page.locator('#player').evaluate(element => element.textContent);
+        if (source.subtitle) throw Error('Required external subtitle cannot be supplied through published player controls');
+        if (source.subtitleCheck === 'text' && !row.checks.subtitle.visibleText.replace(/[^A-Z0-9]/gi, '').toUpperCase().includes('DEMUXETEST123'))
+          throw Error('Required embedded subtitle text missing');
+        if (['ass', 'bitmap'].includes(source.subtitleCheck) && row.checks.subtitle.marker.magentaPixels <= 150)
+          throw Error('Required embedded subtitle drawing missing');
+      }
       if (id === 'pcm24-ass') throw Error('Required external ASS subtitle cannot be supplied through published player controls');
       await page.locator('#play-button').evaluate(el => el.click());
       const beforePause = time((await snap()).position); await sleep(450); const paused = time((await snap()).position);
