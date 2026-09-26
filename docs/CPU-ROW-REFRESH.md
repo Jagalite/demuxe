@@ -59,6 +59,7 @@ launch per round. The
 | H.264 + AAC + styled ASS / MKV | Demuxe Auto and Software passed marked ASS drawing; plain video, Movi, AVPlayer and MediaBunny missed it; two viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-ass-20260926/REPORT.md) |
 | H.264 + AC-3 stereo + ASS / MKV | Demuxe Auto and Software passed marked ASS drawing; plain video timed out and Movi, AVPlayer and MediaBunny missed subtitles; two viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-ac3-ass-20260926/REPORT.md) |
 | HEVC + AC-3 + PGS / MKV | Demuxe Auto and Software passed marked PGS output; plain video timed out and Movi, AVPlayer and MediaBunny missed subtitles; two viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-hevc-pgs-20260926/REPORT.md) |
+| H.264 + AC-3 + VobSub / MKV | Demuxe Auto and Software passed marked VobSub output; plain video timed out and Movi, AVPlayer and MediaBunny missed subtitles; two viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-vobsub-20260926/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available
