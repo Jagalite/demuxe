@@ -21,6 +21,7 @@ launch per round. The
 | H.264 + MP3 stereo / MP4 | Four maintained arms passed and Movi failed; MediaBunny screened; matched one-Chrome CPU with Auto outlier and follow-up | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-mp3-confirmed-20260925/REPORT.md) |
 | H.264 + AC-3 5.1 / MKV | Demuxe Auto and Software CPU measured; plain video and Movi failed; AVPlayer/MediaBunny CPU withheld after independent launch reversed ranking | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-ac3-confirmed-20260925/REPORT.md) |
 | H.264 + E-AC-3 5.1 / MKV | Four stereo-screened arms measured in one Chrome; plain video and Movi failed correctness | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-eac3-20260926/REPORT.md) |
+| H.264 + DTS core 5.1 / MKV | Four stereo-screened arms measured in one Chrome; plain video and Movi failed correctness | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-dts-20260926/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available
