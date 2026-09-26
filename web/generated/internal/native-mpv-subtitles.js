@@ -4,7 +4,7 @@ import { PlayerError } from './errors.js';
 export class NativeMpvSubtitles {
     video;
     time;
-    file;
+    source;
     failed;
     defaultStreamIndex;
     canvas = document.createElement('canvas');
@@ -34,10 +34,10 @@ export class NativeMpvSubtitles {
     tracks = [];
     service = {};
     stats = { position: -1, renders: 0, bitmapUpdates: 0, bytes: 0, peakBytes: 0, discarded: 0, stateUpdates: 0, scheduler: 'frame' };
-    constructor(video, time, base, fonts, file, failed, defaultStreamIndex) {
+    constructor(video, time, base, fonts, source, failed, defaultStreamIndex) {
         this.video = video;
         this.time = time;
-        this.file = file;
+        this.source = source;
         this.failed = failed;
         this.defaultStreamIndex = defaultStreamIndex;
         if (!crossOriginIsolated)
@@ -56,26 +56,43 @@ export class NativeMpvSubtitles {
             video.style.objectFit = 'contain';
             video.disablePictureInPicture = true;
             video.disableRemotePlayback = true;
-            this.worker.onmessage = ({ data }) => { if (data.type === 'closed') {
-                this.closed?.();
-                return;
-            } if (data.type === 'subtitleTimingChanged') {
-                this.timingEpoch = data.epoch >>> 0;
-                if (this.schedulerMode !== 'fallback')
-                    void this.pump();
-                return;
-            } if (data.type === 'subtitleDeadline') {
-                if (this.schedulerMode === 'deadline' && data.epoch === this.deadlineEpoch && !this.video.paused && !document.hidden) {
-                    if (this.time() + .004 >= data.target)
-                        this.invalidate();
-                    else
-                        void this.pump();
+            this.worker.onmessage = ({ data }) => {
+                if (data.type === 'refresh') {
+                    const refresh = this.source instanceof File ? undefined : this.source.refreshAuthorization;
+                    void Promise.resolve().then(() => { if (!refresh)
+                        throw Error('Authorization refresh unavailable'); return refresh(data.resource); }).then(update => { if (!this.stopped)
+                        this.worker.postMessage({ type: 'refreshed', id: data.id, update }); }, error => { if (!this.stopped)
+                        this.worker.postMessage({ type: 'refreshed', id: data.id, error: String(error) }); });
+                    return;
                 }
-                return;
-            } const p = this.pending.get(data.id); if (!p) {
-                data.bitmap?.close();
-                return;
-            } clearTimeout(p.timer); this.pending.delete(data.id); data.error ? p.reject(/^Error: Subtitle (?:decoder unavailable|decode failed|packet deadline exceeded|source load failed|selection failed|seek failed)/.test(data.error) ? new PlayerError('UNSUPPORTED_FEATURE', data.error) : Error(data.error)) : p.resolve(data); };
+                if (data.type === 'closed') {
+                    this.closed?.();
+                    return;
+                }
+                if (data.type === 'subtitleTimingChanged') {
+                    this.timingEpoch = data.epoch >>> 0;
+                    if (this.schedulerMode !== 'fallback')
+                        void this.pump();
+                    return;
+                }
+                if (data.type === 'subtitleDeadline') {
+                    if (this.schedulerMode === 'deadline' && data.epoch === this.deadlineEpoch && !this.video.paused && !document.hidden) {
+                        if (this.time() + .004 >= data.target)
+                            this.invalidate();
+                        else
+                            void this.pump();
+                    }
+                    return;
+                }
+                const p = this.pending.get(data.id);
+                if (!p) {
+                    data.bitmap?.close();
+                    return;
+                }
+                clearTimeout(p.timer);
+                this.pending.delete(data.id);
+                data.error ? p.reject(/^Error: Subtitle (?:decoder unavailable|decode failed|packet deadline exceeded|source load failed|selection failed|seek failed)/.test(data.error) ? new PlayerError('UNSUPPORTED_FEATURE', data.error) : Error(data.error)) : p.resolve(data);
+            };
             this.worker.onerror = e => { e.preventDefault(); this.fail(Error(e.message || 'Subtitle worker failed')); };
             this.worker.onmessageerror = () => this.fail(Error('Subtitle worker message failure'));
             this.observer = new ResizeObserver(() => this.invalidate());
@@ -105,7 +122,9 @@ export class NativeMpvSubtitles {
                         throw Error('Subtitle font budget exceeded');
                     if (this.stopped)
                         throw Error('Subtitle renderer destroyed');
-                    const result = await this.request('init', { file: this.file, fonts: [{ name: 'DejaVuSans.ttf', bytes }, ...fonts] });
+                    const source = this.source;
+                    const transport = source instanceof File ? { file: source } : (() => { const { refreshAuthorization, ...options } = source; return { options, canRefresh: !!refreshAuthorization }; })();
+                    const result = await this.request('init', { ...transport, fonts: [{ name: 'DejaVuSans.ttf', bytes }, ...fonts] });
                     this.tracks = result.tracks;
                     if (this.defaultStreamIndex !== undefined && !this.tracks.some(track => track['ff-index'] === this.defaultStreamIndex))
                         throw new PlayerError('UNSUPPORTED_FEATURE', 'Inspected subtitle stream was not enumerated by mpv');

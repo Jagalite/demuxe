@@ -656,6 +656,11 @@ export class Player extends EventTarget {
         }
         throw new Error(`${mode} mode did not present the requested position`);
     }
+    fileServicesSource(source) {
+        // Every URL consumer uses the inspected representation through RangeReader.
+        // Manifests and explicit demuxer overrides retain their existing routes.
+        return source.kind === 'local' || (!source.options.demuxer && (!source.options.format || source.options.format === 'file') && !!source.options.identity);
+    }
     admissible(source, settings, attachments, textTracks, nativeSourceRejection, automatic = this.automatic) {
         const remote = source.kind === 'remote' ? source.options : undefined;
         const inspected = this.sourceInspection?.source === source ? this.sourceInspection : undefined;
@@ -670,7 +675,7 @@ export class Player extends EventTarget {
         const selectiveVideo = inspected?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture);
         const selectiveSubtitle = inspected?.probe.tracks.find(t => t.type === 'sub' && (inspectedSettings?.sid === 'auto' ? t.default || subs[0] === t : t.id === inspectedSettings?.sid));
         const selectiveVideoCapability = inspected ? nativeBrowserCapabilities(inspected.probe, 'no', { canPlayType: mime => document.createElement('video').canPlayType(mime), isTypeSupported: typeof MediaSource === 'undefined' ? undefined : mime => MediaSource.isTypeSupported(mime) }).remux : undefined;
-        const selectiveAudioReason = source.kind !== 'local' ? 'Selective audio requires an inspected local file' : !inspected ? 'Source inspection required' :
+        const selectiveAudioReason = !this.fileServicesSource(source) ? 'Selective audio requires an inspected random-access file' : !inspected ? 'Source inspection required' :
             !Number.isFinite(inspected.probe.duration) || inspected.probe.duration <= 0 ? 'Selective audio requires finite media' :
                 !selectiveVideo ? 'Selected video is unavailable' :
                     !selectiveAudio ? 'Selected audio is unavailable' :
@@ -679,7 +684,7 @@ export class Player extends EventTarget {
         const decisions = planAdmission({ automatic, ...settings,
             selectiveAudioQualified: !selectiveAudioReason, selectiveAudioReason,
             mpvSubtitles: this.mpvSubtitles, selectedEmbeddedSubtitle: !!(settings.subtitles && selectiveSubtitle),
-            mpvSubtitleSourceQualified: this.mpvSubtitleAssetsAvailable && source.kind === 'local' && !!inspected && Number.isFinite(inspected.probe.duration) && inspected.probe.duration > 0 && !!selectiveSubtitle && settings.subtitles && settings.sid !== 'no',
+            mpvSubtitleSourceQualified: this.mpvSubtitleAssetsAvailable && this.fileServicesSource(source) && !!inspected && Number.isFinite(inspected.probe.duration) && inspected.probe.duration > 0 && !!selectiveSubtitle && settings.subtitles && settings.sid !== 'no',
             mpvSubtitleAVRejection: inspected ? nativeRejection(inspected.probe, { ...inspectedSettings, subtitles: false }) : 'Source inspection required',
             shakaSourceRejection: remote?.demuxer ? 'Explicit demuxer hints require FFmpeg' : undefined,
             streamingFallbackRejection: remote?.streaming?.maxBandwidth !== undefined || remote?.streaming?.representation !== undefined ? 'FFmpeg fallback cannot preserve an explicit adaptive quality constraint' : undefined,
@@ -689,7 +694,7 @@ export class Player extends EventTarget {
             automaticLossless: this.automaticLossless, adaptationSourceRejection: source.kind !== 'local' ? 'Automatic FLAC is qualified only for local files' : this.losslessInspection?.source === source ? this.losslessInspection.reason : 'Automatic FLAC source has not been qualified',
             adaptationSourceQualified: source.kind === 'local' && this.losslessInspection?.source === source && !this.losslessInspection.reason,
             audioOutput: this.audioOutput, nativeRemux: this.nativeRemux, manifest: !!remote?.format && remote.format !== 'file',
-            requiresRemux: !!(remote && (remote.headers || remote.refreshAuthorization || remote.allowedOrigins || remote.immutable !== undefined || remote.credentials === 'omit')),
+            requiresRemux: !!(remote && (remote.headers || remote.refreshAuthorization || remote.allowedOrigins || remote.immutable !== undefined || remote.credentials === 'omit' || !!(settings.subtitles && selectiveSubtitle))),
             isolated: globalThis.crossOriginIsolated === true, mse: typeof MediaSource !== 'undefined', webCodecs: typeof VideoDecoder !== 'undefined', webAudio: typeof AudioContext !== 'undefined',
             nativeSourceRejection: remote?.format && remote.format !== 'file' ? nativeManifestRejection(remote, settings, !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')) : nativeSourceRejection });
         if (inspected) {
@@ -1086,7 +1091,7 @@ export class Player extends EventTarget {
         this.selectiveAudioAssetsAvailable = false;
         this.selectiveAudioAssetsChecked = false;
         this.mpvSubtitleAssetsAvailable = false;
-        if (this.mpvSubtitles && source.kind === 'local' && settings.subtitles && sid !== 'no' && probe.tracks.some(t => t.type === 'sub'))
+        if (this.mpvSubtitles && this.fileServicesSource(source) && settings.subtitles && sid !== 'no' && probe.tracks.some(t => t.type === 'sub'))
             this.mpvSubtitleAssetsAvailable = await this.optionalAssetsAvailable(['web/engine-subtitles/service.mjs', 'web/engine-subtitles/service.wasm'], controller);
         this.assertOperation();
     }
@@ -1360,7 +1365,7 @@ export class Player extends EventTarget {
             }
             // The common native A/V path never pays for optional mpv-audio asset
             // probes. Check once only when discovery actually reaches a split plan.
-            if (automatic && plan.id.startsWith('native-video-mpv-audio') && !this.selectiveAudioAssetsChecked && source.kind === 'local' && this.sourceInspection?.source === source && this.audioOutput === 'stereo' && settings.gain === 1 && plan.browserCapability?.status !== 'unsupported') {
+            if (automatic && plan.id.startsWith('native-video-mpv-audio') && !this.selectiveAudioAssetsChecked && this.fileServicesSource(source) && this.sourceInspection?.source === source && this.audioOutput === 'stereo' && settings.gain === 1 && plan.browserCapability?.status !== 'unsupported') {
                 const controller = this.inspection = new AbortController();
                 try {
                     this.selectiveAudioAssetsAvailable = await this.optionalAssetsAvailable(['web/engine-selective/player.mjs', 'web/engine-selective/player.wasm', 'web/selective-sync-worklet.js'], controller);

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { WasmPlayer } from './wasm-player.js';
+import type { RemoteSource } from '../types.js';
 /** Browser presentation clock with isolated mpv demux/decode and timestamped PCM. */
 export declare class NativeMpvAudio extends EventTarget {
     private video;
@@ -47,7 +48,7 @@ export declare class NativeMpvAudio extends EventTarget {
     private observe;
     private fadeOut;
     private fadeIn;
-    open(file: File, audioStream?: number): Promise<void>;
+    open(source: File | RemoteSource, audioStream?: number): Promise<void>;
     private publish;
     play(startVideo: () => Promise<void>): Promise<void>;
     pause(stopVideo: () => void): Promise<void>;

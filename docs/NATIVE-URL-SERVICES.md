@@ -1,10 +1,16 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# Native URL services: implementation and deferred validation
+# Native URL services: implementation and validation
 
 This change removes the File-versus-URL routing gap for inspected finite file
 sources. It does not change README CPU results or claim a measured improvement.
-No builds, tests or benchmarks were run while another agent was performance testing.
+The initial implementation ran no builds, tests or benchmarks while another agent
+was performance testing. After testing was authorized, the build and 109 contract
+tests passed. Follow-up HEVC timestamp repair brings the URL browser matrix to
+12/12 passing, with both local-File HEVC controls and three focused C/packaging
+regressions passing. See the [validation report](../results/native-url-services/validation/REPORT.md).
+HEVC open-GOP seek startup now seeds decode timestamps below the earliest PTS
+in a bounded reorder window, preserving packets and the discontinuity guard.
 Changes are isolated in `/Volumes/seed2/Projects/demuxe-native-url-fix`.
 
 - Native video plus mpv audio accepts inspected file URLs. The video remuxer and
@@ -27,11 +33,9 @@ Changes are isolated in `/Volumes/seed2/Projects/demuxe-native-url-fix`.
   SPS/PPS pair. Whether padding normalization resolves its entire remux lifecycle
   remains a runtime validation question.
 
-## Deferred checks
+## Validation commands
 
-After the performance run, build the TypeScript and remux runtime using the
-repository's usual build process in this worktree. No generated files or Wasm
-artifacts have been updated. Materialize the sparse worktree's build/server inputs
+TypeScript and the remux runtime have now been rebuilt in this worktree. Materialize the sparse worktree's build/server inputs
 and provide existing fixtures; do not substitute unrelated benchmark assets.
 
 Then run:
@@ -52,7 +56,6 @@ plus visible canvas pixels; ASS/bitmap captions require the screenshot's magenta
 drawing. Text is inspected through the subtitle service, not OCR, so this does
 not establish glyph-by-glyph fidelity. The contracts also cover typed selective
 ownership failures and preservation of terminal transport, cancellation and
-autoplay errors. These new checks are
-written but unexecuted. Existing local selective-audio/subtitle lifecycle and
+autoplay errors. These checks have now run; the linked report retains passes and failures. Existing local selective-audio/subtitle lifecycle and
 transport suites must also pass before merging. Full marked video/audio/subtitle
 correctness qualification and matched CPU remeasurement remain separate gates.

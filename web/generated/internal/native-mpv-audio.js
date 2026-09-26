@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { WasmPlayer } from './wasm-player.js';
-import { PlayerError } from './errors.js';
+import { PlayerError, playerError } from './errors.js';
 const wait = async (predicate, timeout = 5000, signal) => {
     const end = performance.now() + timeout;
     while (performance.now() < end) {
@@ -76,7 +76,7 @@ export class NativeMpvAudio extends EventTarget {
     }
     fail(error) { if (!this.stopped && !this.failedOnce) {
         this.failedOnce = true;
-        this.failed(error instanceof PlayerError ? error : new PlayerError('DECODE_FAILED', 'Selective audio service failed: ' + String(error)));
+        this.failed(playerError(error));
     } }
     h(index) { return Atomics.load(this.header, index); }
     set(index, value) { Atomics.store(this.header, index, value); }
@@ -172,7 +172,7 @@ export class NativeMpvAudio extends EventTarget {
         await new Promise(resolve => setTimeout(resolve, 12));
     };
     fadeIn() { const at = this.context.currentTime; this.gain.gain.cancelScheduledValues(at); this.gain.gain.setValueAtTime(0, at); this.gain.gain.linearRampToValueAtTime(1, at + .008); }
-    async open(file, audioStream) {
+    async open(source, audioStream) {
         await this.engine.ready;
         const state = this.engine.selectiveAudioState();
         this.header = state.header;
@@ -182,13 +182,16 @@ export class NativeMpvAudio extends EventTarget {
         await this.engine.command('set', 'sid', 'no');
         if (audioStream !== undefined)
             await this.engine.command('set', 'aid', String(audioStream + 1));
-        await this.engine.open(file);
+        if (source instanceof File)
+            await this.engine.open(source);
+        else
+            await this.engine.openRemote(source);
         await this.engine.inspectMetadata();
         let tracks = this.engine.properties.get('track-list');
         if (audioStream !== undefined) {
             const requested = tracks?.find(t => t.type === 'audio' && t['ff-index'] === audioStream);
             if (!requested)
-                throw Error('Selective requested audio stream is absent');
+                throw new PlayerError('DECODE_FAILED', 'Selective requested audio stream is absent');
             if (!requested.selected) {
                 await this.engine.selectTrack('audio', requested.id);
                 await wait(() => this.selectedStreamIndex === audioStream);
@@ -196,7 +199,7 @@ export class NativeMpvAudio extends EventTarget {
             tracks = this.engine.properties.get('track-list');
         }
         if (tracks?.some(t => t.type === 'video' && t.selected) || !tracks?.some(t => t.type === 'audio' && t.selected))
-            throw Error('Selective mpv track ownership failed');
+            throw new PlayerError('DECODE_FAILED', 'Selective mpv track ownership failed');
         this.driftTimer = setInterval(() => this.observe(), 250);
     }
     async publish(startVideo) {
