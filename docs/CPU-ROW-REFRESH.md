@@ -41,6 +41,7 @@ launch per round. The
 | AV1 10-bit SDR + Opus / MKV | Four maintained passes and one MediaBunny screen; Movi failed near EOF; five viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-av110-opus-20260926/REPORT.md) |
 | AV1 + Opus / WebM | Four maintained passes and one MediaBunny screen; Movi failed near EOF; five viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-av1-webm-20260926/REPORT.md) |
 | VP9 8-bit + Opus / WebM | Four maintained passes and one MediaBunny screen; Movi failed near EOF; five viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-vp9-opus-20260926/REPORT.md) |
+| VP9 10-bit SDR + Opus / WebM | Three maintained passes and one MediaBunny screen; Movi and AVPlayer failed correctness; four viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-vp910-opus-20260926/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available
