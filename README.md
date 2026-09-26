@@ -178,7 +178,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | HEVC Main 10-bit SDR + AAC / MP4 | 🟢 (Pass) · 37.2% CPU | 🟢 (Pass) · 18.4% CPU | 🟢 (Pass) · 18.5% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 37.4% CPU | 🟡 Screened · 41.1% CPU |
 | HEVC Main 10 4:2:2 + AAC / MKV | 🟢 (Pass)* · 37.2% CPU | 🟢 (Pass)\* · 17.8% CPU | 🟢 (Pass)\* · 18.6% CPU · native-direct | 🟢 (Pass)* | 🟢 (Pass)* · 37.6% CPU | 🟡 Screened* · 41.4% CPU |
 | HEVC Main 10-bit SDR + AC-3 / MKV | 🟢 (Pass) · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 39.4% CPU · hybrid (URL) | 🔴 (Fail) | 🟢 (Pass) · 36.8% CPU | 🟡 Screened · 40.6% CPU |
-| HEVC Main 10-bit SDR + E-AC-3 / MKV | 🟢 | 🔴 (Fail) | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🟠 | — |
+| HEVC Main 10-bit SDR + E-AC-3 / MKV | 🟢 (Pass) · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 40.0% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass) · 36.9% CPU | 🟡 Screened · 42.0% CPU |
 | HEVC Main 10-bit SDR + DTS core / MKV | 🟢 | 🔴 (Fail) | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🟠 | — |
 | AV1 8-bit + AAC / MP4 | 🟢 | 🟢 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🟠 | — |
 | AV1 10-bit SDR + Opus / MKV | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🟠 | — |
