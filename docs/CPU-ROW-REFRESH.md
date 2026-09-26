@@ -55,6 +55,7 @@ launch per round. The
 | MPEG-2 video-only / MPEG-TS | Four maintained passes; plain video failed to open and MediaBunny found no track; four viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-mpeg2-video-only-20260926/REPORT.md) |
 | H.264 + AAC + embedded SRT / MKV | Demuxe Auto and Software passed required subtitle output; plain video, Movi, AVPlayer and MediaBunny missed it; two viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-srt-20260926/REPORT.md) |
 | H.264 + AAC + external WebVTT / MP4 | Plain video and two Demuxe modes passed with supplied VTT; Movi and AVPlayer failed; MediaBunny has no external subtitle input; three viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-vtt-20260926/REPORT.md) |
+| H.264 + AAC + embedded mov_text / MP4 | Demuxe Auto and Software passed required subtitle text; plain video, Movi, AVPlayer and MediaBunny missed it; two viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-movtext-20260926/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available
