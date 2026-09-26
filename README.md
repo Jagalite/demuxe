@@ -194,7 +194,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | ProRes + PCM / MOV | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 36.9% CPU · software | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened* · 33.0% CPU |
 | H.264 + AAC / fragmented MP4 (single file) | 🟢 (Pass) · 35.1% CPU | 🟢 (Pass) · 13.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened · 33.1% CPU |
 | H.264 video-only / MP4 | 🟢 (Pass) · 31.9% CPU | 🟢 (Pass) · 11.5% CPU | 🟢 (Pass) · 12.1% CPU · native-direct | 🟢 (Pass) · 32.1% CPU | 🟢 (Pass) · 25.5% CPU | 🟡 Screened · 31.8% CPU |
-| H.264 High 10 + AAC / MKV | 🟢 (Pass)* | 🟢 (Pass)\* | 🟢 (Pass)\* · native-direct | 🔴 (Fail) | 🟢 (Pass)* | — |
+| H.264 High 10 + AAC / MKV | 🟢 (Pass)* · 36.3% CPU | 🟢 (Pass)\* · 17.4% CPU | 🟢 (Pass)\* · 17.6% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)* · 35.4% CPU | 🟡 Screened* · 33.3% CPU |
 | MPEG-2 video-only / MPEG-TS | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · software | 🟢 (Pass) | 🟢 (Pass) | — |
 | H.264 + AAC + embedded SRT / MKV | 🟢 | 🔴 (Fail) | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🔴 (Fail) | — |
 | H.264 + AAC + external WebVTT / MP4 | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🔴 (Fail) | — |
