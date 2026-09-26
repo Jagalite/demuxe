@@ -16,7 +16,9 @@ const cases = [
   ['aac-mkv', 'H.264 + AAC / MKV', 'build/head-to-head/assets-expanded-03/fixtures/aac.mkv'],
   ['dual-audio', 'Dual-audio H.264 + AAC + AC-3 stereo / MKV', 'build/head-to-head/assets-release-auto-fix-20260925-03/fixtures/h264-dual-audio/index.mkv'],
   ['pcm24-mkv', 'H.264 + PCM24 / MKV', 'build/head-to-head/assets-expanded-03/fixtures/pcm.mkv'],
-];
+  ['pcm24-ass', 'H.264 + PCM24 / MKV + ASS', 'build/head-to-head/assets-expanded-03/fixtures/pcm.mkv'],
+].filter(([id]) => !process.argv.some(arg => arg.startsWith('--case=')) || process.argv.includes(`--case=${id}`));
+if (!cases.length) throw Error('Unknown case');
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const time = text => { const [m, s] = String(text).split(':').map(Number); return m * 60 + s; };
 const browser = await chromium.launch({ headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', args: ['--autoplay-policy=no-user-gesture-required'] });
@@ -26,6 +28,7 @@ try {
     const file = path.join(root, fixture);
     const row = { id, label, fixture, sha256: createHash('sha256').update(await readFile(file)).digest('hex'), checks: {}, errors: [], limits: ['No 1.25x playback-rate control in the published player', 'No independently observable AudioContext or decoder cleanup'] };
     if (id === 'dual-audio') row.limits.push('Published player selects primary AAC; no AC-3 track-switch control');
+    if (id === 'pcm24-ass') row.limits.push('This catalogue row requires an external ASS file; the example exposes no subtitle file input');
     result.cases.push(row);
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
     const page = await context.newPage();
@@ -109,6 +112,7 @@ try {
       const chooser = page.waitForEvent('filechooser'); await page.locator('#select-file').click(); await (await chooser).setFiles(file);
       await Promise.race([page.locator('#player').waitFor({ state: 'visible', timeout: 30000 }), page.locator('#error-element:not(:empty)').waitFor({ state: 'visible', timeout: 30000 })]);
       row.checks.open = await snap();
+      if (id === 'pcm24-ass') row.checks.subtitleControls = await page.locator('input[type="file"], track, [id*="subtitle"], [id*="caption"]').evaluateAll(elements => elements.map(element => ({ tag: element.tagName, id: element.id, accept: element.getAttribute('accept') })));
       if (!row.checks.open.visible || row.checks.open.error || row.checks.open.warning) throw Error('Open failed or downgraded: ' + JSON.stringify(row.checks.open));
       await page.locator('#play-button').evaluate(el => el.click());
       await page.waitForFunction(() => window.__qualify.starts > 15 && window.__qualify.draws > 12, null, { timeout: 10000 });
@@ -119,6 +123,7 @@ try {
       const first = row.checks.initial, second = row.checks.moving;
       if (!first.marker.markerCorrect || !second.marker.markerCorrect || first.sha256 === second.sha256) throw Error('Moving marked-video oracle failed');
       if (![440, 880].every((hz, i) => first.state.audio[i].rms > 0.015 && Math.abs(first.state.audio[i].hz - hz) < 30)) throw Error('Marked stereo audio oracle failed: ' + JSON.stringify(first.state.audio));
+      if (id === 'pcm24-ass') throw Error('Required external ASS subtitle cannot be supplied through published player controls');
       await page.locator('#play-button').evaluate(el => el.click());
       const beforePause = time((await snap()).position); await sleep(450); const paused = time((await snap()).position);
       row.checks.pause = { beforePause, paused, delta: paused - beforePause };
