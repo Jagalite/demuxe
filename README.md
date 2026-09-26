@@ -187,7 +187,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | VP9 10-bit SDR + Opus / WebM | 🟢 (Pass) · 36.4% CPU | 🟢 (Pass) · 16.6% CPU | 🟢 (Pass) · 17.1% CPU · native-direct | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened · 34.7% CPU |
 | VP8 + Vorbis / WebM | 🟢 (Pass) · 34.8% CPU | 🟢 (Pass) · 13.4% CPU | 🟢 (Pass) · 14.7% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 35.6% CPU | 🟡 Screened · 32.8% CPU |
 | H.264 + AAC / MPEG-TS | 🟢 (Pass) · 36.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.5% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass) · 35.4% CPU | 🟡 Screened · 34.6% CPU |
-| MPEG-2 video + AC-3 / MPEG-TS | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · software | 🟢 (Pass) | 🟢 (Pass) | — |
+| MPEG-2 video + AC-3 / MPEG-TS | 🟢 (Pass) · 33.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 33.7% CPU · software | 🟢 (Pass) · 30.1% CPU | 🟢 (Pass) · 34.7% CPU | 🔴 (Fail) |
 | Interlaced MPEG-2 + AC-3 stereo / MPEG-TS | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* · software · visible combing | 🔴 (Fail) | 🟢 (Pass)\* | — |
 | MPEG-2 video + MP2 / MPEG-PS | 🟢 | 🔴 (Fail) | 🟢 (Pass)\* · software | 🔴 (Fail) | 🔴 (Fail) | — |
 | MPEG-4 Part 2 + MP3 / AVI | 🟢 | 🔴 (Fail) | 🟢 (Pass)\* · software | 🔴 (Fail) | 🔴 (Fail) | — |
