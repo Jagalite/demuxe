@@ -167,7 +167,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + DTS core 5.1 / MKV | 🟢 (Pass)* · 37.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 37.1% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass)\* · 36.9% CPU | 🟡 Screened* · 38.5% CPU |
 | H.264 + AC-3 stereo / MKV | 🟢 (Pass) · 34.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.5% CPU · hybrid (URL) | 🔴 (Fail) | 🟢 (Pass) · 32.9% CPU | 🟡 Screened · 33.8% CPU |
 | H.264 + E-AC-3 stereo / MKV | 🟢 (Pass) · 35.4% CPU | 🔴 (Fail) | 🟢 (Pass) · 35.0% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass) · 33.6% CPU | 🟡 Screened · 34.4% CPU |
-| H.264 + DTS core stereo / MKV | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · native-video-mpv-audio | 🔴 (Fail) | 🟢 (Pass) | — |
+| H.264 + DTS core stereo / MKV | 🟢 (Pass) · 34.6% CPU | 🔴 (Fail) | 🟢 (Pass) · 38.2% CPU · hybrid (URL) | 🔴 (Fail) | 🟢 (Pass) · 37.8% CPU | 🟡 Screened · 35.5% CPU |
 | H.264 + FLAC stereo / MKV | 🟢 | 🟢 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🟠 | — |
 | H.264 + FLAC 5.1 / MKV | 🟢 (Pass)* | 🟢 (Pass)\* | 🟢 (Pass)\* · native-direct | 🔴 (Fail) | 🟢 (Pass)\* | — |
 | H.264 + Opus stereo / MKV | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🟢 (Pass) | 🟠 | — |
@@ -253,6 +253,8 @@ The [DTS core 5.1 row](experiments/mediabunny-investigation/notes/official-playe
 The [AC-3 stereo row](experiments/mediabunny-investigation/notes/official-player-row-h264-ac3-stereo-20260926/REPORT.md) used the same current Demuxe code with a frozen stereo fixture from the earlier catalogue. Auto selected Hybrid on the maintained players' local URL; an earlier local-File selective-audio result is a different input contract. CPU values are from this URL/File comparison campaign only.
 
 The [E-AC-3 stereo row](experiments/mediabunny-investigation/notes/official-player-row-h264-eac3-stereo-20260926/REPORT.md) screened all five maintained players and the official MediaBunny example. Four viable/screened arms received matched CPU windows; plain video and Movi kept their failed cells without diagnostic CPU numbers.
+
+The [DTS core stereo row](experiments/mediabunny-investigation/notes/official-player-row-h264-dts-stereo-20260926/REPORT.md) used the same frozen stereo catalogue. Auto selected Hybrid for the maintained local-URL input; its earlier native-video/mpv-audio label described a local File. Auto's three CPU windows varied enough that their median should not be used as a precise player ranking.
 
 See [versions, evidence, and configured alternatives](docs/HEAD-TO-HEAD-ROUTES.md)
 and the [rerun guide](docs/HEAD-TO-HEAD.md).

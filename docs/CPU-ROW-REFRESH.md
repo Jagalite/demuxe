@@ -24,6 +24,7 @@ launch per round. The
 | H.264 + DTS core 5.1 / MKV | Four stereo-screened arms measured in one Chrome; plain video and Movi failed correctness | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-dts-20260926/REPORT.md) |
 | H.264 + AC-3 stereo / MKV | Three maintained passes and one MediaBunny screen; URL Auto used Hybrid, unlike earlier local-File split; plain video and Movi failed | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-ac3-stereo-20260926/REPORT.md) |
 | H.264 + E-AC-3 stereo / MKV | Three maintained passes and one MediaBunny screen; four viable/screened CPU arms; plain video and Movi failed | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-eac3-stereo-20260926/REPORT.md) |
+| H.264 + DTS core stereo / MKV | Three maintained passes and one MediaBunny screen; four viable/screened CPU arms; Auto CPU range widened | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-dts-stereo-20260926/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available
