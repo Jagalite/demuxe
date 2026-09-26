@@ -50,6 +50,7 @@ launch per round. The
 | MPEG-4 Part 2 + MP3 / AVI | Demuxe Auto and Software passed; plain video, Movi and AVPlayer failed; MediaBunny rejected the format; two viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-mpeg4-mp3-20260926/REPORT.md) |
 | ProRes + PCM / MOV | Demuxe Auto and Software passed; three maintained players failed; MediaBunny screened marked output with 10-bit and 4:2:2 fidelity unqualified; three CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-prores-pcm-20260926/REPORT.md) |
 | H.264 + AAC / fragmented MP4 (single file) | Plain video, Demuxe Auto and Software passed; Movi and AVPlayer failed; MediaBunny screened; four viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-fmp4-20260926/REPORT.md) |
+| H.264 video-only / MP4 | All five maintained players passed; MediaBunny screened marked video and silent output; six viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-silent-20260926/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available

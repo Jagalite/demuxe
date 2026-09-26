@@ -97,10 +97,10 @@ try {
           const state = api.snapshot();
           return { ...state, frames: state.video?.total == null ? null : state.video.total - state.video.dropped };
         }, player);
-        await page.waitForFunction(kind => {
-          if (kind === 'mediabunny') return window.__rowProbe.draws > 5 && window.__rowProbe.audioStarts > 5;
+        await page.waitForFunction(({ kind, expectAudio }) => {
+          if (kind === 'mediabunny') return window.__rowProbe.draws > 5 && (!expectAudio || window.__rowProbe.audioStarts > 5);
           return api.snapshot().position > 0.5;
-        }, player, { timeout: 20000 });
+        }, { kind: player, expectAudio: source.audio !== false }, { timeout: 20000 });
         await delay(pilot ? 1000 : 5000);
         entry.before = await snapshot();
         entry.samples = await collectCpuWindow(cdp, snapshot, { seconds, interval: 2 });
@@ -117,7 +117,8 @@ try {
           // FLAC blocks can be ~96 ms, yielding only about 10 source starts/s.
           // The correctness screen checks audible stereo output; this gate checks
           // that audio work continues throughout the CPU window.
-          || (audioStarts !== null && (audioStarts < entry.cpu.wallSeconds * 5
+          || (audioStarts !== null && source.audio === false && audioStarts !== 0)
+          || (audioStarts !== null && source.audio !== false && (audioStarts < entry.cpu.wallSeconds * 5
             || entry.samples.some((sample, index) => index && sample.state.audioStarts <= entry.samples[index - 1].state.audioStarts))))
           throw Error('CPU acceptance gate failed: ' + JSON.stringify(entry.gate));
         const [kind, lane] = player.startsWith('demuxe-') ? ['demuxe', player.slice(7)] : [player, 'default'];
