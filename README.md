@@ -170,7 +170,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + DTS core stereo / MKV | 🟢 (Pass) · 34.6% CPU | 🔴 (Fail) | 🟢 (Pass) · 38.2% CPU · hybrid (URL) | 🔴 (Fail) | 🟢 (Pass) · 37.8% CPU | 🟡 Screened · 35.5% CPU |
 | H.264 + FLAC stereo / MKV | 🟢 (Pass) · 13.2% CPU | 🟢 (Pass) · 34.7% CPU | 🟢 (Pass) · 13.7% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 33.7% CPU | 🟡 Screened · 33.1% CPU |
 | H.264 + FLAC 5.1 / MKV | 🟢 (Pass)* · 14.0% CPU | 🟢 (Pass)\* · 35.2% CPU | 🟢 (Pass)\* · 14.3% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)\* · 33.2% CPU | 🟡 Screened* · 33.7% CPU |
-| H.264 + Opus stereo / MKV | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🟢 (Pass) | 🟠 | — |
+| H.264 + Opus stereo / MKV | 🟢 (Pass) · 14.3% CPU | 🟢 (Pass) · 35.0% CPU | 🟢 (Pass) · 15.1% CPU · native-direct | 🟢 (Pass) · 30.2% CPU | 🟢 (Pass) · 35.3% CPU | 🟡 Screened · 35.2% CPU |
 | H.264 + PCM16 stereo / MKV | 🟢 | 🟠 | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🔴 (Fail) | — |
 | H.264 + PCM24 5.1 / MKV | 🟢 (Pass)* | 🟢 (Pass)\* | 🟢 (Pass)\* · hybrid | 🟢 (Pass)\* | 🔴 (Fail) | — |
 | HEVC Main 8-bit + AAC / MP4 (hvc1) | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🟠 | — |
