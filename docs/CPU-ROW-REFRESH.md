@@ -46,6 +46,7 @@ launch per round. The
 | H.264 + AAC / MPEG-TS | Three maintained passes and one MediaBunny screen; plain video failed to open, Movi failed seek; four viable/screened CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-ts-20260926/REPORT.md) |
 | MPEG-2 video + AC-3 / MPEG-TS | Four maintained passes; plain video failed to open and MediaBunny timed out before initial output; four viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-mpeg2-ac3-20260926/REPORT.md) |
 | Interlaced MPEG-2 + AC-3 stereo / MPEG-TS | Three maintained passes with existing visual-fidelity caveat; plain video and Movi failed, MediaBunny timed out; three viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-mpeg2-interlaced-ac3-20260926/REPORT.md) |
+| MPEG-2 video + MP2 / MPEG-PS | Demuxe Auto and Software passed; plain video, Movi and AVPlayer failed; MediaBunny rejected the format; two viable CPU arms measured | [row report](../experiments/mediabunny-investigation/notes/official-player-row-mpeg2-mp2-20260926/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available

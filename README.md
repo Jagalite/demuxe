@@ -189,7 +189,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + AAC / MPEG-TS | 🟢 (Pass) · 36.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.5% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass) · 35.4% CPU | 🟡 Screened · 34.6% CPU |
 | MPEG-2 video + AC-3 / MPEG-TS | 🟢 (Pass) · 33.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 33.7% CPU · software | 🟢 (Pass) · 30.1% CPU | 🟢 (Pass) · 34.7% CPU | 🔴 (Fail) |
 | Interlaced MPEG-2 + AC-3 stereo / MPEG-TS | 🟢 (Pass)* · 33.7% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.1% CPU · software · visible combing | 🔴 (Fail) | 🟢 (Pass)\* · 33.6% CPU | 🔴 (Fail) |
-| MPEG-2 video + MP2 / MPEG-PS | 🟢 | 🔴 (Fail) | 🟢 (Pass)\* · software | 🔴 (Fail) | 🔴 (Fail) | — |
+| MPEG-2 video + MP2 / MPEG-PS | 🟢 (Pass) · 34.1% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.9% CPU · software | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | MPEG-4 Part 2 + MP3 / AVI | 🟢 | 🔴 (Fail) | 🟢 (Pass)\* · software | 🔴 (Fail) | 🔴 (Fail) | — |
 | ProRes + PCM / MOV | 🟢 | 🔴 (Fail) | 🟢 (Pass)\* · software | 🔴 (Fail) | 🔴 (Fail) | — |
 | H.264 + AAC / fragmented MP4 (single file) | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🔴 (Fail) | — |
