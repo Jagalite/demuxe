@@ -205,7 +205,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + AC-3 + VobSub / MKV | 🟢 (Pass) · 35.2% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 36.0% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + PGS / MKV (subtitle isolation) | 🟢 (Pass) · 36.0% CPU | 🔴 (Fail) | 🟢 (Pass) · 37.0% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + VobSub / MKV (subtitle isolation) | 🟢 (Pass)* · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.3% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| AAC audio-only / M4A | 🟢 | 🟢 | 🟢 (Pass) · native-direct | 🟢 (Pass) | 🟠 | — |
+| AAC audio-only / M4A | 🟢 (Pass) · 10.6% CPU | 🟢 (Pass) · 2.4% CPU | 🟢 (Pass) · 3.2% CPU · native-direct | 🟢 (Pass) | 🟢 (Pass) · 9.9% CPU | 🟡 Screened · 45.4% CPU |
 | MP3 audio-only / MP3 | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🟢 (Pass) | 🔴 (Fail) | — |
 | FLAC audio-only / FLAC | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🟢 (Pass) | 🟠 | — |
 | Opus audio-only / Ogg | 🟢 | 🟢 | 🟢 (Pass) · native-direct | 🟢 (Pass) | 🔴 (Fail) | — |

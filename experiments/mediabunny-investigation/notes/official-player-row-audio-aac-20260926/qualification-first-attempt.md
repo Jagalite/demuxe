@@ -1,0 +1,3 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+The first AAC audio-only published-player qualification reached initial playback but the experiment harness called `locator.screenshot()` on `#player canvas`. The player hides that canvas for audio-only files, so Playwright timed out after 30 seconds waiting for the element to become visible. This was a harness rejection, not a player failure. The final result reran the same fixture after the harness captured the visible `#player` instead. The first attempt's console failure was `TimeoutError: locator.screenshot: Timeout 29993.786999999997ms exceeded` with repeated `element is not visible` retries; the initial result file was overwritten by the rerun.

@@ -86,21 +86,21 @@ try {
           await page.evaluate(config => api.start(config), { ...source, id: `${kind}.${lane}.${fixture}`, fixture, player: kind, lane, correctness: false });
         }
         await page.bringToFront();
-        const snapshot = () => page.evaluate(kind => {
+        const snapshot = () => page.evaluate(({ kind, expectVideo }) => {
           if (kind === 'mediabunny') {
             const clock = document.querySelector('#current-time')?.textContent ?? '0:0';
             const [m, s] = clock.split(':').map(Number);
-            return { position: m * 60 + s, frames: window.__rowProbe.draws, audioStarts: window.__rowProbe.audioStarts,
+            return { position: m * 60 + s, frames: expectVideo ? window.__rowProbe.draws : null, audioStarts: window.__rowProbe.audioStarts,
               visible: document.visibilityState === 'visible', focused: document.hasFocus(),
               errors: [document.querySelector('#error-element')?.textContent, document.querySelector('#warning-element')?.textContent].filter(Boolean) };
           }
           const state = api.snapshot();
           return { ...state, frames: state.video?.total == null ? null : state.video.total - state.video.dropped };
-        }, player);
-        await page.waitForFunction(({ kind, expectAudio }) => {
-          if (kind === 'mediabunny') return window.__rowProbe.draws > 5 && (!expectAudio || window.__rowProbe.audioStarts > 5);
+        }, { kind: player, expectVideo: source.video !== false });
+        await page.waitForFunction(({ kind, expectAudio, expectVideo }) => {
+          if (kind === 'mediabunny') return (!expectVideo || window.__rowProbe.draws > 5) && (!expectAudio || window.__rowProbe.audioStarts > 5);
           return api.snapshot().position > 0.5;
-        }, { kind: player, expectAudio: source.audio !== false }, { timeout: 20000 });
+        }, { kind: player, expectAudio: source.audio !== false, expectVideo: source.video !== false }, { timeout: 20000 });
         await delay(pilot ? 1000 : 5000);
         entry.before = await snapshot();
         entry.samples = await collectCpuWindow(cdp, snapshot, { seconds, interval: 2 });
