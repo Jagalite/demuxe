@@ -65,6 +65,7 @@ launch per round. The
 | AAC audio-only / M4A | All five maintained players passed correctness; MediaBunny screened audio-only; five CPU arms measured, Movi CPU withheld after three stalled windows | [row report](../experiments/mediabunny-investigation/notes/official-player-row-audio-aac-20260926/REPORT.md) |
 | MP3 audio-only / MP3 | Four maintained players passed; AVPlayer failed seek; MediaBunny screened; focused four-arm CPU follow-up stable, Movi CPU withheld after three stalled windows | [row report](../experiments/mediabunny-investigation/notes/official-player-row-audio-mp3-20260926/REPORT.md) |
 | FLAC audio-only / FLAC | All five maintained players passed; MediaBunny screened; five viable CPU arms measured, Movi CPU withheld after three stalled windows | [row report](../experiments/mediabunny-investigation/notes/official-player-row-audio-flac-20260926/REPORT.md) |
+| Opus audio-only / Ogg | Four maintained players passed; AVPlayer failed final seek; MediaBunny screened; four viable CPU arms measured, Movi CPU withheld after three stalled windows | [row report](../experiments/mediabunny-investigation/notes/official-player-row-audio-opus-20260926/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available
