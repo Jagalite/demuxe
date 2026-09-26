@@ -199,7 +199,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + AAC + embedded SRT / MKV | 🟢 (Pass) · 37.2% CPU | 🔴 (Fail) | 🟢 (Pass) · 38.7% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + external WebVTT / MP4 | 🟢 (Pass) · 35.8% CPU | 🟢 (Pass) · 13.7% CPU | 🟢 (Pass) · 14.3% CPU · native-direct | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + embedded mov_text / MP4 | 🟢 (Pass) · 35.5% CPU | 🔴 (Fail) | 🟢 (Pass) · 37.5% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC + styled ASS / MKV | 🟢 | 🔴 (Fail) | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🔴 (Fail) | — |
+| H.264 + AAC + styled ASS / MKV | 🟢 (Pass) · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.9% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AC-3 stereo + ASS / MKV | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🔴 (Fail) | — |
 | HEVC + AC-3 + PGS / MKV | 🟢 | 🔴 (Fail) | 🟢 (Pass)\* · hybrid | 🔴 (Fail) | 🔴 (Fail) | — |
 | H.264 + AC-3 + VobSub / MKV | 🟢 | 🔴 (Fail) | 🟢 (Pass)\* · hybrid | 🔴 (Fail) | 🔴 (Fail) | — |
