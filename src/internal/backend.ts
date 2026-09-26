@@ -4,6 +4,9 @@ export interface Backend extends EventTarget {
   previewFrame?(request:import('../preview/controller.js').PreviewContext):Promise<import('../preview/controller.js').PreviewResult|null>;
   readonly ready: Promise<void>;
   readonly properties: Map<string, unknown>;
+  // Cheap control-plane reads must not collect playback diagnostics.
+  readonly planId?: string;
+  readonly bufferingDiagnostics?: import('../types.js').BufferingResolution;
   readonly diagnostics?: object;
   open(file: File | ArrayBuffer, options?: MediaInputOptions): Promise<void>;
   openRemote(source: RemoteSource): Promise<void>;
@@ -24,3 +27,7 @@ export interface Backend extends EventTarget {
   destroy(): Promise<void>;
 }
 export type Session = {backend: Backend; surface: HTMLCanvasElement | HTMLVideoElement; error?: Error; retired?:boolean};
+
+export function backendPlan(backend?:Backend):string|undefined {
+  return backend?.planId ?? (backend?.diagnostics as {plan?:string}|undefined)?.plan;
+}

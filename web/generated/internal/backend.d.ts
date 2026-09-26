@@ -4,6 +4,8 @@ export interface Backend extends EventTarget {
     previewFrame?(request: import('../preview/controller.js').PreviewContext): Promise<import('../preview/controller.js').PreviewResult | null>;
     readonly ready: Promise<void>;
     readonly properties: Map<string, unknown>;
+    readonly planId?: string;
+    readonly bufferingDiagnostics?: import('../types.js').BufferingResolution;
     readonly diagnostics?: object;
     open(file: File | ArrayBuffer, options?: MediaInputOptions): Promise<void>;
     openRemote(source: RemoteSource): Promise<void>;
@@ -29,3 +31,4 @@ export type Session = {
     error?: Error;
     retired?: boolean;
 };
+export declare function backendPlan(backend?: Backend): string | undefined;

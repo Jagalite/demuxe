@@ -1,2 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-export {};
+export function backendPlan(backend) {
+    return backend?.planId ?? backend?.diagnostics?.plan;
+}

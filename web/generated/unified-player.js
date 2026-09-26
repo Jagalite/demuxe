@@ -14,6 +14,7 @@ import { PlayerError, playerError, redact } from './internal/errors.js';
 import { freeze, ranges, cachedRanges, tracks, trackKey, usesRemuxTracks, mediaInfo } from './internal/state.js';
 import { PLAYBACK_MODES } from './types.js';
 import { nativeRejection, nativeManifestRejection, losslessAdaptationRejection, remuxRejection } from './internal/selection.js';
+import { backendPlan } from './internal/backend.js';
 import { PreviewController } from './preview/controller.js';
 import { SoftwarePreviewProvider } from './preview/software.js';
 import { LocalVideoPreviewProvider } from './preview/providers.js';
@@ -290,7 +291,7 @@ export class Player extends EventTarget {
     sessionTracks(session = this.current, source = this.source, mode = this.mode, settings = this.settings) {
         let raw = (session?.backend.properties.get('track-list') ?? []);
         if (mode === 'native' && this.sourceInspection?.source === source && this.sourceInspection) {
-            const plan = session?.backend.diagnostics?.plan;
+            const plan = backendPlan(session?.backend);
             raw = raw.map(track => {
                 const key = trackKey(track, mode, plan), match = /^(audio|sub|video):stream:(\d+)$/.exec(key);
                 const metadata = match ? this.sourceInspection.probe.tracks.find(t => t.type === match[1] && t.index === Number(match[2])) : undefined;
@@ -301,7 +302,7 @@ export class Player extends EventTarget {
             const embedded = this.sourceInspection.probe.tracks.filter(t => t.type === 'sub' && !raw.some(r => r.type === 'sub' && r['ff-index'] === t.index));
             raw = [...raw, ...embedded.map(t => ({ ...t, id: String(t.index + 1), type: 'sub', 'ff-index': t.index, selected: false }))];
         }
-        if (!this.sourceInspection || mode !== 'native' || usesRemuxTracks(session?.backend.diagnostics?.plan) || this.sourceInspection?.source !== source)
+        if (!this.sourceInspection || mode !== 'native' || usesRemuxTracks(backendPlan(session?.backend)) || this.sourceInspection?.source !== source)
             return raw;
         const audio = this.sourceInspection.probe.tracks.filter(t => t.type === 'audio');
         const fallback = audio.find(t => t.default) ?? audio[0];
@@ -341,7 +342,7 @@ export class Player extends EventTarget {
             const rule = type === 'audio' ? policy.audio : policy.subtitles;
             if (!rule)
                 continue;
-            const raw = this.sessionTracks(session, source, mode, settings), plan = session.backend.diagnostics?.plan;
+            const raw = this.sessionTracks(session, source, mode, settings), plan = backendPlan(session.backend);
             const inventory = tracks(raw, this.sourceSerial, mode, plan).filter(t => t.type === (type === 'audio' ? 'audio' : 'subtitle'));
             const current = inventory.find(t => t.selected), key = type === 'audio' ? 'aid' : 'sid';
             if (preserve && (current ? trackAllowed(current, rule) : settings[key] === 'no' && rule.allowOff !== false))
@@ -370,7 +371,7 @@ export class Player extends EventTarget {
         let raw = this.sourceTracks();
         if (this.mode === 'native' && this.surface?.videoWidth && !raw.some(t => t.type === 'video'))
             raw = [...raw, { id: '1', type: 'video', selected: true }];
-        const list = this.current ? tracks(raw, this.sourceSerial, this.mode, this.current.backend.diagnostics?.plan).filter(t => trackAllowed(t, t.type === 'audio' ? this.trackPolicy.audio : t.type === 'subtitle' ? this.trackPolicy.subtitles : undefined)) : [];
+        const list = this.current ? tracks(raw, this.sourceSerial, this.mode, backendPlan(this.current.backend)).filter(t => trackAllowed(t, t.type === 'audio' ? this.trackPolicy.audio : t.type === 'subtitle' ? this.trackPolicy.subtitles : undefined)) : [];
         const d = p.get('duration'), reportedDuration = typeof d === 'number' && Number.isFinite(d) && d >= 0 ? d : null;
         const observedLive = p.get('native-live');
         const live = typeof observedLive === 'boolean' ? observedLive : this.source?.kind === 'remote' && this.source.options.streaming?.live === true;
@@ -423,7 +424,7 @@ export class Player extends EventTarget {
         const isolated = globalThis.crossOriginIsolated === true, available = { availability: 'available' };
         const unavailable = (reason) => ({ availability: 'unavailable', reason });
         const unknown = { availability: 'unknown', reason: 'Open a source to establish availability' };
-        const nativeOverlay = (this.nativeASS || this.current?.backend.diagnostics?.plan === 'remux-mpv') && isolated && this.current?.backend.diagnostics?.plan !== 'adapted-opus' && !(this.source?.kind === 'remote' && this.source.options.format && this.source.options.format !== 'file');
+        const nativeOverlay = (this.nativeASS || backendPlan(this.current?.backend) === 'remux-mpv') && isolated && backendPlan(this.current?.backend) !== 'adapted-opus' && !(this.source?.kind === 'remote' && this.source.options.format && this.source.options.format !== 'file');
         const route = (mode) => !isolated ? unavailable('This deployment requires cross-origin isolation') : this.mode === mode || (mode === 'hybrid' && this.mode === 'software') ? available : this.automatic ? { availability: 'switch', mode, reason: `This feature requires ${mode} playback` } : unavailable(`Select ${mode} mode first`);
         const resolution = this.bufferingResolution();
         return { ...this.legacyCapabilities, buffering: { control: resolution.control, preload: true, profile: resolution.backend !== 'browser', memoryBudget: ['mpv', 'remux'].includes(resolution.backend) }, deployment: { isolated, webCodecs: typeof VideoDecoder !== 'undefined', mediaSource: typeof MediaSource !== 'undefined' }, features: {
@@ -440,14 +441,18 @@ export class Player extends EventTarget {
     get properties() { return this.current?.backend.properties ?? this.empty; }
     get capabilities() { return this.snapshot?.capabilities ?? this.featureCapabilities(null, 0, 0); }
     get legacyCapabilities() {
-        return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native' || ['remux-mpv', 'direct-mpv'].includes(this.current?.backend.diagnostics?.plan ?? ''), externalTextTracks: this.mode === 'native', externalSubtitles: true, customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: this.current?.backend.diagnostics?.plan === 'shaka-mse' || this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined') };
+        return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native' || ['remux-mpv', 'direct-mpv'].includes(backendPlan(this.current?.backend) ?? ''), externalTextTracks: this.mode === 'native', externalSubtitles: true, customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: backendPlan(this.current?.backend) === 'shaka-mse' || this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined') };
     }
     bufferingResolution() {
+        const cheap = this.current?.backend.bufferingDiagnostics;
+        if (cheap)
+            return cheap;
         const diagnostics = this.current?.backend.diagnostics;
         return diagnostics?.buffering ?? resolveBuffering(this.buffering, this.mode !== 'native' ? 'mpv' : diagnostics?.plan === 'shaka-mse' ? 'shaka' : usesRemuxTracks(diagnostics?.plan) ? 'remux' : 'browser');
     }
     get diagnostics() {
-        return redact({ preview: this.preview.diagnostics, buffering: this.bufferingResolution(), mode: this.mode, plan: this.current ? executionPlan(this.mode, this.current.backend.diagnostics?.plan, this.settings.af, this.settings.gain, !!this.current.backend.diagnostics?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, backend: this.current?.backend.diagnostics });
+        const backend = this.current?.backend.diagnostics;
+        return redact({ preview: this.preview.diagnostics, buffering: backend?.buffering ?? this.bufferingResolution(), mode: this.mode, plan: this.current ? executionPlan(this.mode, backend?.plan, this.settings.af, this.settings.gain, !!backend?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, backend });
     }
     audioDiagnostics() { return this.current?.backend.audioDiagnostics(); }
     emit(type, detail) {
@@ -605,7 +610,7 @@ export class Player extends EventTarget {
                     }
                     if (type === 'mpv') {
                         if (detail.event === 'property-change' && detail.name === 'track-list' && !this.sessionError) {
-                            const inventory = tracks(this.sourceTracks(), this.sourceSerial, this.mode, session.backend.diagnostics?.plan);
+                            const inventory = tracks(this.sourceTracks(), this.sourceSerial, this.mode, backendPlan(session.backend));
                             const forbidden = inventory.some(t => t.selected && !trackAllowed(t, t.type === 'audio' ? this.trackPolicy.audio : t.type === 'subtitle' ? this.trackPolicy.subtitles : undefined));
                             if (forbidden) {
                                 this.settings.pause = true;
@@ -744,7 +749,7 @@ export class Player extends EventTarget {
     failedStreamingPlan(session) {
         if (this.source?.kind !== 'remote' || !['hls', 'dash'].includes(this.source.options.format ?? ''))
             return false;
-        const plan = executionPlan(this.mode, session.backend.diagnostics?.plan, this.settings.af, this.settings.gain);
+        const plan = executionPlan(this.mode, backendPlan(session.backend), this.settings.af, this.settings.gain);
         const rejected = this.failedStreamingPlans.get(this.source) ?? new Set();
         rejected.add(plan.id);
         this.failedStreamingPlans.set(this.source, rejected);
@@ -814,7 +819,7 @@ export class Player extends EventTarget {
                     desired.sid = 'auto';
                     continue;
                 }
-                const index = this.mode === 'native' && usesRemuxTracks(old?.backend.diagnostics?.plan) ? Number(id) - 1 : track?.['ff-index'];
+                const index = this.mode === 'native' && usesRemuxTracks(backendPlan(old?.backend)) ? Number(id) - 1 : track?.['ff-index'];
                 if (index === undefined)
                     throw Error('Cannot preserve selected track across playback modes');
                 trackIndexes.set(type, index);
@@ -888,7 +893,7 @@ export class Player extends EventTarget {
             }
             for (const [type, index] of trackIndexes) {
                 const list = p.properties.get('track-list');
-                const track = list?.find(t => t.type === type && (mode === 'native' ? usesRemuxTracks(p.diagnostics?.plan) && Number(t.id) - 1 === index : t['ff-index'] === index));
+                const track = list?.find(t => t.type === type && (mode === 'native' ? usesRemuxTracks(backendPlan(p)) && Number(t.id) - 1 === index : t['ff-index'] === index));
                 if (!track)
                     throw Error('Cannot preserve selected track across playback modes');
                 const id = String(track.id);
@@ -911,7 +916,7 @@ export class Player extends EventTarget {
                         continue;
                     }
                     const raw = (p.properties.get('track-list') ?? []);
-                    const plan = p.diagnostics?.plan;
+                    const plan = backendPlan(p);
                     const track = raw.find(t => t.type === type && trackKey(t, mode, plan) === key);
                     if (!track)
                         throw new PlayerError('UNSUPPORTED_FEATURE', `Cannot preserve explicit public track selection across playback modes (${key}; available ${raw.map(t => trackKey(t, mode, plan)).join(', ')})`);
@@ -933,7 +938,7 @@ export class Player extends EventTarget {
             }
             if (candidate.error)
                 throw candidate.error;
-            const actual = executionPlan(mode, p.diagnostics?.plan, desired.af, desired.gain, !!p.diagnostics?.subtitleOverlay);
+            const actual = executionPlan(mode, backendPlan(p), desired.af, desired.gain, !!p.diagnostics?.subtitleOverlay);
             if (!actual || actual.id !== planId || !admitted.some(plan => plan.id === actual.id && plan.eligible))
                 throw new PlayerError('UNSUPPORTED_FEATURE', 'The prepared components do not match an admitted complete playback plan');
             if (!desired.pause) {
@@ -1220,7 +1225,7 @@ export class Player extends EventTarget {
                             // Cross-mode track IDs reset to auto in replace(); preflight that same selection.
                             let aid = preserve && (this.mode === 'native' || settings.aid === 'no') ? settings.aid : !this.source ? settings.aid : 'auto';
                             let sid = tracks.length ? 'no' : preserve && (this.mode === 'native' || settings.sid === 'no') ? settings.sid : 'auto';
-                            if (preserve && this.mode === 'native' && usesRemuxTracks(this.current?.backend.diagnostics?.plan) && !['auto', 'no'].includes(aid))
+                            if (preserve && this.mode === 'native' && usesRemuxTracks(backendPlan(this.current?.backend)) && !['auto', 'no'].includes(aid))
                                 aid = probe.tracks.find(t => t.type === 'audio' && t.index === Number(aid) - 1)?.id ?? aid;
                             const publicAudio = preserve ? /^audio:stream:(\d+)$/.exec(this.publicSelections.get('audio') ?? '') : null;
                             const publicSub = preserve ? /^sub:stream:(\d+)$/.exec(this.publicSelections.get('sub') ?? '') : null;
@@ -1455,7 +1460,7 @@ export class Player extends EventTarget {
         if (this.recovering || this.recoveredSessions.has(session) || this.destroyed || !this.automatic || !this.source || this.mode === 'software')
             return;
         this.recoveredSessions.add(session);
-        const plan = executionPlan(this.mode, session.backend.diagnostics?.plan, this.settings.af, this.settings.gain, !!session.backend.diagnostics?.subtitleOverlay);
+        const plan = executionPlan(this.mode, backendPlan(session.backend), this.settings.af, this.settings.gain, !!session.backend.diagnostics?.subtitleOverlay);
         this.runtimeCapabilities.update(plan.id, 'failed', this.evidence(session), String(session.error), compatibilityFailure(session.error) ? 'compatibility' : 'terminal');
         if (!compatibilityFailure(session.error)) {
             void session.backend.pause().catch(() => { });
@@ -1471,7 +1476,7 @@ export class Player extends EventTarget {
             await session.backend.pause().catch(() => { });
             const policy = this.nativeRemux;
             const streaming = this.failedStreamingPlan(session);
-            const tryRemux = !streaming && this.mode === 'native' && session.backend.diagnostics?.plan === 'direct' && policy !== 'never';
+            const tryRemux = !streaming && this.mode === 'native' && backendPlan(session.backend) === 'direct' && policy !== 'never';
             const priorAttempts = [...this.attempts.filter(attempt => attempt.outcome !== 'selected'), { mode: this.mode, outcome: 'failed', reason: `${plan.id}: Runtime playback failure: ${session.error?.message ?? 'Playback backend became unavailable'}` }];
             try {
                 if (tryRemux)
@@ -1599,7 +1604,7 @@ export class Player extends EventTarget {
             if (value === this.settings.gain)
                 return;
             const desired = { ...this.settings, gain: value };
-            if (this.source && this.current?.backend.diagnostics?.plan === 'remux-mpv' && value !== 1) {
+            if (this.source && backendPlan(this.current?.backend) === 'remux-mpv' && value !== 1) {
                 await this.select(this.source, desired, true, this.nativeTracks);
                 return;
             }
@@ -1612,7 +1617,7 @@ export class Player extends EventTarget {
                     // The same accepted backend now executes a different complete plan.
                     // Keep prior evidence in the bounded cache, but describe current requirements.
                     this.runtimeCapabilities.begin(this.source, this.planDecisions);
-                    const plan = executionPlan(this.mode, this.current.backend.diagnostics?.plan, desired.af, desired.gain, !!this.current.backend.diagnostics?.subtitleOverlay);
+                    const plan = executionPlan(this.mode, backendPlan(this.current.backend), desired.af, desired.gain, !!this.current.backend.diagnostics?.subtitleOverlay);
                     this.acceptEvidence(plan.id);
                 }
             }
@@ -1666,7 +1671,7 @@ export class Player extends EventTarget {
                 const inconclusiveOutput = this.source?.kind === 'local' && error instanceof StartupEvidenceTimeout && error.stage === 'output';
                 if (this.automatic && (compatibilityFailure(error) || inconclusiveOutput) && this.source) {
                     const streaming = this.failedStreamingPlan(session);
-                    const policy = this.nativeRemux, tryRemux = !streaming && this.mode === 'native' && session.backend.diagnostics?.plan === 'direct' && policy !== 'never';
+                    const policy = this.nativeRemux, tryRemux = !streaming && this.mode === 'native' && backendPlan(session.backend) === 'direct' && policy !== 'never';
                     const plan = this.diagnostics.plan;
                     if (plan) {
                         this.runtimeCapabilities.update(plan.id, inconclusiveOutput ? 'prepared' : 'failed', this.evidence(session), String(error), inconclusiveOutput ? undefined : 'compatibility');
@@ -1764,7 +1769,7 @@ export class Player extends EventTarget {
             if (!this.current)
                 throw Error('No source');
             const raw = this.sourceTracks();
-            const plan = this.current.backend.diagnostics?.plan;
+            const plan = backendPlan(this.current.backend);
             let track = raw.find(t => t.type === type && `${this.sourceSerial}:${trackKey(t, this.mode, plan)}` === id);
             if (id !== null && id !== 'auto' && !track)
                 throw new PlayerError('INVALID_ARGUMENT', 'Unknown or stale public track ID');
@@ -1836,7 +1841,7 @@ export class Player extends EventTarget {
         return this.setting(p => p.rate(value), () => { this.settings.speed = value; });
     }
     selectTrack(type, id) {
-        if (['audio', 'sub'].includes(type) && this.current?.backend.diagnostics?.plan === 'shaka-mse') {
+        if (['audio', 'sub'].includes(type) && backendPlan(this.current?.backend) === 'shaka-mse') {
             const track = this.sourceTracks().find(t => t.type === type && String(t.id) === id);
             if (id !== 'auto' && id !== 'no' && !track)
                 throw new PlayerError('INVALID_ARGUMENT', 'Unknown streaming track ID');
@@ -1847,7 +1852,7 @@ export class Player extends EventTarget {
         if (this.current) {
             const raw = this.sourceTracks();
             const track = raw.find(t => t.type === type && String(t.id) === id);
-            const plan = this.current?.backend.diagnostics?.plan;
+            const plan = backendPlan(this.current?.backend);
             return this.selectPublicTrack(type, id === 'no' ? null : id === 'auto' ? 'auto' : track ? `${this.sourceSerial}:${trackKey(track, this.mode, plan)}` : 'missing');
         }
         assertTrackSelection(type === 'audio' ? this.trackPolicy.audio : this.trackPolicy.subtitles, id === 'no' ? null : id);
@@ -1865,7 +1870,7 @@ export class Player extends EventTarget {
                 return;
             }
             const settings = { ...this.settings, subtitles: visible };
-            if (this.automatic && this.source && this.mode === 'native' && !['shaka-mse', 'remux-mpv', 'direct-mpv'].includes(this.current?.backend.diagnostics?.plan ?? '') && visible && !this.settings.subtitles)
+            if (this.automatic && this.source && this.mode === 'native' && !['shaka-mse', 'remux-mpv', 'direct-mpv'].includes(backendPlan(this.current?.backend) ?? '') && visible && !this.settings.subtitles)
                 await this.select(this.source, settings, true, this.nativeTracks);
             else {
                 if (this.current)
@@ -1914,7 +1919,7 @@ export class Player extends EventTarget {
             const bytes = await this.interruptible(file.arrayBuffer()), old = this.fonts;
             this.fonts = [...old, { name: 'user-' + old.length + '.' + file.name.split('.').at(-1).toLowerCase(), bytes }];
             try {
-                if (this.source && (this.mode !== 'native' || (this.nativeASS && this.subtitleAssets.length) || this.current?.backend.diagnostics?.plan === 'remux-mpv'))
+                if (this.source && (this.mode !== 'native' || (this.nativeASS && this.subtitleAssets.length) || backendPlan(this.current?.backend) === 'remux-mpv'))
                     await this.replace(this.source, this.mode, this.settings, true, this.nativeTracks);
             }
             catch (error) {

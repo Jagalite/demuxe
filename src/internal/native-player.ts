@@ -21,6 +21,7 @@ type RemuxController = {
   canSeekBuffered?(target:number): boolean; expectedVideoFrame?(target:number):number|undefined;
   muxedFrames?:boolean; matchesVideoFrame?(target:number,mediaTime:number):boolean|undefined;
   seek(target: number): Promise<unknown>; play(): Promise<void>; pause(): void;
+  readonly bufferingDiagnostics?:Record<string,unknown>;
   destroy(): Promise<void>; snapshot(): Record<string, unknown>;
 };
 type AudioTrack = {id: string; label?: string; language?: string; enabled: boolean};
@@ -163,7 +164,11 @@ export class NativePlayer extends EventTarget implements Backend {
       this.properties.set(name, data);this.emit('mpv', {event: 'property-change', name, data});
     }
   }
-  get diagnostics() {const q = this.video.getVideoPlaybackQuality(),remux=this.remux?.snapshot();return {buffering:{...resolveBuffering(this.buffering,this.remux?'remux':'browser'),settings:remux?.buffering as Record<string,unknown>??{elementPreload:this.video.preload}},capability:{...this.capability,...(remux?.capability as CapabilityEvidence??{})},path: 'native', projection:this.projection?.diagnostics,mpvAudio:this.mpvAudio?.diagnostics,mpvSubtitles:this.mpvSubs?{route:this.mpvAudio?'native-video + mpv-audio + mpv-subtitles':this.remux?'native-remux + mpv-subtitles':'native-direct + mpv-subtitles',...this.mpvSubs.stats,...this.mpvSubs.service}:undefined,plan:this.mpvAudio?this.requestedPlan:this.mpvSubs?(this.remux?'remux-mpv':'direct-mpv'):this.projection?'remux':this.remux?(this.adapted?`adapted-${this.audioAdaptation}`:'remux'):'direct', subtitleOverlay:this.ass?{component:'libass',scope:'external-ass',destination:'container-only',...this.ass.stats}:undefined, audioProcessing:this.mpvAudio?{component:'mpv-pcm-worklet',gain:this.gainValue}: {component:this.gainContext?'web-audio-gain':'media-element',gain:this.gainValue,contextState:this.gainContext?.state,baseLatency:this.gainContext?.baseLatency}, directFailure:this.directFailure, remux, seekPresentation:{bufferedRetries:this.seekPresentationRetries}, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState};}
+  get planId(){return this.mpvAudio?this.requestedPlan:this.mpvSubs?(this.remux?'remux-mpv':'direct-mpv'):this.projection?'remux':this.remux?(this.adapted?`adapted-${this.audioAdaptation}`:'remux'):'direct';}
+  get bufferingDiagnostics(){
+    return {...resolveBuffering(this.buffering,this.remux?'remux':'browser'),settings:this.remux?.bufferingDiagnostics??{elementPreload:this.video.preload}};
+  }
+  get diagnostics() {const q = this.video.getVideoPlaybackQuality(),remux=this.remux?.snapshot();return {buffering:{...resolveBuffering(this.buffering,this.remux?'remux':'browser'),settings:remux?.buffering as Record<string,unknown>??{elementPreload:this.video.preload}},capability:{...this.capability,...(remux?.capability as CapabilityEvidence??{})},path: 'native', projection:this.projection?.diagnostics,mpvAudio:this.mpvAudio?.diagnostics,mpvSubtitles:this.mpvSubs?{route:this.mpvAudio?'native-video + mpv-audio + mpv-subtitles':this.remux?'native-remux + mpv-subtitles':'native-direct + mpv-subtitles',...this.mpvSubs.stats,...this.mpvSubs.service}:undefined,plan:this.planId, subtitleOverlay:this.ass?{component:'libass',scope:'external-ass',destination:'container-only',...this.ass.stats}:undefined, audioProcessing:this.mpvAudio?{component:'mpv-pcm-worklet',gain:this.gainValue}: {component:this.gainContext?'web-audio-gain':'media-element',gain:this.gainValue,contextState:this.gainContext?.state,baseLatency:this.gainContext?.baseLatency}, directFailure:this.directFailure, remux, seekPresentation:{bufferedRetries:this.seekPresentationRetries}, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState};}
   private async load(url: string) {
     // open promises metadata even when speculative preload was disabled.
     if(this.buffering.preload==='none')this.video.preload='metadata';

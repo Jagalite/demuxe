@@ -32,6 +32,7 @@ export declare class NativeMpvAudio extends EventTarget {
     private hardCount;
     private rateCount;
     private errors;
+    private orderedErrors?;
     private maxAbsError;
     private drain?;
     private frameCallback?;

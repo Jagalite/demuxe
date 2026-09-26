@@ -66,6 +66,7 @@ export class WorkerRemuxController {
  get playbackPaused(){return this.local?.playbackPaused??this.video.paused;}
  get playbackEnded(){return this.local?.playbackEnded??this.video.ended;}
  ranges(){return this.local?.ranges()??this.state.snapshot?.ranges??[];}
+ get bufferingDiagnostics(){return this.local?.bufferingDiagnostics??this.state.snapshot?.buffering;}
  snapshot(){const snapshot=this.local?.snapshot()??this.state.snapshot??{};return {...snapshot,mseOwner:this.local?'window':'worker',ownerFallback:this.fallbackReason,fragmentTransport:this.local?'window':'producer-to-mse-worker'};}
  release(error=new DOMException('Superseded','AbortError')){
   clearInterval(this.timer);const worker=this.worker;this.worker=null;

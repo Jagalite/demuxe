@@ -60,6 +60,21 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private wait;
     private textTrackId;
     private refresh;
+    get planId(): string | undefined;
+    get bufferingDiagnostics(): {
+        settings: Record<string, unknown>;
+        requestedMemoryBudget?: number;
+        requestedProfile: import("../types.js").BufferingProfile;
+        preload: import("../types.js").PreloadPolicy;
+        backend: "browser" | "shaka" | "remux" | "mpv";
+        control: "hint" | "profile";
+        cache?: boolean;
+        forwardLimitBytes?: number;
+        backwardLimitBytes?: number;
+        forwardSeconds?: number;
+        backwardSeconds?: number;
+        notes: string[];
+    };
     get diagnostics(): {
         buffering: {
             settings: Record<string, unknown>;

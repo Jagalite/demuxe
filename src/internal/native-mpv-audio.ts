@@ -38,6 +38,7 @@ export class NativeMpvAudio extends EventTarget {
   private hardCount=0;
   private rateCount=0;
   private errors:number[]=[];
+  private orderedErrors?:number[];
   private maxAbsError=0;
   private drain?:Promise<void>;
   private frameCallback?:number;
@@ -82,10 +83,11 @@ export class NativeMpvAudio extends EventTarget {
     }
   }
   estimatedAudioPresentationTime(at=performance.now()):number|null {
+    const origin=performance.timeOrigin;
     let latest:Timeline|undefined;
-    for(const point of this.points)if(point.generation===this.generation&&point.wallTime!==null&&point.wallTime-performance.timeOrigin<=at&&(!latest||point.wallTime>latest.wallTime!))latest=point;
+    for(const point of this.points)if(point.generation===this.generation&&point.wallTime!==null&&point.wallTime-origin<=at&&(!latest||point.wallTime>latest.wallTime!))latest=point;
     if(!latest)return null;
-    const age=at-(latest.wallTime!-performance.timeOrigin);
+    const age=at-(latest.wallTime!-origin);
     if(age>250)return null;
     return latest.mediaTime+(this.running?age*latest.rate/1000:0);
   }
@@ -96,6 +98,7 @@ export class NativeMpvAudio extends EventTarget {
     this.missingTimeline=0;
     const error=(position-this.time())*1000;
     if(Math.abs(error)>250){if(++this.largeError>=8)this.fail(new PlayerError('DECODE_FAILED','Selective A/V sync error remained above 250 ms'));}else this.largeError=0;
+    this.orderedErrors=undefined;
     this.errors.push(Math.abs(error));if(this.errors.length>1200)this.errors.shift();
     this.maxAbsError=Math.max(this.maxAbsError,Math.abs(error));
     this.sustained=Math.abs(error)>50?this.sustained+1:0;
@@ -216,9 +219,10 @@ export class NativeMpvAudio extends EventTarget {
   }
   get diagnostics(){
     if(!this.header)return {plan:'native-video-mpv-audio',state:'initializing'};
-    const ordered=[...this.errors].sort((a,b)=>a-b),p=(q:number)=>ordered[Math.floor((ordered.length-1)*q)]??null;
+    const estimated=this.estimatedAudioPresentationTime();
+    const ordered=this.orderedErrors??= [...this.errors].sort((a,b)=>a-b),p=(q:number)=>ordered[Math.floor((ordered.length-1)*q)]??null;
     return {plan:'native-video-mpv-audio',requestedRate:this.requestedRate,effectiveRate:this.video.playbackRate,pendingRate:this.pendingRate?.rate,
-      generation:this.generation,estimatedAudioPresentationTime:this.estimatedAudioPresentationTime(),errorMs:this.estimatedAudioPresentationTime()===null?null:(this.estimatedAudioPresentationTime()!-this.time())*1000,
+      generation:this.generation,estimatedAudioPresentationTime:estimated,errorMs:estimated===null?null:(estimated-this.time())*1000,
       absErrorP50Ms:p(.5),absErrorP95Ms:p(.95),absErrorP99Ms:p(.99),maxAbsErrorMs:this.maxAbsError,
       rateTransitions:this.rateCount,userSeeks:this.hardCount,softCorrections:this.softCount,preEofUnderruns:this.h(8),postEofDrainCallbacks:this.h(9),staleEpochRejects:this.h(15),
       nativeEpoch:this.h(3),ackEpoch:this.h(4),queuedFrames:Math.max(0,this.h(0)-this.h(1)),contextState:this.context.state,mpvVideoTracks:(this.engine.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined)?.filter(t=>t.type==='video'&&t.selected).length??null,
