@@ -7,7 +7,8 @@ import { launchBenchmarkChrome, collectCpuWindow, summarizeCpu, delay, benchmark
 import { serve } from '../../../tests/head-to-head/server.mjs';
 
 const root = path.resolve(import.meta.dirname, '../../..');
-const assets = path.join(root, 'build/head-to-head/assets-release-auto-fix-20260925-03');
+const assets = path.resolve(process.argv.find(arg => arg.startsWith('--assets='))?.slice(9)
+  ?? path.join(root, 'build/head-to-head/assets-release-auto-fix-20260925-03'));
 const fixture = process.argv.find(arg => arg.startsWith('--fixture='))?.slice(10);
 const output = process.argv.find(arg => arg.startsWith('--out='))?.slice(6);
 const pilot = process.argv.includes('--pilot');
@@ -17,6 +18,8 @@ if (!fixture || !output) throw Error('Specify --fixture and --out');
 const cases = JSON.parse(await readFile(path.join(assets, 'fixtures/catalogue.json')));
 const source = cases[fixture];
 if (!source || source.live || source.streamFormat) throw Error('Unknown or unsupported fixture');
+const correctnessPath = process.argv.find(arg => arg.startsWith('--correctness='))?.slice(14);
+const correctness = correctnessPath ? JSON.parse(await readFile(path.resolve(correctnessPath))) : null;
 const directory = path.resolve(output);
 await mkdir(directory, { recursive: false });
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -112,7 +115,10 @@ try {
         if (!entry.gate.stableProcesses || !Number.isFinite(entry.cpu.oneCorePercent) || Math.abs(advance - entry.cpu.wallSeconds) > 1 || !entry.gate.focused
           || entry.gate.errors.length || (frames !== null && frames < entry.cpu.wallSeconds * 25)
           || (audioStarts !== null && audioStarts < entry.cpu.wallSeconds * 20)) throw Error('CPU acceptance gate failed: ' + JSON.stringify(entry.gate));
-        entry.status = player === 'movi' ? 'diagnostic' : 'screened';
+        const [kind, lane] = player.startsWith('demuxe-') ? ['demuxe', player.slice(7)] : [player, 'default'];
+        const proof = correctness?.cases?.find(item => item.id === `${kind}.${lane}.${fixture}`);
+        entry.correctness = proof ? { status: proof.status, screenPassed: proof.screenPassed ?? false } : null;
+        entry.status = proof?.status === 'failed' ? 'diagnostic' : proof?.status === 'passed' ? 'accepted' : 'screened';
       } catch (error) { entry.status = 'rejected'; entry.reason = String(error.stack ?? error); }
       finally {
         console.log(`${round}/${rounds} ${player} ${entry.status} ${entry.cpu?.oneCorePercent?.toFixed(2) ?? '—'}% ${entry.reason?.split('\n')[0] ?? ''}`);

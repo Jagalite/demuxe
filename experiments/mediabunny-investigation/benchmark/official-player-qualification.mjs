@@ -19,6 +19,7 @@ const cases = [
   ['pcm24-ass', 'H.264 + PCM24 / MKV + ASS', 'build/head-to-head/assets-expanded-03/fixtures/pcm.mkv'],
   ['h264-aac51', 'H.264 + AAC 5.1 / MP4', 'build/head-to-head/assets-release-supplement-20260925-04/fixtures/h264-aac51/index.mp4'],
   ['h264-mp3', 'H.264 + MP3 stereo / MP4', 'build/head-to-head/assets-release-supplement-20260925-04/fixtures/h264-mp3/index.mp4'],
+  ['h264-ac3', 'H.264 + AC-3 5.1 / MKV', 'build/head-to-head/assets-release-supplement-20260925-04/fixtures/h264-ac3/index.mkv'],
 ].filter(([id]) => !process.argv.some(arg => arg.startsWith('--case=')) || process.argv.includes(`--case=${id}`));
 if (!cases.length) throw Error('Unknown case');
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -32,6 +33,7 @@ try {
     if (id === 'dual-audio') row.limits.push('Published player selects primary AAC; no AC-3 track-switch control');
     if (id === 'pcm24-ass') row.limits.push('This catalogue row requires an external ASS file; the example exposes no subtitle file input');
     if (id === 'h264-aac51') row.limits.push('Stereo output check does not qualify six discrete output channels');
+    if (id === 'h264-ac3') row.limits.push('Stereo output check does not qualify six discrete output channels');
     result.cases.push(row);
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
     const page = await context.newPage();
@@ -69,10 +71,14 @@ try {
                 crossings++;
               }
             }
+            const hz = crossings >= 3 && last > first ? (crossings - 1) * this.buffer.sampleRate / (last - first) : 0;
+            const accepted = Math.abs(hz - [440, 880][channel]) < 30;
+            if (q.bufferStats.length < 30) q.bufferStats.push({ channel, sampleRate: this.buffer.sampleRate, count, crossings, span: last - first, rms: Math.sqrt(squares / count), hz, accepted });
+            if (!accepted) continue;
             target.squares += squares;
             target.samples += count;
-            if (q.bufferStats.length < 30) q.bufferStats.push({ channel, sampleRate: this.buffer.sampleRate, count, crossings, span: last - first, rms: Math.sqrt(squares / count) });
-            if (crossings >= 2) { target.intervals += crossings - 1; target.span += last - first; }
+            target.intervals += crossings - 1;
+            target.span += last - first;
           }
         }
         return originalStart.apply(this, args);
