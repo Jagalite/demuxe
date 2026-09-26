@@ -1,0 +1,64 @@
+{
+  "date": "2026-09-26T08:23:59.958Z",
+  "scope": "One headed Chrome launch per row; fresh context per arm; rotating order; local URL for maintained players and local File for published MediaBunny example",
+  "fixture": "hevc10-dts",
+  "source": {
+    "label": "HEVC Main 10-bit SDR + DTS core / MKV",
+    "video": true,
+    "audio": true,
+    "channels": 2,
+    "file": "hevc10-dts/index.mkv",
+    "streams": [
+      {
+        "codec_type": "video",
+        "codec_name": "hevc",
+        "profile": "Main 10",
+        "pix_fmt": "yuv420p10le",
+        "channels": null,
+        "channel_layout": null,
+        "color_transfer": null
+      },
+      {
+        "codec_type": "audio",
+        "codec_name": "dts",
+        "profile": "DTS",
+        "pix_fmt": null,
+        "channels": 2,
+        "channel_layout": "stereo",
+        "color_transfer": null
+      }
+    ]
+  },
+  "fixtureSha256": "3a4236a33c5a6a535cdb81956f6249d44927e03ce83bbbbf3c500758817cc542",
+  "assetManifestSha256": "b1e487f94b792a69817d22f21427fc01de809f038859d2c1433bfb108bd9955d",
+  "policy": {
+    "schema": 4,
+    "browserLifetime": "caller-declared comparison block; fresh context per arm",
+    "interArmIdleSeconds": 2,
+    "profile": "fresh temporary Playwright profile per launch",
+    "startupGateSeconds": 150,
+    "startupGate": "macOS Chrome hardware-key task completion; tracing off before measurement",
+    "startupIdleSeconds": 20,
+    "warmupSeconds": 5,
+    "measureSeconds": 20,
+    "sampleIntervalSeconds": 2,
+    "clock": "monotonic CPU-query midpoint; fixed sample deadlines",
+    "viewport": {
+      "width": 960,
+      "height": 540
+    },
+    "deviceScaleFactor": 1
+  },
+  "players": [
+    "demuxe-auto",
+    "demuxe-software",
+    "libmedia",
+    "mediabunny"
+  ],
+  "rounds": 3,
+  "pilot": false,
+  "warmupSeconds": 5,
+  "windowSeconds": 20,
+  "idles": [],
+  "arms": []
+}
