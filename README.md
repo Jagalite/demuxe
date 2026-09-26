@@ -160,7 +160,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | Dual-audio H.264 + AAC + AC-3 stereo / MKV | 🟢 (Pass) · 36.3% CPU | 🟢 (Pass) · 13.9% CPU · default AAC | 🟢 (Pass) · 11.3% CPU · native-direct · AC-3 switch: hybrid | 🔴 (Fail) | 🟢 (Pass) · 32.8% CPU | 🟡 Screened · 35.3% CPU · primary track |
 | H.264 + PCM24 / MKV | 🟢 (Pass) · 26.6% CPU | 🟢 (Pass) · 9.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 32.5% CPU |
 | H.264 + PCM24 / MKV + ASS | 🟢 | 🟢 | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) · external ASS unavailable |
-| H.264 + AAC 5.1 / MP4 | 🟢 (Pass)* | 🟢 (Pass)\* | 🟢 (Pass)\* · native-direct | 🔴 (Fail) | 🟢 (Pass)\* | — |
+| H.264 + AAC 5.1 / MP4 | 🟢 (Pass)* · 35.1% CPU | 🟢 (Pass)\* · 14.8% CPU | 🟢 (Pass)\* · 14.8% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)\* · 33.4% CPU | 🟡 Screened* · 37.2% CPU |
 | H.264 + MP3 stereo / MP4 | 🟢 | 🟢 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🟠 | — |
 | H.264 + AC-3 5.1 / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* · hybrid | 🔴 (Fail) | 🟢 (Pass)* | — |
 | H.264 + E-AC-3 5.1 / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* · hybrid | 🔴 (Fail) | 🟢 (Pass)\* | — |
@@ -239,6 +239,8 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 **MediaBunny column:** The [official player example](https://mediabunny.dev/examples/media-player/) passed bounded marked-video and 440 Hz left / 880 Hz right audio checks on the first four exact local fixtures in Chrome. Pause/resume, seeks to 6, 1, and 10 seconds, and near-EOF settlement passed. 🟡 Screened remains because the example has no 1.25× playback-rate or audio-track-switch control, and cleanup was not independently observed; the dual-audio row covers its default track only. CPU is the median of three accepted headed Chrome whole-process windows (20 seconds each, after five seconds of warmup), expressed as percent of one core. The MediaBunny CPU run used local File inputs and is a separate campaign from the other columns; do not treat their displayed CPU values as matched comparisons. No AC-3 switch or cross-browser CPU test was run. `—` means no player test for that exact row. See the [player qualification and CPU evidence](experiments/mediabunny-investigation/notes/official-player-first-four.md).
 
 The external ASS row played video and audio in the MediaBunny example, but the required subtitle file could not be supplied through its controls. Its failure and the withheld CPU figures for the other players are documented in the [row evidence](experiments/mediabunny-investigation/notes/official-player-row-pcm24-ass-20260925/REPORT.md).
+
+The [AAC 5.1 row](experiments/mediabunny-investigation/notes/official-player-row-h264-aac51-20260925/REPORT.md) used one headed Chrome launch for all player CPU arms and three rotating rounds. Its `*` means stereo output was screened; six discrete output channels were not verified. Movi's CPU samples are diagnostic because its correctness screen failed.
 
 See [versions, evidence, and configured alternatives](docs/HEAD-TO-HEAD-ROUTES.md)
 and the [rerun guide](docs/HEAD-TO-HEAD.md).

@@ -27,6 +27,7 @@ const fixtures = [
   ['aac-mkv', 'fixtures/aac.mkv'],
   ['dual-audio', 'fixtures/h264-dual-audio/index.mkv'],
   ['pcm24-mkv', 'fixtures/pcm.mkv'],
+  ['h264-aac51', 'fixtures/h264-aac51/index.mp4'],
 ].filter(([id]) => !selectedFixture || id === selectedFixture);
 if (!fixtures.length) throw Error('Unknown fixture');
 const sha256 = b => createHash('sha256').update(b).digest('hex');

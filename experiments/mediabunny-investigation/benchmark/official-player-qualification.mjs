@@ -17,6 +17,7 @@ const cases = [
   ['dual-audio', 'Dual-audio H.264 + AAC + AC-3 stereo / MKV', 'build/head-to-head/assets-release-auto-fix-20260925-03/fixtures/h264-dual-audio/index.mkv'],
   ['pcm24-mkv', 'H.264 + PCM24 / MKV', 'build/head-to-head/assets-expanded-03/fixtures/pcm.mkv'],
   ['pcm24-ass', 'H.264 + PCM24 / MKV + ASS', 'build/head-to-head/assets-expanded-03/fixtures/pcm.mkv'],
+  ['h264-aac51', 'H.264 + AAC 5.1 / MP4', 'build/head-to-head/assets-release-supplement-20260925-04/fixtures/h264-aac51/index.mp4'],
 ].filter(([id]) => !process.argv.some(arg => arg.startsWith('--case=')) || process.argv.includes(`--case=${id}`));
 if (!cases.length) throw Error('Unknown case');
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -29,6 +30,7 @@ try {
     const row = { id, label, fixture, sha256: createHash('sha256').update(await readFile(file)).digest('hex'), checks: {}, errors: [], limits: ['No 1.25x playback-rate control in the published player', 'No independently observable AudioContext or decoder cleanup'] };
     if (id === 'dual-audio') row.limits.push('Published player selects primary AAC; no AC-3 track-switch control');
     if (id === 'pcm24-ass') row.limits.push('This catalogue row requires an external ASS file; the example exposes no subtitle file input');
+    if (id === 'h264-aac51') row.limits.push('Stereo output check does not qualify six discrete output channels');
     result.cases.push(row);
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
     const page = await context.newPage();
