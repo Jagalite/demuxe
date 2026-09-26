@@ -209,7 +209,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | MP3 audio-only / MP3 | 🟢 (Pass) · 2.8% CPU | 🟢 (Pass) · 0.9% CPU | 🟢 (Pass) · 1.3% CPU · native-direct | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 10.1% CPU |
 | FLAC audio-only / FLAC | 🟢 (Pass) · 10.4% CPU | 🟢 (Pass) · 2.1% CPU | 🟢 (Pass) · 3.0% CPU · native-direct | 🟢 (Pass) | 🟢 (Pass) · 8.0% CPU | 🟡 Screened · 42.9% CPU |
 | Opus audio-only / Ogg | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · 3.4% CPU | 🟢 (Pass) · 4.2% CPU · native-direct | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 45.8% CPU |
-| Vorbis audio-only / Ogg | 🟢 | 🟢 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🔴 (Fail) | — |
+| Vorbis audio-only / Ogg | 🟢 (Pass) | 🟢 (Pass) | 🟢 (Pass) · 3.3% CPU · native-direct | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened |
 | PCM16 audio-only / WAV | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🟢 (Pass) | 🔴 (Fail) | — |
 | PCM24 audio-only / WAV | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🟢 (Pass) | 🔴 (Fail) | — |
 | HEVC Main 10 + E-AC-3 / MKV (HDR10) | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* · hybrid | 🔴 (Fail) | 🟢 (Pass)\* | — |
