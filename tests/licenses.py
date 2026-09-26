@@ -59,13 +59,11 @@ class LicenseBoundaries(unittest.TestCase):
         script.write_text("import assert from 'node:assert/strict';\n"
                           "import * as core from 'demuxe-core';\n"
                           "import {RangeReader} from 'demuxe-core/range-reader';\n"
-                          "import {cheapMP4Probe} from 'demuxe-core/mp4-probe';\n"
-                          "import {inspectSimpleMP4} from 'demuxe-core/simple-mp4-inspector';\n"
+                          "import {inspectFastSource} from 'demuxe-core/fast-source-inspector';\n"
                           "assert.equal(typeof core.planAdmission, 'function');\n"
                           "assert.equal(typeof core.RuntimeCapabilities, 'function');\n"
                           "assert.equal(typeof RangeReader, 'function');\n"
-                          "assert.equal(typeof cheapMP4Probe, 'function');\n"
-                          "assert.equal(cheapMP4Probe, inspectSimpleMP4);\n"
+                          "assert.equal(typeof inspectFastSource, 'function');\n"
                           "assert.equal(core.Player, undefined);\n")
         subprocess.run(['node', str(script)], check=True)
         types = consumer / 'check.mts'

@@ -46,7 +46,7 @@ const cases = [
 const option = name => process.argv.find(x => x.startsWith(`--${name}=`))?.split('=').slice(1).join('=');
 const labels = option('labels')?.split(',');
 const selectedCases = labels ? cases.filter(([label]) => labels.includes(label)) : cases;
-const methods = option('methods')?.split(',') ?? ['fast', 'mediabunny', 'ffmpeg', 'cheap'];
+const methods = option('methods')?.split(',') ?? ['fast', 'mediabunny', 'ffmpeg'];
 const repeats = Math.max(1, Math.min(10, Number(option('repeats') ?? 1)));
 const requests = [];
 const server = http.createServer(async (req, res) => {

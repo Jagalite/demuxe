@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import {inspectSimpleMP4} from './simple-mp4-inspector.js';
+import {inspectFastSource} from './fast-source-inspector.js';
 // Immutable local view only. Offsets, sample tables and payload stay unchanged;
 // removed tracks' media remains present. This is never a redacted export.
 const text=(b,p)=>String.fromCharCode(...b.subarray(p,p+4));
@@ -46,8 +46,13 @@ export async function selectedMP4View(file,audioTrack,signal){
   for(const index of [1,2]){
    const metadata=moov.slice();for(const d of descriptors){if(d.type==='audio'&&d.index!==index)metadata.set([102,114,101,101],d.t.p+4);else metadata[d.tkhd.p+11]|=1;}
    const candidate=new File([file.slice(0,offset),metadata,file.slice(offset+moov.length)],'selected.mp4',{type:'video/mp4'});
-   const admitted=await inspectSimpleMP4(candidate,signal);readBytes+=admitted.bytesRead;
-   if(!admitted.probe||admitted.probe.tracks.length!==2)throw Error('Selected destination profile rejected');
+   const admitted=await inspectFastSource(candidate,{signal});readBytes+=admitted.bytesRead;
+   if(admitted.status!=='qualified'||admitted.evidence.tracks.length!==2)throw Error('Selected destination profile rejected');
+   const [video,audio]=admitted.evidence.tracks;
+   const profile=Number.parseInt(video.codecString?.slice(5,7),16);
+   if(video.type!=='video'||video.codec!=='h264'||![66,77,100].includes(profile)||
+      audio.type!=='audio'||audio.codec!=='aac'||![1,2].includes(audio.channels))
+    throw Error('Selected destination codec profile rejected');
    if(index===selected)output=candidate;
   }
   return {file:output,tracks:descriptors.map(({id,type,codec,index})=>({id,type,codec,selected:index===0||index===selected})),diagnostics:{route:'selected-mp4-view',profile:'local-avc-two-aac',metadataBytes:moov.length,readBytes,payloadCopiedBytes:0,retainsUnselectedMedia:true,preparationMs:performance.now()-began}};

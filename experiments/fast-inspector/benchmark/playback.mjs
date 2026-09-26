@@ -33,8 +33,10 @@ if (option('matrix-labels')) {
 const openOnly=all||process.argv.includes('--open-only');
 const requests = [];
 const server = http.createServer(async (req, res) => {
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  if(!process.argv.includes('--no-isolation')){
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  }
   res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
   res.setHeader('Cache-Control', 'no-store');
   const target = path.resolve(root, '.' + new URL(req.url, 'http://localhost').pathname);

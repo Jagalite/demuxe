@@ -12,7 +12,7 @@ it does not publish to npm.
 
 ```js
 import { planAdmission, RuntimeCapabilities } from 'demuxe-core';
-import { inspectSimpleMP4 } from 'demuxe-core/simple-mp4-inspector';
+import { inspectFastSource } from 'demuxe-core/fast-source-inspector';
 import { RangeReader } from 'demuxe-core/range-reader';
 ```
 

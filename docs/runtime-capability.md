@@ -153,7 +153,7 @@ No engine rebuild is required when those pairs are available.
 npm ci --ignore-scripts
 npm run build
 node --test tests/runtime-capability-contracts.mjs tests/native-selection.mjs \
-  tests/plan-admission.mjs tests/simple-mp4-inspector.mjs \
+  tests/plan-admission.mjs tests/fast-source-inspector.mjs \
   tests/optimization-contracts.mjs tests/remux-packaging-contracts.mjs
 
 # Existing small fixture generator supplies the audio-only control.

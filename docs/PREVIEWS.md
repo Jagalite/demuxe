@@ -176,7 +176,7 @@ use one preview Blob per accepted session, within the existing 32 MiB input cap.
 The browser owns demuxing, keyframe lookup and decode dependencies. Its private
 sample/decode counts and exact decoded PTS are not fabricated in metrics.
 
-Existing `simple-mp4-inspector.js` is metadata admission; `source-probe.js` is packet-only
+Existing `fast-source-inspector.js` is metadata admission; `source-probe.js` is packet-only
 preflight. Neither exports a qualified random-access sample index. `split-mp4.js`
 preserves sample data for remux packaging, not a general source index. Consequently
 this baseline does not duplicate those systems with a new parser or custom codec.

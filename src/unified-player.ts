@@ -757,6 +757,10 @@ export class Player extends EventTarget {
   }
   private async inspectFallbackAfterFastFailure(source:Source,settings:Settings):Promise<string|undefined>{
     this.fastInspectedSource=undefined;
+    if(!globalThis.crossOriginIsolated){
+      this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;
+      return 'Wasm inspection requires cross-origin isolation';
+    }
     const controller=this.inspection=new AbortController();
     try{
       const probe=await this.inspectWithFFmpeg(source,controller);
@@ -812,14 +816,10 @@ export class Player extends EventTarget {
           // Immutable local bytes permit bounded inspection without an engine download.
           // Remote identity/permission enforcement continues through the existing inspector.
           if(source.kind==='local'&&this.nativeRemux!=='always'){
-            const {inspectSimpleMP4}=await this.interruptible(import(new URL('web/simple-mp4-inspector.js',this.assetBase).href));
             const local=source.file instanceof File?source.file:new File([source.file],'media');
-            const cheap=await inspectSimpleMP4(local,controller.signal,document.createElement('video'));
-            probe=cheap.probe;
-            this.record({mode:'probe',outcome:probe?'selected':'skipped',reason:`Local MP4 metadata: ${cheap.bytesRead} bytes; ${probe?'no inspector Wasm required':cheap.reason}`});
             // The filename only bypasses an optimization: FFmpeg still inspects
             // these known-unsupported families, whatever their actual bytes are.
-            if(!probe&&this.automatic&&!preserve&&!tracks.length&&settings.aid==='auto'&&settings.sid==='auto'&&globalThis.crossOriginIsolated&&!/\.(?:ogg|oga|opus|ts|m2ts)$/i.test(local.name)){
+            if(!preserve&&!tracks.length&&settings.aid==='auto'&&settings.sid==='auto'&&!/\.(?:ogg|oga|opus|ts|m2ts)$/i.test(local.name)){
               try{
                 const {inspectFastSource}=await this.interruptible(import(new URL('web/fast-source-inspector.js',this.assetBase).href));
                 const fast=await inspectFastSource(local,{signal:controller.signal});

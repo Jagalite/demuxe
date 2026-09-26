@@ -164,6 +164,15 @@ async function iso(src) {
     const subtitleHandler = ['sbtl', 'subt', 'text', 'clcp'].includes(handler);
     if (!['vide', 'soun'].includes(handler) && !subtitleHandler) unknown('Unknown ISO track ' + handler);
     const [mina, minz] = box(moov, ma, mz, 'minf');
+    const [dina, dinz] = box(moov, mina, minz, 'dinf');
+    const [dra, drz] = box(moov, dina, dinz, 'dref');
+    if (u32(moov, dra) !== 0 || u32(moov, dra + 4) !== 1) unknown('Complex ISO data reference');
+    let localReference = 0;
+    eachBox(moov, dra + 8, drz, (ref, ra, rz) => {
+      if (ref !== 'url ' || rz - ra !== 4 || u32(moov, ra) !== 1) unknown('External ISO data reference');
+      localReference++;
+    });
+    if (localReference !== 1) unknown('Ambiguous ISO data reference');
     const [sta, stz] = box(moov, mina, minz, 'stbl');
     const [sda, sdz] = box(moov, sta, stz, 'stsd');
     if (u32(moov, sda + 4) !== 1) unknown('Multiple ISO sample descriptions');

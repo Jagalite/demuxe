@@ -159,20 +159,17 @@ playback tests, injected runtime-error policy tests, and remaining qualification
 
 ## Beta startup fast path
 
-Simple local MP4 files first undergo bounded JavaScript box inspection (at most
-256 KiB movie metadata plus 2 KiB headers, 64 top-level boxes). Filename/MIME are
-ignored. A single AVC video track and optional AAC-LC mono/stereo track must have
-self-contained data references and known sample entries. Browser hints do not
-affect this metadata fast path.
-Additional tracks, encryption, multiple sample descriptions, unfamiliar metadata or larger
-indexes retain FFmpeg inspection. Actual Native playback still gates selection.
-Ordinary remote files retain the existing FFmpeg/source-identity path; no permission or
-authentication handling is bypassed. Explicit Native direct already avoids both
-inspectors and Wasm, and is checked separately in the clean consumer test.
+Automatic local inspection now enters `web/fast-source-inspector.js` directly
+for ordinary files when track selection is automatic. It reads bounded MP4/MOV,
+Matroska/WebM, and simple-audio metadata, then admits only an existing Native
+Direct plan. Unknown structures and plans needing fuller evidence use FFmpeg
+inspection. Actual Native playback still gates selection. Ordinary remote files
+retain the existing FFmpeg/source-identity path; no permission or authentication
+handling is bypassed. Explicit Native Direct avoids inspection and Wasm.
 
-This optimizes a deliberately narrow implemented case, not every MP4 or every
-automatic Native selection. See `web/simple-mp4-inspector.js` and
-`tests/simple-mp4-inspector.mjs`. No additional public mode or codec transformation is added.
+The former narrow MP4 inspector and its export have been removed. Selected-MP4-view
+validation also uses Fast Inspector. No new playback mode or codec transformation
+is introduced.
 
 ## Source/session runtime evidence
 

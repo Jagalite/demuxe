@@ -21,10 +21,6 @@ export async function run(method) {
   } else if (method === 'mediabunny') {
     const {inspectFile} = await import('./mediabunny-baseline.mjs');
     details = await inspectFile(file()); probe = details.probe;
-  } else if (method === 'cheap') {
-    const {inspectSimpleMP4} = await import('../../../web/simple-mp4-inspector.js');
-    details = await inspectSimpleMP4(file(), new AbortController().signal, document.createElement('video'));
-    probe = details.probe;
   } else {
     const {probeSource} = await import('./source-probe-instrumented.mjs');
     probe = await probeSource({file: file()}, new AbortController().signal);
