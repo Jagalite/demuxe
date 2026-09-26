@@ -191,7 +191,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | Interlaced MPEG-2 + AC-3 stereo / MPEG-TS | 🟢 (Pass)* · 33.7% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.1% CPU · software · visible combing | 🔴 (Fail) | 🟢 (Pass)\* · 33.6% CPU | 🔴 (Fail) |
 | MPEG-2 video + MP2 / MPEG-PS | 🟢 (Pass) · 34.1% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.9% CPU · software | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | MPEG-4 Part 2 + MP3 / AVI | 🟢 (Pass) · 34.5% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.7% CPU · software | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| ProRes + PCM / MOV | 🟢 | 🔴 (Fail) | 🟢 (Pass)\* · software | 🔴 (Fail) | 🔴 (Fail) | — |
+| ProRes + PCM / MOV | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 36.9% CPU · software | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened* · 33.0% CPU |
 | H.264 + AAC / fragmented MP4 (single file) | 🟢 | 🟠 | 🟢 (Pass) · native-direct | 🔴 (Fail) | 🔴 (Fail) | — |
 | H.264 video-only / MP4 | 🟢 | 🟢 | 🟢 (Pass) · native-direct | 🟠 | 🟠 | — |
 | H.264 High 10 + AAC / MKV | 🟢 (Pass)* | 🟢 (Pass)\* | 🟢 (Pass)\* · native-direct | 🔴 (Fail) | 🟢 (Pass)* | — |
