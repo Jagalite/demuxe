@@ -26,6 +26,7 @@ launch per round. The
 | H.264 + E-AC-3 stereo / MKV | Three maintained passes and one MediaBunny screen; four viable/screened CPU arms; plain video and Movi failed | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-eac3-stereo-20260926/REPORT.md) |
 | H.264 + DTS core stereo / MKV | Three maintained passes and one MediaBunny screen; four viable/screened CPU arms; Auto CPU range widened | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-dts-stereo-20260926/REPORT.md) |
 | H.264 + FLAC stereo / MKV | Four maintained passes and one MediaBunny screen; Movi failed near EOF; five viable/screened CPU arms measured after a FLAC cadence gate correction | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-flac-20260926/REPORT.md) |
+| H.264 + FLAC 5.1 / MKV | Four maintained stereo-output screens and one MediaBunny screen measured; discrete 5.1 fidelity unqualified; Movi failed seek audio | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-flac51-20260926/REPORT.md) |
 
 Remaining CPU cells are pending. The
 [historical snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md) remains available
