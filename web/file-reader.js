@@ -1,12 +1,31 @@
 // SPDX-License-Identifier: Apache-2.0
 // Bounded local-file adapter for the existing AVIO source contract.
 // File handles are cloned to workers; complete media never enters an ArrayBuffer.
+// FileReader is an opt-in experiment; production keeps the established stream path.
+// Only a validated, bounded slice reaches this adapter; cancellation stays eager.
+function sliceReader(blob,size,experimentalFileReader){
+ if(!experimentalFileReader||typeof FileReader==='undefined'||typeof Blob==='undefined'||!(blob instanceof Blob))return blob.stream().getReader();
+ if(blob.size!==size)throw Error(blob.size>size?'Local read exceeds requested slice':'Local file changed or truncated');
+ const reader=new FileReader();let delivered=false;
+ const pending=new Promise((resolve,reject)=>{
+  reader.onload=()=>resolve(new Uint8Array(reader.result));
+  reader.onerror=()=>reject(reader.error??Error('Local file read failed'));
+  reader.onabort=()=>reject(new DOMException('Superseded','AbortError'));
+  reader.readAsArrayBuffer(blob);
+ });
+ return {
+  async read(){if(delivered)return {done:true};delivered=true;return {done:false,value:await pending};},
+  async cancel(){if(reader.readyState===1)reader.abort();},
+  releaseLock(){reader.onload=reader.onerror=reader.onabort=null;}
+ };
+}
 export class LocalFileReader {
- constructor(file,{cacheBytes=0,maxRequests=0}={}){
+ constructor(file,{cacheBytes=0,maxRequests=0,experimentalFileReader=false}={}){
   if(!file||!Number.isSafeInteger(file.size)||file.size<=0||typeof file.slice!=='function')throw Error('Invalid local File source');
   if(!Number.isInteger(cacheBytes)||cacheBytes<0||cacheBytes>4*1024*1024)throw Error('Invalid local cache budget');
   if(!Number.isInteger(maxRequests)||maxRequests<0||maxRequests>8192)throw Error('Invalid local request budget');
   this.file=file;this.total=BigInt(file.size);this.epoch=0;this.closed=false;this.busy=false;
+  this.experimentalFileReader=experimentalFileReader===true;
   this.cacheLimit=cacheBytes;this.maxRequests=maxRequests;this.cache=new Map();
   this.stats={fetchedBytes:0,requests:0,aborts:0,discardedBytes:0,cacheBytes:0,peakCacheBytes:0,cacheHits:0,activeBytes:0,peakActiveBytes:0,peakChunkBytes:0,peakOwnedBytes:0};
  }
@@ -25,7 +44,7 @@ export class LocalFileReader {
   const epoch=this.epoch;this.busy=true;let at=0,stream,output;
   try{
    output=new Uint8Array(size);this.stats.activeBytes=size;this.stats.peakActiveBytes=Math.max(this.stats.peakActiveBytes,size);
-   stream=this.active=this.file.slice(Number(offset),Number(offset)+size).stream().getReader();this.stats.requests++;
+   stream=this.active=sliceReader(this.file.slice(Number(offset),Number(offset)+size),size,this.experimentalFileReader);this.stats.requests++;
    for(;;){
     const {value,done}=await stream.read();
     if(value){this.stats.fetchedBytes+=value.length;this.stats.peakChunkBytes=Math.max(this.stats.peakChunkBytes,value.length);this.stats.peakOwnedBytes=Math.max(this.stats.peakOwnedBytes,size+value.length);}

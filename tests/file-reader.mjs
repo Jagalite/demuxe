@@ -82,3 +82,61 @@ test('local subtitle source request budget rejects excess uncached reads',async(
  await assert.rejects(()=>r.read(4n,4),/request budget exceeded/);
  assert.equal(r.stats.requests,1);r.close();
 });
+
+test('local reads keep the stream default even when FileReader is available',async()=>{
+ const previous=globalThis.FileReader;let streams=0;
+ globalThis.FileReader=class {constructor(){throw Error('Experimental FileReader selected by default');}};
+ try{
+  const bytes=Uint8Array.from({length:32},(_,i)=>i),blob=new Blob([bytes]);
+  const file={size:blob.size,slice(a,b){const slice=blob.slice(a,b),stream=slice.stream.bind(slice);slice.stream=()=>{streams++;return stream();};return slice;}};
+  for(const options of [undefined,{experimentalFileReader:false}]){
+   const reader=new LocalFileReader(file,options);
+   try{assert.deepEqual(await reader.read(0n,32),bytes);}finally{reader.close();}
+  }
+  assert.equal(streams,2);
+ }finally{if(previous===undefined)delete globalThis.FileReader;else globalThis.FileReader=previous;}
+});
+
+test('FileReader slices preserve exact bytes, cache bounds and EOF without streams',async()=>{
+ const previous=globalThis.FileReader;let reads=0,maxSlice=0;
+ globalThis.FileReader=class {
+  readyState=0;
+  readAsArrayBuffer(blob){this.readyState=1;reads++;maxSlice=Math.max(maxSlice,blob.size);blob.arrayBuffer().then(bytes=>{if(this.readyState!==1)return;this.result=bytes;this.readyState=2;this.onload();});}
+  abort(){this.readyState=2;this.onabort();}
+ };
+ try{
+  const bytes=Uint8Array.from({length:524301},(_,i)=>i%251),blob=new Blob([bytes]);
+  const file={size:bytes.length,slice(a,b){const slice=blob.slice(a,b);slice.stream=()=>{throw Error('Stream path used');};return slice;}};
+  const reader=new LocalFileReader(file,{cacheBytes:262144,experimentalFileReader:true});
+  assert.deepEqual(await reader.read(17n,262144),bytes.slice(17,17+262144));
+  await reader.read(17n,262144);assert.equal(reads,1);assert.equal(reader.stats.cacheHits,1);
+  assert.deepEqual(await reader.read(524290n,262144),bytes.slice(524290));
+  assert.equal((await reader.read(BigInt(bytes.length),1)).length,0);
+  assert.equal(maxSlice,262144);assert.ok(reader.stats.peakOwnedBytes<=524288);assert.ok(reader.stats.peakCacheBytes<=262144);
+  reader.close();assert.equal(reader.stats.cacheBytes,0);
+  for(const length of [4,6]){const bad=new LocalFileReader({size:5,slice:()=>new Blob([new Uint8Array(length)])},{experimentalFileReader:true});await assert.rejects(()=>bad.read(0n,5),/truncated|exceeds/);}
+ }finally{if(previous===undefined)delete globalThis.FileReader;else globalThis.FileReader=previous;}
+});
+
+test('FileReader epoch/close cancellation aborts in-flight work and permits a new epoch',async()=>{
+ const previous=globalThis.FileReader;let active,aborts=0;
+ globalThis.FileReader=class {
+  readyState=0;
+  readAsArrayBuffer(blob){this.readyState=1;active=this;this.blob=blob;}
+  abort(){aborts++;this.readyState=2;this.onabort();}
+ };
+ try{
+  const reader=new LocalFileReader(new Blob([new Uint8Array(32)]),{experimentalFileReader:true});
+  const first=reader.read(0n,16);await assert.rejects(()=>reader.read(0n,1),/Concurrent/);
+  reader.beginEpoch();await assert.rejects(first,{name:'AbortError'});assert.equal(aborts,1);assert.equal(reader.stats.activeBytes,0);
+  const second=reader.read(16n,16);active.result=await active.blob.arrayBuffer();active.readyState=2;active.onload();assert.equal((await second).length,16);
+  const third=reader.read(0n,8);reader.close();await assert.rejects(third,{name:'AbortError'});assert.equal(aborts,2);assert.equal(reader.stats.cacheBytes,0);
+ }finally{if(previous===undefined)delete globalThis.FileReader;else globalThis.FileReader=previous;}
+});
+
+test('FileReader errors settle without caching failed reads',async()=>{
+ const previous=globalThis.FileReader,error=new DOMException('unreadable','NotReadableError');
+ globalThis.FileReader=class {readyState=0;readAsArrayBuffer(){this.readyState=2;this.error=error;queueMicrotask(()=>this.onerror());}};
+ try{const reader=new LocalFileReader(new Blob([new Uint8Array(8)]),{cacheBytes:8,experimentalFileReader:true});await assert.rejects(()=>reader.read(0n,8),e=>e===error);assert.equal(reader.stats.activeBytes,0);assert.equal(reader.stats.cacheBytes,0);reader.close();}
+ finally{if(previous===undefined)delete globalThis.FileReader;else globalThis.FileReader=previous;}
+});
