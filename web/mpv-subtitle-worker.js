@@ -6,6 +6,9 @@ const overlay=new SubtitleOverlay();
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const check=()=>{if(closed)throw Error('Subtitle service closed');if(fatal)throw fatal;};
 let deadlineTimer=0,deadlineEpoch=0,lastTimingEpoch=-1;
+// Keep the next visual boundary until a render or pump accounts for it.
+// Rearming a timer after its target must not silently skip that transition.
+let nextRenderBoundary=null;
 const scheduler={stateUpdates:0,nativeUpdateCalls:0,fullRenders:0,deadlineWakes:0};
 const cancelDeadline=()=>{clearTimeout(deadlineTimer);deadlineTimer=0;deadlineEpoch++;};
 const timing=seconds=>{
@@ -95,10 +98,10 @@ onmessage=({data:d})=>{
     }
     engine._subtitle_service_block(1);result={tracks};
    }else if(d.type==='select'){
-    cancelDeadline();lastTimingEpoch=-1;
+    cancelDeadline();lastTimingEpoch=-1;nextRenderBoundary=null;
     if(engine._subtitle_service_select(d.trackId)<0)throw Error('Subtitle selection failed');selectedTrack=d.trackId>0;overlay.clear();lastTime=0;await delay(0);
    }else if(d.type==='seek'){
-    cancelDeadline();lastTimingEpoch=-1;
+    cancelDeadline();lastTimingEpoch=-1;nextRenderBoundary=null;
     await seekDisplay(d.seconds);overlay.clear();lastTime=d.seconds;
    }else if(d.type==='timing'){
     if(!Number.isFinite(d.seconds))throw Error('Invalid subtitle timing position');
@@ -136,8 +139,9 @@ onmessage=({data:d})=>{
     if(!Number.isFinite(d.seconds))throw Error('Invalid subtitle clock position');
     if(!selectedTrack){cancelDeadline();result={mode:'fallback'};}
     else{
-     if(!Number.isFinite(lastTime)||d.seconds<lastTime-.05||d.seconds>lastTime+1){
-      cancelDeadline();lastTimingEpoch=-1;
+     const recoveredClock=!Number.isFinite(lastTime)||d.seconds<lastTime-.05||d.seconds>lastTime+1;
+     if(recoveredClock){
+      cancelDeadline();lastTimingEpoch=-1;nextRenderBoundary=null;
       await seekDisplay(d.seconds);overlay.clear();
      }
      lastTime=d.seconds;engine._subtitle_service_block(0);let ready=0;
@@ -149,7 +153,9 @@ onmessage=({data:d})=>{
      scheduler.stateUpdates++;
      if(engine._subtitle_service_av_chains()!==0)throw Error('Subtitle service unexpectedly allocated A/V decoding');
      const schedule=armDeadline(d.seconds,d.rate,d.running);
-     const timingChanged=lastTimingEpoch>=0&&schedule.timingEpoch!==lastTimingEpoch;
+     const crossedBoundary=nextRenderBoundary!==null&&d.seconds>=nextRenderBoundary;
+     if(crossedBoundary)nextRenderBoundary=null;
+     const timingChanged=recoveredClock||crossedBoundary||lastTimingEpoch>=0&&schedule.timingEpoch!==lastTimingEpoch;
      lastTimingEpoch=schedule.timingEpoch;
      result={mode:schedule.mode,timingChanged,schedule,service:{avChains:0,heapBytes:engine.HEAPU8.byteLength,io:ioStats,scheduler:{...scheduler}}};
     }
@@ -175,6 +181,10 @@ onmessage=({data:d})=>{
     try{if(textLength>0)text=new TextDecoder('utf-8',{fatal:true}).decode(new Uint8Array(engine.HEAPU8.subarray(textPointer,textPointer+textLength)));}
     catch{throw Error('Subtitle decode failed');}
     const schedule=armDeadline(d.seconds,d.rate,d.running);
+    // Use the exact rendered time, without the timer query's look-ahead.
+    const renderedTiming=visual(d.seconds);
+    nextRenderBoundary=renderedTiming.next;
+    lastTimingEpoch=renderedTiming.epoch;
     postMessage({id:d.id,bitmap,unchanged:!bitmap,hasOverlay:!!snapshot.surface,size:bitmap?engine.HEAP32[(engine._web_subtitle_ptr()>>>2)+2]:0,text,mode:schedule.mode,schedule,service:{avChains:0,heapBytes:engine.HEAPU8.byteLength,io:ioStats,scheduler:{...scheduler}}},bitmap?[bitmap]:[]);return;
    }
    postMessage({id:d.id,...result});
