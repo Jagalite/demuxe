@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { runtimeWorker } from './runtime-worker.js';
 import { PlayerError } from './errors.js';
 /** mpv embedded subtitle rendering on the accepted media timeline. One bounded RPC at a time. */
 export class NativeMpvSubtitles {
@@ -48,7 +49,7 @@ export class NativeMpvSubtitles {
             throw Error('Missing Native presentation container');
         // Worker construction can synchronously fail (CSP, URL or allocation).
         // Do not attach a canvas until its owner exists.
-        this.worker = new Worker(new URL('web/mpv-subtitle-worker.js', base), { type: 'module' });
+        this.worker = runtimeWorker(new URL('web/mpv-subtitle-worker.js', base), { type: 'module' });
         const parent = video.parentElement, prior = { position: parent.style.position, fit: video.style.objectFit, pip: video.disablePictureInPicture, remote: video.disableRemotePlayback };
         try {
             parent.style.position = 'relative';

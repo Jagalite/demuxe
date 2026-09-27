@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {runtimeWorker} from './runtime-worker.js';
 import {bufferingPolicy, resolveBuffering, mpvBufferingOptions} from './buffering.js';
 import type {BufferingPolicy, BufferingResolution} from '../types.js';
 import {PlayerError} from './errors.js';
@@ -75,7 +76,7 @@ export class WasmPlayer extends EventTarget {
     this.workerOwner.hidden=true;this.workerOwner.setAttribute('aria-hidden','true');
     document.body.append(this.workerOwner);
     const owner=this.workerOwner.contentWindow as Window & typeof globalThis;
-    try {this.worker = new owner.Worker(new URL(mode==='hybrid'||this.audioOnly?`web/filter-retained-engine-worker.js?mode=retained${this.audioOnly?'&audioOnly=1':''}`:'web/software-full-engine-worker.js',assetBase),{type:'module'});}
+    try {this.worker = runtimeWorker(new URL(mode==='hybrid'||this.audioOnly?`web/filter-retained-engine-worker.js?mode=retained${this.audioOnly?'&audioOnly=1':''}`:'web/software-full-engine-worker.js',assetBase),{type:'module'},owner.Worker);}
     catch(error){this.workerOwner.remove();void this.audioContext.close();throw error;}
     const audio = new SharedArrayBuffer(64 + 8192 * this.outputChannels * 4 + (this.audioOnly?8192*16:0));
     this.audioHeader = new Int32Array(audio,0,16);

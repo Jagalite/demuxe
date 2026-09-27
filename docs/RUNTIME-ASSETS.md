@@ -9,7 +9,7 @@ The project is not yet published to npm. Install the locally assembled archive:
 npm run build
 python3 scripts/package-beta.py --output build/my-candidate
 # In a clean application:
-npm install /absolute/path/to/demuxe-0.3.0-beta.3.tgz
+npm install /absolute/path/to/demuxe-0.3.0-beta.4.tgz
 npx demuxe copy-assets public/assets/demuxe
 ```
 
@@ -27,7 +27,7 @@ definePlayerElement();
 
 assetBase is the package runtime root containing web/, fixtures/, third_party/
 and LICENSE. Its trailing slash is normalized. It is resolved against the page
-base URL; same-origin HTTP(S) is required. The old static-directory installation
+base URL; HTTP(S) folders on the application origin or a CORS-enabled CDN are supported. The old static-directory installation
 works without assetBase when generated modules retain their package paths.
 Bundled applications should always provide assetBase. All inspector/worker entry
 points, nested workers, engine modules/Wasm, AudioWorklet and fonts follow the
@@ -36,12 +36,68 @@ perform no engine downloads. Import during SSR is safe; construction is browser-
 The UI entry does not register anything until definePlayerElement is called.
 
 copy-assets validates every package manifest hash before copying runtime assets,
-font and notices. It writes demuxe-runtime.json with version and hashes. It never
-deletes destination files; unrelated collisions and symlink paths reject. Updates
+font and notices. It writes demuxe-runtime.json with the selected asset set, version,
+source manifest hash and hashes of exactly the copied files. Unrelated collisions
+and symlink paths reject. Unmodified obsolete manifest-owned files are removed. Updates
 may replace only previous manifest-owned unmodified assets. Retain the generated
 manifest with the installation. Use core and runtime from the same archive; mixing
 releases or experimental presenters is unsupported. Failed copies should be rerun
 from an intact package; use a versioned destination for atomic application rollout.
+
+## Choose a deployment set and folder
+
+One npm package contains the complete packaged runtime. The copy command controls
+which files you deploy; it does not download or rebuild engines.
+
+```sh
+# Standard/lighter set, in any static folder:
+npx demuxe copy-assets public/media-runtime/v1
+# Complete set, including the additional RGB Software fallback:
+npx demuxe copy-assets public/media-runtime/v1 --full
+```
+
+```js
+const player = new Player(container, {assetBase: '/media-runtime/v1/'});
+// Page-relative directories work too (resolved against document.baseURI):
+const other = new Player(otherContainer, {assetBase: './runtime/'});
+```
+
+The standard set includes remux, Hybrid, selective audio, YUV Software, subtitles,
+Shaka, workers, fonts and notices, plus optional engines present in the package.
+It omits `web/engine-software-full/`. Use `--full` for explicit RGB Software playback
+or its fallback when WebGL2 is unavailable. Both sets retain relative paths;
+`assetBase` points to the directory **containing** `web/`, not to `web/` itself.
+Switching sets uses the same safe update rules as upgrading a release.
+
+## CDN hosting
+
+```sh
+npx demuxe copy-assets staging/runtime-v1 --full
+# Upload the entire contents of staging/runtime-v1 to your CDN's runtime-v1 folder.
+```
+
+```js
+const player = new Player(container, {
+  assetBase: 'https://cdn.example.com/player/runtime-v1/'
+});
+```
+
+Keep the copied tree and `demuxe-runtime.json` intact. Use a versioned CDN directory
+and the matching npm package version. The manifest is a deployment integrity
+record; browsers do not automatically verify its hashes on every fetch.
+
+Configure the CDN to serve JS/mjs as `text/javascript`, Wasm as `application/wasm`,
+and fonts as `font/ttf`. For public assets, send `Access-Control-Allow-Origin: *`
+and `Cross-Origin-Resource-Policy: cross-origin` on assets, including nested module
+imports, workers and fonts. Permit GET and HEAD requests. The application page
+still needs COOP/COEP for the pthread routes described below.
+
+CDN module workers use Blob entry points while imports and Wasm resolve against
+the original CDN URLs. CSP must allow the CDN in `script-src` and `connect-src`,
+`blob:` in `worker-src`, and the existing Wasm/AudioWorklet permissions. Shaka also
+needs `blob:` in `script-src`. Apply these permissions to separately configured
+`script-src-elem` policies as appropriate. Media CORS remains independent of asset
+hosting. No proxy, fixed `/assets/demuxe/` path, or additional Player option is needed.
 
 ## Adaptive streaming runtime
 
@@ -54,12 +110,12 @@ styles are required in the browser. `package-beta.py` includes both assets, and
 `demuxe copy-assets` verifies and copies them with the rest of the runtime.
 
 The `shaka-mse` backend loads Shaka only when selected. Ordinary file playback
-does not fetch or parse this library. Asset URLs follow the same-origin
+does not fetch or parse this library. Asset URLs follow the configured
 `assetBase`; source media must separately satisfy the browser's CORS policy.
 The runtime download is shared between waiting players. Destroying a player
 releases its wait immediately; destroying the last waiter aborts the download.
 Successful initialization is cached for subsequent players. The loader fetches
-the same-origin asset and executes it through a temporary Blob script, then
+the CORS-enabled asset and executes it through a temporary Blob script, then
 removes the script, handlers and Blob URL. This makes initial loading cancellable
 without relying on removal of a network script element to stop its download.
 Shaka owns adaptive manifests, buffering, segment scheduling and MSE; Demuxe
@@ -98,8 +154,7 @@ restricted). Shaka loading
 does not require `unsafe-eval`. Component styles use a shadow style element; deployments
 with strict style-src need an appropriate hash or policy for those shipped styles.
 No consumer service worker is installed. The Pages isolation worker is demo-only.
-Arbitrary CDN worker roots, Safari/mobile, PiP/casting and physical output fidelity
-remain separate qualification gates. See LICENSING.md and RELEASE.md for source
+Safari/mobile, PiP/casting and physical output fidelity remain separate qualification gates. See LICENSING.md and RELEASE.md for source
 and clean-engine-build obligations; this integration does not close them.
 
 ## Optional experimental audio preparation

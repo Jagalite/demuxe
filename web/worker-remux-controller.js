@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {runtimeWorker} from './generated/internal/runtime-worker.js';
 // Only element operations cross this boundary. Encoded fragments stay between
 // the producer and the dedicated MSE owner, using transferable ArrayBuffers.
 export const workerMSEAvailable=()=>typeof document!=='undefined'&&globalThis.MediaSource?.canConstructInDedicatedWorker===true&&'srcObject' in HTMLMediaElement.prototype;
@@ -8,7 +9,7 @@ export class WorkerRemuxController {
  }
  async boot(){
   if(this.worker)return;
-  const worker=this.worker=new Worker(new URL('./native-mse-worker.js',import.meta.url),{type:'module'});
+  const worker=this.worker=runtimeWorker(new URL('./native-mse-worker.js',import.meta.url),{type:'module'});
   worker.onmessage=({data})=>{
    if(this.worker!==worker||this.stopped)return;
    if(data.type==='reply'){

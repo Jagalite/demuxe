@@ -6,7 +6,7 @@ This table classifies the current constructor surface. Experimental/compatibilit
 | Options | Classification | Default / contract |
 |---|---|---|
 | `mode`, `automaticSelection` | Stable | Native preference with automatic selection when mode is omitted. An explicit mode is pinned unless automatic selection is explicitly enabled. |
-| `assetBase` | Stable | Runtime-relative asset root; an explicit root must be same-origin. |
+| `assetBase` | Stable | HTTP(S) runtime root; accepts custom folders and CORS-enabled CDN URLs. |
 | `width`, `height` | Stable | 640×360 presentation surface. |
 | `trackPolicy` | Stable | File defaults among allowed tracks; no host lock unless configured. |
 | `prepare` | Stable | Lazy loading; no proactive preparation when omitted. |

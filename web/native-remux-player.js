@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {runtimeWorker} from './generated/internal/runtime-worker.js';
 import {WorkerRemuxController,workerMSEAvailable} from './worker-remux-controller.js';
 // The same Native scheduler can own MSE in a window or a dedicated worker.
 // Demux/mux and bounded source reads always remain separate workers.
@@ -52,7 +53,7 @@ export class RemuxPlayer {
    this.cancelWait=cancel;media.addEventListener('sourceopen',opened,{once:true});
   });
   if(generation!==this.generation)throw new DOMException('Superseded','AbortError');
-  this.mailbox=new SharedArrayBuffer(64+262144);this.sourceWorker=new Worker(new URL('./native-remux-source-worker.js',import.meta.url),{type:'module'});this.stats.workers++;
+  this.mailbox=new SharedArrayBuffer(64+262144);this.sourceWorker=runtimeWorker(new URL('./native-remux-source-worker.js',import.meta.url),{type:'module'});this.stats.workers++;
   const ready=await new Promise((resolve,reject)=>{
    const timer=setTimeout(()=>finish(Error('Remux source initialization timed out')),10000);
    let settled=false;
@@ -61,7 +62,7 @@ export class RemuxPlayer {
    const {refreshAuthorization,...source}=this.source;this.sourceWorker.postMessage({type:'init',mailbox:this.mailbox,...source,identity:this.identity});
   });
   if(generation!==this.generation)throw new DOMException('Superseded','AbortError');
-  this.identity??=ready.identity;this.total=ready.size;this.worker=new Worker(new URL('./native-remux-worker.js',import.meta.url),{type:'module'});this.stats.workers++;this.watchWorker(this.worker,generation,'mux');
+  this.identity??=ready.identity;this.total=ready.size;this.worker=runtimeWorker(new URL('./native-remux-worker.js',import.meta.url),{type:'module'});this.stats.workers++;this.watchWorker(this.worker,generation,'mux');
   this.cancelWait=null;const session={generation,target,sourceSize:ready.size,firstPlayableMs:null,firstPlayableSourceBytes:null};this.stats.sessions.push(session);if(this.stats.sessions.length>64)this.stats.sessions.shift();
   this.worker.onmessage=({data})=>{
    if(generation!==this.generation||this.stopped||this.failedGeneration===generation){this.stats.discardedBytes+=byteLength(data.parts??data.buffers??data.buffer);return;}

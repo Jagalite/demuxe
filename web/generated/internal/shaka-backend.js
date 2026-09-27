@@ -11,8 +11,6 @@ function runtimeAt(base, signal) {
     if (signal.aborted)
         return Promise.reject(aborted());
     const url = new URL('web/vendor/shaka-player.js', base);
-    if (url.origin !== location.origin)
-        return Promise.reject(new PlayerError('ASSET_LOAD_FAILED', 'Shaka runtime must be same-origin'));
     let shared = runtimes.get(url.href);
     if (!shared) {
         const controller = new AbortController();

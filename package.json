@@ -56,6 +56,7 @@
     "test:head-to-head:contracts": "node --test tests/head-to-head/contracts.mjs",
     "fixtures:head-to-head": "python3 tests/head-to-head/setup.py",
     "verify:head-to-head": "node tests/head-to-head/verify.mjs",
+    "test:asset-deployment": "npm run build && node --test tests/asset-deployment.mjs && node tests/asset-deployment-browser.mjs",
     "test:shaka-assets": "node --test tests/shaka-assets.mjs",
     "test:shaka-package": "node tests/shaka-package.mjs",
     "test:shaka": "npm run build && node --test tests/shaka-assets.mjs tests/shaka-backend.mjs tests/shaka-network.mjs tests/native-selection.mjs tests/plan-admission.mjs tests/resource-loader.mjs tests/streaming-expansion.mjs && node tests/shaka-lifecycle.mjs",
@@ -69,6 +70,7 @@
     "test:integration": "npm run build && node --test tests/integration.mjs && tsc --noEmit --strict --skipLibCheck --target ES2022 --module NodeNext --moduleResolution NodeNext tests/integration-types.ts && node tests/integration-browser.mjs && node tests/integration-presentation.mjs"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
     "media-chrome": "4.19.2",
     "playwright": "1.58.2",
     "typescript": "5.9.3",

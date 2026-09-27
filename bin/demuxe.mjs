@@ -6,19 +6,23 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const hash=b=>createHash('sha256').update(b).digest('hex');
 async function safeDirectory(dir){const absolute=path.resolve(dir);let at=path.parse(absolute).root;for(const part of absolute.slice(at.length).split(path.sep).filter(Boolean)){at=path.join(at,part);try{const s=await lstat(at);if(!s.isDirectory()||s.isSymbolicLink())throw Error('Destination contains a non-directory or symlink: '+at);}catch(e){if(e.code!=='ENOENT')throw e;await mkdir(at);}}}
 async function main(){
- const [command,destination,...extra]=process.argv.slice(2);if(command!=='copy-assets'||!destination||extra.length)throw Error('Usage: demuxe copy-assets <destination-directory>');
+ const [command,...args]=process.argv.slice(2),full=args.includes('--full');
+ const positional=args.filter(arg=>arg!=='--full');
+ if(command!=='copy-assets'||positional.length!==1||positional[0].startsWith('-')||args.filter(arg=>arg==='--full').length>1)throw Error('Usage: demuxe copy-assets <destination-directory> [--full]');
+ const [destination]=positional;
  const pkg=JSON.parse(await readFile(path.join(root,'package.json')));let manifest;
  try{manifest=JSON.parse(await readFile(path.join(root,'release-manifest.json')));}catch{throw Error('Missing release-manifest.json. Use the packaged archive, not an unassembled source checkout.');}
  if(manifest.schema!==1||manifest.version!==pkg.version||JSON.stringify(manifest.publicModes)!=='["native","hybrid","software"]')throw Error('Incompatible package/runtime manifest');
  const files=new Map();
  // Validate every manifest input before writing anything, including the CLI itself.
  for(const [name,expected]of Object.entries(manifest.files)){
-  if(name.includes('\\')||path.isAbsolute(name)||name.split('/').includes('..'))throw Error('Unsafe manifest path');
+  if(name.includes('\\')||path.isAbsolute(name)||name.split('/').some(part=>!part||part==='.'||part==='..'))throw Error('Unsafe manifest path');
   let bytes;try{bytes=await readFile(path.join(root,name));}catch{throw Error('Missing package asset: '+name);}
   if(bytes.length!==expected.bytes||hash(bytes)!==expected.sha256)throw Error('Package asset hash mismatch: '+name);
+  if(!full&&name.startsWith('web/engine-software-full/'))continue;
   if(name.startsWith('web/')||name.startsWith('fixtures/')||name.startsWith('third_party/')||['LICENSE','sources.lock.json','toolchain.lock.json'].includes(name)||name==='docs/LICENSING.md')files.set(name,bytes);
  }
- for(const name of ['web/engine-hybrid/player.wasm','web/engine-software-full/player.wasm','web/engine-remux/remux.wasm','fixtures/DejaVuSans.ttf','LICENSE','third_party/notices.json','web/vendor/shaka-player.js','web/vendor/shaka-player.transmuxer-worker.js','third_party/shaka-player.json'])if(!files.has(name))throw Error('Required runtime asset absent: '+name);
+ for(const name of ['web/engine-hybrid/player.wasm','web/engine-software-yuv/player.wasm',...(full?['web/engine-software-full/player.wasm']:[]),'web/engine-remux/remux.wasm','fixtures/DejaVuSans.ttf','LICENSE','third_party/notices.json','web/vendor/shaka-player.js','web/vendor/shaka-player.transmuxer-worker.js','third_party/shaka-player.json'])if(!files.has(name))throw Error('Required runtime asset absent: '+name);
  const target=path.resolve(destination);await safeDirectory(target);
  let previous;try{const info=await lstat(path.join(target,'demuxe-runtime.json'));if(!info.isFile()||info.isSymbolicLink())throw Error('Unsafe runtime manifest destination');previous=JSON.parse(await readFile(path.join(target,'demuxe-runtime.json')));}catch(e){if(e.code!=='ENOENT')throw Error('Invalid destination runtime manifest');}
  // Refuse unrelated file collisions and all symlink destinations. No directory is removed.
@@ -39,7 +43,7 @@ async function main(){
  }
  const entries={};for(const [name,bytes]of files){const file=path.join(target,name),temp=file+`.demuxe-${process.pid}.tmp`;await writeFile(temp,bytes,{flag:'wx'});await rename(temp,file);entries[name]={bytes:bytes.length,sha256:hash(bytes)};}
  for(const {file,expected}of obsolete){const info=await lstat(file);if(!info.isFile()||info.isSymbolicLink())throw Error('Obsolete asset changed during copy');const bytes=await readFile(file);if(bytes.length===expected.bytes&&hash(bytes)===expected.sha256)await unlink(file);}
- const record={schema:1,version:pkg.version,packageManifestSHA256:hash(await readFile(path.join(root,'release-manifest.json'))),files:entries};
+ const record={schema:1,version:pkg.version,assetSet:full?'full':'standard',packageManifestSHA256:hash(await readFile(path.join(root,'release-manifest.json'))),files:entries};
  await writeFile(path.join(target,'demuxe-runtime.json'),JSON.stringify(record,null,2)+'\n');
  console.log(`Copied ${files.size} verified ${pkg.name} ${pkg.version} assets to ${target}. Unrelated files were retained.`);
 }

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { runtimeWorker } from './runtime-worker.js';
 import { bufferingPolicy, resolveBuffering, mpvBufferingOptions } from './buffering.js';
 import { PlayerError } from './errors.js';
 import { resolveDecodePolicy } from './decode-policy.js';
@@ -81,7 +82,7 @@ export class WasmPlayer extends EventTarget {
         document.body.append(this.workerOwner);
         const owner = this.workerOwner.contentWindow;
         try {
-            this.worker = new owner.Worker(new URL(mode === 'hybrid' || this.audioOnly ? `web/filter-retained-engine-worker.js?mode=retained${this.audioOnly ? '&audioOnly=1' : ''}` : 'web/software-full-engine-worker.js', assetBase), { type: 'module' });
+            this.worker = runtimeWorker(new URL(mode === 'hybrid' || this.audioOnly ? `web/filter-retained-engine-worker.js?mode=retained${this.audioOnly ? '&audioOnly=1' : ''}` : 'web/software-full-engine-worker.js', assetBase), { type: 'module' }, owner.Worker);
         }
         catch (error) {
             this.workerOwner.remove();

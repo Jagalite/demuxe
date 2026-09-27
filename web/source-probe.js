@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {runtimeWorker} from './generated/internal/runtime-worker.js';
 // FFmpeg reports Matroska and WebM as one demuxer family. Read the bounded EBML
 // header so capability queries use the actual local container's MIME type.
 export async function localContainerFormat(file,format){
@@ -21,7 +22,7 @@ export async function probeSource(source,signal,audioAdaptation,compiledWasm){
   const timer=setTimeout(()=>reject(Error('Source inspection timed out')),20000);
   const finish=(error,value)=>{clearTimeout(timer);error?reject(error):resolve(value);};
   abort=()=>finish(new DOMException('Aborted','AbortError'));signal.addEventListener('abort',abort,{once:true});
-  const make=file=>{const w=new Worker(new URL(file,import.meta.url),{type:'module'});workers.push(w);w.onerror=e=>{e.preventDefault();finish(Error('Source inspection worker failed: '+e.message));};w.onmessageerror=()=>finish(Error('Source inspection message error'));return w;};
+  const make=file=>{const w=runtimeWorker(new URL(file,import.meta.url),{type:'module'});workers.push(w);w.onerror=e=>{e.preventDefault();finish(Error('Source inspection worker failed: '+e.message));};w.onmessageerror=()=>finish(Error('Source inspection message error'));return w;};
   const reader=make('./native-remux-source-worker.js');
   reader.onmessage=({data})=>{
    if(signal.aborted)return;

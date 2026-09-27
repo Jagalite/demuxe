@@ -65,9 +65,30 @@ features, with route eligibility, fallbacks and qualification limits.
 ```sh
 npm install demuxe@beta
 npx demuxe copy-assets public/assets/demuxe
+# Include the additional RGB Software fallback engine:
+npx demuxe copy-assets public/assets/demuxe --full
 ```
 
 Serve the copied directory at `/assets/demuxe/`, preserving its relative tree.
+The default copies the standard/lighter engine set; `--full` copies all packaged
+fallback engines. Choose any folder or CORS-enabled CDN and point `assetBase` to
+its root:
+
+```sh
+npx demuxe copy-assets public/player-runtime
+```
+
+```js
+const player = new Player(container, {assetBase: '/player-runtime/'});
+// Or upload the copied tree to a versioned CDN folder:
+const cdnPlayer = new Player(otherContainer, {
+  assetBase: 'https://cdn.example.com/player/runtime-v1/'
+});
+```
+
+See [runtime asset deployment](docs/RUNTIME-ASSETS.md) for the set contents,
+CDN headers and CSP requirements.
+
 Hybrid, Software, selective mpv audio, audio adaptation, and the pthread Native remux runtime require cross-origin isolation headers:
 
 ```http
