@@ -11,6 +11,7 @@ test('route counters preserve semantics and unavailable drops',()=>{
  assert.deepEqual(frameObservation({diagnostics:{mode:'software',backend:{path:'wasm',decoder:'software',softwarePresenter:'rgb',rendered:42}}},{player:'demuxe'}),{kind:'demuxe-software-canvas',presented:42,dropped:null});
  assert.equal(frameObservation({stats:{videoFrameRenderCount:30,videoFrameDropCount:2}},{player:'libmedia'}).presented,30);
  assert.equal(frameObservation({renderQuality:{totalVideoFrames:32,droppedVideoFrames:2}},{player:'movi'}).presented,30);
+ assert.deepEqual(frameObservation({diagnostics:{backend:{path:'native',rendered:32,dropped:2}}},{player:'demuxe'}),{kind:'demuxe-native-video',presented:30,dropped:2});
  assert.throws(()=>frameObservation({diagnostics:{backend:{rendered:42}}},{player:'demuxe'}),/UNQUALIFIED/);
  assert.throws(()=>frameObservation({diagnostics:{mode:'hybrid',backend:{path:'wasm',decoder:'software',rendered:42}}},{player:'demuxe'}),/UNQUALIFIED/);
  assert.equal(validateFrameWindow([{at:0,state:{}},{at:20000,state:{}}],{video:false}).counter,'audio-only');
@@ -19,6 +20,8 @@ test('cadence rejects frozen output, counter resets, poor cadence and excessive 
  assert.equal(validateFrameWindow(samples,{}).presentedFrames,600);
  const softwareSamples=samples.map(s=>({at:s.at,state:{diagnostics:{mode:'software',backend:{path:'wasm',decoder:'software',rendered:s.state.video.total}}}}));
  assert.equal(validateFrameWindow(softwareSamples,{player:'demuxe'}).counter,'demuxe-software-canvas');
+ const nativeSamples=samples.map(s=>({at:s.at,state:{diagnostics:{backend:{path:'native',rendered:s.state.video.total,dropped:0}}}}));
+ assert.equal(validateFrameWindow(nativeSamples,{player:'demuxe'}).counter,'demuxe-native-video');
  for(const change of [s=>s[5].state.video.total=s[4].state.video.total,s=>s[5].state.video.total=0,s=>s.forEach(x=>x.state.video.total/=2),s=>s.at(-1).state.video.dropped=8]){
   const s=structuredClone(samples);change(s);assert.throws(()=>validateFrameWindow(s,{}));
  }
