@@ -151,8 +151,10 @@ matrix. See [component capabilities](docs/CAPABILITIES.md) for supported paths a
 [the complete-file catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md) for exact evidence.
 
 **CPU figures are being refreshed row by row under the current protocol.**
-The recorded Auto routes and CPU figures below predate the default FLAC24 audio
-transcoding change; affected cells need a fresh row retest. See
+The affected Auto cells retested in the
+[audio/subtitle Auto campaign](docs/AUTO-AUDIO-RETEST-E974CBDF.md) use the
+default FLAC24 audio transcoding change; other affected cells still need a
+fresh retest. See
 [audio transcoding](docs/AUDIO-TRANSCODING.md) for the new policy.
 Unmeasured rows retain the historical bounded playback statuses and route labels.
 Previous numbers are preserved in the
@@ -175,17 +177,17 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | --- | --- | --- | --- | --- | --- | --- |
 | H.264 + AAC / MP4 | 🟢 (Pass) · 32.0% CPU | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · 13.0% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 32.4% CPU | 🟡 Screened · 34.6% CPU |
 | H.264 + AAC / MKV | 🟢 (Pass) · 27.4% CPU | 🟢 (Pass) · 9.3% CPU | 🟢 (Pass) · 9.6% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 28.3% CPU | 🟡 Screened · 33.8% CPU |
-| Dual-audio H.264 + AAC + AC-3 stereo / MKV | 🟢 (Pass) · 36.3% CPU | 🟢 (Pass) · 13.9% CPU · default AAC | 🟢 (Pass) · 11.3% CPU · native-direct · AC-3 switch: hybrid | 🔴 (Fail) | 🟢 (Pass) · 32.8% CPU | 🟡 Screened · 35.3% CPU · primary track |
+| Dual-audio H.264 + AAC + AC-3 stereo / MKV | 🟢 (Pass) · 36.3% CPU | 🟢 (Pass) · 13.9% CPU · default AAC | 🟢 (Pass) · 14.0% CPU · native-direct; AC-3 switch: native-transcode (18.1% selected) | 🔴 (Fail) | 🟢 (Pass) · 32.8% CPU | 🟡 Screened · 35.3% CPU · primary track |
 | H.264 + PCM24 / MKV | 🟢 (Pass) · 26.6% CPU | 🟢 (Pass) · 9.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 32.5% CPU |
 | H.264 + PCM24 / MKV + ASS | 🟢 | 🟢 | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) · external ASS unavailable |
 | H.264 + AAC 5.1 / MP4 | 🟢 (Pass)* · 35.1% CPU | 🟢 (Pass)\* · 14.8% CPU | 🟢 (Pass)\* · 14.8% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)\* · 33.4% CPU | 🟡 Screened* · 37.2% CPU |
 | H.264 + MP3 stereo / MP4 | 🟢 (Pass) · 33.6% CPU | 🟢 (Pass) · 13.3% CPU | 🟢 (Pass) · 14.3% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 34.2% CPU | 🟡 Screened · 34.7% CPU |
-| H.264 + AC-3 5.1 / MKV | 🟢 (Pass)* · 36.6% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 36.6% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass)* | 🟡 Screened* |
-| H.264 + E-AC-3 5.1 / MKV | 🟢 (Pass)* · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 34.0% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass)\* · 32.8% CPU | 🟡 Screened* · 35.9% CPU |
-| H.264 + DTS core 5.1 / MKV | 🟢 (Pass)* · 37.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 37.1% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass)\* · 36.9% CPU | 🟡 Screened* · 38.5% CPU |
-| H.264 + AC-3 stereo / MKV | 🟢 (Pass) · 34.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.5% CPU · hybrid (URL) | 🔴 (Fail) | 🟢 (Pass) · 32.9% CPU | 🟡 Screened · 33.8% CPU |
-| H.264 + E-AC-3 stereo / MKV | 🟢 (Pass) · 35.4% CPU | 🔴 (Fail) | 🟢 (Pass) · 35.0% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass) · 33.6% CPU | 🟡 Screened · 34.4% CPU |
-| H.264 + DTS core stereo / MKV | 🟢 (Pass) · 34.6% CPU | 🔴 (Fail) | 🟢 (Pass) · 38.2% CPU · hybrid (URL) | 🔴 (Fail) | 🟢 (Pass) · 37.8% CPU | 🟡 Screened · 35.5% CPU |
+| H.264 + AC-3 5.1 / MKV | 🟢 (Pass)* · 36.6% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 17.5% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass)* | 🟡 Screened* |
+| H.264 + E-AC-3 5.1 / MKV | 🟢 (Pass)* · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 19.0% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass)\* · 32.8% CPU | 🟡 Screened* · 35.9% CPU |
+| H.264 + DTS core 5.1 / MKV | 🟢 (Pass)* · 37.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 19.2% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass)\* · 36.9% CPU | 🟡 Screened* · 38.5% CPU |
+| H.264 + AC-3 stereo / MKV | 🟢 (Pass) · 34.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 17.9% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass) · 32.9% CPU | 🟡 Screened · 33.8% CPU |
+| H.264 + E-AC-3 stereo / MKV | 🟢 (Pass) · 35.4% CPU | 🔴 (Fail) | 🟢 (Pass) · 16.5% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass) · 33.6% CPU | 🟡 Screened · 34.4% CPU |
+| H.264 + DTS core stereo / MKV | 🟢 (Pass) · 34.6% CPU | 🔴 (Fail) | 🟢 (Pass) · native-transcode · CPU withheld (drift) | 🔴 (Fail) | 🟢 (Pass) · 37.8% CPU | 🟡 Screened · 35.5% CPU |
 | H.264 + FLAC stereo / MKV | 🟢 (Pass) · 34.7% CPU | 🟢 (Pass) · 13.2% CPU | 🟢 (Pass) · 13.7% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 33.7% CPU | 🟡 Screened · 33.1% CPU |
 | H.264 + FLAC 5.1 / MKV | 🟢 (Pass)* · 35.2% CPU | 🟢 (Pass)\* · 14.0% CPU | 🟢 (Pass)\* · 14.3% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)\* · 33.2% CPU | 🟡 Screened* · 33.7% CPU |
 | H.264 + Opus stereo / MKV | 🟢 (Pass) · 35.0% CPU | 🟢 (Pass) · 14.3% CPU | 🟢 (Pass) · 15.1% CPU · native-direct | 🟢 (Pass) · 30.2% CPU | 🟢 (Pass) · 35.3% CPU | 🟡 Screened · 35.2% CPU |
@@ -195,9 +197,9 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | HEVC Main 8-bit + AAC / MP4 (hev1) | 🟢 (Pass) · 35.6% CPU | 🟢 (Pass) · 14.7% CPU | 🟢 (Pass) · 15.1% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 34.4% CPU | 🟡 Screened · 41.6% CPU |
 | HEVC Main 10-bit SDR + AAC / MP4 | 🟢 (Pass) · 37.2% CPU | 🟢 (Pass) · 18.4% CPU | 🟢 (Pass) · 18.5% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 37.4% CPU | 🟡 Screened · 41.1% CPU |
 | HEVC Main 10 4:2:2 + AAC / MKV | 🟢 (Pass)* · 37.2% CPU | 🟢 (Pass)\* · 17.8% CPU | 🟢 (Pass)\* · 18.6% CPU · native-direct | 🟢 (Pass)* | 🟢 (Pass)* · 37.6% CPU | 🟡 Screened* · 41.4% CPU |
-| HEVC Main 10-bit SDR + AC-3 / MKV | 🟢 (Pass) · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 30.8% CPU · native-video-mpv-audio (URL) | 🔴 (Fail) | 🟢 (Pass) · 36.8% CPU | 🟡 Screened · 40.6% CPU |
-| HEVC Main 10-bit SDR + E-AC-3 / MKV | 🟢 (Pass) · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 40.0% CPU · hybrid | 🔴 (Fail) | 🟢 (Pass) · 36.9% CPU | 🟡 Screened · 42.0% CPU |
-| HEVC Main 10-bit SDR + DTS core / MKV | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · hybrid | 🔴 (Fail) | 🟢 (Pass) | 🟡 Screened |
+| HEVC Main 10-bit SDR + AC-3 / MKV | 🟢 (Pass) · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass) · native-transcode · CPU withheld (drift) | 🔴 (Fail) | 🟢 (Pass) · 36.8% CPU | 🟡 Screened · 40.6% CPU |
+| HEVC Main 10-bit SDR + E-AC-3 / MKV | 🟢 (Pass) · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · native-transcode · CPU withheld (drift) | 🔴 (Fail) | 🟢 (Pass) · 36.9% CPU | 🟡 Screened · 42.0% CPU |
+| HEVC Main 10-bit SDR + DTS core / MKV | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · native-transcode · CPU withheld (drift) | 🔴 (Fail) | 🟢 (Pass) | 🟡 Screened |
 | AV1 8-bit + AAC / MP4 | 🟢 (Pass) · 36.7% CPU | 🟢 (Pass) · 13.6% CPU | 🟢 (Pass) · 14.2% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 37.2% CPU | 🟡 Screened · 33.5% CPU |
 | AV1 10-bit SDR + Opus / MKV | 🟢 (Pass) · 37.1% CPU | 🟢 (Pass) · 18.0% CPU | 🟢 (Pass) · 17.8% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 38.5% CPU | 🟡 Screened · 36.3% CPU |
 | AV1 + Opus / WebM | 🟢 (Pass) · 36.2% CPU | 🟢 (Pass) · 14.6% CPU | 🟢 (Pass) · 15.3% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 38.3% CPU | 🟡 Screened · 34.9% CPU |
@@ -218,9 +220,9 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + AAC + external WebVTT / MP4 | 🟢 (Pass) · 35.8% CPU | 🟢 (Pass) · 13.7% CPU | 🟢 (Pass) · 14.3% CPU · native-direct | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + embedded mov_text / MP4 | 🟢 (Pass) · 35.5% CPU | 🔴 (Fail) | 🟢 (Pass) · 37.5% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + styled ASS / MKV | 🟢 (Pass) · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.9% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AC-3 stereo + ASS / MKV | 🟢 (Pass) · 35.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.7% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| HEVC + AC-3 + PGS / MKV | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.0% CPU · native-video-mpv-audio-subtitles | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AC-3 + VobSub / MKV | 🟢 (Pass) · 35.2% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 36.0% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AC-3 stereo + ASS / MKV | 🟢 (Pass) · 35.3% CPU | 🔴 (Fail) | 🔴 (Fail) · native-transcode-mpv · intermittent ASS output | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| HEVC + AC-3 + PGS / MKV | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 21.2% CPU · native-transcode-mpv | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AC-3 + VobSub / MKV | 🟢 (Pass) · 35.2% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 18.6% CPU · native-transcode-mpv | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + PGS / MKV (subtitle isolation) | 🟢 (Pass) · 36.0% CPU | 🔴 (Fail) | 🟢 (Pass) · 37.0% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + VobSub / MKV (subtitle isolation) | 🟢 (Pass)* · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.3% CPU · hybrid | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | AAC audio-only / M4A | 🟢 (Pass) · 10.6% CPU | 🟢 (Pass) · 2.4% CPU | 🟢 (Pass) · 3.2% CPU · native-direct | 🟢 (Pass) | 🟢 (Pass) · 9.9% CPU | 🟡 Screened · 45.4% CPU |
@@ -277,15 +279,16 @@ The [DTS core stereo row](experiments/mediabunny-investigation/notes/official-pl
 See [versions, evidence, and configured alternatives](docs/HEAD-TO-HEAD-ROUTES.md)
 and the [rerun guide](docs/HEAD-TO-HEAD.md).
 
-The SRT, mov_text and ASS Demuxe cells now use automatic browser A/V with the
+The earlier SRT, mov_text and styled ASS Demuxe cells used automatic browser A/V with the
 mpv subtitle-only service on the [exact local fixtures and current-tree
 qualification](results/head-to-head/mpv-subtitle-tier-20260923-06/REPORT.md).
 Their earlier paired CPU measurements remain in the
 [historical CPU snapshot](docs/HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md).
 The two H.264/AAC bitmap rows isolate subtitles by copying PGS/VobSub
-from the older AC-3 cases onto browser-compatible A/V. The original AC-3
-subtitle rows retain Hybrid because subtitle composition is outside selective
-admission. Other-player cells on the
+from the older AC-3 cases onto browser-compatible A/V. The current AC-3
+subtitle retest uses native transcoded audio plus mpv subtitles for PGS and
+VobSub; the AC-3/ASS case missed required subtitle drawing in two of three
+runs. Other-player cells on the
 older rows retain their separately linked historical results; the new bitmap
 derivatives were not run through those players. Earlier Demuxe CPU evidence is in
 the [unified subtitle scheduler report](results/subtitle-visual-scheduling/REPORT.md).
