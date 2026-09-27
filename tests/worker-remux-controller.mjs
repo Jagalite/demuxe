@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
-import test from 'node:test';
+import test, {before, after} from 'node:test';
 import assert from 'node:assert/strict';
 import {WorkerRemuxController} from '../web/worker-remux-controller.js';
+// Match the module origin while exercising the browser worker loader in Node.
+const originalLocation=Object.getOwnPropertyDescriptor(globalThis,'location');
+before(()=>Object.defineProperty(globalThis,'location',{configurable:true,value:new URL(import.meta.url)}));
+after(()=>{if(originalLocation)Object.defineProperty(globalThis,'location',originalLocation);else delete globalThis.location;});
 class WorkerStub extends EventTarget {
  constructor(){super();this.messages=[];this.terminated=false;}
  postMessage(message){this.messages.push(message);}
