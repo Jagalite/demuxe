@@ -183,10 +183,6 @@ def generate(fixtures, run, duration):
             if ext == 'm3u8':
                 cmd += ['-f', 'hls', '-hls_time', '2', '-hls_list_size', '0', '-hls_playlist_type', 'vod']
                 if key != 'hls-ts' and key != 'hls-live': cmd += ['-hls_segment_type', 'fmp4']
-                # Avoid the MOV muxer's per-fragment SIDX PTS rewrite: with
-                # open-GOP HEVC it shifts segment-start keyframes before their
-                # leading pictures. HLS uses its playlist to index segments.
-                if key == 'hls-hevc': cmd += ['-hls_segment_options', 'movflags=+skip_sidx']
                 record['streamFormat'] = 'hls'
                 if key == 'hls-live': record['live'] = True
             if ext == 'mpd':

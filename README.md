@@ -183,7 +183,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | H.264 + AAC / MKV | 🟢 (Pass) · 27.4% CPU | 🟢 (Pass) · 9.3% CPU | 🟢 (Pass) · 9.6% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 28.3% CPU | 🟡 Screened · 33.8% CPU |
 | Dual-audio H.264 + AAC + AC-3 stereo / MKV | 🟢 (Pass) · 36.3% CPU | 🟢 (Pass) · 13.9% CPU · default AAC | 🟢 (Pass) · 14.0% CPU · native-direct; AC-3 switch: native-transcode (18.1% selected) | 🔴 (Fail) | 🟢 (Pass) · 32.8% CPU | 🟡 Screened · 35.3% CPU · primary track |
 | H.264 + PCM24 / MKV | 🟢 (Pass) · 26.6% CPU | 🟢 (Pass) · 9.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 32.5% CPU |
-| H.264 + PCM24 / MKV + ASS | 🟢 | 🟢 | 🟢 (Pass) · native-direct-ass · CPU withheld (drift) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) · external ASS unavailable |
+| H.264 + PCM24 / MKV + ASS | 🟢 | 🟢 | 🟢 (Pass) · 19.8% CPU · native-direct-ass | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) · external ASS unavailable |
 | H.264 + AAC 5.1 / MP4 | 🟢 (Pass)* · 35.1% CPU | 🟢 (Pass)\* · 14.8% CPU | 🟢 (Pass)\* · 14.8% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)\* · 33.4% CPU | 🟡 Screened* · 37.2% CPU |
 | H.264 + MP3 stereo / MP4 | 🟢 (Pass) · 33.6% CPU | 🟢 (Pass) · 13.3% CPU | 🟢 (Pass) · 14.3% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 34.2% CPU | 🟡 Screened · 34.7% CPU |
 | H.264 + AC-3 5.1 / MKV | 🟢 (Pass)* · 36.6% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 17.5% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass)* | 🟡 Screened* |
@@ -246,7 +246,7 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🟢 (Pass)* | 🔴 (Fail) | — Unqualified · DV profile 8.1 fixture unavailable | 🔴 (Fail) | 🟡 (Screened)\* | — |
 | H.264 + AAC / HLS VOD (TS segments) | 🟢 | 🟢 (Pass) | 🟢 (Pass) · 15.0% CPU · native-direct | 🟢 (Pass) | 🟢 (Pass) | — |
 | H.264 + AAC / HLS VOD (fMP4 segments) | 🟢 | 🟢 (Pass) | 🟢 (Pass) · 15.6% CPU · native-direct | 🟢 (Pass) | 🟢 (Pass) | — |
-| HEVC + AAC / HLS VOD (fMP4 segments) | 🟢 | 🟢 (Pass) | 🟢 (Pass) · native-direct · CPU withheld (dropped frames) | 🟢 (Pass) | 🟢 (Pass) | — |
+| HEVC + AAC / HLS VOD (fMP4 segments) | 🟢 | 🟢 (Pass) | 🟢 (Pass) · 14.9% CPU · native-direct | 🟢 (Pass) | 🟢 (Pass) | — |
 | H.264 + AAC / DASH VOD (fMP4 segments) | 🟢 | 🔴 (Fail) | 🟢 (Pass) · 17.9% CPU · shaka-mse | 🟢 (Pass) | 🟢 (Pass) | — |
 | AV1 + Opus / DASH VOD (WebM segments) | 🟢 | 🔴 (Fail) | 🟢 (Pass) · 17.7% CPU · shaka-mse | 🟢 (Pass) | 🔴 (Fail) | — |
 | H.264 + AAC / HLS live (sliding window) | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass) · 18.9% CPU · shaka-mse | 🟢 (Pass) | 🔴 (Fail) | — |
@@ -262,7 +262,9 @@ reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs 
 
 **MediaBunny column:** The [official player example](https://mediabunny.dev/examples/media-player/) is screened on each cited fixture using marked video, stereo audio, pause/resume, seeks and near-EOF settlement. 🟡 Screened remains because its public controls do not qualify 1.25× playback or independent cleanup; the dual-audio row covers the default track only. CPU is the median of three headed Chrome whole-process windows (20 seconds each, after five seconds of warmup), expressed as percent of one core. The [first-four campaign](experiments/mediabunny-investigation/notes/official-player-first-four.md) used a separate browser run from the other columns. Subsequent rows linked in the [CPU refresh index](docs/CPU-ROW-REFRESH.md) use one Chrome launch per row across viable player arms, with fresh contexts and rotating order. MediaBunny receives local File input while maintained players use the frozen local URL, so CPU values do not isolate decoder or demux costs. `—` means no player test for that exact row.
 
-The external ASS row played video and audio in the MediaBunny example, but the required subtitle file could not be supplied through its controls. Its failure and the earlier CPU evidence for the other players are documented in the [row evidence](experiments/mediabunny-investigation/notes/official-player-row-pcm24-ass-20260925/REPORT.md). The [current Auto retest](docs/AUTO-MAIN-RETEST-A563F345.md) passed on `native-direct-ass`; its CPU remains withheld because one window differed sharply from the other eight.
+The external ASS row played video and audio in the MediaBunny example, but the required subtitle file could not be supplied through its controls. Its failure and the earlier CPU evidence for the other players are documented in the [row evidence](experiments/mediabunny-investigation/notes/official-player-row-pcm24-ass-20260925/REPORT.md). The [fresh Auto measurements](docs/CPU-GAP-CLOSEOUT.md) passed on `native-direct-ass` with a 19.8% CPU median. The earlier unusually low window remains unexplained and is retained separately; it is not pooled into this fresh median.
+
+The [HEVC HLS follow-up](docs/CPU-GAP-CLOSEOUT.md) corrected segment-start timestamps in the authored fixture and passed fresh correctness plus three CPU windows with zero drops; Auto now reports 14.9% CPU. Other player cells retain their prior fixture evidence.
 
 The [AAC 5.1 row](experiments/mediabunny-investigation/notes/official-player-row-h264-aac51-20260925/REPORT.md) used one headed Chrome launch for all player CPU arms and three rotating rounds. Its `*` means stereo output was screened; six discrete output channels were not verified. Movi's CPU samples are diagnostic because its correctness screen failed.
 

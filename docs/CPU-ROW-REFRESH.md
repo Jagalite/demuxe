@@ -16,7 +16,7 @@ launch per round. The
 | H.264 + AAC / MKV | Complete: 5 pass, Movi fail | [row report](../results/head-to-head/row-h264-aac-mkv-20260925-01/REPORT.md) |
 | Dual-audio H.264 + AAC + AC-3 stereo / MKV | Current Auto: default AAC native-direct, AC-3 switch native-transcode; separate 14.0% and 18.1% CPU medians | [Auto retest](AUTO-AUDIO-RETEST-E974CBDF.md), [earlier row report](../results/head-to-head/row-h264-dual-audio-20260925-02/REPORT.md) |
 | H.264 + PCM24 / MKV | Auto rerun on current player: native-direct, 14.0% CPU median; other arms retain earlier campaign results | [Auto rerun](../results/head-to-head/pcm24-auto-rerun-20260925-01/REPORT.md), [earlier row report](../results/head-to-head/row-h264-pcm24-mkv-20260925-01/REPORT.md) |
-| H.264 + PCM24 / MKV + ASS | Current Auto: native-direct-ass passed; CPU withheld after unresolved low window | [current-main Auto retest](AUTO-MAIN-RETEST-A563F345.md) |
+| H.264 + PCM24 / MKV + ASS | Current Auto: native-direct-ass passed; 19.8% CPU from three fresh windows; historical low window retained separately | [CPU gap follow-up](CPU-GAP-CLOSEOUT.md) |
 | H.264 + AAC 5.1 / MP4 | Screened stereo output for five arms; Movi failed; matched one-Chrome CPU for the screened arms | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-aac51-20260925/REPORT.md) |
 | H.264 + MP3 stereo / MP4 | Four maintained arms passed and Movi failed; MediaBunny screened; matched one-Chrome CPU with Auto outlier and follow-up | [row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-mp3-confirmed-20260925/REPORT.md) |
 | H.264 + AC-3 5.1 / MKV | Current Auto native-transcode, 17.5% CPU; stereo-output screen | [Auto retest](AUTO-AUDIO-RETEST-E974CBDF.md), [earlier row report](../experiments/mediabunny-investigation/notes/official-player-row-h264-ac3-confirmed-20260925/REPORT.md) |
@@ -90,7 +90,7 @@ checks receive no CPU figure.
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | Unqualified: no qualified profile 8.1 fixture | [Auto retest](AUTO-MAIN-RETEST-A563F345.md) |
 | H.264 + AAC / HLS VOD (TS segments) | Pass, `native-direct`, 15.0% CPU | [Auto retest](AUTO-MAIN-RETEST-A563F345.md) |
 | H.264 + AAC / HLS VOD (fMP4 segments) | Pass, `native-direct`, 15.6% CPU | [Auto retest](AUTO-MAIN-RETEST-A563F345.md) |
-| HEVC + AAC / HLS VOD (fMP4 segments) | Pass, `native-direct`; CPU withheld after dropped-frame rejections | [Auto retest](AUTO-MAIN-RETEST-A563F345.md) |
+| HEVC + AAC / HLS VOD (fMP4 segments) | Pass, `native-direct`; 14.9% CPU on corrected fixture, zero drops in three windows | [CPU gap follow-up](CPU-GAP-CLOSEOUT.md) |
 | H.264 + AAC / DASH VOD (fMP4 segments) | Pass, `shaka-mse`, 17.9% CPU after independent repeat | [Auto retest](AUTO-MAIN-RETEST-A563F345.md) |
 | AV1 + Opus / DASH VOD (WebM segments) | Pass, `shaka-mse`, 17.7% CPU | [Auto retest](AUTO-MAIN-RETEST-A563F345.md) |
 | H.264 + AAC / HLS live (sliding window) | Pass, `shaka-mse`, 18.9% CPU after per-round live-fixture epoch fix | [Auto retest](AUTO-MAIN-RETEST-A563F345.md) |
