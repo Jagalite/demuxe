@@ -419,7 +419,7 @@ export class DemuxePlayerElement extends Base {
                 const core = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, watchdogs: this.watchdogConfiguration, audioPlayback: this.audioPlaybackConfiguration, preview: this.previewConfiguration, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
                 this.dimensions = '';
                 this.trackSignature = '';
-                for (const type of [...PLAYER_EVENTS, 'preparationchange', 'inspectionchange', 'modechange', 'selectionchange', 'mpv', 'log', 'source', 'output'])
+                for (const type of [...PLAYER_EVENTS, 'preparationchange', 'inspectionchange', 'mpv', 'log', 'source', 'output'])
                     core.addEventListener(type, event => {
                         if (this.core !== core || this.terminal)
                             return;

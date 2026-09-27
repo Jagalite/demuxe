@@ -73,7 +73,8 @@ test('Shaka owns controlled adaptive execution without weakening file or feature
  assert.deepEqual(eligible({manifest:true,nativeSourceRejection:'Use Shaka',isolated:false,requiresRemux:true}),['shaka-mse']);
  assert.deepEqual(eligible({manifest:true,nativeSourceRejection:'Use Shaka',streamingFallbackRejection:'Cannot preserve quality'}),['shaka-mse']);
  assert.deepEqual(eligible({manifest:true,nativeSourceRejection:'Use Shaka',mse:false}),['hybrid','software']);
- for(const extra of [{vf:'hflip'},{audioOutput:'5.1'},{externalFormats:['ass'],nativeASS:true},{externalFormats:['browser-vtt']},{browserTextTracks:true},{shakaSourceRejection:'Explicit demuxer'}])assert.ok(!eligible({manifest:true,...extra}).some(p=>p.startsWith('shaka-')));
+ for(const extra of [{vf:'hflip'},{audioOutput:'5.1'},{externalFormats:['ass'],nativeASS:true},{shakaSourceRejection:'Explicit demuxer'}])assert.ok(!eligible({manifest:true,...extra}).some(p=>p.startsWith('shaka-')));
+ for(const extra of [{externalFormats:['browser-vtt']},{browserTextTracks:true}])assert.ok(eligible({manifest:true,...extra}).includes('shaka-mse'));
  assert.ok(!eligible({}).some(p=>p.startsWith('shaka-')));
  assert.ok(eligible({manifest:true,gain:.5}).includes('shaka-mse-gain'));
 });

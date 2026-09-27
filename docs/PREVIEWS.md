@@ -27,6 +27,18 @@ It deliberately does not retain error messages, signed URLs or a growing event l
 
 ## Disable controls and pre-generation
 
+`player.preview` is a stable `PlayerPreview` facade. Applications can use
+`getFrame`, `request` (with refinement callbacks), `prefetch`, `addProvider`,
+`setProviders`, `clear`, `enabled`, and immutable `diagnostics` snapshots.
+`clear()` cancels pending requests and evicts cached images; `setProviders()`
+replaces the preview provider list and clears its work/cache. Neither changes
+the playback source. Provider removal functions are idempotent.
+
+Player owns source identity, duration, playback-pressure suspension, and teardown.
+Use `await player.close()` or `await player.destroy()` to await owned cleanup.
+Applications owning a separate preview lane can still construct the exported
+`PreviewController`, which retains its full lifecycle API.
+
 The ready-made player's settings include **Timeline thumbnails**. Turning it off
 hides/cancels scrubber previews without disabling the API or background generation:
 

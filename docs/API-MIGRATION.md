@@ -2,6 +2,24 @@
 
 # API migration
 
+## Player-owned preview facade
+
+`player.preview` now exposes `PlayerPreview`, not the full `PreviewController`.
+Frame requests, refinement callbacks, prefetch, provider registration/replacement,
+cache clearing, and `enabled` assignment keep their signatures. Diagnostics are
+immutable snapshots. The facade and its methods cannot be replaced by assignment.
+
+Calls to `player.preview.setSourceIdentity`, `setDuration`, `setSuspended`, `drain`,
+or `destroy` must be removed: those operations belong to Player. Use
+`await player.close()` for reusable teardown and `await player.destroy()` for final
+teardown. Use request signals for cancellation and `clear()` to cancel preview
+work and evict cached images. If your application intentionally owns an independent
+lane, construct the still-exported `PreviewController` and manage its lifecycle.
+Code explicitly annotating `player.preview` as `PreviewController` should use the
+exported `PlayerPreview` type instead.
+
+## Normalized playback API
+
 The current baseline is demo-source 8bb451b, not the older main implementation.
 All existing playback methods remain; no fourth mode or raw command passthrough
 is introduced. Keep `volume(75)` and `rate(1.5)` as-is, or use `setVolume(.75)` and
@@ -54,3 +72,11 @@ Use `<demuxe-player>`, `DemuxePlayerElement`, `--demuxe-*` CSS variables,
 `demuxe copy-assets`, and `/assets/demuxe/`. No legacy element alias is registered.
 The three public mode values remain `native`, `hybrid`, and `software`.
 See [the branding audit](BRANDING-MIGRATION.md) for retained historical identifiers.
+
+## Roadmap API additions
+
+The five recommended phases now have public APIs; see [contracts and limitations](API-EXTENSIONS.md) and [option defaults](API-OPTIONS.md). File/Blob opening supports transactional `startTime`; `inspectMedia` works independently. Metadata/chapters, timing/style controls, attachment handles, streaming quality/live state, stable statistics/explanations, loops/ranges, snapshots/stepping, and `player.presentation` are additive.
+
+Keep the returned attachment object when calling the new `attachSubtitle`, `attachTextTrack`, or `attachFont` methods. Existing `addSubtitle`, `addTextTrack`, and `addFont` callers retain `Promise<void>`. Fonts keep their existing player lifetime. Existing seeks remain queued; use `{policy:'latest'}` to request supersession. Existing construction defaults and the three public playback modes are unchanged.
+
+`modechange` and `selectionchange` now infer their actual detail types through `PlayerEventMap`. They describe candidates/attempts; use immutable state for the accepted source. Unobserved statistics and presented-quality facts stay null. Custom callback playback uses bounded staging (32 MiB); it does not imply lazy large-file streaming.

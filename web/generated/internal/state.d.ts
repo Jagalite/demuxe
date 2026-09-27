@@ -8,4 +8,4 @@ export type RawTrack = Record<string, any>;
 export declare function usesRemuxTracks(plan?: string): boolean;
 export declare function trackKey(track: RawTrack, mode: PlaybackMode, plan?: string): string;
 export declare function tracks(raw: RawTrack[], sourceId: number, mode: PlaybackMode, plan?: string): MediaTrack[];
-export declare function mediaInfo(properties: ReadonlyMap<string, unknown>, mode: PlaybackMode, surface: HTMLCanvasElement | HTMLVideoElement | undefined, list: MediaTrack[]): MediaInfo;
+export declare function mediaInfo(properties: ReadonlyMap<string, unknown>, mode: PlaybackMode, surface: HTMLCanvasElement | HTMLVideoElement | undefined, list: MediaTrack[], sourceId?: number | null): MediaInfo;

@@ -31,8 +31,10 @@ export class NativePlayer extends EventTarget {
     ass;
     assAssets = [];
     assIndex = -1;
+    textAttachmentIds = new WeakMap();
     captionAssets = new Map();
     captionURLs = new Set();
+    outputDevice = '';
     gainContext;
     gainSource;
     gainNode;
@@ -56,6 +58,8 @@ export class NativePlayer extends EventTarget {
             if (!this.video.paused)
                 await this.resumeGain();
             this.assertActive();
+            if (this.outputDevice)
+                await this.setAudioOutputDevice(this.outputDevice);
             const source = context.createMediaElementSource(this.video), gain = context.createGain();
             gain.gain.setValueAtTime(value, context.currentTime);
             source.connect(gain);
@@ -202,8 +206,8 @@ export class NativePlayer extends EventTarget {
         return caption ? String(200000 + caption.index) : String(Array.from(this.video.textTracks).filter(t => !this.captionAssets.has(t)).indexOf(track) + 1);
     }
     refresh() {
-        const tracks = Array.from(this.video.textTracks, t => ({ id: this.textTrackId(t), type: 'sub', title: t.label, lang: t.language, selected: t.mode === 'showing', ...(this.captionAssets.has(t) ? { external: true, 'external-index': this.captionAssets.get(t).index, codec: 'webvtt' } : {}) }));
-        tracks.push(...this.assAssets.map((a, i) => ({ id: String(100001 + i), type: 'sub', codec: a.format, title: a.label, lang: a.language, external: true, 'external-index': i + 1, selected: (this.selectedSub === 'auto' || Number(this.selectedSub) === 100001 + i) && this.assIndex === i })));
+        const tracks = Array.from(this.video.textTracks, t => ({ id: this.textTrackId(t), type: 'sub', title: t.label, lang: t.language, selected: t.mode === 'showing', ...(this.textAttachmentIds.has(t) ? { external: true, 'attachment-id': this.textAttachmentIds.get(t) } : {}), ...(this.captionAssets.has(t) ? { external: true, 'attachment-id': this.captionAssets.get(t).asset.attachmentId, 'external-index': this.captionAssets.get(t).index, codec: 'webvtt' } : {}) }));
+        tracks.push(...this.assAssets.map((a, i) => ({ id: String(100001 + i), type: 'sub', codec: a.format, title: a.label, lang: a.language, external: true, 'attachment-id': a.attachmentId, 'external-index': i + 1, selected: (this.selectedSub === 'auto' || Number(this.selectedSub) === 100001 + i) && this.assIndex === i })));
         if (this.mpvSubs)
             tracks.push(...this.mpvSubs.tracks);
         const audio = this.video.audioTracks;
@@ -865,6 +869,19 @@ export class NativePlayer extends EventTarget {
         const autoIndex = preferred ? Array.from(this.video.textTracks).indexOf(preferred) : Array.from(this.video.textTracks).findIndex(t => !this.captionAssets.has(t));
         Array.from(this.video.textTracks).forEach((t, i) => { t.mode = this.subsVisible && !(this.assIndex >= 0 && this.selectedSub === 'auto') && this.selectedSub !== 'no' && (this.selectedSub === 'auto' ? i === autoIndex : this.textTrackId(t) === this.selectedSub) ? 'showing' : 'disabled'; });
     }
+    async setAudioOutputDevice(id) {
+        this.assertActive();
+        if (this.mpvAudio) {
+            await this.mpvAudio.setAudioOutputDevice(id);
+            this.outputDevice = id;
+            return;
+        }
+        const output = (this.gainContext ?? this.video);
+        if (!output.setSinkId)
+            throw new PlayerError('UNSUPPORTED_FEATURE', 'Output device selection is unavailable');
+        await output.setSinkId(id === 'default' ? '' : id);
+        this.outputDevice = id;
+    }
     async subtitleVisible(visible) { this.assertActive(); this.subsVisible = visible; this.applySubtitles(); this.refresh(); }
     async addSubtitle(asset) {
         this.assertActive();
@@ -925,8 +942,8 @@ export class NativePlayer extends EventTarget {
         this.applySubtitles();
         this.refresh();
     }
-    async addTextTrack(source) { await this.loadTextTrack(source); }
-    async loadTextTrack(source, ownedCaption = false) {
+    async addTextTrack(source, attachmentId) { await this.loadTextTrack(source, false, attachmentId); }
+    async loadTextTrack(source, ownedCaption = false, attachmentId) {
         this.assertActive();
         const url = new URL(source.src, location.href);
         if (!['http:', 'https:', 'blob:'].includes(url.protocol))
@@ -937,6 +954,8 @@ export class NativePlayer extends EventTarget {
         track.srclang = source.language || '';
         track.default = !!source.default;
         track.src = url.href;
+        if (attachmentId)
+            this.textAttachmentIds.set(track.track, attachmentId);
         await new Promise((resolve, reject) => {
             const finish = (error) => { clearTimeout(timer); track.removeEventListener('load', loaded); track.removeEventListener('error', failed); this.cancelers.delete(cancel); if (error) {
                 track.remove();

@@ -24,7 +24,7 @@ try{
  await page.evaluate(()=>{element.previewThumbnails=false;});await root.locator('#thumbnail-preview').waitFor({state:'hidden'});
  assert.equal(await page.evaluate(()=>p.preview.enabled),true);
  const disabled=await page.evaluate(async()=>{
-  p.preview.enabled=false;await p.preview.drain();await p.open(file);
+  p.preview.enabled=false;await p.open(file);
   const off=await p.preview.getFrame({time:1});const count=p.preview.diagnostics.cacheEntries;p.preview.enabled=true;
   return {off,count};
  });assert.deepEqual(disabled,{off:null,count:0});

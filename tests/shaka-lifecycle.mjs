@@ -46,6 +46,25 @@ async function check(name,run){if(process.env.ONLY&&!name.includes(process.env.O
   catch(error){result.cases.push({name,passed:false,error:String(error.stack),console,diagnostics:await page.evaluate(()=>({player:p.diagnostics,state:p.state,cancelStage:window.cancelStage,cancelCandidate:window.cancelCandidate?{stopped:cancelCandidate.stopped,opening:cancelCandidate.opening,network:cancelCandidate.policy?.diagnostics,loadMode:cancelCandidate.player?.getLoadMode()}:undefined})).catch(()=>null)});process.exitCode=1;process.stdout.write(`FAIL ${name}: ${error}\n`);}
   finally{await Promise.race([page.evaluate(()=>p.destroy()).catch(()=>{}),new Promise(r=>setTimeout(r,5000))]);await page.close();await fs.writeFile(path.join(out,'result.json'),JSON.stringify(result,null,2)+'\n');}}
 try{
+await check('roadmap runtime quality retains audio, position, intent and attachment identity',async page=>{
+ await page.evaluate(async url=>{await p.open({url,format:'hls',streaming:{maxBandwidth:2000000}});await p.seek(2);},url);
+ const selected=await page.evaluate(async()=>{
+  const before=p.state,audio=before.mediaInfo.audio.id,qualities=p.getStreamingState().qualities;
+  const low=qualities.find(q=>q.height===90);if(!low)throw Error('No low quality');await p.setQuality({mode:'manual',id:low.id});
+  const manual=p.getStreamingState(),state=p.state;
+  const french=state.audioTracks.find(t=>t.language==='fr');const rejected=await p.selectAudioTrack(french.id).catch(e=>e.code);
+  await p.setQuality({mode:'auto',maxHeight:90,maxBandwidth:1000000});await p.selectAudioTrack(french.id);
+  const automatic=p.getStreamingState(),after=p.state;
+  const blob=new File(['WEBVTT\n\n00:00.000 --> 00:10.000\nExternal\n'],'external.vtt');const handle=await p.attachSubtitle(blob);
+  const attached=p.state.subtitleTracks.find(t=>t.id.endsWith(handle.id));await p.removeAttachment(handle);
+  return {audio,qualities,manual,state,rejected,automatic,after,attached,removed:!p.state.subtitleTracks.some(t=>t.id.endsWith(handle.id))};
+ });
+ assert.equal(selected.manual.requested.mode,'manual');assert.equal(selected.manual.presentedId,null);assert.equal(selected.state.mediaInfo.audio.id,selected.audio);assert.ok(Math.abs(selected.state.currentTime-2)<.15);assert.equal(selected.state.playbackIntent,'pause');assert.equal(selected.rejected,'UNSUPPORTED_FEATURE');assert.equal(selected.after.mediaInfo.audio.language,'fr');assert.equal(selected.automatic.requested.maxHeight,90);assert.ok(selected.attached);assert.equal(selected.removed,true);return selected;
+});
+await check('roadmap live navigation uses the backend target and retains source ownership',async page=>{
+ await page.evaluate(async url=>{await p.open({url,format:'hls',streaming:{live:true,maxBandwidth:1000000}});},eventURL);
+ return await page.evaluate(async()=>{const before=p.state.sourceId,range=p.getStreamingState().live.seekable;await p.seekToLive();const live=p.getStreamingState().live;if(p.state.sourceId!==before||!live.isLive||!live.nearLive)throw Error('Live navigation failed ownership or target verification');return {range,live,time:p.state.currentTime};});
+});
 await check('adaptive variants, audio/text selection, pause, seek and visibility',async page=>{
   await page.evaluate(async url=>{await p.open({url,format:'hls',streaming:{maxBandwidth:1000000}});await p.play();},url);
   await page.waitForFunction(()=>p.state.currentTime>.3);

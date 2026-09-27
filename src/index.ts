@@ -21,3 +21,14 @@ export type {PreviewPregeneration} from './types.js';
 
 export type {TrackPolicy,TrackTypePolicy,TrackMatch} from './types.js';
 export type {WatchdogOptions,WatchdogPolicy} from './types.js';
+
+export type {PlayerPreview} from './preview/player-preview.js';
+
+export type {ModeChangeDetail,SelectionChangeDetail,PlaybackStats,PlaybackExplanation,PlaybackDecisionCode} from './types.js';
+export type {AttachmentHandle,SubtitleStyle,TimingSettings} from './types.js';
+export type {Chapter} from './types.js';
+export type {QualityPolicy,StreamingQuality,StreamingState} from './types.js';
+export {inspectMedia,CUSTOM_SOURCE_PLAYBACK_LIMIT} from './sources.js';
+export type {CustomSource,InspectionOptions,MediaInspection} from './types.js';
+export type {SeekOptions,PlaybackRange,LoopPolicy,SnapshotOptions,VideoSnapshot} from './types.js';
+export {PlayerPresentation} from './presentation.js';

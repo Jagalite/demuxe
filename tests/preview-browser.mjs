@@ -31,5 +31,34 @@ try{
   return {before,after,pausedBefore,pausedAfter,sourceCleared,ownedURLs,actualTime:frame.actualTime,temporalAccuracy:frame.temporalAccuracy,seeks,errors,dimensions,cache:hit.cache,path:frame.path,time:frame.time,fallback:!!fallback,cancelled,advanced,cleared,absent};
  });
  assert.equal(result.pausedBefore,result.pausedAfter);assert.equal(result.sourceCleared,true);assert.equal(result.ownedURLs,0);assert.equal(result.actualTime,null);assert.equal(result.temporalAccuracy,'approximate');assert.equal(result.before,result.after);assert.equal(result.seeks,0);assert.equal(result.errors,0);assert.equal(result.dimensions[0],160);assert.equal(result.cache,'hit');assert.equal(result.path,'local-browser');assert.ok(Math.abs(result.time-2)<.1);assert.equal(result.fallback,true);assert.equal(result.cancelled,'AbortError');assert.equal(result.advanced,true);assert.equal(result.cleared.cacheBytes,0);assert.equal(result.absent,null);
- console.log(JSON.stringify({browser:browser.version(),...result},null,2));
+ const ownership=await page.evaluate(async()=>{
+  const {Player,PreviewController}=await import('/web/generated/index.js');
+  const player=new Player(document.querySelector('#surface'),{mode:'native',preview:{debounceMs:0}});
+  const api=player.preview;
+  const hidden=['setSourceIdentity','setDuration','setSuspended','drain','destroy'].every(name=>!(name in api));
+  const standalone=typeof PreviewController.prototype.destroy==='function';
+  const replacementRejected=!Reflect.set(player,'preview',{});
+  const stages=[];
+  for(const action of ['close','destroy']){
+   let started,release,finish;
+   const ready=new Promise(resolve=>{started=resolve;});
+   api.setProviders([{id:'owned-cleanup',priority:0,canHandle:()=>true,getFrame:context=>{
+    context.trackCleanup(new Promise(resolve=>{release=resolve;}));
+    started();return new Promise(resolve=>{finish=resolve;});
+   }}]);
+   const pending=api.getFrame({time:1}).catch(error=>error.name);
+   await ready;let settled=false;
+   const teardown=player[action]().then(()=>{settled=true;});
+   const cancelled=await pending;
+   await new Promise(resolve=>setTimeout(resolve,0));
+   const awaitedCleanup=!settled;
+   release();await teardown;
+   finish({time:1,width:8,height:8,image:{blob:new Blob(['late'])},path:'late'});
+   await new Promise(resolve=>setTimeout(resolve,0));
+   stages.push({action,cancelled,awaitedCleanup,entries:api.diagnostics.cacheEntries,same:api===player.preview});
+  }
+  return {hidden,standalone,replacementRejected,frozen:Object.isFrozen(api),stages,terminal:await api.getFrame({time:1}).catch(error=>error.name)};
+ });
+ assert.deepEqual(ownership,{hidden:true,standalone:true,replacementRejected:true,frozen:true,stages:['close','destroy'].map(action=>({action,cancelled:'AbortError',awaitedCleanup:true,entries:0,same:true})),terminal:'AbortError'});
+ console.log(JSON.stringify({browser:browser.version(),...result,ownership},null,2));
 }finally{await browser?.close();server.kill();}

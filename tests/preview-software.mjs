@@ -37,7 +37,9 @@ try{
   const deadline=performance.now()+5000;
   while(document.querySelectorAll('iframe').length===owners&&performance.now()<deadline)await new Promise(r=>setTimeout(r,1));
   if(document.querySelectorAll('iframe').length===owners)throw Error('Preview worker did not start: '+JSON.stringify({preview:p.preview.diagnostics,state:p.state,result:await pressureRequest}));
-  buffering(true);const preempted=await pressureRequest;await p.preview.drain();
+  buffering(true);const preempted=await pressureRequest;
+  const cleanupDeadline=performance.now()+5000;
+  while(document.querySelectorAll('iframe').length>owners&&performance.now()<cleanupDeadline)await new Promise(r=>setTimeout(r,10));
   const blocked=await p.preview.getFrame({time:5}),cachedDuringBuffering=await p.preview.getFrame({time:2,width:160});
   const ownersDuringBuffering=document.querySelectorAll('iframe').length;
   buffering(false);await p.pause();const resumed=await p.preview.getFrame({time:0});

@@ -255,8 +255,9 @@ Player; it owns no separate optimization route or audio graph. Applications usin
 an explicitly configured core can call `setAudioGain` repeatedly without replacing
 the video session. Ordinary component volume/mute controls retain their existing
 meaning. The component fullscreen container includes subtitle canvases. Native
-ASS and adaptation require explicit core constructor options and optional assets;
-there are no new component attributes or silently enabled experimental defaults.
+ASS follows the core automatic-selection default and requires its optional assets.
+Explicit adaptation trials retain their core constructor options. These controls add
+no component attributes; see the [current default table](API-OPTIONS.md).
 See [core options and restrictions](PUBLIC-API.md#experimental-playback-optimizations).
 
 ### Track defaults and permitted choices

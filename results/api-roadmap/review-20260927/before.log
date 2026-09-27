@@ -1,0 +1,146 @@
+✔ statistics distinguish startup, buffering, seeks and source epochs (0.710041ms)
+✔ custom staging serializes short reads, copies provider buffers and releases ownership (2.105708ms)
+✔ custom reads enforce bounds, abort late reads, and never close borrowed sources (1.044667ms)
+✔ attachment identity survives ordinal removal and chapters are source scoped (0.623416ms)
+✔ mutable source identity fails instead of combining different byte sources (0.222208ms)
+✖ queued boundary work honors the latest range and cannot pause a replacement (87.786583ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'get')
+      at Player.settled (file:///Volumes/seed2/Projects/demuxe/web/generated/unified-player.js:834:55)
+      at file:///Volumes/seed2/Projects/demuxe/web/generated/unified-player.js:2105:28
+      at async TestContext.<anonymous> (file:///Volumes/seed2/Projects/demuxe/tests/roadmap-contracts.mjs:56:53)
+      at async Test.run (node:internal/test_runner/test:932:9)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7)
+
+✖ late video PiP entry is locked during the request and retired on destroy (0.981917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///Volumes/seed2/Projects/demuxe/tests/roadmap-contracts.mjs:67:66)
+      at async Test.run (node:internal/test_runner/test:932:9)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual'
+  }
+
+✖ document PiP rejects concurrent entry and ignores retired window events (0.176625ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Volumes/seed2/Projects/demuxe/tests/roadmap-contracts.mjs:80:64)
+      at async Test.run (node:internal/test_runner/test:932:9)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects'
+  }
+
+✔ Shaka backend preserves audio and text selection intent and exposes actual stream state (26.919958ms)
+✔ destroy during Shaka load aborts the candidate and removes session networking (3.855792ms)
+✔ live requires explicit intent and publishes a sliding seekable window (1.155166ms)
+✔ source representation IDs beat numeric variant IDs and preserve active audio (2.202666ms)
+✔ live:true is permission and also accepts an ordinary VOD manifest (0.2885ms)
+✔ audio selection cannot escape a pinned representation or bandwidth ceiling (0.971667ms)
+✔ in-progress presentations require live permission and publish live state until finished (0.481791ms)
+✔ shared runtime download survives one cancellation and remains cached after success (0.751083ms)
+✔ last runtime waiter cancels fetch, settles open and permits a fresh retry (0.675208ms)
+✔ cancellation removes a queued execution script, its listeners and blob URL (2.271583ms)
+✔ portable buffering preserves Shaka defaults and delegates profile goals (0.710459ms)
+✔ Native preload maps literally and only promises hint control (0.242042ms)
+✔ preview uses indexed Shaka tracks and isolated image transport without moving playback (4.184958ms)
+✔ runtime qualities preserve source ceilings and selected audio; selected is not presented (0.621375ms)
+✖ rejected quality configuration never publishes success or disables the previous policy (0.498416ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Volumes/seed2/Projects/demuxe/tests/shaka-backend.mjs:175:3)
+      at async Test.run (node:internal/test_runner/test:932:9)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects'
+  }
+
+✖ automatic quality ceilings cannot use a different audio role as eligibility evidence (0.254375ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Volumes/seed2/Projects/demuxe/tests/shaka-backend.mjs:185:3)
+      at async Test.run (node:internal/test_runner/test:932:9)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects'
+  }
+
+ℹ tests 24
+ℹ suites 0
+ℹ pass 19
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 325.656584
+
+✖ failing tests:
+
+test at tests/roadmap-contracts.mjs:51:1
+✖ queued boundary work honors the latest range and cannot pause a replacement (87.786583ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'get')
+      at Player.settled (file:///Volumes/seed2/Projects/demuxe/web/generated/unified-player.js:834:55)
+      at file:///Volumes/seed2/Projects/demuxe/web/generated/unified-player.js:2105:28
+      at async TestContext.<anonymous> (file:///Volumes/seed2/Projects/demuxe/tests/roadmap-contracts.mjs:56:53)
+      at async Test.run (node:internal/test_runner/test:932:9)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7)
+
+test at tests/roadmap-contracts.mjs:60:1
+✖ late video PiP entry is locked during the request and retired on destroy (0.981917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///Volumes/seed2/Projects/demuxe/tests/roadmap-contracts.mjs:67:66)
+      at async Test.run (node:internal/test_runner/test:932:9)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual'
+  }
+
+test at tests/roadmap-contracts.mjs:71:1
+✖ document PiP rejects concurrent entry and ignores retired window events (0.176625ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Volumes/seed2/Projects/demuxe/tests/roadmap-contracts.mjs:80:64)
+      at async Test.run (node:internal/test_runner/test:932:9)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects'
+  }
+
+test at tests/shaka-backend.mjs:171:1
+✖ rejected quality configuration never publishes success or disables the previous policy (0.498416ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Volumes/seed2/Projects/demuxe/tests/shaka-backend.mjs:175:3)
+      at async Test.run (node:internal/test_runner/test:932:9)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects'
+  }
+
+test at tests/shaka-backend.mjs:180:1
+✖ automatic quality ceilings cannot use a different audio role as eligibility evidence (0.254375ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Volumes/seed2/Projects/demuxe/tests/shaka-backend.mjs:185:3)
+      at async Test.run (node:internal/test_runner/test:932:9)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects'
+  }

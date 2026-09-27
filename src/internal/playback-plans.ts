@@ -123,7 +123,7 @@ export function planAdmission(f:PlanFacts){
       if(!f.manifest)reject('SOURCE_UNSUPPORTED','Shaka is only used for adaptive HLS/DASH sources');
       else if(!f.mse)reject('DEPLOYMENT_UNAVAILABLE','Shaka requires MediaSource');
       else if(f.audioOutput!=='stereo')reject('FEATURE_UNSUPPORTED','Explicit PCM layout requires mpv');
-      else if(f.externalFormats.length||f.browserTextTracks)reject('QUALIFICATION_REQUIRED','External attachments are not qualified on Shaka manifest timelines');
+      else if(f.externalFormats.some(format=>format!=='browser-vtt'))reject('QUALIFICATION_REQUIRED','Shaka external attachments require plain WebVTT');
       else if(f.shakaSourceRejection)reject('SOURCE_UNSUPPORTED',f.shakaSourceRejection);
     }
     else if(plan.mode!=='native'&&f.manifest&&f.streamingFallbackRejection)reject('FEATURE_UNSUPPORTED',f.streamingFallbackRejection);

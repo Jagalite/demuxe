@@ -4,6 +4,10 @@ export interface Backend extends EventTarget {
     setWatchdogs?(policy: import('../types.js').WatchdogPolicy): void;
     nativeProgressSample?(): import('./watchdogs.js').NativeProgressSample;
     previewFrame?(request: import('../preview/controller.js').PreviewContext): Promise<import('../preview/controller.js').PreviewResult | null>;
+    streamingState?(): import('../types.js').StreamingState;
+    setAudioOutputDevice?(id: string): Promise<void>;
+    setQuality?(policy: import('../types.js').QualityPolicy): Promise<void>;
+    seekToLive?(): Promise<void>;
     readonly ready: Promise<void>;
     readonly properties: Map<string, unknown>;
     readonly planId?: string;
@@ -21,7 +25,7 @@ export interface Backend extends EventTarget {
     subtitleVisible(visible: boolean): Promise<void>;
     resize(width: number, height: number): void;
     command?(...args: string[]): Promise<void>;
-    addTextTrack?(track: TextTrackSource): Promise<void>;
+    addTextTrack?(track: TextTrackSource, attachmentId?: string): Promise<void>;
     addSubtitle?(subtitle: SubtitleAsset): Promise<void>;
     startupEvidence?(): import('./runtime-capability.js').CapabilityEvidence;
     audioDiagnostics(): object;

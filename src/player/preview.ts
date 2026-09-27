@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-import type {PreviewController,PreviewFrame} from '../preview/controller.js';
+import type {PreviewFrame} from '../preview/controller.js';
+import type {PlayerPreview} from '../preview/player-preview.js';
 import {previewImageBlob} from '../preview/images.js';
 import {formatTime} from './interaction.js';
 /** UI-only hover owner. No decoder, media seek, or playback controls live here. */
@@ -7,7 +8,7 @@ export class ScrubberPreview {
   private controller?:AbortController;
   private presentation?:AbortController;
   private presentingImage?:PreviewFrame['image'];
-  private pending?:{api:PreviewController;time:number};
+  private pending?:{api:PlayerPreview;time:number};
   private displayedImage?:PreviewFrame['image'];
   private serial=0;private url?:string;
   private readonly move=(event:PointerEvent)=>{
@@ -22,7 +23,7 @@ export class ScrubberPreview {
     // it can produce an image. Only the latest waiting position is retained.
     this.pending={api,time};void this.next();
   };
-  constructor(private timeline:HTMLInputElement,private panel:HTMLElement,private image:HTMLImageElement,private label:HTMLElement,private api:()=>PreviewController|undefined){
+  constructor(private timeline:HTMLInputElement,private panel:HTMLElement,private image:HTMLImageElement,private label:HTMLElement,private api:()=>PlayerPreview|undefined){
     timeline.addEventListener('pointermove',this.move);timeline.addEventListener('pointerleave',this.hide);timeline.addEventListener('pointercancel',this.hide);
   }
   private async next(){

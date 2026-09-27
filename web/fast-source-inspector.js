@@ -37,7 +37,16 @@ class Source {
     }
   }
   readBlob(blob, signal) {
-    if (typeof FileReader === 'undefined') return blob.arrayBuffer();
+    if (typeof FileReader === 'undefined' || !(blob instanceof Blob)) {
+      return new Promise((resolve,reject)=>{
+        let done=false;
+        const finish=(error,value)=>{if(done)return;done=true;clearTimeout(timer);signal.removeEventListener('abort',abort);error?reject(error):resolve(value);};
+        const abort=()=>finish(new DOMException('Aborted','AbortError'));
+        const timer=setTimeout(()=>finish(new Unknown('Metadata I/O timeout')),IO_TIMEOUT_MS);
+        signal.addEventListener('abort',abort,{once:true});
+        if(signal.aborted)abort();else Promise.resolve().then(()=>blob.arrayBuffer(signal)).then(value=>finish(null,value),error=>finish(error));
+      });
+    }
     return new Promise((resolve, reject) => {
       const reader = new FileReader(); let finished = false;
       const finish = (error, value) => {

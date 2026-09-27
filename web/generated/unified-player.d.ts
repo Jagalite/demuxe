@@ -1,21 +1,37 @@
 // SPDX-License-Identifier: Apache-2.0
+import { PlayerPresentation } from './presentation.js';
 import type { WatchdogOptions, WatchdogPolicy } from './types.js';
 import type { TrackPolicy } from './types.js';
 import type { PlayerState, PlayerEventMap, PlayerCapabilities, OpenOptions, MediaSourceInput } from './types.js';
 import type { PreparationOptions, PreparationReport } from './types.js';
 import type { ToneMapping, SubtitleOptions, PlaybackMode, PlayerOptions, RemoteSource, TextTrackSource, Diagnostics, TrackType } from './types.js';
-import { PreviewController } from './preview/controller.js';
+import { type PlayerPreview } from './preview/player-preview.js';
 /** Three explicit playback modes. Mode/filter changes reopen transactionally. */
 export declare class Player extends EventTarget {
-    readonly preview: PreviewController;
+    #private;
+    get preview(): PlayerPreview;
     private previewSource?;
     readonly ready: Promise<void>;
     private assetBase;
     private buffering;
-    private snapshot;
+    private stateSnapshot;
     private subscribers;
     private publishQueued;
+    readonly presentation: PlayerPresentation;
+    private outputDeviceId;
     private sourceSerial;
+    private latestSeek?;
+    private playbackRange;
+    private loopPolicy;
+    private boundaryPending;
+    private qualityPolicy;
+    private attachmentSerial;
+    private attachmentHandles;
+    private subtitleDelay;
+    private audioDelay;
+    private subtitleStyle;
+    private readonly statistics;
+    private operationStarted;
     private publicSelections;
     private operationSerial;
     private operationEpoch;
@@ -104,6 +120,20 @@ export declare class Player extends EventTarget {
     constructor(container: HTMLElement, options?: PlayerOptions);
     get state(): PlayerState;
     get mediaInfo(): Readonly<{
+        metadataCoverage: Readonly<{
+            chapters: "unknown" | "partial" | "complete";
+            tags: "unknown" | "partial" | "complete";
+        }>;
+        videoTracks: readonly import("./types.js").MediaTrack[];
+        chapters: readonly import("./types.js").Chapter[] | null;
+        tags: Readonly<Record<string, string>> | null;
+        color: Readonly<{
+            primaries: string | null;
+            transfer: string | null;
+            matrix: string | null;
+            range: string | null;
+            reportedOnly: true;
+        }> | null;
         displayWidth: number | null;
         displayHeight: number | null;
         aspectRatio: number | null;
@@ -134,6 +164,13 @@ export declare class Player extends EventTarget {
     private get legacyCapabilities();
     private bufferingResolution;
     get diagnostics(): Diagnostics;
+    getStreamingState(): import('./types.js').StreamingState | null;
+    setQuality(policy: import('./types.js').QualityPolicy): Promise<void>;
+    seekToLive(): Promise<void>;
+    getAudioOutputDevice(): string;
+    setAudioOutputDevice(id: string): Promise<void>;
+    getStats(): import('./types.js').PlaybackStats;
+    getPlaybackExplanation(): import('./types.js').PlaybackExplanation;
     audioDiagnostics(): object | undefined;
     private emit;
     private assertOperation;
@@ -175,7 +212,20 @@ export declare class Player extends EventTarget {
     private playNativeVerified;
     play(): Promise<void>;
     pause(): Promise<void>;
-    seek(seconds: number): Promise<void>;
+    seek(seconds: number, options?: import('./types.js').SeekOptions): Promise<void>;
+    private seekForSource;
+    private validateRange;
+    seekChapter(id: string): Promise<void>;
+    getPlaybackRange(): {
+        start: number;
+        end: number;
+    } | null;
+    getLoop(): import('./types.js').LoopPolicy;
+    setPlaybackRange(range: import('./types.js').PlaybackRange | null): Promise<void>;
+    setLoop(policy: import('./types.js').LoopPolicy): Promise<void>;
+    private enforceBoundary;
+    stepFrame(direction?: 1 | -1): Promise<void>;
+    snapshot(options?: import('./types.js').SnapshotOptions): Promise<import('./types.js').VideoSnapshot>;
     volume(value: number): Promise<void>;
     setVolume(value: number): Promise<void>;
     setMuted(value: boolean): Promise<void>;
@@ -186,10 +236,19 @@ export declare class Player extends EventTarget {
     rate(value: number): Promise<void>;
     selectTrack(type: TrackType, id: string): Promise<void>;
     subtitleVisible(visible: boolean): Promise<void>;
+    getTimingSettings(): import('./types.js').TimingSettings;
+    private timingChange;
+    setSubtitleDelay(seconds: number): Promise<void>;
+    setAudioDelay(seconds: number): Promise<void>;
+    setSubtitleStyle(style: import('./types.js').SubtitleStyle): Promise<void>;
     addSubtitle(file: File, options?: SubtitleOptions): Promise<void>;
+    attachSubtitle(file: File, options?: SubtitleOptions): Promise<import('./types.js').AttachmentHandle>;
     addFont(file: File): Promise<void>;
+    attachFont(file: File): Promise<import('./types.js').AttachmentHandle>;
+    removeAttachment(handle: import('./types.js').AttachmentHandle): Promise<void>;
     setToneMapping(value: ToneMapping): Promise<void>;
     addTextTrack(track: TextTrackSource): Promise<void>;
+    attachTextTrack(track: TextTrackSource): Promise<import('./types.js').AttachmentHandle>;
     resize(width: number, height: number): void;
     close(): Promise<void>;
     destroy(): Promise<void>;

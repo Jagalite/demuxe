@@ -168,7 +168,9 @@ export declare class WasmPlayer extends EventTarget {
     private observeSeekEvent;
     confirmSeek(target: number): Promise<boolean>;
     seekBoundary(target: number): number | undefined;
+    private attachmentIds;
     addSubtitle(subtitle: SubtitleAsset): Promise<void>;
+    setAudioOutputDevice(id: string): Promise<void>;
     subtitleVisible(visible: boolean): Promise<void>;
     resize(width: number, height: number): void;
     startupEvidence(): {

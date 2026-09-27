@@ -19,9 +19,10 @@ export type RawTrack = Record<string, any>;
 export function usesRemuxTracks(plan?: string): boolean {return plan==='remux'||plan==='remux-mpv'||!!plan?.startsWith('native-video-mpv-audio')||plan==='native-transcode-mpv'||plan==='adapted-flac24'||plan==='adapted-flac'||plan==='adapted-opus';}
 export function trackKey(track: RawTrack, mode: PlaybackMode, plan?: string): string {
   const type = track.type;
-  if(plan==='shaka-mse')return `${type}:shaka:${track.id}`;
   // ff-index belongs to each demuxer: separate subtitle files commonly all use 0.
   // Attachments are replayed in the same order on replacement, retaining mpv IDs.
+  if(track.external&&track['attachment-id'])return `${type}:attachment:${track['attachment-id']}`;
+  if(plan==='shaka-mse')return `${type}:shaka:${track.id}`;
   if(track.external)return `${type}:external:${track['external-index']??track.id}`;
   const index = Number.isInteger(track['ff-index']) ? track['ff-index'] : mode==='native'&&usesRemuxTracks(plan)&&type==='audio'?Number(track.id)-1:undefined;
   return index!==undefined?`${type}:stream:${index}`:`${type}:${mode==='native'?'native':'mpv'}:${track.id}`;
@@ -49,6 +50,7 @@ function trackLabel(track:RawTrack):string {
 }
 export function tracks(raw: RawTrack[], sourceId: number, mode: PlaybackMode, plan?: string): MediaTrack[] {
   const result:MediaTrack[]=raw.filter(t=>['audio','sub','video'].includes(t.type)).map(t=>({id:`${sourceId}:${trackKey(t,mode,plan)}`,type:t.type==='sub'?'subtitle':t.type,
+    attachedPicture:!!(t.albumart??t.attachedPicture),sampleRate:positive(t['demux-samplerate']??t.sampleRate),channelLayout:typeof t['demux-channels']==='string'?t['demux-channels']:null,frameRate:positive(t['demux-fps']??t.frameRate),bitDepth:positive(t['demux-bits-per-sample']??t.bitDepth),profile:typeof (t['codec-profile']??t.profile)==='string'?(t['codec-profile']??t.profile):null,roles:[...(t['visual-impaired']?['audio-description']:[]),...(t['hearing-impaired']?['hearing-impaired']:[]),...(t['commentary']?['commentary']:[])],
     label:trackLabel(t), language:t.lang?String(t.lang):null,
     codec:t.codec?String(t.codec):null, selected:!!t.selected,external:!!t.external,title:t.title?String(t.title):null,streamIndex:Number.isInteger(t['ff-index'])?t['ff-index']:mode==='native'&&usesRemuxTracks(plan)&&t.type==='audio'&&!t.external?Number(t.id)-1:null,default:!!t.default,forced:!!t.forced,channels:Number(t['demux-channel-count']??t.channels)>0?Number(t['demux-channel-count']??t.channels):null}));
   const counts=new Map<string,number>();
@@ -57,7 +59,7 @@ export function tracks(raw: RawTrack[], sourceId: number, mode: PlaybackMode, pl
   return result.map(track=>{const n=(ordinals.get(track.type)??0)+1;ordinals.set(track.type,n);return counts.get(`${track.type}:${track.label}`)!>1?{...track,label:`${track.label} · Track ${n}`}:track;});
 }
 const positive=(value:unknown)=>typeof value==='number'&&Number.isFinite(value)&&value>0?value:null;
-export function mediaInfo(properties: ReadonlyMap<string,unknown>, mode: PlaybackMode, surface: HTMLCanvasElement|HTMLVideoElement|undefined, list: MediaTrack[]): MediaInfo {
+export function mediaInfo(properties: ReadonlyMap<string,unknown>, mode: PlaybackMode, surface: HTMLCanvasElement|HTMLVideoElement|undefined, list: MediaTrack[],sourceId:number|null=null): MediaInfo {
   const raw=(properties.get('track-list') as RawTrack[]|undefined)?.find(t=>t.type==='video'&&t.selected);
   let width:number|null=null,height:number|null=null,rotation:number|null=null;
   if(surface?.tagName==='VIDEO') {width=positive((surface as HTMLVideoElement).videoWidth);height=positive((surface as HTMLVideoElement).videoHeight);}
@@ -68,6 +70,12 @@ export function mediaInfo(properties: ReadonlyMap<string,unknown>, mode: Playbac
     const angle=p?.rotate??raw?.['demux-rotation']; rotation=typeof angle==='number'?angle:null;
     if(width&&height){const a=(rotation||0)*Math.PI/180,c=Math.abs(Math.cos(a)),s=Math.abs(Math.sin(a));[width,height]=[width*c+height*s,width*s+height*c];}
   }
-  return {displayWidth:width,displayHeight:height,aspectRatio:width&&height?width/height:null,rotation,
+  const rawChapters=properties.get('chapter-list');
+  const chapters=Array.isArray(rawChapters)?rawChapters.flatMap((c,i)=>Number.isFinite(c?.time)&&c.time>=0?[{id:`${sourceId}:chapter:${Number.isSafeInteger(c.index)&&c.index>=0?c.index:i}`,title:typeof c.title==='string'?c.title:null,start:c.time,end:null as number|null}]:[]).sort((a,b)=>a.start-b.start):null;
+  if(chapters)for(let i=0;i<chapters.length;i++)chapters[i].end=chapters[i+1]?.start??positive(properties.get('duration'));
+  const rawTags=properties.get('metadata'),tags=rawTags&&typeof rawTags==='object'?Object.fromEntries(Object.entries(rawTags).filter(([k,v])=>k.length<=256&&typeof v==='string'&&v.length<=4096).slice(0,128)):null;
+  const params=properties.get('video-params') as RawTrack|undefined;
+  const text=(v:unknown)=>typeof v==='string'?v:null;
+  return {metadataCoverage:{chapters:chapters===null?'unknown':properties.get('chapter-coverage')==='partial'?'partial':'complete',tags:tags===null?'unknown':properties.get('tag-coverage')==='partial'?'partial':'complete'},videoTracks:list.filter(t=>t.type==='video'),chapters,tags:tags as Record<string,string>|null,color:params?{primaries:text(params.primaries),transfer:text(params.gamma),matrix:text(params.colormatrix),range:text(params.colorlevels),reportedOnly:true}:null,displayWidth:width,displayHeight:height,aspectRatio:width&&height?width/height:null,rotation,
     video:list.find(t=>t.type==='video'&&t.selected)??null,audio:list.find(t=>t.type==='audio'&&t.selected)??null,subtitle:list.find(t=>t.type==='subtitle'&&t.selected)??null};
 }

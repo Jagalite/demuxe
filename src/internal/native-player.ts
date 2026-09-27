@@ -43,8 +43,10 @@ export class NativePlayer extends EventTarget implements Backend {
   private ass?: import('./native-ass.js').NativeASS;
   private assAssets:SubtitleAsset[]=[];
   private assIndex=-1;
+  private textAttachmentIds=new WeakMap<TextTrack,string>();
   private captionAssets=new Map<TextTrack,{asset:SubtitleAsset;index:number}>();
   private captionURLs=new Set<string>();
+  private outputDevice='';
   private gainContext?: AudioContext;
   private gainSource?: MediaElementAudioSourceNode;
   private gainNode?: GainNode;
@@ -61,6 +63,7 @@ export class NativePlayer extends EventTarget implements Backend {
       // Ownership is recorded before awaiting; destroy cancels the wait.
       if(!this.video.paused)await this.resumeGain();
       this.assertActive();
+      if(this.outputDevice)await this.setAudioOutputDevice(this.outputDevice);
       const source=context.createMediaElementSource(this.video),gain=context.createGain();
       gain.gain.setValueAtTime(value,context.currentTime);
       source.connect(gain);gain.connect(context.destination);
@@ -166,8 +169,8 @@ export class NativePlayer extends EventTarget implements Backend {
     return caption?String(200000+caption.index):String(Array.from(this.video.textTracks).filter(t=>!this.captionAssets.has(t)).indexOf(track)+1);
   }
   private refresh() {
-    const tracks: object[] = Array.from(this.video.textTracks, t => ({id: this.textTrackId(t), type: 'sub', title: t.label, lang: t.language, selected: t.mode === 'showing',...(this.captionAssets.has(t)?{external:true,'external-index':this.captionAssets.get(t)!.index,codec:'webvtt'}:{})}));
-    tracks.push(...this.assAssets.map((a,i)=>({id:String(100001+i),type:'sub',codec:a.format,title:a.label,lang:a.language,external:true,'external-index':i+1,selected:(this.selectedSub==='auto'||Number(this.selectedSub)===100001+i)&&this.assIndex===i})));
+    const tracks: object[] = Array.from(this.video.textTracks, t => ({id: this.textTrackId(t), type: 'sub', title: t.label, lang: t.language, selected: t.mode === 'showing',...(this.textAttachmentIds.has(t)?{external:true,'attachment-id':this.textAttachmentIds.get(t)}:{}),...(this.captionAssets.has(t)?{external:true,'attachment-id':this.captionAssets.get(t)!.asset.attachmentId,'external-index':this.captionAssets.get(t)!.index,codec:'webvtt'}:{})}));
+    tracks.push(...this.assAssets.map((a,i)=>({id:String(100001+i),type:'sub',codec:a.format,title:a.label,lang:a.language,external:true,'attachment-id':a.attachmentId,'external-index':i+1,selected:(this.selectedSub==='auto'||Number(this.selectedSub)===100001+i)&&this.assIndex===i})));
     if(this.mpvSubs)tracks.push(...this.mpvSubs.tracks);
     const audio = (this.video as VideoWithAudioTracks).audioTracks;
     if(this.projection)tracks.push(...this.projection.tracks.filter(t=>t.type==='audio').map(t=>({...t,selected:t.selected&&!this.video.muted})));
@@ -517,6 +520,12 @@ export class NativePlayer extends EventTarget implements Backend {
     const autoIndex = preferred?Array.from(this.video.textTracks).indexOf(preferred):Array.from(this.video.textTracks).findIndex(t=>!this.captionAssets.has(t));
     Array.from(this.video.textTracks).forEach((t, i) => {t.mode = this.subsVisible && !(this.assIndex>=0&&this.selectedSub==='auto') && this.selectedSub !== 'no' && (this.selectedSub === 'auto' ? i === autoIndex : this.textTrackId(t) === this.selectedSub) ? 'showing' : 'disabled';});
   }
+  async setAudioOutputDevice(id:string){
+    this.assertActive();
+    if(this.mpvAudio){await this.mpvAudio.setAudioOutputDevice(id);this.outputDevice=id;return;}
+    const output=(this.gainContext??this.video) as (AudioContext|HTMLVideoElement)&{setSinkId?:(id:string)=>Promise<void>};
+    if(!output.setSinkId)throw new PlayerError('UNSUPPORTED_FEATURE','Output device selection is unavailable');await output.setSinkId(id==='default'?'':id);this.outputDevice=id;
+  }
   async subtitleVisible(visible: boolean) {this.assertActive();this.subsVisible = visible;this.applySubtitles();this.refresh();}
   async addSubtitle(asset:SubtitleAsset) {
     this.assertActive();
@@ -549,12 +558,12 @@ export class NativePlayer extends EventTarget implements Backend {
     }
     this.assAssets.push(asset);this.applySubtitles();this.refresh();
   }
-  async addTextTrack(source: TextTrackSource) {await this.loadTextTrack(source);}
-  private async loadTextTrack(source:TextTrackSource, ownedCaption=false) {
+  async addTextTrack(source: TextTrackSource,attachmentId?:string) {await this.loadTextTrack(source,false,attachmentId);}
+  private async loadTextTrack(source:TextTrackSource, ownedCaption=false,attachmentId?:string) {
     this.assertActive();
     const url = new URL(source.src, location.href);
     if (!['http:', 'https:', 'blob:'].includes(url.protocol)) throw new Error('Text tracks require HTTP, HTTPS or a blob URL');
-    const track = document.createElement('track');track.kind = 'subtitles';track.label = source.label;track.srclang = source.language || '';track.default = !!source.default;track.src = url.href;
+    const track = document.createElement('track');track.kind = 'subtitles';track.label = source.label;track.srclang = source.language || '';track.default = !!source.default;track.src = url.href;if(attachmentId)this.textAttachmentIds.set(track.track,attachmentId);
     await new Promise<void>((resolve, reject) => {
       const finish = (error?: Error) => {clearTimeout(timer);track.removeEventListener('load', loaded);track.removeEventListener('error', failed);this.cancelers.delete(cancel);if (error) {track.remove();reject(error);} else resolve();};
       const loaded = () => {this.shiftTextTrack(track);finish();};const failed = () => finish(ownedCaption?new BrowserCaptionUnsupported('Browser cannot load the owned WebVTT caption'):new Error('Native text track failed to load'));const cancel = (error: Error) => finish(error);

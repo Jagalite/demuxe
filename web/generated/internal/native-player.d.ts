@@ -29,8 +29,10 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private ass?;
     private assAssets;
     private assIndex;
+    private textAttachmentIds;
     private captionAssets;
     private captionURLs;
+    private outputDevice;
     private gainContext?;
     private gainSource?;
     private gainNode?;
@@ -254,9 +256,10 @@ export declare class NativePlayer extends EventTarget implements Backend {
     volume(value: number): Promise<void>;
     selectTrack(type: TrackType, id: string): Promise<void>;
     private applySubtitles;
+    setAudioOutputDevice(id: string): Promise<void>;
     subtitleVisible(visible: boolean): Promise<void>;
     addSubtitle(asset: SubtitleAsset): Promise<void>;
-    addTextTrack(source: TextTrackSource): Promise<void>;
+    addTextTrack(source: TextTrackSource, attachmentId?: string): Promise<void>;
     private loadTextTrack;
     private shiftTextTrack;
     resize(width: number, height: number): void;

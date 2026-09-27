@@ -6,3 +6,5 @@ export { PLAYER_EVENTS } from './types.js';
 export { PreviewController } from './preview/controller.js';
 export { AuthoredPreviewProvider, LocalVideoPreviewProvider } from './preview/providers.js';
 export { SoftwarePreviewProvider } from './preview/software.js';
+export { inspectMedia, CUSTOM_SOURCE_PLAYBACK_LIMIT } from './sources.js';
+export { PlayerPresentation } from './presentation.js';

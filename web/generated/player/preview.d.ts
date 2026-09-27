@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import type { PreviewController } from '../preview/controller.js';
+import type { PlayerPreview } from '../preview/player-preview.js';
 /** UI-only hover owner. No decoder, media seek, or playback controls live here. */
 export declare class ScrubberPreview {
     private timeline;
@@ -15,7 +15,7 @@ export declare class ScrubberPreview {
     private serial;
     private url?;
     private readonly move;
-    constructor(timeline: HTMLInputElement, panel: HTMLElement, image: HTMLImageElement, label: HTMLElement, api: () => PreviewController | undefined);
+    constructor(timeline: HTMLInputElement, panel: HTMLElement, image: HTMLImageElement, label: HTMLElement, api: () => PlayerPreview | undefined);
     private next;
     private show;
     private clearImage;

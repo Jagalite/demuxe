@@ -1,0 +1,919 @@
+{
+  "scope": "Maintained Shaka public API, policy, explicit failure injection and lifecycle; synthetic media; no performance claim",
+  "browser": "146.0.1",
+  "commands": [
+    [
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=440:sample_rate=48000",
+      "-t",
+      "12",
+      "-c:a",
+      "aac",
+      "-ac",
+      "2",
+      "-hls_time",
+      "2",
+      "-hls_playlist_type",
+      "vod",
+      "/Volumes/seed2/Projects/demuxe/build/shaka-lifecycle-eqcmCJ/english/index.m3u8"
+    ],
+    [
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=880:sample_rate=48000",
+      "-t",
+      "12",
+      "-c:a",
+      "aac",
+      "-ac",
+      "2",
+      "-hls_time",
+      "2",
+      "-hls_playlist_type",
+      "vod",
+      "/Volumes/seed2/Projects/demuxe/build/shaka-lifecycle-eqcmCJ/alternate/index.m3u8"
+    ],
+    [
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=160x90:rate=30",
+      "-t",
+      "12",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "ultrafast",
+      "-g",
+      "60",
+      "-sc_threshold",
+      "0",
+      "-pix_fmt",
+      "yuv420p",
+      "-hls_time",
+      "2",
+      "-hls_playlist_type",
+      "vod",
+      "/Volumes/seed2/Projects/demuxe/build/shaka-lifecycle-eqcmCJ/low/index.m3u8"
+    ],
+    [
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=320x180:rate=30",
+      "-t",
+      "12",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "ultrafast",
+      "-g",
+      "60",
+      "-sc_threshold",
+      "0",
+      "-pix_fmt",
+      "yuv420p",
+      "-hls_time",
+      "2",
+      "-hls_playlist_type",
+      "vod",
+      "/Volumes/seed2/Projects/demuxe/build/shaka-lifecycle-eqcmCJ/high/index.m3u8"
+    ]
+  ],
+  "fixture": "/Volumes/seed2/Projects/demuxe/build/shaka-lifecycle-eqcmCJ",
+  "cases": [
+    {
+      "name": "roadmap runtime quality retains audio, position, intent and attachment identity",
+      "passed": true,
+      "evidence": {
+        "audio": "1:audio:shaka:shaka-audio-%5B%22en%22%2C%22en%22%2C%22English%22%2C%5B%5D%2Cfalse%2Cnull%5D",
+        "qualities": [
+          {
+            "id": "1:variant:9",
+            "width": 160,
+            "height": 90,
+            "bandwidth": 500000,
+            "frameRate": 30,
+            "videoCodec": "avc1.42c00b",
+            "audioCodec": "mp4a.40.2",
+            "dynamicRange": null
+          },
+          {
+            "id": "1:variant:15",
+            "width": 320,
+            "height": 180,
+            "bandwidth": 1500000,
+            "frameRate": null,
+            "videoCodec": "avc1.42c00c",
+            "audioCodec": "mp4a.40.2",
+            "dynamicRange": null
+          }
+        ],
+        "manual": {
+          "qualities": [
+            {
+              "id": "1:variant:9",
+              "width": 160,
+              "height": 90,
+              "bandwidth": 500000,
+              "frameRate": 30,
+              "videoCodec": "avc1.42c00b",
+              "audioCodec": "mp4a.40.2",
+              "dynamicRange": null
+            },
+            {
+              "id": "1:variant:15",
+              "width": 320,
+              "height": 180,
+              "bandwidth": 1500000,
+              "frameRate": null,
+              "videoCodec": "avc1.42c00c",
+              "audioCodec": "mp4a.40.2",
+              "dynamicRange": null
+            }
+          ],
+          "requested": {
+            "mode": "manual",
+            "id": "1:variant:9"
+          },
+          "selectedId": "1:variant:9",
+          "presentedId": null,
+          "observedQuality": null,
+          "transition": "unknown",
+          "live": {
+            "isLive": false,
+            "seekable": {
+              "start": 0,
+              "end": 12
+            },
+            "latencySeconds": null,
+            "nearLive": null
+          }
+        },
+        "state": {
+          "status": "paused",
+          "playbackIntent": "pause",
+          "pendingOperation": null,
+          "sourceId": 1,
+          "currentTime": 2,
+          "duration": 12,
+          "streamType": "vod",
+          "subtitlesVisible": true,
+          "volume": 1,
+          "muted": false,
+          "playbackRate": 1,
+          "activeMode": "native",
+          "automaticSelection": true,
+          "buffered": [
+            {
+              "start": 0.001,
+              "end": 4.001
+            }
+          ],
+          "seekable": [
+            {
+              "start": 0,
+              "end": 12
+            }
+          ],
+          "cached": null,
+          "timing": {
+            "subtitleDelay": 0,
+            "audioDelay": 0,
+            "effectiveSubtitleDelay": 0,
+            "effectiveAudioDelay": 0,
+            "subtitleStyle": {},
+            "styleScope": "plain-text"
+          },
+          "loop": false,
+          "playbackRange": null,
+          "streaming": {
+            "qualities": [
+              {
+                "id": "1:variant:9",
+                "width": 160,
+                "height": 90,
+                "bandwidth": 500000,
+                "frameRate": 30,
+                "videoCodec": "avc1.42c00b",
+                "audioCodec": "mp4a.40.2",
+                "dynamicRange": null
+              },
+              {
+                "id": "1:variant:15",
+                "width": 320,
+                "height": 180,
+                "bandwidth": 1500000,
+                "frameRate": null,
+                "videoCodec": "avc1.42c00c",
+                "audioCodec": "mp4a.40.2",
+                "dynamicRange": null
+              }
+            ],
+            "requested": {
+              "mode": "manual",
+              "id": "1:variant:9"
+            },
+            "selectedId": "1:variant:9",
+            "presentedId": null,
+            "observedQuality": null,
+            "transition": "unknown",
+            "live": {
+              "isLive": false,
+              "seekable": {
+                "start": 0,
+                "end": 12
+              },
+              "latencySeconds": null,
+              "nearLive": null
+            }
+          },
+          "audioOutputDevice": "",
+          "trackPolicy": {},
+          "audioTracks": [
+            {
+              "id": "1:audio:shaka:shaka-audio-%5B%22en%22%2C%22en%22%2C%22English%22%2C%5B%5D%2Cfalse%2Cnull%5D",
+              "type": "audio",
+              "attachedPicture": false,
+              "sampleRate": null,
+              "channelLayout": null,
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "English · MP4A.40.2",
+              "language": "en",
+              "codec": "mp4a.40.2",
+              "selected": true,
+              "external": false,
+              "title": "English",
+              "streamIndex": null,
+              "default": false,
+              "forced": false,
+              "channels": null
+            },
+            {
+              "id": "1:audio:shaka:shaka-audio-%5B%22fr%22%2C%22fr%22%2C%22Alternate%22%2C%5B%5D%2Cfalse%2Cnull%5D",
+              "type": "audio",
+              "attachedPicture": false,
+              "sampleRate": null,
+              "channelLayout": null,
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "French · Alternate · MP4A.40.2",
+              "language": "fr",
+              "codec": "mp4a.40.2",
+              "selected": false,
+              "external": false,
+              "title": "Alternate",
+              "streamIndex": null,
+              "default": false,
+              "forced": false,
+              "channels": null
+            }
+          ],
+          "subtitleTracks": [
+            {
+              "id": "1:sub:shaka:shaka-sub-19",
+              "type": "subtitle",
+              "attachedPicture": false,
+              "sampleRate": null,
+              "channelLayout": null,
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "English · Captions · TEXT/VTT",
+              "language": "en",
+              "codec": "text/vtt",
+              "selected": true,
+              "external": false,
+              "title": "Captions",
+              "streamIndex": null,
+              "default": false,
+              "forced": false,
+              "channels": null
+            }
+          ],
+          "mediaInfo": {
+            "metadataCoverage": {
+              "chapters": "unknown",
+              "tags": "unknown"
+            },
+            "videoTracks": [
+              {
+                "id": "1:video:shaka:shaka-video-8",
+                "type": "video",
+                "attachedPicture": false,
+                "sampleRate": null,
+                "channelLayout": null,
+                "frameRate": null,
+                "bitDepth": null,
+                "profile": null,
+                "roles": [],
+                "label": "AVC1.42C00B",
+                "language": null,
+                "codec": "avc1.42c00b",
+                "selected": true,
+                "external": false,
+                "title": null,
+                "streamIndex": null,
+                "default": false,
+                "forced": false,
+                "channels": null
+              }
+            ],
+            "chapters": null,
+            "tags": null,
+            "color": null,
+            "displayWidth": 160,
+            "displayHeight": 90,
+            "aspectRatio": 1.7777777777777777,
+            "rotation": null,
+            "video": {
+              "id": "1:video:shaka:shaka-video-8",
+              "type": "video",
+              "attachedPicture": false,
+              "sampleRate": null,
+              "channelLayout": null,
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "AVC1.42C00B",
+              "language": null,
+              "codec": "avc1.42c00b",
+              "selected": true,
+              "external": false,
+              "title": null,
+              "streamIndex": null,
+              "default": false,
+              "forced": false,
+              "channels": null
+            },
+            "audio": {
+              "id": "1:audio:shaka:shaka-audio-%5B%22en%22%2C%22en%22%2C%22English%22%2C%5B%5D%2Cfalse%2Cnull%5D",
+              "type": "audio",
+              "attachedPicture": false,
+              "sampleRate": null,
+              "channelLayout": null,
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "English · MP4A.40.2",
+              "language": "en",
+              "codec": "mp4a.40.2",
+              "selected": true,
+              "external": false,
+              "title": "English",
+              "streamIndex": null,
+              "default": false,
+              "forced": false,
+              "channels": null
+            },
+            "subtitle": {
+              "id": "1:sub:shaka:shaka-sub-19",
+              "type": "subtitle",
+              "attachedPicture": false,
+              "sampleRate": null,
+              "channelLayout": null,
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "English · Captions · TEXT/VTT",
+              "language": "en",
+              "codec": "text/vtt",
+              "selected": true,
+              "external": false,
+              "title": "Captions",
+              "streamIndex": null,
+              "default": false,
+              "forced": false,
+              "channels": null
+            }
+          },
+          "capabilities": {
+            "videoFilters": true,
+            "audioFilters": true,
+            "mpvSubtitles": false,
+            "externalTextTracks": true,
+            "externalSubtitles": true,
+            "customFonts": true,
+            "customRequestHeaders": true,
+            "buffering": {
+              "control": "profile",
+              "preload": true,
+              "profile": true,
+              "memoryBudget": false
+            },
+            "deployment": {
+              "isolated": true,
+              "webCodecs": true,
+              "mediaSource": true
+            },
+            "features": {
+              "subtitleDelay": {
+                "availability": "switch",
+                "mode": "hybrid",
+                "reason": "This feature requires hybrid playback"
+              },
+              "audioDelay": {
+                "availability": "switch",
+                "mode": "hybrid",
+                "reason": "This feature requires hybrid playback"
+              },
+              "subtitleStyle": {
+                "availability": "switch",
+                "mode": "hybrid",
+                "reason": "This feature requires hybrid playback"
+              },
+              "quality": {
+                "availability": "available"
+              },
+              "liveNavigation": {
+                "availability": "unavailable",
+                "reason": "No controlled live timeline"
+              },
+              "loop": {
+                "availability": "available"
+              },
+              "playbackRange": {
+                "availability": "available"
+              },
+              "frameStep": {
+                "availability": "unavailable",
+                "reason": "Frame stepping requires mpv video playback"
+              },
+              "snapshot": {
+                "availability": "unknown",
+                "reason": "Readback depends on the active renderer and source permissions"
+              },
+              "audioOutputDevice": {
+                "availability": "unknown",
+                "reason": "Output selection depends on browser permission and the active audio sink"
+              },
+              "seek": {
+                "availability": "available"
+              },
+              "audioTracks": {
+                "availability": "available"
+              },
+              "subtitleTracks": {
+                "availability": "available"
+              },
+              "audioGain": {
+                "availability": "available"
+              },
+              "externalSubtitles": {
+                "availability": "available"
+              },
+              "customFonts": {
+                "availability": "switch",
+                "mode": "hybrid",
+                "reason": "This feature requires hybrid playback"
+              },
+              "videoFilters": {
+                "availability": "switch",
+                "mode": "software",
+                "reason": "This feature requires software playback"
+              },
+              "audioFilters": {
+                "availability": "switch",
+                "mode": "software",
+                "reason": "This feature requires software playback"
+              }
+            }
+          },
+          "error": null
+        },
+        "rejected": "UNSUPPORTED_FEATURE",
+        "automatic": {
+          "qualities": [
+            {
+              "id": "1:variant:10",
+              "width": 160,
+              "height": 90,
+              "bandwidth": 500000,
+              "frameRate": 30,
+              "videoCodec": "avc1.42c00b",
+              "audioCodec": "mp4a.40.2",
+              "dynamicRange": null
+            }
+          ],
+          "requested": {
+            "mode": "auto",
+            "maxHeight": 90,
+            "maxBandwidth": 1000000
+          },
+          "selectedId": "1:variant:10",
+          "presentedId": null,
+          "observedQuality": null,
+          "transition": "unknown",
+          "live": {
+            "isLive": false,
+            "seekable": {
+              "start": 0,
+              "end": 12
+            },
+            "latencySeconds": null,
+            "nearLive": null
+          }
+        },
+        "after": {
+          "status": "paused",
+          "playbackIntent": "pause",
+          "pendingOperation": null,
+          "sourceId": 1,
+          "currentTime": 2,
+          "duration": 12,
+          "streamType": "vod",
+          "subtitlesVisible": true,
+          "volume": 1,
+          "muted": false,
+          "playbackRate": 1,
+          "activeMode": "native",
+          "automaticSelection": true,
+          "buffered": [
+            {
+              "start": 0.001,
+              "end": 4.001
+            }
+          ],
+          "seekable": [
+            {
+              "start": 0,
+              "end": 12
+            }
+          ],
+          "cached": null,
+          "timing": {
+            "subtitleDelay": 0,
+            "audioDelay": 0,
+            "effectiveSubtitleDelay": 0,
+            "effectiveAudioDelay": 0,
+            "subtitleStyle": {},
+            "styleScope": "plain-text"
+          },
+          "loop": false,
+          "playbackRange": null,
+          "streaming": {
+            "qualities": [
+              {
+                "id": "1:variant:10",
+                "width": 160,
+                "height": 90,
+                "bandwidth": 500000,
+                "frameRate": 30,
+                "videoCodec": "avc1.42c00b",
+                "audioCodec": "mp4a.40.2",
+                "dynamicRange": null
+              }
+            ],
+            "requested": {
+              "mode": "auto",
+              "maxHeight": 90,
+              "maxBandwidth": 1000000
+            },
+            "selectedId": "1:variant:10",
+            "presentedId": null,
+            "observedQuality": null,
+            "transition": "unknown",
+            "live": {
+              "isLive": false,
+              "seekable": {
+                "start": 0,
+                "end": 12
+              },
+              "latencySeconds": null,
+              "nearLive": null
+            }
+          },
+          "audioOutputDevice": "",
+          "trackPolicy": {},
+          "audioTracks": [
+            {
+              "id": "1:audio:shaka:shaka-audio-%5B%22en%22%2C%22en%22%2C%22English%22%2C%5B%5D%2Cfalse%2Cnull%5D",
+              "type": "audio",
+              "attachedPicture": false,
+              "sampleRate": null,
+              "channelLayout": null,
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "English · MP4A.40.2",
+              "language": "en",
+              "codec": "mp4a.40.2",
+              "selected": false,
+              "external": false,
+              "title": "English",
+              "streamIndex": null,
+              "default": false,
+              "forced": false,
+              "channels": null
+            },
+            {
+              "id": "1:audio:shaka:shaka-audio-%5B%22fr%22%2C%22fr%22%2C%22Alternate%22%2C%5B%5D%2Cfalse%2Cnull%5D",
+              "type": "audio",
+              "attachedPicture": false,
+              "sampleRate": null,
+              "channelLayout": null,
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "French · Alternate · MP4A.40.2",
+              "language": "fr",
+              "codec": "mp4a.40.2",
+              "selected": true,
+              "external": false,
+              "title": "Alternate",
+              "streamIndex": null,
+              "default": false,
+              "forced": false,
+              "channels": null
+            }
+          ],
+          "subtitleTracks": [
+            {
+              "id": "1:sub:shaka:shaka-sub-19",
+              "type": "subtitle",
+              "attachedPicture": false,
+              "sampleRate": null,
+              "channelLayout": null,
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "English · Captions · TEXT/VTT",
+              "language": "en",
+              "codec": "text/vtt",
+              "selected": true,
+              "external": false,
+              "title": "Captions",
+              "streamIndex": null,
+              "default": false,
+              "forced": false,
+              "channels": null
+            }
+          ],
+          "mediaInfo": {
+            "metadataCoverage": {
+              "chapters": "unknown",
+              "tags": "unknown"
+            },
+            "videoTracks": [
+              {
+                "id": "1:video:shaka:shaka-video-8",
+                "type": "video",
+                "attachedPicture": false,
+                "sampleRate": null,
+                "channelLayout": null,
+                "frameRate": null,
+                "bitDepth": null,
+                "profile": null,
+                "roles": [],
+                "label": "AVC1.42C00B",
+                "language": null,
+                "codec": "avc1.42c00b",
+                "selected": true,
+                "external": false,
+                "title": null,
+                "streamIndex": null,
+                "default": false,
+                "forced": false,
+                "channels": null
+              }
+            ],
+            "chapters": null,
+            "tags": null,
+            "color": null,
+            "displayWidth": 160,
+            "displayHeight": 90,
+            "aspectRatio": 1.7777777777777777,
+            "rotation": null,
+            "video": {
+              "id": "1:video:shaka:shaka-video-8",
+              "type": "video",
+              "attachedPicture": false,
+              "sampleRate": null,
+              "channelLayout": null,
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "AVC1.42C00B",
+              "language": null,
+              "codec": "avc1.42c00b",
+              "selected": true,
+              "external": false,
+              "title": null,
+              "streamIndex": null,
+              "default": false,
+              "forced": false,
+              "channels": null
+            },
+            "audio": {
+              "id": "1:audio:shaka:shaka-audio-%5B%22fr%22%2C%22fr%22%2C%22Alternate%22%2C%5B%5D%2Cfalse%2Cnull%5D",
+              "type": "audio",
+              "attachedPicture": false,
+              "sampleRate": null,
+              "channelLayout": null,
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "French · Alternate · MP4A.40.2",
+              "language": "fr",
+              "codec": "mp4a.40.2",
+              "selected": true,
+              "external": false,
+              "title": "Alternate",
+              "streamIndex": null,
+              "default": false,
+              "forced": false,
+              "channels": null
+            },
+            "subtitle": {
+              "id": "1:sub:shaka:shaka-sub-19",
+              "type": "subtitle",
+              "attachedPicture": false,
+              "sampleRate": null,
+              "channelLayout": null,
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "English · Captions · TEXT/VTT",
+              "language": "en",
+              "codec": "text/vtt",
+              "selected": true,
+              "external": false,
+              "title": "Captions",
+              "streamIndex": null,
+              "default": false,
+              "forced": false,
+              "channels": null
+            }
+          },
+          "capabilities": {
+            "videoFilters": true,
+            "audioFilters": true,
+            "mpvSubtitles": false,
+            "externalTextTracks": true,
+            "externalSubtitles": true,
+            "customFonts": true,
+            "customRequestHeaders": true,
+            "buffering": {
+              "control": "profile",
+              "preload": true,
+              "profile": true,
+              "memoryBudget": false
+            },
+            "deployment": {
+              "isolated": true,
+              "webCodecs": true,
+              "mediaSource": true
+            },
+            "features": {
+              "subtitleDelay": {
+                "availability": "switch",
+                "mode": "hybrid",
+                "reason": "This feature requires hybrid playback"
+              },
+              "audioDelay": {
+                "availability": "switch",
+                "mode": "hybrid",
+                "reason": "This feature requires hybrid playback"
+              },
+              "subtitleStyle": {
+                "availability": "switch",
+                "mode": "hybrid",
+                "reason": "This feature requires hybrid playback"
+              },
+              "quality": {
+                "availability": "available"
+              },
+              "liveNavigation": {
+                "availability": "unavailable",
+                "reason": "No controlled live timeline"
+              },
+              "loop": {
+                "availability": "available"
+              },
+              "playbackRange": {
+                "availability": "available"
+              },
+              "frameStep": {
+                "availability": "unavailable",
+                "reason": "Frame stepping requires mpv video playback"
+              },
+              "snapshot": {
+                "availability": "unknown",
+                "reason": "Readback depends on the active renderer and source permissions"
+              },
+              "audioOutputDevice": {
+                "availability": "unknown",
+                "reason": "Output selection depends on browser permission and the active audio sink"
+              },
+              "seek": {
+                "availability": "available"
+              },
+              "audioTracks": {
+                "availability": "available"
+              },
+              "subtitleTracks": {
+                "availability": "available"
+              },
+              "audioGain": {
+                "availability": "available"
+              },
+              "externalSubtitles": {
+                "availability": "available"
+              },
+              "customFonts": {
+                "availability": "switch",
+                "mode": "hybrid",
+                "reason": "This feature requires hybrid playback"
+              },
+              "videoFilters": {
+                "availability": "switch",
+                "mode": "software",
+                "reason": "This feature requires software playback"
+              },
+              "audioFilters": {
+                "availability": "switch",
+                "mode": "software",
+                "reason": "This feature requires software playback"
+              }
+            }
+          },
+          "error": null
+        },
+        "attached": {
+          "id": "1:sub:attachment:subtitle-1",
+          "type": "subtitle",
+          "attachedPicture": false,
+          "sampleRate": null,
+          "channelLayout": null,
+          "frameRate": null,
+          "bitDepth": null,
+          "profile": null,
+          "roles": [],
+          "label": "external.vtt · TEXT/VTT",
+          "language": "und",
+          "codec": "text/vtt",
+          "selected": true,
+          "external": true,
+          "title": "external.vtt",
+          "streamIndex": null,
+          "default": false,
+          "forced": false,
+          "channels": null
+        },
+        "removed": true
+      },
+      "console": [
+        "Using a kind value different of `subtitles` or `captions` can cause unwanted issues."
+      ]
+    },
+    {
+      "name": "roadmap live navigation uses the backend target and retains source ownership",
+      "passed": true,
+      "evidence": {
+        "range": {
+          "start": 0,
+          "end": 6
+        },
+        "live": {
+          "isLive": true,
+          "seekable": {
+            "start": 0,
+            "end": 6
+          },
+          "latencySeconds": 8.366,
+          "nearLive": true
+        },
+        "time": 6
+      },
+      "console": []
+    }
+  ],
+  "hashes": {
+    "src/unified-player.ts": "ff60437e9700ffd55027a3594c5cc0ad30a8321976afd06c590b0e74e93e496c",
+    "src/internal/shaka-backend.ts": "c7a783b58ff32d07b0f3435a8baa5c8c60817d0471e60e076a945101ec792226",
+    "src/internal/shaka-network.ts": "141b0434ef243c3880caa0860d8826154414d66a9e4d1e07b57639b9c1d43f88",
+    "src/internal/playback-plans.ts": "4beb08e272a8f9d37aed6d51387d01a22a625cd0494ebb04d4bd66f9fd0e8f58",
+    "web/resource-loader.js": "4cab157b09eb919bf85684534a7c836d81324223b2522c8bebbc228bf8019d18",
+    "web/fallback-stream-policy.js": "c2d1af8e450f2f733156ea4587fe04c6eed6f9b7fe9ce7f9a61fc896e6a00d6b",
+    "tests/shaka-lifecycle.mjs": "19248765ae28576463b9ddcbf4bf0feb311d576703a4ff5834d5ba6e71f056ea"
+  },
+  "passed": true
+}

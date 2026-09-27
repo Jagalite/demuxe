@@ -292,7 +292,7 @@ export class DemuxePlayerElement extends Base {
     if(this.core)return;
     this.connecting=(async()=>{await this.cleanup;if(!this.isConnected||token!==this.connection||this.terminal)return;
       try {this.configuredAsset=this.getAttribute('asset-base');const core=this.core=new Player(this.$('surface'),{assetBase:this.assetBase,watchdogs:this.watchdogConfiguration,audioPlayback:this.audioPlaybackConfiguration,preview:this.previewConfiguration,prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});this.dimensions='';this.trackSignature='';
-        for(const type of [...PLAYER_EVENTS,'preparationchange','inspectionchange','modechange','selectionchange','mpv','log','source','output'])core.addEventListener(type,event=>{
+        for(const type of [...PLAYER_EVENTS,'preparationchange','inspectionchange','mpv','log','source','output'])core.addEventListener(type,event=>{
           if(this.core!==core||this.terminal)return;const detail=(event as CustomEvent).detail;
           if(type==='inspectionchange'&&core.state.pendingOperation?.kind==='opening'){this.openingStage=detail.phase==='reading'?this.labels.reading:this.labels.inspecting;this.update(core.state);}
           if(type==='preparationchange')this.update(core.state);

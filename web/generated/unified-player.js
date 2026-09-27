@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import { routingRequirements, missingRoutingFacts } from './internal/probe-requirements.js';
 import { bufferingPolicy, resolveBuffering } from './internal/buffering.js';
+import { PlayerPresentation } from './presentation.js';
+import { isCustomSource, materializeSource } from './sources.js';
+import { PlaybackStatistics } from './internal/playback-statistics.js';
 import { watchdogPolicy, NativeProgressWatchdog } from './internal/watchdogs.js';
 import { normalizeTrackPolicy, trackAllowed, defaultTrack, assertTrackSelection } from './internal/track-policy.js';
 import { plainVTT, BrowserCaptionUnsupported } from './internal/plain-vtt.js';
@@ -18,6 +21,7 @@ import { PLAYBACK_MODES } from './types.js';
 import { nativeRejection, nativeManifestRejection, losslessAdaptationRejection, audioTranscodeRejection, remuxRejection } from './internal/selection.js';
 import { backendPlan } from './internal/backend.js';
 import { PreviewController } from './preview/controller.js';
+import { createPlayerPreview } from './preview/player-preview.js';
 import { SoftwarePreviewProvider } from './preview/software.js';
 import { LocalVideoPreviewProvider } from './preview/providers.js';
 class SeekPresentationBoundary extends PlayerError {
@@ -40,15 +44,31 @@ const dimensions = (width, height) => {
 };
 /** Three explicit playback modes. Mode/filter changes reopen transactionally. */
 export class Player extends EventTarget {
-    preview;
+    #previewController;
+    #preview;
+    get preview() { return this.#preview; }
     previewSource;
     ready = Promise.resolve();
     assetBase;
     buffering;
-    snapshot;
+    stateSnapshot;
     subscribers = new Set();
     publishQueued = false;
+    presentation = new PlayerPresentation(this, () => this.root);
+    outputDeviceId = '';
     sourceSerial = 0;
+    latestSeek;
+    playbackRange = null;
+    loopPolicy = false;
+    boundaryPending = false;
+    qualityPolicy = null;
+    attachmentSerial = 0;
+    attachmentHandles = new WeakSet();
+    subtitleDelay = 0;
+    audioDelay = 0;
+    subtitleStyle = {};
+    statistics = new PlaybackStatistics();
+    operationStarted = 0;
     publicSelections = new Map();
     operationSerial = 0;
     operationEpoch = 0;
@@ -279,7 +299,7 @@ export class Player extends EventTarget {
         this.assetBase = runtimeBase(options.assetBase);
         if (!(container instanceof HTMLElement) || container instanceof HTMLCanvasElement || container instanceof HTMLVideoElement)
             throw new PlayerError('INVALID_ARGUMENT', 'Pass a container element; Player owns its video/canvas surface');
-        this.preview = new PreviewController([
+        this.#previewController = new PreviewController([
             { id: 'shaka', priority: 20, canHandle: () => !!this.current?.backend.previewFrame,
                 getFrame: request => this.current?.backend.previewFrame?.(request) ?? Promise.resolve(null) },
             new LocalVideoPreviewProvider(() => this.busy || this.queued > 0 || this.previewBuffering() ? undefined : this.previewSource, container.ownerDocument, options.resourceLimits?.maxDecodePixels),
@@ -288,11 +308,12 @@ export class Player extends EventTarget {
                     return undefined;
                 if (this.previewSource)
                     return { file: this.previewSource, input: this.source?.kind === 'local' ? this.source.input : undefined };
-                if (this.source?.kind === 'remote' && !this.source.options.streaming?.live && this.snapshot.streamType !== 'live')
+                if (this.source?.kind === 'remote' && !this.source.options.streaming?.live && this.stateSnapshot.streamType !== 'live')
                     return { remote: this.source.options };
                 return undefined;
             }, container.ownerDocument, this.assetBase, options.resourceLimits),
         ], options.preview === false ? { enabled: false } : options.preview);
+        this.#preview = createPlayerPreview(this.#previewController);
         this.currentMode = modeValue(options.mode ?? 'native');
         this.automatic = options.automaticSelection ?? options.mode === undefined;
         if (typeof this.automatic !== 'boolean')
@@ -363,11 +384,11 @@ export class Player extends EventTarget {
         if (prepare.length)
             void this.prepare(prepare);
     }
-    get state() { return this.snapshot; }
-    get mediaInfo() { return this.snapshot.mediaInfo; }
+    get state() { return this.stateSnapshot; }
+    get mediaInfo() { return this.stateSnapshot.mediaInfo; }
     subscribe(listener) {
         this.subscribers.add(listener);
-        listener(this.snapshot);
+        listener(this.stateSnapshot);
         return () => { this.subscribers.delete(listener); };
     }
     addEventListener(type, listener, options) { super.addEventListener(type, listener, options); }
@@ -458,7 +479,7 @@ export class Player extends EventTarget {
         return !this.settings.pause && (this.observedWaiting || this.properties.get('paused-for-cache') === true || this.properties.get('native-waiting') === true);
     }
     publish() {
-        const previous = this.snapshot, p = this.properties;
+        const previous = this.stateSnapshot, p = this.properties;
         let raw = this.sourceTracks();
         if (this.mode === 'native' && this.surface?.videoWidth && !raw.some(t => t.type === 'video'))
             raw = [...raw, { id: '1', type: 'video', selected: true }];
@@ -476,22 +497,23 @@ export class Player extends EventTarget {
             currentTime: Math.max(0, Number(p.get('time-pos')) || 0), duration, streamType, subtitlesVisible: this.settings.subtitles, volume: this.settings.volume / 100, muted: this.muted, playbackRate: this.settings.speed,
             activeMode: this.current ? this.mode : null, automaticSelection: this.automatic, buffered: this.mode === 'native' && this.current ? ranges(p.get('native-buffered')) : null, seekable,
             cached: this.current && this.mode !== 'native' ? cachedRanges(cache?.['seekable-ranges']) : null,
-            trackPolicy: this.trackPolicy, audioTracks: list.filter(t => t.type === 'audio'), subtitleTracks: list.filter(t => t.type === 'subtitle'), mediaInfo: mediaInfo(p, this.mode, this.surface, list), capabilities: caps, error: this.sessionError };
+            timing: this.getTimingSettings(), loop: this.getLoop(), playbackRange: this.getPlaybackRange(), streaming: this.getStreamingState(), audioOutputDevice: this.outputDeviceId, trackPolicy: this.trackPolicy, audioTracks: list.filter(t => t.type === 'audio'), subtitleTracks: list.filter(t => t.type === 'subtitle'), mediaInfo: mediaInfo(p, this.mode, this.surface, list, this.current ? this.sourceSerial : null), capabilities: caps, error: this.sessionError };
         // Priority can change even when the externally visible snapshot is identical.
-        this.preview.setSuspended(this.busy || !!this.activeOperation || this.previewBuffering());
-        this.preview.setDuration(this.current && !this.busy && streamType === 'vod' ? duration : null);
+        this.#previewController.setSuspended(this.busy || !!this.activeOperation || this.previewBuffering());
+        this.#previewController.setDuration(this.current && !this.busy && streamType === 'vod' ? duration : null);
         if (previous && JSON.stringify(previous) === JSON.stringify(next))
             return;
-        this.snapshot = freeze(next);
+        this.statistics.observe(next);
+        this.stateSnapshot = freeze(next);
         for (const fn of [...this.subscribers]) {
             try {
-                fn(this.snapshot);
+                fn(this.stateSnapshot);
             }
             catch (error) {
                 globalThis.reportError?.(error);
             }
         }
-        this.dispatchEvent(new CustomEvent('statechange', { detail: this.snapshot }));
+        this.dispatchEvent(new CustomEvent('statechange', { detail: this.stateSnapshot }));
         if (!previous)
             return;
         const changed = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
@@ -502,14 +524,15 @@ export class Player extends EventTarget {
             ['ratechange', previous.playbackRate, next.playbackRate], ['timeupdate', previous.currentTime, next.currentTime],
         ])
             if (changed(a, b))
-                this.dispatchEvent(new CustomEvent(event, { detail: this.snapshot }));
+                this.dispatchEvent(new CustomEvent(event, { detail: this.stateSnapshot }));
         if (previous.playbackIntent !== next.playbackIntent && next.playbackIntent === 'play')
-            this.dispatchEvent(new CustomEvent('play', { detail: this.snapshot }));
+            this.dispatchEvent(new CustomEvent('play', { detail: this.stateSnapshot }));
         if (previous.status !== next.status) {
             const event = { playing: 'playing', paused: 'pause', buffering: 'waiting', ended: 'ended' }[next.status];
-            if (event)
-                this.dispatchEvent(new CustomEvent(event, { detail: this.snapshot }));
+            if (event && !(event === 'ended' && this.loopPolicy))
+                this.dispatchEvent(new CustomEvent(event, { detail: this.stateSnapshot }));
         }
+        this.enforceBoundary();
     }
     featureCapabilities(seekable, audio, sub) {
         const isolated = globalThis.crossOriginIsolated === true, available = { availability: 'available' };
@@ -519,6 +542,13 @@ export class Player extends EventTarget {
         const route = (mode) => !isolated ? unavailable('This deployment requires cross-origin isolation') : this.mode === mode || (mode === 'hybrid' && this.mode === 'software') ? available : this.automatic ? { availability: 'switch', mode, reason: `This feature requires ${mode} playback` } : unavailable(`Select ${mode} mode first`);
         const resolution = this.bufferingResolution();
         return { ...this.legacyCapabilities, buffering: { control: resolution.control, preload: true, profile: resolution.backend !== 'browser', memoryBudget: ['mpv', 'remux'].includes(resolution.backend) }, deployment: { isolated, webCodecs: typeof VideoDecoder !== 'undefined', mediaSource: typeof MediaSource !== 'undefined' }, features: {
+                subtitleDelay: route('hybrid'), audioDelay: route('hybrid'), subtitleStyle: route('hybrid'),
+                quality: !this.current ? unknown : this.current.backend.setQuality ? available : unavailable('This route does not expose adaptive qualities'),
+                liveNavigation: !this.current ? unknown : this.current.backend.seekToLive && this.current.backend.properties.get('native-live') === true ? available : unavailable('No controlled live timeline'),
+                loop: seekable?.length && this.stateSnapshot?.duration !== null ? available : unknown, playbackRange: seekable?.length ? available : unknown,
+                frameStep: !this.current ? unknown : this.mode === 'native' ? unavailable('Frame stepping requires mpv video playback') : available,
+                snapshot: !this.current ? unknown : { availability: 'unknown', reason: 'Readback depends on the active renderer and source permissions' },
+                audioOutputDevice: !this.current ? unknown : { availability: 'unknown', reason: 'Output selection depends on browser permission and the active audio sink' },
                 seek: seekable === null ? { availability: 'unknown', reason: 'Seek window has not been established' } : seekable.length ? available : unavailable('The source currently has no seekable time range'),
                 audioTracks: !this.current ? unknown : audio ? available : unavailable('Audio track selection is not exposed by this source/browser'),
                 subtitleTracks: !this.current ? unknown : sub ? available : unavailable('No subtitle tracks are available'),
@@ -530,7 +560,7 @@ export class Player extends EventTarget {
     get automaticSelection() { return this.automatic; }
     get surface() { return this.current?.surface; }
     get properties() { return this.current?.backend.properties ?? this.empty; }
-    get capabilities() { return this.snapshot?.capabilities ?? this.featureCapabilities(null, 0, 0); }
+    get capabilities() { return this.stateSnapshot?.capabilities ?? this.featureCapabilities(null, 0, 0); }
     get legacyCapabilities() {
         return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native' || ['remux-mpv', 'direct-mpv'].includes(backendPlan(this.current?.backend) ?? ''), externalTextTracks: this.mode === 'native', externalSubtitles: true, customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: backendPlan(this.current?.backend) === 'shaka-mse' || this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined') };
     }
@@ -544,6 +574,60 @@ export class Player extends EventTarget {
     get diagnostics() {
         const backend = this.current?.backend.diagnostics;
         return redact({ watchdogs: this.watchdogConfiguration, preview: this.preview.diagnostics, buffering: backend?.buffering ?? this.bufferingResolution(), mode: this.mode, plan: this.current ? executionPlan(this.mode, backend?.plan, this.settings.af, this.settings.gain, !!backend?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, backend });
+    }
+    getStreamingState() {
+        const raw = this.current?.backend.streamingState?.();
+        if (!raw)
+            return null;
+        const prefix = `${this.sourceSerial}:`;
+        return freeze({ ...raw, qualities: raw.qualities.map(q => ({ ...q, id: prefix + q.id })), selectedId: raw.selectedId ? prefix + raw.selectedId : null, presentedId: raw.presentedId ? prefix + raw.presentedId : null, requested: raw.requested.mode === 'manual' ? { ...raw.requested, id: prefix + raw.requested.id } : { ...raw.requested } });
+    }
+    setQuality(policy) {
+        if (!policy || !['auto', 'manual'].includes(policy.mode) || policy.mode === 'manual' && typeof policy.id !== 'string' || policy.mode === 'auto' && [policy.maxHeight, policy.maxBandwidth].some(v => v !== undefined && (!Number.isFinite(v) || v <= 0)))
+            throw new PlayerError('INVALID_ARGUMENT', 'Invalid quality policy');
+        const requested = { ...policy };
+        return this.enqueue(async () => {
+            const backend = this.current?.backend;
+            if (!backend?.setQuality)
+                throw new PlayerError('UNSUPPORTED_FEATURE', 'This route has no adaptive quality control');
+            const prefix = `${this.sourceSerial}:`;
+            if (requested.mode === 'manual' && !requested.id.startsWith(prefix))
+                throw new PlayerError('INVALID_ARGUMENT', 'Quality belongs to a different source');
+            const raw = requested.mode === 'manual' ? { ...requested, id: requested.id.slice(prefix.length) } : requested;
+            await backend.setQuality(raw);
+            this.qualityPolicy = raw;
+        });
+    }
+    seekToLive() { return this.enqueue(async () => { if (!this.current?.backend.seekToLive)
+        throw new PlayerError('UNSUPPORTED_FEATURE', 'This route has no live navigation'); await this.current.backend.seekToLive(); }, 'seeking'); }
+    getAudioOutputDevice() { return this.outputDeviceId; }
+    setAudioOutputDevice(id) {
+        if (typeof id !== 'string' || id.length > 1024)
+            throw new PlayerError('INVALID_ARGUMENT', 'Invalid output device ID');
+        return this.enqueue(async () => {
+            if (!this.current?.backend.setAudioOutputDevice)
+                throw new PlayerError('UNSUPPORTED_FEATURE', 'Open a source with output-device support first');
+            try {
+                await this.current.backend.setAudioOutputDevice(id);
+                this.outputDeviceId = id;
+            }
+            catch (error) {
+                if (error.name === 'NotAllowedError')
+                    throw new PlayerError('SOURCE_PERMISSION', 'Audio output permission denied');
+                throw error;
+            }
+        });
+    }
+    getStats() { return this.statistics.snapshot(); }
+    getPlaybackExplanation() {
+        const diagnostics = this.diagnostics, plan = diagnostics.plan;
+        const backend = this.current?.backend.diagnostics;
+        const observed = this.mode === 'software' ? backend?.decodePolicy : undefined;
+        const effective = observed && ['exact', 'balanced', 'performance'].includes(String(observed.effective)) ? observed.effective : null;
+        return freeze({ sourceId: this.state.sourceId, mode: this.state.activeMode, planId: plan?.id ?? null, video: plan?.video ?? null, audio: plan?.audio ?? null,
+            subtitle: this.state.mediaInfo.subtitle ? (backend?.subtitleOverlay?.component ?? (backend?.mpvSubtitles ? 'mpv' : this.mode === 'native' ? 'browser' : 'mpv')) : null,
+            automatic: this.automatic, decodeQuality: this.decodeQuality, fidelity: { effective, observation: effective ? 'backend-reported' : 'unavailable', shortcuts: effective && Array.isArray(observed?.shortcuts) ? observed.shortcuts.filter((v) => typeof v === 'string').slice(0, 16) : [] },
+            admission: this.planDecisions.map(p => ({ planId: p.id, mode: p.mode, eligible: p.eligible, code: p.code ?? null, reason: p.reason ? redact(p.reason) : null })), attempts: redact(this.attempts.slice(-64).map(a => ({ ...a }))) });
     }
     audioDiagnostics() { return this.current?.backend.audioDiagnostics(); }
     emit(type, detail) {
@@ -582,6 +666,7 @@ export class Player extends EventTarget {
         const result = this.queue.then(async () => {
             if (epoch !== this.operationEpoch || this.destroyed || controller.signal.aborted)
                 throw new PlayerError('ABORTED', this.destroyed ? 'Player is destroyed' : 'Operation aborted', id, kind);
+            this.operationStarted = performance.now();
             this.activeOperation = { id, kind, controller, detachCallerAbort: () => signal?.removeEventListener('abort', cancel) };
             this.pendingOperation = kind ? { id, kind } : null;
             this.publish();
@@ -590,6 +675,8 @@ export class Player extends EventTarget {
             try {
                 await operation();
                 this.assertOperation();
+                if (kind === 'seeking')
+                    this.statistics.seek(performance.now() - this.operationStarted);
             }
             catch (error) {
                 if (optimization)
@@ -851,6 +938,20 @@ export class Player extends EventTarget {
                 plan.code = 'QUALIFICATION_REQUIRED';
                 plan.reason = 'This execution plan already failed for the current streaming source';
             }
+        if (this.subtitleDelay !== 0 || this.audioDelay !== 0 || Object.keys(this.subtitleStyle).length)
+            for (const plan of decisions)
+                if (plan.mode === 'native') {
+                    plan.eligible = false;
+                    plan.code = 'FEATURE_UNSUPPORTED';
+                    plan.reason = 'Requested timing/style controls require the mpv playback clock';
+                }
+        if (this.outputDeviceId && (typeof AudioContext === 'undefined' || !('setSinkId' in AudioContext.prototype)))
+            for (const plan of decisions)
+                if (plan.eligible && (plan.mode !== 'native' || plan.id.startsWith('native-video-mpv-audio') || plan.id.endsWith('-gain'))) {
+                    plan.eligible = false;
+                    plan.code = 'FEATURE_UNSUPPORTED';
+                    plan.reason = 'The requested output device requires AudioContext sink selection on this route';
+                }
         return decisions;
     }
     failedStreamingPlan(session) {
@@ -863,6 +964,8 @@ export class Player extends EventTarget {
         return true;
     }
     async replace(source, mode, settings, preserve, nativeTracks, requestedTarget, automaticAdmission = this.automatic, planId, directLoadBudget) {
+        if (this.presentation.locksSurface)
+            throw new PlayerError('UNSUPPORTED_FEATURE', 'Exit video Picture-in-Picture before replacing the playback surface');
         if (!planId)
             return this.discover(source, settings, preserve, nativeTracks, requestedTarget, automaticAdmission, mode);
         if (this.sourceInspection?.source !== source)
@@ -932,6 +1035,8 @@ export class Player extends EventTarget {
                 trackIndexes.set(type, index);
             }
         }
+        if (preserve && this.publicSelections.has('sub') && desired.sid !== 'no')
+            desired.sid = 'auto';
         if (this.activeOperation && !this.pendingOperation) {
             this.activeOperation.kind = 'switching';
             this.pendingOperation = { id: this.activeOperation.id, kind: 'switching' };
@@ -971,6 +1076,12 @@ export class Player extends EventTarget {
                 await p.command('set', 'vf', vf);
             if (mode !== 'native' && desired.af)
                 await p.command('set', 'af', desired.af);
+            if (mode !== 'native') {
+                await p.command('set', 'sub-delay', String(this.subtitleDelay));
+                await p.command('set', 'audio-delay', String(this.audioDelay));
+                for (const [key, value] of Object.entries(this.subtitleStyle))
+                    await p.command('set', { fontSize: 'sub-font-size', color: 'sub-color', borderSize: 'sub-border-size', fontFamily: 'sub-font' }[key], String(value));
+            }
             await p.gain(desired.gain);
             await p.volume(overlapping || this.muted ? 0 : desired.volume);
             await p.rate(desired.speed);
@@ -984,6 +1095,23 @@ export class Player extends EventTarget {
                 await this.interruptible(p.open(source.file, source.input));
             else
                 await this.interruptible(p.openRemote(source.options));
+            if (!preserve && requestedTarget !== undefined) {
+                const duration = p.properties.get('duration');
+                if (p.properties.get('native-live') === true || !Number.isFinite(duration) || Number(duration) <= 0 || requestedTarget >= Number(duration))
+                    throw new PlayerError('INVALID_ARGUMENT', 'startTime requires a target within finite VOD duration');
+            }
+            if (preserve && this.qualityPolicy) {
+                if (this.qualityPolicy.mode === 'manual')
+                    throw new PlayerError('UNSUPPORTED_FEATURE', 'A manual quality pin cannot be mapped across a replacement backend');
+                if (!p.setQuality)
+                    throw new PlayerError('UNSUPPORTED_FEATURE', 'Fallback cannot preserve runtime quality policy');
+                await p.setQuality(this.qualityPolicy);
+            }
+            if (this.outputDeviceId) {
+                if (!p.setAudioOutputDevice)
+                    throw new PlayerError('UNSUPPORTED_FEATURE', 'Output device cannot be preserved');
+                await p.setAudioOutputDevice(this.outputDeviceId);
+            }
             if ('inspectMetadata' in p)
                 await p.inspectMetadata();
             this.assertOperation();
@@ -993,7 +1121,7 @@ export class Player extends EventTarget {
                 await p.selectTrack('sub', desired.sid);
             if (mode === 'native') {
                 for (const track of nativeTracks)
-                    await p.addTextTrack(track);
+                    await p.addTextTrack(track, track.attachmentId);
                 await p.selectTrack('audio', desired.aid);
                 await p.selectTrack('sub', desired.sid);
                 await p.subtitleVisible(desired.subtitles);
@@ -1058,6 +1186,9 @@ export class Player extends EventTarget {
             if (overlapping)
                 await p.volume(this.muted ? 0 : desired.volume);
             if (!preserve) {
+                this.playbackRange = null;
+                this.loopPolicy = false;
+                this.qualityPolicy = null;
                 this.sourceSerial++;
                 this.publicSelections.clear();
                 if (initialAudio)
@@ -1065,6 +1196,7 @@ export class Player extends EventTarget {
                 if (initialSubtitle)
                     this.publicSelections.set('sub', `sub:stream:${initialSubtitle.index}`);
             }
+            this.statistics.accept(this.sourceSerial, preserve, performance.now() - this.operationStarted);
             this.sessionError = null;
             this.observedPlaying = false;
             this.observedWaiting = false;
@@ -1073,7 +1205,7 @@ export class Player extends EventTarget {
             this.planDecisions = admitted;
             this.runtimeCapabilities.admission(admitted);
             this.acceptEvidence(planId, candidate);
-            this.preview.setSourceIdentity(`${this.sourceSerial}:${mode}`);
+            this.#previewController.setSourceIdentity(`${this.sourceSerial}:${mode}`);
             this.previewSource = source.kind === 'local' ? (source.file instanceof Blob ? source.file : new Blob([source.file])) : undefined;
             this.current = candidate;
             this.candidate = undefined;
@@ -1629,8 +1761,28 @@ export class Player extends EventTarget {
         }, 'switching');
     }
     open(input, options = {}) {
+        if (options.startTime !== undefined && (!Number.isFinite(options.startTime) || options.startTime < 0))
+            return Promise.reject(new PlayerError('INVALID_ARGUMENT', 'startTime must be finite nonnegative seconds'));
+        if (isCustomSource(input)) {
+            const provider = input;
+            return this.enqueue(async () => { const file = await materializeSource(provider, this.activeOperation.controller.signal); const source = { kind: 'local', file, input: { demuxer: options.demuxer }, trackPolicy: normalizeTrackPolicy({ ...this.configuredTrackPolicy, ...normalizeTrackPolicy(options.trackPolicy) }) }; const inspection = this.sourceInspection, lossless = this.losslessInspection, fast = this.fastInspectedSource; try {
+                await this.select(source, this.settings, false, [], 0, options.startTime);
+            }
+            catch (error) {
+                if (this.source !== source) {
+                    this.sourceInspection = inspection;
+                    this.losslessInspection = lossless;
+                    this.fastInspectedSource = fast;
+                }
+                throw error;
+            } }, 'opening', options.signal);
+        }
         let source;
         try {
+            if (options.startTime !== undefined && (!Number.isFinite(options.startTime) || options.startTime < 0))
+                throw new PlayerError('INVALID_ARGUMENT', 'startTime must be finite nonnegative seconds');
+            if (input instanceof Blob && !(input instanceof File))
+                input = new File([input], 'media', { type: input.type });
             if (typeof input === 'string' || input instanceof URL || (!(input instanceof File) && !(input instanceof ArrayBuffer) && input && typeof input === 'object')) {
                 const value = typeof input === 'string' || input instanceof URL ? { url: String(input) } : input;
                 if (typeof value.url !== 'string' || !value.url.trim())
@@ -1664,7 +1816,7 @@ export class Player extends EventTarget {
         return this.enqueue(async () => {
             const inspection = this.sourceInspection, lossless = this.losslessInspection, fastInspectedSource = this.fastInspectedSource;
             try {
-                await this.select(source, this.settings, false, []);
+                await this.select(source, this.settings, false, [], 0, options.startTime);
             }
             catch (error) {
                 if (this.source !== source) {
@@ -1821,12 +1973,27 @@ export class Player extends EventTarget {
         });
     }
     pause() { return this.setting(p => p.pause(), () => { this.settings.pause = true; this.observedPlaying = false; this.observedWaiting = false; this.schedulePromotion(); }); }
-    seek(seconds) {
+    seek(seconds, options = {}) { return this.seekForSource(seconds, options); }
+    seekForSource(seconds, options, sourceId) {
         if (!Number.isFinite(seconds) || seconds < 0)
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid seek time');
+        if (options.policy !== undefined && !['queue', 'latest'].includes(options.policy))
+            throw new PlayerError('INVALID_ARGUMENT', 'Invalid seek policy');
+        const controller = new AbortController(), abort = () => controller.abort();
+        options.signal?.addEventListener('abort', abort, { once: true });
+        if (options.signal?.aborted)
+            abort();
+        if (options.policy === 'latest') {
+            this.latestSeek?.abort();
+            this.latestSeek = controller;
+        }
         return this.enqueue(async () => {
+            if (sourceId !== undefined && sourceId !== this.state.sourceId)
+                throw new PlayerError('INVALID_ARGUMENT', 'Chapter belongs to a retired source');
             if (!this.current)
                 throw new Error('No source');
+            if (this.playbackRange && (seconds < this.playbackRange.start || seconds > this.playbackRange.end))
+                throw new PlayerError('INVALID_ARGUMENT', 'Seek is outside the playback range');
             const window = this.state.seekable;
             if (window && !window.some(r => seconds >= r.start && seconds <= r.end))
                 throw new PlayerError('INVALID_ARGUMENT', 'Seek is outside the current seekable window');
@@ -1872,7 +2039,152 @@ export class Player extends EventTarget {
                     this.tierAttempts.failure(this.source, this.tierConfiguration(this.settings), failedPlan.id, String(error));
                 await this.select(this.source, this.settings, true, this.nativeTracks, streaming || this.mode === 'native' ? 0 : PLAYBACK_MODES.indexOf(this.mode) + 1, seconds, priorAttempts);
             }
+        }, 'seeking', controller.signal).finally(() => { options.signal?.removeEventListener('abort', abort); if (this.latestSeek === controller)
+            this.latestSeek = undefined; });
+    }
+    validateRange(range) {
+        if (!range || !Number.isFinite(range.start) || !Number.isFinite(range.end) || range.start < 0 || range.end <= range.start)
+            throw new PlayerError('INVALID_ARGUMENT', 'Invalid playback range');
+        if (!this.current || !this.state.seekable?.some(w => range.start >= w.start && range.end <= w.end))
+            throw new PlayerError('UNSUPPORTED_FEATURE', 'Range must fit in an observed seekable interval');
+    }
+    seekChapter(id) { const chapter = this.state.mediaInfo.chapters?.find(c => c.id === id); if (!chapter)
+        return Promise.reject(new PlayerError('INVALID_ARGUMENT', 'Unknown source chapter')); return this.seekForSource(chapter.start, {}, this.state.sourceId); }
+    getPlaybackRange() { return this.playbackRange ? freeze({ ...this.playbackRange }) : null; }
+    getLoop() { return typeof this.loopPolicy === 'object' ? freeze({ ...this.loopPolicy }) : this.loopPolicy; }
+    setPlaybackRange(range) {
+        const copy = range ? { ...range } : null;
+        return this.enqueue(async () => {
+            if (copy)
+                this.validateRange(copy);
+            if (copy && typeof this.loopPolicy === 'object' && (this.loopPolicy.start < copy.start || this.loopPolicy.end > copy.end))
+                throw new PlayerError('INVALID_ARGUMENT', 'Loop must fit in the playback range');
+            if (copy && (this.state.currentTime < copy.start || this.state.currentTime >= copy.end)) {
+                await this.current.backend.seek(copy.start);
+                await this.settled(this.current, this.mode, copy.start);
+            }
+            this.playbackRange = copy;
         }, 'seeking');
+    }
+    setLoop(policy) {
+        const copy = typeof policy === 'object' && policy ? { ...policy } : policy;
+        return this.enqueue(async () => {
+            if (typeof copy === 'object') {
+                this.validateRange(copy);
+                if (this.playbackRange && (copy.start < this.playbackRange.start || copy.end > this.playbackRange.end))
+                    throw new PlayerError('INVALID_ARGUMENT', 'Loop must fit in playback range');
+            }
+            else if (typeof copy !== 'boolean')
+                throw new PlayerError('INVALID_ARGUMENT', 'Invalid loop policy');
+            if (copy === true && !this.playbackRange) {
+                const duration = this.state.duration;
+                if (duration === null)
+                    throw new PlayerError('UNSUPPORTED_FEATURE', 'Whole-source looping requires finite duration');
+                this.validateRange({ start: 0, end: duration });
+            }
+            if (typeof copy === 'object' && copy && (this.state.currentTime < copy.start || this.state.currentTime >= copy.end)) {
+                await this.current.backend.seek(copy.start);
+                await this.settled(this.current, this.mode, copy.start);
+            }
+            this.loopPolicy = copy;
+        }, typeof copy === 'object' ? 'seeking' : null);
+    }
+    enforceBoundary() {
+        if (this.boundaryPending || !this.current || this.activeOperation || this.settings.pause || (!this.loopPolicy && !this.playbackRange))
+            return;
+        const boundary = () => typeof this.loopPolicy === 'object' ? this.loopPolicy : this.playbackRange ?? { start: 0, end: this.state.duration ?? Infinity };
+        if (this.state.status !== 'ended' && this.state.currentTime < boundary().end)
+            return;
+        const source = this.source, session = this.current;
+        this.boundaryPending = true;
+        void this.enqueue(async () => {
+            // A preceding queued control may replace the source, move the clock, or
+            // change/remove the range before this automatic operation starts.
+            if (this.source !== source || this.current !== session || this.settings.pause || (!this.loopPolicy && !this.playbackRange))
+                return;
+            const range = boundary();
+            if (this.state.status !== 'ended' && this.state.currentTime < range.end)
+                return;
+            await session.backend.pause();
+            if (this.loopPolicy) {
+                await session.backend.seek(range.start);
+                await this.settled(session, this.mode, range.start);
+                await session.backend.play();
+            }
+            else {
+                this.settings.pause = true;
+                await session.backend.seek(range.end);
+                await this.settled(session, this.mode, range.end);
+            }
+        }, 'seeking').catch(() => {
+            if (this.current !== session || this.source !== source || this.destroyed || this.closing)
+                return;
+            this.settings.pause = true;
+            void session.backend.pause().catch(() => { });
+            this.publish();
+        }).finally(() => { this.boundaryPending = false; });
+    }
+    stepFrame(direction = 1) {
+        if (direction !== 1 && direction !== -1)
+            throw new PlayerError('INVALID_ARGUMENT', 'Frame direction must be 1 or -1');
+        return this.enqueue(async () => {
+            if (!this.current || this.mode === 'native' || !this.state.mediaInfo.video)
+                throw new PlayerError('UNSUPPORTED_FEATURE', 'Frame stepping requires mpv video playback');
+            const backend = this.current.backend, initial = this.state.currentTime;
+            if (direction < 0 && initial <= 0)
+                throw new PlayerError('INVALID_ARGUMENT', 'No previous frame at the start of the source');
+            await backend.pause();
+            this.settings.pause = true;
+            await backend.command(direction === 1 ? 'frame-step' : 'frame-back-step');
+            const deadline = performance.now() + 25000;
+            while (performance.now() < deadline) {
+                this.assertOperation();
+                const time = Number(backend.properties.get('time-pos'));
+                if (Number.isFinite(time) && (direction > 0 ? time > initial : time < initial)) {
+                    await this.settled(this.current, this.mode, time);
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 20));
+            }
+            throw new PlayerError('UNSUPPORTED_FEATURE', 'No adjacent frame was presented within the stepping deadline');
+        }, 'seeking');
+    }
+    snapshot(options = {}) {
+        let result;
+        return this.enqueue(async () => {
+            const surface = this.surface;
+            if (!surface || !this.state.mediaInfo.video)
+                throw new PlayerError('UNSUPPORTED_FEATURE', 'No video presentation');
+            const subtitle = this.state.subtitlesVisible && !!this.state.mediaInfo.subtitle, include = options.includeSubtitles ?? true;
+            if (this.mode !== 'native') {
+                if (subtitle && !include)
+                    throw new PlayerError('UNSUPPORTED_FEATURE', 'The mpv surface already contains subtitles');
+                if (options.width !== undefined || options.height !== undefined)
+                    throw new PlayerError('UNSUPPORTED_FEATURE', 'mpv snapshots use the current presentation size');
+                const backend = this.current.backend;
+                if (!backend.previewSnapshot)
+                    throw new PlayerError('UNSUPPORTED_FEATURE', 'Snapshot readback is unavailable');
+                const image = await backend.previewSnapshot();
+                result = Object.freeze({ ...image, mediaTime: this.state.currentTime, actualTime: null, includesSubtitles: subtitle });
+                return;
+            }
+            if (subtitle && include)
+                throw new PlayerError('UNSUPPORTED_FEATURE', 'Native subtitle composition is not qualified for snapshots');
+            const video = surface, scale = Math.min(1, 1920 / video.videoWidth, 1080 / video.videoHeight);
+            const width = options.width ?? Math.max(1, Math.round(video.videoWidth * scale)), height = options.height ?? Math.max(1, Math.round(video.videoHeight * scale));
+            dimensions(width, height);
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            try {
+                canvas.getContext('2d').drawImage(video, 0, 0, width, height);
+                const blob = await new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new PlayerError('UNSUPPORTED_FEATURE', 'Snapshot encoding failed')), 'image/png'));
+                result = Object.freeze({ blob, width, height, mediaTime: this.state.currentTime, actualTime: null, includesSubtitles: false });
+            }
+            catch {
+                throw new PlayerError('UNSUPPORTED_FEATURE', 'The browser does not permit snapshot readback for this source');
+            }
+        }).then(() => result);
     }
     volume(value) {
         if (!Number.isFinite(value) || value < 0 || value > 100)
@@ -1904,6 +2216,8 @@ export class Player extends EventTarget {
                 track = chosen ? raw.find(t => `${this.sourceSerial}:${trackKey(t, this.mode, plan)}` === chosen.id) : undefined;
             }
             const backendId = id === null ? 'no' : id === 'auto' ? 'auto' : String(track.id);
+            if (type === 'sub' && backendId !== 'no' && inventory.length && this.settings.subtitles && this.presentation.locksSurface)
+                throw new PlayerError('UNSUPPORTED_FEATURE', 'Exit video Picture-in-Picture before enabling subtitles');
             if (this.settings[type === 'audio' ? 'aid' : 'sid'] === backendId && (!track || track.selected))
                 return;
             if (type === 'sub' && this.mode === 'native' && this.automatic && this.source && this.settings.subtitles && backendId !== 'no' && !['shaka-mse', 'remux-mpv', 'direct-mpv'].includes(plan ?? '')) {
@@ -1991,6 +2305,8 @@ export class Player extends EventTarget {
                     this.schedulePromotion();
                 return;
             }
+            if (visible && this.settings.sid !== 'no' && this.sourceTracks().some(t => t.type === 'sub') && this.presentation.locksSurface)
+                throw new PlayerError('UNSUPPORTED_FEATURE', 'Exit video Picture-in-Picture before enabling subtitles');
             const settings = { ...this.settings, subtitles: visible };
             if (this.automatic && this.source && this.mode === 'native' && !['shaka-mse', 'remux-mpv', 'direct-mpv'].includes(backendPlan(this.current?.backend) ?? '') && visible && !this.settings.subtitles)
                 await this.select(this.source, settings, true, this.nativeTracks);
@@ -2003,7 +2319,34 @@ export class Player extends EventTarget {
             }
         });
     }
-    addSubtitle(file, options = {}) {
+    getTimingSettings() { return freeze({ subtitleDelay: this.subtitleDelay, audioDelay: this.audioDelay, effectiveSubtitleDelay: this.current ? this.subtitleDelay : null, effectiveAudioDelay: this.current ? this.audioDelay : null, subtitleStyle: { ...this.subtitleStyle }, styleScope: 'plain-text' }); }
+    timingChange(key, value) {
+        return this.enqueue(async () => {
+            const old = this[key];
+            this[key] = value;
+            try {
+                if (this.source)
+                    await this.select(this.source, this.settings, true, this.nativeTracks);
+            }
+            catch (error) {
+                this[key] = old;
+                throw error;
+            }
+        }, 'switching');
+    }
+    setSubtitleDelay(seconds) { if (!Number.isFinite(seconds) || Math.abs(seconds) > 60)
+        throw new PlayerError('INVALID_ARGUMENT', 'Subtitle delay must be within -60 to 60 seconds'); return this.timingChange('subtitleDelay', seconds); }
+    setAudioDelay(seconds) { if (!Number.isFinite(seconds) || Math.abs(seconds) > 60)
+        throw new PlayerError('INVALID_ARGUMENT', 'Audio delay must be within -60 to 60 seconds'); return this.timingChange('audioDelay', seconds); }
+    setSubtitleStyle(style) {
+        if (!style || typeof style !== 'object' || Object.keys(style).some(key => !['fontSize', 'color', 'borderSize', 'fontFamily'].includes(key)) || style.fontSize !== undefined && (!Number.isFinite(style.fontSize) || style.fontSize < 8 || style.fontSize > 150) || style.borderSize !== undefined && (!Number.isFinite(style.borderSize) || style.borderSize < 0 || style.borderSize > 10) || style.color !== undefined && !/^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(style.color) || style.fontFamily !== undefined && (typeof style.fontFamily !== 'string' || style.fontFamily.length > 128 || /[\x00-\x1f]/.test(style.fontFamily)))
+            throw new PlayerError('INVALID_ARGUMENT', 'Invalid plain-text subtitle style');
+        return this.timingChange('subtitleStyle', { ...style });
+    }
+    addSubtitle(file, options = {}) { return this.attachSubtitle(file, options).then(() => { }); }
+    attachSubtitle(file, options = {}) {
+        const attachmentId = `subtitle-${++this.attachmentSerial}`;
+        let sourceId = null;
         if (!(file instanceof File))
             return Promise.reject(new PlayerError('INVALID_ARGUMENT', 'Expected a subtitle File'));
         const format = file.name.split('.').at(-1)?.toLowerCase();
@@ -2012,6 +2355,7 @@ export class Player extends EventTarget {
         return this.enqueue(async () => {
             if (!this.source)
                 throw Error('Open a movie before adding subtitles');
+            sourceId = this.state.sourceId;
             this.assertSubtitleAddition(options.label ?? file.name, options.language, format);
             if (this.subtitleAssets.length >= 16 || this.subtitleAssets.reduce((n, a) => n + a.bytes.byteLength, 0) + file.size > 16 * 1024 * 1024)
                 throw Error('Subtitle budget exceeded');
@@ -2019,7 +2363,7 @@ export class Player extends EventTarget {
             const old = this.subtitleAssets, previousSelection = this.publicSelections.get('sub');
             if (options.select !== false)
                 this.publicSelections.delete('sub');
-            this.subtitleAssets = [...old, { bytes, format: format, label: options.label ?? file.name, language: options.language, select: options.select ?? true }];
+            this.subtitleAssets = [...old, { attachmentId, bytes, format: format, label: options.label ?? file.name, language: options.language, select: options.select ?? true }];
             try {
                 plainVTT(this.subtitleAssets.at(-1));
                 await this.select(this.source, { ...this.settings, sid: options.select === false ? this.settings.sid : 'auto' }, true, this.nativeTracks);
@@ -2030,16 +2374,18 @@ export class Player extends EventTarget {
                     this.publicSelections.set('sub', previousSelection);
                 throw error;
             }
-        });
+        }).then(() => { const handle = freeze({ id: attachmentId, kind: 'subtitle', sourceId }); this.attachmentHandles.add(handle); return handle; });
     }
-    addFont(file) {
+    addFont(file) { return this.attachFont(file).then(() => { }); }
+    attachFont(file) {
+        const attachmentId = `font-${++this.attachmentSerial}`;
         if (!(file instanceof File) || !/\.(ttf|otf)$/i.test(file.name) || file.size > 8 * 1024 * 1024)
             return Promise.reject(new PlayerError('INVALID_ARGUMENT', 'Expected a TTF/OTF font up to 8 MiB'));
         return this.enqueue(async () => {
             if (this.fonts.length >= 16 || this.fonts.reduce((n, a) => n + a.bytes.byteLength, 0) + file.size > 32 * 1024 * 1024)
                 throw Error('Font budget exceeded');
             const bytes = await this.interruptible(file.arrayBuffer()), old = this.fonts;
-            this.fonts = [...old, { name: 'user-' + old.length + '.' + file.name.split('.').at(-1).toLowerCase(), bytes }];
+            this.fonts = [...old, { attachmentId, name: attachmentId + '.' + file.name.split('.').at(-1).toLowerCase(), bytes }];
             try {
                 if (this.source && (this.mode !== 'native' || (this.nativeASS && this.subtitleAssets.length) || backendPlan(this.current?.backend) === 'remux-mpv'))
                     await this.replace(this.source, this.mode, this.settings, true, this.nativeTracks);
@@ -2048,7 +2394,42 @@ export class Player extends EventTarget {
                 this.fonts = old;
                 throw error;
             }
-        });
+        }).then(() => { const handle = freeze({ id: attachmentId, kind: 'font', sourceId: null }); this.attachmentHandles.add(handle); return handle; });
+    }
+    removeAttachment(handle) {
+        return this.enqueue(async () => {
+            if (!handle || !this.attachmentHandles.has(handle) || !['subtitle', 'font'].includes(handle.kind))
+                throw new PlayerError('INVALID_ARGUMENT', 'Invalid attachment handle');
+            const oldSubs = this.subtitleAssets, oldFonts = this.fonts, oldTracks = this.nativeTracks, oldSelections = new Map(this.publicSelections);
+            const selected = this.state.mediaInfo.subtitle?.id === `${this.sourceSerial}:sub:attachment:${handle.id}`;
+            if (handle.kind === 'subtitle') {
+                if (handle.sourceId !== this.state.sourceId || !oldSubs.some(a => a.attachmentId === handle.id) && !oldTracks.some(a => a.attachmentId === handle.id))
+                    throw new PlayerError('INVALID_ARGUMENT', 'Expired subtitle handle');
+                if (selected && (this.trackPolicy.subtitles?.locked || this.trackPolicy.subtitles?.allowOff === false))
+                    throw new PlayerError('UNSUPPORTED_FEATURE', 'Track policy prevents removing the selected subtitle');
+                this.subtitleAssets = oldSubs.filter(a => a.attachmentId !== handle.id);
+                this.nativeTracks = oldTracks.filter(a => a.attachmentId !== handle.id);
+                if (selected)
+                    this.publicSelections.delete('sub');
+            }
+            else {
+                if (handle.sourceId !== null || !oldFonts.some(a => a.attachmentId === handle.id))
+                    throw new PlayerError('INVALID_ARGUMENT', 'Expired font handle');
+                this.fonts = oldFonts.filter(a => a.attachmentId !== handle.id);
+            }
+            try {
+                if (this.source)
+                    await this.select(this.source, selected ? { ...this.settings, sid: 'no', subtitles: false } : this.settings, true, this.nativeTracks);
+            }
+            catch (error) {
+                this.subtitleAssets = oldSubs;
+                this.nativeTracks = oldTracks;
+                this.fonts = oldFonts;
+                this.publicSelections = oldSelections;
+                throw error;
+            }
+            this.attachmentHandles.delete(handle);
+        }, 'switching');
     }
     setToneMapping(value) {
         if (!['off', 'hdr-to-sdr'].includes(value))
@@ -2072,15 +2453,22 @@ export class Player extends EventTarget {
             throw error;
         } });
     }
-    addTextTrack(track) {
-        const source = { ...track };
+    addTextTrack(track) { return this.attachTextTrack(track).then(() => { }); }
+    attachTextTrack(track) {
+        const attachmentId = `text-${++this.attachmentSerial}`, source = { ...track, attachmentId };
+        let sourceId = null;
         return this.enqueue(async () => {
             if (this.mode !== 'native' || !this.current)
-                throw new Error('External browser text tracks require an open native player');
+                throw new PlayerError('UNSUPPORTED_FEATURE', 'External browser text tracks require an open native player');
+            if (this.presentation.locksSurface)
+                throw new PlayerError('UNSUPPORTED_FEATURE', 'Exit video Picture-in-Picture before attaching subtitles');
+            if (this.nativeTracks.length >= 16)
+                throw new PlayerError('INVALID_ARGUMENT', 'At most 16 browser text attachments are supported');
             this.assertSubtitleAddition(source.label, source.language, 'webvtt');
-            await this.current.backend.addTextTrack(source);
+            await this.current.backend.addTextTrack(source, attachmentId);
             this.nativeTracks.push(source);
-        });
+            sourceId = this.state.sourceId;
+        }).then(() => { const handle = freeze({ id: attachmentId, kind: 'subtitle', sourceId }); this.attachmentHandles.add(handle); return handle; });
     }
     resize(width, height) {
         if (this.destroyed)
@@ -2096,14 +2484,14 @@ export class Player extends EventTarget {
             return this.destruction;
         if (this.closing)
             return this.closing;
-        this.preview.setSourceIdentity(`closed:${this.sourceSerial}`);
+        this.#previewController.setSourceIdentity(`closed:${this.sourceSerial}`);
         this.previewSource = undefined;
         this.operationEpoch++;
         this.activeOperation?.controller.abort();
         this.inspection?.abort();
         this.stopWatchdogs();
-        const cleanup = Promise.all([this.preview.drain(), ...[this.candidate, this.current].map(s => s?.backend.destroy().catch(() => { }))]);
-        this.closing = this.enqueue(async () => { await cleanup; await this.dispose(this.current); this.current = undefined; this.candidate = undefined; this.source = undefined; this.sourceInspection = undefined; this.losslessInspection = undefined; this.runtimeCapabilities.clear(); this.tierAttempts.clear(); this.nativeTracks = []; this.subtitleAssets = []; this.publicSelections.clear(); this.settings = { ...this.settings, pause: true, aid: 'auto', sid: 'auto' }; this.sessionError = null; this.observedPlaying = false; this.observedWaiting = false; }, 'closing').finally(() => { this.closing = undefined; });
+        const cleanup = Promise.all([this.#previewController.drain(), ...[this.candidate, this.current].map(s => s?.backend.destroy().catch(() => { }))]);
+        this.closing = this.enqueue(async () => { await cleanup; await this.dispose(this.current); this.playbackRange = null; this.loopPolicy = false; this.statistics.clear(); this.current = undefined; this.candidate = undefined; this.source = undefined; this.sourceInspection = undefined; this.losslessInspection = undefined; this.runtimeCapabilities.clear(); this.tierAttempts.clear(); this.nativeTracks = []; this.subtitleAssets = []; this.publicSelections.clear(); this.settings = { ...this.settings, pause: true, aid: 'auto', sid: 'auto' }; this.sessionError = null; this.observedPlaying = false; this.observedWaiting = false; }, 'closing').finally(() => { this.closing = undefined; });
         return this.closing;
     }
     destroy() {
@@ -2111,7 +2499,8 @@ export class Player extends EventTarget {
         if (this.destruction)
             return this.destruction;
         this.preparation?.destroy();
-        const previewCleanup = this.preview.destroy();
+        const presentationCleanup = this.presentation.destroy();
+        const previewCleanup = this.#previewController.destroy();
         this.previewSource = undefined;
         this.destroyed = true;
         this.operationEpoch++;
@@ -2120,12 +2509,13 @@ export class Player extends EventTarget {
         this.inspection?.abort();
         this.stopWatchdogs();
         this.destruction = (async () => {
-            await Promise.all([previewCleanup, ...[this.candidate, this.current].map(session => session?.backend.destroy().catch(() => { }))]);
+            await Promise.all([presentationCleanup, previewCleanup, ...[this.candidate, this.current].map(session => session?.backend.destroy().catch(() => { }))]);
             await this.queue;
             try {
                 await this.dispose(this.current);
             }
             finally {
+                this.statistics.clear();
                 this.current = undefined;
                 this.source = undefined;
                 this.sourceInspection = undefined;

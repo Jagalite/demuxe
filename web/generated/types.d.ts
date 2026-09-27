@@ -39,6 +39,7 @@ export type SubtitleOptions = {
     select?: boolean;
 };
 export type SubtitleAsset = {
+    attachmentId?: string;
     bytes: ArrayBuffer;
     format: 'srt' | 'ass' | 'ssa' | 'vtt';
     label: string;
@@ -46,6 +47,7 @@ export type SubtitleAsset = {
     select: boolean;
 };
 export type FontAsset = {
+    attachmentId?: string;
     name: string;
     bytes: ArrayBuffer;
 };
@@ -66,6 +68,15 @@ export type BufferingOptions = {
     memoryBudget?: number;
 };
 export type BufferingPolicy = Readonly<Required<Pick<BufferingOptions, 'preload' | 'profile'>> & Pick<BufferingOptions, 'memoryBudget'>>;
+/** Playback-health heuristics only; operation, network and cleanup deadlines remain bounded. */
+export type WatchdogOptions = {
+    nativeProgress?: boolean;
+    hybridDecoder?: boolean;
+    decoderOutput?: boolean;
+    selectiveAudio?: boolean;
+    nativeProgressTimeoutMs?: number;
+};
+export type WatchdogPolicy = Readonly<Required<WatchdogOptions>>;
 export type BufferingCapabilities = Readonly<{
     control: 'hint' | 'profile';
     preload: boolean;
@@ -147,15 +158,6 @@ export type TrackPolicy = Readonly<{
     audio?: TrackTypePolicy;
     subtitles?: TrackTypePolicy;
 }>;
-/** Playback-health heuristics only; operation, network and cleanup deadlines remain bounded. */
-export type WatchdogOptions = {
-    nativeProgress?: boolean;
-    hybridDecoder?: boolean;
-    decoderOutput?: boolean;
-    selectiveAudio?: boolean;
-    nativeProgressTimeoutMs?: number;
-};
-export type WatchdogPolicy = Readonly<Required<WatchdogOptions>>;
 export type PlayerOptions = {
     /** Defaults to enabled. false disables all playback-health watchdogs. */
     watchdogs?: boolean | WatchdogOptions;
@@ -287,8 +289,9 @@ export type Diagnostics = {
 export type OpenOptions = MediaInputOptions & {
     signal?: AbortSignal;
     trackPolicy?: TrackPolicy;
+    startTime?: number;
 };
-export type MediaSourceInput = File | ArrayBuffer | string | URL | RemoteSource;
+export type MediaSourceInput = Blob | File | ArrayBuffer | string | URL | RemoteSource | CustomSource;
 export type OperationKind = 'opening' | 'seeking' | 'switching' | 'closing';
 export type PendingOperation = Readonly<{
     id: number;
@@ -320,7 +323,7 @@ export type FeatureAvailability = Readonly<{
     availability: 'unknown';
     reason: string;
 }>;
-export type FeatureName = 'seek' | 'audioTracks' | 'subtitleTracks' | 'externalSubtitles' | 'customFonts' | 'videoFilters' | 'audioFilters' | 'audioGain';
+export type FeatureName = 'seek' | 'audioTracks' | 'subtitleTracks' | 'externalSubtitles' | 'customFonts' | 'videoFilters' | 'audioFilters' | 'audioGain' | 'subtitleDelay' | 'audioDelay' | 'subtitleStyle' | 'quality' | 'liveNavigation' | 'loop' | 'playbackRange' | 'snapshot' | 'frameStep' | 'audioOutputDevice';
 export type PlayerCapabilities = Readonly<Capabilities & {
     buffering: BufferingCapabilities;
     deployment: Readonly<{
@@ -343,8 +346,35 @@ export type MediaTrack = Readonly<{
     default: boolean;
     forced: boolean;
     channels: number | null;
+    sampleRate: number | null;
+    channelLayout: string | null;
+    frameRate: number | null;
+    bitDepth: number | null;
+    profile: string | null;
+    roles: readonly string[];
+    attachedPicture: boolean;
+}>;
+export type Chapter = Readonly<{
+    id: string;
+    title: string | null;
+    start: number;
+    end: number | null;
 }>;
 export type MediaInfo = Readonly<{
+    metadataCoverage: Readonly<{
+        chapters: 'unknown' | 'partial' | 'complete';
+        tags: 'unknown' | 'partial' | 'complete';
+    }>;
+    videoTracks: readonly MediaTrack[];
+    chapters: readonly Chapter[] | null;
+    tags: Readonly<Record<string, string>> | null;
+    color: Readonly<{
+        primaries: string | null;
+        transfer: string | null;
+        matrix: string | null;
+        range: string | null;
+        reportedOnly: true;
+    }> | null;
     displayWidth: number | null;
     displayHeight: number | null;
     aspectRatio: number | null;
@@ -374,14 +404,192 @@ export type PlayerState = Readonly<{
     trackPolicy: TrackPolicy;
     audioTracks: readonly MediaTrack[];
     subtitleTracks: readonly MediaTrack[];
+    timing: TimingSettings;
+    loop: LoopPolicy;
+    playbackRange: PlaybackRange | null;
+    streaming: StreamingState | null;
+    audioOutputDevice: string;
     mediaInfo: MediaInfo;
     capabilities: PlayerCapabilities;
     error: SessionError | null;
 }>;
-export declare const PLAYER_EVENTS: readonly ["play", "playing", "pause", "waiting", "ended", "timeupdate", "durationchange", "seeking", "seeked", "volumechange", "ratechange", "trackschange", "capabilitieschange", "sourcechange", "statechange", "error"];
+export declare const PLAYER_EVENTS: readonly ["play", "playing", "pause", "waiting", "ended", "timeupdate", "durationchange", "seeking", "seeked", "volumechange", "ratechange", "trackschange", "capabilitieschange", "sourcechange", "statechange", "error", "modechange", "selectionchange"];
 export type PlayerEventName = typeof PLAYER_EVENTS[number];
+export type ModeChangeDetail = Readonly<{
+    phase: 'loading';
+    mode: PlaybackMode;
+} | {
+    phase: 'ready';
+    mode: PlaybackMode;
+    position: number;
+} | {
+    phase: 'failed';
+    mode: PlaybackMode;
+    rolledBack: boolean;
+    message: string;
+}>;
+export type SelectionChangeDetail = Readonly<{
+    mode: PlaybackMode | 'probe';
+    outcome: 'skipped' | 'failed' | 'selected';
+    reason: string;
+}>;
 export type PlayerEventMap = {
-    [K in Exclude<PlayerEventName, 'error'>]: CustomEvent<PlayerState>;
+    [K in Exclude<PlayerEventName, 'error' | 'modechange' | 'selectionchange'>]: CustomEvent<PlayerState>;
 } & {
     error: CustomEvent<SessionError>;
+    modechange: CustomEvent<ModeChangeDetail>;
+    selectionchange: CustomEvent<SelectionChangeDetail>;
 };
+export type PlaybackStats = Readonly<{
+    sourceId: number | null;
+    sessionEpoch: number;
+    acceptedAtMs: number | null;
+    openToAcceptanceMs: number | null;
+    firstPlayingMs: number | null;
+    lastSeekMs: number | null;
+    seekCount: number;
+    rebufferCount: number;
+    rebufferMs: number;
+    decodedFrames: number | null;
+    presentedFrames: number | null;
+    droppedFrames: number | null;
+    throughputBitsPerSecond: number | null;
+}>;
+export type PlaybackDecisionCode = 'FEATURE_UNSUPPORTED' | 'POLICY_PROHIBITS_TRANSFORM' | 'QUALIFICATION_REQUIRED' | 'SOURCE_UNSUPPORTED' | 'DEPLOYMENT_UNAVAILABLE' | 'PLAN_NOT_REQUESTED' | 'ISOLATION_REQUIRED';
+export type PlaybackExplanation = Readonly<{
+    sourceId: number | null;
+    mode: PlaybackMode | null;
+    planId: string | null;
+    video: string | null;
+    audio: string | null;
+    subtitle: string | null;
+    automatic: boolean;
+    decodeQuality: 'exact' | 'balanced' | 'performance';
+    fidelity: Readonly<{
+        effective: 'exact' | 'balanced' | 'performance' | null;
+        observation: 'backend-reported' | 'unavailable';
+        shortcuts: readonly string[];
+    }>;
+    admission: readonly Readonly<{
+        planId: string;
+        mode: PlaybackMode;
+        eligible: boolean;
+        code: PlaybackDecisionCode | null;
+        reason: string | null;
+    }>[];
+    attempts: readonly SelectionChangeDetail[];
+}>;
+export type AttachmentHandle = Readonly<{
+    id: string;
+    kind: 'subtitle' | 'font';
+    sourceId: number | null;
+}>;
+export type SubtitleStyle = Readonly<{
+    fontSize?: number;
+    color?: string;
+    borderSize?: number;
+    fontFamily?: string;
+}>;
+export type TimingSettings = Readonly<{
+    subtitleDelay: number;
+    audioDelay: number;
+    effectiveSubtitleDelay: number | null;
+    effectiveAudioDelay: number | null;
+    subtitleStyle: SubtitleStyle;
+    styleScope: 'plain-text';
+}>;
+export type QualityPolicy = Readonly<{
+    mode: 'auto';
+    maxHeight?: number;
+    maxBandwidth?: number;
+} | {
+    mode: 'manual';
+    id: string;
+}>;
+export type StreamingQuality = Readonly<{
+    id: string;
+    width: number | null;
+    height: number | null;
+    bandwidth: number | null;
+    frameRate: number | null;
+    videoCodec: string | null;
+    audioCodec: string | null;
+    dynamicRange: string | null;
+}>;
+export type StreamingState = Readonly<{
+    qualities: readonly StreamingQuality[];
+    requested: QualityPolicy;
+    selectedId: string | null;
+    presentedId: string | null;
+    observedQuality: Readonly<{
+        observation: 'playhead-buffer';
+        position: number;
+        contentType: string;
+        width: number | null;
+        height: number | null;
+        bandwidth: number | null;
+        codec: string | null;
+    }> | null;
+    transition: 'unknown';
+    live: Readonly<{
+        isLive: boolean;
+        seekable: TimeRange | null;
+        latencySeconds: number | null;
+        nearLive: boolean | null;
+    }>;
+}>;
+/** Immutable random-access bytes. Playback stages at most 32 MiB before acceptance. */
+export type CustomSource = Readonly<{
+    kind: 'bytes';
+    transport: 'application-managed';
+    id: string;
+    size: number;
+    read: (offset: number, length: number, signal: AbortSignal) => Promise<Uint8Array>;
+    close?: () => void | Promise<void>;
+    ownership?: 'borrowed' | 'owned';
+    name?: string;
+    type?: string;
+}>;
+export type InspectionOptions = Readonly<{
+    signal?: AbortSignal;
+    assetBase?: string;
+    maxBytes?: number;
+    maxReads?: number;
+    timeoutMs?: number;
+}>;
+export type MediaInspection = Readonly<{
+    id: string;
+    sourceIdentity: string | null;
+    status: 'complete' | 'partial' | 'unknown';
+    completeFor: readonly ('container' | 'tracks' | 'duration')[];
+    format: string | null;
+    duration: number | null;
+    tracks: readonly MediaTrack[] | null;
+    chapters: readonly Chapter[] | null;
+    tags: Readonly<Record<string, string>> | null;
+    reason: string | null;
+    bytesRead: number;
+    reads: number;
+}>;
+export type SeekOptions = Readonly<{
+    signal?: AbortSignal;
+    policy?: 'queue' | 'latest';
+}>;
+export type PlaybackRange = Readonly<{
+    start: number;
+    end: number;
+}>;
+export type LoopPolicy = false | true | PlaybackRange;
+export type SnapshotOptions = Readonly<{
+    width?: number;
+    height?: number;
+    includeSubtitles?: boolean;
+}>;
+export type VideoSnapshot = Readonly<{
+    blob: Blob;
+    width: number;
+    height: number;
+    mediaTime: number;
+    actualTime: null;
+    includesSubtitles: boolean;
+}>;

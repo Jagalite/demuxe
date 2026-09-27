@@ -7,7 +7,8 @@ class FakePlayer extends EventTarget {
   static version='test';static LoadMode={MEDIA_SOURCE:2};static isBrowserSupported(){return true;}
   constructor(){super();this.audio=[{active:true,id:1,language:'en',label:'English',roles:[],channelsCount:2,codecs:'mp4a.40.2',audioSamplingRate:48000,spatialAudio:false},{active:false,id:2,language:'fr',label:'French',roles:[],channelsCount:2,codecs:'mp4a.40.2',audioSamplingRate:48000,spatialAudio:false}];this.text=[{active:true,id:20,language:'en',label:'English',codecs:'wvtt'},{active:false,id:21,language:'fr',label:'French',codecs:'wvtt'}];}
   getNetworkingEngine(){return {registerRequestFilter:filter=>this.filter=filter};}
-  configure(value){this.config=value;return true;}
+  configure(value){this.config={...this.config,...value};return true;}
+  getConfiguration(){return this.config??{};}
   async attach(video){this.video=video;}
   async load(){if(pendingLoad)await new Promise((resolve,reject)=>{this.rejectLoad=reject;});}
   getLoadMode(){return 2;}isLive(){return live;}isDynamic(){return live||inProgress;}seekRange(){return {start:live?5:0,end:30};}
@@ -151,4 +152,46 @@ test('preview uses indexed Shaka tracks and isolated image transport without mov
  backend.player.getManifest=()=>({imageStreams:[{id:12,segmentIndex:null}]});backend.player.getThumbnails=()=>{throw Error('must not initialize lazy index');};
  assert.equal(await backend.previewFrame({time:0,width:160,signal:new AbortController().signal}),null);
  }finally{globalThis.fetch=fetcher;globalThis.createImageBitmap=bitmap;globalThis.OffscreenCanvas=canvas;await backend.destroy();}
+});
+
+
+test('runtime qualities preserve source ceilings and selected audio; selected is not presented',async()=>{
+ const active={id:4,active:true,videoId:3,videoCodec:'avc1',audioCodec:'aac',language:'en',width:1280,height:720,bandwidth:900000};
+ variantOverride=[active,{...active,id:5,active:false,width:640,height:360,bandwidth:300000},{...active,id:6,active:false,language:'fr'},{...active,id:7,active:false,bandwidth:2000000}];
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));
+ try{await backend.openRemote({...source,streaming:{maxBandwidth:1000000}});
+  assert.deepEqual(backend.streamingState().qualities.map(q=>q.id),['variant:4','variant:5']);
+  await backend.setQuality({mode:'manual',id:'variant:5'});assert.equal(backend.streamingState().selectedId,'variant:5');assert.equal(backend.streamingState().presentedId,null);
+  await assert.rejects(backend.setQuality({mode:'manual',id:'variant:6'}),e=>e.code==='UNSUPPORTED_FEATURE');
+  await backend.setQuality({mode:'auto',maxHeight:360,maxBandwidth:500000});assert.equal(backend.player.config.restrictions.maxBandwidth,500000);
+  await assert.rejects(backend.setQuality({mode:'auto',maxBandwidth:1000}),e=>e.code==='UNSUPPORTED_FEATURE');
+ }finally{await backend.destroy();variantOverride=undefined;}
+});
+
+test('rejected quality configuration never publishes success or disables the previous policy',async()=>{
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));
+ try{await backend.openRemote(source);const old=backend.streamingState().requested,configure=backend.player.configure.bind(backend.player);let calls=0;
+  backend.player.configure=value=>{configure(value);return ++calls!==1;};
+  await assert.rejects(backend.setQuality({mode:'manual',id:'variant:4'}),e=>e.code==='UNSUPPORTED_FEATURE');
+  assert.deepEqual(backend.streamingState().requested,old);assert.equal(backend.player.getConfiguration().abr.enabled,true);assert.equal(calls,2);
+ }finally{await backend.destroy();}
+});
+
+test('automatic quality ceilings cannot use a different audio role as eligibility evidence',async()=>{
+ const en={id:4,active:true,videoCodec:'avc1',audioCodec:'mp4a.40.2',language:'en',label:'English',audioRoles:[],channelsCount:2,spatialAudio:false,height:360,bandwidth:300000};
+ variantOverride=[en,{...en,id:5,active:false,language:'fr',label:'French',audioRoles:['commentary']},{...en,id:6,active:false,language:'fr',label:'French',bandwidth:2000000}];
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));
+ try{await backend.openRemote(source);await backend.setQuality({mode:'auto',maxBandwidth:500000});const id=backend.properties.get('track-list').find(t=>t.type==='audio'&&t.lang==='fr').id;
+  await assert.rejects(backend.selectTrack('audio',id),e=>e.code==='UNSUPPORTED_FEATURE');assert.equal(backend.player.audio[0].active,true);
+ }finally{await backend.destroy();variantOverride=undefined;}
+});
+
+test('ignored manual selection rejects without publishing the requested policy',async()=>{
+ const active={id:4,active:true,videoCodec:'avc1',audioCodec:'aac',language:'en',height:720,bandwidth:900000};
+ variantOverride=[active,{...active,id:5,active:false,height:360,bandwidth:300000}];
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));
+ try{await backend.openRemote(source);backend.player.selectVariantTrack=()=>{};
+  await assert.rejects(backend.setQuality({mode:'manual',id:'variant:5'}),e=>e.code==='UNSUPPORTED_FEATURE');
+  assert.equal(backend.streamingState().requested.mode,'auto');assert.equal(backend.streamingState().selectedId,'variant:4');assert.equal(backend.player.getConfiguration().abr.enabled,true);
+ }finally{await backend.destroy();variantOverride=undefined;}
 });

@@ -76,7 +76,7 @@ export class ShakaBackend extends EventTarget implements Backend {
   private disposal?:Promise<void>;
   private listeners:Array<()=>void>=[];
   private blobs=new Set<string>();
-  private external=new Map<number,number>();
+  private external=new Map<number,{index:number;attachmentId?:string}>();
   private visible=true;
   private selectedSub='auto';
   private audioDisabled=false;
@@ -158,7 +158,7 @@ export class ShakaBackend extends EventTarget implements Backend {
     this.active();if(this.player||this.opening)throw new PlayerError('INVALID_ARGUMENT','Shaka backend opens only one source');
     if(!['hls','dash'].includes(source.format??''))throw new PlayerError('INVALID_ARGUMENT','Shaka requires HLS or DASH format');
     if(source.streaming?.maxBandwidth!==undefined&&(!Number.isFinite(source.streaming.maxBandwidth)||source.streaming.maxBandwidth<=0))throw new PlayerError('INVALID_ARGUMENT','maxBandwidth must be positive');
-    this.source=source;this.opening=true;
+    this.source=source;this.qualityPolicy={mode:'auto',...(source.streaming?.maxBandwidth!==undefined?{maxBandwidth:source.streaming.maxBandwidth}:{})};this.opening=true;
     try{
       const runtime=this.runtime=await runtimeAt(this.assetBase,this.runtimeLoad.signal);this.active();runtime.polyfill.installAll();
       if(!runtime.Player.isBrowserSupported())throw new PlayerError('UNSUPPORTED_MEDIA','Shaka MSE is unsupported by this browser');
@@ -170,7 +170,9 @@ export class ShakaBackend extends EventTarget implements Backend {
       for(const name of ['trackschanged','adaptation','variantchanged','textchanged','texttrackvisibility','streaming','loaded','buffering']){player.addEventListener(name,changed);this.listeners.push(()=>player.removeEventListener(name,changed));}
       const failed=(event:Event)=>{const detail=(event as Event&{detail:{severity?:number}}).detail;if(detail.severity!==runtime.util.Error.Severity.CRITICAL)return;const error=this.failure=this.mapped(detail);if(!this.opening&&!this.stopped)this.emit('error',error);};
       player.addEventListener('error',failed);this.listeners.push(()=>player.removeEventListener('error',failed));
-      player.configure({streaming:{preferNativeHls:false,preferNativeDash:false,useNativeHlsForFairPlay:false},abr:{enabled:!source.streaming?.representation},restrictions:{maxBandwidth:source.streaming?.maxBandwidth??Infinity}});
+      const observed=(event:Event)=>{const e=event as Event&{mediaQuality?:Record<string,unknown>;position?:number};if(e.mediaQuality&&Number.isFinite(e.position)){const q=e.mediaQuality,number=(v:unknown)=>typeof v==='number'&&Number.isFinite(v)?v:null;this.observedQuality={observation:'playhead-buffer',position:e.position!,contentType:String(q.contentType??'unknown'),width:number(q.width),height:number(q.height),bandwidth:number(q.bandwidth),codec:typeof q.codecs==='string'?q.codecs:null};changed();}};
+      player.addEventListener('mediaqualitychanged',observed);this.listeners.push(()=>player.removeEventListener('mediaqualitychanged',observed));
+      player.configure({streaming:{observeQualityChanges:true,preferNativeHls:false,preferNativeDash:false,useNativeHlsForFairPlay:false},abr:{enabled:!source.streaming?.representation},restrictions:{maxBandwidth:source.streaming?.maxBandwidth??Infinity}});
       player.configure({streaming:shakaBufferingOptions(this.buffering)});
       await player.attach(this.video);this.active();
       await player.load(source.url,undefined,source.format==='hls'?'application/x-mpegurl':'application/dash+xml');this.active();
@@ -184,7 +186,7 @@ export class ShakaBackend extends EventTarget implements Backend {
         const token=/^variant:(\d+)$/.exec(representation);
         const matches=variants.filter(t=>token?String(t.id)===token[1]:t.originalVideoId===representation||(!t.videoCodec&&t.originalAudioId===representation)).filter(t=>!active||audioKey(t)===audioKey(active));
         if(matches.length!==1)throw new PlayerError('UNSUPPORTED_FEATURE','Cannot preserve requested streaming representation and selected audio unambiguously');
-        player.selectVariantTrack(matches[0],true);
+        player.selectVariantTrack(matches[0],true);this.qualityPolicy={mode:'manual',id:`variant:${matches[0].id}`};
       }
       this.applyText();this.refresh();this.emit('mpv',{event:'file-loaded'});
     }catch(error){throw this.mapped(error);}finally{this.opening=false;}
@@ -195,7 +197,7 @@ export class ShakaBackend extends EventTarget implements Backend {
     this.properties.set('paused-for-cache',player.isBuffering?.()??false);
     const variants=player.getVariantTracks(), current=variants.find(t=>t.active),texts=player.getTextTracks(),audio=this.audioTracks();
     const tracks:Array<Record<string,unknown>>=audio.map(({track:t,id})=>({id,type:'audio',codec:t.codecs,title:t.label,lang:t.language,selected:t.active&&!this.audioDisabled}));
-    tracks.push(...texts.map(t=>({id:`shaka-sub-${t.id}`,type:'sub',codec:t.codecs||t.mimeType,title:t.label,lang:t.language,selected:t.active&&this.visible&&this.selectedSub!=='no',external:this.external.has(t.id),...(this.external.has(t.id)?{'external-index':this.external.get(t.id)}:{})})));
+    tracks.push(...texts.map(t=>({id:`shaka-sub-${t.id}`,type:'sub',codec:t.codecs||t.mimeType,title:t.label,lang:t.language,selected:t.active&&this.visible&&this.selectedSub!=='no',external:this.external.has(t.id),...(this.external.has(t.id)?{'external-index':this.external.get(t.id)!.index,'attachment-id':this.external.get(t.id)!.attachmentId}:{})})));
     if(current?.videoCodec)tracks.push({id:`shaka-video-${current.videoId}`,type:'video',codec:current.videoCodec,selected:true,'demux-w':current.width,'demux-h':current.height});
     this.properties.set('track-list',tracks);this.properties.set('native-live',player.isDynamic());
     const range=player.seekRange();this.properties.set('native-seekable',range.end>range.start?[{start:range.start,end:range.end}]:[]);
@@ -212,17 +214,51 @@ export class ShakaBackend extends EventTarget implements Backend {
   async verifyStartup(_expected?:{video:boolean;audio:boolean},output=false){this.active();if(this.failure)throw this.failure;await this.native.verifyStartup(this.expected(),output);this.active();if(this.failure)throw this.failure;}
   verifyOutput(){return this.verifyStartup(undefined,true);}
   startupEvidence(){return {...this.native.diagnostics.capability,sourceBufferCreated:!!this.player&&this.player.getLoadMode()===this.runtime?.Player.LoadMode.MEDIA_SOURCE};}
+  private observedQuality:import('../types.js').StreamingState['observedQuality']=null;
+  private runtimeQuality=false;
+  private qualityPolicy:import('../types.js').QualityPolicy={mode:'auto'};
+  private qualityTracks(){
+    const tracks=this.loaded().getVariantTracks(),active=tracks.find(t=>t.active);
+    const audioKey=(t:Shaka.extern.Track)=>JSON.stringify([t.audioLanguage??t.language,t.originalLanguage,t.label,t.audioRoles,t.channelsCount,t.audioCodec,t.spatialAudio,t.accessibilityPurpose]);
+    const pin=this.source?.streaming?.representation,token=pin?/^variant:(\d+)$/.exec(pin):null;
+    return tracks.filter(t=>(!active||audioKey(t)===audioKey(active))&&t.bandwidth<=(this.source?.streaming?.maxBandwidth??Infinity)&&(!pin||(token?String(t.id)===token[1]:t.originalVideoId===pin||(!t.videoCodec&&t.originalAudioId===pin))));
+  }
+  streamingState():import('../types.js').StreamingState{
+    const player=this.loaded(),list=this.qualityTracks(),active=list.find(t=>t.active),live=player.isDynamic(),range=player.seekRange();
+    const number=(v:unknown)=>typeof v==='number'&&Number.isFinite(v)&&v>=0?v:null;
+    const playheadDate=live?player.getPlayheadTimeAsDate?.():null;
+    const latency=playheadDate?number((Date.now()-playheadDate.getTime())/1000):null;
+    return {qualities:list.map(t=>({id:`variant:${t.id}`,width:number(t.width),height:number(t.height),bandwidth:number(t.bandwidth),frameRate:number(t.frameRate),videoCodec:t.videoCodec??null,audioCodec:t.audioCodec??null,dynamicRange:t.hdr??null})),requested:{...this.qualityPolicy},selectedId:active?`variant:${active.id}`:null,presentedId:null,observedQuality:this.observedQuality?{...this.observedQuality}:null,transition:'unknown',live:{isLive:live,seekable:range.end>range.start?range:null,latencySeconds:latency,nearLive:live&&range.end>range.start?Math.abs(this.video.currentTime-range.end)<=2:null}};
+  }
+  async setQuality(policy:import('../types.js').QualityPolicy){
+    const player=this.loaded(),tracks=this.qualityTracks();
+    if(policy.mode==='auto'&&this.source?.streaming?.representation)throw new PlayerError('UNSUPPORTED_FEATURE','The source representation pin cannot be removed by quality selection');
+    const allowed=tracks.filter(t=>policy.mode==='manual'?`variant:${t.id}`===policy.id:(t.height??0)<=(policy.maxHeight??Infinity)&&t.bandwidth<=(policy.maxBandwidth??Infinity));
+    if(!allowed.length)throw new PlayerError('UNSUPPORTED_FEATURE','No quality satisfies the selected audio and source constraints');
+    const old=player.getConfiguration();
+    try{
+      const configured=player.configure({abr:{enabled:policy.mode==='auto'},restrictions:{...old.restrictions,maxHeight:policy.mode==='auto'?(policy.maxHeight??Infinity):Infinity,maxBandwidth:Math.min(this.source?.streaming?.maxBandwidth??Infinity,policy.mode==='auto'?(policy.maxBandwidth??Infinity):Infinity)}});
+      if(!configured)throw new PlayerError('UNSUPPORTED_FEATURE','Shaka rejected the quality configuration');
+      if(policy.mode==='manual'){
+        player.selectVariantTrack(allowed[0],false);
+        if(player.getVariantTracks().find(t=>t.active)?.id!==allowed[0].id)throw new PlayerError('UNSUPPORTED_FEATURE','Shaka did not select the requested quality');
+      }
+      this.qualityPolicy={...policy};this.runtimeQuality=true;this.refresh();
+    }catch(error){player.configure({abr:old.abr,restrictions:old.restrictions});throw error;}
+  }
+  async seekToLive(){const player=this.loaded();if(!player.isDynamic())throw new PlayerError('UNSUPPORTED_FEATURE','The source is not live');player.goToLive();await this.native.seek(this.video.currentTime);this.refresh();}
   async play(){this.active();if(this.buffering.preload!=='auto')this.player?.configure({streaming:{bufferingGoal:10,...shakaBufferingOptions(this.buffering,false)}});await this.native.play();}
   async pause(){this.active();await this.native.pause();}
   async seek(seconds:number){const range=this.loaded().seekRange();if(!Number.isFinite(seconds)||seconds<range.start-.01||seconds>range.end+.01)throw new PlayerError('INVALID_ARGUMENT','Seek target is outside the streaming seekable window');await this.native.seek(Math.max(range.start,Math.min(range.end,seconds)));}
   async rate(value:number){this.active();await this.native.rate(value);}
+  setAudioOutputDevice(id:string){return this.native.setAudioOutputDevice(id);}
   async volume(value:number){this.active();await this.native.volume(value);}
   async gain(value:number){this.active();await this.native.gain(value);}
   async selectTrack(type:TrackType,id:string){
     const player=this.loaded();
     if(type==='audio'){
       if(id==='no'){this.audioDisabled=true;this.video.muted=true;}
-      else{const audio=this.audioTracks();const candidates=id==='auto'?audio.filter(t=>t.track.active):audio.filter(t=>t.id===id);if(!audio.length&&id==='auto'){this.refresh();return;}if(candidates.length!==1||(id!=='auto'&&candidates[0].ambiguous))throw new PlayerError('UNSUPPORTED_FEATURE','Cannot preserve requested audio track');const requested=candidates[0].track,representation=this.source?.streaming?.representation;
+      else{const audio=this.audioTracks();const candidates=id==='auto'?audio.filter(t=>t.track.active):audio.filter(t=>t.id===id);if(!audio.length&&id==='auto'){this.refresh();return;}if(candidates.length!==1||(id!=='auto'&&candidates[0].ambiguous))throw new PlayerError('UNSUPPORTED_FEATURE','Cannot preserve requested audio track');const requested=candidates[0].track,representation=this.runtimeQuality&&this.qualityPolicy.mode==='manual'?this.qualityPolicy.id:this.source?.streaming?.representation;
         if(representation){
           const token=/^variant:(\d+)$/.exec(representation);
           const key=(language:string|null|undefined,originalLanguage:string|null|undefined,label:string|null|undefined,roles:string[]|null|undefined,spatial:boolean|null|undefined,purpose:unknown)=>JSON.stringify([language??'',originalLanguage??'',label??'',roles??[],!!spatial,purpose??null]);
@@ -232,8 +268,16 @@ export class ShakaBackend extends EventTarget implements Backend {
             (!t.channelsCount||!requested.channelsCount||t.channelsCount===requested.channelsCount)&&(!t.audioCodec||!requested.codecs||t.audioCodec===requested.codecs));
           if(matches.length!==1)throw new PlayerError('UNSUPPORTED_FEATURE','Cannot preserve pinned streaming representation and bandwidth with requested audio track');
           player.selectVariantTrack(matches[0],true);
+          if(!this.runtimeQuality)this.qualityPolicy={mode:'manual',id:`variant:${matches[0].id}`};
           if(player.getVariantTracks().find(t=>t.active)?.id!==matches[0].id)throw new PlayerError('UNSUPPORTED_FEATURE','Shaka did not apply the pinned audio/video variant');
-        }else player.selectAudioTrack(requested);
+        }else {
+          const policy=this.qualityPolicy;
+          const identity=(language:unknown,original:unknown,label:unknown,roles:unknown,spatial:unknown,purpose:unknown)=>JSON.stringify([language??'',original??'',label??'',roles??[],!!spatial,purpose??null]);
+          const expected=identity(requested.language,requested.originalLanguage,requested.label,requested.roles,requested.spatialAudio,requested.accessibilityPurpose);
+          const allowed=player.getVariantTracks().some(t=>identity(t.audioLanguage??t.language,t.originalLanguage,t.label,t.audioRoles,t.spatialAudio,t.accessibilityPurpose)===expected&&(!t.audioCodec||!requested.codecs||t.audioCodec===requested.codecs)&&(!t.channelsCount||!requested.channelsCount||t.channelsCount===requested.channelsCount)&&t.bandwidth<=Math.min(this.source?.streaming?.maxBandwidth??Infinity,policy.mode==='auto'?(policy.maxBandwidth??Infinity):Infinity)&&(t.height??0)<=(policy.mode==='auto'?(policy.maxHeight??Infinity):Infinity));
+          if(!allowed&&(this.runtimeQuality||this.source?.streaming?.maxBandwidth!==undefined))throw new PlayerError('UNSUPPORTED_FEATURE','Requested audio has no variant satisfying the quality constraints');
+          player.selectAudioTrack(requested);
+        }
         this.audioDisabled=false;this.video.muted=false;}
     }else{
       if(id==='no'){this.selectedSub=id;this.applyText();}
@@ -243,15 +287,15 @@ export class ShakaBackend extends EventTarget implements Backend {
   }
   private applyText(){const player=this.player;if(!player)return;if(!this.visible||this.selectedSub==='no'){player.selectTextTrack(null);return;}const texts=player.getTextTracks();const selected=this.selectedSub==='auto'?texts.find(t=>t.active)??texts[0]:texts.find(t=>`shaka-sub-${t.id}`===this.selectedSub);if(selected)player.selectTextTrack(selected);}
   async subtitleVisible(visible:boolean){this.active();this.visible=visible;this.applyText();this.refresh();}
-  async addTextTrack(track:TextTrackSource){const player=this.loaded();this.policy!.authorize(track.src);const added=await player.addTextTrackAsync(track.src,track.language??'und','subtitle','text/vtt',undefined,track.label);this.active();this.external.set(added.id,this.external.size+1);if(track.default){player.selectTextTrack(added);this.selectedSub=`shaka-sub-${added.id}`;}this.applyText();this.refresh();}
+  async addTextTrack(track:TextTrackSource,attachmentId?:string){const player=this.loaded();this.policy!.authorize(track.src);const added=await player.addTextTrackAsync(track.src,track.language??'und','subtitle','text/vtt',undefined,track.label);this.active();this.external.set(added.id,{index:this.external.size+1,attachmentId});if(track.default){player.selectTextTrack(added);this.selectedSub=`shaka-sub-${added.id}`;}this.applyText();this.refresh();}
   async addSubtitle(asset:SubtitleAsset){
     if(!plainVTT(asset))throw new PlayerError('UNSUPPORTED_FEATURE','Shaka external subtitles require plain WebVTT');
     const url=URL.createObjectURL(new Blob([asset.bytes],{type:'text/vtt'}));this.blobs.add(url);this.policy?.ownBlob(url);
-    await this.addTextTrack({src:url,label:asset.label,language:asset.language,default:asset.select});
+    await this.addTextTrack({src:url,label:asset.label,language:asset.language,default:asset.select},asset.attachmentId);
   }
   resize(width:number,height:number){this.native.resize(width,height);}
   audioDiagnostics(){return {...this.native.audioDiagnostics(),source:'shaka-mse'};}
-  get diagnostics():Record<string,unknown>{const native=this.native.diagnostics;return {...native,buffering:{...resolveBuffering(this.buffering,'shaka'),settings:this.player?.getConfiguration?.().streaming?{bufferingGoal:this.player.getConfiguration().streaming.bufferingGoal,rebufferingGoal:this.player.getConfiguration().streaming.rebufferingGoal,bufferBehind:this.player.getConfiguration().streaming.bufferBehind}:shakaBufferingOptions(this.buffering)},path:'shaka-mse',plan:'shaka-mse',packaging:'shaka',streaming:{engine:'shaka',version:this.runtime?.Player.version,format:this.source?.format,live:this.player?.isDynamic()??false,seekRange:this.player?.seekRange(),abr:!this.source?.streaming?.representation,maxBandwidth:this.source?.streaming?.maxBandwidth,variants:this.player?.getVariantTracks().map(t=>({id:`variant:${t.id}`,representation:t.originalVideoId??t.originalAudioId,active:t.active,bandwidth:t.bandwidth,width:t.width,height:t.height,audioCodec:t.audioCodec,videoCodec:t.videoCodec})),network:this.policy?.diagnostics},capability:this.startupEvidence()};}
+  get diagnostics():Record<string,unknown>{const native=this.native.diagnostics;return {...native,buffering:{...resolveBuffering(this.buffering,'shaka'),settings:this.player?.getConfiguration?.().streaming?{bufferingGoal:this.player.getConfiguration().streaming.bufferingGoal,rebufferingGoal:this.player.getConfiguration().streaming.rebufferingGoal,bufferBehind:this.player.getConfiguration().streaming.bufferBehind}:shakaBufferingOptions(this.buffering)},path:'shaka-mse',plan:'shaka-mse',packaging:'shaka',streaming:{engine:'shaka',version:this.runtime?.Player.version,format:this.source?.format,live:this.player?.isDynamic()??false,seekRange:this.player?.seekRange(),abr:this.qualityPolicy.mode==='auto',maxBandwidth:this.source?.streaming?.maxBandwidth,variants:this.player?.getVariantTracks().map(t=>({id:`variant:${t.id}`,representation:t.originalVideoId??t.originalAudioId,active:t.active,bandwidth:t.bandwidth,width:t.width,height:t.height,audioCodec:t.audioCodec,videoCodec:t.videoCodec})),network:this.policy?.diagnostics},capability:this.startupEvidence()};}
   destroy(){return this.disposal??(this.disposal=this.dispose());}
   private async dispose(){this.stopped=true;this.runtimeLoad.abort();this.listeners.splice(0).forEach(remove=>remove());this.policy?.destroy();try{await this.player?.destroy();}finally{this.player=undefined;await this.native.destroy();for(const url of this.blobs)URL.revokeObjectURL(url);this.blobs.clear();this.external.clear();this.source=undefined;}}
 }

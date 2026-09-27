@@ -85,16 +85,24 @@ export declare class ShakaBackend extends EventTarget implements Backend {
         audioDecoderConfigured?: boolean;
         playbackReady?: boolean;
     };
+    private observedQuality;
+    private runtimeQuality;
+    private qualityPolicy;
+    private qualityTracks;
+    streamingState(): import('../types.js').StreamingState;
+    setQuality(policy: import('../types.js').QualityPolicy): Promise<void>;
+    seekToLive(): Promise<void>;
     play(): Promise<void>;
     pause(): Promise<void>;
     seek(seconds: number): Promise<void>;
     rate(value: number): Promise<void>;
+    setAudioOutputDevice(id: string): Promise<void>;
     volume(value: number): Promise<void>;
     gain(value: number): Promise<void>;
     selectTrack(type: TrackType, id: string): Promise<void>;
     private applyText;
     subtitleVisible(visible: boolean): Promise<void>;
-    addTextTrack(track: TextTrackSource): Promise<void>;
+    addTextTrack(track: TextTrackSource, attachmentId?: string): Promise<void>;
     addSubtitle(asset: SubtitleAsset): Promise<void>;
     resize(width: number, height: number): void;
     audioDiagnostics(): {

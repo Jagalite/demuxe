@@ -61,11 +61,11 @@ export class NativeMpvAudio extends EventTarget {
         this.time = time;
         this.assetBase = assetBase;
         this.failed = failed;
-        this.hidden = video.ownerDocument.createElement('canvas');
+        this.hidden = document.createElement('canvas');
         this.hidden.width = 1;
         this.hidden.height = 1;
         this.hidden.hidden = true;
-        video.ownerDocument.body.append(this.hidden);
+        document.body.append(this.hidden);
         this.engine = new WasmPlayer(this.hidden, { assetBase, mode: 'selective-audio', audioOutput: 'stereo' });
         this.engine.addEventListener('output', event => this.onOutput(event.detail));
         this.engine.addEventListener('error', event => this.fail(event.detail));
@@ -347,6 +347,7 @@ export class NativeMpvAudio extends EventTarget {
         await this.engine.selectTrack('audio', id);
     }
     volume(percent) { return this.engine.volume(percent); }
+    setAudioOutputDevice(id) { return this.engine.setAudioOutputDevice(id); }
     gainValue(value) { return this.engine.gain(value); }
     async verifyOutput(signal) {
         await wait(() => this.h(5) > 0 && this.points.some(p => p.kind === 'timeline' && p.generation === this.generation), 10000, signal);

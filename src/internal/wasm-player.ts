@@ -69,9 +69,11 @@ export class WasmPlayer extends EventTarget {
     this.audioContext.destination.channelCountMode='explicit';
     // A disposable same-origin owner gives the browser a complete worker-tree
     // teardown boundary, including native pthread workers and decoder resources.
-    this.workerOwner=canvas.ownerDocument.createElement('iframe');
+    // The presentation may be adopted into a temporary document PiP window.
+    // Runtime ownership stays in the module's document across surface moves.
+    this.workerOwner=document.createElement('iframe');
     this.workerOwner.hidden=true;this.workerOwner.setAttribute('aria-hidden','true');
-    canvas.ownerDocument.body.append(this.workerOwner);
+    document.body.append(this.workerOwner);
     const owner=this.workerOwner.contentWindow as Window & typeof globalThis;
     try {this.worker = new owner.Worker(new URL(mode==='hybrid'||this.audioOnly?`web/filter-retained-engine-worker.js?mode=retained${this.audioOnly?'&audioOnly=1':''}`:'web/software-full-engine-worker.js',assetBase),{type:'module'});}
     catch(error){this.workerOwner.remove();void this.audioContext.close();throw error;}
@@ -108,7 +110,7 @@ export class WasmPlayer extends EventTarget {
             const pending=this.pending.get(event.id);
             if(pending) {clearTimeout(pending.timer);this.pending.delete(event.id);event.error?pending.reject(new Error(event.error)):pending.resolve(event.result);}
           }
-          if(event.event==='property-change'&&event.name==='track-list'&&Array.isArray(event.data)){let external=0;event.data=event.data.map(t=>t.external?{...t,'external-index':++external}:t);}
+          if(event.event==='property-change'&&event.name==='track-list'&&Array.isArray(event.data)){let external=0;event.data=event.data.map(t=>t.external?{...t,'attachment-id':this.attachmentIds[external],'external-index':++external}:t);}
           if(event.event==='property-change' && event.name) this.properties.set(event.name,event.data);
           this.dispatchEvent(new CustomEvent('mpv',{detail:event}));
         }
@@ -224,6 +226,28 @@ export class WasmPlayer extends EventTarget {
     await this.ready;return this.request({type:'preview-snapshot'});
   }
   async inspectMetadata() {
+    const expand=async(expression:string)=>String(await this.request({type:'command',args:['expand-text',expression]}));
+    const metadataDeadline=performance.now()+1500;
+    const countText=await expand('${chapter-list/count:}'),count=Number(countText);
+    if(countText&&Number.isInteger(count)&&count>=0&&count<=256){
+      const chapters=[];
+      for(let i=0;i<count&&performance.now()<metadataDeadline;i++){
+        const time=Number(await expand('${=chapter-list/'+i+'/time:}'));
+        const title=(await expand('${chapter-list/'+i+'/title:}')).slice(0,4096);
+        if(Number.isFinite(time))chapters.push({time:Math.max(0,time),title,index:i});
+      }
+      this.properties.set('chapter-list',chapters);this.properties.set('chapter-coverage',chapters.length===count?'complete':'partial');
+    }
+    const tags:Record<string,string>={};
+    const tagCountText=await expand('${metadata/list/count:}'),tagCount=Number(tagCountText);
+    if(tagCountText&&Number.isInteger(tagCount)&&tagCount>=0){
+      let visited=0;
+      for(;visited<Math.min(tagCount,128)&&performance.now()<metadataDeadline;visited++){
+        const key=(await expand('${metadata/list/'+visited+'/key:}')).slice(0,256),value=(await expand('${metadata/list/'+visited+'/value:}')).slice(0,4096);if(key)tags[key]=value;
+      }
+      this.properties.set('metadata',tags);this.properties.set('tag-coverage',visited===tagCount?'complete':'partial');
+    }
+
     const value=await this.request({type:'command',args:['expand-text','${seekable}']});
     if(value==='yes'||value==='no')this.properties.set('seekable',value==='yes');
     if(!Array.isArray(this.properties.get('track-list'))||!(this.properties.get('track-list') as unknown[]).length)
@@ -305,13 +329,19 @@ export class WasmPlayer extends EventTarget {
     const seek=this.seekObservation;
     return seek?.target===target&&seek.restarted&&seek.eof?seek.clamped:undefined;
   }
+  private attachmentIds:Array<string|undefined>=[];
   async addSubtitle(subtitle:SubtitleAsset){
+    this.attachmentIds.push(subtitle.attachmentId);
     await this.ready;const bytes=subtitle.bytes.slice(0);
     const previous=((this.properties.get('track-list')??[]) as Array<{external?:boolean}>).filter(t=>t.external).length;
     // Command acceptance can precede the track-list event. Selection must wait
     // for the new source-scoped external identity to become observable.
     const listed=this.waitForEvent(e=>e.event==='property-change'&&e.name==='track-list'&&Array.isArray(e.data)&&e.data.filter(t=>t.external).length>previous);
     await Promise.all([listed,this.request({type:'subtitle',...subtitle,bytes},[bytes])]);
+  }
+  async setAudioOutputDevice(id:string){
+    await this.ready;const context=this.audioContext as AudioContext&{setSinkId?:(id:string)=>Promise<void>};
+    if(!context.setSinkId)throw new PlayerError('UNSUPPORTED_FEATURE','AudioContext output selection is unavailable');await context.setSinkId(id==='default'?'':id);
   }
   subtitleVisible(visible:boolean) {return this.command('set','sub-visibility',visible?'yes':'no');}
   resize(width:number,height:number) {if(this.destroyed) throw new Error('Player is destroyed');if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width>1920||height>1080) throw new Error('Invalid output dimensions');this.worker.postMessage({type:'resize',width,height});}

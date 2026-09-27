@@ -52,8 +52,8 @@ export class NativeMpvAudio extends EventTarget {
   private readonly ended=()=>{void this.finishEOF().catch(error=>this.fail(error));};
   constructor(private video:HTMLVideoElement,private time:()=>number,private assetBase:URL,private failed:(error:Error)=>void){
     super();
-    this.hidden=video.ownerDocument.createElement('canvas');this.hidden.width=1;this.hidden.height=1;this.hidden.hidden=true;
-    video.ownerDocument.body.append(this.hidden);
+    this.hidden=document.createElement('canvas');this.hidden.width=1;this.hidden.height=1;this.hidden.hidden=true;
+    document.body.append(this.hidden);
     this.engine=new WasmPlayer(this.hidden,{assetBase,mode:'selective-audio',audioOutput:'stereo'});
     this.engine.addEventListener('output',event=>this.onOutput((event as CustomEvent<Timeline>).detail));
     this.engine.addEventListener('error',event=>this.fail((event as CustomEvent).detail));
@@ -211,6 +211,7 @@ export class NativeMpvAudio extends EventTarget {
     await this.engine.selectTrack('audio',id);
   }
   volume(percent:number){return this.engine.volume(percent);}
+  setAudioOutputDevice(id:string){return this.engine.setAudioOutputDevice(id);}
   gainValue(value:number){return this.engine.gain(value);}
   async verifyOutput(signal?:AbortSignal){
     await wait(()=>this.h(5)>0&&this.points.some(p=>p.kind==='timeline'&&p.generation===this.generation),10000,signal);

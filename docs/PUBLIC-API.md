@@ -1,5 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
+See [application API extensions](API-EXTENSIONS.md) for resume, metadata,
+attachments, timing, streaming controls, inspection, custom sources, statistics,
+and presentation. [Option stability and limits](API-OPTIONS.md) records the exact
+constructor defaults and separates decode from presentation limits.
+
 # Public API contract
 
 Contract for the public API milestone work. Implementation and qualification are
@@ -377,12 +382,13 @@ Diagnostics disclose rejected alternatives and the accepted transformation.
 
 ### Experimental Native ASS/SSA
 
-Set `experimentalNativeASS: true` to use external ASS/SSA with Native direct,
-remux or qualified FLAC playback. Use the existing `addSubtitle(file)`,
+External ASS/SSA overlay is enabled by default with automatic selection; pinned
+modes can opt in with `experimentalNativeASS: true`. Supported Native direct,
+remux and qualified FLAC playback use the existing `addSubtitle(file)`,
 `addFont(file)`, `selectSubtitleTrack(id)` and `subtitleVisible(value)` methods.
-Fonts added before opening avoid a later transactional font refresh. Attachments
-are source-scoped and reset on opening a new source. Source-scoped external IDs
-follow attachment order across Native and mpv; they are distinct from embedded
+Fonts added before opening avoid a later transactional font refresh. Subtitle attachments
+are source-scoped and reset on opening a new source; fonts persist across close/open.
+Source-scoped external IDs retain attachment identity across Native and mpv; they are distinct from embedded
 stream indices. Other subtitle formats and embedded ASS still require mpv.
 
 Install the optional libass assets using the package asset-copy command from a
