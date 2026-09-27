@@ -1,0 +1,94 @@
+{
+  "scope": "Infrastructure fixtures, not a complete Emscripten/libmpv/FFmpeg build",
+  "recordedAt": "2026-09-27T13:44:51.688706+00:00",
+  "commands": [
+    {
+      "argv": [
+        "/mnt/data/asyncify-study/toolchain/bin/wasm-opt",
+        "--version"
+      ],
+      "returncode": 0,
+      "stdout": "wasm-opt version 133\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "clang",
+        "--version"
+      ],
+      "returncode": 0,
+      "stdout": "clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /usr/local/swift/usr/bin\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "bash",
+        "build-unit.sh"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "bash",
+        "stage2/scripts/build-bridge.sh"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/mnt/data/asyncify-study/toolchain/bin/wasm-opt",
+        "artifacts/mpv-coop-units.wasm",
+        "--asyncify",
+        "--pass-arg=asyncify-imports@demuxe_coop.wait,demuxe_coop.join,demuxe_coop.yield,test.read",
+        "--enable-bulk-memory",
+        "-g",
+        "-o",
+        "artifacts/mpv-coop-units.asyncify.wasm"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/mnt/data/asyncify-study/toolchain/bin/wasm-opt",
+        "stage2/artifacts/range-bridge.wasm",
+        "--asyncify",
+        "--pass-arg=asyncify-imports@demuxe_coop.wait,demuxe_coop.join,demuxe_coop.yield,demuxe_source.read",
+        "--enable-bulk-memory",
+        "-g",
+        "-o",
+        "artifacts/range-bridge.asyncify.wasm"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "binaryen": "wasm-opt version 133",
+  "wasmOptSHA256": "6548d49d3c90bdb6cee4644930fd8e8297beeae085a9bcd912aab119c5e975e1",
+  "clang": "clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /usr/local/swift/usr/bin",
+  "status": "built",
+  "artifacts": {
+    "artifacts/mpv-coop-units.wasm": {
+      "bytes": 57016,
+      "sha256": "6f6c39060ddcc0140976ebd2c8877036d27bdfc6aef33fd6c2ccf3b445175c97"
+    },
+    "artifacts/mpv-coop-units.asyncify.wasm": {
+      "bytes": 93950,
+      "sha256": "bb1a2f26fd0e36b83adf1f93b418804c34091ee473b287b6968e9e4360247bc0"
+    },
+    "stage2/artifacts/range-bridge.wasm": {
+      "bytes": 22864,
+      "sha256": "5eb8a24b9b2ebc7f3f1b384f69988fa20e9f4e853e58be9e1759e2d4e89bbef0"
+    },
+    "artifacts/range-bridge.asyncify.wasm": {
+      "bytes": 25394,
+      "sha256": "eb0924cc184c5c10461a94ec7e812ec372362c08dedb0d237999812a68b13c81"
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "baselinePackage": "Demuxe_JSPI_Asyncify_Investigation.zip",
+  "productionModified": false,
+  "changes": [
+    {
+      "path": "runtime/scheduler.mjs",
+      "status": "Fixed/tested",
+      "change": "Whole C-stack layout and host-SP checks; immutable bounds; terminal attachment failure; admitted root exports."
+    },
+    {
+      "path": "runtime/continuations.mjs",
+      "status": "Fixed/tested",
+      "change": "Cross-check saved regions against C stacks and host-SP; retain validated saved-state regions. Raw driver only."
+    },
+    {
+      "path": "runtime/asyncify-stacks.c; runtime/threads-coop.c",
+      "status": "Fixed/tested",
+      "change": "Compile-time capacity/alignment assertions; no mpv algorithm rewrite."
+    },
+    {
+      "path": "ffmpeg/runtime/ffmpeg-bridge.mjs; ffmpeg/runtime/single-owner.mjs",
+      "status": "Fixed; host doubles",
+      "change": "Poison unexpected ccall failures; preserve actual fatal reason; prevent duplicate ownership; retain old source on invalid replacement."
+    },
+    {
+      "path": "ffmpeg/scripts/suspension_profile.py",
+      "status": "Fixed; host-tested",
+      "change": "Exact export allowlist; no wildcard/duplicate names."
+    },
+    {
+      "path": "ffmpeg/scripts/prepare-ffmpeg.py; ffmpeg/scripts/build-ffmpeg.py",
+      "status": "Prepared; NOT full-compiled",
+      "change": "Profile validation, copied binary auditor, configurable saved-stack budget; libraries still unbuilt."
+    },
+    {
+      "path": "scripts/audit-wasm.mjs",
+      "status": "New/tested",
+      "change": "Private defined-memory/ABI audit; reject shared/memory64 and wrong raw continuation artifacts."
+    },
+    {
+      "path": "scripts/result_contract.py; scripts/run-dual.py",
+      "status": "Fixed/tested",
+      "change": "Strict identity, both absent JSPI APIs, actual continuation kind, cleanup, C cookie and negative-reason checks."
+    },
+    {
+      "path": "tests/browser-worker.js; stage2/tests/range-worker.js",
+      "status": "Fixed/tested",
+      "change": "Report failure-environment evidence; commit unit-test bytes on owner resume; record live C cookies."
+    },
+    {
+      "path": "build-unit.sh; stage2/scripts/build-bridge.sh; scripts/build-dual.py",
+      "status": "Fixed/rebuilt",
+      "change": "Normalize build paths; build/audit all nine fixtures; record source/binary correspondence."
+    },
+    {
+      "path": "review/build-probes.py; review/tests/continuation-probe.c; review/tests/continuation-worker.js; review/run-continuations.py",
+      "status": "New/executed",
+      "change": "Actual continuation oracles, undersized stack variant and omitted-import negative build."
+    },
+    {
+      "path": "review/tests/host-guards.mjs; review/test-result-contract.py; review/tests/audit-guards.mjs; scripts/test-profiles.py",
+      "status": "New/extended; executed",
+      "change": "ABI, poison, ownership, source replacement, success-report and profile guards."
+    },
+    {
+      "path": "upstream/misc/dispatch.c; upstream/misc/thread_pool.c",
+      "status": "Unchanged",
+      "change": "Pinned Git blob identities reverified; genuine algorithms still use freestanding test support."
+    },
+    {
+      "path": "stage2/runtime/range-source.mjs; stage2/native/stream-coop.c",
+      "status": "Unchanged in this review",
+      "change": "Shared data-delivery/cancellation implementation rerun under both backends; not full mpv registration/demux."
+    },
+    {
+      "path": "verify.py",
+      "status": "Updated; package-tested",
+      "change": "Complete case/binary/source correspondence, count/identity and deliberate tamper checks."
+    }
+  ]
+}

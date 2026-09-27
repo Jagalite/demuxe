@@ -1,0 +1,49 @@
+Spreadsheet runtime warmup failed during python startup
+Traceback (most recent call last):
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/patches/warm_spreadsheet_runtime_on_startup.py", line 26, in warm_spreadsheet_runtime_on_startup
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py", line 785, in warm_spreadsheet_runtime
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py", line 720, in _warm_feature_flows
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/spreadsheet_warmup.py", line 704, in _warm_collaboration_flows
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/generated/interface/models.py", line 32317, in hydrate_crdt_from_proto
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/remote.py", line 749, in __call__
+  File "/tmp/tmp.L2TH2Y5coc/artifact_tool_v2-2.8.22/artifact_tool/rpc/client.py", line 150, in call
+artifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.
+Traceback (most recent call last):
+  File [35m"/mnt/data/asyncify-http-check.py"[0m, line [35m17[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/usr/lib/python3.13/asyncio/runners.py"[0m, line [35m195[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/usr/lib/python3.13/asyncio/runners.py"[0m, line [35m118[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/usr/lib/python3.13/asyncio/base_events.py"[0m, line [35m725[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/mnt/data/asyncify-http-check.py"[0m, line [35m13[0m, in [35mmain[0m
+    response=[1;31mawait page.goto("http://127.0.0.1:%d/"%s.server_port,wait_until="load",timeout=15000)[0m
+             [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/opt/pyvenv/lib/python3.13/site-packages/playwright/async_api/_generated.py"[0m, line [35m9041[0m, in [35mgoto[0m
+    await self._impl_obj.goto(
+        url=url, timeout=timeout, waitUntil=wait_until, referer=referer
+    )
+  File [35m"/opt/pyvenv/lib/python3.13/site-packages/playwright/_impl/_page.py"[0m, line [35m552[0m, in [35mgoto[0m
+    return [1;31mawait self._main_frame.goto(**locals_to_params(locals()))[0m
+           [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/opt/pyvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py"[0m, line [35m153[0m, in [35mgoto[0m
+    await self._channel.send(
+        "goto", self._navigation_timeout, locals_to_params(locals())
+    )
+  File [35m"/opt/pyvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py"[0m, line [35m69[0m, in [35msend[0m
+    return [1;31mawait self._connection.wrap_api_call([0m
+           [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+    ...<3 lines>...
+    [1;31m)[0m
+    [1;31m^[0m
+  File [35m"/opt/pyvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py"[0m, line [35m559[0m, in [35mwrap_api_call[0m
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+[1;35mplaywright._impl._errors.Error[0m: [35mPage.goto: net::ERR_BLOCKED_BY_ADMINISTRATOR at http://127.0.0.1:44965/
+Call log:
+  - navigating to "http://127.0.0.1:44965/", waiting until "load"
+[0m

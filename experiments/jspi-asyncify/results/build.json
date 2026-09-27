@@ -1,0 +1,1425 @@
+{
+  "scope": "Infrastructure fixtures, not a complete Emscripten/libmpv/FFmpeg build",
+  "recordedAt": "2026-09-27T15:13:44.788205+00:00",
+  "commands": [
+    {
+      "argv": [
+        "/Volumes/seed2/Projects/demuxe-release-closeout-20260916/build/emsdk-4.0.14/upstream/bin/wasm-opt",
+        "--version"
+      ],
+      "returncode": 0,
+      "stdout": "wasm-opt version 123 (version_123-346-gfc1a391b9)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Volumes/seed2/Projects/demuxe/build/emsdk-4.0.14/upstream/bin/clang",
+        "--version"
+      ],
+      "returncode": 0,
+      "stdout": "clang version 22.0.0git (https:/github.com/llvm/llvm-project 1cc84bcc08f723a6ba9d845c3fed1777547f45f9)\nTarget: x86_64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Volumes/seed2/Projects/demuxe-release-closeout-20260916/build/emsdk-4.0.14/upstream/bin\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "bash",
+        "build-unit.sh"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "bash",
+        "stage2/scripts/build-bridge.sh"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Volumes/seed2/Projects/demuxe-release-closeout-20260916/build/emsdk-4.0.14/upstream/bin/wasm-opt",
+        "artifacts/mpv-coop-units.wasm",
+        "--asyncify",
+        "--pass-arg=asyncify-imports@demuxe_coop.wait,demuxe_coop.join,demuxe_coop.yield,test.read",
+        "--enable-bulk-memory",
+        "-g",
+        "-o",
+        "artifacts/mpv-coop-units.asyncify.wasm"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Volumes/seed2/Projects/demuxe-release-closeout-20260916/build/emsdk-4.0.14/upstream/bin/wasm-opt",
+        "stage2/artifacts/range-bridge.wasm",
+        "--asyncify",
+        "--pass-arg=asyncify-imports@demuxe_coop.wait,demuxe_coop.join,demuxe_coop.yield,demuxe_source.read",
+        "--enable-bulk-memory",
+        "-g",
+        "-o",
+        "artifacts/range-bridge.asyncify.wasm"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+        "-B",
+        "review/build-probes.py",
+        "--wasm-opt",
+        "/Volumes/seed2/Projects/demuxe-release-closeout-20260916/build/emsdk-4.0.14/upstream/bin/wasm-opt"
+      ],
+      "returncode": 0,
+      "stdout": "Built continuation fixtures (not media services).\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/audit-wasm.mjs",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/artifacts/continuation-probe-omitted-import.asyncify.wasm",
+        "--asyncify"
+      ],
+      "returncode": 0,
+      "stdout": "{\n  \"bytes\": 10407,\n  \"sha256\": \"107318b38b07d8ffcba9708c4050d327530b4784f274dc292f78f0f1871ad6bf\",\n  \"privateMemory\": true,\n  \"memory64\": false,\n  \"asyncifyControls\": true,\n  \"observedControls\": [\n    \"asyncify_start_unwind\",\n    \"asyncify_stop_unwind\",\n    \"asyncify_start_rewind\",\n    \"asyncify_stop_rewind\",\n    \"asyncify_get_state\"\n  ],\n  \"backend\": \"asyncify\",\n  \"scope\": \"Static memory and ABI checks only; JSPI glue and suspension require runtime qualification\",\n  \"imports\": [\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"panic\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"review_io\",\n      \"name\": \"value\",\n      \"kind\": \"function\"\n    }\n  ],\n  \"exports\": [\n    {\n      \"name\": \"memory\",\n      \"kind\": \"memory\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_top\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_invoke\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_data\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_end\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_get_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_set_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_entered\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_after\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_finished\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_no_suspend\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_once\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_recursive\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_indirect\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_trap\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_start_unwind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_stop_unwind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_start_rewind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_stop_rewind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_get_state\",\n      \"kind\": \"function\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/audit-wasm.mjs",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/artifacts/continuation-probe-small.asyncify.wasm",
+        "--asyncify"
+      ],
+      "returncode": 0,
+      "stdout": "{\n  \"bytes\": 12313,\n  \"sha256\": \"602657fab5795c44e062ab417a48d1cc8fdb1949bf0ae5de6008603dc01125f0\",\n  \"privateMemory\": true,\n  \"memory64\": false,\n  \"asyncifyControls\": true,\n  \"observedControls\": [\n    \"asyncify_start_unwind\",\n    \"asyncify_stop_unwind\",\n    \"asyncify_start_rewind\",\n    \"asyncify_stop_rewind\",\n    \"asyncify_get_state\"\n  ],\n  \"backend\": \"asyncify\",\n  \"scope\": \"Static memory and ABI checks only; JSPI glue and suspension require runtime qualification\",\n  \"imports\": [\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"panic\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"review_io\",\n      \"name\": \"value\",\n      \"kind\": \"function\"\n    }\n  ],\n  \"exports\": [\n    {\n      \"name\": \"memory\",\n      \"kind\": \"memory\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_top\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_invoke\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_data\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_end\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_get_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_set_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_entered\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_after\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_finished\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_no_suspend\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_once\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_recursive\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_indirect\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_trap\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_start_unwind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_stop_unwind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_start_rewind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_stop_rewind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_get_state\",\n      \"kind\": \"function\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/audit-wasm.mjs",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/artifacts/continuation-probe-small.wasm"
+      ],
+      "returncode": 0,
+      "stdout": "{\n  \"bytes\": 9586,\n  \"sha256\": \"e4d32819ff7b796ba82e73c073c266e51a9fcc7bbf0dae173056400c683396f9\",\n  \"privateMemory\": true,\n  \"memory64\": false,\n  \"asyncifyControls\": false,\n  \"observedControls\": [],\n  \"backend\": \"jspi\",\n  \"scope\": \"Static memory and ABI checks only; JSPI glue and suspension require runtime qualification\",\n  \"imports\": [\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"panic\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"review_io\",\n      \"name\": \"value\",\n      \"kind\": \"function\"\n    }\n  ],\n  \"exports\": [\n    {\n      \"name\": \"memory\",\n      \"kind\": \"memory\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_top\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_invoke\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_data\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_end\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_get_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_set_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_entered\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_after\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_finished\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_no_suspend\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_once\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_recursive\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_indirect\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_trap\",\n      \"kind\": \"function\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/audit-wasm.mjs",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/artifacts/continuation-probe.asyncify.wasm",
+        "--asyncify"
+      ],
+      "returncode": 0,
+      "stdout": "{\n  \"bytes\": 12322,\n  \"sha256\": \"e30a6b54ffe294889d7c3afbd81dfa4b0c5bf6cb272f5deb417053c71e728fb5\",\n  \"privateMemory\": true,\n  \"memory64\": false,\n  \"asyncifyControls\": true,\n  \"observedControls\": [\n    \"asyncify_start_unwind\",\n    \"asyncify_stop_unwind\",\n    \"asyncify_start_rewind\",\n    \"asyncify_stop_rewind\",\n    \"asyncify_get_state\"\n  ],\n  \"backend\": \"asyncify\",\n  \"scope\": \"Static memory and ABI checks only; JSPI glue and suspension require runtime qualification\",\n  \"imports\": [\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"panic\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"review_io\",\n      \"name\": \"value\",\n      \"kind\": \"function\"\n    }\n  ],\n  \"exports\": [\n    {\n      \"name\": \"memory\",\n      \"kind\": \"memory\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_top\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_invoke\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_data\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_end\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_get_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_set_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_entered\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_after\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_finished\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_no_suspend\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_once\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_recursive\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_indirect\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_trap\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_start_unwind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_stop_unwind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_start_rewind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_stop_rewind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_get_state\",\n      \"kind\": \"function\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/audit-wasm.mjs",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/artifacts/continuation-probe.wasm"
+      ],
+      "returncode": 0,
+      "stdout": "{\n  \"bytes\": 9595,\n  \"sha256\": \"0e44427a6ab5a93930490aa7397c2246368cc89651cf9c3571a667d01557397a\",\n  \"privateMemory\": true,\n  \"memory64\": false,\n  \"asyncifyControls\": false,\n  \"observedControls\": [],\n  \"backend\": \"jspi\",\n  \"scope\": \"Static memory and ABI checks only; JSPI glue and suspension require runtime qualification\",\n  \"imports\": [\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"panic\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"review_io\",\n      \"name\": \"value\",\n      \"kind\": \"function\"\n    }\n  ],\n  \"exports\": [\n    {\n      \"name\": \"memory\",\n      \"kind\": \"memory\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_top\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_invoke\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_data\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_end\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_get_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_set_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_entered\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_after\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_finished\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_no_suspend\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_once\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_recursive\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_indirect\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"probe_trap\",\n      \"kind\": \"function\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/audit-wasm.mjs",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/artifacts/mpv-coop-units.asyncify.wasm",
+        "--asyncify"
+      ],
+      "returncode": 0,
+      "stdout": "{\n  \"bytes\": 76245,\n  \"sha256\": \"d705e2defcaa4bb42f89d4e8a1b0e55e4dcab449ddde6aa92de15b9ad1488632\",\n  \"privateMemory\": true,\n  \"memory64\": false,\n  \"asyncifyControls\": true,\n  \"observedControls\": [\n    \"asyncify_start_unwind\",\n    \"asyncify_stop_unwind\",\n    \"asyncify_start_rewind\",\n    \"asyncify_stop_rewind\",\n    \"asyncify_get_state\"\n  ],\n  \"backend\": \"asyncify\",\n  \"scope\": \"Static memory and ABI checks only; JSPI glue and suspension require runtime qualification\",\n  \"imports\": [\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"panic\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"self\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"waiters\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"wait\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"wake\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"create\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"join\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"detach\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"name\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"yield\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"test\",\n      \"name\": \"now\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"test\",\n      \"name\": \"fail\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"test\",\n      \"name\": \"live\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"test\",\n      \"name\": \"read\",\n      \"kind\": \"function\"\n    }\n  ],\n  \"exports\": [\n    {\n      \"name\": \"memory\",\n      \"kind\": \"memory\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_top\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_invoke\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_data\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_end\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_get_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_set_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"test_allocations\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"test_run\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_start_unwind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_stop_unwind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_start_rewind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_stop_rewind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_get_state\",\n      \"kind\": \"function\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/audit-wasm.mjs",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/artifacts/mpv-coop-units.wasm"
+      ],
+      "returncode": 0,
+      "stdout": "{\n  \"bytes\": 43842,\n  \"sha256\": \"81f1a5700b6c7aa494313d4d471d06aa401c80b87c46f74a4ae8e6b5e9d908f3\",\n  \"privateMemory\": true,\n  \"memory64\": false,\n  \"asyncifyControls\": false,\n  \"observedControls\": [],\n  \"backend\": \"jspi\",\n  \"scope\": \"Static memory and ABI checks only; JSPI glue and suspension require runtime qualification\",\n  \"imports\": [\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"panic\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"self\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"waiters\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"wait\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"wake\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"create\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"join\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"detach\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"name\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"yield\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"test\",\n      \"name\": \"now\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"test\",\n      \"name\": \"fail\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"test\",\n      \"name\": \"live\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"test\",\n      \"name\": \"read\",\n      \"kind\": \"function\"\n    }\n  ],\n  \"exports\": [\n    {\n      \"name\": \"memory\",\n      \"kind\": \"memory\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_top\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_invoke\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_data\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_end\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_get_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_set_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"test_allocations\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"test_run\",\n      \"kind\": \"function\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/audit-wasm.mjs",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/artifacts/range-bridge.asyncify.wasm",
+        "--asyncify"
+      ],
+      "returncode": 0,
+      "stdout": "{\n  \"bytes\": 22132,\n  \"sha256\": \"dc5c2b312f7887ba186be5d84ba1c1aca9b5f3fffc0e7c0241db60def10533f6\",\n  \"privateMemory\": true,\n  \"memory64\": false,\n  \"asyncifyControls\": true,\n  \"observedControls\": [\n    \"asyncify_start_unwind\",\n    \"asyncify_stop_unwind\",\n    \"asyncify_start_rewind\",\n    \"asyncify_stop_rewind\",\n    \"asyncify_get_state\"\n  ],\n  \"backend\": \"asyncify\",\n  \"scope\": \"Static memory and ABI checks only; JSPI glue and suspension require runtime qualification\",\n  \"imports\": [\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"panic\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"test\",\n      \"name\": \"fail\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_source\",\n      \"name\": \"open\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_source\",\n      \"name\": \"size\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_source\",\n      \"name\": \"close\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_source\",\n      \"name\": \"valid\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_source\",\n      \"name\": \"read\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_source\",\n      \"name\": \"cancel\",\n      \"kind\": \"function\"\n    }\n  ],\n  \"exports\": [\n    {\n      \"name\": \"memory\",\n      \"kind\": \"memory\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_top\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_invoke\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_data\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_end\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_get_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_set_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_source_live\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_setup\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_open\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_bad_uri\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_read\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_seek\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_size\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_cancel\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_close\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_fill\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_ptr\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_start_unwind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_stop_unwind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_start_rewind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_stop_rewind\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"asyncify_get_state\",\n      \"kind\": \"function\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/audit-wasm.mjs",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/stage2/artifacts/range-bridge.wasm"
+      ],
+      "returncode": 0,
+      "stdout": "{\n  \"bytes\": 18400,\n  \"sha256\": \"a25c4701780812f84d65faeb46a5d230e6d110c80da2d43d7c04a51b217065c9\",\n  \"privateMemory\": true,\n  \"memory64\": false,\n  \"asyncifyControls\": false,\n  \"observedControls\": [],\n  \"backend\": \"jspi\",\n  \"scope\": \"Static memory and ABI checks only; JSPI glue and suspension require runtime qualification\",\n  \"imports\": [\n    {\n      \"module\": \"demuxe_coop\",\n      \"name\": \"panic\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"test\",\n      \"name\": \"fail\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_source\",\n      \"name\": \"open\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_source\",\n      \"name\": \"size\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_source\",\n      \"name\": \"close\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_source\",\n      \"name\": \"valid\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_source\",\n      \"name\": \"read\",\n      \"kind\": \"function\"\n    },\n    {\n      \"module\": \"demuxe_source\",\n      \"name\": \"cancel\",\n      \"kind\": \"function\"\n    }\n  ],\n  \"exports\": [\n    {\n      \"name\": \"memory\",\n      \"kind\": \"memory\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_stack_top\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_invoke\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_count\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_data\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_base\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_asyncify_end\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_get_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_coop_set_sp\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"demuxe_source_live\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_setup\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_open\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_bad_uri\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_read\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_seek\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_size\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_cancel\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_close\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_fill\",\n      \"kind\": \"function\"\n    },\n    {\n      \"name\": \"bridge_ptr\",\n      \"kind\": \"function\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    }
+  ],
+  "binaryen": "wasm-opt version 123 (version_123-346-gfc1a391b9)",
+  "wasmOptSHA256": "d21122ffa0e472e0fd74cb2489f651c0d0f015ef3143764edb06a8911eed5d55",
+  "clang": "clang version 22.0.0git (https:/github.com/llvm/llvm-project 1cc84bcc08f723a6ba9d845c3fed1777547f45f9)\nTarget: x86_64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Volumes/seed2/Projects/demuxe-release-closeout-20260916/build/emsdk-4.0.14/upstream/bin",
+  "audits": {
+    "artifacts/continuation-probe-omitted-import.asyncify.wasm": {
+      "bytes": 10407,
+      "sha256": "107318b38b07d8ffcba9708c4050d327530b4784f274dc292f78f0f1871ad6bf",
+      "privateMemory": true,
+      "memory64": false,
+      "asyncifyControls": true,
+      "observedControls": [
+        "asyncify_start_unwind",
+        "asyncify_stop_unwind",
+        "asyncify_start_rewind",
+        "asyncify_stop_rewind",
+        "asyncify_get_state"
+      ],
+      "backend": "asyncify",
+      "scope": "Static memory and ABI checks only; JSPI glue and suspension require runtime qualification",
+      "imports": [
+        {
+          "module": "demuxe_coop",
+          "name": "panic",
+          "kind": "function"
+        },
+        {
+          "module": "review_io",
+          "name": "value",
+          "kind": "function"
+        }
+      ],
+      "exports": [
+        {
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "name": "demuxe_coop_stack_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_top",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_invoke",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_data",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_end",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_get_sp",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_set_sp",
+          "kind": "function"
+        },
+        {
+          "name": "probe_entered",
+          "kind": "function"
+        },
+        {
+          "name": "probe_after",
+          "kind": "function"
+        },
+        {
+          "name": "probe_finished",
+          "kind": "function"
+        },
+        {
+          "name": "probe_no_suspend",
+          "kind": "function"
+        },
+        {
+          "name": "probe_once",
+          "kind": "function"
+        },
+        {
+          "name": "probe_recursive",
+          "kind": "function"
+        },
+        {
+          "name": "probe_indirect",
+          "kind": "function"
+        },
+        {
+          "name": "probe_trap",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_start_unwind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_stop_unwind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_start_rewind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_stop_rewind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_get_state",
+          "kind": "function"
+        }
+      ]
+    },
+    "artifacts/continuation-probe-small.asyncify.wasm": {
+      "bytes": 12313,
+      "sha256": "602657fab5795c44e062ab417a48d1cc8fdb1949bf0ae5de6008603dc01125f0",
+      "privateMemory": true,
+      "memory64": false,
+      "asyncifyControls": true,
+      "observedControls": [
+        "asyncify_start_unwind",
+        "asyncify_stop_unwind",
+        "asyncify_start_rewind",
+        "asyncify_stop_rewind",
+        "asyncify_get_state"
+      ],
+      "backend": "asyncify",
+      "scope": "Static memory and ABI checks only; JSPI glue and suspension require runtime qualification",
+      "imports": [
+        {
+          "module": "demuxe_coop",
+          "name": "panic",
+          "kind": "function"
+        },
+        {
+          "module": "review_io",
+          "name": "value",
+          "kind": "function"
+        }
+      ],
+      "exports": [
+        {
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "name": "demuxe_coop_stack_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_top",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_invoke",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_data",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_end",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_get_sp",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_set_sp",
+          "kind": "function"
+        },
+        {
+          "name": "probe_entered",
+          "kind": "function"
+        },
+        {
+          "name": "probe_after",
+          "kind": "function"
+        },
+        {
+          "name": "probe_finished",
+          "kind": "function"
+        },
+        {
+          "name": "probe_no_suspend",
+          "kind": "function"
+        },
+        {
+          "name": "probe_once",
+          "kind": "function"
+        },
+        {
+          "name": "probe_recursive",
+          "kind": "function"
+        },
+        {
+          "name": "probe_indirect",
+          "kind": "function"
+        },
+        {
+          "name": "probe_trap",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_start_unwind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_stop_unwind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_start_rewind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_stop_rewind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_get_state",
+          "kind": "function"
+        }
+      ]
+    },
+    "artifacts/continuation-probe-small.wasm": {
+      "bytes": 9586,
+      "sha256": "e4d32819ff7b796ba82e73c073c266e51a9fcc7bbf0dae173056400c683396f9",
+      "privateMemory": true,
+      "memory64": false,
+      "asyncifyControls": false,
+      "observedControls": [],
+      "backend": "jspi",
+      "scope": "Static memory and ABI checks only; JSPI glue and suspension require runtime qualification",
+      "imports": [
+        {
+          "module": "demuxe_coop",
+          "name": "panic",
+          "kind": "function"
+        },
+        {
+          "module": "review_io",
+          "name": "value",
+          "kind": "function"
+        }
+      ],
+      "exports": [
+        {
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "name": "demuxe_coop_stack_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_top",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_invoke",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_data",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_end",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_get_sp",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_set_sp",
+          "kind": "function"
+        },
+        {
+          "name": "probe_entered",
+          "kind": "function"
+        },
+        {
+          "name": "probe_after",
+          "kind": "function"
+        },
+        {
+          "name": "probe_finished",
+          "kind": "function"
+        },
+        {
+          "name": "probe_no_suspend",
+          "kind": "function"
+        },
+        {
+          "name": "probe_once",
+          "kind": "function"
+        },
+        {
+          "name": "probe_recursive",
+          "kind": "function"
+        },
+        {
+          "name": "probe_indirect",
+          "kind": "function"
+        },
+        {
+          "name": "probe_trap",
+          "kind": "function"
+        }
+      ]
+    },
+    "artifacts/continuation-probe.asyncify.wasm": {
+      "bytes": 12322,
+      "sha256": "e30a6b54ffe294889d7c3afbd81dfa4b0c5bf6cb272f5deb417053c71e728fb5",
+      "privateMemory": true,
+      "memory64": false,
+      "asyncifyControls": true,
+      "observedControls": [
+        "asyncify_start_unwind",
+        "asyncify_stop_unwind",
+        "asyncify_start_rewind",
+        "asyncify_stop_rewind",
+        "asyncify_get_state"
+      ],
+      "backend": "asyncify",
+      "scope": "Static memory and ABI checks only; JSPI glue and suspension require runtime qualification",
+      "imports": [
+        {
+          "module": "demuxe_coop",
+          "name": "panic",
+          "kind": "function"
+        },
+        {
+          "module": "review_io",
+          "name": "value",
+          "kind": "function"
+        }
+      ],
+      "exports": [
+        {
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "name": "demuxe_coop_stack_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_top",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_invoke",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_data",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_end",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_get_sp",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_set_sp",
+          "kind": "function"
+        },
+        {
+          "name": "probe_entered",
+          "kind": "function"
+        },
+        {
+          "name": "probe_after",
+          "kind": "function"
+        },
+        {
+          "name": "probe_finished",
+          "kind": "function"
+        },
+        {
+          "name": "probe_no_suspend",
+          "kind": "function"
+        },
+        {
+          "name": "probe_once",
+          "kind": "function"
+        },
+        {
+          "name": "probe_recursive",
+          "kind": "function"
+        },
+        {
+          "name": "probe_indirect",
+          "kind": "function"
+        },
+        {
+          "name": "probe_trap",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_start_unwind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_stop_unwind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_start_rewind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_stop_rewind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_get_state",
+          "kind": "function"
+        }
+      ]
+    },
+    "artifacts/continuation-probe.wasm": {
+      "bytes": 9595,
+      "sha256": "0e44427a6ab5a93930490aa7397c2246368cc89651cf9c3571a667d01557397a",
+      "privateMemory": true,
+      "memory64": false,
+      "asyncifyControls": false,
+      "observedControls": [],
+      "backend": "jspi",
+      "scope": "Static memory and ABI checks only; JSPI glue and suspension require runtime qualification",
+      "imports": [
+        {
+          "module": "demuxe_coop",
+          "name": "panic",
+          "kind": "function"
+        },
+        {
+          "module": "review_io",
+          "name": "value",
+          "kind": "function"
+        }
+      ],
+      "exports": [
+        {
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "name": "demuxe_coop_stack_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_top",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_invoke",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_data",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_end",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_get_sp",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_set_sp",
+          "kind": "function"
+        },
+        {
+          "name": "probe_entered",
+          "kind": "function"
+        },
+        {
+          "name": "probe_after",
+          "kind": "function"
+        },
+        {
+          "name": "probe_finished",
+          "kind": "function"
+        },
+        {
+          "name": "probe_no_suspend",
+          "kind": "function"
+        },
+        {
+          "name": "probe_once",
+          "kind": "function"
+        },
+        {
+          "name": "probe_recursive",
+          "kind": "function"
+        },
+        {
+          "name": "probe_indirect",
+          "kind": "function"
+        },
+        {
+          "name": "probe_trap",
+          "kind": "function"
+        }
+      ]
+    },
+    "artifacts/mpv-coop-units.asyncify.wasm": {
+      "bytes": 76245,
+      "sha256": "d705e2defcaa4bb42f89d4e8a1b0e55e4dcab449ddde6aa92de15b9ad1488632",
+      "privateMemory": true,
+      "memory64": false,
+      "asyncifyControls": true,
+      "observedControls": [
+        "asyncify_start_unwind",
+        "asyncify_stop_unwind",
+        "asyncify_start_rewind",
+        "asyncify_stop_rewind",
+        "asyncify_get_state"
+      ],
+      "backend": "asyncify",
+      "scope": "Static memory and ABI checks only; JSPI glue and suspension require runtime qualification",
+      "imports": [
+        {
+          "module": "demuxe_coop",
+          "name": "panic",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "self",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "waiters",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "wait",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "wake",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "create",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "join",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "detach",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "name",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "yield",
+          "kind": "function"
+        },
+        {
+          "module": "test",
+          "name": "now",
+          "kind": "function"
+        },
+        {
+          "module": "test",
+          "name": "fail",
+          "kind": "function"
+        },
+        {
+          "module": "test",
+          "name": "live",
+          "kind": "function"
+        },
+        {
+          "module": "test",
+          "name": "read",
+          "kind": "function"
+        }
+      ],
+      "exports": [
+        {
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "name": "demuxe_coop_stack_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_top",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_invoke",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_data",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_end",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_get_sp",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_set_sp",
+          "kind": "function"
+        },
+        {
+          "name": "test_allocations",
+          "kind": "function"
+        },
+        {
+          "name": "test_run",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_start_unwind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_stop_unwind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_start_rewind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_stop_rewind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_get_state",
+          "kind": "function"
+        }
+      ]
+    },
+    "artifacts/mpv-coop-units.wasm": {
+      "bytes": 43842,
+      "sha256": "81f1a5700b6c7aa494313d4d471d06aa401c80b87c46f74a4ae8e6b5e9d908f3",
+      "privateMemory": true,
+      "memory64": false,
+      "asyncifyControls": false,
+      "observedControls": [],
+      "backend": "jspi",
+      "scope": "Static memory and ABI checks only; JSPI glue and suspension require runtime qualification",
+      "imports": [
+        {
+          "module": "demuxe_coop",
+          "name": "panic",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "self",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "waiters",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "wait",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "wake",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "create",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "join",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "detach",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "name",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_coop",
+          "name": "yield",
+          "kind": "function"
+        },
+        {
+          "module": "test",
+          "name": "now",
+          "kind": "function"
+        },
+        {
+          "module": "test",
+          "name": "fail",
+          "kind": "function"
+        },
+        {
+          "module": "test",
+          "name": "live",
+          "kind": "function"
+        },
+        {
+          "module": "test",
+          "name": "read",
+          "kind": "function"
+        }
+      ],
+      "exports": [
+        {
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "name": "demuxe_coop_stack_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_top",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_invoke",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_data",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_end",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_get_sp",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_set_sp",
+          "kind": "function"
+        },
+        {
+          "name": "test_allocations",
+          "kind": "function"
+        },
+        {
+          "name": "test_run",
+          "kind": "function"
+        }
+      ]
+    },
+    "artifacts/range-bridge.asyncify.wasm": {
+      "bytes": 22132,
+      "sha256": "dc5c2b312f7887ba186be5d84ba1c1aca9b5f3fffc0e7c0241db60def10533f6",
+      "privateMemory": true,
+      "memory64": false,
+      "asyncifyControls": true,
+      "observedControls": [
+        "asyncify_start_unwind",
+        "asyncify_stop_unwind",
+        "asyncify_start_rewind",
+        "asyncify_stop_rewind",
+        "asyncify_get_state"
+      ],
+      "backend": "asyncify",
+      "scope": "Static memory and ABI checks only; JSPI glue and suspension require runtime qualification",
+      "imports": [
+        {
+          "module": "demuxe_coop",
+          "name": "panic",
+          "kind": "function"
+        },
+        {
+          "module": "test",
+          "name": "fail",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_source",
+          "name": "open",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_source",
+          "name": "size",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_source",
+          "name": "close",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_source",
+          "name": "valid",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_source",
+          "name": "read",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_source",
+          "name": "cancel",
+          "kind": "function"
+        }
+      ],
+      "exports": [
+        {
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "name": "demuxe_coop_stack_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_top",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_invoke",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_data",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_end",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_get_sp",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_set_sp",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_source_live",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_setup",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_open",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_bad_uri",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_read",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_seek",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_size",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_cancel",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_close",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_fill",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_ptr",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_start_unwind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_stop_unwind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_start_rewind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_stop_rewind",
+          "kind": "function"
+        },
+        {
+          "name": "asyncify_get_state",
+          "kind": "function"
+        }
+      ]
+    },
+    "stage2/artifacts/range-bridge.wasm": {
+      "bytes": 18400,
+      "sha256": "a25c4701780812f84d65faeb46a5d230e6d110c80da2d43d7c04a51b217065c9",
+      "privateMemory": true,
+      "memory64": false,
+      "asyncifyControls": false,
+      "observedControls": [],
+      "backend": "jspi",
+      "scope": "Static memory and ABI checks only; JSPI glue and suspension require runtime qualification",
+      "imports": [
+        {
+          "module": "demuxe_coop",
+          "name": "panic",
+          "kind": "function"
+        },
+        {
+          "module": "test",
+          "name": "fail",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_source",
+          "name": "open",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_source",
+          "name": "size",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_source",
+          "name": "close",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_source",
+          "name": "valid",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_source",
+          "name": "read",
+          "kind": "function"
+        },
+        {
+          "module": "demuxe_source",
+          "name": "cancel",
+          "kind": "function"
+        }
+      ],
+      "exports": [
+        {
+          "name": "memory",
+          "kind": "memory"
+        },
+        {
+          "name": "demuxe_coop_stack_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_stack_top",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_invoke",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_count",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_data",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_base",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_asyncify_end",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_get_sp",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_coop_set_sp",
+          "kind": "function"
+        },
+        {
+          "name": "demuxe_source_live",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_setup",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_open",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_bad_uri",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_read",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_seek",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_size",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_cancel",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_close",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_fill",
+          "kind": "function"
+        },
+        {
+          "name": "bridge_ptr",
+          "kind": "function"
+        }
+      ]
+    }
+  },
+  "sourceSHA256": {
+    "runtime/threads-coop.c": "feccb1eb84b0bea091b4fdc8db75788cb6d4f8edac178ec3afad028e95610fda",
+    "runtime/threads-coop.h": "54997055cdc5dfe924c6f1c9c006c80b8dd64d2328df436d93a0c95a4da28207",
+    "runtime/asyncify-stacks.c": "8526b0d26a5bcef5935cb3979e33abea8836359282714dcb1f7af8cd1c58edb1",
+    "runtime/stack.s": "da78c43652190be733ea97f098a8f5f81869951a5688aa936527162469c78b0b",
+    "tests/probe.c": "a0ce797eb9d5f0ff3a944e403c8f2a77bcae57fed03551eac76faefa6ea6ac1b",
+    "tests/support.c": "4b5c67b4e3f4014ac4e89c4ccb44fd1abb167464f285123d25c2bdc50f3ded8a",
+    "stage2/native/stream-coop.c": "bee2946f698f0e526ea14faa7a684d82974c61860518db5dcdfcf4a77089489c",
+    "stage2/tests/bridge-probe.c": "12e7d320948723004aa565a3a2a53cede8fd8d95b50a077e11f682cc0452236a",
+    "review/tests/continuation-probe.c": "ff2caeb1bc52b40502e45e33c72ddb14711e0b451ed379e8ffe6839784e01018",
+    "build-unit.sh": "21ee39bf99a0c083e14f9fc707e94987d14aa294507c73cee55669f39802c626",
+    "stage2/scripts/build-bridge.sh": "6072fe531070aa2d21536820c1da5d54ce6be0c9bec450bc504a2b3968e0f020",
+    "scripts/build-dual.py": "06bb42d77dde38ec12fe96f639353d01d826ced6219ab7d0794efc13bf7d0c6e",
+    "review/build-probes.py": "4d5111f84ac25e8f2f8ca295d309700a0c57fff99690ddd64892a199aba78b26",
+    "scripts/audit-wasm.mjs": "5194bdc365eafa83edc3f97c9c61d5a3f9e470fb69954a799227f526237ef518"
+  },
+  "status": "built",
+  "artifacts": {
+    "artifacts/continuation-probe-omitted-import.asyncify.wasm": {
+      "bytes": 10407,
+      "sha256": "107318b38b07d8ffcba9708c4050d327530b4784f274dc292f78f0f1871ad6bf"
+    },
+    "artifacts/continuation-probe-small.asyncify.wasm": {
+      "bytes": 12313,
+      "sha256": "602657fab5795c44e062ab417a48d1cc8fdb1949bf0ae5de6008603dc01125f0"
+    },
+    "artifacts/continuation-probe-small.wasm": {
+      "bytes": 9586,
+      "sha256": "e4d32819ff7b796ba82e73c073c266e51a9fcc7bbf0dae173056400c683396f9"
+    },
+    "artifacts/continuation-probe.asyncify.wasm": {
+      "bytes": 12322,
+      "sha256": "e30a6b54ffe294889d7c3afbd81dfa4b0c5bf6cb272f5deb417053c71e728fb5"
+    },
+    "artifacts/continuation-probe.wasm": {
+      "bytes": 9595,
+      "sha256": "0e44427a6ab5a93930490aa7397c2246368cc89651cf9c3571a667d01557397a"
+    },
+    "artifacts/mpv-coop-units.asyncify.wasm": {
+      "bytes": 76245,
+      "sha256": "d705e2defcaa4bb42f89d4e8a1b0e55e4dcab449ddde6aa92de15b9ad1488632"
+    },
+    "artifacts/mpv-coop-units.wasm": {
+      "bytes": 43842,
+      "sha256": "81f1a5700b6c7aa494313d4d471d06aa401c80b87c46f74a4ae8e6b5e9d908f3"
+    },
+    "artifacts/range-bridge.asyncify.wasm": {
+      "bytes": 22132,
+      "sha256": "dc5c2b312f7887ba186be5d84ba1c1aca9b5f3fffc0e7c0241db60def10533f6"
+    },
+    "stage2/artifacts/range-bridge.wasm": {
+      "bytes": 18400,
+      "sha256": "a25c4701780812f84d65faeb46a5d230e6d110c80da2d43d7c04a51b217065c9"
+    }
+  }
+}

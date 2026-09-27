@@ -1,0 +1,181 @@
+{
+  "scope": "Additional infrastructure fixtures; small/omitted-import variants are deliberate negative inputs",
+  "recordedAt": "2026-09-27T15:14:14.843049+00:00",
+  "commands": [
+    {
+      "argv": [
+        "/Volumes/seed2/Projects/demuxe-release-closeout-20260916/build/emsdk-4.0.14/upstream/bin/wasm-opt",
+        "--version"
+      ],
+      "returncode": 0,
+      "stdout": "wasm-opt version 123 (version_123-346-gfc1a391b9)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Volumes/seed2/Projects/demuxe/build/emsdk-4.0.14/upstream/bin/clang",
+        "--target=wasm32",
+        "-O2",
+        "-g",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-nostdlib",
+        "-ffile-prefix-map=/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify=/demuxe-asyncify-study",
+        "-DDEMUXE_COOP_THREADS=1",
+        "-Itests/support",
+        "-Iruntime",
+        "-Iupstream",
+        "runtime/threads-coop.c",
+        "runtime/asyncify-stacks.c",
+        "runtime/stack.s",
+        "review/tests/continuation-probe.c",
+        "-Wl,--no-entry",
+        "-Wl,--export-memory",
+        "-Wl,-z,stack-size=1048576",
+        "-Wl,--initial-memory=33554432",
+        "-Wl,--max-memory=67108864",
+        "-Wl,--export=demuxe_coop_invoke",
+        "-Wl,--export=demuxe_coop_get_sp",
+        "-Wl,--export=demuxe_coop_set_sp",
+        "-Wl,--export=demuxe_coop_stack_base",
+        "-Wl,--export=demuxe_coop_stack_top",
+        "-Wl,--export=demuxe_coop_stack_count",
+        "-Wl,--export=demuxe_asyncify_data",
+        "-Wl,--export=demuxe_asyncify_base",
+        "-Wl,--export=demuxe_asyncify_end",
+        "-Wl,--export=demuxe_asyncify_count",
+        "-Wl,--export=probe_no_suspend",
+        "-Wl,--export=probe_once",
+        "-Wl,--export=probe_recursive",
+        "-Wl,--export=probe_indirect",
+        "-Wl,--export=probe_entered",
+        "-Wl,--export=probe_after",
+        "-Wl,--export=probe_finished",
+        "-Wl,--export=probe_trap",
+        "-o",
+        "artifacts/continuation-probe.wasm"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Volumes/seed2/Projects/demuxe/build/emsdk-4.0.14/upstream/bin/clang",
+        "--target=wasm32",
+        "-O2",
+        "-g",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-nostdlib",
+        "-ffile-prefix-map=/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify=/demuxe-asyncify-study",
+        "-DDEMUXE_COOP_THREADS=1",
+        "-Itests/support",
+        "-Iruntime",
+        "-Iupstream",
+        "runtime/threads-coop.c",
+        "runtime/asyncify-stacks.c",
+        "runtime/stack.s",
+        "review/tests/continuation-probe.c",
+        "-Wl,--no-entry",
+        "-Wl,--export-memory",
+        "-Wl,-z,stack-size=1048576",
+        "-Wl,--initial-memory=33554432",
+        "-Wl,--max-memory=67108864",
+        "-Wl,--export=demuxe_coop_invoke",
+        "-Wl,--export=demuxe_coop_get_sp",
+        "-Wl,--export=demuxe_coop_set_sp",
+        "-Wl,--export=demuxe_coop_stack_base",
+        "-Wl,--export=demuxe_coop_stack_top",
+        "-Wl,--export=demuxe_coop_stack_count",
+        "-Wl,--export=demuxe_asyncify_data",
+        "-Wl,--export=demuxe_asyncify_base",
+        "-Wl,--export=demuxe_asyncify_end",
+        "-Wl,--export=demuxe_asyncify_count",
+        "-Wl,--export=probe_no_suspend",
+        "-Wl,--export=probe_once",
+        "-Wl,--export=probe_recursive",
+        "-Wl,--export=probe_indirect",
+        "-Wl,--export=probe_entered",
+        "-Wl,--export=probe_after",
+        "-Wl,--export=probe_finished",
+        "-Wl,--export=probe_trap",
+        "-DDEMUXE_ASYNCIFY_BYTES=256",
+        "-o",
+        "artifacts/continuation-probe-small.wasm"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Volumes/seed2/Projects/demuxe-release-closeout-20260916/build/emsdk-4.0.14/upstream/bin/wasm-opt",
+        "artifacts/continuation-probe.wasm",
+        "--asyncify",
+        "--pass-arg=asyncify-imports@demuxe_coop.wait,demuxe_coop.join,demuxe_coop.yield,review_io.value",
+        "--enable-bulk-memory",
+        "-g",
+        "-o",
+        "artifacts/continuation-probe.asyncify.wasm"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Volumes/seed2/Projects/demuxe-release-closeout-20260916/build/emsdk-4.0.14/upstream/bin/wasm-opt",
+        "artifacts/continuation-probe-small.wasm",
+        "--asyncify",
+        "--pass-arg=asyncify-imports@demuxe_coop.wait,demuxe_coop.join,demuxe_coop.yield,review_io.value",
+        "--enable-bulk-memory",
+        "-g",
+        "-o",
+        "artifacts/continuation-probe-small.asyncify.wasm"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Volumes/seed2/Projects/demuxe-release-closeout-20260916/build/emsdk-4.0.14/upstream/bin/wasm-opt",
+        "artifacts/continuation-probe.wasm",
+        "--asyncify",
+        "--pass-arg=asyncify-imports@demuxe_coop.wait,demuxe_coop.join,demuxe_coop.yield",
+        "--enable-bulk-memory",
+        "-g",
+        "-o",
+        "artifacts/continuation-probe-omitted-import.asyncify.wasm"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "binaryen": "wasm-opt version 123 (version_123-346-gfc1a391b9)",
+  "status": "built",
+  "artifacts": {
+    "artifacts/continuation-probe.wasm": {
+      "bytes": 9595,
+      "sha256": "0e44427a6ab5a93930490aa7397c2246368cc89651cf9c3571a667d01557397a"
+    },
+    "artifacts/continuation-probe-small.wasm": {
+      "bytes": 9586,
+      "sha256": "e4d32819ff7b796ba82e73c073c266e51a9fcc7bbf0dae173056400c683396f9"
+    },
+    "artifacts/continuation-probe.asyncify.wasm": {
+      "bytes": 12322,
+      "sha256": "e30a6b54ffe294889d7c3afbd81dfa4b0c5bf6cb272f5deb417053c71e728fb5"
+    },
+    "artifacts/continuation-probe-small.asyncify.wasm": {
+      "bytes": 12313,
+      "sha256": "602657fab5795c44e062ab417a48d1cc8fdb1949bf0ae5de6008603dc01125f0"
+    },
+    "artifacts/continuation-probe-omitted-import.asyncify.wasm": {
+      "bytes": 10407,
+      "sha256": "107318b38b07d8ffcba9708c4050d327530b4784f274dc292f78f0f1871ad6bf"
+    }
+  }
+}
