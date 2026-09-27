@@ -84,7 +84,9 @@ onmessage=({data:d})=>{
       if(m.type==='error'){clearTimeout(timeout);fatal=Error(m.message);reject(fatal);}
      };
      io.onerror=e=>{clearTimeout(timeout);fatal=Error(e.message);reject(fatal);};
-     io.postMessage({type:'init',memory:engine.HEAPU8.buffer,pointer:engine._web_io_ptr(),file:d.file,options:d.options,canRefresh:d.canRefresh,subtitleCacheBytes:4*1024*1024,subtitleMaxRequests:8192});
+     // Playback and seeks keep reading for the lifetime of the service. Bound
+     // memory here; the separate ASS preload scan has its own work budget.
+     io.postMessage({type:'init',memory:engine.HEAPU8.buffer,pointer:engine._web_io_ptr(),file:d.file,options:d.options,canRefresh:d.canRefresh,subtitleCacheBytes:4*1024*1024});
     });
     check();engine._web_io_configure(1,BigInt(info.size));
     if(engine._subtitle_service_open()<0)throw Error('Subtitle source open failed');

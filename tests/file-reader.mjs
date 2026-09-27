@@ -1,6 +1,41 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';import assert from 'node:assert/strict';
 import {LocalFileReader} from '../web/file-reader.js';
+import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
+
+test('subtitle playback can exceed 8192 uncached reads with bounded memory',async()=>{
+ // Exercise the production subtitle init configuration, then its local reader.
+ // Stub the native engine: this regression concerns transport lifetime limits.
+ let init;
+ const messages=[];
+ const engine={HEAPU8:new Uint8Array(64),FS:{mkdir(){},writeFile(){}},
+  _subtitle_service_create:()=>0,_malloc:()=>16,_web_io_ptr:()=>0,
+  _web_io_configure(){},_subtitle_service_open:()=>0,
+  _subtitle_service_loaded:()=>1,_subtitle_service_track_count:()=>0,
+  _subtitle_service_block(){}};
+ const context=vm.createContext({create:async()=>engine,SubtitleOverlay:class {},URL,
+  setTimeout,clearTimeout,postMessage:message=>messages.push(message),
+  Worker:class {postMessage(message){init=message;this.onmessage({data:{type:'ready',info:{size:String(message.file.size)}}});}}});
+ const source=await readFile(new URL('../web/mpv-subtitle-worker.js',import.meta.url),'utf8');
+ vm.runInContext(source.replace(/^import .*;\n/gm,'').replaceAll('import.meta.url',JSON.stringify(import.meta.url)),context);
+ const file={size:16384,slice:(a,b)=>new Blob([new Uint8Array(b-a)])};
+ context.onmessage({data:{id:1,type:'init',file,fonts:[]}});
+ await vm.runInContext('chain',context);
+ assert.equal(messages[0]?.error,undefined);assert.equal(messages[0]?.id,1);
+ const reader=new LocalFileReader(file,{cacheBytes:init.subtitleCacheBytes,maxRequests:init.subtitleMaxRequests});
+ try{
+  for(let i=0;i<8193;i++){
+   if(i===4096)reader.beginEpoch(); // Seeking must not end the session's allowance.
+   assert.equal((await reader.read(BigInt(i),1024)).length,1024);
+  }
+  assert.equal(reader.stats.requests,8193);
+  assert.equal(reader.stats.cacheHits,0);
+  assert.equal(reader.stats.peakCacheBytes,4*1024*1024);
+  assert.equal(reader.stats.peakActiveBytes,1024);
+ }finally{reader.close();}
+ assert.equal(reader.stats.cacheBytes,0);
+});
 test('64-bit local slices stay bounded and never materialize the complete file',async()=>{
  const calls=[],size=2**32+1000;
  const file={size,arrayBuffer(){throw Error('Whole file read');},slice(a,b){calls.push([a,b]);return new Blob([Uint8Array.from({length:b-a},(_,i)=>(a+i)%251)]);}};
