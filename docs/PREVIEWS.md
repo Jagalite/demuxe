@@ -337,3 +337,5 @@ charging indexing, bytes, initialization, decoding and conversion separately.
 current progressive-image profile after visual/correctness failure; no production
 refinement benefit is assumed. DRM, Safari, broad codec coverage, hardware contention,
 long-session endurance and a real remote generated-preview path remain unqualified.
+
+See [integration contracts and compatibility profiles](API-INTEGRATION.md) for public structural interfaces, explicit binding ownership, stable presentation hosting, and external UI limits.

@@ -30,3 +30,5 @@ jobs:
       - run: node --test tests/roadmap-contracts.mjs tests/track-policy.mjs tests/public-api-state.mjs tests/subtitle-overlay.mjs tests/subtitle-deadline-race.mjs
       - run: node --test tests/preview.mjs tests/preview-facade.mjs tests/preview-pregeneration.mjs tests/preview-range.mjs
       - run: node --test tests/native-seek-frame-race.mjs
+      - run: node --test tests/integration.mjs
+      - run: npx tsc --noEmit --strict --skipLibCheck --target ES2022 --module NodeNext --moduleResolution NodeNext tests/integration-types.ts

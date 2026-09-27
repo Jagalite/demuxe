@@ -302,6 +302,9 @@ export class Player extends EventTarget {
     this.publish();
     if(prepare.length)void this.prepare(prepare);
   }
+  /** Stable composition host; internal surfaces may change between routes. */
+  get host():HTMLElement {return this.root;}
+  get isDestroyed():boolean {return this.destroyed;}
   get state(): PlayerState {return this.stateSnapshot;}
   get mediaInfo() {return this.stateSnapshot.mediaInfo;}
   subscribe(listener:(state:PlayerState)=>void):()=>void {

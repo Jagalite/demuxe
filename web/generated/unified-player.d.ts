@@ -118,6 +118,9 @@ export declare class Player extends EventTarget {
     private startWatchdogs;
     private stopWatchdogs;
     constructor(container: HTMLElement, options?: PlayerOptions);
+    /** Stable composition host; internal surfaces may change between routes. */
+    get host(): HTMLElement;
+    get isDestroyed(): boolean;
     get state(): PlayerState;
     get mediaInfo(): Readonly<{
         metadataCoverage: Readonly<{
@@ -156,7 +159,7 @@ export declare class Player extends EventTarget {
     private previewBuffering;
     private publish;
     private featureCapabilities;
-    get mode(): "native" | "hybrid" | "software";
+    get mode(): "software" | "hybrid" | "native";
     get automaticSelection(): boolean;
     get surface(): HTMLVideoElement | HTMLCanvasElement | undefined;
     get properties(): ReadonlyMap<string, unknown>;

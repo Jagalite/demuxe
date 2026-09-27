@@ -417,6 +417,7 @@ export class DemuxePlayerElement extends Base {
             try {
                 this.configuredAsset = this.getAttribute('asset-base');
                 const core = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, watchdogs: this.watchdogConfiguration, audioPlayback: this.audioPlaybackConfiguration, preview: this.previewConfiguration, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
+                core.presentation.setFullscreenTarget(this);
                 this.dimensions = '';
                 this.trackSignature = '';
                 for (const type of [...PLAYER_EVENTS, 'preparationchange', 'inspectionchange', 'mpv', 'log', 'source', 'output'])
@@ -806,7 +807,7 @@ export class DemuxePlayerElement extends Base {
         this.$('settings-close').focus();
     else if (restoreFocus)
         this.$(this.menuTrigger).focus(); }
-    fullscreen() { const active = document.fullscreenElement === this; const request = active ? document.exitFullscreen() : this.requestFullscreen?.(); if (!request) {
+    fullscreen() { const active = document.fullscreenElement === this; const request = active ? this.core?.presentation.exitFullscreen() : this.core?.presentation.requestFullscreen(); if (!request) {
         this.announce(this.labels.noFullscreen);
         return;
     } void request.then(() => { this.fullscreenChanged(); }, () => this.announce(this.labels.noFullscreen)); }

@@ -131,3 +131,11 @@ The user authorized all five recommended phases after the original preparation r
 See [the roadmap validation report](../results/api-roadmap/20260927/README.md) for commands, observed outcomes, hashes, and remaining qualification limits. [API-EXTENSIONS.md](API-EXTENSIONS.md) is the current application contract. The earlier [preview-only report](../results/api-preview-facade/20260927/README.md) remains historical evidence, including its component autoplay-test mismatch and Firefox software-harness variability.
 
 Existing local work was preserved. The shared checkout advanced independently to watchdog commit `4576bba9d65cc35cc4a1462acb87e2465ae85924` during the work. This task issued no commit, push, deployment, or engine rebuild and makes no performance claim.
+
+## Follow-on integration work
+
+The original five phases are retained as historical implementation planning. The
+committed API baseline is `f68c1b1b`; subsequent integration work is tracked in
+[the integration ledger](API-INTEGRATION-LEDGER.md). This does not retroactively
+change historical qualification or promote old illustrative names over the
+implemented exports.

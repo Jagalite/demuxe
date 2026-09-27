@@ -6,6 +6,21 @@ export class PlayerPresentation {
     player;
     host;
     disposed = false;
+    fullscreenTarget;
+    fullscreenPending = false;
+    fullscreenEpoch = 0;
+    containsHost(target) { let node = this.host(); while (node && node !== target)
+        node = node.parentNode ?? (node instanceof ShadowRoot ? node.host : null); return node === target && target.ownerDocument === this.host().ownerDocument; }
+    /** Explicit complete-container target, including shadow-DOM composition. */
+    setFullscreenTarget(target) {
+        this.active();
+        if (this.fullscreenPending || this.host().ownerDocument.fullscreenElement === this.fullscreenHost())
+            throw new PlayerError('UNSUPPORTED_FEATURE', 'Exit fullscreen before changing its target');
+        if (target && !this.containsHost(target))
+            throw new PlayerError('INVALID_ARGUMENT', 'Fullscreen target must contain the presentation host');
+        this.fullscreenTarget = target ?? undefined;
+    }
+    fullscreenHost() { return this.fullscreenTarget ?? this.host(); }
     pipRequest = false;
     pipEpoch = 0;
     pendingVideo;
@@ -18,15 +33,32 @@ export class PlayerPresentation {
     }
     active() { if (this.disposed)
         throw new PlayerError('ABORTED', 'Presentation controller is destroyed'); }
-    get state() { const host = this.host(); return Object.freeze({ fullscreen: host.ownerDocument.fullscreenElement === host, pictureInPicture: this.pipWindow && !this.pipWindow.closed ? 'document' : document.pictureInPictureElement === this.player.surface ? 'video' : null, mediaSession: mediaSessionOwner === this }); }
+    get state() { const host = this.host(); return Object.freeze({ fullscreen: host.ownerDocument.fullscreenElement === this.fullscreenHost(), pictureInPicture: this.pipWindow && !this.pipWindow.closed ? 'document' : document.pictureInPictureElement === this.player.surface ? 'video' : null, mediaSession: mediaSessionOwner === this }); }
     get locksSurface() { return !!this.pendingVideo || document.pictureInPictureElement === this.player.surface && !!this.player.surface; }
-    async requestFullscreen() { this.active(); const host = this.host(); if (!host.requestFullscreen)
-        throw new PlayerError('UNSUPPORTED_FEATURE', 'Fullscreen is unavailable'); await host.requestFullscreen(); if (this.disposed) {
-        if (host.ownerDocument.fullscreenElement === host)
-            await host.ownerDocument.exitFullscreen();
-        throw new PlayerError('ABORTED', 'Player was destroyed');
-    } }
-    async exitFullscreen() { this.active(); const host = this.host(); if (host.ownerDocument.fullscreenElement === host)
+    async requestFullscreen() {
+        this.active();
+        const host = this.fullscreenHost();
+        if (this.fullscreenPending)
+            throw new PlayerError('UNSUPPORTED_FEATURE', 'Fullscreen entry is already pending');
+        if (!this.containsHost(host))
+            throw new PlayerError('INVALID_ARGUMENT', 'Fullscreen target no longer contains the presentation host');
+        if (!host.requestFullscreen)
+            throw new PlayerError('UNSUPPORTED_FEATURE', 'Fullscreen is unavailable');
+        this.fullscreenPending = true;
+        const epoch = this.fullscreenEpoch;
+        try {
+            await host.requestFullscreen();
+            if (this.disposed || epoch !== this.fullscreenEpoch || !this.containsHost(host)) {
+                if (host.ownerDocument.fullscreenElement === host)
+                    await host.ownerDocument.exitFullscreen();
+                throw new PlayerError('ABORTED', 'Fullscreen request was retired');
+            }
+        }
+        finally {
+            this.fullscreenPending = false;
+        }
+    }
+    async exitFullscreen() { this.active(); this.fullscreenEpoch++; const host = this.fullscreenHost(); if (host.ownerDocument.fullscreenElement === host)
         await host.ownerDocument.exitFullscreen(); }
     async requestPictureInPicture(kind = 'video') {
         this.active();
@@ -137,6 +169,6 @@ export class PlayerPresentation {
     }
     async destroy() { if (this.disposed)
         return; this.disposed = true; this.pipEpoch++; this.releaseMediaSession(); const win = this.pipWindow; this.restore?.(); win?.close(); if (document.pictureInPictureElement === this.player.surface && this.player.surface)
-        await document.exitPictureInPicture().catch(() => { }); if (this.host().ownerDocument.fullscreenElement === this.host())
+        await document.exitPictureInPicture().catch(() => { }); if (this.host().ownerDocument.fullscreenElement === this.fullscreenHost())
         await this.host().ownerDocument.exitFullscreen().catch(() => { }); }
 }

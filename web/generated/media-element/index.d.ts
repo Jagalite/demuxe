@@ -1,0 +1,71 @@
+// SPDX-License-Identifier: Apache-2.0
+import type { PlaybackRuntime } from '../contracts.js';
+declare const Base: typeof HTMLElement;
+/** Explicitly borrowed, application-owned sources. No automatic registration or playback. */
+export declare class DemuxeMediaElement extends Base {
+    private view?;
+    private cleanup;
+    private stops;
+    bind(player: PlaybackRuntime): this;
+    get state(): Readonly<{
+        status: "idle" | "paused" | "playing" | "buffering" | "ended" | "error";
+        playbackIntent: "play" | "pause";
+        pendingOperation: import("../types.js").PendingOperation | null;
+        sourceId: number | null;
+        currentTime: number;
+        duration: number | null;
+        streamType: "unknown" | "vod" | "live";
+        subtitlesVisible: boolean;
+        volume: number;
+        muted: boolean;
+        playbackRate: number;
+        activeMode: import("../types.js").PlaybackMode | null;
+        automaticSelection: boolean;
+        buffered: readonly import("../types.js").TimeRange[] | null;
+        seekable: readonly import("../types.js").TimeRange[] | null;
+        cached: readonly import("../types.js").TimeRange[] | null;
+        trackPolicy: import("../types.js").TrackPolicy;
+        audioTracks: readonly import("../types.js").MediaTrack[];
+        subtitleTracks: readonly import("../types.js").MediaTrack[];
+        timing: import("../types.js").TimingSettings;
+        loop: import("../types.js").LoopPolicy;
+        playbackRange: import("../types.js").PlaybackRange | null;
+        streaming: import("../types.js").StreamingState | null;
+        audioOutputDevice: string;
+        mediaInfo: import("../types.js").MediaInfo;
+        capabilities: import("../types.js").PlayerCapabilities;
+        error: import("../types.js").SessionError | null;
+    }> | null;
+    get paused(): boolean;
+    get ended(): boolean;
+    get currentTime(): number;
+    set currentTime(value: number);
+    get duration(): number;
+    get volume(): number;
+    set volume(value: number);
+    get muted(): boolean;
+    set muted(value: boolean);
+    get playbackRate(): number;
+    set playbackRate(value: number);
+    get seeking(): boolean;
+    get buffered(): TimeRanges;
+    get seekable(): TimeRanges;
+    get error(): Readonly<{
+        code: import("../types.js").PlayerErrorCode;
+        message: string;
+        operationId: number | null;
+        operation: import("../types.js").OperationKind | null;
+        scope: "operation" | "session";
+        retryable: boolean;
+    }> | null;
+    get currentSrc(): string;
+    get src(): string;
+    set src(_value: string);
+    play(): Promise<void>;
+    pause(): void;
+    private requireView;
+    dispose(): Promise<void>;
+    disconnectedCallback(): void;
+}
+export declare function registerMediaElement(name?: string): void;
+export {};

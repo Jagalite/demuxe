@@ -80,3 +80,5 @@ The five recommended phases now have public APIs; see [contracts and limitations
 Keep the returned attachment object when calling the new `attachSubtitle`, `attachTextTrack`, or `attachFont` methods. Existing `addSubtitle`, `addTextTrack`, and `addFont` callers retain `Promise<void>`. Fonts keep their existing player lifetime. Existing seeks remain queued; use `{policy:'latest'}` to request supersession. Existing construction defaults and the three public playback modes are unchanged.
 
 `modechange` and `selectionchange` now infer their actual detail types through `PlayerEventMap`. They describe candidates/attempts; use immutable state for the accepted source. Unobserved statistics and presented-quality facts stay null. Custom callback playback uses bounded staging (32 MiB); it does not imply lazy large-file streaming.
+
+See [integration contracts and compatibility profiles](API-INTEGRATION.md) for public structural interfaces, explicit binding ownership, stable presentation hosting, and external UI limits.

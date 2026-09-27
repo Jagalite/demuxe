@@ -5,7 +5,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -24,7 +24,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -43,7 +43,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -62,7 +62,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -81,7 +81,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -100,7 +100,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -119,7 +119,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -138,7 +138,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -157,7 +157,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -176,7 +176,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -195,7 +195,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -214,7 +214,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -233,7 +233,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -252,7 +252,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -271,7 +271,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -290,7 +290,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -309,7 +309,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -328,7 +328,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -347,7 +347,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -366,7 +366,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -385,7 +385,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -404,7 +404,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -423,7 +423,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -442,7 +442,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -461,7 +461,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -480,7 +480,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -499,7 +499,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -518,7 +518,7 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -545,7 +545,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -564,7 +564,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -583,7 +583,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -602,7 +602,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -621,7 +621,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -640,7 +640,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -659,7 +659,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -678,7 +678,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -697,7 +697,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -716,7 +716,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -735,7 +735,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -754,7 +754,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -773,7 +773,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -792,7 +792,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -811,7 +811,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -830,7 +830,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -849,7 +849,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -868,7 +868,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -887,7 +887,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -906,7 +906,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -925,7 +925,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -944,7 +944,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -963,7 +963,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -982,7 +982,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -1001,7 +1001,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -1020,7 +1020,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -1039,7 +1039,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -1058,7 +1058,7 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
+        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "independent-libass" | "browser-text-track";
         demux: string;
         presentation: "browser-media-element" | "demuxe-retained-frame";
     }>;
@@ -1119,7 +1119,7 @@ export type PlanFacts = {
 export declare function planAdmission(f: PlanFacts): {
     code?: PlanRejectionCode | undefined;
     reason?: string | undefined;
-    id: "hybrid" | "software" | "native-direct-mpv" | "native-direct" | "native-remux-mpv" | "native-remux" | "native-direct-gain" | "shaka-mse" | "shaka-mse-gain" | "native-remux-gain" | "native-flac" | "native-flac-gain" | "native-direct-ass" | "native-direct-ass-gain" | "native-remux-ass" | "native-remux-ass-gain" | "native-flac-ass" | "native-flac-ass-gain" | "native-opus" | "native-opus-gain" | "native-transcode-mpv" | "native-transcode" | "native-video-mpv-audio" | "native-video-mpv-audio-subtitles" | "hybrid-audio-filter" | "hybrid-gain" | "hybrid-audio-filter-gain" | "software-gain";
-    mode: "native" | "hybrid" | "software";
+    id: "software" | "hybrid" | "native-flac" | "native-opus" | "native-direct" | "native-remux" | "native-video-mpv-audio" | "native-transcode-mpv" | "shaka-mse" | "native-direct-mpv" | "native-remux-mpv" | "native-direct-gain" | "shaka-mse-gain" | "native-remux-gain" | "native-flac-gain" | "native-direct-ass" | "native-direct-ass-gain" | "native-remux-ass" | "native-remux-ass-gain" | "native-flac-ass" | "native-flac-ass-gain" | "native-opus-gain" | "native-transcode" | "native-video-mpv-audio-subtitles" | "hybrid-audio-filter" | "hybrid-gain" | "hybrid-audio-filter-gain" | "software-gain";
+    mode: "software" | "hybrid" | "native";
     eligible: boolean;
 }[];

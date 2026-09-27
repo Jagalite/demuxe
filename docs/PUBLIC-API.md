@@ -489,3 +489,5 @@ visibility/attachment APIs as well as public selectors.
 
 These are playback-selection restrictions, not access control or a promise to
 avoid reading other streams from the container.
+
+See [integration contracts and compatibility profiles](API-INTEGRATION.md) for public structural interfaces, explicit binding ownership, stable presentation hosting, and external UI limits.

@@ -65,11 +65,14 @@
     "test:runtime-isolation": "npm run build && node tests/runtime-isolation.mjs",
     "test:remux-profiles": "npm run build && node tests/remux-profiles.mjs",
     "test:track-policy": "npm run build && node --test tests/track-policy.mjs tests/public-api-state.mjs && node tests/track-policy-browser.mjs",
-    "test:subtitle-overlay": "node --test tests/subtitle-overlay.mjs tests/subtitle-deadline-race.mjs tests/runtime-capability-contracts.mjs && node tests/subtitle-composition-browser.mjs"
+    "test:subtitle-overlay": "node --test tests/subtitle-overlay.mjs tests/subtitle-deadline-race.mjs tests/runtime-capability-contracts.mjs && node tests/subtitle-composition-browser.mjs",
+    "test:integration": "npm run build && node --test tests/integration.mjs && tsc --noEmit --strict --skipLibCheck --target ES2022 --module NodeNext --moduleResolution NodeNext tests/integration-types.ts && node tests/integration-browser.mjs && node tests/integration-presentation.mjs"
   },
   "devDependencies": {
+    "media-chrome": "4.19.2",
     "playwright": "1.58.2",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "video.js": "8.24.1"
   },
   "exports": {
     ".": {
@@ -79,6 +82,22 @@
     "./player": {
       "types": "./web/generated/player/index.d.ts",
       "import": "./web/generated/player/index.js"
+    },
+    "./contracts": {
+      "types": "./web/generated/contracts.d.ts",
+      "import": "./web/generated/contracts.js"
+    },
+    "./integration": {
+      "types": "./web/generated/integration/index.d.ts",
+      "import": "./web/generated/integration/index.js"
+    },
+    "./media-element": {
+      "types": "./web/generated/media-element/index.d.ts",
+      "import": "./web/generated/media-element/index.js"
+    },
+    "./adapters/videojs": {
+      "types": "./web/generated/adapters/videojs.d.ts",
+      "import": "./web/generated/adapters/videojs.js"
     }
   },
   "types": "./web/generated/index.d.ts",

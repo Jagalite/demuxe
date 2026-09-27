@@ -384,6 +384,9 @@ export class Player extends EventTarget {
         if (prepare.length)
             void this.prepare(prepare);
     }
+    /** Stable composition host; internal surfaces may change between routes. */
+    get host() { return this.root; }
+    get isDestroyed() { return this.destroyed; }
     get state() { return this.stateSnapshot; }
     get mediaInfo() { return this.stateSnapshot.mediaInfo; }
     subscribe(listener) {

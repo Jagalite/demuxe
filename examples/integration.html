@@ -1,0 +1,37 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<meta charset="utf-8"><title>Demuxe borrowed controls profiles</title>
+<script type="importmap">{"imports":{"demuxe":"/web/generated/index.js","demuxe/integration":"/web/generated/integration/index.js","demuxe/media-element":"/web/generated/media-element/index.js","demuxe/adapters/videojs":"/web/generated/adapters/videojs.js"}}</script>
+<style>body{background:#171717;color:white;font:16px sans-serif}media-controller,#runtime{display:block;width:640px;max-width:100%}demuxe-media{display:block;width:100%;height:360px}.demuxe-player{width:100%;height:100%;position:relative}video,canvas{max-width:100%;max-height:100%}</style>
+<media-controller id="chrome" nohotkeys gesturesdisabled>
+ <demuxe-media id="media" slot="media"></demuxe-media>
+ <media-control-bar><media-play-button></media-play-button><media-mute-button></media-mute-button><media-volume-range></media-volume-range><media-time-display showduration></media-time-display><media-fullscreen-button></media-fullscreen-button></media-control-bar>
+</media-controller>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/video.js@8.24.1/dist/video-js.css">
+<div id="runtime"></div><div id="videojs" class="video-js"></div>
+<p id="operation-error" role="status"></p>
+<script type="module">
+import {Player} from 'demuxe';
+import {registerMediaElement} from 'demuxe/media-element';
+import {registerVideojsTech} from 'demuxe/adapters/videojs';
+registerMediaElement();
+const provider=new URLSearchParams(location.search).get('provider')==='videojs';
+const media=document.querySelector('#media');
+window.player=new Player(provider?document.querySelector('#runtime'):media,{mode:'native',assetBase:'/',preview:false});
+window.host=player.host;
+if(provider){
+ document.querySelector('#chrome').remove();
+ const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/video.js@8.24.1/dist/video.js';document.head.append(script);await new Promise((resolve,reject)=>{script.onload=resolve;script.onerror=reject;});
+ registerVideojsTech(window.videojs);
+ window.controls=videojs('videojs',{techOrder:['Demuxe'],demuxe:{demuxePlayer:player},controls:true,controlBar:{progressControl:false,pictureInPictureToggle:false,subsCapsButton:false,fullscreenToggle:false},bigPlayButton:true,loadingSpinner:false,textTrackSettings:false});
+ await new Promise(resolve=>controls.ready(resolve));
+}else{
+ document.querySelector('#videojs').remove();
+ media.bind(player);
+ player.presentation.setFullscreenTarget(document.querySelector('#chrome'));
+ media.addEventListener('operationerror',event=>document.querySelector('#operation-error').textContent=event.detail.error.code);
+ await import('https://cdn.jsdelivr.net/npm/media-chrome@4.19.2/dist/index.js');
+}
+await player.open('/fixtures/example.mp4');
+window.integrationReady=true;
+</script>

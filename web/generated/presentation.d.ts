@@ -5,6 +5,13 @@ export declare class PlayerPresentation {
     private player;
     private host;
     private disposed;
+    private fullscreenTarget?;
+    private fullscreenPending;
+    private fullscreenEpoch;
+    private containsHost;
+    /** Explicit complete-container target, including shadow-DOM composition. */
+    setFullscreenTarget(target: HTMLElement | null): void;
+    private fullscreenHost;
     private pipRequest;
     private pipEpoch;
     private pendingVideo?;

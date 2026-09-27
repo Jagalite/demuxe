@@ -278,3 +278,5 @@ await viewer.open(file);
 
 See [Audio and subtitle policy](PUBLIC-API.md#audio-and-subtitle-policy) for
 matching, fallback, and API enforcement. File metadata is not rewritten.
+
+See [integration contracts and compatibility profiles](API-INTEGRATION.md) for public structural interfaces, explicit binding ownership, stable presentation hosting, and external UI limits.
