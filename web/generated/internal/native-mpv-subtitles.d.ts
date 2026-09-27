@@ -7,6 +7,7 @@ export declare class NativeMpvSubtitles {
     private source;
     private failed;
     private defaultStreamIndex?;
+    private runtime;
     readonly canvas: HTMLCanvasElement;
     private worker;
     private closed?;
@@ -50,7 +51,7 @@ export declare class NativeMpvSubtitles {
         stateUpdates: number;
         scheduler: string;
     };
-    constructor(video: HTMLVideoElement, time: () => number, base: URL, fonts: FontAsset[], source: File | RemoteSource, failed: (e: Error) => void, defaultStreamIndex?: number | undefined);
+    constructor(video: HTMLVideoElement, time: () => number, base: URL, fonts: FontAsset[], source: File | RemoteSource, failed: (e: Error) => void, defaultStreamIndex?: number | undefined, runtime?: 'pthread' | 'jspi' | 'asyncify');
     private request;
     private fail;
     private applyMode;

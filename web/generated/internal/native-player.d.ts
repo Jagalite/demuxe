@@ -188,6 +188,24 @@ export declare class NativePlayer extends EventTarget implements Backend {
             mpvVideoTracks: number | null;
             worker: import("./wasm-player.js").PlayerDiagnostics | undefined;
             state?: undefined;
+        } | {
+            plan: string;
+            cleanup: any;
+            privateRuntime: any;
+            clockRateWrites: number;
+            contextState: AudioContextState | undefined;
+            requestedRate: number;
+            effectiveRate: number;
+            estimatedAudioPresentationTime: any;
+            errorMs: number | null;
+            absErrorP95Ms: number;
+            maxAbsErrorMs: number | null;
+            queuedFrames: number;
+            nativeEpoch: any;
+            ackEpoch: any;
+            feedbackCount: any;
+            mpvVideoTracks: number | null;
+            worker: any;
         } | undefined;
         mpvSubtitles: {
             position: number;
@@ -314,6 +332,24 @@ export declare class NativePlayer extends EventTarget implements Backend {
         mpvVideoTracks: number | null;
         worker: import("./wasm-player.js").PlayerDiagnostics | undefined;
         state?: undefined;
+    } | {
+        plan: string;
+        cleanup: any;
+        privateRuntime: any;
+        clockRateWrites: number;
+        contextState: AudioContextState | undefined;
+        requestedRate: number;
+        effectiveRate: number;
+        estimatedAudioPresentationTime: any;
+        errorMs: number | null;
+        absErrorP95Ms: number;
+        maxAbsErrorMs: number | null;
+        queuedFrames: number;
+        nativeEpoch: any;
+        ackEpoch: any;
+        feedbackCount: any;
+        mpvVideoTracks: number | null;
+        worker: any;
     } | {
         state: string;
         source: string;

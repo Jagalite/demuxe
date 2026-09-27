@@ -148,3 +148,16 @@ test('automatic private selection preserves browser streaming and direct gain',(
   }
  }
 });
+
+test('private mpv admission keeps service, source and composition qualifications',()=>{
+ const base={...facts,isolated:false,privateRemux:true,mpvSubtitles:true,mpvSubtitleSourceQualified:true,selectedEmbeddedSubtitle:true,requiresRemux:true};
+ const result=planAdmission(base);
+ assert.ok(result.find(p=>p.id==='native-remux-mpv').eligible);
+ assert.ok(!result.find(p=>p.id==='hybrid').eligible);
+ assert.ok(!result.find(p=>p.id==='software').eligible);
+ assert.ok(planAdmission({...base,selectiveAudioQualified:true}).find(p=>p.id==='native-video-mpv-audio-subtitles').eligible);
+ for(const extra of [{mpvSubtitleSourceQualified:false},{mpvSubtitles:false},{externalFormats:['ass']},{manifest:true},{audioOutput:'5.1'}]){
+  const decisions=planAdmission({...base,...extra});assert.ok(!decisions.find(p=>p.id==='native-remux-mpv').eligible);
+ }
+ assert.ok(!planAdmission({...base,selectiveAudioQualified:false}).find(p=>p.id==='native-video-mpv-audio-subtitles').eligible);
+});

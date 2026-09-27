@@ -4,8 +4,10 @@ The reviewed components are now connected to the production Player through the
 `remuxRuntime` option. The default is `auto`: pthread with isolation, otherwise
 JSPI when supported, else Asyncify. See [all API values](../../../docs/REMUX-RUNTIME.md).
 Private JSPI/Asyncify admission is limited to plain file Direct, Remux and
-FLAC24 audio-transcode routes; private mpv, subtitles, Hybrid and Software
-playback are not enabled. Direct playback does not exercise either Wasm runtime.
+FLAC24 audio-transcode routes, plus qualified embedded mpv subtitles and restricted
+48 kHz stereo PCM16 mpv audio. Hybrid and Software remain unavailable.
+See the [full Player campaign](../../../docs/PRIVATE-MPV-PLAYER.md).
+Direct playback does not exercise either Wasm runtime.
 
 The imported work starts at `e7a8d02d` and includes component commits `7af31503`
 and `ede8750e`, followed by review fixes in `4d02ab32`. The original supplied
@@ -51,6 +53,9 @@ folders are rejected):
 python3 scripts/install-private-remux.py \
   --builds /Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927 \
   --runtime-root /Volumes/seed2/Projects/demuxe
+python3 scripts/install-private-mpv.py \
+  --builds /Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927 \
+  --runtime-root /Volumes/seed2/Projects/demuxe
 npm run build
 ```
 
@@ -66,7 +71,8 @@ await player.play();
 The runtime uses separate `engine-remux-{runtime}` and
 `engine-adaptation-{runtime}` assets, private Wasm memory, serialized asynchronous
 FFmpeg operations and cancellable MessagePort reads. JSPI requires browser JSPI
-support. Asyncify runs with both JSPI APIs disabled in its service Worker.
+support. The Asyncify qualification cases disable both JSPI APIs in their service Workers;
+production does not modify browser API globals.
 Normal URL authorization and source identity checks remain in the source reader.
 Unsupported routes fail admission rather than selecting a pthread service.
 The finite-source bridge does not support nested network resources.
@@ -76,7 +82,8 @@ identity/hash checks. Tagged releases still require private-runtime source and
 exact-archive qualification. The [Player benchmark report](../../../docs/JSPI-ASYNCIFY-PLAYER-CPU.md)
 records exact qualified fixtures, asset hashes, browser checks and CPU evidence.
 
-Private mpv Player wiring, broad codec and browser coverage, multichannel and
-resampling fidelity, physical audio output and latency, long media and memory
-pressure remain unqualified. Historical mpv component results above do not
-establish those Player capabilities.
+Private mpv now has separate [full Player evidence](../../../docs/PRIVATE-MPV-PLAYER.md)
+for the restricted services listed above. Broad codec and browser coverage,
+multichannel and resampling fidelity, physical audio output and latency, long
+media and memory pressure remain unqualified. Historical component results alone
+do not establish those broader Player capabilities.

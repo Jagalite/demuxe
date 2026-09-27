@@ -22,7 +22,7 @@ function worker({ass=false}={}){
   _subtitle_service_text(){return 0;},_web_subtitle_ptr(){return 16;},
   _subtitle_service_select(){return 0;},_subtitle_service_seek(){calls.seeks++;eof=false;return 0;},
   _subtitle_service_bitmap_recovery_point(){return -1;}};
- const context=vm.createContext({onmessage:null,postMessage:m=>messages.push(m),TextDecoder,
+ const context=vm.createContext({onmessage:null,postMessage:m=>messages.push(m),TextDecoder,AbortController,
   setTimeout:(fn,ms)=>{timers.set(++id,{fn,due:now+ms});return id;},
   clearTimeout:id=>timers.delete(id),testEngine:engine,
   SubtitleOverlay:class{serial=0;clear(){}read(){return {surface:null};}draw(){}},

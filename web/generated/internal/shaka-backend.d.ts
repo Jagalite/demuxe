@@ -159,6 +159,25 @@ export declare class ShakaBackend extends EventTarget implements Backend {
         state?: undefined;
     } | {
         source: string;
+        plan: string;
+        cleanup: any;
+        privateRuntime: any;
+        clockRateWrites: number;
+        contextState: AudioContextState | undefined;
+        requestedRate: number;
+        effectiveRate: number;
+        estimatedAudioPresentationTime: any;
+        errorMs: number | null;
+        absErrorP95Ms: number;
+        maxAbsErrorMs: number | null;
+        queuedFrames: number;
+        nativeEpoch: any;
+        ackEpoch: any;
+        feedbackCount: any;
+        mpvVideoTracks: number | null;
+        worker: any;
+    } | {
+        source: string;
         state: string;
         decodedSampleCountersAvailable: boolean;
     };

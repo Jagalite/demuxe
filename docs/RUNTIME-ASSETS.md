@@ -47,7 +47,9 @@ from an intact package; use a versioned destination for atomic application rollo
 
 The local beta runtime now includes both private JSPI/Asyncify remux and adaptation
 engines for the default `remuxRuntime: 'auto'` policy. Assembly verifies their
-installed manifests and hashes. See [selection and current release boundary](REMUX-RUNTIME.md).
+installed manifests and hashes. When the optional private mpv service set is
+installed, both standard and full copies also retain its four backend/profile
+folders, host modules and MIT notice. Partial service installations fail assembly. See [selection and current release boundary](REMUX-RUNTIME.md).
 
 ## Choose a deployment set and folder
 

@@ -192,7 +192,7 @@ idle trends are in each row report.
 - 🟠 Plays: initial playback passed but a later check failed. 🔴 Fail: a playback check failed; this does not establish an unsupported codec.
 - 🟡 Screened: a bounded specialist check; its stated fidelity limits remain.
 - — Unqualified: the exact source fixture or reference output needed for that cell is unavailable.
-- **Demuxe JSPI** and **Demuxe Asyncify** measure complete Player playback with an experimental opt-in private FFmpeg runtime, without COOP/COEP. Qualification is limited to the measured file remux/transcode rows; `— Untested` makes no support claim. Private mpv, subtitles, Hybrid and Software are not enabled. The [Player CPU report](docs/JSPI-ASYNCIFY-PLAYER-CPU.md) contains matched pthread controls; existing Auto and other-player CPU values are from separate campaigns.
+- **Demuxe JSPI** and **Demuxe Asyncify** measure complete Player playback without COOP/COEP. Published cells below cover the measured file remux/transcode rows; `— Untested` makes no support claim. The [Player CPU report](docs/JSPI-ASYNCIFY-PLAYER-CPU.md) contains matched pthread controls; existing Auto and other-player values are from separate campaigns. Qualified private mpv subtitles and restricted PCM16 audio now use the same [runtime selection](docs/REMUX-RUNTIME.md); their separate [Player campaign](docs/PRIVATE-MPV-PLAYER.md) retains its own fixtures and matched controls. Private Hybrid and Software remain excluded.
 - Blank CPU figures identify a fixture, correctness or CPU qualification gap; consult the row refresh index for its exact reason. N/A means no demonstrated playback result for this scope.
 
 See the [media comparison evidence guide](docs/MEDIA-COMPARISON-EVIDENCE.md) for
@@ -316,6 +316,23 @@ derivatives were not run through those players. Earlier Demuxe CPU evidence is i
 the [unified subtitle scheduler report](results/subtitle-visual-scheduling/REPORT.md).
 
 The [comparison gap follow-up](docs/COMPARISON-GAP-CLOSEOUT.md) retains its earlier bounded specialist screens. The [current-main Auto retest](docs/AUTO-MAIN-RETEST-A563F345.md) found missing qualified source fixtures for five specialist rows and reproduced playback failures on four compound HDR/PGS or Dolby Vision/ASS fixtures. The current results do not qualify Dolby Vision color, physical HDR, Atmos objects or discrete surround. The [earlier specialist screen](results/head-to-head/specialist-report-01/REPORT.md) retains the historical failures and forced-Software diagnostics.
+
+## Private mpv Player campaign
+
+These 36-second component-derived fixtures use complete Player playback in Chrome
+153 on an Apple M1. Values are medians of three 20-second whole-Chrome CPU windows,
+expressed as percent of one core, with five-second warmup and the maintained
+startup gate. They are separate fixtures from the catalogue above.
+
+| Workload | pthread control | Demuxe JSPI | Demuxe Asyncify |
+| --- | ---: | ---: | ---: |
+| H.264 + AAC + embedded ASS / MKV | 19.8% | 22.6% | 23.2% |
+| H.264 + PCM16 stereo / MKV | Withheld | 30.4% | 30.0% |
+
+Private paths ran without COOP/COEP. The PCM row uses the corrected audio clock
+controller; its pthread control is withheld because one window failed cadence.
+Do not substitute an older control value. The [full report](docs/PRIVATE-MPV-PLAYER.md)
+records functional scope, hashes, rejected windows, cleanup and release limits.
 
 ## Release and licensing
 

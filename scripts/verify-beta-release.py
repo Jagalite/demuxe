@@ -20,8 +20,11 @@ with tarfile.open(args.archive)as tar:
   if sha(tar.extractfile('package/'+name).read())!=expected['sha256']:raise SystemExit('Runtime hash mismatch: '+name)
  build=json.load(tar.extractfile('package/engine-build.json'))
  if any('/engine-remux-jspi/' in n for n in manifest['files']):
-  from private_remux_assets import verify_private_release
+  from private_remux_assets import verify_private_release, verify_private_mpv_release
   verify_private_release({n:tar.extractfile('package/'+n).read() for n in manifest['files'] if n.startswith('web/engine-')},build)
+ if any(n.startswith('web/engine-mpv-') for n in manifest['files']):
+  from private_remux_assets import verify_private_mpv_release
+  verify_private_mpv_release({n:tar.extractfile('package/'+n).read() for n in manifest['files'] if n.startswith('web/engine-')},build)
  reader=tar.extractfile('package/web/range-reader.js').read()
  for engine in ['ass','adaptation']:
   name='web/engine-'+engine+'/manifest.json'

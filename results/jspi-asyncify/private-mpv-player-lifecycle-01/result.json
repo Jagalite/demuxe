@@ -1,0 +1,545 @@
+{
+  "assetsSHA256": "84302a5b6a966b010acefece381992447431e06bfedc6a32e49a8015165b4f29",
+  "cases": [
+    {
+      "runtime": "jspi",
+      "service": "subtitles",
+      "scenario": "pending-close",
+      "pending": {
+        "bytes": 0,
+        "requests": 1,
+        "active": 1,
+        "aborted": 0,
+        "ranges": [
+          {
+            "a": 0,
+            "b": 262143
+          }
+        ]
+      },
+      "closeMs": 5.699999988079071,
+      "open": {
+        "error": {
+          "code": "ABORTED",
+          "message": "Player is destroyed"
+        }
+      },
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "jspi",
+      "service": "subtitles",
+      "scenario": "permission",
+      "open": {
+        "error": {
+          "code": "SOURCE_PERMISSION",
+          "message": "Error: Expected HTTP 206; received 403"
+        }
+      },
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "jspi",
+      "service": "subtitles",
+      "scenario": "asset-mismatch",
+      "open": {
+        "error": {
+          "code": "ASSET_LOAD_FAILED",
+          "message": "Error: Private mpv initialization: Error: Private mpv Wasm hash mismatch"
+        }
+      },
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "jspi",
+      "service": "subtitles",
+      "scenario": "active-close",
+      "open": {
+        "opened": true
+      },
+      "closeMs": 7,
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "jspi",
+      "service": "audio",
+      "scenario": "pending-close",
+      "pending": {
+        "bytes": 0,
+        "requests": 1,
+        "active": 1,
+        "aborted": 0,
+        "ranges": [
+          {
+            "a": 0,
+            "b": 262143
+          }
+        ]
+      },
+      "closeMs": 4.100000023841858,
+      "open": {
+        "error": {
+          "code": "ABORTED",
+          "message": "Player is destroyed"
+        }
+      },
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "jspi",
+      "service": "audio",
+      "scenario": "permission",
+      "open": {
+        "error": {
+          "code": "SOURCE_PERMISSION",
+          "message": "Error: Expected HTTP 206; received 403\n    at RangeReader.fetchBlock (http://127.0.0.1:60198/web/range-reader.js:142:80)\n    at async RangeReader.read (http://127.0.0.1:60198/web/range-reader.js:57:15)\n    at async RangeReader.open (http://127.0.0.1:60198/web/range-reader.js:15:16)\n    at async Object.open (http://127.0.0.1:60198/web/private-mpv.js:38:14)\n    at async http://127.0.0.1:60198/web/private-mpv/audio-worker.js:87:39"
+        }
+      },
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "jspi",
+      "service": "audio",
+      "scenario": "asset-mismatch",
+      "open": {
+        "error": {
+          "code": "ASSET_LOAD_FAILED",
+          "message": "Error: Private mpv initialization: Error: Private mpv Wasm hash mismatch\n    at http://127.0.0.1:60206/web/private-mpv/audio-worker.js:72:91\n    at async http://127.0.0.1:60206/web/private-mpv/audio-worker.js:72:11"
+        }
+      },
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "jspi",
+      "service": "audio",
+      "scenario": "worklet-fault",
+      "open": {
+        "opened": true
+      },
+      "fault": {
+        "plan": "native-video-mpv-audio",
+        "privateRuntime": {
+          "runtime": "jspi",
+          "profile": "audio",
+          "asset": "http://127.0.0.1:60214/web/engine-mpv-audio-jspi/",
+          "memory": "ArrayBuffer",
+          "heapBytes": 67108864,
+          "crossOriginIsolated": false,
+          "sharedArrayBuffer": "undefined",
+          "jspiSuspending": "function",
+          "jspiPromising": "function",
+          "scheduler": {
+            "created": 32,
+            "completed": 27,
+            "abandoned": 0,
+            "suspensions": 67,
+            "resumes": 62,
+            "maxLive": 6,
+            "timerWakes": 7,
+            "signals": 45,
+            "stackChecks": 188,
+            "continuations": {
+              "kind": "jspi"
+            },
+            "liveTasks": 5,
+            "retainedTasks": 5,
+            "waitKeys": 5,
+            "timers": 3,
+            "freeSlots": 19,
+            "stopped": false
+          },
+          "source": {
+            "reads": 10,
+            "bytes": 654763,
+            "copies": 10,
+            "cancelled": 0,
+            "timeouts": 0,
+            "errors": 0,
+            "lateCompletions": 0,
+            "staleCommitsRejected": 0,
+            "maxPending": 1,
+            "abandonedRequests": 0,
+            "handles": 1,
+            "pending": 0,
+            "timers": 0
+          }
+        },
+        "contextState": "running",
+        "requestedRate": 1,
+        "effectiveRate": 0.9986604666666666,
+        "estimatedAudioPresentationTime": 0.15898866666666678,
+        "errorMs": -103.3383333333332,
+        "absErrorP95Ms": 13.395333333333316,
+        "maxAbsErrorMs": 34.92866666666661,
+        "queuedFrames": 8192,
+        "nativeEpoch": 2,
+        "ackEpoch": 2,
+        "feedbackCount": 67,
+        "mpvVideoTracks": 0,
+        "worker": {
+          "runtime": {
+            "runtime": "jspi",
+            "profile": "audio",
+            "asset": "http://127.0.0.1:60214/web/engine-mpv-audio-jspi/",
+            "memory": "ArrayBuffer",
+            "heapBytes": 67108864,
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "function",
+            "jspiPromising": "function",
+            "scheduler": {
+              "created": 32,
+              "completed": 27,
+              "abandoned": 0,
+              "suspensions": 67,
+              "resumes": 62,
+              "maxLive": 6,
+              "timerWakes": 7,
+              "signals": 45,
+              "stackChecks": 188,
+              "continuations": {
+                "kind": "jspi"
+              },
+              "liveTasks": 5,
+              "retainedTasks": 5,
+              "waitKeys": 5,
+              "timers": 3,
+              "freeSlots": 19,
+              "stopped": false
+            },
+            "source": {
+              "reads": 10,
+              "bytes": 654763,
+              "copies": 10,
+              "cancelled": 0,
+              "timeouts": 0,
+              "errors": 0,
+              "lateCompletions": 0,
+              "staleCommitsRejected": 0,
+              "maxPending": 1,
+              "abandonedRequests": 0,
+              "handles": 1,
+              "pending": 0,
+              "timers": 0
+            }
+          },
+          "time": 0.15898866666666678,
+          "eof": 0,
+          "chains": 1,
+          "header": [
+            16768,
+            8576,
+            1,
+            2,
+            48000,
+            19678,
+            1,
+            2
+          ],
+          "epoch": 2,
+          "posted": 14848,
+          "ack": true,
+          "userPaused": false,
+          "maxOutstanding": 8192,
+          "feedbackCount": 67,
+          "staleFeedback": 0
+        }
+      },
+      "closeMs": 1.199999988079071,
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "jspi",
+      "service": "audio",
+      "scenario": "suspended-close",
+      "open": {
+        "opened": true
+      },
+      "closeMs": 2.9000000059604645,
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "asyncify",
+      "service": "subtitles",
+      "scenario": "pending-close",
+      "pending": {
+        "bytes": 0,
+        "requests": 1,
+        "active": 1,
+        "aborted": 0,
+        "ranges": [
+          {
+            "a": 0,
+            "b": 262143
+          }
+        ]
+      },
+      "closeMs": 6.5,
+      "open": {
+        "error": {
+          "code": "ABORTED",
+          "message": "Player is destroyed"
+        }
+      },
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "asyncify",
+      "service": "subtitles",
+      "scenario": "permission",
+      "open": {
+        "error": {
+          "code": "SOURCE_PERMISSION",
+          "message": "Error: Expected HTTP 206; received 403"
+        }
+      },
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "asyncify",
+      "service": "subtitles",
+      "scenario": "asset-mismatch",
+      "open": {
+        "error": {
+          "code": "ASSET_LOAD_FAILED",
+          "message": "Error: Private mpv initialization: Error: Private mpv Wasm hash mismatch"
+        }
+      },
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "asyncify",
+      "service": "subtitles",
+      "scenario": "active-close",
+      "open": {
+        "opened": true
+      },
+      "closeMs": 7.4000000059604645,
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "asyncify",
+      "service": "audio",
+      "scenario": "pending-close",
+      "pending": {
+        "bytes": 0,
+        "requests": 1,
+        "active": 1,
+        "aborted": 0,
+        "ranges": [
+          {
+            "a": 0,
+            "b": 262143
+          }
+        ]
+      },
+      "closeMs": 6.200000017881393,
+      "open": {
+        "error": {
+          "code": "ABORTED",
+          "message": "Player is destroyed"
+        }
+      },
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "asyncify",
+      "service": "audio",
+      "scenario": "permission",
+      "open": {
+        "error": {
+          "code": "SOURCE_PERMISSION",
+          "message": "Error: Expected HTTP 206; received 403\n    at RangeReader.fetchBlock (http://127.0.0.1:60270/web/range-reader.js:142:80)\n    at async RangeReader.read (http://127.0.0.1:60270/web/range-reader.js:57:15)\n    at async RangeReader.open (http://127.0.0.1:60270/web/range-reader.js:15:16)\n    at async Object.open (http://127.0.0.1:60270/web/private-mpv.js:38:14)\n    at async http://127.0.0.1:60270/web/private-mpv/audio-worker.js:87:39"
+        }
+      },
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "asyncify",
+      "service": "audio",
+      "scenario": "asset-mismatch",
+      "open": {
+        "error": {
+          "code": "ASSET_LOAD_FAILED",
+          "message": "Error: Private mpv initialization: Error: Private mpv Wasm hash mismatch\n    at http://127.0.0.1:60278/web/private-mpv/audio-worker.js:72:91\n    at async http://127.0.0.1:60278/web/private-mpv/audio-worker.js:72:11"
+        }
+      },
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "asyncify",
+      "service": "audio",
+      "scenario": "worklet-fault",
+      "open": {
+        "opened": true
+      },
+      "fault": {
+        "plan": "native-video-mpv-audio",
+        "privateRuntime": {
+          "runtime": "asyncify",
+          "profile": "audio",
+          "asset": "http://127.0.0.1:60286/web/engine-mpv-audio-asyncify/",
+          "memory": "ArrayBuffer",
+          "heapBytes": 67108864,
+          "crossOriginIsolated": false,
+          "sharedArrayBuffer": "undefined",
+          "jspiSuspending": "function",
+          "jspiPromising": "function",
+          "scheduler": {
+            "created": 29,
+            "completed": 24,
+            "abandoned": 0,
+            "suspensions": 63,
+            "resumes": 58,
+            "maxLive": 6,
+            "timerWakes": 7,
+            "signals": 41,
+            "stackChecks": 174,
+            "continuations": {
+              "kind": "asyncify",
+              "maxSavedBytes": 2424,
+              "unwinds": 63,
+              "rewinds": 58
+            },
+            "liveTasks": 5,
+            "retainedTasks": 5,
+            "waitKeys": 5,
+            "timers": 3,
+            "freeSlots": 19,
+            "stopped": false
+          },
+          "source": {
+            "reads": 10,
+            "bytes": 654763,
+            "copies": 10,
+            "cancelled": 0,
+            "timeouts": 0,
+            "errors": 0,
+            "lateCompletions": 0,
+            "staleCommitsRejected": 0,
+            "maxPending": 1,
+            "abandonedRequests": 0,
+            "handles": 1,
+            "pending": 0,
+            "timers": 0
+          }
+        },
+        "contextState": "running",
+        "requestedRate": 1,
+        "effectiveRate": 0.9992123666666667,
+        "estimatedAudioPresentationTime": 0.15893366666666675,
+        "errorMs": -98.82333333333327,
+        "absErrorP95Ms": 7.876333333333152,
+        "maxAbsErrorMs": 28.55966666666665,
+        "queuedFrames": 8192,
+        "nativeEpoch": 2,
+        "ackEpoch": 2,
+        "feedbackCount": 67,
+        "mpvVideoTracks": 0,
+        "worker": {
+          "runtime": {
+            "runtime": "asyncify",
+            "profile": "audio",
+            "asset": "http://127.0.0.1:60286/web/engine-mpv-audio-asyncify/",
+            "memory": "ArrayBuffer",
+            "heapBytes": 67108864,
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "function",
+            "jspiPromising": "function",
+            "scheduler": {
+              "created": 29,
+              "completed": 24,
+              "abandoned": 0,
+              "suspensions": 63,
+              "resumes": 58,
+              "maxLive": 6,
+              "timerWakes": 7,
+              "signals": 41,
+              "stackChecks": 174,
+              "continuations": {
+                "kind": "asyncify",
+                "maxSavedBytes": 2424,
+                "unwinds": 63,
+                "rewinds": 58
+              },
+              "liveTasks": 5,
+              "retainedTasks": 5,
+              "waitKeys": 5,
+              "timers": 3,
+              "freeSlots": 19,
+              "stopped": false
+            },
+            "source": {
+              "reads": 10,
+              "bytes": 654763,
+              "copies": 10,
+              "cancelled": 0,
+              "timeouts": 0,
+              "errors": 0,
+              "lateCompletions": 0,
+              "staleCommitsRejected": 0,
+              "maxPending": 1,
+              "abandonedRequests": 0,
+              "handles": 1,
+              "pending": 0,
+              "timers": 0
+            }
+          },
+          "time": 0.15893366666666675,
+          "eof": 0,
+          "chains": 1,
+          "header": [
+            16768,
+            8576,
+            1,
+            2,
+            48000,
+            19733,
+            1,
+            2
+          ],
+          "epoch": 2,
+          "posted": 16768,
+          "ack": true,
+          "userPaused": false,
+          "maxOutstanding": 8192,
+          "feedbackCount": 67,
+          "staleFeedback": 0
+        }
+      },
+      "closeMs": 1.199999988079071,
+      "remainingWorkers": [],
+      "passed": true
+    },
+    {
+      "runtime": "asyncify",
+      "service": "audio",
+      "scenario": "suspended-close",
+      "open": {
+        "opened": true
+      },
+      "closeMs": 7.699999988079071,
+      "remainingWorkers": [],
+      "passed": true
+    }
+  ],
+  "browser": "153.0.8010.53",
+  "passed": true
+}

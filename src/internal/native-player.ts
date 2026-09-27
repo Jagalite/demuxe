@@ -37,7 +37,7 @@ export class NativePlayer extends EventTarget implements Backend {
   private seekPresentationRetries = 0;
   private capability:CapabilityEvidence={};
   private mpvSubs?:import('./native-mpv-subtitles.js').NativeMpvSubtitles;
-  private mpvAudio?:import('./native-mpv-audio.js').NativeMpvAudio;
+  private mpvAudio?:import('./native-mpv-audio.js').NativeMpvAudio|import('./native-private-mpv-audio.js').NativePrivateMpvAudio;
   private get selectiveAudio(){return this.requestedPlan?.startsWith('native-video-mpv-audio')??false;}
   private get mpvSubtitlePlan(){return this.requestedPlan==='native-direct-mpv'||this.requestedPlan==='native-remux-mpv'||this.requestedPlan==='native-transcode-mpv'||this.requestedPlan==='native-video-mpv-audio-subtitles';}
   private ass?: import('./native-ass.js').NativeASS;
@@ -331,9 +331,14 @@ export class NativePlayer extends EventTarget implements Backend {
   }
   private async openServices(source:File|RemoteSource) {
     if(this.selectiveAudio){
-      const {NativeMpvAudio}=await import('./native-mpv-audio.js');this.assertActive();
       this.video.muted=true;
-      this.mpvAudio=new NativeMpvAudio(this.video,()=>this.sourceTime(),this.assetBase,error=>this.emit('error',error));
+      if(this.remuxRuntime==='pthread'){
+        const {NativeMpvAudio}=await import('./native-mpv-audio.js');this.assertActive();
+        this.mpvAudio=new NativeMpvAudio(this.video,()=>this.sourceTime(),this.assetBase,error=>this.emit('error',error));
+      }else{
+        const {NativePrivateMpvAudio}=await import('./native-private-mpv-audio.js');this.assertActive();
+        this.mpvAudio=new NativePrivateMpvAudio(this.video,()=>this.sourceTime(),this.assetBase,this.remuxRuntime,error=>this.emit('error',error));
+      }
       this.mpvAudio.setWatchdogs(this.watchdogs);
       await this.mpvAudio.open(source,this.initialAudioTrack);
       this.assertActive();
@@ -343,7 +348,7 @@ export class NativePlayer extends EventTarget implements Backend {
     }
     if(this.mpvSubtitlePlan){
       const {NativeMpvSubtitles}=await import('./native-mpv-subtitles.js');this.assertActive();
-      this.mpvSubs=new NativeMpvSubtitles(this.video,()=>this.sourceTime(),this.assetBase,this.fonts,source,error=>this.emit('error',error),this.defaultSubtitleStreamIndex);
+      this.mpvSubs=new NativeMpvSubtitles(this.video,()=>this.sourceTime(),this.assetBase,this.fonts,source,error=>this.emit('error',error),this.defaultSubtitleStreamIndex,this.remuxRuntime);
       await this.mpvSubs.ready;this.assertActive();await this.mpvSubs.select('auto');this.mpvSubs.visible(false);this.refresh();
     }
   }

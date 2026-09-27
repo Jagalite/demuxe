@@ -2,8 +2,8 @@
 # Remux runtime selection
 
 `PlayerOptions.remuxRuntime` defaults to `'auto'`. It selects the FFmpeg runtime
-used for source inspection, finite file remux, and qualified FLAC24 audio
-transcoding. It does not force remux when browser-direct playback is suitable.
+used for source inspection, finite file remux, qualified FLAC24 audio
+transcoding, and qualified private mpv subtitle/PCM services. It does not force remux when browser-direct playback is suitable.
 
 ```js
 const player = new Player(container, {
@@ -39,10 +39,18 @@ with `INVALID_ARGUMENT`, even if their values might resolve to the same runtime.
 
 ## Routing and failures
 
-Private runtime selection admits plain file remux and qualified FLAC24 transcode.
-Browser-direct, browser gain, and Shaka streaming routes remain available under
-their existing requirements. It does not enable private mpv, Wasm subtitles,
-Hybrid, Software, or additional remux/transform combinations.
+Private runtime selection admits file remux, qualified FLAC24 transcode, and
+embedded mpv subtitles (ASS/SSA, SRT, mov_text, PGS and VobSub). The native-video /
+mpv-audio route additionally admits one 48 kHz stereo PCM16 stream. It uses
+private Wasm memory, transferred PCM and acknowledged AudioWorklet consumption;
+video remains browser decoded. Compressed audio, multichannel and resampling are
+not admitted by this private mpv audio profile. Embedded subtitles can be combined
+with the restricted audio route. All services use the same selected runtime.
+
+Browser-direct, browser gain and Shaka retain their existing requirements.
+Private Hybrid, Software, external ASS and audio/video transforms remain outside
+this qualification. Selecting `on` or a named runtime does not broaden the service
+or codec limits. See [private mpv Player qualification](PRIVATE-MPV-PLAYER.md).
 
 Selection does not retry a failed JSPI engine using Asyncify. With `auto`, an
 initial plain URL can still try browser Direct when optional private inspection
@@ -68,6 +76,14 @@ and `engine-adaptation-{jspi,asyncify}` sets, plus the private bridge and its MI
 notice. Both standard and full `copy-assets` deployments retain them. Missing,
 incorrectly identified, or hash-mismatched installed assets fail assembly.
 
+`scripts/install-private-mpv.py` installs the provenance-verified subtitle and
+audio component builds into `engine-mpv-{subtitles,audio}-{jspi,asyncify}`. The
+service loaders validate manifest identity, hashes, Wasm backend/ABI and private
+memory. Beta assembly includes the complete optional set plus `web/private-mpv/`
+and its MIT notice; a partial set is rejected. Tagged packages also require
+`privateMpv` source/configuration and artifact bindings in the clean build record.
+The retained local component records do not qualify a tagged release.
+
 This is local-main functionality. No release has been published. Tagged release
 packaging now checks the private engines against the clean engine build record.
 Each private engine needs matching artifact hashes and a `privateRemux` entry
@@ -86,7 +102,7 @@ Selection/admission tests preserve browser routes and exclude unqualified privat
 routes. Packaging tests check identities/hashes and standard/full copying.
 HEVC CPU remains withheld; see the [investigation](HEVC-PRIVATE-RUNTIME-INVESTIGATION.md).
 
-Full beta assembly was attempted in this checkout but stopped at the existing
+At the time of the selection campaign, full beta assembly stopped at the existing
 `Build record mismatch: native/adaptation/flac.h` check. No new archive was
 produced. The installed private assets passed identity/hash verification;
 [packaging evidence](../results/jspi-asyncify/runtime-selection-01/packaging-check.json)

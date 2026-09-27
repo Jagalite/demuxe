@@ -17,6 +17,9 @@ export declare class NativeMpvAudio extends EventTarget {
     private firstPoint?;
     private pendingRate?;
     private running;
+    private contextPaused;
+    private contextOperations;
+    private contextChanged;
     private stopped;
     private generation;
     private requestedRate;
@@ -56,6 +59,7 @@ export declare class NativeMpvAudio extends EventTarget {
     open(source: File | RemoteSource, audioStream?: number): Promise<void>;
     private publish;
     play(startVideo: () => Promise<void>): Promise<void>;
+    private start;
     pause(stopVideo: () => void): Promise<void>;
     seek(seconds: number, seekVideo: () => Promise<void>): Promise<void>;
     private waitRate;

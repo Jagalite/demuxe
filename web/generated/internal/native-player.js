@@ -514,10 +514,17 @@ export class NativePlayer extends EventTarget {
     }
     async openServices(source) {
         if (this.selectiveAudio) {
-            const { NativeMpvAudio } = await import('./native-mpv-audio.js');
-            this.assertActive();
             this.video.muted = true;
-            this.mpvAudio = new NativeMpvAudio(this.video, () => this.sourceTime(), this.assetBase, error => this.emit('error', error));
+            if (this.remuxRuntime === 'pthread') {
+                const { NativeMpvAudio } = await import('./native-mpv-audio.js');
+                this.assertActive();
+                this.mpvAudio = new NativeMpvAudio(this.video, () => this.sourceTime(), this.assetBase, error => this.emit('error', error));
+            }
+            else {
+                const { NativePrivateMpvAudio } = await import('./native-private-mpv-audio.js');
+                this.assertActive();
+                this.mpvAudio = new NativePrivateMpvAudio(this.video, () => this.sourceTime(), this.assetBase, this.remuxRuntime, error => this.emit('error', error));
+            }
             this.mpvAudio.setWatchdogs(this.watchdogs);
             await this.mpvAudio.open(source, this.initialAudioTrack);
             this.assertActive();
@@ -530,7 +537,7 @@ export class NativePlayer extends EventTarget {
         if (this.mpvSubtitlePlan) {
             const { NativeMpvSubtitles } = await import('./native-mpv-subtitles.js');
             this.assertActive();
-            this.mpvSubs = new NativeMpvSubtitles(this.video, () => this.sourceTime(), this.assetBase, this.fonts, source, error => this.emit('error', error), this.defaultSubtitleStreamIndex);
+            this.mpvSubs = new NativeMpvSubtitles(this.video, () => this.sourceTime(), this.assetBase, this.fonts, source, error => this.emit('error', error), this.defaultSubtitleStreamIndex, this.remuxRuntime);
             await this.mpvSubs.ready;
             this.assertActive();
             await this.mpvSubs.select('auto');

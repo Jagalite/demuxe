@@ -3,7 +3,7 @@
 """Build an offline-installable beta candidate, without asserting release qualification."""
 import argparse,gzip,hashlib,io,json,pathlib,subprocess,tarfile,re
 from license_policy import Policy, LEGAL, encoded
-from private_remux_assets import private_remux_assets, verify_private_release
+from private_remux_assets import private_remux_assets, private_mpv_assets, verify_private_release, verify_private_mpv_release
 root=pathlib.Path(__file__).resolve().parent.parent
 p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,default=root/'build/beta');p.add_argument('--yuv',action='store_true');p.add_argument('--release-tag');p.add_argument('--adaptation-build',type=pathlib.Path);p.add_argument('--ass-build',type=pathlib.Path);p.add_argument('--mpv-subtitles',action='store_true');args=p.parse_args()
 # The switch remains accepted for older automation. A standard local candidate
@@ -22,8 +22,10 @@ build_path=root/'build/beta-build.json'
 if not build_path.is_file():raise SystemExit('Packaging requires a completed LGPL engine build record')
 build=json.loads(build_path.read_text())
 if args.release_tag and not build['clean']:raise SystemExit('Release requires a completed clean engine build')
-private_files=private_remux_assets(root)
-if args.release_tag:verify_private_release(private_files,build)
+private_files={**private_remux_assets(root),**private_mpv_assets(root)}
+if args.release_tag:
+ verify_private_release(private_files,build)
+ verify_private_mpv_release(private_files,build)
 for group in ['inputs','configurations','artifacts']:
  for name,expected in build[group].items():
   digest=expected['sha256'] if isinstance(expected,dict) else expected
@@ -179,7 +181,7 @@ if build:
  files['engine-build.json']=(json.dumps(public_build,indent=2)+'\n').encode()
 for f in sorted((root/'third_party').rglob('*')):
  if f.is_file():add(str(f.relative_to(root)))
-for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/OPTIMIZATION-INTEGRATION.md','docs/OPTIMIZATION-COMPLETION.md','docs/OPTIMIZATION-FLAC.md','docs/OPTIMIZATION-REVIEW-FIXES.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','docs/NON-ISOLATED-REMUX.md','docs/REMUX-RUNTIME.md','docs/PLAYBACK-TIER-POLICY.md','docs/PRODUCTION-PIPELINE.md','docs/STREAMING-ARCHITECTURE.md','examples/custom-controls.html','examples/player-element.html']:add(name)
+for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/OPTIMIZATION-INTEGRATION.md','docs/OPTIMIZATION-COMPLETION.md','docs/OPTIMIZATION-FLAC.md','docs/OPTIMIZATION-REVIEW-FIXES.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','docs/NON-ISOLATED-REMUX.md','docs/REMUX-RUNTIME.md','docs/PRIVATE-MPV-PLAYER.md','docs/PLAYBACK-TIER-POLICY.md','docs/PRODUCTION-PIPELINE.md','docs/STREAMING-ARCHITECTURE.md','examples/custom-controls.html','examples/player-element.html']:add(name)
 # The review report keeps local evidence locations in the repository only.
 report='docs/OPTIMIZATION-INTEGRATION.md'
 files[report]=re.sub(rb'/(?:Users|Volumes|private/var)/[^\s`]+',b'[local evidence path omitted from runtime package]',files[report])

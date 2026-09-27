@@ -14,11 +14,11 @@ test('subtitle playback can exceed 8192 uncached reads with bounded memory',asyn
   _web_io_configure(){},_subtitle_service_open:()=>0,
   _subtitle_service_loaded:()=>1,_subtitle_service_track_count:()=>0,
   _subtitle_service_block(){}};
- const context=vm.createContext({create:async()=>engine,SubtitleOverlay:class {},URL,
+ const context=vm.createContext({create:async()=>engine,SubtitleOverlay:class {},URL,AbortController,
   setTimeout,clearTimeout,postMessage:message=>messages.push(message),
   Worker:class {postMessage(message){init=message;this.onmessage({data:{type:'ready',info:{size:String(message.file.size)}}});}}});
  const source=await readFile(new URL('../web/mpv-subtitle-worker.js',import.meta.url),'utf8');
- vm.runInContext(source.replace(/^import .*;\n/gm,'').replaceAll('import.meta.url',JSON.stringify(import.meta.url)),context);
+ vm.runInContext(source.replace(/^import .*;\n/gm,'').replace("const {default:create}=await import('./engine-subtitles/service.mjs');",'').replaceAll('runtimeWorker(','new Worker(').replaceAll('import.meta.url',JSON.stringify(import.meta.url)),context);
  const file={size:16384,slice:(a,b)=>new Blob([new Uint8Array(b-a)])};
  context.onmessage({data:{id:1,type:'init',file,fonts:[]}});
  await vm.runInContext('chain',context);

@@ -48,8 +48,10 @@ The isolation and scheduling differences are part of these measured paths.
 
 The evidence does not qualify private mpv Player playback, subtitles, Hybrid,
 Software, other codec/profile/layout combinations, long media, additional
-browsers, physical audio latency or release packaging. The source option is
-experimental and these engines are locally installed.
+browsers, physical audio latency or release packaging. At the time of this campaign, the source option was
+experimental and the engines were locally installed. The later default runtime
+policy is documented in [runtime selection](REMUX-RUNTIME.md); restricted private
+mpv services have a separate [Player campaign](PRIVATE-MPV-PLAYER.md).
 
 ## Retained HEVC attempt and repeat
 

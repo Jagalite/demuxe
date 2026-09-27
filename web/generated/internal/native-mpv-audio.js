@@ -29,6 +29,25 @@ export class NativeMpvAudio extends EventTarget {
     firstPoint;
     pendingRate;
     running = false;
+    contextPaused = false;
+    contextOperations = Promise.resolve();
+    contextChanged = () => {
+        if (this.stopped)
+            return;
+        if (this.context.state !== 'running' && this.running) {
+            this.contextPaused = true;
+            this.running = false;
+            this.set(12, 0);
+            this.video.pause();
+            this.contextOperations = this.contextOperations.then(() => this.engine.pause()).catch(error => this.fail(error));
+        }
+        else if (this.context.state === 'running' && this.contextPaused) {
+            this.contextOperations = this.contextOperations.then(async () => { if (!this.stopped && this.contextPaused) {
+                this.contextPaused = false;
+                await this.start(() => this.video.play());
+            } }).catch(error => this.fail(error));
+        }
+    };
     stopped = false;
     generation = 0;
     requestedRate = 1;
@@ -195,6 +214,7 @@ export class NativeMpvAudio extends EventTarget {
         this.header = state.header;
         this.context = state.context;
         this.gain = state.gain;
+        this.context.addEventListener('statechange', this.contextChanged);
         await this.engine.command('set', 'vid', 'no');
         await this.engine.command('set', 'sid', 'no');
         if (audioStream !== undefined)
@@ -237,7 +257,8 @@ export class NativeMpvAudio extends EventTarget {
         await startVideo();
         this.running = true;
     }
-    async play(startVideo) {
+    async play(startVideo) { await this.contextOperations; await this.start(startVideo); }
+    async start(startVideo) {
         if (this.running)
             return;
         if (this.context?.state === 'suspended')
@@ -253,6 +274,8 @@ export class NativeMpvAudio extends EventTarget {
         await deferred;
     }
     async pause(stopVideo) {
+        this.contextPaused = false;
+        await this.contextOperations;
         if (this.pendingRate) {
             this.resumeRate = this.requestedRate;
             this.cancelRate('Paused during rate transition');
@@ -264,6 +287,8 @@ export class NativeMpvAudio extends EventTarget {
         await this.engine.pause();
     }
     async seek(seconds, seekVideo) {
+        this.contextPaused = false;
+        await this.contextOperations;
         this.cancelRate('Seek superseded pending rate');
         this.resumeRate = undefined;
         if (this.firstPoint) {
@@ -321,6 +346,7 @@ export class NativeMpvAudio extends EventTarget {
         });
     }
     async rate(value) {
+        await this.contextOperations;
         if (!Number.isFinite(value) || value < .5 || value > 2)
             throw Error('Playback rate must be 0.5 to 2');
         if (value === this.requestedRate && value === this.effectiveRate && !this.pendingRate)
@@ -393,6 +419,7 @@ export class NativeMpvAudio extends EventTarget {
             clearTimeout(pending.timer);
             pending.reject(Error('Selective PCM publication destroyed'));
         }
+        this.context?.removeEventListener('statechange', this.contextChanged);
         clearInterval(this.driftTimer);
         this.video.removeEventListener('ended', this.ended);
         if (this.frameCallback)

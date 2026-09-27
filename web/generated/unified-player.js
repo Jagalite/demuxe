@@ -548,8 +548,8 @@ export class Player extends EventTarget {
         const isolated = globalThis.crossOriginIsolated === true, available = { availability: 'available' };
         const unavailable = (reason) => ({ availability: 'unavailable', reason });
         const unknown = { availability: 'unknown', reason: 'Open a source to establish availability' };
-        const nativeOverlay = (this.nativeASS || backendPlan(this.current?.backend) === 'remux-mpv') && isolated && backendPlan(this.current?.backend) !== 'adapted-opus' && !(this.source?.kind === 'remote' && this.source.options.format && this.source.options.format !== 'file');
-        const route = (mode) => !isolated ? unavailable('This deployment requires cross-origin isolation') : this.mode === mode || (mode === 'hybrid' && this.mode === 'software') ? available : this.automatic ? { availability: 'switch', mode, reason: `This feature requires ${mode} playback` } : unavailable(`Select ${mode} mode first`);
+        const nativeOverlay = (this.nativeASS && isolated || !!this.current?.backend.diagnostics?.mpvSubtitles) && backendPlan(this.current?.backend) !== 'adapted-opus' && !(this.source?.kind === 'remote' && this.source.options.format && this.source.options.format !== 'file');
+        const route = (mode) => this.privateRemux ? unavailable('Private runtime has no qualified Hybrid or Software service') : !isolated ? unavailable('This deployment requires cross-origin isolation') : this.mode === mode || (mode === 'hybrid' && this.mode === 'software') ? available : this.automatic ? { availability: 'switch', mode, reason: `This feature requires ${mode} playback` } : unavailable(`Select ${mode} mode first`);
         const resolution = this.bufferingResolution();
         return { ...this.legacyCapabilities, buffering: { control: resolution.control, preload: true, profile: resolution.backend !== 'browser', memoryBudget: ['mpv', 'remux'].includes(resolution.backend) }, deployment: { isolated, webCodecs: typeof VideoDecoder !== 'undefined', mediaSource: typeof MediaSource !== 'undefined' }, features: {
                 subtitleDelay: route('hybrid'), audioDelay: route('hybrid'), subtitleStyle: route('hybrid'),
@@ -762,7 +762,7 @@ export class Player extends EventTarget {
         try {
             const subtitleTracks = this.sourceInspection?.probe.tracks.filter(t => t.type === 'sub') ?? [];
             const defaultSubtitleStreamIndex = (subtitleTracks.find(t => t.default) ?? subtitleTracks[0])?.index;
-            backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? undefined : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering, loadTimeoutMs, defaultSubtitleStreamIndex, this.remuxRuntime) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture) });
+            backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? (this.privateRemux && planId?.startsWith('native-video-mpv-audio') ? this.sourceInspection?.probe.tracks.find(t => t.type === 'audio')?.index : undefined) : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering, loadTimeoutMs, defaultSubtitleStreamIndex, this.remuxRuntime) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture) });
         }
         catch (error) {
             surface.remove();
@@ -878,14 +878,15 @@ export class Player extends EventTarget {
             !Number.isFinite(inspected.probe.duration) || inspected.probe.duration <= 0 ? 'Selective audio requires finite media' :
                 !selectiveVideo ? 'Selected video is unavailable' :
                     !selectiveAudio ? 'Selected audio is unavailable' :
-                        !this.selectiveAudioAssetsAvailable ? 'Selective audio engine or worklet assets are unavailable' :
-                            undefined;
+                        this.privateRemux && (audioTracks.length !== 1 || selectiveAudio.codec !== 'pcm_s16le' || selectiveAudio.channels !== 2 || selectiveAudio.sampleRate !== 48000) ? 'Private mpv audio requires one 48 kHz stereo PCM16 stream' :
+                            !this.selectiveAudioAssetsAvailable ? 'Selective audio engine or worklet assets are unavailable' :
+                                undefined;
         const decisions = planAdmission({ automatic, ...settings,
             audioPlayback: this.audioPlayback, transcodeAssetsAvailable: this.transcodeAssetsAvailable,
             transcodeSourceRejection: !this.fileServicesSource(source) || !inspected ? 'Audio transcoding requires an inspected random-access file' : audioTranscodeRejection(inspected.probe, inspectedSettings),
             selectiveAudioQualified: !selectiveAudioReason, selectiveAudioReason,
             mpvSubtitles: this.mpvSubtitles, selectedEmbeddedSubtitle: !!(settings.subtitles && selectiveSubtitle),
-            mpvSubtitleSourceQualified: this.mpvSubtitleAssetsAvailable && this.fileServicesSource(source) && !!inspected && Number.isFinite(inspected.probe.duration) && inspected.probe.duration > 0 && !!selectiveSubtitle && settings.subtitles && settings.sid !== 'no',
+            mpvSubtitleSourceQualified: this.mpvSubtitleAssetsAvailable && this.fileServicesSource(source) && !!inspected && Number.isFinite(inspected.probe.duration) && inspected.probe.duration > 0 && !!selectiveSubtitle && (!this.privateRemux || ['ass', 'ssa', 'subrip', 'mov_text', 'hdmv_pgs_subtitle', 'dvd_subtitle'].includes(selectiveSubtitle.codec)) && settings.subtitles && settings.sid !== 'no',
             mpvSubtitleAVRejection: inspected ? nativeRejection(inspected.probe, { ...inspectedSettings, subtitles: false }) : 'Source inspection required',
             shakaSourceRejection: remote?.demuxer ? 'Explicit demuxer hints require FFmpeg' : undefined,
             streamingFallbackRejection: remote?.streaming?.maxBandwidth !== undefined || remote?.streaming?.representation !== undefined ? 'FFmpeg fallback cannot preserve an explicit adaptive quality constraint' : undefined,
@@ -1331,7 +1332,7 @@ export class Player extends EventTarget {
         this.transcodeAssetsChecked = false;
         this.mpvSubtitleAssetsAvailable = false;
         if (this.mpvSubtitles && this.fileServicesSource(source) && settings.subtitles && sid !== 'no' && probe.tracks.some(t => t.type === 'sub'))
-            this.mpvSubtitleAssetsAvailable = await this.optionalAssetsAvailable(['web/engine-subtitles/service.mjs', 'web/engine-subtitles/service.wasm'], controller);
+            this.mpvSubtitleAssetsAvailable = await this.optionalAssetsAvailable(['mjs', 'wasm'].map(ext => `web/engine-${this.privateRemux ? 'mpv-subtitles-' + this.remuxRuntime : 'subtitles'}/service.${ext}`), controller);
         this.assertOperation();
     }
     async inspectFallbackAfterFastFailure(source, settings) {
@@ -1651,7 +1652,7 @@ export class Player extends EventTarget {
             if (automatic && plan.id.startsWith('native-video-mpv-audio') && !this.selectiveAudioAssetsChecked && this.fileServicesSource(source) && this.sourceInspection?.source === source && this.audioOutput === 'stereo' && settings.gain === 1 && plan.browserCapability?.status !== 'unsupported') {
                 const controller = this.inspection = new AbortController();
                 try {
-                    this.selectiveAudioAssetsAvailable = await this.optionalAssetsAvailable(['web/engine-selective/player.mjs', 'web/engine-selective/player.wasm', 'web/selective-sync-worklet.js'], controller);
+                    this.selectiveAudioAssetsAvailable = await this.optionalAssetsAvailable(this.privateRemux ? [`web/engine-mpv-audio-${this.remuxRuntime}/service.mjs`, `web/engine-mpv-audio-${this.remuxRuntime}/service.wasm`, 'web/private-mpv/audio-worklet.js'] : ['web/engine-selective/player.mjs', 'web/engine-selective/player.wasm', 'web/selective-sync-worklet.js'], controller);
                     this.assertOperation();
                     this.selectiveAudioAssetsChecked = true;
                 }

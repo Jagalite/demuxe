@@ -100,7 +100,7 @@ export type PlayerOptions = {
    * Wasm and packet allocations, not opaque browser/GPU memory. */
   experimentalBackgroundPromotion?: {maxKnownBytes:number};
   nativeRemux?: 'auto' | 'never' | 'always';
-  /** Remux/transcode runtime policy. Defaults to auto; does not enable private mpv. */
+  /** Finite-file runtime policy for remux/transcode and qualified mpv subtitle/PCM services. Defaults to auto. */
   remuxRuntime?: RemuxRuntimePolicy;
   /** @deprecated Use remuxRuntime; pthread maps to off. Cannot combine both options. */
   experimentalRemuxRuntime?: 'pthread' | 'jspi' | 'asyncify';

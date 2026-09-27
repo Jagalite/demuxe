@@ -8,6 +8,7 @@ export class NativeMpvSubtitles {
     source;
     failed;
     defaultStreamIndex;
+    runtime;
     canvas = document.createElement('canvas');
     worker;
     closed;
@@ -35,13 +36,14 @@ export class NativeMpvSubtitles {
     tracks = [];
     service = {};
     stats = { position: -1, renders: 0, bitmapUpdates: 0, bytes: 0, peakBytes: 0, discarded: 0, stateUpdates: 0, scheduler: 'frame' };
-    constructor(video, time, base, fonts, source, failed, defaultStreamIndex) {
+    constructor(video, time, base, fonts, source, failed, defaultStreamIndex, runtime = 'pthread') {
         this.video = video;
         this.time = time;
         this.source = source;
         this.failed = failed;
         this.defaultStreamIndex = defaultStreamIndex;
-        if (!crossOriginIsolated)
+        this.runtime = runtime;
+        if (this.runtime === 'pthread' && !crossOriginIsolated)
             throw Error('Native mpv subtitles requires cross-origin isolation');
         this.canvas.className = 'demuxe-native-ass';
         this.canvas.style.cssText = 'position:absolute;pointer-events:none;display:none';
@@ -67,6 +69,7 @@ export class NativeMpvSubtitles {
                     return;
                 }
                 if (data.type === 'closed') {
+                    this.service = { ...this.service, cleanup: data.cleanup, closeError: data.error };
                     this.closed?.();
                     return;
                 }
@@ -125,7 +128,7 @@ export class NativeMpvSubtitles {
                         throw Error('Subtitle renderer destroyed');
                     const source = this.source;
                     const transport = source instanceof File ? { file: source } : (() => { const { refreshAuthorization, ...options } = source; return { options, canRefresh: !!refreshAuthorization }; })();
-                    const result = await this.request('init', { ...transport, fonts: [{ name: 'DejaVuSans.ttf', bytes }, ...fonts] });
+                    const result = await this.request('init', { ...transport, runtime: this.runtime, fonts: [{ name: 'DejaVuSans.ttf', bytes }, ...fonts] });
                     this.tracks = result.tracks;
                     if (this.defaultStreamIndex !== undefined && !this.tracks.some(track => track['ff-index'] === this.defaultStreamIndex))
                         throw new PlayerError('UNSUPPORTED_FEATURE', 'Inspected subtitle stream was not enumerated by mpv');

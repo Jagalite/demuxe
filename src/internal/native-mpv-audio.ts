@@ -24,6 +24,17 @@ export class NativeMpvAudio extends EventTarget {
   private firstPoint?:{generation:number;resolve:(point:Timeline)=>void;reject:(error:Error)=>void;timer:ReturnType<typeof setTimeout>};
   private pendingRate?:PendingRate;
   private running=false;
+  private contextPaused=false;
+  private contextOperations=Promise.resolve();
+  private contextChanged=()=>{
+    if(this.stopped)return;
+    if(this.context.state!=='running'&&this.running){
+      this.contextPaused=true;this.running=false;this.set(12,0);this.video.pause();
+      this.contextOperations=this.contextOperations.then(()=>this.engine.pause()).catch(error=>this.fail(error));
+    }else if(this.context.state==='running'&&this.contextPaused){
+      this.contextOperations=this.contextOperations.then(async()=>{if(!this.stopped&&this.contextPaused){this.contextPaused=false;await this.start(()=>this.video.play());}}).catch(error=>this.fail(error));
+    }
+  };
   private stopped=false;
   private generation=0;
   private requestedRate=1;
@@ -128,7 +139,7 @@ export class NativeMpvAudio extends EventTarget {
   private fadeIn(){const at=this.context.currentTime;this.gain.gain.cancelScheduledValues(at);this.gain.gain.setValueAtTime(0,at);this.gain.gain.linearRampToValueAtTime(1,at+.008);}
   async open(source:File|RemoteSource,audioStream?:number){
     await this.engine.ready;
-    const state=this.engine.selectiveAudioState();this.header=state.header;this.context=state.context;this.gain=state.gain;
+    const state=this.engine.selectiveAudioState();this.header=state.header;this.context=state.context;this.gain=state.gain;this.context.addEventListener('statechange',this.contextChanged);
     await this.engine.command('set','vid','no');await this.engine.command('set','sid','no');
     if(audioStream!==undefined)await this.engine.command('set','aid',String(audioStream+1));
     if(source instanceof File)await this.engine.open(source);
@@ -156,7 +167,8 @@ export class NativeMpvAudio extends EventTarget {
     if(this.stopped)throw Error('Selective audio destroyed during publication');
     await startVideo();this.running=true;
   }
-  async play(startVideo:()=>Promise<void>){
+  async play(startVideo:()=>Promise<void>){await this.contextOperations;await this.start(startVideo);}
+  private async start(startVideo:()=>Promise<void>){
     if(this.running)return;
     if(this.context?.state==='suspended')await this.context.resume();
     let deferred:Promise<void>|undefined;
@@ -166,10 +178,12 @@ export class NativeMpvAudio extends EventTarget {
     await deferred;
   }
   async pause(stopVideo:()=>void){
+    this.contextPaused=false;await this.contextOperations;
     if(this.pendingRate){this.resumeRate=this.requestedRate;this.cancelRate('Paused during rate transition');}
     this.running=false;await this.fadeOut();this.set(12,0);stopVideo();await this.engine.pause();
   }
   async seek(seconds:number,seekVideo:()=>Promise<void>){
+    this.contextPaused=false;await this.contextOperations;
     this.cancelRate('Seek superseded pending rate');this.resumeRate=undefined;
     if(this.firstPoint){const pending=this.firstPoint;this.firstPoint=undefined;clearTimeout(pending.timer);pending.reject(Error('Selective PCM publication superseded by seek'));}
     this.video.defaultPlaybackRate=this.requestedRate;this.video.playbackRate=this.requestedRate;
@@ -197,6 +211,7 @@ export class NativeMpvAudio extends EventTarget {
     });
   }
   async rate(value:number){
+    await this.contextOperations;
     if(!Number.isFinite(value)||value<.5||value>2)throw Error('Playback rate must be 0.5 to 2');
     if(value===this.requestedRate&&value===this.effectiveRate&&!this.pendingRate)return;
     this.requestedRate=value;this.sustained=0;this.release=0;this.soft=false;
@@ -243,7 +258,7 @@ export class NativeMpvAudio extends EventTarget {
   async destroy(){
     if(this.stopped)return;this.stopped=true;this.cancelRate('Selective service destroyed');
     if(this.firstPoint){const pending=this.firstPoint;this.firstPoint=undefined;clearTimeout(pending.timer);pending.reject(Error('Selective PCM publication destroyed'));}
-    clearInterval(this.driftTimer);this.video.removeEventListener('ended',this.ended);
+    this.context?.removeEventListener('statechange',this.contextChanged);clearInterval(this.driftTimer);this.video.removeEventListener('ended',this.ended);
     if(this.frameCallback)this.video.cancelVideoFrameCallback(this.frameCallback);
     if(this.header)this.set(12,0);
     await this.engine.destroy();this.hidden.remove();

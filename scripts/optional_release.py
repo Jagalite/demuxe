@@ -47,4 +47,8 @@ def required_consumer_cases(manifest):
         cases.add('native-external-ass')
     if 'web/engine-remux-jspi/remux.wasm' in manifest['files']:
         cases.update({'remux-auto-isolated','remux-auto-no-isolation','remux-asyncify-no-isolation','remux-on-isolated','remux-off-no-isolation'})
+    if any(n.startswith('web/engine-mpv-') for n in manifest['files']):
+        cases.update({'private-mpv-subtitles-auto','private-mpv-subtitles-asyncify',
+                      'private-mpv-audio-auto','private-mpv-audio-asyncify',
+                      'private-mpv-composed','private-mpv-cancellation','private-mpv-asset-mismatch'})
     return cases
