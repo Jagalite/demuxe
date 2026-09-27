@@ -122,3 +122,26 @@ flush acknowledgements, physical output-latency feedback, device lifecycle and
 runtime-specific qualification. The finite-source bridge does not support nested
 network resources. A new Wasm/worker instance must get a fresh worklet transport;
 reusing an old transport with native epoch counters reset to zero is unsupported.
+
+
+## Review fixes
+
+The follow-up review adds terminal audio fault handling, an acknowledged stop
+that clears queued PCM, close-time cancellation outside the serialized RPC queue,
+duplicate-init rejection and preservation of the configured sample rate on source
+replacement. Browser coverage now also checks pending-read close, active close,
+suspended-context close, poisoned-host rejection and 44.1 kHz replacement settings.
+The latter is a configuration regression, not a general resampling qualification.
+
+The service linker now verifies every dependency source/header/configuration file
+it can read, the archive set and compiler identities before and after linking. It
+freezes the dependency build record and the actual Wasm audit script alongside the
+service sources. Older builds lacking these records are rejected for new links;
+no provenance is retroactively added to historical builds.
+
+Evidence verification requires the exact served input set, complete pixel records,
+expected runtime facts and the fresh dependency binding. Empty input maps and
+empty-but-equal subtitle frame arrays are rejected. Python optimization cannot
+silently disable the verifier's assertions. Original failures and mutation
+reproductions are retained in
+[`mpv-review-fixes-01`](../../../results/jspi-asyncify/mpv-review-fixes-01/REPORT.md).
