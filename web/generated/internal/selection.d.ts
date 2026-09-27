@@ -17,6 +17,11 @@ export type ProbeTrack = {
     sampleRate?: number;
     bitrate?: number;
     framerate?: number;
+    frameTiming?: {
+        startTime: number;
+        endTime: number;
+        maxIntervalSeconds: number;
+    };
     initialPadding?: number;
     bits?: number;
     startTime?: number;

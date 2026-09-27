@@ -7,8 +7,9 @@ let allowSharedPackets=true;
 const noCopy=true;
 // Dedicated service: native decoder pthread waits never block this event loop.
 let memory,pointer,header,view,decoder,configuration,queue=[],generation=0,busy=false;
-let draining=false,flushed=false,failure=null,submitted=0,consumed=0,outputWaitSince=null;
+let draining=false,flushed=false,failure=null,decoderTimeout=false,submitted=0,consumed=0,outputWaitSince=null;
 let faultAfter=0,disabled=false,copiesInFlight=0;
+let decoderOutputWatchdog=true;
 const copying=new Set(),closed=new WeakSet();
 const packetOffset=80,frameOffset=80+8*1024*1024;
 // errno values are from the pinned Emscripten WASI ABI.
@@ -16,7 +17,7 @@ const AGAIN=-6,EOF=-541478725,IO=-29;
 const stats={packetBytes:0,ownedPacketBytes:0,sharedPacketInputs:0,sharedPacketFallbacks:0,submitted:0,frames:0,receivedFrames:0,closedFrames:0,peakOutstanding:0,peakFrames:0,resets:0,errors:0,copyMs:0};
 const color={bt709:1,bt470bg:5,smpte170m:6,bt2020:9,'bt2020-ncl':9,smpte2084:16,'iec61966-2-1':13};
 function closeFrame(frame){if(closed.has(frame))return;closed.add(frame);frame.close();stats.closedFrames++;}
-function clear(){generation++;decoder?.destroy();decoder=null;for(const frame of queue)closeFrame(frame);for(const frame of copying)closeFrame(frame);queue=[];draining=flushed=false;submitted=consumed=0;outputWaitSince=null;failure=null;}
+function clear(){generation++;decoder?.destroy();decoder=null;for(const frame of queue)closeFrame(frame);for(const frame of copying)closeFrame(frame);queue=[];draining=flushed=false;submitted=consumed=0;outputWaitSince=null;failure=null;decoderTimeout=false;}
 async function checkConfiguration(valid){
  // Keep only descriptive fields: initialization bytes can be large and are not
  // useful in a UI error. Retain the exact codec string passed to WebCodecs.
@@ -56,6 +57,7 @@ function configure(){
  needsKey=true;decoder.configure(configuration);outputWaitSince=null;
 }
 self.onmessage=({data})=>{
+ if(data.type==='watchdogs'){decoderOutputWatchdog=data.decoderOutput!==false;outputWaitSince=null;postMessage({watchdog:decoderOutputWatchdog});return;}
  if(data.type==='cancel'){
   disabled=true;clear();
   if(header){const ticket=Atomics.load(header,0);if((ticket&3)===1){header[3]=IO;Atomics.store(header,0,ticket+1);Atomics.notify(header,0);}}
@@ -63,7 +65,7 @@ self.onmessage=({data})=>{
   return;
  }
  memory=data.memory;pointer=data.pointer;header=new Int32Array(memory,pointer,16);view=new DataView(memory,pointer);
- faultAfter=data.faultAfter??0;disabled=!!data.disabled;
+ faultAfter=data.faultAfter??0;disabled=!!data.disabled;decoderOutputWatchdog=data.decoderOutputWatchdog!==false;
  if(typeof Atomics.waitAsync==='function')void (async()=>{
   const channel=new MessageChannel();
   const yieldTask=()=>new Promise(resolve=>{channel.port1.onmessage=resolve;channel.port2.postMessage(0);});
@@ -189,19 +191,22 @@ async function pump(){
     else result=decoder.queuedPackets+queue.length>=8?0:AGAIN;
     // Measure an actual blocked receive, not wall time since the last frame:
     // paused/idle periods and packet reordering do not spend the output budget.
-    const waiting=!queue.length&&!flushed&&(draining||decoder.queuedPackets>=8)&&submitted>consumed;
+    const waiting=decoderOutputWatchdog&&!queue.length&&!flushed&&(draining||decoder.queuedPackets>=8)&&submitted>consumed;
     if(!waiting)outputWaitSince=null;
     else if(outputWaitSince===null)outputWaitSince=performance.now();
     else if(performance.now()-outputWaitSince>3000){
      stats.watchdog={waitingMs:Math.round(performance.now()-outputWaitSince),decodeQueueSize:decoder.queuedPackets,queuedFrames:queue.length,submitted,consumed,draining,flushed,codec:configuration?.codec};
-     throw Error(`Decoder output watchdog: ${JSON.stringify(stats.watchdog)}`);
+     // Missing output is inconclusive. Preserve timeout classification rather
+     // than turning scheduling delays into cached codec rejections.
+     decoderTimeout=true;
+     throw Error(`Decoder output watchdog timed out: ${JSON.stringify(stats.watchdog)}`);
     }
    }else throw Error('Unknown decoder operation');
   }
- }catch(error){failure=String(error);stats.errors++;result=IO;postMessage({error:failure});}
+ }catch(error){failure=String(error);stats.errors++;result=IO;postMessage({error:failure,decoderTimeout});}
  finally{
   if(valid()){header[3]=result;Atomics.store(header,0,ticket+1);Atomics.notify(header,0);}
-  if(operation!==4||stats.frames%30===0)postMessage({stats:{...stats,outstanding:decoder?.queuedPackets??0,queued:queue.length,active:!!decoder,decoderBackend:decoder?'webcodecs':'ffmpeg'}});
+  if(operation!==4||stats.frames%30===0)postMessage({stats:{...stats,outputWatchdogEnabled:decoderOutputWatchdog,outstanding:decoder?.queuedPackets??0,queued:queue.length,active:!!decoder,decoderBackend:decoder?'webcodecs':'ffmpeg'}});
   busy=false;
  }
 }

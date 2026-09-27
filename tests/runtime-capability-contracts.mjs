@@ -1,8 +1,32 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';import assert from 'node:assert/strict';
 import {RuntimeCapabilities,compatibilityFailure,nativeMediaError} from '../web/generated/internal/runtime-capability.js';
-import {PlayerError} from '../web/generated/internal/errors.js';
+import {PlayerError,playerError} from '../web/generated/internal/errors.js';
+import {NativeMpvSubtitles} from '../web/generated/internal/native-mpv-subtitles.js';
 import {nativeRejection,remuxRejection} from '../web/generated/internal/selection.js';
+test('subtitle service preserves the same failure for operations and session recovery',()=>{
+ for(const [error,code,compatible] of [
+  [Error('Subtitle worker deadline exceeded'),'NETWORK_TIMEOUT',false],
+  [Error('Subtitle worker failed'),'ASSET_LOAD_FAILED',false],
+  [new PlayerError('SOURCE_CHANGED','Decoder failed'),'SOURCE_CHANGED',false],
+  [Error('Opaque subtitle service fault'),'DECODE_FAILED',false],
+  [Error('Subtitle composition failed'),'DECODE_FAILED',true],
+ ]){
+  const rejected=[],reported=[],service=Object.create(NativeMpvSubtitles.prototype);
+  Object.assign(service,{stopped:false,pending:new Map([[1,{reject:error=>rejected.push(error)}],[2,{reject:error=>rejected.push(error)}]]),
+   destroy(){this.stopped=true;},failed:error=>reported.push(error)});
+  service.fail(error);service.fail(Error('Late duplicate failure'));
+  assert.deepEqual(rejected,[error,error]);assert.deepEqual(reported,[error]);
+  assert.equal(service.pending.size,0);assert.equal(playerError(reported[0]).code,code);
+  assert.equal(compatibilityFailure(reported[0]),compatible);
+ }
+});
+test('decoder output watchdog is an inconclusive timeout without codec fallback',()=>{
+ const error=Error('Hybrid browser decoder: Error: Decoder output watchdog timed out: {"waitingMs":3100}');
+ assert.equal(playerError(error).code,'NETWORK_TIMEOUT');
+ assert.equal(playerError(error).retryable,true);
+ assert.equal(compatibilityFailure(error),false);
+});
 test('successful cached evidence never bypasses startup, and source identities are isolated',()=>{
  const cache=new RuntimeCapabilities(),a={},b={},plans=[{id:'native-direct',eligible:true},{id:'software',eligible:false,reason:'isolation'}];
  cache.begin(a,plans);const id=cache.snapshot()[0].sourceIdentity;

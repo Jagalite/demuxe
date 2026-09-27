@@ -4,6 +4,7 @@ import { PlayerError } from './errors.js';
 import { resolveDecodePolicy } from './decode-policy.js';
 import { webgpuDecoderSupported } from './webgpu-codecs.js';
 import { selectExternalDecoderConfiguration } from './external-decoder-selection.js';
+import { watchdogPolicy } from './watchdogs.js';
 /** One isolated software engine per player; bounded remote ranges and local File reads; ArrayBuffer inputs remain capped. */
 export class WasmPlayer extends EventTarget {
     loading = new AbortController();
@@ -17,6 +18,13 @@ export class WasmPlayer extends EventTarget {
     gainValue = 1;
     timing;
     lastTiming;
+    watchdogs = watchdogPolicy();
+    initSent = false;
+    setWatchdogs(policy) {
+        this.watchdogs = policy;
+        if (this.initSent && !this.destroyed)
+            this.worker.postMessage({ type: 'watchdogs', decoderOutput: policy.decoderOutput });
+    }
     nextId = 100;
     pending = new Map();
     destroyed = false;
@@ -83,7 +91,19 @@ export class WasmPlayer extends EventTarget {
         this.ready = new Promise((resolve, reject) => {
             this.rejectReady = reject;
             const timeout = this.readyTimer = setTimeout(() => reject(new Error('Player initialization timed out')), 60000);
-            this.worker.onerror = event => { clearTimeout(timeout); reject(new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + event.message, null, null, 'operation', true)); this.fail(new Error(event.message)); };
+            let workerFailed = false;
+            const workerFailure = (event) => {
+                if (this.destroyed || workerFailed)
+                    return;
+                workerFailed = true;
+                event.preventDefault();
+                clearTimeout(timeout);
+                const error = new PlayerError('ASSET_LOAD_FAILED', 'Playback engine worker failed: ' + ('message' in event ? event.message : event.type), null, null, 'operation', true);
+                reject(error);
+                this.fail(error);
+            };
+            this.worker.onerror = workerFailure;
+            this.worker.onmessageerror = workerFailure;
             this.worker.onmessage = ({ data }) => {
                 if (data.type === 'ready') {
                     clearTimeout(timeout);
@@ -93,7 +113,7 @@ export class WasmPlayer extends EventTarget {
                 }
                 else if (data.type === 'error') {
                     clearTimeout(timeout);
-                    const error = data.assetFailure ? new PlayerError('ASSET_LOAD_FAILED', data.message) : data.decoderFailure ? new PlayerError('DECODE_FAILED', data.message) : new Error(data.message);
+                    const error = data.assetFailure ? new PlayerError('ASSET_LOAD_FAILED', data.message) : data.decoderTimeout ? new PlayerError('NETWORK_TIMEOUT', data.message, null, null, 'operation', true) : data.decoderFailure ? new PlayerError('DECODE_FAILED', data.message) : new Error(data.message);
                     reject(error instanceof PlayerError ? error : new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + error.message, null, null, 'operation', true));
                     this.fail(error, data.id);
                 }
@@ -177,7 +197,8 @@ export class WasmPlayer extends EventTarget {
                     }
                 }
                 const offscreen = canvas.transferControlToOffscreen();
-                this.worker.postMessage({ type: 'init', compiledWasm: prepared?.module, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0, decodeQuality, decodePolicy, adaptiveFrameDrop, videoTrack, ...(selectedDecodeIntent ? { webgpuDecodeIntent: selectedDecodeIntent } : {}), displayWidth: canvas.width, displayHeight: canvas.height }, [offscreen, font]);
+                this.initSent = true;
+                this.worker.postMessage({ type: 'init', decoderOutputWatchdog: this.watchdogs.decoderOutput, compiledWasm: prepared?.module, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0, decodeQuality, decodePolicy, adaptiveFrameDrop, videoTrack, ...(selectedDecodeIntent ? { webgpuDecodeIntent: selectedDecodeIntent } : {}), displayWidth: canvas.width, displayHeight: canvas.height }, [offscreen, font]);
                 this.timing = setInterval(() => this.sendTiming(), 20);
                 this.sendTiming();
             })().catch(error => { clearTimeout(timeout); reject(new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + String(error), null, null, 'operation', true)); });

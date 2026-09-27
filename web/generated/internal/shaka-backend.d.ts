@@ -8,6 +8,20 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     private video;
     private assetBase;
     private buffering;
+    setWatchdogs(policy: import('../types.js').WatchdogPolicy): void;
+    nativeProgressSample(): {
+        eligible: boolean;
+        time: number;
+        rate: number;
+        frames?: undefined;
+        videoEnd?: undefined;
+    } | {
+        eligible: boolean;
+        time: number;
+        rate: number;
+        frames: number | undefined;
+        videoEnd: number | undefined;
+    };
     readonly ready: Promise<void>;
     readonly properties: Map<string, unknown>;
     private native;

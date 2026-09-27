@@ -92,7 +92,13 @@ export class NativeMpvSubtitles {
       try{this.worker.postMessage({id,type,...data});}catch(error){cleanup();reject(error);}
     });
   }
-  private fail(error:Error){if(this.stopped)return;for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(error);}this.pending.clear();this.destroy();this.failed(error instanceof PlayerError?error:new PlayerError('DECODE_FAILED','Subtitle service failed: '+String(error)));}
+  private fail(error:Error){
+    if(this.stopped)return;
+    // Pending operations and session recovery must see the same cause. A
+    // service deadline or worker crash is not proof of codec incompatibility.
+    for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(error);}
+    this.pending.clear();this.destroy();this.failed(error);
+  }
   private applyMode(mode:unknown){
     const next=mode==='deadline'||mode==='animated'?mode:'fallback';
     if(this.schedulerMode===next)return;

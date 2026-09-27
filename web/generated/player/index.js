@@ -2,6 +2,7 @@
 import { Player } from '../unified-player.js';
 import { PLAYER_EVENTS } from '../types.js';
 import { normalizeTrackPolicy } from '../internal/track-policy.js';
+import { watchdogPolicy } from '../internal/watchdogs.js';
 import { PlayerError, playerError } from '../internal/errors.js';
 import { formatTime, outputDimensions, shortcut } from './interaction.js';
 import { ScrubberPreview } from './preview.js';
@@ -301,6 +302,15 @@ export class DemuxePlayerElement extends Base {
     lastSource;
     lastOptions;
     trackConfiguration = {};
+    watchdogConfiguration = watchdogPolicy();
+    get watchdogs() { return this.core?.watchdogs ?? this.watchdogConfiguration; }
+    set watchdogs(value) {
+        if (this.terminal)
+            throw new PlayerError('ABORTED', 'Player element is destroyed');
+        const policy = watchdogPolicy(value);
+        this.core?.setWatchdogs(policy);
+        this.watchdogConfiguration = policy;
+    }
     get trackPolicy() { return this.trackConfiguration; }
     set trackPolicy(value) { this.trackConfiguration = normalizeTrackPolicy(value); }
     resolveReady;
@@ -392,7 +402,7 @@ export class DemuxePlayerElement extends Base {
         const token = ++this.connection;
         if (this.terminal)
             return;
-        for (const name of ['trackPolicy', 'previewOptions', 'previewThumbnails', 'assetBase', 'labels', 'controls', 'poster', 'autoplay', 'muted', 'title', 'titleMode', 'showSourceControls', 'showDiagnostics', 'allowFileDrop', 'seekStep', 'controlsAutoHideDelay', 'src'])
+        for (const name of ['watchdogs', 'trackPolicy', 'previewOptions', 'previewThumbnails', 'assetBase', 'labels', 'controls', 'poster', 'autoplay', 'muted', 'title', 'titleMode', 'showSourceControls', 'showDiagnostics', 'allowFileDrop', 'seekStep', 'controlsAutoHideDelay', 'src'])
             if (Object.prototype.hasOwnProperty.call(this, name)) {
                 const value = this[name];
                 delete this[name];
@@ -406,7 +416,7 @@ export class DemuxePlayerElement extends Base {
                 return;
             try {
                 this.configuredAsset = this.getAttribute('asset-base');
-                const core = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, audioPlayback: this.audioPlaybackConfiguration, preview: this.previewConfiguration, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
+                const core = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, watchdogs: this.watchdogConfiguration, audioPlayback: this.audioPlaybackConfiguration, preview: this.previewConfiguration, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
                 this.dimensions = '';
                 this.trackSignature = '';
                 for (const type of [...PLAYER_EVENTS, 'preparationchange', 'inspectionchange', 'modechange', 'selectionchange', 'mpv', 'log', 'source', 'output'])

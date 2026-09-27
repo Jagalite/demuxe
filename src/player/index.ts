@@ -2,6 +2,8 @@
 import {Player} from '../unified-player.js';
 import {PLAYER_EVENTS} from '../types.js';
 import {normalizeTrackPolicy} from '../internal/track-policy.js';
+import {watchdogPolicy} from '../internal/watchdogs.js';
+import type {WatchdogOptions,WatchdogPolicy} from '../types.js';
 import type {TrackPolicy,TrackTypePolicy} from '../types.js';
 import type {PreviewOptions, MediaSourceInput, OpenOptions, PlayerState, MediaTrack, SessionError, SubtitleOptions} from '../types.js';
 import {PlayerError, playerError} from '../internal/errors.js';
@@ -223,6 +225,12 @@ export class DemuxePlayerElement extends Base {
   private lastSource?:MediaSourceInput;
   private lastOptions?:OpenOptions;
   private trackConfiguration:TrackPolicy={};
+  private watchdogConfiguration=watchdogPolicy();
+  get watchdogs():WatchdogPolicy{return this.core?.watchdogs??this.watchdogConfiguration;}
+  set watchdogs(value:boolean|WatchdogOptions){
+    if(this.terminal)throw new PlayerError('ABORTED','Player element is destroyed');
+    const policy=watchdogPolicy(value);this.core?.setWatchdogs(policy);this.watchdogConfiguration=policy;
+  }
   get trackPolicy(){return this.trackConfiguration;}
   set trackPolicy(value:TrackPolicy){this.trackConfiguration=normalizeTrackPolicy(value);}
   private resolveReady!:(p:Player)=>void;
@@ -280,10 +288,10 @@ export class DemuxePlayerElement extends Base {
   private input(id:string){return this.$(id) as HTMLInputElement;}
   connectedCallback(){
     const token=++this.connection;if(this.terminal)return;
-    for(const name of ['trackPolicy','previewOptions','previewThumbnails','assetBase','labels','controls','poster','autoplay','muted','title','titleMode','showSourceControls','showDiagnostics','allowFileDrop','seekStep','controlsAutoHideDelay','src'])if(Object.prototype.hasOwnProperty.call(this,name)){const value=(this as any)[name];delete (this as any)[name];(this as any)[name]=value;}
+    for(const name of ['watchdogs','trackPolicy','previewOptions','previewThumbnails','assetBase','labels','controls','poster','autoplay','muted','title','titleMode','showSourceControls','showDiagnostics','allowFileDrop','seekStep','controlsAutoHideDelay','src'])if(Object.prototype.hasOwnProperty.call(this,name)){const value=(this as any)[name];delete (this as any)[name];(this as any)[name]=value;}
     if(this.core)return;
     this.connecting=(async()=>{await this.cleanup;if(!this.isConnected||token!==this.connection||this.terminal)return;
-      try {this.configuredAsset=this.getAttribute('asset-base');const core=this.core=new Player(this.$('surface'),{assetBase:this.assetBase,audioPlayback:this.audioPlaybackConfiguration,preview:this.previewConfiguration,prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});this.dimensions='';this.trackSignature='';
+      try {this.configuredAsset=this.getAttribute('asset-base');const core=this.core=new Player(this.$('surface'),{assetBase:this.assetBase,watchdogs:this.watchdogConfiguration,audioPlayback:this.audioPlaybackConfiguration,preview:this.previewConfiguration,prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});this.dimensions='';this.trackSignature='';
         for(const type of [...PLAYER_EVENTS,'preparationchange','inspectionchange','modechange','selectionchange','mpv','log','source','output'])core.addEventListener(type,event=>{
           if(this.core!==core||this.terminal)return;const detail=(event as CustomEvent).detail;
           if(type==='inspectionchange'&&core.state.pendingOperation?.kind==='opening'){this.openingStage=detail.phase==='reading'?this.labels.reading:this.labels.inspecting;this.update(core.state);}

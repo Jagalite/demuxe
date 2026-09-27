@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import type { WatchdogOptions, WatchdogPolicy } from './types.js';
 import type { TrackPolicy } from './types.js';
 import type { PlayerState, PlayerEventMap, PlayerCapabilities, OpenOptions, MediaSourceInput } from './types.js';
 import type { PreparationOptions, PreparationReport } from './types.js';
@@ -91,6 +92,15 @@ export declare class Player extends EventTarget {
     private busy;
     private empty;
     private monitor?;
+    private monitorSession?;
+    private monitorPolicy?;
+    private watchdogConfiguration;
+    private watchdogEpoch;
+    get watchdogs(): WatchdogPolicy;
+    /** Replaces the watchdog policy immediately; omitted object fields use defaults. */
+    setWatchdogs(options: boolean | WatchdogOptions): void;
+    private startWatchdogs;
+    private stopWatchdogs;
     constructor(container: HTMLElement, options?: PlayerOptions);
     get state(): PlayerState;
     get mediaInfo(): Readonly<{

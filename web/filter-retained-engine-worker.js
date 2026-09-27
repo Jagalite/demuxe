@@ -211,9 +211,16 @@ function tick() {
     if (performance.now()>=nextDiagnostics || (ptr && sourceRendered <= 5)) {nextDiagnostics=performance.now()+200;post({type:'diagnostics', data:{pumpTicks:ticks,subtitles:{...subtitles.stats},presentation:{...presentation,lateMs:presentation.lateMs.slice(-120),pts:presentation.pts.slice(-120),retained:frames.size+(heldFrame?1:0),pending:pendingFrames.size},mode,skipCanvas,canvasSubmissions,rendered,renderMs,copyMs,maxRenderMs, heapBytes:engine.HEAPU8.byteLength, epoch, path:'wasm', decoder:decoderBackend==='webgpu'?'webgpu':decoderStats?.active?'webcodecs':'software',decoderBackend:decoderBackend==='webgpu'?'webgpu':decoderStats?.active?'webcodecs':'ffmpeg',webgpu:webgpuDiagnostics(webgpuService?.runtime),decoderStats, demuxFormat,seekPrerollSeconds,presentedPosition, ioPending:(Atomics.load(engine.HEAPU32,engine._web_io_ptr()>>>2)&7)===1, ioSerial:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+1), interruptions:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+14), io:ioStats, seeking:pendingTarget!==null, position, queuedFrames:(Atomics.load(audio,0)-Atomics.load(audio,1))>>>0}});}
   } catch (error) { pumpFailed=true;clearInterval(timer); post({type:'error',message:String(error.stack || error)}); }
 }
+let decoderOutputWatchdog=true;
 self.onmessage = async ({data}) => {
   try {
+    if(data.type==='watchdogs'){
+      decoderOutputWatchdog=data.decoderOutput!==false;
+      decoderWorker?.postMessage({type:'watchdogs',decoderOutput:decoderOutputWatchdog});
+      return;
+    }
     if (data.type === 'init') {
+      decoderOutputWatchdog=data.decoderOutputWatchdog!==false;
       if (data.disableBrowserCodecs) for (const name of ['VideoDecoder','AudioDecoder','VideoFrame']) Object.defineProperty(globalThis,name,{value:undefined, configurable:true});
       measureOutput=!!data.measureOutput;
       canvas = data.canvas;
@@ -235,16 +242,29 @@ self.onmessage = async ({data}) => {
       if(data.decoder==='webcodecs'&&!audioOnly){
         decoderWorker=new Worker(new URL('./retained-decoder-worker.js',import.meta.url),{type:'module'});
         await new Promise((resolve,reject)=>{
+          let ready=false,failed=false;
           const deadline=setTimeout(()=>reject(Error('Decoder service initialization timed out')),5000);
           decoderWorker.onmessage=({data:message})=>{
+            if(closing||failed){message.retainedFrame?.close();return;}
             if(message.retainedFrame){try{receiveFrame(message);}catch(error){cleanupFrames();pumpFailed=true;clearInterval(timer);post({type:"error",message:String(error)});}}
-            if(message.ready){clearTimeout(deadline);resolve();}
+            if(message.ready){ready=true;clearTimeout(deadline);resolve();}
             if(message.stats)decoderStats=message.stats;
+            if(typeof message.watchdog==='boolean')decoderStats={...decoderStats,outputWatchdogEnabled:message.watchdog};
             if(message.wakeup&&!closing)engine._web_decoder_wakeup();
-            if(message.error)post({type:'error',message:'Hybrid browser decoder: '+message.error});
+            if(message.error)post({type:'error',message:'Hybrid browser decoder: '+message.error,decoderTimeout:message.decoderTimeout===true});
           };
-          decoderWorker.onerror=error=>{clearTimeout(deadline);reject(Error(error.message));};
-          decoderWorker.postMessage({memory:engine.HEAPU8.buffer,pointer:engine._web_decoder_ptr(),disabled:data.disableBrowserCodecs,faultAfter:data.decoderFaultAfter});
+          const fail=event=>{
+            if(closing||failed)return;
+            failed=true;event.preventDefault?.();clearTimeout(deadline);
+            const error=Error('Hybrid decoder worker failed: '+(event.message||event.type));
+            if(!ready){reject(error);return;}
+            // Rejecting the resolved startup promise would lose this crash.
+            // An unknown worker failure must not be cached as codec rejection.
+            pumpFailed=true;clearInterval(timer);
+            post({type:'error',message:error.message,assetFailure:true});
+          };
+          decoderWorker.onerror=fail;decoderWorker.onmessageerror=fail;
+          decoderWorker.postMessage({memory:engine.HEAPU8.buffer,pointer:engine._web_decoder_ptr(),disabled:data.disableBrowserCodecs,faultAfter:data.decoderFaultAfter,decoderOutputWatchdog});
         });
         engine._web_decoder_enable(2); // Retained frames cannot use software replay.
       }else if(data.decoder==='webgpu'&&!audioOnly){

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import {routingRequirements, missingRoutingFacts} from './internal/probe-requirements.js';
 import {bufferingPolicy, resolveBuffering} from './internal/buffering.js';
+import {watchdogPolicy,NativeProgressWatchdog} from './internal/watchdogs.js';
+import type {WatchdogOptions,WatchdogPolicy} from './types.js';
 import type {BufferingPolicy, BufferingResolution} from './types.js';
 import {normalizeTrackPolicy,trackAllowed,defaultTrack,assertTrackSelection} from './internal/track-policy.js';
 import type {TrackPolicy} from './types.js';
@@ -166,9 +168,60 @@ export class Player extends EventTarget {
   private busy = false;
   private empty = new Map<string, unknown>();
   private monitor?: ReturnType<typeof setInterval>;
+  private monitorSession?:Session;
+  private monitorPolicy?:WatchdogPolicy;
+  private watchdogConfiguration:WatchdogPolicy;
+  private watchdogEpoch=0;
+  get watchdogs():WatchdogPolicy {return this.watchdogConfiguration;}
+  /** Replaces the watchdog policy immediately; omitted object fields use defaults. */
+  setWatchdogs(options:boolean|WatchdogOptions):void {
+    if(this.destroyed)throw new PlayerError('ABORTED','Player is destroyed');
+    const policy=watchdogPolicy(options);
+    this.watchdogConfiguration=policy;
+    this.current?.backend.setWatchdogs?.(policy);this.candidate?.backend.setWatchdogs?.(policy);
+    this.startWatchdogs();
+  }
+  private startWatchdogs(){
+    const session=this.current,mode=this.mode,policy=this.watchdogConfiguration;
+    const enabled=mode==='native'?policy.nativeProgress:mode==='hybrid'&&policy.hybridDecoder;
+    if(!session||session.error||this.destroyed||this.closing||!enabled||this.settings.pause||session.backend.properties.get('pause')===true||session.backend.properties.get('eof-reached')===true||this.root.ownerDocument.hidden){this.stopWatchdogs();return;}
+    if(this.monitor!==undefined&&this.monitorSession===session&&this.monitorPolicy===policy)return;
+    this.stopWatchdogs();this.monitorSession=session;this.monitorPolicy=policy;
+    const progress=new NativeProgressWatchdog();let inactiveSamples=0,epoch=this.watchdogEpoch;
+    this.monitor=setInterval(()=>{
+      if(epoch!==this.watchdogEpoch){epoch=this.watchdogEpoch;progress.reset();inactiveSamples=0;}
+      const eligible=this.current===session&&!session.retired&&!session.error&&!this.destroyed&&!this.busy&&!this.activeOperation&&this.queued===0&&!this.settings.pause&&!this.root.ownerDocument.hidden;
+      if(!eligible){progress.reset();inactiveSamples=0;return;}
+      let error:PlayerError|undefined;
+      if(mode==='native'){
+        const sample=session.backend.nativeProgressSample?.();
+        if(!sample){progress.reset();return;}
+        sample.eligible=sample.eligible&&eligible;
+        const timing=this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture)?.frameTiming;
+        // A declared maximum presentation gap accounts for VFR holds and
+        // composition reordering; an average frame rate cannot establish this.
+        if(timing&&sample.time>=timing.startTime&&sample.time<timing.endTime-.25)sample.frameIntervalMs=1000*timing.maxIntervalSeconds/(sample.rate??1);
+        else sample.frames=undefined;
+        const stalled=progress.sample(performance.now(),sample,policy.nativeProgressTimeoutMs);
+        if(stalled)error=new PlayerError('PLAYBACK_STALLED',`Native ${stalled==='clock'?'playback clock':'video frame counter'} stopped progressing despite buffered media`,null,null,'session',true);
+      }else{
+        const hasVideo=(session.backend.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined)?.some(t=>t.type==='video'&&t.selected);
+        const decoder=(session.backend.diagnostics as {decoder?:string}|undefined)?.decoder;
+        inactiveSamples=eligible&&hasVideo&&decoder==='software'?inactiveSamples+1:0;
+        if(inactiveSamples>=4)error=new PlayerError('DECODE_FAILED','Hybrid browser decoder became inactive for four consecutive checks');
+      }
+      if(!error)return;
+      this.stopWatchdogs();session.error=error;
+      if(this.automatic)this.recover(session);
+      else {this.settings.pause=true;void session.backend.pause().catch(()=>{});this.emit('error',error);}
+    },mode==='native'?500:250);
+  }
+  private stopWatchdogs(){clearInterval(this.monitor);this.monitor=undefined;this.monitorSession=undefined;this.monitorPolicy=undefined;}
+
 
   constructor(container: HTMLElement, options: PlayerOptions = {}) {
     super();
+    this.watchdogConfiguration=watchdogPolicy(options.watchdogs);
     this.configuredTrackPolicy=normalizeTrackPolicy(options.trackPolicy);
     const prepare=preparationComponents(options.prepare??[]);
     if (typeof HTMLElement==='undefined') throw new PlayerError('INVALID_ARGUMENT','Player construction requires a browser');
@@ -225,6 +278,7 @@ export class Player extends EventTarget {
     if(this.automatic&&(this.settings.vf||this.settings.af||this.toneMapping!=='off'))this.currentMode=this.settings.vf||this.toneMapping!=='off'||!this.hybridAudioFilters||!qualifiedAudioFilter(this.settings.af)?'software':'hybrid';
     this.validateFilters(this.currentMode, this.settings);
     this.root = document.createElement('div');this.root.className = 'demuxe-player';container.append(this.root);
+    this.root.ownerDocument.addEventListener('visibilitychange',()=>{this.watchdogEpoch++;this.startWatchdogs();},{signal:this.lifetime.signal});
     this.publish();
     if(prepare.length)void this.prepare(prepare);
   }
@@ -368,7 +422,7 @@ export class Player extends EventTarget {
   }
   get diagnostics(): Diagnostics {
     const backend=this.current?.backend.diagnostics as Record<string,unknown>|undefined;
-    return redact({preview:this.preview.diagnostics,buffering:(backend?.buffering as BufferingResolution|undefined)??this.bufferingResolution(),mode: this.mode, plan:this.current?executionPlan(this.mode,backend?.plan as string|undefined,this.settings.af,this.settings.gain,!!backend?.subtitleOverlay):undefined, planAdmission:this.planDecisions,runtimeCapabilities:this.runtimeCapabilities.snapshot(),selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain:this.settings.gain, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop, backend});
+    return redact({watchdogs:this.watchdogConfiguration,preview:this.preview.diagnostics,buffering:(backend?.buffering as BufferingResolution|undefined)??this.bufferingResolution(),mode: this.mode, plan:this.current?executionPlan(this.mode,backend?.plan as string|undefined,this.settings.af,this.settings.gain,!!backend?.subtitleOverlay):undefined, planAdmission:this.planDecisions,runtimeCapabilities:this.runtimeCapabilities.snapshot(),selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain:this.settings.gain, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop, backend});
   }
   audioDiagnostics() {return this.current?.backend.audioDiagnostics();}
   private emit(type: string, detail: unknown) {
@@ -397,7 +451,7 @@ export class Player extends EventTarget {
       catch(error){if(optimization)return;const structured=playerError(controller.signal.aborted?new PlayerError('ABORTED',this.destroyed?'Player is destroyed':'Operation aborted'):error,id,kind);
         if(!this.current&&kind==='opening'&&structured.code!=='ABORTED')this.sessionError={...structured.toJSON(),scope:'session'};
         this.publish();this.dispatchEvent(new CustomEvent('error',{detail:freeze(structured.toJSON())}));throw structured;
-      } finally {this.activeOperation=undefined;this.pendingOperation=null;this.publish();}
+      } finally {this.activeOperation=undefined;this.pendingOperation=null;this.startWatchdogs();this.publish();}
       if(kind==='seeking')this.dispatchEvent(new CustomEvent('seeked',{detail:this.state}));
     }).finally(()=>signal?.removeEventListener('abort',cancel));
     this.queue=result.catch(()=>{}).finally(()=>{this.queued--;});return result;
@@ -440,13 +494,16 @@ export class Player extends EventTarget {
       const defaultSubtitleStreamIndex=(subtitleTracks.find(t=>t.default)??subtitleTracks[0])?.index;
       backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface as HTMLVideoElement,this.assetBase,this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, forcePreparation?'always':this.nativeRemux,this.assetBase,this.bufferedNativeSeeks,adaptation,['auto','no'].includes(aid)?undefined:Number(aid)-1,this.nativeASS,this.fonts,planId,this.buffering,loadTimeoutMs,defaultSubtitleStreamIndex) : new module.WasmPlayer(surface as HTMLCanvasElement, {buffering:this.buffering,mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase,prepared,decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop,videoTrack:this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture)});
     } catch (error) {surface.remove();throw error;}
+    backend.setWatchdogs?.(this.watchdogConfiguration);
     const session: Session = {backend, surface};
     for (const type of ['mpv', 'error', 'log', 'output', 'source', 'activity']) backend.addEventListener(type, event => {
       if(session.retired)return;
       const detail = (event as CustomEvent).detail;
+      if(this.current===session&&type==='activity'&&['seeking','seeked','play','pause','ratechange','waiting','playing','ended'].includes(detail))this.watchdogEpoch++;
       if(this.current===session&&this.promotionRunning&&((type==='activity'&&detail==='waiting')||(type==='mpv'&&detail.event==='property-change'&&detail.name==='paused-for-cache'&&detail.data===true)))this.cancelPromotion();
       if (type === 'error') session.error = detail instanceof Error?detail:new Error(String(detail));
       if (type === 'mpv' && detail.event === 'end-file' && detail.reason === 'error') session.error = new Error(String(detail.file_error));
+      if(this.current===session&&(session.error||type==='activity'&&['play','pause','playing','ended'].includes(detail)||type==='mpv'&&detail.event==='property-change'&&['pause','eof-reached'].includes(detail.name)))this.startWatchdogs();
       if (this.current === session && !this.busy && !this.destroyed) {
         if(session.error&&(type==='error'||(type==='mpv'&&detail.event==='end-file'))&&this.automatic&&this.mode!=='software'){this.recover(session);return;}
         if(type==='mpv'&&detail.event==='end-file'&&detail.reason==='error')this.emit('error',session.error);
@@ -701,18 +758,7 @@ export class Player extends EventTarget {
       this.activeOperation?.detachCallerAbort();
       this.publish();
       candidate.surface.style.display = 'block';if (old) old.surface.style.display = 'none';
-      clearInterval(this.monitor);
-      let inactiveSamples = 0;
-      if (mode === 'hybrid') this.monitor = setInterval(() => {
-        const d = p.diagnostics as {decoder?: string} | undefined;
-        const hasVideo = (p.properties.get('track-list') as Array<{type: string; selected?: boolean}> | undefined)?.some(t => t.type === 'video' && t.selected);
-        inactiveSamples = hasVideo && !this.busy && this.queued === 0 && d?.decoder === 'software' ? inactiveSamples + 1 : 0;
-        if (inactiveSamples >= 4) {
-          clearInterval(this.monitor);
-          if(this.automatic){candidate!.error=new Error('Hybrid browser decoder became inactive for four consecutive checks');this.recover(candidate!);return;}
-          this.settings.pause = true;void p.pause().catch(() => {});this.emit('error', 'Hybrid decoder stopped. Reopen in software mode.');
-        }
-      }, 250);
+      this.startWatchdogs();
       // The new session is committed. Cleanup failures must not pretend to roll it back.
       try {await this.dispose(old);} catch (error) {this.dispatchEvent(new CustomEvent('error',{detail:freeze(playerError(error,this.activeOperation?.id??null,this.activeOperation?.kind??null,'operation').toJSON())}));}
       for (const [name, data] of p.properties) this.emit('mpv', {event: 'property-change', name, data} satisfies PlaybackEvent);
@@ -1044,7 +1090,7 @@ export class Player extends EventTarget {
     this.recoveredSessions.add(session);
     const plan=executionPlan(this.mode,backendPlan(session.backend),this.settings.af,this.settings.gain,!!(session.backend.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay);
     this.runtimeCapabilities.update(plan.id,'failed',this.evidence(session),String(session.error),compatibilityFailure(session.error)?'compatibility':'terminal');
-    if(!compatibilityFailure(session.error)){void session.backend.pause().catch(()=>{});this.emit('error',String(session.error));return;}
+    if(!compatibilityFailure(session.error)){void session.backend.pause().catch(()=>{});this.emit('error',session.error);return;}
     if(!evidenceInterrupted(session.error))this.tierAttempts.failure(this.source,this.tierConfiguration(this.settings),plan.id,String(session.error));
     this.recovering=true;
     void this.enqueue(async()=>{
@@ -1058,7 +1104,7 @@ export class Player extends EventTarget {
         if(tryRemux)this.nativeRemux='always';
         await this.select(this.source!,this.settings,true,this.nativeTracks,streaming||tryRemux||this.mode==='native'?0:PLAYBACK_MODES.indexOf(this.mode)+1,undefined,priorAttempts);
       }finally{this.nativeRemux=policy;}
-    },'switching').catch(error=>{if(!this.destroyed)this.emit('error',String(error));}).finally(()=>{this.recovering=false;if(this.current?.error&&this.current!==session)this.recover(this.current);});
+    },'switching').catch(error=>{if(!this.destroyed)this.emit('error',error);}).finally(()=>{this.recovering=false;if(this.current?.error&&this.current!==session)this.recover(this.current);});
   }
   setAutomaticSelection(enabled=true){
     if(typeof enabled!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid automatic selection policy');
@@ -1332,7 +1378,7 @@ export class Player extends EventTarget {
     if(this.destroyed)return this.destruction!;
     if(this.closing)return this.closing;
     this.preview.setSourceIdentity(`closed:${this.sourceSerial}`);this.previewSource=undefined;
-    this.operationEpoch++;this.activeOperation?.controller.abort();this.inspection?.abort();clearInterval(this.monitor);
+    this.operationEpoch++;this.activeOperation?.controller.abort();this.inspection?.abort();this.stopWatchdogs();
     const cleanup=Promise.all([this.preview.drain(),...[this.candidate,this.current].map(s=>s?.backend.destroy().catch(()=>{}))]);
     this.closing=this.enqueue(async()=>{await cleanup;await this.dispose(this.current);this.current=undefined;this.candidate=undefined;this.source=undefined;this.sourceInspection=undefined;this.losslessInspection=undefined;this.runtimeCapabilities.clear();this.tierAttempts.clear();this.nativeTracks=[];this.subtitleAssets=[];this.publicSelections.clear();this.settings={...this.settings,pause:true,aid:'auto',sid:'auto'};this.sessionError=null;this.observedPlaying=false;this.observedWaiting=false;},'closing').finally(()=>{this.closing=undefined;});
     return this.closing;
@@ -1342,7 +1388,7 @@ export class Player extends EventTarget {
     if (this.destruction) return this.destruction;
     this.preparation?.destroy();
     const previewCleanup=this.preview.destroy();this.previewSource=undefined;
-    this.destroyed = true;this.operationEpoch++;this.activeOperation?.controller.abort();this.lifetime.abort();this.inspection?.abort();clearInterval(this.monitor);
+    this.destroyed = true;this.operationEpoch++;this.activeOperation?.controller.abort();this.lifetime.abort();this.inspection?.abort();this.stopWatchdogs();
     this.destruction = (async () => {
       await Promise.all([previewCleanup,...[this.candidate, this.current].map(session => session?.backend.destroy().catch(() => {}))]);
       await this.queue;

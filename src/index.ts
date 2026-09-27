@@ -20,3 +20,4 @@ export type {PreparationComponent,PreparationOptions,PreparationAsset,Preparatio
 export type {PreviewPregeneration} from './types.js';
 
 export type {TrackPolicy,TrackTypePolicy,TrackMatch} from './types.js';
+export type {WatchdogOptions,WatchdogPolicy} from './types.js';

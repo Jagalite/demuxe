@@ -147,7 +147,18 @@ export type TrackPolicy = Readonly<{
     audio?: TrackTypePolicy;
     subtitles?: TrackTypePolicy;
 }>;
+/** Playback-health heuristics only; operation, network and cleanup deadlines remain bounded. */
+export type WatchdogOptions = {
+    nativeProgress?: boolean;
+    hybridDecoder?: boolean;
+    decoderOutput?: boolean;
+    selectiveAudio?: boolean;
+    nativeProgressTimeoutMs?: number;
+};
+export type WatchdogPolicy = Readonly<Required<WatchdogOptions>>;
 export type PlayerOptions = {
+    /** Defaults to enabled. false disables all playback-health watchdogs. */
+    watchdogs?: boolean | WatchdogOptions;
     /** Software decoder fidelity. Exact is the default. */
     decodeQuality?: 'exact' | 'balanced' | 'performance';
     /** Permit sustained overload to omit non-reference pictures on qualified codecs. */
@@ -221,6 +232,7 @@ export type PlaybackEvent = {
     [key: string]: unknown;
 };
 export type Diagnostics = {
+    watchdogs?: WatchdogPolicy;
     preview?: {
         sourceId: string;
         cacheBytes: number;
@@ -282,7 +294,7 @@ export type PendingOperation = Readonly<{
     id: number;
     kind: OperationKind;
 }>;
-export type PlayerErrorCode = 'INVALID_ARGUMENT' | 'ABORTED' | 'AUTOPLAY_BLOCKED' | 'SOURCE_PERMISSION' | 'SOURCE_CHANGED' | 'NETWORK_TIMEOUT' | 'UNSUPPORTED_MEDIA' | 'UNSUPPORTED_TIMELINE' | 'UNSUPPORTED_FEATURE' | 'ASSET_LOAD_FAILED' | 'ISOLATION_REQUIRED' | 'DECODE_FAILED';
+export type PlayerErrorCode = 'INVALID_ARGUMENT' | 'ABORTED' | 'AUTOPLAY_BLOCKED' | 'SOURCE_PERMISSION' | 'SOURCE_CHANGED' | 'NETWORK_TIMEOUT' | 'PLAYBACK_STALLED' | 'UNSUPPORTED_MEDIA' | 'UNSUPPORTED_TIMELINE' | 'UNSUPPORTED_FEATURE' | 'ASSET_LOAD_FAILED' | 'ISOLATION_REQUIRED' | 'DECODE_FAILED';
 export type SessionError = Readonly<{
     code: PlayerErrorCode;
     message: string;

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { WasmPlayer } from './wasm-player.js';
 import { PlayerError, playerError } from './errors.js';
+import { watchdogPolicy } from './watchdogs.js';
 const wait = async (predicate, timeout = 5000, signal) => {
     const end = performance.now() + timeout;
     while (performance.now() < end) {
@@ -34,6 +35,9 @@ export class NativeMpvAudio extends EventTarget {
     effectiveRate = 1;
     resumeRate;
     driftTimer;
+    watchdogs = watchdogPolicy();
+    lastObservation;
+    setWatchdogs(policy) { this.watchdogs = policy; this.missingTimeline = this.largeError = 0; this.engine.setWatchdogs(policy); }
     sustained = 0;
     release = 0;
     soft = false;
@@ -64,7 +68,7 @@ export class NativeMpvAudio extends EventTarget {
         video.ownerDocument.body.append(this.hidden);
         this.engine = new WasmPlayer(this.hidden, { assetBase, mode: 'selective-audio', audioOutput: 'stereo' });
         this.engine.addEventListener('output', event => this.onOutput(event.detail));
-        this.engine.addEventListener('error', event => this.fail(new Error(String(event.detail))));
+        this.engine.addEventListener('error', event => this.fail(event.detail));
         video.addEventListener('ended', this.ended);
         const frame = (_, metadata) => {
             if (this.stopped)
@@ -132,19 +136,29 @@ export class NativeMpvAudio extends EventTarget {
         return latest.mediaTime + (this.running ? age * latest.rate / 1000 : 0);
     }
     observe() {
-        if (!this.running || this.pendingRate || this.video.seeking || this.video.ended)
+        const now = performance.now();
+        if (this.lastObservation !== undefined && now - this.lastObservation > 1500)
+            this.missingTimeline = this.largeError = 0;
+        this.lastObservation = now;
+        if (!this.running || this.pendingRate || this.video.paused || this.video.seeking || this.video.ended || this.video.readyState < 3 || this.context.state !== 'running') {
+            this.missingTimeline = this.largeError = 0;
             return;
+        }
+        // Background throttling weakens health evidence, not the need for A/V sync.
+        const watch = this.watchdogs.selectiveAudio && !this.video.ownerDocument.hidden;
+        if (!watch)
+            this.missingTimeline = this.largeError = 0;
         const position = this.estimatedAudioPresentationTime();
         if (position === null) {
-            if (++this.missingTimeline >= 8)
-                this.fail(new PlayerError('DECODE_FAILED', 'Selective audio timeline stopped during playback'));
+            if (watch && ++this.missingTimeline >= 8)
+                this.fail(new PlayerError('PLAYBACK_STALLED', 'Selective audio timeline stopped during playback', null, null, 'session', true));
             return;
         }
         this.missingTimeline = 0;
         const error = (position - this.time()) * 1000;
-        if (Math.abs(error) > 250) {
+        if (watch && Math.abs(error) > 250) {
             if (++this.largeError >= 8)
-                this.fail(new PlayerError('DECODE_FAILED', 'Selective A/V sync error remained above 250 ms'));
+                this.fail(new PlayerError('PLAYBACK_STALLED', 'Selective A/V sync error remained above 250 ms', null, null, 'session', true));
         }
         else
             this.largeError = 0;

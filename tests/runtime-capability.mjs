@@ -18,8 +18,12 @@ async function check(name,fn,options={}){
   await page.evaluate(async options=>{const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),options);const input=document.createElement('input');input.type='file';input.id='file';document.body.append(input);window.states=[];},options);
   await fn(page,requests,result);
   result.diagnostics=await page.evaluate(()=>player.diagnostics);
-  await page.evaluate(()=>player.destroy());await page.waitForTimeout(150);
-  assert.equal(page.workers().length,0);assert.equal(await page.locator('.demuxe-player video, .deplexr-player video, .demuxe-player canvas, .deplexr-player canvas').count(),0);
+  await page.evaluate(()=>player.destroy());
+  // Worker termination notifications arrive asynchronously through Playwright.
+  // Wait for the observed condition, while retaining a bounded leak check.
+  const cleanupDeadline=Date.now()+5000;
+  while(page.workers().length&&Date.now()<cleanupDeadline)await page.waitForTimeout(50);
+  assert.equal(page.workers().length,0,'Workers remained after destroy');assert.equal(await page.locator('.demuxe-player video, .deplexr-player video, .demuxe-player canvas, .deplexr-player canvas').count(),0);
   result.passed=true;console.log('PASS',name);
  }catch(error){result.error=String(error.stack);result.diagnostics=await page.evaluate(()=>player.diagnostics).catch(()=>null);process.exitCode=1;console.log('FAIL',name,String(error));}
  finally{result.requests=requests;await page.evaluate(()=>player.destroy()).catch(()=>{});await page.close();await writeFile(out+'/result.json',JSON.stringify(results,null,2));}
@@ -34,6 +38,50 @@ const verifyNative=async(page)=>{
  await page.evaluate(()=>player.play());await page.waitForFunction(()=>player.state.currentTime>.15);assert.equal(await page.evaluate(()=>player.diagnostics.runtimeCapabilities.find(r=>r.planId===player.diagnostics.plan.id).state),'verified');await page.evaluate(()=>player.pause());
 };
 try{
+ for(const code of ['SOURCE_CHANGED','ASSET_LOAD_FAILED','NETWORK_TIMEOUT']){
+  await check('runtime recovery preserves typed terminal error: '+code,async(page)=>{
+   await open(page,'fixtures/example.mp4');
+   const result=await page.evaluate(async code=>{
+    const {PlayerError}=await import('/web/generated/internal/errors.js');
+    const backend=player.current.backend,errors=[];
+    player.addEventListener('error',event=>errors.push(event.detail));
+    // Deliberately misleading text must not override the authoritative code.
+    backend.dispatchEvent(new CustomEvent('error',{detail:new PlayerError(code,'Decoder failed',null,null,'session',true)}));
+    return {error:player.state.error,errors,sameBackend:player.current.backend===backend,failed:player.diagnostics.runtimeCapabilities.find(r=>r.planId===player.diagnostics.plan.id)};
+   },code);
+   assert.equal(result.error.code,code);assert.equal(result.error.retryable,true);
+   assert.equal(result.errors.length,1);assert.equal(result.errors[0].code,code);
+   assert.equal(result.sameBackend,true);assert.equal(result.failed.failureKind,'terminal');
+  });
+ }
+ await check('Hybrid reports decoder worker crash after startup',async(page)=>{
+  await open(page,'fixtures/example.mp4');
+  const worker=page.workers().find(worker=>worker.url().includes('/retained-decoder-worker.js'));
+  assert.ok(worker,'Hybrid decoder worker must be running');
+  await worker.evaluate(()=>{setTimeout(()=>{throw Error('Injected post-startup crash');},0);});
+  await page.waitForFunction(()=>player.state.error!==null,{},{timeout:5000});
+  const error=await page.evaluate(()=>player.state.error);
+  assert.equal(error.code,'ASSET_LOAD_FAILED');assert.match(error.message,/Injected post-startup crash/);
+ },{mode:'hybrid'});
+ await check('Hybrid preserves decoder timeout classification across worker messages',async(page)=>{
+  await open(page,'fixtures/example.mp4');
+  const worker=page.workers().find(worker=>worker.url().includes('/retained-decoder-worker.js'));
+  assert.ok(worker,'Hybrid decoder worker must be running');
+  // A counter containing 403 must not be mistaken for an HTTP permission error.
+  await worker.evaluate(()=>postMessage({error:'Error: Decoder output watchdog timed out: {"waitingMs":3403}',decoderTimeout:true}));
+  await page.waitForFunction(()=>player.state.error!==null,{},{timeout:5000});
+  const error=await page.evaluate(()=>player.state.error);
+  assert.equal(error.code,'NETWORK_TIMEOUT');assert.equal(error.retryable,true);
+ },{mode:'hybrid'});
+ await check('Hybrid preserves terminal outer worker crashes after startup',async(page)=>{
+  await open(page,'fixtures/example.mp4');
+  const worker=page.workers().find(worker=>worker.url().includes('/filter-retained-engine-worker.js'));
+  assert.ok(worker,'Hybrid engine worker must be running');
+  await worker.evaluate(()=>{setTimeout(()=>{throw Error('Decoder unsupported');},0);});
+  await page.waitForFunction(()=>player.state.error!==null,{},{timeout:5000});
+  const error=await page.evaluate(()=>player.state.error);
+  assert.equal(error.code,'ASSET_LOAD_FAILED');assert.match(error.message,/Decoder unsupported/);
+ },{mode:'hybrid'});
  await check('gain changes synchronize current capability and later failure invalidates it',async(page)=>{
   await open(page,'fixtures/example.mp4');
   await page.evaluate(()=>player.play());await page.evaluate(()=>player.setAudioGain(.5));
@@ -66,7 +114,9 @@ try{
  await check('PCM24 original bytes accepted without optional engines',async(page,requests)=>{
   await page.evaluate(()=>{HTMLMediaElement.prototype.canPlayType=()=>'';});
   await open(page,pcm);await verifyNative(page);
-  assert.ok(!requests.some(r=>/engine-adaptation|engine-hybrid|engine-software|native-remux-player|wasm-player/.test(r)));
+  // Native imports the WasmPlayer wrapper for optional services; importing the
+  // wrapper does not initialize or download an optional playback engine.
+  assert.ok(!requests.some(r=>/engine-adaptation|engine-hybrid|engine-software|native-remux-player/.test(r)));
   await page.screenshot({path:out+'/pcm24.png'});
  },{automaticAudioAdaptation:'lossless'});
  await check('every new source validates startup despite prior success',async(page)=>{
@@ -95,7 +145,10 @@ try{
   await page.evaluate(async()=>{
    const {NativePlayer}=await import('/web/generated/internal/native-player.js');const load=NativePlayer.prototype.load;
    NativePlayer.prototype.load=async function(){const bad=URL.createObjectURL(new Blob(['invalid media']));try{return await load.call(this,bad);}finally{URL.revokeObjectURL(bad);}};
-   MediaSource.isTypeSupported=()=>false;
+   // Inject at the backend boundary: MSE can live in a worker, beyond page
+   // prototype overrides. Keep admission eligible and fail the actual attempt.
+   const {PlayerError}=await import('/web/generated/internal/errors.js');
+   NativePlayer.prototype.startRemux=async function(){throw new PlayerError('UNSUPPORTED_MEDIA','Injected Native remux rejection');};
   });
   await open(page,'fixtures/example.mp4');
   const d=await page.evaluate(()=>player.diagnostics);assert.equal(d.plan.id,'hybrid');

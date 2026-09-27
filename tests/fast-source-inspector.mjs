@@ -233,3 +233,19 @@ test('partial SeekHead cannot skip unindexed required metadata',async()=>{
   assert.equal(result.status,'satisfied',result.reason);assert.equal(result.reads,1);
  }
 });
+
+ test('Native timing evidence uses bounded tables rather than average FPS',async()=>{
+  const result=await inspectFastSource(file(mp4,'sample.mp4'));
+  const timing=result.evidence.tracks.find(t=>t.type==='video').frameTiming;
+  assert.ok(timing.maxIntervalSeconds>0&&timing.maxIntervalSeconds<.2);
+  assert.ok(timing.endTime>11&&timing.endTime<13);assert.equal(timing.startTime,0);
+  for(const kind of ['oversized','zero delta','count mismatch','non-unit edit']){
+   const changed=Buffer.from(mp4),stts=changed.indexOf('stts'),stsz=changed.indexOf('stsz'),elst=changed.indexOf('elst');
+   if(kind==='oversized')changed.writeUInt32BE(4097,stts+8);
+   if(kind==='zero delta')changed.writeUInt32BE(0,stts+16);
+   if(kind==='count mismatch')changed.writeUInt32BE(1,stsz+12);
+   if(kind==='non-unit edit')changed.writeUInt32BE(2<<16,elst+20);
+   const probe=await inspectFastSource(file(changed,kind+'.mp4'));
+   assert.equal(probe.status,'qualified',kind);assert.equal(probe.evidence.tracks.find(t=>t.type==='video').frameTiming,undefined,kind);
+  }
+ });

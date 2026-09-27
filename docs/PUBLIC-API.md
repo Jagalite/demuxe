@@ -24,6 +24,60 @@ availability, open(string | URL | RemoteSource), AbortSignal open options,
 setVolume(0–1), setMuted, setPlaybackRate, stable public track selections, close,
 assetBase. These are additive; legacy volume and rate units do not change.
 
+## Playback watchdogs
+
+All playback-health watchdogs are enabled by default. Disable all of them at
+construction, or change individual switches on an existing player:
+
+```js
+const player = new Player(container, {watchdogs: false});
+player.setWatchdogs({nativeProgress: false, decoderOutput: false});
+player.setWatchdogs(false); // Disable every playback-health watchdog.
+player.setWatchdogs(true);  // Restore defaults, with fresh observation budgets.
+```
+
+`setWatchdogs()` is synchronous, validates before applying changes, and does not
+reopen playback. Decoder-worker updates travel asynchronously through the worker
+message queue. Each call replaces the policy; omitted object fields use defaults.
+Use `{...player.watchdogs, nativeProgress: false}` to change just one current
+setting. The frozen resolved policy is also available in `diagnostics.watchdogs`.
+It persists through source opens and route replacements within this Player.
+
+| Option | Default | Controls |
+| --- | --- | --- |
+| `nativeProgress` | `true` | Native/HTMLMediaElement progress monitor, including Shaka presentations |
+| `nativeProgressTimeoutMs` | `10000` | Continuous eligible observation budget, 1000–120000 ms |
+| `hybridDecoder` | `true` | Hybrid decoder-backend health checks |
+| `decoderOutput` | `true` | Hybrid WebCodecs empty-output watchdog |
+| `selectiveAudio` | `true` | Selective-audio missing-timeline and sustained A/V drift failure checks |
+
+Native progress is sampled every 500 ms only when its watchdog is enabled.
+The Player health timer stops while paused, hidden, ended, or failed, and restarts
+with a fresh observation budget when eligible playback resumes. It
+requires previously verified output, play intent, a ready media element, and at
+least half a second of buffered media at the current rate. Pause, seeking,
+pending player operations, hidden documents, near-EOF positions, and timer gaps
+over two seconds reset the observation budget. Video-frame counters are monitored
+when bounded MP4 timing tables establish the track bounds and a maximum
+presentation gap, including composition offsets and a supported edit list.
+The budget is at least three maximum gaps, so long-held VFR frames remain valid.
+Missing, complex, or oversized timing tables and other containers retain
+clock-only monitoring; average FPS is not used as a gap bound. These are browser observations, not proof of physical screen/audio
+output, and deliberately do not diagnose unbuffered network waits as decode faults.
+
+Native progress and selective-audio health failures report retryable
+`PLAYBACK_STALLED`. They pause playback without caching a codec rejection or
+automatically switching routes. Disabling a watchdog does not clear an error
+already reported or revive a failed decoder; reopen or explicitly change mode
+to establish a new session. Turning off all watchdogs also removes the Player's
+periodic health monitor. Selective-audio synchronization still runs normally.
+
+These switches control playback-health heuristics, **not** operation deadlines:
+startup verification, load/seek/command/subtitle RPC deadlines, native mailbox
+timeouts, network retry limits, and cleanup bounds remain active. Actual browser,
+worker, decoder, and source errors are still reported. Disabling monitoring can
+leave silent stalls undetected; it does not grant codec or route compatibility.
+
 ## Automatic buffering
 
 Demuxe buffering is enabled automatically. `balanced` is the default. Each
@@ -193,7 +247,7 @@ Legacy selectTrack retains its documented backend-ID contract.
 Errors are PlayerError with code, operationId, operation, scope, retryable and
 redacted message. Session errors alone populate state.error. Failed controls or
 replacement errors are operation-scoped. Codes: INVALID_ARGUMENT, ABORTED,
-AUTOPLAY_BLOCKED, SOURCE_PERMISSION, SOURCE_CHANGED, NETWORK_TIMEOUT,
+AUTOPLAY_BLOCKED, SOURCE_PERMISSION, SOURCE_CHANGED, NETWORK_TIMEOUT, PLAYBACK_STALLED,
 UNSUPPORTED_MEDIA, UNSUPPORTED_TIMELINE, UNSUPPORTED_FEATURE, ASSET_LOAD_FAILED, ISOLATION_REQUIRED,
 DECODE_FAILED. Normal events/diagnostics redact authorization fields, URL userinfo,
 queries and fragments; raw mpv properties remain an advanced inspection surface.

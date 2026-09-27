@@ -2,6 +2,7 @@
 import type { BufferingPolicy } from '../types.js';
 import type { RemoteSource, TextTrackSource, TrackType, SubtitleAsset, FontAsset } from '../types.js';
 import type { Backend } from './backend.js';
+import type { WatchdogPolicy } from '../types.js';
 /** Browser media ownership, including listeners, pending loads and object URLs. */
 export declare class NativePlayer extends EventTarget implements Backend {
     private video;
@@ -54,6 +55,21 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private subsVisible;
     private cancelers;
     private listeners;
+    private watchdogs;
+    setWatchdogs(policy: WatchdogPolicy): void;
+    nativeProgressSample(): {
+        eligible: boolean;
+        time: number;
+        rate: number;
+        frames?: undefined;
+        videoEnd?: undefined;
+    } | {
+        eligible: boolean;
+        time: number;
+        rate: number;
+        frames: number | undefined;
+        videoEnd: number | undefined;
+    };
     constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | "flac24" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined, buffering?: BufferingPolicy, loadTimeoutMs?: number, defaultSubtitleStreamIndex?: number | undefined);
     private emit;
     private assertActive;

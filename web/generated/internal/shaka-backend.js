@@ -87,6 +87,8 @@ export class ShakaBackend extends EventTarget {
     video;
     assetBase;
     buffering;
+    setWatchdogs(policy) { this.native.setWatchdogs(policy); }
+    nativeProgressSample() { return this.native.nativeProgressSample(); }
     ready = Promise.resolve();
     properties = new Map();
     native;

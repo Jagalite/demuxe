@@ -77,13 +77,34 @@ async function watchdogHarness(){
  const code=(await readFile('web/retained-decoder-worker.js','utf8')).replace(/^import .*\n/gm,'');vm.runInContext(code+'\nmemory=shared;pointer=0;header=new Int32Array(memory,0,16);view=new DataView(memory);',context);
  let serial=0;const request=async op=>{h[0]=++serial*4+1;h[2]=op;await context.pump();assert.equal(h[0],serial*4+2);return h[3];};
  h[4]=0;h[5]=640;h[6]=360;h[13]=4;h[14]=0;h[15]=10;h[8]=8;assert.equal(await request(1),0);h[4]=1;h[7]=1;
- return {request,messages,advance:ms=>now+=ms,decoder:()=>instance,flush:async()=>{finishFlush();await Promise.resolve();}};
+ return {request,messages,setWatchdog:enabled=>context.self.onmessage({data:{type:'watchdogs',decoderOutput:enabled}}),advance:ms=>now+=ms,decoder:()=>instance,flush:async()=>{finishFlush();await Promise.resolve();}};
 }
+test('decoder output watchdog can be disabled and re-enabled with a fresh budget',async()=>{
+ const s=await watchdogHarness();for(let i=0;i<8;i++)await s.request(2);
+ await s.request(4);s.advance(2500);s.setWatchdog(false);s.advance(10000);
+ assert.equal(await s.request(4),0);assert.equal(s.messages.some(m=>m.error),false);
+ s.setWatchdog(true);assert.equal(await s.request(4),0);s.advance(2999);assert.equal(await s.request(4),0);
+ s.advance(2);assert.equal(await s.request(4),-29);assert.equal(s.messages.find(m=>m.error).decoderTimeout,true);
+});
 test('output watchdog excludes idle time before a new decode burst',async()=>{
  const s=await watchdogHarness();s.advance(10000);for(let i=0;i<8;i++)assert.equal(await s.request(2),0);
  assert.equal(await s.request(4),0,'new input has not had time to produce output');
  s.advance(2999);assert.equal(await s.request(4),0);
  s.advance(2);assert.equal(await s.request(4),-29,'a genuinely stalled output wait still fails');
+ assert.equal(s.messages.find(m=>m.error).decoderTimeout,true);
+ assert.equal(await s.request(4),-29);
+ assert.equal(s.messages.filter(m=>m.error).at(-1).decoderTimeout,true,'repeated receives preserve the cause');
+ assert.equal(await s.request(6),0);
+ s.decoder().callbacks.error(Error('A separate decoder failure'));
+ assert.equal(await s.request(4),-29);
+ assert.equal(s.messages.filter(m=>m.error).at(-1).decoderTimeout,false,'reset clears the old timeout classification');
+});
+test('buffered frames and uncongested input do not consume the output watchdog budget',async()=>{
+ const s=await watchdogHarness();await s.request(2);s.advance(10000);
+ assert.equal(await s.request(4),-6);assert.equal(s.messages.some(m=>m.error),false);
+ s.decoder().callbacks.output({visibleRect:{width:640,height:360},format:'I420',colorSpace:{},timestamp:1,duration:1,close(){}});
+ s.advance(10000);assert.equal(await s.request(4),1);
+ assert.equal(s.messages.some(m=>m.error),false);
 });
 test('drain after idle gets an output wait window and successful flush returns EOF',async()=>{
  const s=await watchdogHarness();await s.request(2);s.decoder().decodeQueueSize=0;s.advance(10000);

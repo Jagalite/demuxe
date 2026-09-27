@@ -13,3 +13,4 @@ export { SoftwarePreviewProvider } from './preview/software.js';
 export type { PreparationComponent, PreparationOptions, PreparationAsset, PreparationReport, PreparationProgress } from './types.js';
 export type { PreviewPregeneration } from './types.js';
 export type { TrackPolicy, TrackTypePolicy, TrackMatch } from './types.js';
+export type { WatchdogOptions, WatchdogPolicy } from './types.js';

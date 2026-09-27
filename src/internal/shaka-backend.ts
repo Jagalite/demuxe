@@ -61,6 +61,8 @@ function runtimeAt(base:URL,signal:AbortSignal):Promise<typeof Shaka> {
 /** Shaka exclusively owns adaptive manifests, scheduling, ABR and MediaSource.
  * NativePlayer supplies only media-element controls, output verification and gain. */
 export class ShakaBackend extends EventTarget implements Backend {
+  setWatchdogs(policy:import('../types.js').WatchdogPolicy){this.native.setWatchdogs(policy);}
+  nativeProgressSample(){return this.native.nativeProgressSample();}
   readonly ready=Promise.resolve();
   readonly properties=new Map<string,unknown>();
   private native:NativePlayer;

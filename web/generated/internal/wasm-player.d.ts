@@ -3,6 +3,7 @@ import type { BufferingPolicy, BufferingResolution } from '../types.js';
 import type { AudioOutput, FontAsset, ResourceLimits, SubtitleAsset, MediaInputOptions, StreamingOptions } from '../types.js';
 import type { ExternalDecodeIntent } from './external-decoder-selection.js';
 import type { DecodeQuality } from './decode-policy.js';
+import type { WatchdogPolicy } from '../types.js';
 export type PlayerEvent = {
     event: string;
     id?: number;
@@ -80,6 +81,9 @@ export declare class WasmPlayer extends EventTarget {
     private gainValue;
     private timing?;
     private lastTiming?;
+    private watchdogs;
+    private initSent;
+    setWatchdogs(policy: WatchdogPolicy): void;
     private nextId;
     private pending;
     private destroyed;

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Player } from '../unified-player.js';
+import type { WatchdogOptions, WatchdogPolicy } from '../types.js';
 import type { TrackPolicy } from '../types.js';
 import type { PreviewOptions, MediaSourceInput, OpenOptions, SubtitleOptions } from '../types.js';
 declare const Base: typeof HTMLElement;
@@ -114,6 +115,9 @@ export declare class DemuxePlayerElement extends Base {
     private lastSource?;
     private lastOptions?;
     private trackConfiguration;
+    private watchdogConfiguration;
+    get watchdogs(): WatchdogPolicy;
+    set watchdogs(value: boolean | WatchdogOptions);
     get trackPolicy(): TrackPolicy;
     set trackPolicy(value: TrackPolicy);
     private resolveReady;

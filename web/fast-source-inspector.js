@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Bounded local-file metadata for Demuxe route admission. Unknown means FFmpeg
 // inspection must decide. Read-ahead can include payload bytes, but only
-// container metadata is parsed; no packet iteration or sample-table parsing.
+// container metadata is parsed; bounded timing-table runs are read for Native
+// health evidence, without packet iteration or sample-offset expansion.
 const MAX_META = 1024 * 1024, MAX_READS = 8, MAX_BYTES = 512 * 1024;
 const READ_AHEAD = 64 * 1024, MAX_SCAN_MS = 50, IO_TIMEOUT_MS = 3000;
 const dec = new TextDecoder('latin1');
@@ -203,6 +204,59 @@ function audioEntry(type, b, a, z) {
   if (type === 'sowt' || type === 'lpcm') return {codec: 'pcm_s16le'};
   unknown('Unsupported ISO audio ' + type);
 }
+// A maximum presentation gap, not an average frame rate. Failure to prove it
+// leaves clock-only monitoring and does not change source admission.
+function isoFrameTiming(b,track,media,table,check) {
+  try {
+    const [ma,mz]=media,version=b[ma];
+    if(version>1||mz-ma<(version?34:22))return;
+    const scale=u32(b,ma+(version?20:12));if(!scale)return;
+    const [sa,sz]=box(b,...table,'stts');
+    if(sz-sa<8||u32(b,sa)!==0)return;
+    const count=u32(b,sa+4);if(!count||count>4096||sz-sa!==8+count*8)return;
+    let samples=0,ticks=0,maxDelta=0;
+    for(let i=0;i<count;i++){
+      if(!(i%256))check();
+      const n=u32(b,sa+8+i*8),delta=u32(b,sa+12+i*8);
+      if(!n||!delta)return;
+      samples+=n;ticks+=n*delta;maxDelta=Math.max(maxDelta,delta);
+      if(!Number.isSafeInteger(ticks)||samples>0xffffffff)return;
+    }
+    const [za,zz]=box(b,...table,'stsz');
+    if(zz-za<12||u32(b,za)!==0||u32(b,za+8)!==samples)return;
+    let minOffset=0,maxOffset=0,composition,edits;
+    eachBox(b,...table,(name,a,z)=>{if(name==='ctts'){if(composition)throw Error('Duplicate ctts');composition=[a,z];}});
+    if(composition){
+      const [a,z]=composition,v=b[a],n=u32(b,a+4);
+      if(z-a<8||v>1||(u32(b,a)&0xffffff)||!n||n>4096||z-a!==8+n*8)return;
+      let total=0;minOffset=Infinity;maxOffset=-Infinity;
+      for(let i=0;i<n;i++){
+        if(!(i%256))check();
+        const c=u32(b,a+8+i*8),raw=u32(b,a+12+i*8),offset=v?raw|0:raw;
+        if(!c)return;total+=c;minOffset=Math.min(minOffset,offset);maxOffset=Math.max(maxOffset,offset);
+      }
+      if(total!==samples)return;
+    }
+    let mediaStart=0,editEnd=Infinity;
+    eachBox(b,...track,(name,a,z)=>{if(name==='edts'){if(edits)throw Error('Duplicate edits');edits=[a,z];}});
+    if(edits){
+      const [a,z]=box(b,...edits,'elst'),v=b[a];
+      if(v>1||u32(b,a+4)!==1||z-a!==(v?28:20)||u32(b,a+(v?24:16))!==65536)return;
+      const view=new DataView(b.buffer,b.byteOffset,b.byteLength);
+      const duration=v?Number(view.getBigUint64(a+8)):u32(b,a+8);
+      mediaStart=v?Number(view.getBigInt64(a+16)):view.getInt32(a+12);
+      if(mediaStart<0||!Number.isSafeInteger(mediaStart)||!Number.isSafeInteger(duration))return;
+      const [m,e]=box(b,0,b.length,'mvhd'),mv=b[m];
+      if(mv>1||e-m<(mv?32:20))return;
+      const movieScale=u32(b,m+(mv?20:12));if(!movieScale)return;
+      editEnd=duration/movieScale;
+    }
+    const startTime=Math.max(0,(minOffset-mediaStart)/scale);
+    const endTime=Math.min(editEnd,(ticks+minOffset-mediaStart)/scale);
+    const maxIntervalSeconds=(maxDelta+maxOffset-minOffset)/scale;
+    if(Number.isFinite(endTime)&&endTime>startTime&&maxIntervalSeconds>0)return {startTime,endTime,maxIntervalSeconds};
+  }catch{/* Incomplete, oversized or complex timing retains clock-only checks. */}
+}
 async function iso(src) {
   let moov = null, ftyp = false, mdat = false;
   for (let p = 0, n = 0; p < src.file.size;) {
@@ -282,6 +336,8 @@ async function iso(src) {
       if (!width || !height) unknown('Video dimensions absent');
       record = {id, index, type: kind, default: true, forced: false, lang, title: '', width, height,
         ...videoString(entryType, moov, data + 78, end)};
+      const frameTiming=isoFrameTiming(moov,[a,z],[mda,mdz],[sta,stz],()=>src.check());
+      if(frameTiming)record.frameTiming=frameTiming;
     } else if (kind === 'audio') {
       if (moov[data + 8] || moov[data + 9]) unknown('Complex ISO audio sample entry');
       const channels = u16(moov, data + 16), sampleRate = u32(moov, data + 24) >>> 16;

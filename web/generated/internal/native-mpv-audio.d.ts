@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { WasmPlayer } from './wasm-player.js';
 import type { RemoteSource } from '../types.js';
+import type { WatchdogPolicy } from '../types.js';
 /** Browser presentation clock with isolated mpv demux/decode and timestamped PCM. */
 export declare class NativeMpvAudio extends EventTarget {
     private video;
@@ -22,6 +23,9 @@ export declare class NativeMpvAudio extends EventTarget {
     private effectiveRate;
     private resumeRate?;
     private driftTimer?;
+    private watchdogs;
+    private lastObservation?;
+    setWatchdogs(policy: WatchdogPolicy): void;
     private sustained;
     private release;
     private soft;

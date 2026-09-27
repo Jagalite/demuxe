@@ -219,6 +219,7 @@ function tick() {
   } catch (error) {pumpFailed=true;clearInterval(timer);post({type:'error',message:String(error.stack || error)}); }
 }
 self.onmessage = async ({data}) => {
+  if(data.type==='watchdogs')return; // This public Software route has no external decoder watchdog.
   if(profileEnabled)profile.workerMessages++;
   try {
     if (data.type === 'init') {

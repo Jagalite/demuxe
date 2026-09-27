@@ -4,6 +4,7 @@ import { plainVTT, BrowserCaptionUnsupported } from './plain-vtt.js';
 import { observeBrowserAudio } from './browser-evidence-adapters.js';
 import { nativeMediaError, compatibilityFailure, StartupEvidenceTimeout, NativeLoadTimeout } from './runtime-capability.js';
 import { PlayerError } from './errors.js';
+import { watchdogPolicy } from './watchdogs.js';
 /** Browser media ownership, including listeners, pending loads and object URLs. */
 export class NativePlayer extends EventTarget {
     video;
@@ -104,6 +105,26 @@ export class NativePlayer extends EventTarget {
     subsVisible = true;
     cancelers = new Set();
     listeners = [];
+    watchdogs = watchdogPolicy();
+    setWatchdogs(policy) { this.watchdogs = policy; this.mpvAudio?.setWatchdogs(policy); }
+    nativeProgressSample() {
+        const video = this.video, time = this.sourceTime(), duration = this.sourceDuration(), rate = video.playbackRate;
+        if (this.stopped || this.opening || this.capability.outputVerified !== true || video.paused || video.seeking || video.ended || video.error || video.readyState < 3 || rate <= 0 || duration > 0 && time >= duration - .25)
+            return { eligible: false, time, rate };
+        // buffered is a browser snapshot getter. Read it once, not per range bound.
+        const buffered = video.buffered, mediaTime = video.currentTime;
+        let ahead = 0;
+        for (let i = 0; i < buffered.length; i++)
+            if (mediaTime >= buffered.start(i) && mediaTime <= buffered.end(i)) {
+                ahead = buffered.end(i) - mediaTime;
+                break;
+            }
+        if (ahead < .5 * rate)
+            return { eligible: false, time, rate };
+        const quality = video.getVideoPlaybackQuality?.();
+        return { eligible: true,
+            time, rate, frames: quality && video.videoWidth > 0 ? quality.totalVideoFrames - quality.droppedVideoFrames : undefined, videoEnd: this.remux?.trackBounds?.videoEnd };
+    }
     constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack, nativeASS = false, fonts = [], requestedPlan, buffering = bufferingPolicy(), loadTimeoutMs = 25000, defaultSubtitleStreamIndex) {
         super();
         this.video = video;
@@ -491,6 +512,7 @@ export class NativePlayer extends EventTarget {
             this.assertActive();
             this.video.muted = true;
             this.mpvAudio = new NativeMpvAudio(this.video, () => this.sourceTime(), this.assetBase, error => this.emit('error', error));
+            this.mpvAudio.setWatchdogs(this.watchdogs);
             await this.mpvAudio.open(source, this.initialAudioTrack);
             this.assertActive();
             await this.mpvAudio.volume(this.requestedVolume);

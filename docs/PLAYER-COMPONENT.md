@@ -21,6 +21,14 @@ poster is an idle/loading preview. asset-base is fixed
 after initialization and rejects changes. Set it before connection. Pre-upgrade
 properties are replayed on upgrade. Boolean attributes follow HTML presence rules.
 
+`element.watchdogs` accepts the same boolean or per-feature policy as
+`PlayerOptions.watchdogs`. Set it before connection or update it at runtime;
+the setting survives reconnection. For example, `element.watchdogs = false`
+disables all playback-health watchdogs, while
+`element.watchdogs = {nativeProgress: false}` disables only Native progress
+monitoring. This is a JavaScript property, not an HTML attribute. Operation and
+network deadlines remain bounded; see [Playback watchdogs](PUBLIC-API.md#playback-watchdogs).
+
 A microtask grace period preserves playback during synchronous DOM moves. Actual
 removal aborts work and destroys the owned core; reconnect waits for that cleanup
 before creating the next core. Explicit destroy is terminal, including reinsertion.
