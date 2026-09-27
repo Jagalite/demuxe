@@ -127,3 +127,13 @@ test('FLAC24 source admission follows the selected stream and finite file constr
  assert.match(audioTranscodeRejection({...probe,format:'mpegts'},{aid:'2'}),/file/);
  assert.match(audioTranscodeRejection({...probe,tracks:[probe.tracks[0],{...probe.tracks[1],channels:0}]},{aid:'2'}),/channel/);
 });
+
+test('private remux opt-in admits file preparation without admitting mpv or transforms',()=>{
+ const decisions=planAdmission({...facts,isolated:false,privateRemux:true,requiresRemux:true});
+ assert.ok(decisions.find(p=>p.id==='native-remux').eligible);
+ for(const isolated of [false,true])for(const p of planAdmission({...facts,isolated,privateRemux:true})){
+  if(p.mode!=='native'||p.id.includes('mpv')||p.id.includes('ass'))assert.equal(p.eligible,false,p.id);
+ }
+ assert.equal(planAdmission({...facts,isolated:false,requiresRemux:true}).find(p=>p.id==='native-remux').eligible,false);
+ assert.equal(planAdmission({...facts,isolated:false,privateRemux:true,manifest:true}).find(p=>p.id==='native-remux').eligible,false);
+});

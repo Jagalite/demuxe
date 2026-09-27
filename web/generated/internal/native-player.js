@@ -19,6 +19,7 @@ export class NativePlayer extends EventTarget {
     buffering;
     loadTimeoutMs;
     defaultSubtitleStreamIndex;
+    remuxRuntime;
     ready = Promise.resolve();
     properties = new Map();
     stopped = false;
@@ -129,7 +130,7 @@ export class NativePlayer extends EventTarget {
         return { eligible: true,
             time, rate, frames: quality && video.videoWidth > 0 ? quality.totalVideoFrames - quality.droppedVideoFrames : undefined, videoEnd: this.remux?.trackBounds?.videoEnd };
     }
-    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack, nativeASS = false, fonts = [], requestedPlan, buffering = bufferingPolicy(), loadTimeoutMs = 25000, defaultSubtitleStreamIndex) {
+    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack, nativeASS = false, fonts = [], requestedPlan, buffering = bufferingPolicy(), loadTimeoutMs = 25000, defaultSubtitleStreamIndex, remuxRuntime = 'pthread') {
         super();
         this.video = video;
         this.remuxPolicy = remuxPolicy;
@@ -143,6 +144,7 @@ export class NativePlayer extends EventTarget {
         this.buffering = buffering;
         this.loadTimeoutMs = loadTimeoutMs;
         this.defaultSubtitleStreamIndex = defaultSubtitleStreamIndex;
+        this.remuxRuntime = remuxRuntime;
         video.playsInline = true;
         video.preload = this.buffering.preload;
         for (const event of ['timeupdate', 'durationchange', 'loadedmetadata', 'play', 'pause', 'volumechange', 'ratechange', 'ended', 'waiting', 'playing', 'progress', 'seeking', 'seeked', 'resize']) {
@@ -456,7 +458,7 @@ export class NativePlayer extends EventTarget {
                 this.remux = undefined;
                 this.assertActive();
             }
-            this.remux ??= new RemuxPlayer(this.video, { buffering: { ...resolveBuffering(this.buffering, 'remux'), preload: this.buffering.preload }, bufferedSeeks: this.bufferedSeeks, audioAdaptation: adapted ? this.audioAdaptation : undefined, mseOwner: this.requestedPlan === 'native-remux-mpv' || this.selectiveAudio ? 'window' : 'auto' });
+            this.remux ??= new RemuxPlayer(this.video, { buffering: { ...resolveBuffering(this.buffering, 'remux'), preload: this.buffering.preload }, bufferedSeeks: this.bufferedSeeks, runtime: this.remuxRuntime, audioAdaptation: adapted ? this.audioAdaptation : undefined, mseOwner: this.requestedPlan === 'native-remux-mpv' || this.selectiveAudio ? 'window' : 'auto' });
             this.remux.onBufferingChange = () => { if (!this.stopped)
                 this.refresh(); };
             this.remux.audioAdaptation = adapted ? this.audioAdaptation : undefined;

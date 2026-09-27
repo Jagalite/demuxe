@@ -1,8 +1,10 @@
 # Local main integration
 
-This import brings the reviewed JSPI/Asyncify components, build tooling, tests and
-evidence onto local `main`. It does not register a production Player runtime or
-enable automatic selection. The existing Player runtime remains the default.
+The reviewed components are now connected to the production Player through the
+explicit `experimentalRemuxRuntime` option. The default remains `pthread`.
+Private JSPI/Asyncify admission is limited to plain file Direct, Remux and
+FLAC24 audio-transcode routes; private mpv, subtitles, Hybrid and Software
+playback are not enabled. Direct playback does not exercise either Wasm runtime.
 
 The imported work starts at `e7a8d02d` and includes component commits `7af31503`
 and `ede8750e`, followed by review fixes in `4d02ab32`. The original supplied
@@ -39,18 +41,41 @@ original local build directories. Build commands and hashes are preserved in the
 component documentation and results. Keep those directories and the experiment
 worktree until new builds and browser campaigns supersede their evidence.
 
-## Production Player wiring still required
+## Local opt-in Player integration
 
-1. Add explicit opt-in admission and runtime-specific asset/cache identities.
-2. Adapt synchronous service operations to serialized asynchronous calls, including
-   seek/flush acknowledgements, immediate source cancellation and terminal fault
-   disposal. Only capability failures may select a qualified alternative.
-3. Exercise the current Player API through playback, seeks, source replacement,
-   cancellation, teardown and recovery with each selected backend.
-4. Qualify compressed audio, multichannel/resampling fidelity, physical audio
-   output and latency, long media, memory pressure and additional browsers before
-   expanding admission or changing defaults.
+Install the verified local builds once into a runtime tree (existing destination
+folders are rejected):
 
-The experimental component Workers are test hosts. Copying their URLs into the
-production Player is not a supported integration. Nested network resources remain
-unsupported by the finite-source bridge.
+```sh
+python3 scripts/install-private-remux.py \
+  --builds /Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927 \
+  --runtime-root /Volumes/seed2/Projects/demuxe
+npm run build
+```
+
+```js
+const player = new Player(container, {
+  assetBase: '/demuxe/',
+  experimentalRemuxRuntime: 'jspi', // or 'asyncify'; default: 'pthread'
+});
+await player.open(source);
+await player.play();
+```
+
+The runtime uses separate `engine-remux-{runtime}` and
+`engine-adaptation-{runtime}` assets, private Wasm memory, serialized asynchronous
+FFmpeg operations and cancellable MessagePort reads. JSPI requires browser JSPI
+support. Asyncify runs with both JSPI APIs disabled in its service Worker.
+Normal URL authorization and source identity checks remain in the source reader.
+Unsupported routes fail admission rather than selecting a pthread service.
+The finite-source bridge does not support nested network resources.
+
+These extra engines are installed locally; the standard release packaging does
+not yet include them. This is an experimental opt-in, not a default/runtime
+support expansion. The [Player benchmark report](../../../docs/JSPI-ASYNCIFY-PLAYER-CPU.md)
+records exact qualified fixtures, asset hashes, browser checks and CPU evidence.
+
+Private mpv Player wiring, broad codec and browser coverage, multichannel and
+resampling fidelity, physical audio output and latency, long media and memory
+pressure remain unqualified. Historical mpv component results above do not
+establish those Player capabilities.

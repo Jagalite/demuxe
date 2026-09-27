@@ -205,6 +205,8 @@ export type PlayerOptions = {
         maxKnownBytes: number;
     };
     nativeRemux?: 'auto' | 'never' | 'always';
+    /** Opt-in private-memory FFmpeg remux/transcode runtime. Does not select mpv or Software. */
+    experimentalRemuxRuntime?: 'pthread' | 'jspi' | 'asyncify';
     /** Software chooses YUV for qualified decoded frames and RGB otherwise.
      * `rgb` is a comparison/compatibility override; the older experimental value
      * remains an alias for the same qualified YUV policy. */

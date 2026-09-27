@@ -82,7 +82,9 @@ export function planAdmission(f) {
         const reject = (c, r) => { code = c; reason = r; };
         const gain = plan.id.endsWith('-gain'), ass = plan.id.includes('-ass'), flac = plan.id.startsWith('native-flac'), opus = plan.id.startsWith('native-opus');
         const effect = featureRejection(plan.mode, { ...f });
-        if (effect)
+        if (f.privateRemux && !['native-direct', 'native-remux', 'native-transcode'].includes(plan.id))
+            reject('QUALIFICATION_REQUIRED', 'Private FFmpeg runtime is limited to plain file Direct, Remux and FLAC24 playback');
+        else if (effect)
             reject('FEATURE_UNSUPPORTED', effect);
         else if (gain !== (f.gain !== 1))
             reject('PLAN_NOT_REQUESTED', 'Gain stage does not match the requested presentation');
@@ -93,7 +95,7 @@ export function planAdmission(f) {
                 reject('PLAN_NOT_REQUESTED', 'Automatic transcoding is disabled by the audio policy');
             else if (f.transcodeSourceRejection)
                 reject('SOURCE_UNSUPPORTED', f.transcodeSourceRejection);
-            else if (!f.isolated)
+            else if (!f.isolated && !f.privateRemux)
                 reject('ISOLATION_REQUIRED', 'Audio transcoding requires cross-origin isolation');
             else if (!f.mse || f.nativeRemux === 'never')
                 reject('DEPLOYMENT_UNAVAILABLE', 'Audio transcoding requires permitted MSE');
@@ -182,7 +184,7 @@ export function planAdmission(f) {
                 reject('ISOLATION_REQUIRED', 'Native libass requires cross-origin isolation');
             else if (prepared && f.manifest)
                 reject('QUALIFICATION_REQUIRED', 'File preparation is not qualified for manifest sources');
-            else if (prepared && !f.isolated)
+            else if (prepared && !f.isolated && !f.privateRemux)
                 reject('ISOLATION_REQUIRED', 'Native preparation requires cross-origin isolation');
             else if (prepared && (f.nativeRemux === 'never' || !f.mse))
                 reject('DEPLOYMENT_UNAVAILABLE', 'Native preparation requires permitted MSE');

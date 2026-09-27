@@ -1,0 +1,39 @@
+// SPDX-License-Identifier: Apache-2.0
+import type {RemoteSource, TextTrackSource, TrackType, SubtitleAsset, MediaInputOptions} from '../types.js';
+export interface Backend extends EventTarget {
+  setWatchdogs?(policy:import('../types.js').WatchdogPolicy):void;
+  nativeProgressSample?():import('./watchdogs.js').NativeProgressSample;
+  previewFrame?(request:import('../preview/controller.js').PreviewContext):Promise<import('../preview/controller.js').PreviewResult|null>;
+  streamingState?():import('../types.js').StreamingState;
+  setAudioOutputDevice?(id:string):Promise<void>;
+  setQuality?(policy:import('../types.js').QualityPolicy):Promise<void>;
+  seekToLive?():Promise<void>;
+  readonly ready: Promise<void>;
+  readonly properties: Map<string, unknown>;
+  // Cheap control-plane reads must not collect playback diagnostics.
+  readonly planId?: string;
+  readonly bufferingDiagnostics?: import('../types.js').BufferingResolution;
+  readonly diagnostics?: object;
+  open(file: File | ArrayBuffer, options?: MediaInputOptions): Promise<void>;
+  openRemote(source: RemoteSource): Promise<void>;
+  play(): Promise<void>;
+  pause(): Promise<void>;
+  seek(seconds: number): Promise<void>;
+  rate(value: number): Promise<void>;
+  volume(value: number): Promise<void>;
+  gain?(value:number): Promise<void>;
+  selectTrack(type: TrackType, id: string): Promise<void>;
+  subtitleVisible(visible: boolean): Promise<void>;
+  resize(width: number, height: number): void;
+  command?(...args: string[]): Promise<void>;
+  addTextTrack?(track: TextTrackSource, attachmentId?:string): Promise<void>;
+  addSubtitle?(subtitle: SubtitleAsset): Promise<void>;
+  startupEvidence?():import('./runtime-capability.js').CapabilityEvidence;
+  audioDiagnostics(): object;
+  destroy(): Promise<void>;
+}
+export type Session = {backend: Backend; surface: HTMLCanvasElement | HTMLVideoElement; error?: Error; retired?:boolean};
+
+export function backendPlan(backend?:Backend):string|undefined {
+  return backend?.planId ?? (backend?.diagnostics as {plan?:string}|undefined)?.plan;
+}

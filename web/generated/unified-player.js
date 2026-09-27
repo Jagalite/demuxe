@@ -89,7 +89,7 @@ export class Player extends EventTarget {
     promotionRunning = false;
     promotionController;
     backgroundPromotion;
-    tierConfiguration(settings = this.settings) { return JSON.stringify([settings.aid, settings.sid, settings.subtitles, settings.vf, settings.af, settings.gain, this.toneMapping, this.audioOutput, this.audioPlayback, this.nativeRemux, this.mpvSubtitles, this.nativeASS, this.fonts.length, this.subtitleAssets.length, [...this.publicSelections]]); }
+    tierConfiguration(settings = this.settings) { return JSON.stringify([settings.aid, settings.sid, settings.subtitles, settings.vf, settings.af, settings.gain, this.toneMapping, this.audioOutput, this.audioPlayback, this.nativeRemux, this.remuxRuntime, this.mpvSubtitles, this.nativeASS, this.fonts.length, this.subtitleAssets.length, [...this.publicSelections]]); }
     cancelPromotion() { clearTimeout(this.promotionTimer); this.promotionEpoch++; this.promotionController?.abort(); if (this.promotionRunning) {
         this.activeOperation?.controller.abort();
         this.inspection?.abort();
@@ -181,6 +181,9 @@ export class Player extends EventTarget {
     planDecisions = [];
     admissionContext = { automatic: false };
     nativeRemux;
+    remuxRuntime;
+    get privateRemux() { return this.remuxRuntime !== 'pthread'; }
+    get canInspectFFmpeg() { return globalThis.crossOriginIsolated === true || this.privateRemux; }
     softwarePresenter;
     decodeQuality;
     adaptiveFrameDrop;
@@ -358,6 +361,9 @@ export class Player extends EventTarget {
         if (this.audioAdaptation === 'opus' && options.allowLossyAudio !== true)
             throw new PlayerError('INVALID_ARGUMENT', 'Opus adaptation requires allowLossyAudio: true');
         this.nativeRemux = options.nativeRemux ?? 'auto';
+        this.remuxRuntime = options.experimentalRemuxRuntime ?? 'pthread';
+        if (!['pthread', 'jspi', 'asyncify'].includes(this.remuxRuntime))
+            throw new PlayerError('INVALID_ARGUMENT', 'Invalid experimental remux runtime');
         this.softwarePresenter = options.softwarePresenter ?? 'auto';
         this.decodeQuality = options.decodeQuality ?? 'exact';
         this.adaptiveFrameDrop = options.adaptiveFrameDrop ?? false;
@@ -565,7 +571,7 @@ export class Player extends EventTarget {
     get properties() { return this.current?.backend.properties ?? this.empty; }
     get capabilities() { return this.stateSnapshot?.capabilities ?? this.featureCapabilities(null, 0, 0); }
     get legacyCapabilities() {
-        return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native' || ['remux-mpv', 'direct-mpv'].includes(backendPlan(this.current?.backend) ?? ''), externalTextTracks: this.mode === 'native', externalSubtitles: true, customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: backendPlan(this.current?.backend) === 'shaka-mse' || this.mode !== 'native' || (this.nativeRemux !== 'never' && crossOriginIsolated && typeof MediaSource !== 'undefined') };
+        return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native' || ['remux-mpv', 'direct-mpv'].includes(backendPlan(this.current?.backend) ?? ''), externalTextTracks: this.mode === 'native', externalSubtitles: true, customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: backendPlan(this.current?.backend) === 'shaka-mse' || this.mode !== 'native' || (this.nativeRemux !== 'never' && this.canInspectFFmpeg && typeof MediaSource !== 'undefined') };
     }
     bufferingResolution() {
         const cheap = this.current?.backend.bufferingDiagnostics;
@@ -755,7 +761,7 @@ export class Player extends EventTarget {
         try {
             const subtitleTracks = this.sourceInspection?.probe.tracks.filter(t => t.type === 'sub') ?? [];
             const defaultSubtitleStreamIndex = (subtitleTracks.find(t => t.default) ?? subtitleTracks[0])?.index;
-            backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? undefined : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering, loadTimeoutMs, defaultSubtitleStreamIndex) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture) });
+            backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? undefined : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering, loadTimeoutMs, defaultSubtitleStreamIndex, this.remuxRuntime) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture) });
         }
         catch (error) {
             surface.remove();
@@ -889,7 +895,7 @@ export class Player extends EventTarget {
             adaptationSourceQualified: source.kind === 'local' && this.losslessInspection?.source === source && !this.losslessInspection.reason,
             audioOutput: this.audioOutput, nativeRemux: this.nativeRemux, manifest: !!remote?.format && remote.format !== 'file',
             requiresRemux: !!(remote && (remote.headers || remote.refreshAuthorization || remote.allowedOrigins || remote.immutable !== undefined || remote.credentials === 'omit' || !!(settings.subtitles && selectiveSubtitle))),
-            isolated: globalThis.crossOriginIsolated === true, mse: typeof MediaSource !== 'undefined', webCodecs: typeof VideoDecoder !== 'undefined', webAudio: typeof AudioContext !== 'undefined',
+            privateRemux: this.privateRemux, isolated: globalThis.crossOriginIsolated === true, mse: typeof MediaSource !== 'undefined', webCodecs: typeof VideoDecoder !== 'undefined', webAudio: typeof AudioContext !== 'undefined',
             nativeSourceRejection: remote?.format && remote.format !== 'file' ? nativeManifestRejection(remote, settings, !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')) : nativeSourceRejection });
         if (inspected) {
             const element = document.createElement('video');
@@ -1274,7 +1280,7 @@ export class Player extends EventTarget {
             const { probeSource } = await this.interruptible(import(new URL('web/source-probe.js', this.assetBase).href));
             const transport = source.kind === 'local' ? { file: source.file instanceof File ? source.file : new File([source.file], 'media') } : (() => { const { refreshAuthorization, ...options } = source.options; return { options: { ...options, url: new URL(options.url, location.href).href }, refreshAuthorization }; })();
             const compiledWasm = await this.interruptible(this.preparation?.readyModule('engine-remux') ?? Promise.resolve(undefined));
-            const probe = await probeSource(transport, controller.signal, undefined, compiledWasm);
+            const probe = await probeSource(transport, controller.signal, undefined, this.privateRemux ? undefined : compiledWasm, this.remuxRuntime);
             this.assertOperation();
             this.sourceInspection = { source, probe, settings: { aid: settings.aid, sid: settings.sid, subtitles: settings.subtitles } };
         }
@@ -1294,7 +1300,7 @@ export class Player extends EventTarget {
         const transport = source.kind === 'local' ? { file: source.file instanceof File ? source.file : new File([source.file], 'media') } : (() => { const { refreshAuthorization, ...options } = source.options; return { options: { ...options, url: new URL(options.url, location.href).href }, refreshAuthorization }; })();
         const compiledWasm = await this.interruptible(this.preparation?.readyModule('engine-remux') ?? Promise.resolve(undefined));
         this.assertOperation();
-        const probe = await probeSource(transport, controller.signal, undefined, compiledWasm);
+        const probe = await probeSource(transport, controller.signal, undefined, this.privateRemux ? undefined : compiledWasm, this.remuxRuntime);
         this.assertOperation();
         return probe;
     }
@@ -1329,7 +1335,7 @@ export class Player extends EventTarget {
     }
     async inspectFallbackAfterFastFailure(source, settings) {
         this.fastInspectedSource = undefined;
-        if (!globalThis.crossOriginIsolated) {
+        if (!this.canInspectFFmpeg) {
             this.sourceInspection = undefined;
             this.mpvSubtitleAssetsAvailable = false;
             this.selectiveAudioAssetsAvailable = false;
@@ -1377,7 +1383,7 @@ export class Player extends EventTarget {
                     const { probeSource } = await this.interruptible(import(new URL('web/source-probe.js', this.assetBase).href));
                     const transport = source.kind === 'local' ? { file: source.file instanceof File ? source.file : new File([source.file], 'media') } : (() => { const { refreshAuthorization, ...options } = source.options; return { options: { ...options, url: new URL(options.url, location.href).href }, refreshAuthorization }; })();
                     const compiledWasm = await this.interruptible(this.preparation?.readyModule('engine-remux') ?? Promise.resolve(undefined));
-                    const probe = await probeSource(transport, controller.signal, undefined, compiledWasm);
+                    const probe = await probeSource(transport, controller.signal, undefined, this.privateRemux ? undefined : compiledWasm, this.remuxRuntime);
                     this.assertOperation();
                     this.sourceInspection = { source, probe, settings: { aid: settings.aid, sid: settings.sid, subtitles: settings.subtitles } };
                 }
@@ -1451,7 +1457,7 @@ export class Player extends EventTarget {
                         }
                     }
                     this.assertOperation();
-                    if (!probe && globalThis.crossOriginIsolated)
+                    if (!probe && this.canInspectFFmpeg)
                         probe = await this.inspectWithFFmpeg(source, controller);
                     if (!probe)
                         this.record({ mode: 'probe', outcome: 'skipped', reason: 'Wasm inspection requires cross-origin isolation; browser-native routes remain available' });
@@ -1486,7 +1492,7 @@ export class Player extends EventTarget {
                                     this.selectiveAudioAssetsChecked = false;
                                     this.transcodeAssetsAvailable = false;
                                     this.transcodeAssetsChecked = false;
-                                    if (globalThis.crossOriginIsolated) {
+                                    if (this.canInspectFFmpeg) {
                                         probe = await this.inspectWithFFmpeg(source, controller);
                                         continue;
                                     }
@@ -1595,7 +1601,7 @@ export class Player extends EventTarget {
                     const controller = this.inspection = new AbortController();
                     try {
                         const { probeSource } = await this.interruptible(import(new URL('web/source-probe.js', this.assetBase).href));
-                        const probe = await probeSource({ file: source.file instanceof File ? source.file : new File([source.file], 'media') }, controller.signal, 'flac');
+                        const probe = await probeSource({ file: source.file instanceof File ? source.file : new File([source.file], 'media') }, controller.signal, 'flac', undefined, this.remuxRuntime);
                         this.assertOperation();
                         this.losslessInspection = { source, reason: losslessAdaptationRejection(probe, inspected.settings) };
                     }
@@ -1612,7 +1618,7 @@ export class Player extends EventTarget {
             if (automatic && plan.id.startsWith('native-transcode') && !this.transcodeAssetsChecked && this.audioPlayback === 'auto' && !this.audioAdaptation && !this.automaticLossless && plan.code === 'DEPLOYMENT_UNAVAILABLE' && plan.reason === 'FLAC24 preparation assets are unavailable') {
                 const controller = this.inspection = new AbortController();
                 try {
-                    this.transcodeAssetsAvailable = await this.optionalAssetsAvailable(['web/engine-adaptation/remux.mjs', 'web/engine-adaptation/remux.wasm'], controller);
+                    this.transcodeAssetsAvailable = await this.optionalAssetsAvailable(['mjs', 'wasm'].map(ext => `web/engine-adaptation${this.privateRemux ? '-' + this.remuxRuntime : ''}/remux.${ext}`), controller);
                     this.assertOperation();
                     this.transcodeAssetsChecked = true;
                 }

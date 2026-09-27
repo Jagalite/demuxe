@@ -1101,6 +1101,7 @@ export type PlanFacts = {
     manifest: boolean;
     requiresRemux: boolean;
     isolated: boolean;
+    privateRemux?: boolean;
     mse: boolean;
     webCodecs: boolean;
     webAudio: boolean;

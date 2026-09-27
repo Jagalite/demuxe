@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: Apache-2.0
+// Stateless component templates. Behavior binds once to their persistent nodes.
+export const topBar = () => `<div id="topbar" class="topbar" part="topbar"><span id="title" class="player-title" part="title" hidden></span><span class="space"></span><div id="utility-actions" class="utility-actions" part="actions"><button id="diagnostics-toggle" aria-pressed="false" aria-controls="diagnostics-overlay"></button><button id="open-menu" aria-expanded="false" aria-controls="settings"></button><button id="settings-toggle" aria-expanded="false" aria-controls="settings"></button><button id="fullscreen" part="fullscreen-button"></button></div></div>`;
+
+export const mediaStage = () => `<div id="stage" class="stage" part="stage" tabindex="0" aria-label="Playback area" aria-describedby="shortcuts-help"><div id="surface" class="surface"></div><img id="poster" class="poster" alt="" hidden><div id="empty" class="empty"><button id="open"></button></div><div id="busy" class="busy" aria-hidden="true" hidden></div></div>`;
+
+export const loadingIndicator = () => `<div id="buffering-indicator" class="buffering-indicator" aria-hidden="true" hidden><span></span></div>`;
+
+export const transport = () => `<div id="transport" part="transport" class="transport" hidden><button id="back" part="seek-back-button" disabled></button><button id="play" part="play-button" class="play" disabled></button><button id="forward" part="seek-forward-button" disabled></button></div>`;
+
+export const controlBar = () => `<div id="controls" class="controls" part="controls"><slot name="before-controls"></slot>${thumbnailPreview()}${seekBar()}<div id="control-row" class="times"><span id="time" part="current-time" class="time">0:00</span>${volumeControl()}<div id="queue-navigation" class="queue-navigation" hidden><button id="previous-file" type="button"></button><span id="queue-count"></span><button id="next-file" type="button"></button></div><span id="control-spacer" class="space"></span><span id="duration" part="duration" class="time">—</span></div><slot name="after-controls"></slot></div>`;
+
+export const settingsPanel = () => `<section id="settings" class="settings" part="settings" aria-labelledby="settings-title" hidden><header><strong id="settings-title"></strong><button id="settings-close"></button></header><div id="playback-options"><label class="check"><input id="preview-toggle" type="checkbox" checked><span id="previews-label"></span></label>${playbackRateSelector()}${trackSelector('audio')}${trackSelector('subtitles')}${appearanceSettings()}</div>${sourcePanel()}</section>`;
+
+export const errorOverlay = () => `<div id="error" class="notice" part="error" hidden><span id="error-text"></span><button id="retry"></button></div>`;
+
+export const diagnosticsOverlay = () => `<pre id="diagnostics-overlay" class="diagnostics-overlay" tabindex="0" role="region" hidden></pre>`;
+
+export const statusOverlay = () => `<div id="status" class="status" part="status" role="status" aria-live="polite" aria-atomic="true"></div>`;
+
+export const thumbnailPreview = () => `<div id="thumbnail-preview" class="thumbnail-preview" part="preview" aria-hidden="true" hidden><img id="thumbnail-image" alt=""><span id="thumbnail-time"></span></div>`;
+
+export const seekBar = () => `<input id="timeline" part="timeline" class="timeline" type="range" min="0" max="1" step="0.1" value="0" disabled>`;
+
+export const volumeControl = () => `<div id="volume-control" class="row" part="volume"><button id="mute" aria-pressed="false"></button><input id="volume" class="volume" type="range" min="0" max="1" step=".01" value="1"></div>`;
+
+export const playerShell = () => `<section id="shell" class="shell" part="container" aria-label="Media player">${topBar()}${mediaStage()}${loadingIndicator()}${transport()}${controlBar()}${settingsPanel()}${errorOverlay()}${diagnosticsOverlay()}${statusOverlay()}<p id="shortcuts-help" class="sr"></p></section>`;
+
+export const sourcePanel = () => `<div id="source-options" hidden><div class="media-picker" role="group" aria-labelledby="media-file-label"><span id="media-file-label"></span><span id="current-source"></span><button id="choose-file" type="button" aria-describedby="current-source"></button><input id="file" type="file" multiple hidden></div><slot id="source-actions" name="source-actions"></slot><section id="queue-section" class="queue-section" aria-labelledby="queue-heading" hidden><div class="queue-header"><strong id="queue-heading"></strong><button id="clear-queue" type="button"></button></div><ol id="queue-list"></ol></section><label class="subtitle-picker"><span id="subtitle-file-label"></span><input id="subtitleFile" type="file" accept=".srt,.ass,.ssa,.vtt"></label><form id="remote"><label><span id="url-label"></span><input id="url" type="url" placeholder="https://…" required></label><label><span id="format-label"></span><select id="format"><option value="file">File</option><option value="hls">HLS</option><option value="dash">DASH</option></select></label><label class="check"><input id="live" type="checkbox"><span id="live-label"></span></label><button id="url-submit" type="submit"></button></form></div>`;
+
+export const playbackRateSelector = () => `<label class="setting-row"><span id="speed-label"></span><select id="speed" part="rate-selector">${[.5,.75,1,1.25,1.5,1.75,2].map(n=>`<option value="${n}">${n}×</option>`).join('')}</select></label>`;
+
+export const trackSelector = (kind: 'audio' | 'subtitles') => `<label class="setting-row track-setting"><span id="${kind}-label"></span><select id="${kind}" part="${kind}-selector" disabled></select></label>`;
+
+export const appearanceSettings = () => `<fieldset class="appearance-settings"><legend id="appearance-label"></legend><label class="setting-row"><span id="layout-label"></span><select id="layout-select"><option value="classic"></option><option value="modern"></option></select></label><label class="setting-row"><span id="theme-label"></span><select id="theme-select"><option value="demuxe"></option><option value="light"></option></select></label></fieldset>`;

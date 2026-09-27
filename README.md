@@ -192,94 +192,95 @@ idle trends are in each row report.
 - 🟠 Plays: initial playback passed but a later check failed. 🔴 Fail: a playback check failed; this does not establish an unsupported codec.
 - 🟡 Screened: a bounded specialist check; its stated fidelity limits remain.
 - — Unqualified: the exact source fixture or reference output needed for that cell is unavailable.
+- **Demuxe JSPI** and **Demuxe Asyncify** measure complete Player playback with an experimental opt-in private FFmpeg runtime, without COOP/COEP. Qualification is limited to the measured file remux/transcode rows; `— Untested` makes no support claim. Private mpv, subtitles, Hybrid and Software are not enabled. The [Player CPU report](docs/JSPI-ASYNCIFY-PLAYER-CPU.md) contains matched pthread controls; existing Auto and other-player CPU values are from separate campaigns.
 - Blank CPU figures identify a fixture, correctness or CPU qualification gap; consult the row refresh index for its exact reason. N/A means no demonstrated playback result for this scope.
 
 See the [media comparison evidence guide](docs/MEDIA-COMPARISON-EVIDENCE.md) for
 campaign provenance, fixture and route differences, qualification limits, and raw
 reports. The [current measurement protocol](docs/BENCHMARK-PROTOCOL.md) governs new runs.
 
-| Media format | Demuxe (software decode) | Native video | Demuxe (auto) | Movi 0.4.0 (default) | AVPlayer 1.3.1 (default) | MediaBunny (player example) |
-| --- | --- | --- | --- | --- | --- | --- |
-| H.264 + AAC / MP4 | 🟢 (Pass) · 32.0% CPU | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · 13.0% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 32.4% CPU | 🟡 Screened · 34.6% CPU |
-| H.264 + AAC / MKV | 🟢 (Pass) · 27.4% CPU | 🟢 (Pass) · 9.3% CPU | 🟢 (Pass) · 9.6% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 28.3% CPU | 🟡 Screened · 33.8% CPU |
-| Dual-audio H.264 + AAC + AC-3 stereo / MKV | 🟢 (Pass) · 36.3% CPU | 🟢 (Pass) · 13.9% CPU · default AAC | 🟢 (Pass) · 14.0% CPU · native-direct; AC-3 switch: native-transcode (18.1% selected) | 🔴 (Fail) | 🟢 (Pass) · 32.8% CPU | 🟡 Screened · 35.3% CPU · primary track |
-| H.264 + PCM24 / MKV | 🟢 (Pass) · 26.6% CPU | 🟢 (Pass) · 9.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 32.5% CPU |
-| H.264 + PCM24 / MKV + ASS | 🟢 | 🟢 | 🟢 (Pass) · 19.8% CPU · native-direct-ass | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) · external ASS unavailable |
-| H.264 + AAC 5.1 / MP4 | 🟢 (Pass)* · 35.1% CPU | 🟢 (Pass)\* · 14.8% CPU | 🟢 (Pass)\* · 14.8% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)\* · 33.4% CPU | 🟡 Screened* · 37.2% CPU |
-| H.264 + MP3 stereo / MP4 | 🟢 (Pass) · 33.6% CPU | 🟢 (Pass) · 13.3% CPU | 🟢 (Pass) · 14.3% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 34.2% CPU | 🟡 Screened · 34.7% CPU |
-| H.264 + AC-3 5.1 / MKV | 🟢 (Pass)* · 36.6% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 17.5% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass)* | 🟡 Screened* |
-| H.264 + E-AC-3 5.1 / MKV | 🟢 (Pass)* · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 19.0% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass)\* · 32.8% CPU | 🟡 Screened* · 35.9% CPU |
-| H.264 + DTS core 5.1 / MKV | 🟢 (Pass)* · 37.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 19.2% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass)\* · 36.9% CPU | 🟡 Screened* · 38.5% CPU |
-| H.264 + AC-3 stereo / MKV | 🟢 (Pass) · 34.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 17.9% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass) · 32.9% CPU | 🟡 Screened · 33.8% CPU |
-| H.264 + E-AC-3 stereo / MKV | 🟢 (Pass) · 35.4% CPU | 🔴 (Fail) | 🟢 (Pass) · 16.5% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass) · 33.6% CPU | 🟡 Screened · 34.4% CPU |
-| H.264 + DTS core stereo / MKV | 🟢 (Pass) · 34.6% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.3% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass) · 37.8% CPU | 🟡 Screened · 35.5% CPU |
-| H.264 + FLAC stereo / MKV | 🟢 (Pass) · 34.7% CPU | 🟢 (Pass) · 13.2% CPU | 🟢 (Pass) · 13.7% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 33.7% CPU | 🟡 Screened · 33.1% CPU |
-| H.264 + FLAC 5.1 / MKV | 🟢 (Pass)* · 35.2% CPU | 🟢 (Pass)\* · 14.0% CPU | 🟢 (Pass)\* · 14.3% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)\* · 33.2% CPU | 🟡 Screened* · 33.7% CPU |
-| H.264 + Opus stereo / MKV | 🟢 (Pass) · 35.0% CPU | 🟢 (Pass) · 14.3% CPU | 🟢 (Pass) · 15.1% CPU · native-direct | 🟢 (Pass) · 30.2% CPU | 🟢 (Pass) · 35.3% CPU | 🟡 Screened · 35.2% CPU |
-| H.264 + PCM16 stereo / MKV | 🟢 (Pass) · 34.8% CPU | 🟢 (Pass) · 12.9% CPU | 🟢 (Pass) · 14.2% CPU · native-direct | 🟢 (Pass) · 33.2% CPU | 🔴 (Fail) | 🟡 Screened · 32.5% CPU |
-| H.264 + PCM24 5.1 / MKV | 🟢 (Pass)* · 34.8% CPU | 🟢 (Pass)\* · 13.4% CPU | 🟢 (Pass)\* · 13.9% CPU · native-direct | 🟢 (Pass)\* · 26.1% CPU | 🔴 (Fail) | 🟡 Screened* · 34.5% CPU |
-| HEVC Main 8-bit + AAC / MP4 (hvc1) | 🟢 (Pass) · 35.1% CPU | 🟢 (Pass) · 14.8% CPU | 🟢 (Pass) · 15.8% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 33.1% CPU | 🟡 Screened · 41.1% CPU |
-| HEVC Main 8-bit + AAC / MP4 (hev1) | 🟢 (Pass) · 35.6% CPU | 🟢 (Pass) · 14.7% CPU | 🟢 (Pass) · 15.1% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 34.4% CPU | 🟡 Screened · 41.6% CPU |
-| HEVC Main 10-bit SDR + AAC / MP4 | 🟢 (Pass) · 37.2% CPU | 🟢 (Pass) · 18.4% CPU | 🟢 (Pass) · 18.5% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 37.4% CPU | 🟡 Screened · 41.1% CPU |
-| HEVC Main 10 4:2:2 + AAC / MKV | 🟢 (Pass)* · 37.2% CPU | 🟢 (Pass)\* · 17.8% CPU | 🟢 (Pass)\* · 18.6% CPU · native-direct | 🟢 (Pass)* | 🟢 (Pass)* · 37.6% CPU | 🟡 Screened* · 41.4% CPU |
-| HEVC Main 10-bit SDR + AC-3 / MKV | 🟢 (Pass) · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 21.0% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass) · 36.8% CPU | 🟡 Screened · 40.6% CPU |
-| HEVC Main 10-bit SDR + E-AC-3 / MKV | 🟢 (Pass) · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 21.5% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass) · 36.9% CPU | 🟡 Screened · 42.0% CPU |
-| HEVC Main 10-bit SDR + DTS core / MKV | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · 21.6% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass) | 🟡 Screened |
-| AV1 8-bit + AAC / MP4 | 🟢 (Pass) · 36.7% CPU | 🟢 (Pass) · 13.6% CPU | 🟢 (Pass) · 14.2% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 37.2% CPU | 🟡 Screened · 33.5% CPU |
-| AV1 10-bit SDR + Opus / MKV | 🟢 (Pass) · 37.1% CPU | 🟢 (Pass) · 18.0% CPU | 🟢 (Pass) · 17.8% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 38.5% CPU | 🟡 Screened · 36.3% CPU |
-| AV1 + Opus / WebM | 🟢 (Pass) · 36.2% CPU | 🟢 (Pass) · 14.6% CPU | 🟢 (Pass) · 15.3% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 38.3% CPU | 🟡 Screened · 34.9% CPU |
-| VP9 8-bit + Opus / WebM | 🟢 (Pass) · 36.6% CPU | 🟢 (Pass) · 14.0% CPU | 🟢 (Pass) · 14.1% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 34.9% CPU | 🟡 Screened · 34.2% CPU |
-| VP9 10-bit SDR + Opus / WebM | 🟢 (Pass) · 36.4% CPU | 🟢 (Pass) · 16.6% CPU | 🟢 (Pass) · 17.1% CPU · native-direct | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened · 34.7% CPU |
-| VP8 + Vorbis / WebM | 🟢 (Pass) · 34.8% CPU | 🟢 (Pass) · 13.4% CPU | 🟢 (Pass) · 14.7% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass) · 35.6% CPU | 🟡 Screened · 32.8% CPU |
-| H.264 + AAC / MPEG-TS | 🟢 (Pass) · 36.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.7% CPU · native-remux | 🔴 (Fail) | 🟢 (Pass) · 35.4% CPU | 🟡 Screened · 34.6% CPU |
-| MPEG-2 video + AC-3 / MPEG-TS | 🟢 (Pass) · 33.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 33.7% CPU · software | 🟢 (Pass) · 30.1% CPU | 🟢 (Pass) · 34.7% CPU | 🔴 (Fail) |
-| Interlaced MPEG-2 + AC-3 stereo / MPEG-TS | 🟢 (Pass)* · 33.7% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.1% CPU · software · visible combing | 🔴 (Fail) | 🟢 (Pass)\* · 33.6% CPU | 🔴 (Fail) |
-| MPEG-2 video + MP2 / MPEG-PS | 🟢 (Pass) · 34.1% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.9% CPU · software | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| MPEG-4 Part 2 + MP3 / AVI | 🟢 (Pass) · 34.5% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.7% CPU · software | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| ProRes + PCM / MOV | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 36.9% CPU · software | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened* · 33.0% CPU |
-| H.264 + AAC / fragmented MP4 (single file) | 🟢 (Pass) · 35.1% CPU | 🟢 (Pass) · 13.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened · 33.1% CPU |
-| H.264 video-only / MP4 | 🟢 (Pass) · 31.9% CPU | 🟢 (Pass) · 11.5% CPU | 🟢 (Pass) · 12.1% CPU · native-direct | 🟢 (Pass) · 32.1% CPU | 🟢 (Pass) · 25.5% CPU | 🟡 Screened · 31.8% CPU |
-| H.264 High 10 + AAC / MKV | 🟢 (Pass)* · 36.3% CPU | 🟢 (Pass)\* · 17.4% CPU | 🟢 (Pass)\* · 17.6% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)* · 35.4% CPU | 🟡 Screened* · 33.3% CPU |
-| MPEG-2 video-only / MPEG-TS | 🟢 (Pass) · 31.2% CPU | 🔴 (Fail) | 🟢 (Pass) · 31.6% CPU · software | 🟢 (Pass) · 30.6% CPU | 🟢 (Pass) · 25.7% CPU | 🔴 (Fail) |
-| H.264 + AAC + embedded SRT / MKV | 🟢 (Pass) · 37.2% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.7% CPU · native-remux-mpv | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC + external WebVTT / MP4 | 🟢 (Pass) · 35.8% CPU | 🟢 (Pass) · 13.7% CPU | 🟢 (Pass) · 14.3% CPU · native-direct | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC + embedded mov_text / MP4 | 🟢 (Pass) · 35.5% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.3% CPU · native-remux-mpv | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC + styled ASS / MKV | 🟢 (Pass) · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.1% CPU · native-remux-mpv | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AC-3 stereo + ASS / MKV | 🟢 (Pass) · 35.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 19.7% CPU · native-transcode-mpv | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| HEVC + AC-3 + PGS / MKV | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 21.2% CPU · native-transcode-mpv | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AC-3 + VobSub / MKV | 🟢 (Pass) · 35.2% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 18.6% CPU · native-transcode-mpv | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC + PGS / MKV (subtitle isolation) | 🟢 (Pass) · 36.0% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.5% CPU · native-remux-mpv | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| H.264 + AAC + VobSub / MKV (subtitle isolation) | 🟢 (Pass)* · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.6% CPU · native-remux-mpv | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| AAC audio-only / M4A | 🟢 (Pass) · 10.6% CPU | 🟢 (Pass) · 2.4% CPU | 🟢 (Pass) · 3.2% CPU · native-direct | 🟢 (Pass) | 🟢 (Pass) · 9.9% CPU | 🟡 Screened · 45.4% CPU |
-| MP3 audio-only / MP3 | 🟢 (Pass) · 2.8% CPU | 🟢 (Pass) · 0.9% CPU | 🟢 (Pass) · 1.3% CPU · native-direct | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 10.1% CPU |
-| FLAC audio-only / FLAC | 🟢 (Pass) · 10.4% CPU | 🟢 (Pass) · 2.1% CPU | 🟢 (Pass) · 3.0% CPU · native-direct | 🟢 (Pass) | 🟢 (Pass) · 8.0% CPU | 🟡 Screened · 42.9% CPU |
-| Opus audio-only / Ogg | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · 3.4% CPU | 🟢 (Pass) · 4.2% CPU · native-direct | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 45.8% CPU |
-| Vorbis audio-only / Ogg | 🟢 (Pass) | 🟢 (Pass) | 🟢 (Pass) · 3.3% CPU · native-direct | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened |
-| PCM16 audio-only / WAV | 🟢 | 🟠 | 🟢 (Pass) · 3.1% CPU · native-direct | 🟢 (Pass) | 🔴 (Fail) | — |
-| PCM24 audio-only / WAV | 🟢 | 🟠 | 🟢 (Pass) · 3.4% CPU · native-direct | 🟢 (Pass) | 🔴 (Fail) | — |
-| HEVC Main 10 + E-AC-3 / MKV (HDR10) | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* · 19.7% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass)\* | — |
-| HEVC Main 10 + AAC / MP4 (HLG) | 🟢 (Pass)* | 🟢 (Pass)\* | 🟡 (Screened)\* · 16.8% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)\* | — |
-| AV1 10-bit + Opus / WebM (HDR10) | 🟢 (Pass)* | 🟢 (Pass)\* | 🟡 (Screened)\* · 18.9% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)\* | — |
-| HEVC + TrueHD 7.1 / MKV | 🟢 (Pass)* | 🔴 (Fail) | — Unqualified · 7.1 fixture unavailable | 🔴 (Fail) | 🔴 (Fail) | — |
-| HEVC + DTS-HD MA 7.1 / MKV | 🟢 (Pass)* | 🔴 (Fail) | — Unqualified · DTS-HD MA fixture unavailable | 🔴 (Fail) | 🟡 (Screened)\* | — |
-| HEVC + E-AC-3 with Atmos metadata / MP4 | 🟢 (Pass)* | 🔴 (Fail) | — Unqualified · Atmos fixture unavailable | 🔴 (Fail) | 🔴 (Fail) | — |
-| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🟢 (Pass)* | 🔴 (Fail) | — Unqualified · DV profile 5 fixture unavailable | 🔴 (Fail) | 🔴 (Fail) | — |
-| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🟢 (Pass)* | 🔴 (Fail) | — Unqualified · DV profile 8.1 fixture unavailable | 🔴 (Fail) | 🟡 (Screened)\* | — |
-| H.264 + AAC / HLS VOD (TS segments) | 🟢 | 🟢 (Pass) | 🟢 (Pass) · 15.0% CPU · native-direct | 🟢 (Pass) | 🟢 (Pass) | — |
-| H.264 + AAC / HLS VOD (fMP4 segments) | 🟢 | 🟢 (Pass) | 🟢 (Pass) · 15.6% CPU · native-direct | 🟢 (Pass) | 🟢 (Pass) | — |
-| HEVC + AAC / HLS VOD (fMP4 segments) | 🟢 | 🟢 (Pass) | 🟢 (Pass) · 14.9% CPU · native-direct | 🟢 (Pass) | 🟢 (Pass) | — |
-| H.264 + AAC / DASH VOD (fMP4 segments) | 🟢 | 🔴 (Fail) | 🟢 (Pass) · 17.9% CPU · shaka-mse | 🟢 (Pass) | 🟢 (Pass) | — |
-| AV1 + Opus / DASH VOD (WebM segments) | 🟢 | 🔴 (Fail) | 🟢 (Pass) · 17.7% CPU · shaka-mse | 🟢 (Pass) | 🔴 (Fail) | — |
-| H.264 + AAC / HLS live (sliding window) | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass) · 18.9% CPU · shaka-mse | 🟢 (Pass) | 🔴 (Fail) | — |
-| HEVC Main 10 + AAC / MKV | 🟢 (Pass)* | 🟢 (Pass)\* | 🟡 (Screened)\* · 19.2% CPU · native-direct | 🟢 (Pass)\* | 🟢 (Pass)\* | — |
-| HEVC Main 10 + FLAC / MKV | 🟢 (Pass)* | 🟢 (Pass)\* | 🟡 (Screened)\* · 17.4% CPU · native-direct | 🔴 (Fail) | 🟢 (Pass)\* | — |
-| HEVC Main 10 + Opus / MKV | 🟢 (Pass)* | 🟢 (Pass)\* | 🟡 (Screened)\* · 19.8% CPU · native-direct | 🔴 (Fail) | 🟡 (Screened)\* | — |
-| HEVC Main 10 + FLAC + ASS / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* · 22.5% CPU · native-remux-mpv | 🔴 (Fail) | 🔴 (Fail) | — |
-| HEVC Main 10 + Opus + ASS / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* · 23.1% CPU · native-remux-mpv | 🔴 (Fail) | 🔴 (Fail) | — |
-| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) · marked audio incorrect | 🔴 (Fail) | 🔴 (Fail) | — |
-| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) · initial playback timeout | 🔴 (Fail) | 🔴 (Fail) | — |
-| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) · marked audio incorrect | 🔴 (Fail) | 🔴 (Fail) | — |
-| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) · marked audio incorrect | 🔴 (Fail) | 🔴 (Fail) | — |
+| Media format | Demuxe (software decode) | Native video | Demuxe (auto) | Demuxe JSPI | Demuxe Asyncify | Movi 0.4.0 (default) | AVPlayer 1.3.1 (default) | MediaBunny (player example) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| H.264 + AAC / MP4 | 🟢 (Pass) · 32.0% CPU | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · 13.0% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 32.4% CPU | 🟡 Screened · 34.6% CPU |
+| H.264 + AAC / MKV | 🟢 (Pass) · 27.4% CPU | 🟢 (Pass) · 9.3% CPU | 🟢 (Pass) · 9.6% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 28.3% CPU | 🟡 Screened · 33.8% CPU |
+| Dual-audio H.264 + AAC + AC-3 stereo / MKV | 🟢 (Pass) · 36.3% CPU | 🟢 (Pass) · 13.9% CPU · default AAC | 🟢 (Pass) · 14.0% CPU · native-direct; AC-3 switch: native-transcode (18.1% selected) | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 32.8% CPU | 🟡 Screened · 35.3% CPU · primary track |
+| H.264 + PCM24 / MKV | 🟢 (Pass) · 26.6% CPU | 🟢 (Pass) · 9.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 32.5% CPU |
+| H.264 + PCM24 / MKV + ASS | 🟢 | 🟢 | 🟢 (Pass) · 19.8% CPU · native-direct-ass | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) · external ASS unavailable |
+| H.264 + AAC 5.1 / MP4 | 🟢 (Pass)* · 35.1% CPU | 🟢 (Pass)\* · 14.8% CPU | 🟢 (Pass)\* · 14.8% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass)\* · 33.4% CPU | 🟡 Screened* · 37.2% CPU |
+| H.264 + MP3 stereo / MP4 | 🟢 (Pass) · 33.6% CPU | 🟢 (Pass) · 13.3% CPU | 🟢 (Pass) · 14.3% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 34.2% CPU | 🟡 Screened · 34.7% CPU |
+| H.264 + AC-3 5.1 / MKV | 🟢 (Pass)* · 36.6% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 17.5% CPU · native-transcode | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass)* | 🟡 Screened* |
+| H.264 + E-AC-3 5.1 / MKV | 🟢 (Pass)* · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 19.0% CPU · native-transcode | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass)\* · 32.8% CPU | 🟡 Screened* · 35.9% CPU |
+| H.264 + DTS core 5.1 / MKV | 🟢 (Pass)* · 37.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 19.2% CPU · native-transcode | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass)\* · 36.9% CPU | 🟡 Screened* · 38.5% CPU |
+| H.264 + AC-3 stereo / MKV | 🟢 (Pass) · 34.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 17.9% CPU · native-transcode | 🟢 (Pass) · 17.8% CPU · native-transcode | 🟢 (Pass) · 18.7% CPU · native-transcode | 🔴 (Fail) | 🟢 (Pass) · 32.9% CPU | 🟡 Screened · 33.8% CPU |
+| H.264 + E-AC-3 stereo / MKV | 🟢 (Pass) · 35.4% CPU | 🔴 (Fail) | 🟢 (Pass) · 16.5% CPU · native-transcode | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 33.6% CPU | 🟡 Screened · 34.4% CPU |
+| H.264 + DTS core stereo / MKV | 🟢 (Pass) · 34.6% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.3% CPU · native-transcode | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 37.8% CPU | 🟡 Screened · 35.5% CPU |
+| H.264 + FLAC stereo / MKV | 🟢 (Pass) · 34.7% CPU | 🟢 (Pass) · 13.2% CPU | 🟢 (Pass) · 13.7% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 33.7% CPU | 🟡 Screened · 33.1% CPU |
+| H.264 + FLAC 5.1 / MKV | 🟢 (Pass)* · 35.2% CPU | 🟢 (Pass)\* · 14.0% CPU | 🟢 (Pass)\* · 14.3% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass)\* · 33.2% CPU | 🟡 Screened* · 33.7% CPU |
+| H.264 + Opus stereo / MKV | 🟢 (Pass) · 35.0% CPU | 🟢 (Pass) · 14.3% CPU | 🟢 (Pass) · 15.1% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) · 30.2% CPU | 🟢 (Pass) · 35.3% CPU | 🟡 Screened · 35.2% CPU |
+| H.264 + PCM16 stereo / MKV | 🟢 (Pass) · 34.8% CPU | 🟢 (Pass) · 12.9% CPU | 🟢 (Pass) · 14.2% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) · 33.2% CPU | 🔴 (Fail) | 🟡 Screened · 32.5% CPU |
+| H.264 + PCM24 5.1 / MKV | 🟢 (Pass)* · 34.8% CPU | 🟢 (Pass)\* · 13.4% CPU | 🟢 (Pass)\* · 13.9% CPU · native-direct | — Untested | — Untested | 🟢 (Pass)\* · 26.1% CPU | 🔴 (Fail) | 🟡 Screened* · 34.5% CPU |
+| HEVC Main 8-bit + AAC / MP4 (hvc1) | 🟢 (Pass) · 35.1% CPU | 🟢 (Pass) · 14.8% CPU | 🟢 (Pass) · 15.8% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 33.1% CPU | 🟡 Screened · 41.1% CPU |
+| HEVC Main 8-bit + AAC / MP4 (hev1) | 🟢 (Pass) · 35.6% CPU | 🟢 (Pass) · 14.7% CPU | 🟢 (Pass) · 15.1% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 34.4% CPU | 🟡 Screened · 41.6% CPU |
+| HEVC Main 10-bit SDR + AAC / MP4 | 🟢 (Pass) · 37.2% CPU | 🟢 (Pass) · 18.4% CPU | 🟢 (Pass) · 18.5% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 37.4% CPU | 🟡 Screened · 41.1% CPU |
+| HEVC Main 10 4:2:2 + AAC / MKV | 🟢 (Pass)* · 37.2% CPU | 🟢 (Pass)\* · 17.8% CPU | 🟢 (Pass)\* · 18.6% CPU · native-direct | — Untested | — Untested | 🟢 (Pass)* | 🟢 (Pass)* · 37.6% CPU | 🟡 Screened* · 41.4% CPU |
+| HEVC Main 10-bit SDR + AC-3 / MKV | 🟢 (Pass) · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 21.0% CPU · native-transcode | 🟢 (Pass) · CPU withheld: cadence/variance | 🟢 (Pass) · CPU withheld: cadence/variance | 🔴 (Fail) | 🟢 (Pass) · 36.8% CPU | 🟡 Screened · 40.6% CPU |
+| HEVC Main 10-bit SDR + E-AC-3 / MKV | 🟢 (Pass) · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 21.5% CPU · native-transcode | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 36.9% CPU | 🟡 Screened · 42.0% CPU |
+| HEVC Main 10-bit SDR + DTS core / MKV | 🟢 (Pass) | 🔴 (Fail) | 🟢 (Pass) · 21.6% CPU · native-transcode | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) | 🟡 Screened |
+| AV1 8-bit + AAC / MP4 | 🟢 (Pass) · 36.7% CPU | 🟢 (Pass) · 13.6% CPU | 🟢 (Pass) · 14.2% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 37.2% CPU | 🟡 Screened · 33.5% CPU |
+| AV1 10-bit SDR + Opus / MKV | 🟢 (Pass) · 37.1% CPU | 🟢 (Pass) · 18.0% CPU | 🟢 (Pass) · 17.8% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 38.5% CPU | 🟡 Screened · 36.3% CPU |
+| AV1 + Opus / WebM | 🟢 (Pass) · 36.2% CPU | 🟢 (Pass) · 14.6% CPU | 🟢 (Pass) · 15.3% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 38.3% CPU | 🟡 Screened · 34.9% CPU |
+| VP9 8-bit + Opus / WebM | 🟢 (Pass) · 36.6% CPU | 🟢 (Pass) · 14.0% CPU | 🟢 (Pass) · 14.1% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 34.9% CPU | 🟡 Screened · 34.2% CPU |
+| VP9 10-bit SDR + Opus / WebM | 🟢 (Pass) · 36.4% CPU | 🟢 (Pass) · 16.6% CPU | 🟢 (Pass) · 17.1% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened · 34.7% CPU |
+| VP8 + Vorbis / WebM | 🟢 (Pass) · 34.8% CPU | 🟢 (Pass) · 13.4% CPU | 🟢 (Pass) · 14.7% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass) · 35.6% CPU | 🟡 Screened · 32.8% CPU |
+| H.264 + AAC / MPEG-TS | 🟢 (Pass) · 36.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.7% CPU · native-remux | 🟢 (Pass) · 17.9% CPU · native-remux | 🟢 (Pass) · 18.7% CPU · native-remux | 🔴 (Fail) | 🟢 (Pass) · 35.4% CPU | 🟡 Screened · 34.6% CPU |
+| MPEG-2 video + AC-3 / MPEG-TS | 🟢 (Pass) · 33.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 33.7% CPU · software | — Untested | — Untested | 🟢 (Pass) · 30.1% CPU | 🟢 (Pass) · 34.7% CPU | 🔴 (Fail) |
+| Interlaced MPEG-2 + AC-3 stereo / MPEG-TS | 🟢 (Pass)* · 33.7% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.1% CPU · software · visible combing | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass)\* · 33.6% CPU | 🔴 (Fail) |
+| MPEG-2 video + MP2 / MPEG-PS | 🟢 (Pass) · 34.1% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.9% CPU · software | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| MPEG-4 Part 2 + MP3 / AVI | 🟢 (Pass) · 34.5% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.7% CPU · software | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| ProRes + PCM / MOV | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 36.9% CPU · software | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened* · 33.0% CPU |
+| H.264 + AAC / fragmented MP4 (single file) | 🟢 (Pass) · 35.1% CPU | 🟢 (Pass) · 13.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened · 33.1% CPU |
+| H.264 video-only / MP4 | 🟢 (Pass) · 31.9% CPU | 🟢 (Pass) · 11.5% CPU | 🟢 (Pass) · 12.1% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) · 32.1% CPU | 🟢 (Pass) · 25.5% CPU | 🟡 Screened · 31.8% CPU |
+| H.264 High 10 + AAC / MKV | 🟢 (Pass)* · 36.3% CPU | 🟢 (Pass)\* · 17.4% CPU | 🟢 (Pass)\* · 17.6% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass)* · 35.4% CPU | 🟡 Screened* · 33.3% CPU |
+| MPEG-2 video-only / MPEG-TS | 🟢 (Pass) · 31.2% CPU | 🔴 (Fail) | 🟢 (Pass) · 31.6% CPU · software | — Untested | — Untested | 🟢 (Pass) · 30.6% CPU | 🟢 (Pass) · 25.7% CPU | 🔴 (Fail) |
+| H.264 + AAC + embedded SRT / MKV | 🟢 (Pass) · 37.2% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.7% CPU · native-remux-mpv | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC + external WebVTT / MP4 | 🟢 (Pass) · 35.8% CPU | 🟢 (Pass) · 13.7% CPU | 🟢 (Pass) · 14.3% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC + embedded mov_text / MP4 | 🟢 (Pass) · 35.5% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.3% CPU · native-remux-mpv | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC + styled ASS / MKV | 🟢 (Pass) · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.1% CPU · native-remux-mpv | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AC-3 stereo + ASS / MKV | 🟢 (Pass) · 35.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 19.7% CPU · native-transcode-mpv | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| HEVC + AC-3 + PGS / MKV | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 21.2% CPU · native-transcode-mpv | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AC-3 + VobSub / MKV | 🟢 (Pass) · 35.2% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 18.6% CPU · native-transcode-mpv | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC + PGS / MKV (subtitle isolation) | 🟢 (Pass) · 36.0% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.5% CPU · native-remux-mpv | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC + VobSub / MKV (subtitle isolation) | 🟢 (Pass)* · 35.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 18.6% CPU · native-remux-mpv | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| AAC audio-only / M4A | 🟢 (Pass) · 10.6% CPU | 🟢 (Pass) · 2.4% CPU | 🟢 (Pass) · 3.2% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) | 🟢 (Pass) · 9.9% CPU | 🟡 Screened · 45.4% CPU |
+| MP3 audio-only / MP3 | 🟢 (Pass) · 2.8% CPU | 🟢 (Pass) · 0.9% CPU | 🟢 (Pass) · 1.3% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 10.1% CPU |
+| FLAC audio-only / FLAC | 🟢 (Pass) · 10.4% CPU | 🟢 (Pass) · 2.1% CPU | 🟢 (Pass) · 3.0% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) | 🟢 (Pass) · 8.0% CPU | 🟡 Screened · 42.9% CPU |
+| Opus audio-only / Ogg | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · 3.4% CPU | 🟢 (Pass) · 4.2% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 45.8% CPU |
+| Vorbis audio-only / Ogg | 🟢 (Pass) | 🟢 (Pass) | 🟢 (Pass) · 3.3% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened |
+| PCM16 audio-only / WAV | 🟢 | 🟠 | 🟢 (Pass) · 3.1% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) | 🔴 (Fail) | — |
+| PCM24 audio-only / WAV | 🟢 | 🟠 | 🟢 (Pass) · 3.4% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) | 🔴 (Fail) | — |
+| HEVC Main 10 + E-AC-3 / MKV (HDR10) | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* · 19.7% CPU · native-transcode | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass)\* | — |
+| HEVC Main 10 + AAC / MP4 (HLG) | 🟢 (Pass)* | 🟢 (Pass)\* | 🟡 (Screened)\* · 16.8% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass)\* | — |
+| AV1 10-bit + Opus / WebM (HDR10) | 🟢 (Pass)* | 🟢 (Pass)\* | 🟡 (Screened)\* · 18.9% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass)\* | — |
+| HEVC + TrueHD 7.1 / MKV | 🟢 (Pass)* | 🔴 (Fail) | — Unqualified · 7.1 fixture unavailable | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | — |
+| HEVC + DTS-HD MA 7.1 / MKV | 🟢 (Pass)* | 🔴 (Fail) | — Unqualified · DTS-HD MA fixture unavailable | — Untested | — Untested | 🔴 (Fail) | 🟡 (Screened)\* | — |
+| HEVC + E-AC-3 with Atmos metadata / MP4 | 🟢 (Pass)* | 🔴 (Fail) | — Unqualified · Atmos fixture unavailable | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | — |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🟢 (Pass)* | 🔴 (Fail) | — Unqualified · DV profile 5 fixture unavailable | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | — |
+| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🟢 (Pass)* | 🔴 (Fail) | — Unqualified · DV profile 8.1 fixture unavailable | — Untested | — Untested | 🔴 (Fail) | 🟡 (Screened)\* | — |
+| H.264 + AAC / HLS VOD (TS segments) | 🟢 | 🟢 (Pass) | 🟢 (Pass) · 15.0% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) | 🟢 (Pass) | — |
+| H.264 + AAC / HLS VOD (fMP4 segments) | 🟢 | 🟢 (Pass) | 🟢 (Pass) · 15.6% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) | 🟢 (Pass) | — |
+| HEVC + AAC / HLS VOD (fMP4 segments) | 🟢 | 🟢 (Pass) | 🟢 (Pass) · 14.9% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) | 🟢 (Pass) | — |
+| H.264 + AAC / DASH VOD (fMP4 segments) | 🟢 | 🔴 (Fail) | 🟢 (Pass) · 17.9% CPU · shaka-mse | — Untested | — Untested | 🟢 (Pass) | 🟢 (Pass) | — |
+| AV1 + Opus / DASH VOD (WebM segments) | 🟢 | 🔴 (Fail) | 🟢 (Pass) · 17.7% CPU · shaka-mse | — Untested | — Untested | 🟢 (Pass) | 🔴 (Fail) | — |
+| H.264 + AAC / HLS live (sliding window) | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass) · 18.9% CPU · shaka-mse | — Untested | — Untested | 🟢 (Pass) | 🔴 (Fail) | — |
+| HEVC Main 10 + AAC / MKV | 🟢 (Pass)* | 🟢 (Pass)\* | 🟡 (Screened)\* · 19.2% CPU · native-direct | — Untested | — Untested | 🟢 (Pass)\* | 🟢 (Pass)\* | — |
+| HEVC Main 10 + FLAC / MKV | 🟢 (Pass)* | 🟢 (Pass)\* | 🟡 (Screened)\* · 17.4% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟢 (Pass)\* | — |
+| HEVC Main 10 + Opus / MKV | 🟢 (Pass)* | 🟢 (Pass)\* | 🟡 (Screened)\* · 19.8% CPU · native-direct | — Untested | — Untested | 🔴 (Fail) | 🟡 (Screened)\* | — |
+| HEVC Main 10 + FLAC + ASS / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* · 22.5% CPU · native-remux-mpv | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | — |
+| HEVC Main 10 + Opus + ASS / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* · 23.1% CPU · native-remux-mpv | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | — |
+| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) · marked audio incorrect | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | — |
+| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) · initial playback timeout | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | — |
+| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) · marked audio incorrect | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | — |
+| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) · marked audio incorrect | — Untested | — Untested | 🔴 (Fail) | 🔴 (Fail) | — |
 
 **MediaBunny column:** The [official player example](https://mediabunny.dev/examples/media-player/) is screened on each cited fixture using marked video, stereo audio, pause/resume, seeks and near-EOF settlement. 🟡 Screened remains because its public controls do not qualify 1.25× playback or independent cleanup; the dual-audio row covers the default track only. CPU is the median of three headed Chrome whole-process windows (20 seconds each, after five seconds of warmup), expressed as percent of one core. The [first-four campaign](experiments/mediabunny-investigation/notes/official-player-first-four.md) used a separate browser run from the other columns. Subsequent rows linked in the [CPU refresh index](docs/CPU-ROW-REFRESH.md) use one Chrome launch per row across viable player arms, with fresh contexts and rotating order. MediaBunny receives local File input while maintained players use the frozen local URL, so CPU values do not isolate decoder or demux costs. `—` means no player test for that exact row.
 

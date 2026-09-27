@@ -1,0 +1,394 @@
+{
+  "schema": 2,
+  "fixtures": {
+    "h264-ts": {
+      "label": "H.264 + AAC / MPEG-TS",
+      "video": true,
+      "audio": true,
+      "channels": 2,
+      "file": "h264-ts/index.ts",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "profile": "High",
+          "pix_fmt": "yuv420p",
+          "channels": null,
+          "channel_layout": null,
+          "sample_rate": null,
+          "bits_per_raw_sample": "8",
+          "field_order": "progressive",
+          "width": 320,
+          "height": 180,
+          "r_frame_rate": "30/1",
+          "color_transfer": null
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "profile": "LC",
+          "pix_fmt": null,
+          "channels": 2,
+          "channel_layout": "stereo",
+          "sample_rate": "48000",
+          "bits_per_raw_sample": null,
+          "field_order": null,
+          "width": null,
+          "height": null,
+          "r_frame_rate": "0/0",
+          "color_transfer": null
+        }
+      ]
+    },
+    "h264-ac3-stereo": {
+      "label": "H.264 + AC-3 stereo / MKV",
+      "video": true,
+      "audio": true,
+      "channels": 2,
+      "file": "h264-ac3-stereo/index.mkv",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "profile": "High",
+          "pix_fmt": "yuv420p",
+          "channels": null,
+          "channel_layout": null,
+          "sample_rate": null,
+          "bits_per_raw_sample": "8",
+          "field_order": "progressive",
+          "width": 320,
+          "height": 180,
+          "r_frame_rate": "30/1",
+          "color_transfer": null
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "ac3",
+          "profile": null,
+          "pix_fmt": null,
+          "channels": 2,
+          "channel_layout": "stereo",
+          "sample_rate": "48000",
+          "bits_per_raw_sample": null,
+          "field_order": null,
+          "width": null,
+          "height": null,
+          "r_frame_rate": "0/0",
+          "color_transfer": null
+        }
+      ]
+    },
+    "hevc10-ac3": {
+      "label": "HEVC Main 10-bit SDR + AC-3 / MKV",
+      "video": true,
+      "audio": true,
+      "channels": 2,
+      "file": "hevc10-ac3/index.mkv",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "hevc",
+          "profile": "Main 10",
+          "pix_fmt": "yuv420p10le",
+          "channels": null,
+          "channel_layout": null,
+          "sample_rate": null,
+          "bits_per_raw_sample": null,
+          "field_order": "progressive",
+          "width": 320,
+          "height": 180,
+          "r_frame_rate": "30/1",
+          "color_transfer": null
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "ac3",
+          "profile": null,
+          "pix_fmt": null,
+          "channels": 2,
+          "channel_layout": "stereo",
+          "sample_rate": "48000",
+          "bits_per_raw_sample": null,
+          "field_order": null,
+          "width": null,
+          "height": null,
+          "r_frame_rate": "0/0",
+          "color_transfer": null
+        }
+      ]
+    }
+  },
+  "cases": [
+    {
+      "id": "video.default.h264-ts",
+      "player": "video",
+      "lane": "default",
+      "fixture": "h264-ts",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "demuxe.auto.h264-ts",
+      "player": "demuxe",
+      "lane": "auto",
+      "fixture": "h264-ts",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "demuxe.jspi.h264-ts",
+      "player": "demuxe",
+      "lane": "jspi",
+      "fixture": "h264-ts",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "demuxe.asyncify.h264-ts",
+      "player": "demuxe",
+      "lane": "asyncify",
+      "fixture": "h264-ts",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "movi.default.h264-ts",
+      "player": "movi",
+      "lane": "default",
+      "fixture": "h264-ts",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "libmedia.default.h264-ts",
+      "player": "libmedia",
+      "lane": "default",
+      "fixture": "h264-ts",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "video.default.h264-ac3-stereo",
+      "player": "video",
+      "lane": "default",
+      "fixture": "h264-ac3-stereo",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "demuxe.auto.h264-ac3-stereo",
+      "player": "demuxe",
+      "lane": "auto",
+      "fixture": "h264-ac3-stereo",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "demuxe.jspi.h264-ac3-stereo",
+      "player": "demuxe",
+      "lane": "jspi",
+      "fixture": "h264-ac3-stereo",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "demuxe.asyncify.h264-ac3-stereo",
+      "player": "demuxe",
+      "lane": "asyncify",
+      "fixture": "h264-ac3-stereo",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "movi.default.h264-ac3-stereo",
+      "player": "movi",
+      "lane": "default",
+      "fixture": "h264-ac3-stereo",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "libmedia.default.h264-ac3-stereo",
+      "player": "libmedia",
+      "lane": "default",
+      "fixture": "h264-ac3-stereo",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "video.default.hevc10-ac3",
+      "player": "video",
+      "lane": "default",
+      "fixture": "hevc10-ac3",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "demuxe.auto.hevc10-ac3",
+      "player": "demuxe",
+      "lane": "auto",
+      "fixture": "hevc10-ac3",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "demuxe.jspi.hevc10-ac3",
+      "player": "demuxe",
+      "lane": "jspi",
+      "fixture": "hevc10-ac3",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "demuxe.asyncify.hevc10-ac3",
+      "player": "demuxe",
+      "lane": "asyncify",
+      "fixture": "hevc10-ac3",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "movi.default.hevc10-ac3",
+      "player": "movi",
+      "lane": "default",
+      "fixture": "hevc10-ac3",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "libmedia.default.hevc10-ac3",
+      "player": "libmedia",
+      "lane": "default",
+      "fixture": "hevc10-ac3",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ]
+    }
+  ]
+}

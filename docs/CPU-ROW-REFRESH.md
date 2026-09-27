@@ -10,6 +10,11 @@ with independent launches. The first two rows below used a separate fresh
 launch per round. The
 [benchmark protocol](BENCHMARK-PROTOCOL.md) describes the controls.
 
+The separate [JSPI/Asyncify Player campaign](JSPI-ASYNCIFY-PLAYER-CPU.md) supplies
+the two experimental columns for three exact rows. Its pthread controls are
+reported alongside those measurements; the historical Auto cells below are not
+matched controls for that campaign.
+
 | README row | Status | Evidence |
 | --- | --- | --- |
 | H.264 + AAC / MP4 | Complete: 5 pass, Movi fail | [row report](../results/head-to-head/row-h264-aac-mp4-20260925-01/REPORT.md) |
