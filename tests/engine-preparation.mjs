@@ -63,3 +63,19 @@ test('oversized declared or streamed assets fail without retained modules',async
  const assets=new EnginePreparation(base);const report=await assets.warm(['software']);
  assert.ok(report.assets.every(a=>a.status==='failed'&&a.error.includes('byte budget')));assert.equal(assets.fontCopy(),undefined);assert.equal(assets.module('engine-software-full'),undefined);assets.destroy();
 });
+
+test('private inspectors preload without isolation and resolve the generic inspector module',async t=>{
+ globalThis.crossOriginIsolated=false;
+ try{
+  const requests=[];t.mock.method(globalThis,'fetch',async url=>{requests.push(String(url));return new Response(wasm);});
+  for(const runtime of ['jspi','asyncify']){
+   const assets=new EnginePreparation(base,undefined,undefined,runtime);
+   assert.equal((await assets.warm(['inspector'])).assets[0].status,'ready');
+   assert.equal(await assets.readyModule('engine-remux'),assets.module('engine-remux-'+runtime));
+   assert.ok(await assets.readyModule('engine-remux') instanceof WebAssembly.Module);
+   assert.ok((await assets.warm(['hybrid'])).assets.every(a=>a.status==='failed'));
+   assets.destroy();
+  }
+  assert.deepEqual(requests,['https://assets.example/web/engine-remux-jspi/remux.wasm','https://assets.example/web/engine-remux-asyncify/remux.wasm']);
+ }finally{globalThis.crossOriginIsolated=true;}
+});

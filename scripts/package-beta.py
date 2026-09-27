@@ -3,6 +3,7 @@
 """Build an offline-installable beta candidate, without asserting release qualification."""
 import argparse,gzip,hashlib,io,json,pathlib,subprocess,tarfile,re
 from license_policy import Policy, LEGAL, encoded
+from private_remux_assets import private_remux_assets, verify_private_release
 root=pathlib.Path(__file__).resolve().parent.parent
 p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,default=root/'build/beta');p.add_argument('--yuv',action='store_true');p.add_argument('--release-tag');p.add_argument('--adaptation-build',type=pathlib.Path);p.add_argument('--ass-build',type=pathlib.Path);p.add_argument('--mpv-subtitles',action='store_true');args=p.parse_args()
 # The switch remains accepted for older automation. A standard local candidate
@@ -21,6 +22,8 @@ build_path=root/'build/beta-build.json'
 if not build_path.is_file():raise SystemExit('Packaging requires a completed LGPL engine build record')
 build=json.loads(build_path.read_text())
 if args.release_tag and not build['clean']:raise SystemExit('Release requires a completed clean engine build')
+private_files=private_remux_assets(root)
+if args.release_tag:verify_private_release(private_files,build)
 for group in ['inputs','configurations','artifacts']:
  for name,expected in build[group].items():
   digest=expected['sha256'] if isinstance(expected,dict) else expected
@@ -49,7 +52,9 @@ if args.release_tag:
 subprocess.run(['node',str(root/'scripts/copy-shaka-assets.mjs')],cwd=root,check=True)
 subprocess.run(['python3',str(root/'scripts/check-licenses.py')],cwd=root,check=True)
 license_policy=Policy(root)
-files={}
+# The default auto policy needs both private runtimes on non-isolated hosts.
+# Local installation verifies original build records; assembly rechecks every byte.
+files=dict(private_files)
 def add(name):
  f=root/name
  if not f.is_file():raise SystemExit('Missing runtime asset: '+name)
@@ -89,6 +94,8 @@ for entry in registered.values():
 for name in json.loads((root/'third_party/shaka-player.json').read_text())['files']:add(name)
 engines={'remux':('engine-remux','remux'),'hybrid':('engine-hybrid','player'),'selective':('engine-selective','player'),'software':('engine-software-yuv','player'),'software-rgb':('engine-software-full','player')}
 if mpv_subtitles:engines['subtitles']=('engine-subtitles','service')
+for backend in ['jspi','asyncify']:
+ for profile in ['remux','adaptation']:engines[profile+'-'+backend]=('engine-'+profile+'-'+backend,'remux')
 if args.adaptation_build:
  adaptation=args.adaptation_build.resolve();record=json.loads((adaptation/'manifest.json').read_text())
  if record.get('apiVersion')!=2:raise SystemExit('Preparation interface mismatch; rebuild matching assets')
@@ -159,7 +166,9 @@ if args.ass_build:
    archive.add(library/name,arcname='demuxe/'+name)
  files['web/engine-ass/manifest.json']=(json.dumps({'sourceBuildVerification':source_verification,'apiVersion':record['apiVersion'],'sources':record['sources'],'sdk':record['sdk'],'files':{pathlib.Path(k).name:v for k,v in record['files'].items() if pathlib.Path(k).suffix in ['.mjs','.wasm']},'sourceCompanion':{'filename':source_out.name,'sha256':hashlib.sha256(source_out.read_bytes()).hexdigest()},'qualification':'External Native ASS; clean library correspondence verified; exact-archive release verification remains mandatory'},indent=2)+'\n').encode()
 for folder,stem in engines.values():
- for ext in ['mjs','wasm']:add(f'web/{folder}/{stem}.{ext}')
+ for ext in ['mjs','wasm']:
+  name=f'web/{folder}/{stem}.{ext}'
+  if name not in files:add(name)
 for name in ['fixtures/DejaVuSans.ttf','fixtures/FONT-LICENSE.txt','sources.lock.json','toolchain.lock.json','docs/BETA.md','docs/CAPABILITIES.md','docs/SOFTWARE-YUV-PRESENTER.md','docs/INTEGRATION.md','docs/COMPATIBILITY-EXPANSION.md','docs/LICENSING.md','docs/LGPL-RELINK.md','docs/UPSTREAM-MODIFICATIONS.md','docs/RELEASE.md']:add(name)
 files['docs/CAPABILITIES.md']=re.sub(rb'/(?:Users|Volumes|private/var)/[^\s`]+',b'[local evidence path omitted from runtime package]',files['docs/CAPABILITIES.md'])
 for name in LEGAL:add(name)
@@ -170,7 +179,7 @@ if build:
  files['engine-build.json']=(json.dumps(public_build,indent=2)+'\n').encode()
 for f in sorted((root/'third_party').rglob('*')):
  if f.is_file():add(str(f.relative_to(root)))
-for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/OPTIMIZATION-INTEGRATION.md','docs/OPTIMIZATION-COMPLETION.md','docs/OPTIMIZATION-FLAC.md','docs/OPTIMIZATION-REVIEW-FIXES.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','docs/NON-ISOLATED-REMUX.md','docs/PLAYBACK-TIER-POLICY.md','docs/PRODUCTION-PIPELINE.md','docs/STREAMING-ARCHITECTURE.md','examples/custom-controls.html','examples/player-element.html']:add(name)
+for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/OPTIMIZATION-INTEGRATION.md','docs/OPTIMIZATION-COMPLETION.md','docs/OPTIMIZATION-FLAC.md','docs/OPTIMIZATION-REVIEW-FIXES.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','docs/NON-ISOLATED-REMUX.md','docs/REMUX-RUNTIME.md','docs/PLAYBACK-TIER-POLICY.md','docs/PRODUCTION-PIPELINE.md','docs/STREAMING-ARCHITECTURE.md','examples/custom-controls.html','examples/player-element.html']:add(name)
 # The review report keeps local evidence locations in the repository only.
 report='docs/OPTIMIZATION-INTEGRATION.md'
 files[report]=re.sub(rb'/(?:Users|Volumes|private/var)/[^\s`]+',b'[local evidence path omitted from runtime package]',files[report])

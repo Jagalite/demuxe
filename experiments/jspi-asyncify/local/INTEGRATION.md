@@ -1,7 +1,8 @@
 # Local main integration
 
 The reviewed components are now connected to the production Player through the
-explicit `experimentalRemuxRuntime` option. The default remains `pthread`.
+`remuxRuntime` option. The default is `auto`: pthread with isolation, otherwise
+JSPI when supported, else Asyncify. See [all API values](../../../docs/REMUX-RUNTIME.md).
 Private JSPI/Asyncify admission is limited to plain file Direct, Remux and
 FLAC24 audio-transcode routes; private mpv, subtitles, Hybrid and Software
 playback are not enabled. Direct playback does not exercise either Wasm runtime.
@@ -41,7 +42,7 @@ original local build directories. Build commands and hashes are preserved in the
 component documentation and results. Keep those directories and the experiment
 worktree until new builds and browser campaigns supersede their evidence.
 
-## Local opt-in Player integration
+## Local Player integration
 
 Install the verified local builds once into a runtime tree (existing destination
 folders are rejected):
@@ -56,7 +57,7 @@ npm run build
 ```js
 const player = new Player(container, {
   assetBase: '/demuxe/',
-  experimentalRemuxRuntime: 'jspi', // or 'asyncify'; default: 'pthread'
+  remuxRuntime: 'auto', // also 'on', 'off', 'jspi', or 'asyncify'
 });
 await player.open(source);
 await player.play();
@@ -70,9 +71,9 @@ Normal URL authorization and source identity checks remain in the source reader.
 Unsupported routes fail admission rather than selecting a pthread service.
 The finite-source bridge does not support nested network resources.
 
-These extra engines are installed locally; the standard release packaging does
-not yet include them. This is an experimental opt-in, not a default/runtime
-support expansion. The [Player benchmark report](../../../docs/JSPI-ASYNCIFY-PLAYER-CPU.md)
+These engines are installed locally and included in local beta assembly with
+identity/hash checks. Tagged releases still require private-runtime source and
+exact-archive qualification. The [Player benchmark report](../../../docs/JSPI-ASYNCIFY-PLAYER-CPU.md)
 records exact qualified fixtures, asset hashes, browser checks and CPU evidence.
 
 Private mpv Player wiring, broad codec and browser coverage, multichannel and

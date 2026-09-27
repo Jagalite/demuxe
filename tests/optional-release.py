@@ -26,6 +26,10 @@ class ReleaseEvidence(unittest.TestCase):
   self.assertEqual(len(base),17)
   self.assertNotIn('native-external-ass',base)
   self.assertEqual(module.required_consumer_cases(self.manifest),base|{'native-external-ass'})
+ def test_private_runtime_consumer_matrix(self):
+  base=module.required_consumer_cases({'files':{}})
+  manifest={'files':{'web/engine-remux-jspi/remux.wasm':{}}}
+  self.assertEqual(module.required_consumer_cases(manifest)-base, {'remux-auto-isolated','remux-auto-no-isolation','remux-asyncify-no-isolation','remux-on-isolated','remux-off-no-isolation'})
  def test_complete_exact_evidence(self):self.assertEqual(self.verify()['checks'],27)
  def test_wrong_archive(self):
   self.archive.write_bytes(b'other')

@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "publication": "HEVC CPU remains withheld; instruments change scheduling and cost",
+  "diagnosticTrials": [
+    {
+      "index": 0,
+      "lane": "auto",
+      "completed": true,
+      "cadencePassed": true,
+      "totalFrames": 600,
+      "droppedFrames": 0,
+      "callbackDelta": 600,
+      "longTaskDelta": 0,
+      "capture": {
+        "bytes": 4961412,
+        "sha256": "285ac0232005ac7497f9579f3cc0047e7bc692e57139cb4fa9e8f5fdb7309c86"
+      },
+      "diagnosticOnlyCPU": 24.1470245796347
+    },
+    {
+      "index": 1,
+      "lane": "jspi",
+      "completed": true,
+      "cadencePassed": true,
+      "totalFrames": 600,
+      "droppedFrames": 0,
+      "callbackDelta": 600,
+      "longTaskDelta": 0,
+      "capture": {
+        "bytes": 4961412,
+        "sha256": "285ac0232005ac7497f9579f3cc0047e7bc692e57139cb4fa9e8f5fdb7309c86"
+      },
+      "diagnosticOnlyCPU": 24.968371528243598
+    },
+    {
+      "index": 2,
+      "lane": "asyncify",
+      "completed": true,
+      "cadencePassed": true,
+      "totalFrames": 600,
+      "droppedFrames": 0,
+      "callbackDelta": 600,
+      "longTaskDelta": 0,
+      "capture": {
+        "bytes": 4961412,
+        "sha256": "285ac0232005ac7497f9579f3cc0047e7bc692e57139cb4fa9e8f5fdb7309c86"
+      },
+      "diagnosticOnlyCPU": 24.77303338531911
+    },
+    {
+      "index": 3,
+      "lane": "plain",
+      "completed": true,
+      "cadencePassed": false,
+      "totalFrames": 600,
+      "droppedFrames": 119,
+      "callbackDelta": 481,
+      "longTaskDelta": 0,
+      "capture": null,
+      "diagnosticOnlyCPU": 21.72125848534437
+    },
+    {
+      "index": 4,
+      "lane": "plain",
+      "completed": true,
+      "cadencePassed": false,
+      "totalFrames": 600,
+      "droppedFrames": 123,
+      "callbackDelta": 477,
+      "longTaskDelta": 0,
+      "capture": null,
+      "diagnosticOnlyCPU": 20.3549906786677
+    },
+    {
+      "index": 5,
+      "lane": "asyncify",
+      "completed": true,
+      "cadencePassed": true,
+      "totalFrames": 600,
+      "droppedFrames": 0,
+      "callbackDelta": 600,
+      "longTaskDelta": 0,
+      "capture": null,
+      "diagnosticOnlyCPU": 24.165437904390867
+    },
+    {
+      "index": 6,
+      "lane": "jspi",
+      "completed": true,
+      "cadencePassed": true,
+      "totalFrames": 600,
+      "droppedFrames": 0,
+      "callbackDelta": 599,
+      "longTaskDelta": 0,
+      "capture": null,
+      "diagnosticOnlyCPU": 24.374696757315775
+    },
+    {
+      "index": 7,
+      "lane": "auto",
+      "completed": true,
+      "cadencePassed": true,
+      "totalFrames": 600,
+      "droppedFrames": 0,
+      "callbackDelta": 600,
+      "longTaskDelta": 0,
+      "capture": null,
+      "diagnosticOnlyCPU": 23.757645555902844
+    }
+  ],
+  "ffprobeVersion": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers",
+  "headAtInvestigation": "1cd5d2180227a188a828808945c93238e0a8fe95",
+  "packetAnalysis": "packet-analysis.json",
+  "retainedAnalysis": "retained-analysis.json",
+  "report": "../../../docs/HEVC-PRIVATE-RUNTIME-INVESTIGATION.md",
+  "replayTrials": [
+    {
+      "mode": "mse",
+      "completed": true,
+      "cadencePassed": true,
+      "frames": 600,
+      "drops": 0,
+      "callbacks": 601,
+      "longTasks": 0,
+      "readyState": [
+        4
+      ]
+    },
+    {
+      "mode": "file",
+      "completed": true,
+      "cadencePassed": true,
+      "frames": 600,
+      "drops": 0,
+      "callbacks": 600,
+      "longTasks": 0,
+      "readyState": [
+        4
+      ]
+    },
+    {
+      "mode": "file",
+      "completed": true,
+      "cadencePassed": false,
+      "frames": 600,
+      "drops": 111,
+      "callbacks": 490,
+      "longTasks": 0,
+      "readyState": [
+        4
+      ]
+    },
+    {
+      "mode": "mse",
+      "completed": true,
+      "cadencePassed": true,
+      "frames": 600,
+      "drops": 0,
+      "callbacks": 600,
+      "longTasks": 0,
+      "readyState": [
+        4
+      ]
+    }
+  ],
+  "conclusion": "Three captured runtime outputs are byte-identical. Cadence drops reproduced without Demuxe or Wasm during progressive file playback, but not in the two plain MSE controls. Root cause of original intermittent MSE failures and low CPU remains unresolved."
+}

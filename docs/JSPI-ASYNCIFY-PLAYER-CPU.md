@@ -4,7 +4,8 @@
 This campaign exercises the production `Player` API with
 `experimentalRemuxRuntime: 'jspi'` and `'asyncify'`. It measures complete browser
 playback, including browser video decoding, rendering and audio, rather than
-standalone component calls. The default runtime remains pthread. Installation
+standalone component calls. The frozen campaign used pthread as its default.
+Current local main defaults to automatic runtime selection; see [the current API](REMUX-RUNTIME.md). Installation
 and scope are described in the [local integration guide](../experiments/jspi-asyncify/local/INTEGRATION.md).
 
 The three finite URL fixtures are H.264/AAC MPEG-TS, H.264/AC-3 stereo MKV and

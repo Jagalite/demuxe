@@ -31,16 +31,19 @@ export function portReader(port,size) {
  };
 }
 
-export async function privateRemux(runtime,{port,size,audioAdaptation,printErr}) {
+export async function privateRemux(runtime,{port,size,audioAdaptation,printErr,compiledWasm}) {
  if(!['jspi','asyncify'].includes(runtime))throw Error('Invalid private remux runtime');
  if(runtime==='jspi'&&(typeof WebAssembly.Suspending!=='function'||typeof WebAssembly.promising!=='function'))throw Error('Selected JSPI runtime is unavailable');
  const url=new URL(`./engine-${audioAdaptation?'adaptation':'remux'}-${runtime}/remux.mjs`,import.meta.url);
  let engine;
  try{
  const {default:create}=await import(url.href);
- const response=await fetch(new URL('remux.wasm',url));
- if(!response.ok)throw Error('Private remux initialization: Wasm asset HTTP '+response.status);
- const module=await WebAssembly.compile(await response.arrayBuffer());
+ let module=compiledWasm;
+ if(!module){
+  const response=await fetch(new URL('remux.wasm',url));
+  if(!response.ok)throw Error('Private remux initialization: Wasm asset HTTP '+response.status);
+  module=await WebAssembly.compile(await response.arrayBuffer());
+ }
  const names=new Set(WebAssembly.Module.exports(module).map(e=>e.name));
  const controls=['asyncify_start_unwind','asyncify_stop_unwind','asyncify_start_rewind','asyncify_stop_rewind'];
  if(runtime==='asyncify'?!controls.every(n=>names.has(n)):controls.some(n=>names.has(n)))throw Error('Private remux initialization: Wasm backend asset mismatch');

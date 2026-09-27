@@ -45,4 +45,6 @@ def required_consumer_cases(manifest):
     cases={'automatic-local','native-no-isolation','hybrid-pin','software-pin','automatic-ass','native-remux','transitions','rollback','missing-engine','isolation-error','omitted-yuv','av1-software','hdr-software','external-subtitles','surround-output','hls-expanded','dash-periods'}
     if 'web/engine-ass/subtitles.wasm' in manifest['files']:
         cases.add('native-external-ass')
+    if 'web/engine-remux-jspi/remux.wasm' in manifest['files']:
+        cases.update({'remux-auto-isolated','remux-auto-no-isolation','remux-asyncify-no-isolation','remux-on-isolated','remux-off-no-isolation'})
     return cases

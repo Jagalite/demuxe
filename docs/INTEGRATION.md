@@ -126,7 +126,8 @@ CORS. Range/redirect guarantees apply to the remux and mpv source adapters.
 
 Serve all `web/` assets and `fixtures/DejaVuSans.ttf` at the relative locations in
 the repository. Native direct lazily imports only its browser adapter and does not
-require cross-origin isolation. Native remux and Hybrid/software require a secure isolated page:
+require cross-origin isolation. File remux/transcode uses automatic runtime selection
+by default; see [remuxRuntime](REMUX-RUNTIME.md). Pthread remux and Hybrid/software require a secure isolated page:
 `Cross-Origin-Opener-Policy: same-origin` and
 `Cross-Origin-Embedder-Policy: require-corp`. The media server must satisfy CORS,
 CORP where applicable, range and representation requirements. The complete

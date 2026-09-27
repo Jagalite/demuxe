@@ -6,12 +6,14 @@ export declare class EnginePreparation {
     private base;
     private software;
     private changed;
+    private remuxRuntime;
     private controller;
     private pending;
     private modules;
     private font?;
     private phases;
-    constructor(base: URL, software?: string, changed?: () => void);
+    constructor(base: URL, software?: string, changed?: () => void, remuxRuntime?: 'pthread' | 'jspi' | 'asyncify');
+    private get inspectorEngine();
     get progress(): PreparationProgress[];
     private phase;
     module(name: string): WebAssembly.Module | undefined;

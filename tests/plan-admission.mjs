@@ -137,3 +137,14 @@ test('private remux opt-in admits file preparation without admitting mpv or tran
  assert.equal(planAdmission({...facts,isolated:false,requiresRemux:true}).find(p=>p.id==='native-remux').eligible,false);
  assert.equal(planAdmission({...facts,isolated:false,privateRemux:true,manifest:true}).find(p=>p.id==='native-remux').eligible,false);
 });
+
+test('automatic private selection preserves browser streaming and direct gain',()=>{
+ for(const isolated of [false,true]){
+  const direct=planAdmission({...facts,isolated,privateRemux:true,gain:.5});
+  assert.equal(direct.find(p=>p.id==='native-direct-gain').eligible,true);
+  for(const gain of [1,.5]){
+   const streaming=planAdmission({...facts,isolated,privateRemux:true,manifest:true,gain});
+   assert.equal(streaming.find(p=>p.id===(gain===1?'shaka-mse':'shaka-mse-gain')).eligible,true);
+  }
+ }
+});

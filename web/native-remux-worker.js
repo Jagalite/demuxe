@@ -31,7 +31,7 @@ self.onmessage=async({data})=>{
     engine=await createRemux({...preparedEngine(data.compiledWasm),printErr});engine.io=data.mailbox;
    }else{
     const {privateRemux}=await import('./private-remux.js');
-    privateHost=await privateRemux(runtime,{port:data.port,size:data.size,audioAdaptation:data.audioAdaptation,printErr});engine=privateHost.engine;
+    privateHost=await privateRemux(runtime,{compiledWasm:data.compiledWasm,port:data.port,size:data.size,audioAdaptation:data.audioAdaptation,printErr});engine=privateHost.engine;
    }
    engine.parseVP9=vp9RemuxConfig;engine.raps=[];engine.tracks=[];stats.transport=runtime;stats.sharedHeap=!(engine.HEAPU8.buffer instanceof ArrayBuffer);
    stats.crossOriginIsolated=globalThis.crossOriginIsolated;stats.sharedArrayBuffer=typeof SharedArrayBuffer;stats.jspiSuspending=typeof WebAssembly.Suspending;stats.jspiPromising=typeof WebAssembly.promising;stats.asset=privateHost?.asset;

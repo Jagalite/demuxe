@@ -1,14 +1,13 @@
 # Runtime requirements and non-isolated remux disposition
 
-**Current local status: experimental opt-in FFmpeg Player integration.**
-`experimentalRemuxRuntime` selects private JSPI or Asyncify for file remux and
-FLAC24 audio transcode. These routes can run without COOP/COEP. The pthread
-default and release packaging remain unchanged. See the
-[integration instructions](../experiments/jspi-asyncify/local/INTEGRATION.md) and
-[Player qualification report](JSPI-ASYNCIFY-PLAYER-CPU.md).
+**Current local status: automatic FFmpeg runtime selection.**
+`remuxRuntime: 'auto'` is the default: pthread with isolation, JSPI without isolation
+when supported, otherwise Asyncify. `on`, `off`, `jspi`, and `asyncify` provide
+explicit control. Scope remains plain file remux and qualified FLAC24 transcode.
+See the [API and deployment requirements](REMUX-RUNTIME.md). No release is published.
 
 The following records the earlier removal decision and the requirements of the
-default pthread paths; it does not describe the new opt-in private runtimes.
+default pthread paths; it does not describe the current automatically selected private runtimes.
 
 JSPI/non-isolated remux was evaluated and intentionally removed from the production architecture. Its primary benefit was deployment compatibility without cross-origin isolation, while it introduced an additional Wasm runtime, invocation model, packaging path, qualification surface, and long-term maintenance burden. Maintenance complexity outweighs present production value; it did not materially advance Demuxe’s primary objective of maximizing native/near-native playback performance. The pthread runtime remains the maintained advanced Wasm runtime. Browser-native functionality remains usable without isolation. Revisit only if concrete deployment demand appears later.
 

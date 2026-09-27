@@ -1,0 +1,1 @@
+This setup attempt was aborted before any cadence samples. Plain MSE appended captured timestamps starting at 1.005 seconds but did not seek to the first buffered range. The awaited play promise remained pending. The owned browser was terminated; no result from this attempt qualifies as a measured playback failure. replay-02 adds the initial seek and a bounded play timeout.

@@ -7,6 +7,7 @@ The project is not yet published to npm. Install the locally assembled archive:
 
 ```sh
 npm run build
+# First install verified private remux/adaptation builds; see REMUX-RUNTIME.md.
 python3 scripts/package-beta.py --output build/my-candidate
 # In a clean application:
 npm install /absolute/path/to/demuxe-0.3.0-beta.4.tgz
@@ -43,6 +44,10 @@ may replace only previous manifest-owned unmodified assets. Retain the generated
 manifest with the installation. Use core and runtime from the same archive; mixing
 releases or experimental presenters is unsupported. Failed copies should be rerun
 from an intact package; use a versioned destination for atomic application rollout.
+
+The local beta runtime now includes both private JSPI/Asyncify remux and adaptation
+engines for the default `remuxRuntime: 'auto'` policy. Assembly verifies their
+installed manifests and hashes. See [selection and current release boundary](REMUX-RUNTIME.md).
 
 ## Choose a deployment set and folder
 

@@ -19,6 +19,7 @@ import {featureRejection, executionPlan, qualifiedAudioFilter, planAdmission} fr
 import {EnginePreparation,preparationComponents} from './internal/engine-preparation.js';
 import {TierAttempts,preferredPlans} from './internal/tier-policy.js';
 import {runtimeBase} from './internal/assets.js';
+import {selectRemuxRuntime} from './internal/remux-runtime.js';
 import {webgpuDecoderSupported,hasQualifiedWebGPUCodecs} from './internal/webgpu-codecs.js';
 import {PlayerError, playerError, redact} from './internal/errors.js';
 import {freeze, ranges, cachedRanges, tracks, trackKey, usesRemuxTracks, mediaInfo} from './internal/state.js';
@@ -162,6 +163,7 @@ export class Player extends EventTarget {
   private planDecisions:Array<ReturnType<typeof planAdmission>[number]&{browserCapability?:BrowserMediaCapability}>=[];
   private admissionContext:{nativeReason?:string;automatic:boolean}={automatic:false};
   private nativeRemux: 'auto' | 'never' | 'always';
+  private remuxSelection: ReturnType<typeof selectRemuxRuntime>;
   private remuxRuntime: 'pthread' | 'jspi' | 'asyncify';
   private get privateRemux(){return this.remuxRuntime!=='pthread';}
   private get canInspectFFmpeg(){return globalThis.crossOriginIsolated===true||this.privateRemux;}
@@ -289,8 +291,8 @@ export class Player extends EventTarget {
     if(options.allowLossyAudio!==undefined&&typeof options.allowLossyAudio!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid lossy audio permission');
     if(this.audioAdaptation==='opus'&&options.allowLossyAudio!==true)throw new PlayerError('INVALID_ARGUMENT','Opus adaptation requires allowLossyAudio: true');
     this.nativeRemux=options.nativeRemux ?? 'auto';
-    this.remuxRuntime=options.experimentalRemuxRuntime??'pthread';
-    if(!['pthread','jspi','asyncify'].includes(this.remuxRuntime))throw new PlayerError('INVALID_ARGUMENT','Invalid experimental remux runtime');
+    this.remuxSelection=selectRemuxRuntime(options);
+    this.remuxRuntime=this.remuxSelection.runtime;
     this.softwarePresenter=options.softwarePresenter??'auto';
     this.decodeQuality=options.decodeQuality??'exact';
     this.adaptiveFrameDrop=options.adaptiveFrameDrop??false;
@@ -459,7 +461,7 @@ export class Player extends EventTarget {
   }
   get diagnostics(): Diagnostics {
     const backend=this.current?.backend.diagnostics as Record<string,unknown>|undefined;
-    return redact({watchdogs:this.watchdogConfiguration,preview:this.preview.diagnostics,buffering:(backend?.buffering as BufferingResolution|undefined)??this.bufferingResolution(),mode: this.mode, plan:this.current?executionPlan(this.mode,backend?.plan as string|undefined,this.settings.af,this.settings.gain,!!backend?.subtitleOverlay):undefined, planAdmission:this.planDecisions,runtimeCapabilities:this.runtimeCapabilities.snapshot(),selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain:this.settings.gain, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop, backend});
+    return redact({remuxRuntime:this.remuxSelection,watchdogs:this.watchdogConfiguration,preview:this.preview.diagnostics,buffering:(backend?.buffering as BufferingResolution|undefined)??this.bufferingResolution(),mode: this.mode, plan:this.current?executionPlan(this.mode,backend?.plan as string|undefined,this.settings.af,this.settings.gain,!!backend?.subtitleOverlay):undefined, planAdmission:this.planDecisions,runtimeCapabilities:this.runtimeCapabilities.snapshot(),selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain:this.settings.gain, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop, backend});
   }
   getStreamingState():import('./types.js').StreamingState|null{
     const raw=this.current?.backend.streamingState?.();if(!raw)return null;
@@ -551,7 +553,7 @@ export class Player extends EventTarget {
     const selected=preparationComponents(components);
     if(this.promotionRunning)this.cancelPromotion();
     if(this.destroyed||this.activeOperation)return this.preparationTask;
-    this.preparation??=new EnginePreparation(this.assetBase,this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv',()=>{if(!this.destroyed)this.dispatchEvent(new CustomEvent('preparationchange',{detail:freeze(this.preparationProgress)}));});
+    this.preparation??=new EnginePreparation(this.assetBase,this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv',()=>{if(!this.destroyed)this.dispatchEvent(new CustomEvent('preparationchange',{detail:freeze(this.preparationProgress)}));},this.remuxRuntime);
     return this.preparationTask=this.preparation.warm(selected);
   }
   private async create(mode: PlaybackMode, aid='auto', adaptation?:'flac'|'opus'|'flac24', forcePreparation=false, planId?:string, loadTimeoutMs?:number): Promise<Session> {
@@ -881,7 +883,7 @@ export class Player extends EventTarget {
       const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
       const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();
       const compiledWasm=await this.interruptible(this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
-      const probe:Probe=await probeSource(transport,controller.signal,undefined,this.privateRemux?undefined:compiledWasm,this.remuxRuntime);
+      const probe:Probe=await probeSource(transport,controller.signal,undefined,compiledWasm,this.remuxRuntime);
       this.assertOperation();
       this.sourceInspection={source,probe,settings:{aid:settings.aid,sid:settings.sid,subtitles:settings.subtitles}};
     }catch(error){
@@ -895,7 +897,7 @@ export class Player extends EventTarget {
     const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();
     const compiledWasm=await this.interruptible(this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
     this.assertOperation();
-    const probe:Probe=await probeSource(transport,controller.signal,undefined,this.privateRemux?undefined:compiledWasm,this.remuxRuntime);
+    const probe:Probe=await probeSource(transport,controller.signal,undefined,compiledWasm,this.remuxRuntime);
     this.assertOperation();
     return probe;
   }
@@ -945,7 +947,7 @@ export class Player extends EventTarget {
           const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
           const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();
           const compiledWasm=await this.interruptible(this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
-          const probe:Probe=await probeSource(transport,controller.signal,undefined,this.privateRemux?undefined:compiledWasm,this.remuxRuntime);
+          const probe:Probe=await probeSource(transport,controller.signal,undefined,compiledWasm,this.remuxRuntime);
           this.assertOperation();
           this.sourceInspection={source,probe,settings:{aid:settings.aid,sid:settings.sid,subtitles:settings.subtitles}};
         }catch(error){
@@ -1029,9 +1031,22 @@ export class Player extends EventTarget {
           }
           }
         }catch(error){
-          if(this.destroyed||this.activeOperation?.controller.signal.aborted||['AUTOPLAY_BLOCKED','ABORTED','SOURCE_CHANGED','SOURCE_PERMISSION','NETWORK_TIMEOUT','ASSET_LOAD_FAILED'].includes(playerError(error).code)||terminalSourceFailure(error))throw error;
-          nativeReason='Native eligibility could not be established: '+String(error);
-          this.record({mode:'probe',outcome:'failed',reason:String(error)});
+          // A new optional private inspector must not remove existing browser-only
+          // playback. Retry only a plain initial URL and these diagnosed failures;
+          // authorization, identity, cancellation and controlled transport stay terminal.
+          const optionalInspection=this.privateRemux&&this.remuxSelection.policy==='auto'&&!preserve&&!inspectOnly&&
+            source.kind==='remote'&&!source.options.identity&&settings.aid==='auto'&&settings.sid==='auto'&&
+            !this.destroyed&&!this.activeOperation?.controller.signal.aborted&&!controller.signal.aborted&&
+            ((playerError(error).code==='ASSET_LOAD_FAILED'&&!terminalSourceFailure(error))||/^Error: Source transport: Error: Expected HTTP 206; received 200$/.test(String(error)))&&
+            this.admissible(source,settings,[],tracks).some(plan=>plan.id==='native-direct'&&plan.eligible);
+          if(optionalInspection){
+            nativeReason=undefined;
+            this.record({mode:'probe',outcome:'skipped',reason:'Optional private inspection unavailable; trying browser Direct: '+String(error)});
+          }else{
+            if(this.destroyed||this.activeOperation?.controller.signal.aborted||['AUTOPLAY_BLOCKED','ABORTED','SOURCE_CHANGED','SOURCE_PERMISSION','NETWORK_TIMEOUT','ASSET_LOAD_FAILED'].includes(playerError(error).code)||terminalSourceFailure(error))throw error;
+            nativeReason='Native eligibility could not be established: '+String(error);
+            this.record({mode:'probe',outcome:'failed',reason:String(error)});
+          }
         }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
       }
     }

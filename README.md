@@ -96,7 +96,7 @@ Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```
 
-Browser-native playback remains available without these headers. Advanced pthread Wasm routes require this or another configuration producing `crossOriginIsolated === true`. See [runtime requirements and research disposition](docs/NON-ISOLATED-REMUX.md).
+Browser-native playback remains available without these headers. File remux/transcode defaults to `remuxRuntime: 'auto'`: pthread when isolated, otherwise JSPI when supported or Asyncify. Choose `on`, `off`, `auto`, `jspi`, or `asyncify`; see [runtime selection and asset requirements](docs/REMUX-RUNTIME.md). Advanced pthread Wasm routes require this or another configuration producing `crossOriginIsolated === true`. See [runtime requirements and research disposition](docs/NON-ISOLATED-REMUX.md).
 
 See [production playback paths](docs/PRODUCTION-PIPELINE.md) for worker-owned MSE, selected-track MP4 views, bounded separate-buffer delivery, and their qualification limits.
 

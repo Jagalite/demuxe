@@ -15,7 +15,7 @@ try{
  const page=await browser.newPage();page.on('request',r=>requests.push(r.url()));await page.goto(server.origin+'/experiment/page.html');
  const native=await page.evaluate(async url=>{
   const {Player}=await import('/web/generated/index.js');window.Player=Player;
-  window.player=new Player(document.querySelector('#surface'),{prepare:'all'});
+  window.player=new Player(document.querySelector('#surface'),{prepare:'all',remuxRuntime:'off'});
   const preparation=await player.prepare('all');await player.openRemote({url});await player.play();
   return {isolated:crossOriginIsolated,preparation,plan:player.diagnostics.plan?.id,width:player.surface.videoWidth};
  },server.origin+'/media/movie');
@@ -30,7 +30,7 @@ try{
  result.cases.push({name:'non-isolated HLS falls through to Shaka playback',passed:true,...streaming});
  const rejected=await page.evaluate(async url=>{
   const surface=player.surface;const container=document.createElement('div');document.body.append(container);
-  const required=new Player(container,{mode:'native',nativeRemux:'always'});
+  const required=new Player(container,{mode:'native',nativeRemux:'always',remuxRuntime:'off'});
   try{await required.openRemote({url});return {accepted:true};}catch(e){return {code:e.code,error:String(e),preserved:surface===player.surface};}finally{await required.destroy();}
  },server.origin+'/media/ts');
  assert.equal(rejected.code,'ISOLATION_REQUIRED');assert.equal(rejected.preserved,true);

@@ -7,7 +7,7 @@ class ReleaseGates(unittest.TestCase):
  def setUp(self):
   self.tmp=tempfile.TemporaryDirectory(dir=ROOT/'build');self.root=pathlib.Path(self.tmp.name)
   (self.root/'scripts').mkdir()
-  for name in ['package-beta.py','license_policy.py']:shutil.copy2(ROOT/'scripts'/name,self.root/'scripts'/name)
+  for name in ['package-beta.py','license_policy.py','private_remux_assets.py']:shutil.copy2(ROOT/'scripts'/name,self.root/'scripts'/name)
   subprocess.run(['git','init','-q',str(self.root)],check=True)
   self.write('package.json',{'version':'0.0.0-test'})
   self.write('.gitignore','/build/\n__pycache__/\n')
@@ -47,5 +47,26 @@ class ReleaseGates(unittest.TestCase):
   result=subprocess.run(command,cwd=self.root,text=True,capture_output=True)
   self.assertNotEqual(result.returncode,0);self.assertIn('build/cache',result.stderr)
  def test_changed_binary(self):
-  self.licensed();self.write('build/engine.wasm','changed');self.write('build/beta-build.json',{'clean':True,'sdk':str(self.root),'sdkSources':{},'sharedTools':{},'inputs':{},'configurations':{},'artifacts':{'build/engine.wasm':{'sha256':hashlib.sha256(b'original').hexdigest()}}});self.run_gate('Build record mismatch: build/engine.wasm')
+  self.licensed()
+  build={'clean':True,'sdk':str(self.root),'sdkSources':{},'sharedTools':{},'inputs':{},'configurations':{},'artifacts':{},'privateRemux':{}}
+  # Keep the private runtime preconditions valid so this test reaches the
+  # maintained engine's changed-binary gate, using the real collection helper.
+  for group,name in [('inputs','scripts/package-beta.py'),('configurations','package.json')]:
+   build[group][name]=hashlib.sha256((self.root/name).read_bytes()).hexdigest()
+  for backend in ['jspi','asyncify']:
+   for name,profile in [('remux','remux'),('adaptation','transcode')]:
+    folder=f'web/engine-{name}-{backend}';files={}
+    for filename in ['remux.mjs','remux.wasm']:
+     asset=folder+'/'+filename;self.write(asset,'fixture '+asset)
+     files[filename]=hashlib.sha256((self.root/asset).read_bytes()).hexdigest()
+     build['artifacts'][asset]={'sha256':files[filename]}
+    self.write(folder+'/manifest.json',{'schema':1,'backend':backend,'profile':profile,'files':files})
+    build['privateRemux'][folder]={'inputs':list(build['inputs']),'configurations':list(build['configurations'])}
+  for name in ['private-remux.js','private-ffmpeg/bridge.js','private-ffmpeg/range-source.js','private-ffmpeg/single-owner.js','private-ffmpeg/LICENSE.txt']:
+   self.write('web/'+name,'fixture')
+  self.commit()
+  self.write('build/engine.wasm','changed')
+  build['artifacts']['build/engine.wasm']={'sha256':hashlib.sha256(b'original').hexdigest()}
+  self.write('build/beta-build.json',build)
+  self.run_gate('Build record mismatch: build/engine.wasm')
 if __name__=='__main__':unittest.main()

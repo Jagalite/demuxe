@@ -82,6 +82,7 @@ export declare class Player extends EventTarget {
     private planDecisions;
     private admissionContext;
     private nativeRemux;
+    private remuxSelection;
     private remuxRuntime;
     private get privateRemux();
     private get canInspectFFmpeg();

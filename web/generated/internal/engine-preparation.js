@@ -12,16 +12,19 @@ export class EnginePreparation {
     base;
     software;
     changed;
+    remuxRuntime;
     controller = new AbortController();
     pending = new Map();
     modules = new Map();
     font;
     phases = new Map();
-    constructor(base, software = 'engine-software-full', changed = () => { }) {
+    constructor(base, software = 'engine-software-full', changed = () => { }, remuxRuntime = 'pthread') {
         this.base = base;
         this.software = software;
         this.changed = changed;
+        this.remuxRuntime = remuxRuntime;
     }
+    get inspectorEngine() { return 'engine-remux' + (this.remuxRuntime === 'pthread' ? '' : '-' + this.remuxRuntime); }
     get progress() { return [...this.phases].map(([name, status]) => ({ name, status })); }
     phase(name, status) { if (this.controller.signal.aborted)
         return; this.phases.set(name, status); this.changed(); }
@@ -29,7 +32,7 @@ export class EnginePreparation {
     fontCopy() { return this.font?.slice(0); }
     async readyModule(name) {
         await this.pending.get(name === 'engine-remux' ? 'inspector' : name === 'engine-hybrid' ? 'hybrid' : 'software');
-        return this.module(name);
+        return this.module(name === 'engine-remux' ? this.inspectorEngine : name);
     }
     async readyEngine(name) {
         const [module] = await Promise.all([this.readyModule(name), this.pending.get('font')]);
@@ -61,10 +64,10 @@ export class EnginePreparation {
         const timer = setTimeout(abort, 15000);
         let bytes = 0;
         try {
-            if (!globalThis.crossOriginIsolated)
+            if (!globalThis.crossOriginIsolated && !(name === 'inspector' && this.remuxRuntime !== 'pthread'))
                 throw Error('Wasm preparation requires cross-origin isolation');
             this.phase(name, 'loading');
-            const engine = name === 'inspector' ? ('engine-remux') : name === 'hybrid' ? 'engine-hybrid' : this.software;
+            const engine = name === 'inspector' ? this.inspectorEngine : name === 'hybrid' ? 'engine-hybrid' : this.software;
             const path = name === 'font' ? 'fixtures/DejaVuSans.ttf' : `web/${engine}/${name === 'inspector' ? 'remux' : 'player'}.wasm`;
             const response = await fetch(new URL(path, this.base), { signal: controller.signal, priority: 'low' });
             if (!response.ok)

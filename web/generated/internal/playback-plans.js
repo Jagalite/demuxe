@@ -82,8 +82,8 @@ export function planAdmission(f) {
         const reject = (c, r) => { code = c; reason = r; };
         const gain = plan.id.endsWith('-gain'), ass = plan.id.includes('-ass'), flac = plan.id.startsWith('native-flac'), opus = plan.id.startsWith('native-opus');
         const effect = featureRejection(plan.mode, { ...f });
-        if (f.privateRemux && !['native-direct', 'native-remux', 'native-transcode'].includes(plan.id))
-            reject('QUALIFICATION_REQUIRED', 'Private FFmpeg runtime is limited to plain file Direct, Remux and FLAC24 playback');
+        if (f.privateRemux && !['native-direct', 'native-direct-gain', 'shaka-mse', 'shaka-mse-gain', 'native-remux', 'native-transcode'].includes(plan.id))
+            reject('QUALIFICATION_REQUIRED', 'Private FFmpeg runtime is limited to plain file Remux and FLAC24; browser-only routes remain available');
         else if (effect)
             reject('FEATURE_UNSUPPORTED', effect);
         else if (gain !== (f.gain !== 1))

@@ -205,7 +205,9 @@ export type PlayerOptions = {
         maxKnownBytes: number;
     };
     nativeRemux?: 'auto' | 'never' | 'always';
-    /** Opt-in private-memory FFmpeg remux/transcode runtime. Does not select mpv or Software. */
+    /** Remux/transcode runtime policy. Defaults to auto; does not enable private mpv. */
+    remuxRuntime?: RemuxRuntimePolicy;
+    /** @deprecated Use remuxRuntime; pthread maps to off. Cannot combine both options. */
     experimentalRemuxRuntime?: 'pthread' | 'jspi' | 'asyncify';
     /** Software chooses YUV for qualified decoded frames and RGB otherwise.
      * `rgb` is a comparison/compatibility override; the older experimental value
@@ -235,7 +237,14 @@ export type PlaybackEvent = {
     data?: unknown;
     [key: string]: unknown;
 };
+export type RemuxRuntimePolicy = 'on' | 'off' | 'auto' | 'jspi' | 'asyncify';
 export type Diagnostics = {
+    remuxRuntime?: {
+        policy: RemuxRuntimePolicy;
+        runtime: 'pthread' | 'jspi' | 'asyncify';
+        isolated: boolean;
+        jspi: boolean;
+    };
     watchdogs?: WatchdogPolicy;
     preview?: {
         sourceId: string;

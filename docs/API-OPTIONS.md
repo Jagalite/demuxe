@@ -21,7 +21,8 @@ This table classifies the current constructor surface. Experimental/compatibilit
 | `videoFilters`, `audioFilters` | Advanced | Empty filter chains. Capability/routing checks apply. |
 | `nativeRemux` | Advanced | Auto; `never` disables packet-copy fallback, `always` is an explicit packaging choice. |
 | `audioGain` | Experimental | Scalar 1 (no extra attenuation graph). |
-| `experimentalRemuxRuntime` | Experimental, local assets | `pthread`; opt-in `jspi` or `asyncify` for plain file remux/FLAC24 transcode. No private mpv, Hybrid or Software admission. See [integration and qualification](JSPI-ASYNCIFY-PLAYER-CPU.md). |
+| `remuxRuntime` | Runtime policy | `auto` (default), `on`, `off`, `jspi`, or `asyncify`. Automatic isolation/JSPI detection for file remux and FLAC24 transcode; [semantics and assets](REMUX-RUNTIME.md). |
+| `experimentalRemuxRuntime` | Deprecated | Explicit `pthread`, `jspi`, or `asyncify`; cannot combine with `remuxRuntime`. |
 | `experimentalBufferedNativeSeeks` | Experimental | Off; retained-session seek qualification is separate. |
 | `experimentalHybridAudioFilters` | Experimental | Off; only the qualified scalar-filter subset is eligible. |
 | `experimentalAudioAdaptation` | Experimental | Unset; explicit FLAC/Opus trial policy. |
