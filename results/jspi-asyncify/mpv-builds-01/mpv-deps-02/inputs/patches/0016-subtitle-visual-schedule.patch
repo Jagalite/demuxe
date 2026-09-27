@@ -1,0 +1,169 @@
+--- a/sub/dec_sub.c
++++ b/sub/dec_sub.c
+@@ -672,21 +672,40 @@
+     return supported;
+ }
+ 
+-bool sub_static_timing_qualified(struct dec_sub *sub)
+-{
+-    mp_mutex_lock(&sub->lock);
++int sub_visual_schedule(struct dec_sub *sub, double pts, double *next)
++{
++    if (!next)
++        return 0;
++    mp_mutex_lock(&sub->lock);
++    *next = MP_NOPTS_VALUE;
+     const char *codec = sub->codec->codec;
+     bool text = codec && (!strcmp(codec, "subrip") ||
+                           !strcmp(codec, "mov_text"));
+     bool ass = codec && (!strcmp(codec, "ass") || !strcmp(codec, "ssa"));
+-    bool supported = sub->sd->driver->next_raw_boundary &&
+-                     sub->sd->driver->has_animated_events;
++    bool bitmap = codec && (!strcmp(codec, "hdmv_pgs_subtitle") ||
++                            !strcmp(codec, "dvd_subtitle"));
+     bool complete = !ass || ((sub->preload_attempted ||
+                              sub->static_full_scan_complete) && sub->sd->preload_ok);
+-    bool qualified = supported && (text || ass) && complete &&
+-                     !sub->sd->driver->has_animated_events(sub->sd);
+-    mp_mutex_unlock(&sub->lock);
+-    return qualified;
++    int mode = 0;
++    if ((text || ass || bitmap) && complete && sub->sd->driver->visual_schedule) {
++        double local = MP_NOPTS_VALUE;
++        mode = sub->sd->driver->visual_schedule(sub->sd,
++                                                 pts_to_subtitle(sub, pts), &local);
++        if (local != MP_NOPTS_VALUE)
++            *next = pts_from_subtitle(sub, local);
++    }
++    mp_mutex_unlock(&sub->lock);
++    return mode;
++}
++
++double sub_bitmap_recovery_point(struct dec_sub *sub, double pts)
++{
++    const char *codec = sub->codec->codec;
++    if (!codec || (strcmp(codec, "hdmv_pgs_subtitle") &&
++                   strcmp(codec, "dvd_subtitle")))
++        return MP_NOPTS_VALUE;
++    double step[2] = {pts, 0};
++    return sub_control(sub, SD_CTRL_SUB_STEP, step) ? step[0] : MP_NOPTS_VALUE;
+ }
+ 
+ bool sub_static_timing_ass_preload_needed(struct dec_sub *sub)
+--- a/sub/dec_sub.h
++++ b/sub/dec_sub.h
+@@ -72,11 +72,13 @@
+ // video PTS, before sub-lines plain-text deduplication. MP_NOPTS_VALUE means
+ // no known future boundary; false means this decoder does not support the query.
+ bool sub_next_raw_boundary(struct dec_sub *sub, double pts, double *next);
+-// True only for text codecs whose currently known events can be scheduled
+-// without frame cadence. ASS requires a complete preloaded event timeline.
+-bool sub_static_timing_qualified(struct dec_sub *sub);
+ bool sub_static_timing_ass_preload_needed(struct dec_sub *sub);
+ bool sub_static_timing_mark_full_scan(struct dec_sub *sub);
++// Internal visual scheduling query. Returns 0 unsupported, 1 deadline,
++// 2 animated. Converts the next boundary back to browser/media PTS.
++int sub_visual_schedule(struct dec_sub *sub, double pts, double *next);
++// Last decoder-owned bitmap subtitle start before a target seek, if known.
++double sub_bitmap_recovery_point(struct dec_sub *sub, double pts);
+ // Called under dec_sub's lock after a decoder's known timing set may change.
+ // The callback must not reenter mpv or retain the dec_sub pointer.
+ void sub_set_timing_changed_cb(struct dec_sub *sub, void (*cb)(void *), void *ctx);
+--- a/sub/sd.h
++++ b/sub/sd.h
+@@ -55,7 +55,9 @@
+     struct sub_lines *(*get_lines)(struct sd *sd);
+     // Numeric event timing, deliberately independent of public sub-lines text.
+     double (*next_raw_boundary)(struct sd *sd, double pts);
+-    bool (*has_animated_events)(struct sd *sd);
++    // Demuxe internal visual scheduling state at decoder-local PTS.
++    // 0 is unsupported, 1 is boundary driven, 2 requires frame cadence.
++    int (*visual_schedule)(struct sd *sd, double pts, double *next);
+ };
+ 
+ // lavc_conv.c
+--- a/sub/sd_ass.c
++++ b/sub/sd_ass.c
+@@ -1039,17 +1039,21 @@
+     return next;
+ }
+ 
+-static bool has_animated_events(struct sd *sd)
++static int visual_schedule(struct sd *sd, double pts, double *next)
+ {
+     struct sd_ass_priv *ctx = sd->priv;
+     ASS_Track *track = ctx->ass_track;
++    long long now = find_timestamp(sd, pts);
++    *next = next_raw_boundary(sd, pts);
+     for (int i = 0; i < track->n_events; i++) {
+         ASS_Event *event = &track->events[i];
+-        if ((event->Effect && event->Effect[0]) ||
+-            (event->Text && is_animated(event->Text)))
+-            return true;
+-    }
+-    return false;
++        if (!event->Text || now < event->Start ||
++            now >= event->Start + event->Duration)
++            continue;
++        if ((event->Effect && event->Effect[0]) || is_animated(event->Text))
++            return 2;
++    }
++    return 1;
+ }
+ 
+ static struct sub_lines *get_lines(struct sd *sd)
+@@ -1147,7 +1151,7 @@
+     .get_times = get_times,
+     .get_lines = get_lines,
+     .next_raw_boundary = next_raw_boundary,
+-    .has_animated_events = has_animated_events,
++    .visual_schedule = visual_schedule,
+     .control = control,
+     .reset = reset,
+     .select = enable_output,
+--- a/sub/sd_lavc.c
++++ b/sub/sd_lavc.c
+@@ -627,6 +627,35 @@
+     res.end = current->endpts;
+ 
+     return res;
++}
++
++// The decoded bitmap queue is the rendering source of truth. Packet boundaries
++// and clear packets have already been applied to pts/endpts by decode().
++static int visual_schedule(struct sd *sd, double pts, double *next)
++{
++    struct sd_lavc_priv *priv = sd->priv;
++    if (priv->menu_active ||
++        (priv->avctx->codec_id != AV_CODEC_ID_HDMV_PGS_SUBTITLE &&
++         priv->avctx->codec_id != AV_CODEC_ID_DVD_SUBTITLE))
++        return 0;
++    *next = MP_NOPTS_VALUE;
++    for (int n = 0; n < MAX_QUEUE; n++) {
++        struct sub *sub = &priv->subs[n];
++        if (!sub->valid)
++            continue;
++        if (sub->pts == MP_NOPTS_VALUE)
++            return 0;
++        if (sub->pts > pts && (*next == MP_NOPTS_VALUE || sub->pts < *next))
++            *next = sub->pts;
++        if (sub->endpts != MP_NOPTS_VALUE && sub->endpts > pts &&
++            (*next == MP_NOPTS_VALUE || sub->endpts < *next))
++            *next = sub->endpts;
++    }
++    struct sub *current = get_current(priv, pts);
++    if (current && current->endpts == MP_NOPTS_VALUE &&
++        *next == MP_NOPTS_VALUE)
++        return 0;
++    return 1;
+ }
+ 
+ static bool accepts_packet(struct sd *sd, double min_pts)
+@@ -787,6 +816,7 @@
+     .decode = decode,
+     .get_bitmaps = get_bitmaps,
+     .get_times = get_times,
++    .visual_schedule = visual_schedule,
+     .accepts_packet = accepts_packet,
+     .control = control,
+     .reset = reset,

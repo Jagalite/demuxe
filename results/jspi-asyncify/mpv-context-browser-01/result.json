@@ -1,0 +1,83 @@
+{
+  "scope": "Emscripten libc and cooperative continuation ownership, not full mpv media",
+  "sourceSHA256": {
+    "mpv/tests/context-worker.mjs": "9434312815e9a592966dc617ddf05d38c7706b4e69603c072ade6aba39bf56f5",
+    "mpv/runtime/engine.mjs": "f3563b73baec99b789ece9d70a4a3e339cb66bff01b00517fefdb6c066bff8c8",
+    "runtime/scheduler.mjs": "f53e2925b2d90009a9977387eb73eb904a2cafa85675f952c270d35d42143a64",
+    "runtime/continuations.mjs": "bdace5c572bd62eae24d86c28e16c9fc882568a009670f2a11020c8903daf5bd",
+    "stage2/runtime/range-source.mjs": "efc911a6ebd4f2b7b81572f93c95b0373c262afad5c3675cfd3c64e847839e78",
+    "probe.mjs": "7cb9eccd09b2e398f439befaf14f2a9b9633351a2abf61d182d0195caa0ce0e8",
+    "probe.wasm": "dc2afe50e438390142add77eff8b379efe5c67fcbfa98a8bdd6f4f052bfde744",
+    "probe.asyncify.wasm": "08aafc7a9a5c5533e91420439bfd5b33daec552a532a73e44af4c3ff036bd934"
+  },
+  "cases": [
+    {
+      "passed": true,
+      "backend": "jspi",
+      "results": [
+        1,
+        1
+      ],
+      "snapshot": {
+        "created": 6,
+        "completed": 6,
+        "abandoned": 0,
+        "suspensions": 22,
+        "resumes": 22,
+        "maxLive": 3,
+        "timerWakes": 0,
+        "signals": 0,
+        "stackChecks": 56,
+        "continuations": {
+          "kind": "jspi"
+        },
+        "liveTasks": 0,
+        "retainedTasks": 0,
+        "waitKeys": 0,
+        "timers": 0,
+        "freeSlots": 24,
+        "stopped": false
+      },
+      "crossOriginIsolated": false,
+      "memoryType": "ArrayBuffer",
+      "sharedArrayBufferAvailable": false,
+      "jspiSuspending": true
+    },
+    {
+      "passed": true,
+      "backend": "asyncify",
+      "results": [
+        1,
+        1
+      ],
+      "snapshot": {
+        "created": 6,
+        "completed": 6,
+        "abandoned": 0,
+        "suspensions": 22,
+        "resumes": 22,
+        "maxLive": 3,
+        "timerWakes": 0,
+        "signals": 0,
+        "stackChecks": 56,
+        "continuations": {
+          "kind": "asyncify",
+          "maxSavedBytes": 52,
+          "unwinds": 22,
+          "rewinds": 22
+        },
+        "liveTasks": 0,
+        "retainedTasks": 0,
+        "waitKeys": 0,
+        "timers": 0,
+        "freeSlots": 24,
+        "stopped": false
+      },
+      "crossOriginIsolated": false,
+      "memoryType": "ArrayBuffer",
+      "sharedArrayBufferAvailable": false,
+      "jspiSuspending": false
+    }
+  ],
+  "browser": "153.0.8010.53"
+}

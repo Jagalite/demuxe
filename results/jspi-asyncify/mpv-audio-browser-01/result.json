@@ -1,0 +1,84 @@
+{
+  "scope": "Restricted stereo PCM mpv and AudioWorklet component; not Player, device or codec qualification",
+  "inputs": {
+    "/experiment/mpv/tests/run-audio.mjs": {
+      "path": "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/mpv/tests/run-audio.mjs",
+      "sha256": "9b1fc697afaf7527e13c33e06b285d0f3f0ff98b778a0a47a6323a794cbf5c6f"
+    },
+    "/experiment/mpv/tests/audio-worker.mjs": {
+      "path": "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/mpv/tests/audio-worker.mjs",
+      "sha256": "6bbf7f9a7bc64880d5351e45de5dab4d4b45e49afa7014794b6c65b9d291c330"
+    },
+    "/experiment/mpv/runtime/audio-worklet.mjs": {
+      "path": "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/mpv/runtime/audio-worklet.mjs",
+      "sha256": "3ff7c683c0ffef72f6a2f0770e4260d3e9e581698d797e635ce1e30bef03bea5"
+    },
+    "/experiment/mpv/runtime/engine.mjs": {
+      "path": "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/mpv/runtime/engine.mjs",
+      "sha256": "66ee82171811e417de875e38b41cf94af298cb1c2fbc2a245da66ab76be9734c"
+    },
+    "/experiment/runtime/scheduler.mjs": {
+      "path": "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/runtime/scheduler.mjs",
+      "sha256": "f53e2925b2d90009a9977387eb73eb904a2cafa85675f952c270d35d42143a64"
+    },
+    "/experiment/runtime/continuations.mjs": {
+      "path": "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/runtime/continuations.mjs",
+      "sha256": "bdace5c572bd62eae24d86c28e16c9fc882568a009670f2a11020c8903daf5bd"
+    },
+    "/experiment/stage2/runtime/range-source.mjs": {
+      "path": "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/stage2/runtime/range-source.mjs",
+      "sha256": "efc911a6ebd4f2b7b81572f93c95b0373c262afad5c3675cfd3c64e847839e78"
+    },
+    "/candidate/service.mjs": {
+      "path": "/Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927/mpv-audio-01/service.mjs",
+      "sha256": "9e6d743c893de1823f5e84f460812ca62f0e70851e8ad90fa425857de9bf7e79"
+    },
+    "/candidate/service.wasm": {
+      "path": "/Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927/mpv-audio-01/service.wasm",
+      "sha256": "9de289bda9788935530dbb2385c26bb38fca4d04df24f4bf76b69aa5a75af390"
+    },
+    "/candidate/service.asyncify.wasm": {
+      "path": "/Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927/mpv-audio-01/service.asyncify.wasm",
+      "sha256": "894b5bc17cfcf7dcc82164ad87c8941e5ded8631abebacadead3b8fb3ecf87d0"
+    },
+    "/fixtures/pcm.wav": {
+      "path": "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/build/jspi-asyncify/mpv-frozen/fixtures/pcm.wav",
+      "sha256": "494e6ebce19fa83d3a6bde6a9577c9cbb5d2b79aafec656641e40450bff5c807"
+    },
+    "/fixtures/pcm.s16": {
+      "path": "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/build/jspi-asyncify/mpv-frozen/fixtures/pcm.s16",
+      "sha256": "5dcef21b0fe39f006d4122d48d831411971a73dc5b951d73dfd8ca5fef362467"
+    }
+  },
+  "cases": [
+    {
+      "backend": "jspi",
+      "headers": {
+        "cache-control": "no-store",
+        "connection": "keep-alive",
+        "content-length": "47",
+        "content-type": "text/html",
+        "date": "Sun, 27 Sep 2026 17:02:36 GMT",
+        "keep-alive": "timeout=5"
+      },
+      "passed": false,
+      "error": "page.evaluate: Error: Consumed frames advanced while paused\n    at ensure (eval at evaluate (:290:30), <anonymous>:2:46)\n    at eval (eval at evaluate (:290:30), <anonymous>:34:6)\n    at async <anonymous>:316:30\n    at /Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/mpv/tests/run-audio.mjs:37:29"
+    },
+    {
+      "backend": "asyncify",
+      "headers": {
+        "cache-control": "no-store",
+        "connection": "keep-alive",
+        "content-length": "47",
+        "content-type": "text/html",
+        "date": "Sun, 27 Sep 2026 17:02:38 GMT",
+        "keep-alive": "timeout=5"
+      },
+      "passed": false,
+      "error": "page.evaluate: Error: Consumed frames advanced while paused\n    at ensure (eval at evaluate (:290:30), <anonymous>:2:46)\n    at eval (eval at evaluate (:290:30), <anonymous>:34:6)\n    at async <anonymous>:316:30\n    at /Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/mpv/tests/run-audio.mjs:37:29"
+    }
+  ],
+  "browser": "153.0.8010.53",
+  "passed": 0,
+  "total": 2
+}

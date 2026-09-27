@@ -82,8 +82,10 @@ repeated live seeks, and MSE scheduling are not established by this harness.
 follow-up command below to verify the corrected campaign; it checks exact case
 identities and matching artifacts without rewriting earlier records.
 
-Full mpv continuation ownership, subtitle rendering, non-shared mpv audio, Player
-integration, multi-browser coverage and release qualification remain separate.
+Actual mpv continuation ownership and subtitle rendering now have a separate
+[17-case component qualification](../mpv/README.md), followed by a restricted
+private-memory PCM/AudioWorklet audio campaign. Player integration, general audio,
+multi-browser coverage and release qualification remain separate.
 
 ## Review fixes and COOP/COEP coverage
 

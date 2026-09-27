@@ -1,0 +1,64 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "/Volumes/seed2/Projects/demuxe-release-closeout-20260916/build/emsdk-4.0.14/upstream/emscripten/emcc",
+        "--js-library",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/mpv/runtime/imports.js",
+        "-O2",
+        "-g",
+        "-I/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/runtime",
+        "-I/Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927/mpv-context-03/include",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927/mpv-context-03/threads-coop.c",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/runtime/stack.s",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/runtime/asyncify-stacks.c",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/mpv/native/context.c",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/mpv/tests/context-probe.c",
+        "-sMODULARIZE=1",
+        "-sEXPORT_ES6=1",
+        "-sENVIRONMENT=worker,node",
+        "-sALLOW_MEMORY_GROWTH=1",
+        "-sINITIAL_MEMORY=33554432",
+        "-sMAXIMUM_MEMORY=134217728",
+        "-sSTACK_SIZE=2097152",
+        "-sSTACK_OVERFLOW_CHECK=0",
+        "-sFILESYSTEM=0",
+        "-sASSERTIONS=1",
+        "-sEXPORTED_FUNCTIONS=[\"_context_probe\", \"_demuxe_context_errno\", \"_demuxe_context_enter\", \"_demuxe_context_stack_base\", \"_demuxe_context_stack_end\", \"_demuxe_coop_invoke\", \"_demuxe_coop_get_sp\", \"_demuxe_coop_set_sp\", \"_demuxe_coop_stack_base\", \"_demuxe_coop_stack_top\", \"_demuxe_coop_stack_count\", \"_demuxe_asyncify_count\", \"_demuxe_asyncify_data\", \"_demuxe_asyncify_base\", \"_demuxe_asyncify_end\"]",
+        "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\"]",
+        "-Wl,--export-memory",
+        "-o",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927/mpv-context-03/probe.mjs"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/Volumes/seed2/Projects/demuxe-release-closeout-20260916/build/emsdk-4.0.14/upstream/bin/wasm-opt",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927/mpv-context-03/probe.wasm",
+        "--asyncify",
+        "--pass-arg=asyncify-imports@demuxe_coop.demuxe_coop_wait,demuxe_coop.demuxe_coop_join,demuxe_coop.demuxe_coop_yield",
+        "--enable-bulk-memory",
+        "--enable-nontrapping-float-to-int",
+        "--enable-sign-ext",
+        "-g",
+        "-o",
+        "/Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927/mpv-context-03/probe.asyncify.wasm"
+      ],
+      "returncode": 0
+    }
+  ],
+  "sourceSHA256": {
+    "/Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927/mpv-context-03/threads-coop.c": "d09404f222c89a7eeba36b68120fe173ab47e1733c8ea651d9c9c001e720a511",
+    "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/runtime/stack.s": "da78c43652190be733ea97f098a8f5f81869951a5688aa936527162469c78b0b",
+    "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/runtime/asyncify-stacks.c": "8526b0d26a5bcef5935cb3979e33abea8836359282714dcb1f7af8cd1c58edb1",
+    "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/mpv/native/context.c": "ee4e0b3e7924dd40ed4184a4c052a8e72b897785228cae2c6c97bac1a38b968c",
+    "/Volumes/seed2/Projects/demuxe-jspi-asyncify-20260927/experiments/jspi-asyncify/mpv/tests/context-probe.c": "e631e47087b10b971a33fa324cfd083719df4f8e926aaa5cfe7740a44aae7729"
+  },
+  "status": "built",
+  "artifacts": {
+    "probe.asyncify.wasm": "08aafc7a9a5c5533e91420439bfd5b33daec552a532a73e44af4c3ff036bd934",
+    "probe.mjs": "7cb9eccd09b2e398f439befaf14f2a9b9633351a2abf61d182d0195caa0ce0e8",
+    "probe.wasm": "dc2afe50e438390142add77eff8b379efe5c67fcbfa98a8bdd6f4f052bfde744"
+  }
+}

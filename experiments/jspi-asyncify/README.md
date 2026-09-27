@@ -1,6 +1,7 @@
 # Local JSPI / Asyncify development fork
 
-Local integration work is documented in [local/README.md](local/README.md). The
+Local integration work is documented in [local/README.md](local/README.md) and
+the [actual mpv component follow-up](mpv/README.md). The
 original package description below and its manifest refer to the delivered
 snapshot. Local edits and rebuilt artifacts intentionally no longer match that
 manifest; use the preserved extraction recorded in `LOCAL-ORIGIN.json` to verify

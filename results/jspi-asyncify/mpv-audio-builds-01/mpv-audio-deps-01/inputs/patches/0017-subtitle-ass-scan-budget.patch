@@ -1,0 +1,98 @@
+--- a/sub/dec_sub.c
++++ b/sub/dec_sub.c
+@@ -71,6 +71,10 @@
+     bool preload_attempted;
+     bool static_full_scan_complete;
+     bool static_scan_eof;
++    bool static_scan_active;
++    bool static_scan_overflow;
++    int static_scan_packets;
++    size_t static_scan_bytes;
+     double video_fps;
+     double sub_speed;
+     bool sub_visible;
+@@ -356,7 +360,20 @@
+     *packets_read = true;
+     mp_mutex_lock(&sub->lock);
+     video_pts = pts_to_subtitle(sub, video_pts);
++    int scan_batch = 0;
+     while (1) {
++        if (sub->static_scan_active) {
++            if (sub->static_scan_packets >= 8192 ||
++                sub->static_scan_bytes >= 4 * 1024 * 1024) {
++                sub->static_scan_overflow = true;
++                *packets_read = false;
++                break;
++            }
++            if (scan_batch >= 128) {
++                *packets_read = false;
++                break;
++            }
++        }
+         bool read_more = true;
+         if (sub->sd->driver->accepts_packet)
+             read_more = sub->sd->driver->accepts_packet(sub->sd, video_pts);
+@@ -391,6 +408,18 @@
+             break;
+         }
+ 
++        if (sub->static_scan_active) {
++            if (pkt->len > 4 * 1024 * 1024 - sub->static_scan_bytes) {
++                sub->static_scan_overflow = true;
++                *packets_read = false;
++                demux_packet_pool_push(sub->packet_pool, pkt);
++                break;
++            }
++            sub->static_scan_bytes += pkt->len;
++            sub->static_scan_packets++;
++            scan_batch++;
++        }
++
+         if (sub->recorder_sink)
+             mp_recorder_feed_packet(sub->recorder_sink, pkt);
+ 
+@@ -729,6 +758,32 @@
+     return complete;
+ }
+ 
++void sub_static_timing_scan_begin(struct dec_sub *sub)
++{
++    mp_mutex_lock(&sub->lock);
++    sub->static_scan_active = true;
++    sub->static_scan_overflow = false;
++    sub->static_scan_eof = false;
++    sub->static_scan_packets = 0;
++    sub->static_scan_bytes = 0;
++    mp_mutex_unlock(&sub->lock);
++}
++
++int sub_static_timing_scan_status(struct dec_sub *sub)
++{
++    mp_mutex_lock(&sub->lock);
++    int status = sub->static_scan_overflow ? -1 : sub->static_scan_eof ? 1 : 0;
++    mp_mutex_unlock(&sub->lock);
++    return status;
++}
++
++void sub_static_timing_scan_end(struct dec_sub *sub)
++{
++    mp_mutex_lock(&sub->lock);
++    sub->static_scan_active = false;
++    mp_mutex_unlock(&sub->lock);
++}
++
+ void sub_set_timing_changed_cb(struct dec_sub *sub, void (*cb)(void *), void *ctx)
+ {
+     mp_mutex_lock(&sub->lock);
+--- a/sub/dec_sub.h
++++ b/sub/dec_sub.h
+@@ -74,6 +74,9 @@
+ bool sub_next_raw_boundary(struct dec_sub *sub, double pts, double *next);
+ bool sub_static_timing_ass_preload_needed(struct dec_sub *sub);
+ bool sub_static_timing_mark_full_scan(struct dec_sub *sub);
++void sub_static_timing_scan_begin(struct dec_sub *sub);
++int sub_static_timing_scan_status(struct dec_sub *sub);
++void sub_static_timing_scan_end(struct dec_sub *sub);
+ // Internal visual scheduling query. Returns 0 unsupported, 1 deadline,
+ // 2 animated. Converts the next boundary back to browser/media PTS.
+ int sub_visual_schedule(struct dec_sub *sub, double pts, double *next);
