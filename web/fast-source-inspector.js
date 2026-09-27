@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Bounded local-file metadata for Demuxe route admission. Unknown means FFmpeg
-// inspection must decide. No packet iteration, sample tables or Cluster payloads.
-const MAX_META = 1024 * 1024, MAX_READS = 96, MAX_BYTES = 2 * 1024 * 1024;
+// inspection must decide. Read-ahead can include payload bytes, but only
+// container metadata is parsed; no packet iteration or sample-table parsing.
+const MAX_META = 1024 * 1024, MAX_READS = 8, MAX_BYTES = 512 * 1024;
+const READ_AHEAD = 64 * 1024, MAX_SCAN_MS = 50, IO_TIMEOUT_MS = 3000;
 const dec = new TextDecoder('latin1');
 const str = (b, a, n) => dec.decode(b.subarray(a, a + n));
 const hex = n => n.toString(16).padStart(2, '0');
@@ -9,23 +11,112 @@ const u16 = (b, a) => new DataView(b.buffer, b.byteOffset, b.byteLength).getUint
 const u32 = (b, a) => new DataView(b.buffer, b.byteOffset, b.byteLength).getUint32(a);
 class Unknown extends Error {}
 const unknown = reason => {throw new Unknown(reason);};
+// Limits apply to one speculative inspection, including index-assisted reads.
+export const FAST_PROBE_BUDGET = Object.freeze({reads: MAX_READS, batches: 8, concurrentReads: 8, bytes: MAX_BYTES,
+  milliseconds: MAX_SCAN_MS, ioTimeoutMs: IO_TIMEOUT_MS, readAhead: READ_AHEAD, indexEntries: 2048, indexBytes: 256 * 1024});
 class Source {
-  constructor(file, signal, headerCache = true) {this.file = file; this.signal = signal; this.bytes = 0; this.reads = 0; this.cache = null; this.headerCache = headerCache;}
+  constructor(file, signal, headerCache = true, onProgress) {
+    this.file = file; this.signal = signal; this.bytes = 0; this.reads = 0;
+    this.batches = 0; this.ioMs = 0; this.cache = []; this.headerCache = headerCache;
+    this.processingMs = 0; this.processingSince = null; this.onProgress = onProgress;
+  }
+  parseMs() {return this.processingMs + (this.processingSince === null ? 0 : performance.now() - this.processingSince);}
+  check() {
+    if (this.signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+    if (this.parseMs() >= MAX_SCAN_MS) unknown('Metadata parsing budget');
+  }
+  bounds(at, n) {
+    if (!Number.isSafeInteger(at) || !Number.isSafeInteger(n) || n < 0 || at < 0 ||
+        !Number.isSafeInteger(at + n) || at + n > this.file.size || n > MAX_META) unknown('Source bounds');
+  }
+  cached(at, n) {
+    for (let i = this.cache.length - 1; i >= 0; i--) {
+      const c = this.cache[i];
+      if (at >= c.at && at + n <= c.at + c.data.length) return c.data.subarray(at - c.at, at - c.at + n);
+    }
+  }
+  readBlob(blob, signal) {
+    if (typeof FileReader === 'undefined') return blob.arrayBuffer();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader(); let finished = false;
+      const finish = (error, value) => {
+        if (finished) return; finished = true;
+        clearTimeout(timer); signal.removeEventListener('abort', abort);
+        reader.onload = reader.onerror = reader.onabort = null;
+        if (reader.readyState === 1) reader.abort();
+        error ? reject(error) : resolve(value);
+      };
+      const abort = () => finish(new DOMException('Aborted', 'AbortError'));
+      const timer = setTimeout(() => finish(new Unknown('Metadata I/O timeout')), IO_TIMEOUT_MS);
+      reader.onload = () => finish(null, reader.result);
+      reader.onerror = () => finish(reader.error ?? Error('Metadata read failed'));
+      reader.onabort = abort;
+      signal.addEventListener('abort', abort, {once: true});
+      if (signal.aborted) abort();
+      else try {reader.readAsArrayBuffer(blob);} catch (error) {finish(error);}
+    });
+  }
+  async transfer(ranges) {
+    this.check();
+    const count = ranges.reduce((n, r) => n + r.n, 0);
+    if (this.batches >= FAST_PROBE_BUDGET.batches || this.bytes + count > MAX_BYTES ||
+        this.reads + ranges.length > MAX_READS) unknown('Metadata read budget');
+    this.batches++;
+    const controller = new AbortController(), abort = () => controller.abort();
+    this.signal?.addEventListener('abort', abort, {once: true});
+    this.processingMs = this.parseMs(); this.processingSince = null;
+    this.onProgress?.({phase: 'reading', reads: this.reads, bytesRead: this.bytes});
+    const start = performance.now();
+    try {
+      for (let i = 0; i < ranges.length; i += FAST_PROBE_BUDGET.concurrentReads) {
+        this.check();
+        const group = ranges.slice(i, i + FAST_PROBE_BUDGET.concurrentReads);
+        this.reads += group.length;
+        const pending = group.map(async ({at, n}) => {
+          const data = new Uint8Array(await this.readBlob(this.file.slice(at, at + n), controller.signal));
+          this.bytes += data.length;
+          if (data.length !== n) unknown('Short metadata read');
+          if (!controller.signal.aborted) this.cache.push({at, data});
+        });
+        try {await Promise.all(pending);}
+        catch (error) {controller.abort();await Promise.allSettled(pending);throw error;}
+      }
+      if (this.signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+    } finally {
+      this.ioMs += performance.now() - start; this.signal?.removeEventListener('abort', abort);
+      if (!this.signal?.aborted) this.onProgress?.({phase: 'inspecting', reads: this.reads, bytesRead: this.bytes});
+      this.processingSince = performance.now();
+    }
+  }
   async read(at, n, block = 0) {
     if (this.signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-    if (!Number.isSafeInteger(at) || n < 0 || at < 0 || at + n > this.file.size || n > MAX_META) unknown('Source bounds');
-    if (this.cache && at >= this.cache.at && at + n <= this.cache.at + this.cache.data.length)
-      return this.cache.data.subarray(at - this.cache.at, at - this.cache.at + n);
-    const count = Math.min(this.file.size - at, Math.max(n, block));
-    if (++this.reads > MAX_READS || this.bytes + count > MAX_BYTES) unknown('Metadata read budget');
-    const data = new Uint8Array(await this.file.slice(at, at + count).arrayBuffer());
-    if (this.signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-    this.bytes += data.length;
-    if (data.length < n) unknown('Short metadata read');
-    this.cache = block ? {at, data} : null;
-    return data.subarray(0, n);
+    this.bounds(at, n);
+    const hit = this.cached(at, n); if (hit) return hit;
+    const count = Math.min(this.file.size - at, Math.max(n, block, this.headerCache ? READ_AHEAD : 0));
+    await this.transfer([{at, n: count}]);
+    return this.cached(at, n);
+  }
+  async headers(positions, end) {
+    const ranges = [];
+    for (const at of [...new Set(positions)].sort((a, b) => a - b)) {
+      const n = Math.min(16, end - at); this.bounds(at, n);
+      if (n < 2) unknown('Short Matroska header');
+      if (!this.cached(at, n)) {
+        const start = Math.floor(at / 4096) * 4096;
+        const endAt = Math.min(end, Math.ceil((at + n) / 4096) * 4096);
+        const previous = ranges.at(-1);
+        // Nearby directory entries share one bounded read, even when they are
+        // separated by padding or small metadata payloads.
+        if (previous && start - (previous.at + previous.n) <= 4096 && endAt - previous.at <= READ_AHEAD)
+          previous.n = Math.max(previous.n, endAt - previous.at);
+        else ranges.push({at: start, n: endAt - start});
+      }
+    }
+    if (this.reads + ranges.length > MAX_READS) unknown(`Metadata read budget (index needs ${ranges.length} more reads)`);
+    if (ranges.length) await this.transfer(ranges);
   }
 }
+
 function eachBox(b, start, end, fn) {
   let count = 0;
   for (let p = start; p < end;) {
@@ -220,9 +311,9 @@ const vint = (b, at, id = false) => {
   if (!id && value === 2 ** (7 * width) - 1) value = null;
   return [value, width];
 };
-function ebmlElements(b, start, end, fn) {
+function ebmlElements(b, start, end, fn, limit = 256) {
   for (let p = start, count = 0; p < end;) {
-    if (++count > 256) unknown('EBML child count');
+    if (++count > limit) unknown('EBML child count');
     const [id, iw] = vint(b, p, true), [size, sw] = vint(b, p + iw);
     const a = p + iw + sw;
     if (size === null || a + size > end) unknown('Unknown/invalid EBML child size');
@@ -327,7 +418,81 @@ async function ebmlAttachments(src, start, end) {
   });
   return {present: true, fonts};
 }
-async function ebml(src) {
+// SeekHead/Cues are untrusted I/O hints only. The ordinary top-level walk
+// below still proves continuous coverage and parses every metadata element.
+function ebmlHeader(bytes, at, end) {
+  const [id, iw] = vint(bytes, 0, true), [size, sw] = vint(bytes, iw);
+  const start = at + iw + sw, next = start + size;
+  if (size === null || !Number.isSafeInteger(next) || next > end || next <= at)
+    unknown('Unknown Matroska child size');
+  return {id, start, end: next, size};
+}
+function ebmlSeekHints(data, segment) {
+  const hints = new Map();
+  ebmlElements(data, 0, data.length, (id, a, z) => {
+    if (id === 0xec || id === 0xbf) return;
+    if (id !== 0x4dbb) unknown('Unknown Matroska seek entry');
+    let target, offset;
+    ebmlElements(data, a, z, (key, x, y) => {
+      if (key === 0x53ab) {
+        if (target !== undefined || y - x !== 4) unknown('Invalid Matroska seek ID');
+        target = uint(data, x, y);
+      } else if (key === 0x53ac) {
+        if (offset !== undefined) unknown('Duplicate Matroska seek position');
+        offset = uint(data, x, y);
+      }
+    });
+    const at = segment.start + offset;
+    if (target === undefined || offset === undefined || !Number.isSafeInteger(at) || at < segment.start || at >= segment.end)
+      unknown('Matroska seek bounds');
+    if (hints.has(at) && hints.get(at) !== target) unknown('Conflicting Matroska seek entries');
+    hints.set(at, target);
+  });
+  return hints;
+}
+async function ebmlIndexedHeaders(src, segment, hints) {
+  const cues = [...hints].filter(([, id]) => id === 0x1c53bb6b);
+  if (cues.length !== 1) return;
+  const [cueAt] = cues[0], positions = new Set([segment.start, ...hints.keys()]);
+  const header = ebmlHeader(await src.read(cueAt, Math.min(16, segment.end - cueAt)), cueAt, segment.end);
+  if (header.id !== 0x1c53bb6b || header.size > FAST_PROBE_BUDGET.indexBytes) unknown('Invalid/large Matroska cue index');
+  const data = await src.read(header.start, header.size);
+  ebmlElements(data, 0, data.length, (id, a, z) => {
+    if (id !== 0xbb) return;
+    ebmlElements(data, a, z, (key, x, y) => {
+      if (key !== 0xb7) return;
+      ebmlElements(data, x, y, (field, m, n) => {
+        if (field !== 0xf1) return;
+        const at = segment.start + uint(data, m, n);
+        if (!Number.isSafeInteger(at) || at < segment.start || at >= segment.end) unknown('Matroska cue bounds');
+        if (hints.has(at) && hints.get(at) !== 0x1f43b675) unknown('Conflicting Matroska cue target');
+        hints.set(at, 0x1f43b675); positions.add(at);
+        if (positions.size > FAST_PROBE_BUDGET.indexEntries) unknown('Matroska index range budget');
+      });
+    });
+  }, 4096);
+  // Cues need not list every Cluster. Fetch the ends of indexed elements in
+  // batches too, until gaps close or the shared read/time budget declines.
+  const seen = new Set();
+  let pending = [...positions];
+  while (pending.length) {
+    src.check();
+    await src.headers(pending, segment.end);
+    const missing = new Set(), queue = [...pending];
+    for (let i = 0; i < queue.length; i++) {
+      const at = queue[i]; if (seen.has(at)) continue;
+      const bytes = src.cached(at, Math.min(16, segment.end - at));
+      if (!bytes) {missing.add(at); continue;}
+      seen.add(at);
+      if (seen.size > 2048) unknown('Matroska top-level budget');
+      const h = ebmlHeader(bytes, at, segment.end), expected = hints.get(at);
+      if (expected !== undefined && expected !== h.id) unknown('Matroska index target mismatch');
+      if (h.end < segment.end && !seen.has(h.end)) queue.push(h.end);
+    }
+    pending = [...missing];
+  }
+}
+async function ebml(src, requirements) {
   const head = await src.read(0, 64, 4096);
   const [id, iw] = vint(head, 0, true), [size, sw] = vint(head, iw);
   if (id !== 0x1a45dfa3 || size === null || size > 4096) unknown('EBML header');
@@ -337,19 +502,35 @@ async function ebml(src) {
   if (!['matroska', 'webm'].includes(docType)) unknown('Unsupported EBML DocType');
   let p = iw + sw + size, segment;
   for (let n = 0; p < src.file.size && n < 8; n++) {
-    const h = await src.read(p, 16, 256), [key, k] = vint(h, 0, true), [length, w] = vint(h, k);
+    const h = await src.read(p, Math.min(16, src.file.size - p), 256), [key, k] = vint(h, 0, true), [length, w] = vint(h, k);
     if (key === 0x18538067) {segment = {start: p + k + w, end: length === null ? src.file.size : p + k + w + length}; break;}
     if (length === null) unknown('Unknown pre-segment size');
     p += k + w + length;
   }
   if (!segment) unknown('Matroska Segment absent');
+  if (!Number.isSafeInteger(segment.end) || segment.end > src.file.size) unknown('Matroska Segment bounds');
+  let hints = new Map(), indexed = false, infoSeen = false;
   let tracks = null, timeScale = 1000000, ticks = 0, attachments = {present: false, fonts: []}, linked = false, children = 0;
   for (p = segment.start; p < segment.end;) {
     if (++children > 2048) unknown('Matroska top-level budget');
-    const h = await src.read(p, 16, 256), [key, k] = vint(h, 0, true), [length, w] = vint(h, k);
+    const h = await src.read(p, Math.min(16, src.file.size - p), 256), [key, k] = vint(h, 0, true), [length, w] = vint(h, k);
     const a = p + k + w;
+    if (requirements && hints.has(p) && hints.get(p) !== key) unknown('Matroska seek target mismatch');
     if (length === null || a + length > segment.end) unknown('Unknown Matroska child size');
-    if (key === 0x1941a469) {
+    if (key === 0x114d9b74 && length <= FAST_PROBE_BUDGET.indexBytes) {
+      const entries = ebmlSeekHints(await src.read(a, length), segment);
+      for (const [at, id] of entries) {
+        if (hints.has(at) && hints.get(at) !== id) unknown('Conflicting Matroska seek entries');
+        hints.set(at, id);
+      }
+    }
+    if (!requirements && !indexed && [...hints.values()].includes(0x1c53bb6b)) {
+      indexed = true;
+      // Plan before traversing attachments or media. An expensive index is an
+      // immediate handoff, not permission to start a long speculative scan.
+      await ebmlIndexedHeaders(src, segment, hints);
+    }
+    if (!requirements && key === 0x1941a469) {
       if (attachments.present) unknown('Duplicate Matroska attachments');
       attachments = await ebmlAttachments(src, a, a + length);
     }
@@ -362,6 +543,7 @@ async function ebml(src) {
       });
     }
     if (key === 0x1549a966 && length < 65536) {
+      infoSeen = true;
       const data = await src.read(a, length);
       ebmlElements(data, 0, data.length, (child, x, y) => {
         if (child === 0x2ad7b1) timeScale = uint(data, x, y);
@@ -369,12 +551,23 @@ async function ebml(src) {
         else if ([0x3cb923, 0x3eb923].includes(child)) linked = true;
       });
     }
-    p = a + length;
+    // Complete Tracks establishes absence; a partial TrackEntry never does.
+    // Info is also required so known linked-segment semantics are not skipped.
+    if (requirements && tracks && infoSeen) break;
+    // A partial index cannot establish that skipped required metadata is absent.
+    // Jump only when every still-needed element has a forward index target.
+    const forward = [...hints].filter(([at]) => at >= a + length);
+    const indexedNeeds = (tracks || forward.some(([,id]) => id === 0x1654ae6b)) &&
+      (infoSeen || forward.some(([,id]) => id === 0x1549a966));
+    const needed = requirements && indexedNeeds && forward.sort((a,b) => a[0]-b[0]).find(([, id]) =>
+      ((!tracks && id === 0x1654ae6b) || (!infoSeen && id === 0x1549a966)));
+    p = needed ? needed[0] : a + length;
   }
+  if (requirements && !infoSeen) unknown('Matroska Info absent');
   if (!tracks?.length || linked) unknown(linked ? 'Linked Matroska segment' : 'Matroska tracks absent');
   if (tracks.filter(t => t.type === 'video').length > 1 || tracks.filter(t => t.type === 'audio').length > 1)
     unknown('Matroska alternate tracks need FFmpeg selection');
-  return {tracks, duration: Number.isFinite(ticks) ? ticks * timeScale / 1e9 : 0, format: docType, attachments};
+  return {tracks, duration: Number.isFinite(ticks) ? ticks * timeScale / 1e9 : 0, format: docType, ...(requirements ? {} : {attachments})};
 }
 async function simple(src, first) {
   const b = first;
@@ -440,28 +633,36 @@ async function simple(src, first) {
   }
   unknown('Unrecognized or deliberately unsupported format');
 }
-export async function inspectFastSource(file, {signal, headerCache = true} = {}) {
-  const src = new Source(file, signal, headerCache), started = performance.now();
+export async function inspectFastSource(file, {signal, headerCache = true, requirements, onProgress} = {}) {
+  const src = new Source(file, signal, headerCache, onProgress), started = performance.now();
   try {
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
     const first = await src.read(0, Math.min(64, file.size));
     let probe;
     if (str(first, 4, 4) === 'ftyp') {
-      if (headerCache) src.cache = {at: 0, data: first};
       probe = await iso(src);
     }
-    else if (first[0] === 0x1a && first[1] === 0x45 && first[2] === 0xdf && first[3] === 0xa3) probe = await ebml(src);
+    else if (first[0] === 0x1a && first[1] === 0x45 && first[2] === 0xdf && first[3] === 0xa3) probe = await ebml(src, requirements);
     else probe = await simple(src, first);
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+    src.check();
     const embeddedSubtitles = probe.tracks.some(t => t.type === 'sub');
-    if (embeddedSubtitles && !(Number.isFinite(probe.duration) && probe.duration > 0))
+    if (!requirements && embeddedSubtitles && !(Number.isFinite(probe.duration) && probe.duration > 0))
       unknown('Subtitle route requires a finite container duration');
+    if (requirements) {
+      const available = new Set(['container', 'tracks']);
+      if (Number.isFinite(probe.duration) && probe.duration > 0) available.add('duration');
+      const missing = requirements.filter(fact => !available.has(fact));
+      return {status: missing.length ? 'incomplete' : 'satisfied', evidence: probe,
+        available: [...available], missing, reads: src.reads, batches: src.batches,
+        readMs: src.ioMs, parseMs: src.parseMs(), bytesRead: src.bytes, wallMs: performance.now() - started};
+    }
     return {status: 'qualified', evidence: probe,
       sufficientFor: embeddedSubtitles ? ['native-direct-rejection', 'native-direct-mpv-admission'] : ['native-direct'],
       missingFor: embeddedSubtitles ? ['subtitle-playback', 'native-remux', 'selective-audio'] : ['native-remux', 'hybrid', 'selective-audio'],
-      reads: src.reads, bytesRead: src.bytes, wallMs: performance.now() - started};
+      reads: src.reads, batches: src.batches, readMs: src.ioMs, parseMs: src.parseMs(), bytesRead: src.bytes, wallMs: performance.now() - started};
   } catch (error) {
     if (signal?.aborted || error?.name === 'AbortError') throw error;
-    return {status: 'unknown', reason: String(error?.message ?? error), reads: src.reads, bytesRead: src.bytes, wallMs: performance.now() - started};
+    return {status: requirements ? 'incomplete' : 'unknown', missing: requirements, reason: String(error?.message ?? error), reads: src.reads, batches: src.batches, readMs: src.ioMs, parseMs: src.parseMs(), bytesRead: src.bytes, wallMs: performance.now() - started};
   }
 }

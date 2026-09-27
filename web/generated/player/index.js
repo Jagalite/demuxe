@@ -29,7 +29,7 @@ const icons = {
 };
 const Base = (typeof HTMLElement === 'undefined' ? class {
 } : HTMLElement);
-export const defaultLabels = Object.freeze({ previews: 'Timeline thumbnails', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
+export const defaultLabels = Object.freeze({ previews: 'Timeline thumbnails', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', reading: 'Reading media…', inspecting: 'Inspecting media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
 // Never display opaque URL payloads, origins, credentials, queries or fragments.
 function sourceTitle(source) {
     if (typeof File !== 'undefined' && source instanceof File)
@@ -409,11 +409,15 @@ export class DemuxePlayerElement extends Base {
                 const core = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, audioPlayback: this.audioPlaybackConfiguration, preview: this.previewConfiguration, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
                 this.dimensions = '';
                 this.trackSignature = '';
-                for (const type of [...PLAYER_EVENTS, 'preparationchange', 'modechange', 'selectionchange', 'mpv', 'log', 'source', 'output'])
+                for (const type of [...PLAYER_EVENTS, 'preparationchange', 'inspectionchange', 'modechange', 'selectionchange', 'mpv', 'log', 'source', 'output'])
                     core.addEventListener(type, event => {
                         if (this.core !== core || this.terminal)
                             return;
                         const detail = event.detail;
+                        if (type === 'inspectionchange' && core.state.pendingOperation?.kind === 'opening') {
+                            this.openingStage = detail.phase === 'reading' ? this.labels.reading : this.labels.inspecting;
+                            this.update(core.state);
+                        }
                         if (type === 'preparationchange')
                             this.update(core.state);
                         if (type === 'modechange' && detail.phase === 'loading' && core.state.pendingOperation?.kind === 'opening') {
@@ -698,7 +702,7 @@ export class DemuxePlayerElement extends Base {
         const opening = state.pendingOperation?.kind === 'opening';
         if (opening && this.openingOperation !== state.pendingOperation.id) {
             this.openingOperation = state.pendingOperation.id;
-            this.openingStage = 'Inspecting media…';
+            this.openingStage = this.labels.inspecting;
         }
         if (!opening) {
             this.openingOperation = null;

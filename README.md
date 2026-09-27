@@ -121,6 +121,8 @@ elapsed milliseconds. `destroy()` aborts preparation and releases cached assets.
 The `all` option covers the inspector, Hybrid, and Software; browser-native
 playback needs no Wasm preparation. Codec decoders still initialize after opening
 media. Preparation can increase initial bandwidth and memory use.
+Local file inspection has a separate [fast-probe budget](docs/FAST-PROBE.md)
+and requests FFmpeg inspection when route-required evidence is missing.
 
 ## Ready-made player
 

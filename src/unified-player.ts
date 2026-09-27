@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {routingRequirements, missingRoutingFacts} from './internal/probe-requirements.js';
 import {bufferingPolicy, resolveBuffering} from './internal/buffering.js';
 import type {BufferingPolicy, BufferingResolution} from './types.js';
 import {normalizeTrackPolicy,trackAllowed,defaultTrack,assertTrackSelection} from './internal/track-policy.js';
@@ -749,6 +750,7 @@ export class Player extends EventTarget {
     }finally{if(this.inspection===controller)this.inspection=undefined;}
   }
   private async inspectWithFFmpeg(source:Source,controller:AbortController):Promise<Probe>{
+    this.emit('inspectionchange',{phase:'inspecting'});
     const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
     const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();
     const compiledWasm=await this.interruptible(this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
@@ -819,7 +821,7 @@ export class Player extends EventTarget {
     let nativeReason: string | undefined;
     if(start===0||this.sourceInspection?.source!==source){this.losslessInspection=undefined;this.sourceInspection=undefined;this.fastInspectedSource=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;this.transcodeAssetsAvailable=false;this.transcodeAssetsChecked=false;}
     // A later Direct playback failure can resume discovery beyond Native.
-    // Fast metadata only proves Direct admission; inspect before other plans.
+    // Recovery beyond the initial route can need decoder configuration or track bounds.
     if(start>0&&this.fastInspectedSource===source)
       nativeReason=await this.inspectFallbackAfterFastFailure(source,settings);
     if(start===0&&!(settings.vf||settings.af||this.toneMapping!=='off')){
@@ -828,20 +830,22 @@ export class Player extends EventTarget {
       }else{
         const controller=this.inspection=new AbortController();
         try{
-          let probe:Probe|undefined, fastProbe=false;
+          let probe:Probe|undefined, fastProbe=false, fastFacts:string[]=[];
           // Immutable local bytes permit bounded inspection without an engine download.
           // Remote identity/permission enforcement continues through the existing inspector.
-          if(source.kind==='local'&&this.nativeRemux!=='always'){
+          if(source.kind==='local'){
             const local=source.file instanceof File?source.file:new File([source.file],'media');
             // The filename only bypasses an optimization: FFmpeg still inspects
             // these known-unsupported families, whatever their actual bytes are.
             if(!preserve&&!tracks.length&&settings.aid==='auto'&&settings.sid==='auto'&&!/\.(?:ogg|oga|opus|ts|m2ts)$/i.test(local.name)){
               try{
                 const {inspectFastSource}=await this.interruptible(import(new URL('web/fast-source-inspector.js',this.assetBase).href));
-                const fast=await inspectFastSource(local,{signal:controller.signal});
+                const fast=await inspectFastSource(local,{signal:controller.signal,requirements:routingRequirements,onProgress:(progress:{phase:string})=>{
+                  if(!controller.signal.aborted&&!this.destroyed)this.emit('inspectionchange',progress);
+                }});
                 this.assertOperation();
-                if(fast.status==='qualified'){
-                  probe=fast.evidence as Probe;fastProbe=true;
+                if(fast.status==='satisfied'){
+                  probe=fast.evidence as Probe;fastProbe=true;fastFacts=fast.available;
                   this.record({mode:'probe',outcome:'selected',reason:`Fast local metadata: ${fast.bytesRead} bytes; routing admission pending`});
                 }else this.record({mode:'probe',outcome:'skipped',reason:`Fast local metadata: ${fast.bytesRead} bytes; ${fast.reason}`});
               }catch(error){
@@ -868,9 +872,11 @@ export class Player extends EventTarget {
           this.sourceInspection={source,probe,settings:{aid,sid,subtitles:settings.subtitles}};
           await this.checkInspectedAssets(source,probe,settings,sid,controller);
           if(fastProbe){
-            const first=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,this.automatic).find(plan=>plan.eligible)?.id;
-            if(first!=='native-direct'&&first!=='native-direct-mpv'){
-              this.record({mode:'probe',outcome:'skipped',reason:`Fast metadata does not admit an existing Direct route (${first??'none'}); FFmpeg inspection required`});
+            const candidates=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,this.automatic);
+            const first=candidates.find(plan=>plan.eligible)?.id;
+            const missing=missingRoutingFacts(candidates,fastFacts);
+            if(missing.length){
+              this.record({mode:'probe',outcome:'skipped',reason:`Fast metadata missing ${missing.join(', ')} for ${first??'routing'}; FFmpeg inspection required`});
               fastProbe=false;this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;this.transcodeAssetsAvailable=false;this.transcodeAssetsChecked=false;
               if(globalThis.crossOriginIsolated){probe=await this.inspectWithFFmpeg(source,controller);continue;}
               probe=undefined;nativeReason=undefined;
@@ -908,7 +914,7 @@ export class Player extends EventTarget {
   private localRemuxRetry(source:Source,planId:string,settings:Settings):string|undefined {
     // Match complete, existing plans: preserve gain and subtitle ownership.
     const remux=({'native-direct':'native-remux','native-direct-mpv':'native-remux-mpv','native-direct-gain':'native-remux-gain','native-direct-ass':'native-remux-ass','native-direct-ass-gain':'native-remux-ass-gain'} as Record<string,string>)[planId];
-    if(source.kind==='local'&&this.fastInspectedSource!==source&&this.sourceInspection?.source===source&&remux&&this.planDecisions.some(p=>p.eligible&&p.id===remux)&&!this.tierAttempts.reason(source,this.tierConfiguration(settings),remux))return remux;
+    if(source.kind==='local'&&this.sourceInspection?.source===source&&remux&&this.planDecisions.some(p=>p.eligible&&p.id===remux)&&!this.tierAttempts.reason(source,this.tierConfiguration(settings),remux))return remux;
   }
   private async discover(source:Source,settings:Settings,preserve:boolean,tracks:TextTrackSource[],target:number|undefined,automatic:boolean,pinnedMode?:PlaybackMode,start=0):Promise<void> {
     let nativeReason=automatic?this.admissionContext.nativeReason:undefined;
@@ -1021,7 +1027,7 @@ export class Player extends EventTarget {
         if(this.destroyed||this.activeOperation?.controller.signal.aborted||(!automatic&&playerError(error).code==='UNSUPPORTED_TIMELINE')||(!compatible&&!retryLocalLoad&&!inconclusiveOutput))throw error;
         if(error instanceof BrowserCaptionUnsupported)captionFailure=error.message;
         errors.push(`${plan.id}: ${String(error)}`);
-        if(this.fastInspectedSource===source){
+        if(this.fastInspectedSource===source&&!retryLocalLoad){
           nativeReason=await this.inspectFallbackAfterFastFailure(source,settings);
           this.admissionContext={nativeReason,automatic};
           this.planDecisions=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic);
