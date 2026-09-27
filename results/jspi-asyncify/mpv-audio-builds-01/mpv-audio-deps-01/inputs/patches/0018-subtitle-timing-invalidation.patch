@@ -1,0 +1,14 @@
+--- a/sub/dec_sub.c
++++ b/sub/dec_sub.c
+@@ -594,6 +594,11 @@
+     }
+     if (propagate && sub->sd->driver->control)
+         r = sub->sd->driver->control(sub->sd, cmd, arg);
++    // Option updates can change subtitle PTS conversion or rebuild decoder
++    // events without decoding another packet. Invalidate any armed deadline.
++    if ((cmd == SD_CTRL_SET_VIDEO_DEF_FPS || cmd == SD_CTRL_UPDATE_OPTS ||
++         cmd == SD_CTRL_RESET_SOFT) && sub->timing_changed)
++        sub->timing_changed(sub->timing_changed_ctx);
+     mp_mutex_unlock(&sub->lock);
+     return r;
+ }

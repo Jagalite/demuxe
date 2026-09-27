@@ -1,0 +1,11 @@
+--- a/meson.build
++++ b/meson.build
+@@ -442,7 +442,7 @@
+ endif
+ 
+ if posix
+-    if not get_option('fuzzers') and cc.has_function('fork', prefix : '#include <unistd.h>')
++    if host_machine.system() != 'emscripten' and not get_option('fuzzers') and cc.has_function('fork', prefix : '#include <unistd.h>')
+         sources += files('osdep/subprocess-posix.c')
+     else
+         sources += files('osdep/subprocess-dummy.c')

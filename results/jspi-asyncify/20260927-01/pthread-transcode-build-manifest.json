@@ -1,0 +1,138 @@
+{
+  "apiVersion": 2,
+  "inputs": {
+    "ffmpeg": {
+      "name": "ffmpeg-adaptation",
+      "upstream": "https://github.com/FFmpeg/FFmpeg",
+      "revision": "n9.0.2",
+      "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+      "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+    },
+    "patches": {
+      "patches/ffmpeg-adaptation/0002-browser-nested-avio.patch": "4ceaf3185f152c596fc9617e47cc47cd2b264d6f8b2f098bbea8055b798da3ec",
+      "patches/ffmpeg-adaptation/0004-hls-ts-discontinuity-timeline.patch": "6635e6cb14090af54c20c526592df6cf4360cba0bb2e3199071688c37f146bb1",
+      "patches/ffmpeg-adaptation/0005-dfpwm-seek-reset.patch": "0f2e57a194e5d5f5ff23edb864084e5a1e9e05224a4ab1bb71e6598d614e9923",
+      "patches/ffmpeg-adaptation/0006-swf-audio-duration.patch": "e59e36d524f78b98862e5a484b4900e3ea28593d3a25fbc90a6f7f30d79b4c5f",
+      "patches/ffmpeg-adaptation/0007-nut-keyframe-recovery.patch": "b02b157a7a8f1dd3ddd65e541b4f3ae3057acb130044ddba97a148ece8cb0c95",
+      "patches/ffmpeg-adaptation/0008-hls-indexed-webvtt-seek.patch": "224da133f9c2b4c4243743145ec8d90845d98878eeb3535ace35d129b31f03ae",
+      "patches/ffmpeg-adaptation/0009-nut-discard-budget.patch": "9d6dde4654d72d4a810b60894befc2260185afd9fa91a9a6dd3f2dda71e343fe",
+      "patches/ffmpeg-adaptation/0010-strict-stream-resource-errors.patch": "f979b6232cef7ece804cbc7dcaf89788c109b9c8c0d4ce9fe6ac735267026e40",
+      "patches/ffmpeg-adaptation/0011-dash-continuous-fmp4.patch": "fe43a338fc469f38d10ff76b66ed56406fd4ccbacf8348dbb95351f107c2f3fd",
+      "patches/ffmpeg-adaptation/0012-demuxe-segment-plans.patch": "e4073571ea824fbeb68848e8918129bae172c2896503794fda085b8d8f47c705",
+      "patches/ffmpeg-adaptation/0013-demuxe-sparse-discovery.patch": "01c32d856f157845917d345f21ff3f4a36f1a0b38e5211a72e3a5bbdc20f537c",
+      "patches/ffmpeg-adaptation/0014-http-chunked-eof.patch": "b3b89b8e84da739a9e10de37eb9cd48e3fbe4104e63aac2b55ceb5da9238cad5",
+      "patches/ffmpeg-adaptation/0015-demuxe-live-hls-components.patch": "9516d75248ccd1f43281755410d3f7e3a58c94e917e02ec0e81840b296778486",
+      "patches/ffmpeg-adaptation/0016-demuxe-resource-retirement.patch": "199ff687d64e2f4d971c23ec352820bb21b1273e33def75bbcebdc7f125af1a7",
+      "patches/ffmpeg-adaptation/0017-demuxe-dash-period-session.patch": "0b5cadd65282139c04e21688e8fbdfa94813f9636461407e1aef5ce8b330fc9d",
+      "patches/ffmpeg-adaptation/0018-demuxe-discontinuity-retirement.patch": "1904f37c4cea150d35a82dabba4a82912d92d6d1bc4308b6b42a03589a889afd",
+      "patches/ffmpeg-adaptation/0019-demuxe-hls-window-anchor.patch": "1f20c83dab06c73c0e1345db1e38ccc36caa0df10e7e7f8962fd8c73b373f76e",
+      "patches/ffmpeg-adaptation/0020-mov-strict-sample-eof.patch": "f4d70438726c79d12d923893b8a8e322a43bc8415e816386a99217c25c3822ab",
+      "patches/ffmpeg-adaptation/0021-demuxe-dash-live-discovery.patch": "3ed99eda3249bd6d1d7e5319887b8923d4005ad6d73aab6a7faec9c4c45fa228"
+    },
+    "sdk": "4.0.14",
+    "flac24": "Selected audio decoding to FLAC24; higher precision PCM is rounded",
+    "opus": "FFmpeg native experimental Opus encoder; explicit lossy policy only"
+  },
+  "cleanSourceBuild": true,
+  "linkCommand": [
+    "emcc",
+    "-DDEMUXE_AUDIO_TRANSCODE=1",
+    "-O2",
+    "-DDEMUXE_FIRST_FRAGMENT_SECONDS=0.5",
+    "-DDEMUXE_FLAC_LEVEL=0",
+    "-DDEMUXE_AUDIO_ADAPTATION=1",
+    "-ffile-prefix-map=/Volumes/seed2/Projects/demuxe=/demuxe",
+    "-pthread",
+    "-msimd128",
+    "-I/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg",
+    "-I/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/source/FFmpeg-n9.0.2",
+    "/Volumes/seed2/Projects/demuxe/native/remux/remux.c",
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libavformat/libavformat.a",
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libavcodec/libavcodec.a",
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libswresample/libswresample.a",
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libavutil/libavutil.a",
+    "-Wl,-Map,/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/engine-1790464723570815000/remux.map",
+    "-sMODULARIZE=1",
+    "-sEXPORT_ES6=1",
+    "-sEXPORT_NAME=createRemux",
+    "-sENVIRONMENT=worker",
+    "-sINITIAL_MEMORY=67108864",
+    "-sMAXIMUM_MEMORY=134217728",
+    "-sALLOW_MEMORY_GROWTH=1",
+    "-sSTACK_SIZE=2097152",
+    "-sWASM_BIGINT=1",
+    "-sFILESYSTEM=0",
+    "-sEXPORTED_FUNCTIONS=[\"_rm_error\", \"_rm_probe\", \"_rm_open\", \"_rm_start\", \"_rm_set_container\", \"_rm_step\", \"_rm_close\", \"_rm_duration\", \"_rm_video_codec\", \"_rm_audio_codec\", \"_rm_adapt_audio\", \"_malloc\", \"_free\"]",
+    "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\",\"ccall\",\"UTF8ToString\"]",
+    "-o",
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/engine-1790464723570815000/remux.mjs"
+  ],
+  "linkSettings": {
+    "firstFragmentSeconds": 0.5,
+    "steadyFragmentSeconds": 0.5,
+    "flacLevel": 0
+  },
+  "files": {
+    "/Volumes/seed2/Projects/demuxe/native/remux/remux.c": {
+      "sha256": "bed8494a69bb8ff4357af4fe085fb86b8cf34540e63d050de2e7071bdd099891",
+      "bytes": 45049
+    },
+    "/Volumes/seed2/Projects/demuxe/native/adaptation/flac.h": {
+      "sha256": "d82b441e4654761fd98fcf71ee82eb40a1690669327e0ae95d8ad9613bd8301b",
+      "bytes": 16445
+    },
+    "/Volumes/seed2/Projects/demuxe/scripts/build-audio-adaptation.py": {
+      "sha256": "0c5345b639a7959d32d010781c993b5189e6f2e0e55e12e60c33c362f9348ede",
+      "bytes": 7270
+    },
+    "/Volumes/seed2/Projects/demuxe/scripts/stamp-engine-license.py": {
+      "sha256": "cf531d1b6243e72e82f77821eb20e7b3b1a95d184c06cd9579a681a703c9eb36",
+      "bytes": 611
+    },
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/config.h": {
+      "sha256": "f69725b091840c9b1a261e902a2b07769058ccef79ebb20060fc7bc50c4d61f6",
+      "bytes": 24872
+    },
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/config_components.h": {
+      "sha256": "3a579cb795393300fd6df753d14f3b4bf59eda85b394862f4b716ffb43307553",
+      "bytes": 75690
+    },
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/ffbuild/config.mak": {
+      "sha256": "de6cfb2218251e8f39df3ef76fcde394d166c7142976203df0bd00a1f64c41ec",
+      "bytes": 89734
+    },
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/engine-1790464723570815000/remux.map": {
+      "sha256": "8f76db2fccfb6d1a8a293745eaeb0dcaed8ac791ba3d732878649979c17eec8c",
+      "bytes": 1803853
+    },
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/engine-1790464723570815000/remux.mjs": {
+      "sha256": "dc288cffce003f8c1c7e4d052dc38d3556e4c49bae424496a3585f550dff242d",
+      "bytes": 36995
+    },
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/engine-1790464723570815000/remux.wasm": {
+      "sha256": "2e829ff6ef44d6c2f313004bb78714946804d202153b108ee43b9e09cf7bc562",
+      "bytes": 4476688
+    },
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libavformat/libavformat.a": {
+      "sha256": "6b908b2ae570150ee7a16d0eaf00232c3b99691ce76454f97ac44791f2067a25",
+      "bytes": 2504592
+    },
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libavcodec/libavcodec.a": {
+      "sha256": "7a0238fc643001bc03fdf0344b61d52bab03261df6d7a4154a22ab3d64b42930",
+      "bytes": 4512856
+    },
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libswresample/libswresample.a": {
+      "sha256": "af8fe6ca3a9375dae9caf18b7e9ecd8bde76d7990ad3ee8bc68fb27cc19945c3",
+      "bytes": 111400
+    },
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/ffmpeg/libavutil/libavutil.a": {
+      "sha256": "011f5ae9e5745c362f62ade595a38e405a30f6ac691b8932b5f3e9434f695dd9",
+      "bytes": 1945662
+    },
+    "/Volumes/seed2/Projects/demuxe/build/audio-transcode-production-01/preferred-source-hashes.json": {
+      "sha256": "7e0c9bee51fb5f84090fb84df598c0aaf64d6b94ef94acb09399c0ebc2ddb59a",
+      "bytes": 1073595
+    }
+  },
+  "scope": "Optional bounded FLAC/Opus audio preparation; no video decoder/encoder configured; release qualification is separate"
+}

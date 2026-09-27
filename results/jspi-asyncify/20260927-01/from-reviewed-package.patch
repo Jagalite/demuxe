@@ -1,0 +1,645 @@
+--- /dev/null
++++ b/LOCAL-ORIGIN.json
+@@ -0,0 +1,6 @@
++{
++  "source": "/Volumes/seed2/Projects/demuxe/results/asyncify-package-review/20260927T150431Z/demuxe-asyncify-reviewed",
++  "archiveIntake": "/Volumes/seed2/Projects/demuxe/results/asyncify-package-review/20260927T150431Z/intake.json",
++  "base": "e7a8d02d126e381b50af9836b202f3d5186082ea",
++  "note": "Working fork. Original manifest and evidence are historical; verify only untouched extraction."
++}
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,11 @@
++# Local JSPI / Asyncify development fork
++
++Local integration work is documented in [local/README.md](local/README.md). The
++original package description below and its manifest refer to the delivered
++snapshot. Local edits and rebuilt artifacts intentionally no longer match that
++manifest; use the preserved extraction recorded in `LOCAL-ORIGIN.json` to verify
++the original evidence. Current local results live in `../../results/jspi-asyncify/`.
++
+ # Demuxe — reviewed JSPI / Asyncify test package
+ **September 27, 2026 · Research/local-testing package. Not a production media engine.**
+ 
+--- a/ffmpeg/scripts/build-ffmpeg.py
++++ b/ffmpeg/scripts/build-ffmpeg.py
+@@ -17,12 +17,21 @@
+     if not node:raise ValueError('Node is missing')
+     config=out/'emscripten.config';config.write_text(f'LLVM_ROOT = {str(sdk/"upstream/bin")!r}\nBINARYEN_ROOT = {str(sdk/"upstream")!r}\nNODE_JS = {node!r}\nCACHE = {str(out/"em-cache")!r}\n')
+     em=sdk/'upstream/emscripten';env={**os.environ,'PATH':str(em)+os.pathsep+os.environ['PATH'],'EM_CONFIG':str(config),'EM_CACHE':str(out/'em-cache'),'PKG_CONFIG_LIBDIR':str(out/'prefix/lib/pkgconfig'),'PKG_CONFIG_PATH':'','CFLAGS':'','CXXFLAGS':'','LDFLAGS':'','CPPFLAGS':'','LIBS':'','EMCC_CFLAGS':'','EMMAKEN_CFLAGS':'','SOURCE_DATE_EPOCH':'1740000000'}
++    # Emscripten rejects this obsolete variable even when its value is empty.
++    env.pop('EMMAKEN_CFLAGS',None)
+     version=subprocess.check_output([str(em/'emcc'),'--version'],env=env,text=True)
+     if not re.search(r'\b4\.0\.14\b',version):raise ValueError('Emscripten 4.0.14 required')
+     obj=out/'objects';obj.mkdir();engine=out/'engine';engine.mkdir();logs=out/'logs';logs.mkdir()
+     commands=[];status={'startedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'status':'building','suspension':suspension,'savedStackBytes':a.saved_stack_bytes,'mediaExecuted':False}
++    status['toolchain']={'emcc':version,'sdk':str(sdk),'node':subprocess.check_output([node,'--version'],text=True).strip()}
++    for name in ['clang','wasm-opt']:
++        tool=sdk/'upstream/bin'/name
++        status['toolchain'][name]={'version':subprocess.check_output([str(tool),'--version'],text=True).strip(),'sha256':hashlib.sha256(tool.read_bytes()).hexdigest()}
++    status['sourceSHA256']={str(p.relative_to(out)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [out/'native/remux/remux.c',out/'native/adaptation/flac.h',out/'build-ffmpeg.py',out/'suspension_profile.py',out/'audit-wasm.mjs',out/'inputs.json',*sorted((out/'patches').rglob('*.patch'))]}
+     def run(args,cwd=obj):
+-        args=list(map(str,args));entry={'argv':args,'cwd':str(cwd)};commands.append(entry)
++        args=list(map(str,args))
++        if args[0]==str(out/'source/configure'):args=['/bin/bash',*args]
++        entry={'argv':args,'cwd':str(cwd)};commands.append(entry)
+         with (logs/f'{len(commands):02d}.log').open('w') as f:rc=subprocess.run(args,cwd=cwd,env=env,stdout=f,stderr=subprocess.STDOUT).returncode
+         entry['returncode']=rc;(out/'commands.json').write_text(json.dumps(commands,indent=2)+'\n')
+         if rc:raise RuntimeError('Build failed; inspect '+str(logs))
+@@ -35,7 +44,7 @@
+         exports=['rm_error','rm_probe','rm_open','rm_start','rm_set_container','rm_step','rm_close','rm_duration','rm_video_codec','rm_audio_codec','malloc','free']+(['rm_adapt_audio'] if transcode else [])
+         libs=['libavformat','libavcodec']+(['libswresample'] if transcode else [])+['libavutil']
+         run(['emcc',*flags,*(['-DDEMUXE_AUDIO_ADAPTATION=1','-DDEMUXE_AUDIO_TRANSCODE=1'] if transcode else []),'-I'+str(obj),'-I'+str(out/'source'),out/'native/remux/remux.c',*[obj/l/(l+'.a') for l in libs],'-sMODULARIZE=1','-sEXPORT_ES6=1','-sEXPORT_NAME=createRemux','-sENVIRONMENT=worker',*suspension_flags(suspension,[x for x in exports if x.startswith('rm_')],a.saved_stack_bytes),'-sASSERTIONS=1','-sINITIAL_MEMORY=67108864','-sMAXIMUM_MEMORY=134217728','-sALLOW_MEMORY_GROWTH=1','-sSTACK_SIZE=2097152','-sFILESYSTEM=0','-sWASM_BIGINT=1','-sEXPORTED_FUNCTIONS='+json.dumps(['_'+x for x in exports]),'-sEXPORTED_RUNTIME_METHODS=["HEAPU8","ccall","UTF8ToString"]','-Wl,-Map,'+str(engine/'remux.map'),'-o',engine/'remux.mjs'])
+-        run([node,out/'audit-wasm.mjs',engine/'remux.wasm','--emscripten'])
++        run([node,out/'audit-wasm.mjs',engine/'remux.wasm','--emscripten','--backend='+suspension,'--profile='+inputs['profile']])
+         status.update(status='build_completed_only',fullFFmpegBuilt=True,artifacts={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in engine.iterdir() if p.is_file()})
+     except Exception as error:status.update(status='build_failed',error=str(error));raise
+     finally:(out/'build-result.json').write_text(json.dumps(status,indent=2)+'\n')
+--- /dev/null
++++ b/ffmpeg/scripts/relink-ffmpeg.py
+@@ -0,0 +1,56 @@
++#!/usr/bin/env python3
++# SPDX-License-Identifier: MIT
++"""Relink verified private FFmpeg libraries into a NEW, independently recorded prefix."""
++import argparse,datetime,hashlib,json,os,pathlib,shutil,subprocess
++
++def digest(p):return hashlib.sha256(p.read_bytes()).hexdigest()
++def main(a):
++    source=a.build.resolve();out=a.out.resolve();repo=pathlib.Path(__file__).resolve().parents[4]
++    if out.exists() or out==repo or repo in out.parents:raise ValueError('Fresh external output required')
++    previous=json.loads((source/'build-result.json').read_text())
++    if previous['status']!='build_completed_only':raise ValueError('Successful library build required')
++    for name,wanted in previous['sourceSHA256'].items():
++        if digest(source/name)!=wanted:raise ValueError('Changed build source: '+name)
++    for name,wanted in previous['artifacts'].items():
++        if digest(source/'engine'/name)!=wanted:raise ValueError('Changed original engine: '+name)
++    inputs=json.loads((source/'inputs.json').read_text())
++    if inputs['profile']!='transcode':raise ValueError('FLAC policy relink requires transcode profile')
++    commands=json.loads((source/'commands.json').read_text())
++    argv=next(c['argv'][:] for c in commands if c['argv'][0]=='emcc')
++    if any(x.startswith('-DDEMUXE_FLAC_LEVEL=') for x in argv):raise ValueError('Unexpected preexisting level override')
++    out.mkdir(parents=True);(out/'engine').mkdir();(out/'logs').mkdir()
++    node=shutil.which('node');sdk=pathlib.Path(previous['toolchain']['sdk'])
++    config=out/'emscripten.config';config.write_text(f'LLVM_ROOT = {str(sdk/"upstream/bin")!r}\nBINARYEN_ROOT = {str(sdk/"upstream")!r}\nNODE_JS = {node!r}\nCACHE = {str(out/"em-cache")!r}\n')
++    env={**os.environ,'PATH':str(sdk/'upstream/emscripten')+os.pathsep+os.environ['PATH'],
++         'EM_CONFIG':str(config),'EM_CACHE':str(out/'em-cache'),'EMCC_CFLAGS':'','PYTHONDONTWRITEBYTECODE':'1','SOURCE_DATE_EPOCH':'1740000000'}
++    env.pop('EMMAKEN_CFLAGS',None)
++    argv.insert(1,'-DDEMUXE_FLAC_LEVEL='+str(a.flac_level))
++    argv=[('-Wl,-Map,'+str(out/'engine/remux.map')) if x.startswith('-Wl,-Map,') else x for x in argv]
++    argv[argv.index('-o')+1]=str(out/'engine/remux.mjs')
++    paths=[source/'build-result.json',source/'inputs.json',source/'audit-wasm.mjs',pathlib.Path(__file__).resolve(),
++           source/'native/remux/remux.c',source/'native/adaptation/flac.h',source/'objects/config.h',source/'objects/config_components.h']
++    paths.extend(pathlib.Path(x) for x in argv if x.endswith('.a'))
++    state={'startedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'status':'building','libraryBuild':str(source),
++           'suspension':inputs['suspension'],'savedStackBytes':previous['savedStackBytes'],'mediaExecuted':False,
++           'toolchain':previous['toolchain'],'linkSettings':{'flacLevel':a.flac_level},
++           'sourceSHA256':{str(p):digest(p) for p in paths}}
++    (out/'inputs.json').write_text(json.dumps({**inputs,'libraryBuild':str(source),'flacLevel':a.flac_level},indent=2)+'\n')
++    records=[]
++    def run(command,log):
++        with (out/'logs'/log).open('w') as f:rc=subprocess.run(command,cwd=source/'objects',env=env,stdout=f,stderr=subprocess.STDOUT).returncode
++        records.append({'argv':command,'cwd':str(source/'objects'),'returncode':rc,'log':log})
++        (out/'commands.json').write_text(json.dumps(records,indent=2)+'\n')
++        if rc:raise RuntimeError('Relink failed: '+log)
++    try:
++        run(argv,'01-link.log')
++        run([node,str(source/'audit-wasm.mjs'),str(out/'engine/remux.wasm'),'--emscripten','--backend='+inputs['suspension'],'--profile=transcode'],'04.log')
++        for name,wanted in state['sourceSHA256'].items():
++            if digest(pathlib.Path(name))!=wanted:raise ValueError('Input changed while relinking: '+name)
++        state.update(status='build_completed_only',fullFFmpegBuilt=True,artifacts={p.name:digest(p) for p in (out/'engine').iterdir()})
++    except Exception as error:state.update(status='build_failed',error=str(error));raise
++    finally:(out/'build-result.json').write_text(json.dumps(state,indent=2)+'\n')
++
++if __name__=='__main__':
++    p=argparse.ArgumentParser();p.add_argument('--build',type=pathlib.Path,required=True);p.add_argument('--out',type=pathlib.Path,required=True);p.add_argument('--flac-level',type=int,required=True);a=p.parse_args()
++    if not 0<=a.flac_level<=8:p.error('FLAC level must be 0..8')
++    main(a)
+--- /dev/null
++++ b/ffmpeg/tests/media-worker.mjs
+@@ -0,0 +1,111 @@
++// SPDX-License-Identifier: MIT
++// Experimental component harness. No Player routing or production assets.
++import {createFFmpegBridge} from '../runtime/ffmpeg-bridge.mjs';
++import {vp9RemuxConfig} from '/frozen/video-codec-config.js';
++let bridge,engine,busy=false;
++const send=(type,data={})=>postMessage({type,...data});
++self.onmessage=async({data})=>{
++ if(data.type==='cancel'){bridge?.cancel();return;}
++ if(busy){send('error',{error:'Concurrent harness operation'});return;}
++ busy=true;
++ try {
++  const {runtime,engineURL,size,sourceURL,blobBytes,adapt=0,selectedAudio=-1,target=0,scenario='media'}=data;
++  if(runtime==='asyncify')for(const name of ['Suspending','promising'])
++   Object.defineProperty(WebAssembly,name,{value:undefined,configurable:false,writable:false});
++  const {default:createEngine}=await import(engineURL);
++  engine=await createEngine({printErr:message=>send('log',{message})});
++  const runtimeFacts={runtime,crossOriginIsolated,sharedArrayBufferAvailable:typeof SharedArrayBuffer==='function',
++   memoryType:engine.HEAPU8.buffer.constructor.name,jspiSuspending:typeof WebAssembly.Suspending==='function',
++   jspiPromising:typeof WebAssembly.promising==='function'};
++  if(runtime==='pthread'){
++   if(!crossOriginIsolated||engine.HEAPU8.buffer instanceof ArrayBuffer)throw Error('Wrong pthread environment');
++   engine.io=data.mailbox;
++  }else{
++   if(crossOriginIsolated||typeof SharedArrayBuffer!=='undefined'||!(engine.HEAPU8.buffer instanceof ArrayBuffer))
++    throw Error('Wrong private-memory environment');
++   bridge=createFFmpegBridge(engine,{timeoutMs:5000});
++  }
++  engine.tracks=[];engine.raps=[];engine.parseVP9=vp9RemuxConfig;
++  let outputBytes=0,fragments=0;
++  engine.emit=bytes=>{outputBytes+=bytes.length;if(outputBytes>64*1024*1024)throw Error('Harness output budget');
++   fragments++;postMessage({type:'bytes',buffer:bytes.buffer},[bytes.buffer]);};
++  let reads=0;
++  const reader={size,read:async(offset,count,signal)=>{
++   reads++;
++   if(scenario==='cancel' || scenario==='reader-failure'){
++    if(scenario==='reader-failure')throw Error('injected source failure');
++    send('pending');
++    return await new Promise((_,reject)=>{
++     const abort=()=>reject(Error('observed pending read cancelled'));
++     if(signal.aborted)abort();else signal.addEventListener('abort',abort,{once:true});
++    });
++   }
++   if(blobBytes)return new Uint8Array(blobBytes).slice(offset,offset+count);
++   const response=await fetch(sourceURL,{headers:{Range:`bytes=${offset}-${offset+count-1}`},signal});
++   if(response.status!==206||response.headers.get('Content-Range')!==`bytes ${offset}-${offset+count-1}/${size}`)
++    throw Error('Invalid HTTP range response');
++   const bytes=new Uint8Array(await response.arrayBuffer());if(bytes.length!==count)throw Error('Short HTTP response');
++   return bytes;
++  }};
++  bridge?.setSource(blobBytes&&scenario==='media'?new Blob([blobBytes]):reader);
++  const call=(name,returnType='number',types=[],args=[])=>bridge?bridge.call(name,returnType,types,args):engine.ccall(name,returnType,types,args);
++  const checked=async(name,types=[],args=[])=>{
++   const n=await call(name,'number',types,args);
++   if(n<0)throw Error(`${name}: ${n}: ${await call('rm_error','string')}`);
++   return n;
++  };
++  if(adapt)await checked('rm_adapt_audio',['number'],[adapt]);
++  if(scenario==='cancel'||scenario==='reader-failure'){
++   if(!bridge)throw Error('Fault scenarios require private bridge');
++   const status=await call('rm_probe','number',['number'],[size]);
++   const failures=bridge.source.drainFailures().map(({kind,cause})=>({kind,cause:String(cause?.message??cause??'')}));
++   if(status>=0)throw Error('Expected source failure was accepted');
++   if(scenario==='reader-failure'&&!failures.some(f=>f.cause==='injected source failure'))throw Error('Lost source error');
++   const requiresDiscard=bridge.requiresDiscard;
++   await bridge.destroy();
++   send('done',{runtimeFacts,status,failures,reads,requiresDiscard,source:bridge.source.snapshot(),state:bridge.state});return;
++  }
++  await checked('rm_probe',['number'],[size]);
++  const probe={tracks:structuredClone(engine.tracks),format:engine.format,duration:await call('rm_duration')};
++  if(scenario==='replace'){
++   if(!bridge||!data.replacementBytes)throw Error('Replacement fixture required');
++   const generation=bridge.source.generation;
++   await call('rm_close',null);bridge.setSource(new Blob([data.replacementBytes]));
++   await checked('rm_probe',['number'],[data.replacementBytes.byteLength]);
++   const replacement={tracks:structuredClone(engine.tracks),format:engine.format,duration:await call('rm_duration')};
++   if(bridge.source.generation<=generation||probe.format===replacement.format)throw Error('Replacement did not change source');
++   // Reopen the first source in the same instance, proving replacement is reversible.
++   await call('rm_close',null);bridge.setSource(reader);
++   await checked('rm_probe',['number'],[size]);
++   if(JSON.stringify(engine.tracks)!==JSON.stringify(probe.tracks))throw Error('Original source failed after replacement');
++   await bridge.destroy();send('done',{runtimeFacts,probe,replacement,generations:bridge.source.generation,
++    source:bridge.source.snapshot(),state:bridge.state});return;
++  }
++  await checked('rm_open',['number','number','number'],[size,-1,selectedAudio]);
++  const codecs={video:await call('rm_video_codec','string'),audio:await call('rm_audio_codec','string')};
++  await checked('rm_set_container',['number'],[0]);
++  if(scenario==='fatal-output'){
++   if(!bridge)throw Error('Fatal scenario requires private bridge');
++   const fatal=Error('injected output callback failure');engine.emit=()=>{throw fatal;};
++   let failed=false;
++   try{await checked('rm_start',['number'],[0]);}catch(error){if(error!==fatal)throw error;failed=true;}
++   if(!failed||!bridge.requiresDiscard)throw Error('Unexpected callback failure did not poison instance');
++   let retryRejected=false,closeRejected=false;
++   try{await call('rm_step');}catch(error){retryRejected=error===fatal;}
++   try{await bridge.destroy();}catch(error){closeRejected=error===fatal;}
++   if(!retryRejected||!closeRejected)throw Error('Poisoned instance was entered again');
++   send('done',{runtimeFacts,requiresDiscard:true,retryRejected,closeRejected,
++    source:bridge.source.snapshot(),state:bridge.state});return;
++  }
++  await checked('rm_start',['number'],[target]);
++  let steps=0;while(await checked('rm_step')){if(++steps>4096)throw Error('Harness step budget');}
++  const adaptation=engine.adaptation?structuredClone(engine.adaptation):null;
++  if(bridge)await bridge.destroy();else await call('rm_close',null);
++  send('done',{runtimeFacts,probe,codecs,adaptation,outputBytes,fragments,steps,reads,
++   source:bridge?.source.snapshot(),state:bridge?.state??'closed'});
++ } catch(error) {
++  const sourceFailures=bridge?.source.drainFailures().map(({kind,cause})=>({kind,cause:String(cause?.message??cause??'')}));
++  try{if(bridge&&!bridge.requiresDiscard)await bridge.destroy();}catch{}
++  send('error',{error:String(error.stack??error),sourceFailures,requiresDiscard:bridge?.requiresDiscard});
++ } finally {busy=false;}
++};
+--- /dev/null
++++ b/ffmpeg/tests/run-media.mjs
+@@ -0,0 +1,159 @@
++// SPDX-License-Identifier: MIT
++import http from 'node:http';
++import path from 'node:path';
++import {readFile,writeFile,mkdir,stat} from 'node:fs/promises';
++import {createHash} from 'node:crypto';
++import {execFileSync} from 'node:child_process';
++import assert from 'node:assert/strict';
++import {chromium} from 'playwright';
++
++const root=path.resolve(import.meta.dirname,'../../../..');
++const experiment=path.resolve(import.meta.dirname,'../..');
++const frozen=path.join(root,'build/jspi-asyncify/frozen');
++const builds=process.env.BUILD_ROOT??'/Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927';
++const out=path.join(root,'results/jspi-asyncify',process.env.RUN_NAME??`media-${new Date().toISOString().replaceAll(':','-')}`);
++await mkdir(out,{recursive:false});
++const profiles=(process.env.PROFILES??'remux,transcode').split(',');
++const runtimes=(process.env.RUNTIMES??'pthread,jspi,asyncify').split(',');
++const transcodeFixture=process.env.TRANSCODE_FIXTURE??'h264-pcm.mkv';
++assert.ok(['h264-pcm.mkv','ac3.mkv'].includes(transcodeFixture));
++const hash=b=>createHash('sha256').update(b).digest('hex');
++const cache=new Map(),captures=new Map(),requests=[];
++const load=async p=>{if(!cache.has(p))cache.set(p,await readFile(p));return cache.get(p);};
++const engines={};
++for(const profile of profiles)for(const runtime of runtimes){
++ const attempt=profile==='transcode'?(process.env.TRANSCODE_ATTEMPT??process.env.BUILD_ATTEMPT??'01'):(process.env.BUILD_ATTEMPT??'01');
++ const dir=runtime==='pthread'?path.join(frozen,'baseline-'+profile):path.join(builds,`${profile}-${runtime}-${attempt}`,'engine');
++ engines[profile+'-'+runtime]={dir,wasmSHA256:hash(await load(path.join(dir,'remux.wasm'))),glueSHA256:hash(await load(path.join(dir,'remux.mjs')))};
++}
++const result={scope:'Actual FFmpeg component output and lifecycle; no Player, MSE, physical playback or performance qualification',
++ recordedAt:new Date().toISOString(),engines,files:{worker:hash(await readFile(path.join(import.meta.dirname,'media-worker.mjs'))),runner:hash(await readFile(import.meta.filename))},cases:[]};
++result.sourceSHA256={};
++for(const name of ['ffmpeg/tests/media-worker.mjs','ffmpeg/tests/run-media.mjs','ffmpeg/runtime/ffmpeg-bridge.mjs',
++ 'ffmpeg/runtime/single-owner.mjs','stage2/runtime/range-source.mjs']){
++ const bytes=await readFile(path.join(experiment,name)),dest=path.join(out,'sources',name);
++ await mkdir(path.dirname(dest),{recursive:true});await writeFile(dest,bytes);result.sourceSHA256[name]=hash(bytes);
++}
++async function serve(isolated){
++ const server=http.createServer(async(req,res)=>{
++  if(isolated){res.setHeader('Cross-Origin-Opener-Policy','same-origin');res.setHeader('Cross-Origin-Embedder-Policy','require-corp');}
++  res.setHeader('Cache-Control','no-store');res.setHeader('Cross-Origin-Resource-Policy','same-origin');
++  try{
++   const url=new URL(req.url,'http://localhost');
++   if(url.pathname==='/'){res.setHeader('Content-Type','text/html');res.end('<!doctype html><title>FFmpeg component qualification</title>');return;}
++   if(url.pathname==='/capture'&&req.method==='POST'){
++    const id=url.searchParams.get('id');if(!/^[a-z0-9-]+$/.test(id))throw Error('Invalid capture ID');
++    let length=0;const chunks=[];for await(const chunk of req){length+=chunk.length;if(length>64*1024*1024)throw Error('Capture limit');chunks.push(chunk);}
++    const bytes=Buffer.concat(chunks);const dest=path.join(out,id+'.mp4');await writeFile(dest,bytes);captures.set(id,{path:dest,bytes:bytes.length,sha256:hash(bytes)});res.end('ok');return;
++   }
++   let file;
++   if(url.pathname.startsWith('/engine/')){
++    const [, , id, name]=url.pathname.split('/');if(!engines[id]||!['remux.mjs','remux.wasm'].includes(name))throw Error('Invalid engine');file=path.join(engines[id].dir,name);
++   } else if(url.pathname.startsWith('/frozen/')){
++    file=path.resolve(frozen,url.pathname.slice('/frozen/'.length));if(!file.startsWith(frozen+path.sep))throw Error('Invalid fixture path');
++   } else if(url.pathname.startsWith('/experiment/')){
++    file=path.resolve(experiment,url.pathname.slice('/experiment/'.length));if(!file.startsWith(experiment+path.sep))throw Error('Invalid source path');
++   } else {res.writeHead(404).end();return;}
++   const bytes=await load(file);res.setHeader('Content-Type',file.endsWith('.wasm')?'application/wasm':/\.m?js$/.test(file)?'text/javascript':'application/octet-stream');
++   if(req.headers.range){
++    const m=/^bytes=(\d+)-(\d+)$/.exec(req.headers.range);if(!m)throw Error('Bad range');const a=+m[1],b=+m[2];if(a>b||b>=bytes.length)throw Error('Range bounds');
++    requests.push({file:path.basename(file),start:a,end:b,isolated});res.writeHead(206,{'Content-Range':`bytes ${a}-${b}/${bytes.length}`,'Content-Length':b-a+1});res.end(bytes.subarray(a,b+1));
++   }else {res.setHeader('Content-Length',bytes.length);res.end(bytes);}
++  }catch(error){if(!res.headersSent)res.writeHead(500);res.end(String(error));}
++ });
++ await new Promise(r=>server.listen(0,'127.0.0.1',r));
++ return {origin:`http://127.0.0.1:${server.address().port}`,close:()=>new Promise(r=>{server.closeAllConnections();server.close(r);})};
++}
++const privateServer=await serve(false),sharedServer=await serve(true);
++const browser=await chromium.launch({channel:'chrome',headless:true});result.browser=browser.version();
++const references=new Map();
++function packets(file,videoOnly=false){return JSON.parse(execFileSync('ffprobe',['-v','error',...(videoOnly?['-select_streams','v:0']:[]),'-show_packets','-show_data_hash','sha256','-of','json',file],{maxBuffer:32*1024*1024})).packets.map(p=>Object.fromEntries(['stream_index','pts','dts','duration','data_hash'].map(k=>[k,p[k]])));}
++const pixelFormats=new Map();
++function pixelFormat(file){
++ if(!pixelFormats.has(file))pixelFormats.set(file,JSON.parse(execFileSync('ffprobe',['-v','error','-select_streams','v:0','-show_entries','stream=pix_fmt','-of','json',file])).streams[0].pix_fmt);
++ return pixelFormats.get(file);
++}
++function decoded(file,kind){return execFileSync('ffmpeg',['-v','error','-i',file,'-map',`0:${kind}:0`,...(kind==='v'?['-pix_fmt',pixelFormat(file),'-fps_mode','passthrough','-f','rawvideo']:['-c:a','pcm_s32le','-f','s32le']),'-'],{maxBuffer:256*1024*1024});}
++try{
++ for(const profile of profiles)for(const scenario of ['media','cancel','reader-failure','replace','fatal-output'])for(const transport of scenario==='media'?['blob','range']:['range'])for(const target of scenario==='media'?[0,2]:[0])for(const runtime of runtimes){
++  if(scenario!=='media'&&runtime==='pthread')continue;
++  const fixture=profile==='remux'?'avc-aac.ts':transcodeFixture;
++  const file=path.join(frozen,'fixtures',fixture),bytes=await load(file);
++  const key=`${profile}-${scenario}-${transport}-${target}`,id=`${key}-${runtime}`,entry={id,profile,runtime,scenario,transport,target,fixture,sourceSHA256:hash(bytes)};
++  result.cases.push(entry);const page=await browser.newPage();
++  try{
++   const server=runtime==='pthread'?sharedServer:privateServer;await page.goto(server.origin);
++   const start=requests.length;
++   entry.evidence=await page.evaluate(async config=>{
++    const worker=new Worker('/experiment/ffmpeg/tests/media-worker.mjs',{type:'module'}),chunks=[];let timer,poll,reading=false,mailbox,observedPending=false;
++    const bytes=config.transport==='blob'?new Uint8Array(await(await fetch(config.sourceURL)).arrayBuffer()):null;
++    const replacementBytes=config.scenario==='replace'?await(await fetch(config.replacementURL)).arrayBuffer():undefined;
++    if(config.runtime==='pthread'){
++     mailbox=new SharedArrayBuffer(64+262144);const header=new Int32Array(mailbox,0,16),view=new DataView(mailbox);
++     poll=setInterval(async()=>{
++      if(reading||Atomics.load(header,0)!==1)return;reading=true;
++      try{const offset=view.getFloat64(32,true),count=Atomics.load(header,2);let data;
++       if(config.transport==='blob')data=bytes.slice(offset,offset+count);
++       else {const response=await fetch(config.sourceURL,{headers:{Range:`bytes=${offset}-${offset+count-1}`}});if(response.status!==206)throw Error('Baseline range');data=new Uint8Array(await response.arrayBuffer());}
++       new Uint8Array(mailbox,64,data.length).set(data);Atomics.store(header,3,data.length);Atomics.store(header,0,2);Atomics.notify(header,0);
++      }catch{Atomics.store(header,3,-1);Atomics.store(header,0,2);Atomics.notify(header,0);}finally{reading=false;}
++     },0);
++    }
++    try{
++     const evidence=await new Promise((resolve,reject)=>{
++      timer=setTimeout(()=>reject(Error('Component watchdog timeout')),60000);
++      worker.onerror=e=>reject(Error(e.message));
++      worker.onmessage=({data})=>{
++       if(data.type==='bytes')chunks.push(data.buffer);
++       if(data.type==='pending'){observedPending=true;worker.postMessage({type:'cancel'});}
++       if(data.type==='error')reject(Error(JSON.stringify(data)));
++       if(data.type==='done')resolve(data);
++      };
++      worker.postMessage({...config,mailbox,blobBytes:bytes?.buffer,replacementBytes});
++     });
++     if(config.scenario==='media'){
++      const response=await fetch('/capture?id='+config.id,{method:'POST',body:new Blob(chunks)});if(!response.ok)throw Error('Capture failed');
++     }
++     return {...evidence,observedPending};
++    }finally{clearTimeout(timer);clearInterval(poll);worker.terminate();}
++   },{id,runtime,scenario,transport,target,size:bytes.length,sourceURL:'/frozen/fixtures/'+fixture,
++    replacementURL:'/frozen/fixtures/'+(profile==='remux'?'h264-pcm.mkv':'avc-aac.ts'),
++    engineURL:'/engine/'+profile+'-'+runtime+'/remux.mjs',adapt:profile==='transcode'?(fixture==='ac3.mkv'?3:1):0});
++   entry.rangeRequests=requests.length-start;
++   const e=entry.evidence;assert.equal(e.state,scenario==='fatal-output'?'failed':'closed');
++   if(runtime!=='pthread'){assert.equal(e.source.pending,0);assert.equal(e.source.handles,0);assert.equal(e.source.timers,0);}
++   if(scenario==='cancel'){assert.equal(e.observedPending,true);assert.equal(e.requiresDiscard,false);}
++   if(scenario==='media'){
++    entry.output=captures.get(id);assert.ok(entry.output?.bytes>0);
++    const packetData=packets(entry.output.path,profile==='transcode'),video=hash(decoded(entry.output.path,'v')),audio=hash(decoded(entry.output.path,'a'));
++    const packetTiming=packets(entry.output.path).map(({data_hash,...timing})=>timing);
++    entry.decoded={video,audio,pixelFormat:pixelFormat(entry.output.path)};entry.packetSHA256=hash(JSON.stringify(packetData));
++    assert.equal(pixelFormat(entry.output.path),pixelFormat(file));
++    entry.packetTimingSHA256=hash(JSON.stringify(packetTiming));
++    if(runtime==='pthread')references.set(key,{probe:e.probe,codecs:e.codecs,packetData,packetTiming,video,audio});
++    else{
++     const ref=references.get(key);assert.ok(ref,'Matching pthread baseline must run first');assert.deepEqual(e.probe,ref.probe);assert.deepEqual(e.codecs,ref.codecs);
++     assert.deepEqual(packetData,ref.packetData);assert.deepEqual(packetTiming,ref.packetTiming);assert.equal(video,ref.video);assert.equal(audio,ref.audio);entry.pthreadIdentity=true;
++    }
++    if(target===0){
++     assert.equal(video,hash(decoded(file,'v')));
++     if(fixture==='ac3.mkv'){
++      const actual=decoded(entry.output.path,'a'),reference=decoded(file,'a');assert.equal(actual.length,reference.length);
++      let maxDifference=0;for(let i=0;i<actual.length;i+=4)maxDifference=Math.max(maxDifference,Math.abs(actual.readInt32LE(i)-reference.readInt32LE(i)));
++      entry.sourcePCM={policy:'24-bit rounding, at most one 24-bit LSB from native decoded s32 reference',maxDifferenceS32:maxDifference,samples:actual.length/4};
++      assert.ok(maxDifference<=256,`PCM differs by ${maxDifference}, exceeds declared 24-bit policy`);
++     }else {assert.equal(audio,hash(decoded(file,'a')));entry.sourceDecodeIdentity=true;}
++    }
++    if(transport==='range')assert.ok(entry.rangeRequests>0);
++    if(profile==='transcode'){assert.equal(e.adaptation.videoFramesDecoded,0);assert.equal(e.adaptation.videoFramesEncoded,0);}
++   }
++   entry.passed=true;console.log('PASS',id);
++  }catch(error){entry.passed=false;entry.error=String(error.stack);console.error('FAIL',id,entry.error.slice(0,500));process.exitCode=1;}
++  finally{await page.close();await writeFile(path.join(out,'result.json'),JSON.stringify(result,null,2)+'\n');}
++ }
++}finally{
++ await browser.close();await privateServer.close();await sharedServer.close();
++ result.passed=result.cases.filter(x=>x.passed).length;result.total=result.cases.length;
++ await writeFile(path.join(out,'result.json'),JSON.stringify(result,null,2)+'\n');
++ await writeFile(path.join(out,'ranges.json'),JSON.stringify(requests,null,2)+'\n');console.log(out,result.passed+'/'+result.total);
++}
+--- /dev/null
++++ b/local/README.md
+@@ -0,0 +1,86 @@
++# Local JSPI / Asyncify component campaign
++
++Dedicated branch: `experiment/jspi-asyncify-20260927`.
++Base: `e7a8d02d126e381b50af9836b202f3d5186082ea`.
++
++This directory's parent is a working fork of the reviewed package. The original
++`MANIFEST.json`, package docs and original results describe the supplied snapshot;
++modified local sources are not covered by that original manifest. The untouched
++verified extraction is recorded in `../LOCAL-ORIGIN.json`.
++
++Local records: `../../../results/jspi-asyncify/20260927-01/`.
++Builds: `/Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927/`.
++Frozen fixtures and pthread engines: `../../../build/jspi-asyncify/frozen/`.
++
++The work is independent of ongoing Player API edits. It does not change public
++contracts, Player routing, generated JS, or served production engines. No CPU or
++startup benchmark is being run while other development proceeds.
++
++## Changes
++
++- Static Emscripten auditing requires an explicit backend, checks the remux or
++  transcode ABI and async read import, and derives Asyncify control facts from
++  actual exports. Four Emscripten controls are required; the extra raw-driver
++  get-state export remains required only for raw fixture builds.
++- The FFmpeg builder passes the chosen backend/profile to the auditor and removes
++  obsolete `EMMAKEN_CFLAGS` instead of setting it to an empty string. Configure
++  uses an explicit Bash interpreter. Source/tool hashes accompany each build.
++- The served pthread adaptation manifest uses FLAC level 0, while the package
++  defaults to 5. `ffmpeg/scripts/relink-ffmpeg.py` reuses verified private libraries
++  and records a fresh final link at level 0. Initial level-5 binaries and their
++  failed packet-timing comparisons remain preserved. No timing assertion was
++  relaxed to accept a different encoder configuration.
++- Added 11 negative/positive Emscripten ABI checks.
++- Added an actual FFmpeg Worker harness with private-memory JSPI/Asyncify and
++  isolated pthread modes. Asyncify removes both JSPI APIs. It compares metadata,
++  packet timing/payloads, decoded video and PCM, using frozen sources and baseline
++  engines. Fault cases cover observed-pending-read cancellation, retained reader
++  errors, source replacement/reopening, and terminal output-callback failures.
++
++## Commands
++
++From this worktree, infrastructure builds and host checks use the working package:
++
++```sh
++cd experiments/jspi-asyncify
++node review/tests/emscripten-audit-guards.mjs
++CLANG=/Volumes/seed2/Projects/demuxe/build/emsdk-4.0.14/upstream/bin/clang \
++  python3 -B scripts/build-dual.py \
++  --wasm-opt /Volumes/seed2/Projects/demuxe/build/emsdk-4.0.14/upstream/bin/wasm-opt
++```
++
++Browser runners use the private `build/jspi-asyncify/venv` and
++`PLAYWRIGHT_NODEJS_PATH=/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node`.
++Also set `CHROMIUM_EXECUTABLE` to the installed Google Chrome executable and
++`CLANG` as above. Run `scripts/run-dual.py` and `review/run-continuations.py` with
++new output names; expected complete counts are 94 and 27.
++
++From the worktree root, after all requested builds exist:
++
++```sh
++BUILD_ATTEMPT=02 TRANSCODE_ATTEMPT=03 RUN_NAME=media-components-01 \
++  node experiments/jspi-asyncify/ffmpeg/tests/run-media.mjs
++```
++
++`PROFILES=remux` can run the remux slice first; `RUNTIMES=pthread` checks the frozen
++baseline alone. Candidate comparisons require pthread first in the runtime list.
++Each run creates a new result directory and snapshots harness/bridge sources.
++Fresh build outputs and their `inputs.json`, commands, logs and build-result
++records preserve failed and successful attempts separately.
++
++For the AC-3 slice, set `PROFILES=transcode TRANSCODE_FIXTURE=ac3.mkv`; this
++selects FLAC24 and a declared native-reference PCM tolerance of one 24-bit LSB.
++Candidate output must still match the pthread PCM and all packet timing exactly.
++The PCM24 fixture uses source-integer FLAC and exact source PCM equality. The
++final harness retains the source video pixel format, including HEVC 10-bit, in
++its offline decode comparison. Video packets are always copied and checked.
++The 0/2-second targets test initial seek positioning; uninterrupted playback,
++repeated live seeks, and MSE scheduling are not established by this harness.
++
++`local/summarize.py` checks the final matrix's build/source/binary/result
++correspondence. Its output is `results/jspi-asyncify/20260927-01/summary.json`
++relative to the worktree root. It fails if expected cases or matching artifacts
++are missing; it does not rewrite failed records.
++
++Full mpv continuation ownership, subtitle rendering, non-shared mpv audio, Player
++integration, multi-browser coverage and release qualification remain separate.
+--- /dev/null
++++ b/local/summarize.py
+@@ -0,0 +1,72 @@
++#!/usr/bin/env python3
++# SPDX-License-Identifier: MIT
++"""Check local evidence correspondence; never changes the original package manifest."""
++import hashlib,json,pathlib,re
++
++ROOT=pathlib.Path(__file__).resolve().parents[3]
++EXP=ROOT/'experiments/jspi-asyncify'
++RESULTS=ROOT/'results/jspi-asyncify'
++OUT=RESULTS/'20260927-01'
++BUILDS=pathlib.Path('/Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927')
++def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
++def read(path):return json.loads(path.read_text())
++def require(value,message):
++    if not value:raise ValueError(message)
++
++def main():
++    summary={'scope':'Chrome component correctness, not Player/MSE integration or release qualification',
++             'infrastructure':{},'builds':{},'media':[],'productionRoutingChanged':False,'performanceMeasured':False}
++    for name,count in [('local-dual-02.json',94),('local-continuations.json',27)]:
++        p=OUT/name;r=read(p)
++        require(r.get('passed')==count and r.get('total')==count and len(r['runs'])==count,name+' incomplete')
++        require(all(c.get('qualified') is True for c in r['runs']),name+' failed case')
++        for source,wanted in r['sourceSHA256'].items():require(digest(EXP/source)==wanted,'Infrastructure source drift: '+source)
++        summary['infrastructure'][name]={'passed':count,'browser':r['browser'],'sha256':digest(p)}
++    for profile in ['remux','transcode']:
++        for backend in ['jspi','asyncify']:
++            key=profile+'-'+backend;directory=BUILDS/(key+('-03' if profile=='transcode' else '-02'));record=read(directory/'build-result.json')
++            require(record['status']=='build_completed_only',key+' build failed')
++            for source,wanted in record['sourceSHA256'].items():require(digest(directory/source)==wanted,key+' source drift '+source)
++            for name,wanted in record['artifacts'].items():require(digest(directory/'engine'/name)==wanted,key+' artifact drift '+name)
++            audit=read(directory/'logs/04.log')
++            require(audit['backend']==backend and audit['privateMemory'] is True,key+' audit mismatch')
++            require(audit['asyncifyControls']==(backend=='asyncify'),key+' control mismatch')
++            config=(pathlib.Path(record.get('libraryBuild',str(directory)))/'objects/config_components.h').read_text()
++            decoders=re.findall(r'#define CONFIG_(\w+)_DECODER 1',config)
++            encoders=re.findall(r'#define CONFIG_(\w+)_ENCODER 1',config)
++            allowed={'AC3','EAC3','DCA','TRUEHD','MLP','AAC','MP3','MP3FLOAT','OPUS','VORBIS','FLAC','ALAC','PCM_S16LE','PCM_S24LE','PCM_S32LE','PCM_F32LE','PCM_F64LE'}
++            require(set(decoders)<=allowed and set(encoders)<={'FLAC','OPUS'},'Unexpected codec build')
++            if profile=='remux':require(not decoders and not encoders,'Remux includes codecs')
++            summary['builds'][key]={'path':str(directory),'artifacts':record['artifacts'],'decoders':decoders,'encoders':encoders,'auditSHA256':digest(directory/'logs/04.log')}
++    matrix=[('media-remux-jspi-01',12),('media-remux-asyncify-01',12),
++            ('media-transcode-pcm-01',20),('media-transcode-ac3-01',20)]
++    candidates=0
++    for name,count in matrix:
++        p=RESULTS/name/'result.json';r=read(p)
++        require(r['passed']==count and r['total']==count and len(r['cases'])==count,name+' incomplete')
++        require(len({c['id'] for c in r['cases']})==count,name+' duplicate cases')
++        for source,wanted in r.get('sourceSHA256',{}).items():require(digest(p.parent/'sources'/source)==wanted,name+' snapshot mismatch')
++        for key,engine in r['engines'].items():
++            require(digest(pathlib.Path(engine['dir'])/'remux.wasm')==engine['wasmSHA256'],name+' binary drift')
++            require(digest(pathlib.Path(engine['dir'])/'remux.mjs')==engine['glueSHA256'],name+' glue drift')
++            if not key.endswith('-pthread'):require(summary['builds'][key]['artifacts']['remux.wasm']==engine['wasmSHA256'],name+' build mismatch')
++        for c in r['cases']:
++            require(c['passed'],c['id']+' failed')
++            require(digest(ROOT/'build/jspi-asyncify/frozen/fixtures'/c.get('fixture','avc-aac.ts'))==c['sourceSHA256'],c['id']+' fixture drift')
++            e=c['evidence'];facts=e['runtimeFacts']
++            if c['runtime']!='pthread':
++                candidates+=1
++                require(facts['crossOriginIsolated'] is False and facts['sharedArrayBufferAvailable'] is False and facts['memoryType']=='ArrayBuffer','Wrong private environment')
++                if c['runtime']=='asyncify':require(not facts['jspiSuspending'] and not facts['jspiPromising'],'JSPI present in Asyncify case')
++                require(all(e['source'][x]==0 for x in ['pending','handles','timers']),'Source cleanup missing')
++                require(e['state']==('failed' if c['scenario']=='fatal-output' else 'closed'),'Wrong disposal state')
++                if c['scenario']=='media':require(c.get('pthreadIdentity') is True,'Missing pthread comparison')
++            if c['scenario']=='media':require(digest(pathlib.Path(c['output']['path']))==c['output']['sha256'],'Output drift')
++            if c['scenario']=='cancel':require(e.get('observedPending') is True,'Cancellation did not observe a pending read')
++        summary['media'].append({'run':name,'passed':count,'browser':r['browser'],'sha256':digest(p)})
++    summary['mediaChecks']=sum(count for _,count in matrix)
++    summary['candidateChecks']=candidates
++    (OUT/'summary.json').write_text(json.dumps(summary,indent=2)+'\n')
++    print(json.dumps({'infrastructure':121,'mediaChecks':summary['mediaChecks'],'candidateChecks':candidates,'builds':4}))
++
++if __name__=='__main__':main()
+--- /dev/null
++++ b/review/tests/emscripten-audit-guards.mjs
+@@ -0,0 +1,35 @@
++// SPDX-License-Identifier: MIT
++import assert from 'node:assert/strict';
++import {audit} from '../../scripts/audit-wasm.mjs';
++
++// Minimal ABI-shaped modules: static policy tests, not execution evidence.
++const leb=n=>{const b=[];do{const v=n&127;n>>>=7;b.push(v|(n?128:0));}while(n);return b;};
++const str=s=>[...leb(Buffer.byteLength(s)),...Buffer.from(s)];
++const section=(id,b)=>[id,...leb(b.length),...b];
++const required=['rm_error','rm_probe','rm_open','rm_start','rm_set_container','rm_step','rm_close',
++ 'rm_duration','rm_video_codec','rm_audio_codec','malloc','free'];
++const controls=['asyncify_start_unwind','asyncify_stop_unwind','asyncify_start_rewind','asyncify_stop_rewind'];
++function fixture({asyncify=false,omit=null,transcode=false,read=true,partial=false}={}){
++ const names=[...required,...(transcode?['rm_adapt_audio']:[]),...(asyncify?controls:[])].filter(x=>x!==omit);
++ if(partial)names.push('asyncify_get_state');
++ return Uint8Array.from([0,97,115,109,1,0,0,0,
++  ...section(1,[1,0x60,0,0]),
++  ...section(2,[1,...str('env'),...str(read?'__asyncjs__source_read':'unrelated'),0,0]),
++  ...section(5,[1,0,1]),
++  ...section(7,[...leb(names.length),...names.flatMap(n=>[...str(n),0,0])])]);
++}
++const tests=[];
++function test(name,fn){try{fn();tests.push({name,ok:true});}catch(e){tests.push({name,ok:false,error:String(e.stack)});}}
++test('backend-is-explicit',()=>assert.throws(()=>audit(fixture(),{raw:false}),/Explicit/));
++test('jspi-shaped-ABI',()=>assert.equal(audit(fixture(),{raw:false,backend:'jspi'}).asyncifyControls,false));
++test('asyncify-shaped-ABI',()=>assert.equal(audit(fixture({asyncify:true}),{raw:false,backend:'asyncify'}).asyncifyControls,true));
++test('wrong-asyncify-artifact',()=>assert.throws(()=>audit(fixture(),{raw:false,backend:'asyncify'}),/Uninstrumented/));
++test('wrong-jspi-artifact',()=>assert.throws(()=>audit(fixture({asyncify:true}),{raw:false,backend:'jspi'}),/Unexpected/));
++test('partial-controls-rejected',()=>assert.throws(()=>audit(fixture({partial:true}),{raw:false,backend:'jspi'}),/Unexpected/));
++test('missing-remux-export',()=>assert.throws(()=>audit(fixture({omit:'rm_step'}),{raw:false,backend:'jspi'}),/Missing FFmpeg export rm_step/));
++test('missing-read-import',()=>assert.throws(()=>audit(fixture({read:false}),{raw:false,backend:'jspi'}),/source-read/));
++test('transcode-needs-adaptation',()=>assert.throws(()=>audit(fixture(),{raw:false,backend:'jspi',profile:'transcode'}),/rm_adapt_audio/));
++test('transcode-ABI',()=>assert.equal(audit(fixture({transcode:true}),{raw:false,backend:'jspi',profile:'transcode'}).privateMemory,true));
++test('partial-asyncify-controls',()=>assert.throws(()=>audit(fixture({asyncify:true,omit:controls[0]}),{raw:false,backend:'asyncify'}),/Uninstrumented/));
++const result={scope:'Synthetic Wasm ABI audit negatives; not FFmpeg execution',tests,total:tests.length,passed:tests.filter(x=>x.ok).length};
++console.log(JSON.stringify(result,null,2));if(result.passed!==result.total)process.exitCode=1;
+--- a/scripts/audit-wasm.mjs
++++ b/scripts/audit-wasm.mjs
+@@ -2,7 +2,7 @@
+ import fs from 'node:fs';
+ import crypto from 'node:crypto';
+ import {pathToFileURL} from 'node:url';
+-export function audit(bytes,{asyncify=false,raw=true}={}) {
++export function audit(bytes,{asyncify=false,raw=true,backend=null,profile='remux'}={}) {
+  if(!WebAssembly.validate(bytes))throw Error('Invalid Wasm');
+  const module=new WebAssembly.Module(bytes),imports=WebAssembly.Module.imports(module),exports=WebAssembly.Module.exports(module);
+  if(imports.some(x=>x.kind==='memory'||/pthread|futex|proxy_to|emscripten_thread/i.test(x.name)))
+@@ -31,18 +31,33 @@
+  }
+  if(memories!==1)throw Error('No private defined memory');
+  const names=new Set(exports.filter(x=>x.kind==='function').map(x=>x.name));
++ const controls=['asyncify_start_unwind','asyncify_stop_unwind','asyncify_start_rewind','asyncify_stop_rewind'];
++ const observedControls=[...names].filter(x=>x.startsWith('asyncify_'));
+  if(raw){
+   for(const name of ['demuxe_coop_get_sp','demuxe_coop_set_sp','demuxe_coop_invoke'])
+    if(!names.has(name))throw Error('Missing raw scheduler export '+name);
+-  const controls=['asyncify_start_unwind','asyncify_stop_unwind','asyncify_start_rewind','asyncify_stop_rewind','asyncify_get_state'];
+-  if(asyncify&&!controls.every(x=>names.has(x)))throw Error('Uninstrumented Asyncify artifact');
+-  if(!asyncify&&controls.some(x=>names.has(x)))throw Error('Unexpected Asyncify instrumentation');
++  if(asyncify&&![...controls,'asyncify_get_state'].every(x=>names.has(x)))throw Error('Uninstrumented Asyncify artifact');
++  if(!asyncify&&observedControls.length)throw Error('Unexpected Asyncify instrumentation');
++ } else {
++  if(!['jspi','asyncify'].includes(backend))throw Error('Explicit Emscripten backend required');
++  if(!['remux','transcode'].includes(profile))throw Error('Unknown FFmpeg profile');
++  const required=['rm_error','rm_probe','rm_open','rm_start','rm_set_container','rm_step','rm_close',
++    'rm_duration','rm_video_codec','rm_audio_codec','malloc','free'];
++  if(profile==='transcode')required.push('rm_adapt_audio');
++  for(const name of required)if(!names.has(name))throw Error('Missing FFmpeg export '+name);
++  if(!imports.some(x=>x.kind==='function'&&x.name==='__asyncjs__source_read'))
++   throw Error('Missing asynchronous source-read import');
++  if(backend==='asyncify'&&!controls.every(x=>names.has(x)))throw Error('Uninstrumented Asyncify artifact');
++  if(backend==='jspi'&&observedControls.length)throw Error('Unexpected Asyncify instrumentation');
+  }
+  return {bytes:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),
+-   privateMemory:true,memory64:false,asyncifyControls:asyncify,imports,exports};
++   privateMemory:true,memory64:false,asyncifyControls:controls.every(x=>names.has(x)),
++   observedControls,backend:raw?(asyncify?'asyncify':'jspi'):backend,
++   scope:'Static memory and ABI checks only; JSPI glue and suspension require runtime qualification',imports,exports};
+ }
+ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
+  const file=process.argv[2];
+- if(!file)throw Error('Usage: node audit-wasm.mjs file.wasm [--asyncify] [--emscripten]');
+- console.log(JSON.stringify(audit(fs.readFileSync(file),{asyncify:process.argv.includes('--asyncify'),raw:!process.argv.includes('--emscripten')}),null,2));
++ if(!file)throw Error('Usage: node audit-wasm.mjs file.wasm [--asyncify] [--emscripten --backend=jspi|asyncify --profile=remux|transcode]');
++ const option=name=>process.argv.find(x=>x.startsWith('--'+name+'='))?.split('=')[1];
++ console.log(JSON.stringify(audit(fs.readFileSync(file),{asyncify:process.argv.includes('--asyncify'),raw:!process.argv.includes('--emscripten'),backend:option('backend'),profile:option('profile')??'remux'}),null,2));
+ }
