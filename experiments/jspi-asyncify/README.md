@@ -1,5 +1,8 @@
 # Local JSPI / Asyncify development fork
 
+Local-main import status and production wiring requirements are documented in
+[local/INTEGRATION.md](local/INTEGRATION.md).
+
 Local integration work is documented in [local/README.md](local/README.md) and
 the [actual mpv component follow-up](mpv/README.md). The
 original package description below and its manifest refer to the delivered

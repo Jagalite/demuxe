@@ -1,0 +1,135 @@
+✔ Only consumed audio advances feedback; pause and underrun emit silence (4.475583ms)
+✔ Seek epoch discards queued old PCM and rejects stale data/state/reset (9.51175ms)
+✔ Queue capacity, sequence and chunk limits reject malformed traffic (151.599292ms)
+✔ Malformed epochs cannot replace a live queue (0.584167ms)
+✖ A protocol fault is terminal and cannot replay queued samples (18.861667ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(p.failed)
+  
+      at TestContext.<anonymous> (file:///private/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/tmpy9u66dzf/regression.mjs:41:9)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:931:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:629:18)
+      at Test.postRun (node:internal/test_runner/test:1042:19)
+      at Test.run (node:internal/test_runner/test:970:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '=='
+  }
+
+✖ Explicit stop flushes data and acknowledges before teardown (5.161333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'resetAck'
+  - 'stopped'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/tmpy9u66dzf/regression.mjs:46:9)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:931:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:629:18)
+      at Test.postRun (node:internal/test_runner/test:1042:19)
+      at Test.run (node:internal/test_runner/test:970:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'resetAck',
+    expected: 'stopped',
+    operator: 'strictEqual'
+  }
+
+✖ Malformed PCM does not throw from the port callback or resume playback (1.690125ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(p.failed)
+  
+      at TestContext.<anonymous> (file:///private/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/tmpy9u66dzf/regression.mjs:51:10)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:931:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:629:18)
+      at Test.postRun (node:internal/test_runner/test:1042:19)
+      at Test.run (node:internal/test_runner/test:970:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '=='
+  }
+
+ℹ tests 7
+ℹ suites 0
+ℹ pass 4
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1064.843333
+
+✖ failing tests:
+
+test at ../../../../private/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/tmpy9u66dzf/regression.mjs:39:1
+✖ A protocol fault is terminal and cannot replay queued samples (18.861667ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(p.failed)
+  
+      at TestContext.<anonymous> (file:///private/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/tmpy9u66dzf/regression.mjs:41:9)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:931:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:629:18)
+      at Test.postRun (node:internal/test_runner/test:1042:19)
+      at Test.run (node:internal/test_runner/test:970:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '=='
+  }
+
+test at ../../../../private/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/tmpy9u66dzf/regression.mjs:44:1
+✖ Explicit stop flushes data and acknowledges before teardown (5.161333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'resetAck'
+  - 'stopped'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/tmpy9u66dzf/regression.mjs:46:9)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:931:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:629:18)
+      at Test.postRun (node:internal/test_runner/test:1042:19)
+      at Test.run (node:internal/test_runner/test:970:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'resetAck',
+    expected: 'stopped',
+    operator: 'strictEqual'
+  }
+
+test at ../../../../private/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/tmpy9u66dzf/regression.mjs:48:1
+✖ Malformed PCM does not throw from the port callback or resume playback (1.690125ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(p.failed)
+  
+      at TestContext.<anonymous> (file:///private/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/tmpy9u66dzf/regression.mjs:51:10)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:931:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:629:18)
+      at Test.postRun (node:internal/test_runner/test:1042:19)
+      at Test.run (node:internal/test_runner/test:970:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '=='
+  }
