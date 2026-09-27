@@ -9,13 +9,6 @@ let deadlineTimer=0,deadlineEpoch=0,lastTimingEpoch=-1;
 // Keep the next visual boundary until a render or pump accounts for it.
 // Rearming a timer after its target must not silently skip that transition.
 let nextRenderBoundary=null;
-// Only natural decoding from the beginning can establish a complete ASS
-// timeline. EOF after a seek into the middle is not complete-track evidence.
-let continuousFromStart=true;
-const learnProfile=()=>{
- if(continuousFromStart&&selectedTrack&&engine._subtitle_service_ass_scan_needed())
-  engine._subtitle_service_ass_scan_complete();
-};
 const scheduler={stateUpdates:0,nativeUpdateCalls:0,fullRenders:0,deadlineWakes:0};
 const cancelDeadline=()=>{clearTimeout(deadlineTimer);deadlineTimer=0;deadlineEpoch++;};
 const timing=seconds=>{
@@ -45,7 +38,6 @@ const seekDisplay=async seconds=>{
  const recovery=engine._subtitle_service_bitmap_recovery_point(seconds);
  const start=recovery>=0&&recovery<seconds-.001?recovery:seconds;
  if(engine._subtitle_service_seek(start)<0)throw Error('Subtitle seek failed');
- continuousFromStart=start===0;
  await delay(30);
  if(start===seconds)return;
  engine._subtitle_service_block(0);
@@ -93,7 +85,7 @@ onmessage=({data:d})=>{
      };
      io.onerror=e=>{clearTimeout(timeout);fatal=Error(e.message);reject(fatal);};
      // Playback and seeks keep reading for the lifetime of the service. Bound
-     // memory here while normal decoding collects subtitle timing.
+     // memory here; the separate ASS preload scan has its own work budget.
      io.postMessage({type:'init',memory:engine.HEAPU8.buffer,pointer:engine._web_io_ptr(),file:d.file,options:d.options,canRefresh:d.canRefresh,subtitleCacheBytes:4*1024*1024});
     });
     check();engine._web_io_configure(1,BigInt(info.size));
@@ -109,7 +101,6 @@ onmessage=({data:d})=>{
     engine._subtitle_service_block(1);result={tracks};
    }else if(d.type==='select'){
     cancelDeadline();lastTimingEpoch=-1;nextRenderBoundary=null;
-    if(selectedTrack||lastTime!==0)continuousFromStart=false;
     if(engine._subtitle_service_select(d.trackId)<0)throw Error('Subtitle selection failed');selectedTrack=d.trackId>0;overlay.clear();lastTime=0;await delay(0);
    }else if(d.type==='seek'){
     cancelDeadline();lastTimingEpoch=-1;nextRenderBoundary=null;
@@ -120,9 +111,29 @@ onmessage=({data:d})=>{
     const view=new DataView(engine.HEAPU8.buffer,timingPointer,12);
     result={supported:status>=0,unstable:status===-2,next:status===1?view.getFloat64(0,true):null,epoch:view.getUint32(8,true),visual:visual(d.seconds),avChains:engine._subtitle_service_av_chains()};
    }else if(d.type==='profile'){
-    // Scheduling is advisory. Never seek/read the whole track to classify it
-    // on the critical startup path; normal render/pump calls learn its state.
-    learnProfile();
+    if(selectedTrack&&engine._subtitle_service_ass_scan_needed()){
+     const restore=lastTime;let moved=false,restoreFailed=false;
+     engine._subtitle_service_block(0);
+     try{
+      if(engine._subtitle_service_seek(0)>=0){
+       moved=true;await delay(30);
+       if(engine._subtitle_service_ass_scan_begin()){
+        try{
+         for(let i=0;i<400;i++){
+          check();engine._subtitle_service_update(1e9);scheduler.nativeUpdateCalls++;
+          const status=engine._subtitle_service_ass_scan_status();
+          if(status){if(status>0)engine._subtitle_service_ass_scan_complete();break;}
+          await delay(5);
+         }
+        }finally{engine._subtitle_service_ass_scan_end();}
+       }
+      }
+     }finally{
+      try{if(moved){restoreFailed=engine._subtitle_service_seek(restore)<0;await delay(30);}}
+      finally{engine._subtitle_service_block(1);}
+     }
+     if(restoreFailed)throw Error('Subtitle scan restore failed');
+    }
     result={mode:selectedTrack?visual(lastTime).mode:'fallback',avChains:engine._subtitle_service_av_chains()};
    }else if(d.type==='cancelDeadline'){
     cancelDeadline();result={epoch:deadlineEpoch};
@@ -143,7 +154,6 @@ onmessage=({data:d})=>{
      engine._subtitle_service_block(1);if(!ready)throw Error('Subtitle packet deadline exceeded');
      scheduler.stateUpdates++;
      if(engine._subtitle_service_av_chains()!==0)throw Error('Subtitle service unexpectedly allocated A/V decoding');
-     learnProfile();
      const schedule=armDeadline(d.seconds,d.rate,d.running);
      const crossedBoundary=nextRenderBoundary!==null&&d.seconds>=nextRenderBoundary;
      if(crossedBoundary)nextRenderBoundary=null;
@@ -172,7 +182,6 @@ onmessage=({data:d})=>{
     let text='';
     try{if(textLength>0)text=new TextDecoder('utf-8',{fatal:true}).decode(new Uint8Array(engine.HEAPU8.subarray(textPointer,textPointer+textLength)));}
     catch{throw Error('Subtitle decode failed');}
-    learnProfile();
     const schedule=armDeadline(d.seconds,d.rate,d.running);
     // Use the exact rendered time, without the timer query's look-ahead.
     const renderedTiming=visual(d.seconds);

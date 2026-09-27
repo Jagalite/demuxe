@@ -36,16 +36,16 @@ try{
  try{
   await fallback.route('**/web/mpv-subtitle-worker.js',async route=>{
    const response=await route.fetch();const source=await response.text();
-   const target='if(engine._subtitle_service_seek(0)>=0){';
-   assert.ok(source.includes(target),'ASS scan injection target changed');
-   await route.fulfill({response,body:source.replace(target,'if(false){')});
+   const target='engine._subtitle_service_ass_scan_complete();';
+   assert.ok(source.includes(target),'ASS completeness injection target changed');
+   await route.fulfill({response,body:source.replace(target,'void 0; /* No complete timeline evidence available. */')});
   });
   await open(fallback,'build/head-to-head/assets-component-isolation-01/fixtures/h264-ass/index.mkv');
   assert.equal(await fallback.evaluate(()=>player.current.backend.mpvSubs.stats.scheduler),'frame');
   await fallback.evaluate(()=>player.seek(1));await fallback.evaluate(()=>player.play());await sleep(1200);
   const result=await fallback.evaluate(()=>{const sub=player.current.backend.mpvSubs,c=document.querySelector('.demuxe-native-ass'),data=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let pixels=0;for(let i=3;i<data.length;i+=4)if(data[i])pixels++;return {position:sub.stats.position,pixels,renders:sub.stats.renders,avChains:sub.service.avChains};});
   assert.ok(result.renders>35,JSON.stringify(result));assert.ok(result.pixels>0,JSON.stringify(result));assert.equal(result.avChains,0);
-  console.log('ASS scan seek failure fallback',JSON.stringify(result));
+  console.log('Incomplete ASS timeline fallback',JSON.stringify(result));
   await fallback.evaluate(()=>player.destroy());for(let i=0;i<50&&fallback.workers().length;i++)await sleep(100);assert.equal(fallback.workers().length,0);
  }finally{await fallback.close();}
 }finally{await browser.close();await server.close();}

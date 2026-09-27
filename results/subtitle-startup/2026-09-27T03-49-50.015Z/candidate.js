@@ -93,7 +93,7 @@ onmessage=({data:d})=>{
      };
      io.onerror=e=>{clearTimeout(timeout);fatal=Error(e.message);reject(fatal);};
      // Playback and seeks keep reading for the lifetime of the service. Bound
-     // memory here while normal decoding collects subtitle timing.
+     // memory here; the separate ASS preload scan has its own work budget.
      io.postMessage({type:'init',memory:engine.HEAPU8.buffer,pointer:engine._web_io_ptr(),file:d.file,options:d.options,canRefresh:d.canRefresh,subtitleCacheBytes:4*1024*1024});
     });
     check();engine._web_io_configure(1,BigInt(info.size));

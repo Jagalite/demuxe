@@ -7,16 +7,20 @@ import vm from 'node:vm';
 // Run the production worker RPC handlers with a static cue oracle and controlled
 // timers. Demux delay sleeps are stubbed separately from deadline timers. Keep the decoded timing epoch constant: crossing a cue is not decoding.
 const source=await readFile(new URL('../web/mpv-subtitle-worker.js',import.meta.url),'utf8');
-function worker(){
- let timingEpoch=7,now=0;
+function worker({ass=false}={}){
+ let timingEpoch=7,now=0,eof=false,complete=false;
+ const calls={seeks:0,completionChecks:0,updates:0};
  const messages=[],timers=new Map();let id=0;
  const heap=new Uint8Array(64),view=new DataView(heap.buffer);
  const engine={HEAPU8:heap,HEAP32:new Int32Array(heap.buffer),
-  _subtitle_service_visual_schedule(seconds,pointer){view.setFloat64(pointer,seconds<.5?.5:seconds<35.8?35.8:-1,true);view.setUint32(pointer+8,timingEpoch,true);return 1;},
-  _subtitle_service_block(){},_subtitle_service_update(){return 1;},
+  _subtitle_service_visual_schedule(seconds,pointer){view.setFloat64(pointer,seconds<.5?.5:seconds<35.8?35.8:-1,true);view.setUint32(pointer+8,timingEpoch,true);return ass&&!complete?0:1;},
+  _subtitle_service_ass_scan_needed(){return ass&&!complete;},
+  _subtitle_service_ass_scan_complete(){calls.completionChecks++;if(eof)complete=true;return complete;},
+  _subtitle_service_ass_scan_begin(){throw Error('Unexpected speculative scan');},
+  _subtitle_service_block(){},_subtitle_service_update(){calls.updates++;return 1;},
   _subtitle_service_render(){return 1;},_subtitle_service_av_chains(){return 0;},
   _subtitle_service_text(){return 0;},_web_subtitle_ptr(){return 16;},
-  _subtitle_service_select(){return 0;},_subtitle_service_seek(){return 0;},
+  _subtitle_service_select(){return 0;},_subtitle_service_seek(){calls.seeks++;eof=false;return 0;},
   _subtitle_service_bitmap_recovery_point(){return -1;}};
  const context=vm.createContext({onmessage:null,postMessage:m=>messages.push(m),TextDecoder,
   setTimeout:(fn,ms)=>{timers.set(++id,{fn,due:now+ms});return id;},
@@ -24,7 +28,7 @@ function worker(){
   SubtitleOverlay:class{serial=0;clear(){}read(){return {surface:null};}draw(){}},
   OffscreenCanvas:class{getContext(){return {};}transferToImageBitmap(){return {};}}});
  vm.runInContext(source.replace(/^import .*;\n/gm,'').replaceAll('import.meta.url',JSON.stringify('file:///worker.js')).replace('const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));','const delay=async()=>{};')+'\nengine=testEngine;selectedTrack=true;timingPointer=0;textPointer=12;',context);
- return {timers,messages,advanceTo(milliseconds){
+ return {calls,setEOF:()=>{eof=true;},timers,messages,advanceTo(milliseconds){
   assert.ok(milliseconds>=now);now=milliseconds;
   for(const [id,timer] of [...timers])if(timer.due<=now){timers.delete(id);timer.fn();}
  },setEpoch:epoch=>{timingEpoch=epoch;},async rpc(type,seconds=0){messages.length=0;context.onmessage({data:{id:++id,type,seconds,width:320,height:180,force:true,rate:1,running:true,trackId:1}});await vm.runInContext('chain',context);const result=messages.at(-1);assert.ok(result);assert.equal(result.error,undefined);return result;}};
@@ -77,4 +81,22 @@ test('pause cancellation suppresses wakeups and resume still recovers a crossed 
  const w=worker();await w.rpc('render',.01);await w.rpc('cancelDeadline');
  w.advanceTo(1000);assert.equal(w.messages.some(m=>m.type==='subtitleDeadline'),false);
  assert.equal((await w.rpc('pump',.6)).timingChanged,true);
+});
+
+test('ASS profile is read-only and normal decoding can qualify complete timing',async()=>{
+ const w=worker({ass:true});
+ assert.equal((await w.rpc('profile')).mode,'fallback');
+ assert.equal(w.calls.seeks,0);assert.equal(w.calls.updates,0);
+ assert.equal((await w.rpc('render',0)).mode,'fallback');
+ w.setEOF();assert.equal((await w.rpc('render',.1)).mode,'deadline');
+});
+test('EOF after a partial seek or track switch cannot qualify a complete ASS timeline',async()=>{
+ const w=worker({ass:true});
+ await w.rpc('seek',20);w.setEOF();
+ assert.equal((await w.rpc('render',20)).mode,'fallback');
+ assert.equal(w.calls.completionChecks,0);
+ await w.rpc('select');w.setEOF();
+ assert.equal((await w.rpc('profile')).mode,'fallback');
+ await w.rpc('seek',0);w.setEOF();
+ assert.equal((await w.rpc('render',0)).mode,'deadline');
 });
