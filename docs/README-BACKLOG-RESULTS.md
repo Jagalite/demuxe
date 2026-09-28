@@ -625,3 +625,16 @@ The original Video.js attempt received `application/octet-stream` because the ad
 | Asyncify | 🟢 (Pass) · 5.6% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 5.60%, 5.45%, 5.66%; CPU route: native-remux |
 | Software | 🟢 (Pass) · 10.1% CPU | All bounded playback checks passed; CPU rounds: 10.07%, 9.89%, 10.54%; CPU route: software |
 | MediaBunny | 🟡 Screened* · 45.9% CPU | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters; CPU rounds: 46.88%, 45.89%, 41.09% |
+
+## Row 56: PCM16 audio-only / WAV
+
+[Correctness](../results/head-to-head/backlog-56-audio-pcm16-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-56-audio-pcm16-mediabunny-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-56-audio-pcm16-cpu/summary.json) · [CPU 2](../results/head-to-head/backlog-56-audio-pcm16-mediabunny-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 11.1% CPU | All bounded playback checks passed; CPU rounds: 10.92%, 11.06%, 11.34%; CPU route: native-direct |
+| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy audio construction contract for pcm_s16… |
+| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy audio construction contract for pcm_s16… |
+| Software | 🟢 (Pass) · 8.7% CPU | All bounded playback checks passed; CPU rounds: 8.67%, 9.89%, 6.06%; CPU route: software |
+| Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement |
+| MediaBunny | 🟡 Screened* · 11.1% CPU | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters; CPU rounds: 10.69%, 11.22%, 11.14% |
