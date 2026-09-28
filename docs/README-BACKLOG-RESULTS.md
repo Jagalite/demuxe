@@ -181,3 +181,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
 | JSPI | 🟢 (Pass) · 17.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 17.02%, 17.76%, 16.40%; CPU route: native-transcode |
 | Asyncify | 🟢 (Pass) · 17.7% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 17.20%, 18.21%, 17.71%; CPU route: native-transcode |
+
+## Row 13: H.264 + DTS core stereo / MKV
+
+[Correctness](../results/head-to-head/backlog-13-h264-dts-stereo-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-13-h264-dts-stereo-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
+| JSPI | 🟢 (Pass) · 17.9% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 17.86%, 16.85%, 18.26%; CPU route: native-transcode |
+| Asyncify | 🟢 (Pass) · 18.3% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 19.36%, 18.29%, 17.10%; CPU route: native-transcode |
