@@ -9,11 +9,12 @@ import {firefox} from 'playwright';
 import {launchBenchmarkChrome,collectCpuWindow,summarizeCpu,benchmarkPolicy,CpuBrowserBlocks} from './benchmark-browser.mjs';
 import {serve} from './server.mjs';
 import {CampaignProgress} from './campaign-progress.mjs';
-import {markedAudio,markedImage,selectCases,performanceEligible,markedFixtureBlock} from './checks.mjs';
+import {markedAudio,markedImage,decodePNG,selectCases,performanceEligible,markedFixtureBlock} from './checks.mjs';
 import {frameObservation,validateFrameWindow} from './performance-metrics.mjs';
 import {closeBrowserObserved} from './browser-exit.mjs';
 import {waitInitialOutput} from './initial-output.mjs';
 import {remuxEvidence,requireRemuxCPU} from './remux-evidence.mjs';
+import {referenceAudio,waitReferenceAudio} from './specialist-audio.mjs';
 
 const here=import.meta.dirname,repo=path.resolve(here,'../..');
 const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'string'},cases:{type:'string',default:'all'},
@@ -23,7 +24,9 @@ const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'str
   'component-trial':{type:'string'},
   'demuxe-mode':{type:'string',default:'auto'},
   'include-private-remux':{type:'boolean',default:false},
+  'force-private-remux':{type:'boolean',default:false},
   'include-videojs':{type:'boolean',default:false},
+  'specialist-catalogue':{type:'boolean',default:false},
   'include-software':{type:'boolean',default:false},
   'include-native':{type:'boolean',default:false},
   'include-hybrid':{type:'boolean',default:false},
@@ -45,14 +48,23 @@ if(args['include-hybrid']&&args['streaming-backends'])throw Error('--include-hyb
 if(args['streaming-backends']&&(!args.catalogue||args['demuxe-mode']!=='auto'||!args['controlled-streaming']))throw Error('--streaming-backends requires --catalogue --controlled-streaming and auto policy');
 if(args['configured-alternatives']&&!args.catalogue)throw Error('--configured-alternatives requires --catalogue');
 if(args['include-private-remux']&&(!args.catalogue||args['demuxe-mode']!=='auto'))throw Error('Private remux comparison requires automatic catalogue routing');
+if(args['force-private-remux']&&!args['include-private-remux'])throw Error('--force-private-remux requires --include-private-remux');
 let matrix=JSON.parse(await fs.readFile(path.join(here,'matrix.json')));
 if(args.catalogue) {
   if(!args.assets)throw Error('--catalogue requires --assets');
   const fixtures=JSON.parse(await fs.readFile(path.resolve(args.assets,'fixtures/catalogue.json')));
-  for(const fixture of Object.values(fixtures))fixture.blockedReason??=markedFixtureBlock(fixture);
+  if(args['specialist-catalogue']){
+    const specialist=JSON.parse(await fs.readFile(path.resolve(args.assets,'specialist.json')));
+    for(const [key,fixture] of Object.entries(specialist)){
+      if((fixture.audio!==false&&typeof fixture.markedAudio!=='boolean')||(fixture.video!==false&&typeof fixture.markedVideo!=='boolean'))throw Error('Missing explicit specialist marker contract: '+key);
+      fixtures[key]={...fixture,referenceScreen:true,qualificationLimit:fixture.qualificationLimit??'Bounded changing-video and stereo-output screen; no waveform, discrete channel, lossless, spatial audio, HDR or Dolby Vision fidelity qualification.'};
+    }
+  }
+  for(const fixture of Object.values(fixtures))if(!fixture.referenceScreen)fixture.blockedReason??=markedFixtureBlock(fixture);
   matrix={schema:2,fixtures,cases:Object.entries(fixtures).flatMap(([fixture,f])=>[
     ['video','default'],...(args['include-videojs']?[['videojs','default']]:[]),['demuxe',args['demuxe-mode']],...(args['include-private-remux']?[['demuxe','jspi'],['demuxe','asyncify']]:[]),...(args['include-native']?[['demuxe','native']]:[]),...(args['include-software']?[['demuxe','software']]:[]),...(args['include-hybrid']?[['demuxe','hybrid']]:[]),['movi','default'],['libmedia','default'],...(args['configured-alternatives']?[['movi','native-first'],['libmedia','prefer-mse'],['libmedia','webcodecs-off'],...(!f.streamFormat&&!f.live?[['libmedia','file-input']]:[]),...(f.streamFormat?[['movi','shaka-first']]:[]),...(f.live?[['libmedia','live'],['libmedia','live-mse']]:[])]:[]),...(args['streaming-backends']?[['demuxe','hybrid'],['demuxe','software']]:[])
   ].map(([player,lane])=>({id:`${player}.${lane}.${fixture}`,player,lane,fixture,
+    ...(args['force-private-remux']&&['jspi','asyncify'].includes(lane)?{forceRemux:true}:{}),
     requirements:[...(f.video?['moving-video']:[]),...(f.audio?['marked-audio']:[]),'pause-resume','rate',...(f.live?['live-window']:['seek','eof']),'cleanup',...(f.subtitleCheck?['subtitle-output']:[])],
     ...(f.qualificationLimit?{qualificationLimit:f.qualificationLimit}:{})}))) };
 }
@@ -81,13 +93,23 @@ for(const [name,record]of Object.entries(manifest.files)) {
   if(!file.startsWith(assets+path.sep)||hash(await fs.readFile(file))!==record.sha256)throw Error('Asset snapshot mismatch: '+name);
 }
 const stamp=new Date().toISOString().replaceAll(':','-');
+const audioOracles={};
+for(const key of new Set(selected.map(c=>c.fixture))){
+  const fixture=matrix.fixtures[key];
+  if(fixture.referenceScreen){
+    if(manifest.files['fixtures/'+fixture.file]?.sha256!==fixture.sha256)throw Error('Specialist fixture identity mismatch: '+key);
+    if(!args.performance&&fixture.audio!==false&&fixture.markedAudio===false)
+      audioOracles[key]=(key.includes('dtshd')?[12,4]:[10,1]).map(target=>referenceAudio(path.join(assets,'fixtures',fixture.file),target));
+  }
+}
 const output=path.resolve(args.output??`results/head-to-head/${stamp}-${args.performance?'performance':'correctness'}`);
 await fs.mkdir(path.dirname(output),{recursive:true});await fs.mkdir(output); // EEXIST intentionally prevents overwrites.
-const sourceNames=['campaign-progress.mjs','benchmark-browser.mjs','browser-exit.mjs','performance-metrics.mjs','component-trials.mjs','initial-output.mjs','remux-evidence.mjs','run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
+const sourceNames=['campaign-progress.mjs','benchmark-browser.mjs','browser-exit.mjs','performance-metrics.mjs','component-trials.mjs','initial-output.mjs','remux-evidence.mjs','specialist-audio.mjs','run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
 const sourceHashes={};
 await fs.mkdir(path.join(output,'files','harness'),{recursive:true});
 for(const name of sourceNames){const bytes=name==='matrix.json'?Buffer.from(JSON.stringify(matrix,null,2)+'\n'):await fs.readFile(path.join(here,name));sourceHashes[name]=hash(bytes);await fs.writeFile(path.join(output,'files','harness',name),bytes);}
 const harnessSHA256=hash(JSON.stringify(sourceHashes));
+await fs.writeFile(path.join(output,'audio-oracles.json'),JSON.stringify(audioOracles,null,2)+'\n');
 // Independently decode authored bitmap subtitles before interpreting browser failures.
 for(const key of new Set(selected.map(c=>c.fixture).filter(key=>matrix.fixtures[key].subtitleCheck==='bitmap'))) {
   const fixture=matrix.fixtures[key];if(fixture.blockedReason)continue;
@@ -152,6 +174,15 @@ async function correctness(page,config,result,directory) {
   const stage=name=>{result.stage=name;progress?.phase(name);};
   stage('open');
   const hasVideo=config.video!==false,hasAudio=config.audio!==false;
+  const references=audioOracles[config.fixture];
+  const checkImage=(png,image,label)=>{
+    if(!hasVideo)return;
+    if(config.referenceScreen&&config.markedVideo===false){
+      const {pixels,channels}=decodePNG(png);let lit=0;
+      for(let i=0;i<pixels.length;i+=channels)if(Math.max(pixels[i],pixels[i+1],pixels[i+2])>20)lit++;
+      image.litPixels=lit;expect(lit>200,label+': no visible video');
+    }else expect(image.markerCorrect,label+': displayed timeline marker incorrect');
+  };
   const checkSubtitle=(png,state,file)=>{
     if(config.subtitleCheck==='text') {
       if(!ocrBinary)throw Error('UNQUALIFIED: subtitle OCR requires macOS Vision and swiftc');
@@ -164,7 +195,7 @@ async function correctness(page,config,result,directory) {
   const waitPosition=async target=>{
     await page.waitForFunction(t=>Math.abs(api.snapshot().position-t)<.8,target,{timeout:7000});
   };
-  await deadline(page.evaluate(c=>api.start(c),{...config,correctness:true}),20000,'open');
+  await deadline(page.evaluate(c=>api.start(c),{...config,correctness:true}),config.referenceScreen?60000:20000,'open');
   if(args['negative-control']==='hide-subtitles') {
     result.negativeControl='hide-subtitles';
     await page.evaluate(()=>{const cover=document.createElement('div');cover.style.cssText='position:absolute;left:0;right:0;top:65%;bottom:0;background:black;z-index:999999';document.querySelector('#stage').append(cover);});
@@ -173,16 +204,20 @@ async function correctness(page,config,result,directory) {
     result.negativeControl='cover';
     await page.evaluate(()=>{const cover=document.createElement('div');cover.style.cssText='position:absolute;inset:0;background:black;z-index:999999';document.querySelector('#stage').append(cover);});
   }
-  await waitInitialOutput(page,{audio:hasAudio,stage,audioTimeout:error=>{result.initialAudioTimeout=error;}});
+  if(references){
+    stage('reference-window');result.initialAudioReference=references[0];
+    await deadline(page.evaluate(t=>api.seek(t),references[0].target),10000,'reference seek');
+    await waitReferenceAudio(page,references[0]);
+  }else await waitInitialOutput(page,{audio:hasAudio,stage,audioTimeout:error=>{result.initialAudioTimeout=error;}});
   if(config.subtitleCheck||config.subtitleIntegration){result.subtitleSelection=await page.evaluate(()=>api.subtitles());await delay(250);}
-  result.initial=await snap();if(['jspi','asyncify'].includes(config.lane))result.runtimeCPUApplicable=!remuxEvidence(config,result.initial).bypass;if(hasAudio)expect(markedAudio(result.initial),'Marked left/right audio missing or incorrect');
+  result.initial=await snap();if(['jspi','asyncify'].includes(config.lane))result.runtimeCPUApplicable=!remuxEvidence(config,result.initial).bypass;if(hasAudio&&!references)expect(markedAudio(result.initial),'Marked left/right audio missing or incorrect');
   if(config.player==='demuxe'&&config.expectedAudioCodec) {
     const selected=result.initial.selectedAudioTrack;
     expect(codecKey(selected?.codec)===codecKey(config.expectedAudioCodec),`Expected ${config.expectedAudioCodec} selected; observed ${JSON.stringify(selected)}`);
     result.selectedAudioTrack=selected;
   }
   const first=await page.locator('#stage').screenshot({path:path.join(directory,'initial.png')});
-  result.initialImage=markedImage(first,result.initial.position);if(hasVideo)expect(result.initialImage.markerCorrect,'Initial displayed timeline marker incorrect');
+  result.initialImage=markedImage(first,result.initial.position);checkImage(first,result.initialImage,'Initial output');
   await delay(600);
   const second=await page.locator('#stage').screenshot({path:path.join(directory,'moving.png')});
   result.moving=hash(first)!==hash(second);if(hasVideo)expect(result.moving,'Displayed output did not change');
@@ -230,13 +265,14 @@ async function correctness(page,config,result,directory) {
     return;
   }
   result.seeks=[];
-  for(const target of [6,1,10]) {
+  for(const target of references?references.map(r=>r.target):[6,1,10]) {
     stage('seek-'+target);
     await deadline(page.evaluate(t=>api.seek(t),target),10000,'seek');await waitPosition(target);await delay(180);
+    if(references)await waitReferenceAudio(page,references.find(r=>r.target===target));
     const state=await snap();const png=await page.locator('#stage').screenshot({path:path.join(directory,`seek-${target}.png`)});
     const image=markedImage(png,state.position);result.seeks.push({target,state,image});
-    expect(Math.abs(state.position-target)<1,'Seek position incorrect');if(hasVideo)expect(image.markerCorrect,'Seek displayed stale/wrong timeline marker');
-    if(hasAudio)expect(markedAudio(state),'Audio missing/wrong after seek');
+    expect(Math.abs(state.position-target)<(references?2.1:1),'Seek position incorrect');checkImage(png,image,'Seek output');
+    if(hasAudio&&!references)expect(markedAudio(state),'Audio missing/wrong after seek');
     checkSubtitle(png,state,path.join(directory,`seek-${target}.png`));
   }
   stage('near-eof');
@@ -252,7 +288,7 @@ async function correctness(page,config,result,directory) {
 }
 
 async function measure(page,config,result,browser) {
-  const before=Date.now();await deadline(page.evaluate(c=>api.start(c),config),20000,'open');
+  const before=Date.now();await deadline(page.evaluate(c=>api.start(c),config),config.referenceScreen?60000:20000,'open');
   result.openWallMs=Date.now()-before;
   await page.waitForFunction(()=>api.snapshot().position>.25,null,{timeout:10000});
   if(config.subtitleCheck||config.subtitleIntegration)await page.evaluate(()=>api.subtitles());

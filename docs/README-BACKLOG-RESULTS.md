@@ -51,3 +51,12 @@ policy. Earlier bypass and CPU results remain below as historical evidence.
 | JSPI | N/A · native-direct bypass | Playback passed via native-direct; requested remux runtime was not exercised. CPU not applicable to this runtime.; observed routes: native-direct |
 | Asyncify | N/A · native-direct bypass | Playback passed via native-direct; requested remux runtime was not exercised. CPU not applicable to this runtime.; observed routes: native-direct |
 | Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Presentation cadence outside declared frame budget; Error: Presentation cadence outside declared frame budget |
+
+## Row 1: H.264 + AAC / MP4 — Forced remux reference
+
+[Correctness](../results/head-to-head/backlog-forced-01-aac-mp4-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-forced-01-aac-mp4-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| JSPI | 🟢 (Pass) · 17.1% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 17.47%, 17.08%, 16.74% |
+| Asyncify | 🟢 (Pass) · 17.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 17.05%, 15.95%, 17.46% |

@@ -25,20 +25,22 @@ def execute(args):
                 for line in (ROOT/'README.md').read_text().splitlines()
                 if line.startswith('| ') and len(line.split('|')) == 12][2:]
         row = rows[number-1]
-        if gaps(row[8]):
-            raise RuntimeError(f'Row {number} needs the separate MediaBunny example contract before publication')
+        needs_mediabunny = not args.only_private and gaps(row[8])
         fixture = labels[row[0]]
         if catalogue[fixture].get('markedAudio') is False or catalogue[fixture].get('blockedReason'):
             raise RuntimeError(f'Row {number} requires specialist screening: {fixture}')
-        selected = [f'{lane}.{fixture}' for column, lane in LANES.items() if gaps(row[column])]
-        if not selected:
+        selected = [f'{lane}.{fixture}' for column, lane in LANES.items()
+                    if (column in (3, 4) if args.only_private else gaps(row[column]))]
+        if not selected and not needs_mediabunny:
             continue
-        prefix = ROOT/f'results/head-to-head/backlog-{number:02d}-{fixture}'
+        prefix = ROOT/f'results/head-to-head/backlog-{args.tag+"-" if args.tag else ""}{number:02d}-{fixture}'
         correctness = pathlib.Path(str(prefix)+'-correctness')
         assert not correctness.exists(), f'Existing evidence requires review: {correctness}'
         common = ['node', 'tests/head-to-head/run.mjs', '--assets', args.assets,
                   '--catalogue', '--include-private-remux', '--include-videojs',
                   '--include-software', '--headed']
+        if args.force_private_remux:
+            common.append('--force-private-remux')
         runs = []
         def run(directory, cases, extra=()):
             log = pathlib.Path(str(directory)+'.log')
@@ -53,6 +55,22 @@ def execute(args):
         proof = run(correctness, selected)
         print('Correctness:', [(c['id'], c['status'], c.get('reason', '').split('\n')[0]) for c in proof['cases']], flush=True)
         cpu_paths = []
+        supplement_paths = []
+        mb_proof = None
+        def media_bunny(directory, extra=()):
+            with pathlib.Path(str(directory)+'.log').open('x') as output:
+                result = command(['node', 'tests/head-to-head/mediabunny-backlog.mjs', '--assets', args.assets,
+                                  '--fixture', fixture, '--output', directory]+list(extra), stdout=output, stderr=subprocess.STDOUT)
+            assert result.returncode == 0, f'MediaBunny harness incomplete: {directory}'
+            command(['node', 'tests/head-to-head/verify.mjs', directory], check=True, stdout=subprocess.DEVNULL)
+            runs.append(directory)
+            data = json.loads((directory/'summary.json').read_text())
+            print('MediaBunny:', [(c['status'], c.get('reason', '').split('\n')[0]) for c in data['cases']], flush=True)
+            return data
+        if needs_mediabunny:
+            mb_correctness = pathlib.Path(str(prefix)+'-mediabunny-correctness')
+            mb_proof = media_bunny(mb_correctness)
+            supplement_paths.extend(['--supplement', mb_correctness])
         for screened in [False, True]:
             cases = [c['id'] for c in proof['cases'] if
                 c.get('runtimeCPUApplicable') is not False and
@@ -66,8 +84,12 @@ def execute(args):
             observed = run(directory, cases, extra)
             print('CPU:', [(c['id'], c.get('round'), c['status']) for c in observed['cases']], flush=True)
             cpu_paths.extend(['--cpu', directory])
+        if mb_proof and mb_proof['cases'][0]['status'] == 'blocked' and mb_proof['cases'][0].get('screenPassed'):
+            mb_cpu = pathlib.Path(str(prefix)+'-mediabunny-cpu')
+            media_bunny(mb_cpu, ['--cpu', '--correctness', mb_correctness/'summary.json'])
+            cpu_paths.extend(['--cpu', mb_cpu])
         command(['python3', 'tests/head-to-head/report-backlog-row.py', '--row', number,
-                 '--correctness', correctness]+cpu_paths, check=True)
+                 '--correctness', correctness]+supplement_paths+cpu_paths+(['--attempt', args.attempt] if args.attempt else []), check=True)
         paths = ['README.md', 'docs/README-TESTING-BACKLOG.md', 'docs/README-BACKLOG-RESULTS.md']+runs
         if number == args.start:
             paths += args.support
@@ -101,4 +123,10 @@ if __name__ == '__main__':
     p.add_argument('--start', type=int, required=True)
     p.add_argument('--through', type=int, required=True)
     p.add_argument('--support', nargs='*', default=[])
-    execute(p.parse_args())
+    p.add_argument('--force-private-remux', action='store_true')
+    p.add_argument('--only-private', action='store_true')
+    p.add_argument('--tag', default='')
+    p.add_argument('--attempt')
+    args = p.parse_args()
+    assert re.fullmatch('[a-z0-9-]*', args.tag), 'Tag must be a simple output path component'
+    execute(args)
