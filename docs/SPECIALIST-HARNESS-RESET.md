@@ -8,7 +8,8 @@ columns**. Previous results remain in their immutable archives. No old pass,
 failure or CPU result is carried into the reset rows.
 
 Subsequent current-source screens are recorded separately. The
-[HDR10/TrueHD/PGS row](COMPOUND-HDR10-TRUEHD-PGS-ROW.md) now has bounded Auto
+[HDR10/TrueHD/PGS](COMPOUND-HDR10-TRUEHD-PGS-ROW.md) and
+[HDR10/DTS-HD/PGS](COMPOUND-HDR10-DTSHD-PGS-ROW.md) rows now have bounded Auto
 and forced Software results; the reset statement above describes the initial
 table correction.
 
