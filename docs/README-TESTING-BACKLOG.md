@@ -34,9 +34,9 @@ The [row results](README-BACKLOG-RESULTS.md) record fresh gap tests in README or
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 12 | 0 | 30 | 0 |
 | MediaBunny | 25 | 1 | 0 | 15 | 0 |
-| Video.js | 49 | 2 | 0 | 10 | 0 |
+| Video.js | 48 | 2 | 0 | 11 | 0 |
 
-There are **182 untested cells** and **75 passing/screened cells without published CPU** (58 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+There are **181 untested cells** and **75 passing/screened cells without published CPU** (58 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
 
 ## 1. Requalify the four reset specialist rows
 

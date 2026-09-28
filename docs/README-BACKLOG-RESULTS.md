@@ -375,3 +375,11 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🟢 (Pass) · 22.1% CPU | All bounded playback checks passed; CPU rounds: 22.08%, 22.67%, 20.74%; CPU route: native-direct |
 | JSPI | 🟢 (Pass) · 14.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 14.03%, 13.71%, 14.48%; CPU route: native-remux |
 | Asyncify | 🟢 (Pass) · 14.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 13.78%, 14.05%, 14.65%; CPU route: native-remux |
+
+## Row 32: H.264 + AAC / MPEG-TS
+
+[Correctness](../results/head-to-head/backlog-32-h264-ts-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: open deadline |

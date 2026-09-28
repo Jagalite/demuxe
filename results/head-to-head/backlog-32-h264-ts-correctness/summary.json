@@ -1,0 +1,256 @@
+{
+  "schema": 1,
+  "benchmarkPolicy": {
+    "schema": 4,
+    "browserLifetime": "caller-declared comparison block; fresh context per arm",
+    "interArmIdleSeconds": 2,
+    "profile": "fresh temporary Playwright profile per launch",
+    "startupGateSeconds": 150,
+    "startupGate": "macOS Chrome hardware-key task completion; tracing off before measurement",
+    "startupIdleSeconds": 20,
+    "warmupSeconds": 5,
+    "measureSeconds": 20,
+    "sampleIntervalSeconds": 2,
+    "clock": "monotonic CPU-query midpoint; fixed sample deadlines",
+    "viewport": {
+      "width": 960,
+      "height": 540
+    },
+    "deviceScaleFactor": 1
+  },
+  "kind": "correctness",
+  "startedAt": "2026-09-28T18:55:17.458Z",
+  "browserScope": "round",
+  "controlledStreaming": false,
+  "streamingBackends": false,
+  "screenedCpu": false,
+  "diagnosticFailedCpu": false,
+  "assets": "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-backlog-20260928-03",
+  "assetsSHA256": "b73726935d4db2440aa99cd656d4b2ace124c2f83397480bd6a818d1467c4df4",
+  "harnessSHA256": "cd3662713757983c9ec49b0b11694768db2fca2d947a16a3495a3b812ffafd75",
+  "sourceHashes": {
+    "campaign-progress.mjs": "f99a82eb9579aac48680a75d6614b67a13192d7a67e920cc3a729e58b671d5b0",
+    "benchmark-browser.mjs": "02788b92fbd9c2667cf853d9c69bba3ffbde93ae34ee50a064cea66c821c2b20",
+    "browser-exit.mjs": "a2ffb141f6c41159439579b3172ea6335449f0e96114872c0f6ea2ac8e44090e",
+    "performance-metrics.mjs": "5f06d911c7e8d014fe8a575c294002fbb297fcb5f5d6d10c2dbb3b08f3744295",
+    "component-trials.mjs": "8788c79bf23223c39272b5158a58e59434ec018ba3fed1dbd777da54f263225d",
+    "initial-output.mjs": "1cfe6771cf446ed71e9bac19ba05c579e765369c777f11e3387f3a20db466666",
+    "remux-evidence.mjs": "640552f66a23b1dc5b9d46ec0c260051c303cea6ddff5b058f13135594e0db55",
+    "specialist-audio.mjs": "8ed3af093c5b9b28974ff8c74b91a3a4ebd645a0a685382119ef49bf759d426f",
+    "specialist-contract.mjs": "f1e041e613ee05cca9fdbf430e86529ce4df44a4414d9dd0ce7dd1dd468d3604",
+    "run.mjs": "3d2a9cd0d91aa840c757aa7227436244a49f7f3dc2e1d26ea086444f55cf8281",
+    "server.mjs": "faa05ae4990a6e93bd6b10679ff6af22d45602cf80bdd7e19c6e0ee3909d3e34",
+    "checks.mjs": "3900402cef8ac46701090055872564a64015df215231ac510ed9c64d2e85b714",
+    "adapters.mjs": "e043d0c59762460cd1577f58d492347394ab7a301a8dd3955c7ff1b8e3cc6623",
+    "harness.html": "39550e4790ef0c9acfa16126d8b24f3b184b27b80fc70ba07aa52b5dfe37badd",
+    "matrix.json": "8dd8fb2f5d0d386056840be9f696294a9aec47cf88abc6729a5e6b20c334df25",
+    "assets.lock.json": "da47f3bc6e2c208d30070ece28bf81fc9981b4db81620ce53717570071cc4e0c",
+    "setup.py": "9285359ab5faee72de15a0527f68bc8c49ffe2c8a0a658ee81652fd6c246c3bf",
+    "expand.py": "a16950b8730fc5ee12b19a98e7e7069483cb7f4a4ad53403b74a3a31317a1425",
+    "planned.json": "e648ba183fa2caeba7996fb8e314535be4d84edaeac0cf0b8511a381e4bea8b1",
+    "subtitle-ocr.swift": "852d6c7a6c1f4fdd1e8ff2e077701fe1f76742d1a3bfffd7b1d4f5231d84029e",
+    "bitmap.py": "d5233d39d5cdd3aa9df0379f2e3b033801fd33105e31d4f0189e6a38abb49517"
+  },
+  "gitRevision": "ce49e7c7f045720c2901dcfc5fb5a6b5bff8b35b",
+  "playerSourceRevision": "7f4407d2ae529891ba3816215b2f930c6ef267d8",
+  "host": {
+    "platform": "darwin",
+    "release": "25.5.0",
+    "architecture": "arm64",
+    "cpus": 8
+  },
+  "command": {
+    "argv": [
+      "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+      "/Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs",
+      "--assets",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-backlog-20260928-03",
+      "--catalogue",
+      "--include-private-remux",
+      "--include-videojs",
+      "--include-software",
+      "--headed",
+      "--force-private-remux",
+      "--cases",
+      "videojs.default.h264-ts",
+      "--output",
+      "/Volumes/seed2/Projects/demuxe/results/head-to-head/backlog-32-h264-ts-correctness"
+    ],
+    "cwd": "/Volumes/seed2/Projects/demuxe"
+  },
+  "selected": [
+    "videojs.default.h264-ts"
+  ],
+  "cases": [
+    {
+      "id": "videojs.default.h264-ts",
+      "player": "videojs",
+      "lane": "default",
+      "fixture": "h264-ts",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ],
+      "status": "failed",
+      "startedAt": "2026-09-28T18:55:17.609Z",
+      "console": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "VIDEOJS: ERROR: (CODE:4 MEDIA_ERR_SRC_NOT_SUPPORTED) No compatible source was found for this media. i"
+      ],
+      "requestFailures": [],
+      "recordPath": "videojs.default.h264-ts/result.json",
+      "browserLaunch": {
+        "startupReadiness": {
+          "status": "not-requested",
+          "purpose": "correctness or explicit startup measurement"
+        },
+        "configurationSHA256": "5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8",
+        "version": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        },
+        "channel": "chrome",
+        "effectiveArguments": [
+          "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "--disable-field-trial-config",
+          "--disable-background-networking",
+          "--disable-background-timer-throttling",
+          "--disable-backgrounding-occluded-windows",
+          "--disable-back-forward-cache",
+          "--disable-breakpad",
+          "--disable-client-side-phishing-detection",
+          "--disable-component-extensions-with-background-pages",
+          "--disable-component-update",
+          "--no-default-browser-check",
+          "--disable-default-apps",
+          "--disable-dev-shm-usage",
+          "--disable-extensions",
+          "--disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints",
+          "--enable-features=CDPScreenshotNewSurface",
+          "--allow-pre-commit-input",
+          "--disable-hang-monitor",
+          "--disable-ipc-flooding-protection",
+          "--disable-popup-blocking",
+          "--disable-prompt-on-repost",
+          "--disable-renderer-backgrounding",
+          "--force-color-profile=srgb",
+          "--metrics-recording-only",
+          "--no-first-run",
+          "--password-store=basic",
+          "--use-mock-keychain",
+          "--no-service-autorun",
+          "--export-tagged-pdf",
+          "--disable-search-engine-choice-screen",
+          "--unsafely-disable-devtools-self-xss-warnings",
+          "--edge-skip-compat-layer-relaunch",
+          "--enable-automation",
+          "--disable-infobars",
+          "--disable-search-engine-choice-screen",
+          "--disable-sync",
+          "--no-sandbox",
+          "--autoplay-policy=no-user-gesture-required",
+          "--user-data-dir=/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/playwright_chromiumdev_profile-asWFuU",
+          "--remote-debugging-pipe",
+          "--no-startup-window",
+          "--flag-switches-begin",
+          "--flag-switches-end"
+        ],
+        "headless": false,
+        "policy": {
+          "schema": 4,
+          "browserLifetime": "caller-declared comparison block; fresh context per arm",
+          "interArmIdleSeconds": 2,
+          "profile": "fresh temporary Playwright profile per launch",
+          "startupGateSeconds": 150,
+          "startupGate": "macOS Chrome hardware-key task completion; tracing off before measurement",
+          "startupIdleSeconds": 20,
+          "warmupSeconds": 5,
+          "measureSeconds": 20,
+          "sampleIntervalSeconds": 2,
+          "clock": "monotonic CPU-query midpoint; fixed sample deadlines",
+          "viewport": {
+            "width": 960,
+            "height": 540
+          },
+          "deviceScaleFactor": 1
+        }
+      },
+      "documentHeaders": {
+        "accept-ranges": "bytes",
+        "access-control-allow-origin": "*",
+        "cache-control": "no-store",
+        "connection": "keep-alive",
+        "content-length": "399",
+        "content-type": "text/html",
+        "cross-origin-embedder-policy": "require-corp",
+        "cross-origin-opener-policy": "same-origin",
+        "cross-origin-resource-policy": "same-origin",
+        "date": "Mon, 28 Sep 2026 18:55:19 GMT",
+        "etag": "\"39550e4790ef0c9acfa16126d8b24f3b184b27b80fc70ba07aa52b5dfe37badd\"",
+        "keep-alive": "timeout=5"
+      },
+      "stage": "open",
+      "failureStage": "open",
+      "reason": "Error: open deadline\n    at Timeout.<anonymous> (file:///Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs:153:143)\n    at listOnTimeout (node:internal/timers:614:17)\n    at process.processTimers (node:internal/timers:549:7)",
+      "failureState": {
+        "position": 0,
+        "duration": null,
+        "paused": false,
+        "ended": false,
+        "route": "native-direct",
+        "version": "8.24.1",
+        "audio": [],
+        "observedMedia": [],
+        "errors": [
+          "{\"code\":4,\"message\":\"No compatible source was found for this media.\"}"
+        ],
+        "events": [],
+        "visible": true,
+        "focused": true,
+        "video": null
+      },
+      "cleanup": {
+        "remainingSurfaces": 0,
+        "contexts": []
+      },
+      "workersAfter": 0,
+      "browserCleanup": {
+        "trackedProcessIDs": [
+          13918,
+          13944,
+          13940,
+          13939,
+          13933,
+          13934,
+          13937
+        ],
+        "remainingProcessIDs": [],
+        "playwrightCloseAcknowledged": false
+      },
+      "finishedAt": "2026-09-28T18:55:40.120Z"
+    }
+  ],
+  "limits": [
+    "Short synthetic marked-output screen; no exhaustive codec/fidelity, physical audio/display or release qualification.",
+    "Startup is API/wall timing, not first sound/photon. Correctness uses intrusive audio analysis and screenshots.",
+    "Fresh browser contexts do not flush OS caches. Host-library subtitle overlays are explicitly labeled."
+  ],
+  "browserBlocks": [],
+  "browserIdentity": "chromium/153.0.8010.53/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8",
+  "finishedAt": "2026-09-28T18:55:40.137Z",
+  "counts": {
+    "passed": 0,
+    "failed": 1,
+    "blocked": 0,
+    "skipped": 0
+  },
+  "passed": false
+}
