@@ -556,3 +556,13 @@ Forced Asyncify companion references select the manifest/hash/export-verified As
 | JSPI | 🟢 (Pass) · 17.5% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux-mpv; CPU rounds: 4.94%, 17.45%, 19.21%; CPU route: native-remux-mpv |
 | Asyncify | 🟢 (Pass) · 19.8% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux-mpv; CPU rounds: 19.96%, 19.80%, 18.30%; CPU route: native-remux-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
 | Software | 🟢 (Pass) · 35.0% CPU | All bounded playback checks passed; CPU rounds: 37.18%, 35.02%, 33.34%; CPU route: software |
+
+## Row 50: H.264 + AAC + VobSub / MKV (subtitle isolation)
+
+[Correctness](../results/head-to-head/backlog-50-h264-aac-vobsub-isolation-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-50-h264-aac-vobsub-isolation-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
+| JSPI | 🟢 (Pass) · 18.2% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux-mpv; CPU rounds: 18.16%, 17.97%, 19.51%; CPU route: native-remux-mpv |
+| Asyncify | 🟢 (Pass) · 19.7% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux-mpv; CPU rounds: 19.73%, 19.26%, 19.78%; CPU route: native-remux-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
