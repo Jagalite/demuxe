@@ -10,8 +10,9 @@ failure or CPU result is carried into the reset rows.
 Subsequent current-source screens are recorded separately. The
 [HDR10/TrueHD/PGS](COMPOUND-HDR10-TRUEHD-PGS-ROW.md),
 [HDR10/DTS-HD/PGS](COMPOUND-HDR10-DTSHD-PGS-ROW.md) and
-[Dolby Vision 5/Atmos/ASS](COMPOUND-DV5-ATMOS-ASS-ROW.md) rows now have bounded
-Auto and forced Software results; the reset statement above describes the initial
+[Dolby Vision 5/Atmos/ASS](COMPOUND-DV5-ATMOS-ASS-ROW.md) and
+[Dolby Vision 8.1/Atmos/ASS](COMPOUND-DV81-ATMOS-ASS-ROW.md) rows now have
+bounded Auto and forced Software results; the reset statement above describes the initial
 table correction.
 
 ## Why the previous test was invalid for these sources

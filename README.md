@@ -236,7 +236,7 @@ N/A means no demonstrated playback result for the stated scope.
 | HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | — Untested | 🟡 (Screened)\* · native-transcode-mpv | — Untested | — Untested | 🟡 (Screened)\* · software | — Untested | — Untested | — Untested | — Untested |
 | HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | — Untested | 🟡 (Screened)\* · native-transcode-mpv | — Untested | — Untested | 🟡 (Screened)\* · software | — Untested | — Untested | — Untested | — Untested |
 | Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | — Untested | 🟡 (Screened)\* · software | — Untested | — Untested | 🟡 (Screened)\* · software | — Untested | — Untested | — Untested | — Untested |
-| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested |
+| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | — Untested | 🟡 (Screened)\* · software | — Untested | — Untested | 🟡 (Screened)\* · software | — Untested | — Untested | — Untested | — Untested |
 
 [Complete-file catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md) ·
 [Row refresh index](docs/CPU-ROW-REFRESH.md) ·
