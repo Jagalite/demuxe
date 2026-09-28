@@ -23,19 +23,31 @@ def short(reason):
         return 'No qualified route: adapted file audio with external captions or manifests is not qualified'
     return text if len(text) <= 360 else text[:357]+'…'
 
+def validate_cpu_proofs(proofs, cpu_runs):
+    selected_proofs = {c['id']: p for p in proofs for c in p['cases']}
+    for run in cpu_runs:
+        assert run['kind'] == 'performance'
+        for case in run['cases']:
+            selected_proof = selected_proofs.get(case['id'])
+            assert selected_proof and all(selected_proof[name] == run[name] for name in
+                    ['assetsSHA256', 'harnessSHA256', 'browserIdentity']), 'CPU must match the selected correctness proof for its case'
+
 def publish(args):
     proof = read_run(args.correctness)
     supplements = [read_run(p) for p in args.supplement]
-    proofs = [proof]+supplements
+    replacements = [read_run(p) for p in args.replacement]
+    proofs = [proof]+supplements+replacements
     cpu_runs = [read_run(p) for p in args.cpu]
     cpu = {'cases': [c for run in cpu_runs for c in run['cases']]} if cpu_runs else None
     assert all(p['kind'] == 'correctness' for p in proofs)
-    for run in cpu_runs:
-        assert run['kind'] == 'performance'
-        assert any(all(p[name] == run[name] for name in ['assetsSHA256', 'harnessSHA256', 'browserIdentity']) and
-                   all(any(c['id'] == previous['id'] for previous in p['cases']) for c in run['cases']) for p in proofs), 'CPU must match its own correctness proof'
-    all_cases = [c for p in proofs for c in p['cases']]
-    proof_paths = {c['id']: directory for p, directory in zip(proofs, [args.correctness]+args.supplement) for c in p['cases']}
+    validate_cpu_proofs(proofs, cpu_runs)
+    all_cases = [c for p in [proof]+supplements for c in p['cases']]
+    replaced = [c for p in replacements for c in p['cases']]
+    assert len({c['id'] for c in replaced}) == len(replaced), 'Duplicate replacements'
+    assert {c['id'] for c in replaced} <= {c['id'] for c in all_cases}, 'Replacement must match an existing case'
+    replacement_by_id = {c['id']: c for c in replaced}
+    all_cases = [replacement_by_id.get(c['id'], c) for c in all_cases]
+    proof_paths = {c['id']: directory for p, directory in zip(proofs, [args.correctness]+args.supplement+args.replacement) for c in p['cases']}
     cpu_paths = {c['id']: directory for run, directory in zip(cpu_runs, args.cpu) for c in run['cases']}
     assert len({c['id'] for c in all_cases}) == len(all_cases), 'Duplicate case proofs'
     fixtures = {c['fixture'] for c in all_cases}
@@ -96,6 +108,11 @@ def publish(args):
         if good and fixture == 'pcm-ass' and case['player'] == 'video':
             cell += ' · host libass'
             reason += '; external ASS uses the documented host libass integration'
+        if case.get('forceRemux') and case['lane'] == 'asyncify' and any(
+                facts.get('jspiSuspending') == 'function' or facts.get('jspiPromising') == 'function'
+                for observation in case.get('runtimeObservations', [])
+                for facts in observation.get('services', {}).values()):
+            reason += '; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified'
         if case.get('forceRemux'):
             cell += ' · forced-remux ref'
             if not good:
@@ -125,6 +142,8 @@ def publish(args):
     evidence = f'[Correctness](../{args.correctness.relative_to(ROOT)}/summary.json)'
     for i, directory in enumerate(args.supplement, 1):
         evidence += f' · [Supplement {i}](../{directory.relative_to(ROOT)}/summary.json)'
+    for i, directory in enumerate(args.replacement, 1):
+        evidence += f' · [Corrected case {i}](../{directory.relative_to(ROOT)}/summary.json)'
     for i, directory in enumerate(args.cpu, 1):
         evidence += f' · [CPU {i}](../{directory.relative_to(ROOT)}/summary.json)'
     text += '\n'+heading+'\n\n'+evidence+'\n\n| Lane | Result | Observation |\n| --- | --- | --- |\n'+'\n'.join(details)+'\n'
@@ -166,5 +185,6 @@ if __name__ == '__main__':
     parser.add_argument('--correctness', type=lambda s: pathlib.Path(s).resolve(), required=True)
     parser.add_argument('--cpu', type=lambda s: pathlib.Path(s).resolve(), action='append', default=[])
     parser.add_argument('--supplement', type=lambda s: pathlib.Path(s).resolve(), action='append', default=[])
+    parser.add_argument('--replacement', type=lambda s: pathlib.Path(s).resolve(), action='append', default=[], help='Explicit corrected case proof; original evidence remains linked')
     parser.add_argument('--attempt')
     publish(parser.parse_args())

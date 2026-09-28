@@ -473,3 +473,15 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🔴 (Fail) | Error: open deadline |
 | JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe TS timestamp-repair construction requires H264 with option… |
 | Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe TS timestamp-repair construction requires H264 with option… |
+
+Forced Asyncify companion references select the manifest/hash/export-verified Asyncify mpv binary and require non-isolated ArrayBuffer memory. The companion worker can still expose JSPI APIs; these references do not qualify execution in a JSPI-less browser. The remux worker continues to require both JSPI APIs unavailable. Row 42 retains the initial stricter companion-gate rejection as harness evidence and replaces only that case with a corrected reference screen and matching CPU campaign.
+
+## Row 42: H.264 + AAC + embedded SRT / MKV
+
+[Correctness](../results/head-to-head/backlog-42-h264-srt-correctness/summary.json) · [Corrected case 1](../results/head-to-head/backlog-42-h264-srt-asyncify-reference-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-42-h264-srt-cpu/summary.json) · [CPU 2](../results/head-to-head/backlog-42-h264-srt-asyncify-reference-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Required subtitle text missing or incorrect |
+| JSPI | 🟢 (Pass) · 5.9% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux-mpv; CPU rounds: 17.92%, 5.91%, 5.21%; CPU route: native-remux-mpv |
+| Asyncify | 🟢 (Pass) · 8.6% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux-mpv; CPU rounds: 8.60%, 8.65%, 8.74%; CPU route: native-remux-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |

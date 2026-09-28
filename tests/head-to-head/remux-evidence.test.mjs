@@ -26,8 +26,17 @@ test('other lanes are unaffected, and missing runtime evidence is not a pass',()
 test('composed mpv paths require their own matching private service evidence',()=>{
   const s=state('jspi');s.route='native-remux-mpv';
   assert.throws(()=>remuxEvidence({lane:'jspi'},s),/Missing private subtitle/);
-  s.diagnostics.backend.mpvSubtitles={privateRuntime:{runtime:'jspi',memory:'ArrayBuffer',crossOriginIsolated:false}};
+  s.diagnostics.backend.mpvSubtitles={privateRuntime:{runtime:'jspi',memory:'ArrayBuffer',crossOriginIsolated:false,sharedArrayBuffer:'undefined'}};
   assert.equal(remuxEvidence({lane:'jspi'},s).services.mpvSubtitles.runtime,'jspi');
   s.diagnostics.backend.mpvSubtitles.privateRuntime.runtime='pthread';
   assert.throws(()=>remuxEvidence({lane:'jspi'},s),/Wrong private/);
+});
+
+test('forced reference permits verified Asyncify companion with JSPI APIs available',()=>{
+  const s=state('asyncify');s.route='native-remux-mpv';
+  s.diagnostics.backend.mpvSubtitles={privateRuntime:{runtime:'asyncify',memory:'ArrayBuffer',crossOriginIsolated:false,sharedArrayBuffer:'undefined',jspiSuspending:'function',jspiPromising:'function'}};
+  assert.throws(()=>remuxEvidence({lane:'asyncify'},s),/without JSPI APIs/);
+  assert.equal(remuxEvidence({lane:'asyncify',forceRemux:true},s).services.mpvSubtitles.runtime,'asyncify');
+  s.diagnostics.backend.mpvSubtitles.privateRuntime.runtime='jspi';
+  assert.throws(()=>remuxEvidence({lane:'asyncify',forceRemux:true},s),/Wrong private/);
 });
