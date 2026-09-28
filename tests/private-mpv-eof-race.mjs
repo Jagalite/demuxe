@@ -48,3 +48,26 @@ test('clock sampling noise does not repeatedly change browser playback rate',asy
  for(error of [-5,5,-10,10])await f.audio.observe();assert.equal(writes.length,settled);
  assert.deepEqual(f.errors,[]);await f.audio.destroy();
 });
+test('video waits for the consumed audio presentation clock after a seek or rate reset',async t=>{
+ const f=fixture(t);f.audio.running=false;f.audio.time=()=>2;f.audio.context.resume=async()=>{};
+ let release,startVideo=false;
+ f.audio.waitFor=predicate=>{
+  assert.equal(predicate({time:1.92,header:[8192,512],eof:0}),false,'consumption alone is insufficient');
+  assert.equal(predicate({time:NaN,header:[8192,512],eof:0}),false);
+  assert.equal(predicate({time:2,header:[8192,0],eof:0}),false,'unconsumed PCM cannot start video');
+  assert.equal(predicate({time:2.01,header:[8192,4096],eof:0}),true);
+  return new Promise(resolve=>{release=resolve;});
+ };
+ const pending=NativePrivateMpvAudio.prototype.play.call(f.audio,async()=>{startVideo=true;});
+ await tick();assert.equal(startVideo,false);assert.ok(release);release();await pending;
+ assert.equal(startVideo,true);assert.equal(f.audio.running,true);await f.audio.destroy();
+});
+test('a fully drained audio tail does not hold the remaining video',async t=>{
+ const f=fixture(t);f.audio.running=false;f.audio.time=()=>12;f.audio.context.resume=async()=>{};
+ f.audio.waitFor=async predicate=>{
+  assert.equal(predicate({time:11.96,header:[1024,512],eof:1}),false);
+  assert.equal(predicate({time:11.96,header:[1024,1024],eof:1}),true);
+ };
+ await NativePrivateMpvAudio.prototype.play.call(f.audio,async()=>{});
+ assert.equal(f.audio.running,true);await f.audio.destroy();
+});

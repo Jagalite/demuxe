@@ -198,7 +198,13 @@ export class NativePrivateMpvAudio extends EventTarget {
         await this.contextTransition;
         await this.rpc('context', { value: true });
         await this.rpc('pause', { value: false });
-        await this.waitFor(s => s.header[1] > 0);
+        // Consuming one worklet block does not mean that audio at the selected
+        // video position has reached presentation. After a seek/rate reset mpv's
+        // clock still includes the output delay; at 2x this can leave video ahead.
+        // Start video when the consumed-PCM clock reaches its held position, or
+        // when the audio tail is fully drained and only video remains.
+        const target = this.time();
+        await this.waitFor(s => s.eof && s.header[0] === s.header[1] || s.header[1] > 0 && Number.isFinite(s.time) && s.time >= target);
         try {
             await startVideo();
             this.running = true;
