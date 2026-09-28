@@ -163,3 +163,11 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
 | JSPI | 🟡 Screened* · 19.3% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-transcode; CPU rounds: 19.42%, 18.54%, 19.30%; CPU route: native-transcode |
 | Asyncify | 🟡 Screened* · 19.6% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-transcode; CPU rounds: 21.09%, 19.57%, 8.98%; CPU route: native-transcode |
+
+## Row 11: H.264 + AC-3 stereo / MKV
+
+[Correctness](../results/head-to-head/backlog-11-h264-ac3-stereo-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
