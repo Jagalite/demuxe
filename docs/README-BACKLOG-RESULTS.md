@@ -612,3 +612,16 @@ The original Video.js attempt received `application/octet-stream` because the ad
 | JSPI | 🟢 (Pass) · 6.4% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 6.40%, 6.45%, 6.53%; CPU route: native-remux |
 | Asyncify | 🟢 (Pass) · 6.4% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 6.11%, 6.97%, 6.41%; CPU route: native-remux |
 | Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement |
+
+## Row 55: Vorbis audio-only / Ogg
+
+[Correctness](../results/head-to-head/backlog-55-audio-vorbis-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-55-audio-vorbis-mediabunny-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-55-audio-vorbis-cpu/summary.json) · [CPU 2](../results/head-to-head/backlog-55-audio-vorbis-mediabunny-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Native | 🟢 (Pass) · 2.3% CPU | All bounded playback checks passed; CPU rounds: 2.29%, 2.16%, 2.30%; CPU route: native-direct |
+| Video.js | 🟢 (Pass) · 11.1% CPU | All bounded playback checks passed; CPU rounds: 11.06%, 10.99%, 11.32%; CPU route: native-direct |
+| JSPI | 🟢 (Pass) · 5.7% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 5.66%, 5.49%, 6.14%; CPU route: native-remux |
+| Asyncify | 🟢 (Pass) · 5.6% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 5.60%, 5.45%, 5.66%; CPU route: native-remux |
+| Software | 🟢 (Pass) · 10.1% CPU | All bounded playback checks passed; CPU rounds: 10.07%, 9.89%, 10.54%; CPU route: software |
+| MediaBunny | 🟡 Screened* · 45.9% CPU | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters; CPU rounds: 46.88%, 45.89%, 41.09% |

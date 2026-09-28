@@ -215,7 +215,7 @@ N/A means no demonstrated playback result for the stated scope.
 | MP3 audio-only / MP3 | 🟢 (Pass) · 0.9% CPU | 🟢 (Pass) · 1.3% CPU · native-direct | 🔴 (Fail) · forced-remux ref | 🔴 (Fail) · forced-remux ref | 🟢 (Pass) · 2.8% CPU | 🟢 (Pass) · CPU withheld | 🔴 (Fail) | 🟡 Screened · 10.1% CPU | 🟢 (Pass) · 11.5% CPU |
 | FLAC audio-only / FLAC | 🟢 (Pass) · 2.1% CPU | 🟢 (Pass) · 3.0% CPU · native-direct | 🟢 (Pass) · 7.4% CPU · forced-remux ref | 🟢 (Pass) · 8.1% CPU · forced-remux ref | 🟢 (Pass) · 10.4% CPU | 🟢 (Pass) · CPU withheld | 🟢 (Pass) · 8.0% CPU | 🟡 Screened · 42.9% CPU | 🟢 (Pass) · 10.1% CPU |
 | Opus audio-only / Ogg | 🟢 (Pass) · 3.4% CPU | 🟢 (Pass) · 4.2% CPU · native-direct | 🟢 (Pass) · 6.4% CPU · forced-remux ref | 🟢 (Pass) · 6.4% CPU · forced-remux ref | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · CPU withheld | 🔴 (Fail) | 🟡 Screened · 45.8% CPU | 🟢 (Pass) · 12.7% CPU |
-| Vorbis audio-only / Ogg | 🟢 (Pass) | 🟢 (Pass) · 3.3% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened | — Untested |
+| Vorbis audio-only / Ogg | 🟢 (Pass) · 2.3% CPU | 🟢 (Pass) · 3.3% CPU · native-direct | 🟢 (Pass) · 5.7% CPU · forced-remux ref | 🟢 (Pass) · 5.6% CPU · forced-remux ref | 🟢 (Pass) · 10.1% CPU | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened* · 45.9% CPU | 🟢 (Pass) · 11.1% CPU |
 | PCM16 audio-only / WAV | 🟠 | 🟢 (Pass) · 3.1% CPU · native-direct | — Untested | — Untested | 🟢 | 🟢 (Pass) | 🔴 (Fail) | — | — Untested |
 | PCM24 audio-only / WAV | 🟠 | 🟢 (Pass) · 3.4% CPU · native-direct | — Untested | — Untested | 🟢 | 🟢 (Pass) | 🔴 (Fail) | — | — Untested |
 | HEVC Main 10 + E-AC-3 / MKV (HDR10) | 🔴 (Fail) | 🟡 (Screened)\* · 19.7% CPU · native-transcode | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* | — | — Untested |
