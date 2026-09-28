@@ -54,7 +54,11 @@ if(name==='hls-expanded'||name==='dash-periods'){
 const at=Date.now();r.openError=await page.evaluate(async name=>{try{if(name==='hls-expanded'||name==='dash-periods')await player.openRemote({url:location.origin+'/media/compat/'+(name==='hls-expanded'?'low/index.m3u8':'period0/manifest.mpd'),format:name==='hls-expanded'?'hls':'dash'});else await player.open(document.querySelector('#file').files[0]);return null;}catch(e){return String(e);}},name);r.openMs=Date.now()-at;
 if(['missing-engine','isolation-error','remux-off-no-isolation'].includes(name)){assert.ok(r.openError);if(name==='remux-off-no-isolation')assert.match(r.openError,/isolation/);}
 else{assert.equal(r.openError,null);await page.evaluate(()=>player.play());await page.waitForFunction(()=>Number(player.properties.get('time-pos'))>.3);r.mode=await page.evaluate(()=>player.mode);
-if(name==='automatic-ass')assert.equal(r.mode,'hybrid');else if(mode)assert.equal(r.mode,mode);else assert.equal(r.mode,'native');
+if(name==='automatic-ass'){
+ assert.equal(r.mode,'native');assert.equal(await page.evaluate(()=>player.diagnostics.plan.id),'native-direct-mpv');
+ await page.waitForFunction(()=>{const canvas=document.querySelector('.demuxe-native-ass');if(!canvas)return false;const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;return data.some((value,index)=>index%4===3&&value>0);});
+ r.embeddedSubtitle=await page.evaluate(()=>player.diagnostics.backend.mpvSubtitles);assert.ok(r.embeddedSubtitle.bitmapUpdates>0);
+}else if(mode)assert.equal(r.mode,mode);else assert.equal(r.mode,'native');
 if(name==='transitions'){r.transitions=[];for(const m of ['hybrid','software','native']){await page.evaluate(m=>player.setMode(m),m);assert.equal(await page.evaluate(()=>player.mode),m);r.transitions.push(m);}await page.evaluate(()=>player.setAutomaticSelection());}
 if(name==='rollback'){const q=await page.evaluate(async()=>{const old=player.surface,id=player.state.sourceId;try{await player.open(new File(['bad'],'bad.mp4'));}catch(e){return {error:e.toJSON(),same:old===player.surface,sourcePreserved:player.state.sourceId===id,sessionError:player.state.error};}});assert.equal(q.error.scope,'operation');assert.equal(q.error.operation,'opening');assert.ok(Number.isInteger(q.error.operationId));assert.equal(q.same,true);assert.equal(q.sourcePreserved,true);assert.equal(q.sessionError,null);expectedErrors=[q.error];r.rollback=q;}
 if(name==='external-subtitles'||name==='native-external-ass'||name==='native-adaptation-ass-gain'){
