@@ -78,3 +78,12 @@ policy. Earlier bypass and CPU results remain below as historical evidence.
 | --- | --- | --- |
 | JSPI | 🟢 (Pass) · 17.8% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux, native-transcode; CPU rounds: 16.68%, 17.94%, 17.82%; CPU route: native-remux; CPU uses the initial aac track |
 | Asyncify | 🟢 (Pass) · 17.2% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux, native-transcode; CPU rounds: 17.22%, 14.70%, 17.31%; CPU route: native-remux; CPU uses the initial aac track |
+
+## Row 4: H.264 + PCM24 / MKV — Forced remux reference
+
+[Correctness](../results/head-to-head/backlog-forced-04-pcm-mkv-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-forced-04-pcm-mkv-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| JSPI | 🟢 (Pass) · 19.4% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 17.86%, 19.64%, 19.42%; CPU route: native-transcode |
+| Asyncify | 🟢 (Pass) · 18.2% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 19.30%, 18.17%, 18.15%; CPU route: native-transcode |
