@@ -47,6 +47,9 @@ Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4
 | PCM16 audio-only / WAV | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy audio construction contract for pcm_s16… | [Evidence](../results/head-to-head/backlog-56-audio-pcm16-correctness/summary.json) |
 | PCM16 audio-only / WAV | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy audio construction contract for pcm_s16… | [Evidence](../results/head-to-head/backlog-56-audio-pcm16-correctness/summary.json) |
 | PCM16 audio-only / WAV | Movi | Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement | [Evidence](../results/head-to-head/backlog-56-audio-pcm16-cpu/summary.json) |
+| PCM24 audio-only / WAV | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy audio construction contract for pcm_s24… | [Evidence](../results/head-to-head/backlog-57-audio-pcm24-correctness/summary.json) |
+| PCM24 audio-only / WAV | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy audio construction contract for pcm_s24… | [Evidence](../results/head-to-head/backlog-57-audio-pcm24-correctness/summary.json) |
+| PCM24 audio-only / WAV | Movi | Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement | [Evidence](../results/head-to-head/backlog-57-audio-pcm24-cpu/summary.json) |
 
 ## Summary
 
@@ -54,15 +57,15 @@ Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Native | 4 | 9 | 0 | 35 | 2 |
 | Auto | 0 | 9 | 0 | 0 | 0 |
-| JSPI | 24 | 2 | 0 | 10 | 0 |
-| Asyncify | 24 | 1 | 0 | 10 | 0 |
-| Software | 0 | 24 | 0 | 0 | 0 |
+| JSPI | 23 | 2 | 0 | 11 | 0 |
+| Asyncify | 23 | 1 | 0 | 11 | 0 |
+| Software | 0 | 23 | 0 | 0 | 0 |
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 12 | 0 | 30 | 0 |
-| MediaBunny | 24 | 0 | 0 | 15 | 0 |
-| Video.js | 24 | 2 | 0 | 25 | 0 |
+| MediaBunny | 23 | 0 | 0 | 15 | 0 |
+| Video.js | 23 | 2 | 0 | 25 | 0 |
 
-There are **108 untested cells** and **74 passing/screened cells without published CPU** (58 green passes and 16 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+There are **104 untested cells** and **73 passing/screened cells without published CPU** (57 green passes and 16 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
 
 ## 1. Requalify the four reset specialist rows
 

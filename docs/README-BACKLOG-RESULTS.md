@@ -638,3 +638,16 @@ The original Video.js attempt received `application/octet-stream` because the ad
 | Software | 🟢 (Pass) · 8.7% CPU | All bounded playback checks passed; CPU rounds: 8.67%, 9.89%, 6.06%; CPU route: software |
 | Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement |
 | MediaBunny | 🟡 Screened* · 11.1% CPU | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters; CPU rounds: 10.69%, 11.22%, 11.14% |
+
+## Row 57: PCM24 audio-only / WAV
+
+[Correctness](../results/head-to-head/backlog-57-audio-pcm24-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-57-audio-pcm24-mediabunny-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-57-audio-pcm24-cpu/summary.json) · [CPU 2](../results/head-to-head/backlog-57-audio-pcm24-mediabunny-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 10.7% CPU | All bounded playback checks passed; CPU rounds: 9.61%, 11.65%, 10.69%; CPU route: native-direct |
+| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy audio construction contract for pcm_s24… |
+| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy audio construction contract for pcm_s24… |
+| Software | 🟢 (Pass) · 9.1% CPU | All bounded playback checks passed; CPU rounds: 9.06%, 9.46%, 8.89%; CPU route: software |
+| Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement |
+| MediaBunny | 🟡 Screened* · 44.6% CPU | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters; CPU rounds: 46.84%, 44.59%, 41.69% |
