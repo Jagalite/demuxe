@@ -87,6 +87,28 @@ class CatalogueGate(unittest.TestCase):
         self.assertEqual((record['status'], record['rows'], record['counts']['stillPass']),
                          ('qualified', 71, 71))
 
+    def test_additional_and_reordered_columns_preserve_catalogue(self):
+        path = self.root / 'README.md'
+        path.write_text(path.read_text().replace(
+            '| Media format | Native video | Demuxe (auto) |',
+            '| Media format | Demuxe (software decode) | Native video | Demuxe (auto) | Demuxe JSPI |'))
+        self.assertEqual(gate.compare(self.summary('baseline'), self.summary('candidate'))['status'], 'qualified')
+
+    def test_new_readme_row_requires_both_complete_fixture_lanes(self):
+        path = self.root / 'README.md'
+        path.write_text(path.read_text().rstrip() + '\n| Newly documented format | n | d |\n')
+        with self.assertRaisesRegex(ValueError, 'cover every README row'):
+            gate.compare(self.summary('baseline'), self.summary('candidate'))
+
+    def test_duplicate_or_missing_catalogue_is_rejected(self):
+        path = self.root / 'README.md'
+        path.write_text(path.read_text().rstrip() + '\n| Row 0 | n | d |\n')
+        with self.assertRaisesRegex(ValueError, 'nonempty and unique'):
+            gate.readme_rows()
+        path.write_text('No media table\n')
+        with self.assertRaisesRegex(ValueError, 'one README media catalogue'):
+            gate.readme_rows()
+
     def test_preserves_existing_fixture_limit_and_failure(self):
         def limited(data):
             data['cases'][0].update(status='blocked', reason='Fixture unavailable',

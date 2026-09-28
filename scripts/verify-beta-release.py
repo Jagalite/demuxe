@@ -69,7 +69,7 @@ if sha(compare_path.read_bytes())!=source['files'].get('demuxe/scripts/compare-l
 spec=importlib.util.spec_from_file_location('lgpl_catalogue',compare_path)
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 rechecked=module.compare(pathlib.Path(catalogue['baselineSummary']['path']),pathlib.Path(catalogue['candidateSummary']['path']))
-if rechecked!=catalogue or catalogue['status']!='qualified' or catalogue['rows']!=71:raise SystemExit('Incomplete or changed LGPL README catalogue comparison')
+if rechecked!=catalogue or catalogue['status']!='qualified' or catalogue['rows']!=len(module.readme_rows()):raise SystemExit('Incomplete or changed LGPL README catalogue comparison')
 if catalogue['readmeSHA256']!=source['files'].get('demuxe/README.md'):raise SystemExit('LGPL catalogue compared a different tagged README')
 candidate_summary=json.loads(pathlib.Path(catalogue['candidateSummary']['path']).read_text())
 candidate_assets=json.loads((pathlib.Path(candidate_summary['assets'])/'manifest.json').read_text())

@@ -25,14 +25,20 @@ def digest(path):
 
 def readme_rows():
     lines = (ROOT / 'README.md').read_text().splitlines()
-    start = next(i for i, line in enumerate(lines) if line.startswith('| Media format | Native video | Demuxe (auto) |'))
+    tables = [i for i, line in enumerate(lines)
+              if line.startswith('| ') and
+              (cells := [cell.strip() for cell in line.strip('|').split('|')])[0] == 'Media format'
+              and {'Native video', 'Demuxe (auto)'}.issubset(cells)]
+    if len(tables) != 1:
+        raise ValueError('Expected one README media catalogue table')
+    start = tables[0]
     rows = []
     for line in lines[start + 2:]:
         if not line.startswith('| '):
             break
         rows.append(line.split('|')[1].strip())
-    if len(rows) != 71 or len(rows) != len(set(rows)):
-        raise ValueError('Current README catalogue is no longer the reviewed 71-row table')
+    if not rows or any(not row for row in rows) or len(rows) != len(set(rows)):
+        raise ValueError('README catalogue rows must be nonempty and unique')
     return rows
 
 

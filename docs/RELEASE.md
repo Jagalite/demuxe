@@ -89,9 +89,9 @@ BROWSER=firefox BETA_ARCHIVE=/absolute/path/to/build/release/demuxe-<version>.tg
   node tests/beta-streaming.mjs
 ```
 
-Rerun all 71 README Demuxe auto cases in `tests/head-to-head/run.mjs` against
+Rerun all current README Demuxe auto cases (80 in this revision) in `tests/head-to-head/run.mjs` against
 separate GPL baseline and LGPL candidate asset snapshots made with
-`tests/head-to-head/setup.py --fixtures-from <same-71-fixture-snapshot>`.
+`tests/head-to-head/setup.py --fixtures-from <same-complete-fixture-snapshot>`.
 Pass `--optional-archive` with the published GPL archive for the baseline and
 the new candidate archive for the LGPL lane, so both use their exact packaged
 Native ASS and FLAC/Opus assets.
@@ -105,7 +105,7 @@ python3 scripts/compare-lgpl-catalogue.py \
   --output <complete-readme-comparison.json>
 ```
 
-The verifier below recomputes that comparison, requires all 71 rows to be
+The verifier below recomputes that comparison, requires every current README row to be
 rerun, retains every baseline bounded pass, and rejects a changed first failure
 stage or reason for any pre-existing blocked/failed row. It ties the candidate
 engine hashes to the runtime archive. Record separate representative Native, Hybrid and Software matched
