@@ -28,8 +28,8 @@ try{
    await page.locator('#file').setInputFiles(name.startsWith('copy-mkv')?out+'/copy-supported.mkv':'build/optimization-fixtures/'+fixture);
    await page.evaluate(()=>player.open(document.querySelector('#file').files[0]));
    if(name==='ass-gain')await page.evaluate(async()=>{const bytes=await(await fetch('/fixtures/qualification.ass')).arrayBuffer();await player.addSubtitle(new File([bytes],'qualified.ass'));});
-   const native=['lossless','lossless-stereo','ass-gain','copy-first','copy-mkv-no-policy','copy-mkv','copy-mkv-no-preparation'].includes(name);
-   assert.equal(await page.evaluate(()=>player.mode),native?'native':'hybrid');
+   const adapted=['lossless','lossless-stereo','ass-gain'].includes(name);
+   assert.equal(await page.evaluate(()=>player.mode),name==='explicit-hybrid'?'hybrid':'native');
    item.open=await page.evaluate(()=>player.diagnostics);
    if(name.startsWith('copy-')){
     if(name==='copy-first')assert.equal(item.open.plan.id,'native-direct');
@@ -37,11 +37,14 @@ try{
     else assert.ok(['native-direct','native-remux'].includes(item.open.plan.id));
     assert.deepEqual(preparationRequests,[],'Copy-compatible sources must never load optional preparation assets');
    }
-   else if(native)assert.equal(item.open.plan.id,name.startsWith('lossless')?'native-flac':'native-flac-ass-gain');
+   else if(adapted)assert.equal(item.open.plan.id,name.startsWith('lossless')?'native-flac':'native-flac-ass-gain');
+   else if(name==='no-policy')assert.equal(item.open.plan.id,'native-transcode');
+   else if(name.endsWith('-tail'))assert.equal(item.open.plan.id,'native-video-mpv-audio');
    await page.evaluate(()=>player.play());await page.waitForFunction(()=>player.state.currentTime>.5);
+   if(name.endsWith('-tail'))await page.waitForFunction(()=>player.diagnostics.backend.mpvAudio.estimatedAudioPresentationTime>0);
    item.output=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=64;c.height=36;c.getContext('2d').drawImage(player.surface,0,0,64,36);return {pixels:c.getContext('2d').getImageData(0,0,64,36).data.some((v,i)=>i%4!==3&&v>30),diagnostics:player.diagnostics};});
    assert.equal(item.output.pixels,true);await page.evaluate(()=>player.pause());
-   if(native&&!name.startsWith('copy-')){
+   if(adapted){
     await page.waitForTimeout(400);const first=await page.evaluate(()=>player.diagnostics.backend.remux.remux.adaptation.audioSamplesDecoded);
     await page.waitForTimeout(400);assert.equal(await page.evaluate(()=>player.diagnostics.backend.remux.remux.adaptation.audioSamplesDecoded),first);assert.ok(first<48000*8);
     await page.evaluate(()=>player.seek(12));assert.equal(await page.evaluate(()=>player.properties.get('pause')),true);
@@ -51,17 +54,36 @@ try{
      await page.evaluate(async()=>{await player.pause();await player.seek(2);});
      const selected=await page.evaluate(()=>player.state.audioTracks[1].id);
      await page.evaluate(id=>player.selectAudioTrack(id),selected);
-     assert.equal(await page.evaluate(()=>player.mode),'hybrid');
+     assert.equal(await page.evaluate(()=>player.diagnostics.plan.id),'native-video-mpv-audio');
      assert.equal(await page.evaluate(()=>player.state.audioTracks.find(t=>t.selected)?.id),selected);
+     assert.equal(await page.evaluate(()=>player.properties.get('pause')),true);
+     await page.evaluate(()=>player.play());
+     await page.waitForFunction(()=>player.state.currentTime>2.25&&player.diagnostics.backend.mpvAudio.estimatedAudioPresentationTime>2);
+     await page.evaluate(()=>player.pause());
      item.selectedTrackFallback=await page.evaluate(()=>player.diagnostics);
      const firstTrack=await page.evaluate(()=>player.state.audioTracks[0].id);
      await page.evaluate(id=>player.selectAudioTrack(id),firstTrack);
-     assert.equal(await page.evaluate(()=>player.mode),'native');
+     assert.equal(await page.evaluate(()=>player.diagnostics.plan.id),'native-flac');
      assert.equal(await page.evaluate(()=>player.state.audioTracks.find(t=>t.selected)?.id),firstTrack);
      assert.equal(await page.evaluate(()=>player.properties.get('pause')),true);
      await page.locator('#file').setInputFiles('build/optimization-fixtures/video-tail.mkv');
      await page.evaluate(()=>player.open(document.querySelector('#file').files[0]));
-     assert.equal(await page.evaluate(()=>player.mode),'hybrid');
+     // Paused open can prepare Direct; playback verifies it or selects mpv audio.
+     await page.evaluate(()=>player.play());
+     await page.waitForFunction(()=>player.state.currentTime>.5);
+     const replacementPlan=await page.evaluate(()=>player.diagnostics.plan.id);
+     assert.ok(['native-direct','native-video-mpv-audio'].includes(replacementPlan),replacementPlan);
+     if(replacementPlan==='native-video-mpv-audio')await page.waitForFunction(()=>player.diagnostics.backend.mpvAudio.estimatedAudioPresentationTime>0);
+     else{
+      item.replacementAudio=await page.evaluate(async()=>{
+       const context=new AudioContext(),source=context.createMediaElementSource(player.surface),analyser=context.createAnalyser();
+       source.connect(analyser);analyser.connect(context.destination);await context.resume();
+       const pcm=new Float32Array(analyser.fftSize);let peak=0;
+       try{for(let i=0;i<50&&peak<.01;i++){await new Promise(r=>setTimeout(r,20));analyser.getFloatTimeDomainData(pcm);peak=Math.max(peak,...pcm.map(Math.abs));}return {peak};}
+       finally{await context.close();}
+      });
+      assert.ok(item.replacementAudio.peak>.01,'Replacement Direct path produced no audio samples');
+     }
      item.replacement=await page.evaluate(()=>player.diagnostics);
     }
    }
