@@ -20,6 +20,7 @@ The [row results](README-BACKLOG-RESULTS.md) record fresh gap tests in README or
 | H.264 + PCM24 5.1 / MKV | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Decoded multichannel speaker layout is unavailable | [Evidence](../results/head-to-head/backlog-18-h264-pcm51-correctness/summary.json) |
 | H.264 + PCM24 5.1 / MKV | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Decoded multichannel speaker layout is unavailable | [Evidence](../results/head-to-head/backlog-18-h264-pcm51-correctness/summary.json) |
 | HEVC Main 8-bit + AAC / MP4 (hvc1) | Video.js | Error: Presentation cadence outside declared frame budget | [Evidence](../results/head-to-head/backlog-19-hevc-hvc1-cpu/summary.json) |
+| HEVC Main 10 4:2:2 + AAC / MKV | Movi | Error: Playback stalled or reached EOF during measurement | [Evidence](../results/head-to-head/backlog-22-hevc422-aac-cpu/summary.json) |
 
 ## Summary
 
@@ -27,15 +28,15 @@ The [row results](README-BACKLOG-RESULTS.md) record fresh gap tests in README or
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Native | 4 | 10 | 0 | 35 | 2 |
 | Auto | 0 | 9 | 0 | 0 | 0 |
-| JSPI | 57 | 1 | 0 | 2 | 0 |
-| Asyncify | 57 | 1 | 0 | 2 | 0 |
+| JSPI | 56 | 1 | 0 | 2 | 0 |
+| Asyncify | 56 | 1 | 0 | 2 | 0 |
 | Software | 0 | 27 | 0 | 0 | 0 |
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 13 | 0 | 30 | 0 |
 | MediaBunny | 25 | 2 | 0 | 15 | 0 |
-| Video.js | 59 | 2 | 0 | 7 | 0 |
+| Video.js | 58 | 2 | 0 | 7 | 0 |
 
-There are **210 untested cells** and **80 passing/screened cells without published CPU** (62 green passes and 18 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+There are **207 untested cells** and **80 passing/screened cells without published CPU** (62 green passes and 18 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
 
 ## 1. Requalify the four reset specialist rows
 

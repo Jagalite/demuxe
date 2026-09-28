@@ -271,3 +271,14 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🟢 (Pass) · 25.1% CPU | All bounded playback checks passed; CPU rounds: 25.13%, 20.72%, 26.56%; CPU route: native-direct |
 | JSPI | 🟢 (Pass) · 18.5% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 18.54%, 7.50%, 18.47%; CPU route: native-remux |
 | Asyncify | 🟢 (Pass) · 18.9% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 18.38%, 19.78%, 18.93%; CPU route: native-remux |
+
+## Row 22: HEVC Main 10 4:2:2 + AAC / MKV
+
+[Correctness](../results/head-to-head/backlog-22-hevc422-aac-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-22-hevc422-aac-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 25.2% CPU | All bounded playback checks passed; CPU rounds: 24.19%, 25.17%, 27.22%; CPU route: native-direct |
+| JSPI | 🟢 (Pass) · 19.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 18.95%, 19.02%, 5.48%; CPU route: native-remux |
+| Asyncify | 🟢 (Pass) · 19.2% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 19.04%, 19.21%, 20.25%; CPU route: native-remux |
+| Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement |
