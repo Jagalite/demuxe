@@ -30,6 +30,11 @@ await page.evaluate(async base=>{window.custom=new Player(document.querySelector
 await page.evaluate(()=>Promise.all([viewer.destroy(),custom.destroy()]));await page.waitForTimeout(200);assert.equal(page.workers().length,0);
 });
 await check('missing assets have structured errors',async page=>{missingEngine=true;await page.goto(origin+'/?bundle');await page.waitForFunction(()=>window.apiReady);const d=await page.evaluate(async()=>{await viewer.ready;await viewer.player.setMode('hybrid');try{await viewer.open(location.origin+'/media/movie.mp4');}catch(e){return {code:e.code,state:viewer.player.state};}});assert.equal(d.code,'ASSET_LOAD_FAILED');assert.equal(d.state.activeMode,null);missingEngine=false;});
-await check('isolation failure is distinct from unsupported media',async page=>{missingEngine=false;await page.goto(origin+'/?unisolated&bundle');await page.waitForFunction(()=>window.apiReady);const code=await page.evaluate(async()=>{await viewer.ready;await viewer.player.setMode('hybrid');try{await viewer.open(location.origin+'/media/movie.mp4');}catch(e){return e.code;}});assert.equal(code,'ISOLATION_REQUIRED');});
+await check('runtime policy separates private qualification from pthread isolation',async page=>{missingEngine=false;await page.goto(origin+'/?unisolated&bundle');await page.waitForFunction(()=>window.apiReady);const codes=await page.evaluate(async()=>{
+ await viewer.ready;await viewer.player.setMode('hybrid');let automatic;
+ try{await viewer.open(location.origin+'/media/movie.mp4');}catch(e){automatic=e.code;}
+ window.custom=new Player(document.querySelector('#custom'),{mode:'hybrid',remuxRuntime:'off'});
+ try{await custom.open(location.origin+'/media/movie.mp4');}catch(e){return {automatic,pthread:e.code};}
+});assert.deepEqual(codes,{automatic:'UNSUPPORTED_FEATURE',pthread:'ISOLATION_REQUIRED'});});
 // Actual browser policy is tested separately without the permissive autoplay flag.
 }finally{await browser.close();server.closeAllConnections();await new Promise(r=>server.close(r));result.passed=result.checks.every(c=>c.passed);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
