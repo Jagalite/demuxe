@@ -14,7 +14,7 @@ files stay in the browser; the runtime never uploads them.
 qualification depend on the exact runtime archive; Chrome and Firefox have
 representative coverage, with broader browser and device support still unqualified.
 
-[Quick start](#quick-start) · [Custom UI](#build-your-own-ui) ·
+[Live player demo](https://jagalite.github.io/demuxe/) · [Quick start](#quick-start) · [Custom UI](#build-your-own-ui) ·
 [Deployment](#deployment-and-compatibility) · [Media comparison](#media-comparison) ·
 [Documentation](#documentation)
 
@@ -204,7 +204,7 @@ N/A means no demonstrated playback result for the stated scope.
 | MPEG-2 video-only / MPEG-TS | 🔴 (Fail) | 🟢 (Pass) · 31.6% CPU · software | 🔴 (Fail) · forced-remux ref | 🔴 (Fail) · forced-remux ref | 🟢 (Pass) · 31.2% CPU | 🟢 (Pass) · 30.6% CPU | 🟢 (Pass) · 25.7% CPU | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + embedded SRT / MKV | 🔴 (Fail) | 🟢 (Pass) · 18.7% CPU · native-remux-mpv | 🟢 (Pass) · 5.9% CPU · forced-remux ref | 🟢 (Pass) · 8.6% CPU · forced-remux ref | 🟢 (Pass) · 37.2% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + external WebVTT / MP4 | 🟢 (Pass) · 13.7% CPU | 🟢 (Pass) · 14.3% CPU · native-direct | 🟢 (Pass) · 17.1% CPU · forced-remux ref | 🟢 (Pass) · 4.6% CPU · forced-remux ref | 🟢 (Pass) · 35.8% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🟢 (Pass) · 11.1% CPU |
-| H.264 + AAC + embedded mov_text / MP4 | 🔴 (Fail) | 🟢 (Pass) · 18.3% CPU · native-remux-mpv | — Untested | — Untested | 🟢 (Pass) · 35.5% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | — Untested |
+| H.264 + AAC + embedded mov_text / MP4 | 🔴 (Fail) | 🟢 (Pass) · 18.3% CPU · native-remux-mpv | 🟢 (Pass) · 5.3% CPU · forced-remux ref | 🟢 (Pass) · 5.7% CPU · forced-remux ref | 🟢 (Pass) · 35.5% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | H.264 + AAC + styled ASS / MKV | 🔴 (Fail) | 🟢 (Pass) · 18.1% CPU · native-remux-mpv | — Untested | — Untested | 🟢 (Pass) · 35.9% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | — Untested |
 | H.264 + AC-3 stereo + ASS / MKV | 🔴 (Fail) | 🟢 (Pass) · 19.7% CPU · native-transcode-mpv | — Untested | — Untested | 🟢 (Pass) · 35.3% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | — Untested |
 | HEVC + AC-3 + PGS / MKV | 🔴 (Fail) | 🟢 (Pass)\* · 21.2% CPU · native-transcode-mpv | — Untested | — Untested | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | — Untested |
