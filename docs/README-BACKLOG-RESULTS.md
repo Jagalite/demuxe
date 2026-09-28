@@ -433,3 +433,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🔴 (Fail) | Error: open deadline |
 | JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-video-mpv-audio: Error: FFmpeg error -1094995529: Video codec has no browser remux packet contract |
 | Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-video-mpv-audio: Error: FFmpeg error -1094995529: Video codec has no browser remux packet contract |
+
+## Row 38: H.264 + AAC / fragmented MP4 (single file)
+
+[Correctness](../results/head-to-head/backlog-38-h264-fmp4-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-38-h264-fmp4-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 23.9% CPU | All bounded playback checks passed; CPU rounds: 23.94%, 20.98%, 23.94%; CPU route: native-direct |
+| JSPI | 🟢 (Pass) · 14.9% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 14.42%, 14.87%, 16.85%; CPU route: native-remux |
+| Asyncify | 🟢 (Pass) · 16.8% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 16.82%, 16.80%, 15.41%; CPU route: native-remux |
