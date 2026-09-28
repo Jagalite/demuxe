@@ -60,3 +60,12 @@ policy. Earlier bypass and CPU results remain below as historical evidence.
 | --- | --- | --- |
 | JSPI | 🟢 (Pass) · 17.1% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 17.47%, 17.08%, 16.74% |
 | Asyncify | 🟢 (Pass) · 17.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 17.05%, 15.95%, 17.46% |
+
+## Row 2: H.264 + AAC / MKV — Forced remux reference
+
+[Correctness](../results/head-to-head/backlog-forced-02-aac-mkv-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-forced-02-aac-mkv-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| JSPI | 🟢 (Pass) · 16.5% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 16.54%, 16.73%, 16.53%; CPU route: native-remux |
+| Asyncify | 🟢 (Pass) · 17.1% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 17.23%, 16.41%, 17.10%; CPU route: native-remux |

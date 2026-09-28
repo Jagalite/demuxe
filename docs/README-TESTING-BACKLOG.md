@@ -2,7 +2,7 @@
 
 # README testing backlog — 2026-09-28
 
-Inventory of the current 80-row README table, checked against its linked evidence notes. This planning inventory reflects the four-row specialist reset and completed harness validation below; no new current-build qualification or CPU campaign is claimed. Counts are player/row cells, not unique fixtures. Existing results describe their frozen builds, not a fresh qualification of today's working tree.
+Inventory of the 80-row README table, checked against its linked evidence notes. The summary now includes the top-to-bottom campaign below; the original inventory sections retain their historical context. Counts are player/row cells, not unique fixtures. Each result describes its recorded frozen build, not an unrecorded current working tree.
 
 ## Top-to-bottom campaign
 
