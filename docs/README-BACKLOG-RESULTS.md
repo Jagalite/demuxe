@@ -678,3 +678,17 @@ The original Video.js attempt received `application/octet-stream` because the ad
 | Software | 🟡 Screened* · 35.5% CPU | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; CPU rounds: 35.19%, 36.95%, 35.52%; CPU route: software |
 | AVPlayer | 🟡 Screened* · 36.0% CPU | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; CPU rounds: 36.02%, 36.57%, 35.65%; CPU route: custom |
 | MediaBunny | 🟡 Screened* · 41.0% CPU | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters; CPU rounds: 41.48%, 38.25%, 40.99% |
+
+## Row 60: AV1 10-bit + Opus / WebM (HDR10)
+
+[Correctness](../results/head-to-head/backlog-60-hdr10-av1-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-60-hdr10-av1-mediabunny-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-60-hdr10-av1-screened-cpu/summary.json) · [CPU 2](../results/head-to-head/backlog-60-hdr10-av1-mediabunny-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Native | 🟡 Screened* · 17.0% CPU | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; CPU rounds: 18.21%, 15.41%, 17.01%; CPU route: native-direct |
+| Video.js | 🟡 Screened* · 23.8% CPU | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; CPU rounds: 22.15%, 25.99%, 23.83%; CPU route: native-direct |
+| JSPI | 🟡 Screened* · 19.3% CPU · forced-remux ref | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; observed routes: native-remux; CPU rounds: 19.59%, 16.90%, 19.31%; CPU route: native-remux |
+| Asyncify | 🟡 Screened* · 18.4% CPU · forced-remux ref | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; observed routes: native-remux; CPU rounds: 17.88%, 19.71%, 18.40%; CPU route: native-remux |
+| Software | 🟡 Screened* · 37.3% CPU | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; CPU rounds: 37.33%, 33.97%, 39.15%; CPU route: software |
+| AVPlayer | 🟡 Screened* · 37.6% CPU | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; CPU rounds: 37.56%, 38.93%, 37.30%; CPU route: custom |
+| MediaBunny | 🟡 Screened* · 35.3% CPU | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters; CPU rounds: 36.07%, 35.32%, 18.37% |
