@@ -153,3 +153,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
 | JSPI | 🟡 Screened* · 18.4% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-transcode; CPU rounds: 18.44%, 19.69%, 17.78%; CPU route: native-transcode |
 | Asyncify | 🟡 Screened* · 18.6% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-transcode; CPU rounds: 18.56%, 20.45%, 18.40%; CPU route: native-transcode |
+
+## Row 10: H.264 + DTS core 5.1 / MKV
+
+[Correctness](../results/head-to-head/backlog-10-h264-dts-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-10-h264-dts-screened-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
+| JSPI | 🟡 Screened* · 19.3% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-transcode; CPU rounds: 19.42%, 18.54%, 19.30%; CPU route: native-transcode |
+| Asyncify | 🟡 Screened* · 19.6% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-transcode; CPU rounds: 21.09%, 19.57%, 8.98%; CPU route: native-transcode |
