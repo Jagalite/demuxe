@@ -211,3 +211,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🟡 Screened* · 23.5% CPU | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; CPU rounds: 20.77%, 23.48%, 23.75%; CPU route: native-direct |
 | JSPI | 🟡 Screened* · 19.0% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-remux; CPU rounds: 20.27%, 18.97%, 18.97%; CPU route: native-remux |
 | Asyncify | 🟡 Screened* · 18.2% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-remux; CPU rounds: 17.89%, 18.22%, 19.19%; CPU route: native-remux |
+
+## Row 16: H.264 + Opus stereo / MKV
+
+[Correctness](../results/head-to-head/backlog-16-h264-opus-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-16-h264-opus-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 25.0% CPU | All bounded playback checks passed; CPU rounds: 25.01%, 25.02%, 23.37%; CPU route: native-direct |
+| JSPI | 🟢 (Pass) · 16.5% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 15.58%, 18.84%, 16.52%; CPU route: native-remux |
+| Asyncify | 🟢 (Pass) · 17.6% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 18.55%, 17.63%, 16.53%; CPU route: native-remux |
