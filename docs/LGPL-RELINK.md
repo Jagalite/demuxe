@@ -20,6 +20,10 @@ recorded host tool versions and hashes are in `build-materials/build/beta-build.
 ```sh
 tar -xzf demuxe-<version>-source.tar.gz
 cd demuxe
+# Private FFmpeg preparation reads a committed source snapshot.
+git init
+git add .
+git -c user.name="Local builder" -c user.email="builder@example.invalid" commit -m "Imported release source"
 python3 -m venv build/venv
 build/venv/bin/python -m pip install meson==1.7.2 Jinja2==3.1.6 MarkupSafe==3.0.2
 npm ci
@@ -58,7 +62,9 @@ changes into an additional patch in the matching series before the clean build:
 The patches use the usual `--- a/path` and `+++ b/path` format relative to the
 pinned upstream source root. `scripts/apply-patches.py` replays the complete
 series against the SHA-256-verified upstream archive and applies the modified
-source. Rerun the clean build command above. It recompiles and relinks each
+source. Commit the intended source and patch changes (`git add .` and `git commit`)
+before rerunning the clean build command above. Private FFmpeg preparation
+reads that commit, while the build record checks the working source hashes. It recompiles and relinks each
 engine from the new source. The release gate rejects any modified build that
 brings GPL or nonfree code into this intended Apache/LGPL configuration; a
 recipient can still make private changes under the component's applicable
@@ -82,7 +88,7 @@ maps. To rebuild either after a source change, use fresh output directories:
 
 ```sh
 python3 scripts/build-audio-adaptation.py --output build/audio-adaptation-clean \
-  --sdk "$PWD/build/emsdk-4.0.14" --archive build/downloads/ffmpeg-adaptation.tar.gz --opus
+  --sdk "$PWD/build/emsdk-4.0.14" --archive build/downloads/ffmpeg-adaptation.tar.gz --transcode --opus
 cat build/audio-adaptation-clean/latest.json
 python3 scripts/verify-audio-adaptation-build.py "PATH_FROM_LATEST_JSON"
 python3 scripts/build-native-ass.py --sdk "$PWD/build/emsdk-4.0.14" \
@@ -97,3 +103,22 @@ with modified LGPL source. The audio-preparation FFmpeg build must still report
 configuration. The optional source companions retain the exact original
 release manifests, commands, source hashes and link maps for comparison.
 Rebuilt outputs may have new hashes, as expected after a change.
+
+## Private JSPI and Asyncify engines
+
+The same clean build invokes `scripts/build-private-release.py`. It builds the
+private remux and transcode variants and restricted mpv subtitle/audio services
+from fresh locked upstream sources, dependency prefixes, objects and compiler
+caches. It uses the committed candidate source for FFmpeg adaptation; commit
+recipient modifications before rebuilding. The private transcode profile retains
+FLAC compression level 0, while the separate optional pthread preparation profile
+uses level 5.
+
+Outputs are `web/engine-{remux,adaptation}-{jspi,asyncify}/` and
+`web/engine-mpv-{subtitles,audio}-{jspi,asyncify}/`. The build record binds these
+files through `privateRemux` and `privateMpv`. The companion's
+`build-materials/build/private-runtime-materials/` contains the transformed
+source inputs, configuration headers, link commands, linker maps and dependency
+records. The retained recipes under `experiments/jspi-asyncify/` apply the private
+read bridge and cooperative mpv adaptations; their original inputs and the pinned
+upstream archives are included in the same source companion.
