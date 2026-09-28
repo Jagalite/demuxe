@@ -25,6 +25,8 @@ The [row results](README-BACKLOG-RESULTS.md) record fresh gap tests in README or
 | MPEG-2 video + AC-3 / MPEG-TS | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe packet-copy AC3 initialization is not qualified; use direc… | [Evidence](../results/head-to-head/backlog-33-mpeg2-ac3-correctness/summary.json) |
 | Interlaced MPEG-2 + AC-3 stereo / MPEG-TS | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe packet-copy AC3 initialization is not qualified; use direc… | [Evidence](../results/head-to-head/backlog-34-mpeg2-interlaced-ac3-correctness/summary.json) |
 | Interlaced MPEG-2 + AC-3 stereo / MPEG-TS | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe packet-copy AC3 initialization is not qualified; use direc… | [Evidence](../results/head-to-head/backlog-34-mpeg2-interlaced-ac3-correctness/summary.json) |
+| MPEG-2 video + MP2 / MPEG-PS | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy video construction contract for mpeg2vi… | [Evidence](../results/head-to-head/backlog-35-mpeg2-mp2-correctness/summary.json) |
+| MPEG-2 video + MP2 / MPEG-PS | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy video construction contract for mpeg2vi… | [Evidence](../results/head-to-head/backlog-35-mpeg2-mp2-correctness/summary.json) |
 
 ## Summary
 
@@ -32,15 +34,15 @@ The [row results](README-BACKLOG-RESULTS.md) record fresh gap tests in README or
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Native | 4 | 10 | 0 | 35 | 2 |
 | Auto | 0 | 9 | 0 | 0 | 0 |
-| JSPI | 46 | 0 | 0 | 4 | 0 |
-| Asyncify | 46 | 0 | 0 | 4 | 0 |
+| JSPI | 45 | 0 | 0 | 5 | 0 |
+| Asyncify | 45 | 0 | 0 | 5 | 0 |
 | Software | 0 | 26 | 0 | 0 | 0 |
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 12 | 0 | 30 | 0 |
 | MediaBunny | 25 | 1 | 0 | 15 | 0 |
-| Video.js | 46 | 2 | 0 | 13 | 0 |
+| Video.js | 45 | 2 | 0 | 14 | 0 |
 
-There are **175 untested cells** and **75 passing/screened cells without published CPU** (58 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+There are **172 untested cells** and **75 passing/screened cells without published CPU** (58 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
 
 ## 1. Requalify the four reset specialist rows
 

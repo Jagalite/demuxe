@@ -195,7 +195,7 @@ N/A means no demonstrated playback result for the stated scope.
 | H.264 + AAC / MPEG-TS | 🔴 (Fail) | 🟢 (Pass) · 18.7% CPU · native-remux | 🟢 (Pass) · 17.9% CPU · native-remux | 🟢 (Pass) · 18.7% CPU · native-remux | 🟢 (Pass) · 36.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 35.4% CPU | 🟡 Screened · 34.6% CPU | 🔴 (Fail) |
 | MPEG-2 video + AC-3 / MPEG-TS | 🔴 (Fail) | 🟢 (Pass) · 33.7% CPU · software | 🔴 (Fail) · forced-remux ref | 🔴 (Fail) · forced-remux ref | 🟢 (Pass) · 33.9% CPU | 🟢 (Pass) · 30.1% CPU | 🟢 (Pass) · 34.7% CPU | 🔴 (Fail) | 🔴 (Fail) |
 | Interlaced MPEG-2 + AC-3 stereo / MPEG-TS | 🔴 (Fail) | 🟢 (Pass)\* · 33.1% CPU · software · visible combing | 🔴 (Fail) · forced-remux ref | 🔴 (Fail) · forced-remux ref | 🟢 (Pass)* · 33.7% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.6% CPU | 🔴 (Fail) | 🔴 (Fail) |
-| MPEG-2 video + MP2 / MPEG-PS | 🔴 (Fail) | 🟢 (Pass)\* · 33.9% CPU · software | — Untested | — Untested | 🟢 (Pass) · 34.1% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | — Untested |
+| MPEG-2 video + MP2 / MPEG-PS | 🔴 (Fail) | 🟢 (Pass)\* · 33.9% CPU · software | 🔴 (Fail) · forced-remux ref | 🔴 (Fail) · forced-remux ref | 🟢 (Pass) · 34.1% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | MPEG-4 Part 2 + MP3 / AVI | 🔴 (Fail) | 🟢 (Pass)\* · 33.7% CPU · software | — Untested | — Untested | 🟢 (Pass) · 34.5% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | — Untested |
 | ProRes + PCM / MOV | 🔴 (Fail) | 🟢 (Pass)\* · 36.9% CPU · software | — Untested | — Untested | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened* · 33.0% CPU | — Untested |
 | H.264 + AAC / fragmented MP4 (single file) | 🟢 (Pass) · 13.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) · 35.1% CPU | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened · 33.1% CPU | — Untested |
