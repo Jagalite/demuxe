@@ -651,3 +651,16 @@ The original Video.js attempt received `application/octet-stream` because the ad
 | Software | 🟢 (Pass) · 9.1% CPU | All bounded playback checks passed; CPU rounds: 9.06%, 9.46%, 8.89%; CPU route: software |
 | Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement |
 | MediaBunny | 🟡 Screened* · 44.6% CPU | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters; CPU rounds: 46.84%, 44.59%, 41.69% |
+
+## Row 58: HEVC Main 10 + E-AC-3 / MKV (HDR10)
+
+[Correctness](../results/head-to-head/backlog-58-hdr10-hevc-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-58-hdr10-hevc-mediabunny-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-58-hdr10-hevc-screened-cpu/summary.json) · [CPU 2](../results/head-to-head/backlog-58-hdr10-hevc-mediabunny-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
+| JSPI | 🟡 Screened* · 20.6% CPU · forced-remux ref | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; observed routes: native-transcode; CPU rounds: 20.89%, 19.83%, 20.62%; CPU route: native-transcode |
+| Asyncify | 🟡 Screened* · 20.3% CPU · forced-remux ref | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; observed routes: native-transcode; CPU rounds: 20.80%, 20.35%, 20.06%; CPU route: native-transcode |
+| Software | 🟡 Screened* · 35.7% CPU | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; CPU rounds: 34.65%, 35.67%, 36.80%; CPU route: software |
+| AVPlayer | 🟡 Screened* · 35.0% CPU | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; CPU rounds: 35.04%, 36.43%, 34.16%; CPU route: custom |
+| MediaBunny | 🟡 Screened* · 41.4% CPU | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters; CPU rounds: 40.23%, 41.43%, 41.61% |
