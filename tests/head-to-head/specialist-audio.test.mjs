@@ -23,12 +23,12 @@ test('host oracle rejects silent starts and missing channels; accepts non-tone r
   try {
     const file=path.join(dir,'reference.wav');
     const write=expression=>execFileSync('ffmpeg',['-nostdin','-v','error','-y','-f','lavfi','-i',expression,'-c:a','pcm_f32le',file]);
-    write("aevalsrc='if(lt(t,1),0,0.1*sin(2*PI*220*t))|if(lt(t,1),0,0.1*sin(2*PI*330*t))':s=8000:d=3");
+    write("aevalsrc='if(lt(t,2),0,0.1*sin(2*PI*220*t))|if(lt(t,2),0,0.1*sin(2*PI*330*t))':s=8000:d=4");
     assert.throws(()=>referenceAudio(file,0),/lacks stereo energy/);
-    const proof=referenceAudio(file,1);assert(proof.rms.every(r=>r>.06));
-    assert.throws(()=>referenceAudio(file,2.9),/Incomplete/);
-    write('aevalsrc=0.1*sin(2*PI*220*t)|0:s=8000:d=3');
-    assert.throws(()=>referenceAudio(file,1),/lacks stereo energy/);
+    const proof=referenceAudio(file,2);assert.equal(proof.duration,2);assert(proof.rms.every(r=>r>.06));
+    assert.throws(()=>referenceAudio(file,3.9),/Incomplete/);
+    write('aevalsrc=0.1*sin(2*PI*220*t)|0:s=8000:d=4');
+    assert.throws(()=>referenceAudio(file,2),/lacks stereo energy/);
   } finally {rmSync(dir,{recursive:true,force:true});}
 });
 

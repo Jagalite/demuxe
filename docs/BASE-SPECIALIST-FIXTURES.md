@@ -7,8 +7,9 @@ hash-pinned samples validated for **bounded playback screening**. The fresh
 [validation archive](../results/head-to-head/base-specialist-validation-20260928-01/summary.json)
 records source provenance, exact fixture SHA-256 values and host-decoded
 references. The [TrueHD](BASE-SPECIALIST-TRUEHD-ROW.md) and
-[DTS-HD MA](BASE-SPECIALIST-DTSHD-ROW.md) Auto rows subsequently passed bounded
-browser screens; the other three Auto cells remain Unqualified.
+[DTS-HD MA](BASE-SPECIALIST-DTSHD-ROW.md) and [Atmos](BASE-SPECIALIST-ATMOS-ROW.md)
+Auto rows subsequently passed bounded browser screens; the other two Auto
+cells remain Unqualified.
 Source validation alone is not a browser pass.
 
 | README source contract | Fixture ID | Fresh validation |
