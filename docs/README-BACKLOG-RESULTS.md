@@ -132,4 +132,14 @@ MediaBunny row 8 harness correction: the [first screen](../results/head-to-head/
 | JSPI | 🟡 Screened* · 9.1% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-transcode; CPU rounds: 17.25%, 9.12%, 5.31%; CPU route: native-transcode |
 | Asyncify | 🟡 Screened* · 12.5% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-transcode; CPU rounds: 17.53%, 12.47%, 5.55%; CPU route: native-transcode |
 | AVPlayer | 🟡 Screened* · 21.8% CPU | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; CPU rounds: 14.80%, 22.59%, 21.77%; CPU route: custom |
-| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Displayed timeline marker incorrect |
+| MediaBunny | — Harness error; superseded by corrected screen below | CSS object-fit letterboxing was not accounted for in the marker sample; this does not establish a player failure |
+
+The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backlog-08-h264-ac3-mediabunny-video-region-correctness/summary.json) still omitted CSS `object-fit: contain`. Direct browser inspection confirmed a 320×180 canvas displayed inside a 944×239 element. The final screen accounts for both the drawing rectangle and the centered CSS content box; both earlier marker failures are invalid harness outcomes.
+
+## Row 8: H.264 + AC-3 5.1 / MKV — Corrected MediaBunny canvas geometry
+
+[Correctness](../results/head-to-head/backlog-08-h264-ac3-mediabunny-object-fit-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-08-h264-ac3-mediabunny-object-fit-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| MediaBunny | 🟡 Screened* · 35.5% CPU | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters; CPU rounds: 31.14%, 35.51%, 35.60% |

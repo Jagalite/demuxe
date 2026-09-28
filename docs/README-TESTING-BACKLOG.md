@@ -28,7 +28,7 @@ The [row results](README-BACKLOG-RESULTS.md) record fresh gap tests in README or
 | Software | 0 | 27 | 0 | 0 | 0 |
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 13 | 0 | 30 | 0 |
-| MediaBunny | 25 | 2 | 0 | 16 | 0 |
+| MediaBunny | 25 | 2 | 0 | 15 | 0 |
 | Video.js | 72 | 0 | 0 | 2 | 0 |
 
 There are **247 untested cells** and **78 passing/screened cells without published CPU** (60 green passes and 18 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
