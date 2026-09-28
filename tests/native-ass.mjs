@@ -10,7 +10,8 @@ const browser=await(name==='firefox'?firefox:chromium).launch(name==='firefox'?{
 const result={browser:browser.version(),scope:'External authored ASS overlay on Native presentation; no embedded, PiP/casting or physical A/V claim',cases:[]};
 try{
  for(const kind of ['direct','remux','flac','flac-gain'].filter(k=>!process.env.CASES||process.env.CASES.split(',').includes(k))){
-  const page=await browser.newPage(),item={kind};result.cases.push(item);page.setDefaultTimeout(20000);
+  const page=await browser.newPage(),item={kind,workers:[]};result.cases.push(item);page.setDefaultTimeout(20000);
+  page.on('worker',worker=>{const entry={url:worker.url(),created:Date.now()};item.workers.push(entry);worker.on('close',()=>entry.closed=Date.now());});
   try{
    await page.goto(origin+'/examples/custom-controls.html');
    await page.evaluate(async kind=>{
@@ -59,7 +60,7 @@ try{
    await page.evaluate(()=>document.exitFullscreen());
    item.errors=await page.evaluate(()=>errors);assert.deepEqual(item.errors,[]);
    await page.evaluate(()=>player.open(mediaFile));assert.equal(await page.locator('.demuxe-native-ass').count(),0);
-   await page.evaluate(()=>player.destroy());for(let i=0;i<50&&page.workers().length;i++)await page.waitForTimeout(100);assert.equal(page.workers().length,0);item.frameTrace=await page.evaluate(()=>window.frameTrace);item.passed=true;
+   await page.evaluate(()=>player.destroy());for(let i=0;i<50&&page.workers().length;i++)await page.waitForTimeout(100);item.remainingWorkers=page.workers().map(worker=>worker.url());assert.deepEqual(item.remainingWorkers,[]);item.frameTrace=await page.evaluate(()=>window.frameTrace);item.passed=true;
    for(const key of ['active','animation','resize'])delete item[key].image;
   }catch(error){item.frameTrace=await page.evaluate(()=>window.frameTrace);item.error=String(error.stack);item.state=await page.evaluate(()=>({diagnostics:player.diagnostics,errors})).catch(()=>null);item.bufferedState=await page.evaluate(()=>{const owner=player.current?.backend?.remux,r=owner?.local??owner,video=r?.video;return r?{raps:r.raps,ranges:r.ranges?.(),canSeek4:owner.canSeekBuffered?.(4),videoBuffered:video?Array.from({length:video.buffered.length},(_,i)=>[video.buffered.start(i),video.buffered.end(i)]):[],targetReady:r.targetReady,acceptedGeneration:r.acceptedGeneration,generation:r.generation,timelineBias:r.timelineBias,mediaReadyState:r.media?.readyState}:null;}).catch(()=>null);process.exitCode=1;}finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
  }

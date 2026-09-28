@@ -4,8 +4,12 @@ import assert from 'node:assert/strict';
 import {WorkerRemuxController} from '../web/worker-remux-controller.js';
 // Match the module origin while exercising the browser worker loader in Node.
 const originalLocation=Object.getOwnPropertyDescriptor(globalThis,'location');
-before(()=>Object.defineProperty(globalThis,'location',{configurable:true,value:new URL(import.meta.url)}));
-after(()=>{if(originalLocation)Object.defineProperty(globalThis,'location',originalLocation);else delete globalThis.location;});
+const originalDocument=globalThis.document;
+before(()=>{
+ Object.defineProperty(globalThis,'location',{configurable:true,value:new URL(import.meta.url)});
+ globalThis.document={body:{append(){}},createElement:()=>({contentWindow:{get Worker(){return globalThis.Worker;}},setAttribute(){},remove(){this.removed=true;}})};
+});
+after(()=>{if(originalLocation)Object.defineProperty(globalThis,'location',originalLocation);else delete globalThis.location;if(originalDocument===undefined)delete globalThis.document;else globalThis.document=originalDocument;});
 class WorkerStub extends EventTarget {
  constructor(){super();this.messages=[];this.terminated=false;}
  postMessage(message){this.messages.push(message);}
@@ -18,6 +22,32 @@ test('destroy waits for an already pending error shutdown',async()=>{
  owner.abort(Error('owner failed'));let finished=false;const destroyed=owner.destroy().then(()=>{finished=true;});
  await new Promise(r=>setImmediate(r));assert.equal(finished,false);assert.equal(worker.terminated,false);
  worker.send({type:'closed'});await destroyed;assert.equal(worker.terminated,true);
+});
+test('concurrent destroy calls wait for the same worker-tree teardown',async()=>{
+ const owner=new WorkerRemuxController(video(),{},()=>{}),worker=owner.worker=new WorkerStub();
+ const documentOwner=owner.workerOwner=document.createElement('iframe');
+ const first=owner.destroy(),second=owner.destroy();assert.equal(first,second);
+ assert.equal(documentOwner.removed,undefined);worker.send({type:'closed'});await second;
+ assert.equal(worker.terminated,true);assert.equal(documentOwner.removed,true);
+});
+test('shutdown timeout removes the worker owning document',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ const owner=new WorkerRemuxController(video(),{},()=>{}),worker=owner.worker=new WorkerStub();
+ const documentOwner=owner.workerOwner=document.createElement('iframe');
+ const done=owner.destroy();t.mock.timers.tick(1000);await done;
+ assert.equal(worker.terminated,true);assert.equal(documentOwner.removed,true);
+});
+test('a shutdown transport error still removes the owner',async()=>{
+ const owner=new WorkerRemuxController(video(),{},()=>{}),worker=owner.worker=new WorkerStub();
+ const documentOwner=owner.workerOwner=document.createElement('iframe');worker.postMessage=()=>{throw Error('closed transport');};
+ await owner.destroy();assert.equal(worker.terminated,true);assert.equal(documentOwner.removed,true);
+});
+test('worker construction failure removes its document',async()=>{
+ const Original=globalThis.Worker;globalThis.Worker=class {constructor(){throw Error('blocked');}};
+ const create=document.createElement;let frame;document.createElement=()=>frame=create();
+ const owner=new WorkerRemuxController(video(),{},()=>{});
+ try{await assert.rejects(owner.boot(),/blocked/);assert.equal(frame.removed,true);assert.equal(owner.workerOwner,null);}
+ finally{globalThis.Worker=Original;document.createElement=create;await owner.destroy();}
 });
 test('a delayed recovery play request cannot override a user pause',async()=>{
  const Original=globalThis.Worker;globalThis.Worker=WorkerStub;

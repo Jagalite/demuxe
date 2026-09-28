@@ -9,7 +9,14 @@ export class WorkerRemuxController {
  }
  async boot(){
   if(this.worker)return;
-  const worker=this.worker=runtimeWorker(new URL('./native-mse-worker.js',import.meta.url),{type:'module'});
+  // Chrome can retain a terminated MediaSource worker until its owning
+  // document closes. Keep a disposable document for the complete worker tree,
+  // as with the software engine; the visible media element stays in this page.
+  const owner=this.workerOwner=document.createElement('iframe');
+  owner.hidden=true;owner.setAttribute('aria-hidden','true');document.body.append(owner);
+  let worker;
+  try{worker=this.worker=runtimeWorker(new URL('./native-mse-worker.js',import.meta.url),{type:'module'},owner.contentWindow.Worker);}
+  catch(error){owner.remove();this.workerOwner=null;throw error;}
   worker.onmessage=({data})=>{
    if(this.worker!==worker||this.stopped)return;
    if(data.type==='reply'){
@@ -70,14 +77,20 @@ export class WorkerRemuxController {
  get bufferingDiagnostics(){return this.local?.bufferingDiagnostics??this.state.snapshot?.buffering;}
  snapshot(){const snapshot=this.local?.snapshot()??this.state.snapshot??{};return {...snapshot,mseOwner:this.local?'window':'worker',ownerFallback:this.fallbackReason,fragmentTransport:this.local?'window':'producer-to-mse-worker'};}
  release(error=new DOMException('Superseded','AbortError')){
-  clearInterval(this.timer);const worker=this.worker;this.worker=null;
+  clearInterval(this.timer);const worker=this.worker,owner=this.workerOwner;this.worker=null;this.workerOwner=null;
   for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(error);}this.pending.clear();
   // An error callback may already have started the same shutdown.
   if(!worker)return this.releasing??Promise.resolve();
   // The owner must wake a blocked pthread read and retire its child workers
   // before termination. Killing only their parent can strand a source mailbox.
-  return this.releasing=new Promise(resolve=>{let timer;const finish=()=>{clearTimeout(timer);worker.terminate();resolve();};worker.addEventListener('message',({data})=>{if(data.type==='closed')finish();});timer=setTimeout(finish,1000);worker.postMessage({type:'shutdown'});});
+  return this.releasing=new Promise(resolve=>{
+   let timer,finished=false;
+   const closed=({data})=>{if(data.type==='closed')finish();};
+   const finish=()=>{if(finished)return;finished=true;clearTimeout(timer);worker.removeEventListener('message',closed);try{worker.terminate();}finally{owner?.remove();resolve();}};
+   worker.addEventListener('message',closed);timer=setTimeout(finish,1000);
+   try{worker.postMessage({type:'shutdown'});}catch{finish();}
+  });
  }
  abort(error){this.release(error);this.onError?.(String(error));}
- async destroy(){if(this.stopped)return;this.stopped=true;await this.release();await this.local?.destroy();this.video.pause();this.video.srcObject=null;this.video.removeAttribute('src');this.video.load();}
+ destroy(){if(this.destruction)return this.destruction;this.stopped=true;return this.destruction=(async()=>{await this.release();await this.local?.destroy();this.video.pause();this.video.srcObject=null;this.video.removeAttribute('src');this.video.load();})();}
 }
