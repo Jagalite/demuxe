@@ -87,3 +87,15 @@ policy. Earlier bypass and CPU results remain below as historical evidence.
 | --- | --- | --- |
 | JSPI | 🟢 (Pass) · 19.4% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 17.86%, 19.64%, 19.42%; CPU route: native-transcode |
 | Asyncify | 🟢 (Pass) · 18.2% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 19.30%, 18.17%, 18.15%; CPU route: native-transcode |
+
+## Row 5: H.264 + PCM24 / MKV + ASS
+
+[Correctness](../results/head-to-head/backlog-05-pcm-ass-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-05-pcm-ass-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Native | 🟢 (Pass) · CPU withheld · host libass | All bounded playback checks passed; CPU withheld: Error: Presentation cadence outside declared frame budget; external ASS uses the documented host libass integration |
+| Video.js | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
+| JSPI | 🔴 (Fail) · forced-remux ref | No qualified route: adapted file audio with external captions or manifests is not qualified |
+| Asyncify | 🔴 (Fail) · forced-remux ref | No qualified route: adapted file audio with external captions or manifests is not qualified |
+| Software | 🟢 (Pass) · 26.6% CPU | All bounded playback checks passed; CPU rounds: 26.59%, 9.77%, 36.26%; CPU route: software |

@@ -13,6 +13,9 @@ The [row results](README-BACKLOG-RESULTS.md) record fresh gap tests in README or
 | Row | Lane | Remaining work / rejected gate | Evidence |
 | --- | --- | --- | --- |
 | H.264 + PCM24 / MKV | Movi | Error: Presentation cadence outside declared frame budget; Error: Presentation cadence outside declared frame budget | [Evidence](../results/head-to-head/backlog-04-pcm-mkv-cpu/summary.json) |
+| H.264 + PCM24 / MKV + ASS | Native | Error: Presentation cadence outside declared frame budget | [Evidence](../results/head-to-head/backlog-05-pcm-ass-cpu/summary.json) |
+| H.264 + PCM24 / MKV + ASS | JSPI | CPU withheld: forced playback did not qualify; No qualified route: adapted file audio with external captions or manifests is not qualified | [Evidence](../results/head-to-head/backlog-05-pcm-ass-correctness/summary.json) |
+| H.264 + PCM24 / MKV + ASS | Asyncify | CPU withheld: forced playback did not qualify; No qualified route: adapted file audio with external captions or manifests is not qualified | [Evidence](../results/head-to-head/backlog-05-pcm-ass-correctness/summary.json) |
 
 ## Summary
 
@@ -20,15 +23,15 @@ The [row results](README-BACKLOG-RESULTS.md) record fresh gap tests in README or
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Native | 4 | 10 | 0 | 35 | 2 |
 | Auto | 0 | 9 | 0 | 0 | 0 |
-| JSPI | 73 | 1 | 0 | 0 | 0 |
-| Asyncify | 73 | 1 | 0 | 0 | 0 |
-| Software | 0 | 28 | 0 | 0 | 0 |
+| JSPI | 72 | 1 | 0 | 1 | 0 |
+| Asyncify | 72 | 1 | 0 | 1 | 0 |
+| Software | 0 | 27 | 0 | 0 | 0 |
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 14 | 0 | 30 | 0 |
 | MediaBunny | 25 | 3 | 0 | 15 | 0 |
-| Video.js | 76 | 0 | 0 | 0 | 0 |
+| Video.js | 75 | 0 | 0 | 1 | 0 |
 
-There are **259 untested cells** and **81 passing/screened cells without published CPU** (62 green passes and 19 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+There are **256 untested cells** and **80 passing/screened cells without published CPU** (61 green passes and 19 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
 
 ## 1. Requalify the four reset specialist rows
 

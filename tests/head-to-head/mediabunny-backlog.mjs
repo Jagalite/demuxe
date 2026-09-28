@@ -8,6 +8,7 @@ import {parseArgs} from 'node:util';
 import {launchBenchmarkChrome,collectCpuWindow,summarizeCpu,benchmarkPolicy,delay} from './benchmark-browser.mjs';
 import {markedImage,decodePNG} from './checks.mjs';
 import {referenceAudio} from './specialist-audio.mjs';
+import {referenceFixture} from './specialist-contract.mjs';
 import {closeBrowserObserved} from './browser-exit.mjs';
 
 const {values:args}=parseArgs({options:{assets:{type:'string'},fixture:{type:'string'},output:{type:'string'},cpu:{type:'boolean',default:false},correctness:{type:'string'}}});
@@ -17,19 +18,18 @@ const sha=b=>createHash('sha256').update(b).digest('hex');
 const manifestBytes=await fs.readFile(path.join(assets,'manifest.json')),manifest=JSON.parse(manifestBytes);
 const catalogue=JSON.parse(await fs.readFile(path.join(assets,'fixtures/catalogue.json')));
 const specialists=JSON.parse(await fs.readFile(path.join(assets,'specialist.json')));
-const source=specialists[args.fixture]??catalogue[args.fixture];assert(source?.file,'Unknown fixture');
+const source=specialists[args.fixture]?referenceFixture(args.fixture,specialists[args.fixture],catalogue[args.fixture]):catalogue[args.fixture];assert(source?.file,'Unknown fixture');
 const mediaFile=path.join(assets,'fixtures',source.file),mediaBytes=await fs.readFile(mediaFile);
 assert.equal(sha(mediaBytes),manifest.files['fixtures/'+source.file]?.sha256,'Fixture hash mismatch');
 await fs.mkdir(out);await fs.mkdir(path.join(out,'files/harness'),{recursive:true});
-await fs.mkdir(path.join(out,'scripts'));
 const sourceHashes={};
-for(const name of ['mediabunny-backlog.mjs','benchmark-browser.mjs','browser-exit.mjs','checks.mjs','specialist-audio.mjs']){
+for(const name of ['mediabunny-backlog.mjs','benchmark-browser.mjs','browser-exit.mjs','checks.mjs','specialist-audio.mjs','specialist-contract.mjs']){
   const bytes=await fs.readFile(path.join(here,name));sourceHashes[name]=sha(bytes);await fs.writeFile(path.join(out,'files/harness',name),bytes);
 }
 await fs.writeFile(path.join(out,'assets-manifest.json'),manifestBytes);
 await fs.writeFile(path.join(out,'files/harness/matrix.json'),JSON.stringify({fixtures:{[args.fixture]:source}},null,2)+'\n');
 const summary={schema:1,kind:args.cpu?'performance':'correctness',startedAt:new Date().toISOString(),assetsSHA256:sha(manifestBytes),harnessSHA256:sha(JSON.stringify(sourceHashes)),sourceHashes,
-  command:process.argv,fixtureSHA256:sha(mediaBytes),player:'https://mediabunny.dev/examples/media-player/',cases:[],selected:['mediabunny.default.'+args.fixture],
+  command:process.argv,fixtureSHA256:sha(mediaBytes),player:'https://mediabunny.dev/examples/media-player/',deployment:'Live example; document and script response hashes compared, remote implementation is not frozen locally',cases:[],selected:['mediabunny.default.'+args.fixture],
   limits:['Published example with local File input; no library-wide compatibility claim','No playback-rate control or independently observable decoder/AudioContext teardown API','No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification','Canvas draw submissions are not physical presentation or decoder drop counters']};
 const previous=args.correctness?JSON.parse(await fs.readFile(args.correctness)):null;
 if(args.cpu){assert(previous?.cases[0]?.screenPassed&&previous.cases[0].status==='blocked','Matching successful bounded screen required');for(const k of ['assetsSHA256','harnessSHA256','fixtureSHA256'])assert.equal(summary[k],previous[k],k);}
@@ -51,7 +51,7 @@ try{
     const pending=[],scripts={};record.pageErrors=[];
     page.on('pageerror',error=>record.pageErrors.push(String(error)));
     page.on('response',response=>{if(response.request().resourceType()==='script'||/\.wasm(?:\?|$)/.test(response.url()))pending.push((async()=>{
-      const bytes=await response.body();const digest=sha(bytes);scripts[response.url()]=digest;await fs.writeFile(path.join(out,'scripts',digest+'.js'),bytes);
+      const bytes=await response.body();scripts[response.url()]=sha(bytes);
     })().catch(error=>{record.captureErrors??=[];record.captureErrors.push(String(error));}));});
     await page.addInitScript(correctness=>{
       window.probe={draws:0,audioStarts:0,analysers:[]};
@@ -105,7 +105,7 @@ try{
     try{
       if(args.cpu){await page.bringToFront();const cdp=await browser.newBrowserCDPSession();record.idle=await collectCpuWindow(cdp,()=>page.evaluate(()=>({visible:document.visibilityState==='visible',focused:document.hasFocus()})),{seconds:20});await cdp.detach();}
       const document=await page.goto(summary.player,{waitUntil:'networkidle',timeout:30000});await page.bringToFront();
-      const html=await document.body();record.documentSHA256=sha(html);await fs.writeFile(path.join(out,`round-${round}-document.html`),html);
+      const html=await document.body();record.documentSHA256=sha(html);
       if(args.cpu)assert.equal(record.documentSHA256,previous.cases[0].documentSHA256,'Published example document changed');
       const chooser=page.waitForEvent('filechooser');await page.locator('#select-file').click();await(await chooser).setFiles(mediaFile);
       await Promise.race([page.locator('#player').waitFor({state:'visible',timeout:30000}),page.locator('#error-element:not(:empty)').waitFor({state:'visible',timeout:30000})]);

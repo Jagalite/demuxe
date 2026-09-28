@@ -21,7 +21,7 @@ test('requested private runtime must actually execute under its memory contract'
 });
 test('other lanes are unaffected, and missing runtime evidence is not a pass',()=>{
   assert.deepEqual(remuxEvidence({lane:'auto'},{route:'software'}),{requested:false});
-  assert.throws(()=>remuxEvidence({lane:'jspi'},{route:'native-transcode'}),/Wrong actual/);
+  assert.throws(()=>remuxEvidence({lane:'jspi'},{route:'native-transcode'}),/UNQUALIFIED/);
 });
 test('composed mpv paths require their own matching private service evidence',()=>{
   const s=state('jspi');s.route='native-remux-mpv';

@@ -18,7 +18,10 @@ def read_run(directory):
     return data
 
 def short(reason):
-    return str(reason).splitlines()[0].replace('|', '/')
+    text = str(reason).splitlines()[0].replace('|', '/')
+    if 'Adapted file audio with external captions or manifests is not qualified' in text:
+        return 'No qualified route: adapted file audio with external captions or manifests is not qualified'
+    return text if len(text) <= 360 else text[:357]+'…'
 
 def publish(args):
     proof = read_run(args.correctness)
@@ -66,6 +69,11 @@ def publish(args):
                 values = [c['measurement']['oneCorePercent'] for c in accepted]
                 cell += f' · {statistics.median(values):.1f}% CPU'
                 reason += '; CPU rounds: ' + ', '.join(f'{v:.2f}%' for v in values)
+                measured_route = accepted[0].get('samples', [{}])[0].get('state', {}).get('route')
+                if measured_route:
+                    reason += '; CPU route: '+measured_route
+                if contract.get('audioTrackSwitches') and case['player'] == 'demuxe':
+                    reason += '; CPU uses the initial '+str(case.get('initial', {}).get('selectedAudioTrack', {}).get('codec', 'default'))+' track'
                 resolved.append((name, lane))
             else:
                 cell += ' · CPU withheld' if windows else ' · CPU pending'
@@ -80,10 +88,14 @@ def publish(args):
             cell = '🔴 (Fail)'
         else:
             cell = '— Blocked'
-            todos.append(f'| {name} | {lane} | {reason} | [Evidence](../{proof_path}/summary.json) |')
+            if not case.get('forceRemux'):
+                todos.append(f'| {name} | {lane} | {reason} | [Evidence](../{proof_path}/summary.json) |')
         if good and contract.get('audioTrackSwitches') and case['player'] != 'demuxe':
             cell += ' · default track'
             reason += '; alternate audio-track selection was not exercised'
+        if good and fixture == 'pcm-ass' and case['player'] == 'video':
+            cell += ' · host libass'
+            reason += '; external ASS uses the documented host libass integration'
         if case.get('forceRemux'):
             cell += ' · forced-remux ref'
             if not good:

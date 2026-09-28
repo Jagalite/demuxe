@@ -17,6 +17,7 @@ def gaps(cell):
 
 def execute(args):
     catalogue = json.loads((args.assets/'fixtures/catalogue.json').read_text())
+    specialists = json.loads((args.assets/'specialist.json').read_text())
     labels = {f['label']: key for key, f in catalogue.items()}
     labels['H.264 + PCM24 / MKV + ASS'] = 'pcm-ass'
     for number in range(args.start, args.through+1):
@@ -27,10 +28,12 @@ def execute(args):
         row = rows[number-1]
         needs_mediabunny = not args.only_private and gaps(row[8])
         fixture = labels[row[0]]
-        if catalogue[fixture].get('markedAudio') is False or catalogue[fixture].get('blockedReason'):
+        if fixture not in specialists and (catalogue[fixture].get('markedAudio') is False or catalogue[fixture].get('blockedReason')):
             raise RuntimeError(f'Row {number} requires specialist screening: {fixture}')
         selected = [f'{lane}.{fixture}' for column, lane in LANES.items()
                     if (column in (3, 4) if args.only_private else gaps(row[column]))]
+        if fixture == 'h264-aac-pgs-isolation' and not args.only_private:
+            selected = list(dict.fromkeys(selected+['demuxe.software.'+fixture]))
         if not selected and not needs_mediabunny:
             continue
         prefix = ROOT/f'results/head-to-head/backlog-{args.tag+"-" if args.tag else ""}{number:02d}-{fixture}'
@@ -41,6 +44,8 @@ def execute(args):
                   '--include-software', '--headed']
         if args.force_private_remux:
             common.append('--force-private-remux')
+        if fixture in specialists:
+            common.append('--specialist-catalogue')
         runs = []
         def run(directory, cases, extra=()):
             log = pathlib.Path(str(directory)+'.log')
