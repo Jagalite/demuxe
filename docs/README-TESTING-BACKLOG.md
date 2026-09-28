@@ -45,15 +45,15 @@ Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Native | 4 | 10 | 0 | 35 | 2 |
 | Auto | 0 | 9 | 0 | 0 | 0 |
-| JSPI | 32 | 2 | 0 | 8 | 0 |
-| Asyncify | 32 | 1 | 0 | 8 | 0 |
+| JSPI | 31 | 2 | 0 | 8 | 0 |
+| Asyncify | 31 | 1 | 0 | 8 | 0 |
 | Software | 0 | 26 | 0 | 0 | 0 |
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 12 | 0 | 30 | 0 |
 | MediaBunny | 25 | 1 | 0 | 15 | 0 |
-| Video.js | 32 | 2 | 0 | 23 | 0 |
+| Video.js | 31 | 2 | 0 | 24 | 0 |
 
-There are **133 untested cells** and **78 passing/screened cells without published CPU** (61 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+There are **130 untested cells** and **78 passing/screened cells without published CPU** (61 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
 
 ## 1. Requalify the four reset specialist rows
 
@@ -95,7 +95,7 @@ does not establish audio content, channel mapping, losslessness or Atmos fidelit
 Measure CPU only after matching correctness passes, and restore only the cells
 supported by fresh evidence. The linked correction includes exact rerun commands.
 
-Also reconcile the Software PGS evidence: the [historical evidence notes](MEDIA-COMPARISON-EVIDENCE.md#historical-campaigns-and-interpretation) still describe H.264/AAC/PGS subtitles disappearing after seek and say the cell remains red, while today's README shows green with 36.0% CPU. Trace the later Software-specific result and retest seek persistence if it does not clearly supersede the failure. An Auto-only pass cannot qualify forced Software.
+Software PGS reconciliation is complete for the frozen backlog candidate: the [row 49 forced-Software retest](../results/head-to-head/backlog-49-h264-aac-pgs-isolation-correctness/summary.json) observed the `software` route and passed marked subtitle output through the seek checks, superseding the older seek failure for this tested snapshot. The [row report](README-BACKLOG-RESULTS.md#row-49-h264--aac--pgs--mkv-subtitle-isolation) records its separately gated CPU outcome. The historical failure remains evidence of the earlier build; this is a Software-specific result, not an inference from Auto.
 
 ## 2. Base specialist Auto screens completed
 

@@ -1,0 +1,12 @@
+# Head-to-head correctness
+
+Browser: chromium/153.0.8010.53/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: 7f4407d2ae529891ba3816215b2f930c6ef267d8.
+
+Each pass is a bounded synthetic marked-output/lifecycle screen, not a general player ranking.
+
+| Case | Result | Details |
+| --- | --- | --- |
+| videojs.default.h264-aac-pgs-isolation | failed | [record](videojs.default.h264-aac-pgs-isolation/result.json) |
+| demuxe.jspi.h264-aac-pgs-isolation | passed | [record](demuxe.jspi.h264-aac-pgs-isolation/result.json) |
+| demuxe.asyncify.h264-aac-pgs-isolation | passed | [record](demuxe.asyncify.h264-aac-pgs-isolation/result.json) |
+| demuxe.software.h264-aac-pgs-isolation | passed | [record](demuxe.software.h264-aac-pgs-isolation/result.json) |
