@@ -1,0 +1,60 @@
+[
+  {
+    "argv": [
+      "node",
+      "scripts/copy-shaka-assets.mjs"
+    ],
+    "cwd": "/Volumes/seed2/Projects/demuxe",
+    "exit": 0,
+    "stdout": "Shaka 5.2.11: verified and copied 2 runtime assets\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "node",
+      "node_modules/typescript/bin/tsc",
+      "--project",
+      "tsconfig.json",
+      "--outDir",
+      "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-release-supplement-20260925-04/demuxe/web/generated"
+    ],
+    "cwd": "/Volumes/seed2/Projects/demuxe",
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "rev-parse",
+      "HEAD"
+    ],
+    "cwd": "/Volumes/seed2/Projects/demuxe",
+    "exit": 0,
+    "stdout": "20b5cd0319a64334c29d36ea7a6c8cdac7c6f4d8\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--",
+      "src",
+      "web"
+    ],
+    "cwd": "/Volumes/seed2/Projects/demuxe",
+    "exit": 0,
+    "stdout": "diff --git a/web/webgpu/presenter.js b/web/webgpu/presenter.js\nindex 700eb370..4f77c2a6 100644\n--- a/web/webgpu/presenter.js\n+++ b/web/webgpu/presenter.js\n@@ -40,6 +40,55 @@ struct VOut { @builtin(position) position: vec4f, @location(0) uv: vec2f };\n                l-params.conversion.y*u*c-params.conversion.z*v*c,\n                l+params.conversion.w*u*c,1.);\n }`;\n+// Exact 10-bit planar code values can also remain in the decoder's storage\n+// buffer. This avoids a device-local buffer-to-texture conversion pass. Luma\n+// scales linearly; 4:2:2 chroma follows FFmpeg's two-luma-pixel sample hold.\n+const bufferShader=`\n+struct Params { crop: vec4f, range: vec4f, conversion: vec4f, rotation: vec4f, extent: vec4f };\n+struct Layout { width: u32, height: u32, ySamples: u32, uvSamples: u32 };\n+struct PlanarSamples { samples: array<u32> };\n+@group(0) @binding(0) var<storage,read> planar: PlanarSamples;\n+@group(0) @binding(1) var<uniform> params: Params;\n+@group(0) @binding(2) var<uniform> frameLayout: Layout;\n+struct VOut { @builtin(position) position: vec4f, @location(0) uv: vec2f };\n+@vertex fn vertex(@builtin(vertex_index) id:u32)->VOut {\n+  var positions=array<vec2f,3>(vec2f(-1.,-1.),vec2f(3.,-1.),vec2f(-1.,3.));\n+  var out:VOut;out.position=vec4f(positions[id],0.,1.);\n+  out.uv=vec2f((positions[id].x+1.)*.5,(1.-positions[id].y)*.5);return out;\n+}\n+fn codeAt(base:u32,width:u32,height:u32,x:i32,y:i32)->f32 {\n+  let px=u32(clamp(x,0,i32(width)-1));\n+  let py=u32(clamp(y,0,i32(height)-1));\n+  return f32(planar.samples[base+py*width+px])*params.extent.z;\n+}\n+fn samplePlane(base:u32,width:u32,height:u32,uv:vec2f)->f32 {\n+  let p=uv*vec2f(f32(width),f32(height))-vec2f(.5);\n+  let x=i32(floor(p.x));let y=i32(floor(p.y));\n+  let top=mix(codeAt(base,width,height,x,y),codeAt(base,width,height,x+1,y),fract(p.x));\n+  let bottom=mix(codeAt(base,width,height,x,y+1),codeAt(base,width,height,x+1,y+1),fract(p.x));\n+  return mix(top,bottom,fract(p.y));\n+}\n+fn sampleChroma(base:u32,width:u32,height:u32,uv:vec2f)->f32 {\n+  let p=vec2i(floor(uv*vec2f(f32(width),f32(height))));\n+  return codeAt(base,width,height,p.x,p.y);\n+}\n+@fragment fn fragment(input:VOut)->@location(0) vec4f {\n+  let p=(input.uv-.5)*params.extent.xy;\n+  let rotated=vec2f(params.rotation.x*p.x+params.rotation.y*p.y,\n+                   -params.rotation.y*p.x+params.rotation.x*p.y)+.5;\n+  let inBounds=all(rotated>=vec2f(0.))&&all(rotated<=vec2f(1.));\n+  let uv=params.crop.xy+rotated*params.crop.zw;\n+  let chromaUV=uv+params.rotation.zw;\n+  let y=samplePlane(0u,frameLayout.width,frameLayout.height,uv);\n+  let u=sampleChroma(frameLayout.ySamples,frameLayout.width/2u,frameLayout.height,chromaUV)-params.range.w;\n+  let v=sampleChroma(frameLayout.ySamples+frameLayout.uvSamples,frameLayout.width/2u,frameLayout.height,chromaUV)-params.range.w;\n+  let l=(y-params.range.x)*params.range.y;\n+  let c=params.range.z;\n+  if(!inBounds){return vec4f(0.,0.,0.,1.);}\n+  return vec4f(l+params.conversion.x*v*c,\n+               l-params.conversion.y*u*c-params.conversion.z*v*c,\n+               l+params.conversion.w*u*c,1.);\n+}`;\n const overlayShader=`\n @group(0) @binding(0) var linearSampler:sampler;\n @group(0) @binding(1) var image:texture_2d<f32>;\n@@ -76,13 +125,19 @@ export class WebGPUPresenter {\n     this.subtitleCanvas=new OffscreenCanvas(canvas.width,canvas.height);\n     this.subtitleContext=this.subtitleCanvas.getContext('2d');\n     this.subtitles=new SubtitleOverlay();\n+    this.bufferPipeline=null;this.bufferLayout=null;\n     this.overlayTexture=null;\n     this.overlayStaging=null;\n     this.frames=0;this.destroyed=false;\n   }\n   draw(frame,track,subtitleSnapshot){\n     if(this.destroyed||this.runtime.deviceLost)throw Error('WebGPU presenter unavailable');\n-    if(!/^I(?:420|422|444)(?:P(?:10|12|16))?$/.test(frame.pixelFormat)||frame.surface?.planes?.length!==3)throw Error('Unsupported WebGPU surface format');\n+    const bufferBacked=frame.pixelFormat==='I422P10'&&frame.surface?.layout==='planar-u32'&&frame.surface?.buffer;\n+    if(!/^I(?:420|422|444)(?:P(?:10|12|16))?$/.test(frame.pixelFormat)||\n+      (!bufferBacked&&frame.surface?.planes?.length!==3))throw Error('Unsupported WebGPU surface format');\n+    if(bufferBacked&&(!Number.isInteger(frame.width)||frame.width<2||frame.width%2||\n+      !Number.isInteger(frame.height)||frame.height<1||\n+      frame.surface.buffer.size<frame.width*frame.height*8))throw Error('Invalid WebGPU planar buffer surface');\n     const g=retainedVideoGeometry(frame,this.canvas,track);\n     const matrix=frame.color?.matrix;\n     if(!['bt709','bt601','smpte170m','bt2020'].includes(matrix))throw Error('Unsupported WebGPU color matrix');\n@@ -97,14 +152,30 @@ export class WebGPUPresenter {\n       ...c,Math.cos(angle),Math.sin(angle),chroma[0],chroma[1],\n       g.dst[2]/(g.width*g.scale),g.dst[3]/(g.height*g.scale),1/maximum,depth>10?1:0]);\n     this.device.queue.writeBuffer(this.uniform,0,data);\n-    const group=this.device.createBindGroup({layout:this.pipeline.getBindGroupLayout(0),entries:[\n+    let pipeline=this.pipeline,group;\n+    if(bufferBacked){\n+      this.bufferPipeline??=this.runtime.pipeline(`planar-u32-present:${this.format}`,device=>device.createRenderPipeline({\n+        layout:'auto',vertex:{module:device.createShaderModule({code:bufferShader}),entryPoint:'vertex'},\n+        fragment:{module:device.createShaderModule({code:bufferShader}),entryPoint:'fragment',targets:[{format:this.format}]},\n+        primitive:{topology:'triangle-list'},\n+      }));\n+      this.bufferLayout??=this.runtime.buffer({size:16,usage:0x40|0x08});\n+      this.device.queue.writeBuffer(this.bufferLayout,0,new Uint32Array([\n+        frame.width,frame.height,frame.width*frame.height,frame.width*frame.height/2]));\n+      pipeline=this.bufferPipeline;\n+      group=this.device.createBindGroup({layout:pipeline.getBindGroupLayout(0),entries:[\n+        {binding:0,resource:{buffer:frame.surface.buffer}},\n+        {binding:1,resource:{buffer:this.uniform}},\n+        {binding:2,resource:{buffer:this.bufferLayout}},\n+      ]});\n+    }else group=this.device.createBindGroup({layout:pipeline.getBindGroupLayout(0),entries:[\n       {binding:0,resource:this.sampler},\n       ...frame.surface.planes.map((resource,index)=>({binding:index+1,resource})),\n       {binding:4,resource:{buffer:this.uniform}},\n     ]});\n     const encoder=this.device.createCommandEncoder();\n     const pass=encoder.beginRenderPass({colorAttachments:[{view:this.context.getCurrentTexture().createView(),loadOp:'clear',storeOp:'store',clearValue:{r:0,g:0,b:0,a:1}}]});\n-    pass.setPipeline(this.pipeline);pass.setBindGroup(0,group);\n+    pass.setPipeline(pipeline);pass.setBindGroup(0,group);\n     pass.setViewport(g.dst[0],g.dst[1],g.dst[2],g.dst[3],0,1);\n     pass.draw(3);\n     if(subtitleSnapshot?.surface){\n@@ -130,5 +201,5 @@ export class WebGPUPresenter {\n     }\n     pass.end();this.device.queue.submit([encoder.finish()]);this.frames++;\n   }\n-  destroy(){if(this.destroyed)return;this.destroyed=true;this.overlayTexture?.destroy();this.overlayTexture=null;this.overlayStaging=null;this.runtime.releaseBuffer(this.uniform);this.context.unconfigure();}\n+  destroy(){if(this.destroyed)return;this.destroyed=true;this.overlayTexture?.destroy();this.overlayTexture=null;this.overlayStaging=null;this.runtime.releaseBuffer(this.uniform);if(this.bufferLayout)this.runtime.releaseBuffer(this.bufferLayout);this.context.unconfigure();}\n }\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ffmpeg",
+      "-version"
+    ],
+    "cwd": "/Volumes/seed2/Projects/demuxe",
+    "exit": 0,
+    "stdout": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers\nbuilt with Apple clang version 21.0.0 (clang-2100.0.123.102)\nconfiguration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1.2 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\nlibavutil      60. 26.102 / 60. 26.102\nlibavcodec     62. 28.102 / 62. 28.102\nlibavformat    62. 12.102 / 62. 12.102\nlibavdevice    62.  3.102 / 62.  3.102\nlibavfilter    11. 14.102 / 11. 14.102\nlibswscale      9.  5.102 /  9.  5.102\nlibswresample   6.  3.102 /  6.  3.102\n\nExiting with exit code 0\n",
+    "stderr": ""
+  }
+]

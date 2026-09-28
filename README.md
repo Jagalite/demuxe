@@ -145,19 +145,21 @@ for row notes, measurements and limitations.
 - 🔴 **Fail:** a playback check failed; this does not establish an unsupported codec.
 - 🟡 **Screened:** a bounded specialist check with stated fidelity limits.
 - **— Unqualified:** the exact source fixture or reference output is unavailable.
-- **— Untested:** no playback or CPU measurements; all Video.js cells remain untested.
+- **— Untested:** no playback or CPU measurements for that cell.
 
 Auto records automatic selection; Software pins software decoding. JSPI and
 Asyncify cells cover measured file remux/transcode playback without COOP/COEP;
 their matched controls are in the [runtime CPU report](docs/JSPI-ASYNCIFY-PLAYER-CPU.md).
+`N/A · native-direct bypass` means configured playback passed but did not exercise
+the requested remux runtime. Fresh gaps are tested in [row order](docs/README-BACKLOG-RESULTS.md).
 MediaBunny uses its official player example with local File input, while the
 maintained-player comparison uses local URLs; its screened results do not qualify
 1.25× playback or independent cleanup. A bare `—` means no test for that exact row;
 N/A means no demonstrated playback result for the stated scope.
 
-| Media format | Native video | Demuxe (auto) | Demuxe JSPI | Demuxe Asyncify | Demuxe (software decode) | Movi 0.4.0 (default) | AVPlayer 1.3.1 (default) | MediaBunny (player example) | Video.js |
+| Media format | Native video | Demuxe (auto) | Demuxe JSPI | Demuxe Asyncify | Demuxe (software decode) | Movi 0.4.0 (default) | AVPlayer 1.3.1 (default) | MediaBunny (player example) | Video.js 8.24.1 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| H.264 + AAC / MP4 | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · 13.0% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) · 32.0% CPU | 🔴 (Fail) | 🟢 (Pass) · 32.4% CPU | 🟡 Screened · 34.6% CPU | — Untested |
+| H.264 + AAC / MP4 | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · 13.0% CPU · native-direct | N/A · native-direct bypass | N/A · native-direct bypass | 🟢 (Pass) · 32.0% CPU | 🔴 (Fail) | 🟢 (Pass) · 32.4% CPU | 🟡 Screened · 34.6% CPU | 🟢 (Pass) · 24.0% CPU |
 | H.264 + AAC / MKV | 🟢 (Pass) · 9.3% CPU | 🟢 (Pass) · 9.6% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) · 27.4% CPU | 🔴 (Fail) | 🟢 (Pass) · 28.3% CPU | 🟡 Screened · 33.8% CPU | — Untested |
 | Dual-audio H.264 + AAC + AC-3 stereo / MKV | 🟢 (Pass) · 13.9% CPU · default AAC | 🟢 (Pass) · 14.0% CPU · native-direct; AC-3 switch: native-transcode (18.1% selected) | — Untested | — Untested | 🟢 (Pass) · 36.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 32.8% CPU | 🟡 Screened · 35.3% CPU · primary track | — Untested |
 | H.264 + PCM24 / MKV | 🟢 (Pass) · 9.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) · 26.6% CPU | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 32.5% CPU | — Untested |

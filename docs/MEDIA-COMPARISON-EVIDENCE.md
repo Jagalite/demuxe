@@ -15,6 +15,10 @@ not retroactively qualify the historical campaigns described here.
 
 ## Current table evidence
 
+The [top-to-bottom backlog campaign](README-BACKLOG-RESULTS.md) records new gap tests,
+including pinned Video.js 8.24.1 and observed JSPI/Asyncify route bypasses.
+
+
 **Four compound specialist rows were reset on 2026-09-28.** The
 [HDR10/TrueHD/PGS](COMPOUND-HDR10-TRUEHD-PGS-ROW.md),
 [HDR10/DTS-HD/PGS](COMPOUND-HDR10-DTSHD-PGS-ROW.md) and
