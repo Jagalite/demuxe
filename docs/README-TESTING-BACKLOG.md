@@ -44,15 +44,15 @@ Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Native | 4 | 10 | 0 | 35 | 2 |
 | Auto | 0 | 9 | 0 | 0 | 0 |
-| JSPI | 34 | 1 | 0 | 8 | 0 |
-| Asyncify | 34 | 1 | 0 | 8 | 0 |
+| JSPI | 33 | 1 | 0 | 8 | 0 |
+| Asyncify | 33 | 1 | 0 | 8 | 0 |
 | Software | 0 | 26 | 0 | 0 | 0 |
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 12 | 0 | 30 | 0 |
 | MediaBunny | 25 | 1 | 0 | 15 | 0 |
-| Video.js | 34 | 2 | 0 | 21 | 0 |
+| Video.js | 33 | 2 | 0 | 22 | 0 |
 
-There are **139 untested cells** and **77 passing/screened cells without published CPU** (60 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+There are **136 untested cells** and **77 passing/screened cells without published CPU** (60 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
 
 ## 1. Requalify the four reset specialist rows
 
