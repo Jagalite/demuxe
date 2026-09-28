@@ -9,26 +9,28 @@ Inventory of the current 80-row README table, checked against its linked evidenc
 | Lane | Untested | Passing/screened without published CPU | Unqualified | Failed | Partial playback |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Native | 4 | 10 | 0 | 35 | 2 |
-| Auto | 4 | 5 | 0 | 0 | 0 |
+| Auto | 3 | 6 | 0 | 0 | 0 |
 | JSPI | 77 | 1 | 0 | 0 | 0 |
 | Asyncify | 77 | 1 | 0 | 0 | 0 |
-| Software | 4 | 24 | 0 | 0 | 0 |
+| Software | 3 | 25 | 0 | 0 | 0 |
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 14 | 0 | 30 | 0 |
 | MediaBunny | 25 | 3 | 0 | 15 | 0 |
 | Video.js | 80 | 0 | 0 | 0 | 0 |
 
-There are **279 untested cells** and **73 passing/screened cells without published CPU** (62 green passes and eleven yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No base specialist Auto cell remains Unqualified.
+There are **277 untested cells** and **75 passing/screened cells without published CPU** (62 green passes and thirteen yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No base specialist Auto cell remains Unqualified.
 
 ## 1. Requalify the four reset specialist rows
 
-All nine player cells in each row below are now **Untested**. The current table
-has no Auto or Software failures. The previous Auto tone-check failures and older
-Software/competitor outcomes remain historical evidence, not current table labels.
+The four compound rows were reset to **Untested** after an invalid audio oracle.
+The first has since passed fresh Auto and Software bounded screens; the other
+three remain Untested in every player lane. The current table has no Auto or
+Software failures. The previous tone-check failures and older outcomes remain
+historical evidence, not current table labels.
 
 | Fixture | Remaining work |
 | --- | --- |
-| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | Fresh Auto/Software specialist screen, then other player lanes |
+| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | [Auto/Software screened](COMPOUND-HDR10-TRUEHD-PGS-ROW.md); other player lanes and CPU remain open |
 | HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | Same; check audio at independently verified non-silent source windows |
 | Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | Same; retain native parameter-set failures and actual fallback route |
 | Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | Same; retain native parameter-set failures and actual fallback route |
@@ -88,9 +90,9 @@ matched comparisons.
 
 ## 3. Fill untested lanes
 
-The four reset rows account for four untested cells each in Native, Auto, Software,
-Movi and AVPlayer; handle those through section 1. Their JSPI, Asyncify, MediaBunny
-and Video.js cells are included in the lane totals below, not additional work.
+The reset rows account for four untested cells each in Native, Movi and AVPlayer,
+and three each in Auto and Software. Handle those through section 1. Their JSPI,
+Asyncify, MediaBunny and Video.js cells are included in the lane totals below.
 
 - **Video.js: all 80 README rows.** Pin the player version and configuration, implement its comparison adapter and run correctness first; measure CPU for viable results. Any configured alternative needs its own label.
 - **JSPI and Asyncify: 77 rows each.** The only already-tested rows in each are H.264 + AC-3 stereo / MKV, HEVC Main 10-bit SDR + AC-3 / MKV, and H.264 + AAC / MPEG-TS. Every other README row is untested in both columns. First establish the supported runtime/route scope; prioritize file remux/transcode, then separately qualify admitted private subtitle/audio services. The existing runtime campaign does not qualify private Hybrid/Software or imply all streaming paths use these runtimes. Record an explicit scope limitation where applicable rather than forcing a misleading comparison.
@@ -124,7 +126,7 @@ and Video.js cells are included in the lane totals below, not additional work.
 
 ## 4. Complete missing CPU measurements
 
-The following is the complete list of 73 passing/screened cells without a numeric CPU value. A lane listed here needs evidence review and, where necessary, a fresh correctness-qualified CPU campaign. Historical numeric results elsewhere do not automatically qualify publication in this table.
+The following is the complete list of 75 passing/screened cells without a numeric CPU value. A lane listed here needs evidence review and, where necessary, a fresh correctness-qualified CPU campaign. Historical numeric results elsewhere do not automatically qualify publication in this table.
 
 | Exact README row | Lanes without CPU |
 | --- | --- |
@@ -149,6 +151,7 @@ The following is the complete list of 73 passing/screened cells without a numeri
 | HEVC + E-AC-3 with Atmos metadata / MP4 | Auto (screened), Software |
 | Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | Auto (screened), Software |
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | Auto (screened), Software, AVPlayer (screened) |
+| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | Auto (screened), Software (screened) |
 | H.264 + AAC / HLS VOD (TS segments) | Native, Software, Movi, AVPlayer |
 | H.264 + AAC / HLS VOD (fMP4 segments) | Native, Software, Movi, AVPlayer |
 | HEVC + AAC / HLS VOD (fMP4 segments) | Native, Software, Movi, AVPlayer |

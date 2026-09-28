@@ -15,9 +15,10 @@ not retroactively qualify the historical campaigns described here.
 
 ## Current table evidence
 
-**Four compound specialist rows were reset on 2026-09-28.** HDR10/TrueHD/PGS,
-HDR10/DTS-HD MA/PGS, and Dolby Vision 5/8.1 with Atmos/ASS now show Untested in
-every player column. Copied specialist audio was incorrectly subjected to the
+**Four compound specialist rows were reset on 2026-09-28.** The
+[HDR10/TrueHD/PGS row](COMPOUND-HDR10-TRUEHD-PGS-ROW.md) has since passed
+fresh bounded Auto and Software screens; its other player cells and all three
+remaining compound rows still show Untested. Copied specialist audio was incorrectly subjected to the
 synthetic stereo-tone oracle in the September 27 catalogue run. Older Software
 and competitor cells also remain cleared pending fresh qualification. See the
 [harness correction and rerun procedure](SPECIALIST-HARNESS-RESET.md). Historical

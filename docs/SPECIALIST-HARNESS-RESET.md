@@ -7,6 +7,11 @@ The four HDR10/TrueHD/PGS, HDR10/DTS-HD MA/PGS and Dolby Vision
 columns**. Previous results remain in their immutable archives. No old pass,
 failure or CPU result is carried into the reset rows.
 
+Subsequent current-source screens are recorded separately. The
+[HDR10/TrueHD/PGS row](COMPOUND-HDR10-TRUEHD-PGS-ROW.md) now has bounded Auto
+and forced Software results; the reset statement above describes the initial
+table correction.
+
 ## Why the previous test was invalid for these sources
 
 `prepare-library-fixtures.py` copies genuine specialist audio and records
