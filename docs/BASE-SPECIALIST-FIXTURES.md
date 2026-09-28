@@ -6,8 +6,9 @@ All five previously unavailable Auto fixture contracts have locally available,
 hash-pinned samples validated for **bounded playback screening**. The fresh
 [validation archive](../results/head-to-head/base-specialist-validation-20260928-01/summary.json)
 records source provenance, exact fixture SHA-256 values and host-decoded
-references. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) subsequently
-passed a bounded browser screen; the other four Auto cells remain Unqualified.
+references. The [TrueHD](BASE-SPECIALIST-TRUEHD-ROW.md) and
+[DTS-HD MA](BASE-SPECIALIST-DTSHD-ROW.md) Auto rows subsequently passed bounded
+browser screens; the other three Auto cells remain Unqualified.
 Source validation alone is not a browser pass.
 
 | README source contract | Fixture ID | Fresh validation |

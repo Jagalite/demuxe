@@ -25,9 +25,10 @@ archives remain intact; their labels do not repopulate these four rows.
 
 **The five base specialist fixtures have been validated for bounded screening.**
 Fresh [source/profile and host-reference checks](BASE-SPECIALIST-FIXTURES.md)
-supersede their unavailable-source explanation. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md)
-has since passed a bounded current-source screen; its CPU remains withheld after
-a frame-drop rejection. The other four Auto cells remain Unqualified pending
+supersede their unavailable-source explanation. The
+[TrueHD](BASE-SPECIALIST-TRUEHD-ROW.md) and [DTS-HD MA](BASE-SPECIALIST-DTSHD-ROW.md)
+Auto rows have since passed bounded current-source screens; TrueHD CPU remains
+withheld after a frame-drop rejection. The other three Auto cells remain Unqualified pending
 browser screens. Host decoding alone did not establish playback or fidelity.
 
 **Other Demuxe Auto rows retain their current-protocol disposition.** The

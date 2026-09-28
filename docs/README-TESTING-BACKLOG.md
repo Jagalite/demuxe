@@ -9,7 +9,7 @@ Inventory of the current 80-row README table, checked against its linked evidenc
 | Lane | Untested | Passing/screened without published CPU | Unqualified | Failed | Partial playback |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Native | 4 | 10 | 0 | 35 | 2 |
-| Auto | 4 | 1 | 4 | 0 | 0 |
+| Auto | 4 | 2 | 3 | 0 | 0 |
 | JSPI | 77 | 1 | 0 | 0 | 0 |
 | Asyncify | 77 | 1 | 0 | 0 | 0 |
 | Software | 4 | 24 | 0 | 0 | 0 |
@@ -18,7 +18,7 @@ Inventory of the current 80-row README table, checked against its linked evidenc
 | MediaBunny | 25 | 3 | 0 | 15 | 0 |
 | Video.js | 80 | 0 | 0 | 0 | 0 |
 
-There are **279 untested cells** and **69 passing/screened cells without published CPU** (62 green passes and seven yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection.
+There are **279 untested cells** and **70 passing/screened cells without published CPU** (62 green passes and eight yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection.
 
 ## 1. Requalify the four reset specialist rows
 
@@ -60,12 +60,11 @@ supported by fresh evidence. The linked correction includes exact rerun commands
 
 Also reconcile the Software PGS evidence: the [historical evidence notes](MEDIA-COMPARISON-EVIDENCE.md#historical-campaigns-and-interpretation) still describe H.264/AAC/PGS subtitles disappearing after seek and say the cell remains red, while today's README shows green with 36.0% CPU. Trace the later Software-specific result and retest seek persistence if it does not clearly supersede the failure. An Auto-only pass cannot qualify forced Software.
 
-## 2. Qualify Auto using the remaining four validated specialist fixtures
+## 2. Qualify Auto using the remaining three validated specialist fixtures
 
-The TrueHD Auto row passed a fresh bounded playback screen. These four Auto cells
+The [TrueHD](BASE-SPECIALIST-TRUEHD-ROW.md) and [DTS-HD MA](BASE-SPECIALIST-DTSHD-ROW.md) Auto rows passed fresh bounded playback screens. These three Auto cells
 remain Unqualified. Exact-profile fixtures and host references are validated:
 
-- HEVC + DTS-HD MA 7.1 / MKV
 - HEVC + E-AC-3 with Atmos metadata / MP4
 - Dolby Vision profile 5 HEVC + E-AC-3 / MP4
 - Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV
@@ -80,7 +79,7 @@ The source-availability blocker in the [September 27 Auto report](AUTO-MAIN-RETE
 is superseded for bounded screening. Remaining work: freeze a current runtime,
 run Auto and Software controls on the remaining exact bytes with the specialist runner,
 then measure CPU only for matching correctness-qualified results. The README
-still has four Unqualified Auto cells; no browser pass was inferred from host
+still has three Unqualified Auto cells; no browser pass was inferred from host
 validation. TrueHD and DTS-HD use repeated short samples, and Dolby Vision uses
 authored stereo E-AC-3 audio. Preserve those limits. Physical HDR/Dolby Vision,
 losslessness, discrete browser output channels and Atmos objects still need
@@ -127,7 +126,7 @@ and Video.js cells are included in the lane totals below, not additional work.
 
 ## 4. Complete missing CPU measurements
 
-The following is the complete list of 69 passing/screened cells without a numeric CPU value. A lane listed here needs evidence review and, where necessary, a fresh correctness-qualified CPU campaign. Historical numeric results elsewhere do not automatically qualify publication in this table.
+The following is the complete list of 70 passing/screened cells without a numeric CPU value. A lane listed here needs evidence review and, where necessary, a fresh correctness-qualified CPU campaign. Historical numeric results elsewhere do not automatically qualify publication in this table.
 
 | Exact README row | Lanes without CPU |
 | --- | --- |
@@ -148,7 +147,7 @@ The following is the complete list of 69 passing/screened cells without a numeri
 | HEVC Main 10 + AAC / MP4 (HLG) | Native, Software, AVPlayer |
 | AV1 10-bit + Opus / WebM (HDR10) | Native, Software, AVPlayer |
 | HEVC + TrueHD 7.1 / MKV | Auto (screened; frame-drop rejection), Software |
-| HEVC + DTS-HD MA 7.1 / MKV | Software, AVPlayer (screened) |
+| HEVC + DTS-HD MA 7.1 / MKV | Auto (screened), Software, AVPlayer (screened) |
 | HEVC + E-AC-3 with Atmos metadata / MP4 | Software |
 | Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | Software |
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | Software, AVPlayer (screened) |
@@ -165,6 +164,16 @@ The following is the complete list of 69 passing/screened cells without a numeri
 | HEVC Main 10 + Opus + ASS / MKV | Software |
 
 Prioritize the withheld/stalled cases as investigations:
+
+**Explicit CPU-withheld TODOs in the README:**
+
+| Row | Lane | Next check |
+| --- | --- | --- |
+| HEVC Main 10-bit SDR + AC-3 / MKV | JSPI | Investigate cross-launch variance and cadence rejections; rerun a complete matched campaign. |
+| HEVC Main 10-bit SDR + AC-3 / MKV | Asyncify | Investigate cross-launch variance and cadence rejections; rerun a complete matched campaign. |
+| HEVC + TrueHD 7.1 / MKV | Auto | Investigate the 77 dropped frames in CPU window 3; run a fresh complete campaign after the cause is understood. |
+
+Add any future `CPU withheld` cell here with its failed gate and evidence before publishing a replacement number. Other blank CPU cells remain listed in the table above.
 
 - **JSPI/Asyncify HEVC Main10 + AC-3:** two retained campaigns contain cadence rejections and unexplained low CPU windows. Reproduce and investigate variability using complete matched pthread/JSPI/Asyncify runs; do not pool favorable windows or keep retrying solely to obtain a passing median. [Runtime CPU evidence](JSPI-ASYNCIFY-PLAYER-CPU.md#retained-hevc-attempt-and-repeat).
 - **AVPlayer and MediaBunny H.264 + AC-3 5.1:** apparent CPU ranking reversed in an independent launch. Investigate repeatability before publishing a comparison. [Current evidence notes](MEDIA-COMPARISON-EVIDENCE.md#row-notes).
@@ -184,7 +193,7 @@ Prioritize the withheld/stalled cases as investigations:
 
 ## Acceptance and suggested order
 
-1. Requalify the four reset specialist rows on a fresh runtime, reconcile the Software PGS evidence discrepancy, and run current Auto/Software controls for the four remaining validated base specialist fixtures.
+1. Requalify the four reset specialist rows on a fresh runtime, reconcile the Software PGS evidence discrepancy, and run current Auto/Software controls for the three remaining validated base specialist fixtures.
 2. Run current Software correctness controls and complete the most useful missing CPU rows, especially streaming and ordinary audio.
 3. Expand JSPI/Asyncify within their supported route contracts, add Video.js, and fill MediaBunny's gaps.
 4. Extend output fidelity, browser/device and long-duration qualification as separate campaigns.
