@@ -579,3 +579,14 @@ The original Video.js attempt received `application/octet-stream` because the ad
 | JSPI | 🟢 (Pass) · 5.8% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 6.23%, 5.52%, 5.79%; CPU route: native-remux |
 | Asyncify | 🟢 (Pass) · 5.9% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 5.86%, 5.53%, 6.38%; CPU route: native-remux |
 | Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement |
+
+## Row 52: MP3 audio-only / MP3
+
+[Correctness](../results/head-to-head/backlog-52-audio-mp3-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-52-audio-mp3-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 11.5% CPU | All bounded playback checks passed; CPU rounds: 11.47%, 10.18%, 12.60%; CPU route: native-direct |
+| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Browser isTypeSupported rejects selected audio mp3 for audio/mp4;… |
+| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Browser isTypeSupported rejects selected audio mp3 for audio/mp4;… |
+| Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement |
