@@ -345,3 +345,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🟢 (Pass) · 24.0% CPU | All bounded playback checks passed; CPU rounds: 23.68%, 24.01%, 24.00%; CPU route: native-direct |
 | JSPI | 🟢 (Pass) · 16.4% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 16.64%, 16.36%, 15.33%; CPU route: native-remux |
 | Asyncify | 🟢 (Pass) · 15.6% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 16.31%, 15.61%, 15.12%; CPU route: native-remux |
+
+## Row 29: VP9 8-bit + Opus / WebM
+
+[Correctness](../results/head-to-head/backlog-29-vp9-opus-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-29-vp9-opus-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 22.6% CPU | All bounded playback checks passed; CPU rounds: 24.32%, 22.46%, 22.58%; CPU route: native-direct |
+| JSPI | 🟢 (Pass) · 17.5% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 17.48%, 16.99%, 18.02%; CPU route: native-remux |
+| Asyncify | 🟢 (Pass) · 17.5% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 17.51%, 16.65%, 18.27%; CPU route: native-remux |
