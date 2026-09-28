@@ -241,3 +241,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🟡 Screened* · 22.9% CPU | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; CPU rounds: 22.91%, 23.41%, 21.03%; CPU route: native-direct |
 | JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Decoded multichannel speaker layout is unavailable |
 | Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Decoded multichannel speaker layout is unavailable |
+
+## Row 19: HEVC Main 8-bit + AAC / MP4 (hvc1)
+
+[Correctness](../results/head-to-head/backlog-19-hevc-hvc1-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-19-hevc-hvc1-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Presentation cadence outside declared frame budget |
+| JSPI | 🟢 (Pass) · 16.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 16.52%, 15.97%, 15.94%; CPU route: native-remux |
+| Asyncify | 🟢 (Pass) · 17.2% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 17.59%, 17.19%, 15.84%; CPU route: native-remux |
