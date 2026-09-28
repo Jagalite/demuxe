@@ -12,6 +12,7 @@ import {CampaignProgress} from './campaign-progress.mjs';
 import {markedAudio,markedImage,selectCases,performanceEligible} from './checks.mjs';
 import {frameObservation,validateFrameWindow} from './performance-metrics.mjs';
 import {closeBrowserObserved} from './browser-exit.mjs';
+import {waitInitialOutput} from './initial-output.mjs';
 
 const here=import.meta.dirname,repo=path.resolve(here,'../..');
 const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'string'},cases:{type:'string',default:'all'},
@@ -79,7 +80,7 @@ for(const [name,record]of Object.entries(manifest.files)) {
 const stamp=new Date().toISOString().replaceAll(':','-');
 const output=path.resolve(args.output??`results/head-to-head/${stamp}-${args.performance?'performance':'correctness'}`);
 await fs.mkdir(path.dirname(output),{recursive:true});await fs.mkdir(output); // EEXIST intentionally prevents overwrites.
-const sourceNames=['campaign-progress.mjs','benchmark-browser.mjs','browser-exit.mjs','performance-metrics.mjs','component-trials.mjs','run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
+const sourceNames=['campaign-progress.mjs','benchmark-browser.mjs','browser-exit.mjs','performance-metrics.mjs','component-trials.mjs','initial-output.mjs','run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
 const sourceHashes={};
 await fs.mkdir(path.join(output,'files','harness'),{recursive:true});
 for(const name of sourceNames){const bytes=name==='matrix.json'?Buffer.from(JSON.stringify(matrix,null,2)+'\n'):await fs.readFile(path.join(here,name));sourceHashes[name]=hash(bytes);await fs.writeFile(path.join(output,'files','harness',name),bytes);}
@@ -167,9 +168,7 @@ async function correctness(page,config,result,directory) {
     result.negativeControl='cover';
     await page.evaluate(()=>{const cover=document.createElement('div');cover.style.cssText='position:absolute;inset:0;background:black;z-index:999999';document.querySelector('#stage').append(cover);});
   }
-  stage('initial-playback');
-  await page.waitForFunction(audio=>api.snapshot().position>.65&&(!audio||api.snapshot().audio.some(a=>a.rms>.015)),hasAudio,{timeout:10000});
-  stage('initial-output');
+  await waitInitialOutput(page,{audio:hasAudio,stage,audioTimeout:error=>{result.initialAudioTimeout=error;}});
   if(config.subtitleCheck||config.subtitleIntegration){result.subtitleSelection=await page.evaluate(()=>api.subtitles());await delay(250);}
   result.initial=await snap();if(hasAudio)expect(markedAudio(result.initial),'Marked left/right audio missing or incorrect');
   if(config.player==='demuxe'&&config.expectedAudioCodec) {
