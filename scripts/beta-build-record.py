@@ -9,6 +9,9 @@ def sha(p):
  with p.open('rb')as f:
   for b in iter(lambda:f.read(1048576),b''):h.update(b)
  return h.hexdigest()
+# These scripts assemble archives after compilation; their exact source is bound
+# by the release tag/source companion, not by the native compiler input record.
+PACKAGING_ONLY={'scripts/package-beta.py','scripts/package-beta-source.py','scripts/generated-runtime-files.mjs'}
 def inputs():
  paths=[]
  for name in ['native','patches','scripts']:
@@ -17,7 +20,7 @@ def inputs():
  for folder in ['runtime','upstream','stage2/native','mpv/native','mpv/runtime','mpv/scripts','ffmpeg/scripts','scripts']:
   paths.extend(p for p in (root/'experiments/jspi-asyncify'/folder).rglob('*') if p.suffix in ['.py','.c','.h','.s','.js','.mjs'])
  paths.extend(root/p for p in ['experiments/retained-subtitles/compile-hook.py','experiments/software-full/build.sh','experiments/software-full/inventory.py','sources.lock.json','package-lock.json','toolchain.lock.json'])
- return {str(p.relative_to(root)):sha(p)for p in sorted(paths)if p.is_file()and '__pycache__'not in p.parts}
+ return {str(p.relative_to(root)):sha(p)for p in sorted(paths)if p.is_file()and '__pycache__'not in p.parts and str(p.relative_to(root))not in PACKAGING_ONLY}
 def sdk_sources(sdk):
  base=sdk/'upstream/emscripten'
  return {str(p.relative_to(base)):sha(p)for p in sorted(base.rglob('*'))if p.is_file()and not any(n in ['cache','__pycache__','.git','node_modules']for n in p.relative_to(base).parts)}

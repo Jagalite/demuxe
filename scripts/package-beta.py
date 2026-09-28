@@ -61,28 +61,9 @@ def add(name):
  f=root/name
  if not f.is_file():raise SystemExit('Missing runtime asset: '+name)
  files[name]=f.read_bytes()
-# Only the dependency closure of the public entrypoints, including declarations.
-pending=[]
-for entry in project['exports'].values():
- for value in (entry.values() if isinstance(entry,dict) else [entry]):
-  if not isinstance(value,str) or not value.startswith('./web/generated/'):
-   raise SystemExit('Unexpected public entrypoint target: '+str(value))
-  pending.append(value.removeprefix('./'))
-seen=set()
-while pending:
- name=pending.pop()
- if name in seen:continue
- seen.add(name);add(name)
- if name.endswith('.js'):
-  declaration=name[:-3]+'.d.ts'
-  if (root/declaration).is_file():pending.append(declaration)
- for relative in re.findall(r"[\"'](\.[^\"']+\.js)[\"']",files[name].decode()):
-  target=(root/name).parent.joinpath(relative).resolve()
-  if target.is_relative_to(root/'web/generated'):
-   if not target.is_file():raise SystemExit('Missing generated runtime dependency: '+str(target.relative_to(root)))
-   pending.append(str(target.relative_to(root)))
-   declaration=target.with_suffix('.d.ts')
-   if declaration.is_file():pending.append(str(declaration.relative_to(root)))
+# Parse real JS/declaration imports; runtime asset URLs are not module imports.
+for name in json.loads(subprocess.check_output(['node',str(root/'scripts/generated-runtime-files.mjs'),str(root)],text=True)):
+ add(name)
 for name in ['mpv-subtitle-worker.js','native-ass-worker.js','audio-worklet.js','selective-sync-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','external-video-decoder.js','video-presenter.js','webgl-yuv-presenter.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','fallback-stream-policy.js','split-mp4.js','native-remux-player.js','worker-remux-controller.js','native-mse-worker.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','hybrid-preflight.js','prepared-engine.js','fast-source-inspector.js','selected-mp4-view.js','progressive-mp4.js','video-codec-config.js','remux-packaging.js']:
  add('web/'+name)
 add('web/yuv-presenter.js')

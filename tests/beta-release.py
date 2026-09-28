@@ -46,6 +46,23 @@ class ReleaseGates(unittest.TestCase):
   self.write('build/cache/old.a','compiled cache')
   result=subprocess.run(command,cwd=self.root,text=True,capture_output=True)
   self.assertNotEqual(result.returncode,0);self.assertIn('build/cache',result.stderr)
+ def test_packaging_only_edits_are_not_native_compiler_inputs(self):
+  shutil.copy2(ROOT/'scripts/beta-build-record.py',self.root/'scripts/beta-build-record.py')
+  self.write('scripts/generated-runtime-files.mjs','packaging helper')
+  self.write('scripts/build-private-release.py','compiler recipe')
+  (self.root/'build').mkdir()
+  command=['python3','scripts/beta-build-record.py','start','--clean']
+  subprocess.run(command,cwd=self.root,check=True,capture_output=True)
+  before=json.loads((self.root/'build/beta-build-start.json').read_text())['inputs']
+  self.assertNotIn('scripts/package-beta.py',before)
+  self.assertNotIn('scripts/generated-runtime-files.mjs',before)
+  self.assertIn('scripts/build-private-release.py',before)
+  self.write('scripts/package-beta.py','changed packager')
+  subprocess.run(command,cwd=self.root,check=True,capture_output=True)
+  self.assertEqual(before,json.loads((self.root/'build/beta-build-start.json').read_text())['inputs'])
+  self.write('scripts/build-private-release.py','changed compiler recipe')
+  subprocess.run(command,cwd=self.root,check=True,capture_output=True)
+  self.assertNotEqual(before,json.loads((self.root/'build/beta-build-start.json').read_text())['inputs'])
  def test_changed_binary(self):
   self.licensed()
   build={'clean':True,'sdk':str(self.root),'sdkSources':{},'sharedTools':{},'inputs':{},'configurations':{},'artifacts':{},'privateRemux':{}}

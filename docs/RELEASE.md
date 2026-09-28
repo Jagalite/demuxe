@@ -54,6 +54,13 @@ Full host paths remain only in build evidence and the source companion. Inputs m
 build. Generated tracked bindings must match the tag; otherwise fix the source,
 review and make a new candidate revision.
 
+The native input record excludes the archive-only scripts `package-beta.py`,
+`package-beta-source.py` and `generated-runtime-files.mjs`; those scripts are
+bound by the reviewed tag and source companion. Packaging-only changes therefore
+do not change compiler provenance. Native sources, compiler recipes and the
+build-record implementation remain recorded inputs and require a fresh build
+when changed.
+
 ## Assemble, test and identify the same bytes
 
 Run `npm run check:licenses`, `python3 tests/lgpl-closure.py`, and inspect
