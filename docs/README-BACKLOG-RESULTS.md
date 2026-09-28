@@ -485,3 +485,13 @@ Forced Asyncify companion references select the manifest/hash/export-verified As
 | Video.js | 🔴 (Fail) | Error: Required subtitle text missing or incorrect |
 | JSPI | 🟢 (Pass) · 5.9% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux-mpv; CPU rounds: 17.92%, 5.91%, 5.21%; CPU route: native-remux-mpv |
 | Asyncify | 🟢 (Pass) · 8.6% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux-mpv; CPU rounds: 8.60%, 8.65%, 8.74%; CPU route: native-remux-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
+
+## Row 43: H.264 + AAC + external WebVTT / MP4
+
+[Correctness](../results/head-to-head/backlog-43-h264-vtt-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-43-h264-vtt-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 11.1% CPU | All bounded playback checks passed; CPU rounds: 21.60%, 6.44%, 11.15%; CPU route: native-direct |
+| JSPI | 🟢 (Pass) · 17.1% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 17.10%, 17.99%, 8.27%; CPU route: native-remux |
+| Asyncify | 🟢 (Pass) · 4.6% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 14.12%, 4.38%, 4.59%; CPU route: native-remux |

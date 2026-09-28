@@ -8,7 +8,7 @@ Inventory of the 80-row README table, checked against its linked evidence notes.
 
 The [row results](README-BACKLOG-RESULTS.md) record fresh gap tests in README order. The sections below retain the initial inventory; the summary counts track the current table.
 
-Stopped at the user’s request after row 42 (H.264 + AAC + embedded SRT / MKV). Rows 1–42 have been processed; resume at row 43 (H.264 + AAC + external WebVTT / MP4). No row 43 campaign has started.
+Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4), following the completed rows 1–42. The row results below track subsequent completed campaigns; each completed row is committed and pushed separately.
 
 ### TODO: CPU withheld or follow-up required in this campaign
 
@@ -42,15 +42,15 @@ Stopped at the user’s request after row 42 (H.264 + AAC + embedded SRT / MKV).
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Native | 4 | 10 | 0 | 35 | 2 |
 | Auto | 0 | 9 | 0 | 0 | 0 |
-| JSPI | 38 | 0 | 0 | 8 | 0 |
-| Asyncify | 38 | 0 | 0 | 8 | 0 |
+| JSPI | 37 | 0 | 0 | 8 | 0 |
+| Asyncify | 37 | 0 | 0 | 8 | 0 |
 | Software | 0 | 26 | 0 | 0 | 0 |
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 12 | 0 | 30 | 0 |
 | MediaBunny | 25 | 1 | 0 | 15 | 0 |
-| Video.js | 38 | 2 | 0 | 18 | 0 |
+| Video.js | 37 | 2 | 0 | 18 | 0 |
 
-There are **151 untested cells** and **75 passing/screened cells without published CPU** (58 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+There are **148 untested cells** and **75 passing/screened cells without published CPU** (58 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
 
 ## 1. Requalify the four reset specialist rows
 

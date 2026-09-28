@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Serial README gap testing; publish and push each completed row before the next."""
-import argparse, hashlib, json, pathlib, re, subprocess
+import argparse, hashlib, json, pathlib, re, subprocess, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 LANES = {1: 'video.default', 2: 'demuxe.auto', 3: 'demuxe.jspi',
@@ -9,7 +9,21 @@ LANES = {1: 'video.default', 2: 'demuxe.auto', 3: 'demuxe.jspi',
          7: 'libmedia.default', 9: 'videojs.default'}
 
 def command(argv, **kwargs):
-    return subprocess.run(list(map(str, argv)), cwd=ROOT, **kwargs)
+    argv = list(map(str, argv))
+    if argv[:2] not in (['git', 'add'], ['git', 'commit']):
+        return subprocess.run(argv, cwd=ROOT, **kwargs)
+    check = kwargs.pop('check', False)
+    for attempt in range(31):
+        result = subprocess.run(argv, cwd=ROOT, stderr=subprocess.PIPE, **kwargs)
+        locked = result.returncode and b'index.lock' in result.stderr and b'File exists' in result.stderr
+        if not locked or attempt == 30:
+            if result.stderr:
+                sys.stderr.buffer.write(result.stderr)
+            if check:
+                result.check_returncode()
+            return result
+        time.sleep(1)  # A live Git lock belongs to its owner; never remove it.
+
 
 def gaps(cell):
     return ('Untested' in cell or cell == '—' or
