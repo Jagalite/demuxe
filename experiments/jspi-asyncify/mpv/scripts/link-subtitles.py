@@ -40,7 +40,7 @@ def main(a):
         commands.append({'argv':argv,'log':name,'returncode':rc})
         if rc:raise RuntimeError('Failed '+name)
     try:
-        run([em/'emcc',*flags,'-I'+str(native),*([native/'subtitles/service.c',native/'subtitles/bitmap.c'] if a.profile=='subtitles' else [local/'mpv/native/audio-service.c']),local/'stage2/native/stream-coop.c',local/'runtime/stack.s',local/'runtime/asyncify-stacks.c',local/'mpv/native/context.c',local/'mpv/native/finite-source.c',*libs,
+        run([em/'emcc',*flags,'-ffile-prefix-map='+str(out)+'=/demuxe-private-service','-ffile-prefix-map='+str(REPO)+'=/demuxe','-I'+str(native),*([native/'subtitles/service.c',native/'subtitles/bitmap.c'] if a.profile=='subtitles' else [local/'mpv/native/audio-service.c']),local/'stage2/native/stream-coop.c',local/'runtime/stack.s',local/'runtime/asyncify-stacks.c',local/'mpv/native/context.c',local/'mpv/native/finite-source.c',*libs,
              '--js-library',local/'mpv/runtime/imports.js','-g','-sMODULARIZE=1','-sEXPORT_ES6=1','-sENVIRONMENT=worker','-sALLOW_MEMORY_GROWTH=1','-sINITIAL_MEMORY=67108864','-sMAXIMUM_MEMORY=134217728','-sSTACK_SIZE=2097152','-sSTACK_OVERFLOW_CHECK=0','-sASSERTIONS=1','-sWASM_BIGINT=1','-sFORCE_FILESYSTEM=1','-sEXIT_RUNTIME=0','-sEXPORTED_FUNCTIONS='+json.dumps(['_'+n for n in exports]),'-sEXPORTED_RUNTIME_METHODS=["FS","HEAPU8","HEAP32","UTF8ToString"]','-Wl,--export-memory','-Wl,-Map,'+str(out/'service.map'),'-o',out/'service.mjs'],'01-link.log')
         glue=(out/'service.mjs').read_text()
         if 'Asyncify' in glue:raise ValueError('An Emscripten Asyncify owner leaked into glue')

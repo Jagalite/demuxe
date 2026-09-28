@@ -139,5 +139,5 @@ requires clean `privateMpv` source/configuration/artifact bindings. The release
 consumer gate now requires private subtitle/audio, composed-service,
 cancellation and asset-mismatch cases against the exact archive. The existing
 local component builds and this source-tree campaign do not satisfy that gate;
-the archive consumer runner still needs those cases before a tagged release.
+the archive consumer runner now implements those cases, and a tagged release still requires passing results against its exact archive.
 No device, long-duration, broad codec or additional-browser claim is made.

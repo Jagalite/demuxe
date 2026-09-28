@@ -42,7 +42,7 @@ def verify(report_path, archive, manifest, source_files):
 
 def required_consumer_cases(manifest):
     """The standard installed-consumer suite adds external ASS only when shipped."""
-    cases={'automatic-local','native-no-isolation','hybrid-pin','software-pin','automatic-ass','native-remux','transitions','rollback','missing-engine','isolation-error','omitted-yuv','av1-software','hdr-software','external-subtitles','surround-output','hls-expanded','dash-periods'}
+    cases={'automatic-local','native-no-isolation','hybrid-pin','software-pin','automatic-ass','native-remux','transitions','rollback','missing-engine','isolation-error','rgb-override','av1-software','hdr-software','external-subtitles','surround-output','hls-expanded','dash-periods'}
     if 'web/engine-ass/subtitles.wasm' in manifest['files']:
         cases.add('native-external-ass')
     if 'web/engine-remux-jspi/remux.wasm' in manifest['files']:

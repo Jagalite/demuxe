@@ -14,6 +14,8 @@ def inputs():
  for name in ['native','patches','scripts']:
   paths.extend((root/name).rglob('*'))
  paths.extend((root/'experiments/retained-subtitles').glob('*.c'))
+ for folder in ['runtime','upstream','stage2/native','mpv/native','mpv/runtime','mpv/scripts','ffmpeg/scripts','scripts']:
+  paths.extend(p for p in (root/'experiments/jspi-asyncify'/folder).rglob('*') if p.suffix in ['.py','.c','.h','.s','.js','.mjs'])
  paths.extend(root/p for p in ['experiments/retained-subtitles/compile-hook.py','experiments/software-full/build.sh','experiments/software-full/inventory.py','sources.lock.json','package-lock.json','toolchain.lock.json'])
  return {str(p.relative_to(root)):sha(p)for p in sorted(paths)if p.is_file()and '__pycache__'not in p.parts}
 def sdk_sources(sdk):
@@ -22,7 +24,7 @@ def sdk_sources(sdk):
 record=root/'build/beta-build-start.json'
 if args.phase=='start':
  if args.clean:
-  stale=[str(p.relative_to(root))for pattern in ['build/obj-*','build/prefix*','build/cache','build/sources','build/native-remux','web/engine','web/engine-*']for p in root.glob(pattern)if p.is_dir()]
+  stale=[str(p.relative_to(root))for pattern in ['build/obj-*','build/prefix*','build/cache','build/sources','build/native-remux','build/private-runtime-materials','web/engine','web/engine-*']for p in root.glob(pattern)if p.is_dir()]
   if stale:raise SystemExit('Clean build requires absent output/source/cache directories: '+', '.join(stale))
  record.write_text(json.dumps({'started':datetime.datetime.now(datetime.timezone.utc).isoformat(),'clean':args.clean,'inputs':inputs(),'sdkSources':sdk_sources(pathlib.Path(os.environ.get('DEMUXE_SDK',os.environ.get('WEBMPV_SDK',root/'build/emsdk-4.0.14'))).resolve())},indent=2)+'\n')
 else:
@@ -55,5 +57,13 @@ else:
   if actual!=item['sha256']:raise SystemExit('Source archive changed: '+item['name'])
   source_archives[item['name']]=actual
  data={**start,'finished':datetime.datetime.now(datetime.timezone.utc).isoformat(),'host':platform.platform(),'sharedTools':tools,'sdk':str(sdk),'historicalLinuxToolchainLockAppliesToHost':False,'sources':source_archives,'configurations':{n:sha(root/n)for n in configs},'licenses':{'baseline':'LGPL-2.1-or-later','hybrid':'LGPL-2.1-or-later','selective':'LGPL-2.1-or-later','software':'LGPL-2.1-or-later','subtitles':'LGPL-2.1-or-later','remuxFFmpegLibrary':'LGPL-2.1-or-later','remuxWrapper':json.loads((root/'package.json').read_text()).get('license','UNLICENSED'),'baselineFFmpeg':baseline,'fullFFmpeg':full,'remuxFFmpeg':remux,'mpvGPL':False},'licensingEvidence':json.loads((root/'build/lgpl-closure.json').read_text()),'artifacts':artifacts}
+ private=json.loads((root/'build/private-runtime-materials/record.json').read_text())
+ for group in ['configurations','artifacts']:
+  data[group].update(private[group])
+ for group in ['privateRemux','privateMpv']:
+  data[group]=private[group]
+ for group in ['privateRemux','privateMpv']:
+  for entry in data[group].values():
+   if not all(n in data['inputs'] for n in entry['inputs']):raise SystemExit('Private source missing from input record')
  (root/'build/beta-build.json').write_text(json.dumps(data,indent=2)+'\n')
  print(root/'build/beta-build.json')

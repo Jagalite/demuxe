@@ -32,5 +32,6 @@ npm run build:hybrid
 python3 scripts/build-selective-audio.py
 npm run build:remux
 python3 scripts/build-subtitles.py
+python3 scripts/build-private-release.py --sdk "$SDK" --tools "$ROOT/build/venv/bin"
 npm run build
 python3 scripts/beta-build-record.py finish

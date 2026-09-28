@@ -228,4 +228,6 @@ configure npm trusted publishing for the exact GitHub workflow used for later re
 
 ## Non-isolated remux release gate
 
-The standard engine build ships the maintained pthread remux runtime. Qualify isolated remux and non-isolated browser-native routing; JSPI/Asyncify are not production runtime variants. See [runtime requirements](NON-ISOLATED-REMUX.md).
+The clean engine build ships pthread and private JSPI/Asyncify remux/transcode engines, plus the restricted private mpv subtitle and PCM16 audio services. `build-private-release.py` builds fresh dependencies and caches from the candidate revision and records the source, configuration and artifact bindings in `beta-build.json`. Its external build directory is recorded in `build/private-runtime-materials/location.json`; preserve it with the clean-build log. The source companion includes the pinned archives, build recipes, transformed inputs and link/configuration evidence.
+
+The installed-archive consumer suite requires runtime selection with and without isolation, private subtitles and audio under auto and explicit Asyncify, composed playback, cancellation of pending service reads, and mismatched Wasm rejection. Both Chrome and Firefox must pass against the exact archive. See [runtime requirements](NON-ISOLATED-REMUX.md).
