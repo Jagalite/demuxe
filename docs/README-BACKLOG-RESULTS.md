@@ -566,3 +566,16 @@ Forced Asyncify companion references select the manifest/hash/export-verified As
 | Video.js | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
 | JSPI | 🟢 (Pass) · 18.2% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux-mpv; CPU rounds: 18.16%, 17.97%, 19.51%; CPU route: native-remux-mpv |
 | Asyncify | 🟢 (Pass) · 19.7% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux-mpv; CPU rounds: 19.73%, 19.26%, 19.78%; CPU route: native-remux-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
+
+## Row 51: AAC audio-only / M4A
+
+The original Video.js attempt received `application/octet-stream` because the adapter omitted `.m4a` from its MIME map. This harness error is retained in the original archive and superseded only for Video.js by the corrected `audio/mp4` screen and matching CPU campaign. Other lanes retain their original matching correctness and CPU evidence.
+
+[Correctness](../results/head-to-head/backlog-51-audio-aac-correctness/summary.json) · [Corrected case 1](../results/head-to-head/backlog-51-audio-aac-videojs-mime-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-51-audio-aac-cpu/summary.json) · [CPU 2](../results/head-to-head/backlog-51-audio-aac-videojs-mime-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 11.3% CPU | All bounded playback checks passed; CPU rounds: 11.25%, 11.36%, 11.27%; CPU route: native-direct |
+| JSPI | 🟢 (Pass) · 5.8% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 6.23%, 5.52%, 5.79%; CPU route: native-remux |
+| Asyncify | 🟢 (Pass) · 5.9% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 5.86%, 5.53%, 6.38%; CPU route: native-remux |
+| Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement |

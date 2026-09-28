@@ -1,0 +1,542 @@
+{
+  "schema": 1,
+  "benchmarkPolicy": {
+    "schema": 4,
+    "browserLifetime": "caller-declared comparison block; fresh context per arm",
+    "interArmIdleSeconds": 2,
+    "profile": "fresh temporary Playwright profile per launch",
+    "startupGateSeconds": 150,
+    "startupGate": "macOS Chrome hardware-key task completion; tracing off before measurement",
+    "startupIdleSeconds": 20,
+    "warmupSeconds": 5,
+    "measureSeconds": 20,
+    "sampleIntervalSeconds": 2,
+    "clock": "monotonic CPU-query midpoint; fixed sample deadlines",
+    "viewport": {
+      "width": 960,
+      "height": 540
+    },
+    "deviceScaleFactor": 1
+  },
+  "kind": "correctness",
+  "startedAt": "2026-09-28T21:38:58.668Z",
+  "browserScope": "round",
+  "controlledStreaming": false,
+  "streamingBackends": false,
+  "screenedCpu": false,
+  "diagnosticFailedCpu": false,
+  "assets": "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-backlog-20260928-03",
+  "assetsSHA256": "b73726935d4db2440aa99cd656d4b2ace124c2f83397480bd6a818d1467c4df4",
+  "harnessSHA256": "f6b48e2b0593054f3cab5deca0644e9da72fd6c28ea1d7877bf9b6352c92304d",
+  "sourceHashes": {
+    "campaign-progress.mjs": "f99a82eb9579aac48680a75d6614b67a13192d7a67e920cc3a729e58b671d5b0",
+    "benchmark-browser.mjs": "02788b92fbd9c2667cf853d9c69bba3ffbde93ae34ee50a064cea66c821c2b20",
+    "browser-exit.mjs": "a2ffb141f6c41159439579b3172ea6335449f0e96114872c0f6ea2ac8e44090e",
+    "performance-metrics.mjs": "5f06d911c7e8d014fe8a575c294002fbb297fcb5f5d6d10c2dbb3b08f3744295",
+    "component-trials.mjs": "8788c79bf23223c39272b5158a58e59434ec018ba3fed1dbd777da54f263225d",
+    "initial-output.mjs": "1cfe6771cf446ed71e9bac19ba05c579e765369c777f11e3387f3a20db466666",
+    "remux-evidence.mjs": "34691612bc421584c9283199e3d8a29066f1ae2dd86285a1b3803a73eea073e6",
+    "specialist-audio.mjs": "8ed3af093c5b9b28974ff8c74b91a3a4ebd645a0a685382119ef49bf759d426f",
+    "specialist-contract.mjs": "f1e041e613ee05cca9fdbf430e86529ce4df44a4414d9dd0ce7dd1dd468d3604",
+    "run.mjs": "3d2a9cd0d91aa840c757aa7227436244a49f7f3dc2e1d26ea086444f55cf8281",
+    "server.mjs": "faa05ae4990a6e93bd6b10679ff6af22d45602cf80bdd7e19c6e0ee3909d3e34",
+    "checks.mjs": "3900402cef8ac46701090055872564a64015df215231ac510ed9c64d2e85b714",
+    "adapters.mjs": "8ac6f82b71991ede3ff71fce0e141f78c3d436406dd9a01938a27e693d916de7",
+    "harness.html": "39550e4790ef0c9acfa16126d8b24f3b184b27b80fc70ba07aa52b5dfe37badd",
+    "matrix.json": "8dd8fb2f5d0d386056840be9f696294a9aec47cf88abc6729a5e6b20c334df25",
+    "assets.lock.json": "da47f3bc6e2c208d30070ece28bf81fc9981b4db81620ce53717570071cc4e0c",
+    "setup.py": "9285359ab5faee72de15a0527f68bc8c49ffe2c8a0a658ee81652fd6c246c3bf",
+    "expand.py": "a16950b8730fc5ee12b19a98e7e7069483cb7f4a4ad53403b74a3a31317a1425",
+    "planned.json": "e648ba183fa2caeba7996fb8e314535be4d84edaeac0cf0b8511a381e4bea8b1",
+    "subtitle-ocr.swift": "852d6c7a6c1f4fdd1e8ff2e077701fe1f76742d1a3bfffd7b1d4f5231d84029e",
+    "bitmap.py": "d5233d39d5cdd3aa9df0379f2e3b033801fd33105e31d4f0189e6a38abb49517"
+  },
+  "gitRevision": "601b5b59d4570d418e711d1b35f67f228ab4a823",
+  "playerSourceRevision": "7f4407d2ae529891ba3816215b2f930c6ef267d8",
+  "host": {
+    "platform": "darwin",
+    "release": "25.5.0",
+    "architecture": "arm64",
+    "cpus": 8
+  },
+  "command": {
+    "argv": [
+      "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+      "/Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs",
+      "--assets",
+      "build/head-to-head/assets-backlog-20260928-03",
+      "--catalogue",
+      "--include-private-remux",
+      "--include-videojs",
+      "--include-software",
+      "--headed",
+      "--force-private-remux",
+      "--cases",
+      "videojs.default.audio-aac",
+      "--output",
+      "results/head-to-head/backlog-51-audio-aac-videojs-mime-correctness"
+    ],
+    "cwd": "/Volumes/seed2/Projects/demuxe"
+  },
+  "selected": [
+    "videojs.default.audio-aac"
+  ],
+  "cases": [
+    {
+      "id": "videojs.default.audio-aac",
+      "player": "videojs",
+      "lane": "default",
+      "fixture": "audio-aac",
+      "requirements": [
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup"
+      ],
+      "status": "passed",
+      "startedAt": "2026-09-28T21:38:58.867Z",
+      "console": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "requestFailures": [],
+      "recordPath": "videojs.default.audio-aac/result.json",
+      "browserLaunch": {
+        "startupReadiness": {
+          "status": "not-requested",
+          "purpose": "correctness or explicit startup measurement"
+        },
+        "configurationSHA256": "5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8",
+        "version": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.53",
+          "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        },
+        "channel": "chrome",
+        "effectiveArguments": [
+          "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "--disable-field-trial-config",
+          "--disable-background-networking",
+          "--disable-background-timer-throttling",
+          "--disable-backgrounding-occluded-windows",
+          "--disable-back-forward-cache",
+          "--disable-breakpad",
+          "--disable-client-side-phishing-detection",
+          "--disable-component-extensions-with-background-pages",
+          "--disable-component-update",
+          "--no-default-browser-check",
+          "--disable-default-apps",
+          "--disable-dev-shm-usage",
+          "--disable-extensions",
+          "--disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints",
+          "--enable-features=CDPScreenshotNewSurface",
+          "--allow-pre-commit-input",
+          "--disable-hang-monitor",
+          "--disable-ipc-flooding-protection",
+          "--disable-popup-blocking",
+          "--disable-prompt-on-repost",
+          "--disable-renderer-backgrounding",
+          "--force-color-profile=srgb",
+          "--metrics-recording-only",
+          "--no-first-run",
+          "--password-store=basic",
+          "--use-mock-keychain",
+          "--no-service-autorun",
+          "--export-tagged-pdf",
+          "--disable-search-engine-choice-screen",
+          "--unsafely-disable-devtools-self-xss-warnings",
+          "--edge-skip-compat-layer-relaunch",
+          "--enable-automation",
+          "--disable-infobars",
+          "--disable-search-engine-choice-screen",
+          "--disable-sync",
+          "--no-sandbox",
+          "--autoplay-policy=no-user-gesture-required",
+          "--user-data-dir=/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/playwright_chromiumdev_profile-mwajE5",
+          "--remote-debugging-pipe",
+          "--no-startup-window",
+          "--flag-switches-begin",
+          "--flag-switches-end"
+        ],
+        "headless": false,
+        "policy": {
+          "schema": 4,
+          "browserLifetime": "caller-declared comparison block; fresh context per arm",
+          "interArmIdleSeconds": 2,
+          "profile": "fresh temporary Playwright profile per launch",
+          "startupGateSeconds": 150,
+          "startupGate": "macOS Chrome hardware-key task completion; tracing off before measurement",
+          "startupIdleSeconds": 20,
+          "warmupSeconds": 5,
+          "measureSeconds": 20,
+          "sampleIntervalSeconds": 2,
+          "clock": "monotonic CPU-query midpoint; fixed sample deadlines",
+          "viewport": {
+            "width": 960,
+            "height": 540
+          },
+          "deviceScaleFactor": 1
+        }
+      },
+      "documentHeaders": {
+        "accept-ranges": "bytes",
+        "access-control-allow-origin": "*",
+        "cache-control": "no-store",
+        "connection": "keep-alive",
+        "content-length": "399",
+        "content-type": "text/html",
+        "cross-origin-embedder-policy": "require-corp",
+        "cross-origin-opener-policy": "same-origin",
+        "cross-origin-resource-policy": "same-origin",
+        "date": "Mon, 28 Sep 2026 21:39:00 GMT",
+        "etag": "\"39550e4790ef0c9acfa16126d8b24f3b184b27b80fc70ba07aa52b5dfe37badd\"",
+        "keep-alive": "timeout=5"
+      },
+      "stage": "near-eof",
+      "initial": {
+        "position": 0.672,
+        "duration": 36,
+        "paused": false,
+        "ended": false,
+        "route": "native-direct",
+        "version": "8.24.1",
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0.1058236355822724,
+            "hz": 439.453125
+          },
+          {
+            "channel": 1,
+            "rms": 0.10593018801175719,
+            "hz": 878.90625
+          }
+        ],
+        "observedMedia": [
+          {
+            "detachedWhenObserved": false,
+            "connected": true,
+            "source": "http://127.0.0.1:57367/fixtures/audio-aac/index.m4a",
+            "time": 0.672,
+            "paused": false,
+            "muted": false,
+            "volume": 1
+          }
+        ],
+        "errors": [],
+        "events": [
+          {
+            "type": "waiting",
+            "time": 0
+          }
+        ],
+        "visible": true,
+        "focused": true,
+        "video": null
+      },
+      "initialImage": {
+        "rgb": [
+          0,
+          0,
+          0
+        ],
+        "expected": "red",
+        "markerCorrect": false,
+        "magentaPixels": 0
+      },
+      "moving": false,
+      "initialPlaybackPassed": true,
+      "rateAdvance": 0.9876239999999998,
+      "seeks": [
+        {
+          "target": 6,
+          "state": {
+            "position": 6.186667,
+            "duration": 36,
+            "paused": false,
+            "ended": false,
+            "route": "native-direct",
+            "version": "8.24.1",
+            "audio": [
+              {
+                "channel": 0,
+                "rms": 0.1060113642810992,
+                "hz": 439.453125
+              },
+              {
+                "channel": 1,
+                "rms": 0.10605385706287349,
+                "hz": 878.90625
+              }
+            ],
+            "observedMedia": [
+              {
+                "detachedWhenObserved": false,
+                "connected": true,
+                "source": "http://127.0.0.1:57367/fixtures/audio-aac/index.m4a",
+                "time": 6.186667,
+                "paused": false,
+                "muted": false,
+                "volume": 1
+              }
+            ],
+            "errors": [],
+            "events": [
+              {
+                "type": "waiting",
+                "time": 0
+              },
+              {
+                "type": "waiting",
+                "time": 6
+              }
+            ],
+            "visible": true,
+            "focused": true,
+            "video": null
+          },
+          "image": {
+            "rgb": [
+              0,
+              0,
+              0
+            ],
+            "expected": "blue",
+            "markerCorrect": false,
+            "magentaPixels": 0
+          }
+        },
+        {
+          "target": 1,
+          "state": {
+            "position": 1.186667,
+            "duration": 36,
+            "paused": false,
+            "ended": false,
+            "route": "native-direct",
+            "version": "8.24.1",
+            "audio": [
+              {
+                "channel": 0,
+                "rms": 0.10567191062766274,
+                "hz": 439.453125
+              },
+              {
+                "channel": 1,
+                "rms": 0.10607522876277499,
+                "hz": 878.90625
+              }
+            ],
+            "observedMedia": [
+              {
+                "detachedWhenObserved": false,
+                "connected": true,
+                "source": "http://127.0.0.1:57367/fixtures/audio-aac/index.m4a",
+                "time": 1.186667,
+                "paused": false,
+                "muted": false,
+                "volume": 1
+              }
+            ],
+            "errors": [],
+            "events": [
+              {
+                "type": "waiting",
+                "time": 0
+              },
+              {
+                "type": "waiting",
+                "time": 6
+              },
+              {
+                "type": "waiting",
+                "time": 1
+              }
+            ],
+            "visible": true,
+            "focused": true,
+            "video": null
+          },
+          "image": {
+            "rgb": [
+              0,
+              0,
+              0
+            ],
+            "expected": "red",
+            "markerCorrect": false,
+            "magentaPixels": 0
+          }
+        },
+        {
+          "target": 10,
+          "state": {
+            "position": 10.186667,
+            "duration": 36,
+            "paused": false,
+            "ended": false,
+            "route": "native-direct",
+            "version": "8.24.1",
+            "audio": [
+              {
+                "channel": 0,
+                "rms": 0.10602218879443057,
+                "hz": 439.453125
+              },
+              {
+                "channel": 1,
+                "rms": 0.10606011625097302,
+                "hz": 878.90625
+              }
+            ],
+            "observedMedia": [
+              {
+                "detachedWhenObserved": false,
+                "connected": true,
+                "source": "http://127.0.0.1:57367/fixtures/audio-aac/index.m4a",
+                "time": 10.186667,
+                "paused": false,
+                "muted": false,
+                "volume": 1
+              }
+            ],
+            "errors": [],
+            "events": [
+              {
+                "type": "waiting",
+                "time": 0
+              },
+              {
+                "type": "waiting",
+                "time": 6
+              },
+              {
+                "type": "waiting",
+                "time": 1
+              },
+              {
+                "type": "waiting",
+                "time": 10
+              }
+            ],
+            "visible": true,
+            "focused": true,
+            "video": null
+          },
+          "image": {
+            "rgb": [
+              0,
+              0,
+              0
+            ],
+            "expected": "green",
+            "markerCorrect": false,
+            "magentaPixels": 0
+          }
+        }
+      ],
+      "eof": {
+        "position": 36,
+        "duration": 36,
+        "paused": true,
+        "ended": true,
+        "route": "native-direct",
+        "version": "8.24.1",
+        "audio": [
+          {
+            "channel": 0,
+            "rms": 0,
+            "hz": 439.453125
+          },
+          {
+            "channel": 1,
+            "rms": 0,
+            "hz": 878.90625
+          }
+        ],
+        "observedMedia": [
+          {
+            "detachedWhenObserved": false,
+            "connected": true,
+            "source": "http://127.0.0.1:57367/fixtures/audio-aac/index.m4a",
+            "time": 36,
+            "paused": true,
+            "muted": false,
+            "volume": 1
+          }
+        ],
+        "errors": [],
+        "events": [
+          {
+            "type": "waiting",
+            "time": 0
+          },
+          {
+            "type": "waiting",
+            "time": 6
+          },
+          {
+            "type": "waiting",
+            "time": 1
+          },
+          {
+            "type": "waiting",
+            "time": 10
+          },
+          {
+            "type": "waiting",
+            "time": 35.35
+          },
+          {
+            "type": "ended",
+            "time": 36
+          }
+        ],
+        "visible": true,
+        "focused": true,
+        "video": null
+      },
+      "cleanup": {
+        "remainingSurfaces": 0,
+        "contexts": [
+          "closed"
+        ]
+      },
+      "workersAfter": 0,
+      "browserCleanup": {
+        "trackedProcessIDs": [
+          71504,
+          71552,
+          71549,
+          71548,
+          71511,
+          71512,
+          71524,
+          71553
+        ],
+        "remainingProcessIDs": [],
+        "playwrightCloseAcknowledged": true
+      },
+      "finishedAt": "2026-09-28T21:39:07.721Z"
+    }
+  ],
+  "limits": [
+    "Short synthetic marked-output screen; no exhaustive codec/fidelity, physical audio/display or release qualification.",
+    "Startup is API/wall timing, not first sound/photon. Correctness uses intrusive audio analysis and screenshots.",
+    "Fresh browser contexts do not flush OS caches. Host-library subtitle overlays are explicitly labeled."
+  ],
+  "browserBlocks": [],
+  "browserIdentity": "chromium/153.0.8010.53/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8",
+  "finishedAt": "2026-09-28T21:39:07.724Z",
+  "counts": {
+    "passed": 1,
+    "failed": 0,
+    "blocked": 0,
+    "skipped": 0
+  },
+  "passed": true
+}
