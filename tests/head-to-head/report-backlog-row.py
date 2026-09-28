@@ -32,6 +32,7 @@ def publish(args):
     fixtures = {c['fixture'] for c in proof['cases']}
     assert len(fixtures) == 1
     fixture = next(iter(fixtures))
+    contract = json.loads((args.correctness/'files/harness/matrix.json').read_text())['fixtures'][fixture]
     readme = ROOT/'README.md'
     lines = readme.read_text().splitlines()
     indices = [i for i, line in enumerate(lines) if line.startswith('| ') and len(line.split('|')) == 12][2:]
@@ -47,8 +48,11 @@ def publish(args):
                     (c['status'] == 'passed' or (c['status'] == 'blocked' and c.get('screenMeasured') and not c.get('failureStage')))]
         good = case['status'] == 'passed' or (case['status'] == 'blocked' and case.get('screenPassed') and not case.get('failureStage'))
         reason = short(case.get('reason', 'All bounded playback checks passed'))
+        if case.get('runtimeObservations'):
+            reason += '; observed routes: '+', '.join(o['route'] for o in case['runtimeObservations'])
         if case.get('runtimeBypass') and good:
-            cell = 'N/A · native-direct bypass'
+            route = case.get('runtimeObservations', [{}])[0].get('route', 'native-direct')
+            cell = f'N/A · {route} bypass'
         elif good:
             cell = '🟡 Screened*' if case.get('screenPassed') else '🟢 (Pass)'
             if len(windows) >= 3 and len(accepted) == len(windows) and len({c['round'] for c in windows}) == len(windows):
@@ -58,12 +62,17 @@ def publish(args):
             else:
                 cell += ' · CPU withheld' if windows else ' · CPU pending'
                 failed = '; '.join(short(c.get('reason', 'No accepted measurement')) for c in windows if c not in accepted)
+                if case.get('runtimeCPUApplicable') is False:
+                    failed = 'Default playback bypasses the requested runtime; measure the explicitly selected remux/transcode track separately'
                 todos.append(f'| {name} | {lane} | {failed or "Matching CPU campaign still required"} | [Evidence](../{args.correctness.relative_to(ROOT)}/summary.json) |')
         elif case['status'] == 'failed':
             cell = '🔴 (Fail)'
         else:
             cell = '— Blocked'
             todos.append(f'| {name} | {lane} | {reason} | [Evidence](../{args.correctness.relative_to(ROOT)}/summary.json) |')
+        if good and contract.get('audioTrackSwitches') and case['player'] != 'demuxe':
+            cell += ' · default track'
+            reason += '; alternate audio-track selection was not exercised'
         cells[column] = cell
         details.append(f'| {lane} | {cell} | {reason} |')
     lines[index] = '| ' + ' | '.join(cells) + ' |'

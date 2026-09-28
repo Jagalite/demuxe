@@ -25,3 +25,13 @@ Demuxe uses the frozen September 28 source candidate based on `7f4407d2` plus ca
 | Video.js | 🟢 (Pass) · 21.7% CPU | All bounded playback checks passed; CPU rounds: 21.66%, 23.36%, 21.30% |
 | JSPI | N/A · native-direct bypass | Playback passed via native-direct; requested remux runtime was not exercised. CPU not applicable to this runtime. |
 | Asyncify | N/A · native-direct bypass | Playback passed via native-direct; requested remux runtime was not exercised. CPU not applicable to this runtime. |
+
+## Row 3: Dual-audio H.264 + AAC + AC-3 stereo / MKV
+
+[Correctness](../results/head-to-head/backlog-03-h264-dual-audio-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-03-h264-dual-audio-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 23.5% CPU · default track | All bounded playback checks passed; CPU rounds: 23.60%, 23.53%, 21.91%; alternate audio-track selection was not exercised |
+| JSPI | 🟢 (Pass) · CPU pending | All bounded playback checks passed; observed routes: native-direct, native-transcode |
+| Asyncify | 🟢 (Pass) · CPU pending | All bounded playback checks passed; observed routes: native-direct, native-transcode |
