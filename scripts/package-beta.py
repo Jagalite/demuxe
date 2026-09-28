@@ -62,7 +62,13 @@ def add(name):
  if not f.is_file():raise SystemExit('Missing runtime asset: '+name)
  files[name]=f.read_bytes()
 # Only the dependency closure of the public entrypoints, including declarations.
-pending=['web/generated/index.js','web/generated/player/index.js'];seen=set()
+pending=[]
+for entry in project['exports'].values():
+ for value in (entry.values() if isinstance(entry,dict) else [entry]):
+  if not isinstance(value,str) or not value.startswith('./web/generated/'):
+   raise SystemExit('Unexpected public entrypoint target: '+str(value))
+  pending.append(value.removeprefix('./'))
+seen=set()
 while pending:
  name=pending.pop()
  if name in seen:continue
@@ -98,6 +104,9 @@ engines={'remux':('engine-remux','remux'),'hybrid':('engine-hybrid','player'),'s
 if mpv_subtitles:engines['subtitles']=('engine-subtitles','service')
 for backend in ['jspi','asyncify']:
  for profile in ['remux','adaptation']:engines[profile+'-'+backend]=('engine-'+profile+'-'+backend,'remux')
+if any(n.startswith('web/engine-mpv-') for n in private_files):
+ for backend in ['jspi','asyncify']:
+  for profile in ['subtitles','audio']:engines[f'mpv-{profile}-{backend}']=(f'engine-mpv-{profile}-{backend}','service')
 if args.adaptation_build:
  adaptation=args.adaptation_build.resolve();record=json.loads((adaptation/'manifest.json').read_text())
  if record.get('apiVersion')!=2:raise SystemExit('Preparation interface mismatch; rebuild matching assets')
@@ -194,6 +203,8 @@ for name in ['RELEASE.md','LICENSING.md','COMPATIBILITY-EXPANSION.md']:
  files['README.md']=files['README.md'].replace((']('+name+')').encode(),('](docs/'+name+')').encode())
 package={'name':project['name'],'version':project['version'],'license':'Apache-2.0','demuxeLicenses':license_policy.config['packageLicenses'],'type':'module','main':'./index.js','types':'./index.d.ts','exports':{'.':{'types':'./index.d.ts','import':'./index.js'},'./player':{'types':'./player.d.ts','import':'./player.js'},'./release-manifest.json':'./release-manifest.json'},'bin':{project['name']:'./bin/demuxe.mjs'},'description':'Browser media compatibility runtime: Native, Hybrid, Software'}
 package.update({key:project[key] for key in ['description','repository','bugs','homepage','keywords']})
+for name,entry in project['exports'].items():
+ if name not in ('.','./player'):package['exports'][name]=entry
 package['exports']['./package.json']='./package.json'
 files['package.json']=(json.dumps(package,indent=2)+'\n').encode()
 files['license-map.json']=encoded(license_policy.package_map(files,'player'))
