@@ -60,7 +60,7 @@ with tarfile.open(sys.argv[1]) as archive:
  inputs=json.load(archive.extractfile('locked-inputs.json'))
  lock=json.load(archive.extractfile('demuxe/sources.lock.json'))
  assert inputs['ffmpeg']==next(x for x in lock['sources'] if x['name']=='ffmpeg-adaptation')
- assert inputs['ffmpeg']['revision']=='n9.0.1'
+ assert inputs['ffmpeg']==json.loads(sys.argv[2]),'Companion differs from the candidate source lock'
  for name,digest in inputs['patches'].items():
   assert name.startswith('patches/ffmpeg-adaptation/'),name
   assert hashlib.sha256(archive.extractfile('demuxe/'+name).read()).hexdigest()==digest,name
@@ -71,14 +71,20 @@ with tarfile.open(sys.argv[1]) as archive:
  for suffix,target in [('ffmpeg/config.h','build/config.h'),('ffmpeg/config_components.h','build/config_components.h'),('ffmpeg/ffbuild/config.mak','build/config.mak')]:
   expected=next(v['sha256'] for k,v in linked['files'].items() if k.endswith('/'+suffix))
   assert hashlib.sha256(archive.extractfile(target).read()).hexdigest()==expected,target
-`,path.join(path.dirname(archive),manifest.sourceCompanion.filename)],{stdio:'pipe'});
+`,path.join(path.dirname(archive),manifest.sourceCompanion.filename),JSON.stringify(JSON.parse(await readFile('sources.lock.json')).sources.find(source=>source.name==='ffmpeg-adaptation'))],{stdio:'pipe'});
 });
 
 
-test('package ships the maintained LGPL standard engines and subtitle service',async()=>{
+test('package ships the maintained standard and private runtime engines',async()=>{
  const manifest=JSON.parse(await readFile(path.join(pkg,'release-manifest.json')));
- assert.deepEqual(Object.keys(manifest.engines).sort(),['hybrid','remux','software','subtitles']);
- assert.ok(manifest.files['web/engine-subtitles/service.wasm']);
+ const expected=['hybrid','remux','selective','software','software-rgb','subtitles'];
+ for(const backend of ['jspi','asyncify'])for(const service of ['remux','adaptation','mpv-subtitles','mpv-audio'])expected.push(`${service}-${backend}`);
+ assert.deepEqual(Object.keys(manifest.engines).sort(),expected.sort());
+ for(const [name,[folder,stem]]of Object.entries(manifest.engines))for(const extension of ['mjs','wasm']){
+  const file=`web/${folder}/${stem}.${extension}`;
+  assert.ok(manifest.files[file],`${name} is missing ${file}`);
+  assert.equal(createHash('sha256').update(await readFile(path.join(pkg,file))).digest('hex'),manifest.files[file].sha256,file);
+ }
 });
 
 test('upgrade removes only unchanged obsolete managed assets',async()=>{
