@@ -143,3 +143,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Lane | Result | Observation |
 | --- | --- | --- |
 | MediaBunny | 🟡 Screened* · 35.5% CPU | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters; CPU rounds: 31.14%, 35.51%, 35.60% |
+
+## Row 9: H.264 + E-AC-3 5.1 / MKV
+
+[Correctness](../results/head-to-head/backlog-09-h264-eac3-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-09-h264-eac3-screened-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
+| JSPI | 🟡 Screened* · 18.4% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-transcode; CPU rounds: 18.44%, 19.69%, 17.78%; CPU route: native-transcode |
+| Asyncify | 🟡 Screened* · 18.6% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-transcode; CPU rounds: 18.56%, 20.45%, 18.40%; CPU route: native-transcode |
