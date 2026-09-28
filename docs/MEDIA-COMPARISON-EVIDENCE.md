@@ -13,6 +13,78 @@ For new measurements, follow the [project testing standard](TESTING-STANDARD.md)
 and [current benchmark protocol](BENCHMARK-PROTOCOL.md). Those requirements do
 not retroactively qualify the historical campaigns described here.
 
+## Current table evidence
+
+**Demuxe Auto rows have a current-protocol disposition.** The
+[current-main Auto retest](AUTO-MAIN-RETEST-A563F345.md) refreshes the
+priority audio/subtitle rows and the remaining streaming and specialist rows.
+The [earlier audio/subtitle campaign](AUTO-AUDIO-RETEST-E974CBDF.md)
+records the FLAC24 audio transcoding change; see
+[audio transcoding](AUDIO-TRANSCODING.md) for that policy.
+Unqualified source fixtures, failed playback checks and rejected CPU windows
+remain explicit instead of receiving an inferred CPU value.
+Previous numbers are preserved in the
+[historical CPU snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md).
+See the [row refresh index](CPU-ROW-REFRESH.md) for completed measurements.
+New one-browser-per-row results use three correlated rounds; their ranges and
+idle trends are in each row report.
+
+**Demuxe JSPI** and **Demuxe Asyncify** measure complete Player playback without COOP/COEP. Published README cells cover the measured file remux/transcode rows; `— Untested` makes no support claim. The [Player CPU report](JSPI-ASYNCIFY-PLAYER-CPU.md) contains matched pthread controls; existing Auto and other-player values are from separate campaigns. Qualified private mpv subtitles and restricted PCM16 audio now use the same [runtime selection](REMUX-RUNTIME.md); their separate [Player campaign](PRIVATE-MPV-PLAYER.md) retains its own fixtures and matched controls. Private Hybrid and Software remain excluded.
+
+### Row notes
+
+**MediaBunny column:** The [official player example](https://mediabunny.dev/examples/media-player/) is screened on each cited fixture using marked video, stereo audio, pause/resume, seeks and near-EOF settlement. 🟡 Screened remains because its public controls do not qualify 1.25× playback or independent cleanup; the dual-audio row covers the default track only. CPU is the median of three headed Chrome whole-process windows (20 seconds each, after five seconds of warmup), expressed as percent of one core. The [first-four campaign](../experiments/mediabunny-investigation/notes/official-player-first-four.md) used a separate browser run from the other columns. Subsequent rows linked in the [CPU refresh index](CPU-ROW-REFRESH.md) use one Chrome launch per row across viable player arms, with fresh contexts and rotating order. MediaBunny receives local File input while maintained players use the frozen local URL, so CPU values do not isolate decoder or demux costs. `—` means no player test for that exact row.
+
+The external ASS row played video and audio in the MediaBunny example, but the required subtitle file could not be supplied through its controls. Its failure and the earlier CPU evidence for the other players are documented in the [row evidence](../experiments/mediabunny-investigation/notes/official-player-row-pcm24-ass-20260925/REPORT.md). The [fresh Auto measurements](CPU-GAP-CLOSEOUT.md) passed on `native-direct-ass` with a 19.8% CPU median. The earlier unusually low window remains unexplained and is retained separately; it is not pooled into this fresh median.
+
+The [HEVC HLS follow-up](CPU-GAP-CLOSEOUT.md) corrected segment-start timestamps in the authored fixture and passed fresh correctness plus three CPU windows with zero drops; Auto now reports 14.9% CPU. Other player cells retain their prior fixture evidence.
+
+The [AAC 5.1 row](../experiments/mediabunny-investigation/notes/official-player-row-h264-aac51-20260925/REPORT.md) used one headed Chrome launch for all player CPU arms and three rotating rounds. Its `*` means stereo output was screened; six discrete output channels were not verified. Movi's CPU samples are diagnostic because its correctness screen failed.
+
+The [MP3/MP4 row](../experiments/mediabunny-investigation/notes/official-player-row-h264-mp3-confirmed-20260925/REPORT.md) also used one Chrome launch across all six CPU arms and three rotating rounds. Its separate Auto follow-up investigated one low matched-run window; all windows are retained in the report. AVPlayer passed the fresh full screen, replacing its earlier partial-playback label.
+
+The [AC-3 5.1 row](../experiments/mediabunny-investigation/notes/official-player-row-h264-ac3-confirmed-20260925/REPORT.md) screened stereo output from the six-channel source. AVPlayer and MediaBunny CPU figures are withheld because an independent launch reversed their apparent ranking. Plain video and Movi failed correctness; their CPU samples are diagnostic only.
+
+The [E-AC-3 5.1 row](../experiments/mediabunny-investigation/notes/official-player-row-h264-eac3-20260926/REPORT.md) used a refreshed Demuxe snapshot, one Chrome for all six CPU arms and three rotating rounds. Plain video and Movi failed correctness, so their CPU samples remain diagnostic. The four passing/screened players verified stereo output from the six-channel source, not discrete 5.1 fidelity.
+
+The [DTS core 5.1 row](../experiments/mediabunny-investigation/notes/official-player-row-h264-dts-20260926/REPORT.md) followed the same one-Chrome-per-row CPU protocol. Plain video failed initial playback and Movi failed the rate check; their CPU samples are diagnostic. The other four arms verified stereo output, with discrete 5.1 still unqualified.
+
+The [AC-3 stereo row](../experiments/mediabunny-investigation/notes/official-player-row-h264-ac3-stereo-20260926/REPORT.md) used the same current Demuxe code with a frozen stereo fixture from the earlier catalogue. Auto selected Hybrid on the maintained players' local URL; an earlier local-File selective-audio result is a different input contract. CPU values are from this URL/File comparison campaign only.
+
+The [E-AC-3 stereo row](../experiments/mediabunny-investigation/notes/official-player-row-h264-eac3-stereo-20260926/REPORT.md) screened all five maintained players and the official MediaBunny example. Four viable/screened arms received matched CPU windows; plain video and Movi kept their failed cells without diagnostic CPU numbers.
+
+The [DTS core stereo row](../experiments/mediabunny-investigation/notes/official-player-row-h264-dts-stereo-20260926/REPORT.md) used the same frozen stereo catalogue. Its earlier local-URL campaign selected Hybrid and had variable CPU; the [current-main Auto retest](AUTO-MAIN-RETEST-A563F345.md) selected `native-transcode` and confirmed its CPU in a separate fresh launch. These campaigns are not matched CPU comparisons.
+
+See [versions, evidence, and configured alternatives](HEAD-TO-HEAD-ROUTES.md)
+and the [rerun guide](HEAD-TO-HEAD.md).
+
+The SRT, mov_text, styled ASS, PGS and VobSub Auto cells now retain browser video with an mpv subtitle service in the [current-main retest](AUTO-MAIN-RETEST-A563F345.md). Their earlier paired CPU measurements remain in the
+[historical CPU snapshot](HEAD-TO-HEAD-CPU-HISTORICAL-20260925.md).
+The two H.264/AAC bitmap rows isolate subtitles by copying PGS/VobSub
+from the older AC-3 cases onto browser-compatible A/V. The current AC-3/ASS Auto retest passed required subtitle drawing in three independent checks after the older intermittent failure. Other-player cells on the
+older rows retain their separately linked historical results; the new bitmap
+derivatives were not run through those players. Earlier Demuxe CPU evidence is in
+the [unified subtitle scheduler report](../results/subtitle-visual-scheduling/REPORT.md).
+
+The [comparison gap follow-up](COMPARISON-GAP-CLOSEOUT.md) retains its earlier bounded specialist screens. The [current-main Auto retest](AUTO-MAIN-RETEST-A563F345.md) found missing qualified source fixtures for five specialist rows and reproduced playback failures on four compound HDR/PGS or Dolby Vision/ASS fixtures. The current results do not qualify Dolby Vision color, physical HDR, Atmos objects or discrete surround. The [earlier specialist screen](../results/head-to-head/specialist-report-01/REPORT.md) retains the historical failures and forced-Software diagnostics.
+
+### Private mpv Player campaign
+
+These 36-second component-derived fixtures use complete Player playback in Chrome
+153 on an Apple M1. Values are medians of three 20-second whole-Chrome CPU windows,
+expressed as percent of one core, with five-second warmup and the maintained
+startup gate. They are separate fixtures from the README catalogue.
+
+| Workload | pthread control | Demuxe JSPI | Demuxe Asyncify |
+| --- | ---: | ---: | ---: |
+| H.264 + AAC + embedded ASS / MKV | 19.8% | 22.6% | 23.2% |
+| H.264 + PCM16 stereo / MKV | Withheld | 30.4% | 30.0% |
+
+Private paths ran without COOP/COEP. The PCM row uses the corrected audio clock
+controller; its pthread control is withheld because one window failed cadence.
+Do not substitute an older control value. The [full report](PRIVATE-MPV-PLAYER.md)
+records functional scope, hashes, rejected windows, cleanup and release limits.
+
 ## Row-by-row CPU refresh
 
 Keep the historical snapshot intact. For each refreshed row, retain the exact
@@ -28,7 +100,10 @@ its provenance once its within-launch stability supports interpretation.
 The [row refresh index](CPU-ROW-REFRESH.md) links each completed row to its
 correctness, CPU, and interpretation records.
 
-## Scope, campaigns and interpretation
+## Historical campaigns and interpretation
+
+The following notes describe earlier table snapshots. For the active README cells,
+start with [current table evidence](#current-table-evidence) and the linked row reports.
 
 This table records complete-file experiments, not an exhaustive compatibility
 matrix. Use **[component capabilities](CAPABILITIES.md)** to identify which
