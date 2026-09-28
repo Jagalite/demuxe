@@ -15,7 +15,22 @@ not retroactively qualify the historical campaigns described here.
 
 ## Current table evidence
 
-**Demuxe Auto rows have a current-protocol disposition.** The
+**Four compound specialist rows were reset on 2026-09-28.** HDR10/TrueHD/PGS,
+HDR10/DTS-HD MA/PGS, and Dolby Vision 5/8.1 with Atmos/ASS now show Untested in
+every player column. Copied specialist audio was incorrectly subjected to the
+synthetic stereo-tone oracle in the September 27 catalogue run. Older Software
+and competitor cells also remain cleared pending fresh qualification. See the
+[harness correction and rerun procedure](SPECIALIST-HARNESS-RESET.md). Historical
+archives remain intact; their labels do not repopulate these four rows.
+
+**The five base specialist fixtures have been validated for bounded screening.**
+Fresh [source/profile and host-reference checks](BASE-SPECIALIST-FIXTURES.md)
+supersede their unavailable-source explanation. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md)
+has since passed a bounded current-source screen; its CPU remains withheld after
+a frame-drop rejection. The other four Auto cells remain Unqualified pending
+browser screens. Host decoding alone did not establish playback or fidelity.
+
+**Other Demuxe Auto rows retain their current-protocol disposition.** The
 [current-main Auto retest](AUTO-MAIN-RETEST-A563F345.md) refreshes the
 priority audio/subtitle rows and the remaining streaming and specialist rows.
 The [earlier audio/subtitle campaign](AUTO-AUDIO-RETEST-E974CBDF.md)
@@ -66,7 +81,7 @@ older rows retain their separately linked historical results; the new bitmap
 derivatives were not run through those players. Earlier Demuxe CPU evidence is in
 the [unified subtitle scheduler report](../results/subtitle-visual-scheduling/REPORT.md).
 
-The [comparison gap follow-up](COMPARISON-GAP-CLOSEOUT.md) retains its earlier bounded specialist screens. The [current-main Auto retest](AUTO-MAIN-RETEST-A563F345.md) found missing qualified source fixtures for five specialist rows and reproduced playback failures on four compound HDR/PGS or Dolby Vision/ASS fixtures. The current results do not qualify Dolby Vision color, physical HDR, Atmos objects or discrete surround. The [earlier specialist screen](../results/head-to-head/specialist-report-01/REPORT.md) retains the historical failures and forced-Software diagnostics.
+The [comparison gap follow-up](COMPARISON-GAP-CLOSEOUT.md) retains its earlier bounded specialist screens. The [September 27 Auto retest](AUTO-MAIN-RETEST-A563F345.md) found missing qualified source fixtures for five specialist rows and recorded four compound HDR/PGS or Dolby Vision/ASS failures. Those four table rows were subsequently reset because the catalogue's marked-output contract did not match the specialist sources; see the correction above. Neither campaign qualifies Dolby Vision color, physical HDR, Atmos objects or discrete surround. The [earlier specialist screen](../results/head-to-head/specialist-report-01/REPORT.md) retains the historical failures and forced-Software diagnostics.
 
 ### Private mpv Player campaign
 

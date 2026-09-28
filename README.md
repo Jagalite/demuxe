@@ -217,11 +217,11 @@ N/A means no demonstrated playback result for the stated scope.
 | HEVC Main 10 + E-AC-3 / MKV (HDR10) | 🔴 (Fail) | 🟡 (Screened)\* · 19.7% CPU · native-transcode | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* | — | — Untested |
 | HEVC Main 10 + AAC / MP4 (HLG) | 🟢 (Pass)\* | 🟡 (Screened)\* · 16.8% CPU · native-direct | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* | — | — Untested |
 | AV1 10-bit + Opus / WebM (HDR10) | 🟢 (Pass)\* | 🟡 (Screened)\* · 18.9% CPU · native-direct | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* | — | — Untested |
-| HEVC + TrueHD 7.1 / MKV | 🔴 (Fail) | — Unqualified · 7.1 fixture unavailable | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
-| HEVC + DTS-HD MA 7.1 / MKV | 🔴 (Fail) | — Unqualified · DTS-HD MA fixture unavailable | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* | — | — Untested |
-| HEVC + E-AC-3 with Atmos metadata / MP4 | 🔴 (Fail) | — Unqualified · Atmos fixture unavailable | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
-| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🔴 (Fail) | — Unqualified · DV profile 5 fixture unavailable | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
-| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🔴 (Fail) | — Unqualified · DV profile 8.1 fixture unavailable | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* | — | — Untested |
+| HEVC + TrueHD 7.1 / MKV | 🔴 (Fail) | 🟡 (Screened)\* · native-transcode · CPU withheld: frame drops | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
+| HEVC + DTS-HD MA 7.1 / MKV | 🔴 (Fail) | — Unqualified · current-build retest pending | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* | — | — Untested |
+| HEVC + E-AC-3 with Atmos metadata / MP4 | 🔴 (Fail) | — Unqualified · current-build retest pending | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🔴 (Fail) | — Unqualified · current-build retest pending | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
+| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🔴 (Fail) | — Unqualified · current-build retest pending | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* | — | — Untested |
 | H.264 + AAC / HLS VOD (TS segments) | 🟢 (Pass) | 🟢 (Pass) · 15.0% CPU · native-direct | — Untested | — Untested | 🟢 | 🟢 (Pass) | 🟢 (Pass) | — | — Untested |
 | H.264 + AAC / HLS VOD (fMP4 segments) | 🟢 (Pass) | 🟢 (Pass) · 15.6% CPU · native-direct | — Untested | — Untested | 🟢 | 🟢 (Pass) | 🟢 (Pass) | — | — Untested |
 | HEVC + AAC / HLS VOD (fMP4 segments) | 🟢 (Pass) | 🟢 (Pass) · 14.9% CPU · native-direct | — Untested | — Untested | 🟢 | 🟢 (Pass) | 🟢 (Pass) | — | — Untested |
@@ -233,10 +233,10 @@ N/A means no demonstrated playback result for the stated scope.
 | HEVC Main 10 + Opus / MKV | 🟢 (Pass)\* | 🟡 (Screened)\* · 19.8% CPU · native-direct | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* | — | — Untested |
 | HEVC Main 10 + FLAC + ASS / MKV | 🔴 (Fail) | 🟡 (Screened)\* · 22.5% CPU · native-remux-mpv | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
 | HEVC Main 10 + Opus + ASS / MKV | 🔴 (Fail) | 🟡 (Screened)\* · 23.1% CPU · native-remux-mpv | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
-| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | 🔴 (Fail) | 🔴 (Fail) · marked audio incorrect | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
-| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | 🔴 (Fail) | 🔴 (Fail) · initial playback timeout | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
-| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | 🔴 (Fail) · marked audio incorrect | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
-| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | 🔴 (Fail) · marked audio incorrect | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
+| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested |
+| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested |
+| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested |
+| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested | — Untested |
 
 [Complete-file catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md) ·
 [Row refresh index](docs/CPU-ROW-REFRESH.md) ·

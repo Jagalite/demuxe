@@ -1,0 +1,184 @@
+{
+  "schema": 1,
+  "benchmarkPolicy": {
+    "schema": 4,
+    "browserLifetime": "caller-declared comparison block; fresh context per arm",
+    "interArmIdleSeconds": 2,
+    "profile": "fresh temporary Playwright profile per launch",
+    "startupGateSeconds": 150,
+    "startupGate": "macOS Chrome hardware-key task completion; tracing off before measurement",
+    "startupIdleSeconds": 20,
+    "warmupSeconds": 5,
+    "measureSeconds": 20,
+    "sampleIntervalSeconds": 2,
+    "clock": "monotonic CPU-query midpoint; fixed sample deadlines",
+    "viewport": {
+      "width": 960,
+      "height": 540
+    },
+    "deviceScaleFactor": 1
+  },
+  "kind": "correctness",
+  "startedAt": "2026-09-28T12:26:20.179Z",
+  "browserScope": "round",
+  "controlledStreaming": false,
+  "streamingBackends": false,
+  "screenedCpu": false,
+  "diagnosticFailedCpu": false,
+  "assets": "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-release-specialist-20260925-05",
+  "assetsSHA256": "a468ce747c5f73f075824155688b8f2a9d3e2b91e582213e0f33bc875ec86927",
+  "harnessSHA256": "eba413e0c5540a301ba2b8bf0a608e167663b1abb03750b2d601e03a5927689e",
+  "sourceHashes": {
+    "campaign-progress.mjs": "f99a82eb9579aac48680a75d6614b67a13192d7a67e920cc3a729e58b671d5b0",
+    "benchmark-browser.mjs": "02788b92fbd9c2667cf853d9c69bba3ffbde93ae34ee50a064cea66c821c2b20",
+    "browser-exit.mjs": "a2ffb141f6c41159439579b3172ea6335449f0e96114872c0f6ea2ac8e44090e",
+    "performance-metrics.mjs": "5f06d911c7e8d014fe8a575c294002fbb297fcb5f5d6d10c2dbb3b08f3744295",
+    "component-trials.mjs": "8788c79bf23223c39272b5158a58e59434ec018ba3fed1dbd777da54f263225d",
+    "initial-output.mjs": "1cfe6771cf446ed71e9bac19ba05c579e765369c777f11e3387f3a20db466666",
+    "run.mjs": "9451d92b2c68fca83a4dba08398bdcbf4a5bfd5d7dfa405f4a6872ed62d952a7",
+    "server.mjs": "faa05ae4990a6e93bd6b10679ff6af22d45602cf80bdd7e19c6e0ee3909d3e34",
+    "checks.mjs": "3900402cef8ac46701090055872564a64015df215231ac510ed9c64d2e85b714",
+    "adapters.mjs": "12ed2dab741d90a940932690906af54f82113108094e02664946bf862500e217",
+    "harness.html": "39550e4790ef0c9acfa16126d8b24f3b184b27b80fc70ba07aa52b5dfe37badd",
+    "matrix.json": "dba5116e5827ce25b520ce17aeabd9c46fe55cc173a2f3df7ebc60f50e53a615",
+    "assets.lock.json": "da47f3bc6e2c208d30070ece28bf81fc9981b4db81620ce53717570071cc4e0c",
+    "setup.py": "c80e39fbd2a561d0bfb1b38ab8a87a6d951d6a7de285e0a81b3b8b2cf385cf11",
+    "expand.py": "a16950b8730fc5ee12b19a98e7e7069483cb7f4a4ad53403b74a3a31317a1425",
+    "planned.json": "e648ba183fa2caeba7996fb8e314535be4d84edaeac0cf0b8511a381e4bea8b1",
+    "subtitle-ocr.swift": "852d6c7a6c1f4fdd1e8ff2e077701fe1f76742d1a3bfffd7b1d4f5231d84029e",
+    "bitmap.py": "d5233d39d5cdd3aa9df0379f2e3b033801fd33105e31d4f0189e6a38abb49517"
+  },
+  "gitRevision": "7f4407d2ae529891ba3816215b2f930c6ef267d8",
+  "playerSourceRevision": "20b5cd0319a64334c29d36ea7a6c8cdac7c6f4d8",
+  "host": {
+    "platform": "darwin",
+    "release": "25.5.0",
+    "architecture": "arm64",
+    "cpus": 8
+  },
+  "command": {
+    "argv": [
+      "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+      "/Volumes/seed2/Projects/demuxe/tests/head-to-head/run.mjs",
+      "--assets=build/head-to-head/assets-release-specialist-20260925-05",
+      "--catalogue",
+      "--cases=demuxe.auto.hdr10-truehd-pgs,demuxe.auto.hdr10-dtshd-pgs,demuxe.auto.dv5-atmos-ass,demuxe.auto.dv81-atmos-ass",
+      "--output=results/head-to-head/specialist-marked-guard-20260928-01"
+    ],
+    "cwd": "/Volumes/seed2/Projects/demuxe"
+  },
+  "selected": [
+    "demuxe.auto.hdr10-truehd-pgs",
+    "demuxe.auto.hdr10-dtshd-pgs",
+    "demuxe.auto.dv5-atmos-ass",
+    "demuxe.auto.dv81-atmos-ass"
+  ],
+  "cases": [
+    {
+      "id": "demuxe.auto.hdr10-truehd-pgs",
+      "player": "demuxe",
+      "lane": "auto",
+      "fixture": "hdr10-truehd-pgs",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup",
+        "subtitle-output"
+      ],
+      "qualificationLimit": "36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.",
+      "status": "blocked",
+      "startedAt": "2026-09-28T12:26:20.883Z",
+      "console": [],
+      "requestFailures": [],
+      "recordPath": "demuxe.auto.hdr10-truehd-pgs/result.json",
+      "reason": "Specialist marker metadata missing; rebuild the snapshot with --specialist-from before qualification"
+    },
+    {
+      "id": "demuxe.auto.hdr10-dtshd-pgs",
+      "player": "demuxe",
+      "lane": "auto",
+      "fixture": "hdr10-dtshd-pgs",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup",
+        "subtitle-output"
+      ],
+      "qualificationLimit": "36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.",
+      "status": "blocked",
+      "startedAt": "2026-09-28T12:26:20.885Z",
+      "console": [],
+      "requestFailures": [],
+      "recordPath": "demuxe.auto.hdr10-dtshd-pgs/result.json",
+      "reason": "Specialist marker metadata missing; rebuild the snapshot with --specialist-from before qualification"
+    },
+    {
+      "id": "demuxe.auto.dv5-atmos-ass",
+      "player": "demuxe",
+      "lane": "auto",
+      "fixture": "dv5-atmos-ass",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup",
+        "subtitle-output"
+      ],
+      "qualificationLimit": "36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.",
+      "status": "blocked",
+      "startedAt": "2026-09-28T12:26:20.887Z",
+      "console": [],
+      "requestFailures": [],
+      "recordPath": "demuxe.auto.dv5-atmos-ass/result.json",
+      "reason": "Specialist marker metadata missing; rebuild the snapshot with --specialist-from before qualification"
+    },
+    {
+      "id": "demuxe.auto.dv81-atmos-ass",
+      "player": "demuxe",
+      "lane": "auto",
+      "fixture": "dv81-atmos-ass",
+      "requirements": [
+        "moving-video",
+        "marked-audio",
+        "pause-resume",
+        "rate",
+        "seek",
+        "eof",
+        "cleanup",
+        "subtitle-output"
+      ],
+      "qualificationLimit": "36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.",
+      "status": "blocked",
+      "startedAt": "2026-09-28T12:26:20.892Z",
+      "console": [],
+      "requestFailures": [],
+      "recordPath": "demuxe.auto.dv81-atmos-ass/result.json",
+      "reason": "Specialist marker metadata missing; rebuild the snapshot with --specialist-from before qualification"
+    }
+  ],
+  "limits": [
+    "Short synthetic marked-output screen; no exhaustive codec/fidelity, physical audio/display or release qualification.",
+    "Startup is API/wall timing, not first sound/photon. Correctness uses intrusive audio analysis and screenshots.",
+    "Fresh browser contexts do not flush OS caches. Host-library subtitle overlays are explicitly labeled."
+  ],
+  "browserBlocks": [],
+  "finishedAt": "2026-09-28T12:26:20.894Z",
+  "counts": {
+    "passed": 0,
+    "failed": 0,
+    "blocked": 4,
+    "skipped": 0
+  },
+  "passed": false
+}

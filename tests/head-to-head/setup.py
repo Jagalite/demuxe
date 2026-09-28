@@ -45,6 +45,19 @@ def extract(archive, target):
         bundle.extractall(target, filter='data')
 
 
+def preserve_specialist_contracts(catalogue, specialist):
+    for key, entry in specialist.items():
+        if key not in catalogue:
+            continue
+        if catalogue[key].get('file') != entry['file']:
+            # A shared key can name different ordinary and specialist fixtures.
+            # The specialist catalogue remains separate and is hash checked.
+            continue
+        for field in ('markedAudio', 'markedVideo'):
+            # Legacy metadata is unknown, never implicit marker qualification.
+            catalogue[key][field] = entry.get(field, False)
+
+
 def prepare(args):
     if args.duration < 12:
         raise ValueError('Fixture duration must be at least 12 seconds')
@@ -213,6 +226,13 @@ def prepare(args):
             if sha(candidate) != entry['sha256'] or sha(parent / 'fixtures' / entry['file']) != entry['sha256']:
                 raise ValueError('Specialist fixture hash mismatch: ' + key)
         shutil.copyfile(source, out / 'specialist.json')
+        # Preserve oracle contracts when importing specialist media into the
+        # general catalogue. A copied stream must never become a marked fixture.
+        catalogue_path = out / 'fixtures/catalogue.json'
+        if catalogue_path.is_file():
+            catalogue = json.loads(catalogue_path.read_text())
+            preserve_specialist_contracts(catalogue, specialist)
+            catalogue_path.write_text(json.dumps(catalogue, indent=2) + '\n')
         specialist_parent = {'snapshot': str(parent), 'sha256': sha(source)}
     manifest = {'schema': 1, 'fixture_parent': fixture_parent, 'specialist_parent': specialist_parent, 'fixture': {'duration': args.duration, 'dimensions': [320,180], 'fps': 30},
                 'git_revision': run(['git', 'rev-parse', 'HEAD']).strip(),

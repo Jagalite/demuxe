@@ -8,8 +8,26 @@ import unittest
 spec = importlib.util.spec_from_file_location('prepare', Path(__file__).with_name('prepare-specialist-fixtures.py'))
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
+setup_spec = importlib.util.spec_from_file_location('fixture_setup', Path(__file__).with_name('setup.py'))
+setup = importlib.util.module_from_spec(setup_spec)
+setup_spec.loader.exec_module(setup)
 
 class Admission(unittest.TestCase):
+    def test_import_preserves_unmarked_and_unknown_contracts(self):
+        catalogue = {'copied': {'file': 'library/copied.mkv'}, 'marked': {'file': 'library/marked.mkv'}, 'legacy': {'file': 'specialist/legacy.mkv'}}
+        specialist = copy.deepcopy(catalogue)
+        specialist['copied'].update(markedAudio=False, markedVideo=True)
+        specialist['marked'].update(markedAudio=True, markedVideo=True)
+        setup.preserve_specialist_contracts(catalogue, specialist)
+        self.assertFalse(catalogue['copied']['markedAudio'])
+        self.assertTrue(catalogue['marked']['markedAudio'])
+        self.assertFalse(catalogue['legacy']['markedAudio'])
+        self.assertFalse(catalogue['legacy']['markedVideo'])
+        specialist['copied']['file'] = 'wrong.mkv'
+        before = copy.deepcopy(catalogue['copied'])
+        setup.preserve_specialist_contracts(catalogue, specialist)
+        self.assertEqual(catalogue['copied'], before)
+
     def probe(self, codec='truehd', channels=8, profile=None):
         return {'streams': [{'codec_type':'video','codec_name':'hevc'},
                             {'codec_type':'audio','codec_name':codec,'channels':channels,'channel_layout':'7.1' if channels==8 else '5.1(side)','profile':profile}],
