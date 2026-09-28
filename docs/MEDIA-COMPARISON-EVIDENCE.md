@@ -27,10 +27,10 @@ archives remain intact; their labels do not repopulate these four rows.
 Fresh [source/profile and host-reference checks](BASE-SPECIALIST-FIXTURES.md)
 supersede their unavailable-source explanation. The
 [TrueHD](BASE-SPECIALIST-TRUEHD-ROW.md), [DTS-HD MA](BASE-SPECIALIST-DTSHD-ROW.md),
-[Atmos](BASE-SPECIALIST-ATMOS-ROW.md) and [Dolby Vision 5](BASE-SPECIALIST-DV5-ROW.md)
-Auto rows have since passed bounded current-source screens; TrueHD CPU remains
-withheld after a frame-drop rejection. The remaining Auto cell is Unqualified pending
-browser screens. Host decoding alone did not establish playback or fidelity.
+[Atmos](BASE-SPECIALIST-ATMOS-ROW.md), [Dolby Vision 5](BASE-SPECIALIST-DV5-ROW.md)
+and [Dolby Vision 8.1](BASE-SPECIALIST-DV81-ROW.md) Auto rows have since passed
+bounded current-source screens; TrueHD CPU remains withheld after a frame-drop
+rejection. Host decoding alone did not establish playback or fidelity.
 
 **Other Demuxe Auto rows retain their current-protocol disposition.** The
 [current-main Auto retest](AUTO-MAIN-RETEST-A563F345.md) refreshes the
