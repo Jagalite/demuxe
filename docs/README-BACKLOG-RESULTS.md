@@ -383,3 +383,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Lane | Result | Observation |
 | --- | --- | --- |
 | Video.js | 🔴 (Fail) | Error: open deadline |
+
+## Row 33: MPEG-2 video + AC-3 / MPEG-TS
+
+[Correctness](../results/head-to-head/backlog-33-mpeg2-ac3-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: open deadline |
+| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe packet-copy AC3 initialization is not qualified; use direc… |
+| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe packet-copy AC3 initialization is not qualified; use direc… |
