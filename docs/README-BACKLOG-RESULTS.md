@@ -302,3 +302,16 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
 | JSPI | 🟢 (Pass) · 20.9% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 20.87%, 21.05%, 20.14%; CPU route: native-transcode |
 | Asyncify | 🟢 (Pass) · 19.9% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 19.91%, 18.82%, 21.05%; CPU route: native-transcode |
+
+## Row 25: HEVC Main 10-bit SDR + DTS core / MKV
+
+[Correctness](../results/head-to-head/backlog-25-hevc10-dts-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-25-hevc10-dts-mediabunny-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-25-hevc10-dts-cpu/summary.json) · [CPU 2](../results/head-to-head/backlog-25-hevc10-dts-mediabunny-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
+| JSPI | 🟢 (Pass) · 20.1% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 20.42%, 18.04%, 20.05%; CPU route: native-transcode |
+| Asyncify | 🟢 (Pass) · 21.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 20.97%, 19.00%, 21.51%; CPU route: native-transcode |
+| Software | 🟢 (Pass) · 34.5% CPU | All bounded playback checks passed; CPU rounds: 36.78%, 33.87%, 34.46%; CPU route: software |
+| AVPlayer | 🟢 (Pass) · 41.4% CPU | All bounded playback checks passed; CPU rounds: 39.38%, 42.10%, 41.40%; CPU route: custom |
+| MediaBunny | 🟡 Screened* · 44.1% CPU | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters; CPU rounds: 42.13%, 44.09%, 44.46% |
