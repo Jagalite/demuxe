@@ -151,7 +151,9 @@ Auto records automatic selection; Software pins software decoding. JSPI and
 Asyncify cells cover measured file remux/transcode playback without COOP/COEP;
 their matched controls are in the [runtime CPU report](docs/JSPI-ASYNCIFY-PLAYER-CPU.md).
 `N/A · native-direct bypass` means configured playback passed but did not exercise
-the requested remux runtime. Fresh gaps are tested in [row order](docs/README-BACKLOG-RESULTS.md).
+the requested remux runtime. `forced-remux ref` uses `nativeRemux: 'always'`
+to exercise the requested runtime; its CPU is a configured reference, not Auto-policy CPU.
+Fresh gaps are tested in [row order](docs/README-BACKLOG-RESULTS.md).
 MediaBunny uses its official player example with local File input, while the
 maintained-player comparison uses local URLs; its screened results do not qualify
 1.25× playback or independent cleanup. A bare `—` means no test for that exact row;
@@ -162,7 +164,7 @@ N/A means no demonstrated playback result for the stated scope.
 | H.264 + AAC / MP4 | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · 13.0% CPU · native-direct | N/A · native-direct bypass | N/A · native-direct bypass | 🟢 (Pass) · 32.0% CPU | 🔴 (Fail) | 🟢 (Pass) · 32.4% CPU | 🟡 Screened · 34.6% CPU | 🟢 (Pass) · 24.0% CPU |
 | H.264 + AAC / MKV | 🟢 (Pass) · 9.3% CPU | 🟢 (Pass) · 9.6% CPU · native-direct | N/A · native-direct bypass | N/A · native-direct bypass | 🟢 (Pass) · 27.4% CPU | 🔴 (Fail) | 🟢 (Pass) · 28.3% CPU | 🟡 Screened · 33.8% CPU | 🟢 (Pass) · 21.7% CPU |
 | Dual-audio H.264 + AAC + AC-3 stereo / MKV | 🟢 (Pass) · 13.9% CPU · default AAC | 🟢 (Pass) · 14.0% CPU · native-direct; AC-3 switch: native-transcode (18.1% selected) | 🟢 (Pass) · CPU pending | 🟢 (Pass) · CPU pending | 🟢 (Pass) · 36.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 32.8% CPU | 🟡 Screened · 35.3% CPU · primary track | 🟢 (Pass) · 23.5% CPU · default track |
-| H.264 + PCM24 / MKV | 🟢 (Pass) · 9.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) · 26.6% CPU | 🟢 (Pass) | 🔴 (Fail) | 🟡 Screened · 32.5% CPU | — Untested |
+| H.264 + PCM24 / MKV | 🟢 (Pass) · 9.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | N/A · native-direct bypass | N/A · native-direct bypass | 🟢 (Pass) · 26.6% CPU | 🟢 (Pass) · CPU withheld | 🔴 (Fail) | 🟡 Screened · 32.5% CPU | 🟢 (Pass) · 17.2% CPU |
 | H.264 + PCM24 / MKV + ASS | 🟢 | 🟢 (Pass) · 19.8% CPU · native-direct-ass | — Untested | — Untested | 🟢 | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) · external ASS unavailable | — Untested |
 | H.264 + AAC 5.1 / MP4 | 🟢 (Pass)\* · 14.8% CPU | 🟢 (Pass)\* · 14.8% CPU · native-direct | — Untested | — Untested | 🟢 (Pass)* · 35.1% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.4% CPU | 🟡 Screened* · 37.2% CPU | — Untested |
 | H.264 + MP3 stereo / MP4 | 🟢 (Pass) · 13.3% CPU | 🟢 (Pass) · 14.3% CPU · native-direct | — Untested | — Untested | 🟢 (Pass) · 33.6% CPU | 🔴 (Fail) | 🟢 (Pass) · 34.2% CPU | 🟡 Screened · 34.7% CPU | — Untested |

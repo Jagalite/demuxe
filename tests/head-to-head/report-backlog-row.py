@@ -7,7 +7,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 COLUMNS = {('video', 'default'): 1, ('demuxe', 'auto'): 2,
            ('demuxe', 'jspi'): 3, ('demuxe', 'asyncify'): 4,
            ('demuxe', 'software'): 5, ('movi', 'default'): 6,
-           ('libmedia', 'default'): 7, ('videojs', 'default'): 9}
+           ('libmedia', 'default'): 7, ('mediabunny', 'default'): 8, ('videojs', 'default'): 9}
 LANES = ['Native', 'Auto', 'JSPI', 'Asyncify', 'Software', 'Movi', 'AVPlayer', 'MediaBunny', 'Video.js']
 
 def read_run(directory):
@@ -22,14 +22,20 @@ def short(reason):
 
 def publish(args):
     proof = read_run(args.correctness)
+    supplements = [read_run(p) for p in args.supplement]
+    proofs = [proof]+supplements
     cpu_runs = [read_run(p) for p in args.cpu]
     cpu = {'cases': [c for run in cpu_runs for c in run['cases']]} if cpu_runs else None
-    assert proof['kind'] == 'correctness'
+    assert all(p['kind'] == 'correctness' for p in proofs)
     for run in cpu_runs:
         assert run['kind'] == 'performance'
-        for name in ['assetsSHA256', 'harnessSHA256', 'browserIdentity']:
-            assert proof[name] == run[name], name
-    fixtures = {c['fixture'] for c in proof['cases']}
+        assert any(all(p[name] == run[name] for name in ['assetsSHA256', 'harnessSHA256', 'browserIdentity']) and
+                   all(any(c['id'] == previous['id'] for previous in p['cases']) for c in run['cases']) for p in proofs), 'CPU must match its own correctness proof'
+    all_cases = [c for p in proofs for c in p['cases']]
+    proof_paths = {c['id']: directory for p, directory in zip(proofs, [args.correctness]+args.supplement) for c in p['cases']}
+    cpu_paths = {c['id']: directory for run, directory in zip(cpu_runs, args.cpu) for c in run['cases']}
+    assert len({c['id'] for c in all_cases}) == len(all_cases), 'Duplicate case proofs'
+    fixtures = {c['fixture'] for c in all_cases}
     assert len(fixtures) == 1
     fixture = next(iter(fixtures))
     contract = json.loads((args.correctness/'files/harness/matrix.json').read_text())['fixtures'][fixture]
@@ -39,8 +45,9 @@ def publish(args):
     index = indices[args.row-1]
     cells = [c.strip() for c in lines[index].strip('|').split('|')]
     name = cells[0]
-    details, todos = [], []
-    for case in proof['cases']:
+    details, todos, resolved = [], [], []
+    for case in all_cases:
+        proof_path = proof_paths[case['id']].relative_to(ROOT)
         column = COLUMNS[case['player'], case['lane']]
         lane = LANES[column-1]
         windows = [c for c in (cpu or {}).get('cases', []) if c['id'] == case['id']]
@@ -59,20 +66,28 @@ def publish(args):
                 values = [c['measurement']['oneCorePercent'] for c in accepted]
                 cell += f' · {statistics.median(values):.1f}% CPU'
                 reason += '; CPU rounds: ' + ', '.join(f'{v:.2f}%' for v in values)
+                resolved.append((name, lane))
             else:
                 cell += ' · CPU withheld' if windows else ' · CPU pending'
                 failed = '; '.join(short(c.get('reason', 'No accepted measurement')) for c in windows if c not in accepted)
                 if case.get('runtimeCPUApplicable') is False:
                     failed = 'Default playback bypasses the requested runtime; measure the explicitly selected remux/transcode track separately'
-                todos.append(f'| {name} | {lane} | {failed or "Matching CPU campaign still required"} | [Evidence](../{args.correctness.relative_to(ROOT)}/summary.json) |')
+                if failed:
+                    reason += '; CPU withheld: '+failed
+                evidence_path = cpu_paths[case['id']].relative_to(ROOT) if windows else proof_path
+                todos.append(f'| {name} | {lane} | {failed or "Matching CPU campaign still required"} | [Evidence](../{evidence_path}/summary.json) |')
         elif case['status'] == 'failed':
             cell = '🔴 (Fail)'
         else:
             cell = '— Blocked'
-            todos.append(f'| {name} | {lane} | {reason} | [Evidence](../{args.correctness.relative_to(ROOT)}/summary.json) |')
+            todos.append(f'| {name} | {lane} | {reason} | [Evidence](../{proof_path}/summary.json) |')
         if good and contract.get('audioTrackSwitches') and case['player'] != 'demuxe':
             cell += ' · default track'
             reason += '; alternate audio-track selection was not exercised'
+        if case.get('forceRemux'):
+            cell += ' · forced-remux ref'
+            if not good:
+                todos.append(f'| {name} | {lane} | CPU withheld: forced playback did not qualify; {reason} | [Evidence](../{proof_path}/summary.json) |')
         cells[column] = cell
         details.append(f'| {lane} | {cell} | {reason} |')
     lines[index] = '| ' + ' | '.join(cells) + ' |'
@@ -92,8 +107,12 @@ def publish(args):
             'its three rounds do not establish independent-launch reproducibility.\n')
     text = report.read_text()
     heading = f'## Row {args.row}: {name}'
+    if args.attempt:
+        heading += ' — '+args.attempt
     assert heading not in text, 'Row already published'
     evidence = f'[Correctness](../{args.correctness.relative_to(ROOT)}/summary.json)'
+    for i, directory in enumerate(args.supplement, 1):
+        evidence += f' · [Supplement {i}](../{directory.relative_to(ROOT)}/summary.json)'
     for i, directory in enumerate(args.cpu, 1):
         evidence += f' · [CPU {i}](../{directory.relative_to(ROOT)}/summary.json)'
     text += '\n'+heading+'\n\n'+evidence+'\n\n| Lane | Result | Observation |\n| --- | --- | --- |\n'+'\n'.join(details)+'\n'
@@ -108,6 +127,10 @@ def publish(args):
             '| Row | Lane | Remaining work / rejected gate | Evidence |\n| --- | --- | --- | --- |\n\n## Summary')
     if todos:
         text = text.replace('\n\n## Summary', '\n'+'\n'.join(todos)+'\n\n## Summary', 1)
+    if resolved:
+        before, after = text.split('\n## Summary', 1)
+        before = '\n'.join(line for line in before.split('\n') if not any(line.startswith(f'| {row} | {lane} |') for row, lane in resolved))
+        text = before+'\n## Summary'+after
     rows = [[c.strip() for c in line.strip('|').split('|')] for line in lines if line.startswith('| ') and len(line.split('|')) == 12][2:]
     total_untested = total_missing = green = yellow = 0
     for i, lane in enumerate(LANES, 1):
@@ -130,4 +153,6 @@ if __name__ == '__main__':
     parser.add_argument('--row', type=int, required=True)
     parser.add_argument('--correctness', type=lambda s: pathlib.Path(s).resolve(), required=True)
     parser.add_argument('--cpu', type=lambda s: pathlib.Path(s).resolve(), action='append', default=[])
+    parser.add_argument('--supplement', type=lambda s: pathlib.Path(s).resolve(), action='append', default=[])
+    parser.add_argument('--attempt')
     publish(parser.parse_args())

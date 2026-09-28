@@ -6,6 +6,11 @@ Rows are exercised in README order. Existing cells outside each selected gap ret
 
 Demuxe uses the frozen September 28 source candidate based on `7f4407d2` plus captured local changes; this is not a clean release qualification. Private engine additions are separately hashed. JSPI/Asyncify run without isolation headers; a direct-playback bypass exercises neither remux runtime. CPU requires matching correctness, three accepted windows, foreground, stable processes, presentation cadence and cleanup. One gated Chrome launch per row uses fresh contexts for each arm; its three rounds do not establish independent-launch reproducibility.
 
+The forced-remux reference follow-up uses `nativeRemux: 'always'` with the requested
+JSPI/Asyncify option. Direct-playback bypasses are rejected in both correctness
+and CPU. These values describe the explicitly configured route, not the automatic
+policy. Earlier bypass and CPU results remain below as historical evidence.
+
 ## Row 1: H.264 + AAC / MP4
 
 [Correctness](../results/head-to-head/backlog-01-aac-mp4-correctness/summary.json) · [CPU](../results/head-to-head/backlog-01-aac-mp4-cpu/summary.json)
@@ -35,3 +40,14 @@ Demuxe uses the frozen September 28 source candidate based on `7f4407d2` plus ca
 | Video.js | 🟢 (Pass) · 23.5% CPU · default track | All bounded playback checks passed; CPU rounds: 23.60%, 23.53%, 21.91%; alternate audio-track selection was not exercised |
 | JSPI | 🟢 (Pass) · CPU pending | All bounded playback checks passed; observed routes: native-direct, native-transcode |
 | Asyncify | 🟢 (Pass) · CPU pending | All bounded playback checks passed; observed routes: native-direct, native-transcode |
+
+## Row 4: H.264 + PCM24 / MKV
+
+[Correctness](../results/head-to-head/backlog-04-pcm-mkv-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-04-pcm-mkv-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 17.2% CPU | All bounded playback checks passed; CPU rounds: 8.32%, 17.19%, 23.02% |
+| JSPI | N/A · native-direct bypass | Playback passed via native-direct; requested remux runtime was not exercised. CPU not applicable to this runtime.; observed routes: native-direct |
+| Asyncify | N/A · native-direct bypass | Playback passed via native-direct; requested remux runtime was not exercised. CPU not applicable to this runtime.; observed routes: native-direct |
+| Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Presentation cadence outside declared frame budget; Error: Presentation cadence outside declared frame budget |
