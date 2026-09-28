@@ -201,3 +201,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Presentation cadence outside declared frame budget |
 | JSPI | 🟢 (Pass) · 18.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 18.49%, 16.11%, 18.00%; CPU route: native-remux |
 | Asyncify | 🟢 (Pass) · 18.6% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 17.09%, 18.60%, 18.66%; CPU route: native-remux |
+
+## Row 15: H.264 + FLAC 5.1 / MKV
+
+[Correctness](../results/head-to-head/backlog-15-h264-flac51-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-15-h264-flac51-screened-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟡 Screened* · 23.5% CPU | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; CPU rounds: 20.77%, 23.48%, 23.75%; CPU route: native-direct |
+| JSPI | 🟡 Screened* · 19.0% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-remux; CPU rounds: 20.27%, 18.97%, 18.97%; CPU route: native-remux |
+| Asyncify | 🟡 Screened* · 18.2% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-remux; CPU rounds: 17.89%, 18.22%, 19.19%; CPU route: native-remux |
