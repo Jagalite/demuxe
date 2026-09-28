@@ -151,12 +151,17 @@ passed all cases; five prepared fixtures cover blocked base attempts, and nine
 add specialist rows. Together they cover the 69 originally catalogued cases. A
 separate [H.264/AAC bitmap-subtitle screen](../results/head-to-head/demuxe-software-bitmap-isolation-20260923-01/REPORT.md)
 passed VobSub through its seeks; PGS displayed initially but lost its subtitle
-after seeking.
+after seeking. The [September 28 row 49 forced-Software retest](../results/head-to-head/backlog-49-h264-aac-pgs-isolation-correctness/summary.json)
+supersedes that PGS failure for the frozen backlog candidate: it observed the
+`software` route and passed marked bitmap output through the seek checks.
+The earlier failure remains a historical result; the retest does not qualify
+unrelated working-tree changes.
 
 The [forced software CPU report](../results/head-to-head/demuxe-software-performance-20260922-02/CPU-REPORT.md) contains 45 accepted three-round medians. The live HLS correctness screen passed bounded window progression, while two of its three 20-second CPU windows stopped advancing and were excluded. Software CPU values come from a separate campaign, so they are descriptive and do not enter the matched-lane bold minimums below.
 
-Green dots in the software-decode column mark successful bounded playback;
-the PGS seek failure remains red.
+Green dots in the software-decode column mark successful bounded playback.
+The PGS isolation cell now follows the Software-specific retest and its
+[separately gated CPU campaign](README-BACKLOG-RESULTS.md#row-49-h264--aac--pgs--mkv-subtitle-isolation).
 
 The [exploratory pass-cell CPU report](../results/head-to-head/passing-cell-cpu-exploratory-20260923-01/measurement/CPU-REPORT.md) adds readings to 100 of the 111 green pass cells that previously lacked CPU values, including all 47 Pass* cells. Three CPU-only rounds were attempted per cell without applying content-fidelity checks. Ninety-three cells have at least one accepted steady-window median (90 have three accepted rounds); seven more have only stalled-window readings, and 11 could not be measured because their source fixture was unavailable. † marks the median of 1–3 full, focused CPU windows advancing at approximately 1×; ‡ marks full stable CPU windows that stalled and must not be read as steady-playback cost. Historical playback labels remain unchanged.
 
