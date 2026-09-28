@@ -251,3 +251,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Presentation cadence outside declared frame budget |
 | JSPI | 🟢 (Pass) · 16.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 16.52%, 15.97%, 15.94%; CPU route: native-remux |
 | Asyncify | 🟢 (Pass) · 17.2% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 17.59%, 17.19%, 15.84%; CPU route: native-remux |
+
+## Row 20: HEVC Main 8-bit + AAC / MP4 (hev1)
+
+[Correctness](../results/head-to-head/backlog-20-hevc-hev1-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-20-hevc-hev1-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 23.0% CPU | All bounded playback checks passed; CPU rounds: 23.01%, 21.89%, 24.06%; CPU route: native-direct |
+| JSPI | 🟢 (Pass) · 17.4% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 16.61%, 17.56%, 17.45%; CPU route: native-remux |
+| Asyncify | 🟢 (Pass) · 15.9% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 10.10%, 15.89%, 17.88%; CPU route: native-remux |
