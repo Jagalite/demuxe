@@ -1,0 +1,79 @@
+✔ replay cancels an EOF task waiting for the previous PCM drain (5.052542ms)
+✔ replay also cancels context suspension after an old EOF pause is in flight (2.411542ms)
+✔ clock sampling noise does not repeatedly change browser playback rate (0.854083ms)
+✖ video waits for the consumed audio presentation clock after a seek or rate reset (1.054875ms)
+  AssertionError [ERR_ASSERTION]: consumption alone is insufficient
+  
+  true !== false
+  
+      at f.audio.waitFor (file:///Volumes/seed2/Projects/demuxe-runtime-commit-check/tests/private-mpv-eof-race.mjs:55:10)
+      at NativePrivateMpvAudio.play (file:///Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/web/generated/internal/native-private-mpv-audio.js:201:20) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual'
+  }
+
+✖ a fully drained audio tail does not hold the remaining video (0.840791ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at f.audio.waitFor (file:///Volumes/seed2/Projects/demuxe-runtime-commit-check/tests/private-mpv-eof-race.mjs:68:10)
+      at NativePrivateMpvAudio.play (file:///Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/web/generated/internal/native-private-mpv-audio.js:201:20)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async TestContext.<anonymous> (file:///Volumes/seed2/Projects/demuxe-runtime-commit-check/tests/private-mpv-eof-race.mjs:71:2)
+      at async Test.run (node:internal/test_runner/test:932:9)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual'
+  }
+
+ℹ tests 5
+ℹ suites 0
+ℹ pass 3
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 316.493084
+
+✖ failing tests:
+
+test at tests/private-mpv-eof-race.mjs:51:1
+✖ video waits for the consumed audio presentation clock after a seek or rate reset (1.054875ms)
+  AssertionError [ERR_ASSERTION]: consumption alone is insufficient
+  
+  true !== false
+  
+      at f.audio.waitFor (file:///Volumes/seed2/Projects/demuxe-runtime-commit-check/tests/private-mpv-eof-race.mjs:55:10)
+      at NativePrivateMpvAudio.play (file:///Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/web/generated/internal/native-private-mpv-audio.js:201:20) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual'
+  }
+
+test at tests/private-mpv-eof-race.mjs:65:1
+✖ a fully drained audio tail does not hold the remaining video (0.840791ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at f.audio.waitFor (file:///Volumes/seed2/Projects/demuxe-runtime-commit-check/tests/private-mpv-eof-race.mjs:68:10)
+      at NativePrivateMpvAudio.play (file:///Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/web/generated/internal/native-private-mpv-audio.js:201:20)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async TestContext.<anonymous> (file:///Volumes/seed2/Projects/demuxe-runtime-commit-check/tests/private-mpv-eof-race.mjs:71:2)
+      at async Test.run (node:internal/test_runner/test:932:9)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:629:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual'
+  }

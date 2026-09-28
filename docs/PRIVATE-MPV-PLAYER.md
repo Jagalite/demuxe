@@ -16,9 +16,12 @@ The admitted private services are deliberately bounded:
 
 Private Hybrid/Software playback, mpv video output, compressed mpv audio codecs,
 multichannel output, resampling fidelity, external subtitle composition and
-nested streaming resources remain outside this qualification. The tested
-browser is Chrome 153.0.8010.53 on macOS. Disabling JSPI in Chrome establishes
-the Asyncify path's independence from those APIs; it is not Firefox/Safari evidence.
+nested streaming resources remain outside this qualification. The full 61-case
+private Player matrix uses Chrome 153.0.8010.53 on macOS. The exact-archive
+consumer suites additionally cover selected private services and runtime selection
+in Firefox 146.0.1. That is not a full Firefox matrix or Safari media qualification.
+Disabling JSPI in Chrome separately establishes the Asyncify path's independence
+from those APIs. See the [release preparation record](PRIVATE-RUNTIME-RELEASE.md).
 
 ## Integration
 
@@ -134,10 +137,12 @@ compares full configured paths, not standalone mpv or suspension overhead.
 
 ## Release boundary
 
-These are local Player results, not a published release. Tagged assembly also
-requires clean `privateMpv` source/configuration/artifact bindings. The release
-consumer gate now requires private subtitle/audio, composed-service,
-cancellation and asset-mismatch cases against the exact archive. The existing
-local component builds and this source-tree campaign do not satisfy that gate;
-the archive consumer runner now implements those cases, and a tagged release still requires passing results against its exact archive.
-No device, long-duration, broad codec or additional-browser claim is made.
+Candidate `v0.3.0-beta.4-rc.15` completed clean native build/source verification,
+exact-archive consumer and optional gates, the current 80-format regression
+comparison, and all 61 private Player correctness/route/lifecycle cases. The
+[release preparation record](PRIVATE-RUNTIME-RELEASE.md) binds the archive and
+source companions to their evidence and preserves the earlier failed attempts
+and requalification limits. The runtime is prepared for bounded developer-beta
+publication; it has not been published. Existing CPU results above retain their
+original manifests and do not measure this new archive. No device, long-duration,
+broad codec fidelity or Safari media claim is made.

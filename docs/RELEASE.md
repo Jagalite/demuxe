@@ -208,7 +208,7 @@ in `build/public-api-tooling` for the bundled consumer checks. Component fixture
 use `fixtures/example.mp4`; the menu suite also runs in automated WebKit without
 claiming Safari or physical mobile qualification.
 
-## First npm publication
+## Publishing a qualified beta
 
 The root `package.json` deliberately remains `private: true`. Never publish from
 the source root. Publish only the runtime archive identified by `verification.json`;
@@ -217,8 +217,9 @@ do not rebuild or repack it after qualification. Keep the source companion,
 Before npm publication, make the matching source companion downloadable from the
 GitHub release for the recorded tag; the npm package alone is not that source offer.
 
-1. Confirm `npm whoami`, account publishing access/2FA, and `demuxe` name
-   availability or ownership (`npm view demuxe name version maintainers`).
+1. Confirm `npm whoami`, account publishing access/2FA, and package ownership
+   (`npm view demuxe name version maintainers`). Check that the candidate version
+   is not already present with `npm view demuxe versions --json`.
 2. Check archive metadata and `SHA256SUMS` against `verification.json`.
 3. Run `npm publish ./build/release/demuxe-0.3.0-beta.4.tgz --tag beta --access public --dry-run`.
 4. Only after all verification gates pass, explicitly publish:
@@ -232,8 +233,8 @@ a brand-new temporary project, run `npx demuxe copy-assets public/assets/demuxe`
 import both `demuxe` and `demuxe/player`, and smoke-test one Native direct source
 and one Hybrid/Software or Native-remux source using the installed runtime assets.
 Check `npm view demuxe@beta version dist` and download the registry tarball to
-compare its bytes/hash to the qualified archive. Once this first version exists,
-configure npm trusted publishing for the exact GitHub workflow used for later releases.
+compare its bytes/hash to the qualified archive. Configure npm trusted publishing
+for the exact GitHub workflow if later releases use automated publication.
 
 ## Non-isolated remux release gate
 

@@ -1,0 +1,171 @@
+{
+  "source": "217507596a3fc616523cf014351e3bf8e4cf46df",
+  "stages": [
+    {
+      "name": "package",
+      "command": [
+        "python3",
+        "scripts/package-beta.py",
+        "--release-tag",
+        "v0.3.0-beta.4-rc.15",
+        "--output",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-rc15",
+        "--adaptation-build",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release/build/release-adaptation/engine-1790561300462177000",
+        "--ass-build",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release/build/release-ass/runtime"
+      ],
+      "started": 1790583156.809132,
+      "exit": 0,
+      "seconds": 316.03801703453064,
+      "logSHA256": "8dd77c44097dec543c1d69f3ff0ec1dd138fbd702df71197386a652441e4a78a"
+    },
+    {
+      "name": "npm-publish-dry-run",
+      "command": [
+        "python3",
+        "build/npm-release-dry-run.py",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-rc15/demuxe-0.3.0-beta.4.tgz"
+      ],
+      "started": 1790583472.9271739,
+      "exit": 0,
+      "seconds": 6.414703130722046,
+      "logSHA256": "dea339f89aad767a74a3c64b5e05e761004278bba4ebe0c3bac4449035915cdc"
+    },
+    {
+      "name": "browser-gates",
+      "command": [
+        "python3",
+        "build/run-release-browser-gates.py",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-rc15/demuxe-0.3.0-beta.4.tgz",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release/build/release-adaptation/engine-1790561300462177000",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release/build/release-ass/runtime",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-browser-gates-rc15"
+      ],
+      "started": 1790583479.3422909,
+      "exit": 1,
+      "seconds": 1380.1091639995575,
+      "logSHA256": "11eb76935b0a313a3c32a2b1f93e16689c4db49b020959b0a194587a0cf72862"
+    },
+    {
+      "name": "catalogue-setup",
+      "command": [
+        "python3",
+        "tests/head-to-head/setup.py",
+        "--output",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-catalogue-assets-rc15",
+        "--fixtures-from",
+        "/Volumes/seed2/Projects/demuxe-runtime-commit-check/build/release-gpl-assets80",
+        "--optional-archive",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-rc15/demuxe-0.3.0-beta.4.tgz",
+        "--duration",
+        "36",
+        "--lab",
+        "/Volumes/seed2/Projects/demuxe/build/licensing-migration/head-to-head-cache"
+      ],
+      "started": 1790584859.5237288,
+      "exit": 0,
+      "seconds": 91.32143306732178,
+      "logSHA256": "5dbcc93653ebff13cedb8c1457ef2a1daba37e3dbc04a0f5525513ce84b08133"
+    },
+    {
+      "name": "catalogue",
+      "command": [
+        "node",
+        "tests/head-to-head/run.mjs",
+        "--assets",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-catalogue-assets-rc15",
+        "--output",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-candidate-correctness-rc15",
+        "--catalogue",
+        "--cases",
+        "demuxe"
+      ],
+      "started": 1790584960.083305,
+      "exit": 1,
+      "seconds": 876.6937520503998,
+      "logSHA256": "153d29c8660f0fe0d1ba30eee35b2f4b575c75760b4ad2e5b8c24a599af862a7"
+    },
+    {
+      "name": "catalogue-compare",
+      "command": [
+        "python3",
+        "scripts/compare-lgpl-catalogue.py",
+        "--baseline",
+        "/Volumes/seed2/Projects/demuxe-runtime-commit-check/build/release-gpl-correctness80-output-fixed/summary.json",
+        "--candidate",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-candidate-correctness-rc15/summary.json",
+        "--output",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-catalogue-comparison-rc15.json"
+      ],
+      "started": 1790585836.862207,
+      "exit": 0,
+      "seconds": 24.58099102973938,
+      "logSHA256": "38b266a351c38c4a9e1da503ba9737cc3dd3fe3d20f68bb2449b6fb14a345d65"
+    },
+    {
+      "name": "private-snapshot",
+      "command": [
+        "python3",
+        "build/freeze-exact-private.py",
+        "--archive",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-rc15/demuxe-0.3.0-beta.4.tgz",
+        "--fixtures",
+        "/Volumes/seed2/Projects/demuxe-runtime-commit-check/build/private-mpv-player-final-05/fixtures",
+        "--out",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-private-player-assets-rc15"
+      ],
+      "started": 1790585861.444308,
+      "exit": 0,
+      "seconds": 7.164198875427246,
+      "logSHA256": "7371104dd16f53702ab6fda8a11bb021515587eb64e45f373d304e74bebc608f"
+    },
+    {
+      "name": "private-correctness",
+      "command": [
+        "node",
+        "tests/private-mpv-campaign.mjs",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-private-player-assets-rc15",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-private-player-correctness-rc15"
+      ],
+      "started": 1790585868.630669,
+      "exit": 0,
+      "seconds": 255.70673298835754,
+      "logSHA256": "581ef24c4e59a2e12952dc43d823a71eab0ed7e9a23b7f9dfa78d7fe5cf5f0ec"
+    },
+    {
+      "name": "private-routes",
+      "command": [
+        "env",
+        "ROUTES=1",
+        "node",
+        "tests/private-mpv-campaign.mjs",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-private-player-assets-rc15",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-private-player-routes-rc15"
+      ],
+      "started": 1790586124.3743339,
+      "exit": 0,
+      "seconds": 105.94852709770203,
+      "logSHA256": "f14e14553ad2db0d3038081ce137147353c8fed8d1d7d40572c3918c8f3ae402"
+    },
+    {
+      "name": "private-lifecycle",
+      "command": [
+        "node",
+        "tests/private-mpv-lifecycle.mjs",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-private-player-assets-rc15",
+        "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-private-player-lifecycle-rc15"
+      ],
+      "started": 1790586230.336016,
+      "exit": 0,
+      "seconds": 26.124780893325806,
+      "logSHA256": "2b3bb7b390b1710095e56211a452ee9ae12be1aaaf895225993d7fa2673e31dc"
+    }
+  ],
+  "passed": false,
+  "tag": "v0.3.0-beta.4-rc.15",
+  "archive": {
+    "path": "/Volumes/seed2/Projects/demuxe-private-runtime-release-rc13/build/release-rc15/demuxe-0.3.0-beta.4.tgz",
+    "sha256": "8b0bb6d8c2365900bc6865e855117a1f2dae208207e612f131391ea54371660d"
+  }
+}
