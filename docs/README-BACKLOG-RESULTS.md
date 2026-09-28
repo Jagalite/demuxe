@@ -515,3 +515,13 @@ Forced Asyncify companion references select the manifest/hash/export-verified As
 | Video.js | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
 | JSPI | 🟢 (Pass) · 13.5% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux-mpv; CPU rounds: 13.47%, 16.94%, 12.59%; CPU route: native-remux-mpv |
 | Asyncify | 🟢 (Pass) · 17.1% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux-mpv; CPU rounds: 17.12%, 19.43%, 15.21%; CPU route: native-remux-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
+
+## Row 46: H.264 + AC-3 stereo + ASS / MKV
+
+[Correctness](../results/head-to-head/backlog-46-h264-ac3-ass-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-46-h264-ac3-ass-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
+| JSPI | 🟢 (Pass) · CPU withheld · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode-mpv; CPU withheld: Error: Presentation cadence outside declared frame budget |
+| Asyncify | 🟢 (Pass) · CPU withheld · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode-mpv; CPU withheld: Error: Presentation cadence outside declared frame budget; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
