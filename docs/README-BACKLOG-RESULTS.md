@@ -282,3 +282,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | JSPI | 🟢 (Pass) · 19.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 18.95%, 19.02%, 5.48%; CPU route: native-remux |
 | Asyncify | 🟢 (Pass) · 19.2% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 19.04%, 19.21%, 20.25%; CPU route: native-remux |
 | Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement |
+
+## Row 23: HEVC Main 10-bit SDR + AC-3 / MKV
+
+[Correctness](../results/head-to-head/backlog-23-hevc10-ac3-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-23-hevc10-ac3-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
+| JSPI | 🟢 (Pass) · 20.5% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 20.68%, 20.54%, 19.72%; CPU route: native-transcode |
+| Asyncify | 🟢 (Pass) · 19.7% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 19.83%, 19.62%, 19.67%; CPU route: native-transcode |
