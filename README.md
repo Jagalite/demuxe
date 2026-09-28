@@ -220,7 +220,7 @@ N/A means no demonstrated playback result for the stated scope.
 | HEVC + TrueHD 7.1 / MKV | 🔴 (Fail) | 🟡 (Screened)\* · native-transcode · CPU withheld: frame drops | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
 | HEVC + DTS-HD MA 7.1 / MKV | 🔴 (Fail) | 🟡 (Screened)\* · native-transcode | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* | — | — Untested |
 | HEVC + E-AC-3 with Atmos metadata / MP4 | 🔴 (Fail) | 🟡 (Screened)\* · native-transcode | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
-| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🔴 (Fail) | — Unqualified · current-build retest pending | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🔴 (Fail) | 🟡 (Screened)\* · software | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
 | Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🔴 (Fail) | — Unqualified · current-build retest pending | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* | — | — Untested |
 | H.264 + AAC / HLS VOD (TS segments) | 🟢 (Pass) | 🟢 (Pass) · 15.0% CPU · native-direct | — Untested | — Untested | 🟢 | 🟢 (Pass) | 🟢 (Pass) | — | — Untested |
 | H.264 + AAC / HLS VOD (fMP4 segments) | 🟢 (Pass) | 🟢 (Pass) · 15.6% CPU · native-direct | — Untested | — Untested | 🟢 | 🟢 (Pass) | 🟢 (Pass) | — | — Untested |
