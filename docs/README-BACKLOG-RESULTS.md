@@ -221,3 +221,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🟢 (Pass) · 25.0% CPU | All bounded playback checks passed; CPU rounds: 25.01%, 25.02%, 23.37%; CPU route: native-direct |
 | JSPI | 🟢 (Pass) · 16.5% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 15.58%, 18.84%, 16.52%; CPU route: native-remux |
 | Asyncify | 🟢 (Pass) · 17.6% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 18.55%, 17.63%, 16.53%; CPU route: native-remux |
+
+## Row 17: H.264 + PCM16 stereo / MKV
+
+[Correctness](../results/head-to-head/backlog-17-h264-pcm16-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-17-h264-pcm16-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 21.5% CPU | All bounded playback checks passed; CPU rounds: 21.48%, 21.15%, 21.98%; CPU route: native-direct |
+| JSPI | 🟢 (Pass) · 17.5% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 18.96%, 16.22%, 17.49%; CPU route: native-transcode |
+| Asyncify | 🟢 (Pass) · 18.7% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 17.46%, 19.23%, 18.70%; CPU route: native-transcode |
