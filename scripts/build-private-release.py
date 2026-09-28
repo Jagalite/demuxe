@@ -61,7 +61,7 @@ def main(args):
             out = base / name
             run(sys.executable, EXP/'ffmpeg/scripts/prepare-ffmpeg.py', '--repo', ROOT,
                 '--out', out, '--profile', profile, '--suspension', backend, '--revision', revision)
-            run(sys.executable, out/'build-ffmpeg.py', '--sdk', sdk, '--jobs', args.jobs)
+            run(sys.executable, out/'build-ffmpeg.py', '--sdk', sdk, '--jobs', args.jobs, '--flac-level', 0)
             config = (out/'objects/config.h').read_text()
             for flag in ['GPL', 'VERSION3', 'NONFREE']:
                 if f'#define CONFIG_{flag} 0' not in config:

@@ -14,10 +14,12 @@ function stopTransport(){
  }).finally(()=>port.close());
  return stopPromise;
 }
+// Firefox stacks omit the message; preserve it for public error classification.
+const describeError=cause=>String(cause)+(cause?.stack?'\n'+cause.stack:'');
 function fail(cause){
  if(error)return;
  loading.abort();source?.close();
- error=String(cause?.stack??cause);clearInterval(timer);userPaused=true;
+ error=describeError(cause);clearInterval(timer);userPaused=true;
  engine?.source.cancelSource();engine?.dispose();
  void stopTransport().catch(()=>{});
  postMessage({type:'transportError',error,cleanup:{scheduler:engine?.scheduler.snapshot(),source:engine?.source.snapshot()}});
@@ -111,5 +113,5 @@ onmessage=({data:d})=>{
    closed=true;engine.dispose();engine=null;
   }else throw Error('Unknown audio operation');
   postMessage({id:d.id,result});
- }catch(e){if(!closing||d.op==='close')fail(e);postMessage({id:d.id,error:String(e.stack)});}
+ }catch(e){if(!closing||d.op==='close')fail(e);postMessage({id:d.id,error:describeError(e)});}
 });};

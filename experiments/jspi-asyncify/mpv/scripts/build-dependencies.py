@@ -57,6 +57,8 @@ def main(a):
     def meson(name,args):
         obj=out/'objects'/name
         run(['meson','setup',obj,out/'sources'/name,'--cross-file',cross,'--prefix',prefix,'--libdir','lib','--default-library','static','--buildtype','release','--wrap-mode','nofallback','-Dauto_features=disabled',*args])
+        if name=='mpv':
+            header=obj/'config.h';header.write_text(header.read_text().replace(str(out),'/demuxe-mpv-private'))
         run(['ninja','-C',obj,'-j',a.jobs]);run(['meson','install','-C',obj])
     try:
         for component,folder in [('mpv',out/'inputs/patches'),('ffmpeg',out/'inputs/patches/ffmpeg')]:
@@ -89,6 +91,7 @@ def main(a):
         meson('libplacebo',['-Ddemos=false','-Dtests=false'])
         ff=out/'objects/ffmpeg';ff.mkdir()
         run(['/bin/bash',out/'sources/ffmpeg/configure','--prefix='+str(prefix),'--target-os=none','--arch=wasm32','--enable-cross-compile','--cc=emcc','--cxx=em++','--ar=emar','--ranlib=emranlib','--nm=emnm','--enable-static','--disable-shared','--disable-programs','--disable-doc','--disable-debug','--disable-autodetect','--disable-network','--disable-asm','--disable-everything','--disable-pthreads','--disable-w32threads','--disable-os2threads','--disable-avdevice','--enable-demuxers','--enable-decoder=ass,ssa,subrip,movtext,pgssub,dvdsub,webvtt'+(',aac,ac3,pcm_s16le,pcm_s24le,pcm_f32le' if a.profile=='audio' else ''),'--enable-protocol=file','--enable-filter=aresample,aformat,format,scale,anull,null','--extra-cflags='+' '.join(flags)],ff)
+        header=ff/'config.h';header.write_text(header.read_text().replace(str(out),'/demuxe-mpv-private'))
         run(['make','-j',a.jobs],ff);run(['make','install'],ff)
         meson('mpv',['-Dgpl=false','-Dlibmpv=true','-Dcplayer=false','-Dgl=disabled','-Dlua=disabled','-Dbuild-date=false','-Dzlib=enabled'])
         state['archives']={str(p.relative_to(out)):digest(p) for p in (prefix/'lib').glob('*.a')}
