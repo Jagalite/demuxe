@@ -601,3 +601,14 @@ The original Video.js attempt received `application/octet-stream` because the ad
 | JSPI | 🟢 (Pass) · 7.4% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 7.40%, 8.08%, 7.32%; CPU route: native-remux |
 | Asyncify | 🟢 (Pass) · 8.1% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 8.19%, 8.09%, 7.46%; CPU route: native-remux |
 | Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement |
+
+## Row 54: Opus audio-only / Ogg
+
+[Correctness](../results/head-to-head/backlog-54-audio-opus-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-54-audio-opus-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 12.7% CPU | All bounded playback checks passed; CPU rounds: 12.72%, 12.69%, 11.42%; CPU route: native-direct |
+| JSPI | 🟢 (Pass) · 6.4% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 6.40%, 6.45%, 6.53%; CPU route: native-remux |
+| Asyncify | 🟢 (Pass) · 6.4% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 6.11%, 6.97%, 6.41%; CPU route: native-remux |
+| Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement |
