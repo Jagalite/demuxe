@@ -109,3 +109,13 @@ policy. Earlier bypass and CPU results remain below as historical evidence.
 | Video.js | 🟡 Screened* · 6.1% CPU | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; CPU rounds: 6.13%, 5.43%, 6.06%; CPU route: native-direct |
 | JSPI | 🟡 Screened* · 4.9% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-remux; CPU rounds: 4.89%, 5.30%, 4.87%; CPU route: native-remux |
 | Asyncify | 🟡 Screened* · 4.9% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-remux; CPU rounds: 4.94%, 4.88%, 4.98%; CPU route: native-remux |
+
+## Row 7: H.264 + MP3 stereo / MP4
+
+[Correctness](../results/head-to-head/backlog-07-h264-mp3-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-07-h264-mp3-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 9.0% CPU | All bounded playback checks passed; CPU rounds: 6.01%, 8.96%, 21.66%; CPU route: native-direct |
+| JSPI | 🟢 (Pass) · 12.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 6.28%, 12.05%, 18.43%; CPU route: native-transcode |
+| Asyncify | 🟢 (Pass) · 14.1% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 7.11%, 14.12%, 17.75%; CPU route: native-transcode |

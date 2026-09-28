@@ -23,15 +23,15 @@ The [row results](README-BACKLOG-RESULTS.md) record fresh gap tests in README or
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Native | 4 | 10 | 0 | 35 | 2 |
 | Auto | 0 | 9 | 0 | 0 | 0 |
-| JSPI | 71 | 1 | 0 | 1 | 0 |
-| Asyncify | 71 | 1 | 0 | 1 | 0 |
+| JSPI | 70 | 1 | 0 | 1 | 0 |
+| Asyncify | 70 | 1 | 0 | 1 | 0 |
 | Software | 0 | 27 | 0 | 0 | 0 |
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 14 | 0 | 30 | 0 |
 | MediaBunny | 25 | 3 | 0 | 15 | 0 |
-| Video.js | 74 | 0 | 0 | 1 | 0 |
+| Video.js | 73 | 0 | 0 | 1 | 0 |
 
-There are **253 untested cells** and **80 passing/screened cells without published CPU** (61 green passes and 19 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+There are **250 untested cells** and **80 passing/screened cells without published CPU** (61 green passes and 19 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
 
 ## 1. Requalify the four reset specialist rows
 
