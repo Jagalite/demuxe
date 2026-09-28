@@ -22,12 +22,13 @@ def short(reason):
 
 def publish(args):
     proof = read_run(args.correctness)
-    cpu = read_run(args.cpu) if args.cpu else None
+    cpu_runs = [read_run(p) for p in args.cpu]
+    cpu = {'cases': [c for run in cpu_runs for c in run['cases']]} if cpu_runs else None
     assert proof['kind'] == 'correctness'
-    if cpu:
-        assert cpu['kind'] == 'performance'
+    for run in cpu_runs:
+        assert run['kind'] == 'performance'
         for name in ['assetsSHA256', 'harnessSHA256', 'browserIdentity']:
-            assert proof[name] == cpu[name], name
+            assert proof[name] == run[name], name
     fixtures = {c['fixture'] for c in proof['cases']}
     assert len(fixtures) == 1
     fixture = next(iter(fixtures))
@@ -42,14 +43,15 @@ def publish(args):
         column = COLUMNS[case['player'], case['lane']]
         lane = LANES[column-1]
         windows = [c for c in (cpu or {}).get('cases', []) if c['id'] == case['id']]
-        accepted = [c for c in windows if c['status'] == 'passed' and c.get('measurement')]
+        accepted = [c for c in windows if c.get('measurement') and
+                    (c['status'] == 'passed' or (c['status'] == 'blocked' and c.get('screenMeasured') and not c.get('failureStage')))]
         good = case['status'] == 'passed' or (case['status'] == 'blocked' and case.get('screenPassed') and not case.get('failureStage'))
         reason = short(case.get('reason', 'All bounded playback checks passed'))
         if case.get('runtimeBypass') and good:
             cell = 'N/A · native-direct bypass'
         elif good:
             cell = '🟡 Screened*' if case.get('screenPassed') else '🟢 (Pass)'
-            if len(windows) >= 3 and len(accepted) == len(windows):
+            if len(windows) >= 3 and len(accepted) == len(windows) and len({c['round'] for c in windows}) == len(windows):
                 values = [c['measurement']['oneCorePercent'] for c in accepted]
                 cell += f' · {statistics.median(values):.1f}% CPU'
                 reason += '; CPU rounds: ' + ', '.join(f'{v:.2f}%' for v in values)
@@ -83,8 +85,8 @@ def publish(args):
     heading = f'## Row {args.row}: {name}'
     assert heading not in text, 'Row already published'
     evidence = f'[Correctness](../{args.correctness.relative_to(ROOT)}/summary.json)'
-    if cpu:
-        evidence += f' · [CPU](../{args.cpu.relative_to(ROOT)}/summary.json)'
+    for i, directory in enumerate(args.cpu, 1):
+        evidence += f' · [CPU {i}](../{directory.relative_to(ROOT)}/summary.json)'
     text += '\n'+heading+'\n\n'+evidence+'\n\n| Lane | Result | Observation |\n| --- | --- | --- |\n'+'\n'.join(details)+'\n'
     report.write_text(text)
     backlog = ROOT/'docs/README-TESTING-BACKLOG.md'
@@ -118,5 +120,5 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--row', type=int, required=True)
     parser.add_argument('--correctness', type=lambda s: pathlib.Path(s).resolve(), required=True)
-    parser.add_argument('--cpu', type=lambda s: pathlib.Path(s).resolve())
+    parser.add_argument('--cpu', type=lambda s: pathlib.Path(s).resolve(), action='append', default=[])
     publish(parser.parse_args())

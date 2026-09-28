@@ -26,12 +26,12 @@ def prepare(parent, out, extra=None):
                 continue
             name = 'fixtures/'+fixture['file']
             assert sha(extra/name) == extra_manifest['files'][name]['sha256'], name
-            dest = out/name
-            if dest.exists():
-                assert sha(dest) == sha(extra/name), name
-            else:
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(extra/name, dest)
+            fixture = dict(fixture)
+            fixture['importedOriginalFile'] = fixture['file']
+            fixture['file'] = 'backlog-imports/'+key+'/'+pathlib.Path(name).name
+            dest = out/'fixtures'/fixture['file']
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(extra/name, dest)
             catalogue[key] = fixture
             imported.append(key)
         (out/'fixtures/catalogue.json').write_text(json.dumps(catalogue, indent=2)+'\n')
