@@ -463,3 +463,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🟢 (Pass) · 26.5% CPU | All bounded playback checks passed; CPU rounds: 26.52%, 24.89%, 26.56%; CPU route: native-direct |
 | JSPI | 🟢 (Pass) · 17.4% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 17.40%, 18.00%, 5.26%; CPU route: native-remux |
 | Asyncify | 🟢 (Pass) · 16.1% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 19.40%, 16.12%, 15.96%; CPU route: native-remux |
+
+## Row 41: MPEG-2 video-only / MPEG-TS
+
+[Correctness](../results/head-to-head/backlog-41-mpeg2-video-only-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: open deadline |
+| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe TS timestamp-repair construction requires H264 with option… |
+| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe TS timestamp-repair construction requires H264 with option… |
