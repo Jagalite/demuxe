@@ -292,3 +292,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
 | JSPI | 🟢 (Pass) · 20.5% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 20.68%, 20.54%, 19.72%; CPU route: native-transcode |
 | Asyncify | 🟢 (Pass) · 19.7% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 19.83%, 19.62%, 19.67%; CPU route: native-transcode |
+
+## Row 24: HEVC Main 10-bit SDR + E-AC-3 / MKV
+
+[Correctness](../results/head-to-head/backlog-24-hevc10-eac3-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-24-hevc10-eac3-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
+| JSPI | 🟢 (Pass) · 20.9% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 20.87%, 21.05%, 20.14%; CPU route: native-transcode |
+| Asyncify | 🟢 (Pass) · 19.9% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 19.91%, 18.82%, 21.05%; CPU route: native-transcode |
