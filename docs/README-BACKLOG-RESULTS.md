@@ -99,3 +99,13 @@ policy. Earlier bypass and CPU results remain below as historical evidence.
 | JSPI | 🔴 (Fail) · forced-remux ref | No qualified route: adapted file audio with external captions or manifests is not qualified |
 | Asyncify | 🔴 (Fail) · forced-remux ref | No qualified route: adapted file audio with external captions or manifests is not qualified |
 | Software | 🟢 (Pass) · 26.6% CPU | All bounded playback checks passed; CPU rounds: 26.59%, 9.77%, 36.26%; CPU route: software |
+
+## Row 6: H.264 + AAC 5.1 / MP4
+
+[Correctness](../results/head-to-head/backlog-06-h264-aac51-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-06-h264-aac51-screened-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟡 Screened* · 6.1% CPU | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; CPU rounds: 6.13%, 5.43%, 6.06%; CPU route: native-direct |
+| JSPI | 🟡 Screened* · 4.9% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-remux; CPU rounds: 4.89%, 5.30%, 4.87%; CPU route: native-remux |
+| Asyncify | 🟡 Screened* · 4.9% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-remux; CPU rounds: 4.94%, 4.88%, 4.98%; CPU route: native-remux |
