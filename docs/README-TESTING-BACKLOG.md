@@ -37,6 +37,7 @@ Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4
 | MPEG-2 video-only / MPEG-TS | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe TS timestamp-repair construction requires H264 with option… | [Evidence](../results/head-to-head/backlog-41-mpeg2-video-only-correctness/summary.json) |
 | H.264 + AC-3 stereo + ASS / MKV | JSPI | Error: Presentation cadence outside declared frame budget | [Evidence](../results/head-to-head/backlog-46-h264-ac3-ass-cpu/summary.json) |
 | H.264 + AC-3 stereo + ASS / MKV | Asyncify | Error: Presentation cadence outside declared frame budget | [Evidence](../results/head-to-head/backlog-46-h264-ac3-ass-cpu/summary.json) |
+| H.264 + AC-3 + VobSub / MKV | JSPI | Error: Presentation cadence outside declared frame budget | [Evidence](../results/head-to-head/backlog-48-h264-vobsub-cpu/summary.json) |
 
 ## Summary
 
@@ -44,15 +45,15 @@ Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Native | 4 | 10 | 0 | 35 | 2 |
 | Auto | 0 | 9 | 0 | 0 | 0 |
-| JSPI | 33 | 1 | 0 | 8 | 0 |
-| Asyncify | 33 | 1 | 0 | 8 | 0 |
+| JSPI | 32 | 2 | 0 | 8 | 0 |
+| Asyncify | 32 | 1 | 0 | 8 | 0 |
 | Software | 0 | 26 | 0 | 0 | 0 |
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 12 | 0 | 30 | 0 |
 | MediaBunny | 25 | 1 | 0 | 15 | 0 |
-| Video.js | 33 | 2 | 0 | 22 | 0 |
+| Video.js | 32 | 2 | 0 | 23 | 0 |
 
-There are **136 untested cells** and **77 passing/screened cells without published CPU** (60 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+There are **133 untested cells** and **78 passing/screened cells without published CPU** (61 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
 
 ## 1. Requalify the four reset specialist rows
 

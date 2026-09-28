@@ -535,3 +535,13 @@ Forced Asyncify companion references select the manifest/hash/export-verified As
 | Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
 | JSPI | 🟢 (Pass) · 6.1% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode-mpv; CPU rounds: 23.15%, 5.81%, 6.09%; CPU route: native-transcode-mpv |
 | Asyncify | 🟢 (Pass) · 7.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode-mpv; CPU rounds: 6.98%, 7.00%, 6.60%; CPU route: native-transcode-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
+
+## Row 48: H.264 + AC-3 + VobSub / MKV
+
+[Correctness](../results/head-to-head/backlog-48-h264-vobsub-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-48-h264-vobsub-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
+| JSPI | 🟢 (Pass) · CPU withheld · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode-mpv; CPU withheld: Error: Presentation cadence outside declared frame budget |
+| Asyncify | 🟢 (Pass) · 6.4% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode-mpv; CPU rounds: 6.42%, 6.14%, 14.45%; CPU route: native-transcode-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
