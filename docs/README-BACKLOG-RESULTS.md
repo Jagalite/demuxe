@@ -231,3 +231,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🟢 (Pass) · 21.5% CPU | All bounded playback checks passed; CPU rounds: 21.48%, 21.15%, 21.98%; CPU route: native-direct |
 | JSPI | 🟢 (Pass) · 17.5% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 18.96%, 16.22%, 17.49%; CPU route: native-transcode |
 | Asyncify | 🟢 (Pass) · 18.7% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 17.46%, 19.23%, 18.70%; CPU route: native-transcode |
+
+## Row 18: H.264 + PCM24 5.1 / MKV
+
+[Correctness](../results/head-to-head/backlog-18-h264-pcm51-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-18-h264-pcm51-screened-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟡 Screened* · 22.9% CPU | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; CPU rounds: 22.91%, 23.41%, 21.03%; CPU route: native-direct |
+| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Decoded multichannel speaker layout is unavailable |
+| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Decoded multichannel speaker layout is unavailable |
