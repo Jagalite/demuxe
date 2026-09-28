@@ -42,6 +42,7 @@ Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4
 | MP3 audio-only / MP3 | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Browser isTypeSupported rejects selected audio mp3 for audio/mp4;… | [Evidence](../results/head-to-head/backlog-52-audio-mp3-correctness/summary.json) |
 | MP3 audio-only / MP3 | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Browser isTypeSupported rejects selected audio mp3 for audio/mp4;… | [Evidence](../results/head-to-head/backlog-52-audio-mp3-correctness/summary.json) |
 | MP3 audio-only / MP3 | Movi | Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement | [Evidence](../results/head-to-head/backlog-52-audio-mp3-cpu/summary.json) |
+| FLAC audio-only / FLAC | Movi | Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement | [Evidence](../results/head-to-head/backlog-53-audio-flac-cpu/summary.json) |
 
 ## Summary
 
@@ -49,15 +50,15 @@ Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Native | 4 | 10 | 0 | 35 | 2 |
 | Auto | 0 | 9 | 0 | 0 | 0 |
-| JSPI | 28 | 2 | 0 | 9 | 0 |
-| Asyncify | 28 | 1 | 0 | 9 | 0 |
+| JSPI | 27 | 2 | 0 | 9 | 0 |
+| Asyncify | 27 | 1 | 0 | 9 | 0 |
 | Software | 0 | 26 | 0 | 0 | 0 |
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 12 | 0 | 30 | 0 |
 | MediaBunny | 25 | 1 | 0 | 15 | 0 |
-| Video.js | 28 | 2 | 0 | 25 | 0 |
+| Video.js | 27 | 2 | 0 | 25 | 0 |
 
-There are **121 untested cells** and **78 passing/screened cells without published CPU** (61 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+There are **118 untested cells** and **78 passing/screened cells without published CPU** (61 green passes and 17 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
 
 ## 1. Requalify the four reset specialist rows
 

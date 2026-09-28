@@ -590,3 +590,14 @@ The original Video.js attempt received `application/octet-stream` because the ad
 | JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Browser isTypeSupported rejects selected audio mp3 for audio/mp4;… |
 | Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Browser isTypeSupported rejects selected audio mp3 for audio/mp4;… |
 | Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement |
+
+## Row 53: FLAC audio-only / FLAC
+
+[Correctness](../results/head-to-head/backlog-53-audio-flac-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-53-audio-flac-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · 10.1% CPU | All bounded playback checks passed; CPU rounds: 11.35%, 10.11%, 9.83%; CPU route: native-direct |
+| JSPI | 🟢 (Pass) · 7.4% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 7.40%, 8.08%, 7.32%; CPU route: native-remux |
+| Asyncify | 🟢 (Pass) · 8.1% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 8.19%, 8.09%, 7.46%; CPU route: native-remux |
+| Movi | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement |
