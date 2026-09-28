@@ -38,7 +38,7 @@ def execute(args):
             continue
         prefix = ROOT/f'results/head-to-head/backlog-{args.tag+"-" if args.tag else ""}{number:02d}-{fixture}'
         correctness = pathlib.Path(str(prefix)+'-correctness')
-        assert not correctness.exists(), f'Existing evidence requires review: {correctness}'
+        assert args.resume or not correctness.exists(), f'Existing evidence requires review: {correctness}'
         common = ['node', 'tests/head-to-head/run.mjs', '--assets', args.assets,
                   '--catalogue', '--include-private-remux', '--include-videojs',
                   '--include-software', '--headed']
@@ -48,6 +48,13 @@ def execute(args):
             common.append('--specialist-catalogue')
         runs = []
         def run(directory, cases, extra=()):
+            if args.resume and directory.exists():
+                command(['node', 'tests/head-to-head/verify.mjs', directory], check=True, stdout=subprocess.DEVNULL)
+                data = json.loads((directory/'summary.json').read_text())
+                assert data.get('finishedAt') and not data.get('interrupted'), 'Cannot resume incomplete evidence'
+                assert set(data['selected']) == set(cases), 'Existing evidence has different cases'
+                runs.append(directory)
+                return data
             log = pathlib.Path(str(directory)+'.log')
             with log.open('x') as output:
                 result = command(common+['--cases', ','.join(cases), '--output', directory]+list(extra), stdout=output, stderr=subprocess.STDOUT)
@@ -73,7 +80,12 @@ def execute(args):
             print('MediaBunny:', [(c['status'], c.get('reason', '').split('\n')[0]) for c in data['cases']], flush=True)
             return data
         if needs_mediabunny:
-            mb_correctness = pathlib.Path(str(prefix)+'-mediabunny-correctness')
+            if args.mediabunny_tag:
+                prior = pathlib.Path(str(prefix)+'-mediabunny-correctness')
+                if prior.exists():
+                    command(['node', 'tests/head-to-head/verify.mjs', prior], check=True, stdout=subprocess.DEVNULL)
+                    runs.append(prior)
+            mb_correctness = pathlib.Path(str(prefix)+'-mediabunny'+('-'+args.mediabunny_tag if args.mediabunny_tag else '')+'-correctness')
             mb_proof = media_bunny(mb_correctness)
             supplement_paths.extend(['--supplement', mb_correctness])
         for screened in [False, True]:
@@ -90,7 +102,7 @@ def execute(args):
             print('CPU:', [(c['id'], c.get('round'), c['status']) for c in observed['cases']], flush=True)
             cpu_paths.extend(['--cpu', directory])
         if mb_proof and mb_proof['cases'][0]['status'] == 'blocked' and mb_proof['cases'][0].get('screenPassed'):
-            mb_cpu = pathlib.Path(str(prefix)+'-mediabunny-cpu')
+            mb_cpu = pathlib.Path(str(prefix)+'-mediabunny'+('-'+args.mediabunny_tag if args.mediabunny_tag else '')+'-cpu')
             media_bunny(mb_cpu, ['--cpu', '--correctness', mb_correctness/'summary.json'])
             cpu_paths.extend(['--cpu', mb_cpu])
         command(['python3', 'tests/head-to-head/report-backlog-row.py', '--row', number,
@@ -130,8 +142,10 @@ if __name__ == '__main__':
     p.add_argument('--support', nargs='*', default=[])
     p.add_argument('--force-private-remux', action='store_true')
     p.add_argument('--only-private', action='store_true')
+    p.add_argument('--resume', action='store_true', help='Reuse only complete verified evidence; never pool CPU rounds')
+    p.add_argument('--mediabunny-tag', default='')
     p.add_argument('--tag', default='')
     p.add_argument('--attempt')
     args = p.parse_args()
-    assert re.fullmatch('[a-z0-9-]*', args.tag), 'Tag must be a simple output path component'
+    assert re.fullmatch('[a-z0-9-]*', args.tag) and re.fullmatch('[a-z0-9-]*', args.mediabunny_tag), 'Tag must be a simple output path component'
     execute(args)

@@ -119,3 +119,17 @@ policy. Earlier bypass and CPU results remain below as historical evidence.
 | Video.js | 🟢 (Pass) · 9.0% CPU | All bounded playback checks passed; CPU rounds: 6.01%, 8.96%, 21.66%; CPU route: native-direct |
 | JSPI | 🟢 (Pass) · 12.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 6.28%, 12.05%, 18.43%; CPU route: native-transcode |
 | Asyncify | 🟢 (Pass) · 14.1% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 7.11%, 14.12%, 17.75%; CPU route: native-transcode |
+
+MediaBunny row 8 harness correction: the [first screen](../results/head-to-head/backlog-08-h264-ac3-mediabunny-correctness/summary.json) sampled a letterboxed canvas as if video filled it, falsely rejecting its green timeline marker. The corrected screen samples the observed video draw rectangle. The original attempt is retained as harness evidence and does not establish a player failure. Temporary blob scripts are matched by content hash across contexts.
+
+## Row 8: H.264 + AC-3 5.1 / MKV
+
+[Correctness](../results/head-to-head/backlog-08-h264-ac3-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-08-h264-ac3-mediabunny-video-region-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-08-h264-ac3-screened-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
+| JSPI | 🟡 Screened* · 9.1% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-transcode; CPU rounds: 17.25%, 9.12%, 5.31%; CPU route: native-transcode |
+| Asyncify | 🟡 Screened* · 12.5% CPU · forced-remux ref | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; observed routes: native-transcode; CPU rounds: 17.53%, 12.47%, 5.55%; CPU route: native-transcode |
+| AVPlayer | 🟡 Screened* · 21.8% CPU | Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified.; CPU rounds: 14.80%, 22.59%, 21.77%; CPU route: custom |
+| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Displayed timeline marker incorrect |
