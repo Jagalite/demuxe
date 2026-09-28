@@ -191,3 +191,13 @@ The second MediaBunny row 8 [video-region attempt](../results/head-to-head/backl
 | Video.js | 🔴 (Fail) | Error: Marked left/right audio missing or incorrect |
 | JSPI | 🟢 (Pass) · 17.9% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 17.86%, 16.85%, 18.26%; CPU route: native-transcode |
 | Asyncify | 🟢 (Pass) · 18.3% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-transcode; CPU rounds: 19.36%, 18.29%, 17.10%; CPU route: native-transcode |
+
+## Row 14: H.264 + FLAC stereo / MKV
+
+[Correctness](../results/head-to-head/backlog-14-h264-flac-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-14-h264-flac-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · CPU withheld | All bounded playback checks passed; CPU withheld: Error: Presentation cadence outside declared frame budget |
+| JSPI | 🟢 (Pass) · 18.0% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 18.49%, 16.11%, 18.00%; CPU route: native-remux |
+| Asyncify | 🟢 (Pass) · 18.6% CPU · forced-remux ref | All bounded playback checks passed; observed routes: native-remux; CPU rounds: 17.09%, 18.60%, 18.66%; CPU route: native-remux |
