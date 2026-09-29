@@ -27,9 +27,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private mpvAudio?;
     private get selectiveAudio();
     private get mpvSubtitlePlan();
-    private ass?;
-    private assAssets;
-    private assIndex;
+    private subtitleSource?;
     private textAttachmentIds;
     private captionAssets;
     private captionURLs;
@@ -220,11 +218,14 @@ export declare class NativePlayer extends EventTarget implements Backend {
         } | undefined;
         plan: string | undefined;
         subtitleOverlay: {
+            position: number;
             renders: number;
             bitmapUpdates: number;
             bytes: number;
             peakBytes: number;
             discarded: number;
+            stateUpdates: number;
+            scheduler: string;
             component: string;
             scope: string;
             destination: string;

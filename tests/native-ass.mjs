@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {closeTestBrowser} from './head-to-head/browser-exit.mjs';
 import {chromium,firefox} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdir,writeFile,readFile} from 'node:fs/promises';
@@ -24,14 +25,14 @@ try{
    await page.evaluate(async()=>{await player.open(document.querySelector('#ass-media').files[0]);window.mediaFile=document.querySelector('#ass-media').files[0];});
    assert.equal(await page.locator('.demuxe-native-ass').count(),0);
    await page.evaluate(async()=>{const b=await(await fetch('/fixtures/qualification.ass')).blob();await player.addSubtitle(new File([b],'qualification.ass'));await player.seek(2.25);});
-   const pixels=()=>page.evaluate(()=>{const c=document.querySelector('.demuxe-native-ass'),p=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let visible=0,green=0;for(let i=0;i<p.length;i+=4){if(p[i+3])visible++;if(p[i+1]>150&&p[i]<50&&p[i+2]<50&&p[i+3]>200)green++;}return {visible,green,width:c.width,height:c.height,image:c.toDataURL(),stats:player.current.backend.ass.stats};});
-   await page.waitForFunction(()=>player.current.backend.ass.stats.renders>0);
+   const pixels=()=>page.evaluate(()=>{const c=document.querySelector('.demuxe-native-ass'),p=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let visible=0,green=0;for(let i=0;i<p.length;i+=4){if(p[i+3])visible++;if(p[i+1]>150&&p[i]<50&&p[i+2]<50&&p[i+3]>200)green++;}return {visible,green,width:c.width,height:c.height,image:c.toDataURL(),stats:player.current.backend.mpvSubs.stats};});
+   await page.waitForFunction(()=>player.current.backend.mpvSubs.stats.renders>0);
    await page.waitForTimeout(150);item.active=await pixels();assert.ok(item.active.visible>500);assert.ok(item.active.green>500);
    await page.locator('.demuxe-native-ass').screenshot({path:out+'/'+kind+'-active.png'});
    await page.evaluate(()=>player.seek(2.75));await page.waitForTimeout(150);item.animation=await pixels();assert.notEqual(item.active.image,item.animation.image);
-   const before=await page.evaluate(()=>player.current.backend.ass.stats.renders);
+   const before=await page.evaluate(()=>player.current.backend.mpvSubs.stats.renders);
    await page.evaluate(()=>{document.querySelector('#surface').style.width='420px';});
-   await page.waitForFunction(before=>player.current.backend.ass.stats.renders>before,before);
+   await page.waitForFunction(before=>player.current.backend.mpvSubs.stats.renders>before,before);
    item.resize=await pixels();assert.ok(item.resize.visible>200);assert.ok(item.resize.green>200);assert.notEqual(item.resize.width,item.active.width);assert.equal(await page.evaluate(()=>player.properties.get('pause')),true);
    await page.evaluate(()=>player.subtitleVisible(false));assert.equal(await page.locator('.demuxe-native-ass').isVisible(),false);
    await page.evaluate(()=>player.subtitleVisible(true));await page.waitForTimeout(100);assert.ok((await pixels()).green>200);
@@ -51,7 +52,7 @@ try{
     }
    }
    await page.evaluate(()=>player.pause());
-   item.gain=await page.evaluate(async()=>{const b=player.current.backend,a=b.ass,r=b.remux;await player.setAudioGain(.25);return {same:b===player.current.backend&&a===b.ass&&r===b.remux,diagnostics:player.diagnostics};});assert.equal(item.gain.same,true);
+   item.gain=await page.evaluate(async()=>{const b=player.current.backend,a=b.mpvSubs,r=b.remux;await player.setAudioGain(.25);return {same:b===player.current.backend&&a===b.mpvSubs&&r===b.remux,diagnostics:player.diagnostics};});assert.equal(item.gain.same,true);
    item.track=await page.evaluate(async()=>{const id=player.state.subtitleTracks.find(t=>t.external).id;await player.selectSubtitleTrack(id);await player.setMode('hybrid');const hybrid=player.state.subtitleTracks.find(t=>t.selected)?.id;await player.setMode('native');return {id,hybrid,native:player.state.subtitleTracks.find(t=>t.selected)?.id};});assert.equal(item.track.id,item.track.hybrid);assert.equal(item.track.id,item.track.native);
    await page.evaluate(()=>{const b=document.createElement('button');b.id='ass-fullscreen';b.textContent='Fullscreen';b.onclick=()=>document.querySelector('#surface').requestFullscreen().catch(e=>window.fullscreenError=String(e));document.body.append(b);});
    await page.locator('#ass-fullscreen').click();await page.waitForFunction(()=>document.fullscreenElement||window.fullscreenError);
@@ -67,7 +68,7 @@ try{
  const page=await browser.newPage(),item={kind:'destroy-during-wasm-load'};result.cases.push(item);
  let release,entered;const barrier=new Promise(r=>entered=r),unblock=new Promise(r=>release=r);
  try{
-  await page.route('**/engine-ass/subtitles.wasm',async route=>{entered();await unblock;await route.abort().catch(()=>{});});
+  await page.route('**/engine-subtitles/service.wasm',async route=>{entered();await unblock;await route.abort().catch(()=>{});});
   await page.goto(origin+'/examples/custom-controls.html');
   await page.evaluate(async()=>{
    await player.destroy();const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',experimentalNativeASS:true});
@@ -80,4 +81,4 @@ try{
   item.output=await page.evaluate(async()=>{await player.destroy();return await window.pending;});
   assert.match(item.output.error,/destroy|abort/i);release();await page.waitForTimeout(100);assert.equal(page.workers().length,0);assert.equal(await page.locator('.demuxe-native-ass').count(),0);item.frameTrace=await page.evaluate(()=>window.frameTrace);item.passed=true;
  }catch(error){item.frameTrace=await page.evaluate(()=>window.frameTrace);item.error=String(error.stack);process.exitCode=1;}finally{release();await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(item.kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
-}finally{await browser.close();server.kill();}
+}finally{try{await closeTestBrowser(browser,name);}finally{server.kill();}}

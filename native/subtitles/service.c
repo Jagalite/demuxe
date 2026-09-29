@@ -47,6 +47,20 @@ EMSCRIPTEN_KEEPALIVE int subtitle_service_create(void) {
  return result;
 }
 EMSCRIPTEN_KEEPALIVE int subtitle_service_open(void){subtitle_timing_invalidate();const char *cmd[]={"loadfile","brange://source","replace",NULL};return mpv_command(subtitle_service,cmd);}
+// Attach only worker-owned files. User filenames and URLs never reach mpv.
+EMSCRIPTEN_KEEPALIVE int subtitle_service_external_api(void){return 1;}
+EMSCRIPTEN_KEEPALIVE int subtitle_service_add(const char *path){
+ if(!subtitle_service||!path||strncmp(path,"/subtitles/",11))return -1;
+ const char *cmd[]={"sub-add",path,"auto",NULL};
+ int result=mpv_command(subtitle_service,cmd);if(result<0)return result;
+ lock_core(subtitle_service);struct MPContext *m=subtitle_service->mpctx;int id=-1;
+ for(int i=0;i<m->num_tracks;i++)if(m->tracks[i]->type==STREAM_SUB&&m->tracks[i]->is_external&&m->tracks[i]->external_filename&&!strcmp(m->tracks[i]->external_filename,path))id=m->tracks[i]->user_tid;
+ unlock_core(subtitle_service);subtitle_timing_invalidate();return id;
+}
+EMSCRIPTEN_KEEPALIVE int subtitle_service_remove(int id){
+ char value[32];snprintf(value,sizeof(value),"%d",id);
+ const char *cmd[]={"sub-remove",value,NULL};subtitle_timing_invalidate();return mpv_command(subtitle_service,cmd);
+}
 EMSCRIPTEN_KEEPALIVE int subtitle_service_loaded(void){int r=0;mpv_event *e;while((e=mpv_wait_event(subtitle_service,0))->event_id){if(e->event_id==MPV_EVENT_FILE_LOADED)r=1;if(e->event_id==MPV_EVENT_END_FILE&&((mpv_event_end_file*)e->data)->error<0)r=-1;}return r;}
 EMSCRIPTEN_KEEPALIVE int subtitle_service_select(int id){
  subtitle_timing_invalidate();

@@ -4,9 +4,9 @@ import hashlib
 import json
 import pathlib
 
-OPTIONAL_CHECKS = {'ass-source', 'adaptation-source', 'assets'} | {
+OPTIONAL_CHECKS = {'adaptation-source', 'assets'} | {
     f'{name}-{browser}' for browser in ['chrome', 'firefox'] for name in [
-        'consumer', 'automatic', 'fractional-seek', 'ass', 'ass-selection', 'ass-style', 'flac',
+        'presentation', 'external-subtitles', 'consumer', 'automatic', 'fractional-seek', 'ass', 'ass-selection', 'ass-style', 'flac',
         'opus', 'lifecycle-flac', 'lifecycle-opus', 'gain', 'unequal-tails']}
 
 def digest(path):
@@ -43,7 +43,7 @@ def verify(report_path, archive, manifest, source_files):
 def required_consumer_cases(manifest):
     """The standard installed-consumer suite adds external ASS only when shipped."""
     cases={'automatic-local','native-no-isolation','hybrid-pin','software-pin','automatic-ass','native-remux','transitions','rollback','missing-engine','isolation-error','rgb-override','av1-software','hdr-software','external-subtitles','surround-output','hls-expanded','dash-periods'}
-    if 'web/engine-ass/subtitles.wasm' in manifest['files']:
+    if 'web/engine-subtitles/service.wasm' in manifest['files']:
         cases.add('native-external-ass')
     if 'web/engine-remux-jspi/remux.wasm' in manifest['files']:
         cases.update({'remux-auto-isolated','remux-auto-no-isolation','remux-asyncify-no-isolation','remux-on-isolated','remux-off-no-isolation'})

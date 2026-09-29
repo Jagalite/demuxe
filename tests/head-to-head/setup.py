@@ -117,7 +117,7 @@ def prepare(args):
         shutil.copyfile(REPO / name, target)
     run(['node', 'node_modules/typescript/bin/tsc', '--project', 'tsconfig.json', '--outDir', str(player / 'web/generated')])
     engines = {}
-    for name in ['engine-remux', 'engine-hybrid', 'engine-selective', 'engine-software-full', 'engine-software-yuv', 'engine-subtitles', 'engine-adaptation', 'engine-ass']:
+    for name in ['engine-remux', 'engine-hybrid', 'engine-selective', 'engine-software-full', 'engine-software-yuv', 'engine-subtitles', 'engine-adaptation']:
         source = REPO / 'web' / name
         engines[name] = source.is_dir()
         if source.is_dir():
@@ -128,7 +128,7 @@ def prepare(args):
         optional_archive_sha = sha(optional_archive)
         with tarfile.open(optional_archive) as bundle:
             package = json.load(bundle.extractfile('package/release-manifest.json'))
-            for folder, stem in [('engine-adaptation', 'remux'), ('engine-ass', 'subtitles')]:
+            for folder, stem in [('engine-adaptation', 'remux')]:
                 for filename in [stem + '.mjs', stem + '.wasm', 'manifest.json']:
                     name = f'web/{folder}/{filename}'
                     entry = package['files'].get(name)

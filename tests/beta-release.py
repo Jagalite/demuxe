@@ -21,8 +21,7 @@ class ReleaseGates(unittest.TestCase):
   subprocess.run(['git','tag','-f','candidate'],cwd=self.root,check=True,stdout=subprocess.DEVNULL)
  def run_gate(self,pattern):
   p=subprocess.run(['python3','scripts/package-beta.py','--release-tag','candidate',
-                    '--adaptation-build',str(self.root/'missing-adaptation'),
-                    '--ass-build',str(self.root/'missing-ass')],cwd=self.root,text=True,capture_output=True)
+                    '--adaptation-build',str(self.root/'missing-adaptation'),'--mpv-subtitles'],cwd=self.root,text=True,capture_output=True)
   self.assertNotEqual(p.returncode,0);self.assertIn(pattern,p.stderr)
  def test_dirty_tree(self):
   self.write('unreviewed.js','changed');self.run_gate('clean source checkout')

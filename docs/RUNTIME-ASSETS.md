@@ -180,51 +180,40 @@ Opus-enabled builds declare that profile in their manifest; Player still require
 explicit lossy permission. No package option enables automatic adaptation.
 
 
-## Optional external Native ASS
+## Unified mpv subtitles
 
-Pass `--ass-build <versioned-ass-dir>` for the pinned libass wrapper and matching
-`web/engine-ass/subtitles.mjs` / `subtitles.wasm`. The worker is lazy, and the same
-asset-copy CLI copies and verifies its manifest, default font and notices. The
-separate `demuxe-native-ass-source.tar.gz` contains wrapper/build inputs and preferred
-library sources. Both optional source companions are listed in SHA256SUMS when
-packaged together. Their presence alone is not proof of source correspondence. Packaging verifies the
-clean library/source record, and release verification requires the exact-archive
-optional matrix plus all existing clean tagged-source and standard release gates. See the current optimization coverage report.
+Embedded subtitles and external ASS/SSA, SRT, and rich WebVTT attachments use
+`NativeMpvSubtitles` and `web/mpv-subtitle-worker.js`. The same service owns
+track selection, timing, the canvas, fonts, seeks, and cleanup. Plain WebVTT
+browser text tracks and Shaka manifest text retain their browser/Shaka owners.
 
-### Isolated Native ASS build
+The selected `remuxRuntime` chooses `web/engine-subtitles/service.{mjs,wasm}`
+for pthread, or `web/engine-mpv-subtitles-{jspi,asyncify}/service.{mjs,wasm}`
+for private memory. Only pthread requires cross-origin isolation. The private
+services also require their hash-bound manifests. Install the default font and
+notices with the runtime assets. The standalone `engine-ass` runtime and its
+separate source companion are retired; subtitle sources now travel with the mpv
+service's existing source/relink records.
 
-`scripts/build-native-ass.py` builds only the four pinned subtitle libraries and
-links the optional worker in a fresh output directory. It verifies the input
-archives against `sources.lock.json`, uses a private Emscripten cache and prefix,
-and records commands, source/library hashes and host tool identities. Existing
-checkouts and library archives are read-only inputs; no playback engine is rebuilt.
+Build pthread subtitles with `python3 scripts/build-subtitles.py`. For the
+private services, use the existing private dependency build and link workflow
+in [Private mpv in Player](PRIVATE-MPV-PLAYER.md), then install the rebuilt pair:
 
 ```sh
-python3 scripts/build-native-ass.py --sdk /path/to/emsdk-4.0.14 \
-  --archives /path/to/verified-downloads --meson /path/to/meson \
-  --output build/native-ass-clean
-python3 scripts/verify-native-ass-build.py build/native-ass-clean/runtime
-python3 scripts/package-beta.py --output build/optional-candidate \
-  --ass-build build/native-ass-clean/runtime
-python3 tests/native-ass-source-build.py
+python3 scripts/install-private-mpv.py --subtitles-build /path/to/verified-build \
+  --runtime-root . --replace
 ```
 
-The archive directory must contain `freetype.tar.gz`, `fribidi.tar.gz`,
-`harfbuzz.tar.gz`, and `libass.tar.gz` matching the unchanged source lock. The
-builder refuses an existing output directory. Use a second fresh output to compare
-runtime and library hashes. The historical Linux toolchain lock is not evidence
-for a macOS build; the source-build record declares that distinction.
-
-For clean builds, packaging verifies the source-build record before copying assets
-and includes it and the isolated builder in the source companion. Installed asset
-tests verify the companion's preferred sources and wrapper against those hashes.
-A passing local correspondence check does not authorize release packaging; the
-existing tagged-source, full-consumer and streaming release gates still apply.
+Replacement verifies the existing installed hashes before updating either
+runtime. New workers require attachment ABI version 1; old service binaries
+fail with a matching-assets diagnostic. Rebuild/repackage all three subtitle
+services together. Existing clean-source and exact-archive release gates still
+apply; local playback checks do not qualify a release.
 
 ## Exact-archive optional qualification
 
 Run `scripts/qualify-optional-runtime.py --archive <candidate.tgz>
---ass-build <clean-ass/runtime> --adaptation-build <clean-preparation/engine>
+--adaptation-build <clean-preparation/engine>
 --output <fresh-directory>`. It verifies matching source builds and tests installed
 assets, consumers, automatic admission, subtitles, filters/gain, FLAC/Opus fidelity,
 lifecycle and the documented unequal-tail browser policy. Failed runs are retained.

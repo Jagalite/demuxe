@@ -77,8 +77,7 @@ before recommending this configuration as the next release default.
 
 ```sh
 python3 scripts/package-beta.py --release-tag <tag> --output build/release \
-  --adaptation-build <clean-adaptation-engine-directory> \
-  --ass-build <clean-ass-runtime-directory>
+  --adaptation-build <clean-adaptation-engine-directory>
 BETA_ARCHIVE=/absolute/path/to/build/release/demuxe-<version>.tgz \
   node tests/beta-consumer.mjs
 BROWSER=firefox BETA_ARCHIVE=/absolute/path/to/build/release/demuxe-<version>.tgz \
@@ -157,13 +156,14 @@ publish anything; distribute the verified files without running the packager aga
 
 ## Optional preparation and ASS runtimes
 
-The published `0.3.0-beta.3` archive included both optional runtimes. Preserve
-that coverage in `0.3.0-beta.4`: rebuild each from the new tagged Apache source
-and its pinned upstream libraries, then pass the verified build directories to the
-same tagged packager with `--adaptation-build <engine-directory>` and
-`--ass-build <runtime-directory>`. Keep both optional source companions and their
-hashes alongside the standard source companion. See
-[Runtime assets](RUNTIME-ASSETS.md) for the pinned builds and asset-copy contract.
+Earlier archives included a separate Native ASS runtime. Current releases use
+the mpv subtitle service for embedded and external subtitles. Rebuild pthread,
+JSPI and Asyncify subtitle assets from the tagged sources and include their
+existing mpv source/relink records. Pass audio preparation with
+`--adaptation-build <engine-directory>`; keep its optional source companion and
+hash alongside the standard source companion. The standalone `--ass-build`
+option and separate ASS source companion are retired. See
+[Runtime assets](RUNTIME-ASSETS.md) for the current build and asset-copy contract.
 The adaptation build must retain the published FLAC and explicit Opus profiles
 (`--opus`, 0.5-second first fragments, FLAC level 5); compare its manifest with
 the prior archive before release. Both current FFmpeg source entries pin n9.0.2
@@ -178,7 +178,6 @@ Run the optional matrix against the immutable tagged archive:
 python3 scripts/qualify-optional-runtime.py \
   --archive <tagged-runtime.tgz> \
   --adaptation-build <engine-directory> \
-  --ass-build <runtime-directory> \
   --output <fresh-qualification-directory>
 ```
 

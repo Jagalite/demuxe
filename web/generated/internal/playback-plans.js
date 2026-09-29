@@ -20,6 +20,7 @@ export const PLAYBACK_PLANS = Object.freeze([
     { id: 'native-opus', mode: 'native', video: 'packet-copy', audio: 'opus-lossy', qualification: 'experimental' },
     { id: 'native-opus-gain', mode: 'native', video: 'packet-copy', audio: 'opus-lossy+web-audio-gain', qualification: 'experimental' },
     { id: 'native-transcode-mpv', mode: 'native', video: 'packet-copy', audio: 'flac24', qualification: 'bounded' },
+    { id: 'native-transcode-ass', mode: 'native', video: 'packet-copy', audio: 'flac24', qualification: 'bounded' },
     { id: 'native-transcode', mode: 'native', video: 'packet-copy', audio: 'flac24', qualification: 'bounded' },
     { id: 'native-video-mpv-audio', mode: 'native', video: 'packet-copy', audio: 'mpv-pcm-worklet', qualification: 'bounded' },
     { id: 'native-video-mpv-audio-subtitles', mode: 'native', video: 'packet-copy', audio: 'mpv-pcm-worklet', qualification: 'bounded' },
@@ -30,12 +31,12 @@ export const PLAYBACK_PLANS = Object.freeze([
     { id: 'software-gain', mode: 'software', video: 'ffmpeg', audio: 'mpv+web-audio-gain', qualification: 'experimental' },
     { id: 'software', mode: 'software', video: 'ffmpeg', audio: 'mpv', qualification: 'existing' },
 ].map(plan => Object.freeze({ ...plan,
-    owners: Object.freeze({ video: plan.mode === 'native' ? 'browser-media-element' : plan.mode === 'hybrid' ? 'browser-webcodecs' : 'ffmpeg', audio: plan.id.startsWith('native-video-mpv-audio') || plan.mode !== 'native' ? 'mpv-pcm-worklet' : 'browser-media-element', subtitle: (plan.id === 'native-remux-mpv' || plan.id === 'native-direct-mpv' || plan.id === 'native-transcode-mpv' || plan.id === 'native-video-mpv-audio-subtitles') ? 'mpv-subtitle-service' : plan.id === 'native-video-mpv-audio' ? 'none' : plan.id.startsWith('shaka-') ? 'shaka-text' : plan.id.includes('-ass') ? 'independent-libass' : plan.mode === 'native' ? 'browser-text-track' : 'mpv', demux: plan.id.startsWith('native-video-mpv-audio') ? 'ffmpeg-video-packet-copy+mpv-audio-demux' + (plan.id.endsWith('-subtitles') ? '+mpv-subtitle-demux' : '') : (plan.id === 'native-remux-mpv' || plan.id === 'native-transcode-mpv') ? 'ffmpeg-preparation+mpv-subtitle-demux' : plan.id === 'native-direct-mpv' ? 'browser+mpv-subtitle-demux' : plan.id.startsWith('shaka-') ? 'shaka-manifest-segments-mse' : plan.mode === 'native' ? (plan.id.startsWith('native-direct') ? 'browser' : 'ffmpeg-preparation') : 'mpv', presentation: plan.mode === 'native' ? 'browser-media-element' : 'demuxe-retained-frame' }),
+    owners: Object.freeze({ video: plan.mode === 'native' ? 'browser-media-element' : plan.mode === 'hybrid' ? 'browser-webcodecs' : 'ffmpeg', audio: plan.id.startsWith('native-video-mpv-audio') || plan.mode !== 'native' ? 'mpv-pcm-worklet' : 'browser-media-element', subtitle: (plan.id === 'native-remux-mpv' || plan.id === 'native-direct-mpv' || plan.id === 'native-transcode-mpv' || plan.id === 'native-video-mpv-audio-subtitles') ? 'mpv-subtitle-service' : plan.id === 'native-video-mpv-audio' ? 'none' : plan.id.startsWith('shaka-') ? 'shaka-text' : plan.id.includes('-ass') ? 'mpv-subtitle-service' : plan.mode === 'native' ? 'browser-text-track' : 'mpv', demux: plan.id.includes('-ass') ? (plan.id.startsWith('native-direct') ? 'browser+mpv-subtitle-demux' : 'ffmpeg-preparation+mpv-subtitle-demux') : plan.id.startsWith('native-video-mpv-audio') ? 'ffmpeg-video-packet-copy+mpv-audio-demux' + (plan.id.endsWith('-subtitles') ? '+mpv-subtitle-demux' : '') : (plan.id === 'native-remux-mpv' || plan.id === 'native-transcode-mpv') ? 'ffmpeg-preparation+mpv-subtitle-demux' : plan.id === 'native-direct-mpv' ? 'browser+mpv-subtitle-demux' : plan.id.startsWith('shaka-') ? 'shaka-manifest-segments-mse' : plan.mode === 'native' ? (plan.id.startsWith('native-direct') ? 'browser' : 'ffmpeg-preparation') : 'mpv', presentation: plan.mode === 'native' ? 'browser-media-element' : 'demuxe-retained-frame' }),
     source: plan.id.startsWith('native-video-mpv-audio') ? 'inspected finite random-access file with selected video and software audio' + (plan.id.endsWith('-subtitles') ? ' and embedded subtitles' : '') : (plan.id === 'native-remux-mpv' || plan.id === 'native-direct-mpv') ? 'inspected random-access file with embedded subtitle tracks' : plan.id.startsWith('shaka-') ? 'authorized HLS/DASH adaptive source' : (plan.id.startsWith('native-transcode') || plan.id.startsWith('native-remux') || plan.id.startsWith('native-flac') || plan.id.startsWith('native-opus')) ? 'qualified random-access file and selected codec packaging' : plan.mode === 'native' ? 'browser-supported source and selected tracks' : 'existing mpv source/track contract',
-    prerequisites: plan.id.startsWith('native-video-mpv-audio') ? 'MSE, Web Audio, selected runtime requirements, selective mpv engine assets' + (plan.id.endsWith('-subtitles') ? ', mpv subtitle service assets' : '') : (plan.id === 'native-remux-mpv' || plan.id === 'native-transcode-mpv') ? 'MSE, selected runtime requirements, mpv subtitle service assets' : plan.id === 'native-direct-mpv' ? 'selected runtime requirements, mpv subtitle service assets' : plan.id.startsWith('shaka-') ? 'MSE and lazy Shaka runtime; qualified browser codecs' : (plan.id.startsWith('native-transcode') || plan.id.startsWith('native-remux') || plan.id.startsWith('native-flac') || plan.id.startsWith('native-opus')) ? 'MSE, qualified MIME; selected runtime requirements' : plan.mode === 'native' ? 'HTMLMediaElement' + (plan.id.endsWith('gain') ? ', Web Audio and CORS-clean media' : '') : 'cross-origin isolation' + (plan.mode === 'hybrid' ? ', supported complete WebCodecs configuration' : ''),
-    subtitles: plan.id === 'native-video-mpv-audio' ? 'not admitted' : (plan.id === 'native-remux-mpv' || plan.id === 'native-direct-mpv' || plan.id === 'native-transcode-mpv' || plan.id === 'native-video-mpv-audio-subtitles') ? 'qualified embedded tracks via mpv; container presentation only' : plan.id.startsWith('shaka-') ? 'Shaka manifest text selection and rendering' : plan.id.includes('-ass') ? 'external ASS/SSA via pinned libass; container presentation only' : plan.mode === 'native' ? 'browser text tracks' : 'mpv/libass',
+    prerequisites: plan.id.includes('-ass') ? 'Browser A/V requirements, selected runtime requirements, mpv subtitle service assets' : plan.id.startsWith('native-video-mpv-audio') ? 'MSE, Web Audio, selected runtime requirements, selective mpv engine assets' + (plan.id.endsWith('-subtitles') ? ', mpv subtitle service assets' : '') : (plan.id === 'native-remux-mpv' || plan.id === 'native-transcode-mpv') ? 'MSE, selected runtime requirements, mpv subtitle service assets' : plan.id === 'native-direct-mpv' ? 'selected runtime requirements, mpv subtitle service assets' : plan.id.startsWith('shaka-') ? 'MSE and lazy Shaka runtime; qualified browser codecs' : (plan.id.startsWith('native-transcode') || plan.id.startsWith('native-remux') || plan.id.startsWith('native-flac') || plan.id.startsWith('native-opus')) ? 'MSE, qualified MIME; selected runtime requirements' : plan.mode === 'native' ? 'HTMLMediaElement' + (plan.id.endsWith('gain') ? ', Web Audio and CORS-clean media' : '') : 'cross-origin isolation' + (plan.mode === 'hybrid' ? ', supported complete WebCodecs configuration' : ''),
+    subtitles: plan.id === 'native-video-mpv-audio' ? 'not admitted' : (plan.id === 'native-remux-mpv' || plan.id === 'native-direct-mpv' || plan.id === 'native-transcode-mpv' || plan.id === 'native-video-mpv-audio-subtitles') ? 'qualified embedded tracks and external attachments via mpv; container presentation only' : plan.id.startsWith('shaka-') ? 'Shaka manifest text selection and rendering' : plan.id.includes('-ass') ? 'external subtitles via mpv; container presentation only' : plan.mode === 'native' ? 'browser text tracks' : 'mpv/libass',
     fidelity: plan.id.startsWith('native-transcode') ? 'Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied' : plan.id.startsWith('native-video-mpv-audio') ? 'Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding' : plan.id.startsWith('native-opus') ? 'Explicitly permitted lossy audio; no resampling/downmix; video copied' : plan.id.startsWith('native-flac') ? 'Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample' : 'No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply',
-    resources: plan.id.startsWith('native-video-mpv-audio') ? 'bounded source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings' + (plan.id.endsWith('-subtitles') ? ', subtitle service Wasm and bitmap' : '') + '; browser decoder allocations opaque' : (plan.id === 'native-remux-mpv' || plan.id === 'native-direct-mpv') ? 'bounded source reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque' : plan.id.startsWith('shaka-') ? 'Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque' : plan.mode === 'native' ? 'existing bounded remux buffers when used; browser decoder allocations are opaque' : 'existing mpv allocation, PCM ring and retained-frame limits',
+    resources: plan.id.includes('-ass') ? 'bounded source reads, 128 MiB subtitle Wasm heap, at most 16 MiB external subtitle files and one subtitle bitmap; browser allocations opaque' : plan.id.startsWith('native-video-mpv-audio') ? 'bounded source readers, remux Wasm and selective mpv Wasm, 8192-frame PCM and timeline rings' + (plan.id.endsWith('-subtitles') ? ', subtitle service Wasm and bitmap' : '') + '; browser decoder allocations opaque' : (plan.id === 'native-remux-mpv' || plan.id === 'native-direct-mpv') ? 'bounded source reads, 128 MiB subtitle Wasm heap, one subtitle bitmap up to 8,294,400 bytes; browser allocations opaque' : plan.id.startsWith('shaka-') ? 'Shaka buffer/scheduling policy; bounded authorized responses; browser decoder allocations are opaque' : plan.mode === 'native' ? 'existing bounded remux buffers when used; browser decoder allocations are opaque' : 'existing mpv allocation, PCM ring and retained-frame limits',
     fallback: plan.mode === 'software' ? 'terminal' : 'existing diagnosed-path fallback with source and user intent preserved',
 })));
 // Only the demonstrated scalar filter is admitted. Expressions, chains, channel
@@ -60,7 +61,7 @@ export function featureRejection(mode, features) {
 }
 export function executionPlan(mode, packaging, audioFilter, gain = 1, nativeASS = false) {
     if (mode === 'native' && (packaging === 'adapted-flac24' || packaging === 'native-transcode-mpv'))
-        return PLAYBACK_PLANS.find(plan => plan.id === (packaging === 'adapted-flac24' ? 'native-transcode' : 'native-transcode-mpv'));
+        return PLAYBACK_PLANS.find(plan => plan.id === (packaging === 'adapted-flac24' ? (nativeASS ? 'native-transcode-ass' : 'native-transcode') : 'native-transcode-mpv'));
     if (mode === 'native' && typeof packaging === 'string' && packaging.startsWith('native-video-mpv-audio'))
         return PLAYBACK_PLANS.find(plan => plan.id === packaging);
     if (mode === 'native' && packaging === 'direct-mpv')
@@ -82,8 +83,8 @@ export function planAdmission(f) {
         const reject = (c, r) => { code = c; reason = r; };
         const gain = plan.id.endsWith('-gain'), ass = plan.id.includes('-ass'), flac = plan.id.startsWith('native-flac'), opus = plan.id.startsWith('native-opus');
         const effect = featureRejection(plan.mode, { ...f });
-        if (f.privateRemux && !['native-direct', 'native-direct-gain', 'shaka-mse', 'shaka-mse-gain', 'native-remux', 'native-transcode', 'native-direct-mpv', 'native-remux-mpv', 'native-transcode-mpv', 'native-video-mpv-audio', 'native-video-mpv-audio-subtitles'].includes(plan.id))
-            reject('QUALIFICATION_REQUIRED', 'Private runtime supports qualified finite-file remux, transcode and embedded subtitle services');
+        if (f.privateRemux && !['native-direct', 'native-direct-ass', 'native-direct-ass-gain', 'native-remux-ass', 'native-remux-ass-gain', 'native-flac-gain', 'native-flac-ass-gain', 'native-direct-gain', 'shaka-mse', 'shaka-mse-gain', 'native-remux', 'native-flac', 'native-flac-ass', 'native-transcode', 'native-transcode-ass', 'native-direct-mpv', 'native-remux-mpv', 'native-transcode-mpv', 'native-video-mpv-audio', 'native-video-mpv-audio-subtitles'].includes(plan.id))
+            reject('QUALIFICATION_REQUIRED', 'Private runtime supports qualified finite-file remux, adaptation and subtitle plans');
         else if (effect)
             reject('FEATURE_UNSUPPORTED', effect);
         else if (gain !== (f.gain !== 1))
@@ -101,8 +102,14 @@ export function planAdmission(f) {
                 reject('DEPLOYMENT_UNAVAILABLE', 'Audio transcoding requires permitted MSE');
             else if (f.audioOutput !== 'stereo' || f.gain !== 1 || f.af)
                 reject('FEATURE_UNSUPPORTED', 'Requested audio processing requires mpv');
-            else if (f.manifest || f.externalFormats.length || f.browserTextTracks)
-                reject('QUALIFICATION_REQUIRED', 'Adapted file audio with external captions or manifests is not qualified');
+            else if (f.manifest || f.browserTextTracks)
+                reject('QUALIFICATION_REQUIRED', 'Adapted file audio with browser text tracks or manifests is not qualified');
+            else if (!plan.id.endsWith('-mpv') && ass !== !!f.externalFormats.length)
+                reject('PLAN_NOT_REQUESTED', 'Subtitle component does not match the requested presentation');
+            else if (f.externalFormats.length && (!f.nativeASS || f.externalFormats.some(format => !['ass', 'ssa', 'srt', 'vtt'].includes(format))))
+                reject('FEATURE_UNSUPPORTED', 'External subtitle format requires mpv or explicit Native ASS admission');
+            else if (ass && !f.isolated && !f.privateRemux)
+                reject('ISOLATION_REQUIRED', 'mpv subtitles require cross-origin isolation with the pthread runtime');
             else if (plan.id.endsWith('-mpv') ? (!f.selectedEmbeddedSubtitle || !f.mpvSubtitles || !f.mpvSubtitleSourceQualified) : !!f.selectedEmbeddedSubtitle)
                 reject('QUALIFICATION_REQUIRED', 'Subtitle ownership does not match the requested presentation');
             else if (!f.transcodeAssetsAvailable)
@@ -131,8 +138,10 @@ export function planAdmission(f) {
                 reject('QUALIFICATION_REQUIRED', 'mpv subtitle service requires inspected finite file subtitles and available assets');
             else if (!f.isolated && !f.privateRemux)
                 reject('ISOLATION_REQUIRED', 'mpv subtitle service requires cross-origin isolation');
-            else if (f.externalFormats.length || f.browserTextTracks || f.manifest)
-                reject('QUALIFICATION_REQUIRED', 'mpv subtitle service currently owns embedded file subtitles only');
+            else if (f.browserTextTracks || f.manifest)
+                reject('QUALIFICATION_REQUIRED', 'mpv subtitle service requires file subtitles');
+            else if (f.externalFormats.length && (!f.nativeASS || f.externalFormats.some(format => !['ass', 'ssa', 'srt', 'vtt'].includes(format))))
+                reject('FEATURE_UNSUPPORTED', 'External subtitle composition requires admitted mpv attachments');
             else if (f.audioOutput !== 'stereo')
                 reject('FEATURE_UNSUPPORTED', 'Explicit PCM layout requires mpv A/V');
             else if (plan.id === 'native-direct-mpv' && (f.nativeRemux === 'always' || f.requiresRemux))
@@ -176,12 +185,12 @@ export function planAdmission(f) {
                 reject('QUALIFICATION_REQUIRED', 'Plain file captions with adapted audio require separate qualification');
             else if (f.externalFormats.includes('browser-vtt') && f.manifest)
                 reject('QUALIFICATION_REQUIRED', 'File captions are not qualified on manifest timelines');
-            else if (ass && (!f.nativeASS || f.externalFormats.some(format => !['ass', 'ssa'].includes(format))))
+            else if (ass && (!f.nativeASS || f.externalFormats.some(format => !['ass', 'ssa', 'srt', 'vtt'].includes(format))))
                 reject('FEATURE_UNSUPPORTED', 'External subtitle format requires mpv or explicit Native ASS admission');
             else if (ass && f.manifest)
                 reject('QUALIFICATION_REQUIRED', 'Native ASS is qualified only on file presentations');
-            else if (ass && !f.isolated)
-                reject('ISOLATION_REQUIRED', 'Native libass requires cross-origin isolation');
+            else if (ass && !f.isolated && !f.privateRemux)
+                reject('ISOLATION_REQUIRED', 'mpv subtitles require cross-origin isolation with the pthread runtime');
             else if (prepared && f.manifest)
                 reject('QUALIFICATION_REQUIRED', 'File preparation is not qualified for manifest sources');
             else if (prepared && !f.isolated && !f.privateRemux)

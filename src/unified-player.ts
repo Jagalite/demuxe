@@ -428,7 +428,7 @@ export class Player extends EventTarget {
     const isolated=globalThis.crossOriginIsolated===true,available:FeatureAvailability={availability:'available'};
     const unavailable=(reason:string):FeatureAvailability=>({availability:'unavailable',reason});
     const unknown:FeatureAvailability={availability:'unknown',reason:'Open a source to establish availability'};
-    const nativeOverlay=(this.nativeASS&&isolated||!!(this.current?.backend.diagnostics as {mpvSubtitles?:unknown}|undefined)?.mpvSubtitles)&&backendPlan(this.current?.backend)!=='adapted-opus'&&!(this.source?.kind==='remote'&&this.source.options.format&&this.source.options.format!=='file');
+    const nativeOverlay=(this.nativeASS&&(isolated||this.privateRemux)||!!(this.current?.backend.diagnostics as {mpvSubtitles?:unknown}|undefined)?.mpvSubtitles)&&backendPlan(this.current?.backend)!=='adapted-opus'&&!(this.source?.kind==='remote'&&this.source.options.format&&this.source.options.format!=='file');
     const route=(mode:'hybrid'|'software'):FeatureAvailability=>this.privateRemux?unavailable('Private runtime has no qualified Hybrid or Software service'):!isolated?unavailable('This deployment requires cross-origin isolation'):this.mode===mode||(mode==='hybrid'&&this.mode==='software')?available:this.automatic?{availability:'switch',mode,reason:`This feature requires ${mode} playback`}:unavailable(`Select ${mode} mode first`);
     const resolution=this.bufferingResolution();
     return {...this.legacyCapabilities,buffering:{control:resolution.control,preload:true,profile:resolution.backend!=='browser',memoryBudget:['mpv','remux'].includes(resolution.backend)},deployment:{isolated,webCodecs:typeof VideoDecoder!=='undefined',mediaSource:typeof MediaSource!=='undefined'},features:{
@@ -724,7 +724,7 @@ export class Player extends EventTarget {
     }
     const queried=admitted.find(p=>p.id===planId)?.browserCapability;
     if(queried&&this.sourceInspection?.source===source){queried.decodingInfo=await this.mediaCapabilityQueries.inspect(queried,this.sourceInspection.probe);this.assertOperation();}
-    if(mode==='native'&&attachments.length&&!attachments.every(a=>!!plainVTT(a))&&(!this.nativeASS||attachments.some(a=>!['ass','ssa'].includes(a.format))))throw Error('External mpv subtitles require Hybrid or Software');
+    if(mode==='native'&&attachments.length&&!attachments.every(a=>!!plainVTT(a))&&(!this.nativeASS||attachments.some(a=>!['ass','ssa','srt','vtt'].includes(a.format))))throw Error('External mpv subtitles require Hybrid or Software');
     if(mode==='native'&&this.audioOutput!=='stereo')throw Error('Explicit PCM output layout requires Hybrid or Software');
     if (source.kind === 'local' && source.file instanceof ArrayBuffer && source.file.byteLength > 32 * 1024 * 1024) throw new Error('ArrayBuffer sources are limited to 32 MiB');
     const old = this.current;

@@ -84,17 +84,17 @@ matching `demuxe-audio-adaptation-source.tar.gz` and
 `demuxe-native-ass-source.tar.gz` sit beside the runtime and standard source
 companion. They include the preferred FFmpeg or subtitle-library source,
 original Demuxe wrappers, build manifests, generated configuration and link
-maps. To rebuild either after a source change, use fresh output directories:
+maps. Those published companions remain the source of truth for their archived releases.
+Current external subtitles use the unified mpv service; rebuild it with
+`python3 scripts/build-subtitles.py` and the private build workflow in
+[Private mpv in Player](PRIVATE-MPV-PLAYER.md). To rebuild audio preparation, use a fresh output directory:
 
 ```sh
 python3 scripts/build-audio-adaptation.py --output build/audio-adaptation-clean \
   --sdk "$PWD/build/emsdk-4.0.14" --archive build/downloads/ffmpeg-adaptation.tar.gz --transcode --opus
 cat build/audio-adaptation-clean/latest.json
 python3 scripts/verify-audio-adaptation-build.py "PATH_FROM_LATEST_JSON"
-python3 scripts/build-native-ass.py --sdk "$PWD/build/emsdk-4.0.14" \
-  --archives build/downloads --meson build/venv/bin/meson \
-  --output build/native-ass-clean
-python3 scripts/verify-native-ass-build.py build/native-ass-clean/runtime
+
 ```
 
 The optional builders consume the same locked archive hashes and can rebuild

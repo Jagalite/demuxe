@@ -14,8 +14,7 @@ ENGINE_NAMES = [f'web/{folder}/{stem}.{ext}'
                                      ('engine-subtitles', 'service')]
                 for ext in ('mjs', 'wasm')]
 OPTIONAL_NAMES = [f'web/{folder}/{stem}.{ext}'
-                  for folder, stem in [('engine-ass', 'subtitles'),
-                                       ('engine-adaptation', 'remux')]
+                  for folder, stem in [('engine-adaptation', 'remux')]
                   for ext in ('mjs', 'wasm')]
 
 
@@ -122,7 +121,8 @@ def compare(before_path, after_path):
     for name in OPTIONAL_NAMES:
         if 'demuxe/' + name not in before_manifest['files'] or 'demuxe/' + name not in after_manifest['files']:
             raise ValueError('Published optional engine missing from catalogue lane: ' + name)
-    for folder in ('engine-ass', 'engine-adaptation'):
+    # The mpv subtitle service is bound through ENGINE_NAMES and beta-build.json.
+    for folder in ('engine-adaptation',):
         path = pathlib.Path(after_summary['assets']) / 'demuxe/web' / folder / 'manifest.json'
         manifest = json.loads(path.read_text())
         if not manifest.get('sourceBuildVerification', {}).get('verified'):

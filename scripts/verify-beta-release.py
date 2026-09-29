@@ -57,7 +57,7 @@ with tarfile.open(args.source)as tar:
   if sha(shaka_record)!=manifest['files']['third_party/shaka-player.json']['sha256']:raise SystemExit('Shaka source inventory differs from runtime')
   shaka_pin=json.loads(shaka_record)['preferredSource']
   if source['files'].get('demuxe/build/downloads/'+shaka_pin['filename'])!=shaka_pin['sha256']:raise SystemExit('Missing pinned Shaka preferred-source archive')
-optional_present=any(name.startswith(('web/engine-ass/','web/engine-adaptation/')) for name in manifest['files'])
+optional_present=any(name.startswith(('web/engine-subtitles/','web/engine-adaptation/')) for name in manifest['files'])
 if optional_present and not args.optional:raise SystemExit('Optional runtime release requires exact-archive optional qualification')
 from optional_release import required_consumer_cases
 consumer_cases=required_consumer_cases(manifest)

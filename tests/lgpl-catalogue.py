@@ -56,7 +56,7 @@ class CatalogueGate(unittest.TestCase):
             application = assets / 'demuxe/web/native-remux-player.js'
             application.write_bytes(b'qualified application source')
             files[str(application.relative_to(assets))] = {'sha256': gate.digest(application)}
-            for folder in ('engine-ass', 'engine-adaptation'):
+            for folder in ('engine-adaptation',):
                 file = assets / 'demuxe/web' / folder / 'manifest.json'
                 data = {'sourceBuildVerification': {'verified': True}}
                 if folder == 'engine-adaptation':

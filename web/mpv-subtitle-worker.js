@@ -3,6 +3,9 @@ import {runtimeWorker} from './generated/internal/runtime-worker.js';
 import {SubtitleOverlay} from './subtitle-overlay.js';
 let engine, io, closed=false, ioStats, fatal, lastTime=0,textPointer,timingPointer,selectedTrack=false;
 let host,source,privateMpvSource,initialized=false;
+let attachmentSequence=0,attachmentBytes=0,attachmentsDirectory=false;
+const attachments=new Map();
+class AttachmentRejected extends Error {}
 const loading=new AbortController(),refreshes=new Map();
 const invoke=(name,...args)=>host?host.call(name,...args):engine['_'+name](...args);
 const service=()=>({avChains:0,heapBytes:engine.HEAPU8.byteLength,io:source?.reader.stats??ioStats,scheduler:{...scheduler},...(host?{privateRuntime:host.facts()}:{} )});
@@ -126,6 +129,26 @@ onmessage=({data:d})=>{
      if(id>0)tracks.push({id:String(index+1),mpvId:id,'ff-index':index,type:'sub'});
     }
     (await invoke('subtitle_service_block',1));result={tracks};
+   }else if(d.type==='add'){
+    if(!engine._subtitle_service_external_api||await invoke('subtitle_service_external_api')!==1)throw Error('Subtitle attachment interface mismatch; install matching mpv service assets');
+    if(!['ass','ssa','srt','vtt'].includes(d.asset?.format)||!(d.asset.bytes instanceof ArrayBuffer))throw new AttachmentRejected('Invalid external subtitle attachment');
+    const bytes=d.asset.bytes.byteLength;
+    if(!bytes||bytes>8*1024*1024||attachments.size>=16||attachmentBytes+bytes>16*1024*1024)throw new AttachmentRejected('Subtitle budget exceeded');
+    const path='/subtitles/'+(++attachmentSequence)+'.'+d.asset.format;
+    if(!attachmentsDirectory){engine.FS.mkdir('/subtitles');attachmentsDirectory=true;}
+    engine.FS.writeFile(path,new Uint8Array(d.asset.bytes));
+    const encoded=new TextEncoder().encode(path+'\0'),pointer=await invoke('malloc',encoded.length);
+    if(!pointer){engine.FS.unlink(path);throw Error('Subtitle attachment allocation failed');}
+    let id;
+    try{engine.HEAPU8.set(encoded,pointer);id=await invoke('subtitle_service_add',pointer);}
+    finally{await invoke('free',pointer);}
+    if(!(id>0)){engine.FS.unlink(path);throw new AttachmentRejected('Invalid external subtitle: mpv could not load attachment');}
+    attachments.set(id,{path,bytes});attachmentBytes+=bytes;
+    result={mpvId:id};
+   }else if(d.type==='remove'){
+    const attachment=attachments.get(d.trackId);if(!attachment)throw Error('Unknown external subtitle');
+    if(await invoke('subtitle_service_remove',d.trackId)<0)throw Error('Subtitle attachment removal failed');
+    engine.FS.unlink(attachment.path);attachmentBytes-=attachment.bytes;attachments.delete(d.trackId);
    }else if(d.type==='select'){
     cancelDeadline();lastTimingEpoch=-1;nextRenderBoundary=null;
     if(selectedTrack||lastTime!==0)continuousFromStart=false;
@@ -200,6 +223,6 @@ onmessage=({data:d})=>{
     postMessage({id:d.id,bitmap,unchanged:!bitmap,hasOverlay:!!snapshot.surface,size:bitmap?engine.HEAP32[(engine._web_subtitle_ptr()>>>2)+2]:0,text,mode:schedule.mode,schedule,service:service()},bitmap?[bitmap]:[]);return;
    }
    postMessage({id:d.id,...result});
-  }catch(error){const failures=host?.source.drainFailures()??[];if(failures.length)error=Error('Source transport: '+failures.map(f=>String(f.cause??f.kind)).join('; '));if(host)fatal=error;postMessage({id:d.id,error:String(error)});}
+  }catch(error){const failures=host?.source.drainFailures()??[];if(failures.length)error=Error('Source transport: '+failures.map(f=>String(f.cause??f.kind)).join('; '));if(host&&!(error instanceof AttachmentRejected))fatal=error;postMessage({id:d.id,error:String(error)});}
  });
 };

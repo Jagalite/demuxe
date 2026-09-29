@@ -59,3 +59,8 @@ main{width:100%;flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;
 #status{flex:none;margin:0;max-height:48px;overflow:auto}
 @media(max-width:540px){.masthead{height:42px;min-height:42px;padding:0 12px}main{padding:8px 12px;gap:8px}.playback-summary{gap:5px}.footer{display:none}}
 @media(max-height:450px){.masthead{height:36px;min-height:36px}main{gap:6px;padding-top:6px}.footer,.engine-description{display:none}.playback-summary{font-size:10px}}
+
+/* The framed layout reserves header and transport space inside the viewport. */
+#viewer[layout=playground]::part(container){display:flex;flex-direction:column}
+#viewer[layout=playground]::part(stage){height:auto;flex:1;min-height:0}
+#viewer[layout=playground]::part(topbar),#viewer[layout=playground]::part(controls){flex:none}

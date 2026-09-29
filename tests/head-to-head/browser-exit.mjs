@@ -15,3 +15,40 @@ export async function closeBrowserObserved(browser,ids,{remaining=remainingProce
   if(alive.length)throw Error('Chrome processes remain after teardown: '+alive.join(','));
   return {trackedProcessIDs:ids,remainingProcessIDs:alive,playwrightCloseAcknowledged:acknowledged,...(closeError?{closeError}:{})};
 }
+
+async function deadline(operation, timeoutMs, label) {
+  let timer;
+  try {
+    return await Promise.race([Promise.resolve().then(operation), new Promise((_, reject) => {
+      timer = setTimeout(() => reject(Error(`${label} timed out`)), timeoutMs);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+
+/** Discovery failures must still close the owned browser, and must not qualify
+ * process retirement without evidence. Bound both discovery and fallback close. */
+export async function closeTestBrowser(browser, family, {timeoutMs = 15000} = {}) {
+  if (family === 'firefox') {
+    await deadline(() => browser.close(), timeoutMs, 'Firefox teardown');
+    return {playwrightCloseAcknowledged: true};
+  }
+  let ids, discoveryError;
+  try {
+    const session = await deadline(() => browser.newBrowserCDPSession(), timeoutMs, 'Chrome CDP session');
+    const info = await deadline(() => session.send('SystemInfo.getProcessInfo'), timeoutMs, 'Chrome process discovery');
+    ids = info.processInfo.map(p => p.id);
+    await deadline(() => session.detach(), timeoutMs, 'Chrome CDP detach');
+  } catch (error) { discoveryError = error; }
+
+  let result;
+  try {
+    if (ids?.length) result = await closeBrowserObserved(browser, ids);
+    else await deadline(() => browser.close(), timeoutMs, 'Chrome fallback teardown');
+  } catch (error) {
+    if (discoveryError) throw new AggregateError([discoveryError, error], 'Chrome discovery and teardown failed');
+    throw error;
+  }
+  if (discoveryError) throw discoveryError;
+  if (!ids?.length) throw Error('No observed Chrome process identities');
+  return result;
+}
