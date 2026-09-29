@@ -86,7 +86,7 @@ jobs:
       - name: Assemble the current player and matching source downloads
         run: python3 scripts/build-pages.py --tag "$PAGES_TAG" --output build/pages-site
       - name: Install test browsers
-        run: npx playwright install --with-deps chromium chrome firefox
+        run: npx playwright install --with-deps chromium chrome firefox webkit
       - name: Start audio service for Firefox playback checks
         run: |
           pulseaudio --start --exit-idle-time=-1
