@@ -79,6 +79,7 @@ export declare class WasmPlayer extends EventTarget {
     private analyser?;
     private gainNode?;
     private gainValue;
+    private volumeValue;
     private timing?;
     private lastTiming?;
     private watchdogs;

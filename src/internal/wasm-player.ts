@@ -26,6 +26,7 @@ export class WasmPlayer extends EventTarget {
   private analyser?: AnalyserNode;
   private gainNode?: GainNode;
   private gainValue=1;
+  private volumeValue=100;
   private timing?: ReturnType<typeof setInterval>;
   private lastTiming?: {latencyUs:number;running:boolean};
   private watchdogs=watchdogPolicy();
@@ -283,7 +284,14 @@ export class WasmPlayer extends EventTarget {
   pause() {return this.setPause(true);}
   seek(seconds:number) {if(!Number.isFinite(seconds)||seconds<0) throw new Error('Invalid seek time');this.seekObservation={target:seconds,restarted:false,eof:false};Atomics.store(this.audioHeader,2,0);return this.ready.then(()=>this.request({type:'seek',seconds}));}
   rate(rate:number){if(!Number.isFinite(rate)||rate<0.5||rate>2)throw new Error('Playback rate must be 0.5 to 2');return this.command('set','speed',String(rate));}
-  volume(percent:number) {if(!Number.isFinite(percent)||percent<0||percent>100) throw new Error('Invalid volume');return this.command('set','volume',String(percent));}
+  async volume(percent:number) {
+    if(!Number.isFinite(percent)||percent<0||percent>100) throw new Error('Invalid volume');
+    await this.command('set','volume',String(percent));
+    this.volumeValue=percent;
+    // mpv may have queued PCM before acknowledging mute. Silence that output
+    // at the browser graph too, without applying normal volume twice.
+    this.gainNode?.gain.setValueAtTime(percent===0?0:this.gainValue,this.audioContext.currentTime);
+  }
   async gain(value:number) {
     if(!Number.isFinite(value)||value<0||value>1)throw new Error('Gain must be between 0 and 1');
     await this.ready;
@@ -291,12 +299,12 @@ export class WasmPlayer extends EventTarget {
     if(!this.gainNode&&value!==1){
       const gain=this.audioContext.createGain();
       gain.channelCount=this.outputChannels;gain.channelCountMode='explicit';gain.channelInterpretation='discrete';
-      gain.gain.setValueAtTime(value,this.audioContext.currentTime);
+      gain.gain.setValueAtTime(this.volumeValue===0?0:value,this.audioContext.currentTime);
       this.audioNode!.disconnect();
       this.audioNode!.connect(gain);gain.connect(this.audioContext.destination);gain.connect(this.analyser!);
       this.gainNode=gain;
     }
-    this.gainNode?.gain.setValueAtTime(value,this.audioContext.currentTime);
+    this.gainNode?.gain.setValueAtTime(this.volumeValue===0?0:value,this.audioContext.currentTime);
     this.gainValue=value;
   }
   selectTrack(type:'audio'|'sub',id:string) {
