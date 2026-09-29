@@ -141,7 +141,8 @@ def adaptation():
 
 def package(tag):
     run(['python3', 'scripts/build-audio-adaptation.py', '--output', WORK / 'adaptation',
-         '--sdk', os.environ['DEMUXE_SDK'], '--archive', ROOT / 'build/downloads/ffmpeg-adaptation.tar.gz', '--opus'])
+         '--sdk', os.environ['DEMUXE_SDK'], '--archive', ROOT / 'build/downloads/ffmpeg-adaptation.tar.gz',
+         '--transcode', '--opus'])
     run(['python3', 'scripts/package-beta.py', '--release-tag', tag, '--output', RELEASE,
          '--adaptation-build', adaptation()])
 
