@@ -25,7 +25,7 @@ export function playerError(error: unknown, id: number | null = null, operation:
     : name==='NotAllowedError'||/autoplay|user gesture|audio context.*suspended/i.test(message)?'AUTOPLAY_BLOCKED'
     : /cross.origin isolat|secure.*isolated/i.test(message)?'ISOLATION_REQUIRED'
     : /representation changed|changed length|Source changed/i.test(message)?'SOURCE_CHANGED'
-    : /401|403|permission|origin.*not allowed|authorization/i.test(message)?'SOURCE_PERMISSION'
+    : /\b(?:401|403)\b|permission|origin.*not allowed|authorization/i.test(message)?'SOURCE_PERMISSION'
     : /timed? ?out|deadline/i.test(message)?'NETWORK_TIMEOUT'
     : /fetch.*module|load.*font|\.wasm|initialization|worker.*failed|import.*module|Aborted\(.*fetch|wasm.*failed|WebAssembly.*(?:compile|instantiate)/i.test(message)?'ASSET_LOAD_FAILED'
     : /Invalid|Expected|must be|limited to|queue.*full|No source/i.test(message)?'INVALID_ARGUMENT'

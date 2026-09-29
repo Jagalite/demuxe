@@ -2,6 +2,10 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
 import {playerError,redact} from '../web/generated/internal/errors.js';import {ranges,cachedRanges,tracks,mediaInfo,freeze} from '../web/generated/internal/state.js';
 test('runtime Wasm abort is asset failure; user AbortError is cancellation',()=>{assert.equal(playerError(Error('Aborted(both async and sync fetching of the wasm failed)')).code,'ASSET_LOAD_FAILED');assert.equal(playerError(new DOMException('Aborted','AbortError')).code,'ABORTED');assert.equal(playerError(new DOMException('play() failed','NotAllowedError')).code,'AUTOPLAY_BLOCKED');});
+test('HTTP permission status is not inferred from a localhost port in an asset stack',()=>{
+ assert.equal(playerError(Error('Private mpv initialization: Wasm hash mismatch\n@http://127.0.0.1:44031/audio-worker.js:74:91')).code,'ASSET_LOAD_FAILED');
+ for(const status of [401,403])assert.equal(playerError(Error(`Source transport: HTTP ${status}`)).code,'SOURCE_PERMISSION');
+});
 test('unknown ranges are distinct from known empty and invalid ranges remain unknown',()=>{assert.equal(ranges(undefined),null);assert.deepEqual(ranges([]),[]);assert.equal(ranges([{start:5,end:4}]),null);assert.deepEqual(ranges([{start:20,end:40}]),[{start:20,end:40}]);});
 test('packet cache coverage clips negative preroll and preserves disjoint ranges and unknown state',()=>{
  assert.deepEqual(cachedRanges([{start:-.021,end:11.9895},{start:30,end:40}]),[{start:0,end:11.9895},{start:30,end:40}]);
