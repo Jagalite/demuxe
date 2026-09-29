@@ -2,7 +2,7 @@
 import {runtimeWorker} from './runtime-worker.js';
 import {bufferingPolicy, resolveBuffering, mpvBufferingOptions} from './buffering.js';
 import type {BufferingPolicy, BufferingResolution} from '../types.js';
-import {PlayerError} from './errors.js';
+import {PlayerError,isPlayerError} from './errors.js';
 import type {AudioOutput, FontAsset, ResourceLimits, SubtitleAsset, MediaInputOptions, StreamingOptions} from '../types.js';
 import {resolveDecodePolicy} from './decode-policy.js';
 import {webgpuDecoderSupported} from './webgpu-codecs.js';
@@ -93,7 +93,7 @@ export class WasmPlayer extends EventTarget {
       this.worker.onerror=workerFailure;this.worker.onmessageerror=workerFailure;
       this.worker.onmessage = ({data}) => {
         if(data.type==='ready') {clearTimeout(timeout);this.browserCodecsAbsent=data.browserCodecsAbsent;this.sendTiming(true);resolve();}
-        else if(data.type==='error') {clearTimeout(timeout);const error=data.assetFailure?new PlayerError('ASSET_LOAD_FAILED',data.message):data.decoderTimeout?new PlayerError('NETWORK_TIMEOUT',data.message,null,null,'operation',true):data.decoderFailure?new PlayerError('DECODE_FAILED',data.message):new Error(data.message);reject(error instanceof PlayerError?error:new PlayerError('ASSET_LOAD_FAILED','Playback engine initialization failed: '+error.message,null,null,'operation',true));this.fail(error,data.id);}
+        else if(data.type==='error') {clearTimeout(timeout);const error=data.assetFailure?new PlayerError('ASSET_LOAD_FAILED',data.message):data.decoderTimeout?new PlayerError('NETWORK_TIMEOUT',data.message,null,null,'operation',true):data.decoderFailure?new PlayerError('DECODE_FAILED',data.message):new Error(data.message);reject(isPlayerError(error)?error:new PlayerError('ASSET_LOAD_FAILED','Playback engine initialization failed: '+error.message,null,null,'operation',true));this.fail(error,data.id);}
         else if(data.type==='destroyed') {if(this.diagnostics){this.diagnostics.decoderStats=data.decoderStats;if(data.presentation)this.diagnostics.presentation=data.presentation;}this.onDestroyed?.();}
         else if(data.type==='refresh'){void this.refreshAuthorization?.(data.resource).then(update=>{if(!this.destroyed)this.worker.postMessage({type:'refreshed',id:data.id,update});},()=>{if(!this.destroyed)this.worker.postMessage({type:'refreshed',id:data.id,error:true});});}
         else if(data.type==='output')this.dispatchEvent(new CustomEvent('output',{detail:data.data}));
@@ -163,7 +163,7 @@ export class WasmPlayer extends EventTarget {
     if(report)for(const cancel of this.eventWaiters)cancel(error);
     // Preserve typed terminal failures through the session listener. Turning an
     // asset error into a string would make it look like decoder compatibility.
-    if(report) this.dispatchEvent(new CustomEvent('error',{detail:error instanceof PlayerError?error:error.message}));
+    if(report) this.dispatchEvent(new CustomEvent('error',{detail:isPlayerError(error)?error:error.message}));
   }
   private request(message:Record<string,unknown>,transfer:Transferable[]=[]):Promise<any> {
     if(this.destroyed) return Promise.reject(new Error('Player is destroyed'));

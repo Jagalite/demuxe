@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import {runtimeWorker} from './runtime-worker.js';
-import type {FontAsset, RemoteSource} from '../types.js';
+import type {FontAsset, RemoteSource, SubtitleAsset} from '../types.js';
 import {PlayerError} from './errors.js';
-/** mpv embedded subtitle rendering on the accepted media timeline. One bounded RPC at a time. */
+import {BrowserCaptionUnsupported} from './plain-vtt.js';
+/** One mpv owner for embedded and external subtitles on the accepted media timeline. */
 export class NativeMpvSubtitles {
   readonly canvas=document.createElement('canvas');
   private worker:Worker;
@@ -28,7 +29,7 @@ export class NativeMpvSubtitles {
   private observer?:ResizeObserver;
   private handlers:Array<()=>void>=[];
   readonly ready:Promise<void>;
-  tracks:Array<{id:string;mpvId:number;'ff-index':number;type:string;selected?:boolean;default?:boolean}>=[];
+  tracks:Array<{id:string;mpvId:number;'ff-index':number;type:string;selected?:boolean;default?:boolean;external?:boolean;'attachment-id'?:string;'external-index'?:number;title?:string;lang?:string;codec?:string}>=[];
   service:Record<string,unknown>={};
   readonly stats={position:-1,renders:0,bitmapUpdates:0,bytes:0,peakBytes:0,discarded:0,stateUpdates:0,scheduler:'frame'};
   constructor(private video:HTMLVideoElement,private time:()=>number,base:URL,fonts:FontAsset[],private source:File|RemoteSource,private failed:(e:Error)=>void,private defaultStreamIndex?:number,private runtime:'pthread'|'jspi'|'asyncify'='pthread'){
@@ -62,6 +63,12 @@ export class NativeMpvSubtitles {
     this.ready=(async()=>{
       const deadline=setTimeout(()=>this.loading.abort(),25000);
       try {
+      const directory=this.runtime==='pthread'?'engine-subtitles':`engine-mpv-subtitles-${this.runtime}`;
+      for(const name of ['service.mjs','service.wasm']){
+        const asset=await fetch(new URL(`web/${directory}/${name}`,base),{method:'HEAD',signal:this.loading.signal});
+        if(asset.status===404)throw new BrowserCaptionUnsupported('mpv subtitle runtime is not installed');
+        if(!asset.ok)throw new PlayerError(asset.status===401||asset.status===403?'SOURCE_PERMISSION':'ASSET_LOAD_FAILED',`mpv subtitle asset check failed (${asset.status})`);
+      }
       const response=await fetch(new URL('fixtures/DejaVuSans.ttf',base),{signal:this.loading.signal});
       if(!response.ok)throw Error('Subtitle default font unavailable');
       const bytes=await response.arrayBuffer();if(bytes.byteLength>8*1024*1024)throw Error('Subtitle font budget exceeded');
@@ -79,6 +86,16 @@ export class NativeMpvSubtitles {
       video.disablePictureInPicture=prior.pip;video.disableRemotePlayback=prior.remote;
       throw error;
     }
+  }
+  async add(asset:SubtitleAsset){
+    await this.ready;
+    const result=await this.request('add',{asset});
+    const index=this.tracks.filter(t=>t.external).length+1;
+    const track={id:String(100000+index),mpvId:result.mpvId,'ff-index':-1,type:'sub',external:true,'attachment-id':asset.attachmentId,'external-index':index,title:asset.label,lang:asset.language,codec:asset.format};
+    this.tracks.push(track);
+    try{if(asset.select)await this.select(track.id);}
+    catch(error){this.tracks.splice(this.tracks.indexOf(track),1);await this.request('remove',{trackId:track.mpvId});throw error;}
+    return track.id;
   }
   private request(type:string,data:Record<string,unknown>={},signal?:AbortSignal) {
     if(signal?.aborted)return Promise.reject(signal.reason);
@@ -127,9 +144,9 @@ export class NativeMpvSubtitles {
   }
   async select(id:string){
     await this.ready;
-    const track=id==='no'?undefined:id==='auto'?(this.tracks.find(t=>t.default)??this.tracks[0]):this.tracks.find(t=>t.id===id);
+    const track=id==='no'?undefined:id==='auto'?(this.tracks.find(t=>t.external&&t.selected)??this.tracks.find(t=>t.default)??this.tracks.find(t=>!t.external)):this.tracks.find(t=>t.id===id);
     if(track?.selected)return;
-    if(!track&&id!=='no')throw new PlayerError('UNSUPPORTED_FEATURE','Requested subtitle track was not enumerated by mpv');
+    if(!track&&id!=='no'&&id!=='auto')throw new PlayerError('UNSUPPORTED_FEATURE','Requested subtitle track was not enumerated by mpv');
     const previous=this.tracks.find(t=>t.selected);
     this.changingTrack=true;this.applyMode('fallback');this.syncPump();this.revision++;
     try{
@@ -147,7 +164,7 @@ export class NativeMpvSubtitles {
     if(!selected||this.verifiedTrack===selected.mpvId)return;
     const width=Math.min(1920,this.video.videoWidth||this.video.width),height=Math.min(1080,this.video.videoHeight||this.video.height);
     const now=this.time(),duration=this.video.duration;
-    const samples=[now,0,1,2,5,10,20,30].filter((time,index,list)=>time>=0&&(!Number.isFinite(duration)||time<duration)&&list.indexOf(time)===index);
+    const samples=(selected.external?[now]:[now,0,1,2,5,10,20,30]).filter((time,index,list)=>time>=0&&(!Number.isFinite(duration)||time<duration)&&list.indexOf(time)===index);
     let visible=false;
     try{
       for(const seconds of samples){
@@ -159,7 +176,8 @@ export class NativeMpvSubtitles {
       if(!signal?.aborted){const result=await this.request('render',{seconds:this.time(),width,height,force:true},signal);result.bitmap?.close();signal?.throwIfAborted();this.service=result.service;}
       else this.invalidate();
     }
-    if(!visible)throw new PlayerError('UNSUPPORTED_FEATURE','Selected subtitle track produced no output in the bounded startup window');
+    // Parsed external files may intentionally have no cue near the playhead.
+    if(!visible&&!selected.external)throw new PlayerError('UNSUPPORTED_FEATURE','Selected subtitle track produced no output in the bounded startup window');
     this.verifiedTrack=selected.mpvId;
   }
   /** Internal cue oracle for tests; never exposes media text in diagnostics. */

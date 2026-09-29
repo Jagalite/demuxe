@@ -5,7 +5,7 @@ import argparse,gzip,hashlib,io,json,pathlib,subprocess,tarfile,re
 from license_policy import Policy, LEGAL, encoded
 from private_remux_assets import private_remux_assets, private_mpv_assets, verify_private_release, verify_private_mpv_release
 root=pathlib.Path(__file__).resolve().parent.parent
-p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,default=root/'build/beta');p.add_argument('--yuv',action='store_true');p.add_argument('--release-tag');p.add_argument('--adaptation-build',type=pathlib.Path);p.add_argument('--ass-build',type=pathlib.Path);p.add_argument('--mpv-subtitles',action='store_true');args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,default=root/'build/beta');p.add_argument('--yuv',action='store_true');p.add_argument('--release-tag');p.add_argument('--adaptation-build',type=pathlib.Path);p.add_argument('--mpv-subtitles',action='store_true');args=p.parse_args()
 # The switch remains accepted for older automation. A standard local candidate
 # includes the service whenever its built runtime assets are present.
 mpv_subtitles=args.mpv_subtitles or all((root/'web/engine-subtitles'/('service.'+ext)).is_file() for ext in ('mjs','wasm'))
@@ -16,7 +16,7 @@ source_archive=None;optional_sources=[]
 if args.release_tag:
  if dirty:raise SystemExit('Release packaging requires a clean source checkout')
  if subprocess.check_output(['git','rev-parse',f'refs/tags/{args.release_tag}^{{commit}}'],cwd=root,text=True).strip()!=source_commit:raise SystemExit('Release tag must identify HEAD')
- if not args.adaptation_build or not args.ass_build:raise SystemExit('Tagged release requires fresh optional preparation and ASS builds to retain published playback capability')
+ if not args.adaptation_build or not mpv_subtitles:raise SystemExit('Tagged release requires fresh optional preparation and mpv subtitle builds to retain published playback capability')
 if project.get('license') != 'Apache-2.0' or not (root/'LICENSE').is_file():raise SystemExit('Select and include the Apache original-code license before packaging')
 build_path=root/'build/beta-build.json'
 if not build_path.is_file():raise SystemExit('Packaging requires a completed LGPL engine build record')
@@ -64,7 +64,7 @@ def add(name):
 # Parse real JS/declaration imports; runtime asset URLs are not module imports.
 for name in json.loads(subprocess.check_output(['node',str(root/'scripts/generated-runtime-files.mjs'),str(root)],text=True)):
  add(name)
-for name in ['mpv-subtitle-worker.js','native-ass-worker.js','audio-worklet.js','selective-sync-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','external-video-decoder.js','video-presenter.js','webgl-yuv-presenter.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','fallback-stream-policy.js','split-mp4.js','native-remux-player.js','worker-remux-controller.js','native-mse-worker.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','hybrid-preflight.js','prepared-engine.js','fast-source-inspector.js','selected-mp4-view.js','progressive-mp4.js','video-codec-config.js','remux-packaging.js']:
+for name in ['mpv-subtitle-worker.js','audio-worklet.js','selective-sync-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','external-video-decoder.js','video-presenter.js','webgl-yuv-presenter.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','fallback-stream-policy.js','split-mp4.js','native-remux-player.js','worker-remux-controller.js','native-mse-worker.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','hybrid-preflight.js','prepared-engine.js','fast-source-inspector.js','selected-mp4-view.js','progressive-mp4.js','video-codec-config.js','remux-packaging.js']:
  add('web/'+name)
 add('web/yuv-presenter.js')
 for name in ['codecs/registry.js','codecs/adapter.js','runtime.js','mailbox-service.js','presenter.js','diagnostics.js']:
@@ -126,37 +126,6 @@ if args.adaptation_build:
  files['web/engine-adaptation/manifest.json']=(json.dumps({'apiVersion':2,'sourceBuildVerification':preparation_verification,'inputs':record['inputs'],'files':{pathlib.Path(k).name:v for k,v in record['files'].items() if pathlib.Path(k).suffix in ['.mjs','.wasm']},'sourceCompanion':{'filename':source_out.name,'sha256':hashlib.sha256(source_out.read_bytes()).hexdigest()},'profiles':['flac']+(['opus'] if record['inputs'].get('opus') else [])+(['flac24'] if record['inputs'].get('flac24') else []),'linkSettings':record.get('linkSettings',{}),'qualification':'qualified file profiles; automatic FLAC24 requires source admission; integer FLAC and Opus remain explicit; Opus requires lossy permission'},indent=2)+'\n').encode()
  for name in ['COPYING.LGPLv2.1','LICENSE.md']:
   files['third_party/notices/ffmpeg-adaptation/'+name]=(source_root/name).read_bytes()
-if args.ass_build:
- ass=args.ass_build.resolve();record=json.loads((ass/'manifest.json').read_text())
- if record.get('apiVersion')!=2:raise SystemExit('ASS runtime interface mismatch; rebuild matching subtitle assets')
- for filename in ['subtitles.mjs','subtitles.wasm']:
-  data=(ass/filename).read_bytes()
-  if hashlib.sha256(data).hexdigest()!=record['files'][str(ass/filename)]['sha256']:raise SystemExit('ASS artifact hash mismatch: '+filename)
-  files['web/engine-ass/'+filename]=data
- # Local source companion includes the precise wrapper and all preferred library
- # sources. A reused-library link is not proof of a clean release rebuild.
- library=pathlib.Path(next(k for k in record['files'] if k.endswith('/lib/libass.a'))).parents[3]
- clean_ass=(library/'source-build.json').is_file()
- source_verification=None
- if clean_ass:
-  source_verification=json.loads(subprocess.check_output(['python3',str(root/'scripts/verify-native-ass-build.py'),str(ass)],text=True))
- args.output.mkdir(parents=True,exist_ok=True)
- source_out=args.output/'demuxe-native-ass-source.tar.gz'
- optional_sources.append(source_out)
- with tarfile.open(source_out,'w:gz') as archive:
-  for name in ['libass','freetype','fribidi','harfbuzz']:
-   archive.add(library/'build/sources'/name,arcname='libraries/'+name)
-  archive.add(ass/'sources',arcname='demuxe')
-  archive.add(ass/'manifest.json',arcname='build-manifest.json')
-  archive.add(ass/'subtitles.map',arcname='build/subtitles.map')
-  for name in LEGAL:archive.add(root/name,arcname='demuxe/'+name)
-  if clean_ass:
-   archive.add(library/'source-build.json',arcname='source-build.json')
-   archive.add(library/'scripts/build-native-ass.py',arcname='demuxe/scripts/build-native-ass.py')
-   archive.add(root/'scripts/verify-native-ass-build.py',arcname='demuxe/scripts/verify-native-ass-build.py')
-  for name in ['sources.lock.json','toolchain.lock.json','scripts/build.sh','scripts/fetch-sources.py','scripts/apply-patches.py']:
-   archive.add(library/name,arcname='demuxe/'+name)
- files['web/engine-ass/manifest.json']=(json.dumps({'sourceBuildVerification':source_verification,'apiVersion':record['apiVersion'],'sources':record['sources'],'sdk':record['sdk'],'files':{pathlib.Path(k).name:v for k,v in record['files'].items() if pathlib.Path(k).suffix in ['.mjs','.wasm']},'sourceCompanion':{'filename':source_out.name,'sha256':hashlib.sha256(source_out.read_bytes()).hexdigest()},'qualification':'External Native ASS; clean library correspondence verified; exact-archive release verification remains mandatory'},indent=2)+'\n').encode()
 for folder,stem in engines.values():
  for ext in ['mjs','wasm']:
   name=f'web/{folder}/{stem}.{ext}'
@@ -190,7 +159,7 @@ package['exports']['./package.json']='./package.json'
 files['package.json']=(json.dumps(package,indent=2)+'\n').encode()
 files['license-map.json']=encoded(license_policy.package_map(files,'player'))
 license_policy.check_package(files,'player')
-manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':[*(['native-direct-mpv'] if mpv_subtitles else []),'native-direct',*(['native-remux-mpv'] if mpv_subtitles else []),'native-remux','shaka-mse','hybrid','software'],'adaptiveStreaming':{'backend':'shaka-mse','version':project['dependencies']['shaka-player'],'assets':'third_party/shaka-player.json','lazy':True},'engines':engines,'optionalQualificationRequired':bool(args.ass_build or args.adaptation_build or mpv_subtitles),'defaultSoftwarePresenter':'auto','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'softwareYUV':'Qualified decoded-frame subset only; see docs/SOFTWARE-YUV-PRESENTER.md'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
+manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':[*(['native-direct-mpv'] if mpv_subtitles else []),'native-direct',*(['native-remux-mpv'] if mpv_subtitles else []),'native-remux','shaka-mse','hybrid','software'],'adaptiveStreaming':{'backend':'shaka-mse','version':project['dependencies']['shaka-player'],'assets':'third_party/shaka-player.json','lazy':True},'engines':engines,'optionalQualificationRequired':bool(args.adaptation_build or mpv_subtitles),'defaultSoftwarePresenter':'auto','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'softwareYUV':'Qualified decoded-frame subset only; see docs/SOFTWARE-YUV-PRESENTER.md'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
 files['release-manifest.json']=(json.dumps(manifest,indent=2)+'\n').encode()
 # Reject host-specific paths and credential material, including strings in Wasm.
 for name,data in files.items():

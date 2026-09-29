@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-import type { FontAsset, RemoteSource } from '../types.js';
-/** mpv embedded subtitle rendering on the accepted media timeline. One bounded RPC at a time. */
+import type { FontAsset, RemoteSource, SubtitleAsset } from '../types.js';
+/** One mpv owner for embedded and external subtitles on the accepted media timeline. */
 export declare class NativeMpvSubtitles {
     private video;
     private time;
@@ -39,6 +39,12 @@ export declare class NativeMpvSubtitles {
         type: string;
         selected?: boolean;
         default?: boolean;
+        external?: boolean;
+        'attachment-id'?: string;
+        'external-index'?: number;
+        title?: string;
+        lang?: string;
+        codec?: string;
     }>;
     service: Record<string, unknown>;
     readonly stats: {
@@ -52,6 +58,7 @@ export declare class NativeMpvSubtitles {
         scheduler: string;
     };
     constructor(video: HTMLVideoElement, time: () => number, base: URL, fonts: FontAsset[], source: File | RemoteSource, failed: (e: Error) => void, defaultStreamIndex?: number | undefined, runtime?: 'pthread' | 'jspi' | 'asyncify');
+    add(asset: SubtitleAsset): Promise<string>;
     private request;
     private fail;
     private applyMode;

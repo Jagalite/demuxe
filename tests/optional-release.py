@@ -13,7 +13,7 @@ class ReleaseEvidence(unittest.TestCase):
   self.temp=tempfile.TemporaryDirectory();self.root=pathlib.Path(self.temp.name)
   self.archive=self.root/'package.tgz';self.archive.write_bytes(b'exact archive')
   self.report=self.root/'qualification.json';self.source={'demuxe/tests/qualified.mjs':'harness-hash'}
-  self.manifest={'files':{'web/engine-ass/subtitles.wasm':{'sha256':'wasm-hash','bytes':7}}}
+  self.manifest={'files':{'web/engine-subtitles/service.wasm':{'sha256':'wasm-hash','bytes':7}}}
   self.record={'passed':True,'archiveSHA256':module.digest(self.archive),'runtimeFiles':self.manifest['files'],'checks':[]}
   for name in sorted(module.OPTIONAL_CHECKS):
    log=self.root/(name+'.log');log.write_text('PASS\n')
@@ -30,13 +30,21 @@ class ReleaseEvidence(unittest.TestCase):
   base=module.required_consumer_cases({'files':{}})
   manifest={'files':{'web/engine-remux-jspi/remux.wasm':{}}}
   self.assertEqual(module.required_consumer_cases(manifest)-base, {'remux-auto-isolated','remux-auto-no-isolation','remux-asyncify-no-isolation','remux-on-isolated','remux-off-no-isolation'})
- def test_complete_exact_evidence(self):self.assertEqual(self.verify()['checks'],27)
+ def test_complete_exact_evidence(self):self.assertEqual(self.verify()['checks'],len(module.OPTIONAL_CHECKS))
  def test_wrong_archive(self):
   self.archive.write_bytes(b'other')
   with self.assertRaisesRegex(ValueError,'different archive'):self.verify()
  def test_missing_browser_case(self):
   self.record['checks'].pop()
   with self.assertRaisesRegex(ValueError,'Incomplete'):self.verify()
+ def test_migration_checks_are_mandatory(self):
+  for name in ['presentation-chrome','presentation-firefox','external-subtitles-chrome','external-subtitles-firefox']:
+   with self.subTest(name=name):
+    saved=copy.deepcopy(self.record)
+    self.assertIn(name,module.OPTIONAL_CHECKS)
+    self.record['checks']=[c for c in self.record['checks'] if c['name']!=name]
+    with self.assertRaisesRegex(ValueError,'Incomplete'):self.verify()
+    self.record=saved
  def test_duplicate_case(self):
   self.record['checks'][-1]=self.record['checks'][0]
   with self.assertRaisesRegex(ValueError,'Incomplete'):self.verify()

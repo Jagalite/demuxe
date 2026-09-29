@@ -47,8 +47,16 @@ video remains browser decoded. Compressed audio, multichannel and resampling are
 not admitted by this private mpv audio profile. Embedded subtitles can be combined
 with the restricted audio route. All services use the same selected runtime.
 
+External ASS/SSA, SRT and rich WebVTT can accompany automatic FLAC24
+adaptation (`native-transcode-ass`) or explicit/automatic lossless FLAC
+(`native-flac-ass`). The shared mpv subtitle service follows the browser media
+timeline. JSPI and Asyncify work on isolated and non-isolated pages; only the
+pthread build requires isolation. The PCM24
+regression covers forced JSPI and Asyncify, rendered captions, audio/video output,
+paused seek, visibility changes and cleanup (`node tests/private-adaptation-ass.mjs`).
+
 Browser-direct, browser gain and Shaka retain their existing requirements.
-Private Hybrid, Software, external ASS and audio/video transforms remain outside
+Private Hybrid, Software, and other audio/video transforms remain outside
 this qualification. Selecting `on` or a named runtime does not broaden the service
 or codec limits. See [private mpv Player qualification](PRIVATE-MPV-PLAYER.md).
 

@@ -15,3 +15,20 @@ export async function closeBrowserObserved(browser,ids,{remaining=remainingProce
   if(alive.length)throw Error('Chrome processes remain after teardown: '+alive.join(','));
   return {trackedProcessIDs:ids,remainingProcessIDs:alive,playwrightCloseAcknowledged:acknowledged,...(closeError?{closeError}:{})};
 }
+
+/** Bound test teardown and retain actual Chrome process retirement evidence. */
+export async function closeTestBrowser(browser, family) {
+  if (family !== 'firefox') {
+    const session = await browser.newBrowserCDPSession();
+    const ids = (await session.send('SystemInfo.getProcessInfo')).processInfo.map(p => p.id);
+    await session.detach();
+    return closeBrowserObserved(browser, ids);
+  }
+  let timer;
+  try {
+    await Promise.race([browser.close(), new Promise((_, reject) => {
+      timer = setTimeout(() => reject(Error('Firefox teardown timed out')), 15000);
+    })]);
+    return {playwrightCloseAcknowledged: true};
+  } finally { clearTimeout(timer); }
+}

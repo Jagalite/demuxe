@@ -2,7 +2,7 @@
 // Correctness-only observer, installed before Player creates its audio graph.
 export function installAudioProbe(){
  const connect=AudioNode.prototype.connect,Context=window.AudioContext;
- const tapped=new WeakSet(),analysers=[],contexts=[];
+ const tapped=new WeakSet(),analysers=[],contexts=[],mediaContexts=new WeakMap();
  function tap(node){
   if(tapped.has(node))return;tapped.add(node);
   const splitter=node.context.createChannelSplitter(2);connect.call(node,splitter);
@@ -17,11 +17,12 @@ export function installAudioProbe(){
  };
  window.urlAudioProbe={
   async observeVideo(video){
+   const existing=mediaContexts.get(video);if(existing){await existing.resume();return;}
    const context=new Context();contexts.push(context);
-   const source=context.createMediaElementSource(video);source.connect(context.destination);
+   const source=context.createMediaElementSource(video);mediaContexts.set(video,context);source.connect(context.destination);
    await context.resume();
   },
-  sample(){return analysers.map(({analyser,channel})=>{
+  sample(video){return analysers.filter(({analyser})=>!video||analyser.context===mediaContexts.get(video)).map(({analyser,channel})=>{
    const wave=new Float32Array(analyser.fftSize),spectrum=new Float32Array(analyser.frequencyBinCount);
    analyser.getFloatTimeDomainData(wave);analyser.getFloatFrequencyData(spectrum);
    let bin=1;for(let i=2;i<spectrum.length;i++)if(spectrum[i]>spectrum[bin])bin=i;

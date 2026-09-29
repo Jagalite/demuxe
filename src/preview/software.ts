@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-import {WasmPlayer, type RemoteSource} from '../internal/wasm-player.js';
+import {loadProviderModule} from '../internal/provider-modules.js';
 import {bufferingPolicy} from '../internal/buffering.js';
-import type {MediaInputOptions, ResourceLimits} from '../types.js';
+import type {MediaInputOptions, ResourceLimits, RemoteSource} from '../types.js';
 import type {PreviewContext,PreviewProvider,PreviewResult} from './controller.js';
 export type SoftwarePreviewSource={file:Blob;input?:MediaInputOptions}|{remote:RemoteSource};
 /** Disposable, paused software engine. Never receives the playback backend. */
@@ -11,7 +11,10 @@ export class SoftwarePreviewProvider implements PreviewProvider {
   canHandle(){return globalThis.crossOriginIsolated&&!!this.source();}
   async getFrame(request:PreviewContext):Promise<PreviewResult|null>{
     const source=this.source();if(!source)return null;request.signal.throwIfAborted();
-    const start=performance.now(),canvas=this.document.createElement('canvas');canvas.width=request.width;canvas.height=request.height??Math.max(1,Math.round(request.width*9/16));
+    const start=performance.now();
+    const {WasmPlayer}=await loadProviderModule('mpv-player',this.assetBase);
+    request.signal.throwIfAborted();
+    const canvas=this.document.createElement('canvas');canvas.width=request.width;canvas.height=request.height??Math.max(1,Math.round(request.width*9/16));
     const player=new WasmPlayer(canvas,{assetBase:this.assetBase,resourceLimits:this.limits,buffering:bufferingPolicy({preload:'metadata',profile:'low-latency',memoryBudget:8*1024*1024})});
     let released!:()=>void;
     const cleanup=new Promise<void>(resolve=>{released=resolve;});

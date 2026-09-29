@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { type RemoteSource } from '../internal/wasm-player.js';
-import type { MediaInputOptions, ResourceLimits } from '../types.js';
+import type { MediaInputOptions, ResourceLimits, RemoteSource } from '../types.js';
 import type { PreviewContext, PreviewProvider, PreviewResult } from './controller.js';
 export type SoftwarePreviewSource = {
     file: Blob;

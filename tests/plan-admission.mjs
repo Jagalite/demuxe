@@ -5,13 +5,23 @@ import {planAdmission,executionPlan} from '../web/generated/internal/playback-pl
 import {losslessAdaptationRejection,audioTranscodeRejection} from '../web/generated/internal/selection.js';
 const facts={automatic:true,vf:'',af:'',gain:1,toneMapping:'off',hybridAudioFilters:false,allowLossy:false,nativeASS:false,externalFormats:[],browserTextTracks:false,audioOutput:'stereo',nativeRemux:'auto',manifest:false,requiresRemux:false,isolated:true,mse:true,webCodecs:true,webAudio:true};
 const eligible=extra=>planAdmission({...facts,...extra}).filter(p=>p.eligible).map(p=>p.id);
+test('prohibited preparation is a policy rejection, distinct from unavailable runtime facilities',()=>{
+ const prepared=['native-remux','native-remux-mpv','native-transcode','native-video-mpv-audio'];
+ const qualified={...facts,mpvSubtitles:true,mpvSubtitleSourceQualified:true,selectiveAudioQualified:true,transcodeAssetsAvailable:true};
+ for(const id of prepared){
+  const denied=planAdmission({...qualified,nativeRemux:'never'}).find(p=>p.id===id);
+  assert.equal(denied.eligible,false,id);assert.equal(denied.code,'POLICY_PROHIBITS_TRANSFORM',id);
+  const missing=planAdmission({...qualified,mse:false}).find(p=>p.id===id);
+  assert.equal(missing.eligible,false,id);assert.equal(missing.code,'DEPLOYMENT_UNAVAILABLE',id);
+ }
+});
 test('ordinary automatic admission contains copy plans and never implicitly permits adaptation',()=>{
  assert.deepEqual(eligible({}),['native-direct','native-remux','hybrid','software']);
  assert.deepEqual(eligible({adaptation:'opus',allowLossy:true}),eligible({}));
 });
 test('finite Native ASS and gain combinations exclude missing components',()=>{
  assert.deepEqual(eligible({externalFormats:['ass'],nativeASS:true,gain:.5}),['native-direct-ass-gain','native-remux-ass-gain','hybrid-gain','software-gain']);
- assert.ok(!eligible({externalFormats:['srt'],nativeASS:true}).some(id=>id.startsWith('native')));
+ assert.ok(!eligible({externalFormats:['unsupported'],nativeASS:true}).some(id=>id.startsWith('native')));
 });
 test('source, deployment and filter requirements actually remove plans',()=>{
  assert.ok(!eligible({nativeSourceRejection:'Required embedded subtitles'}).some(id=>id.startsWith('native')));
@@ -116,6 +126,24 @@ test('automatic FLAC24 follows copy plans and obeys Worklet and lossless-only po
  assert.ok(eligible(subtitled).includes('native-transcode-mpv'));
  assert.ok(!eligible({...subtitled,mpvSubtitles:false}).includes('native-transcode-mpv'));
  assert.equal(executionPlan('native','native-transcode-mpv','').id,'native-transcode-mpv');
+});
+
+test('private adaptation composes external ASS with explicit subtitle ownership',()=>{
+ const extra={privateRemux:true,externalFormats:['ass'],nativeASS:true,transcodeAssetsAvailable:true};
+ assert.ok(eligible(extra).includes('native-transcode-ass'));
+ assert.ok(eligible({...extra,isolated:false}).includes('native-transcode-ass'));
+ assert.ok(eligible({...extra,externalFormats:['srt']}).includes('native-transcode-ass'));
+ assert.ok(!eligible({...extra,privateRemux:false,isolated:false}).includes('native-transcode-ass'));
+ assert.ok(!eligible(extra).includes('native-transcode'));
+ assert.equal(executionPlan('native','adapted-flac24','',1,true).id,'native-transcode-ass');
+ assert.equal(executionPlan('native','adapted-flac24','',1,true).owners.subtitle,'mpv-subtitle-service');
+ for(const blocked of [{nativeASS:false},{externalFormats:['browser-vtt']},{externalFormats:['unsupported']},{externalFormats:['ass','browser-vtt']},{externalFormats:[]},{browserTextTracks:true},{manifest:true},{selectedEmbeddedSubtitle:true},{gain:.5},{audioPlayback:'worklet'},{transcodeAssetsAvailable:false},{transcodeSourceRejection:'Unsupported source'}]){
+  assert.ok(!eligible({...extra,...blocked}).includes('native-transcode-ass'),JSON.stringify(blocked));
+ }
+ for(const policy of [{automaticLossless:true,adaptationSourceQualified:true},{automatic:false,adaptation:'flac'}]){
+  assert.ok(eligible({...extra,...policy}).includes('native-flac-ass'));
+  assert.ok(eligible({...extra,...policy,isolated:false}).includes('native-flac-ass'));
+ }
 });
 
 test('FLAC24 source admission follows the selected stream and finite file constraints',()=>{

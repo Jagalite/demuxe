@@ -1,0 +1,675 @@
+{
+  "files": {
+    "h264-aac.mp4": {
+      "bytes": 808112,
+      "sha256": "bbe27a1617de500d9ef1cdb24ae8d0fffc2ff025e35ede8110987ee1991d9f6e"
+    },
+    "h264-aac.mkv": {
+      "bytes": 805561,
+      "sha256": "c7c127a7894b1f0c9f4c1fbb33f3c9fca7408eb9a42b18963ae986c690dd5790"
+    },
+    "hevc-aac.mkv": {
+      "bytes": 257359,
+      "sha256": "ddbfc531b2518c998d75bc35a3820a565c5d3d5afe7fcf5d43b7c26ecde741a7"
+    },
+    "av1-opus.mkv": {
+      "bytes": 342050,
+      "sha256": "a121019240837969e7a0a7cbe79faa154fe6688f7f23d55f6860200926bd8a20"
+    },
+    "vp9-opus.webm": {
+      "bytes": 339754,
+      "sha256": "c625c5146925dfdecc60faf9a2ba78d47db4389ec39bc38aa5dc284a0598f6f5"
+    },
+    "h264-pcm.mov": {
+      "bytes": 1141530,
+      "sha256": "e5be11542ff329c115357f06a19b33e4b242ebbc7ef10ddcc9163dcbbcdd2fbb"
+    },
+    "prores-pcm.mov": {
+      "bytes": 3211892,
+      "sha256": "32fce9baa8236655f96e390b4471ea80379211f9b3509dba09c8bc7496ca6e39"
+    },
+    "h264-flac.mkv": {
+      "bytes": 808651,
+      "sha256": "907ac62736d5484bbfceea22b0a82f8913beb1b2b2a73f3bd3bf2680e379d396"
+    },
+    "h264-ac3.mkv": {
+      "bytes": 845495,
+      "sha256": "e7def980cd2b5977bc34df21293bf1fae3496eccd7f0320c0a3f21e98e151871"
+    },
+    "hevc-eac3.mkv": {
+      "bytes": 299790,
+      "sha256": "77726ba71ffdb55789819464272370fcdff9cc169ac091a278cb8df639055424"
+    },
+    "h264-aac.ts": {
+      "bytes": 852580,
+      "sha256": "0581cc362fab71048081a6e2d0258c8c2851199a001680590da56f41a3e2f1f3"
+    },
+    "h264-480p.mp4": {
+      "bytes": 1380115,
+      "sha256": "078b764801dda38b42595d63229f16a415219e8446f1ff99c4e5bd2c7564f26e"
+    },
+    "h264-4k.mp4": {
+      "bytes": 10383647,
+      "sha256": "2d8c46ce784097bd593a752972013635c1e26565ac6893ff1d26aee6e72d284d"
+    },
+    "aac-only.mp4": {
+      "bytes": 50210,
+      "sha256": "ad9fd321184ce91a78c21285ab21457f163c5f95a6f8a5f4114676184a51fcb6"
+    }
+  },
+  "commands": [
+    {
+      "name": "h264.mkv",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc2=size=640x360:rate=30",
+        "-t",
+        "4",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "-crf",
+        "27",
+        "-pix_fmt",
+        "yuv420p",
+        "-an",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264.mkv"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "hevc.mkv",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc2=size=640x360:rate=30",
+        "-t",
+        "4",
+        "-c:v",
+        "libx265",
+        "-preset",
+        "ultrafast",
+        "-x265-params",
+        "log-level=error",
+        "-crf",
+        "30",
+        "-pix_fmt",
+        "yuv420p",
+        "-an",
+        "/private/tmp/demuxe-mediabunny-fixtures/hevc.mkv"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "vp9.mkv",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc2=size=640x360:rate=30",
+        "-t",
+        "4",
+        "-c:v",
+        "libvpx-vp9",
+        "-deadline",
+        "realtime",
+        "-cpu-used",
+        "8",
+        "-b:v",
+        "600k",
+        "-pix_fmt",
+        "yuv420p",
+        "-an",
+        "/private/tmp/demuxe-mediabunny-fixtures/vp9.mkv"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "av1.mkv",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc2=size=640x360:rate=30",
+        "-t",
+        "4",
+        "-c:v",
+        "libsvtav1",
+        "-preset",
+        "12",
+        "-crf",
+        "42",
+        "-pix_fmt",
+        "yuv420p",
+        "-an",
+        "/private/tmp/demuxe-mediabunny-fixtures/av1.mkv"
+      ],
+      "returncode": 0,
+      "stderr": "Svt[info]: -------------------------------------------\nSvt[info]: SVT [version]:\tSVT-AV1 Encoder Lib v4.1.0\nSvt[info]: SVT [build]  :\tApple LLVM 17.0.0 (clang-1700.6.4.2)\t 64 bit\nSvt[info]: LIB Build date: Mar 23 2026 06:52:18\nSvt[info]: -------------------------------------------\nSvt[warn]: Preset M12 is mapped to M11.\nSvt[warn]: Non-RTC M10+ are meant for automation tooling usage. Visual artifacts may occur otherwise.\nSvt[info]: Level of Parallelism: 4\nSvt[info]: Number of PPCS 59\nSvt[info]: [asm level on system : up to neon_dotprod]\nSvt[info]: [asm level selected : up to neon_dotprod]\nSvt[info]: -------------------------------------------\nSvt[info]: SVT [config]: main profile\ttier (auto)\tlevel (auto)\nSvt[info]: SVT [config]: width / height / fps numerator / fps denominator \t\t: 640 / 360 / 30 / 1\nSvt[info]: SVT [config]: bit-depth / color format \t\t\t\t\t: 8 / YUV420\nSvt[info]: SVT [config]: preset / tune / pred struct \t\t\t\t\t: 11 / PSNR / random access\nSvt[info]: SVT [config]: gop size / mini-gop size / key-frame type \t\t\t: 161 / 16 / key frame\nSvt[info]: SVT [config]: BRC mode / rate factor \t\t\t\t\t: CRF / 42.00 \nSvt[info]: SVT [config]: AQ mode / Variance Boost \t\t\t\t\t: 2 / 0\nSvt[info]: SVT [config]: sharpness / luminance-based QP bias \t\t\t\t: 0 / 0\nSvt[info]: SVT [config]: QP scale compress strength \t\t\t\t\t: 0\nSvt[info]: -------------------------------------------\n"
+    },
+    {
+      "name": "prores.mkv",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc2=size=640x360:rate=30",
+        "-t",
+        "4",
+        "-c:v",
+        "prores_ks",
+        "-profile:v",
+        "0",
+        "-pix_fmt",
+        "yuv422p10le",
+        "-an",
+        "/private/tmp/demuxe-mediabunny-fixtures/prores.mkv"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "h264-480p.mp4",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc2=size=854x480:rate=30",
+        "-t",
+        "4",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "-crf",
+        "27",
+        "-pix_fmt",
+        "yuv420p",
+        "-an",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264-480p.mp4"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "h264-4k.mp4",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc2=size=3840x2160:rate=24",
+        "-t",
+        "2",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "-crf",
+        "27",
+        "-pix_fmt",
+        "yuv420p",
+        "-an",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264-4k.mp4"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "aac.mka",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "sine=frequency=440:sample_rate=48000",
+        "-t",
+        "4",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "96k",
+        "/private/tmp/demuxe-mediabunny-fixtures/aac.mka"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "opus.mka",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "sine=frequency=440:sample_rate=48000",
+        "-t",
+        "4",
+        "-c:a",
+        "libopus",
+        "-b:a",
+        "96k",
+        "/private/tmp/demuxe-mediabunny-fixtures/opus.mka"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "pcm.wav",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "sine=frequency=440:sample_rate=48000",
+        "-t",
+        "4",
+        "-c:a",
+        "pcm_s16le",
+        "/private/tmp/demuxe-mediabunny-fixtures/pcm.wav"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "flac.mka",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "sine=frequency=440:sample_rate=48000",
+        "-t",
+        "4",
+        "-c:a",
+        "flac",
+        "/private/tmp/demuxe-mediabunny-fixtures/flac.mka"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "ac3.mka",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "sine=frequency=440:sample_rate=48000",
+        "-t",
+        "4",
+        "-c:a",
+        "ac3",
+        "-b:a",
+        "192k",
+        "/private/tmp/demuxe-mediabunny-fixtures/ac3.mka"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "eac3.mka",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "sine=frequency=440:sample_rate=48000",
+        "-t",
+        "4",
+        "-c:a",
+        "eac3",
+        "-b:a",
+        "192k",
+        "/private/tmp/demuxe-mediabunny-fixtures/eac3.mka"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "aac-only.mp4",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/aac.mka",
+        "-c",
+        "copy",
+        "/private/tmp/demuxe-mediabunny-fixtures/aac-only.mp4"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "h264-aac.mp4",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264.mkv",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/aac.mka",
+        "-map",
+        "0:v:0",
+        "-map",
+        "1:a:0",
+        "-c",
+        "copy",
+        "-shortest",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264-aac.mp4"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "h264-aac.mkv",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264.mkv",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/aac.mka",
+        "-map",
+        "0:v:0",
+        "-map",
+        "1:a:0",
+        "-c",
+        "copy",
+        "-shortest",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264-aac.mkv"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "hevc-aac.mkv",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/hevc.mkv",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/aac.mka",
+        "-map",
+        "0:v:0",
+        "-map",
+        "1:a:0",
+        "-c",
+        "copy",
+        "-shortest",
+        "/private/tmp/demuxe-mediabunny-fixtures/hevc-aac.mkv"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "av1-opus.mkv",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/av1.mkv",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/opus.mka",
+        "-map",
+        "0:v:0",
+        "-map",
+        "1:a:0",
+        "-c",
+        "copy",
+        "-shortest",
+        "/private/tmp/demuxe-mediabunny-fixtures/av1-opus.mkv"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "vp9-opus.webm",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/vp9.mkv",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/opus.mka",
+        "-map",
+        "0:v:0",
+        "-map",
+        "1:a:0",
+        "-c",
+        "copy",
+        "-shortest",
+        "/private/tmp/demuxe-mediabunny-fixtures/vp9-opus.webm"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "h264-pcm.mov",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264.mkv",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/pcm.wav",
+        "-map",
+        "0:v:0",
+        "-map",
+        "1:a:0",
+        "-c",
+        "copy",
+        "-shortest",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264-pcm.mov"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "prores-pcm.mov",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/prores.mkv",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/pcm.wav",
+        "-map",
+        "0:v:0",
+        "-map",
+        "1:a:0",
+        "-c",
+        "copy",
+        "-shortest",
+        "/private/tmp/demuxe-mediabunny-fixtures/prores-pcm.mov"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "h264-flac.mkv",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264.mkv",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/flac.mka",
+        "-map",
+        "0:v:0",
+        "-map",
+        "1:a:0",
+        "-c",
+        "copy",
+        "-shortest",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264-flac.mkv"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "h264-ac3.mkv",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264.mkv",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/ac3.mka",
+        "-map",
+        "0:v:0",
+        "-map",
+        "1:a:0",
+        "-c",
+        "copy",
+        "-shortest",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264-ac3.mkv"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "hevc-eac3.mkv",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/hevc.mkv",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/eac3.mka",
+        "-map",
+        "0:v:0",
+        "-map",
+        "1:a:0",
+        "-c",
+        "copy",
+        "-shortest",
+        "/private/tmp/demuxe-mediabunny-fixtures/hevc-eac3.mkv"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "name": "h264-aac.ts",
+      "argv": [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264.mkv",
+        "-i",
+        "/private/tmp/demuxe-mediabunny-fixtures/aac.mka",
+        "-map",
+        "0:v:0",
+        "-map",
+        "1:a:0",
+        "-c",
+        "copy",
+        "-shortest",
+        "/private/tmp/demuxe-mediabunny-fixtures/h264-aac.ts"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    }
+  ]
+}

@@ -3,8 +3,18 @@ import { Player } from '../unified-player.js';
 import type { WatchdogOptions, WatchdogPolicy } from '../types.js';
 import type { TrackPolicy } from '../types.js';
 import type { PreviewOptions, MediaSourceInput, OpenOptions, SubtitleOptions } from '../types.js';
+import { type PlayerLayout, type PlayerTheme } from './presentation.js';
+export type { PlayerLayout, PlayerTheme } from './presentation.js';
 declare const Base: typeof HTMLElement;
 export declare const defaultLabels: Readonly<{
+    appearance: "Appearance";
+    layout: "Layout";
+    theme: "Theme";
+    classic: "Classic";
+    modern: "Modern";
+    playground: "Playground";
+    demuxeTheme: "Demuxe";
+    lightTheme: "Light";
     previews: "Timeline thumbnails";
     diagnostics: "Session diagnostics";
     moreOptions: "More options";
@@ -63,6 +73,12 @@ export type PlayerLabels = Partial<Record<keyof typeof defaultLabels, string>>;
 export type PlayerTitleMode = 'auto' | 'custom' | 'source' | 'none';
 export declare class DemuxePlayerElement extends Base {
     static observedAttributes: string[];
+    get layout(): PlayerLayout;
+    set layout(value: PlayerLayout);
+    get theme(): PlayerTheme;
+    set theme(value: PlayerTheme);
+    private updatePresentation;
+    private syncAppearance;
     private core?;
     private hoverPreview;
     private previewIdentity;
@@ -220,4 +236,3 @@ declare global {
         'demuxe-player': DemuxePlayerElement;
     }
 }
-export {};

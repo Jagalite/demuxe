@@ -193,8 +193,8 @@ export type PlayerOptions = {
     automaticAudioAdaptation?: 'lossless';
     /** Explicit lossy permission; does not authorize resampling or downmixing. */
     allowLossyAudio?: boolean;
-    /** External ASS/SSA overlay on qualified Native presentations; no embedded extraction.
-     * Enabled by default with automatic selection. Set false to require mpv subtitles. */
+    /** External ASS/SSA, SRT and rich WebVTT via the Native mpv subtitle service.
+     * Legacy option name; enabled in automatic selection. False requires Hybrid/Software for rich file attachments. */
     experimentalNativeASS?: boolean;
     /** Compatibility switch for the bounded local embedded mpv subtitle service.
      * Enabled by default; false retains the previous Hybrid/Software selection. */
@@ -308,7 +308,7 @@ export type PendingOperation = Readonly<{
     id: number;
     kind: OperationKind;
 }>;
-export type PlayerErrorCode = 'INVALID_ARGUMENT' | 'ABORTED' | 'AUTOPLAY_BLOCKED' | 'SOURCE_PERMISSION' | 'SOURCE_CHANGED' | 'NETWORK_TIMEOUT' | 'PLAYBACK_STALLED' | 'UNSUPPORTED_MEDIA' | 'UNSUPPORTED_TIMELINE' | 'UNSUPPORTED_FEATURE' | 'ASSET_LOAD_FAILED' | 'ISOLATION_REQUIRED' | 'DECODE_FAILED';
+export type PlayerErrorCode = 'DEPLOYMENT_UNAVAILABLE' | 'INVALID_ARGUMENT' | 'ABORTED' | 'AUTOPLAY_BLOCKED' | 'SOURCE_PERMISSION' | 'SOURCE_CHANGED' | 'NETWORK_TIMEOUT' | 'PLAYBACK_STALLED' | 'UNSUPPORTED_MEDIA' | 'UNSUPPORTED_TIMELINE' | 'UNSUPPORTED_FEATURE' | 'ASSET_LOAD_FAILED' | 'ISOLATION_REQUIRED' | 'DECODE_FAILED';
 export type SessionError = Readonly<{
     code: PlayerErrorCode;
     message: string;

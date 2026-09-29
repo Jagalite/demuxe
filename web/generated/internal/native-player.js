@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
+import { loadProviderModule } from './provider-modules.js';
+import { executionRecipe } from './execution-recipes.js';
 import { bufferingPolicy, resolveBuffering } from './buffering.js';
 import { plainVTT, BrowserCaptionUnsupported } from './plain-vtt.js';
 import { observeBrowserAudio } from './browser-evidence-adapters.js';
 import { nativeMediaError, compatibilityFailure, StartupEvidenceTimeout, NativeLoadTimeout } from './runtime-capability.js';
-import { PlayerError } from './errors.js';
+import { PlayerError, isPlayerError } from './errors.js';
 import { watchdogPolicy } from './watchdogs.js';
 /** Browser media ownership, including listeners, pending loads and object URLs. */
 export class NativePlayer extends EventTarget {
@@ -27,11 +29,10 @@ export class NativePlayer extends EventTarget {
     capability = {};
     mpvSubs;
     mpvAudio;
-    get selectiveAudio() { return this.requestedPlan?.startsWith('native-video-mpv-audio') ?? false; }
-    get mpvSubtitlePlan() { return this.requestedPlan === 'native-direct-mpv' || this.requestedPlan === 'native-remux-mpv' || this.requestedPlan === 'native-transcode-mpv' || this.requestedPlan === 'native-video-mpv-audio-subtitles'; }
-    ass;
-    assAssets = [];
-    assIndex = -1;
+    get execution() { return executionRecipe(this.requestedPlan)?.native; }
+    get selectiveAudio() { return this.execution?.selectedAudio ?? false; }
+    get mpvSubtitlePlan() { return this.execution?.subtitles === 'embedded'; }
+    subtitleSource;
     textAttachmentIds = new WeakMap();
     captionAssets = new Map();
     captionURLs = new Set();
@@ -209,7 +210,6 @@ export class NativePlayer extends EventTarget {
     }
     refresh() {
         const tracks = Array.from(this.video.textTracks, t => ({ id: this.textTrackId(t), type: 'sub', title: t.label, lang: t.language, selected: t.mode === 'showing', ...(this.textAttachmentIds.has(t) ? { external: true, 'attachment-id': this.textAttachmentIds.get(t) } : {}), ...(this.captionAssets.has(t) ? { external: true, 'attachment-id': this.captionAssets.get(t).asset.attachmentId, 'external-index': this.captionAssets.get(t).index, codec: 'webvtt' } : {}) }));
-        tracks.push(...this.assAssets.map((a, i) => ({ id: String(100001 + i), type: 'sub', codec: a.format, title: a.label, lang: a.language, external: true, 'attachment-id': a.attachmentId, 'external-index': i + 1, selected: (this.selectedSub === 'auto' || Number(this.selectedSub) === 100001 + i) && this.assIndex === i })));
         if (this.mpvSubs)
             tracks.push(...this.mpvSubs.tracks);
         const audio = this.video.audioTracks;
@@ -228,11 +228,11 @@ export class NativePlayer extends EventTarget {
             this.emit('mpv', { event: 'property-change', name, data });
         }
     }
-    get planId() { return this.mpvSubs && this.adapted && this.audioAdaptation === 'flac24' ? 'native-transcode-mpv' : this.mpvAudio ? this.requestedPlan : this.mpvSubs ? (this.remux ? 'remux-mpv' : 'direct-mpv') : this.projection ? 'remux' : this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct'; }
+    get planId() { return this.mpvSubtitlePlan && this.mpvSubs && this.adapted && this.audioAdaptation === 'flac24' ? 'native-transcode-mpv' : this.mpvAudio ? this.requestedPlan : this.mpvSubtitlePlan && this.mpvSubs ? (this.remux ? 'remux-mpv' : 'direct-mpv') : this.projection ? 'remux' : this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct'; }
     get bufferingDiagnostics() {
         return { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: this.remux?.bufferingDiagnostics ?? { elementPreload: this.video.preload } };
     }
-    get diagnostics() { const q = this.video.getVideoPlaybackQuality(), remux = this.remux?.snapshot(); return { buffering: { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: remux?.buffering ?? { elementPreload: this.video.preload } }, capability: { ...this.capability, ...(remux?.capability ?? {}) }, path: 'native', projection: this.projection?.diagnostics, mpvAudio: this.mpvAudio?.diagnostics, mpvSubtitles: this.mpvSubs ? { route: this.mpvAudio ? 'native-video + mpv-audio + mpv-subtitles' : this.remux ? 'native-remux + mpv-subtitles' : 'native-direct + mpv-subtitles', ...this.mpvSubs.stats, ...this.mpvSubs.service } : undefined, plan: this.planId, subtitleOverlay: this.ass ? { component: 'libass', scope: 'external-ass', destination: 'container-only', ...this.ass.stats } : undefined, audioProcessing: this.mpvAudio ? { component: 'mpv-pcm-worklet', gain: this.gainValue } : { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux, seekPresentation: { bufferedRetries: this.seekPresentationRetries }, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
+    get diagnostics() { const q = this.video.getVideoPlaybackQuality(), remux = this.remux?.snapshot(); return { buffering: { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: remux?.buffering ?? { elementPreload: this.video.preload } }, capability: { ...this.capability, ...(remux?.capability ?? {}) }, path: 'native', projection: this.projection?.diagnostics, mpvAudio: this.mpvAudio?.diagnostics, mpvSubtitles: this.mpvSubs ? { route: this.mpvAudio ? 'native-video + mpv-audio + mpv-subtitles' : this.remux ? 'native-remux + mpv-subtitles' : 'native-direct + mpv-subtitles', ...this.mpvSubs.stats, ...this.mpvSubs.service } : undefined, plan: this.planId, subtitleOverlay: this.mpvSubs?.tracks.some(t => t.external) ? { component: 'mpv-subtitle-service', scope: 'external', destination: 'container-only', ...this.mpvSubs.stats } : undefined, audioProcessing: this.mpvAudio ? { component: 'mpv-pcm-worklet', gain: this.gainValue } : { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux, seekPresentation: { bufferedRetries: this.seekPresentationRetries }, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
     async load(url) {
         // open promises metadata even when speculative preload was disabled.
         if (this.buffering.preload === 'none')
@@ -250,7 +250,7 @@ export class NativePlayer extends EventTarget {
     expectedOutput;
     /** A paused candidate may prepare current data without presenting it. Only
      * verifyOutput can promote this evidence to executed playback. */
-    async verifyStartup(expected, output = false, signal) {
+    async verifyStartup(expected, output = false, signal, outputBudgetMs = 10000) {
         signal?.throwIfAborted();
         this.assertActive();
         await this.mpvSubs?.verify(signal);
@@ -356,8 +356,9 @@ export class NativePlayer extends EventTarget {
             };
             const timer = setTimeout(() => {
                 const missing = v.readyState >= 3 && ((active.video && !v.videoWidth) || (output && active.audio && (v.webkitAudioDecodedByteCount === 0 || v.mozHasAudio === false)));
-                finish(missing ? new PlayerError('DECODE_FAILED', 'Native selected track produced no decoded output') : new StartupEvidenceTimeout(output ? 'output' : 'preparation'));
-            }, 10000);
+                // A scheduling trial is inconclusive; it must never poison codec admission.
+                finish(missing && (!output || outputBudgetMs >= 10000) ? new PlayerError('DECODE_FAILED', 'Native selected track produced no decoded output') : new StartupEvidenceTimeout(output ? 'output' : 'preparation'));
+            }, output ? outputBudgetMs : 10000);
             const poll = setInterval(check, 25);
             this.cancelers.add(cancel);
             signal?.addEventListener('abort', aborted, { once: true });
@@ -387,8 +388,8 @@ export class NativePlayer extends EventTarget {
             this.capability.audioDecoded = true;
         }
     }
-    async verifyOutput(signal) { try {
-        await this.verifyStartup(this.expectedOutput, true, signal);
+    async verifyOutput(signal, outputBudgetMs = 10000) { try {
+        await this.verifyStartup(this.expectedOutput, true, signal, outputBudgetMs);
     }
     catch (error) {
         this.capability.outputVerified = false;
@@ -458,7 +459,7 @@ export class NativePlayer extends EventTarget {
                 this.remux = undefined;
                 this.assertActive();
             }
-            this.remux ??= new RemuxPlayer(this.video, { buffering: { ...resolveBuffering(this.buffering, 'remux'), preload: this.buffering.preload }, bufferedSeeks: this.bufferedSeeks, runtime: this.remuxRuntime, audioAdaptation: adapted ? this.audioAdaptation : undefined, mseOwner: this.requestedPlan === 'native-remux-mpv' || this.selectiveAudio ? 'window' : 'auto' });
+            this.remux ??= new RemuxPlayer(this.video, { buffering: { ...resolveBuffering(this.buffering, 'remux'), preload: this.buffering.preload }, bufferedSeeks: this.bufferedSeeks, runtime: this.remuxRuntime, audioAdaptation: adapted ? this.audioAdaptation : undefined, mseOwner: this.execution?.mseOwner ?? 'auto' });
             this.remux.onBufferingChange = () => { if (!this.stopped)
                 this.refresh(); };
             this.remux.audioAdaptation = adapted ? this.audioAdaptation : undefined;
@@ -487,7 +488,7 @@ export class NativePlayer extends EventTarget {
         this.opening = true;
         try {
             if (this.requestedPlan) {
-                if (this.requestedPlan.startsWith('native-direct'))
+                if (this.execution?.transport === 'original')
                     await direct();
                 else
                     await this.startRemux(source);
@@ -513,15 +514,16 @@ export class NativePlayer extends EventTarget {
         }
     }
     async openServices(source) {
+        this.subtitleSource = source;
         if (this.selectiveAudio) {
             this.video.muted = true;
             if (this.remuxRuntime === 'pthread') {
-                const { NativeMpvAudio } = await import('./native-mpv-audio.js');
+                const { NativeMpvAudio } = await loadProviderModule('mpv-audio', this.assetBase);
                 this.assertActive();
                 this.mpvAudio = new NativeMpvAudio(this.video, () => this.sourceTime(), this.assetBase, error => this.emit('error', error));
             }
             else {
-                const { NativePrivateMpvAudio } = await import('./native-private-mpv-audio.js');
+                const { NativePrivateMpvAudio } = await loadProviderModule('mpv-private-audio', this.assetBase);
                 this.assertActive();
                 this.mpvAudio = new NativePrivateMpvAudio(this.video, () => this.sourceTime(), this.assetBase, this.remuxRuntime, error => this.emit('error', error));
             }
@@ -535,7 +537,7 @@ export class NativePlayer extends EventTarget {
             this.refresh();
         }
         if (this.mpvSubtitlePlan) {
-            const { NativeMpvSubtitles } = await import('./native-mpv-subtitles.js');
+            const { NativeMpvSubtitles } = await loadProviderModule('mpv-subtitles', this.assetBase);
             this.assertActive();
             this.mpvSubs = new NativeMpvSubtitles(this.video, () => this.sourceTime(), this.assetBase, this.fonts, source, error => this.emit('error', error), this.defaultSubtitleStreamIndex, this.remuxRuntime);
             await this.mpvSubs.ready;
@@ -556,7 +558,7 @@ export class NativePlayer extends EventTarget {
         catch (error) {
             URL.revokeObjectURL(this.objectURL);
             this.objectURL = undefined;
-            if (this.selectiveAudio && !(error instanceof PlayerError) && !(error instanceof DOMException && ['AbortError', 'NotAllowedError'].includes(error.name)))
+            if (this.selectiveAudio && !isPlayerError(error) && !(error instanceof DOMException && ['AbortError', 'NotAllowedError'].includes(error.name)))
                 throw new PlayerError('DECODE_FAILED', 'Selective video preparation failed: ' + String(error));
             throw error;
         }
@@ -850,33 +852,28 @@ export class NativePlayer extends EventTarget {
             Array.from(audio).forEach((t, i) => { t.enabled = i === Number(id) - 1; });
         }
         else {
-            if (this.mpvSubs) {
+            if (this.mpvSubs && (id === 'no' || id === 'auto' || this.mpvSubs.tracks.some(t => t.id === id))) {
                 await this.mpvSubs.select(id);
                 this.selectedSub = id;
                 this.applySubtitles();
                 this.refresh();
                 return;
             }
-            if (Number(id) >= 100001 && Number(id) < 200001) {
-                const index = Number(id) - 100001;
-                if (!this.assAssets[index])
-                    throw Error('Unknown Native ASS track');
-                await this.ass.load(this.assAssets[index]);
-                this.assIndex = index;
-            }
-            if (!['auto', 'no'].includes(id) && !this.assAssets[Number(id) - 100001] && !Array.from(this.video.textTracks).some(t => this.textTrackId(t) === id))
+            if (!['auto', 'no'].includes(id) && !Array.from(this.video.textTracks).some(t => this.textTrackId(t) === id))
                 throw new Error('Unknown native subtitle track');
+            if (this.mpvSubs)
+                await this.mpvSubs.select('no');
             this.selectedSub = id;
             this.applySubtitles();
         }
         this.refresh();
     }
     applySubtitles() {
-        this.mpvSubs?.visible(this.subsVisible && this.selectedSub !== 'no');
-        this.ass?.visible(this.assIndex >= 0 && this.subsVisible && this.selectedSub !== 'no' && (this.selectedSub === 'auto' || (Number(this.selectedSub) >= 100001 && Number(this.selectedSub) < 200001)));
+        const overlaySelected = !!this.mpvSubs?.tracks.some(t => t.selected);
+        this.mpvSubs?.visible(this.subsVisible && this.selectedSub !== 'no' && overlaySelected);
         const preferred = this.video.querySelector('track[default]')?.track;
         const autoIndex = preferred ? Array.from(this.video.textTracks).indexOf(preferred) : Array.from(this.video.textTracks).findIndex(t => !this.captionAssets.has(t));
-        Array.from(this.video.textTracks).forEach((t, i) => { t.mode = this.subsVisible && !(this.assIndex >= 0 && this.selectedSub === 'auto') && this.selectedSub !== 'no' && (this.selectedSub === 'auto' ? i === autoIndex : this.textTrackId(t) === this.selectedSub) ? 'showing' : 'disabled'; });
+        Array.from(this.video.textTracks).forEach((t, i) => { t.mode = this.subsVisible && !overlaySelected && this.selectedSub !== 'no' && (this.selectedSub === 'auto' ? i === autoIndex : this.textTrackId(t) === this.selectedSub) ? 'showing' : 'disabled'; });
     }
     async setAudioOutputDevice(id) {
         this.assertActive();
@@ -924,30 +921,35 @@ export class NativePlayer extends EventTarget {
             }
         }
         if (this.adapted && this.audioAdaptation === 'opus')
-            throw Error('Native Opus plus ASS is not qualified');
-        if (!this.nativeASS || !['ass', 'ssa'].includes(asset.format))
-            throw Error('Native external ASS/SSA requires explicit experimental admission');
-        if (this.assAssets.length >= 16 || asset.bytes.byteLength > 8 * 1024 * 1024 || this.assAssets.reduce((n, a) => n + a.bytes.byteLength, 0) + asset.bytes.byteLength > 16 * 1024 * 1024)
-            throw Error('Subtitle budget exceeded');
-        if (!this.ass) {
-            const { NativeASS } = await import('./native-ass.js');
+            throw Error('Native Opus plus external subtitles is not qualified');
+        if (!this.nativeASS || !['ass', 'ssa', 'srt', 'vtt'].includes(asset.format))
+            throw Error('Native external subtitles require explicit experimental admission');
+        const created = !this.mpvSubs;
+        if (created) {
+            if (!this.subtitleSource)
+                throw Error('Missing subtitle media source');
+            const { NativeMpvSubtitles } = await loadProviderModule('mpv-subtitles', this.assetBase);
             this.assertActive();
-            this.ass = new NativeASS(this.video, () => this.sourceTime(), this.assetBase, this.fonts, error => { if (!this.stopped)
-                this.emit('error', String(error)); });
+            this.mpvSubs = new NativeMpvSubtitles(this.video, () => this.sourceTime(), this.assetBase, this.fonts, this.subtitleSource, error => { if (!this.stopped)
+                this.emit('error', error); }, undefined, this.remuxRuntime);
         }
-        if (asset.select) {
-            try {
-                await this.ass.load(asset);
-                this.assertActive();
-            }
-            catch (error) {
-                this.ass.destroy();
-                this.ass = undefined;
-                throw error;
-            }
-            this.assIndex = this.assAssets.length;
+        try {
+            await this.mpvSubs.ready;
+            this.assertActive();
+            if (created)
+                this.mpvSubs.tracks = [];
+            const id = await this.mpvSubs.add(asset);
+            this.assertActive();
+            if (asset.select)
+                this.selectedSub = id;
         }
-        this.assAssets.push(asset);
+        catch (error) {
+            if (created) {
+                await this.mpvSubs?.destroy();
+                this.mpvSubs = undefined;
+            }
+            throw error;
+        }
         this.applySubtitles();
         this.refresh();
     }
@@ -1011,9 +1013,7 @@ export class NativePlayer extends EventTarget {
         this.mpvAudio = undefined;
         await this.mpvSubs?.destroy();
         this.mpvSubs = undefined;
-        this.ass?.destroy();
-        this.ass = undefined;
-        this.assAssets = [];
+        this.subtitleSource = undefined;
         for (const cancel of this.cancelers)
             cancel(new Error('Player is destroyed'));
         await this.remux?.destroy();

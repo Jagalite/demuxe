@@ -25,11 +25,10 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private capability;
     private mpvSubs?;
     private mpvAudio?;
+    private get execution();
     private get selectiveAudio();
     private get mpvSubtitlePlan();
-    private ass?;
-    private assAssets;
-    private assIndex;
+    private subtitleSource?;
     private textAttachmentIds;
     private captionAssets;
     private captionURLs;
@@ -220,11 +219,14 @@ export declare class NativePlayer extends EventTarget implements Backend {
         } | undefined;
         plan: string | undefined;
         subtitleOverlay: {
+            position: number;
             renders: number;
             bitmapUpdates: number;
             bytes: number;
             peakBytes: number;
             discarded: number;
+            stateUpdates: number;
+            scheduler: string;
             component: string;
             scope: string;
             destination: string;
@@ -257,8 +259,8 @@ export declare class NativePlayer extends EventTarget implements Backend {
     verifyStartup(expected?: {
         video: boolean;
         audio: boolean;
-    }, output?: boolean, signal?: AbortSignal): Promise<void>;
-    verifyOutput(signal?: AbortSignal): Promise<void>;
+    }, output?: boolean, signal?: AbortSignal, outputBudgetMs?: number): Promise<void>;
+    verifyOutput(signal?: AbortSignal, outputBudgetMs?: number): Promise<void>;
     private preparationError;
     private startRemux;
     private loadPlan;

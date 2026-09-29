@@ -6,7 +6,6 @@ import argparse, hashlib, json, os, pathlib, subprocess, tarfile, time
 root=pathlib.Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--archive',type=pathlib.Path,required=True)
-p.add_argument('--ass-build',type=pathlib.Path,required=True)
 p.add_argument('--adaptation-build',type=pathlib.Path,required=True)
 p.add_argument('--output',type=pathlib.Path,required=True)
 a=p.parse_args();out=a.output.resolve();archive=a.archive.resolve()
@@ -25,7 +24,7 @@ with tarfile.open(archive) as tar:
             raise SystemExit('Package hash mismatch: '+name)
     tar.extractall(out/'installed',filter='data')
 record['runtimeFiles']={n:v for n,v in manifest['files'].items() if n.startswith('web/') and pathlib.Path(n).suffix in ['.js','.mjs','.wasm']}
-for engine,folder,stem in [(a.ass_build,'engine-ass','subtitles'),(a.adaptation_build,'engine-adaptation','remux')]:
+for engine,folder,stem in [(a.adaptation_build,'engine-adaptation','remux')]:
     for ext in ['mjs','wasm']:
         name=f'web/{folder}/{stem}.{ext}'
         if digest(engine/(stem+'.'+ext))!=manifest['files'][name]['sha256']:
@@ -33,10 +32,14 @@ for engine,folder,stem in [(a.ass_build,'engine-ass','subtitles'),(a.adaptation_
 env={**os.environ,'BETA_ARCHIVE':str(archive),'DEMUXE_RUNTIME_ROOT':str(out/'installed/package'),
      'ADAPTATION_FIXTURE':str(root/'build/optimization-fixtures/long-pcm.mkv'),
      'AUTOMATIC_ADAPTATION_FIXTURE':str(root/'build/optimization-fixtures/automatic-lossless.mkv')}
-for name in ['BROWSER','CASES','PROFILE','REPRO_UNQUALIFIED','SEEKS_ONLY','COMBINATION','REMOTE','ENGINE_BUILD']:env.pop(name,None)
+for name in ['BROWSER','CASES','PROFILE','REPRO_UNQUALIFIED','SEEKS_ONLY','COMBINATION','REMOTE','ENGINE_BUILD','RUNTIME','DEMUXE_TEST_ASSET_ROOT']:env.pop(name,None)
 def run(name,command,extra=None):
     item={'name':name,'command':command,'harnesses':{f:digest(root/f) for f in command if (root/f).is_file()},'passed':False}
     if any(f.startswith('tests/') and f.endswith('.mjs') for f in command):item['harnesses']['scripts/serve.mjs']=digest(root/'scripts/serve.mjs')
+    if any(f in command for f in ['tests/player-presentation.mjs','tests/mpv-external-subtitles.mjs']):
+        dependencies=['tests/head-to-head/browser-exit.mjs']
+        dependencies+=['examples/player-presentation.html'] if 'tests/player-presentation.mjs' in command else ['experiments/pipeline-qualification/server.mjs','tests/mpv-external-subtitles.html','fixtures/qualification.ass']
+        item['harnesses'].update({f:digest(root/f) for f in dependencies})
     for relative,sha in item['harnesses'].items():
         snapshot=out/'harnesses'/relative;snapshot.parent.mkdir(parents=True,exist_ok=True)
         if snapshot.exists() and digest(snapshot)!=sha:raise SystemExit('Harness changed during qualification: '+relative)
@@ -48,12 +51,13 @@ def run(name,command,extra=None):
     save()
     if process.returncode:raise SystemExit('Qualification failed: '+name+'; failure retained')
     print(name,'PASS',flush=True)
-run('ass-source',['python3','scripts/verify-native-ass-build.py',str(a.ass_build)])
 run('adaptation-source',['python3','scripts/verify-audio-adaptation-build.py',str(a.adaptation_build)])
 run('assets',['node','--test','tests/copy-assets.mjs'])
 for browser in ['chrome','firefox']:
     run('consumer-'+browser,['node','tests/beta-consumer.mjs'],{'BROWSER':browser,'CASES':'automatic-local,automatic-lossless,hybrid-pin,software-pin,native-remux,native-external-ass,native-adaptation,native-opus,native-adaptation-ass-gain'})
     for name,script,options in [
+        ('presentation','tests/player-presentation.mjs',{}),
+        ('external-subtitles','tests/mpv-external-subtitles.mjs',{}),
         ('automatic','tests/automatic-adaptation.mjs',{}),
         ('fractional-seek','tests/native-fractional-seek.mjs',{}),
         ('ass','tests/native-ass.mjs',{}),

@@ -12,38 +12,12 @@ test('packaged runtime contains no host build paths or private keys, including W
 
 test('optional source companions are listed and match their runtime manifests',async()=>{
  const sums=await readFile(path.join(path.dirname(archive),'SHA256SUMS'),'utf8');
- for(const engine of ['engine-adaptation','engine-ass']){
+ for(const engine of ['engine-adaptation']){
   let manifest;try{manifest=JSON.parse(await readFile(path.join(pkg,'web',engine,'manifest.json')));}catch(e){if(e.code==='ENOENT')continue;throw e;}
   const source=manifest.sourceCompanion,bytes=await readFile(path.join(path.dirname(archive),source.filename));
   assert.equal(createHash('sha256').update(bytes).digest('hex'),source.sha256);
   assert.ok(sums.split('\n').includes(`${source.sha256}  ${source.filename}`),'Companion missing from SHA256SUMS: '+engine);
  }
-});
-
-test('clean ASS companion preserves the preferred sources recorded by the build',async()=>{
- let manifest;try{manifest=JSON.parse(await readFile(path.join(pkg,'web/engine-ass/manifest.json')));}catch(e){if(e.code==='ENOENT')return;throw e;}
- if(!manifest.sourceBuildVerification?.verified)return; // Historical reused-library packages have no clean-build claim.
- assert.equal(manifest.sourceBuildVerification.releaseQualified,false);
- const source=path.join(path.dirname(archive),manifest.sourceCompanion.filename);
- execFileSync('python3',['-c',`
-import hashlib,json,sys,tarfile
-with tarfile.open(sys.argv[1]) as archive:
- record=json.load(archive.extractfile('source-build.json'))
- count=0
- for name,digest in record['files'].items():
-  if name.startswith('build/sources/'):
-   target='libraries/'+name[len('build/sources/'):]
-  elif name.startswith('scripts/') or name in ['sources.lock.json','toolchain.lock.json']:
-   target='demuxe/'+name
-  else: continue
-  assert hashlib.sha256(archive.extractfile(target).read()).hexdigest()==digest,target
-  count+=1
- assert count>0
- linked=json.load(archive.extractfile('build-manifest.json'))
- for suffix in ['native/subtitles/ass.c','scripts/link-native-ass.py']:
-  expected=next(v['sha256'] for k,v in linked['files'].items() if k.endswith('/'+suffix))
-  assert hashlib.sha256(archive.extractfile('demuxe/'+suffix).read()).hexdigest()==expected,suffix
-`,source],{stdio:'pipe'});
 });
 
 test('clean preparation companion preserves all patched preferred sources and wrapper configuration',async()=>{

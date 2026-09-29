@@ -1,0 +1,292 @@
+{
+  "schema": 1,
+  "status": "source-draft-not-release-qualified",
+  "targets": {
+    "core": {
+      "npmName": "demuxe",
+      "owners": [
+        "core"
+      ],
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "requiredFiles": [
+        "LICENSE",
+        "package.json",
+        "license-map.json"
+      ],
+      "template": "packages/player-core/package.json"
+    },
+    "ffmpeg": {
+      "npmName": "@demuxe/provider-ffmpeg",
+      "owners": [
+        "core",
+        "ffmpeg"
+      ],
+      "licenses": [
+        "Apache-2.0",
+        "LGPL-2.1-or-later",
+        "MIT",
+        "CC-BY-4.0"
+      ],
+      "requiredFiles": [
+        "LICENSE",
+        "package.json",
+        "license-map.json",
+        "provider-manifest.json",
+        "engine-build.json",
+        "source-companion.json",
+        "LGPL-RELINK.md",
+        "LICENSES/LGPL-2.1-or-later.txt",
+        "LICENSES/MIT-private-ffmpeg.txt"
+      ],
+      "template": "packages/provider-ffmpeg/package.json"
+    },
+    "mpv": {
+      "npmName": "@demuxe/provider-mpv",
+      "owners": [
+        "core",
+        "ffmpeg",
+        "mpv"
+      ],
+      "licenses": [
+        "Apache-2.0",
+        "LGPL-2.1-or-later",
+        "MIT",
+        "CC-BY-4.0"
+      ],
+      "requiredFiles": [
+        "LICENSE",
+        "package.json",
+        "license-map.json",
+        "provider-manifest.json",
+        "engine-build.json",
+        "source-companion.json",
+        "LGPL-RELINK.md",
+        "LICENSES/LGPL-2.1-or-later.txt",
+        "LICENSES/MIT-private-mpv.txt"
+      ],
+      "template": "packages/provider-mpv/package.json"
+    }
+  },
+  "ownershipRules": [
+    {
+      "owner": "ffmpeg",
+      "paths": [
+        "native/remux/*",
+        "native/adaptation/*",
+        "web/native-remux-*.js",
+        "web/source-probe.js",
+        "web/private-remux.js",
+        "web/private-ffmpeg/*",
+        "web/engine-remux/*",
+        "web/engine-remux-*/*",
+        "web/engine-adaptation/*",
+        "web/engine-adaptation-*/*",
+        "docs/LGPL-RELINK.md"
+      ]
+    },
+    {
+      "owner": "mpv",
+      "paths": [
+        "src/internal/wasm-player.ts",
+        "src/internal/native-mpv-*.ts",
+        "src/internal/native-private-mpv-audio.ts",
+        "src/internal/native-ass.ts",
+        "native/subtitles/*",
+        "web/private-mpv/*",
+        "web/private-mpv.js",
+        "web/mpv-subtitle-worker.js",
+        "web/native-ass-worker.js",
+        "web/*engine-worker.js",
+        "web/retained-*.js",
+        "web/engine-hybrid/*",
+        "web/engine-selective/*",
+        "web/engine-subtitles/*",
+        "web/engine-mpv-*/*",
+        "web/engine-software-*/*",
+        "src/player.ts"
+      ]
+    },
+    {
+      "owner": "core",
+      "paths": [
+        "src/adapters/videojs.ts",
+        "src/contracts.ts",
+        "src/core.ts",
+        "src/index.ts",
+        "src/integration/index.ts",
+        "src/integration/media-view.ts",
+        "src/internal/assets.ts",
+        "src/internal/backend.ts",
+        "src/internal/browser-evidence-adapters.ts",
+        "src/internal/browser-media-capability.ts",
+        "src/internal/buffering.ts",
+        "src/internal/decode-policy.ts",
+        "src/internal/engine-preparation.ts",
+        "src/internal/errors.ts",
+        "src/internal/execution-capabilities.ts",
+        "src/internal/execution-recipes.ts",
+        "src/internal/external-decoder-selection.ts",
+        "src/internal/media-capabilities.ts",
+        "src/internal/media-providers.ts",
+        "src/internal/native-player.ts",
+        "src/internal/plain-vtt.ts",
+        "src/internal/playback-plans.ts",
+        "src/internal/playback-statistics.ts",
+        "src/internal/probe-requirements.ts",
+        "src/internal/provider-acquisition.ts",
+        "src/internal/provider-catalog.ts",
+        "src/internal/provider-cost.ts",
+        "src/internal/provider-deployment-errors.ts",
+        "src/internal/provider-modules.ts",
+        "src/internal/provider-plan-resolution.ts",
+        "src/internal/provider-resolution.ts",
+        "src/internal/remux-runtime.ts",
+        "src/internal/runtime-capability.ts",
+        "src/internal/runtime-worker.ts",
+        "src/internal/selection.ts",
+        "src/internal/shaka-backend.ts",
+        "src/internal/shaka-network.ts",
+        "src/internal/state.ts",
+        "src/internal/tier-policy.ts",
+        "src/internal/track-policy.ts",
+        "src/internal/watchdogs.ts",
+        "src/internal/webgpu-codecs.ts",
+        "src/media-element/index.ts",
+        "src/player/components.ts",
+        "src/player/icons.ts",
+        "src/player/index.ts",
+        "src/player/interaction.ts",
+        "src/player/presentation.ts",
+        "src/player/preview.ts",
+        "src/player/styles.ts",
+        "src/player/themes.ts",
+        "src/presentation.ts",
+        "src/preview/controller.ts",
+        "src/preview/images.ts",
+        "src/preview/player-preview.ts",
+        "src/preview/pregeneration.ts",
+        "src/preview/providers.ts",
+        "src/preview/software.ts",
+        "src/sources.ts",
+        "src/types.ts",
+        "src/unified-player.ts",
+        "web/fast-source-inspector.js",
+        "web/selected-mp4-view.js",
+        "web/range-reader.js",
+        "packages/player-core/dist/index.js",
+        "packages/player-core/dist/index.d.ts"
+      ]
+    }
+  ],
+  "fallback": "Only existing licensing/boundaries.json coreSources are core-owned; all other inputs require an explicit ownership rule. Notices may be carried only with their exact audited source hash.",
+  "retainedNotices": {
+    "LICENSE": {
+      "source": "LICENSES/Apache-2.0.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "license": "Apache-2.0"
+    },
+    "LICENSES/LGPL-2.1-or-later.txt": {
+      "source": "LICENSES/LGPL-2.1-or-later.txt",
+      "sha256": "b634ab5640e258563c536e658cad87080553df6f34f62269a21d554844e58bfe",
+      "license": "LGPL-2.1-or-later"
+    },
+    "LICENSES/MIT-private-ffmpeg.txt": {
+      "source": "web/private-ffmpeg/LICENSE.txt",
+      "sha256": "0b91e5a884ee54854c45525e0c7af6f10b80a476cad19c8c876ab1c8f0ccb2ae",
+      "license": "MIT"
+    },
+    "LICENSES/MIT-private-mpv.txt": {
+      "source": "web/private-mpv/LICENSE.txt",
+      "sha256": "0b91e5a884ee54854c45525e0c7af6f10b80a476cad19c8c876ab1c8f0ccb2ae",
+      "license": "MIT"
+    }
+  },
+  "playerCoreSources": [
+    "src/adapters/videojs.ts",
+    "src/contracts.ts",
+    "src/core.ts",
+    "src/index.ts",
+    "src/integration/index.ts",
+    "src/integration/media-view.ts",
+    "src/internal/assets.ts",
+    "src/internal/backend.ts",
+    "src/internal/browser-evidence-adapters.ts",
+    "src/internal/browser-media-capability.ts",
+    "src/internal/buffering.ts",
+    "src/internal/decode-policy.ts",
+    "src/internal/engine-preparation.ts",
+    "src/internal/errors.ts",
+    "src/internal/execution-capabilities.ts",
+    "src/internal/execution-recipes.ts",
+    "src/internal/external-decoder-selection.ts",
+    "src/internal/media-capabilities.ts",
+    "src/internal/media-providers.ts",
+    "src/internal/native-player.ts",
+    "src/internal/plain-vtt.ts",
+    "src/internal/playback-plans.ts",
+    "src/internal/playback-statistics.ts",
+    "src/internal/probe-requirements.ts",
+    "src/internal/provider-acquisition.ts",
+    "src/internal/provider-catalog.ts",
+    "src/internal/provider-cost.ts",
+    "src/internal/provider-deployment-errors.ts",
+    "src/internal/provider-modules.ts",
+    "src/internal/provider-plan-resolution.ts",
+    "src/internal/provider-resolution.ts",
+    "src/internal/remux-runtime.ts",
+    "src/internal/runtime-capability.ts",
+    "src/internal/runtime-worker.ts",
+    "src/internal/selection.ts",
+    "src/internal/shaka-backend.ts",
+    "src/internal/shaka-network.ts",
+    "src/internal/state.ts",
+    "src/internal/tier-policy.ts",
+    "src/internal/track-policy.ts",
+    "src/internal/watchdogs.ts",
+    "src/internal/webgpu-codecs.ts",
+    "src/media-element/index.ts",
+    "src/player/components.ts",
+    "src/player/icons.ts",
+    "src/player/index.ts",
+    "src/player/interaction.ts",
+    "src/player/presentation.ts",
+    "src/player/preview.ts",
+    "src/player/styles.ts",
+    "src/player/themes.ts",
+    "src/presentation.ts",
+    "src/preview/controller.ts",
+    "src/preview/images.ts",
+    "src/preview/player-preview.ts",
+    "src/preview/pregeneration.ts",
+    "src/preview/providers.ts",
+    "src/preview/software.ts",
+    "src/sources.ts",
+    "src/types.ts",
+    "src/unified-player.ts",
+    "web/fast-source-inspector.js",
+    "web/selected-mp4-view.js",
+    "web/range-reader.js",
+    "packages/player-core/dist/index.js",
+    "packages/player-core/dist/index.d.ts"
+  ],
+  "playerCoreComputedImports": {
+    "src/unified-player.ts": [
+      "new URL('web/source-probe.js',this.assetBase).href",
+      "new URL('web/fast-source-inspector.js',this.assetBase).href"
+    ],
+    "src/internal/native-player.ts": [
+      "new URL('web/selected-mp4-view.js',this.assetBase).href",
+      "moduleURL",
+      "new URL('web/range-reader.js',this.assetBase).href"
+    ],
+    "src/internal/provider-modules.ts": [
+      "new URL(paths[id], assetBase).href"
+    ],
+    "src/sources.ts": [
+      "new URL('web/range-reader.js',base).href",
+      "new URL('web/fast-source-inspector.js',base).href"
+    ]
+  }
+}

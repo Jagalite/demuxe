@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Qualified media components: implementation plan and review
 
-Status: reviewed proposal, 2026-09-28. No implementation or routing changes authorized by this document. Based on the current working tree, including existing uncommitted changes; capture a fresh baseline before implementation.
+Status: reviewed plan with source implementation in progress on `modular-media-providers`. The user subsequently authorized implementation, then testing. Focused build, regression, licensing and Native/Shaka browser checks pass; full runtime and distribution qualification remain incomplete. See [worktree status](MEDIA-COMPONENT-WORKTREE-STATUS.md) for commands and remaining gates. Benchmarks remain deferred. Implementation started from committed baseline `d8a6c65a`; the user later authorized integration of the original checkout through `a97314ba` plus its current tracked/untracked work and runtime assets. See the [integration record](MEDIA-COMPONENT-INTEGRATION.md).
 
 ## Decision and scope
 
@@ -101,6 +101,8 @@ provides: [{capability, contractVersion, profile, implementationId, technology, 
 bindings: [{id, interfaceVersion, acquisitionGroup, availabilityProbe, runtimeRequirements, resourceLimits}]
 build: {sourceRevision, sourceHashes, toolchain, configurationHash}
 qualificationRefs: [evidence record identities]
+distribution: {npmPackage, packageVersion, coreCompatibility, providerContractVersion}
+licensing: {packageLicense, fileLicenseMap, notices, sourceBuildRecord}
 ```
 
 Asset lists can be empty for browser-provided execution, while any Demuxe adapter remains part of its actual application or asset build. Use browser/environment identity for native implementation evidence instead of inventing a browser engine hash. Runtime readiness and measured cost are mutable evidence kept outside the immutable manifest.
@@ -142,6 +144,77 @@ Share conformance fixtures, expected outputs, tolerance definitions and lifecycl
 Do not grant blanket qualification inheritance from shared source. Each physical variant needs loading/ABI/runtime, memory/resource and teardown checks; each allowed complete binding set needs recipe-level A/V, seek, selection and fallback evidence. Performance evidence is packaging-specific. Runtime acceptance and negative caches must include the concrete binding/build/configuration so success or failure does not leak across variants.
 
 Planning impact: steps 0–1 should represent capability requirements separately from technology/delivery bindings and record only existing browser, JS and broad FFmpeg/mpv execution paths. Cost-based choice, fine/bundled builds, new packet interfaces and additional automatic bindings remain later experimental work. No public Player API or production routing changes are included in this addition.
+
+## Distribution and missing-provider behavior
+
+### One monorepo, independently published packages
+
+Keep core, provider adapters, engine sources/build recipes and qualification fixtures in this monorepo. Introduce independently packable workspace packages in a later distribution slice; physical source moves are not required for the initial recipe refactor. Shared source/build tooling can remain repository-local, with each publish target having an explicit file allowlist and dependency closure.
+
+| Publish target | Intended responsibility | License metadata |
+| --- | --- | --- |
+| `demuxe` | Apache core: Player/control plane, contracts, policy, generic provider loading, browser execution and admitted core-owned code | `Apache-2.0` for Demuxe core; audited per-file notices for any expressly approved third-party material |
+| `@demuxe/provider-ffmpeg` | FFmpeg-specific adapters, engine assets, build profiles and their runtime dependencies | Exact SPDX expression and per-file/component map derived from the built FFmpeg closure, including applicable LGPL components |
+| `@demuxe/provider-mpv` | mpv/FFmpeg execution, provider-specific adapters, services and runtime dependencies | Exact license expression and component map from its actual mpv/FFmpeg build; do not infer it from the package name |
+| Future TS/Wasm/third-party providers | Additional implementations and fine/bundled delivery variants | Independent artifact-specific license metadata, notices and provenance |
+
+Core must not depend on, bundle, re-export implementation code from, or auto-install optional FFmpeg/mpv providers. Providers target a versioned internal provider contract and declare compatible core versions; their npm versions can advance independently. Keep shared interfaces Apache-owned and free of provider implementation dependencies. Engine assets, native glue and provider-specific loaders stay with their owning provider even if some individual files have permissive licenses. Inventory existing generic versus provider-specific JS before extracting packages; Shaka and any other third-party assets also need explicit package ownership rather than accidental inclusion.
+
+Distribution selection is a build/deployment concern, separate from the public Player API. Installed npm packages are not browser deployment facts: a build must explicitly include/configure provider descriptors and deploy their complete asset closures. A generated deployment catalog records configured package versions, provider/contract identities, asset roots and hashes. Preserve `assetBase` for the existing layout; future package-root mappings belong to deployment metadata, not a new Player option in this task. No runtime npm discovery, silent CDN download or registry installation.
+
+### Explicit availability and rejection semantics
+
+Track provider availability separately from loaded/cache state: absent from deployment, configured but unverified, ready for acquisition, or failed validation/acquisition. Record the reason and deployment-catalog revision. Browser-native and application-bundled JS providers use the same availability model with their appropriate configuration/build evidence; they need no npm engine package.
+
+For each semantically admitted candidate, resolve only its qualified binding sets against the configured deployment and current environment:
+
+1. If no installed/configured qualified provider set can fulfill a required capability/profile, reject that candidate with `DEPLOYMENT_UNAVAILABLE`. Include the missing capability/profile and the acceptable qualified provider or complete binding requirement. An installed but unqualified or incompatible provider does not satisfy it. Distinguish those reasons from simple absence.
+2. If no composition has ever been qualified for the requested semantics, retain `QUALIFICATION_REQUIRED` or the existing source/feature rejection instead. Do not suggest that installing a package will enable an unqualified composition. A genuine media rejection remains a media rejection.
+3. Continue in the existing admitted plan order, honoring explicit mode pins and user policy. Before starting any next candidate, establish that its own provider set is available. Broad FFmpeg and full mpv are options only when actually configured, deployed, compatible and qualified; neither is an implicit resident fallback.
+4. If deployment gaps exhaust otherwise admitted recipes, return a typed deployment failure plus bounded per-candidate diagnostics. Do not turn it into `UNSUPPORTED_MEDIA`. Preserve all other rejection reasons for explanation; a terminal source/authorization/integrity/runtime error retains its existing precedence and stops fallback.
+
+Configured-but-unverified is not equivalent to absent. Validate through bounded existing discovery/acquisition mechanisms, retaining lazy downloads. A package omitted from the deployment catalog is a known deployment gap; a declared required asset that fails to load, has an invalid hash, or cannot initialize remains an asset/integrity/runtime failure under current classification. Do not relabel a 404, network failure or corrupt configured package as optional absence to enable silent fallback. Existing optional-inspection and bounded timeout/restoration exceptions remain unchanged.
+
+Example internal diagnostic:
+
+```text
+code: DEPLOYMENT_UNAVAILABLE
+planId: native-transcode
+recipeId: <qualified recipe identity>
+missing: [{capability: audio.decode.ac3, profile: <required semantic profile>,
+           acceptableBindings: [<qualified binding identities>],
+           providerPackages: [@demuxe/provider-ffmpeg], reason: not-configured}]
+deploymentRevision: <catalog identity>
+```
+
+Provider package names are actionable context, not proof that every build of that package supplies the capability. List binding groups when several providers must be installed together; do not imply that an individual package completes the recipe. Bound and redact diagnostics, excluding credentials, signed URLs and local paths. Cache deployment rejections by deployment revision and selection/configuration, separately from source compatibility evidence; do not poison `TierAttempts` with missing-provider failures.
+
+Current-code gap: `PlaybackDecisionCode`/`PlanRejectionCode` already include `DEPLOYMENT_UNAVAILABLE`, but `PlayerErrorCode` does not. `discover()` currently ends with a generic no-route error that `playerError()` can classify as `UNSUPPORTED_MEDIA`. The later distribution implementation must introduce a typed final deployment outcome and preserve its structured reasons through existing diagnostic/error plumbing. An additive public error-code declaration may be necessary and must receive consumer compatibility tests; do not implement a string-message workaround. This planning edit changes neither the public API nor current production behavior.
+
+### Machine-checkable package boundaries
+
+Extend the existing `scripts/license_policy.py`, `scripts/check-licenses.py` and `scripts/check-core-boundary.mjs` checks with independent publish-target policies. Keep distribution ownership separate from license permission: a provider-owned file must not enter core merely because its own header says Apache or MIT.
+
+- Maintain a machine-readable ownership/license map for every source, generated output, vendored dependency and shipped binary. Record target package, SPDX expression, provenance and required notices/source/build records. Unknown ownership/license fails packaging; generated outputs inherit audited input closure, not a newly stamped license claim.
+- Build each target into a fresh staging directory using positive file allowlists. Reject paths/symlinks escaping the declared inputs, workspace imports into provider implementation from core, hidden optional-install scripts, provider dependencies in the core install closure, and cross-package source-map content. No broad root `files` glob or copied runtime directory may pull engines into core.
+- Inspect bundler input metadata and dependency graphs as well as filenames: provider code can be inlined into JS, source maps or embedded binary data. Compare generated file hashes to build/provenance records and fail on undeclared inputs or changed artifacts. Wasm presence alone is not the rule; package ownership and actual license closure are.
+- Pack each package, then audit the exact npm tarball contents, `package.json` dependencies/exports/license, file license map, notices and artifact hashes. Assert that core contains no LGPL or provider-owned implementation/assets. Provider tarballs must retain their own verified notices and source/relink/build companion bindings under the existing release policy. Core metadata cannot substitute for provider metadata.
+- Install the audited tarballs into clean external consumers, rather than resolving through workspace symlinks. Verify core-only installation has no provider package/assets or implicit downloads; test each supported core/provider version pairing and reject ABI mismatches. Publish only the exact audited tarball identities.
+
+These gates enforce the repository's distribution policy and retained licensing evidence; a package-level `license` string alone is insufficient. The package split does not relabel engine code or erase existing release obligations. Do not copy provider documentation/source archives into core as an accidental consequence of monorepo packaging.
+
+### Distribution delivery and acceptance gates
+
+Keep steps 0–4 below as the existing-layout behavior-preserving migration. After that baseline, add a separate distribution slice: inventory ownership; define package manifests/compatibility and deployment catalogs; implement typed deployment rejection; build/audit separate tarballs; qualify core-only and selected-provider deployments. Full existing provider deployment must retain the same route order and behavior. Reduced deployments intentionally have fewer available candidates, with deployment-specific diagnostics.
+
+Required regression cases:
+
+- Core/browser-only playback works without requesting FFmpeg/mpv assets. An admitted recipe with no provider rejects as `DEPLOYMENT_UNAVAILABLE`, never as unsupported media.
+- FFmpeg absent with a qualified mpv plan available skips only unavailable candidates and retains admitted order. mpv absent does not start a fictitious Software fallback. Neither available yields an aggregate missing-requirement diagnostic when such recipes were otherwise admitted.
+- Installed-but-not-configured, omitted dependency closure, incompatible provider ABI, and installed-but-unqualified offers produce precise preflight reasons. Unknown configuration is not silently treated as present or absent.
+- Declared asset download/integrity/initialization failure remains terminal where it is today; no fallback regression is hidden by deployment classification. Explicit mode/source/transport constraints remain binding.
+- Updating the deployment catalog invalidates missing-provider evidence without widening qualification or reusing another provider's runtime evidence.
+- Negative package tests deliberately insert an LGPL source/Wasm, a permissively licensed provider-owned loader, bundled provider code, a leaking source map, and an undeclared generated asset into core staging. Every case must fail the tarball/boundary gate; separately verify provider notice/provenance omissions fail.
 
 ## Delivery sequence and gates
 
@@ -213,6 +286,8 @@ Run the build and relevant maintained suites for each implementation slice; broa
 | Common sources or cached assets could be mistaken for qualification | Share semantic test definitions, bind evidence to actual artifacts/compositions, and use cache state only after eligibility filtering |
 | Native or already-loaded providers could receive unjustified priority | Separate availability/readiness from measured startup and execution cost; compare qualified binding sets, retaining the baseline when evidence is insufficient |
 | Wasm-oriented manifests could exclude browser-native or application-bundled JS execution | Keep capability, implementation technology, delivery and mutable runtime state separate; permit asset-free native offers and build-bound JS offers |
+| Missing optional providers could be mislabeled as unsupported media or assumed present for fallback | Resolve explicit deployment facts per admitted candidate; preserve typed deployment exhaustion and available-provider-only fallback |
+| Separate package names could conceal LGPL/provider code inside core bundles | Enforce ownership and license closure on inputs, generated outputs, dependency graphs and exact packed tarballs |
 
 Review conclusion: proceed with steps 0–1 as the first implementation slice. The design needs no new media binary and no general graph executor. Steps 2–4 are gated behavior-preserving migrations, not permission to widen routing. Main remaining uncertainty is whether metadata consolidation materially reduces scattered construction logic; reassess after step 2 before adding more abstraction.
 
@@ -221,5 +296,6 @@ Review conclusion: proceed with steps 0–1 as the first implementation slice. T
 - [Plans and admission](../src/internal/playback-plans.ts), [selection predicates](../src/internal/selection.ts), [discovery and session ownership](../src/unified-player.ts).
 - [Backend contract](../src/internal/backend.ts), [Native composition](../src/internal/native-player.ts), [runtime evidence and failures](../src/internal/runtime-capability.ts), [negative evidence](../src/internal/tier-policy.ts).
 - [Runtime selection](../src/internal/remux-runtime.ts), [preparation](../src/internal/engine-preparation.ts), [runtime policy](REMUX-RUNTIME.md), [asset deployment](RUNTIME-ASSETS.md).
+- [Error normalization](../src/internal/errors.ts), [public decision/error codes](../src/types.ts), [license policy](../scripts/license_policy.py), [license checks](../scripts/check-licenses.py), [core boundary checker](../scripts/check-core-boundary.mjs), [current package assembly](../scripts/package-beta.py).
 
 Document validation: source inspection and local link/whitespace checks only. Implementation parity, browser qualification and performance remain untested by this planning task.

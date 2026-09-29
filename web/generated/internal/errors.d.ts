@@ -11,4 +11,5 @@ export declare class PlayerError extends Error implements SessionError {
     constructor(code: PlayerErrorCode, message: string, operationId?: number | null, operation?: OperationKind | null, scope?: 'operation' | 'session', retryable?: boolean);
     toJSON(): SessionError;
 }
+export declare function isPlayerError(error: unknown): error is PlayerError;
 export declare function playerError(error: unknown, id?: number | null, operation?: OperationKind | null, scope?: 'operation' | 'session'): PlayerError;

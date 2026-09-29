@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { runtimeWorker } from './runtime-worker.js';
 import { bufferingPolicy, resolveBuffering, mpvBufferingOptions } from './buffering.js';
-import { PlayerError } from './errors.js';
+import { PlayerError, isPlayerError } from './errors.js';
 import { resolveDecodePolicy } from './decode-policy.js';
 import { webgpuDecoderSupported } from './webgpu-codecs.js';
 import { selectExternalDecoderConfiguration } from './external-decoder-selection.js';
@@ -117,7 +117,7 @@ export class WasmPlayer extends EventTarget {
                 else if (data.type === 'error') {
                     clearTimeout(timeout);
                     const error = data.assetFailure ? new PlayerError('ASSET_LOAD_FAILED', data.message) : data.decoderTimeout ? new PlayerError('NETWORK_TIMEOUT', data.message, null, null, 'operation', true) : data.decoderFailure ? new PlayerError('DECODE_FAILED', data.message) : new Error(data.message);
-                    reject(error instanceof PlayerError ? error : new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + error.message, null, null, 'operation', true));
+                    reject(isPlayerError(error) ? error : new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + error.message, null, null, 'operation', true));
                     this.fail(error, data.id);
                 }
                 else if (data.type === 'destroyed') {
@@ -231,7 +231,7 @@ export class WasmPlayer extends EventTarget {
         // Preserve typed terminal failures through the session listener. Turning an
         // asset error into a string would make it look like decoder compatibility.
         if (report)
-            this.dispatchEvent(new CustomEvent('error', { detail: error instanceof PlayerError ? error : error.message }));
+            this.dispatchEvent(new CustomEvent('error', { detail: isPlayerError(error) ? error : error.message }));
     }
     request(message, transfer = []) {
         if (this.destroyed)

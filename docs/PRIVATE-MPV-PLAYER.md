@@ -12,10 +12,12 @@ The admitted private services are deliberately bounded:
   with browser video/audio and an mpv subtitle overlay.
 - One 48 kHz stereo `pcm_s16le` audio stream, with browser video and actual
   AudioWorklet consumption. The audio service can compose with those subtitles.
+- External ASS/SSA, SRT and rich WebVTT through the same subtitle service,
+  including selection between embedded tracks and external attachments.
 - Existing finite-file remux and FLAC24 transcode routes remain available.
 
 Private Hybrid/Software playback, mpv video output, compressed mpv audio codecs,
-multichannel output, resampling fidelity, external subtitle composition and
+multichannel output, resampling fidelity and
 nested streaming resources remain outside this qualification. The full 61-case
 private Player matrix uses Chrome 153.0.8010.53 on macOS. The exact-archive
 consumer suites additionally cover selected private services and runtime selection
@@ -49,6 +51,8 @@ This creates `web/engine-mpv-{subtitles,audio}-{jspi,asyncify}`. Each loader che
 manifest identity, Wasm and glue hashes, backend exports and private memory.
 `web/private-mpv/` retains the reviewed MIT grant; Player integration is Apache-2.0.
 Local beta assembly verifies the complete optional service set and its notices.
+For a subtitle-only rebuild, `--subtitles-build /path/to/build --replace` updates
+the verified subtitle pair without replacing the audio service.
 
 ## Reproduction and evidence
 

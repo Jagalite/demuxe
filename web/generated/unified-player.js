@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { loadProviderModule } from './internal/provider-modules.js';
 import { routingRequirements, missingRoutingFacts } from './internal/probe-requirements.js';
 import { bufferingPolicy, resolveBuffering } from './internal/buffering.js';
 import { PlayerPresentation } from './presentation.js';
@@ -11,6 +12,8 @@ import { RuntimeCapabilities, compatibilityFailure, evidenceInterrupted, NativeL
 import { MediaCapabilityQueries } from './internal/media-capabilities.js';
 import { nativeBrowserCapabilities } from './internal/browser-media-capability.js';
 import { featureRejection, executionPlan, qualifiedAudioFilter, planAdmission } from './internal/playback-plans.js';
+import { executionRecipe } from './internal/execution-recipes.js';
+import { deploymentRejectionError } from './internal/provider-deployment-errors.js';
 import { EnginePreparation, preparationComponents } from './internal/engine-preparation.js';
 import { TierAttempts, preferredPlans } from './internal/tier-policy.js';
 import { runtimeBase } from './internal/assets.js';
@@ -548,7 +551,7 @@ export class Player extends EventTarget {
         const isolated = globalThis.crossOriginIsolated === true, available = { availability: 'available' };
         const unavailable = (reason) => ({ availability: 'unavailable', reason });
         const unknown = { availability: 'unknown', reason: 'Open a source to establish availability' };
-        const nativeOverlay = (this.nativeASS && isolated || !!this.current?.backend.diagnostics?.mpvSubtitles) && backendPlan(this.current?.backend) !== 'adapted-opus' && !(this.source?.kind === 'remote' && this.source.options.format && this.source.options.format !== 'file');
+        const nativeOverlay = (this.nativeASS && (isolated || this.privateRemux) || !!this.current?.backend.diagnostics?.mpvSubtitles) && backendPlan(this.current?.backend) !== 'adapted-opus' && !(this.source?.kind === 'remote' && this.source.options.format && this.source.options.format !== 'file');
         const route = (mode) => this.privateRemux ? unavailable('Private runtime has no qualified Hybrid or Software service') : !isolated ? unavailable('This deployment requires cross-origin isolation') : this.mode === mode || (mode === 'hybrid' && this.mode === 'software') ? available : this.automatic ? { availability: 'switch', mode, reason: `This feature requires ${mode} playback` } : unavailable(`Select ${mode} mode first`);
         const resolution = this.bufferingResolution();
         return { ...this.legacyCapabilities, buffering: { control: resolution.control, preload: true, profile: resolution.backend !== 'browser', memoryBudget: ['mpv', 'remux'].includes(resolution.backend) }, deployment: { isolated, webCodecs: typeof VideoDecoder !== 'undefined', mediaSource: typeof MediaSource !== 'undefined' }, features: {
@@ -750,19 +753,21 @@ export class Player extends EventTarget {
     }
     async create(mode, aid = 'auto', adaptation, forcePreparation = false, planId, loadTimeoutMs) {
         let backend;
+        const recipe = executionRecipe(planId);
+        const backendKind = recipe?.backend ?? (mode === 'native' ? 'NativePlayer' : 'WasmPlayer');
         const surface = document.createElement(mode === 'native' ? 'video' : 'canvas');
         surface.width = this.width;
         surface.height = this.height;
         surface.style.cssText = 'display:none;width:100%;background:#000';
         // Import before allocating workers; destroy during import cannot orphan an engine.
-        const module = planId?.startsWith('shaka-') ? await this.interruptible(import('./internal/shaka-backend.js')) : mode === 'native' ? await this.interruptible(import('./internal/native-player.js')) : await this.interruptible(import('./internal/wasm-player.js'));
+        const module = backendKind === 'ShakaBackend' ? await this.interruptible(import('./internal/shaka-backend.js')) : backendKind === 'NativePlayer' ? await this.interruptible(import('./internal/native-player.js')) : await this.interruptible(loadProviderModule('mpv-player', this.assetBase));
         const prepared = mode === 'native' ? undefined : await this.interruptible(this.preparation?.readyEngine(mode === 'hybrid' ? 'engine-hybrid' : this.softwarePresenter === 'rgb' ? 'engine-software-full' : 'engine-software-yuv') ?? Promise.resolve(undefined));
         this.assertOperation();
         this.root.append(surface);
         try {
             const subtitleTracks = this.sourceInspection?.probe.tracks.filter(t => t.type === 'sub') ?? [];
             const defaultSubtitleStreamIndex = (subtitleTracks.find(t => t.default) ?? subtitleTracks[0])?.index;
-            backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? (this.privateRemux && planId?.startsWith('native-video-mpv-audio') ? this.sourceInspection?.probe.tracks.find(t => t.type === 'audio')?.index : undefined) : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering, loadTimeoutMs, defaultSubtitleStreamIndex, this.remuxRuntime) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture) });
+            backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? (this.privateRemux && recipe?.native?.selectedAudio ? this.sourceInspection?.probe.tracks.find(t => t.type === 'audio')?.index : undefined) : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering, loadTimeoutMs, defaultSubtitleStreamIndex, this.remuxRuntime) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture) });
         }
         catch (error) {
             surface.remove();
@@ -989,6 +994,9 @@ export class Player extends EventTarget {
         if (!admitted.some(p => p.id === planId && p.eligible)) {
             const candidates = admitted.filter(p => p.mode === mode);
             const rejection = candidates.find(p => p.code === 'ISOLATION_REQUIRED') ?? candidates.find(p => p.code !== 'PLAN_NOT_REQUESTED');
+            const deployment = deploymentRejectionError(admitted.filter(p => p.id === planId));
+            if (rejection?.code !== 'ISOLATION_REQUIRED' && deployment)
+                throw deployment;
             throw new PlayerError(rejection?.code === 'ISOLATION_REQUIRED' ? 'ISOLATION_REQUIRED' : 'UNSUPPORTED_FEATURE', rejection?.reason ?? 'No qualified complete playback plan');
         }
         const queried = admitted.find(p => p.id === planId)?.browserCapability;
@@ -996,7 +1004,7 @@ export class Player extends EventTarget {
             queried.decodingInfo = await this.mediaCapabilityQueries.inspect(queried, this.sourceInspection.probe);
             this.assertOperation();
         }
-        if (mode === 'native' && attachments.length && !attachments.every(a => !!plainVTT(a)) && (!this.nativeASS || attachments.some(a => !['ass', 'ssa'].includes(a.format))))
+        if (mode === 'native' && attachments.length && !attachments.every(a => !!plainVTT(a)) && (!this.nativeASS || attachments.some(a => !['ass', 'ssa', 'srt', 'vtt'].includes(a.format))))
             throw Error('External mpv subtitles require Hybrid or Software');
         if (mode === 'native' && this.audioOutput !== 'stereo')
             throw Error('Explicit PCM output layout requires Hybrid or Software');
@@ -1075,8 +1083,9 @@ export class Player extends EventTarget {
                         this.cancelPromotion();
                 }, 100);
             }
-            const adaptation = planId.startsWith('native-transcode') ? 'flac24' : planId.startsWith('native-flac') ? 'flac' : planId.startsWith('native-opus') ? 'opus' : undefined;
-            candidate = this.candidate = await this.create(mode, desired.aid, adaptation, !planId.startsWith('native-direct'), planId, directLoadBudget);
+            const recipe = executionRecipe(planId);
+            const adaptation = recipe?.native?.adaptation;
+            candidate = this.candidate = await this.create(mode, desired.aid, adaptation, recipe?.native?.transport !== 'original', planId, directLoadBudget);
             this.assertOperation();
             const p = candidate.backend;
             await this.interruptible(p.ready);
@@ -1567,6 +1576,9 @@ export class Player extends EventTarget {
         if (pinnedMode && !this.planDecisions.some(p => p.mode === pinnedMode && p.eligible)) {
             const candidates = this.planDecisions.filter(p => p.mode === pinnedMode);
             const rejection = candidates.find(p => p.code === 'ISOLATION_REQUIRED') ?? candidates.find(p => p.code !== 'PLAN_NOT_REQUESTED');
+            const deployment = deploymentRejectionError(candidates);
+            if (rejection?.code !== 'ISOLATION_REQUIRED' && deployment)
+                throw deployment;
             throw new PlayerError(rejection?.code === 'ISOLATION_REQUIRED' ? 'ISOLATION_REQUIRED' : 'UNSUPPORTED_FEATURE', rejection?.reason ?? 'No qualified complete playback plan');
         }
         const errors = [];
@@ -1733,6 +1745,9 @@ export class Player extends EventTarget {
                 }
             }
         }
+        const deployment = deploymentRejectionError(this.planDecisions.filter(p => pinnedMode ? p.mode === pinnedMode : PLAYBACK_MODES.indexOf(p.mode) >= start));
+        if (deployment)
+            throw deployment;
         throw Error('No playback route satisfied the source: ' + (errors.join('; ') || this.planDecisions.map(p => p.reason).filter(Boolean).join('; ')));
     }
     recover(session) {
@@ -1930,9 +1945,9 @@ export class Player extends EventTarget {
         return this.enqueue(async () => { if (this.current)
             await action(this.current.backend); update(); });
     }
-    async playNativeVerified(backend, playing = backend.play()) {
+    async playNativeVerified(backend, playing = backend.play(), outputBudgetMs) {
         const controller = new AbortController();
-        const verification = backend.verifyOutput(controller.signal);
+        const verification = backend.verifyOutput(controller.signal, outputBudgetMs);
         try {
             await Promise.all([playing, verification]);
         }
@@ -1953,10 +1968,15 @@ export class Player extends EventTarget {
                 throw Error('No source');
             const session = this.current;
             this.settings.pause = false;
+            // A local original-copy trial can yield to an already-admitted route.
+            // This is a scheduling budget, not a codec rejection or a new route.
+            const boundedTrial = this.automatic && this.source?.kind === 'local' && this.nativeRemux !== 'never' && !trialVerified &&
+                ['direct', 'direct-mpv'].includes(backendPlan(session.backend) ?? '') &&
+                this.planDecisions?.some(plan => plan.eligible && !plan.id.startsWith('native-direct'));
             try {
                 const playing = immediate ?? session.backend.play();
                 if (this.mode === 'native')
-                    await this.playNativeVerified(session.backend, playing);
+                    await this.playNativeVerified(session.backend, playing, boundedTrial ? 1500 : undefined);
                 else
                     await playing;
                 this.assertOperation();
@@ -1970,7 +1990,7 @@ export class Player extends EventTarget {
                 const inconclusiveOutput = this.source?.kind === 'local' && error instanceof StartupEvidenceTimeout && error.stage === 'output';
                 if (this.automatic && (compatibilityFailure(error) || inconclusiveOutput) && this.source) {
                     const streaming = this.failedStreamingPlan(session);
-                    const policy = this.nativeRemux, tryRemux = !streaming && this.mode === 'native' && backendPlan(session.backend) === 'direct' && policy !== 'never';
+                    const policy = this.nativeRemux, tryRemux = !streaming && this.mode === 'native' && ['direct', 'direct-mpv'].includes(backendPlan(session.backend) ?? '') && policy !== 'never';
                     const plan = this.diagnostics.plan;
                     if (plan) {
                         this.runtimeCapabilities.update(plan.id, inconclusiveOutput ? 'prepared' : 'failed', this.evidence(session), String(error), inconclusiveOutput ? undefined : 'compatibility');
@@ -1981,6 +2001,21 @@ export class Player extends EventTarget {
                         if (tryRemux)
                             this.nativeRemux = 'always';
                         await this.select(this.source, this.settings, true, this.nativeTracks, streaming || tryRemux || this.mode === 'native' ? 0 : PLAYBACK_MODES.indexOf(this.mode) + 1, session === trialSession && !trialVerified ? trialPosition : undefined);
+                    }
+                    catch (fallbackError) {
+                        this.assertOperation();
+                        // Slow original output is not incompatibility. If replacement fails,
+                        // retain the accepted source and give it the ordinary full deadline.
+                        if (!boundedTrial || !inconclusiveOutput || this.current !== session || !(compatibilityFailure(fallbackError) || ['ASSET_LOAD_FAILED', 'NETWORK_TIMEOUT', 'ISOLATION_REQUIRED'].includes(playerError(fallbackError).code)))
+                            throw fallbackError;
+                        if (session === trialSession && !trialVerified) {
+                            await session.backend.seek(trialPosition);
+                            this.assertOperation();
+                        }
+                        await this.playNativeVerified(session.backend);
+                        this.assertOperation();
+                        if (plan)
+                            this.acceptEvidence(plan.id, session);
                     }
                     finally {
                         this.nativeRemux = policy;

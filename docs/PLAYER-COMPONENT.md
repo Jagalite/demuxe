@@ -280,3 +280,7 @@ See [Audio and subtitle policy](PUBLIC-API.md#audio-and-subtitle-policy) for
 matching, fallback, and API enforcement. File metadata is not rewritten.
 
 See [integration contracts and compatibility profiles](API-INTEGRATION.md) for public structural interfaces, explicit binding ownership, stable presentation hosting, and external UI limits.
+
+## Layouts and themes
+
+The default `layout="classic" theme="demuxe"` preserves the existing player. Set `viewer.layout = "modern"` for a dock-based composition, `viewer.layout = "playground"` for the original Pages demo’s framed header and controls below the video, and `viewer.theme = "light"` for an independent light palette. Switching preserves the playback core and component nodes. See [presentation architecture and behavior inventory](PLAYER-PRESENTATION.md) and [interactive example](../examples/player-presentation.html).
