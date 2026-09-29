@@ -25,6 +25,14 @@ function native(preparation) {
     const bindings = [
         { id: 'ffmpeg', owner: 'NativePlayer.startRemux / existing FFmpeg preparation path', providers },
     ];
+    if (preparation !== 'opus-permitted')
+        for (const runtime of ['jspi', 'asyncify'])
+            bindings.push({
+                id: 'ffmpeg-' + runtime, owner: 'NativePlayer.startRemux / explicit private runtime', providers: [
+                    { provider: runtime === 'jspi' ? 'ffmpeg-file-preparation-jspi' : 'ffmpeg-file-preparation-asyncify', request: { capability: 'media.prepare.file', version: 1, profile: preparation } },
+                    { provider: 'browser-prepared', request: prepared },
+                ],
+            });
     // This pre-existing local MP4 path is conditional, not a universal second
     // implementation. Its exact guard, trial and restoration stay in startRemux.
     if (preparation === 'packet-copy')
@@ -142,9 +150,9 @@ export function executionRecipe(planId) {
 /** Adapter for deployment/shadow resolution. Does not supply qualification:
  * source/runtime-specific evidence must still come from the admission owner.
  */
-export function resolvableExecutionRecipe(planId) {
+export function resolvableExecutionRecipe(planId, runtime) {
     const recipe = EXECUTION_RECIPES[planId];
-    return { id: planId, requirements: recipe.requirements, bindings: recipe.bindings.map(binding => ({
+    return { id: planId, requirements: recipe.requirements, bindings: recipe.bindings.filter(binding => !runtime || !binding.id.startsWith('ffmpeg') || binding.id === (runtime === 'pthread' ? 'ffmpeg' : 'ffmpeg-' + runtime)).map(binding => ({
             id: binding.id,
             assignments: binding.providers.map(provider => ({ providerId: provider.provider, requirements: [provider.request] })),
         })) };

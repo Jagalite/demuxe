@@ -189,3 +189,13 @@ test('private mpv admission keeps service, source and composition qualifications
  }
  assert.ok(!planAdmission({...base,selectiveAudioQualified:false}).find(p=>p.id==='native-video-mpv-audio-subtitles').eligible);
 });
+
+test('modular private preparation does not suppress independent atomic mpv fallback',()=>{
+ for(const isolated of [false,true]){
+  const plans=planAdmission({...facts,privateRemux:true,atomicMpvProviders:true,isolated});
+  for(const id of ['hybrid','software']){
+   const plan=plans.find(p=>p.id===id);assert.equal(plan.eligible,isolated,id);
+   if(!isolated)assert.equal(plan.code,'ISOLATION_REQUIRED');
+  }
+ }
+});

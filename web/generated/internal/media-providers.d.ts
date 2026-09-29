@@ -60,6 +60,56 @@ export declare const MEDIA_PROVIDERS: {
         readonly configurationOwner: "selectRemuxRuntime / NativePlayer.startRemux";
         readonly acquisition: "backend-owned";
     };
+    readonly 'ffmpeg-file-preparation-jspi': {
+        readonly technology: "mixed";
+        readonly delivery: readonly ["application-bundle", "optional-assets"];
+        readonly provides: readonly [{
+            readonly capability: "media.prepare.file";
+            readonly version: 1;
+            readonly profile: "packet-copy";
+        }, {
+            readonly capability: "media.prepare.file";
+            readonly version: 1;
+            readonly profile: "video-only";
+        }, {
+            readonly capability: "media.prepare.file";
+            readonly version: 1;
+            readonly profile: "flac-lossless";
+        }, {
+            readonly capability: "media.prepare.file";
+            readonly version: 1;
+            readonly profile: "flac24";
+        }];
+        readonly implementation: readonly ["web/private-remux.js", "web/engine-remux-jspi/remux.mjs" | "web/engine-remux-asyncify/remux.mjs", "web/engine-adaptation-jspi/remux.mjs" | "web/engine-adaptation-asyncify/remux.mjs"];
+        readonly requirementsOwner: "selectRemuxRuntime / private engine ABI and capability checks";
+        readonly configurationOwner: "NativePlayer.startRemux";
+        readonly acquisition: "backend-owned";
+    };
+    readonly 'ffmpeg-file-preparation-asyncify': {
+        readonly technology: "mixed";
+        readonly delivery: readonly ["application-bundle", "optional-assets"];
+        readonly provides: readonly [{
+            readonly capability: "media.prepare.file";
+            readonly version: 1;
+            readonly profile: "packet-copy";
+        }, {
+            readonly capability: "media.prepare.file";
+            readonly version: 1;
+            readonly profile: "video-only";
+        }, {
+            readonly capability: "media.prepare.file";
+            readonly version: 1;
+            readonly profile: "flac-lossless";
+        }, {
+            readonly capability: "media.prepare.file";
+            readonly version: 1;
+            readonly profile: "flac24";
+        }];
+        readonly implementation: readonly ["web/private-remux.js", "web/engine-remux-jspi/remux.mjs" | "web/engine-remux-asyncify/remux.mjs", "web/engine-adaptation-jspi/remux.mjs" | "web/engine-adaptation-asyncify/remux.mjs"];
+        readonly requirementsOwner: "selectRemuxRuntime / private engine ABI and capability checks";
+        readonly configurationOwner: "NativePlayer.startRemux";
+        readonly acquisition: "backend-owned";
+    };
     readonly 'selected-mp4-view': {
         readonly technology: "javascript";
         readonly delivery: readonly ["optional-assets"];

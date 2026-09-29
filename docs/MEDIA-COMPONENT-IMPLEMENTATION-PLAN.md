@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Qualified media components: implementation plan and review
 
-Status: current broad-provider delivery implemented and browser-tested on `modular-media-providers`. Consolidation checkpoint `ea98201f` contains the original authorized work and assets; the loader/distribution continuation completes the bounded current-FFmpeg/mpv slice. See [current worktree status](MEDIA-COMPONENT-WORKTREE-STATUS.md) for exact behavior, artifacts and validation. Legacy routing and the public Player API remain unchanged. New codec/TS providers, private-runtime package qualification, cost-based preference and publication remain explicit future work. The sections below retain the reviewed design and migration rationale.
+Status: the broad-provider foundation and requested fine/common audio, TS container, separate JSPI/Asyncify, and measured component-selection extensions are implemented locally on `modular-media-providers`. See [completion and evidence](MEDIA-COMPONENT-COMPLETION.md). The staged sections below retain the reviewed migration rationale. Packet recipes remain explicit internal executions; the public Player API, legacy routing and ordered production plans are preserved. No publication is required or performed.
 
 ## Decision and scope
 
@@ -66,7 +66,7 @@ Start with only fields consumed by construction, validation, or diagnostics:
 
 Keep binding data internal rather than changing the exported `PLAYBACK_PLANS` shape during the first extraction. Use type-only imports where appropriate; importing the registry must not fetch assets, compile Wasm, or initialize services.
 
-JSPI/Asyncify are implementation attributes, not new plan IDs. Continue calling the current `selectRemuxRuntime()` policy and pass its result to the existing loaders. Preserve constructor-time argument checks, explicit runtime errors, private service restrictions, and the current absence of JSPI-to-Asyncify retry. Mixed-runtime compositions are deferred.
+JSPI/Asyncify are implementation attributes, not new plan IDs. Continue calling the current `selectRemuxRuntime()` policy and pass its result to the existing loaders. Preserve constructor-time argument checks and explicit runtime errors. In modular auto/on mode, filter implementation choices by qualified deployment before loading; explicit JSPI/Asyncify choices remain pinned. Atomic mpv has independent runtime admission. No failed-asset retry is introduced.
 
 Do not define a universal packet/PCM ABI yet. When a real second implementation requires one, specify timestamp/configuration, buffer ownership, priming/trim, flush/seek generations, backpressure and cancellation together with that implementation.
 
@@ -131,7 +131,7 @@ Use comparable qualified recipe measurements to rank complete binding sets. Comp
 
 Keep startup time, steady CPU, memory and throughput as separate metrics. Define a bounded internal policy for comparing them, including a documented workload horizon when amortizing startup; do not collapse unlike units into an unexplained score or treat total file duration as known viewing time. With missing, stale, incomparable or indistinguishable measurements, use the stable qualified baseline preference. Preserve uncertainty in diagnostics. Gather evidence through controlled experiments or bounded instrumentation of the selected execution, not speculative execution of all candidates during playback.
 
-Cost-aware selection is a later, explicitly qualified internal policy change. During the initial migration, collect/replay candidate and cost records in tests or shadow evaluation only; no measurements or cache hints change production choices.
+The initial migration used shadow evaluation. The implemented component executor now selects among explicitly qualified bindings using complete-recipe measurements and exact readiness context. This does not change ordered production Player plans or infer missing cost values.
 
 Keep broad FFmpeg as an explicit qualified binding where it already implements the recipe. If no lightweight binding is eligible, it can remain the broad option without changing media semantics. Once execution starts, do not reinterpret asset, authorization or identity failures as permission to try another provider. Compatibility failures follow the existing route policy, eventually reaching full mpv only when currently admitted. Existing optional-inspection and timeout-restoration exceptions remain exact. Cache preferences cannot reorder playback plans or bypass terminal failures.
 

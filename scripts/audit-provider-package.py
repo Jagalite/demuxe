@@ -119,7 +119,7 @@ def verify_corresponding_source(companion, engine, record, profile):
     observed.pop('source-manifest.json',None)
     if observed!=source_manifest['files']:
         raise ValueError('Corresponding-source inventory differs from archive bytes')
-    excluded={'build/subtitle-service/link-command.json','build/subtitle-service/manifest.json','build/link-maps/subtitles.map'}
+    excluded=set(profile.get('excludedSourceConfigurations', []))
     if set(source_manifest.get('excludedConfigurations',[]))!=excluded:
         raise ValueError('Unreviewed native configuration exclusion')
     for group,prefix in [('inputs','demuxe/'),('sdkSources','toolchain/emscripten/'),('configurations','build-materials/')]:
@@ -224,17 +224,18 @@ def audit(target, files, record):
         if name.endswith(('.js', '.mjs', '.wasm')) and item.get('kind') != 'code':
             raise ValueError('Executable artifact mislabeled as metadata/notice: ' + name)
     if target != 'core':
-        engine = json.loads(files['engine-build.json'])
-        companion = json.loads(files['source-companion.json'])
         manifest = json.loads(files['provider-manifest.json'])
-        if engine != record.get('engineBuildRecord'):
-            raise ValueError('Engine evidence differs from reviewed build inventory')
-        # Bind source and all companion bytes explicitly; a URL/name alone is
-        # not matching source/relink evidence. Existing engine verifiers remain
-        # a separate mandatory release gate, not replaced by this tarball audit.
-        if local_sha(companion['repositoryPath']) != companion['sha256'] or companion != record.get('sourceCompanion'):
-            raise ValueError('Provider source companion differs')
-        verify_corresponding_source(companion, engine, record, config['profiles'][target])
+        if spec.get('native', True):
+            engine = json.loads(files['engine-build.json'])
+            companion = json.loads(files['source-companion.json'])
+            if engine != record.get('engineBuildRecord'):
+                raise ValueError('Engine evidence differs from reviewed build inventory')
+            # Bind source and all companion bytes explicitly; a URL/name alone is
+            # not matching source/relink evidence. Existing engine verifiers remain
+            # a separate mandatory release gate, not replaced by this tarball audit.
+            if local_sha(companion['repositoryPath']) != companion['sha256'] or companion != record.get('sourceCompanion'):
+                raise ValueError('Provider source companion differs')
+            verify_corresponding_source(companion, engine, record, config['profiles'][target])
         if manifest.get('package') != spec['npmName'] or manifest.get('version') != metadata['version'] or manifest.get('providerContractVersion') != 1:
             raise ValueError('Provider manifest identity/contract mismatch')
         if manifest.get('compatibleCore') != metadata.get('peerDependencies', {}).get('demuxe'):
@@ -253,7 +254,7 @@ def audit(target, files, record):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--target', choices=['core', 'ffmpeg', 'mpv'], required=True)
+    parser.add_argument('--target', choices=list(json.loads((ROOT/'licensing/provider-packages.json').read_text())['targets']), required=True)
     parser.add_argument('--archive', type=Path, required=True)
     parser.add_argument('--record', type=Path, required=True)
     parser.add_argument('--record-sha256', required=True, help='Reviewed build inventory hash, supplied by release tooling')

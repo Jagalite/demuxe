@@ -1,9 +1,33 @@
 // SPDX-License-Identifier: Apache-2.0
 /** Logical contracts only. No browser probes, assets, loaders or codec claims.
- * Profiles describe existing integrated boundaries; they are not packet ABIs.
- * Codec-specific providers can add contracts when an implementation needs them.
+ * Integrated playback boundaries and packet contracts remain distinct.
+ * A capability declaration never grants composition qualification.
  */
 export const EXECUTION_CAPABILITIES = {
+  'audio.decode.ac3': {
+    version: 1, profiles: ['48khz-fltp'] as const,
+    contract: 'Complete AC-3 packets to owned float planes with explicit sample timestamps, native channel layout, reset, drain and cancellation.',
+  },
+  'audio.decode.eac3': {
+    version: 1, profiles: ['48khz-fltp'] as const,
+    contract: 'Complete E-AC-3 packets to owned float planes; no Atmos or dependent-substream composition qualification is implied.',
+  },
+  'audio.decode.dts': {
+    version: 1, profiles: ['core-48khz-fltp'] as const,
+    contract: 'Complete DTS core packets to owned float planes; DTS-HD extension fidelity is outside this contract.',
+  },
+  'audio.encode.flac': {
+    version: 1, profiles: ['48khz-s24'] as const,
+    contract: 'Signed 24-bit PCM to owned FLAC packets with stream info, sample timestamps and bounded send/drain; caller owns quantization and channel mapping.',
+  },
+  'container.read.matroska': {
+    version: 1, profiles: ['finite-clear-av'] as const,
+    contract: 'Bounded local container reads with owned packet bytes, explicit track configuration, timestamps, codec delay and discard padding; unsupported structures reject the provider profile.',
+  },
+  'container.mux.fmp4': {
+    version: 1, profiles: ['explicit-timeline-av'] as const,
+    contract: 'Bounded clear AVC/HEVC and AAC/FLAC fragments from explicit codec configuration, DTS, PTS and duration; no inferred decode timeline.',
+  },
   'media.present.original': {
     version: 1,
     profiles: ['selected-source'] as const,

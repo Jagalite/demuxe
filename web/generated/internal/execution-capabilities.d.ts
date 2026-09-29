@@ -1,9 +1,39 @@
 // SPDX-License-Identifier: Apache-2.0
 /** Logical contracts only. No browser probes, assets, loaders or codec claims.
- * Profiles describe existing integrated boundaries; they are not packet ABIs.
- * Codec-specific providers can add contracts when an implementation needs them.
+ * Integrated playback boundaries and packet contracts remain distinct.
+ * A capability declaration never grants composition qualification.
  */
 export declare const EXECUTION_CAPABILITIES: {
+    readonly 'audio.decode.ac3': {
+        readonly version: 1;
+        readonly profiles: readonly ["48khz-fltp"];
+        readonly contract: "Complete AC-3 packets to owned float planes with explicit sample timestamps, native channel layout, reset, drain and cancellation.";
+    };
+    readonly 'audio.decode.eac3': {
+        readonly version: 1;
+        readonly profiles: readonly ["48khz-fltp"];
+        readonly contract: "Complete E-AC-3 packets to owned float planes; no Atmos or dependent-substream composition qualification is implied.";
+    };
+    readonly 'audio.decode.dts': {
+        readonly version: 1;
+        readonly profiles: readonly ["core-48khz-fltp"];
+        readonly contract: "Complete DTS core packets to owned float planes; DTS-HD extension fidelity is outside this contract.";
+    };
+    readonly 'audio.encode.flac': {
+        readonly version: 1;
+        readonly profiles: readonly ["48khz-s24"];
+        readonly contract: "Signed 24-bit PCM to owned FLAC packets with stream info, sample timestamps and bounded send/drain; caller owns quantization and channel mapping.";
+    };
+    readonly 'container.read.matroska': {
+        readonly version: 1;
+        readonly profiles: readonly ["finite-clear-av"];
+        readonly contract: "Bounded local container reads with owned packet bytes, explicit track configuration, timestamps, codec delay and discard padding; unsupported structures reject the provider profile.";
+    };
+    readonly 'container.mux.fmp4': {
+        readonly version: 1;
+        readonly profiles: readonly ["explicit-timeline-av"];
+        readonly contract: "Bounded clear AVC/HEVC and AAC/FLAC fragments from explicit codec configuration, DTS, PTS and duration; no inferred decode timeline.";
+    };
     readonly 'media.present.original': {
         readonly version: 1;
         readonly profiles: readonly ["selected-source"];

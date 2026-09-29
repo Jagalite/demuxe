@@ -60,7 +60,7 @@ def assemble(target, payload, record, output):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--target', choices=['ffmpeg', 'mpv'], required=True)
+    parser.add_argument('--target', choices=[name for name in json.loads((ROOT/'licensing/provider-packages.json').read_text())['targets'] if name!='core'], required=True)
     parser.add_argument('--payload', type=Path, required=True)
     parser.add_argument('--record', type=Path, required=True)
     parser.add_argument('--record-sha256', required=True)

@@ -75,7 +75,7 @@ export type PlanFacts={
   automatic:boolean;vf:string;af:string;gain:number;toneMapping:string;hybridAudioFilters:boolean;
   adaptation?:'flac'|'opus';allowLossy:boolean;nativeASS:boolean;externalFormats:string[];
   browserTextTracks:boolean;audioOutput:string;nativeRemux:'auto'|'never'|'always';
-  manifest:boolean;requiresRemux:boolean;isolated:boolean;privateRemux?:boolean;mse:boolean;webCodecs:boolean;webAudio:boolean;
+  manifest:boolean;requiresRemux:boolean;isolated:boolean;privateRemux?:boolean;atomicMpvProviders?:boolean;mse:boolean;webCodecs:boolean;webAudio:boolean;
   nativeSourceRejection?:string;remuxSourceRejection?:string;hybridSourceRejection?:string;webGPUCodecQualified?:boolean;
   shakaSourceRejection?:string;streamingFallbackRejection?:string;
   automaticLossless?:boolean;adaptationSourceQualified?:boolean;adaptationSourceRejection?:string;
@@ -88,7 +88,7 @@ export function planAdmission(f:PlanFacts){
     const reject=(c:PlanRejectionCode,r:string)=>{code=c;reason=r;};
     const gain=plan.id.endsWith('-gain'),ass=plan.id.includes('-ass'),flac=plan.id.startsWith('native-flac'),opus=plan.id.startsWith('native-opus');
     const effect=featureRejection(plan.mode,{...f});
-    if(f.privateRemux&&!['native-direct','native-direct-ass','native-direct-ass-gain','native-remux-ass','native-remux-ass-gain','native-flac-gain','native-flac-ass-gain','native-direct-gain','shaka-mse','shaka-mse-gain','native-remux','native-flac','native-flac-ass','native-transcode','native-transcode-ass','native-direct-mpv','native-remux-mpv','native-transcode-mpv','native-video-mpv-audio','native-video-mpv-audio-subtitles'].includes(plan.id))reject('QUALIFICATION_REQUIRED','Private runtime supports qualified finite-file remux, adaptation and subtitle plans');
+    if(f.privateRemux&&!(f.atomicMpvProviders&&plan.mode!=='native')&&!['native-direct','native-direct-ass','native-direct-ass-gain','native-remux-ass','native-remux-ass-gain','native-flac-gain','native-flac-ass-gain','native-direct-gain','shaka-mse','shaka-mse-gain','native-remux','native-flac','native-flac-ass','native-transcode','native-transcode-ass','native-direct-mpv','native-remux-mpv','native-transcode-mpv','native-video-mpv-audio','native-video-mpv-audio-subtitles'].includes(plan.id))reject('QUALIFICATION_REQUIRED','Private runtime supports qualified finite-file remux, adaptation and subtitle plans');
     else if(effect)reject('FEATURE_UNSUPPORTED',effect);
     else if(gain!==(f.gain!==1))reject('PLAN_NOT_REQUESTED','Gain stage does not match the requested presentation');
     else if(gain&&!f.webAudio)reject('DEPLOYMENT_UNAVAILABLE','Web Audio is unavailable');

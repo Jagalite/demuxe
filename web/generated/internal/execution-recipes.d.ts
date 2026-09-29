@@ -507,4 +507,4 @@ export declare function executionRecipe(planId: string | undefined): RecipeDescr
 /** Adapter for deployment/shadow resolution. Does not supply qualification:
  * source/runtime-specific evidence must still come from the admission owner.
  */
-export declare function resolvableExecutionRecipe(planId: PlaybackPlanId): ResolvableRecipe;
+export declare function resolvableExecutionRecipe(planId: PlaybackPlanId, runtime?: 'pthread' | 'jspi' | 'asyncify'): ResolvableRecipe;

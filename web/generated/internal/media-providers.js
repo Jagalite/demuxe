@@ -1,4 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
+function privatePreparation(runtime) {
+    return { technology: 'mixed', delivery: ['application-bundle', 'optional-assets'], provides: [
+            { capability: 'media.prepare.file', version: 1, profile: 'packet-copy' },
+            { capability: 'media.prepare.file', version: 1, profile: 'video-only' },
+            { capability: 'media.prepare.file', version: 1, profile: 'flac-lossless' },
+            { capability: 'media.prepare.file', version: 1, profile: 'flac24' },
+        ], implementation: ['web/private-remux.js', `web/engine-remux-${runtime}/remux.mjs`, `web/engine-adaptation-${runtime}/remux.mjs`],
+        requirementsOwner: 'selectRemuxRuntime / private engine ABI and capability checks', configurationOwner: 'NativePlayer.startRemux', acquisition: 'backend-owned' };
+}
 /** Current source inventory, not a deployment manifest or qualification grant.
  * Loader owners retain asset dependencies, ABI checks and runtime/presenter
  * choices. Do not fetch or instantiate anything by importing this module.
@@ -32,6 +41,8 @@ export const MEDIA_PROVIDERS = {
         requirementsOwner: 'planAdmission / remuxRejection / adaptation predicates / current asset checks',
         configurationOwner: 'selectRemuxRuntime / NativePlayer.startRemux', acquisition: 'backend-owned',
     },
+    'ffmpeg-file-preparation-jspi': privatePreparation('jspi'),
+    'ffmpeg-file-preparation-asyncify': privatePreparation('asyncify'),
     'selected-mp4-view': {
         technology: 'javascript', delivery: ['optional-assets'],
         provides: [{ capability: 'media.prepare.file', version: 1, profile: 'packet-copy' }],

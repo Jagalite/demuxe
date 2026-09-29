@@ -24,7 +24,7 @@ import {deploymentRejectionError} from './internal/provider-deployment-errors.js
 import {EnginePreparation,preparationComponents} from './internal/engine-preparation.js';
 import {TierAttempts,preferredPlans} from './internal/tier-policy.js';
 import {runtimeBase} from './internal/assets.js';
-import {selectRemuxRuntime} from './internal/remux-runtime.js';
+import {selectRemuxRuntime,deployedRemuxRuntime} from './internal/remux-runtime.js';
 import {webgpuDecoderSupported,hasQualifiedWebGPUCodecs} from './internal/webgpu-codecs.js';
 import {PlayerError, playerError, redact} from './internal/errors.js';
 import {freeze, ranges, cachedRanges, tracks, trackKey, usesRemuxTracks, mediaInfo} from './internal/state.js';
@@ -172,7 +172,16 @@ export class Player extends EventTarget {
   private remuxSelection: ReturnType<typeof selectRemuxRuntime>;
   private remuxRuntime: 'pthread' | 'jspi' | 'asyncify';
   private get privateRemux(){return this.remuxRuntime!=='pthread';}
-  private get canInspectFFmpeg(){return (globalThis.crossOriginIsolated===true||this.privateRemux)&&(!this.providerRuntime||this.providerRuntime.hasOffer('ffmpeg-file-preparation','packet-copy')&&this.providerRuntime.has(`web/engine-remux${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`));}
+  private selectDeployedRuntime(){
+    if(!this.providerRuntime)return;
+    this.remuxSelection=deployedRemuxRuntime(this.remuxSelection,runtime=>{
+      const suffix=runtime==='pthread'?'':'-'+runtime;
+      return this.providerRuntime!.hasOffer('ffmpeg-file-preparation'+suffix,'packet-copy')&&this.providerRuntime!.has(`web/engine-remux${suffix}/remux.wasm`);
+    });
+    this.remuxRuntime=this.remuxSelection.runtime;
+  }
+  private get preparationProviderId(){return 'ffmpeg-file-preparation'+(this.privateRemux?'-'+this.remuxRuntime:'');}
+  private get canInspectFFmpeg(){return (globalThis.crossOriginIsolated===true||this.privateRemux)&&(!this.providerRuntime||this.providerRuntime.hasOffer(this.preparationProviderId,'packet-copy')&&this.providerRuntime.has(`web/engine-remux${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`));}
   private softwarePresenter: 'auto' | 'rgb' | 'experimental-yuv';
   private decodeQuality:'exact'|'balanced'|'performance';
   private adaptiveFrameDrop:boolean;
@@ -436,7 +445,7 @@ export class Player extends EventTarget {
     const unavailable=(reason:string):FeatureAvailability=>({availability:'unavailable',reason});
     const unknown:FeatureAvailability={availability:'unknown',reason:'Open a source to establish availability'};
     const nativeOverlay=(this.nativeASS&&(isolated||this.privateRemux)||!!(this.current?.backend.diagnostics as {mpvSubtitles?:unknown}|undefined)?.mpvSubtitles)&&backendPlan(this.current?.backend)!=='adapted-opus'&&!(this.source?.kind==='remote'&&this.source.options.format&&this.source.options.format!=='file');
-    const route=(mode:'hybrid'|'software'):FeatureAvailability=>this.privateRemux?unavailable('Private runtime has no qualified Hybrid or Software service'):!isolated?unavailable('This deployment requires cross-origin isolation'):this.mode===mode||(mode==='hybrid'&&this.mode==='software')?available:this.automatic?{availability:'switch',mode,reason:`This feature requires ${mode} playback`}:unavailable(`Select ${mode} mode first`);
+    const route=(mode:'hybrid'|'software'):FeatureAvailability=>this.privateRemux&&!this.providerRuntime?unavailable('Private runtime has no qualified Hybrid or Software service'):!isolated?unavailable('This deployment requires cross-origin isolation'):this.mode===mode||(mode==='hybrid'&&this.mode==='software')?available:this.automatic?{availability:'switch',mode,reason:`This feature requires ${mode} playback`}:unavailable(`Select ${mode} mode first`);
     const resolution=this.bufferingResolution();
     return {...this.legacyCapabilities,buffering:{control:resolution.control,preload:true,profile:resolution.backend!=='browser',memoryBudget:['mpv','remux'].includes(resolution.backend)},deployment:{isolated,webCodecs:typeof VideoDecoder!=='undefined',mediaSource:typeof MediaSource!=='undefined'},features:{
       subtitleDelay:route('hybrid'),audioDelay:route('hybrid'),subtitleStyle:route('hybrid'),
@@ -560,8 +569,13 @@ export class Player extends EventTarget {
     const selected=preparationComponents(components);
     if(this.promotionRunning)this.cancelPromotion();
     if(this.destroyed||this.activeOperation)return this.preparationTask;
-    this.preparation??=new EnginePreparation(this.assetBase,this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv',()=>{if(!this.destroyed)this.dispatchEvent(new CustomEvent('preparationchange',{detail:freeze(this.preparationProgress)}));},this.remuxRuntime,this.providerRuntime);
-    return this.preparationTask=this.preparation.warm(selected);
+    const warm=()=>{
+      if(this.destroyed)return Promise.resolve({milliseconds:0,assets:[]});
+      this.selectDeployedRuntime();
+      this.preparation??=new EnginePreparation(this.assetBase,this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv',()=>{if(!this.destroyed)this.dispatchEvent(new CustomEvent('preparationchange',{detail:freeze(this.preparationProgress)}));},this.remuxRuntime,this.providerRuntime);
+      return this.preparation.warm(selected);
+    };
+    return this.preparationTask=this.providerRuntime?this.providerRuntime.load().then(warm):warm();
   }
   private async create(mode: PlaybackMode, aid='auto', adaptation?:'flac'|'opus'|'flac24', forcePreparation=false, planId?:string, loadTimeoutMs?:number): Promise<Session> {
     let backend: Backend;
@@ -680,7 +694,7 @@ export class Player extends EventTarget {
       adaptationSourceQualified:source.kind==='local'&&this.losslessInspection?.source===source&&!this.losslessInspection.reason,
       audioOutput:this.audioOutput,nativeRemux:this.nativeRemux,manifest:!!remote?.format&&remote.format!=='file',
       requiresRemux:!!(remote&&(remote.headers||remote.refreshAuthorization||remote.allowedOrigins||remote.immutable!==undefined||remote.credentials==='omit'||!!(settings.subtitles&&selectiveSubtitle))),
-      privateRemux:this.privateRemux,isolated:globalThis.crossOriginIsolated===true,mse:typeof MediaSource!=='undefined',webCodecs:typeof VideoDecoder!=='undefined',webAudio:typeof AudioContext!=='undefined',
+      privateRemux:this.privateRemux,atomicMpvProviders:!!this.providerRuntime,isolated:globalThis.crossOriginIsolated===true,mse:typeof MediaSource!=='undefined',webCodecs:typeof VideoDecoder!=='undefined',webAudio:typeof AudioContext!=='undefined',
       nativeSourceRejection:remote?.format&&remote.format!=='file'?nativeManifestRejection(remote,settings,!!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')):nativeSourceRejection});
     if(inspected){
       const element=document.createElement('video');
@@ -956,7 +970,7 @@ export class Player extends EventTarget {
     }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
   }
   private async select(source: Source, settings: Settings, preserve: boolean, tracks: (TextTrackSource & {attachmentId?:string})[], start=0, target?: number, priorAttempts:SelectionAttempt[]=[],inspectOnly=false){
-    if(this.providerRuntime){await this.interruptible(this.providerRuntime.load());this.assertOperation();}
+    if(this.providerRuntime){await this.interruptible(this.providerRuntime.load());this.assertOperation();this.selectDeployedRuntime();}
     if(!this.automatic&&this.mode!=='native'){
       if(this.mode==='hybrid')await this.inspectForQualifiedWebGPU(source,settings);
       if((!this.providerRuntime||this.canInspectFFmpeg)&&this.mode==='software'&&(this.decodeQuality!=='exact'||this.adaptiveFrameDrop)&&this.sourceInspection?.source!==source){
@@ -1092,7 +1106,7 @@ export class Player extends EventTarget {
     if(source.kind==='local'&&this.sourceInspection?.source===source&&remux&&this.planDecisions.some(p=>p.eligible&&p.id===remux)&&!this.tierAttempts.reason(source,this.tierConfiguration(settings),remux))return remux;
   }
   private async discover(source:Source,settings:Settings,preserve:boolean,tracks:(TextTrackSource & {attachmentId?:string})[],target:number|undefined,automatic:boolean,pinnedMode?:PlaybackMode,start=0):Promise<void> {
-    if(this.providerRuntime){await this.interruptible(this.providerRuntime.load());this.assertOperation();}
+    if(this.providerRuntime){await this.interruptible(this.providerRuntime.load());this.assertOperation();this.selectDeployedRuntime();}
     let nativeReason=automatic?this.admissionContext.nativeReason:undefined;
     this.planDecisions=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic);
     this.runtimeCapabilities.begin(source,this.planDecisions);
@@ -1133,14 +1147,15 @@ export class Player extends EventTarget {
       }
       // Optional inspection and preparation are strictly after original-copy attempts.
       // Never let adaptation bypass subtitle/transport/filter semantic rejection.
-      if((!this.providerRuntime||this.providerRuntime.hasOffer('ffmpeg-file-preparation','flac-lossless'))&&automatic&&plan.id.startsWith('native-flac')&&this.audioPlayback!=='worklet'&&this.automaticLossless&&!nativeReason&&this.sourceInspection?.source===source&&this.sourceInspection.probe.tracks.some(t=>t.type==='audio'&&['pcm_s16le','pcm_s24le'].includes(t.codec))&&!this.losslessInspection&&source.kind==='local'){
+      if((!this.providerRuntime||this.providerRuntime.hasOffer(this.preparationProviderId,'flac-lossless'))&&automatic&&plan.id.startsWith('native-flac')&&this.audioPlayback!=='worklet'&&this.automaticLossless&&!nativeReason&&this.sourceInspection?.source===source&&this.sourceInspection.probe.tracks.some(t=>t.type==='audio'&&['pcm_s16le','pcm_s24le'].includes(t.codec))&&!this.losslessInspection&&source.kind==='local'){
         const inspected=this.sourceInspection;
         const permitted=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic).find(p=>p.id===plan.id);
         if(permitted?.code==='SOURCE_UNSUPPORTED'){
           const controller=this.inspection=new AbortController();
           try{
             const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
-            const probe:Probe=await probeSource({file:source.file instanceof File?source.file:new File([source.file],'media')},controller.signal,'flac',undefined,this.remuxRuntime);
+            const compiledWasm=this.providerRuntime?await this.interruptible(this.providerRuntime.module(`web/engine-adaptation${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`)):undefined;
+            const probe:Probe=await probeSource({file:source.file instanceof File?source.file:new File([source.file],'media')},controller.signal,'flac',compiledWasm,this.remuxRuntime);
             this.assertOperation();this.losslessInspection={source,reason:losslessAdaptationRejection(probe,inspected.settings)};
           }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
           this.planDecisions=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic);

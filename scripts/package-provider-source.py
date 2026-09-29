@@ -13,7 +13,9 @@ from license_policy import ROOT, encoded, sha
 
 EXCLUDED = {'build/subtitle-service/link-command.json','build/subtitle-service/manifest.json','build/link-maps/subtitles.map'}
 
-def assemble(record_path, recovered_path, build_root, output):
+def assemble(record_path, recovered_path, build_root, output, profile_name=None):
+    config=json.loads((ROOT/'licensing/provider-packages.json').read_bytes())
+    excluded=set(config['profiles'][profile_name].get('excludedSourceConfigurations',[])) if profile_name else EXCLUDED
     record = json.loads(record_path.read_bytes())
     recovered = json.loads(recovered_path.read_bytes())['recovered']
     paths = {}
@@ -25,7 +27,7 @@ def assemble(record_path, recovered_path, build_root, output):
         paths[name] = (path, actual)
     for name, digest in record['inputs'].items(): add('demuxe/'+name, recovered[name], digest)
     for name, digest in record['configurations'].items():
-        if name not in EXCLUDED: add('build-materials/'+name, build_root/name, digest)
+        if name not in excluded: add('build-materials/'+name, build_root/name, digest)
     for name, digest in record['sources'].items(): add('demuxe/build/downloads/'+name+'.tar.gz',build_root/'build/downloads'/(name+'.tar.gz'),digest)
     for name, digest in record['sdkSources'].items(): add('toolchain/emscripten/'+name,Path(record['sdk'])/'upstream/emscripten'/name,digest)
     # Current application/provider integration source, separately named so it
@@ -35,7 +37,7 @@ def assemble(record_path, recovered_path, build_root, output):
     for profile in config['profiles'].values():
         current.update(profile['files']);current.update(name.replace('web/generated/','src/').replace('.js','.ts') for name in profile['generated'])
     current.update(str(p.relative_to(ROOT)) for p in (ROOT/'src').rglob('*.ts'))
-    for target in ['player-core','provider-ffmpeg','provider-mpv']:
+    for target in {str(Path(t['template']).parent.relative_to('packages')) for t in config['targets'].values()}:
         current.update(str(p.relative_to(ROOT)) for p in (ROOT/'packages'/target).rglob('*') if p.is_file())
     current.update(item['path'] for item in json.loads((ROOT/'licensing/provider-runtime-qualification.json').read_bytes())['evidence'])
     current.update('scripts/'+name for name in ['compile-player-package.mjs','compile-provider-sources.mjs','package-player-core.py','package-provider.py','package-provider-source.py','prepare-provider-package.py','audit-provider-package.py','deploy-providers.py','license_policy.py'])
@@ -43,7 +45,7 @@ def assemble(record_path, recovered_path, build_root, output):
     current.update(str(p.relative_to(ROOT)) for p in (ROOT/'LICENSES').glob('*.txt'))
     for name in sorted(current):add('application/'+name,ROOT/name)
     add('engine-build.json',record_path)
-    manifest={'schema':1,'engineBuildSHA256':sha(record_path.read_bytes()),'excludedConfigurations':sorted(EXCLUDED),'files':{name:digest for name,(_,digest) in paths.items()}}
+    manifest={'schema':1,'engineBuildSHA256':sha(record_path.read_bytes()),'excludedConfigurations':sorted(excluded),'files':{name:digest for name,(_,digest) in paths.items()}}
     output.parent.mkdir(parents=True,exist_ok=True)
     with output.open('xb') as raw,gzip.GzipFile(filename='',fileobj=raw,mode='wb',mtime=0) as gz,tarfile.open(fileobj=gz,mode='w|') as archive:
         for name,(path,digest) in sorted(paths.items()):
@@ -58,4 +60,4 @@ def assemble(record_path, recovered_path, build_root, output):
     output.with_suffix('.json').write_bytes(encoded(result));print(json.dumps(result,indent=2))
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--record',type=Path,required=True);p.add_argument('--recovered',type=Path,required=True);p.add_argument('--build-root',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args();assemble(a.record,a.recovered,a.build_root,a.output.absolute())
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--profile');p.add_argument('--record',type=Path,required=True);p.add_argument('--recovered',type=Path,required=True);p.add_argument('--build-root',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args();assemble(a.record,a.recovered,a.build_root,a.output.absolute(),a.profile)

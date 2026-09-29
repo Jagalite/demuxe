@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-/** Shadow evaluation only. Nothing here changes production routing. */
+/** Measured selection within qualified compositions; Player plan order is separate. */
 export type ProviderReadiness = Readonly<{
     providerId: string;
     implementationIdentity: string;
@@ -19,17 +19,19 @@ export type MeasuredBindingCost = Readonly<{
     samples: number;
     measurement: 'complete-recipe';
     remainingStartupMs: number;
-    steadyCpuMsPerSecond: number;
-    peakBytes: number;
+    /** Omit unmeasured metrics. They are never imputed as zero; policies that
+     * require them retain baseline until comparable evidence exists. */
+    steadyCpuMsPerSecond?: number;
+    peakBytes?: number;
     throughputRatio: number;
     startupUncertaintyMs: number;
-    cpuUncertaintyMsPerSecond: number;
+    cpuUncertaintyMsPerSecond?: number;
 }>;
 export type CostPolicy = Readonly<{
     objective: 'startup' | 'steady-cpu';
     maxAgeMs: number;
     maxStartupMs: number;
-    maxPeakBytes: number;
+    maxPeakBytes?: number;
     minThroughputRatio: number;
 }>;
 export type CostDecision = Readonly<{

@@ -132,7 +132,7 @@ export class ProviderRuntime {
         const absent = required.filter(path => !this.has(path));
         if (absent.length)
             return 'Required provider runtime assets are not deployed: ' + absent.join(', ');
-        const recipe = resolvableExecutionRecipe(planId);
+        const recipe = resolvableExecutionRecipe(planId, runtime);
         const resolution = resolveProviderRecipe(recipe, this.deployment.catalog, this.evidence(recipe, scope), scope);
         return resolution.state === 'pending' || resolution.state === 'available' ? undefined
             : providerResolutionError([resolution])?.message ?? 'No qualified deployed composition';

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Installed package deployment boundary regressions, independent of engines."""
-import importlib.util,json,sys,tempfile,unittest
+import importlib.util,json,sys,tempfile,unittest,shutil
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent.parent
 sys.path.insert(0,str(ROOT/'scripts'))
@@ -21,6 +21,21 @@ class DeploymentTests(unittest.TestCase):
             a=deploy.compose(core,[],root/'native');self.assertNotIn('test',a['providers'])
             b=deploy.compose(core,[provider],root/'full');self.assertIn('test',b['providers']);self.assertEqual((root/'full/engine.wasm').read_bytes(),b'bytes')
             with self.assertRaisesRegex(ValueError,'must not exist'):deploy.compose(core,[],root/'native')
+    def test_shared_identical_provider_assets_are_deduplicated(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp).resolve();core,provider,manifest=self.fixture(root)
+            second=root/'second';shutil.copytree(provider,second)
+            metadata=json.loads((second/'package.json').read_text());metadata['name']='@demuxe/second'
+            (second/'package.json').write_text(json.dumps(metadata));manifest['package']=metadata['name'];manifest['provides'][0]['id']='second'
+            (second/'provider-manifest.json').write_text(json.dumps(manifest))
+            deploy.compose(core,[provider,second],root/'both')
+            catalog=json.loads((root/'both/demuxe-providers.json').read_text());self.assertEqual(len(catalog['assets']),1)
+            self.assertEqual({f['id'] for f in catalog['providers']} & {'test','second'},{'test','second'})
+            # Identical core bytes are still not provider-owned shared assets.
+            inventory=json.loads((core/'license-map.json').read_text());inventory['engine.wasm']=['Apache-2.0']
+            (core/'license-map.json').write_text(json.dumps(inventory));(core/'engine.wasm').write_bytes(b'bytes')
+            with self.assertRaisesRegex(ValueError,'collision'):deploy.compose(core,[provider],root/'rejected')
+
     def test_corrupt_unqualified_incompatible_and_incomplete_assets(self):
         for fault in ['hash','identity','version','inventory','collision','symlink']:
             with self.subTest(fault=fault),tempfile.TemporaryDirectory() as temp:

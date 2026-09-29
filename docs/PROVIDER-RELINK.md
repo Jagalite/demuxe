@@ -4,8 +4,8 @@
 
 Keep the companion named and hashed in `source-companion.json` alongside the
 provider npm archive. These are local package candidates, not a published
-release. `engine-build.json` retains the original build's actual `clean: false`
-status, tools, sources, flags, configurations and engine hashes.
+release. `engine-build.json` retains each original build's actual provenance,
+including dirty/recovered status, tools, sources, flags and engine hashes.
 
 The companion contains:
 
@@ -14,20 +14,47 @@ The companion contains:
 * `toolchain/emscripten/`: the exact preferred Emscripten source, including
   linked runtime libraries.
 * `build-materials/`: hash-matched configurations and link maps. The three
-  standalone subtitle-service configurations are explicitly excluded; these
-  packages do not distribute that service.
+  standalone subtitle-service configurations are excluded from the broad
+  pthread profile only. Other profiles declare their own exclusion set.
 * `application/`: current Player/provider integration source, separately from
   historical native inputs. Current wrapper changes do not rewrite native history.
 * `engine-build.json` and `source-manifest.json`: native evidence and the exact
   source byte inventory, checked by the provider package auditor.
 
-To modify/relink, unpack the companion and work in `demuxe/`. Install Python 3,
+For the broad pthread FFmpeg/mpv providers, unpack the companion and work in
+`demuxe/`. Install Python 3,
 CMake, Ninja, pkg-config, Git, curl, Node/npm and Meson 1.7.2. The historical build
 scripts and locked source archives are supplied. Install/activate the recorded
 Emscripten SDK version from the included `build/downloads/emsdk.tar.gz`, then use
 `DEMUXE_SDK` to point the supplied `scripts/build-beta-engines.sh --clean` command
 at it. The SDK installer may download host compiler binaries. See the retained
 `application/docs/LGPL-RELINK.md` for the original complete build commands.
+
+
+For the fine/common audio providers, the companion retains
+`native/audio-codecs/{decoder,encoder}.c`, `scripts/build-audio-providers.py`,
+the pinned FFmpeg source archive and patches. Use the recorded SDK 4.0.14:
+
+```sh
+python3 scripts/build-audio-providers.py --sdk /path/to/emsdk-4.0.14 \
+  --archive build/downloads/ffmpeg-adaptation.tar.gz --profile common
+```
+
+Use `ac3`, `dts` or `flac` instead of `common` for the fine builds. The build
+uses the same source and ABI; each output still needs fresh identity and
+qualification. The source lock is retained in `application/sources.lock.json`;
+copy it to the relink root if that root was assembled only from native inputs.
+
+For the JSPI/Asyncify providers, exact producer scripts, bridge sources, patches,
+configuration, command records and adaptation static libraries are under
+`demuxe/build/private-provider-materials/inputs/`. Each `build-result.json`
+identifies its original producer and dependency build; `commands.json` records
+configure/compile/link operations. Remux producers are `remux-<runtime>-02`;
+adaptation library producers are `transcode-<runtime>-04`, followed by the
+`transcode-<runtime>-05` relink. Use those recorded build/relink scripts with
+paths rebased to the extracted material and installed SDK. Historical absolute
+paths identify provenance, not a requirement to access the original checkout.
+Retained observed configurations are distinguished from producer-hashed inputs.
 
 The native driver builds more targets than these packages distribute. Compare
 only the targets listed in the package's `provider-manifest.json` and original

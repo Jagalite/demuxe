@@ -68,7 +68,11 @@
     "test:remux-profiles": "npm run build && node tests/remux-profiles.mjs",
     "test:track-policy": "npm run build && node --test tests/track-policy.mjs tests/public-api-state.mjs && node tests/track-policy-browser.mjs",
     "test:subtitle-overlay": "node --test tests/subtitle-overlay.mjs tests/subtitle-deadline-race.mjs tests/runtime-capability-contracts.mjs && node tests/subtitle-composition-browser.mjs",
-    "test:integration": "npm run build && node --test tests/integration.mjs && tsc --noEmit --strict --skipLibCheck --target ES2022 --module NodeNext --moduleResolution NodeNext tests/integration-types.ts && node tests/integration-browser.mjs && node tests/integration-presentation.mjs"
+    "test:integration": "npm run build && node --test tests/integration.mjs && tsc --noEmit --strict --skipLibCheck --target ES2022 --module NodeNext --moduleResolution NodeNext tests/integration-types.ts && node tests/integration-browser.mjs && node tests/integration-presentation.mjs",
+    "dev:providers": "node scripts/dev-providers.mjs",
+    "build:components": "node scripts/build-components.mjs",
+    "test:components": "npm run build:components && node --test tests/component-selection.mjs && node tests/provider-audio-builds.mjs && node tests/provider-container.mjs && node tests/provider-fmp4.mjs && node tests/provider-ts-remux.mjs && node tests/provider-audio-repair.mjs",
+    "dev:components": "node scripts/serve-component-lab.mjs"
   },
   "devDependencies": {
     "esbuild": "0.28.2",

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-/** Shadow evaluation only. Nothing here changes production routing. */
+/** Measured selection within qualified compositions; Player plan order is separate. */
 export type ProviderReadiness = Readonly<{
   providerId: string;
   implementationIdentity: string;
@@ -19,17 +19,19 @@ export type MeasuredBindingCost = Readonly<{
   samples: number;
   measurement: 'complete-recipe';
   remainingStartupMs: number;
-  steadyCpuMsPerSecond: number;
-  peakBytes: number;
+  /** Omit unmeasured metrics. They are never imputed as zero; policies that
+   * require them retain baseline until comparable evidence exists. */
+  steadyCpuMsPerSecond?: number;
+  peakBytes?: number;
   throughputRatio: number;
   startupUncertaintyMs: number;
-  cpuUncertaintyMsPerSecond: number;
+  cpuUncertaintyMsPerSecond?: number;
 }>;
 export type CostPolicy = Readonly<{
   objective: 'startup' | 'steady-cpu';
   maxAgeMs: number;
   maxStartupMs: number;
-  maxPeakBytes: number;
+  maxPeakBytes?: number;
   minThroughputRatio: number;
 }>;
 export type CostDecision = Readonly<{
@@ -58,18 +60,21 @@ export function compareProviderCosts(bindingIds: readonly string[], baselineId: 
   records: readonly MeasuredBindingCost[], contextKey: string, policy: CostPolicy, now: number): CostDecision | undefined {
   if (!contextKey || bindingIds.length > 64 || records.length > 256 || !['startup', 'steady-cpu'].includes(policy.objective)) throw Error('Invalid or excessive cost comparison scope');
   if (!bindingIds.includes(baselineId)) throw Error('Cost baseline must be an available qualified binding');
-  if (![now, policy.maxAgeMs, policy.maxStartupMs, policy.maxPeakBytes, policy.minThroughputRatio].every(n => Number.isFinite(n) && n >= 0)) throw Error('Invalid cost policy limits');
+  if (![now, policy.maxAgeMs, policy.maxStartupMs, policy.minThroughputRatio, ...(policy.maxPeakBytes===undefined?[]:[policy.maxPeakBytes])].every(n => Number.isFinite(n) && n >= 0)) throw Error('Invalid cost policy limits');
   const candidates = [...new Set(bindingIds)];
   const costs = new Map<string, MeasuredBindingCost>();
   const excluded: string[] = [];
   for (const id of candidates) {
     const matches = records.filter(r => r.bindingId === id && r.contextKey === contextKey && r.measurement === 'complete-recipe'
       && Number.isFinite(r.measuredAt) && r.measuredAt <= now && now - r.measuredAt <= policy.maxAgeMs
-      && Number.isSafeInteger(r.samples) && r.samples >= 2
-      && [r.remainingStartupMs, r.steadyCpuMsPerSecond, r.peakBytes, r.throughputRatio, r.startupUncertaintyMs, r.cpuUncertaintyMsPerSecond].every(n => Number.isFinite(n) && n >= 0));
+      && Number.isSafeInteger(r.samples) && r.samples >= 2 && !!r.evidenceId
+      && [r.remainingStartupMs, r.throughputRatio, r.startupUncertaintyMs].every(n => Number.isFinite(n) && n >= 0)
+      && [r.steadyCpuMsPerSecond,r.cpuUncertaintyMsPerSecond,r.peakBytes].every(n=>n===undefined||(Number.isFinite(n)&&n>=0))
+      && (policy.objective!=='steady-cpu'||(r.steadyCpuMsPerSecond!==undefined&&r.cpuUncertaintyMsPerSecond!==undefined))
+      && (policy.maxPeakBytes===undefined||r.peakBytes!==undefined));
     const record = matches.sort((a, b) => b.measuredAt - a.measuredAt)[0];
     if (!record) continue;
-    if (record.remainingStartupMs + record.startupUncertaintyMs > policy.maxStartupMs || record.peakBytes > policy.maxPeakBytes || record.throughputRatio < policy.minThroughputRatio) excluded.push(id);
+    if (record.remainingStartupMs + record.startupUncertaintyMs > policy.maxStartupMs || (policy.maxPeakBytes!==undefined&&record.peakBytes! > policy.maxPeakBytes) || record.throughputRatio < policy.minThroughputRatio) excluded.push(id);
     else costs.set(id, record);
   }
   const eligible = candidates.filter(id => !excluded.includes(id));
@@ -77,8 +82,8 @@ export function compareProviderCosts(bindingIds: readonly string[], baselineId: 
   const fallback = eligible.includes(baselineId) ? baselineId : eligible[0];
   const evidenceIds = [...costs.values()].map(c => c.evidenceId);
   if (eligible.some(id => !costs.has(id))) return {bindingId: fallback, reason: 'incomplete-evidence', evidenceIds, excluded};
-  const value = (c: MeasuredBindingCost) => policy.objective === 'startup' ? c.remainingStartupMs : c.steadyCpuMsPerSecond;
-  const uncertainty = (c: MeasuredBindingCost) => policy.objective === 'startup' ? c.startupUncertaintyMs : c.cpuUncertaintyMsPerSecond;
+  const value = (c: MeasuredBindingCost) => policy.objective === 'startup' ? c.remainingStartupMs : c.steadyCpuMsPerSecond!;
+  const uncertainty = (c: MeasuredBindingCost) => policy.objective === 'startup' ? c.startupUncertaintyMs : c.cpuUncertaintyMsPerSecond!;
   const ranked = eligible.map(id => costs.get(id)!).sort((a, b) => value(a) - value(b) || candidates.indexOf(a.bindingId) - candidates.indexOf(b.bindingId));
   const best = ranked[0], previous = costs.get(fallback)!;
   if (best.bindingId === fallback) return {bindingId: fallback, reason: 'baseline', evidenceIds, excluded};

@@ -19,7 +19,7 @@ export function compareProviderCosts(bindingIds, baselineId, records, contextKey
         throw Error('Invalid or excessive cost comparison scope');
     if (!bindingIds.includes(baselineId))
         throw Error('Cost baseline must be an available qualified binding');
-    if (![now, policy.maxAgeMs, policy.maxStartupMs, policy.maxPeakBytes, policy.minThroughputRatio].every(n => Number.isFinite(n) && n >= 0))
+    if (![now, policy.maxAgeMs, policy.maxStartupMs, policy.minThroughputRatio, ...(policy.maxPeakBytes === undefined ? [] : [policy.maxPeakBytes])].every(n => Number.isFinite(n) && n >= 0))
         throw Error('Invalid cost policy limits');
     const candidates = [...new Set(bindingIds)];
     const costs = new Map();
@@ -27,12 +27,15 @@ export function compareProviderCosts(bindingIds, baselineId, records, contextKey
     for (const id of candidates) {
         const matches = records.filter(r => r.bindingId === id && r.contextKey === contextKey && r.measurement === 'complete-recipe'
             && Number.isFinite(r.measuredAt) && r.measuredAt <= now && now - r.measuredAt <= policy.maxAgeMs
-            && Number.isSafeInteger(r.samples) && r.samples >= 2
-            && [r.remainingStartupMs, r.steadyCpuMsPerSecond, r.peakBytes, r.throughputRatio, r.startupUncertaintyMs, r.cpuUncertaintyMsPerSecond].every(n => Number.isFinite(n) && n >= 0));
+            && Number.isSafeInteger(r.samples) && r.samples >= 2 && !!r.evidenceId
+            && [r.remainingStartupMs, r.throughputRatio, r.startupUncertaintyMs].every(n => Number.isFinite(n) && n >= 0)
+            && [r.steadyCpuMsPerSecond, r.cpuUncertaintyMsPerSecond, r.peakBytes].every(n => n === undefined || (Number.isFinite(n) && n >= 0))
+            && (policy.objective !== 'steady-cpu' || (r.steadyCpuMsPerSecond !== undefined && r.cpuUncertaintyMsPerSecond !== undefined))
+            && (policy.maxPeakBytes === undefined || r.peakBytes !== undefined));
         const record = matches.sort((a, b) => b.measuredAt - a.measuredAt)[0];
         if (!record)
             continue;
-        if (record.remainingStartupMs + record.startupUncertaintyMs > policy.maxStartupMs || record.peakBytes > policy.maxPeakBytes || record.throughputRatio < policy.minThroughputRatio)
+        if (record.remainingStartupMs + record.startupUncertaintyMs > policy.maxStartupMs || (policy.maxPeakBytes !== undefined && record.peakBytes > policy.maxPeakBytes) || record.throughputRatio < policy.minThroughputRatio)
             excluded.push(id);
         else
             costs.set(id, record);

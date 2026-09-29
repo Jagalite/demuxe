@@ -29,7 +29,7 @@ def compose(core, providers, output):
         if licenses!=['Apache-2.0']:raise ValueError('Non-Apache core package file')
         files[name]=relative_file(core,name).read_bytes()
     facts=[{'id':id,'implementationIdentity':'demuxe-browser-v1','technology':'browser-native','delivery':['browser','application-bundle'],'applicationBuild':'demuxe-'+metadata['version'],'offers':[{'capability':cap,'version':1,'profile':profile}]} for id,cap,profile in [('browser-original','media.present.original','selected-source'),('browser-prepared','media.present.prepared','selected-streams'),('web-audio-gain','audio.gain','scalar')]]
-    assets={};ids={f['id'] for f in facts}
+    assets={};provider_paths=set();ids={f['id'] for f in facts}
     for root in providers:
         package=json.loads(relative_file(root,'package.json').read_bytes());manifest=json.loads(relative_file(root,'provider-manifest.json').read_bytes())
         if manifest.get('providerContractVersion')!=1 or manifest.get('package')!=package['name'] or manifest.get('version')!=package['version'] or manifest.get('compatibleCore')!=metadata['version'] or package.get('peerDependencies',{}).get('demuxe')!=metadata['version']:raise ValueError('Incompatible provider package')
@@ -38,10 +38,11 @@ def compose(core, providers, output):
             if not name.startswith('runtime/'):raise ValueError('Provider artifact is outside runtime/')
             data=relative_file(root,name).read_bytes();path=name[len('runtime/'):]
             if sha(data)!=digest:raise ValueError('Installed provider artifact integrity mismatch: '+name)
-            if path in files:raise ValueError('Runtime package collision: '+path)
+            if path in files and (path not in provider_paths or files[path]!=data):raise ValueError('Runtime package collision: '+path)
+            provider_paths.add(path)
             files[path]=data;deployed[path]=(digest,len(data))
         for asset in manifest['assets']:
-            if asset['id'] in assets or deployed.get(asset['path'])!=(asset['sha256'],asset['bytes']):raise ValueError('Invalid provider asset declaration')
+            if (asset['id'] in assets and assets[asset['id']]!=asset) or deployed.get(asset['path'])!=(asset['sha256'],asset['bytes']):raise ValueError('Invalid provider asset declaration')
             assets[asset['id']]=asset
         if {a['path'] for a in manifest['assets']}!=set(deployed):raise ValueError('Incomplete provider asset inventory')
         for fact in manifest['provides']:

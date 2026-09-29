@@ -83,7 +83,7 @@ export function planAdmission(f) {
         const reject = (c, r) => { code = c; reason = r; };
         const gain = plan.id.endsWith('-gain'), ass = plan.id.includes('-ass'), flac = plan.id.startsWith('native-flac'), opus = plan.id.startsWith('native-opus');
         const effect = featureRejection(plan.mode, { ...f });
-        if (f.privateRemux && !['native-direct', 'native-direct-ass', 'native-direct-ass-gain', 'native-remux-ass', 'native-remux-ass-gain', 'native-flac-gain', 'native-flac-ass-gain', 'native-direct-gain', 'shaka-mse', 'shaka-mse-gain', 'native-remux', 'native-flac', 'native-flac-ass', 'native-transcode', 'native-transcode-ass', 'native-direct-mpv', 'native-remux-mpv', 'native-transcode-mpv', 'native-video-mpv-audio', 'native-video-mpv-audio-subtitles'].includes(plan.id))
+        if (f.privateRemux && !(f.atomicMpvProviders && plan.mode !== 'native') && !['native-direct', 'native-direct-ass', 'native-direct-ass-gain', 'native-remux-ass', 'native-remux-ass-gain', 'native-flac-gain', 'native-flac-ass-gain', 'native-direct-gain', 'shaka-mse', 'shaka-mse-gain', 'native-remux', 'native-flac', 'native-flac-ass', 'native-transcode', 'native-transcode-ass', 'native-direct-mpv', 'native-remux-mpv', 'native-transcode-mpv', 'native-video-mpv-audio', 'native-video-mpv-audio-subtitles'].includes(plan.id))
             reject('QUALIFICATION_REQUIRED', 'Private runtime supports qualified finite-file remux, adaptation and subtitle plans');
         else if (effect)
             reject('FEATURE_UNSUPPORTED', effect);

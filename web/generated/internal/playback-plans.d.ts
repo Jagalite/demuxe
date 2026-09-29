@@ -1140,6 +1140,7 @@ export type PlanFacts = {
     requiresRemux: boolean;
     isolated: boolean;
     privateRemux?: boolean;
+    atomicMpvProviders?: boolean;
     mse: boolean;
     webCodecs: boolean;
     webAudio: boolean;

@@ -9,9 +9,9 @@ import {chromium,firefox} from 'playwright';
 import {closeTestBrowser} from './head-to-head/browser-exit.mjs';
 const root=process.cwd(),family=process.env.BROWSER??'chrome',run=path.join(root,'build/media-components',`deployment-${family}-${Date.now()}`);
 const evidence=path.join(root,'results/media-components/provider-completion');await mkdir(run,{recursive:true});await mkdir(evidence,{recursive:true});
-const archives=await Promise.all(['player-core','provider-ffmpeg-v2','provider-mpv-v2'].map(async name=>JSON.parse(await readFile(`build/media-components/${name}/assembly.json`,'utf8'))));
+const archives=await Promise.all([process.env.CORE_PACKAGE??'player-core','provider-ffmpeg-v2','provider-mpv-v2'].map(async name=>JSON.parse(await readFile(`build/media-components/${name}/assembly.json`,'utf8'))));
 await writeFile(path.join(run,'package.json'),JSON.stringify({name:'provider-clean-consumer',private:true,type:'module',version:'1.0.0'}));
-execFileSync('npm',['install','--ignore-scripts','--no-audit','--no-fund','--package-lock=false',...archives.map(a=>a.archive)],{cwd:run,stdio:'pipe'});
+execFileSync('npm',['install','--ignore-scripts','--no-audit','--no-fund','--package-lock=false',...archives.map(a=>path.resolve(a.archive))],{cwd:run,stdio:'pipe'});
 const installed=path.join(run,'node_modules');
 for(const [name,providers]of Object.entries({core:[],ffmpeg:['ffmpeg'],mpv:['mpv'],combined:['ffmpeg','mpv']})){
  execFileSync('python3',['scripts/deploy-providers.py','--core',path.join(installed,'demuxe'),...providers.flatMap(p=>['--provider',path.join(installed,'@demuxe/provider-'+p)]),'--output',path.join(run,name)],{cwd:root,stdio:'pipe'});

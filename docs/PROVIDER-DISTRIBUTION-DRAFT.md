@@ -1,9 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Modular provider distribution
 
-The branch assembles three independently licensed local npm artifacts from the
-same monorepo: Apache `demuxe`, `@demuxe/provider-ffmpeg`, and
-`@demuxe/provider-mpv`. The public Player API is unchanged. Raw package templates
+The branch assembles ten independently licensed local npm artifacts from the
+same monorepo: Apache `demuxe` and `@demuxe/provider-container`; broad FFmpeg
+and mpv; separate FFmpeg JSPI/Asyncify; and audio AC-3, DTS, FLAC and common
+providers with their retained native licenses. The public Player API is unchanged. Raw package templates
 remain private and refuse `npm pack`; the audited assemblers produce the actual
 packages with explicit exports and no install scripts. Nothing is published.
 
@@ -30,12 +31,13 @@ those implementations cannot currently expose.
 The FFmpeg package currently offers packet-copy and video-only preparation using
 the matching pthread remux build. The mpv package provides Hybrid, full Software
 and selected-audio services. It includes both Software presenters but loads only
-the selected engine. Private JSPI/Asyncify, audio adaptation and standalone
-subtitle services remain available in the legacy checkout; they are not included
-in these packages without matching provider provenance and qualification.
+the selected engine. Separate JSPI/Asyncify packages include matching remux and
+audio-adaptation builds. Standalone mpv subtitle services retain their existing
+legacy distribution; this change does not forcibly decompose atomic mpv.
 
-Fine and bundled future builds should compile the same implementation sources
-with different export/link sets. Qualification must bind the complete composition,
+The fine and common audio builds compile the same maintained bridge and pinned
+FFmpeg sources with different export/link sets. Their decoded PCM and encoded
+FLAC bytes are checked for exact equivalence. Qualification must bind the complete composition,
 ABI, build identities, selected source/tracks and runtime; common implementation
 unit tests are reusable, while each physical variant still needs integration,
 asset, cancellation and output evidence. No independent codec combination becomes
@@ -89,7 +91,8 @@ bytes from transfer/mutation. Software requests its verified engine after the
 worker chooses YUV or RGB, including WebGL-unavailable fallback. Preview has an
 independent disposable acquisition scope. Destroy aborts pending acquisition and
 waits for cleanup. JSPI/Asyncify remain runtime choices of the relevant owners;
-an unavailable selected variant is not silently replaced with another variant.
+explicit runtime requests remain pinned. Modular auto/on selects a qualified
+deployed runtime before loading, while asset failures remain terminal.
 
 JavaScript module/worker URLs retain normal browser loading semantics. Installed
 JS bytes are checked by package/deployment tooling, but URL imports do **not**
@@ -98,9 +101,10 @@ origin. The maintained package registry is not a general third-party code loader
 
 Native availability and application-bundled implementations need no optional
 asset download. Asset/load/compile state remains separate from media qualification.
-The existing cost helper can compare measured whole-recipe observations with
-freshness and resource constraints; it remains a shadow helper. No unmeasured
-cost ranking or new production preference is enabled.
+The internal component executor compares measured whole-recipe observations
+with freshness, exact readiness context and resource constraints. Missing CPU or
+memory values are never imputed; policies requiring them retain baseline. No
+unmeasured ranking or reordering of production playback plans is enabled.
 
 ## Package and source audits
 
@@ -139,7 +143,9 @@ audio, YUV/RGB fallback, preparation, preview, missing providers, identity misma
 404/corrupt assets, lazy loading and browser retirement. This is bounded delivery
 qualification with existing admission gates, not a new all-codec/device claim.
 
-Publication, new lightweight codec/container implementations, qualification of
-additional runtime/build variants and measured-cost routing remain separate work.
+The lightweight codec/container implementations, private-runtime packages and
+measured internal binding selection are implemented and locally exercised; see
+[completion and commands](MEDIA-COMPONENT-COMPLETION.md). Publication is not part
+of this delivery. Additional profile/device qualification remains evidence-driven.
 The original Player surface, synchronization owners, fallback order and atomic
 full-mpv compatibility path remain in place.
