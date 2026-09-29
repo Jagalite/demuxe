@@ -50,3 +50,18 @@ test('execution retries only actual runtime absence and preserves terminal failu
   }finally{await acquisition.dispose();}
  }
 });
+
+for(const limit of ['startup','memory','throughput'])test(`runtime-absence retry retains ${limit} exclusion`,async()=>{
+ const {ProviderAcquisition}=await import('../web/generated/internal/provider-acquisition.js');
+ const {parseProviderDeployment}=await import('../web/generated/internal/provider-catalog.js');
+ const {executeComponentBinding}=await import('../web/generated/internal/component-selection.js');
+ const {recipe,catalog,evidence}=fixture(),prepared=[];
+ const deployment=parseProviderDeployment({schema:1,providerContractVersion:1,revision:'test',assets:[],providers:catalog.providers.map(p=>({...p,technology:'javascript',delivery:['application-bundle'],applicationBuild:'test',assetIds:[]}))},new URL('https://example.invalid/'));
+ const acquisition=new ProviderAcquisition(deployment,catalog.providers.map(p=>({id:p.id,implementationIdentity:p.implementationIdentity,async prepare(){prepared.push(p.id);return p.id==='audio-ac3'?{state:'unavailable',reason:'runtime missing'}:{state:'ready',dispose(){}};}})));
+ const records=['fine','common'].map(bindingId=>({bindingId,contextKey:'c',evidenceId:'measured-'+bindingId,measuredAt:1,samples:3,measurement:'complete-recipe',remainingStartupMs:bindingId==='common'&&limit==='startup'?10000:10,peakBytes:bindingId==='common'&&limit==='memory'?10000:10,throughputRatio:bindingId==='common'&&limit==='throughput'?0.1:2,startupUncertaintyMs:0}));
+ let executed=false;
+ try{
+  await assert.rejects(executeComponentBinding(acquisition,recipe,evidence,'test','fine',async()=>{executed=true;},{records,contextKey:'c',policy:{objective:'startup',maxAgeMs:100,maxStartupMs:100,maxPeakBytes:100,minThroughputRatio:1},now:2}),e=>e.code==='RUNTIME_BUDGET_EXCEEDED');
+  assert.equal(executed,false);assert.ok(prepared.includes('audio-ac3'));assert.ok(!prepared.includes('audio-common'));
+ }finally{await acquisition.dispose();}
+});

@@ -575,7 +575,10 @@ export class Player extends EventTarget {
       this.preparation??=new EnginePreparation(this.assetBase,this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv',()=>{if(!this.destroyed)this.dispatchEvent(new CustomEvent('preparationchange',{detail:freeze(this.preparationProgress)}));},this.remuxRuntime,this.providerRuntime);
       return this.preparation.warm(selected);
     };
-    return this.preparationTask=this.providerRuntime?this.providerRuntime.load().then(warm):warm();
+    // EnginePreparation turns the retained deployment error into per-asset
+    // failure reports, just like fetch/compile errors. Constructor-started
+    // preparation must never leave a rejected promise unobserved.
+    return this.preparationTask=this.providerRuntime?this.providerRuntime.load().then(warm,warm):warm();
   }
   private async create(mode: PlaybackMode, aid='auto', adaptation?:'flac'|'opus'|'flac24', forcePreparation=false, planId?:string, loadTimeoutMs?:number): Promise<Session> {
     let backend: Backend;

@@ -25,7 +25,8 @@ export function selectComponentBinding(resolution: RecipeResolution, baseline: s
 /** Execute a selected composition using existing scoped acquisition. A runtime
  * probe may remove a provider and trigger another admitted binding; an asset or
  * execution failure is terminal here and retains its identity for the plan owner.
- * Cost evidence is used only for the initial readiness snapshot. */
+ * Cost ranking is used only for the initial readiness snapshot. Resource-limit
+ * exclusions survive retries until a new execution supplies fresh evidence. */
 export async function executeComponentBinding<T>(
  acquisition: import('./provider-acquisition.js').ProviderAcquisition,
  recipe: import('./provider-resolution.js').ResolvableRecipe,
@@ -34,9 +35,18 @@ export async function executeComponentBinding<T>(
  execute: (bindingId: string) => Promise<T>,
  measurement?: Parameters<typeof selectComponentBinding>[2],
 ): Promise<{value: T; decision: CostDecision}> {
+ const excluded=new Set<string>();
  for(let attempt=0;attempt<=recipe.bindings.length;attempt++){
   const resolution=acquisition.resolve(recipe,evidence,scopeKey);
-  const decision=selectComponentBinding(resolution,baseline,attempt===0?measurement:undefined);
+  const failed=resolution.bindings.find(b=>b.state==='failed');if(failed?.state==='failed')throw failed.error;
+  const available=resolution.bindings.filter(b=>b.state==='available'||b.state==='pending');
+  if(available.length&&available.every(b=>excluded.has(b.bindingId)))throw new ComponentSelectionError('RUNTIME_BUDGET_EXCEEDED','Remaining available compositions were excluded by the measured runtime resource limits');
+  // Filter only the pure selection input. Acquisition still receives the
+  // original immutable resolution ticket issued for the current catalog.
+  const selection={...resolution,bindings:resolution.bindings.filter(b=>!excluded.has(b.bindingId))};
+  const selected=selectComponentBinding(selection,baseline,attempt===0?measurement:undefined);
+  for(const id of selected.excluded)excluded.add(id);
+  const decision={...selected,excluded:[...excluded]};
   await acquisition.acquire(resolution,decision.bindingId);
   const after=acquisition.resolve(recipe,evidence,scopeKey);
   const binding=after.bindings.find(b=>b.bindingId===decision.bindingId);

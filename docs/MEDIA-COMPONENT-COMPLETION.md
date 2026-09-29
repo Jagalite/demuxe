@@ -58,6 +58,12 @@ not measured, and policies requiring them preserve the baseline.
 
 ## Qualification and scope
 
+The review fixes preserve measured resource-limit exclusions across runtime
+availability retries, reject Matroska display dimensions that this mux cannot
+preserve (including omitted `DisplayUnit`), and report deployment preparation
+failures per asset without unhandled constructor promises. Regression and rebuilt
+package evidence is retained in `results/media-components/review-fixes/`.
+
 Evidence lives under `results/media-components/`:
 
 - `component-installed/`: installed TS-only copy, six fine/common repair cases,

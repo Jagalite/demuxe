@@ -25,6 +25,8 @@ const server=createServer(async(req,res)=>{
  if(!name){res.setHeader('Content-Type','text/html');res.end('<div id="host" style="width:320px;height:180px"></div>');return;}
  let file=name==='example.mp4'?path.join(root,'fixtures/example.mp4'):path.resolve(run,name);
  if(name!=='example.mp4'&&!file.startsWith(run+path.sep)){res.writeHead(400).end();return;}
+ if(fault==='invalid-manifest'&&name.endsWith('demuxe-providers.json')){res.end('{');return;}
+ if(fault==='slow-manifest'&&name.endsWith('demuxe-providers.json')){await new Promise(r=>setTimeout(r,300));if(res.destroyed)return;}
  if(fault==='missing-manifest'&&name.endsWith('demuxe-providers.json')){res.writeHead(404).end();return;}
  if(fault==='module-404'&&name.endsWith('web/generated/internal/wasm-player.js')){res.writeHead(404).end();return;}
  if(fault==='declared-404'&&name.endsWith('.wasm')){res.writeHead(404).end();return;}
@@ -39,6 +41,9 @@ const server=createServer(async(req,res)=>{
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let browser;
 const result={family,archives,run,cases:[],passed:false};
 const cases=[
+ {id:'prepare-missing-manifest',deployment:'core',options:{prepare:'all'},prepareOnly:true,fault:'missing-manifest',failure:'configured demuxe-providers.json'},
+ {id:'prepare-invalid-manifest',deployment:'core',options:{prepare:'all'},prepareOnly:true,fault:'invalid-manifest',failure:'Invalid provider deployment manifest'},
+ {id:'prepare-destroy',deployment:'core',options:{prepare:'all'},prepareOnly:true,destroyDuringPreparation:true,fault:'slow-manifest'},
  {id:'core-native',deployment:'core',fixture:'example.mp4',options:{mode:'native',nativeRemux:'never'},plan:'native-direct'},
  {id:'core-missing-mpv',deployment:'core',fixture:'example.mp4',options:{mode:'software'},code:'DEPLOYMENT_UNAVAILABLE'},
  {id:'ffmpeg-remux',deployment:'ffmpeg',fixture:'copy.mkv',options:{mode:'native',nativeRemux:'always'},plan:'native-remux'},
@@ -62,8 +67,16 @@ try{
   const errors=[];page.on('pageerror',e=>errors.push(String(e)));
   const sample=await page.evaluate(async c=>{
    const {Player,SoftwarePreviewProvider}=await import('/'+c.deployment+'/dist/index.js');
+   const unhandled=[];window.addEventListener('unhandledrejection',e=>{unhandled.push(String(e.reason));e.preventDefault();});
    const player=new Player(document.querySelector('#host'),{...c.options,assetBase:'/'+c.deployment+'/'});
    try{
+    if(c.prepareOnly){
+     if(c.destroyDuringPreparation)await player.destroy();
+     // Deliberately leave preparationReady unobserved for a task turn, just as
+     // constructor-only callers do. A catch attached immediately hides the bug.
+     await new Promise(r=>setTimeout(r,150));
+     const prepared=await player.preparationReady;return {prepared,unhandled,progress:player.preparationProgress};
+    }
     const prepared=c.prepare?await player.prepare('all'):undefined;
     const file=new File([await(await fetch('/'+c.fixture)).arrayBuffer()],c.fixture);
     await player.open(file);let preview;
@@ -81,7 +94,11 @@ try{
    finally{await player.destroy();}
   },c);
   result.cases.push({id:c.id,...sample,errors});console.log(c.id,JSON.stringify({plan:sample.plan,code:sample.code,message:sample.message,nonblack:sample.nonblack}));
-  if(c.code)assert.equal(sample.code,c.code,JSON.stringify(sample));else{assert.equal(sample.plan,c.plan,JSON.stringify(sample));assert.equal(sample.nonblack,true);assert.ok(sample.time>=0.5);}
+  if(c.prepareOnly){
+   assert.deepEqual(errors,[]);assert.deepEqual(sample.unhandled,[]);
+   if(c.destroyDuringPreparation)assert.deepEqual(sample.prepared.assets,[]);
+   else {assert.deepEqual(sample.prepared.assets.map(a=>[a.name,a.status]),['inspector','hybrid','software','font'].map(name=>[name,'failed']));assert.ok(sample.prepared.assets.every(a=>a.error.includes(c.failure)));assert.ok(sample.progress.every(a=>a.status==='failed'));}
+  }else if(c.code)assert.equal(sample.code,c.code,JSON.stringify(sample));else{assert.equal(sample.plan,c.plan,JSON.stringify(sample));assert.equal(sample.nonblack,true);assert.ok(sample.time>=0.5);}
   if(c.prepare)assert.deepEqual(sample.prepared.assets.map(a=>[a.name,a.status]),[['inspector','failed'],['hybrid','ready'],['software','ready'],['font','ready']]);
   if(c.preview){assert.equal(sample.preview.path,'software');assert.equal(sample.preview.nonblack,true);}
   const paths=requests.filter(r=>r.case===c.id).map(r=>r.path);

@@ -18,7 +18,8 @@ export declare function selectComponentBinding(resolution: RecipeResolution, bas
 /** Execute a selected composition using existing scoped acquisition. A runtime
  * probe may remove a provider and trigger another admitted binding; an asset or
  * execution failure is terminal here and retains its identity for the plan owner.
- * Cost evidence is used only for the initial readiness snapshot. */
+ * Cost ranking is used only for the initial readiness snapshot. Resource-limit
+ * exclusions survive retries until a new execution supplies fresh evidence. */
 export declare function executeComponentBinding<T>(acquisition: import('./provider-acquisition.js').ProviderAcquisition, recipe: import('./provider-resolution.js').ResolvableRecipe, evidence: readonly import('./provider-resolution.js').CompositionEvidence[], scopeKey: string, baseline: string, execute: (bindingId: string) => Promise<T>, measurement?: Parameters<typeof selectComponentBinding>[2]): Promise<{
     value: T;
     decision: CostDecision;

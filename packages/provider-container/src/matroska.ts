@@ -109,7 +109,10 @@ export class MatroskaReader {
      for (const group of [0xe0,0xe1]) if (fields.has(group)) {
       const g = fields.get(group)!;
       for await (const v of reader.elements(g.start,g.end)) {
-       if ([0x7670,0x53b8,0x54b2,0x54b3,0x54aa,0x54bb,0x54cc,0x54dd].includes(v.id))fail('Container presentation metadata requires another provider');
+       // Display dimensions can override pixel aspect even when DisplayUnit
+       // is omitted (its default is pixels). This mux profile does not carry
+       // display dimensions, so reject them rather than change presentation.
+       if ([0x7670,0x53b8,0x54b0,0x54ba,0x54b2,0x54b3,0x54aa,0x54bb,0x54cc,0x54dd].includes(v.id))fail('Container presentation metadata requires another provider');
        if(v.id===0x9a&&uint(await reader.bytes(v))!==2)fail('Interlaced video requires another provider');
        if(v.id===0x55b0){
         const colour={primaries:2,transfer:2,matrix:2,fullRange:false};

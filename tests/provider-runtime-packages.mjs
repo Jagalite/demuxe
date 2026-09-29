@@ -7,7 +7,7 @@ import {createServer} from 'node:http';
 import {chromium,firefox} from 'playwright';
 import {closeTestBrowser} from './head-to-head/browser-exit.mjs';
 const family=process.env.BROWSER??'chrome',root=process.cwd(),work=path.join(root,'build/runtime-provider-consumer',family+'-'+Date.now());
-const folders=['player-core-complete','provider-ffmpeg-jspi-complete','provider-ffmpeg-asyncify-complete','provider-ffmpeg-complete','provider-mpv-complete'];
+const folders=[process.env.CORE_PACKAGE??'player-core-review-fixes','provider-ffmpeg-jspi-complete','provider-ffmpeg-asyncify-complete','provider-ffmpeg-complete','provider-mpv-complete'];
 const archives=await Promise.all(folders.map(async f=>{const a=JSON.parse(await readFile('build/media-components/'+f+'/assembly.json','utf8'));a.archive=path.resolve(a.archive);return a;}));
 await mkdir(work,{recursive:true});await writeFile(path.join(work,'package.json'),JSON.stringify({name:'runtime-provider-consumer',private:true,type:'module',version:'1.0.0'}));
 execFileSync('npm',['install','--ignore-scripts','--no-audit','--no-fund','--package-lock=false',...archives.map(a=>a.archive)],{cwd:work,stdio:'pipe'});
