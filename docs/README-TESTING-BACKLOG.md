@@ -50,6 +50,7 @@ Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4
 | PCM24 audio-only / WAV | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy audio construction contract for pcm_s24… | [Evidence](../results/head-to-head/backlog-57-audio-pcm24-correctness/summary.json) |
 | PCM24 audio-only / WAV | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy audio construction contract for pcm_s24… | [Evidence](../results/head-to-head/backlog-57-audio-pcm24-correctness/summary.json) |
 | PCM24 audio-only / WAV | Movi | Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement | [Evidence](../results/head-to-head/backlog-57-audio-pcm24-cpu/summary.json) |
+| HEVC + TrueHD 7.1 / MKV | Auto | Error: Presentation cadence outside declared frame budget | [Evidence](../results/head-to-head/backlog-61-hevc-truehd-screened-cpu/summary.json) |
 
 ## Summary
 
@@ -57,15 +58,15 @@ Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Native | 4 | 7 | 0 | 35 | 2 |
 | Auto | 0 | 9 | 0 | 0 | 0 |
-| JSPI | 20 | 2 | 0 | 11 | 0 |
-| Asyncify | 20 | 1 | 0 | 11 | 0 |
-| Software | 0 | 20 | 0 | 0 | 0 |
+| JSPI | 19 | 2 | 0 | 11 | 0 |
+| Asyncify | 19 | 1 | 0 | 11 | 0 |
+| Software | 0 | 19 | 0 | 0 | 0 |
 | Movi | 4 | 15 | 0 | 55 | 0 |
 | AVPlayer | 4 | 9 | 0 | 30 | 0 |
-| MediaBunny | 20 | 0 | 0 | 15 | 0 |
-| Video.js | 20 | 2 | 0 | 26 | 0 |
+| MediaBunny | 19 | 0 | 0 | 16 | 0 |
+| Video.js | 19 | 2 | 0 | 27 | 0 |
 
-There are **92 untested cells** and **65 passing/screened cells without published CPU** (49 green passes and 16 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+There are **88 untested cells** and **64 passing/screened cells without published CPU** (48 green passes and 16 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
 
 ## 1. Requalify the four reset specialist rows
 

@@ -692,3 +692,16 @@ The original Video.js attempt received `application/octet-stream` because the ad
 | Software | 🟡 Screened* · 37.3% CPU | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; CPU rounds: 37.33%, 33.97%, 39.15%; CPU route: software |
 | AVPlayer | 🟡 Screened* · 37.6% CPU | Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified.; CPU rounds: 37.56%, 38.93%, 37.30%; CPU route: custom |
 | MediaBunny | 🟡 Screened* · 35.3% CPU | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters; CPU rounds: 36.07%, 35.32%, 18.37% |
+
+## Row 61: HEVC + TrueHD 7.1 / MKV
+
+[Correctness](../results/head-to-head/backlog-61-hevc-truehd-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-61-hevc-truehd-mediabunny-correctness/summary.json) · [CPU 1](../results/head-to-head/backlog-61-hevc-truehd-screened-cpu/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| Auto | 🟡 Screened* · CPU withheld | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; CPU withheld: Error: Presentation cadence outside declared frame budget |
+| JSPI | 🟡 Screened* · 23.7% CPU · forced-remux ref | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; observed routes: native-transcode; CPU rounds: 23.72%, 25.89%, 23.38%; CPU route: native-transcode |
+| Asyncify | 🟡 Screened* · 23.4% CPU · forced-remux ref | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; observed routes: native-transcode; CPU rounds: 23.43%, 15.22%, 25.67%; CPU route: native-transcode |
+| Software | 🟡 Screened* · 39.6% CPU | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; CPU rounds: 38.49%, 39.59%, 39.69%; CPU route: software |
+| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Open failed or downgraded: {"position":0,"duration":36,"frames":1,"audioStarts":0,"visible":true,"focused":true,"playerVisible":true,"errors":["Unsupported audio codec."],"audio":[{"channel":0,"rms":0,"hz":0},{"channel":1,"rms":0,"hz":0}]} |
