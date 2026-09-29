@@ -40,14 +40,17 @@ const browser=await(kind==='firefox'?firefox:chromium).launch({headless:true,...
 const result={passed:false,url:origin,browser:kind,browserVersion:browser.version(),scope:process.env.PAGES_ALLOW_PREVIEW==='1'?'local asset snapshot; not a clean release build':'assembled Pages site',trials:[],checks:[]};
 const hash=data=>createHash('sha256').update(data).digest('hex');
 let activePage;
+const browserEvents=[];
+browser.on('disconnected',()=>browserEvents.push('browser disconnected'));
 // Observe real output: native video frame callbacks, Wasm renderer counters,
 // changing surface screenshots, and non-silent PCM at the audio destination.
 async function observeOutput(page){
  await page.addInitScript(()=>{
   const originalConnect=AudioNode.prototype.connect,OriginalContext=window.AudioContext;
-  const analysers=[],tapped=new WeakSet(),media=new Set();
+  const analysers=[],tapped=new WeakSet(),media=new Set(),observerContexts=[];
   const now=()=>performance.now();
-  const probe=window.pagesProbe={started:null,openMs:null,videoMs:null,audioMs:null,videoEvidence:null,peakRms:0,videoFrames:0};
+  const probe=window.pagesProbe={started:null,openMs:null,videoMs:null,audioMs:null,videoEvidence:null,peakRms:0,videoFrames:0,
+   closeObservers:()=>Promise.all(observerContexts.splice(0).map(context=>context.close()))};
   function tap(node){
    if(tapped.has(node))return;tapped.add(node);
    const analyser=node.context.createAnalyser();analyser.fftSize=2048;
@@ -65,7 +68,7 @@ async function observeOutput(page){
     if(element.requestVideoFrameCallback){
      const frame=()=>{if(probe.started!==null&&element.isConnected&&surface.contains(element)){probe.videoFrames++;probe.videoMs??=now()-probe.started;probe.videoEvidence='requestVideoFrameCallback';}element.requestVideoFrameCallback(frame);};element.requestVideoFrameCallback(frame);
     }
-    try{const context=new OriginalContext(),source=context.createMediaElementSource(element);source.connect(context.destination);void context.resume();}catch(error){probe.audioObserverError=String(error);}
+    try{const context=new OriginalContext(),source=context.createMediaElementSource(element);observerContexts.push(context);source.connect(context.destination);void context.resume();}catch(error){probe.audioObserverError=String(error);}
    }
    if(probe.started===null)return;
    const player=window.player;
@@ -80,8 +83,10 @@ try{
  const harness=await readFile(import.meta.filename);result.testHarnessSHA256=hash(harness);await writeFile(`${out}/harness.mjs`,harness);
  for(const mode of ['native','hybrid','software'])for(let trial=1;trial<=trials;trial++){
   const context=await browser.newContext({viewport:{width:1280,height:900},reducedMotion:'reduce'});
+  const pageEvents=[];
   try{
    const page=activePage=await context.newPage();page.setDefaultTimeout(60000);
+   page.on('crash',()=>pageEvents.push('page crashed'));page.on('close',()=>pageEvents.push('page closed'));
    const errors=[],badRequests=[];
    page.on('pageerror',e=>errors.push(String(e)));
    page.on('request',request=>{if(/^https?:/.test(request.url())&&(request.method()!=='GET'||!request.url().startsWith(origin)))badRequests.push({url:request.url(),method:request.method()});});
@@ -135,13 +140,15 @@ try{
    assert.equal(await page.evaluate(()=>player.state.error),null);
    const range=await page.evaluate(async()=>{const response=await fetch('./fixtures/example.mp4',{headers:{Range:'bytes=10-29'}});return {status:response.status,length:(await response.arrayBuffer()).byteLength};});
    assert.deepEqual(range,{status:206,length:20});
+   await page.evaluate(async()=>{await document.querySelector('demuxe-player').close();await pagesProbe.closeObservers();});
+   assert.equal(await page.evaluate(()=>player.state.sourceId),null);
    const returningStart=performance.now();await page.reload();await page.waitForFunction(()=>crossOriginIsolated&&window.player);
    const returningReadyMs=performance.now()-returningStart;
    assert.deepEqual(errors,[]);assert.deepEqual(badRequests,[]);
    result.trials.push({mode,trial,navigationReadyMs,returningReadyMs,...initial,seekMs,surfaceHashes:[hash(first),hash(second),hash(seekImage)]});
    console.log('PASS',mode,trial,JSON.stringify({navigationReadyMs,firstVideoMs:initial.videoMs,firstAudioMs:initial.audioMs,seekMs}));
   }catch(error){
-   result.failedTrial={mode,trial,state:await activePage?.evaluate(()=>({probe:window.pagesProbe,state:window.player?.state,diagnostics:window.player?.diagnostics})).catch(()=>null)};
+   result.failedTrial={mode,trial,pageEvents,browserEvents,state:await activePage?.evaluate(()=>({probe:window.pagesProbe,state:window.player?.state,diagnostics:window.player?.diagnostics})).catch(()=>null)};
    await activePage?.screenshot({path:`${out}/failure.png`,fullPage:true}).catch(()=>{});
    throw error;
   }finally{await context.close();activePage=undefined;}
