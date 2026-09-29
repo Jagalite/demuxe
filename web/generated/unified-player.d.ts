@@ -13,6 +13,7 @@ export declare class Player extends EventTarget {
     private previewSource?;
     readonly ready: Promise<void>;
     private assetBase;
+    private providerRuntime?;
     private buffering;
     private stateSnapshot;
     private subscribers;

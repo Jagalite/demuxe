@@ -18,4 +18,5 @@ export declare class SoftwarePreviewProvider implements PreviewProvider {
     constructor(source: () => SoftwarePreviewSource | undefined, document: Document, assetBase: URL, limits?: ResourceLimits);
     canHandle(): boolean;
     getFrame(request: PreviewContext): Promise<PreviewResult | null>;
+    private frame;
 }

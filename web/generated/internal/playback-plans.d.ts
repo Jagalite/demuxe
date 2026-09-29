@@ -1158,7 +1158,7 @@ export type PlanFacts = {
 export declare function planAdmission(f: PlanFacts): {
     code?: PlanRejectionCode | undefined;
     reason?: string | undefined;
-    id: "hybrid" | "software" | "native-video-mpv-audio" | "native-flac" | "native-opus" | "native-direct" | "native-remux" | "native-transcode-mpv" | "shaka-mse" | "native-direct-mpv" | "native-remux-mpv" | "native-direct-gain" | "shaka-mse-gain" | "native-remux-gain" | "native-flac-gain" | "native-direct-ass" | "native-direct-ass-gain" | "native-remux-ass" | "native-remux-ass-gain" | "native-flac-ass" | "native-flac-ass-gain" | "native-opus-gain" | "native-transcode-ass" | "native-transcode" | "native-video-mpv-audio-subtitles" | "hybrid-audio-filter" | "hybrid-gain" | "hybrid-audio-filter-gain" | "software-gain";
+    id: "hybrid" | "software" | "native-direct-mpv" | "native-direct" | "native-remux-mpv" | "native-remux" | "native-direct-gain" | "shaka-mse" | "shaka-mse-gain" | "native-remux-gain" | "native-flac" | "native-flac-gain" | "native-direct-ass" | "native-direct-ass-gain" | "native-remux-ass" | "native-remux-ass-gain" | "native-flac-ass" | "native-flac-ass-gain" | "native-opus" | "native-opus-gain" | "native-transcode-mpv" | "native-transcode-ass" | "native-transcode" | "native-video-mpv-audio" | "native-video-mpv-audio-subtitles" | "hybrid-audio-filter" | "hybrid-gain" | "hybrid-audio-filter-gain" | "software-gain";
     mode: "native" | "hybrid" | "software";
     eligible: boolean;
 }[];

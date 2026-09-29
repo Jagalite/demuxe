@@ -27,7 +27,8 @@
         "Apache-2.0",
         "LGPL-2.1-or-later",
         "MIT",
-        "CC-BY-4.0"
+        "CC-BY-4.0",
+        "LicenseRef-Native-Dependencies"
       ],
       "requiredFiles": [
         "LICENSE",
@@ -38,7 +39,8 @@
         "source-companion.json",
         "LGPL-RELINK.md",
         "LICENSES/LGPL-2.1-or-later.txt",
-        "LICENSES/MIT-private-ffmpeg.txt"
+        "LICENSES/MIT-private-ffmpeg.txt",
+        "LICENSES/Native-Dependencies.txt"
       ],
       "template": "packages/provider-ffmpeg/package.json"
     },
@@ -53,7 +55,9 @@
         "Apache-2.0",
         "LGPL-2.1-or-later",
         "MIT",
-        "CC-BY-4.0"
+        "CC-BY-4.0",
+        "LicenseRef-DejaVuSans",
+        "LicenseRef-Native-Dependencies"
       ],
       "requiredFiles": [
         "LICENSE",
@@ -64,12 +68,27 @@
         "source-companion.json",
         "LGPL-RELINK.md",
         "LICENSES/LGPL-2.1-or-later.txt",
-        "LICENSES/MIT-private-mpv.txt"
+        "LICENSES/MIT-private-mpv.txt",
+        "LICENSES/DejaVuSans.txt",
+        "LICENSES/Native-Dependencies.txt"
       ],
       "template": "packages/provider-mpv/package.json"
     }
   },
   "ownershipRules": [
+    {
+      "owner": "ffmpeg",
+      "paths": [
+        "docs/PROVIDER-RELINK.md"
+      ]
+    },
+    {
+      "owner": "core",
+      "paths": [
+        "packages/provider-ffmpeg/index.*",
+        "packages/provider-mpv/index.*"
+      ]
+    },
     {
       "owner": "ffmpeg",
       "paths": [
@@ -83,7 +102,17 @@
         "web/engine-remux-*/*",
         "web/engine-adaptation/*",
         "web/engine-adaptation-*/*",
-        "docs/LGPL-RELINK.md"
+        "docs/LGPL-RELINK.md",
+        "web/native-remux-player.js",
+        "web/worker-remux-controller.js",
+        "web/native-mse-worker.js",
+        "web/native-remux-worker.js",
+        "web/native-remux-source-worker.js",
+        "web/source-probe.js",
+        "web/progressive-mp4.js",
+        "web/split-mp4.js",
+        "web/remux-packaging.js",
+        "web/hybrid-preflight.js"
       ]
     },
     {
@@ -105,7 +134,27 @@
         "web/engine-subtitles/*",
         "web/engine-mpv-*/*",
         "web/engine-software-*/*",
-        "src/player.ts"
+        "src/player.ts",
+        "web/audio-worklet.js",
+        "web/selective-sync-worklet.js",
+        "web/filter-retained-engine-worker.js",
+        "web/retained-decoder-worker.js",
+        "web/external-video-decoder.js",
+        "web/video-presenter.js",
+        "web/webgl-yuv-presenter.js",
+        "web/retained-video.js",
+        "web/subtitle-overlay.js",
+        "web/software-full-engine-worker.js",
+        "web/io-worker.js",
+        "web/yuv-presenter.js",
+        "web/browser-decoder-worker.js",
+        "web/webgpu/runtime.js",
+        "web/webgpu/mailbox-service.js",
+        "web/webgpu/presenter.js",
+        "web/webgpu/diagnostics.js",
+        "web/webgpu/codecs/registry.js",
+        "web/webgpu/codecs/adapter.js",
+        "fixtures/DejaVuSans.ttf"
       ]
     },
     {
@@ -176,7 +225,15 @@
         "web/selected-mp4-view.js",
         "web/range-reader.js",
         "packages/player-core/dist/index.js",
-        "packages/player-core/dist/index.d.ts"
+        "packages/player-core/dist/index.d.ts",
+        "src/internal/provider-build.ts",
+        "src/internal/provider-runtime.ts",
+        "web/file-reader.js",
+        "web/resource-loader.js",
+        "web/fallback-stream-policy.js",
+        "web/prepared-engine.js",
+        "web/video-codec-config.js",
+        "licensing/provider-runtime-qualification.json"
       ]
     }
   ],
@@ -201,6 +258,16 @@
       "source": "web/private-mpv/LICENSE.txt",
       "sha256": "0b91e5a884ee54854c45525e0c7af6f10b80a476cad19c8c876ab1c8f0ccb2ae",
       "license": "MIT"
+    },
+    "LICENSES/DejaVuSans.txt": {
+      "source": "LICENSES/DejaVuSans.txt",
+      "sha256": "4d0644fe20b43d078496305a2c178620ceb71d257e0f623f1bdf07c4561bddd8",
+      "license": "LicenseRef-DejaVuSans"
+    },
+    "LICENSES/Native-Dependencies.txt": {
+      "source": "LICENSES/Native-Dependencies.txt",
+      "sha256": "1db735ba50e7a1955b04b809f6318bd21da8a37eeabd69ef508888fd969975e9",
+      "license": "LicenseRef-Native-Dependencies"
     }
   },
   "playerCoreSources": [
@@ -269,7 +336,14 @@
     "web/selected-mp4-view.js",
     "web/range-reader.js",
     "packages/player-core/dist/index.js",
-    "packages/player-core/dist/index.d.ts"
+    "packages/player-core/dist/index.d.ts",
+    "src/internal/provider-build.ts",
+    "src/internal/provider-runtime.ts",
+    "web/file-reader.js",
+    "web/resource-loader.js",
+    "web/fallback-stream-policy.js",
+    "web/prepared-engine.js",
+    "web/video-codec-config.js"
   ],
   "playerCoreComputedImports": {
     "src/unified-player.ts": [
@@ -288,5 +362,72 @@
       "new URL('web/range-reader.js',base).href",
       "new URL('web/fast-source-inspector.js',base).href"
     ]
+  },
+  "profiles": {
+    "ffmpeg": {
+      "files": [
+        "web/native-remux-player.js",
+        "web/worker-remux-controller.js",
+        "web/native-mse-worker.js",
+        "web/native-remux-worker.js",
+        "web/native-remux-source-worker.js",
+        "web/source-probe.js",
+        "web/progressive-mp4.js",
+        "web/split-mp4.js",
+        "web/remux-packaging.js",
+        "web/hybrid-preflight.js"
+      ],
+      "engines": [
+        "web/engine-remux/remux.mjs",
+        "web/engine-remux/remux.wasm"
+      ],
+      "providers": [
+        "ffmpeg-file-preparation"
+      ],
+      "generated": []
+    },
+    "mpv": {
+      "files": [
+        "web/audio-worklet.js",
+        "web/selective-sync-worklet.js",
+        "web/filter-retained-engine-worker.js",
+        "web/retained-decoder-worker.js",
+        "web/external-video-decoder.js",
+        "web/video-presenter.js",
+        "web/webgl-yuv-presenter.js",
+        "web/retained-video.js",
+        "web/subtitle-overlay.js",
+        "web/software-full-engine-worker.js",
+        "web/io-worker.js",
+        "web/yuv-presenter.js",
+        "web/browser-decoder-worker.js",
+        "web/webgpu/runtime.js",
+        "web/webgpu/mailbox-service.js",
+        "web/webgpu/presenter.js",
+        "web/webgpu/diagnostics.js",
+        "web/webgpu/codecs/registry.js",
+        "web/webgpu/codecs/adapter.js",
+        "fixtures/DejaVuSans.ttf"
+      ],
+      "engines": [
+        "web/engine-hybrid/player.mjs",
+        "web/engine-hybrid/player.wasm",
+        "web/engine-selective/player.mjs",
+        "web/engine-selective/player.wasm",
+        "web/engine-software-full/player.mjs",
+        "web/engine-software-full/player.wasm",
+        "web/engine-software-yuv/player.mjs",
+        "web/engine-software-yuv/player.wasm"
+      ],
+      "providers": [
+        "mpv-hybrid",
+        "mpv-software",
+        "mpv-selected-audio"
+      ],
+      "generated": [
+        "web/generated/internal/wasm-player.js",
+        "web/generated/internal/native-mpv-audio.js"
+      ]
+    }
   }
 }

@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Qualified media components: implementation plan and review
 
-Status: reviewed plan with source implementation in progress on `modular-media-providers`. The user subsequently authorized implementation, then testing. Focused build, regression, licensing and Native/Shaka browser checks pass; full runtime and distribution qualification remain incomplete. See [worktree status](MEDIA-COMPONENT-WORKTREE-STATUS.md) for commands and remaining gates. Benchmarks remain deferred. Implementation started from committed baseline `d8a6c65a`; the user later authorized integration of the original checkout through `a97314ba` plus its current tracked/untracked work and runtime assets. See the [integration record](MEDIA-COMPONENT-INTEGRATION.md).
+Status: current broad-provider delivery implemented and browser-tested on `modular-media-providers`. Consolidation checkpoint `ea98201f` contains the original authorized work and assets; the loader/distribution continuation completes the bounded current-FFmpeg/mpv slice. See [current worktree status](MEDIA-COMPONENT-WORKTREE-STATUS.md) for exact behavior, artifacts and validation. Legacy routing and the public Player API remain unchanged. New codec/TS providers, private-runtime package qualification, cost-based preference and publication remain explicit future work. The sections below retain the reviewed design and migration rationale.
 
 ## Decision and scope
 
@@ -289,7 +289,7 @@ Run the build and relevant maintained suites for each implementation slice; broa
 | Missing optional providers could be mislabeled as unsupported media or assumed present for fallback | Resolve explicit deployment facts per admitted candidate; preserve typed deployment exhaustion and available-provider-only fallback |
 | Separate package names could conceal LGPL/provider code inside core bundles | Enforce ownership and license closure on inputs, generated outputs, dependency graphs and exact packed tarballs |
 
-Review conclusion: proceed with steps 0–1 as the first implementation slice. The design needs no new media binary and no general graph executor. Steps 2–4 are gated behavior-preserving migrations, not permission to widen routing. Main remaining uncertainty is whether metadata consolidation materially reduces scattered construction logic; reassess after step 2 before adding more abstraction.
+Review conclusion: the current-engine slice now implements the finite recipe model, deployment-aware acquisition and independent audited packages without a new media binary or general graph executor. Actual reduced-deployment browser tests preserve admitted plan order and verify output. The abstractions stop at existing lifecycle boundaries; new codec/module compositions still require explicit qualification. The wider cost-ranking design is not activated by this implementation.
 
 ## Source references
 

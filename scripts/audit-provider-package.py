@@ -99,6 +99,46 @@ def local_sha(path):
     return digest.hexdigest()
 
 
+def verify_corresponding_source(companion, engine, record, profile):
+    """Inspect the companion itself, not only a self-declared archive hash."""
+    observed = {}; source_manifest = None; native_record = None; total = 0
+    with tarfile.open(local_file(companion['repositoryPath']), 'r|gz') as archive:
+        for entry in archive:
+            safe_path(entry.name)
+            if not entry.isreg() or entry.name in observed or len(observed)>20000:
+                raise ValueError('Invalid corresponding-source archive entry')
+            total += entry.size
+            if entry.size>256*1024*1024 or total>1024*1024*1024:
+                raise ValueError('Corresponding-source archive exceeds budget')
+            stream=archive.extractfile(entry)
+            data=stream.read();observed[entry.name]=sha(data)
+            if entry.name=='source-manifest.json':source_manifest=json.loads(data)
+            if entry.name=='engine-build.json':native_record=json.loads(data)
+    if not source_manifest or native_record!=engine:
+        raise ValueError('Missing or mismatched source engine evidence')
+    observed.pop('source-manifest.json',None)
+    if observed!=source_manifest['files']:
+        raise ValueError('Corresponding-source inventory differs from archive bytes')
+    excluded={'build/subtitle-service/link-command.json','build/subtitle-service/manifest.json','build/link-maps/subtitles.map'}
+    if set(source_manifest.get('excludedConfigurations',[]))!=excluded:
+        raise ValueError('Unreviewed native configuration exclusion')
+    for group,prefix in [('inputs','demuxe/'),('sdkSources','toolchain/emscripten/'),('configurations','build-materials/')]:
+        for path,digest in engine[group].items():
+            if group=='configurations' and path in excluded:continue
+            if observed.get(prefix+path)!=digest:raise ValueError('Missing matching preferred source/configuration: '+path)
+    for name,digest in engine['sources'].items():
+        if observed.get('demuxe/build/downloads/'+name+'.tar.gz')!=digest:raise ValueError('Missing locked upstream source: '+name)
+    for path in profile['engines']:
+        packed='runtime/'+path
+        if record['files'][packed]['sha256']!=engine['artifacts'][path]['sha256']:
+            raise ValueError('Packaged engine differs from native build record: '+path)
+    for name,item in record['files'].items():
+        if (name.startswith('runtime/') or name.startswith('dist/')) and name[len('runtime/'):] not in profile['engines']:
+            for source in item['inputs']:
+                if observed.get('application/'+source)!=record['sources'][source]['sha256']:
+                    raise ValueError('Missing matching application source: '+source)
+
+
 def audit(target, files, record):
     policy = Policy()
     config = json.loads((ROOT / 'licensing/provider-packages.json').read_text())
@@ -194,12 +234,18 @@ def audit(target, files, record):
         # a separate mandatory release gate, not replaced by this tarball audit.
         if local_sha(companion['repositoryPath']) != companion['sha256'] or companion != record.get('sourceCompanion'):
             raise ValueError('Provider source companion differs')
+        verify_corresponding_source(companion, engine, record, config['profiles'][target])
         if manifest.get('package') != spec['npmName'] or manifest.get('version') != metadata['version'] or manifest.get('providerContractVersion') != 1:
             raise ValueError('Provider manifest identity/contract mismatch')
         if manifest.get('compatibleCore') != metadata.get('peerDependencies', {}).get('demuxe'):
             raise ValueError('Provider/core compatibility declarations differ')
         if not manifest.get('provides') or not manifest.get('artifacts'):
             raise ValueError('Provider manifest has no capabilities/assets')
+        if set(manifest['artifacts'])!={name for name in files if name.startswith('runtime/')}:
+            raise ValueError('Provider manifest must bind every runtime artifact')
+        identity='sha256:'+sha((json.dumps(manifest['artifacts'],indent=2,sort_keys=True)+'\n').encode())
+        if any(p['implementationIdentity']!=identity for p in manifest['provides']):
+            raise ValueError('Provider identity does not bind its runtime asset set')
         for path, digest in manifest['artifacts'].items():
             if path not in files or sha(files[path]) != digest:
                 raise ValueError('Provider manifest artifact mismatch: ' + path)

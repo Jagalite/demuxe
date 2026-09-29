@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import type {ProviderRuntimeAssets} from './provider-runtime.js';
 import {runtimeWorker} from './runtime-worker.js';
 import {bufferingPolicy, resolveBuffering, mpvBufferingOptions} from './buffering.js';
 import type {BufferingPolicy, BufferingResolution} from '../types.js';
@@ -58,7 +59,7 @@ export class WasmPlayer extends EventTarget {
   properties = new Map<string, unknown>();
   readonly ready: Promise<void>;
 
-  constructor(canvas:HTMLCanvasElement, {prepared,buffering=bufferingPolicy(),disableBrowserCodecs=false,measureOutput=false,mode='software',softwarePresenter='auto',audioOutput='stereo',audioFallback='stereo',resourceLimits={},fonts=[],assetBase=new URL('../../../',import.meta.url),decodeQuality='exact',adaptiveFrameDrop=false,videoTrack,webgpuDecodeIntent}: {prepared?:{module?:WebAssembly.Module;font?:ArrayBuffer};buffering?:BufferingPolicy;assetBase?:URL;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';resourceLimits?:ResourceLimits;fonts?:FontAsset[];disableBrowserCodecs?:boolean;measureOutput?:boolean;mode?:'hybrid'|'software'|'selective-audio';softwarePresenter?:'auto'|'rgb'|'experimental-yuv';decodeQuality?:DecodeQuality;adaptiveFrameDrop?:boolean;videoTrack?:{codec:string;codecString?:string;webCodecsSupported?:boolean;width?:number;height?:number};webgpuDecodeIntent?:Partial<ExternalDecodeIntent>}={}) {
+  constructor(canvas:HTMLCanvasElement, {providerAssets,prepared,buffering=bufferingPolicy(),disableBrowserCodecs=false,measureOutput=false,mode='software',softwarePresenter='auto',audioOutput='stereo',audioFallback='stereo',resourceLimits={},fonts=[],assetBase=new URL('../../../',import.meta.url),decodeQuality='exact',adaptiveFrameDrop=false,videoTrack,webgpuDecodeIntent}: {providerAssets?:ProviderRuntimeAssets;prepared?:{module?:WebAssembly.Module;font?:ArrayBuffer};buffering?:BufferingPolicy;assetBase?:URL;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';resourceLimits?:ResourceLimits;fonts?:FontAsset[];disableBrowserCodecs?:boolean;measureOutput?:boolean;mode?:'hybrid'|'software'|'selective-audio';softwarePresenter?:'auto'|'rgb'|'experimental-yuv';decodeQuality?:DecodeQuality;adaptiveFrameDrop?:boolean;videoTrack?:{codec:string;codecString?:string;webCodecsSupported?:boolean;width?:number;height?:number};webgpuDecodeIntent?:Partial<ExternalDecodeIntent>}={}) {
     super();this.buffering=buffering;this.audioOnly=mode==='selective-audio';
     if(!crossOriginIsolated) throw new Error('This player requires a secure, cross-origin isolated page.');
     this.audioContext = new AudioContext({latencyHint:'interactive'});
@@ -92,7 +93,12 @@ export class WasmPlayer extends EventTarget {
       };
       this.worker.onerror=workerFailure;this.worker.onmessageerror=workerFailure;
       this.worker.onmessage = ({data}) => {
-        if(data.type==='ready') {clearTimeout(timeout);this.browserCodecsAbsent=data.browserCodecsAbsent;this.sendTiming(true);resolve();}
+        if(data.type==='provider-module') {
+          const path=data.path;
+          if(!providerAssets||!['web/engine-software-full/player.wasm','web/engine-software-yuv/player.wasm'].includes(path)) {this.worker.postMessage({type:'provider-module',error:'Unexpected provider engine request'});return;}
+          void providerAssets.module(path).then(module=>{if(!this.destroyed)this.worker.postMessage({type:'provider-module',module});},error=>{if(!this.destroyed)this.worker.postMessage({type:'provider-module',error:String(error)});});
+        }
+        else if(data.type==='ready') {clearTimeout(timeout);this.browserCodecsAbsent=data.browserCodecsAbsent;this.sendTiming(true);resolve();}
         else if(data.type==='error') {clearTimeout(timeout);const error=data.assetFailure?new PlayerError('ASSET_LOAD_FAILED',data.message):data.decoderTimeout?new PlayerError('NETWORK_TIMEOUT',data.message,null,null,'operation',true):data.decoderFailure?new PlayerError('DECODE_FAILED',data.message):new Error(data.message);reject(isPlayerError(error)?error:new PlayerError('ASSET_LOAD_FAILED','Playback engine initialization failed: '+error.message,null,null,'operation',true));this.fail(error,data.id);}
         else if(data.type==='destroyed') {if(this.diagnostics){this.diagnostics.decoderStats=data.decoderStats;if(data.presentation)this.diagnostics.presentation=data.presentation;}this.onDestroyed?.();}
         else if(data.type==='refresh'){void this.refreshAuthorization?.(data.resource).then(update=>{if(!this.destroyed)this.worker.postMessage({type:'refreshed',id:data.id,update});},()=>{if(!this.destroyed)this.worker.postMessage({type:'refreshed',id:data.id,error:true});});}
@@ -143,7 +149,7 @@ export class WasmPlayer extends EventTarget {
         }
         const offscreen=canvas.transferControlToOffscreen();
         this.initSent=true;
-        this.worker.postMessage({type:'init',decoderOutputWatchdog:this.watchdogs.decoderOutput,compiledWasm:prepared?.module,canvas:offscreen,audio,font,fonts,audioChannels:this.outputChannels,maxDecodePixels:resourceLimits.maxDecodePixels,maxAllocationBytes:resourceLimits.maxAllocationBytes,sampleRate:this.audioContext.sampleRate,disableBrowserCodecs,measureOutput,decoder,softwarePresenter,decoderFaultAfter:0,decodeQuality,decodePolicy,adaptiveFrameDrop,videoTrack,...(selectedDecodeIntent?{webgpuDecodeIntent:selectedDecodeIntent}:{}),displayWidth:canvas.width,displayHeight:canvas.height},[offscreen,font]);
+        this.worker.postMessage({type:'init',decoderOutputWatchdog:this.watchdogs.decoderOutput,compiledWasm:prepared?.module,verifiedProviderAssets:!!providerAssets,canvas:offscreen,audio,font,fonts,audioChannels:this.outputChannels,maxDecodePixels:resourceLimits.maxDecodePixels,maxAllocationBytes:resourceLimits.maxAllocationBytes,sampleRate:this.audioContext.sampleRate,disableBrowserCodecs,measureOutput,decoder,softwarePresenter,decoderFaultAfter:0,decodeQuality,decodePolicy,adaptiveFrameDrop,videoTrack,...(selectedDecodeIntent?{webgpuDecodeIntent:selectedDecodeIntent}:{}),displayWidth:canvas.width,displayHeight:canvas.height},[offscreen,font]);
         this.timing=setInterval(()=>this.sendTiming(),20);
         this.sendTiming();
       })().catch(error=>{clearTimeout(timeout);reject(new PlayerError('ASSET_LOAD_FAILED','Playback engine initialization failed: '+String(error),null,null,'operation',true));});

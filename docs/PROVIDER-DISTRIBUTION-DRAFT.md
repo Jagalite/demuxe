@@ -1,97 +1,145 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
-# Provider distribution implementation and release gates
+# Modular provider distribution
 
-The media-component branch now builds and audits a real, provider-free Apache Player core tarball. A clean consumer installs it without provider dependencies, type-checks every public entry point, imports it without DOM/network activity, bundles it without mpv/FFmpeg code, and plays native media with both bundled and unbundled entry points. Optional engine package assembly is implemented but requires reviewed matching engine/source/relink inventories; no optional engine npm archive has been assembled or published. See [validation status](MEDIA-COMPONENT-WORKTREE-STATUS.md). Existing legacy and utility-core packaging are unchanged. Source templates remain private with failing prepack guards.
+The branch assembles three independently licensed local npm artifacts from the
+same monorepo: Apache `demuxe`, `@demuxe/provider-ffmpeg`, and
+`@demuxe/provider-mpv`. The public Player API is unchanged. Raw package templates
+remain private and refuse `npm pack`; the audited assemblers produce the actual
+packages with explicit exports and no install scripts. Nothing is published.
 
-## Publish targets
+The original source/legacy distribution keeps its existing routing behavior.
+Only the modular core assembler enables explicit deployment catalogs. Its
+maintained build registry is pinned to browser evidence and core source hashes;
+changed source requires explicit candidate assembly and renewed validation.
 
-- `packages/player-core`: `demuxe` Player core, Apache-2.0; locally assembled and tested, not release-qualified.
-- `packages/provider-ffmpeg`: future FFmpeg implementation package with its own build/notice metadata.
-- `packages/provider-mpv`: future mpv/FFmpeg implementation package with its own build/notice metadata.
+## Capabilities, implementations and packaging
 
-Templates use the current version initially, but versions and compatible core ranges are declared independently. Provider contract version is 1. Do not remove private/prepack safeguards or publish placeholder exports before actual extraction and qualification. Current license expressions describe intended wrapper, engine, bridge and documentation materials; exact artifact maps/build records must match. Future providers require their own reviewed metadata.
+`PLAYBACK_PLANS` remains ordered policy and qualification. The 29 finite
+`execution-recipes.ts` entries describe existing complete compositions and
+lifecycle owners. Source, selected tracks/features and runtime admission still
+run first. A package cannot introduce a composition or qualify itself.
 
-`licensing/provider-packages.json` defines independent ownership policy. A provider-owned Apache/MIT adapter cannot enter core merely because its license is permissive. Unknown inputs fail closed. The separate `playerCoreSources` allowlist names every input of the full Player core. Provider types may be used during compilation, but no provider implementation import, public declaration reference or provider-owned input may enter its output. The original utility-core allowlist remains unchanged.
+Capability requests contain `{capability, version, profile}`. Providers describe
+technology, delivery, implementation identity, offered contracts and asset
+closures. Logical roles do not imply separate files: a native implementation,
+bundled JS/TS, one fine-grained Wasm file or a shared bundle can satisfy an
+explicitly qualified binding. The current packages retain broad FFmpeg and
+atomic mpv implementations. They do not advertise independent codec APIs that
+those implementations cannot currently expose.
 
-## Deployment catalog
+The FFmpeg package currently offers packet-copy and video-only preparation using
+the matching pthread remux build. The mpv package provides Hybrid, full Software
+and selected-audio services. It includes both Software presenters but loads only
+the selected engine. Private JSPI/Asyncify, audio adaptation and standalone
+subtitle services remain available in the legacy checkout; they are not included
+in these packages without matching provider provenance and qualification.
 
-`parseProviderDeployment(value, assetBase)` accepts:
+Fine and bundled future builds should compile the same implementation sources
+with different export/link sets. Qualification must bind the complete composition,
+ABI, build identities, selected source/tracks and runtime; common implementation
+unit tests are reusable, while each physical variant still needs integration,
+asset, cancellation and output evidence. No independent codec combination becomes
+automatic merely because all its individual providers exist.
 
-```text
-schema: 1
-providerContractVersion: 1
-revision: <deployment identity>
-assets: [{id, path, sha256, bytes, dependencies: [asset IDs]}]
-providers: [{
-  id, implementationIdentity, technology,
-  delivery: [browser | application-bundle | optional-assets],
-  applicationBuild: <required for application-bundle>,
-  offers: [{capability, version, profile}],
-  assetIds: [asset IDs], packageName: <optional npm name>
-}]
-```
+## Explicit deployment
 
-Paths resolve under one existing asset root. Independent package roots need a reviewed deployment mapping before integration. Missing/cyclic dependencies, traversal/encoded paths and incompatible contracts reject. Parsing performs no I/O and grants no qualification. Declared providers start configured-unverified; omitted providers are absent from this explicit catalog. Availability observations must match deployment revision and implementation identity.
-
-Implementation identity must bind actual build/interface/runtime, not just npm version. Build tooling and loaders must verify that binding; parsing a string is not artifact verification. Application-build identity and asset hashes are retained for acquisition/evidence. The acquisition owner contract now verifies requested asset bytes. The existing media service loaders remain responsible for runtime/ABI checks; they are not yet driven by the deployment catalog.
-
-`nextProviderPlan` consumes already-admitted, mode-filtered candidates in caller order. It requires maintained per-scope evidence for complete binding sets. Pending acquisition holds the candidate; omissions permit the next admitted plan; terminal acquisition errors stop. Exhaustion reports missing qualified provider requirements. This stage is not connected to production discovery yet.
-
-## Exact archive audit
-
-`scripts/audit-provider-package.py` takes a target, npm tarball, reviewed build inventory and independently supplied inventory SHA-256. It does not extract, install or publish. Nine archive/assembly regressions pass, alongside the actual core artifact audit and clean consumer.
-
-Inventory schema:
-
-```text
-schema: 1
-target: core | ffmpeg | mpv
-sources: {repository/path: {sha256}}
-files: {package/path: {
-  sha256, kind: code | metadata | notice | asset,
-  licenses: [exact SPDX identifiers],
-  inputs: [complete repository-relative input closure]
-}}
-engineBuildRecord: <exact engine-build.json for provider targets>
-sourceCompanion: {repositoryPath, sha256, ...matching-source metadata}
-```
-
-The packed license map covers every filename with its license list. The external inventory hashes final bytes, avoiding a self-hashing manifest. Provider manifests identify package/version, provider contract version, compatible core range, capabilities and asset hashes.
-
-The auditor checks exact file sets/hashes, canonical paths, regular-file-only tar entries, resource budgets, metadata/exports, source hashes, ownership, license closure and pinned notice bytes. Core has no provider dependencies/install scripts and no source maps until an embedded-source audit exists. Providers require matching engine/source-companion records. Existing engine/relink verifiers remain mandatory.
-
-Input closure is trusted release-build evidence. The auditor cannot prove a compiler/bundler reported every input; closure generation and release review must establish that evidence. It intentionally rejects unclassified vendor/build inputs until ownership and provenance are reviewed. This is an additional release gate, not a claim of completed compliance or package separation.
-
-## Acquisition and service boundaries
-
-`ProviderAcquisition` owns one attempted execution scope, not a global runtime cache. A trusted application supplies implementation owners matching configured build identities. Missing owners are explicit deployment gaps. Native probes and bundled JS owners can prepare without network requests. An owner requests only assets in its declared dependency closure; acquisition checks a bounded streamed response, exact size, SHA-256 and deadline before returning bytes. Shared assets are fetched once within the scope; owners receive independent copies so transfer or mutation cannot corrupt another role.
-
-Only immutable resolution tickets produced against the current catalog may acquire a binding. Tickets require maintained composition evidence and cannot survive changed availability or source/runtime scope. Configured 404s, bad hashes, wrong sizes and initialization exceptions are terminal failures. Native/runtime unavailability is distinct. Dispose aborts pending work, disposes late results and releases owners in reverse order; owners must honor their abort signal and clean up partial initialization. This code does not evaluate manifest-supplied JavaScript or infer qualification from advertised capabilities. Asset declarations authorize owner access; they do not eagerly download every dependency.
-
-Independently bundled core/provider modules preserve typed errors through a versioned internal error marker. Asset, permission, identity, cancellation and timeout errors retain their terminal classifications even when the modules have different `PlayerError` constructors; unmarked objects cannot claim that contract.
-
-Current mpv service imports go through `provider-modules.ts` at the existing deployed asset paths. Software previews import mpv only when a software frame is requested, with an abort check before allocating an engine. The service lifecycle, JSPI/Asyncify selection, backend configuration and routing order are retained. The generic verified-byte acquisition scope is not yet connected to FFmpeg/mpv workers or Player discovery; URL module imports do not claim the acquisition scope's integrity guarantee.
-
-## Reproducible local package commands
+Install the desired packages, then compose a fresh deployment directory:
 
 ```sh
-python3 scripts/package-player-core.py
-node tests/player-core-package.mjs
-python3 tests/provider-package-audit.py
+python3 scripts/deploy-providers.py \
+  --core /path/to/node_modules/demuxe \
+  --provider /path/to/node_modules/@demuxe/provider-ffmpeg \
+  --provider /path/to/node_modules/@demuxe/provider-mpv \
+  --output /path/to/new-public-assets
 ```
 
-The core compiler reads source directly with the locked TypeScript compiler, captures per-output source identities, checks static dependency closure and an explicit list of reviewed computed import sites, then includes only the public declaration closure. It never copies a stale generated tree or bundles engines. Both the staging bytes and exact tarball are audited. The assembly report records archive and external inventory hashes. The clean consumer uses only the installed tarball, without workspace resolution or optional packages. Its native playback result does not qualify reduced-deployment automatic fallback.
+Omit either or both provider arguments for a reduced deployment. The tool never
+searches npm, installs packages or modifies an existing output directory. It
+checks compatibility, installed asset hashes, implementation identities, paths,
+symlinks and collisions before writing. Serve the output at the existing
+`assetBase`; normal browser isolation/runtime requirements still apply.
 
-`package-provider.py --target ffmpeg|mpv --payload <staging-directory> --record <inventory.json> --record-sha256 <reviewed-hash> --output <new-archive.tgz>` packs only inventory-listed files. It refuses symlinked inputs, unsafe paths, missing provenance/license/engine/source material and existing output files; it audits before and after assembly. It does not fabricate engine build records or corresponding source companions from copied runtime binaries.
+`demuxe-providers.json` declares schema/contract version, deployment revision,
+providers and assets. Each asset has `{id, path, sha256, bytes, dependencies}`;
+each provider has `{id, implementationIdentity, technology, delivery,
+applicationBuild, offers, assetIds, packageName}`. The parser rejects incompatible
+contracts, malformed paths, missing dependencies and cycles. Parsing is not
+qualification or proof of instantiation.
 
-## Remaining release and activation gates
+An omitted or unqualified provider makes an otherwise admitted candidate
+`DEPLOYMENT_UNAVAILABLE`. The next already-admitted plan may run in the same
+order only when its own required providers exist. Exhaustion reports the missing
+requirements. A declared asset that returns 404, wrong bytes, or an initialization
+error is an asset failure, not unsupported media or permission to silently change
+implementation. A modular deployment without its catalog fails explicitly.
 
-- Connect the verified-byte owner contract and deployment catalogs to actual FFmpeg/mpv acquisition only after source/runtime-qualified bindings are available. Production routing remains unchanged as requested; reduced deployments do not yet control Player discovery.
-- Produce exact reviewed FFmpeg/mpv build inventories, matching source/relink companions and notices, then assemble and audit those optional npm packages and test their installed consumers. Copied legacy runtime assets are sufficient for local playback tests, not a replacement for package release provenance.
-- Qualify automatic core-only, FFmpeg-only, mpv-only and combined deployments in browsers. The ordered resolver/acquisition tests cover those deployment decisions with synthetic qualification envelopes; they do not establish media qualification.
-- Complete the wider media/runtime/browser matrix and gather comparable whole-recipe measurements before activating measured-cost selection. Cost comparison remains a shadow helper and benchmarks remain deferred.
+## Acquisition and lifecycle
 
+The per-player runtime resolves admitted recipes against the maintained build
+registry. It also recomputes each optional provider's asset-set identity, so a
+manifest cannot retain a reviewed identity while substituting expected hashes.
+The generic `ProviderAcquisition` retains immutable, scope-specific resolution
+tickets and owner disposal; its read-only byte path supports existing inspector,
+preparation and backend lifecycle owners without inventing another backend.
 
-## Imported-work license audit boundary
+Selected owners request bytes lazily. Bounded streaming checks length, SHA-256,
+deadline and cancellation before Wasm compilation or font use. Asset bytes and
+compiled modules are shared within the player; independent copies protect cached
+bytes from transfer/mutation. Software requests its verified engine after the
+worker chooses YUV or RGB, including WebGL-unavailable fallback. Preview has an
+independent disposable acquisition scope. Destroy aborts pending acquisition and
+waits for cleanup. JSPI/Asyncify remain runtime choices of the relevant owners;
+an unavailable selected variant is not silently replaced with another variant.
 
-The maintained tracked-file license check passes. A separate audit of **all untracked files** reports 161 failures, all belonging to the original-checkout integration inventory (research snapshots, experimental/vendor files and an unclassified note). New files outside that inventory pass. Details are preserved in `results/media-components/provider-delivery-20260928/all-untracked-license-check.json`. These inherited files are excluded from the explicit core package allowlist; the exact core tarball audit passes. Their license/provenance issues must be reviewed before including them in any future distribution or source companion. No notices or historical evidence were relabeled to make the audit pass.
+JavaScript module/worker URLs retain normal browser loading semantics. Installed
+JS bytes are checked by package/deployment tooling, but URL imports do **not**
+claim runtime SRI verification. Serve reviewed immutable assets over a trusted
+origin. The maintained package registry is not a general third-party code loader.
+
+Native availability and application-bundled implementations need no optional
+asset download. Asset/load/compile state remains separate from media qualification.
+The existing cost helper can compare measured whole-recipe observations with
+freshness and resource constraints; it remains a shadow helper. No unmeasured
+cost ranking or new production preference is enabled.
+
+## Package and source audits
+
+`licensing/provider-packages.json` separates ownership from license. Even an
+Apache/MIT provider adapter cannot enter the core package. Core has a positive
+source allowlist, emitted static-import/public-declaration checks and reviewed
+dynamic import sites. It has no provider dependency and no source maps embedding
+unreviewed code. `package-player-core.py` compiles from source, never stale output.
+
+`prepare-provider-package.py` compiles provider adapters and combines explicitly
+listed runtime files with hash-matched native artifacts. `package-provider.py`
+packs only the external build inventory and audits staging and final tar bytes.
+The auditor checks exact file sets, exports, source hashes, ownership, per-file
+license maps, pinned notices, engine identities and the source companion itself.
+The companion contains every recorded native input, locked upstream source,
+Emscripten source, relevant configuration/link map and matching current wrapper
+source. See [provider relinking](PROVIDER-RELINK.md).
+
+The retained native build was not marked clean. That fact stays visible. Three
+standalone subtitle-service configurations are explicitly excluded because these
+packages ship no standalone subtitle service. Source recovery used exact hashes,
+not reconstructed substitutes. Fresh native release builds and a release campaign
+remain publication work, not claims made by this local delivery.
+
+Imported experimental/vendor files retain their original bytes. Exact existing
+headers classify 91 as Apache and 34 as MIT; 36 remain `NOASSERTION`. Their hashes
+are locked in `licensing/imported-work-provenance.json` and the boundary policy.
+Unknown material is excluded from the package allowlists rather than relicensed.
+
+## Validation and limits
+
+[Completion evidence](../results/media-components/provider-completion/) records
+actual clean installs and core-only, FFmpeg-only, mpv-only and combined browser
+deployments. Checks cover output pixels, retained existing route order, selective
+audio, YUV/RGB fallback, preparation, preview, missing providers, identity mismatch,
+404/corrupt assets, lazy loading and browser retirement. This is bounded delivery
+qualification with existing admission gates, not a new all-codec/device claim.
+
+Publication, new lightweight codec/container implementations, qualification of
+additional runtime/build variants and measured-cost routing remain separate work.
+The original Player surface, synchronization owners, fallback order and atomic
+full-mpv compatibility path remain in place.

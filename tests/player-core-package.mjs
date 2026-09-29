@@ -7,13 +7,15 @@ import {createServer} from 'node:http';
 import {build} from 'esbuild';
 import {chromium} from 'playwright';
 import {closeTestBrowser} from './head-to-head/browser-exit.mjs';
-const root=process.cwd(),out=path.join(root,'results/media-components/provider-delivery-20260928');
+const root=process.cwd(),out=path.join(root,'results/media-components/provider-completion');
 const consumer=path.join(root,'build/media-components',`consumer-${Date.now()}`);
 await mkdir(consumer,{recursive:true});await mkdir(out,{recursive:true});
 const assembly=JSON.parse(await readFile('build/media-components/player-core/assembly.json','utf8'));
 await writeFile(path.join(consumer,'package.json'),JSON.stringify({name:'demuxe-core-consumer',version:'1.0.0',private:true,type:'module'}));
 const npm=execFileSync('npm',['install','--ignore-scripts','--no-audit','--no-fund','--package-lock=false',assembly.archive],{cwd:consumer,encoding:'utf8'});
 const installed=path.join(consumer,'node_modules/demuxe');
+execFileSync('python3',['scripts/deploy-providers.py','--core',installed,'--output',path.join(consumer,'deployment')],{cwd:root,stdio:'pipe'});
+const deployment=path.join(consumer,'deployment');
 const pkg=JSON.parse(await readFile(path.join(installed,'package.json'),'utf8'));
 assert.equal(pkg.dependencies,undefined);assert.equal(pkg.optionalDependencies,undefined);assert.equal(pkg.peerDependencies,undefined);
 const source=`import {Player,SoftwarePreviewProvider} from 'demuxe'; export {Player,SoftwarePreviewProvider};`;
@@ -29,8 +31,8 @@ const server=createServer(async(req,res)=>{
  const url=new URL(req.url,'http://localhost');requests.push(url.pathname);
  res.setHeader('Cross-Origin-Opener-Policy','same-origin');res.setHeader('Cross-Origin-Embedder-Policy','require-corp');
  if(url.pathname==='/'){res.setHeader('Content-Type','text/html');res.end('<!doctype html><div id="host" style="width:320px;height:180px"></div>');return;}
- const file=url.pathname==='/example.mp4'?path.join(root,'fixtures/example.mp4'):url.pathname==='/bundle.js'?path.join(consumer,'bundle.js'):url.pathname.startsWith('/assets/demuxe/')?path.resolve(installed,url.pathname.slice('/assets/demuxe/'.length)):null;
- if(!file||(url.pathname.startsWith('/assets/demuxe/')&&!file.startsWith(installed+path.sep))){res.writeHead(404).end();return;}
+ const file=url.pathname==='/example.mp4'?path.join(root,'fixtures/example.mp4'):url.pathname==='/bundle.js'?path.join(consumer,'bundle.js'):url.pathname.startsWith('/assets/demuxe/')?path.resolve(deployment,url.pathname.slice('/assets/demuxe/'.length)):null;
+ if(!file||(url.pathname.startsWith('/assets/demuxe/')&&!file.startsWith(deployment+path.sep))){res.writeHead(404).end();return;}
  try{const info=await stat(file);if(!info.isFile())throw Error();const bytes=await readFile(file);res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':file.endsWith('.mp4')?'video/mp4':'application/octet-stream');res.end(bytes);}catch{res.writeHead(404).end();}
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));

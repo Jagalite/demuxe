@@ -49,7 +49,7 @@ export class WasmPlayer extends EventTarget {
     browserCodecsAbsent = false;
     properties = new Map();
     ready;
-    constructor(canvas, { prepared, buffering = bufferingPolicy(), disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'auto', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url), decodeQuality = 'exact', adaptiveFrameDrop = false, videoTrack, webgpuDecodeIntent } = {}) {
+    constructor(canvas, { providerAssets, prepared, buffering = bufferingPolicy(), disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'auto', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url), decodeQuality = 'exact', adaptiveFrameDrop = false, videoTrack, webgpuDecodeIntent } = {}) {
         super();
         this.buffering = buffering;
         this.audioOnly = mode === 'selective-audio';
@@ -108,7 +108,17 @@ export class WasmPlayer extends EventTarget {
             this.worker.onerror = workerFailure;
             this.worker.onmessageerror = workerFailure;
             this.worker.onmessage = ({ data }) => {
-                if (data.type === 'ready') {
+                if (data.type === 'provider-module') {
+                    const path = data.path;
+                    if (!providerAssets || !['web/engine-software-full/player.wasm', 'web/engine-software-yuv/player.wasm'].includes(path)) {
+                        this.worker.postMessage({ type: 'provider-module', error: 'Unexpected provider engine request' });
+                        return;
+                    }
+                    void providerAssets.module(path).then(module => { if (!this.destroyed)
+                        this.worker.postMessage({ type: 'provider-module', module }); }, error => { if (!this.destroyed)
+                        this.worker.postMessage({ type: 'provider-module', error: String(error) }); });
+                }
+                else if (data.type === 'ready') {
                     clearTimeout(timeout);
                     this.browserCodecsAbsent = data.browserCodecsAbsent;
                     this.sendTiming(true);
@@ -201,7 +211,7 @@ export class WasmPlayer extends EventTarget {
                 }
                 const offscreen = canvas.transferControlToOffscreen();
                 this.initSent = true;
-                this.worker.postMessage({ type: 'init', decoderOutputWatchdog: this.watchdogs.decoderOutput, compiledWasm: prepared?.module, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0, decodeQuality, decodePolicy, adaptiveFrameDrop, videoTrack, ...(selectedDecodeIntent ? { webgpuDecodeIntent: selectedDecodeIntent } : {}), displayWidth: canvas.width, displayHeight: canvas.height }, [offscreen, font]);
+                this.worker.postMessage({ type: 'init', decoderOutputWatchdog: this.watchdogs.decoderOutput, compiledWasm: prepared?.module, verifiedProviderAssets: !!providerAssets, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0, decodeQuality, decodePolicy, adaptiveFrameDrop, videoTrack, ...(selectedDecodeIntent ? { webgpuDecodeIntent: selectedDecodeIntent } : {}), displayWidth: canvas.width, displayHeight: canvas.height }, [offscreen, font]);
                 this.timing = setInterval(() => this.sendTiming(), 20);
                 this.sendTiming();
             })().catch(error => { clearTimeout(timeout); reject(new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + String(error), null, null, 'operation', true)); });

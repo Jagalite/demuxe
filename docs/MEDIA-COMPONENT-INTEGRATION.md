@@ -9,18 +9,19 @@ The user explicitly authorized including all current original-checkout work and
 runtime assets. The original checkout was preserved. The branch fast-forwarded
 from `d8a6c65a` through six README/evidence commits, then integrated 65 tracked
 edits/deletions and 1,595 untracked files (approximately 651 MiB). These imported
-changes and the provider implementation remain uncommitted; no tag or push was
-made. This snapshot does not automatically follow later original-checkout edits.
+changes and the provider foundation were committed in checkpoint `ea98201f`;
+no tag or push was made. The completed loader/distribution continuation is
+described in [current status](MEDIA-COMPONENT-WORKTREE-STATUS.md). This snapshot does not automatically follow later original-checkout edits.
 
-## Reconciliation
+## Historical integration and reconciliation
 
 The original subtitle migration, presentation components, release tooling,
 experiments and evidence are included. The single textual conflict in
 `NativePlayer` retained both the recipe-based configuration getters and the new
 mpv subtitle source owner. The recipe inventory now covers all 29 plan IDs,
 including `native-transcode-ass`; external ASS/SSA, SRT and rich WebVTT use the
-mpv attachment service. Full mpv remains atomic, and deployment resolution/cost
-ranking remain dormant libraries rather than new production routing policy.
+mpv attachment service. Full mpv remains atomic, and legacy production routing remains unchanged. Deployment resolution is enabled
+only in the separately assembled modular core; cost ranking remains dormant.
 
 Browser testing found that `nativeRemux: 'never'` was reported as an unavailable
 deployment. Admission now distinguishes policy-prohibited preparation from
@@ -73,6 +74,8 @@ full Hybrid fallback after injected failures in Direct, remux, FLAC24 and
 selected mpv audio. All six non-isolated audio adaptation cases passed as well.
 
 Validation logs and a machine-readable `summary.json` are retained under
-`results/media-components/integration-validation-20260928/`. The summary links exact browser artifacts and distinguishes passing case subsets from passing whole suites. A post-run snapshot records 211 source/output/harness hashes. Runtime-selection coverage preceded the policy-code fix; the affected no-remux-policy case subsequently passed in the final admission and Player API suites. The broader media
-matrix, WebKit, real provider-package extraction and exact package
-qualification remain incomplete. No benchmarks have been run.
+`results/media-components/integration-validation-20260928/`. The summary links exact browser artifacts and distinguishes passing case subsets from passing whole suites. A post-run snapshot records 211 source/output/harness hashes. Runtime-selection coverage preceded the policy-code fix; the affected no-remux-policy case subsequently passed in the final admission and Player API suites. At that integration checkpoint, the broader media matrix, WebKit and provider
+package extraction/qualification were incomplete. The subsequent
+[provider completion](MEDIA-COMPONENT-WORKTREE-STATUS.md) delivers exact local
+packages and bounded Chrome/Firefox deployment qualification. WebKit, a wider
+release campaign and benchmarks remain outside this delivery.

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import type {ProviderRuntimeAssets} from './provider-runtime.js';
 import {loadProviderModule} from './provider-modules.js';
 import {executionRecipe} from './execution-recipes.js';
 import {bufferingPolicy, resolveBuffering} from './buffering.js';
@@ -120,7 +121,7 @@ export class NativePlayer extends EventTarget implements Backend {
       time,rate,frames:quality&&video.videoWidth>0?quality.totalVideoFrames-quality.droppedVideoFrames:undefined,videoEnd:this.remux?.trackBounds?.videoEnd};
   }
 
-  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus'|'flac24', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string, private buffering:BufferingPolicy=bufferingPolicy(), private loadTimeoutMs=25000, private defaultSubtitleStreamIndex?:number, private remuxRuntime:'pthread'|'jspi'|'asyncify'='pthread') {
+  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus'|'flac24', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string, private buffering:BufferingPolicy=bufferingPolicy(), private loadTimeoutMs=25000, private defaultSubtitleStreamIndex?:number, private remuxRuntime:'pthread'|'jspi'|'asyncify'='pthread',private providerRuntime?:ProviderRuntimeAssets) {
     super();
     video.playsInline = true;
     video.preload = this.buffering.preload;
@@ -300,7 +301,8 @@ export class NativePlayer extends EventTarget implements Backend {
     const attempt=async(adapted:boolean)=>{
       this.assertActive();this.adapted=adapted;
       if(this.remux&&this.remux.audioAdaptation!==(adapted?this.audioAdaptation:undefined)){await this.remux.destroy();this.remux=undefined;this.assertActive();}
-      this.remux??=new RemuxPlayer(this.video,{buffering:{...resolveBuffering(this.buffering,'remux'),preload:this.buffering.preload},bufferedSeeks:this.bufferedSeeks,runtime:this.remuxRuntime,audioAdaptation:adapted?this.audioAdaptation:undefined,mseOwner:this.execution?.mseOwner??'auto'}) as RemuxController;
+      const compiledWasm=this.providerRuntime?await this.providerRuntime.module(`web/engine-${adapted?'adaptation':'remux'}${this.remuxRuntime==='pthread'?'':'-'+this.remuxRuntime}/remux.wasm`):undefined;this.assertActive();
+      this.remux??=new RemuxPlayer(this.video,{compiledWasm,buffering:{...resolveBuffering(this.buffering,'remux'),preload:this.buffering.preload},bufferedSeeks:this.bufferedSeeks,runtime:this.remuxRuntime,audioAdaptation:adapted?this.audioAdaptation:undefined,mseOwner:this.execution?.mseOwner??'auto'}) as RemuxController;
       this.remux.onBufferingChange=()=>{if(!this.stopped)this.refresh();};
       this.remux.audioAdaptation=adapted?this.audioAdaptation:undefined;
       this.remux.onError=message=>{if(!this.opening&&!this.stopped)this.emit('error',this.preparationError(message));};
@@ -336,7 +338,8 @@ export class NativePlayer extends EventTarget implements Backend {
       this.video.muted=true;
       if(this.remuxRuntime==='pthread'){
         const {NativeMpvAudio}=await loadProviderModule('mpv-audio',this.assetBase);this.assertActive();
-        this.mpvAudio=new NativeMpvAudio(this.video,()=>this.sourceTime(),this.assetBase,error=>this.emit('error',error));
+        const prepared=this.providerRuntime?{module:await this.providerRuntime.module('web/engine-selective/player.wasm'),font:await this.providerRuntime.bytes('fixtures/DejaVuSans.ttf')}:undefined;this.assertActive();
+        this.mpvAudio=new NativeMpvAudio(this.video,()=>this.sourceTime(),this.assetBase,error=>this.emit('error',error),prepared);
       }else{
         const {NativePrivateMpvAudio}=await loadProviderModule('mpv-private-audio',this.assetBase);this.assertActive();
         this.mpvAudio=new NativePrivateMpvAudio(this.video,()=>this.sourceTime(),this.assetBase,this.remuxRuntime,error=>this.emit('error',error));

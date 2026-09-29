@@ -71,6 +71,16 @@ export class ProviderAcquisition {
 
   get catalog(): ProviderCatalog { return this.catalogValue; }
 
+  /** Read immutable bytes for explicit inspection/preparation without claiming
+   * that an execution composition is qualified or marking an owner ready. */
+  readAsset(providerId: string, implementationIdentity: string, assetId: string): Promise<ArrayBuffer> {
+    this.controller.signal.throwIfAborted();
+    const provider = this.deployment.catalog.providers.find(p => p.id === providerId && p.implementationIdentity === implementationIdentity);
+    if (!provider || !this.deployment.providerAssets[providerId]?.includes(assetId)) throw new PlayerError('DEPLOYMENT_UNAVAILABLE', 'No matching deployed provider asset');
+    return this.load(this.assets.get(assetId)!);
+  }
+
+
   resolve(recipe: ResolvableRecipe, evidence: readonly CompositionEvidence[], scopeKey: string): RecipeResolution {
     this.controller.signal.throwIfAborted();
     const resolution = resolveProviderRecipe(recipe, this.catalogValue, evidence, scopeKey);
@@ -191,6 +201,7 @@ export class ProviderAcquisition {
     if (!this.closePromise) {
       this.closePromise = Promise.resolve().then(async () => {
         await Promise.allSettled(this.preparations.values());
+        await Promise.allSettled(this.bytes.values());
         const errors: unknown[] = [];
         for (const release of this.releases.reverse()) { try { await release(); } catch (error) { errors.push(error); } }
         this.releases.length = 0; this.bytes.clear(); this.reservedBytes = 0;

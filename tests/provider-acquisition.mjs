@@ -143,3 +143,17 @@ test('synchronous abort listeners cannot start a second cleanup',async()=>{
  })]);
  await a.acquire(resolution(a),'binding');const closing=a.dispose();assert.equal(reentrant,closing);await closing;assert.equal(disposals,1);
 });
+
+test('inspection reads require exact deployed identity and closure without granting ready state',async()=>{
+ let calls=0;const a=new ProviderAcquisition(deployment(),[],{fetch:async()=>{calls++;return new Response(data);}});
+ assert.throws(()=>a.readAsset('copy','wrong','common'),e=>e.code==='DEPLOYMENT_UNAVAILABLE');
+ assert.throws(()=>a.readAsset('copy','copy@1','missing'),e=>e.code==='DEPLOYMENT_UNAVAILABLE');
+ assert.equal(calls,0);const bytes=await a.readAsset('copy','copy@1','common');new Uint8Array(bytes)[0]=55;
+ assert.deepEqual(new Uint8Array(await a.readAsset('audio','audio@1','common')),data);assert.equal(calls,1);
+ assert.equal(a.catalog.providers[0].availability.state,'absent');await a.dispose();assert.throws(()=>a.readAsset('copy','copy@1','common'),e=>e.name==='AbortError');
+});
+test('dispose waits for a pending inspection read to observe cancellation',async()=>{
+ let started,retired=false;const ready=new Promise(r=>started=r);
+ const a=new ProviderAcquisition(deployment(),[],{fetch:async(_,options)=>{started();return new Promise((_,reject)=>options.signal.addEventListener('abort',()=>{setTimeout(()=>{retired=true;reject(options.signal.reason);},10);},{once:true}));}});
+ const reading=assert.rejects(a.readAsset('copy','copy@1','common'),e=>e.name==='AbortError');await ready;await a.dispose();assert.equal(retired,true);await reading;
+});

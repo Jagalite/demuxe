@@ -13,16 +13,18 @@ export class EnginePreparation {
     software;
     changed;
     remuxRuntime;
+    providerAssets;
     controller = new AbortController();
     pending = new Map();
     modules = new Map();
     font;
     phases = new Map();
-    constructor(base, software = 'engine-software-full', changed = () => { }, remuxRuntime = 'pthread') {
+    constructor(base, software = 'engine-software-full', changed = () => { }, remuxRuntime = 'pthread', providerAssets) {
         this.base = base;
         this.software = software;
         this.changed = changed;
         this.remuxRuntime = remuxRuntime;
+        this.providerAssets = providerAssets;
     }
     get inspectorEngine() { return 'engine-remux' + (this.remuxRuntime === 'pthread' ? '' : '-' + this.remuxRuntime); }
     get progress() { return [...this.phases].map(([name, status]) => ({ name, status })); }
@@ -69,38 +71,45 @@ export class EnginePreparation {
             this.phase(name, 'loading');
             const engine = name === 'inspector' ? this.inspectorEngine : name === 'hybrid' ? 'engine-hybrid' : this.software;
             const path = name === 'font' ? 'fixtures/DejaVuSans.ttf' : `web/${engine}/${name === 'inspector' ? 'remux' : 'player'}.wasm`;
-            const response = await fetch(new URL(path, this.base), { signal: controller.signal, priority: 'low' });
-            if (!response.ok)
-                throw Error(`Preparation asset unavailable: ${path} (${response.status})`);
-            const limit = (name === 'font' ? 8 : 32) * 1024 * 1024;
-            if (Number(response.headers.get('content-length')) > limit) {
-                await response.body?.cancel();
-                throw Error('Preparation asset byte budget exceeded');
+            let data;
+            if (this.providerAssets) {
+                data = new Uint8Array(await this.providerAssets.bytes(path));
+                bytes = data.byteLength;
             }
-            const reader = response.body?.getReader(), chunks = [];
-            if (!reader)
-                throw Error('Preparation asset has no body');
-            try {
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done)
-                        break;
-                    bytes += value.byteLength;
-                    if (bytes > limit) {
-                        await reader.cancel();
-                        throw Error('Preparation asset byte budget exceeded');
-                    }
-                    chunks.push(value);
+            else {
+                const response = await fetch(new URL(path, this.base), { signal: controller.signal, priority: 'low' });
+                if (!response.ok)
+                    throw Error(`Preparation asset unavailable: ${path} (${response.status})`);
+                const limit = (name === 'font' ? 8 : 32) * 1024 * 1024;
+                if (Number(response.headers.get('content-length')) > limit) {
+                    await response.body?.cancel();
+                    throw Error('Preparation asset byte budget exceeded');
                 }
-            }
-            finally {
-                reader.releaseLock();
-            }
-            const data = new Uint8Array(bytes);
-            let offset = 0;
-            for (const chunk of chunks) {
-                data.set(chunk, offset);
-                offset += chunk.byteLength;
+                const reader = response.body?.getReader(), chunks = [];
+                if (!reader)
+                    throw Error('Preparation asset has no body');
+                try {
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done)
+                            break;
+                        bytes += value.byteLength;
+                        if (bytes > limit) {
+                            await reader.cancel();
+                            throw Error('Preparation asset byte budget exceeded');
+                        }
+                        chunks.push(value);
+                    }
+                }
+                finally {
+                    reader.releaseLock();
+                }
+                data = new Uint8Array(bytes);
+                let offset = 0;
+                for (const chunk of chunks) {
+                    data.set(chunk, offset);
+                    offset += chunk.byteLength;
+                }
             }
             if (name === 'font') {
                 if (!controller.signal.aborted)

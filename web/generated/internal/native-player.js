@@ -22,6 +22,7 @@ export class NativePlayer extends EventTarget {
     loadTimeoutMs;
     defaultSubtitleStreamIndex;
     remuxRuntime;
+    providerRuntime;
     ready = Promise.resolve();
     properties = new Map();
     stopped = false;
@@ -131,7 +132,7 @@ export class NativePlayer extends EventTarget {
         return { eligible: true,
             time, rate, frames: quality && video.videoWidth > 0 ? quality.totalVideoFrames - quality.droppedVideoFrames : undefined, videoEnd: this.remux?.trackBounds?.videoEnd };
     }
-    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack, nativeASS = false, fonts = [], requestedPlan, buffering = bufferingPolicy(), loadTimeoutMs = 25000, defaultSubtitleStreamIndex, remuxRuntime = 'pthread') {
+    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack, nativeASS = false, fonts = [], requestedPlan, buffering = bufferingPolicy(), loadTimeoutMs = 25000, defaultSubtitleStreamIndex, remuxRuntime = 'pthread', providerRuntime) {
         super();
         this.video = video;
         this.remuxPolicy = remuxPolicy;
@@ -146,6 +147,7 @@ export class NativePlayer extends EventTarget {
         this.loadTimeoutMs = loadTimeoutMs;
         this.defaultSubtitleStreamIndex = defaultSubtitleStreamIndex;
         this.remuxRuntime = remuxRuntime;
+        this.providerRuntime = providerRuntime;
         video.playsInline = true;
         video.preload = this.buffering.preload;
         for (const event of ['timeupdate', 'durationchange', 'loadedmetadata', 'play', 'pause', 'volumechange', 'ratechange', 'ended', 'waiting', 'playing', 'progress', 'seeking', 'seeked', 'resize']) {
@@ -459,7 +461,9 @@ export class NativePlayer extends EventTarget {
                 this.remux = undefined;
                 this.assertActive();
             }
-            this.remux ??= new RemuxPlayer(this.video, { buffering: { ...resolveBuffering(this.buffering, 'remux'), preload: this.buffering.preload }, bufferedSeeks: this.bufferedSeeks, runtime: this.remuxRuntime, audioAdaptation: adapted ? this.audioAdaptation : undefined, mseOwner: this.execution?.mseOwner ?? 'auto' });
+            const compiledWasm = this.providerRuntime ? await this.providerRuntime.module(`web/engine-${adapted ? 'adaptation' : 'remux'}${this.remuxRuntime === 'pthread' ? '' : '-' + this.remuxRuntime}/remux.wasm`) : undefined;
+            this.assertActive();
+            this.remux ??= new RemuxPlayer(this.video, { compiledWasm, buffering: { ...resolveBuffering(this.buffering, 'remux'), preload: this.buffering.preload }, bufferedSeeks: this.bufferedSeeks, runtime: this.remuxRuntime, audioAdaptation: adapted ? this.audioAdaptation : undefined, mseOwner: this.execution?.mseOwner ?? 'auto' });
             this.remux.onBufferingChange = () => { if (!this.stopped)
                 this.refresh(); };
             this.remux.audioAdaptation = adapted ? this.audioAdaptation : undefined;
@@ -520,7 +524,9 @@ export class NativePlayer extends EventTarget {
             if (this.remuxRuntime === 'pthread') {
                 const { NativeMpvAudio } = await loadProviderModule('mpv-audio', this.assetBase);
                 this.assertActive();
-                this.mpvAudio = new NativeMpvAudio(this.video, () => this.sourceTime(), this.assetBase, error => this.emit('error', error));
+                const prepared = this.providerRuntime ? { module: await this.providerRuntime.module('web/engine-selective/player.wasm'), font: await this.providerRuntime.bytes('fixtures/DejaVuSans.ttf') } : undefined;
+                this.assertActive();
+                this.mpvAudio = new NativeMpvAudio(this.video, () => this.sourceTime(), this.assetBase, error => this.emit('error', error), prepared);
             }
             else {
                 const { NativePrivateMpvAudio } = await loadProviderModule('mpv-private-audio', this.assetBase);

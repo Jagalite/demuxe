@@ -49,6 +49,15 @@ export class ProviderAcquisition {
             availability: { state: 'absent', reason: 'No configured implementation owner' } })));
     }
     get catalog() { return this.catalogValue; }
+    /** Read immutable bytes for explicit inspection/preparation without claiming
+     * that an execution composition is qualified or marking an owner ready. */
+    readAsset(providerId, implementationIdentity, assetId) {
+        this.controller.signal.throwIfAborted();
+        const provider = this.deployment.catalog.providers.find(p => p.id === providerId && p.implementationIdentity === implementationIdentity);
+        if (!provider || !this.deployment.providerAssets[providerId]?.includes(assetId))
+            throw new PlayerError('DEPLOYMENT_UNAVAILABLE', 'No matching deployed provider asset');
+        return this.load(this.assets.get(assetId));
+    }
     resolve(recipe, evidence, scopeKey) {
         this.controller.signal.throwIfAborted();
         const resolution = resolveProviderRecipe(recipe, this.catalogValue, evidence, scopeKey);
@@ -191,6 +200,7 @@ export class ProviderAcquisition {
         if (!this.closePromise) {
             this.closePromise = Promise.resolve().then(async () => {
                 await Promise.allSettled(this.preparations.values());
+                await Promise.allSettled(this.bytes.values());
                 const errors = [];
                 for (const release of this.releases.reverse()) {
                     try {

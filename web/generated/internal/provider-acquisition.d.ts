@@ -49,6 +49,9 @@ export declare class ProviderAcquisition {
     private readonly maxResidentBytes;
     constructor(deployment: ParsedProviderDeployment, owners: readonly ProviderOwner[], options?: ProviderAcquisitionOptions);
     get catalog(): ProviderCatalog;
+    /** Read immutable bytes for explicit inspection/preparation without claiming
+     * that an execution composition is qualified or marking an owner ready. */
+    readAsset(providerId: string, implementationIdentity: string, assetId: string): Promise<ArrayBuffer>;
     resolve(recipe: ResolvableRecipe, evidence: readonly CompositionEvidence[], scopeKey: string): RecipeResolution;
     /** Resolution must be produced against this exact catalog snapshot. Accept
      * one explicitly selected binding; never guess order among alternatives. */

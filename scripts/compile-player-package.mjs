@@ -47,6 +47,19 @@ program.emit(undefined,(file,text,_bom,_onError,sources)=>{
 for(const source of allowed){
  if(!source.startsWith('src/'))outputs.set(source.startsWith('packages/player-core/')?source.slice('packages/player-core/'.length):source,{data:fs.readFileSync(path.join(root,source),'utf8'),inputs:[source]});
 }
+const qualificationFile='licensing/provider-runtime-qualification.json';
+const qualification=JSON.parse(fs.readFileSync(path.join(root,qualificationFile),'utf8'));
+const candidate=process.env.DEMUXE_PROVIDER_CANDIDATE==='1';
+if(qualification.schema!==1||qualification.status!=='qualified'&&!candidate)throw Error('Provider core requires reviewed qualification or explicit candidate assembly');
+if(!candidate){
+ if(!qualification.evidence?.length||!qualification.sources)throw Error('Missing maintained provider qualification evidence');
+ for(const item of qualification.evidence){
+  const bytes=fs.readFileSync(path.join(root,item.path));
+  if(sha(bytes)!==item.sha256||JSON.parse(bytes).passed!==true)throw Error('Changed or unsuccessful provider qualification evidence: '+item.path);
+ }
+ for(const source of allowed){if(qualification.sources[source]!==sha(fs.readFileSync(path.join(root,source))))throw Error('Core source changed after provider qualification: '+source);}
+}
+outputs.set('web/generated/internal/provider-build.js',{data:'// SPDX-License-Identifier: Apache-2.0\nexport const providerDeploymentEnabled = true;\nexport const qualifiedProviderIdentities = Object.freeze('+JSON.stringify(qualification.providers)+');\n',inputs:['src/internal/provider-build.ts',qualificationFile]});
 const selected=new Map([...outputs].filter(([name])=>name.endsWith('.js')));
 function references(name,text){
  const ast=ts.createSourceFile(name,text,ts.ScriptTarget.Latest,true);const result=[];
