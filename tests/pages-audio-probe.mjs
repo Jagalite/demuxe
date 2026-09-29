@@ -20,20 +20,27 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const url = `http://127.0.0.1:${server.address().port}/`;
 
 try {
-  for (const [name, preferences, connectMeter] of [
-    ['default', undefined, false],
-    ['autoplay-unblocked', {'media.autoplay.default': 0, 'media.autoplay.block-webaudio': false}, false],
-    ['meter-connected', {'media.autoplay.default': 0, 'media.autoplay.block-webaudio': false}, true],
+  for (const [name, preferences, connectMeter, gestureResume] of [
+    ['default', undefined, false, false],
+    ['autoplay-unblocked', {'media.autoplay.default': 0, 'media.autoplay.block-webaudio': false}, false, false],
+    ['meter-connected', {'media.autoplay.default': 0, 'media.autoplay.block-webaudio': false}, true, false],
+    ['gesture-context', undefined, false, true],
   ]) {
     const browser = await firefox.launch({headless: true, ...(preferences ? {firefoxUserPrefs: preferences} : {})});
     try {
       const page = await browser.newPage();
-      await page.addInitScript(connect => {
+      await page.addInitScript(({connect, gestureResume}) => {
         const originalConnect = AudioNode.prototype.connect;
         const originalCreate = document.createElement;
         const media = new Set();
         const analysers = [];
+        let observationContext = null;
         window.probe = {count: 0, peakRms: 0, context: null, resume: null, error: null};
+        if (gestureResume) document.addEventListener('click', () => {
+          observationContext = new AudioContext();
+          window.probe.context = observationContext;
+          void observationContext.resume().then(() => { window.probe.resume = 'resolved'; }, error => { window.probe.resume = String(error); });
+        }, true);
         document.createElement = function(tag, ...args) {
           const element = originalCreate.call(this, tag, ...args);
           if (String(tag).toLowerCase() === 'video') media.add(element);
@@ -60,11 +67,11 @@ try {
             if (!element.isConnected || !element.src || element.dataset.observed) continue;
             element.dataset.observed = 'true';
             try {
-              const context = new AudioContext();
+              const context = observationContext ?? new AudioContext();
               const source = context.createMediaElementSource(element);
               source.connect(context.destination);
               window.probe.context = context;
-              void context.resume().then(() => { window.probe.resume = 'resolved'; }, error => { window.probe.resume = String(error); });
+              if (!gestureResume) void context.resume().then(() => { window.probe.resume = 'resolved'; }, error => { window.probe.resume = String(error); });
             } catch (error) { window.probe.error = String(error); }
           }
           for (const analyser of analysers) {
@@ -74,7 +81,7 @@ try {
             window.probe.peakRms = Math.max(window.probe.peakRms, rms);
           }
         }, 10);
-      }, connectMeter);
+      }, {connect: connectMeter, gestureResume});
       await page.goto(url);
       await page.evaluate(() => {
         document.querySelector('button').onclick = async () => {
