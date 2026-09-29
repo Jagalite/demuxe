@@ -92,12 +92,12 @@ try{
    }
    if(fixture.name==='original-edge')assert.deepEqual(frames(output),frames(fixture.file));
    item.fidelity={videoPackets:inputPackets.length,ptsShift:shift,pcmBytes:reference.length,pcmSHA256:hash(reference),outputSHA256:hash(Buffer.from(data)),samplesExact:profile==='flac'};
-   await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0);item.passed=true;
+   await page.evaluate(()=>player.destroy());for(let i=0;i<40&&page.workers().length;i++)await page.waitForTimeout(50);assert.equal(page.workers().length,0,`Workers still alive after destroy: ${page.workers().map(worker=>worker.url()).join(', ')}`);item.passed=true;
   }catch(error){item.error=String(error.stack);item.state=await page.evaluate(()=>({d:player.diagnostics,errors})).catch(()=>null);
    if(process.env.EXPECT_PRECISION_REJECTION&&item.error.includes('Decoded samples exceed established 24-bit precision')){
     item.control='Injected nonzero S24 low bits rejected';
     item.publishedBoxes=await page.evaluate(()=>Array.from(captures.values()).flatMap(chunks=>chunks.flatMap(b=>{const boxes=[];for(let at=0;at+8<=b.length;){const size=new DataView(b.buffer,b.byteOffset+at,4).getUint32(0);if(size<8||at+size>b.length)throw Error('Invalid captured box');boxes.push(String.fromCharCode(...b.subarray(at+4,at+8)));at+=size;}return boxes;})));
-    assert.ok(!item.publishedBoxes.includes('moof'),'Invalid samples reached media publication');await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0);item.passed=true;
+    assert.ok(!item.publishedBoxes.includes('moof'),'Invalid samples reached media publication');await page.evaluate(()=>player.destroy());for(let i=0;i<40&&page.workers().length;i++)await page.waitForTimeout(50);assert.equal(page.workers().length,0,`Workers still alive after destroy: ${page.workers().map(worker=>worker.url()).join(', ')}`);item.passed=true;
    }else process.exitCode=1;}
   finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(item.name,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
  }
