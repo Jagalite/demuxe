@@ -157,7 +157,10 @@ Fresh gaps are tested in [row order](docs/README-BACKLOG-RESULTS.md).
 MediaBunny uses its official player example with local File input, while the
 maintained-player comparison uses local URLs; its screened results do not qualify
 1.25× playback or independent cleanup. A bare `—` means no test for that exact row;
-N/A means no demonstrated playback result for the stated scope.
+N/A means the tested integration has no applicable playback result for that scope.
+For HLS/DASH playlist rows, JSPI and Asyncify are N/A because these columns measure
+file remux/transcode runtimes; the MediaBunny example is N/A because its local
+File chooser cannot supply the playlist URL and segment requests.
 
 | Media format | Native video | Demuxe (auto) | Demuxe JSPI | Demuxe Asyncify | Demuxe (software decode) | Movi 0.4.0 (default) | AVPlayer 1.3.1 (default) | MediaBunny (player example) | Video.js 8.24.1 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -222,25 +225,25 @@ N/A means no demonstrated playback result for the stated scope.
 | HEVC Main 10 + AAC / MP4 (HLG) | 🟡 Screened* · 18.1% CPU | 🟡 (Screened)\* · 16.8% CPU · native-direct | 🟡 Screened* · 18.8% CPU · forced-remux ref | 🟡 Screened* · 20.6% CPU · forced-remux ref | 🟡 Screened* · 35.5% CPU | 🔴 (Fail) | 🟡 Screened* · 36.0% CPU | 🟡 Screened* · 41.0% CPU | 🟡 Screened* · 26.0% CPU |
 | AV1 10-bit + Opus / WebM (HDR10) | 🟡 Screened* · 17.0% CPU | 🟡 (Screened)\* · 18.9% CPU · native-direct | 🟡 Screened* · 19.3% CPU · forced-remux ref | 🟡 Screened* · 18.4% CPU · forced-remux ref | 🟡 Screened* · 37.3% CPU | 🔴 (Fail) | 🟡 Screened* · 37.6% CPU | 🟡 Screened* · 35.3% CPU | 🟡 Screened* · 23.8% CPU |
 | HEVC + TrueHD 7.1 / MKV | 🔴 (Fail) | 🟡 Screened* · CPU withheld | 🟡 Screened* · 23.7% CPU · forced-remux ref | 🟡 Screened* · 23.4% CPU · forced-remux ref | 🟡 Screened* · 39.6% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| HEVC + DTS-HD MA 7.1 / MKV | 🔴 (Fail) | 🟡 (Screened)\* · native-transcode | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* | — | — Untested |
-| HEVC + E-AC-3 with Atmos metadata / MP4 | 🔴 (Fail) | 🟡 (Screened)\* · native-transcode | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
-| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🔴 (Fail) | 🟡 (Screened)\* · software | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
-| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🔴 (Fail) | 🟡 (Screened)\* · software | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* | — | — Untested |
-| H.264 + AAC / HLS VOD (TS segments) | 🟢 (Pass) | 🟢 (Pass) · 15.0% CPU · native-direct | — Untested | — Untested | 🟢 | 🟢 (Pass) | 🟢 (Pass) | — | — Untested |
-| H.264 + AAC / HLS VOD (fMP4 segments) | 🟢 (Pass) | 🟢 (Pass) · 15.6% CPU · native-direct | — Untested | — Untested | 🟢 | 🟢 (Pass) | 🟢 (Pass) | — | — Untested |
-| HEVC + AAC / HLS VOD (fMP4 segments) | 🟢 (Pass) | 🟢 (Pass) · 14.9% CPU · native-direct | — Untested | — Untested | 🟢 | 🟢 (Pass) | 🟢 (Pass) | — | — Untested |
-| H.264 + AAC / DASH VOD (fMP4 segments) | 🔴 (Fail) | 🟢 (Pass) · 17.9% CPU · shaka-mse | — Untested | — Untested | 🟢 | 🟢 (Pass) | 🟢 (Pass) | — | — Untested |
-| AV1 + Opus / DASH VOD (WebM segments) | 🔴 (Fail) | 🟢 (Pass) · 17.7% CPU · shaka-mse | — Untested | — Untested | 🟢 | 🟢 (Pass) | 🔴 (Fail) | — | — Untested |
-| H.264 + AAC / HLS live (sliding window) | 🔴 (Fail) | 🟢 (Pass) · 18.9% CPU · shaka-mse | — Untested | — Untested | 🟢 (Pass)* | 🟢 (Pass) | 🔴 (Fail) | — | — Untested |
-| HEVC Main 10 + AAC / MKV | 🟢 (Pass)\* | 🟡 (Screened)\* · 19.2% CPU · native-direct | — Untested | — Untested | 🟢 (Pass)* | 🟢 (Pass)\* | 🟢 (Pass)\* | — | — Untested |
-| HEVC Main 10 + FLAC / MKV | 🟢 (Pass)\* | 🟡 (Screened)\* · 17.4% CPU · native-direct | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟢 (Pass)\* | — | — Untested |
-| HEVC Main 10 + Opus / MKV | 🟢 (Pass)\* | 🟡 (Screened)\* · 19.8% CPU · native-direct | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🟡 (Screened)\* | — | — Untested |
-| HEVC Main 10 + FLAC + ASS / MKV | 🔴 (Fail) | 🟡 (Screened)\* · 22.5% CPU · native-remux-mpv | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
-| HEVC Main 10 + Opus + ASS / MKV | 🔴 (Fail) | 🟡 (Screened)\* · 23.1% CPU · native-remux-mpv | — Untested | — Untested | 🟢 (Pass)* | 🔴 (Fail) | 🔴 (Fail) | — | — Untested |
-| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | — Untested | 🟡 (Screened)\* · native-transcode-mpv | — Untested | — Untested | 🟡 (Screened)\* · software | — Untested | — Untested | — Untested | — Untested |
-| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | — Untested | 🟡 (Screened)\* · native-transcode-mpv | — Untested | — Untested | 🟡 (Screened)\* · software | — Untested | — Untested | — Untested | — Untested |
-| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | — Untested | 🟡 (Screened)\* · software | — Untested | — Untested | 🟡 (Screened)\* · software | — Untested | — Untested | — Untested | — Untested |
-| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | — Untested | 🟡 (Screened)\* · software | — Untested | — Untested | 🟡 (Screened)\* · software | — Untested | — Untested | — Untested | — Untested |
+| HEVC + DTS-HD MA 7.1 / MKV | 🔴 (Fail) | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending | 🔴 (Fail) |
+| HEVC + E-AC-3 with Atmos metadata / MP4 | 🔴 (Fail) | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | 🔴 (Fail) | 🟡 Screened* · CPU pending | 🔴 (Fail) · forced-remux ref | 🔴 (Fail) · forced-remux ref | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🔴 (Fail) |
+| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | 🔴 (Fail) | 🟡 Screened* · CPU pending | 🔴 (Fail) · forced-remux ref | 🔴 (Fail) · forced-remux ref | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🔴 (Fail) |
+| H.264 + AAC / HLS VOD (TS segments) | 🟢 (Pass) | 🟢 (Pass) · 15.0% CPU · native-direct | N/A · file runtime | N/A · file runtime | 🟢 (Pass) · CPU pending | 🟢 (Pass) | 🟢 (Pass) | N/A · File example | 🟢 (Pass) · CPU pending |
+| H.264 + AAC / HLS VOD (fMP4 segments) | 🟢 (Pass) | 🟢 (Pass) · 15.6% CPU · native-direct | N/A · file runtime | N/A · file runtime | 🟢 (Pass) · CPU pending | 🟢 (Pass) | 🟢 (Pass) | N/A · File example | 🟢 (Pass) · CPU pending |
+| HEVC + AAC / HLS VOD (fMP4 segments) | 🟢 (Pass) | 🟢 (Pass) · 14.9% CPU · native-direct | N/A · file runtime | N/A · file runtime | 🟢 (Pass) · CPU pending | 🟢 (Pass) | 🟢 (Pass) | N/A · File example | 🔴 (Fail) |
+| H.264 + AAC / DASH VOD (fMP4 segments) | 🔴 (Fail) | 🟢 (Pass) · 17.9% CPU · shaka-mse | N/A · file runtime | N/A · file runtime | 🟢 (Pass) · CPU pending | 🟢 (Pass) | 🟢 (Pass) | N/A · File example | 🟢 (Pass) · CPU pending |
+| AV1 + Opus / DASH VOD (WebM segments) | 🔴 (Fail) | 🟢 (Pass) · 17.7% CPU · shaka-mse | N/A · file runtime | N/A · file runtime | 🟢 (Pass) · CPU pending | 🟢 (Pass) | 🔴 (Fail) | N/A · File example | 🔴 (Fail) |
+| H.264 + AAC / HLS live (sliding window) | 🔴 (Fail) | 🟢 (Pass) · 18.9% CPU · shaka-mse | N/A · file runtime | N/A · file runtime | 🟢 (Pass) · CPU pending | 🟢 (Pass) | 🔴 (Fail) | N/A · File example | 🟢 (Pass) · CPU pending |
+| HEVC Main 10 + AAC / MKV | 🟢 (Pass)\* | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending | 🟢 (Pass)\* | 🟢 (Pass)\* | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending |
+| HEVC Main 10 + FLAC / MKV | 🟢 (Pass)\* | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🟢 (Pass)\* | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending |
+| HEVC Main 10 + Opus / MKV | 🟢 (Pass)\* | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🟡 (Screened)\* | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending |
+| HEVC Main 10 + FLAC + ASS / MKV | 🔴 (Fail) | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| HEVC Main 10 + Opus + ASS / MKV | 🔴 (Fail) | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | 🔴 (Fail) | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | 🔴 (Fail) | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending · forced-remux ref | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | 🟡 Screened* · CPU pending | 🔴 (Fail) · forced-remux ref | 🔴 (Fail) · forced-remux ref | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | 🔴 (Fail) | 🟡 Screened* · CPU pending | 🔴 (Fail) · forced-remux ref | 🔴 (Fail) · forced-remux ref | 🟡 Screened* · CPU pending | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 
 [Complete-file catalogue](docs/HEAD-TO-HEAD-CATALOGUE.md) ·
 [Row refresh index](docs/CPU-ROW-REFRESH.md) ·
