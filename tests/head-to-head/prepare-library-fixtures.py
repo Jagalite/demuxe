@@ -8,12 +8,25 @@ import sys
 
 root=Path(sys.argv[1]).resolve()
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+source_dir=Path(sys.argv[2]).resolve() if len(sys.argv)>2 else None
 manifest=json.loads((root/'manifest.json').read_text())
 for name, entry in manifest['files'].items():
     assert sha(root/name)==entry['sha256'], name
 out=root/'fixtures/library'
 out.mkdir()
 catalogue=json.loads((root/'specialist.json').read_text())
+def dolby_source(key):
+    # A second Matroska copy can coalesce the first two DV8.1 video DTS ticks.
+    # Copy the original, hash-verified Dolby video into the compound fixture.
+    candidates=[source_dir/(key+'.mp4')] if source_dir else []
+    commands=json.loads((root/'fixtures/specialist/commands.json').read_text())
+    for command in commands:
+        argv=command['argv']
+        candidates.extend(Path(argv[i+1]) for i,x in enumerate(argv[:-1]) if x=='-i' and Path(argv[i+1]).name==key+'.mp4')
+    wanted=catalogue[key]['source']['sha256']
+    for file in candidates:
+        if file.is_file() and sha(file)==wanted:return file
+    raise ValueError('Hash-verified Dolby source is unavailable: '+key)
 commands=[]
 def run(args):
     r=subprocess.run(args,capture_output=True,text=True)
@@ -33,7 +46,7 @@ specs=[
  ('dv5-atmos-ass','Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV','dv5','hevc-atmos','ass'),
  ('dv81-atmos-ass','Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV','dv81','hevc-atmos','ass')]
 for key,label,video,audio,subtitle in specs:
-    source=root/'fixtures'/catalogue[video]['file'] if video.startswith('dv') else root/'fixtures'/('source-'+video+'.mkv')
+    source=dolby_source(video) if video.startswith('dv') else root/'fixtures'/('source-'+video+'.mkv')
     if video=='hdr10': source=out/'source-hdr10.mkv'
     args=['ffmpeg','-nostdin','-v','warning','-i',str(source)]
     copied=audio.startswith('hevc-')
@@ -69,6 +82,9 @@ for key,label,video,audio,subtitle in specs:
     if video.startswith('dv'):
         d=next(s for s in v['side_data_list'] if s['side_data_type']=='DOVI configuration record')
         assert d['dv_profile']==(5 if video=='dv5' else 8) and d['rpu_present_flag']==1
+        packets=json.loads(run(['ffprobe','-v','error','-select_streams','v:0','-show_packets','-show_entries','packet=dts','-of','json',str(target)]))['packets']
+        dts=[int(p['dts']) for p in packets if 'dts' in p]
+        assert all(b>a for a,b in zip(dts,dts[1:])), 'Copied Dolby video has a repeated or reversed DTS'
     if subtitle:
         assert next(s for s in probe['streams'] if s['codec_type']=='subtitle')['codec_name']==('ass' if subtitle=='ass' else 'hdmv_pgs_subtitle')
     run(['ffmpeg','-nostdin','-v','error','-xerror','-i',str(target),'-map','0:v:0','-map','0:a:0','-f','null','-'])

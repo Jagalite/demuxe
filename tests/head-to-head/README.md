@@ -34,7 +34,9 @@ E-AC-3/JOC and Dolby Vision 5/8.1 bitstreams only after probing exact profiles,
 layouts and DV RPU payloads and decoding the complete derived clip with host
 FFmpeg. `prepare-library-fixtures.py` adds nine explicit Main10/audio/subtitle
 combinations. It checks audio identities and subtitle codecs and independently
-renders the PGS fixtures with host FFmpeg. These use the existing finite playback
+renders the PGS fixtures with host FFmpeg. Compound Dolby Vision video is copied
+directly from the verified original source; the builder rejects repeated or
+reversed video DTS. These use the existing finite playback
 routes; no component route is forced in the default comparison.
 
 Run in this order, using fresh paths, before consuming the frozen snapshot:
@@ -43,7 +45,7 @@ Run in this order, using fresh paths, before consuming the frozen snapshot:
 python3 tests/head-to-head/fetch-specialist-samples.py build/head-to-head/specialist-sources-new
 python3 tests/head-to-head/setup.py --fixtures-from build/head-to-head/assets-cross-player-cpu-01 --output build/head-to-head/assets-specialist-new --lab /path/to/pinned/head-to-head-lab
 python3 tests/head-to-head/prepare-specialist-fixtures.py build/head-to-head/assets-specialist-new build/head-to-head/specialist-sources-new
-python3 tests/head-to-head/prepare-library-fixtures.py build/head-to-head/assets-specialist-new
+python3 tests/head-to-head/prepare-library-fixtures.py build/head-to-head/assets-specialist-new build/head-to-head/specialist-sources-new
 node tests/head-to-head/specialist-screen.mjs build/head-to-head/assets-specialist-new results/head-to-head/specialist-new
 ```
 

@@ -159,6 +159,46 @@ static int video=-1,audio=-1,map[64],eof,is_ts,video_started;
 static int64_t position,total,aac_anchor,aac_count;
 static double fragment_start,origin;
 static int fragment_count;
+// hev1 is allowed to put VPS/SPS/PPS in the first access unit instead of
+// hvcC. Retain that access unit for normal playback and make a bounded hvcC
+// initialization record before asking the browser or MP4 muxer to use it.
+static int recover_inband_hevc_config(AVCodecParameters *p){
+ if(p->codec_id!=AV_CODEC_ID_HEVC||p->extradata_size!=23||p->extradata[0]!=1||p->extradata[22])return 0;
+ const int length_size=(p->extradata[21]&3)+1;
+ int bytes=0;AVPacket *first=NULL;
+ for(int i=0;i<256;i++){
+  if(prefetched>=256)return reject("HEVC configuration probe packet budget exceeded");
+  AVPacket *q=av_packet_alloc();if(!q)return AVERROR(ENOMEM);
+  int r=av_read_frame(in,q);
+  if(r<0){av_packet_free(&q);return r;}
+  if(q->size<0||bytes+q->size>2*1024*1024){av_packet_free(&q);return reject("HEVC configuration probe budget exceeded");}
+  bytes+=q->size;prefetch[prefetched++]=q;
+  if(q->stream_index==video){first=q;break;}
+ }
+ if(!first||!(first->flags&AV_PKT_FLAG_KEY))return reject("In-band HEVC configuration requires a first key packet");
+ const uint8_t *sets[3]={0};int sizes[3]={0};
+ for(int at=0;at<first->size;){
+  if(first->size-at<length_size)return reject("Truncated in-band HEVC packet");
+  unsigned n=0;for(int i=0;i<length_size;i++)n=(n<<8)|first->data[at++];
+  if(n>(unsigned)(first->size-at))return reject("Invalid in-band HEVC packet framing");
+  if(n>=2){int type=(first->data[at]>>1)&63;
+   if(type>=32&&type<=34){int index=type-32;
+    if(sizes[index])return reject("Multiple first-packet HEVC parameter sets unsupported");
+    if(n>4096)return reject("HEVC parameter budget exceeded");
+    sets[index]=first->data+at;sizes[index]=n;
+   }
+  }
+  at+=n;
+ }
+ if(!sizes[0]||!sizes[1]||!sizes[2])return reject("Missing in-band HEVC parameter sets");
+ int size=23;for(int i=0;i<3;i++)size+=5+sizes[i];
+ uint8_t *config=av_mallocz(size+AV_INPUT_BUFFER_PADDING_SIZE);if(!config)return AVERROR(ENOMEM);
+ memcpy(config,p->extradata,23);config[22]=3;int at=23;
+ for(int i=0;i<3;i++){config[at++]=0x80|(32+i);AV_WB16(config+at,1);at+=2;
+  AV_WB16(config+at,sizes[i]);at+=2;memcpy(config+at,sets[i],sizes[i]);at+=sizes[i];}
+ av_freep(&p->extradata);p->extradata=config;p->extradata_size=size;
+ return 0;
+}
 #ifndef DEMUXE_FIRST_FRAGMENT_SECONDS
 #define DEMUXE_FIRST_FRAGMENT_SECONDS 0.5
 #endif
@@ -374,7 +414,10 @@ EMSCRIPTEN_KEEPALIVE int rm_open(double size,int selected_video,int selected_aud
   }
   if(!found)return reject("VP9 key configuration unavailable");
  }
- generic_video=hevc_video=0;video_codec[0]=0;if(video>=0){r=configure_video(in->streams[video]->codecpar);if(r<0)return r;}
+ generic_video=hevc_video=0;video_codec[0]=0;if(video>=0){
+  r=recover_inband_hevc_config(in->streams[video]->codecpar);if(r<0)return r;
+  r=configure_video(in->streams[video]->codecpar);if(r<0)return r;
+ }
  AVCodecParameters*ap=audio>=0?in->streams[audio]->codecpar:NULL;audio_codec[0]=0;
  // WebM retains Opus discard padding, which the fragmented MP4 packet-copy
  // path does not represent. Prefer it whenever the selected video permits it.
@@ -392,8 +435,20 @@ EMSCRIPTEN_KEEPALIVE int rm_open(double size,int selected_video,int selected_aud
  origin=in->start_time==AV_NOPTS_VALUE?0:in->start_time/(double)AV_TIME_BASE;
  if(repair_dts){
   int seen_v=0,seen_a=audio<0,bytes=0;double first=1e30;
-  for(int i=0;i<256;i++){AVPacket*q=av_packet_alloc();r=av_read_frame(in,q);if(r<0){av_packet_free(&q);return r;}prefetch[prefetched++]=q;bytes+=q->size;if(bytes>2*1024*1024)return reject("Timeline probe budget exceeded");
-   if((q->stream_index==video||q->stream_index==audio)&&q->pts!=AV_NOPTS_VALUE){double t=q->pts*av_q2d(in->streams[q->stream_index]->time_base);if(t<first)first=t;if(q->stream_index==video)seen_v=1;else seen_a=1;}if(seen_v&&seen_a)break;
+  // Configuration probing may already have retained the first video packet.
+  // Include every retained packet when choosing the selected timeline origin.
+  for(int i=0;i<256&&!((seen_v&&seen_a));i++){
+   AVPacket *q;
+   if(i<prefetched)q=prefetch[i];
+   else{
+    if(prefetched>=256)return reject("Timeline probe packet budget exceeded");
+    q=av_packet_alloc();if(!q)return AVERROR(ENOMEM);
+    r=av_read_frame(in,q);if(r<0){av_packet_free(&q);return r;}
+    prefetch[prefetched++]=q;
+   }
+   if(q->size<0||bytes+q->size>2*1024*1024)return reject("Timeline probe budget exceeded");
+   bytes+=q->size;
+   if((q->stream_index==video||q->stream_index==audio)&&q->pts!=AV_NOPTS_VALUE){double t=q->pts*av_q2d(in->streams[q->stream_index]->time_base);if(t<first)first=t;if(q->stream_index==video)seen_v=1;else seen_a=1;}
   }
   if(!seen_v||!seen_a)return reject("Selected timeline origin unavailable");origin=first;
  }

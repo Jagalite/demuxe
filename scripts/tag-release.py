@@ -72,7 +72,7 @@ def catalogue(archive):
     sources = WORK / 'specialist-sources'
     run(['python3', 'tests/head-to-head/fetch-specialist-samples.py', sources])
     run(['python3', 'tests/head-to-head/prepare-specialist-fixtures.py', assets, sources])
-    run(['python3', 'tests/head-to-head/prepare-library-fixtures.py', assets])
+    run(['python3', 'tests/head-to-head/prepare-library-fixtures.py', assets, sources])
     run(['python3', 'tests/head-to-head/validate-specialist-fixtures.py', '--assets', assets,
          '--sources', sources, '--output', WORK / 'specialist-validation'])
     data = json.loads((fixtures / 'catalogue.json').read_text())
