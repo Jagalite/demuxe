@@ -209,6 +209,11 @@ claiming Safari or physical mobile qualification.
 
 ## Publishing a qualified beta
 
+The [tag pipeline](TAG-RELEASE.md) builds and qualifies the exact runtime and
+source archives, creates a GitHub Release with those files, deploys Pages, and
+stages npm. Approve the pending version in npm’s Staged Packages UI with 2FA to
+make it public. The following commands are the manual staging procedure.
+
 The root `package.json` deliberately remains `private: true`. Never publish from
 the source root. Publish only the runtime archive identified by `verification.json`;
 do not rebuild or repack it after qualification. Keep the source companion,
@@ -220,12 +225,15 @@ GitHub release for the recorded tag; the npm package alone is not that source of
    (`npm view demuxe name version maintainers`). Check that the candidate version
    is not already present with `npm view demuxe versions --json`.
 2. Check archive metadata and `SHA256SUMS` against `verification.json`.
-3. Run `npm publish ./build/release/demuxe-0.3.0-beta.4.tgz --tag beta --access public --dry-run`.
-4. Only after all verification gates pass, explicitly publish:
+3. With npm 11.15.0 or newer, run `npm stage publish ./build/release/demuxe-0.3.0-beta.4.tgz --tag beta --access public --ignore-scripts --dry-run`.
+4. Only after all verification gates pass, stage the archive:
 
 ```sh
-npm publish ./build/release/demuxe-0.3.0-beta.4.tgz --tag beta --access public
+npm stage publish ./build/release/demuxe-0.3.0-beta.4.tgz --tag beta --access public --ignore-scripts
 ```
+
+Review the staged entry in npm’s UI, click **Approve**, and complete 2FA.
+The archive is not publicly available until approved.
 
 Do not use `latest` for this beta. After publication, install `demuxe@beta` into
 a brand-new temporary project, run `npx demuxe copy-assets public/assets/demuxe`,
@@ -240,3 +248,13 @@ for the exact GitHub workflow if later releases use automated publication.
 The clean engine build ships pthread and private JSPI/Asyncify remux/transcode engines, plus the restricted private mpv subtitle and PCM16 audio services. `build-private-release.py` builds fresh dependencies and caches from the candidate revision and records the source, configuration and artifact bindings in `beta-build.json`. Its external build directory is recorded in `build/private-runtime-materials/location.json`; preserve it with the clean-build log. The source companion includes the pinned archives, build recipes, transformed inputs and link/configuration evidence.
 
 The installed-archive consumer suite requires runtime selection with and without isolation, private subtitles and audio under auto and explicit Asyncify, composed playback, cancellation of pending service reads, and mismatched Wasm rejection. Both Chrome and Firefox must pass against the exact archive. See [runtime requirements](NON-ISOLATED-REMUX.md).
+
+### Catalogue correctness gate
+
+Tag releases run the full correctness catalogue for Demuxe Auto against both
+the published baseline and candidate. Coverage follows the README media table
+(80 rows currently), not a fixed case count. Missing or duplicate fixtures fail
+qualification. Cases include output, seeking, pause/resume, rate, EOF and cleanup
+as applicable; live media uses its bounded progression checks. No CPU benchmark
+rounds, warmup windows or performance measurement windows run in release CI.
+See [tag release workflow](TAG-RELEASE.md).

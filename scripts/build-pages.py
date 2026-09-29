@@ -5,10 +5,38 @@ import argparse, gzip, hashlib, html, io, json, shutil, subprocess, tarfile
 from pathlib import Path
 from shaka_source import pages_source
 root=Path(__file__).resolve().parent.parent
-parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path,default=root/'build/pages-site');parser.add_argument('--source-commit');parser.add_argument('--emscripten-archive',type=Path);args=parser.parse_args()
+parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path,default=root/'build/pages-site');parser.add_argument('--source-commit');parser.add_argument('--tag');parser.add_argument('--preview',action='store_true',help='Snapshot current local assets for tests only; never deploy this output');parser.add_argument('--emscripten-archive',type=Path);args=parser.parse_args()
+commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()
+if args.source_commit and args.source_commit!=commit:raise SystemExit('Source commit must identify this checkout')
+if args.tag:
+ if subprocess.check_output(['git','rev-parse',f'refs/tags/{args.tag}^{{commit}}'],cwd=root,text=True).strip()!=commit:raise SystemExit('Pages tag must identify HEAD')
+ if subprocess.check_output(['git','status','--porcelain','--untracked-files=normal'],cwd=root,text=True).strip():raise SystemExit('Tagged Pages requires a clean source checkout')
 out=args.output.resolve()
 if out.exists():raise SystemExit('Use a fresh output directory: '+str(out))
+if args.preview and args.tag:raise SystemExit('A local preview cannot be a tagged deployment')
 out.mkdir(parents=True)
+def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
+def write_page():
+ page=(root/'web/player.html').read_text().replace('href="/"','href="./"').replace('href="/web/','href="./web/').replace('src="/web/','src="./web/')
+ page=page.replace('<main>','<main inert>').replace('id="viewer" controls autoplay prepare="all"','id="viewer" controls autoplay layout="playground"')
+ page=page.replace('<script type="module" src="./web/player-demo.js"></script>','<script type="module" src="./pages-boot.js"></script>')
+ page=page.replace('<body>', '<body><div id="pages-startup" role="status" style="position:fixed;inset:0;z-index:100;background:#101114;display:grid;place-content:center;text-align:center;padding:24px"><strong>Preparing your player…</strong><p style="color:#aaa">First visit? Playback setup takes a moment.</p><a href="./" target="_blank" rel="noopener" hidden>Open in a browser tab</a></div><noscript><style>#pages-startup{display:none!important}</style>This player needs JavaScript enabled.</noscript>')
+ page=page.replace('OPEN SOURCE <span class="footer-dot">·</span> BETA PLAYGROUND', f'<a href="https://github.com/Jagalite/demuxe/tree/{commit}">Source</a> <span class="footer-dot">·</span> <a href="./source/">Licenses &amp; downloads</a>')
+ (out/'index.html').write_text(page);(out/'.nojekyll').touch()
+ for path in (root/'hosting').glob('*.js'):shutil.copyfile(path,out/path.name)
+def deployment_manifest(status):
+ return {'status':status,'baseCommit':commit,'sourceTag':args.tag,'sourceCommit':commit,'dirtySource':bool(subprocess.check_output(['git','status','--porcelain'],cwd=root,text=True).strip()),'independentCleanBuildQualified':False,'files':{str(p.relative_to(out)):{'bytes':p.stat().st_size,'sha256':sha(p)} for p in sorted(out.rglob('*')) if p.is_file()}}
+if args.preview:
+ # Immutable test snapshot, deliberately separate from the strict engine packager.
+ shutil.copytree(root/'web',out/'web')
+ (out/'fixtures').mkdir()
+ for name in ['example.mp4','DejaVuSans.ttf','FONT-LICENSE.txt']:shutil.copyfile(root/'fixtures'/name,out/'fixtures'/name)
+ write_page()
+ (out/'deployment-manifest.json').write_text(json.dumps(deployment_manifest('local-preview-not-for-deployment'),indent=2)+'\n')
+ print('Local asset snapshot only; stale engine provenance is not release qualification:',out)
+ raise SystemExit(0)
+build=json.loads((root/'build/beta-build.json').read_text())
+if args.tag and not build.get('clean'):raise SystemExit('Tagged Pages requires clean engine builds')
 packageout=out.parent/(out.name+'-package')
 subprocess.run(['python3',str(root/'scripts/package-beta.py'),'--output',str(packageout)],check=True,cwd=root)
 archive=next(packageout.glob('*.tgz'))
@@ -21,15 +49,8 @@ with tarfile.open(archive) as tar:
 for name in ['player.css','player-demo.js','player-geometry.js']:
  shutil.copyfile(root/'web'/name,out/'web'/name)
 shutil.copyfile(root/'fixtures/example.mp4',out/'fixtures/example.mp4')
-page=(root/'web/player.html').read_text().replace('href="/"','href="./"').replace('href="/web/','href="./web/').replace('src="/web/','src="./web/')
-page=page.replace('<main>','<main inert>')
-page=page.replace('<script type="module" src="./web/player-demo.js"></script>','<script type="module" src="./pages-boot.js"></script>')
-page=page.replace('<body>','''<body><div id="pages-startup" role="status" style="position:fixed;inset:0;z-index:100;background:#101114;display:grid;place-content:center;text-align:center;padding:24px"><strong>Preparing your player…</strong><p style="color:#aaa">First visit? Playback setup takes a moment.</p><a href="./" target="_blank" rel="noopener" hidden>Open in a browser tab</a></div><noscript><style>#pages-startup{display:none!important}</style>This player needs JavaScript enabled.</noscript>''')
-page=page.replace('OPEN SOURCE <span class="footer-dot">·</span> BETA PLAYGROUND','<a href="https://github.com/Jagalite/demuxe/tree/demo-source">Source</a> <span class="footer-dot">·</span> <a href="./source/">Licenses &amp; downloads</a>')
-(out/'index.html').write_text(page);(out/'.nojekyll').touch()
-for path in (root/'hosting').glob('*.js'):shutil.copyfile(path,out/path.name)
+write_page()
 source=out/'source';source.mkdir()
-def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 def bundle(name,files):
  target=source/name
  with target.open('wb') as dest,gzip.GzipFile(filename='',mode='wb',fileobj=dest,mtime=0,compresslevel=6) as gz,tarfile.open(fileobj=gz,mode='w|') as tar:
@@ -39,7 +60,8 @@ def bundle(name,files):
 # Preferred project source, including current demo changes, excluding result logs/media histories.
 files={}
 for name in subprocess.check_output(['git','ls-files','--cached','-z'],cwd=root).decode().split('\0'):
- if not name or name.startswith(('results/','build/','.github/')):continue
+ if not name or name.startswith(('results/','build/','research/')):continue
+ if name.startswith('experiments/') and name not in build['inputs']:continue
  path=root/name
  if path.is_file() and not path.is_symlink():files['demuxe/'+name]=path
 bundle('demuxe-source.tar.gz',files)
@@ -51,7 +73,7 @@ for item in json.loads((root/'sources.lock.json').read_text())['sources']:
 shaka_source=pages_source(root)
 shutil.copyfile(shaka_source,source/shaka_source.name)
 # Emscripten's preferred runtime/library source and build scripts; no caches or host binaries.
-sdk=root/'build/emsdk-4.0.14/upstream/emscripten'
+sdk=Path(build['sdk'])/'upstream/emscripten'
 files={}
 for path in sdk.rglob('*'):
  relative=path.relative_to(sdk)
@@ -65,7 +87,8 @@ materials=sorted(set(build['configurations']) | {'build/beta-build.json','build/
 bundle('build-materials.tar.gz',{name:root/name for name in materials})
 readme='''# Demo source and licenses
 
-This is a development demo, not the clean-build beta release candidate.
+This is a development demo, not a qualified npm release. Tagged deployments
+rebuild the engines and run the Pages playback checks before publishing.
 Original Demuxe application and runtime code use Apache-2.0. The modified mpv
 and FFmpeg engines use LGPL-2.1-or-later and their upstream file notices.
 Original reports/results retain CC BY 4.0 and historical releases retain GPL.
@@ -93,8 +116,10 @@ manifest={p.name:{'bytes':p.stat().st_size,'sha256':sha(p)} for p in sorted(sour
 (source/'source-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 links=''.join(f'<li><a href="{html.escape(name)}">{html.escape(name)}</a> — {data["bytes"]/1024/1024:.1f} MiB</li>' for name,data in manifest.items())
 (source/'index.html').write_text(f'''<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>demuxe source &amp; licenses</title><style>body{{font:16px/1.7 system-ui;max-width:850px;margin:40px auto;padding:0 24px;background:#101114;color:#ded9e9}}a{{color:#c3a9ff}}pre{{white-space:pre-wrap;font:14px/1.7 system-ui}}</style><a href="../">← Player</a><h1>Source &amp; licenses</h1><p><a href="../LICENSE">Apache application license</a> · <a href="../LICENSES/LGPL-2.1-or-later.txt">LGPL engine license</a> · <a href="../docs/LICENSING.md">Component licensing</a> · <a href="../third_party/notices.json">Third-party notices</a> · <a href="source-manifest.json">Download hashes</a></p><pre>{html.escape(readme)}</pre><ul>{links}</ul>''')
-manifest={'status':'development-demo','baseCommit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'sourceBranch':'demo-source','sourceCommit':args.source_commit,'independentCleanBuildQualified':False,'files':{str(p.relative_to(out)):{'bytes':p.stat().st_size,'sha256':sha(p)} for p in sorted(out.rglob('*')) if p.is_file()}}
+manifest=deployment_manifest('tagged-development-demo' if args.tag else 'development-demo')
 (out/'deployment-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+size=sum(path.stat().st_size for path in out.rglob('*') if path.is_file())
+if size>=1024**3:raise SystemExit('Site exceeds the 1 GiB GitHub Pages limit')
 for path in out.rglob('*'):
- if path.is_file() and path.stat().st_size>=100*1024*1024:raise SystemExit('File exceeds GitHub Git limit: '+str(path))
+ if path.is_file() and path.stat().st_size>=100*1024*1024:raise SystemExit('File exceeds Pages asset limit: '+str(path))
 print(out)

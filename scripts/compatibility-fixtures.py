@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 """Deterministic small fixtures for the compatibility expansion; source media is untouched."""
 from pathlib import Path
-import subprocess,json,hashlib,shutil
+import subprocess,json,hashlib,shutil,os
 out=Path('build/fixtures/compatibility');out.mkdir(parents=True,exist_ok=True)
 commands=[]
+release_only=os.environ.get('DEMUXE_RELEASE_FIXTURES')=='1'
 def ff(name,*args):
  cmd=['build/native-color-reference/ffmpeg' if name.endswith('-reference.rgb') else 'ffmpeg','-hide_banner','-loglevel','error','-nostdin','-y','-filter_threads','1',*args,str(out/name)]
  subprocess.run(cmd,check=True,timeout=120);commands.append(cmd)
@@ -13,7 +14,7 @@ ff('4k.mkv','-f','lavfi','-i','testsrc2=s=3840x2160:r=2','-t','2','-c:v','ffv1',
 tone='zscale=transfer=linear:npl=100,format=gbrpf32le,zscale=primaries=bt709,tonemap=tonemap=mobius:desat=0,zscale=transfer=bt709:matrix=bt709:range=limited,format=yuv420p'
 for name,trc in [('hdr','smpte2084'),('hlg','arib-std-b67')]:
  ff(name+'.mkv','-f','lavfi','-i','testsrc2=s=320x180:r=12','-t','3','-vf',f'format=yuv420p10le,setparams=color_primaries=bt2020:color_trc={trc}:colorspace=bt2020nc:range=limited','-c:v','ffv1','-threads','2')
- ff(name+'-reference.rgb','-i',str(out/(name+'.mkv')),'-vf',tone+',format=rgba','-frames:v','1','-f','rawvideo')
+ if not release_only:ff(name+'-reference.rgb','-i',str(out/(name+'.mkv')),'-vf',tone+',format=rgba','-frames:v','1','-f','rawvideo')
 ff('black.mp4','-f','lavfi','-i','color=black:s=320x180:r=12','-f','lavfi','-i','sine=frequency=440:sample_rate=48000','-t','6','-c:v','libx264','-preset','ultrafast','-g','12','-pix_fmt','yuv420p','-c:a','aac','-movflags','+faststart')
 for n in [6,8]:
  expr='|'.join(f'{(i+1)/20}' for i in range(n))
@@ -21,7 +22,7 @@ for n in [6,8]:
 for codec in ['comfortnoise']:
  ff(codec+'.nut','-f','lavfi','-i','sine=frequency=440:sample_rate=8000','-t','3','-c:a','real_144' if codec=='ra_144' else codec,'-ac','1','-strict','-2')
 ff('ra_144.mkv','-f','lavfi','-i','sine=frequency=440:sample_rate=8000','-t','3','-c:a','real_144','-ac','1')
-for codec in ['sbc.sbc','dfpwm.nut','adpcm_swf.wav','dirac.nut','mpeg1video.mpg','mpeg2video.ts']:shutil.copyfile('build/fixtures/format-matrix/'+codec,out/codec)
+for codec in ([] if release_only else ['sbc.sbc','dfpwm.nut','adpcm_swf.wav','dirac.nut','mpeg1video.mpg','mpeg2video.ts']):shutil.copyfile('build/fixtures/format-matrix/'+codec,out/codec)
 (out/'subtitle.srt').write_text('1\n00:00:00,300 --> 00:00:05,500\nEXTERNAL CAPTION\n\n')
 (out/'subtitle.ass').write_text('''[Script Info]
 ScriptType: v4.00+
@@ -34,7 +35,7 @@ Style: Default,DejaVu Sans Mono,22,&H0000FF00,&H000000FF,&H00000000,&H00000000,0
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 0,0:00:00.30,0:00:05.50,Default,,0,0,0,,CUSTOM FONT
 ''')
-shutil.copyfile('build/dejavu-fonts-ttf-2.37/ttf/DejaVuSansMono.ttf',out/'custom.ttf')
+shutil.copyfile(os.environ.get('DEMUXE_RELEASE_FONT','/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf') if release_only else 'build/dejavu-fonts-ttf-2.37/ttf/DejaVuSansMono.ttf',out/'custom.ttf')
 for name,color in [('low','red'),('high','blue')]:
  (out/name).mkdir(exist_ok=True)
  ff(name+'/index.m3u8','-f','lavfi','-i',f'color={color}:s=320x180:r=12','-f','lavfi','-i','sine=frequency=440:sample_rate=48000','-t','6','-c:v','libx264','-preset','ultrafast','-g','12','-sc_threshold','0','-c:a','aac','-hls_time','1','-hls_list_size','0','-hls_segment_filename',str(out/name/'%03d.ts'))

@@ -34,46 +34,124 @@ if(!origin){
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));origin=`http://127.0.0.1:${server.address().port}/demuxe/`;
 }
-const browser=kind==='firefox'?await firefox.launch():await chromium.launch({channel:'chrome'});
-const page=await browser.newPage({viewport:{width:1280,height:900}});
-page.setDefaultTimeout(60000);
-const result={passed:false,url:origin,browser:kind,checks:[],requests:[]};const errors=[];
-const check=name=>{result.checks.push(name);console.log('PASS',name);};
-page.on('pageerror',error=>errors.push(String(error)));
-page.on('request',req=>{if(/^https?:/.test(req.url()))result.requests.push({url:req.url(),method:req.method()});});
-try {
- await page.goto(origin);
- const manifest=await page.request.get(new URL('release-manifest.json',origin).href);assert.ok(manifest.ok());result.runtimeManifestSHA256=createHash('sha256').update(await manifest.body()).digest('hex');result.testHarnessSHA256=createHash('sha256').update(await readFile(import.meta.filename)).digest('hex');
- await page.waitForFunction(()=>crossOriginIsolated && window.player,{},{timeout:60000});
- assert.equal(await page.evaluate(()=>typeof SharedArrayBuffer),'function');
- assert.equal(await page.locator('#pages-startup').count(),0);
- assert.ok(await page.evaluate(()=>navigator.serviceWorker.controller?.scriptURL.endsWith('/demuxe/pages-isolation-sw.js')));
- check('Fresh visit becomes cross-origin isolated through the scoped service worker');
- for(const mode of ['native','hybrid','software']){
+const trials=Number(process.env.PAGES_TRIALS||3);
+assert.ok(Number.isInteger(trials)&&trials>0&&trials<=10,'PAGES_TRIALS must be 1–10');
+const browser=await(kind==='firefox'?firefox:chromium).launch({headless:true,...(kind==='chrome'?{channel:'chrome'}:{})});
+const result={passed:false,url:origin,browser:kind,browserVersion:browser.version(),scope:process.env.PAGES_ALLOW_PREVIEW==='1'?'local asset snapshot; not a clean release build':'assembled Pages site',trials:[],checks:[]};
+const hash=data=>createHash('sha256').update(data).digest('hex');
+let activePage;
+// Observe real output: native video frame callbacks, Wasm renderer counters,
+// changing surface screenshots, and non-silent PCM at the audio destination.
+async function observeOutput(page){
+ await page.addInitScript(()=>{
+  const originalConnect=AudioNode.prototype.connect,OriginalContext=window.AudioContext;
+  const analysers=[],tapped=new WeakSet(),media=new Set();
+  const now=()=>performance.now();
+  const probe=window.pagesProbe={started:null,openMs:null,videoMs:null,audioMs:null,videoEvidence:null,peakRms:0,videoFrames:0};
+  function tap(node){
+   if(tapped.has(node))return;tapped.add(node);
+   const analyser=node.context.createAnalyser();analyser.fftSize=2048;
+   originalConnect.call(node,analyser);analysers.push(analyser);
+  }
+  AudioNode.prototype.connect=function(destination,...args){if(destination instanceof AudioDestinationNode)tap(this);return originalConnect.call(this,destination,...args);};
+  const create=document.createElement;
+  document.createElement=function(tag,...args){const element=create.call(this,tag,...args);if(String(tag).toLowerCase()==='video'||String(tag).toLowerCase()==='audio')media.add(element);return element;};
+  const seen=new WeakSet();
+  setInterval(()=>{
+   for(const element of media){
+    const surface=document.querySelector('demuxe-player')?.shadowRoot?.getElementById('surface');
+    if(seen.has(element)||!surface?.contains(element)||!element.src&&!element.currentSrc&&!element.srcObject)continue;
+    seen.add(element);
+    if(element.requestVideoFrameCallback){
+     const frame=()=>{if(probe.started!==null&&element.isConnected&&surface.contains(element)){probe.videoFrames++;probe.videoMs??=now()-probe.started;probe.videoEvidence='requestVideoFrameCallback';}element.requestVideoFrameCallback(frame);};element.requestVideoFrameCallback(frame);
+    }
+    try{const context=new OriginalContext(),source=context.createMediaElementSource(element);source.connect(context.destination);void context.resume();}catch(error){probe.audioObserverError=String(error);}
+   }
+   if(probe.started===null)return;
+   const player=window.player;
+   if(player?.state.sourceId!==null&&player?.state.sourceId!==undefined&&!player.state.pendingOperation)probe.openMs??=now()-probe.started;
+   if(Number(player?.diagnostics.backend?.rendered)>0&&probe.videoMs===null){probe.videoMs=now()-probe.started;probe.videoEvidence='renderer counter';}
+   for(const analyser of analysers){const data=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(data);const rms=Math.sqrt(data.reduce((sum,n)=>sum+n*n,0)/data.length);probe.peakRms=Math.max(probe.peakRms,rms);if(rms>.005)probe.audioMs??=now()-probe.started;}
+  },10);
+  document.addEventListener('click',event=>{if(event.composedPath().some(n=>n instanceof Element&&n.id==='demo'))probe.started=now();},true);
+ });
+}
+try{
+ const harness=await readFile(import.meta.filename);result.testHarnessSHA256=hash(harness);await writeFile(`${out}/harness.mjs`,harness);
+ for(const mode of ['native','hybrid','software'])for(let trial=1;trial<=trials;trial++){
+  const context=await browser.newContext({viewport:{width:1280,height:900},reducedMotion:'reduce'});
+  try{
+   const page=activePage=await context.newPage();page.setDefaultTimeout(60000);
+   const errors=[],badRequests=[];
+   page.on('pageerror',e=>errors.push(String(e)));
+   page.on('request',request=>{if(/^https?:/.test(request.url())&&(request.method()!=='GET'||!request.url().startsWith(origin)))badRequests.push({url:request.url(),method:request.method()});});
+   await observeOutput(page);
+   const navigationStart=performance.now();await page.goto(origin);
+   await page.waitForFunction(()=>crossOriginIsolated&&window.player);
+   const navigationReadyMs=performance.now()-navigationStart;
+   assert.equal(await page.locator('#pages-startup').count(),0);
+   assert.equal(await page.evaluate(()=>document.querySelector('demuxe-player').layout),'playground');
+   assert.ok(await page.evaluate(()=>navigator.serviceWorker.controller?.scriptURL.endsWith('/pages-isolation-sw.js')));
+   if(!result.deployment){
+    const response=await page.request.get(new URL('deployment-manifest.json',origin).href);assert.ok(response.ok());
+    const bytes=await response.body(),deployment=JSON.parse(bytes);
+    if(deployment.status==='local-preview-not-for-deployment')assert.equal(process.env.PAGES_ALLOW_PREVIEW,'1','Local previews cannot pass deployment checks');
+    if(process.env.PAGES_EXPECT_TAG){assert.equal(deployment.status,'tagged-development-demo');assert.equal(deployment.sourceTag,process.env.PAGES_EXPECT_TAG);assert.equal(deployment.dirtySource,false);}
+    result.deployment={status:deployment.status,sourceCommit:deployment.sourceCommit,sourceTag:deployment.sourceTag,dirtySource:deployment.dirtySource,sha256:hash(bytes)};
+    const fixture=await page.request.get(new URL('fixtures/example.mp4',origin).href);assert.ok(fixture.ok());const fixtureBytes=await fixture.body();
+    result.fixture={path:'fixtures/example.mp4',bytes:fixtureBytes.length,sha256:hash(fixtureBytes)};
+    result.assetHashes=Object.fromEntries(Object.entries(deployment.files).filter(([name])=>name.endsWith('.wasm')||name.endsWith('.mjs')||name.startsWith('web/generated/player/')));
+    if(deployment.status!=='local-preview-not-for-deployment'){
+     const source=await page.request.get(new URL('source/source-manifest.json',origin).href);assert.ok(source.ok());result.source=await source.json();
+     assert.ok(result.source['demuxe-source.tar.gz']);assert.ok(result.source['emscripten-source.tar.gz']);
+    }
+   }
    await page.evaluate(mode=>player.setMode(mode),mode);
-   const previousSource=await page.evaluate(()=>player.state.sourceId);
+   await page.locator('#viewer #open-menu').click();
    await page.getByRole('button',{name:'Try an example'}).click();
-   await page.waitForFunction(previous=>player.state.sourceId!==null&&player.state.sourceId!==previous&&player.state.pendingOperation===null,previousSource);
-   const viewer=page.locator('demuxe-player');await viewer.getByRole('button',{name:'Play',exact:true}).click();
-   await page.waitForFunction(()=>player.state.currentTime>.3);
-   assert.equal(await page.evaluate(()=>player.mode),mode);
-   await viewer.getByRole('button',{name:'Pause',exact:true}).click();
-   await page.evaluate(()=>document.querySelector('demuxe-player').seek(2));
-   await page.waitForFunction(()=>player.state.pendingOperation===null&&Math.abs(player.state.currentTime-2)<.3);
+   await page.waitForFunction(()=>pagesProbe.openMs!==null&&pagesProbe.videoMs!==null&&pagesProbe.audioMs!==null&&player.state.currentTime>.65&&player.state.status==='playing');
+   const initial=await page.evaluate(()=>({...pagesProbe,mode:player.state.activeMode,route:player.diagnostics.plan,position:player.state.currentTime}));
+   assert.equal(initial.mode,mode);assert.ok(initial.peakRms>.005);
+   const surface=page.locator('#viewer #surface');
+   const first=await surface.screenshot({path:`${out}/${mode}-${trial}-first.png`});
+   await page.waitForFunction(position=>player.state.currentTime>position+.5,initial.position);
+   const second=await surface.screenshot({path:`${out}/${mode}-${trial}-advancing.png`});
+   assert.notEqual(hash(first),hash(second),'Media surface must visibly change during playback');
+   await page.evaluate(()=>document.querySelector('demuxe-player').pause());
+   for(const viewport of [{width:1280,height:900},{width:390,height:844},{width:600,height:280}]){
+    await page.setViewportSize(viewport);
+    await page.locator('#viewer #settings-toggle').click();
+    assert.equal(await page.evaluate(()=>getComputedStyle(document.querySelector('demuxe-player').shadowRoot.getElementById('transport')).opacity),'1');
+    await page.keyboard.press('Escape');
+    const geometry=await page.evaluate(()=>{const v=document.querySelector('demuxe-player'),r=v.getBoundingClientRect();return ['play','timeline','fullscreen'].map(id=>{const b=v.shadowRoot.getElementById(id).getBoundingClientRect();return {id,inside:b.left>=r.left&&b.right<=r.right&&b.top>=r.top&&b.bottom<=r.bottom&&b.bottom<=innerHeight};});});
+    assert.ok(geometry.every(control=>control.inside),JSON.stringify({viewport,geometry}));
+   }
+   await page.setViewportSize({width:1280,height:900});
+   const seekStart=performance.now();await page.evaluate(()=>document.querySelector('demuxe-player').seek(2));
+   await page.waitForFunction(()=>!player.state.pendingOperation&&Math.abs(player.state.currentTime-2)<.3);
+   const seekMs=performance.now()-seekStart;
+   const seekImage=await surface.screenshot({path:`${out}/${mode}-${trial}-seek.png`});
+   assert.notEqual(hash(second),hash(seekImage),'Seeking must change the displayed picture');
    assert.equal(await page.evaluate(()=>player.state.error),null);
-   check(`${mode} plays and seeks with assets beneath the project subpath`);
+   const range=await page.evaluate(async()=>{const response=await fetch('./fixtures/example.mp4',{headers:{Range:'bytes=10-29'}});return {status:response.status,length:(await response.arrayBuffer()).byteLength};});
+   assert.deepEqual(range,{status:206,length:20});
+   const returningStart=performance.now();await page.reload();await page.waitForFunction(()=>crossOriginIsolated&&window.player);
+   const returningReadyMs=performance.now()-returningStart;
+   assert.deepEqual(errors,[]);assert.deepEqual(badRequests,[]);
+   result.trials.push({mode,trial,navigationReadyMs,returningReadyMs,...initial,seekMs,surfaceHashes:[hash(first),hash(second),hash(seekImage)]});
+   console.log('PASS',mode,trial,JSON.stringify({navigationReadyMs,firstVideoMs:initial.videoMs,firstAudioMs:initial.audioMs,seekMs}));
+  }catch(error){
+   result.failedTrial={mode,trial,state:await activePage?.evaluate(()=>({probe:window.pagesProbe,state:window.player?.state,diagnostics:window.player?.diagnostics})).catch(()=>null)};
+   await activePage?.screenshot({path:`${out}/failure.png`,fullPage:true}).catch(()=>{});
+   throw error;
+  }finally{await context.close();activePage=undefined;}
  }
- const range=await page.evaluate(async()=>{const response=await fetch('./fixtures/example.mp4',{headers:{Range:'bytes=10-29'}});return {status:response.status,length:(await response.arrayBuffer()).byteLength};});
- assert.deepEqual(range,{status:206,length:20});check('Service worker preserves ranged media responses');
- await page.reload();await page.waitForFunction(()=>crossOriginIsolated && window.player);
- assert.equal(await page.locator('#pages-startup').count(),0);check('Returning visit starts directly with isolation enabled');
- assert.deepEqual(errors,[]);
- assert.equal(result.requests.some(r=>r.method!=='GET'),false);
- assert.equal(result.requests.some(r=>!r.url.startsWith(origin)),false);
- check('No external asset requests, uploads or uncaught page errors');
- const response=await page.request.get(new URL('source/source-manifest.json',origin).href);assert.ok(response.ok());
- result.source=await response.json();assert.ok(result.source['demuxe-source.tar.gz']);assert.ok(result.source['emscripten-source.tar.gz']);
- check('Source downloads and license materials accompany the demo');
+ result.checks=['Fresh and returning visits establish isolation under the project subpath','Native, Hybrid and Software produce changing pictures and non-silent audio','Pause and seek update the rendered picture','Range responses retain status and byte count','No page errors, external asset requests or uploads'];
+ result.summary=Object.fromEntries(['native','hybrid','software'].map(mode=>{
+  const rows=result.trials.filter(row=>row.mode===mode);
+  const metrics=Object.fromEntries(['navigationReadyMs','returningReadyMs','openMs','videoMs','audioMs','seekMs'].map(key=>{const values=rows.map(row=>row[key]).sort((a,b)=>a-b);return [key,{min:values[0],median:values.length%2?values[(values.length-1)/2]:(values[values.length/2-1]+values[values.length/2])/2,max:values.at(-1)}];}));
+  return [mode,metrics];
+ }));
  result.passed=true;
-}catch(error){result.failure=String(error.stack);console.error(error);process.exitCode=1;await page.screenshot({path:`${out}/failure.png`,fullPage:true}).catch(()=>{});result.state=await page.evaluate(()=>({player:window.player?.state,isolated:crossOriginIsolated,status:document.querySelector('#status')?.textContent,startup:document.querySelector('#pages-startup')?.textContent})).catch(()=>null);}
+}catch(error){result.failure=String(error.stack);console.error(error);process.exitCode=1;if(activePage)await activePage.screenshot({path:`${out}/failure.png`,fullPage:true}).catch(()=>{});}
 finally{await browser.close();await new Promise(resolve=>server?server.close(resolve):resolve());await writeFile(`${out}/result.json`,JSON.stringify(result,null,2)+'\n');}

@@ -12,6 +12,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 spec = importlib.util.spec_from_file_location('lgpl_catalogue', ROOT / 'scripts/compare-lgpl-catalogue.py')
 gate = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gate)
+ROW_COUNT = len(gate.readme_rows())
 
 
 def sha(data):
@@ -26,7 +27,7 @@ class CatalogueGate(unittest.TestCase):
         self.original_root = gate.ROOT
         gate.ROOT = self.root
         self.addCleanup(lambda: setattr(gate, 'ROOT', self.original_root))
-        rows = [f'Row {index}' for index in range(71)]
+        rows = [f'Row {index}' for index in range(ROW_COUNT)]
         (self.root / 'README.md').write_text('| Media format | Native video | Demuxe (auto) |\n'
                                              '| --- | --- | --- |\n' +
                                              ''.join(f'| {row} | n | d |\n' for row in rows) + '\n')
@@ -85,7 +86,31 @@ class CatalogueGate(unittest.TestCase):
     def test_complete_matched_passes(self):
         record = gate.compare(self.summary('baseline'), self.summary('candidate'))
         self.assertEqual((record['status'], record['rows'], record['counts']['stillPass']),
-                         ('qualified', 71, 71))
+                         ('qualified', ROW_COUNT, ROW_COUNT))
+
+    def test_new_row_passes_when_both_lanes_add_matching_correctness(self):
+        readme=self.root/'README.md'
+        readme.write_text(readme.read_text().rstrip()+'\n| Added format | n | d |\n')
+        for lane in ['baseline','candidate']:
+            assets=self.root/lane/'assets';fixtures=assets/'fixtures/catalogue.json'
+            data=json.loads(fixtures.read_text());data['added']={'label':'Added format'}
+            fixtures.write_text(json.dumps(data))
+            manifest=assets/'manifest.json';data=json.loads(manifest.read_text())
+            data['files']['fixtures/catalogue.json']['sha256']=gate.digest(fixtures)
+            manifest.write_text(json.dumps(data))
+            def update(summary):
+                summary['assetsSHA256']=gate.digest(manifest)
+                summary['selected'].append('demuxe.auto.added')
+                summary['cases'].append({'id':'demuxe.auto.added','fixture':'added','status':'passed','initial':{'route':'native-direct'}})
+            self.change(lane,update)
+        record=gate.compare(self.summary('baseline'),self.summary('candidate'))
+        self.assertEqual((record['status'],record['rows']),('qualified',ROW_COUNT+1))
+
+    def test_cpu_and_smoke_results_cannot_qualify_a_release(self):
+        for kind in ['performance','smoke']:
+            self.change('candidate',lambda data:data.update(kind=kind))
+            with self.assertRaisesRegex(ValueError,'correctness summary'):
+                gate.compare(self.summary('baseline'),self.summary('candidate'))
 
     def test_additional_and_reordered_columns_preserve_catalogue(self):
         path = self.root / 'README.md'
@@ -119,7 +144,7 @@ class CatalogueGate(unittest.TestCase):
         self.change('candidate', limited)
         record = gate.compare(self.summary('baseline'), self.summary('candidate'))
         self.assertEqual((record['status'], record['counts']['baselinePassedScreen'],
-                          record['counts']['stillPass']), ('qualified', 69, 69))
+                          record['counts']['stillPass']), ('qualified', ROW_COUNT - 2, ROW_COUNT - 2))
         self.change('candidate', lambda data: data['cases'][1].update(reason='Different failure'))
         record = gate.compare(self.summary('baseline'), self.summary('candidate'))
         self.assertEqual((record['status'], record['counts']['preexistingLimitChanged']),
@@ -144,7 +169,7 @@ class CatalogueGate(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Incomplete or duplicated'):
             gate.compare(self.summary('baseline'), self.summary('candidate'))
         self.change('candidate', lambda data: data['cases'].append({
-            'id': 'demuxe.auto.case70', 'fixture': 'case70', 'status': 'failed',
+            'id': f'demuxe.auto.case{ROW_COUNT-1}', 'fixture': f'case{ROW_COUNT-1}', 'status': 'failed',
             'failureStage': 'subtitle-output'}))
         record = gate.compare(self.summary('baseline'), self.summary('candidate'))
         self.assertEqual((record['status'], record['counts']['regression']), ('review-required', 1))

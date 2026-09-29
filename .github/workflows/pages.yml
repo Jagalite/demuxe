@@ -1,0 +1,212 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Tagged player demo and npm release
+
+on:
+  push:
+    tags: ['**']
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to rebuild and deploy
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tag-release-${{ github.event.release.tag_name || inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || github.event.created == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      DEMUXE_SDK: ${{ github.workspace }}/build/emsdk-4.0.14
+      DEMUXE_JOBS: '4'
+      PAGES_TAG: ${{ inputs.tag || github.ref_name }}
+      PAGES_EXPECT_TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build pkg-config make gcc g++ patch ffmpeg xvfb fonts-dejavu-core
+          python3 -m venv build/venv
+          build/venv/bin/python -m pip install meson==1.7.2 Jinja2==3.1.6 MarkupSafe==3.0.2
+          npm ci --ignore-scripts
+      - name: Download and verify the published comparison baseline
+        if: github.event_name == 'push'
+        run: python3 scripts/tag-release.py baseline
+      - name: Check Pages assembly and tag guards
+        run: |
+          python3 tests/pages-build.py
+          python3 tests/tag-release.py
+          python3 tests/lgpl-catalogue.py
+          python3 tests/npm-release.py
+      - name: Install the locked Emscripten SDK
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, subprocess
+          pin = next(x for x in json.loads(pathlib.Path('sources.lock.json').read_text())['sources'] if x['name'] == 'emsdk')
+          archive = pathlib.Path(os.environ['RUNNER_TEMP']) / 'emsdk.tar.gz'
+          subprocess.run(['curl', '-fL', '--retry', '3', pin['url'], '-o', str(archive)], check=True)
+          if hashlib.sha256(archive.read_bytes()).hexdigest() != pin['sha256']:
+              raise SystemExit('Emscripten installer archive hash mismatch')
+          sdk = pathlib.Path(os.environ['DEMUXE_SDK'])
+          sdk.mkdir()
+          subprocess.run(['tar', '-xf', str(archive), '--strip-components=1', '-C', str(sdk)], check=True)
+          PY
+          "$DEMUXE_SDK/emsdk" install 4.0.14
+          "$DEMUXE_SDK/emsdk" activate 4.0.14
+      - name: Build all playback engines from the tag
+        shell: bash
+        run: |
+          set -o pipefail
+          bash scripts/build-beta-engines.sh --clean 2>&1 | tee build/clean-build.log
+      - name: Build optional preparation engine and tagged release archives
+        if: github.event_name == 'push'
+        run: python3 scripts/tag-release.py package --tag "$PAGES_TAG"
+      - name: Assemble the current player and matching source downloads
+        run: python3 scripts/build-pages.py --tag "$PAGES_TAG" --output build/pages-site
+      - name: Install test browsers
+        run: npx playwright install --with-deps chromium chrome firefox
+      - name: Verify Chrome-family playback and record timings
+        env:
+          BROWSER: chromium
+        run: node tests/pages-demo.mjs
+      - name: Verify Firefox playback and record timings
+        env:
+          BROWSER: firefox
+        run: node tests/pages-demo.mjs
+      - name: Generate fixtures and qualify the exact release archives
+        if: github.event_name == 'push'
+        run: xvfb-run -a python3 scripts/tag-release.py qualify --tag "$PAGES_TAG"
+      - name: Retain qualified release archives
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: qualified-release
+          path: build/release/*
+          if-no-files-found: error
+          compression-level: 0
+      - name: Retain build and playback evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-build-evidence
+          path: |
+            build/clean-build.log
+            build/pages-site/deployment-manifest.json
+            results/pages/
+            build/tag-release/catalogue-comparison.json
+            build/tag-release/baseline/summary.json
+            build/tag-release/candidate/summary.json
+            build/tag-release/optional/qualification.json
+            results/beta/
+            results/shaka-package/
+            results/release-extra/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/pages-site
+
+  deploy:
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - name: Publish tested player
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  release:
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ github.ref_name }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: qualified-release
+          path: build/release
+      - name: Publish qualified archives and source companions on GitHub
+        run: |
+          python3 scripts/publish-github-release.py --assets build/release \
+            --tag "$RELEASE_TAG" --commit "$(git rev-parse HEAD)" --repo "$GITHUB_REPOSITORY"
+
+  stage-npm:
+    needs: release
+    if: always() && ((github.event_name == 'push' && needs.release.result == 'success') || (github.event_name == 'release' && !github.event.release.draft))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    environment: npm
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ github.event.release.tag_name || github.ref_name }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install npm with trusted publishing support
+        run: npm install --global npm@11.15.0 --ignore-scripts
+      - name: Test release handoff guards
+        run: python3 tests/npm-release.py
+      - name: Download qualified runtime and public source companions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p build/npm-release
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir build/npm-release \
+            --pattern 'verification.json' --pattern '*.tgz' --pattern '*source*.tar.gz'
+      - name: Validate and stage the exact verified archive for npm approval
+        run: |
+          python3 scripts/publish-npm-release.py --assets build/npm-release \
+            --tag "$RELEASE_TAG" --commit "$(git rev-parse HEAD)" --stage

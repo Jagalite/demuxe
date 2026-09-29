@@ -11,7 +11,7 @@ execFileSync(process.execPath,[path.resolve('node_modules/typescript/lib/tsc.js'
 const app=`import {Player} from 'demuxe';import {definePlayerElement} from 'demuxe/player';definePlayerElement();window.Player=Player;window.viewer=document.querySelector('demuxe-player');window.apiReady=true;`;
 await writeFile(path.join(root,'core-only.js'),"import {Player} from 'demuxe';window.Core=Player;window.coreOnly=true;");await writeFile(path.join(root,'static-core.js'),"import {Player} from './node_modules/demuxe/index.js';window.Core=Player;window.coreOnly=true;");
 await writeFile(path.join(root,'app.js'),app);await writeFile(path.join(root,'static.js'),app.replace("'demuxe'","'./node_modules/demuxe/index.js'").replace("'demuxe/player'","'./node_modules/demuxe/player.js'"));
-execFileSync(path.resolve('build/public-api-tooling/node_modules/.bin/esbuild'),['app.js','core-only.js','--bundle','--format=esm','--splitting','--outdir=dist','--metafile=metafile.json'],{cwd:root,stdio:'pipe'});
+execFileSync(path.resolve('node_modules/.bin/esbuild'),['app.js','core-only.js','--bundle','--format=esm','--splitting','--outdir=dist','--metafile=metafile.json'],{cwd:root,stdio:'pipe'});
 await mkdir(path.join(root,'media'));await copyFile('fixtures/example.mp4',path.join(root,'media/movie.mp4'));await copyFile('build/routing-completion/fixtures/vp9-opus.mkv',path.join(root,'media/remux.mkv'));
 const mime=f=>f.endsWith('.html')?'text/html':/\.m?js$/.test(f)?'text/javascript':f.endsWith('.wasm')?'application/wasm':f.endsWith('.mp4')?'video/mp4':'application/octet-stream';
 let missingEngine=false;
