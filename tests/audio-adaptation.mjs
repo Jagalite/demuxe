@@ -19,6 +19,26 @@ if(profile==='opus')fixtures.push({name:'opus-markers',file:'build/optimization-
 const result={profile,browser:browser.version(),scope:'Real browser MSE playback and native offline decode-back; not physical A/V or performance qualification',cases:[]};
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const opusPreSkip=bytes=>{const at=bytes.indexOf('dOps');assert.ok(at>=4,'Missing Opus dOps box');const size=bytes.readUInt32BE(at-4);assert.ok(size>=19&&at-4+size<=bytes.length,'Invalid Opus dOps box');assert.equal(bytes[at+4],0,'Unsupported Opus dOps version');return bytes.readUInt16BE(at+6);};
+const mp4Boxes=(bytes,start=0,end=bytes.length)=>{const boxes=[];for(let at=start;at<end;){assert.ok(at+8<=end,'Truncated MP4 box');const size=bytes.readUInt32BE(at);assert.ok(size>=8&&at+size<=end,'Invalid MP4 box size');boxes.push({type:bytes.toString('ascii',at+4,at+8),start:at+8,end:at+size});at+=size;}return boxes;};
+const opusCodedSamples=bytes=>{
+ const top=mp4Boxes(bytes),moov=top.find(b=>b.type==='moov');assert.ok(moov,'Missing MP4 moov');
+ const audio=mp4Boxes(bytes,moov.start,moov.end).filter(b=>b.type==='trak').find(b=>bytes.subarray(b.start,b.end).includes(Buffer.from('dOps')));assert.ok(audio,'Missing Opus track');
+ const tkhd=mp4Boxes(bytes,audio.start,audio.end).find(b=>b.type==='tkhd');assert.ok(tkhd,'Missing Opus tkhd');
+ const trackId=bytes.readUInt32BE(tkhd.start+(bytes[tkhd.start]===1?20:12));let total=0,runs=0;
+ for(const moof of top.filter(b=>b.type==='moof'))for(const traf of mp4Boxes(bytes,moof.start,moof.end).filter(b=>b.type==='traf')){
+  const children=mp4Boxes(bytes,traf.start,traf.end),tfhd=children.find(b=>b.type==='tfhd');assert.ok(tfhd,'Missing MP4 tfhd');
+  const tfhdFlags=bytes.readUInt32BE(tfhd.start)&0xffffff;if(bytes.readUInt32BE(tfhd.start+4)!==trackId)continue;
+  let at=tfhd.start+8;if(tfhdFlags&1)at+=8;if(tfhdFlags&2)at+=4;
+  const defaultDuration=tfhdFlags&8?bytes.readUInt32BE(at):undefined;
+  for(const trun of children.filter(b=>b.type==='trun')){
+   const flags=bytes.readUInt32BE(trun.start)&0xffffff,count=bytes.readUInt32BE(trun.start+4);let cursor=trun.start+8;
+   if(flags&1)cursor+=4;if(flags&4)cursor+=4;
+   for(let i=0;i<count;i++){const duration=flags&0x100?bytes.readUInt32BE(cursor):defaultDuration;assert.ok(Number.isInteger(duration)&&duration>0,'Missing Opus sample duration');total+=duration;if(flags&0x100)cursor+=4;if(flags&0x200)cursor+=4;if(flags&0x400)cursor+=4;if(flags&0x800)cursor+=4;}
+   assert.equal(cursor,trun.end,'Invalid Opus trun layout');runs++;
+  }
+ }
+ assert.ok(runs,'Missing Opus sample runs');return total;
+};
 const packets=f=>JSON.parse(execFileSync('ffprobe',['-v','error','-select_streams','v:0','-show_packets','-show_data_hash','sha256','-of','json',f])).packets;
 const frames=f=>execFileSync('ffmpeg',['-v','error','-i',f,'-map','0:v:0','-an','-f','framemd5','-'],{encoding:'utf8',maxBuffer:4*1024*1024}).split('\n').filter(l=>l&&!l.startsWith('#')).map(l=>l.split(',').at(-1).trim());
 const pcm=(f,index=0)=>execFileSync('ffmpeg',['-v','error','-i',f,'-map',`0:a:${index}`,'-c:a','pcm_s32le','-f','s32le','-'],{maxBuffer:32*1024*1024});
@@ -85,7 +105,9 @@ try{
     // Opus decoders emit coded frames, including declared padding. Account for
     // dOps preskip and the final MP4 sample duration independently; do not trim
     // PCM to fit the reference or call the lossy output sample-exact.
-    const declared=aPackets.reduce((sum,p)=>sum+Number(p.duration),0)-preSkip;
+    const codedSamples=opusCodedSamples(Buffer.from(data));
+    if(aPackets.every(p=>Number.isFinite(Number(p.duration))))assert.equal(aPackets.reduce((sum,p)=>sum+Number(p.duration),0),codedSamples,'ffprobe and MP4 sample durations disagree');
+    const declared=codedSamples-preSkip;
     item.opus.declaredValidSamples=declared;item.opus.decodedPadding=actual-n;
     assert.equal(declared,n,'Container valid-sample duration changed');
     assert.equal(actual-n,stats.discardPaddingSamples,'Unaccounted decoded padding');
