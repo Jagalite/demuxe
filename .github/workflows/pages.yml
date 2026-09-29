@@ -46,7 +46,7 @@ jobs:
       - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build pkg-config make gcc g++ patch ffmpeg xvfb fonts-dejavu-core
+          sudo apt-get install -y cmake ninja-build pkg-config make gcc g++ patch ffmpeg pulseaudio xvfb fonts-dejavu-core
           python3 -m venv build/venv
           build/venv/bin/python -m pip install meson==1.7.2 Jinja2==3.1.6 MarkupSafe==3.0.2
           npm ci --ignore-scripts
@@ -87,6 +87,10 @@ jobs:
         run: python3 scripts/build-pages.py --tag "$PAGES_TAG" --output build/pages-site
       - name: Install test browsers
         run: npx playwright install --with-deps chromium chrome firefox
+      - name: Start audio service for Firefox playback checks
+        run: |
+          pulseaudio --start --exit-idle-time=-1
+          pactl info
       - name: Verify Chrome-family playback and record timings
         env:
           BROWSER: chromium
