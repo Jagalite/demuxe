@@ -126,6 +126,15 @@ jobs:
             results/beta/
             results/shaka-package/
             results/release-extra/
+      - name: Retain unqualified runtime for failed release diagnosis
+        if: failure() && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unqualified-runtime-debug
+          path: build/release/demuxe-*.tgz
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 1
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/pages-site

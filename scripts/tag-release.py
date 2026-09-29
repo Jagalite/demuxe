@@ -168,7 +168,7 @@ def qualify(tag):
     archive = candidate()
     env = {'BETA_ARCHIVE': str(archive), 'HEADLESS': '1',
            'ADAPTATION_FIXTURE': str(ROOT / 'build/optimization-fixtures/long-pcm.mkv'),
-           'AUTOMATIC_ADAPTATION_FIXTURE': str(ROOT / 'build/optimization-fixtures/automatic-lossless.mkv')}
+           'AUTOMATIC_ADAPTATION_FIXTURE': str(ROOT / 'build/optimization-fixtures/automatic-release.mkv')}
     for name in ['CASES', 'ONLY', 'PROFILE', 'REPRO_UNQUALIFIED', 'DEMUXE_RUNTIME_ROOT']:
         os.environ.pop(name, None)
     results = {}
