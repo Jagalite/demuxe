@@ -18,6 +18,7 @@ if(process.env.CASES?.split(',').includes('long-pcm'))fixtures.push({name:'long-
 if(profile==='opus')fixtures.push({name:'opus-markers',file:'build/optimization-fixtures/opus-markers.mkv'});
 const result={profile,browser:browser.version(),scope:'Real browser MSE playback and native offline decode-back; not physical A/V or performance qualification',cases:[]};
 const hash=b=>createHash('sha256').update(b).digest('hex');
+const opusPreSkip=bytes=>{const at=bytes.indexOf('dOps');assert.ok(at>=4,'Missing Opus dOps box');const size=bytes.readUInt32BE(at-4);assert.ok(size>=19&&at-4+size<=bytes.length,'Invalid Opus dOps box');assert.equal(bytes[at+4],0,'Unsupported Opus dOps version');return bytes.readUInt16BE(at+6);};
 const packets=f=>JSON.parse(execFileSync('ffprobe',['-v','error','-select_streams','v:0','-show_packets','-show_data_hash','sha256','-of','json',f])).packets;
 const frames=f=>execFileSync('ffmpeg',['-v','error','-i',f,'-map','0:v:0','-an','-f','framemd5','-'],{encoding:'utf8',maxBuffer:4*1024*1024}).split('\n').filter(l=>l&&!l.startsWith('#')).map(l=>l.split(',').at(-1).trim());
 const pcm=(f,index=0)=>execFileSync('ffmpeg',['-v','error','-i',f,'-map',`0:a:${index}`,'-c:a','pcm_s32le','-f','s32le','-'],{maxBuffer:32*1024*1024});
@@ -77,18 +78,20 @@ try{
      }item.opus.alignment=best;assert.ok(Math.abs(best.lag)<=1,'Opus marker alignment changed');
     }
     const aPackets=JSON.parse(execFileSync('ffprobe',['-v','error','-select_streams','a:0','-show_packets','-of','json',output])).packets;
-    item.opus.firstPacket=aPackets[0];item.opus.lastPacket=aPackets.at(-1);item.opus.initialPadding=outputAudio.initial_padding;
+    const preSkip=opusPreSkip(Buffer.from(data));
+    if(outputAudio.initial_padding!==undefined)assert.equal(outputAudio.initial_padding,preSkip,'ffprobe and dOps pre-skip disagree');
+    item.opus.firstPacket=aPackets[0];item.opus.lastPacket=aPackets.at(-1);item.opus.initialPadding=preSkip;
     const stats=item.diagnostics.d.backend.remux.remux.adaptation;
     // Opus decoders emit coded frames, including declared padding. Account for
     // dOps preskip and the final MP4 sample duration independently; do not trim
     // PCM to fit the reference or call the lossy output sample-exact.
-    const declared=aPackets.reduce((sum,p)=>sum+Number(p.duration),0)-outputAudio.initial_padding;
+    const declared=aPackets.reduce((sum,p)=>sum+Number(p.duration),0)-preSkip;
     item.opus.declaredValidSamples=declared;item.opus.decodedPadding=actual-n;
     assert.equal(declared,n,'Container valid-sample duration changed');
     assert.equal(actual-n,stats.discardPaddingSamples,'Unaccounted decoded padding');
     assert.equal(stats.audioSamplesDecoded,n);assert.equal(stats.audioSamplesEncoded,n);
-    assert.equal(stats.encoderDelaySamples,outputAudio.initial_padding);
-    assert.ok(Math.abs(Number(outputAudio.start_time)+outputAudio.initial_padding/48000-Number(inputAudio.start_time)-shift)<.0001,'Opus audible timeline offset changed');
+    assert.equal(stats.encoderDelaySamples,preSkip);
+    assert.ok(Math.abs(Number(outputAudio.start_time)+preSkip/48000-Number(inputAudio.start_time)-shift)<.0001,'Opus audible timeline offset changed');
    }
    if(fixture.name==='original-edge')assert.deepEqual(frames(output),frames(fixture.file));
    item.fidelity={videoPackets:inputPackets.length,ptsShift:shift,pcmBytes:reference.length,pcmSHA256:hash(reference),outputSHA256:hash(Buffer.from(data)),samplesExact:profile==='flac'};
