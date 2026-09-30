@@ -5,9 +5,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -24,9 +24,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -43,9 +43,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -62,9 +62,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -81,9 +81,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -100,9 +100,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -119,9 +119,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -138,9 +138,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -157,9 +157,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -176,9 +176,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -195,9 +195,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -214,9 +214,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -233,9 +233,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -252,9 +252,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -271,9 +271,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -290,9 +290,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -309,9 +309,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -328,9 +328,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -347,9 +347,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -366,9 +366,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -385,9 +385,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -404,9 +404,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -423,9 +423,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -442,9 +442,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -461,9 +461,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -480,9 +480,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -499,9 +499,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -518,9 +518,47 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software-private-gain";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv+web-audio-gain";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software-private";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -537,9 +575,9 @@ export declare const PLAYBACK_PLANS: readonly Readonly<{
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -564,9 +602,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -583,9 +621,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -602,9 +640,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -621,9 +659,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -640,9 +678,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -659,9 +697,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -678,9 +716,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -697,9 +735,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -716,9 +754,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -735,9 +773,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -754,9 +792,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -773,9 +811,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -792,9 +830,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -811,9 +849,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -830,9 +868,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -849,9 +887,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -868,9 +906,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -887,9 +925,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -906,9 +944,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -925,9 +963,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -944,9 +982,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -963,9 +1001,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -982,9 +1020,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -1001,9 +1039,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -1020,9 +1058,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -1039,9 +1077,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -1058,9 +1096,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -1077,9 +1115,47 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software-private-gain";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv+web-audio-gain";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software-private";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -1096,9 +1172,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
     owners: Readonly<{
         video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
         audio: "mpv-pcm-worklet" | "browser-media-element";
-        subtitle: "mpv" | "none" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
         demux: string;
-        presentation: "browser-media-element" | "demuxe-retained-frame";
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
     }>;
     source: string;
     prerequisites: string;
@@ -1114,6 +1190,9 @@ export declare function executionPlan(mode: PlaybackMode, packaging: unknown, au
 }>;
 export type PlanRejectionCode = 'FEATURE_UNSUPPORTED' | 'POLICY_PROHIBITS_TRANSFORM' | 'QUALIFICATION_REQUIRED' | 'SOURCE_UNSUPPORTED' | 'DEPLOYMENT_UNAVAILABLE' | 'PLAN_NOT_REQUESTED' | 'ISOLATION_REQUIRED';
 export type PlanFacts = {
+    privatePlaybackSourceRejection?: string;
+    privatePlaybackAssetsAvailable?: boolean;
+    offscreenCanvas?: boolean;
     audioPlayback?: 'auto' | 'worklet';
     transcodeSourceRejection?: string;
     transcodeAssetsAvailable?: boolean;
@@ -1158,7 +1237,7 @@ export type PlanFacts = {
 export declare function planAdmission(f: PlanFacts): {
     code?: PlanRejectionCode | undefined;
     reason?: string | undefined;
-    id: "software" | "hybrid" | "native-flac" | "native-opus" | "native-direct" | "native-remux" | "native-video-mpv-audio" | "native-transcode-mpv" | "shaka-mse" | "native-direct-mpv" | "native-remux-mpv" | "native-direct-gain" | "shaka-mse-gain" | "native-remux-gain" | "native-flac-gain" | "native-direct-ass" | "native-direct-ass-gain" | "native-remux-ass" | "native-remux-ass-gain" | "native-flac-ass" | "native-flac-ass-gain" | "native-opus-gain" | "native-transcode-ass" | "native-transcode" | "native-video-mpv-audio-subtitles" | "hybrid-audio-filter" | "hybrid-gain" | "hybrid-audio-filter-gain" | "software-gain";
-    mode: "software" | "hybrid" | "native";
+    id: "hybrid" | "software" | "software-private" | "native-flac" | "native-opus" | "native-direct" | "native-remux" | "native-video-mpv-audio" | "native-transcode-mpv" | "shaka-mse" | "native-direct-mpv" | "native-remux-mpv" | "native-direct-gain" | "shaka-mse-gain" | "native-remux-gain" | "native-flac-gain" | "native-direct-ass" | "native-direct-ass-gain" | "native-remux-ass" | "native-remux-ass-gain" | "native-flac-ass" | "native-flac-ass-gain" | "native-opus-gain" | "native-transcode-ass" | "native-transcode" | "native-video-mpv-audio-subtitles" | "hybrid-audio-filter" | "hybrid-gain" | "hybrid-audio-filter-gain" | "software-private-gain" | "software-gain";
+    mode: "native" | "hybrid" | "software";
     eligible: boolean;
 }[];

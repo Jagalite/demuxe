@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { Backend } from './backend.js';
-import type { RemoteSource, MediaInputOptions, TrackType, ResourceLimits } from '../types.js';
+import type { RemoteSource, MediaInputOptions, TrackType, ResourceLimits, FontAsset, SubtitleAsset } from '../types.js';
 /** Experimental finite Software Backend. Public admission has its own gates. */
 export declare class PrivateSoftwarePlayer extends EventTarget implements Backend {
     private options;
@@ -24,11 +24,15 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     private userPaused;
     private gainValue;
     private outputVerified;
+    private attachmentIds;
+    private presentedDraws;
+    private presentation?;
     constructor(canvas: HTMLCanvasElement, options: {
         runtime: 'jspi' | 'asyncify';
         assetBase: URL;
         duration?: number;
         resourceLimits?: ResourceLimits;
+        fonts?: FontAsset[];
     });
     private emit;
     private initialize;
@@ -52,6 +56,13 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     subtitleVisible(visible: boolean): Promise<any>;
     resize(width: number, height: number): void;
     command(...args: string[]): Promise<any>;
+    previewSnapshot(): Promise<{
+        blob: Blob;
+        time: number;
+        width: number;
+        height: number;
+    }>;
+    addSubtitle(subtitle: SubtitleAsset): Promise<void>;
     startupEvidence(): {
         metadata: boolean;
         audioDecoderConfigured: boolean;

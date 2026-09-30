@@ -25,3 +25,12 @@ test('bounded native duration permits a rewind without assuming GOP length',asyn
  await host.seek(1,9.5);assert.deepEqual(commands[0].args,['set','hr-seek-demuxer-offset','10.5']);assert.deepEqual(commands[1].args,['seek','9.5','absolute+exact']);
  commands.length=0;host.properties.duration=120;await host.seek(2,9.5);assert.equal(commands[0].args[2],'2');
 });
+test('subtitle allocation failure releases earlier native strings',async()=>{
+ const memory=new WebAssembly.Memory({initial:1}),freed=[];let allocations=0;
+ const host=new PrivatePlaybackHost({raw:{memory},call:async(name,...args)=>{
+  if(name==='malloc')return ++allocations===2?0:256;
+  if(name==='free')freed.push(args[0]);else if(name==='web_add_subtitle')throw Error('Must not submit incomplete arguments');
+ }},{getContext:()=>({})},320,180);
+ await assert.rejects(host.addSubtitle(1,'/subtitles/0','Example','en',true),/allocation failed/);
+ assert.deepEqual(freed,[256]);
+});

@@ -24,6 +24,9 @@ export class PrivateSoftwarePlayer extends EventTarget {
     userPaused = true;
     gainValue = 1;
     outputVerified = false;
+    attachmentIds = [];
+    presentedDraws = 0;
+    presentation;
     constructor(canvas, options) {
         super();
         this.options = options;
@@ -48,6 +51,10 @@ export class PrivateSoftwarePlayer extends EventTarget {
     }
     emit(type, detail) { this.dispatchEvent(new CustomEvent(type, { detail })); }
     async initialize(canvas) {
+        const presentation = canvas.getContext('2d');
+        if (!presentation)
+            throw new PlayerError('UNSUPPORTED_FEATURE', 'Private Software canvas presentation unavailable');
+        this.presentation = presentation;
         await this.context.audioWorklet.addModule(new URL('web/private-mpv/audio-worklet.js', this.options.assetBase).href);
         if (this.closing)
             throw new PlayerError('ABORTED', 'Private Software closed during initialization');
@@ -61,15 +68,16 @@ export class PrivateSoftwarePlayer extends EventTarget {
             this.fail(new Error(data.error)); };
         const channel = new MessageChannel();
         this.node.port.postMessage({ type: 'connect', port: channel.port1 }, [channel.port1]);
-        const offscreen = canvas.transferControlToOffscreen();
+        const offscreen = new OffscreenCanvas(canvas.width, canvas.height);
         const response = await fetch(new URL('fixtures/DejaVuSans.ttf', this.options.assetBase), { signal: this.loading.signal });
         if (!response.ok)
             throw new PlayerError('ASSET_LOAD_FAILED', 'Private Software font HTTP ' + response.status);
         const font = await response.arrayBuffer();
         if (font.byteLength > 8 * 1024 * 1024)
             throw new PlayerError('ASSET_LOAD_FAILED', 'Private Software font byte limit');
-        await this.request('init', { runtime: this.options.runtime, canvas: offscreen, port: channel.port2, font, width: canvas.width, height: canvas.height,
-            contextRunning: this.context.state === 'running', latencyUs: this.latency(), ...this.options.resourceLimits }, [offscreen, channel.port2, font]);
+        const fonts = (this.options.fonts ?? []).map(font => ({ ...font, bytes: font.bytes.slice(0) }));
+        await this.request('init', { runtime: this.options.runtime, canvas: offscreen, port: channel.port2, font, fonts, width: canvas.width, height: canvas.height,
+            contextRunning: this.context.state === 'running', latencyUs: this.latency(), ...this.options.resourceLimits }, [offscreen, channel.port2, font, ...fonts.map(font => font.bytes)]);
     }
     latency() { return Math.round((this.context.baseLatency + (this.context.outputLatency || 0)) * 1e6); }
     request(op, data = {}, transfer = []) {
@@ -94,6 +102,28 @@ export class PrivateSoftwarePlayer extends EventTarget {
         });
     }
     receive(data) {
+        if (data.type === 'picture') {
+            try {
+                if (!this.closing && data.generation === this.generation && this.presentation) {
+                    const canvas = this.presentation.canvas;
+                    if (canvas.width !== data.bitmap.width || canvas.height !== data.bitmap.height) {
+                        canvas.width = data.bitmap.width;
+                        canvas.height = data.bitmap.height;
+                    }
+                    this.presentation.drawImage(data.bitmap, 0, 0);
+                    this.presentedDraws = data.rendered;
+                }
+            }
+            catch (error) {
+                this.fail(playerError(error));
+            }
+            finally {
+                data.bitmap.close();
+                if (!this.closing)
+                    this.worker.postMessage({ op: 'picture-presented', pictureId: data.pictureId });
+            }
+            return;
+        }
         if (data.id !== undefined) {
             const pending = this.pending.get(data.id);
             if (pending) {
@@ -133,6 +163,10 @@ export class PrivateSoftwarePlayer extends EventTarget {
         }
         if (data.type === 'event') {
             const event = data.event;
+            if (event.event === 'property-change' && event.name === 'track-list' && Array.isArray(event.data)) {
+                let external = 0;
+                event.data = event.data.map((track) => track.type === 'sub' && track.external ? { ...track, 'attachment-id': this.attachmentIds[external++] } : track);
+            }
             if (event.event === 'property-change')
                 this.properties.set(event.name, event.data);
             if (event.event === 'log-message')
@@ -186,6 +220,8 @@ export class PrivateSoftwarePlayer extends EventTarget {
         this.properties.clear();
         this.diagnostics = undefined;
         this.outputVerified = false;
+        this.attachmentIds = [];
+        this.presentedDraws = 0;
         const generation = this.generation;
         this.refresh = refresh;
         await this.request('load', { ...data, generation, duration: this.options.duration });
@@ -193,7 +229,9 @@ export class PrivateSoftwarePlayer extends EventTarget {
             if (generation !== this.generation)
                 throw new PlayerError('ABORTED', 'Source load replaced');
             const tracks = this.properties.get('track-list');
-            return !!tracks?.some(track => track.type === 'video' && track.selected) && !!this.diagnostics?.rendered && !this.diagnostics.seeking;
+            const video = tracks?.some(track => track.type === 'video' && track.selected);
+            const audio = tracks?.some(track => track.type === 'audio' && track.selected);
+            return !!tracks?.length && !this.diagnostics?.seeking && (video ? this.presentedDraws > 0 : !!audio && this.startupEvidence().audioDecoded);
         });
     }
     async syncContext() {
@@ -208,7 +246,7 @@ export class PrivateSoftwarePlayer extends EventTarget {
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid seek time');
         await this.ready;
         await this.request('seek', { seconds });
-        await this.waitUntil(() => !!this.diagnostics?.rendered && !this.diagnostics?.seeking && Math.abs(Number(this.diagnostics?.presentedPosition) - seconds) < 0.15);
+        await this.waitUntil(() => this.presentedDraws >= Number(this.diagnostics?.rendered) && this.presentedDraws > 0 && !this.diagnostics?.seeking && Math.abs(Number(this.diagnostics?.presentedPosition) - seconds) < 0.15);
     }
     async confirmSeek(target) { const value = String(await this.command('expand-text', '${=time-pos}|${seeking}')); const [time, seeking] = value.split('|'); return seeking === 'no' && Math.abs(Number(time) - target) < 0.15; }
     rate(value) { if (!Number.isFinite(value) || value < 0.5 || value > 2)
@@ -225,8 +263,23 @@ export class PrivateSoftwarePlayer extends EventTarget {
         this.fail(error); }); }
     async command(...args) { await this.ready; if (args[0] === 'set' && args[1] === 'pause')
         return args[2] === 'yes' ? this.pause() : this.play(); return this.request('command', { args }); }
-    startupEvidence() { const h = this.diagnostics?.audio?.header ?? []; return { metadata: !!this.properties.get('track-list'), audioDecoderConfigured: !!this.properties.get('audio-codec-name'), audioDecoded: h[0] > 0, audioProgress: h[1] > 0, videoPresented: !!this.diagnostics?.rendered, decoderOutput: !!this.diagnostics?.rendered || h[0] > 0 }; }
-    async verifyOutput(signal) { await this.waitUntil(() => { const evidence = this.startupEvidence(); return evidence.videoPresented && (!this.properties.get('audio-codec-name') || evidence.audioDecoded); }, signal); this.outputVerified = true; }
+    async previewSnapshot() { await this.ready; return this.request('snapshot'); }
+    async addSubtitle(subtitle) {
+        await this.ready;
+        const previous = this.attachmentIds.length;
+        this.attachmentIds.push(subtitle.attachmentId);
+        const bytes = subtitle.bytes.slice(0);
+        try {
+            await this.request('subtitle', { subtitle: { ...subtitle, bytes } }, [bytes]);
+            await this.waitUntil(() => (this.properties.get('track-list') ?? []).filter(t => t.type === 'sub' && t.external).length > previous);
+        }
+        catch (error) {
+            this.attachmentIds.pop();
+            throw error;
+        }
+    }
+    startupEvidence() { const h = this.diagnostics?.audio?.header ?? []; return { metadata: !!this.properties.get('track-list'), audioDecoderConfigured: !!this.properties.get('audio-codec-name'), audioDecoded: h[0] > 0, audioProgress: h[1] > 0, videoPresented: !!this.properties.get('track-list')?.some(track => track.type === 'video' && track.selected) && this.presentedDraws > 0, decoderOutput: !!this.properties.get('track-list')?.some(track => track.type === 'video' && track.selected) && this.presentedDraws > 0 || h[0] > 0 }; }
+    async verifyOutput(signal) { await this.waitUntil(() => { const evidence = this.startupEvidence(), tracks = this.properties.get('track-list'); return !!tracks?.some(t => (t.type === 'video' || t.type === 'audio') && t.selected) && (!tracks?.some(t => t.type === 'video' && t.selected) || evidence.videoPresented) && (!tracks?.some(t => t.type === 'audio' && t.selected) || evidence.audioDecoded); }, signal); this.outputVerified = true; }
     async setAudioOutputDevice(id) { await this.ready; const context = this.context; if (!context.setSinkId)
         throw new PlayerError('UNSUPPORTED_FEATURE', 'AudioContext output selection unavailable'); await context.setSinkId(id === 'default' ? '' : id); }
     audioDiagnostics() { const samples = new Float32Array(this.analyser?.fftSize ?? 2048); this.analyser?.getFloatTimeDomainData(samples); return { state: this.context.state, sampleRate: this.context.sampleRate, outputChannels: 2, gain: this.gainValue, rms: Math.sqrt(samples.reduce((sum, value) => sum + value * value, 0) / samples.length), mediaFrames: this.diagnostics?.audio?.header?.[1] ?? 0, transport: this.diagnostics?.audio, outputVerified: this.outputVerified }; }

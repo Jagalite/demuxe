@@ -14,6 +14,7 @@ export declare class EnginePreparation {
     private phases;
     constructor(base: URL, software?: string, changed?: () => void, remuxRuntime?: 'pthread' | 'jspi' | 'asyncify');
     private get inspectorEngine();
+    private get softwareEngine();
     get progress(): PreparationProgress[];
     private phase;
     module(name: string): WebAssembly.Module | undefined;

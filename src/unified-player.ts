@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {privatePlaybackRejection} from './internal/private-playback-admission.js';
 import {routingRequirements, missingRoutingFacts} from './internal/probe-requirements.js';
 import {bufferingPolicy, resolveBuffering} from './internal/buffering.js';
 import {PlayerPresentation} from './presentation.js';
@@ -152,6 +153,7 @@ export class Player extends EventTarget {
   private audioAdaptation?:'flac'|'opus';
   private automaticLossless=false;
   private audioPlayback:'auto'|'worklet';
+  private privatePlaybackAssetsAvailable=false;
   private transcodeAssetsAvailable=false;
   private transcodeAssetsChecked=false;
   private losslessInspection?:{source:Source;reason?:string};
@@ -429,10 +431,11 @@ export class Player extends EventTarget {
     const unavailable=(reason:string):FeatureAvailability=>({availability:'unavailable',reason});
     const unknown:FeatureAvailability={availability:'unknown',reason:'Open a source to establish availability'};
     const nativeOverlay=(this.nativeASS&&(isolated||this.privateRemux)||!!(this.current?.backend.diagnostics as {mpvSubtitles?:unknown}|undefined)?.mpvSubtitles)&&backendPlan(this.current?.backend)!=='adapted-opus'&&!(this.source?.kind==='remote'&&this.source.options.format&&this.source.options.format!=='file');
+    const privateSoftware=backendPlan(this.current?.backend)==='software-private';
     const route=(mode:'hybrid'|'software'):FeatureAvailability=>this.privateRemux?unavailable('Private runtime has no qualified Hybrid or Software service'):!isolated?unavailable('This deployment requires cross-origin isolation'):this.mode===mode||(mode==='hybrid'&&this.mode==='software')?available:this.automatic?{availability:'switch',mode,reason:`This feature requires ${mode} playback`}:unavailable(`Select ${mode} mode first`);
     const resolution=this.bufferingResolution();
     return {...this.legacyCapabilities,buffering:{control:resolution.control,preload:true,profile:resolution.backend!=='browser',memoryBudget:['mpv','remux'].includes(resolution.backend)},deployment:{isolated,webCodecs:typeof VideoDecoder!=='undefined',mediaSource:typeof MediaSource!=='undefined'},features:{
-      subtitleDelay:route('hybrid'),audioDelay:route('hybrid'),subtitleStyle:route('hybrid'),
+      subtitleDelay:privateSoftware?unavailable('Private Software subtitles are not qualified'):route('hybrid'),audioDelay:privateSoftware?available:route('hybrid'),subtitleStyle:privateSoftware?unavailable('Private Software subtitle styling is not qualified'):route('hybrid'),
       quality:!this.current?unknown:this.current.backend.setQuality?available:unavailable('This route does not expose adaptive qualities'),
       liveNavigation:!this.current?unknown:this.current.backend.seekToLive&&this.current.backend.properties.get('native-live')===true?available:unavailable('No controlled live timeline'),
       loop:seekable?.length&&this.stateSnapshot?.duration!==null?available:unknown,playbackRange:seekable?.length?available:unknown,
@@ -442,8 +445,8 @@ export class Player extends EventTarget {
       seek:seekable===null?{availability:'unknown',reason:'Seek window has not been established'}:seekable.length?available:unavailable('The source currently has no seekable time range'),
       audioTracks:!this.current?unknown:audio?available:unavailable('Audio track selection is not exposed by this source/browser'),
       subtitleTracks:!this.current?unknown:sub?available:unavailable('No subtitle tracks are available'),
-      audioGain:this.mode==='native'?(typeof AudioContext==='undefined'?unavailable('Web Audio is unavailable'):available):route('hybrid'),
-      externalSubtitles:this.mode==='native'?available:route('hybrid'),customFonts:this.mode==='native'&&nativeOverlay?available:route('hybrid'),videoFilters:route('software'),audioFilters:route(this.hybridAudioFilters?'hybrid':'software') }};
+      audioGain:privateSoftware?available:this.mode==='native'?(typeof AudioContext==='undefined'?unavailable('Web Audio is unavailable'):available):route('hybrid'),
+      externalSubtitles:privateSoftware?unavailable('Private Software external subtitles are not qualified'):this.mode==='native'?available:route('hybrid'),customFonts:privateSoftware?unavailable('Private Software custom fonts are not qualified'):this.mode==='native'&&nativeOverlay?available:route('hybrid'),videoFilters:route('software'),audioFilters:route(this.hybridAudioFilters?'hybrid':'software') }};
   }
   get mode() {return this.currentMode;}
   get automaticSelection() {return this.automatic;}
@@ -451,6 +454,7 @@ export class Player extends EventTarget {
   get properties(): ReadonlyMap<string, unknown> {return this.current?.backend.properties ?? this.empty;}
   get capabilities(): PlayerCapabilities {return this.stateSnapshot?.capabilities??this.featureCapabilities(null,0,0);}
   private get legacyCapabilities(): Capabilities {
+    if(backendPlan(this.current?.backend)==='software-private')return {videoFilters:false,audioFilters:false,mpvSubtitles:false,externalTextTracks:false,externalSubtitles:false,customFonts:false,customRequestHeaders:true};
     return {videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native'||['remux-mpv','direct-mpv'].includes(backendPlan(this.current?.backend)??''), externalTextTracks: this.mode === 'native', externalSubtitles: true, customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: backendPlan(this.current?.backend)==='shaka-mse' || this.mode !== 'native' || (this.nativeRemux !== 'never' && this.canInspectFFmpeg && typeof MediaSource !== 'undefined')};
   }
   private bufferingResolution():BufferingResolution {
@@ -562,14 +566,14 @@ export class Player extends EventTarget {
     surface.width = this.width;surface.height = this.height;
     surface.style.cssText = 'display:none;width:100%;background:#000';
     // Import before allocating workers; destroy during import cannot orphan an engine.
-    const module = planId?.startsWith('shaka-') ? await this.interruptible(import('./internal/shaka-backend.js')) : mode === 'native' ? await this.interruptible(import('./internal/native-player.js')) : await this.interruptible(import('./internal/wasm-player.js'));
-    const prepared=mode==='native'?undefined:await this.interruptible(this.preparation?.readyEngine(mode==='hybrid'?'engine-hybrid':this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv')??Promise.resolve(undefined));
+    const module = planId?.startsWith('software-private') ? await this.interruptible(import('./internal/private-software-player.js')) : planId?.startsWith('shaka-') ? await this.interruptible(import('./internal/shaka-backend.js')) : mode === 'native' ? await this.interruptible(import('./internal/native-player.js')) : await this.interruptible(import('./internal/wasm-player.js'));
+    const prepared=mode==='native'||planId?.startsWith('software-private')?undefined:await this.interruptible(this.preparation?.readyEngine(mode==='hybrid'?'engine-hybrid':this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv')??Promise.resolve(undefined));
     this.assertOperation();
     this.root.append(surface);
     try {
       const subtitleTracks=this.sourceInspection?.probe.tracks.filter(t=>t.type==='sub')??[];
       const defaultSubtitleStreamIndex=(subtitleTracks.find(t=>t.default)??subtitleTracks[0])?.index;
-      backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface as HTMLVideoElement,this.assetBase,this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, forcePreparation?'always':this.nativeRemux,this.assetBase,this.bufferedNativeSeeks,adaptation,['auto','no'].includes(aid)?(this.privateRemux&&planId?.startsWith('native-video-mpv-audio')?this.sourceInspection?.probe.tracks.find(t=>t.type==='audio')?.index:undefined):Number(aid)-1,this.nativeASS,this.fonts,planId,this.buffering,loadTimeoutMs,defaultSubtitleStreamIndex,this.remuxRuntime) : new module.WasmPlayer(surface as HTMLCanvasElement, {buffering:this.buffering,mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase,prepared,decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop,videoTrack:this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture)});
+      backend = 'PrivateSoftwarePlayer' in module ? new module.PrivateSoftwarePlayer(surface as HTMLCanvasElement,{runtime:this.remuxRuntime as 'jspi'|'asyncify',assetBase:this.assetBase,duration:this.sourceInspection?.probe.duration,resourceLimits:this.resourceLimits,fonts:this.fonts}) : 'ShakaBackend' in module ? new module.ShakaBackend(surface as HTMLVideoElement,this.assetBase,this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, forcePreparation?'always':this.nativeRemux,this.assetBase,this.bufferedNativeSeeks,adaptation,['auto','no'].includes(aid)?(this.privateRemux&&planId?.startsWith('native-video-mpv-audio')?this.sourceInspection?.probe.tracks.find(t=>t.type==='audio')?.index:undefined):Number(aid)-1,this.nativeASS,this.fonts,planId,this.buffering,loadTimeoutMs,defaultSubtitleStreamIndex,this.remuxRuntime) : new module.WasmPlayer(surface as HTMLCanvasElement, {buffering:this.buffering,mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase,prepared,decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop,videoTrack:this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture)});
     } catch (error) {surface.remove();throw error;}
     backend.setWatchdogs?.(this.watchdogConfiguration);
     const session: Session = {backend, surface};
@@ -655,6 +659,9 @@ export class Player extends EventTarget {
       !this.selectiveAudioAssetsAvailable?'Selective audio engine or worklet assets are unavailable':
       undefined;
     const decisions:typeof this.planDecisions=planAdmission({automatic,...settings,
+      privatePlaybackAssetsAvailable:this.privatePlaybackAssetsAvailable,offscreenCanvas:typeof OffscreenCanvas!=='undefined',
+      privatePlaybackSourceRejection:privatePlaybackRejection(inspected?.probe,{finite:this.fileServicesSource(source)&&!(source.kind==='local'&&source.input?.demuxer),bytes:source.kind==='local'?source.file instanceof File?source.file.size:source.file.byteLength:Number(source.options.identity?.size)},
+        {...settings,toneMapping:this.toneMapping,audioOutput:this.audioOutput,externalSubtitles:!!attachments.length||!!textTracks.length,customFonts:!!this.fonts.length,subtitleStyle:!!Object.keys(this.subtitleStyle).length}),
       audioPlayback:this.audioPlayback,transcodeAssetsAvailable:this.transcodeAssetsAvailable,
       transcodeSourceRejection:!this.fileServicesSource(source)||!inspected?'Audio transcoding requires an inspected random-access file':audioTranscodeRejection(inspected.probe,inspectedSettings!),
       selectiveAudioQualified:!selectiveAudioReason,selectiveAudioReason,
@@ -911,7 +918,8 @@ export class Player extends EventTarget {
     finally{clearTimeout(deadline);controller.signal.removeEventListener('abort',abort);}
   }
   private async checkInspectedAssets(source:Source,probe:Probe,settings:Settings,sid:string,controller:AbortController){
-    this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;this.transcodeAssetsAvailable=false;this.transcodeAssetsChecked=false;this.mpvSubtitleAssetsAvailable=false;
+    this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;this.transcodeAssetsAvailable=false;this.transcodeAssetsChecked=false;this.mpvSubtitleAssetsAvailable=false;this.privatePlaybackAssetsAvailable=false;
+    if(this.privateRemux)this.privatePlaybackAssetsAvailable=await this.optionalAssetsAvailable(['manifest.json','player.mjs','player.wasm'].map(name=>`web/engine-mpv-playback-${this.remuxRuntime}/${name}`),controller);
     if(this.mpvSubtitles&&this.fileServicesSource(source)&&settings.subtitles&&sid!=='no'&&probe.tracks.some(t=>t.type==='sub'))
       this.mpvSubtitleAssetsAvailable=await this.optionalAssetsAvailable(['mjs','wasm'].map(ext=>`web/engine-${this.privateRemux?'mpv-subtitles-'+this.remuxRuntime:'subtitles'}/service.${ext}`),controller);
     this.assertOperation();
@@ -939,6 +947,15 @@ export class Player extends EventTarget {
   }
   private async select(source: Source, settings: Settings, preserve: boolean, tracks: (TextTrackSource & {attachmentId?:string})[], start=0, target?: number, priorAttempts:SelectionAttempt[]=[],inspectOnly=false){
     if(!this.automatic&&this.mode!=='native'){
+      if(this.privateRemux&&this.mode==='software'){
+        const controller=this.inspection=new AbortController();
+        try{
+          const probe=await this.inspectWithFFmpeg(source,controller);
+          if(source.kind==='remote'&&probe.identity)source.options.identity??=probe.identity;
+          this.sourceInspection={source,probe,settings:{aid:settings.aid,sid:settings.sid,subtitles:settings.subtitles}};
+          await this.checkInspectedAssets(source,probe,settings,settings.sid,controller);
+        }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
+      }
       if(this.mode==='hybrid')await this.inspectForQualifiedWebGPU(source,settings);
       if(this.mode==='software'&&(this.decodeQuality!=='exact'||this.adaptiveFrameDrop)&&this.sourceInspection?.source!==source){
         // Explicit Software skips the normal tier probe. Quality admission still

@@ -87,7 +87,8 @@ for backend in ['jspi','asyncify']:
  for profile in ['remux','adaptation']:engines[profile+'-'+backend]=('engine-'+profile+'-'+backend,'remux')
 if any(n.startswith('web/engine-mpv-') for n in private_files):
  for backend in ['jspi','asyncify']:
-  for profile in ['subtitles','audio']:engines[f'mpv-{profile}-{backend}']=(f'engine-mpv-{profile}-{backend}','service')
+  for profile in ['subtitles','audio','playback']:
+   if f'web/engine-mpv-{profile}-{backend}/manifest.json' in private_files:engines[f'mpv-{profile}-{backend}']=(f'engine-mpv-{profile}-{backend}','player' if profile=='playback' else 'service')
 if args.adaptation_build:
  adaptation=args.adaptation_build.resolve();record=json.loads((adaptation/'manifest.json').read_text())
  if record.get('apiVersion')!=2:raise SystemExit('Preparation interface mismatch; rebuild matching assets')

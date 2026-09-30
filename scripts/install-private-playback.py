@@ -15,7 +15,7 @@ def digest(path):
 
 def install(build, runtime_root):
     record = json.loads((build / 'build.json').read_text())
-    if record.get('status') != 'built_candidate_only' or record.get('dependencyProfile') != 'playback':
+    if record.get('status') != 'built_candidate_only' or record.get('dependencyProfile') not in ('playback','playback-full'):
         raise ValueError('Successful private playback build required')
     deps = Path(record['dependencyPath'])
     if digest(deps / 'build-result.json') != record['dependencyRecordSHA256']:
@@ -24,7 +24,7 @@ def install(build, runtime_root):
     provenance = importlib.util.module_from_spec(spec);spec.loader.exec_module(provenance)
     dependency = json.loads((deps / 'build-result.json').read_text())
     provenance.verify_dependencies(deps, Path(dependency['toolchain']['sdk']))
-    if dependency['profile'] != 'playback':
+    if dependency['profile'] != record['dependencyProfile']:
         raise ValueError('Wrong playback dependency profile')
     for name, wanted in record['adaptedSourceSHA256'].items():
         if digest(build / 'inputs' / name) != wanted:
@@ -46,6 +46,7 @@ def install(build, runtime_root):
             shutil.copyfile(build / source, target / dest)
         (target / 'manifest.json').write_text(json.dumps({
             'schema': 1, 'backend': backend, 'profile': 'playback',
+            'codecProfile': record['dependencyProfile'],
             'audioCapacity': record.get('audioCapacity', 8192),
             'buildRecordSHA256': digest(build / 'build.json'),
             'files': {dest: digest(build / source) for dest, source in sources.items()},

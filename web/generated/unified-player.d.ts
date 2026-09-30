@@ -71,6 +71,7 @@ export declare class Player extends EventTarget {
     private audioAdaptation?;
     private automaticLossless;
     private audioPlayback;
+    private privatePlaybackAssetsAvailable;
     private transcodeAssetsAvailable;
     private transcodeAssetsChecked;
     private losslessInspection?;
@@ -163,7 +164,7 @@ export declare class Player extends EventTarget {
     private previewBuffering;
     private publish;
     private featureCapabilities;
-    get mode(): "software" | "hybrid" | "native";
+    get mode(): "native" | "hybrid" | "software";
     get automaticSelection(): boolean;
     get surface(): HTMLVideoElement | HTMLCanvasElement | undefined;
     get properties(): ReadonlyMap<string, unknown>;

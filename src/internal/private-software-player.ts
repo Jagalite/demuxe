@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type {Backend} from './backend.js';
-import type {RemoteSource, MediaInputOptions, TrackType, ResourceLimits} from '../types.js';
+import type {RemoteSource, MediaInputOptions, TrackType, ResourceLimits, FontAsset, SubtitleAsset} from '../types.js';
 import {runtimeWorker} from './runtime-worker.js';
 import {PlayerError, playerError} from './errors.js';
 
@@ -26,7 +26,10 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   private userPaused = true;
   private gainValue = 1;
   private outputVerified = false;
-  constructor(canvas:HTMLCanvasElement, private options:{runtime:'jspi'|'asyncify';assetBase:URL;duration?:number;resourceLimits?:ResourceLimits}) {
+  private attachmentIds:Array<string|undefined>=[];
+  private presentedDraws=0;
+  private presentation?:CanvasRenderingContext2D;
+  constructor(canvas:HTMLCanvasElement, private options:{runtime:'jspi'|'asyncify';assetBase:URL;duration?:number;resourceLimits?:ResourceLimits;fonts?:FontAsset[]}) {
     super();
     if(typeof AudioContext==='undefined'||typeof OffscreenCanvas==='undefined')throw new PlayerError('UNSUPPORTED_FEATURE','Private Software requires Web Audio and OffscreenCanvas');
     this.context = new AudioContext({sampleRate:48000,latencyHint:'interactive'});
@@ -41,6 +44,9 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   }
   private emit(type:string,detail:unknown){this.dispatchEvent(new CustomEvent(type,{detail}));}
   private async initialize(canvas:HTMLCanvasElement){
+    const presentation=canvas.getContext('2d');
+    if(!presentation)throw new PlayerError('UNSUPPORTED_FEATURE','Private Software canvas presentation unavailable');
+    this.presentation=presentation;
     await this.context.audioWorklet.addModule(new URL('web/private-mpv/audio-worklet.js',this.options.assetBase).href);
     if(this.closing)throw new PlayerError('ABORTED','Private Software closed during initialization');
     this.node = new AudioWorkletNode(this.context,'demuxe-private-pcm',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[2]});
@@ -48,12 +54,13 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     this.node.connect(this.gainNode);this.gainNode.connect(this.context.destination);this.gainNode.connect(this.analyser);
     this.node.port.onmessage = ({data}) => {if(data.type==='error')this.fail(new Error(data.error));};
     const channel = new MessageChannel();this.node.port.postMessage({type:'connect',port:channel.port1},[channel.port1]);
-    const offscreen = canvas.transferControlToOffscreen();
+    const offscreen = new OffscreenCanvas(canvas.width,canvas.height);
     const response = await fetch(new URL('fixtures/DejaVuSans.ttf',this.options.assetBase),{signal:this.loading.signal});
     if(!response.ok)throw new PlayerError('ASSET_LOAD_FAILED','Private Software font HTTP '+response.status);
     const font = await response.arrayBuffer();if(font.byteLength>8*1024*1024)throw new PlayerError('ASSET_LOAD_FAILED','Private Software font byte limit');
-    await this.request('init',{runtime:this.options.runtime,canvas:offscreen,port:channel.port2,font,width:canvas.width,height:canvas.height,
-      contextRunning:this.context.state==='running',latencyUs:this.latency(),...this.options.resourceLimits},[offscreen,channel.port2,font]);
+    const fonts=(this.options.fonts??[]).map(font=>({...font,bytes:font.bytes.slice(0)}));
+    await this.request('init',{runtime:this.options.runtime,canvas:offscreen,port:channel.port2,font,fonts,width:canvas.width,height:canvas.height,
+      contextRunning:this.context.state==='running',latencyUs:this.latency(),...this.options.resourceLimits},[offscreen,channel.port2,font,...fonts.map(font=>font.bytes)]);
   }
   private latency(){return Math.round((this.context.baseLatency+(this.context.outputLatency||0))*1e6);}
   private request(op:string,data:Record<string,unknown>={},transfer:Transferable[]=[]):Promise<any>{
@@ -69,6 +76,17 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     });
   }
   private receive(data:any){
+    if(data.type==='picture'){
+      try{
+        if(!this.closing&&data.generation===this.generation&&this.presentation){
+          const canvas=this.presentation.canvas;
+          if(canvas.width!==data.bitmap.width||canvas.height!==data.bitmap.height){canvas.width=data.bitmap.width;canvas.height=data.bitmap.height;}
+          this.presentation.drawImage(data.bitmap,0,0);this.presentedDraws=data.rendered;
+        }
+      }catch(error){this.fail(playerError(error));}
+      finally{data.bitmap.close();if(!this.closing)this.worker.postMessage({op:'picture-presented',pictureId:data.pictureId});}
+      return;
+    }
     if(data.id!==undefined){const pending=this.pending.get(data.id);if(pending){clearTimeout(pending.timer);this.pending.delete(data.id);data.error?pending.reject(playerError(new Error(data.error))):pending.resolve(data.result);}return;}
     if(data.type==='fatal'){this.diagnostics={...this.diagnostics,cleanup:data.cleanup,cleanupError:data.cleanupError};this.fail(playerError(new Error(data.error)));return;}
     if(data.type==='refresh'){
@@ -83,6 +101,9 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     if(data.type==='output'){this.emit('output',data);}
     if(data.type==='event'){
       const event=data.event;
+      if(event.event==='property-change'&&event.name==='track-list'&&Array.isArray(event.data)){
+        let external=0;event.data=event.data.map((track:any)=>track.type==='sub'&&track.external?{...track,'attachment-id':this.attachmentIds[external++]}:track);
+      }
       if(event.event==='property-change')this.properties.set(event.name,event.data);
       if(event.event==='log-message')this.emit('log',event.prefix+': '+event.text);
       this.emit('mpv',event);
@@ -114,13 +135,15 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     await this.load({options,canRefresh:!!refreshAuthorization},refreshAuthorization);
   }
   private async load(data:Record<string,unknown>,refresh?:RemoteSource['refreshAuthorization']){
-    await this.ready;this.generation++;this.properties.clear();this.diagnostics=undefined;this.outputVerified=false;
+    await this.ready;this.generation++;this.properties.clear();this.diagnostics=undefined;this.outputVerified=false;this.attachmentIds=[];this.presentedDraws=0;
     const generation=this.generation;this.refresh=refresh;
     await this.request('load',{...data,generation,duration:this.options.duration});
     await this.waitUntil(()=>{
       if(generation!==this.generation)throw new PlayerError('ABORTED','Source load replaced');
       const tracks=this.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined;
-      return !!tracks?.some(track=>track.type==='video'&&track.selected)&&!!this.diagnostics?.rendered&&!this.diagnostics.seeking;
+      const video=tracks?.some(track=>track.type==='video'&&track.selected);
+      const audio=tracks?.some(track=>track.type==='audio'&&track.selected);
+      return !!tracks?.length&&!this.diagnostics?.seeking&&(video?this.presentedDraws>0:!!audio&&this.startupEvidence().audioDecoded);
     });
   }
   private async syncContext(){
@@ -132,7 +155,7 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   async seek(seconds:number){
     if(!Number.isFinite(seconds)||seconds<0)throw new PlayerError('INVALID_ARGUMENT','Invalid seek time');
     await this.ready;await this.request('seek',{seconds});
-    await this.waitUntil(()=>!!this.diagnostics?.rendered&&!this.diagnostics?.seeking&&Math.abs(Number(this.diagnostics?.presentedPosition)-seconds)<0.15);
+    await this.waitUntil(()=>this.presentedDraws>=Number(this.diagnostics?.rendered)&&this.presentedDraws>0&&!this.diagnostics?.seeking&&Math.abs(Number(this.diagnostics?.presentedPosition)-seconds)<0.15);
   }
   async confirmSeek(target:number){const value=String(await this.command('expand-text','${=time-pos}|${seeking}'));const [time,seeking]=value.split('|');return seeking==='no'&&Math.abs(Number(time)-target)<0.15;}
   rate(value:number){if(!Number.isFinite(value)||value<0.5||value>2)throw new PlayerError('INVALID_ARGUMENT','Playback rate must be 0.5 to 2');return this.command('set','speed',String(value));}
@@ -142,8 +165,18 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   subtitleVisible(visible:boolean){return this.command('set','sub-visibility',visible?'yes':'no');}
   resize(width:number,height:number){if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width>1920||height>1080)throw new PlayerError('INVALID_ARGUMENT','Invalid dimensions');void this.ready.then(()=>this.request('resize',{width,height})).catch(error=>{if(!this.closing)this.fail(error);});}
   async command(...args:string[]){await this.ready;if(args[0]==='set'&&args[1]==='pause')return args[2]==='yes'?this.pause():this.play();return this.request('command',{args});}
-  startupEvidence(){const h=this.diagnostics?.audio?.header??[];return {metadata:!!this.properties.get('track-list'),audioDecoderConfigured:!!this.properties.get('audio-codec-name'),audioDecoded:h[0]>0,audioProgress:h[1]>0,videoPresented:!!this.diagnostics?.rendered,decoderOutput:!!this.diagnostics?.rendered||h[0]>0};}
-  async verifyOutput(signal?:AbortSignal){await this.waitUntil(()=>{const evidence=this.startupEvidence();return evidence.videoPresented&&(!this.properties.get('audio-codec-name')||evidence.audioDecoded);},signal);this.outputVerified=true;}
+  async previewSnapshot():Promise<{blob:Blob;time:number;width:number;height:number}>{await this.ready;return this.request('snapshot');}
+  async addSubtitle(subtitle:SubtitleAsset){
+    await this.ready;
+    const previous=this.attachmentIds.length;this.attachmentIds.push(subtitle.attachmentId);
+    const bytes=subtitle.bytes.slice(0);
+    try{
+      await this.request('subtitle',{subtitle:{...subtitle,bytes}},[bytes]);
+      await this.waitUntil(()=>((this.properties.get('track-list')??[]) as Array<{type:string;external?:boolean}>).filter(t=>t.type==='sub'&&t.external).length>previous);
+    }catch(error){this.attachmentIds.pop();throw error;}
+  }
+  startupEvidence(){const h=this.diagnostics?.audio?.header??[];return {metadata:!!this.properties.get('track-list'),audioDecoderConfigured:!!this.properties.get('audio-codec-name'),audioDecoded:h[0]>0,audioProgress:h[1]>0,videoPresented:!!(this.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined)?.some(track=>track.type==='video'&&track.selected)&&this.presentedDraws>0,decoderOutput:!!(this.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined)?.some(track=>track.type==='video'&&track.selected)&&this.presentedDraws>0||h[0]>0};}
+  async verifyOutput(signal?:AbortSignal){await this.waitUntil(()=>{const evidence=this.startupEvidence(),tracks=this.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined;return !!tracks?.some(t=>(t.type==='video'||t.type==='audio')&&t.selected)&&(!tracks?.some(t=>t.type==='video'&&t.selected)||evidence.videoPresented)&&(!tracks?.some(t=>t.type==='audio'&&t.selected)||evidence.audioDecoded);},signal);this.outputVerified=true;}
   async setAudioOutputDevice(id:string){await this.ready;const context=this.context as AudioContext&{setSinkId?:(id:string)=>Promise<void>};if(!context.setSinkId)throw new PlayerError('UNSUPPORTED_FEATURE','AudioContext output selection unavailable');await context.setSinkId(id==='default'?'':id);}
   audioDiagnostics(){const samples=new Float32Array(this.analyser?.fftSize??2048);this.analyser?.getFloatTimeDomainData(samples);return {state:this.context.state,sampleRate:this.context.sampleRate,outputChannels:2,gain:this.gainValue,rms:Math.sqrt(samples.reduce((sum,value)=>sum+value*value,0)/samples.length),mediaFrames:this.diagnostics?.audio?.header?.[1]??0,transport:this.diagnostics?.audio,outputVerified:this.outputVerified};}
   destroy():Promise<void>{
