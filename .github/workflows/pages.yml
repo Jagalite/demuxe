@@ -221,7 +221,7 @@ jobs:
           mkdir -p build/npm-release
           gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir build/npm-release \
             --pattern 'verification.json' --pattern '*.tgz' --pattern '*source*.tar.gz'
-      - name: Validate and stage the exact verified archive for npm approval
+      - name: Validate and stage the exact verified archive as latest for npm approval
         run: |
           python3 scripts/publish-npm-release.py --assets build/npm-release \
             --tag "$RELEASE_TAG" --commit "$(git rev-parse HEAD)" --stage

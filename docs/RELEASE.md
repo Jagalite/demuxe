@@ -225,21 +225,24 @@ GitHub release for the recorded tag; the npm package alone is not that source of
    (`npm view demuxe name version maintainers`). Check that the candidate version
    is not already present with `npm view demuxe versions --json`.
 2. Check archive metadata and `SHA256SUMS` against `verification.json`.
-3. With npm 11.15.0 or newer, run `npm stage publish ./build/release/demuxe-0.3.0-beta.4.tgz --tag beta --access public --ignore-scripts --dry-run`.
+3. With npm 11.15.0 or newer, run `npm stage publish ./build/release/demuxe-0.3.0-beta.4.tgz --tag latest --access public --ignore-scripts --dry-run`.
 4. Only after all verification gates pass, stage the archive:
 
 ```sh
-npm stage publish ./build/release/demuxe-0.3.0-beta.4.tgz --tag beta --access public --ignore-scripts
+npm stage publish ./build/release/demuxe-0.3.0-beta.4.tgz --tag latest --access public --ignore-scripts
 ```
 
 Review the staged entry in npm’s UI, click **Approve**, and complete 2FA.
 The archive is not publicly available until approved.
 
-Do not use `latest` for this beta. After publication, install `demuxe@beta` into
+The staged release explicitly targets `latest`, including beta versions. Approval
+updates the default `npm install demuxe` version; staging alone does not move the tag.
+The existing `beta` alias is independent and is not advanced by this workflow.
+After publication, install `demuxe@latest` into
 a brand-new temporary project, run `npx demuxe copy-assets public/assets/demuxe`,
 import both `demuxe` and `demuxe/player`, and smoke-test one Native direct source
 and one Hybrid/Software or Native-remux source using the installed runtime assets.
-Check `npm view demuxe@beta version dist` and download the registry tarball to
+Check `npm view demuxe@latest version dist` and download the registry tarball to
 compare its bytes/hash to the qualified archive. Configure npm trusted publishing
 for the exact GitHub workflow if later releases use automated publication.
 
