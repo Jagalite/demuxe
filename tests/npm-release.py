@@ -141,7 +141,7 @@ class ReleaseTests(unittest.TestCase):
             self.assertEqual(command[:4], ['npm', 'stage', 'publish', str(self.archive.resolve())])
             self.assertIn('--ignore-scripts', command)
             self.assertIn('--provenance', command)
-            self.assertEqual(command[command.index('--tag') + 1], 'beta')
+            self.assertEqual(command[command.index('--tag') + 1], 'latest')
 
     def test_staging_failure_does_not_fall_back_to_direct_publish(self):
         error = publisher.subprocess.CalledProcessError(1, ['npm', 'stage', 'publish'])
