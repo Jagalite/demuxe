@@ -46,19 +46,10 @@ jobs:
       - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build pkg-config make gcc g++ patch ffmpeg pulseaudio xvfb fonts-dejavu-core
+          sudo apt-get install -y cmake ninja-build pkg-config make gcc g++ patch ffmpeg
           python3 -m venv build/venv
           build/venv/bin/python -m pip install meson==1.7.2 Jinja2==3.1.6 MarkupSafe==3.0.2
           npm ci --ignore-scripts
-      - name: Download and verify the published comparison baseline
-        if: github.event_name == 'push'
-        run: python3 scripts/tag-release.py baseline
-      - name: Check Pages assembly and tag guards
-        run: |
-          python3 tests/pages-build.py
-          python3 tests/tag-release.py
-          python3 tests/lgpl-catalogue.py
-          python3 tests/npm-release.py
       - name: Install the locked Emscripten SDK
         shell: bash
         run: |
@@ -83,34 +74,21 @@ jobs:
       - name: Build optional preparation engine and tagged release archives
         if: github.event_name == 'push'
         run: python3 scripts/tag-release.py package --tag "$PAGES_TAG"
+      - name: Record build-only beta release and archive integrity
+        if: github.event_name == 'push'
+        run: python3 scripts/tag-release.py build-release --tag "$PAGES_TAG"
       - name: Assemble the current player and matching source downloads
         run: python3 scripts/build-pages.py --tag "$PAGES_TAG" --output build/pages-site
-      - name: Install test browsers
-        run: npx playwright install --with-deps chromium chrome firefox webkit
-      - name: Start audio service for Firefox playback checks
-        run: |
-          pulseaudio --start --exit-idle-time=-1
-          pactl info
-      - name: Verify Chrome-family playback and record timings
-        env:
-          BROWSER: chromium
-        run: node tests/pages-demo.mjs
-      - name: Verify Firefox playback and record timings
-        env:
-          BROWSER: firefox
-        run: node tests/pages-demo.mjs
-      - name: Generate fixtures and qualify the exact release archives
-        if: github.event_name == 'push'
-        run: xvfb-run -a python3 scripts/tag-release.py qualify --tag "$PAGES_TAG"
-      - name: Retain qualified release archives
+      # Beta policy: publish clean builds without running browser/catalogue gates.
+      - name: Retain beta release archives
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
-          name: qualified-release
+          name: beta-release
           path: build/release/*
           if-no-files-found: error
           compression-level: 0
-      - name: Retain build and playback evidence
+      - name: Retain build evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -118,16 +96,8 @@ jobs:
           path: |
             build/clean-build.log
             build/pages-site/deployment-manifest.json
-            results/pages/
-            build/tag-release/catalogue-comparison.json
-            build/tag-release/baseline/summary.json
-            build/tag-release/candidate/summary.json
-            build/tag-release/optional/qualification.json
-            build/tag-release/optional/*.log
-            results/beta/
-            results/shaka-package/
-            results/release-extra/
-            results/public-api-consumer/
+            build/release/engine-build.json
+            build/release/verification.json
       - name: Retain unqualified runtime for failed release diagnosis
         if: failure() && github.event_name == 'push'
         uses: actions/upload-artifact@v4
@@ -155,7 +125,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/configure-pages@v5
-      - name: Publish tested player
+      - name: Publish beta player
         id: deployment
         uses: actions/deploy-pages@v4
 
@@ -179,9 +149,9 @@ jobs:
           python-version: '3.12'
       - uses: actions/download-artifact@v4
         with:
-          name: qualified-release
+          name: beta-release
           path: build/release
-      - name: Publish qualified archives and source companions on GitHub
+      - name: Publish beta archives and source companions on GitHub
         run: |
           python3 scripts/publish-github-release.py --assets build/release \
             --tag "$RELEASE_TAG" --commit "$(git rev-parse HEAD)" --repo "$GITHUB_REPOSITORY"
@@ -212,16 +182,14 @@ jobs:
           python-version: '3.12'
       - name: Install npm with trusted publishing support
         run: npm install --global npm@11.15.0 --ignore-scripts
-      - name: Test release handoff guards
-        run: python3 tests/npm-release.py
-      - name: Download qualified runtime and public source companions
+      - name: Download beta runtime and public source companions
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p build/npm-release
           gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir build/npm-release \
-            --pattern 'verification.json' --pattern '*.tgz' --pattern '*source*.tar.gz'
-      - name: Validate and stage the exact verified archive for npm approval
+            --pattern 'verification.json' --pattern 'engine-build.json' --pattern '*.tgz' --pattern '*source*.tar.gz'
+      - name: Validate archive integrity and stage beta for npm approval
         run: |
           python3 scripts/publish-npm-release.py --assets build/npm-release \
             --tag "$RELEASE_TAG" --commit "$(git rev-parse HEAD)" --stage

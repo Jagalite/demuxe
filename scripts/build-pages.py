@@ -88,7 +88,8 @@ bundle('build-materials.tar.gz',{name:root/name for name in materials})
 readme='''# Demo source and licenses
 
 This is a development demo, not a qualified npm release. Tagged deployments
-rebuild the engines and run the Pages playback checks before publishing.
+rebuild the engines before publishing. Beta CI skips browser playback and
+catalogue qualification; deployment is not evidence of passing those checks.
 Original Demuxe application and runtime code use Apache-2.0. The modified mpv
 and FFmpeg engines use LGPL-2.1-or-later and their upstream file notices.
 Original reports/results retain CC BY 4.0 and historical releases retain GPL.

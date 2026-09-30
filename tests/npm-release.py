@@ -69,6 +69,56 @@ class ReleaseTests(unittest.TestCase):
     def test_valid_rc_tag_can_identify_beta_package(self):
         self.assertEqual(self.validate(), (self.archive, '0.3.0-beta.4'))
 
+    def build_only(self):
+        build = self.directory / 'engine-build.json'
+        build.write_text(json.dumps({'clean': True, 'artifacts': self.manifest['files']}))
+        self.record.update(status='developer-beta-build-only', tests=[],
+                           qualification='Build-only beta; browser and catalogue qualification skipped',
+                           build={'file': build.name, 'sha256': publisher.digest(build)})
+        self.write_record()
+
+    def test_build_only_beta_skips_browser_and_optional_evidence(self):
+        self.manifest.update(optionalQualificationRequired=True, adaptiveStreaming=True)
+        self.repack()
+        self.build_only()
+        self.assertEqual(self.validate(), (self.archive, '0.3.0-beta.4'))
+
+    def test_build_only_requires_matching_clean_build(self):
+        self.build_only()
+        path = self.directory / 'engine-build.json'
+        original = json.loads(path.read_text())
+        for change, error in [({'clean': False}, 'clean engine build'),
+                              ({'artifacts': {'package.json': {'sha256': '0' * 64}}},
+                               'Engine build differs')]:
+            path.write_text(json.dumps({**original, **change}))
+            self.record['build']['sha256'] = publisher.digest(path)
+            self.write_record()
+            with self.assertRaisesRegex(ValueError, error):
+                self.validate()
+        path.write_text('tampered')
+        with self.assertRaisesRegex(ValueError, 'build record hash mismatch'):
+            self.validate()
+
+    def test_build_only_preserves_runtime_hash_and_beta_restriction(self):
+        self.build_only()
+        with self.archive.open('ab') as file:
+            file.write(b'tampered')
+        with self.assertRaisesRegex(ValueError, 'runtime archive hash mismatch'):
+            self.validate()
+        self.package['version'] = '0.3.0-rc.1'
+        self.manifest['version'] = self.package['version']
+        self.repack()
+        self.build_only()
+        with self.assertRaisesRegex(ValueError, 'restricted to beta'):
+            self.validate()
+
+    def test_build_only_requires_explicit_skipped_status(self):
+        self.build_only()
+        self.record['qualification'] = 'Qualified developer beta'
+        self.write_record()
+        with self.assertRaisesRegex(ValueError, 'disclose skipped'):
+            self.validate()
+
     def test_tampered_archive(self):
         with self.archive.open('ab') as file:
             file.write(b'tampered')

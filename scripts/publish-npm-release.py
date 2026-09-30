@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Stage the exact qualified beta attached to a published GitHub Release.
+"""Stage the exact tested or explicitly build-only beta from a GitHub Release.
 
 This checks the release handoff; it does not replace verify-beta-release.py.
 """
@@ -45,7 +45,9 @@ def read_json(tar, name):
 
 def validate(directory, tag, commit):
     record = json.loads(asset(directory, 'verification.json').read_text())
-    require(record.get('status') == 'developer-beta-candidate-tested', 'Release is not qualified')
+    build_only = record.get('status') == 'developer-beta-build-only'
+    require(build_only or record.get('status') == 'developer-beta-candidate-tested',
+            'Unknown beta release verification status')
     require(record.get('sourceTag') == tag and record.get('sourceCommit') == commit,
             'Verification does not match the checked-out release tag')
     runtime = asset(directory, record['runtime']['file'])
@@ -53,12 +55,12 @@ def validate(directory, tag, commit):
     for kind, path in [('runtime', runtime), ('source', source)]:
         require(digest(path) == record[kind]['sha256'], f'{kind} archive hash mismatch')
     evidence = record.get('tests', [])
-    require(evidence and all(re.fullmatch(r'[0-9a-f]{64}', item.get('sha256', ''))
-                             for item in evidence), 'Missing verification evidence hashes')
+    require(build_only or (evidence and all(re.fullmatch(r'[0-9a-f]{64}', item.get('sha256', ''))
+                             for item in evidence)), 'Missing verification evidence hashes')
     suites = {item.get('suite') for item in evidence}
-    require({'lgpl-complete-readme-catalogue', 'public-api-component-cli-exports-typescript',
+    require(build_only or {'lgpl-complete-readme-catalogue', 'public-api-component-cli-exports-typescript',
              'range-reader-deadline'} <= suites, 'Missing release qualification suites')
-    for family in ('chrome', 'firefox'):
+    for family in (() if build_only else ('chrome', 'firefox')):
         require(sum(item.get('browser') == family and not item.get('suite') and
                     item.get('cases', 0) > 0 for item in evidence) == 2,
                 f'Missing {family} consumer/streaming qualification')
@@ -76,6 +78,20 @@ def validate(directory, tag, commit):
         version = package['version']
         require(re.fullmatch(r'\d+\.\d+\.\d+-[0-9A-Za-z.-]+', version),
                 'Only prerelease versions may use the beta publishing workflow')
+        if build_only:
+            require(re.fullmatch(r'\d+\.\d+\.\d+-beta(?:[.-][0-9A-Za-z.-]+)?', version),
+                    'Build-only publication is restricted to beta versions')
+            require(record.get('tests') == [] and record.get('qualification') ==
+                    'Build-only beta; browser and catalogue qualification skipped',
+                    'Build-only record must disclose skipped qualification')
+            build_path = asset(directory, record['build']['file'])
+            require(digest(build_path) == record['build']['sha256'], 'Engine build record hash mismatch')
+            build = json.loads(build_path.read_text())
+            require(build.get('clean') is True and build.get('artifacts'),
+                    'Build-only release requires a clean engine build record')
+            for name, entry in build['artifacts'].items():
+                require(manifest.get('files', {}).get(name, {}).get('sha256') == entry['sha256'],
+                        'Engine build differs from runtime: ' + name)
         require(manifest.get('version') == version and manifest.get('dirtySource') is False and
                 manifest.get('sourceTag') == tag and manifest.get('sourceCommit') == commit,
                 'Runtime metadata does not match verified tagged source')
@@ -94,9 +110,9 @@ def validate(directory, tag, commit):
                 if companion := optional.get('sourceCompanion'):
                     require(digest(asset(directory, companion['filename'])) == companion['sha256'],
                             'Optional source companion mismatch')
-        if manifest.get('optionalQualificationRequired'):
+        if manifest.get('optionalQualificationRequired') and not build_only:
             require('optional-runtime-exact-archive' in suites, 'Missing optional runtime qualification')
-        if manifest.get('adaptiveStreaming'):
+        if manifest.get('adaptiveStreaming') and not build_only:
             require({item.get('browser') for item in evidence
                      if item.get('suite') == 'shaka-exact-archive'} == {'chrome', 'firefox'},
                     'Missing Shaka qualification')

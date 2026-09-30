@@ -8,6 +8,18 @@ One clean build of the baseline, Software, Hybrid, Remux and subtitle-service
 engines is required for this candidate. Universal
 bit-for-bit reproducibility and the historical Linux baseline are separate claims.
 
+## Current beta CI policy
+
+Tag CI builds clean engines and archives, then publishes the GitHub prerelease,
+Pages and an npm staged beta without running browser or catalogue tests. The
+verification record is `developer-beta-build-only` and explicitly records skipped
+qualification. Archive hashes, clean tagged source, source companions and build
+correspondence remain required. See [tag pipeline](TAG-RELEASE.md).
+
+The full testing and qualification procedure below is available locally or as
+an opt-in run. Its requirements apply to `developer-beta-candidate-tested`
+records; they do not describe the current build-only CI policy.
+
 ## Prerequisites
 
 Install native Python 3, CMake, Ninja, pkg-config, Git, curl and Node.js/npm. On the
@@ -209,9 +221,10 @@ claiming Safari or physical mobile qualification.
 
 ## Publishing a qualified beta
 
-The [tag pipeline](TAG-RELEASE.md) builds and qualifies the exact runtime and
-source archives, creates a GitHub Release with those files, deploys Pages, and
-stages npm. Approve the pending version in npm’s Staged Packages UI with 2FA to
+The [tag pipeline](TAG-RELEASE.md) builds the exact runtime and source archives,
+records a build-only beta handoff, creates a GitHub Release, deploys Pages and
+stages npm. To publish a fully tested beta instead, complete the qualification
+procedure above and retain its tested verification record. Approve the pending version in npm’s Staged Packages UI with 2FA to
 make it public. The following commands are the manual staging procedure.
 
 The root `package.json` deliberately remains `private: true`. Never publish from
@@ -251,7 +264,7 @@ The installed-archive consumer suite requires runtime selection with and without
 
 ### Catalogue correctness gate
 
-Tag releases run the full correctness catalogue for Demuxe Auto against both
+The optional full qualification procedure runs the correctness catalogue for Demuxe Auto against both
 the published baseline and candidate. Coverage follows the README media table
 (80 rows currently), not a fixed case count. Missing or duplicate fixtures fail
 qualification. Cases include output, seeking, pause/resume, rate, EOF and cleanup

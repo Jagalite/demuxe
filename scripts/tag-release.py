@@ -3,6 +3,7 @@
 """Build and qualify a tagged archive, generating fixtures and fetching a pinned published baseline."""
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -147,6 +148,33 @@ def package(tag):
          '--adaptation-build', adaptation()])
 
 
+def build_release(tag):
+    """Finalize the tagged build without claiming browser qualification."""
+    archive = candidate()
+    source = archive.with_name(archive.stem + '-source.tar.gz')
+    with tarfile.open(archive) as bundle:
+        manifest = json.load(bundle.extractfile('package/release-manifest.json'))
+    build = RELEASE / 'engine-build.json'
+    shutil.copyfile(ROOT / 'build/beta-build.json', build)
+    record = {
+        'status': 'developer-beta-build-only', 'sourceTag': tag,
+        'sourceCommit': manifest['sourceCommit'],
+        'runtime': {'file': archive.name, 'sha256': digest(archive)},
+        'source': {'file': source.name, 'sha256': digest(source)},
+        'build': {'file': build.name, 'sha256': digest(build)},
+        'tests': [],
+        'qualification': 'Build-only beta; browser and catalogue qualification skipped',
+    }
+    (RELEASE / 'verification.json').write_text(json.dumps(record, indent=2) + '\n')
+    spec = importlib.util.spec_from_file_location('beta_publisher', ROOT / 'scripts/publish-npm-release.py')
+    publisher = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(publisher)
+    publisher.validate(RELEASE, tag, manifest['sourceCommit'])
+    files = sorted(p for p in RELEASE.iterdir() if p.is_file() and p.name != 'SHA256SUMS')
+    (RELEASE / 'SHA256SUMS').write_text(''.join(f'{digest(p)}  {p.name}\n' for p in files))
+    print(f'Built {tag}: browser and catalogue qualification skipped')
+
+
 def result_after(script, pattern, env):
     before = set(ROOT.glob(pattern))
     run(['node', script], env)
@@ -210,7 +238,7 @@ def qualify(tag):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('step', choices=['baseline', 'package', 'qualify'])
+    parser.add_argument('step', choices=['baseline', 'package', 'build-release', 'qualify'])
     parser.add_argument('--tag')
     args = parser.parse_args()
     if args.step == 'baseline':
@@ -219,6 +247,8 @@ def main():
         parser.error('--tag is required')
     elif args.step == 'package':
         package(args.tag)
+    elif args.step == 'build-release':
+        build_release(args.tag)
     else:
         qualify(args.tag)
 

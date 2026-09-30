@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Attach qualified archives to a draft, then publish the complete GitHub Release."""
+"""Attach validated beta archives to a draft, then publish the complete release."""
 import argparse
 import importlib.util
 import json
@@ -28,7 +28,7 @@ def publish(directory, tag, commit, repo):
         raise ValueError('Multiple releases for one tag')
     if not found:
         gh('release', 'create', tag, '--repo', repo, '--verify-tag', '--draft', '--prerelease',
-           '--title', tag, '--notes', 'Qualified developer beta. Runtime and corresponding source archives are attached. npm publication awaits maintainer approval in Staged Packages.')
+           '--title', tag, '--notes', 'Developer beta built from tagged source. Runtime and corresponding source archives are attached. See verification.json for build and test status; build-only betas skip browser and catalogue qualification. npm publication awaits maintainer approval in Staged Packages.')
     release = json.loads(gh('release', 'view', tag, '--repo', repo, '--json', 'isDraft,assets'))
     names = {entry['name'] for entry in release['assets']}
     with tempfile.TemporaryDirectory() as temporary:
