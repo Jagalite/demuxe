@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "passed": true,
+  "fixes": [
+    "fragment-local roll index 0x10001",
+    "pinned audio source gates before recording and packaging",
+    "fresh post-seek audio and progression assertion"
+  ],
+  "checks": {
+    "rollAndContractOwnerTests": 9,
+    "sourcePolicyRegressions": 4,
+    "existingPackageAuditTests": 9,
+    "nativeCompositions": 20,
+    "opusEncoderCases": 8,
+    "installedBrowserCases": 64,
+    "postSeekAudioCases": 34,
+    "silenceNegativeControl": true,
+    "actualLibopusArchiveAudit": true
+  },
+  "negativeControl": {
+    "path": "build/codec-expansion/browser/silence-control.json",
+    "sha256": "6fa27c02d97ee8337eb5f6032aae5764de73a41eaf342255332b000f98e3a306",
+    "error": "Error: silent post-seek playback\n    at assert (http://127.0.0.1:4187/page.mjs:3:56)\n    at composition (http://127.0.0.1:4187/page.mjs:75:168)\n    at async document.querySelector.onclick (http://127.0.0.1:4187/page.mjs:89:167)"
+  },
+  "sources": {
+    "native/audio-codecs/decoder.c": "c97cd7487ea8d2d3fa24a891f493274c73cb33e80a1b85738befc34157d26bf7",
+    "native/audio-codecs/encoder.c": "71956e8978aaa5acd2baf9b51ce66a0c163e9d8d084faa770ef559473ead1355",
+    "native/audio-codecs/opus-encoder.c": "7184435fe47de80874de3e76cdc0eb8420a04c0e43653210d213bd0212fe49a1",
+    "packages/provider-audio/src/packet-decoder.ts": "074e232dcb0c733632bbe861054fc69a35c9e25e336f5664136f5f484b047dd9",
+    "packages/provider-audio/src/opus-encoder.ts": "70b1e1b6c975d1b70572afa8fc02a8689b2c9b337db21a5d0cd5e08571269fa3",
+    "packages/provider-container/src/audio-repair.ts": "d2e850374025944e6cffd89c8cf7bf609b4d224f5c93839e4117064f75cf5a09",
+    "packages/provider-container/src/fmp4.ts": "7400477a1d5f2c1816c1debb648e5cf70a81a7b3639bca9e80c2c29747dd3806",
+    "packages/provider-container/src/matroska.ts": "deb0f1599c322b1be7c1fbb75adb6e860b25020cd49758b921ac2c5caa6d199a",
+    "packages/provider-container/src/owners.ts": "52735e72f05240cdffb72ea3b165f53b271b8414971c06a87780fb9373d5f2ef",
+    "src/internal/component-recipes.ts": "d1ab6ceef75584e2f994361331ba26fb8516d45f6e3df31fa49c709ee296f874",
+    "src/internal/provider-runtime.ts": "26bed7de923edd5d713e1157e585600b21d2d70f05c4c54febbdbba1a1b85a94",
+    "tests/codec-expansion-page.mjs": "2d90b529c9ea7d38fb4d8be7c0354d2d611ae8df5eead8beee8080b41fcfbcd6",
+    "tests/codec-expansion-browser.mjs": "61eaa7469b7ab79576e88f7aa7b2be96fc6daada5aa74b34d0d32389638e1328",
+    "scripts/setup-codec-expansion-consumer.mjs": "19be3389268a99d90e33a7a837a5fd44a9b3b15be348bd6d6f38ca44b06e0d82",
+    "tests/codec-expansion-compositions.mjs": "87d5363561785466c883158bae042d76b526e4e6e2ad32abf9f8b75f37e371a5",
+    "scripts/audio_source_policy.py": "a8fc960001da3a0f90532df63bb60ba0aa86ec14d264efcafb83cb0130964889",
+    "scripts/record-audio-provider-build.py": "d00e2bff4cc03aa0c08fcceb898198c5c5316270637b5eb414d9ab5b3e29e8b2",
+    "scripts/prepare-provider-package.py": "9d800a4277c1ba6879fece886598c8fd6e2ac6bd38de72a418cab169f2a9b724",
+    "scripts/audit-provider-package.py": "24a97da91704e0b57d23bb359ac18c5cc93442870e96040e6ebb1cd41513e497",
+    "tests/audio-source-policy.py": "197a22ea5f1a9e4b6b86f47881da3b50899ac1624e5b9c67db2fcfbc7be711db",
+    "tests/provider-opus-roll.mjs": "466a6c2a6cb209b9a8adb8ff558bac89846f43ac0be4d533479355c8a806e72c"
+  },
+  "container": {
+    "archive": "/Volumes/seed2/Projects/demuxe/build/codec-expansion/packages/container-review-fix/demuxe-provider-container-0.3.0-beta.4.tgz",
+    "files": 22,
+    "implementationIdentity": "sha256:f7c92aec601223d1c83fa9e11a83bc5039357dceed6df03608678822c52406c6",
+    "qualification": "candidate-not-published",
+    "record": "/Volumes/seed2/Projects/demuxe/build/codec-expansion/packages/container-review-fix/build-inventory.json",
+    "recordSHA256": "730f179575c1ff09c42ff7c5dfe5b6196606b3541f2c7c02464d2b8c54709b47",
+    "sha256": "29fa06770f7631e4295273808a141e41e8dff9a933d87316ffc0d3f83f17f0df"
+  },
+  "releaseQualified": false
+}

@@ -1,17 +1,18 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Codec slices: inventory and remaining work
 
-Snapshot: **2026-09-30**, `modular-media-providers` worktree. This is the scoped
-backlog for expanding selectable FFmpeg providers. It does not enable new plans,
+Snapshot: **2026-09-30**, local codec expansion in the `demuxe` checkout. This is
+the scoped inventory and backlog for selectable audio providers. It does not enable new plans,
 change defaults, or authorize publishing. mpv remains **one atomic provider**;
 its unified engine is a local candidate, not a released replacement.
 
 ## Scope and counts
 
-- **11 optional slice packages**: six audio components, one container component,
-  and four full-file preparation variants. These are not 11 distinct codecs.
+- **19 optional slice packages**: 12 audio components, one container component,
+  and six full-file preparation variants. Eight local candidates extend the
+  historical 11 packages; these are not 19 distinct codecs.
 - **Four broad provider packages**: primary FFmpeg, FFmpeg Asyncify, FFmpeg JSPI,
-  and mpv. Together with slices, the installed inventory has 15 providers.
+  and mpv. Together with slices, the package inventory has 23 providers.
 - Broad audio preparation explicitly requests **17 decoder implementations and
   two encoders**. MP3 has two implementations; DTS core/HD share FFmpeg `dca`.
 - The local broad FFmpeg configuration used as the dependency location for mpv
@@ -24,7 +25,9 @@ its unified engine is a local candidate, not a released replacement.
 
 [Machine-readable inventory](codec-slice-inventory.json) retains every enabled
 component name from that broad configuration, its hash, the actual linked archive
-hashes, the explicit audio configure set, and all 11 package identities. The
+hashes, the explicit audio configure set, and the historical 11 package identities.
+The JSON also records eight new packages and the rebuilt container/FLAC dependencies. Historical identities retain their historical status; current candidate evidence is
+described in [the codec expansion report](CODEC-EXPANSION.md). The
 historical unified build record did not hash that configuration; the snapshot
 records this limitation rather than claiming source correspondence.
 
@@ -39,11 +42,12 @@ It is not the same scope as splitting the codecs already enabled here.
 | --- | --- |
 | Historical qualified | Exact prior package/core identities passed the recorded bounded contracts; not a blanket qualification of this worktree |
 | Local smoke passed | Representative fixtures passed in local Chromium; not the full layout/rate/container/browser matrix |
+| Native candidate passed | Exact local native builds passed the stated packet/output tests; browser and release gates remain separate |
 | Local candidate passed | Current unified mpv candidate passed its scoped tests; source/release/remote gates remain |
 | Build profile only | Script accepts the family; no qualified installed slice is claimed |
 | Not split / untested | No maintained dedicated provider or dedicated slice qualification in this inventory |
 
-## Existing slices
+## Historical 11 slices
 
 Package names below use the prefix `@demuxe/provider-`. Priority is maintenance
 priority, not a claim that another slice must ship before merging the backlog.
@@ -85,38 +89,55 @@ AVC/HEVC input contract. See [exact contracts](CODEC-SPLIT-PRODUCTION.md).
 - The complete slice matrix has **not** been rerun against the latest unified
   mpv candidate. Old qualification is not transferred to new core/native bytes.
 
+## Seven priority groups implemented locally
+
+These eight packages implement the seven priority groups. The local browser matrix passed **64 assets/embedded checks plus 12 full-file checks**; none is published or release-qualified.
+See [contracts, measurements and commands](CODEC-EXPANSION.md).
+
+| Priority | New package suffix | Implemented contract | Current evidence |
+| --- | --- | --- | --- |
+| P1.1 | `ffmpeg-ac3-eac3-jspi`, `ffmpeg-ac3-eac3-asyncify` | Full-file AC3/EAC3 → FLAC with copied video; existing streaming preparation ABI | Both variants built/audited; 12 local installed browser checks (10 positive, 2 negative), stereo/5.1 and bounded large-file reads |
+| P1.2 | `audio-opus-encoder` | Explicitly lossy 48 kHz mono/stereo libopus output; packet delay and final duration | 8 real-Wasm output cases; independent decode and seek with 80 ms preroll |
+| P1.3 | `audio-aac` | AAC-LC packet decoder; stereo 48 kHz maintained composition | Native reference checks; Matroska → FLAC/Opus composition checks |
+| P1.4 | `audio-opus-vorbis` | Opus/Vorbis packet decoders; stereo 48 kHz maintained composition | Native reference checks; intrinsic pre-skip/overlap handled once |
+| P1.5 | `audio-lossless` | FLAC/ALAC integer packet decoders | Native reference checks; FLAC Matroska composition; ALAC MOV is packet-fixture coverage only |
+| P1.6 | `audio-mp3` | FFmpeg `mp3float` decoder | Native reference checks and stereo 48 kHz Matroska compositions |
+| P1.7 | `audio-pcm` | Little-endian s16/s24/s32/f32/f64 packet decoding | Native reference checks; finite precision/range guards; f64 MOV is packet-fixture coverage only |
+
+The packet family suites record **34 decoder checks**, **8 Opus encoder cases**,
+**4 FLAC regression cases**, **6 owner-failure tests**, and **20 composition
+checks**, including **3 expected precision rejections**. These counts describe
+bounded checks, not codec or browser counts. New compositions admit stereo 48 kHz
+Matroska with one audio and one non-reordered AVC/HEVC video track. The current
+composition fixtures exercise AVC. Additional rates/channels covered by packet
+tests do not expand that composition admission.
+
+The new Opus encoder uses pinned **libopus 1.6.1**, with retained BSD terms and a
+matching source archive; it does not link FFmpeg's experimental native encoder.
+mpv remains atomic. The historical broad FFmpeg component snapshot is unchanged.
+
 ## Ranked remaining audio work
 
-Suggested order reflects browser compatibility gaps and reuse of the existing
-conversion pipeline. These are engineering priorities, not measured user demand.
-Every new row needs a maintained recipe and installed-package tests before
-admission. “In broad build” is build evidence, not a qualified conversion promise.
+| Priority | Work | Testing status / boundary |
+| --- | --- | --- |
+| P1 | Broaden installed browser qualification across supported browsers | Local Chromium assets/embedded and AC3 JSPI/Asyncify passed; current Firefox and combined broad-fallback qualification remain |
+| P1 | Extend current families across rates, channels, containers, priming/gapless and real-world fixtures | Only the finite contracts above are admitted; ALAC/f64 packet tests do not add a MOV demux provider |
+| P2.1 | Existing lossless extensions: MLP 7.1, DTS-HD stereo/5.1, further rates/layouts | Existing finite matrix remains historical; extensions unqualified |
+| P2.2 | Legacy audio: `mp1,mp2,wmav1,wmav2,wmapro,wmalossless` | Broad mpv FFmpeg includes these; no dedicated conversion slices or qualification |
+| P2.3 | Archival lossless: `ape,wavpack,tta,tak,shorten` | Broad mpv FFmpeg includes these; grouping, lossless comparisons and seeking remain |
+| P3 | Speech, ADPCM/DPCM, DSD, game/proprietary audio | Inventory only; prioritize using input demand and representative fixtures |
 
-| Priority / order | Family and FFmpeg identifiers | Existing coverage | What remains | Dedicated slice testing |
-| --- | --- | --- | --- | --- |
-| P1.1 | AC3/EAC3: `ac3,eac3` | Packet slice; broad preparation; `ac3-eac3` full-file build profile exists | Package and qualify Asyncify/JSPI full-file variants for reordered video, larger files and seeking | Packet smoke/historical passed; full-file slice profile only |
-| P1.2 | Opus output encoder: `opus` | Broad build enables encoder; no dedicated encoder slice | Define supported output/container policy, delay/pre-skip and seek behavior; qualify compatibility alternative to FLAC | No dedicated slice; broad configuration is not output qualification |
-| P1.3 | AAC: `aac` | Broad preparation; browser/native paths when supported | Decoder slice, config/extradata, priming/gapless, selected tracks; FLAC/Opus output contract | Not split / untested |
-| P1.4 | Opus + Vorbis input: `opus,vorbis` | Broad preparation | Decoder family or separate slices; codec delay, seek preroll, extradata, Ogg/WebM/Matroska fixtures | Not split / untested |
-| P1.5 | FLAC + ALAC input: `flac,alac` | Broad preparation; existing FLAC slice is encoder only | Lossless input slice, integer PCM/channel identity and high bit depth/rate matrix | Not split / untested |
-| P1.6 | MP3: `mp3,mp3float` | Broad preparation | Choose implementation(s), VBR, reservoir, encoder delay/end padding and seek tests | Not split / untested |
-| P1.7 | PCM: `pcm_s16le,pcm_s24le,pcm_s32le,pcm_f32le,pcm_f64le` | Broad preparation | One sensible PCM family; sample conversion, clipping, endianness, layouts and container metadata | Not split / untested |
-| P2.1 | Existing lossless contract extensions | TrueHD/MLP/DTS-HD slices exist | Qualify MLP 7.1, DTS-HD stereo/5.1, additional rates/layouts only when supported; retain rejection until passed | Current finite matrix passed historically; extensions pending |
-| P2.2 | Other common legacy audio: `mp1,mp2,wmav1,wmav2,wmapro,wmalossless` | Enabled in broad mpv FFmpeg, not the explicit audio-preparation decoder list | Add conversion recipe/demux support and fixtures before slicing | No dedicated slices / untested |
-| P2.3 | Archival lossless: `ape,wavpack,tta,tak,shorten` | Enabled in broad mpv FFmpeg | Decoder grouping, lossless comparisons, seek and corrupt-input bounds | No dedicated slices / untested |
-| P3 | Remaining speech, ADPCM/DPCM, DSD, game/proprietary audio | See complete enabled-component JSON | Rank by actual input demand and fixture availability; many require new preparation contracts | No dedicated slices claimed |
-
-The 17 explicitly requested preparation decoders are all accounted for in the
-first seven rows or existing TrueHD/MLP/DTS slices. Distinct implementations do
-not necessarily deserve separate npm packages. Opus **decoding** and Opus
-**encoding** are separate deliverables; FLAC follows the same distinction.
+The existing explicit audio-preparation decoder families now have corresponding
+slice implementations, subject to these finite bounds. MP3 uses `mp3float`;
+a second integer MP3 implementation does not require another public package.
+Opus and FLAC encoding remain distinct from their decoder providers.
 
 ## Other component backlog
 
 | Priority | Work | Testing status / boundary |
 | --- | --- | --- |
-| P1 | Declarative codec-family build/package matrix instead of adding string-replacement recipes for every family | Current scripts support six packet profiles and three full-file profiles; generalized generator pending |
-| P1 | Per-family fixture manifest and automated installed-package matrix | Existing suites cover named finite families; extension fixtures and latest combined rerun pending |
+| P1 | Declarative codec-family build/package matrix instead of adding string-replacement recipes for every family | FFmpeg packet family map, dedicated libopus recipe and three full-file families implemented; generalized policy/qualification matrix remains |
+| P1 | Per-family fixture manifest and automated installed-package matrix | Native expansion suites and local installed assets/embedded browser matrix passed; remote automation remains |
 | P2 | Additional container slices: MOV/MP4, WebM/Ogg, MPEG-TS, WAV/AIFF | Broad FFmpeg contains demux support; only the bounded TypeScript Matroska→fMP4 component is separately maintained. One container per codec is unnecessary |
 | P2 | Subtitle formats | Remain behind the existing mpv service; no new standalone subtitle splits proposed or qualified |
 | P3 | Standalone video decoder providers (H264/HEVC, VP8/VP9/AV1 first if demanded) | mpv broad decoder build and browser routes already serve their existing contracts. Independent providers need a new frame/presenter integration and tests; audio slice infrastructure alone does not supply it |
@@ -145,7 +166,8 @@ not necessarily deserve separate npm packages. Opus **decoding** and Opus
 
 **The future slice backlog is not a requirement to merge the existing finite
 implementation.** New families remain unadvertised and unadmitted until tested.
-This inventory closes the planning task; it does not itself prove a green merge
+The first seven groups now have local implementations, scoped native evidence and installed-browser checks;
+this inventory does not itself prove a green merge
 or turn local candidates into production-qualified packages.
 
 | Gate | Priority | Current state / action |
@@ -159,5 +181,5 @@ or turn local candidates into production-qualified packages.
 | Publication/staging | After qualification | No release upload/npm publication or change to default delivery authorized by this inventory |
 
 A merge of the candidate tooling/backlog can keep these shipping gates open.
-A merge described as “production-ready unified mpv” cannot. No merge, commit,
-push, tag or publication was performed as part of preparing this document.
+A merge described as “production-ready unified mpv” cannot. This expansion has not been committed, pushed, tagged or published. Historical
+provider architecture merges do not qualify these new candidate bytes.

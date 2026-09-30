@@ -24,6 +24,38 @@ export const EXECUTION_CAPABILITIES = {
     version: 1, profiles: ['48khz-integer'] as const,
     contract: 'Complete MLP packets to owned left-justified integer PCM with native channel layout, reset, drain and cancellation.',
   },
+  'audio.decode.aac': {
+    version: 1, profiles: ['lc-48khz-stereo'] as const,
+    contract: 'Configured AAC-LC packets with AudioSpecificConfig to owned PCM; explicit priming and discard padding belong to the container.',
+  },
+  'audio.decode.opus': {
+    version: 1, profiles: ['48khz-stereo'] as const,
+    contract: 'Configured Opus packets to owned PCM with explicit container delay and preroll; no implicit seek state.',
+  },
+  'audio.decode.vorbis': {
+    version: 1, profiles: ['48khz-stereo'] as const,
+    contract: 'Configured Vorbis packets and headers to owned PCM with reset, drain and cancellation.',
+  },
+  'audio.decode.flac': {
+    version: 1, profiles: ['48khz-integer'] as const,
+    contract: 'Configured FLAC packets to owned left-justified integer PCM; lossless output rejects precision above 24 bits.',
+  },
+  'audio.decode.alac': {
+    version: 1, profiles: ['48khz-integer'] as const,
+    contract: 'Configured ALAC packets to owned left-justified integer PCM with explicit channel layout.',
+  },
+  'audio.decode.mp3': {
+    version: 1, profiles: ['48khz-stereo'] as const,
+    contract: 'Complete MP3 packets to owned PCM; caller owns gapless metadata and reservoir warmup after reset.',
+  },
+  'audio.decode.pcm': {
+    version: 1, profiles: ['48khz-stereo'] as const,
+    contract: 'Configured little-endian signed16/24/32 or float32/64 packets to owned PCM; precision and clipping are explicit output policy.',
+  },
+  'audio.encode.opus': {
+    version: 1, profiles: ['48khz-mono-stereo'] as const,
+    contract: 'Explicit lossy mono/stereo Opus output with header, encoder delay, packet timestamps and final trimming.',
+  },
   'audio.encode.flac': {
     version: 1, profiles: ['48khz-s24'] as const,
     contract: 'Signed 24-bit PCM to owned FLAC packets with stream info, sample timestamps and bounded send/drain; caller owns quantization and channel mapping.',

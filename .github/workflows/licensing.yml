@@ -23,8 +23,9 @@ jobs:
       - run: npm run build:core
       - run: npm run test:licenses
       - run: python3 tests/modular-release.py
+      - run: python3 tests/audio-source-policy.py
       - run: npm run build:components
-      - run: node --test tests/component-selection.mjs tests/provider-runtime.mjs tests/provider-acquisition.mjs tests/provider-container-metadata.mjs
+      - run: node --test tests/component-selection.mjs tests/provider-runtime.mjs tests/provider-acquisition.mjs tests/provider-container-metadata.mjs tests/codec-expansion-contracts.mjs tests/provider-owner-failures.mjs tests/provider-opus-roll.mjs
       - run: python3 tests/lgpl-closure.py
       - run: python3 tests/lgpl-catalogue.py
       - run: python3 tests/beta-release.py

@@ -2,7 +2,7 @@
 import {MatroskaReader,ContainerProfileError} from './matroska.js';
 import type {MatroskaPacket} from './matroska.js';
 import {FragmentedMP4Writer} from './fmp4.js';
-import type {AudioPacketDecoder,AudioFrame,PacketAudioCodec} from '../../provider-audio/src/packet-decoder.js';
+import type {AudioPacketDecoder,AudioFrame,PacketAudioCodec,AudioDecoderConfiguration} from '../../provider-audio/src/packet-decoder.js';
 import type {AudioPacketEncoder,FlacPacket} from '../../provider-audio/src/flac-encoder.js';
 /** Finite, bounded candidate recipe: AVC/HEVC packet copy + stereo 48 kHz
  * AC-3/E-AC-3/DTS-core float or TrueHD/MLP/DTS-HD integer decode + FLAC24 + fMP4. No source admission is implied.
@@ -11,8 +11,10 @@ import type {AudioPacketEncoder,FlacPacket} from '../../provider-audio/src/flac-
 export interface AudioRepairComponents {
  /** Explicit admitted codec; A_DTS alone does not distinguish core from MA. */
  codec?: PacketAudioCodec;
+ /** Opus is an explicit lossy output choice. */
+ output?: 'flac'|'opus';
  channels?: 2|6|8;
- decoder(codec: PacketAudioCodec, signal: AbortSignal): AudioPacketDecoder | Promise<AudioPacketDecoder>;
+ decoder(codec: PacketAudioCodec, signal: AbortSignal, configuration?: AudioDecoderConfiguration): AudioPacketDecoder | Promise<AudioPacketDecoder>;
  encoder(channels: number, signal: AbortSignal): AudioPacketEncoder | Promise<AudioPacketEncoder>;
 }
 /** Small-file convenience wrapper. Streaming consumers use the iterator below. */
@@ -33,31 +35,50 @@ export async function* repairMatroskaAudioFragments(file: Blob, components: Audi
  const videos=reader.tracks.filter(t=>t.kind==='video'),audios=reader.tracks.filter(t=>t.kind==='audio');
  if(videos.length!==1||audios.length!==1)throw new ContainerProfileError('Exactly one video and one audio required');
  const video=videos[0],audio=audios[0];
- const codecs:Record<string,PacketAudioCodec>={A_AC3:'ac3',A_EAC3:'eac3',A_DTS:'dts-core',A_TRUEHD:'truehd',A_MLP:'mlp'};
+ const codecs:Record<string,PacketAudioCodec>={A_AC3:'ac3',A_EAC3:'eac3',A_DTS:'dts-core',A_TRUEHD:'truehd',A_MLP:'mlp',A_AAC:'aac',A_OPUS:'opus',A_VORBIS:'vorbis',A_FLAC:'flac',A_ALAC:'alac','A_MPEG/L3':'mp3'};
+ if(audio.codec==='A_PCM/INT/LIT'&&[16,24,32].includes(audio.bitDepth??0))codecs[audio.codec]=('pcm-s'+audio.bitDepth+'le') as PacketAudioCodec;
+ if(audio.codec==='A_PCM/FLOAT/IEEE'&&[32,64].includes(audio.bitDepth??0))codecs[audio.codec]=('pcm-f'+audio.bitDepth+'le') as PacketAudioCodec;
  const codec=components.codec??codecs[audio.codec];
  if(!codec || (codec==='dts-hd'?audio.codec!=='A_DTS':codec!==codecs[audio.codec]))throw new ContainerProfileError('Source codec differs from admitted recipe');
- const integer=['truehd','mlp','dts-hd'].includes(codec),channels=audio.channels;
- if(!codecs[audio.codec]||!(integer?[2,6,8]:[2]).includes(channels??0)||audio.rate!==48000||!video.defaultDurationNs
+ const integer=['truehd','mlp','dts-hd','flac','alac','pcm-s16le','pcm-s24le','pcm-s32le'].includes(codec),channels=audio.channels;
+ const output=components.output??'flac';
+ if(output!=='flac'&&output!=='opus')throw new ContainerProfileError('Unknown audio output policy');
+ if(output==='opus'&&channels!==2)throw new ContainerProfileError('Opus composition requires stereo');
+ if(!codecs[audio.codec]||!(['truehd','mlp','dts-hd'].includes(codec)?[2,6,8]:[2]).includes(channels??0)||audio.rate!==48000||!video.defaultDurationNs
   ||!['V_MPEG4/ISO/AVC','V_MPEGH/ISO/HEVC'].includes(video.codec))throw new ContainerProfileError('Unqualified audio-repair profile');
  if(components.channels!==undefined&&channels!==components.channels)throw new ContainerProfileError('Source channels differ from admitted recipe');
  const delay=Math.round((audio.codecDelayNs??0)*48000/1e9);
  if(delay<0||delay>6144||Math.abs(delay-(audio.codecDelayNs??0)*48000/1e9)>0.001)throw new ContainerProfileError('Unqualified codec delay');
+ // libavcodec applies the OpusHead pre-skip and advances the first frame PTS.
+ // Matroska repeats that value as CodecDelay; verify it, then trim only once.
+ if(codec==='opus'&&(audio.privateData.length!==19||new TextDecoder().decode(audio.privateData.subarray(0,8))!=='OpusHead'
+  ||new DataView(audio.privateData.buffer,audio.privateData.byteOffset,audio.privateData.byteLength).getUint16(10,true)!==delay))throw new ContainerProfileError('Opus header and container delay differ');
  const channelCount=channels!;
  const layout=({2:3,6:63,8:1599} as Record<number,number>)[channelCount];
- const decoder=await components.decoder(codec,signal);
+ let extradata=audio.privateData;
+ // Matroska FLAC CodecPrivate includes fLaC + the metadata block header.
+ if(codec==='flac'&&extradata.length>=42&&new TextDecoder().decode(extradata.subarray(0,4))==='fLaC'){
+  if((extradata[4]&127)!==0||((extradata[5]<<16)|(extradata[6]<<8)|extradata[7])!==34)throw new ContainerProfileError('Invalid FLAC stream info');
+  extradata=extradata.slice(8,42);
+ }
+ const configured=!['ac3','eac3','dts-core','truehd','mlp','dts-hd'].includes(codec);
+ const decoder=await components.decoder(codec,signal,configured?{sampleRate:48000,channels:channelCount,bitsPerSample:audio.bitDepth,extradata}:undefined);
  let encoder:AudioPacketEncoder|undefined;
  try {
   signal.throwIfAborted();encoder=await components.encoder(channelCount,signal);signal.throwIfAborted();
+  const preSkip=output==='opus'?(encoder as AudioPacketEncoder & {preSkip:number}).preSkip:0;
+  if(!Number.isInteger(preSkip)||preSkip<0||preSkip>65535)throw new ContainerProfileError('Invalid output codec delay');
   const writer=new FragmentedMP4Writer([
    {id:video.number,codec:video.codec==='V_MPEG4/ISO/AVC'?'avc1':'hvc1',config:video.privateData,timescale:1000000000,width:video.width,height:video.height,colour:video.colour},
-   {id:audio.number,codec:'fLaC',config:encoder.header,timescale:48000,channels:channelCount},
+   {id:audio.number,codec:output==='opus'?'Opus':'fLaC',config:encoder.header,timescale:48000,channels:channelCount},
   ]);
   yield writer.initialization();
   const parts:Uint8Array[]=[];let queuedBytes=0;
   const append=(part:Uint8Array)=>{queuedBytes+=part.length;if(queuedBytes>16*1024*1024||parts.length>=4096)throw new ContainerProfileError('Fragment queue budget');parts.push(part);};
-  let pending:MatroskaPacket|undefined,audioBase:number|undefined,rawBase:number|undefined,samples=0,filled=0,skip=delay,padded=false;
+  // Vorbis likewise consumes its initial overlap frame inside libavcodec.
+  let pending:MatroskaPacket|undefined,audioBase:number|undefined,rawBase:number|undefined,samples=0,filled=0,skip=['opus','vorbis'].includes(codec)?0:delay,padded=false;
   const pcm=new Int32Array(encoder.blockSize*channelCount);
-  const encoded=(packets:readonly FlacPacket[])=>{for(const p of packets)append(writer.fragment(audio.number,[{data:p.data,dts:audioBase!+p.pts,pts:audioBase!+p.pts,duration:p.duration,key:true}]));};
+  const encoded=(packets:readonly FlacPacket[])=>{for(const p of packets)append(writer.fragment(audio.number,[{data:p.data,dts:audioBase!+p.pts+preSkip,pts:audioBase!+p.pts+preSkip,duration:p.duration,key:true}]));};
   const decoded=(frames:readonly AudioFrame[],discard=0)=>{
    const count=frames.reduce((n,f)=>n+f.samples,0);
    if(discard>count)throw new ContainerProfileError('Discard padding exceeds decoded block');
@@ -67,20 +88,27 @@ export async function* repairMatroskaAudioFragments(file: Blob, components: Audi
     // Accept either FFmpeg 5.1 mask; do not reorder the six sample positions.
     if(f.channels!==channelCount||!(channelCount===6?[63,1551]:[layout]).includes(f.layout)||f.rate!==48000)throw new ContainerProfileError('Decoded channel layout changed');
     rawBase??=f.pts;
-    if(Math.abs(f.pts-(rawBase+samples))>Math.ceil(reader.timecodeScale*48000/2e9))throw new ContainerProfileError('Audio discontinuity');
+    // Matroska timestamps may be truncated rather than rounded to the tick.
+    // Preserve the exact decoded sample clock within one container tick.
+    if(Math.abs(f.pts-(rawBase+samples))>Math.ceil(reader.timecodeScale*48000/1e9))throw new ContainerProfileError('Audio discontinuity');
     for(let i=0;i<f.samples;i++){
      if(remaining--<=0)continue;
      if(skip){skip--;continue;}
      audioBase??=rawBase+samples+i-delay;
+     if(audioBase<0&&audioBase>=-Math.ceil(reader.timecodeScale*48000/1e9))audioBase=0;
      if(audioBase<0)throw new ContainerProfileError('Negative audio presentation start');
      for(let c=0;c<channelCount;c++){
       if(integer){
        if(!f.pcm||f.pcm.length!==f.samples*channelCount)throw new ContainerProfileError('Missing lossless integer PCM');
        const value=f.pcm[i*channelCount+c];
-       if((value&255)!==0)throw new ContainerProfileError('Source precision exceeds lossless FLAC24 recipe');
-       pcm[filled*channelCount+c]=value;
+       if(output==='flac'&&(value&255)!==0)throw new ContainerProfileError('Source precision exceeds lossless FLAC24 recipe');
+       pcm[filled*channelCount+c]=output==='opus'?(value&~255):value;
       }else{
-       const value=f.planes[c][i];if(!Number.isFinite(value))throw new ContainerProfileError('Nonfinite PCM');
+       const value=f.planes64?.[c][i]??f.planes[c][i];if(!Number.isFinite(value))throw new ContainerProfileError('Nonfinite PCM');
+       if(codec.startsWith('pcm-f')){
+        if(value< -1||value>=1)throw new ContainerProfileError('PCM float exceeds supported range');
+        if(output==='flac'&&!Number.isInteger(value*8388608))throw new ContainerProfileError('Source precision exceeds lossless FLAC24 recipe');
+       }
        pcm[filled*channelCount+c]=Math.max(-8388608,Math.min(8388607,Math.round(value*8388608)))*256;
       }
      }

@@ -29,6 +29,46 @@ export declare const EXECUTION_CAPABILITIES: {
         readonly profiles: readonly ["48khz-integer"];
         readonly contract: "Complete MLP packets to owned left-justified integer PCM with native channel layout, reset, drain and cancellation.";
     };
+    readonly 'audio.decode.aac': {
+        readonly version: 1;
+        readonly profiles: readonly ["lc-48khz-stereo"];
+        readonly contract: "Configured AAC-LC packets with AudioSpecificConfig to owned PCM; explicit priming and discard padding belong to the container.";
+    };
+    readonly 'audio.decode.opus': {
+        readonly version: 1;
+        readonly profiles: readonly ["48khz-stereo"];
+        readonly contract: "Configured Opus packets to owned PCM with explicit container delay and preroll; no implicit seek state.";
+    };
+    readonly 'audio.decode.vorbis': {
+        readonly version: 1;
+        readonly profiles: readonly ["48khz-stereo"];
+        readonly contract: "Configured Vorbis packets and headers to owned PCM with reset, drain and cancellation.";
+    };
+    readonly 'audio.decode.flac': {
+        readonly version: 1;
+        readonly profiles: readonly ["48khz-integer"];
+        readonly contract: "Configured FLAC packets to owned left-justified integer PCM; lossless output rejects precision above 24 bits.";
+    };
+    readonly 'audio.decode.alac': {
+        readonly version: 1;
+        readonly profiles: readonly ["48khz-integer"];
+        readonly contract: "Configured ALAC packets to owned left-justified integer PCM with explicit channel layout.";
+    };
+    readonly 'audio.decode.mp3': {
+        readonly version: 1;
+        readonly profiles: readonly ["48khz-stereo"];
+        readonly contract: "Complete MP3 packets to owned PCM; caller owns gapless metadata and reservoir warmup after reset.";
+    };
+    readonly 'audio.decode.pcm': {
+        readonly version: 1;
+        readonly profiles: readonly ["48khz-stereo"];
+        readonly contract: "Configured little-endian signed16/24/32 or float32/64 packets to owned PCM; precision and clipping are explicit output policy.";
+    };
+    readonly 'audio.encode.opus': {
+        readonly version: 1;
+        readonly profiles: readonly ["48khz-mono-stereo"];
+        readonly contract: "Explicit lossy mono/stereo Opus output with header, encoder delay, packet timestamps and final trimming.";
+    };
     readonly 'audio.encode.flac': {
         readonly version: 1;
         readonly profiles: readonly ["48khz-s24"];

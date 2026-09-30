@@ -15,6 +15,7 @@ from pathlib import Path, PurePosixPath
 import tarfile
 
 from license_policy import Policy, ROOT, generated_source
+from audio_source_policy import verify_audio_engine_source
 
 
 def sha(data):
@@ -143,6 +144,7 @@ def audit(target, files, record):
     policy = Policy()
     config = json.loads((ROOT / 'licensing/provider-packages.json').read_text())
     spec = config['targets'][target]
+    if spec.get('native', True) and target != 'core':verify_audio_engine_source(target, record.get('engineBuildRecord'))
     if record.get('schema') != 1 or record.get('target') != target:
         raise ValueError('Build inventory target/schema mismatch')
     if set(files) != set(record['files']):

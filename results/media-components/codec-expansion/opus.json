@@ -1,0 +1,180 @@
+{
+  "passed": true,
+  "scope": "Real Wasm encoding, independent FFmpeg decode and MP4 seek with required80ms Opus preroll; browser qualification separate",
+  "record": {
+    "schema": 1,
+    "source": {
+      "name": "opus-audio",
+      "upstream": "https://opus-codec.org/",
+      "revision": "1.6.1",
+      "url": "https://downloads.xiph.org/releases/opus/opus-1.6.1.tar.gz",
+      "sha256": "6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1"
+    },
+    "sourceKey": "7da038b4e6607aaef5412430108316d8c335aba333f66e2a4aaaff39f9527ba9",
+    "sdk": "4.0.14",
+    "inputs": {
+      "native/audio-codecs/opus-encoder.c": "7184435fe47de80874de3e76cdc0eb8420a04c0e43653210d213bd0212fe49a1",
+      "scripts/build-opus-provider.py": "940bf57346a9333546bc566767ff1bdf43277d086e6811c5b7faabe8794b3b6e"
+    },
+    "configure": [
+      "emconfigure",
+      "/private/tmp/demuxe-libopus-builds/sources/6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1/opus-1.6.1/configure",
+      "--host=wasm32-unknown-emscripten",
+      "--disable-shared",
+      "--enable-static",
+      "--disable-extra-programs",
+      "--disable-doc",
+      "--disable-intrinsics",
+      "--disable-rtcd",
+      "--disable-stack-protector"
+    ],
+    "link": [
+      "emcc",
+      "-Oz",
+      "-flto",
+      "-msimd128",
+      "-I/private/tmp/demuxe-libopus-builds/sources/6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1/opus-1.6.1/include",
+      "/Volumes/seed2/Projects/demuxe/native/audio-codecs/opus-encoder.c",
+      "/private/tmp/demuxe-libopus-builds/7da038b4e6607aaef5412430108316d8c335aba333f66e2a4aaaff39f9527ba9/opus-encoder/.libs/libopus.a",
+      "-sMODULARIZE=1",
+      "-sEXPORT_ES6=1",
+      "-sENVIRONMENT=web,worker,node",
+      "-sINITIAL_MEMORY=2097152",
+      "-sSTACK_SIZE=262144",
+      "-sALLOW_MEMORY_GROWTH=1",
+      "-sMAXIMUM_MEMORY=134217728",
+      "-sFILESYSTEM=0",
+      "-sMALLOC=emmalloc",
+      "-sSUPPORT_LONGJMP=0",
+      "-sWASM_BIGINT=1",
+      "-sEXPORTED_FUNCTIONS=[\"_malloc\", \"_free\", \"_ae_create\", \"_ae_destroy\", \"_ae_size\", \"_ae_input\", \"_ae_send\", \"_ae_receive\", \"_ae_data\", \"_ae_bytes\", \"_ae_pts\", \"_ae_duration\", \"_ae_header\", \"_ae_header_size\", \"_ae_preskip\"]",
+      "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\", \"HEAP32\"]",
+      "-o",
+      "/private/tmp/demuxe-libopus-builds/7da038b4e6607aaef5412430108316d8c335aba333f66e2a4aaaff39f9527ba9/opus-encoder/module.mjs"
+    ],
+    "profile": "opus-encoder",
+    "capabilities": [
+      "audio.encode.opus"
+    ],
+    "qualification": "build-only",
+    "artifacts": {
+      "module.mjs": {
+        "sha256": "0fdaefe783f6e2f8ac47c9916c48ba2bb6c6c5e92aaa99b18476e16e97ecaf8c",
+        "bytes": 10408
+      },
+      "module.wasm": {
+        "sha256": "fe622d9d6a5eb98103254c054b09b40d359654b62557f4b8724ee69ea2824bbb",
+        "bytes": 201061
+      }
+    },
+    "effectiveConfig": {
+      "config.h": "a6521821c2d2e10998e043ccd99431b381fd43dbc0af13b209cf3ffa5ea04f8b"
+    }
+  },
+  "results": [
+    {
+      "channels": 1,
+      "inputSamples": 13,
+      "decodedSamples": 648,
+      "preSkip": 312,
+      "packets": 1,
+      "snrDb": null,
+      "seekSamples": 0,
+      "seekSnrDb": null,
+      "seekPrerollSamples": 0,
+      "partialFinalBlock": true,
+      "aborted": true
+    },
+    {
+      "channels": 1,
+      "inputSamples": 960,
+      "decodedSamples": 1608,
+      "preSkip": 312,
+      "packets": 2,
+      "snrDb": null,
+      "seekSamples": 0,
+      "seekSnrDb": null,
+      "seekPrerollSamples": 0,
+      "partialFinalBlock": false,
+      "aborted": true
+    },
+    {
+      "channels": 1,
+      "inputSamples": 96137,
+      "decodedSamples": 96648,
+      "preSkip": 312,
+      "packets": 101,
+      "snrDb": 42.98513969637674,
+      "seekSamples": 4800,
+      "seekSnrDb": 28.50221315871088,
+      "seekPrerollSamples": 3840,
+      "partialFinalBlock": true,
+      "aborted": true
+    },
+    {
+      "channels": 1,
+      "inputSamples": 96959,
+      "decodedSamples": 97608,
+      "preSkip": 312,
+      "packets": 102,
+      "snrDb": 43.01996414894653,
+      "seekSamples": 4800,
+      "seekSnrDb": 28.50221315871088,
+      "seekPrerollSamples": 3840,
+      "partialFinalBlock": true,
+      "aborted": true
+    },
+    {
+      "channels": 2,
+      "inputSamples": 13,
+      "decodedSamples": 648,
+      "preSkip": 312,
+      "packets": 1,
+      "snrDb": null,
+      "seekSamples": 0,
+      "seekSnrDb": null,
+      "seekPrerollSamples": 0,
+      "partialFinalBlock": true,
+      "aborted": true
+    },
+    {
+      "channels": 2,
+      "inputSamples": 960,
+      "decodedSamples": 1608,
+      "preSkip": 312,
+      "packets": 2,
+      "snrDb": null,
+      "seekSamples": 0,
+      "seekSnrDb": null,
+      "seekPrerollSamples": 0,
+      "partialFinalBlock": false,
+      "aborted": true
+    },
+    {
+      "channels": 2,
+      "inputSamples": 96137,
+      "decodedSamples": 96648,
+      "preSkip": 312,
+      "packets": 101,
+      "snrDb": 43.96056466036388,
+      "seekSamples": 4800,
+      "seekSnrDb": 25.875068293530067,
+      "seekPrerollSamples": 3840,
+      "partialFinalBlock": true,
+      "aborted": true
+    },
+    {
+      "channels": 2,
+      "inputSamples": 96959,
+      "decodedSamples": 97608,
+      "preSkip": 312,
+      "packets": 102,
+      "snrDb": 43.990863953703524,
+      "seekSamples": 4800,
+      "seekSnrDb": 25.875068293530067,
+      "seekPrerollSamples": 3840,
+      "partialFinalBlock": true,
+      "aborted": true
+    }
+  ]
+}

@@ -7,6 +7,7 @@ This produces local candidates, never installs, publishes or grants qualificatio
 import argparse, importlib.util, json, subprocess
 from pathlib import Path
 from license_policy import ROOT, Policy, encoded, sha
+from audio_source_policy import verify_audio_engine_source
 
 def module(name,file):
     spec=importlib.util.spec_from_file_location(name,ROOT/'scripts'/file);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
@@ -18,6 +19,7 @@ def assemble(target,engine_path,companion_path,output):
     native=spec.get('native',True)
     if native and (not engine_path or not companion_path):raise ValueError('Native provider requires matching build and source records')
     engine=json.loads(engine_path.read_bytes()) if native else None;companion=json.loads(companion_path.read_bytes()) if native else None
+    if native:verify_audio_engine_source(target,engine)
     outputs=json.loads(subprocess.check_output(['node','scripts/'+profile.get('compiler','compile-provider-sources.mjs'),target],cwd=ROOT))
     files={};record={'schema':1,'target':target,'files':{},'sources':{},'engineBuildRecord':engine,'sourceCompanion':companion}
     def add(name,data,inputs,kind='code',licenses=None):
@@ -27,14 +29,16 @@ def assemble(target,engine_path,companion_path,output):
     for name in profile['files']+profile['engines']:
         data=(ROOT/name).read_bytes()
         if name in profile['engines'] and engine['artifacts'].get(name,{}).get('sha256')!=sha(data):raise ValueError('Engine differs from native build: '+name)
-        add('runtime/'+(profile.get('runtimePrefix','')+name[len('web/'):] if profile.get('runtimePrefix') and name not in profile['engines'] else name),data,[name],kind='code' if name.endswith(('.js','.mjs','.wasm')) else 'asset',licenses=['Apache-2.0','LGPL-2.1-or-later','MIT','LicenseRef-Native-Dependencies'] if name in profile['engines'] else None)
+        add('runtime/'+(profile.get('runtimePrefix','')+name[len('web/'):] if profile.get('runtimePrefix') and name not in profile['engines'] else name),data,[name],kind='code' if name.endswith(('.js','.mjs','.wasm')) else 'asset',licenses=profile.get('engineLicenses',['Apache-2.0','LGPL-2.1-or-later','MIT','LicenseRef-Native-Dependencies']) if name in profile['engines'] else None)
     for name,item in outputs.items():add('runtime/'+(profile.get('runtimePrefix','')+name[len('web/'):] if profile.get('runtimePrefix') else name),item['data'].encode(),item['inputs'])
     template=spec['template'];metadata=json.loads((ROOT/template).read_bytes());metadata.pop('private');metadata.pop('scripts')
     add('package.json',encoded(metadata),[template],'metadata',['Apache-2.0'])
     for name in spec['requiredFiles']:
         notice=config['retainedNotices'].get(name)
         if notice:add(name,(ROOT/notice['source']).read_bytes(),[notice['source']],'notice',[notice['license']])
-    if native:add('LGPL-RELINK.md',(ROOT/'docs/PROVIDER-RELINK.md').read_bytes(),['docs/PROVIDER-RELINK.md'],'documentation')
+    if native:
+        source_doc=spec.get('sourceDocument',{'name':'LGPL-RELINK.md','source':'docs/PROVIDER-RELINK.md'})
+        add(source_doc['name'],(ROOT/source_doc['source']).read_bytes(),[source_doc['source']],'documentation')
     # Fixed entry source is intentionally inert: importing npm providers does not
     # instantiate or fetch engines. Deployment is an explicit assembly operation.
     for name in ['index.js','index.d.ts']:add('dist/'+name,(ROOT/f'packages/provider-{target}'/name).read_bytes(),[f'packages/provider-{target}/'+name])

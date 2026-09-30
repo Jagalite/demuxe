@@ -5,7 +5,7 @@ import argparse, json, shutil, hashlib
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 def sha(data):return hashlib.sha256(data).hexdigest()
-p=argparse.ArgumentParser(description=__doc__);p.add_argument('--builds',type=Path,required=True);p.add_argument('--profiles',nargs='+',choices=['truehd-mlp','dts-hd'],required=True);p.add_argument('--runtimes',nargs='+',choices=['jspi','asyncify'],required=True);p.add_argument('--sdk-record',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=True)
+p=argparse.ArgumentParser(description=__doc__);p.add_argument('--builds',type=Path,required=True);p.add_argument('--profiles',nargs='+',choices=['truehd-mlp','dts-hd','ac3-eac3'],required=True);p.add_argument('--runtimes',nargs='+',choices=['jspi','asyncify'],required=True);p.add_argument('--sdk-record',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=True)
 sdk=json.loads(a.sdk_record.read_bytes());inputs={};configurations={};artifacts={};sourceSpec=None;transformations={};inputs['scripts/record-codec-preparation-build.py']=sha(Path(__file__).read_bytes())
 for profile in a.profiles:
  for runtime in a.runtimes:
@@ -13,7 +13,7 @@ for profile in a.profiles:
   if record.get('status')!='build_completed_only' or record.get('codecProfile')!=profile or record.get('suspension')!=runtime:raise ValueError('Incomplete or mismatched codec build: '+name)
   sourceSpec=info['source'] if sourceSpec is None else sourceSpec
   if info['source']!=sourceSpec:raise ValueError('Codec upstream pins differ')
-  expected=set(['TRUEHD','MLP'] if profile=='truehd-mlp' else ['DCA'])
+  expected=set({'truehd-mlp':['TRUEHD','MLP'],'dts-hd':['DCA'],'ac3-eac3':['AC3','EAC3']}[profile])
   if set(record['enabledDecoders'])!=expected:raise ValueError('Decoder set mismatch')
   def retain(relative,digest=None,configuration=False):
    path=build/relative;data=path.read_bytes()

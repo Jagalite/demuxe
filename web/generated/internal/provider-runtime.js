@@ -25,7 +25,7 @@ export class ProviderRuntime {
     codecInspector(runtime) {
         if (runtime === 'pthread')
             return;
-        for (const profile of ['truehd-mlp', 'dts-hd']) {
+        for (const profile of ['truehd-mlp', 'dts-hd', 'ac3-eac3']) {
             const providerId = 'ffmpeg-' + profile + '-' + runtime, folder = 'web/providers/preparation/' + profile + '-' + runtime + '/', wasmPath = folder + 'engine-adaptation-' + runtime + '/remux.wasm';
             if (this.hasOffer(providerId, 'packet-copy') && this.has(wasmPath))
                 return { providerId, folder, wasmPath, runtime };
@@ -43,7 +43,7 @@ export class ProviderRuntime {
         const audio = aid === 'no' ? undefined : aid === 'auto' ? (audios.find(t => t.default) ?? audios[0]) : audios.find(t => t.id === aid);
         if (!audio || audio.sampleRate !== 48000 || ![2, 6, 8].includes(audio.channels ?? 0))
             return;
-        const profile = audio.codec === 'truehd' || audio.codec === 'mlp' && audio.channels !== 8 ? 'truehd-mlp' : audio.codec === 'dts' && audio.channels === 8 ? 'dts-hd' : undefined;
+        const profile = audio.codec === 'truehd' || audio.codec === 'mlp' && audio.channels !== 8 ? 'truehd-mlp' : audio.codec === 'dts' && audio.channels === 8 ? 'dts-hd' : ['ac3', 'eac3'].includes(audio.codec) && [2, 6].includes(audio.channels ?? 0) ? 'ac3-eac3' : undefined;
         if (!profile)
             return;
         const providerId = 'ffmpeg-' + profile + '-' + runtime, folder = 'web/providers/preparation/' + profile + '-' + runtime + '/', wasmPath = folder + 'engine-adaptation-' + runtime + '/remux.wasm';

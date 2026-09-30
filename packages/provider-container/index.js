@@ -4,3 +4,4 @@ export {createComponentOwners} from '../runtime/web/providers/components/provide
 export {repairMatroskaAudio,repairMatroskaAudioFragments} from '../runtime/web/providers/components/provider-container/src/audio-repair.js';
 export {PacketAudioDecoder} from '../runtime/web/providers/components/provider-audio/src/packet-decoder.js';
 export {PacketFlacEncoder} from '../runtime/web/providers/components/provider-audio/src/flac-encoder.js';
+export {PacketOpusEncoder} from '../runtime/web/providers/components/provider-audio/src/opus-encoder.js';

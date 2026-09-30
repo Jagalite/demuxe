@@ -1,0 +1,32 @@
+{
+  "name": "@demuxe/provider-audio-opus-encoder",
+  "version": "0.3.0-beta.4",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0 AND BSD-3-Clause AND MIT AND CC-BY-4.0",
+  "description": "Optional libopus mono/stereo encoder for explicit lossy Demuxe compositions.",
+  "files": [
+    "dist/",
+    "runtime/",
+    "LICENSE",
+    "LICENSES/",
+    "license-map.json",
+    "provider-manifest.json",
+    "engine-build.json",
+    "source-companion.json",
+    "NATIVE-SOURCE.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./manifest": "./provider-manifest.json"
+  },
+  "peerDependencies": {
+    "demuxe": "0.3.0-beta.4"
+  },
+  "scripts": {
+    "prepack": "node -e \"throw Error('Provider distribution is not release-qualified; assemble and audit exact artifacts first')\""
+  }
+}

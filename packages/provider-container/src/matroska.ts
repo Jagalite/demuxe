@@ -7,7 +7,7 @@ export class ContainerProfileError extends Error {
 export type ContainerColour = Readonly<{primaries:number;transfer:number;matrix:number;fullRange:boolean}>;
 export type MatroskaTrack = Readonly<{
  number: number; kind: 'video' | 'audio'; codec: string; privateData: Uint8Array;
- codecDelayNs?: number; colour?: ContainerColour; defaultDurationNs?: number; channels?: number; rate?: number; width?: number; height?: number;
+ codecDelayNs?: number; seekPreRollNs?: number; colour?: ContainerColour; defaultDurationNs?: number; channels?: number; rate?: number; bitDepth?: number; width?: number; height?: number;
 }>;
 export type MatroskaPacket = Readonly<{
  track: number; timestampNs: number; key: boolean; data: Uint8Array; discardPaddingNs?: number; durationNs?: number;
@@ -106,17 +106,18 @@ export class MatroskaReader {
      for await (const f of reader.elements(t.start, t.end)) {
       if (fields.has(f.id) && ![0xec,0xbf].includes(f.id)) fail('Duplicate track field'); fields.set(f.id, f);
      }
-     if (fields.has(0x6d80) || fields.has(0x56bb) || fields.has(0x23314f) || fields.has(0x537f)) fail('Encoded or delayed tracks require another provider');
+     if (fields.has(0x6d80) || fields.has(0x23314f) || fields.has(0x537f)) fail('Encoded or delayed tracks require another provider');
      const number = fields.has(0xd7) ? uint(await reader.bytes(fields.get(0xd7)!)) : 0;
      const type = fields.has(0x83) ? uint(await reader.bytes(fields.get(0x83)!)) : 0;
      if (number < 1 || tracks.some(t => t.number === number) || ![1,2].includes(type)) fail('Unqualified track identity or type');
      const codec = fields.has(0x86) ? new TextDecoder('utf-8',{fatal:true}).decode(await reader.bytes(fields.get(0x86)!)) : '';
      if ((type===1&&!codec.startsWith('V_'))||(type===2&&!codec.startsWith('A_')))fail('Codec and track type disagree');
-     if (!['V_MPEG4/ISO/AVC','V_MPEGH/ISO/HEVC','A_AC3','A_EAC3','A_DTS','A_TRUEHD','A_MLP','A_AAC','A_FLAC'].includes(codec)) fail('Unqualified track codec');
-     const track: {number:number;kind:'video'|'audio';codec:string;privateData:Uint8Array;codecDelayNs?:number;colour?:ContainerColour;defaultDurationNs?:number;channels?:number;rate?:number;width?:number;height?:number} = {
+     if (!['V_MPEG4/ISO/AVC','V_MPEGH/ISO/HEVC','A_AC3','A_EAC3','A_DTS','A_TRUEHD','A_MLP','A_AAC','A_FLAC','A_ALAC','A_OPUS','A_VORBIS','A_MPEG/L3','A_PCM/INT/LIT','A_PCM/FLOAT/IEEE'].includes(codec)) fail('Unqualified track codec');
+     const track: {number:number;kind:'video'|'audio';codec:string;privateData:Uint8Array;codecDelayNs?:number;seekPreRollNs?:number;colour?:ContainerColour;defaultDurationNs?:number;channels?:number;rate?:number;bitDepth?:number;width?:number;height?:number} = {
       number, kind: type === 1 ? 'video' : 'audio', codec,
       privateData: fields.has(0x63a2) ? await reader.bytes(fields.get(0x63a2)!) : new Uint8Array(),
      };
+     if (fields.has(0x56bb)) {track.seekPreRollNs=uint(await reader.bytes(fields.get(0x56bb)!));if(codec!=='A_OPUS'||track.seekPreRollNs!==80000000)fail('Unqualified codec seek preroll');}
      if (fields.has(0x56aa)) {if(type!==2)fail('Video codec delay');track.codecDelayNs = uint(await reader.bytes(fields.get(0x56aa)!));}
      if (fields.has(0x23e383)) track.defaultDurationNs = uint(await reader.bytes(fields.get(0x23e383)!));
      for (const group of [0xe0,0xe1]) if (fields.has(group)) {
@@ -143,6 +144,7 @@ export class MatroskaReader {
        }
        if (v.id === 0x9f) track.channels = uint(await reader.bytes(v));
        if (v.id === 0xb5) track.rate = float(await reader.bytes(v));
+       if (v.id === 0x6264) track.bitDepth = uint(await reader.bytes(v));
        if (v.id === 0xb0) track.width = uint(await reader.bytes(v));
        if (v.id === 0xba) track.height = uint(await reader.bytes(v));
       }

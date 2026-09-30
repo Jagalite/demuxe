@@ -38,7 +38,7 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
   private codecProbes=new WeakMap<Blob,Probe>();
   codecInspector(runtime:'pthread'|'jspi'|'asyncify'):CodecPreparation|undefined{
     if(runtime==='pthread')return;
-    for(const profile of ['truehd-mlp','dts-hd']){
+    for(const profile of ['truehd-mlp','dts-hd','ac3-eac3']){
       const providerId='ffmpeg-'+profile+'-'+runtime,folder='web/providers/preparation/'+profile+'-'+runtime+'/',wasmPath=folder+'engine-adaptation-'+runtime+'/remux.wasm';
       if(this.hasOffer(providerId,'packet-copy')&&this.has(wasmPath))return {providerId,folder,wasmPath,runtime};
     }
@@ -50,7 +50,7 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
     const videos=probe.tracks.filter(t=>t.type==='video'&&!t.attachedPicture),audios=probe.tracks.filter(t=>t.type==='audio');
     if(videos.length!==1||!audios.length||!['h264','hevc'].includes(videos[0].codec))return;
     const audio=aid==='no'?undefined:aid==='auto'?(audios.find(t=>t.default)??audios[0]):audios.find(t=>t.id===aid);if(!audio||audio.sampleRate!==48000||![2,6,8].includes(audio.channels??0))return;
-    const profile=audio.codec==='truehd'||audio.codec==='mlp'&&audio.channels!==8?'truehd-mlp':audio.codec==='dts'&&audio.channels===8?'dts-hd':undefined;
+    const profile=audio.codec==='truehd'||audio.codec==='mlp'&&audio.channels!==8?'truehd-mlp':audio.codec==='dts'&&audio.channels===8?'dts-hd':['ac3','eac3'].includes(audio.codec)&&[2,6].includes(audio.channels??0)?'ac3-eac3':undefined;
     if(!profile)return;
     const providerId='ffmpeg-'+profile+'-'+runtime,folder='web/providers/preparation/'+profile+'-'+runtime+'/',wasmPath=folder+'engine-adaptation-'+runtime+'/remux.wasm';
     if(!this.hasOffer(providerId,'flac24')||!this.has(wasmPath))return;

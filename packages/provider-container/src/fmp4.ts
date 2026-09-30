@@ -2,7 +2,7 @@
 /** Small fragmented MP4 writer. Timing and codec configuration are explicit
  * caller contracts; this writer never derives DTS from presentation timestamps. */
 export type MP4Track = Readonly<{
- id: number; codec: 'avc1' | 'hvc1' | 'mp4a' | 'fLaC'; config: Uint8Array;
+ id: number; codec: 'avc1' | 'hvc1' | 'mp4a' | 'fLaC' | 'Opus'; config: Uint8Array;
  timescale: number; colour?: Readonly<{primaries:number;transfer:number;matrix:number;fullRange:boolean}>; width?: number; height?: number; channels?: number;
 }>;
 export type MP4Sample = Readonly<{
@@ -32,11 +32,17 @@ function sampleEntry(t: MP4Track): Uint8Array {
   const visual=join([common,new Uint8Array(16),u16(t.width),u16(t.height),u32(0x480000,0x480000,0),u16(1),new Uint8Array(32),u16(24),u16(0xffff)]);
   return box(t.codec,visual,box(t.codec==='avc1'?'avcC':'hvcC',t.config),...(t.colour?[box('colr',text('nclx'),u16(t.colour.primaries),u16(t.colour.transfer),u16(t.colour.matrix),bytes(t.colour.fullRange?128:0))]:[]));
  }
- if(!t.channels||!(t.codec==='fLaC'?[1,2,6,8]:[1,2,6]).includes(t.channels)||t.timescale!==48000)throw Error('Unqualified audio configuration');
+ if(!t.channels||!(t.codec==='fLaC'?[1,2,6,8]:t.codec==='Opus'?[1,2]:[1,2,6]).includes(t.channels)||t.timescale!==48000)throw Error('Unqualified audio configuration');
  const audio=join([common,new Uint8Array(8),u16(t.channels),u16(t.codec==='fLaC'?24:16),u32(0),u32(t.timescale*65536)]);
  if(t.codec==='fLaC'){
   if(t.config.length!==34)throw Error('FLAC stream info required');
   return box('fLaC',audio,full('dfLa',0,bytes(0x80,0,0,34),t.config));
+ }
+ if(t.codec==='Opus'){
+  const h=t.config;
+  if(h.length!==19||new TextDecoder().decode(h.subarray(0,8))!=='OpusHead'||h[8]!==1||h[9]!==t.channels||h[18]!==0)throw Error('Opus mapping family zero required');
+  const v=new DataView(h.buffer,h.byteOffset,h.byteLength);
+  return box('Opus',audio,box('dOps',bytes(0,h[9]),u16(v.getUint16(10,true)),u32(v.getUint32(12,true)),u16(v.getUint16(16,true)),bytes(0)));
  }
  if(t.config.length<2||t.config.length>64)throw Error('AAC configuration required');
  const decoder=descriptor(4,join([bytes(0x40,0x15,0,0,0),u32(0,0),descriptor(5,t.config)]));
@@ -50,7 +56,10 @@ function trackBox(t: MP4Track): Uint8Array {
  const stbl=box('stbl',full('stsd',0,u32(1),sampleEntry(t)),full('stts',0,u32(0)),full('stsc',0,u32(0)),full('stsz',0,u32(0,0)),full('stco',0,u32(0)));
  const dinf=box('dinf',full('dref',0,u32(1),full('url ',1)));
  const minf=box('minf',video?full('vmhd',1,new Uint8Array(8)):full('smhd',0,new Uint8Array(4)),dinf,stbl);
- return box('trak',tkhd,box('mdia',mdhd,hdlr,minf));
+ // Shift the nonnegative coded timeline back by encoder delay. dOps retains
+ // the same pre-skip so decoders can discard startup samples.
+ const edit=t.codec==='Opus'?box('edts',full('elst',0,u32(1,0,new DataView(t.config.buffer,t.config.byteOffset,t.config.byteLength).getUint16(10,true)),u16(1),u16(0))):null;
+ return box('trak',tkhd,...(edit?[edit]:[]),box('mdia',mdhd,hdlr,minf));
 }
 export class FragmentedMP4Writer {
  private sequence=0;
@@ -74,8 +83,13 @@ export class FragmentedMP4Writer {
    total+=s.data.length;if(total>16*1024*1024)throw Error('Fragment byte budget');tail=s.dts+s.duration;
    if(!Number.isSafeInteger(tail))throw Error('Decode timeline overflow');
   }
+  // Opus random access needs at least 80 ms of decoder preroll. 32 packets
+  // covers the smallest legal 2.5 ms packet; larger packets safely overroll.
+  // Fragment-local descriptions start at 0x10001; index 1 refers to stbl.
+  const roll=this.tracks.find(t=>t.id===trackId)?.codec==='Opus'?
+   [full('sgpd',0x01000000,text('roll'),u32(2,1),u16(0xffe0)),full('sbgp',0,text('roll'),u32(1,samples.length,0x10001))]:[];
   const base=samples[0].dts,entries=samples.map(s=>u32(s.duration,s.data.length,s.key?0x02000000:0x01010000,(s.pts-s.dts)>>>0));
-  const make=(offset:number)=>box('moof',full('mfhd',0,u32(this.sequence+1)),box('traf',full('tfhd',0x020000,u32(trackId)),full('tfdt',0x01000000,u32(Math.floor(base/0x100000000),base%0x100000000)),full('trun',0x01000f01,u32(samples.length,offset),...entries)));
+  const make=(offset:number)=>box('moof',full('mfhd',0,u32(this.sequence+1)),box('traf',full('tfhd',0x020000,u32(trackId)),full('tfdt',0x01000000,u32(Math.floor(base/0x100000000),base%0x100000000)),full('trun',0x01000f01,u32(samples.length,offset),...entries),...roll));
   const draft=make(0),moof=make(draft.length+8),result=join([moof,box('mdat',...samples.map(s=>s.data))]);
   this.tails.set(trackId,tail);this.sequence++;return result;
  }
