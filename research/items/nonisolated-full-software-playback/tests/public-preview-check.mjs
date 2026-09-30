@@ -45,8 +45,16 @@ window.publicCheck=async(key,runtime='jspi',mode='software',automatic=false,cros
   }else try{await player.setVideoFilters('hflip');}catch(e){result.filterError=String(e);}
   await player.seek(.5);result.recovered=player.state.currentTime;
   const backend=player.current.backend,context=backend.context;
-  await player.play();await context.suspend();await new Promise(r=>setTimeout(r,250));result.suspended=player.diagnostics.backend.audio.header[6];
-  await context.resume();await new Promise(r=>setTimeout(r,500));result.resumed=player.diagnostics.backend.audio.header[6];await player.pause();
+  const contextAcknowledged=async value=>{
+   const start=performance.now();
+   while(player.diagnostics.backend.audio.header[6]!==value){
+    if(performance.now()-start>2000)throw Error('AudioContext state acknowledgement timed out');
+    await new Promise(r=>setTimeout(r,20));
+   }
+   return performance.now()-start;
+  };
+  await player.play();await context.suspend();result.suspendAcknowledgementMs=await contextAcknowledged(0);result.suspended=player.diagnostics.backend.audio.header[6];
+  await context.resume();result.resumeAcknowledgementMs=await contextAcknowledged(1);result.resumed=player.diagnostics.backend.audio.header[6];await player.pause();
   await player.destroy();result.context=backend.audioDiagnostics().state;result.cleanup=backend.diagnostics.cleanup;
   if(result.advanced<.8||result.settings.rate!==1.25||Math.abs(result.settings.volume-.35)>.001||result.settings.gain!==.4||(mode==='software'?!result.filterApplied:!result.filterError)||Math.abs(result.recovered-.5)>.15||result.suspended!==0||result.resumed!==1||result.context!=='closed'||result.cleanup.scheduler.liveTasks||result.cleanup.scheduler.freeSlots!==24)throw Error('Public controls/lifetime mismatch');
   result.passed=true;
