@@ -38,9 +38,15 @@ Emscripten cache. Do not run `fetch-sources.py` in that checkout before `--clean
 use the prerequisite installation checkout to provision the SDK first.
 
 ```sh
+DEMUXE_SDK=/absolute/path/to/installed/emsdk-4.0.14 npm run check:build-portability
 DEMUXE_SDK=/absolute/path/to/installed/emsdk-4.0.14 \
   bash scripts/build-beta-engines.sh --clean > build/clean-build.log 2>&1
 ```
+
+The portability preflight exercises filename preprocessing and libxml2's catalog
+configuration from the actual cooperative build recipes. It also verifies that
+removing either safeguard reproduces the host-path leak. It does not compile media
+libraries or replace the final archive's binary path, hash and browser checks.
 
 Create `build/` before redirecting the log. The clean flag rejects existing engine
 outputs, extracted sources, dependency prefixes, objects or compiler cache. The

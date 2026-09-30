@@ -23,6 +23,12 @@ if not build_path.is_file():raise SystemExit('Packaging requires a completed LGP
 build=json.loads(build_path.read_text())
 if args.release_tag and not build['clean']:raise SystemExit('Release requires a completed clean engine build')
 private_files={**private_remux_assets(root),**private_mpv_assets(root)}
+def check_portable_asset(name,data):
+ if str(root).encode() in data or re.search(rb'/(?:Users|Volumes|private/var)/',data):raise SystemExit('Local build path leaked into package: '+name)
+ if re.search(rb'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',data):raise SystemExit('Private key material in package: '+name)
+# Fail before creating the large source companion when a private engine leaks
+# host paths. The complete assembled runtime is checked again below.
+for name,data in private_files.items():check_portable_asset(name,data)
 if args.release_tag:
  verify_private_release(private_files,build)
  verify_private_mpv_release(private_files,build)
@@ -163,9 +169,7 @@ license_policy.check_package(files,'player')
 manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':[*(['native-direct-mpv'] if mpv_subtitles else []),'native-direct',*(['native-remux-mpv'] if mpv_subtitles else []),'native-remux','shaka-mse','hybrid','software'],'adaptiveStreaming':{'backend':'shaka-mse','version':project['dependencies']['shaka-player'],'assets':'third_party/shaka-player.json','lazy':True},'engines':engines,'optionalQualificationRequired':bool(args.adaptation_build or mpv_subtitles),'defaultSoftwarePresenter':'auto','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'softwareYUV':'Qualified decoded-frame subset only; see docs/SOFTWARE-YUV-PRESENTER.md'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
 files['release-manifest.json']=(json.dumps(manifest,indent=2)+'\n').encode()
 # Reject host-specific paths and credential material, including strings in Wasm.
-for name,data in files.items():
- if str(root).encode() in data or re.search(rb'/(?:Users|Volumes|private/var)/',data):raise SystemExit('Local build path leaked into package: '+name)
- if re.search(rb'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',data):raise SystemExit('Private key material in package: '+name)
+for name,data in files.items():check_portable_asset(name,data)
 args.output.mkdir(parents=True,exist_ok=True);out=args.output/f"{package['name']}-{package['version']}.tgz"
 with out.open('wb')as f:
  with gzip.GzipFile(filename='',mode='wb',fileobj=f,mtime=0)as gz:
