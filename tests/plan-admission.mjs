@@ -5,6 +5,14 @@ import {planAdmission,executionPlan} from '../web/generated/internal/playback-pl
 import {losslessAdaptationRejection,audioTranscodeRejection} from '../web/generated/internal/selection.js';
 const facts={automatic:true,vf:'',af:'',gain:1,toneMapping:'off',hybridAudioFilters:false,allowLossy:false,nativeASS:false,externalFormats:[],browserTextTracks:false,audioOutput:'stereo',nativeRemux:'auto',manifest:false,requiresRemux:false,isolated:true,mse:true,webCodecs:true,webAudio:true};
 const eligible=extra=>planAdmission({...facts,...extra}).filter(p=>p.eligible).map(p=>p.id);
+test('disabled cooperative runtimes do not report missing private deployments',()=>{
+ const decisions=planAdmission({...facts,isolated:false,requiresRemux:true,privateRemux:false});
+ const privatePlans=decisions.filter(p=>p.id.startsWith('hybrid-private')||p.id.startsWith('software-private'));
+ assert.equal(privatePlans.length,4);
+ for(const plan of privatePlans)assert.equal(plan.code,'PLAN_NOT_REQUESTED',plan.id);
+ assert.ok(decisions.some(p=>p.code==='ISOLATION_REQUIRED'));
+ assert.ok(!decisions.some(p=>p.code==='DEPLOYMENT_UNAVAILABLE'));
+});
 test('prohibited preparation is a policy rejection, distinct from unavailable runtime facilities',()=>{
  const prepared=['native-remux','native-remux-mpv','native-transcode','native-video-mpv-audio'];
  const qualified={...facts,mpvSubtitles:true,mpvSubtitleSourceQualified:true,selectiveAudioQualified:true,transcodeAssetsAvailable:true};

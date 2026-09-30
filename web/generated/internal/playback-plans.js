@@ -93,10 +93,10 @@ export function planAdmission(f) {
         const effect = featureRejection(plan.mode, { ...f });
         if ((plan.id.startsWith('software-private') || plan.id.startsWith('hybrid-private'))) {
             const sourceRejection = plan.mode === 'hybrid' ? f.privateHybridSourceRejection : f.privatePlaybackSourceRejection;
-            if (plan.mode === 'hybrid' && (!f.privateHybridAssetsAvailable || !f.webCodecs))
+            if (!f.privateRemux)
+                reject('PLAN_NOT_REQUESTED', 'Private playback requires the selected cooperative runtime');
+            else if (plan.mode === 'hybrid' && (!f.privateHybridAssetsAvailable || !f.webCodecs))
                 reject('DEPLOYMENT_UNAVAILABLE', 'Private Hybrid requires retained decoder assets and WebCodecs');
-            else if (!f.privateRemux)
-                reject('PLAN_NOT_REQUESTED', 'Private Software requires the selected cooperative runtime');
             else if (sourceRejection)
                 reject('SOURCE_UNSUPPORTED', sourceRejection);
             else if (!f.privatePlaybackAssetsAvailable || !f.offscreenCanvas || !f.webAudio)
