@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { WatchdogOptions, WatchdogPolicy } from '../types.js';
 export declare function watchdogPolicy(options?: boolean | WatchdogOptions): WatchdogPolicy;
 export type NativeProgressSample = {

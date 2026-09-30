@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 const original = { capability: 'media.present.original', version: 1, profile: 'selected-source' };
 const prepared = { capability: 'media.present.prepared', version: 1, profile: 'selected-streams' };
 const complete = { capability: 'media.play.complete', version: 1, profile: 'source-tracks' };

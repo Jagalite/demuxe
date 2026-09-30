@@ -6,6 +6,11 @@ implemented in `/Volumes/seed2/Projects/demuxe-media-components`, on
 `modular-media-providers`. The original checkout is untouched. Nothing has been
 published or pushed. Local installation and playback are the delivery target.
 
+The subsequent [priority codec production campaign](CODEC-SPLIT-PRODUCTION.md)
+adds decoder-specific full-file FFmpeg providers and original-source public
+Player preparation for TrueHD/MLP and DTS-HD. Its exact package, browser and
+container contracts are recorded separately from the original component lab.
+
 ## Run locally
 
 ```sh

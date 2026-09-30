@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import { type PlaybackBinding } from './index.js';
 import type { PlaybackRuntime } from '../contracts.js';
 import type { TimeRange } from '../types.js';

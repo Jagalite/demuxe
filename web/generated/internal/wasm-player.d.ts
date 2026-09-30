@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { ProviderRuntimeAssets } from './provider-runtime.js';
 import type { BufferingPolicy, BufferingResolution } from '../types.js';
 import type { AudioOutput, FontAsset, ResourceLimits, SubtitleAsset, MediaInputOptions, StreamingOptions } from '../types.js';

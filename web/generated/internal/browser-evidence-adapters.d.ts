@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** Query syntax and observable browser signals, never browser codec support tables. */
 export declare function queryAdapter(api: 'canPlayType' | 'isTypeSupported', mime: string): {
     id: string;

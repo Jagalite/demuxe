@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 export type ExternalDecodeIntent = Readonly<{
     targetWidth: number | null;
     targetHeight: number | null;

@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** Recompose existing controls. The stage, media host, panels and listeners survive. */
 export function applyLayout(root, layout, hasSource = false) {
     const node = (id) => root.getElementById(id);

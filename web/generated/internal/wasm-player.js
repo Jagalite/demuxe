@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import { runtimeWorker } from './runtime-worker.js';
 import { bufferingPolicy, resolveBuffering, mpvBufferingOptions } from './buffering.js';
 import { PlayerError, isPlayerError } from './errors.js';

@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { MediaTrack, TrackMatch, TrackPolicy, TrackTypePolicy } from '../types.js';
 export declare function normalizeTrackPolicy(value?: unknown): TrackPolicy;
 export declare function matchesTrack(track: MediaTrack, match: TrackMatch): boolean;

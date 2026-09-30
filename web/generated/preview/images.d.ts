@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { PreviewContext, PreviewImage } from './controller.js';
 /** Bounded encoded images; callers supply authorized bytes, never playback surfaces. */
 export declare function rasterizePreview(blob: Blob, request: Pick<PreviewContext, 'width' | 'height' | 'signal'>, crop?: {

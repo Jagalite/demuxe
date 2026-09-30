@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 function key(r) {
     return JSON.stringify([r.capability, r.version, r.profile]);
 }

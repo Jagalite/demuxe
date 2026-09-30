@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** Logical contracts only. No browser probes, assets, loaders or codec claims.
  * Integrated playback boundaries and packet contracts remain distinct.
  * A capability declaration never grants composition qualification.
@@ -16,8 +15,18 @@ export declare const EXECUTION_CAPABILITIES: {
     };
     readonly 'audio.decode.dts': {
         readonly version: 1;
-        readonly profiles: readonly ["core-48khz-fltp"];
-        readonly contract: "Complete DTS core packets to owned float planes; DTS-HD extension fidelity is outside this contract.";
+        readonly profiles: readonly ["core-48khz-fltp", "ma-48khz-s32p"];
+        readonly contract: "Complete DTS core packets to owned float planes; The MA profile preserves planar integer PCM; core and MA are separate offers.";
+    };
+    readonly 'audio.decode.truehd': {
+        readonly version: 1;
+        readonly profiles: readonly ["48khz-integer"];
+        readonly contract: "Complete TrueHD packets to owned left-justified integer PCM, sample timestamps, reset, drain and cancellation. No Atmos object preservation claim.";
+    };
+    readonly 'audio.decode.mlp': {
+        readonly version: 1;
+        readonly profiles: readonly ["48khz-integer"];
+        readonly contract: "Complete MLP packets to owned left-justified integer PCM with native channel layout, reset, drain and cancellation.";
     };
     readonly 'audio.encode.flac': {
         readonly version: 1;

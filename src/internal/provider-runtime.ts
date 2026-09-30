@@ -7,11 +7,21 @@ import {resolvableExecutionRecipe, executionRecipe} from './execution-recipes.js
 import type {PlaybackPlanId} from './execution-recipes.js';
 import {resolveProviderRecipe} from './provider-resolution.js';
 import type {CompositionEvidence, ResolvableRecipe} from './provider-resolution.js';
+import {audioRepairRecipe} from './component-recipes.js';
+import type {Probe} from './selection.js';
+import {executeComponentBinding} from './component-selection.js';
+import type {ProviderOwner} from './provider-acquisition.js';
 import {providerResolutionError} from './provider-deployment-errors.js';
 
+export type ComponentPreparedAudio = {file:Blob;tracks:{id:string;type:string;codec:string;selected:boolean}[];diagnostics:Record<string,unknown>};
+type RepairCodec='truehd'|'mlp'|'dts-hd';
+type PacketOwners={owners:readonly ProviderOwner[];execute(file:Blob,codec:RepairCodec,binding:'fine'|'common',signal:AbortSignal,channels:2|6|8):Promise<Blob>};
+export type CodecPreparation = Readonly<{providerId:string;folder:string;wasmPath:string;runtime:'jspi'|'asyncify';audioIndex?:number;videoIndex?:number}>;
 export interface ProviderRuntimeAssets {
   module(path: string): Promise<WebAssembly.Module>;
   bytes(path: string): Promise<ArrayBuffer>;
+  preparation?(file:File,runtime:'pthread'|'jspi'|'asyncify',audioTrack?:number):CodecPreparation|undefined;
+  prepareAudio?(file:File,signal:AbortSignal):Promise<ComponentPreparedAudio|undefined>;
 }
 /** Per-player deployment state. Only the maintained finite recipes are admitted;
  * packaging metadata cannot add compositions or confer build qualification. */
@@ -24,6 +34,36 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
   private acquiredBytes = new Map<string, Promise<ArrayBuffer>>();
   private readonly sources = new WeakMap<object, number>();
   private nextSource = 0;
+  private codecHints=new WeakMap<Blob,CodecPreparation>();
+  private codecProbes=new WeakMap<Blob,Probe>();
+  codecInspector(runtime:'pthread'|'jspi'|'asyncify'):CodecPreparation|undefined{
+    if(runtime==='pthread')return;
+    for(const profile of ['truehd-mlp','dts-hd']){
+      const providerId='ffmpeg-'+profile+'-'+runtime,folder='web/providers/preparation/'+profile+'-'+runtime+'/',wasmPath=folder+'engine-adaptation-'+runtime+'/remux.wasm';
+      if(this.hasOffer(providerId,'packet-copy')&&this.has(wasmPath))return {providerId,folder,wasmPath,runtime};
+    }
+  }
+  codecPreparation(source:object,probe:Probe|undefined,runtime:'pthread'|'jspi'|'asyncify',aid='auto'):CodecPreparation|undefined{
+    const local=source as {kind?:string;file?:unknown};
+    if(local.file instanceof File)this.codecHints.delete(local.file);
+    if(runtime==='pthread'||local.kind!=='local'||!(local.file instanceof File)||!probe||!probe.format?.split(',').includes('matroska'))return;
+    const videos=probe.tracks.filter(t=>t.type==='video'&&!t.attachedPicture),audios=probe.tracks.filter(t=>t.type==='audio');
+    if(videos.length!==1||!audios.length||!['h264','hevc'].includes(videos[0].codec))return;
+    const audio=aid==='no'?undefined:aid==='auto'?(audios.find(t=>t.default)??audios[0]):audios.find(t=>t.id===aid);if(!audio||audio.sampleRate!==48000||![2,6,8].includes(audio.channels??0))return;
+    const profile=audio.codec==='truehd'||audio.codec==='mlp'&&audio.channels!==8?'truehd-mlp':audio.codec==='dts'&&audio.channels===8?'dts-hd':undefined;
+    if(!profile)return;
+    const providerId='ffmpeg-'+profile+'-'+runtime,folder='web/providers/preparation/'+profile+'-'+runtime+'/',wasmPath=folder+'engine-adaptation-'+runtime+'/remux.wasm';
+    if(!this.hasOffer(providerId,'flac24')||!this.has(wasmPath))return;
+    const engine={providerId,folder,wasmPath,runtime,audioIndex:audio.index,videoIndex:videos[0].index};this.codecHints.set(local.file,engine);this.codecProbes.set(local.file,probe);return engine;
+  }
+  preparation(file:File,runtime:'pthread'|'jspi'|'asyncify',audioTrack?:number):CodecPreparation|undefined{
+    let hint=this.codecHints.get(file);
+    if(audioTrack!==undefined&&audioTrack!==hint?.audioIndex){
+      const probe=this.codecProbes.get(file),audio=probe?.tracks.find(t=>t.type==='audio'&&t.index===audioTrack);
+      hint=audio?this.codecPreparation({kind:'local',file},probe,runtime,audio.id):undefined;
+    }
+    return hint?.runtime===runtime&&this.has(hint.wasmPath)?hint:undefined;
+  }
   private manifestIdentities = new Set<string>();
   constructor(private base: URL, private qualified: Readonly<Record<string, string>>) {}
   load(): Promise<void> {
@@ -64,13 +104,61 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
       } finally { clearTimeout(timeout); }
     })();
   }
-  has(path: string): boolean {
+  /** Legacy role names can share the single mpv engine. Prefer an explicitly
+   * deployed legacy artifact when both layouts are present. */
+  private assetPath(path: string): string {
     const url = new URL(path, this.base).href;
+    if (this.deployment?.assets.some(asset => asset.url === url)) return path;
+    if (/^web\/engine-(hybrid|selective|software-full|software-yuv)\/player\.wasm$/.test(path)
+      && this.deployment?.assets.some(asset => asset.url === new URL('web/engine-mpv/player.wasm',this.base).href)) return 'web/engine-mpv/player.wasm';
+    return path;
+  }
+  has(path: string): boolean {
+    const url = new URL(this.assetPath(path), this.base).href;
     return !!this.deployment?.assets.some(asset => asset.url === url && this.deployment!.catalog.providers.some(p => this.manifestIdentities.has(p.id) && this.qualified[p.id] === p.implementationIdentity && this.deployment!.providerAssets[p.id]?.includes(asset.id)));
   }
   hasOffer(providerId: string, profile: string): boolean {
     const provider = this.deployment?.catalog.providers.find(p => p.id === providerId);
     return !!provider && this.manifestIdentities.has(provider.id) && this.qualified[providerId] === provider.implementationIdentity && provider.offers.some(o => o.profile === profile);
+  }
+  /** A bounded implementation choice inside the existing FLAC24 plan. This
+   * does not admit new playback plans, tracks, subtitles or output policies. */
+  audioRepairCandidate(source:object,probe?:Probe):{codec:RepairCodec;channels:2|6|8}|undefined{
+    const local=source as {kind?:string;file?:unknown};
+    if(local.kind!=='local'||!(local.file instanceof Blob)||local.file.size>64*1024*1024||!probe||!probe.format?.split(',').includes('matroska')||probe.tracks.length!==2)return;
+    const video=probe.tracks.find(t=>t.type==='video'),audio=probe.tracks.find(t=>t.type==='audio');
+    if(!video||video.codec!=='h264'||!audio||audio.sampleRate!==48000||![2,6,8].includes(audio.channels??0))return;
+    const codec=audio.codec==='truehd'?'truehd':audio.codec==='mlp'?'mlp':audio.codec==='dts'&&audio.channels===8?'dts-hd':undefined;
+    if(!codec||(codec==='mlp'&&audio.channels===8))return;
+    const provider=codec==='dts-hd'?'audio-dts-hd':'audio-truehd-mlp';
+    if(!this.hasOffer('ts-container','finite-clear-av')||!this.hasOffer(provider,codec==='dts-hd'?'ma-48khz-s32p':'48khz-integer')||!this.hasOffer('audio-flac','48khz-s24'))return;
+    return {codec,channels:audio.channels as 2|6|8};
+  }
+  private audioProfileRejection(error:unknown):undefined{
+    if(['web/engine-adaptation/remux.wasm','web/engine-adaptation-jspi/remux.wasm','web/engine-adaptation-asyncify/remux.wasm'].some(path=>this.has(path)))return;
+    throw new PlayerError('DECODE_FAILED','Codec preparation profile rejected this source: '+String(error));
+  }
+  async prepareAudio(file:File,signal:AbortSignal):Promise<ComponentPreparedAudio|undefined>{
+    await this.load();signal=AbortSignal.any([signal,this.controller.signal]);signal.throwIfAborted();
+    const readerURL=new URL('web/providers/components/provider-container/src/matroska.js',this.base);
+    const ownerURL=new URL('web/providers/components/provider-container/src/owners.js',this.base);
+    if(!this.has('web/providers/components/provider-container/src/matroska.js')||!this.has('web/providers/components/provider-container/src/owners.js')||file.size>64*1024*1024)return;
+    await Promise.all([this.bytes('web/providers/components/provider-container/src/matroska.js'),this.bytes('web/providers/components/provider-container/src/owners.js')]);
+    const readerModule=await import(readerURL.href) as {MatroskaReader:{open(file:Blob,signal:AbortSignal):Promise<{tracks:{kind:string;codec:string;rate?:number;channels?:number}[]}>}};
+    let reader;
+    try{reader=await readerModule.MatroskaReader.open(file,signal);}catch(error){if((error as {code?:string})?.code==='PROVIDER_PROFILE_MISMATCH')return this.audioProfileRejection(error);throw error;}
+    const probe:Probe={format:'matroska',duration:1,tracks:reader.tracks.map((t,index)=>({id:String(index+1),index,type:t.kind,codec:({'V_MPEG4/ISO/AVC':'h264','V_MPEGH/ISO/HEVC':'hevc',A_TRUEHD:'truehd',A_MLP:'mlp',A_DTS:'dts'} as Record<string,string>)[t.codec]??t.codec,sampleRate:t.rate,channels:t.channels}))};
+    const candidate=this.audioRepairCandidate({kind:'local',file},probe);if(!candidate)return;
+    const {createComponentOwners}=await import(ownerURL.href) as {createComponentOwners(deployment:ParsedProviderDeployment,base:URL):PacketOwners};
+    const owners=createComponentOwners(this.deployment!,this.base),acquisition=new ProviderAcquisition(this.deployment!,owners.owners);
+    const abort=()=>{void acquisition.dispose();};signal.addEventListener('abort',abort,{once:true});
+    try{
+      let id=this.sources.get(file);if(!id){id=++this.nextSource;this.sources.set(file,id);}
+      const recipe=audioRepairRecipe(candidate.codec,candidate.channels),scope=JSON.stringify(['bounded-audio-repair',id,candidate,navigator.userAgent]);
+      const result=await executeComponentBinding(acquisition,recipe,this.evidence(recipe,scope),scope,'fine',binding=>owners.execute(file,candidate.codec,binding as 'fine',signal,candidate.channels));
+      signal.throwIfAborted();return {file:result.value,tracks:probe.tracks.map(t=>({id:t.id,type:t.type,codec:t.codec,selected:true})),diagnostics:{kind:'codec-components',codec:candidate.codec,channels:candidate.channels,binding:result.decision.bindingId,sourceBytes:file.size,outputBytes:result.value.size}};
+    }catch(error){if((error as {code?:string})?.code==='PROVIDER_PROFILE_MISMATCH')return this.audioProfileRejection(error);throw error;}
+    finally{signal.removeEventListener('abort',abort);await acquisition.dispose();}
   }
   private evidence(recipe: ResolvableRecipe, scopeKey: string): CompositionEvidence[] {
     return recipe.bindings.filter(binding=>binding.assignments.every(a=>Object.prototype.hasOwnProperty.call(this.qualified,a.providerId))).map(binding => ({recipeId: recipe.id, bindingId: binding.id, scopeKey,
@@ -79,11 +167,24 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
   /** The caller invokes this only after existing semantic/source admission.
    * Evidence is scoped to source identity, selected settings and runtime. It
    * binds to the core's reviewed implementation registry, never manifest offers. */
-  rejection(planId: string, source: object, configuration: string, runtime: 'pthread' | 'jspi' | 'asyncify' = 'pthread'): string | undefined {
+  rejection(planId: string, source: object, configuration: string, runtime: 'pthread' | 'jspi' | 'asyncify' = 'pthread',probe?:Probe,aid='auto'): string | undefined {
     if (!this.deployment || !executionRecipe(planId)) return 'Provider deployment has not been initialized';
     let id = this.sources.get(source); if (!id) { id = ++this.nextSource; this.sources.set(source, id); }
     const scope = JSON.stringify([id, configuration]);
     const description = executionRecipe(planId)!;
+    if(planId==='native-transcode'){
+      const engine=this.codecPreparation(source,probe,runtime,aid);
+      if(engine){
+        const base=resolvableExecutionRecipe('native-transcode',runtime),recipe:ResolvableRecipe={...base,bindings:base.bindings.map(binding=>({...binding,assignments:binding.assignments.map(a=>({...a,providerId:a.providerId.startsWith('ffmpeg-file-preparation')?engine.providerId:a.providerId}))}))};
+        const resolution=resolveProviderRecipe(recipe,this.deployment.catalog,this.evidence(recipe,scope),scope);
+        if(resolution.state==='pending'||resolution.state==='available')return;
+      }
+      const candidate=this.audioRepairCandidate(source,probe);
+      if(candidate){
+        const recipe=audioRepairRecipe(candidate.codec,candidate.channels),resolution=resolveProviderRecipe(recipe,this.deployment.catalog,this.evidence(recipe,scope),scope);
+        if(resolution.state==='pending'||resolution.state==='available')return;
+      }
+    }
     const required: string[] = [];
     if (description.native?.transport === 'prepared') required.push(`web/engine-${description.native.adaptation?'adaptation':'remux'}${runtime==='pthread'?'':'-'+runtime}/remux.wasm`);
     if (description.native?.selectedAudio) required.push(runtime==='pthread'?'web/engine-selective/player.wasm':`web/engine-mpv-audio-${runtime}/service.wasm`);
@@ -100,6 +201,7 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
   }
   async bytes(path: string): Promise<ArrayBuffer> {
     await this.load(); this.controller.signal.throwIfAborted();
+    path = this.assetPath(path);
     let pending = this.acquiredBytes.get(path);
     if (!pending) { pending = this.acquire(path); this.acquiredBytes.set(path, pending); }
     return (await pending).slice(0);
@@ -113,7 +215,9 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
     return this.assets!.readAsset(provider.id, provider.implementationIdentity, asset.id);
   }
 
-  module(path: string): Promise<WebAssembly.Module> {
+  async module(path: string): Promise<WebAssembly.Module> {
+    await this.load(); this.controller.signal.throwIfAborted();
+    path = this.assetPath(path);
     let pending = this.modules.get(path);
     if (!pending) {
       pending = this.bytes(path).then(async data => {

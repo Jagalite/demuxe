@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import { previewImageBlob } from '../preview/images.js';
 import { formatTime } from './interaction.js';
 /** UI-only hover owner. No decoder, media seek, or playback controls live here. */

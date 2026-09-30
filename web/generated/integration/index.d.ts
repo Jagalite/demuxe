@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import { Player } from '../unified-player.js';
 import type { PlaybackRuntime, StateSource } from '../contracts.js';
 import type { PlayerOptions, PlayerState, SessionError } from '../types.js';

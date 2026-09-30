@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { CostDecision, CostPolicy, MeasuredBindingCost } from './provider-cost.js';
 import type { RecipeResolution } from './provider-resolution.js';
 export declare class ComponentSelectionError extends Error {

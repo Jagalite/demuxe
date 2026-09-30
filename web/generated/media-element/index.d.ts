@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { PlaybackRuntime } from '../contracts.js';
 declare const Base: typeof HTMLElement;
 /** Explicitly borrowed, application-owned sources. No automatic registration or playback. */

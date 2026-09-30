@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { ParsedProviderDeployment } from './provider-catalog.js';
 import type { CompositionEvidence, ProviderCatalog, ProviderFact, RecipeResolution, ResolvableRecipe } from './provider-resolution.js';
 export type ProviderPreparation = Readonly<{

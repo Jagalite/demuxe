@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** One lazy candidate at a time; never allocates a duration-sized work queue. */
 export class PreviewPregenerator {
     run;

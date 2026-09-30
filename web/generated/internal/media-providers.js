@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 function privatePreparation(runtime) {
     return { technology: 'mixed', delivery: ['application-bundle', 'optional-assets'], provides: [
             { capability: 'media.prepare.file', version: 1, profile: 'packet-copy' },

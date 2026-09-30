@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 export function freeze(value) {
     if (value && typeof value === 'object' && !Object.isFrozen(value)) {
         Object.values(value).forEach(freeze);

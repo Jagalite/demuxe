@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import { PlayerError } from './errors.js';
 export function selectRemuxRuntime(options, capabilities = { isolated: globalThis.crossOriginIsolated === true, jspi: typeof WebAssembly !== 'undefined' &&
         typeof WebAssembly.Suspending === 'function' &&

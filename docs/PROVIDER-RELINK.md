@@ -69,3 +69,28 @@ available. No packaging step restricts those permissions. Apache wrappers do not
 relicense native integration or third-party dependencies. Exact notices are in
 `LICENSES/Native-Dependencies.txt`; the mpv package also retains the embedded
 DejaVu Sans font license. This software uses the FreeType Project.
+
+## Decoder-specific streaming preparation
+
+The `ffmpeg-truehd-mlp-{jspi,asyncify}` and
+`ffmpeg-dts-hd-{jspi,asyncify}` packages retain the same FFmpeg file preparation
+ABI and scheduler. They contain a selected decoder set and the FLAC encoder;
+mpv remains a separate service.
+
+Their native materials live under the companion's
+`demuxe/build/codec-preparation/<provenance>/inputs/<codec>-<runtime>/`.
+The exact `build-ffmpeg.py`, `suspension_profile.py`, patched C sources,
+FFmpeg patches, configurations, static libraries, link map, and command record
+are retained. Extract the pinned FFmpeg archive to `source/` in that prepared
+build layout and apply its retained patches. Rebase the paths in the recorded
+link command to the extracted materials and installed SDK to relink using the
+supplied static libraries or modified C adapters. For a library rebuild, use
+the configure command recorded in `commands.json`; do not substitute a broader
+decoder set under the recorded identity.
+
+`codec-build-recipe.py` records how the prepared source was derived from the
+reviewed application sources. It admits both six-channel FLAC back/surround
+layouts without reordering sample positions. The corresponding-source record
+retains the original linked JavaScript and records its distribution transform:
+only an LGPL SPDX notice is prepended. The record script is supplied for
+reproducing this transform. Native Wasm bytes are copied without modification.

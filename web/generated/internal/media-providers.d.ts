@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** Current source inventory, not a deployment manifest or qualification grant.
  * Loader owners retain asset dependencies, ABI checks and runtime/presenter
  * choices. Do not fetch or instantiate anything by importing this module.

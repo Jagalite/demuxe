@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** Per-player, bounded cache of exact API inputs. No source outcomes are cached.
  * Predictions never prove output, change fidelity, or veto a working file route. */
 export class MediaCapabilityQueries {

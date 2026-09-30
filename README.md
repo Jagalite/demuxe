@@ -30,6 +30,17 @@ npm install /absolute/path/to/demuxe-0.3.0-beta.4.tgz
 npx demuxe copy-assets public/assets/demuxe
 ```
 
+For modular packages, the optional [provider bundling guide](docs/BUNDLING.md)
+shows how to choose codec slices, broad FFmpeg providers and the atomic mpv
+provider in your build config. Deliver your selection as separate assets or one
+embedded runtime JavaScript file; Demuxe loads the providers needed for playback.
+An explicit provider list controls what ships, while `all` includes every
+installed provider, including both broad builds and slices. The guide includes
+CLI and JavaScript examples, runtime cleanup and testing status. The bundler is
+currently a local package candidate and has not been published to npm.
+See the [codec slice inventory and prioritized backlog](docs/CODEC-SLICE-INVENTORY.md)
+for all 11 slices, their testing status, and the remaining codec and release work.
+
 Serve the copied directory at `/assets/demuxe/`. In your application's JavaScript
 entry point, register the player:
 
@@ -258,6 +269,8 @@ matched controls.
 | Topic | Guides |
 | --- | --- |
 | Integration | [Public API](docs/PUBLIC-API.md), [player component](docs/PLAYER-COMPONENT.md), [migration](docs/API-MIGRATION.md) |
+| Codec packages | [Production codec contracts and evidence](docs/CODEC-SPLIT-PRODUCTION.md), [provider distribution](docs/PROVIDER-DISTRIBUTION-DRAFT.md) |
+| Provider bundles | [Provider selection, separate assets and embedded JS](docs/BUNDLING.md) |
 | Deployment | [Runtime assets](docs/RUNTIME-ASSETS.md), [runtime selection](docs/REMUX-RUNTIME.md), [engine-free core package](packages/core/README.md) |
 | Playback | [Capabilities](docs/CAPABILITIES.md), [route policy](docs/PLAYBACK-TIER-POLICY.md), [production pipeline](docs/PRODUCTION-PIPELINE.md), [streaming](docs/STREAMING.md) |
 | Advanced options | [Audio transcoding and precision](docs/AUDIO-TRANSCODING.md), [decode quality](docs/DECODE-QUALITY-POLICY.md), [Software presentation](docs/SOFTWARE-YUV-PRESENTER.md), [fast inspection](docs/FAST-PROBE.md), [previews](docs/PREVIEWS.md) |

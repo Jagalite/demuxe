@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import { PlayerError } from './errors.js';
 import type { RecipeResolution } from './provider-resolution.js';
 /** Existing diagnostics already carry per-plan rejection reasons. Preserve that

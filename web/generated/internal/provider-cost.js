@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 export function providerReadinessKey(facts) {
     const ids = new Set();
     for (const fact of facts) {

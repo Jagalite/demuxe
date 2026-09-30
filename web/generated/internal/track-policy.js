@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import { PlayerError } from './errors.js';
 import { freeze } from './state.js';
 const invalid = (message) => { throw new PlayerError('INVALID_ARGUMENT', `Track policy: ${message}`); };

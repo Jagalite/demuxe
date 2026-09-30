@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** Deployment-relative service entry points. Type references are erased; the
  * Apache control plane has no static import/re-export of provider code. These
  * are existing modules and lifecycle owners, not new playback backends. */

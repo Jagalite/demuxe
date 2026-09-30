@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { PlaybackMode, RemoteSource } from '../types.js';
 export type ProbeTrack = {
     id: string;

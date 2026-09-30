@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 export declare const PLAYBACK_MODES: readonly ["native", "hybrid", "software"];
 export type PlaybackMode = typeof PLAYBACK_MODES[number];
 export type TrackType = 'audio' | 'sub';

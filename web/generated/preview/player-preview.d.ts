@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { PreviewController } from './controller.js';
 /** Consumer operations on the preview lane owned by Player. */
 export type PlayerPreview = Readonly<Pick<PreviewController, 'getFrame' | 'request' | 'prefetch' | 'addProvider' | 'setProviders' | 'clear'>> & {

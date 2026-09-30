@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { RemoteSource, TextTrackSource, TrackType, SubtitleAsset, MediaInputOptions } from '../types.js';
 export interface Backend extends EventTarget {
     setWatchdogs?(policy: import('../types.js').WatchdogPolicy): void;

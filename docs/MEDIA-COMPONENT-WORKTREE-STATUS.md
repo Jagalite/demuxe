@@ -22,7 +22,11 @@ required runtime assets are present in this worktree. Neither command requires
 publication. No push, tag or npm publication has been performed.
 
 Existing ordered plans, public Player API and legacy source routing are retained.
-Packet recipes are available as explicit internal executions; they are not
-silently inserted into production Player routing. Full mpv remains atomic.
+Priority TrueHD/MLP and DTS-HD preparation now runs through the public Player
+inside its existing Native FLAC24 plan. Decoder-specific full-file providers
+handle reordered AVC, supported HEVC, bounded File reads and audio-track changes;
+the smaller packet recipe retains its narrower container contract. See
+[codec production contracts and evidence](CODEC-SPLIT-PRODUCTION.md). Full mpv
+remains atomic.
 Additional codecs/profiles/devices need their own qualification, as they did
 before this architecture work.

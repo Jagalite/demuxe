@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { PlayerPreview } from '../preview/player-preview.js';
 /** UI-only hover owner. No decoder, media seek, or playback controls live here. */
 export declare class ScrubberPreview {

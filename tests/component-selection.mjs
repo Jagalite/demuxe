@@ -4,15 +4,25 @@ import assert from 'node:assert/strict';
 import {audioRepairRecipe} from '../web/generated/internal/component-recipes.js';
 import {resolveProviderRecipe} from '../web/generated/internal/provider-resolution.js';
 import {selectComponentBinding} from '../web/generated/internal/component-selection.js';
-function fixture(codec='ac3'){
- const recipe=audioRepairRecipe(codec),providers=new Map();
+function fixture(codec='ac3',channels=2){
+ const recipe=audioRepairRecipe(codec,channels),providers=new Map();
  for(const binding of recipe.bindings)for(const a of binding.assignments){const previous=providers.get(a.providerId);providers.set(a.providerId,{id:a.providerId,implementationIdentity:'test-'+a.providerId,technology:'wasm',delivery:['optional-assets'],offers:[...(previous?.offers??[]),...a.requirements],availability:{state:'configured-unverified'}});}
  const catalog={revision:'test',providers:[...providers.values()]},evidence=recipe.bindings.map(b=>({recipeId:recipe.id,bindingId:b.id,scopeKey:'test',implementationIdentities:Object.fromEntries(b.assignments.map(a=>[a.providerId,'test-'+a.providerId]))}));
  return {recipe,catalog,evidence};
 }
 test('fine and common are explicit qualified compositions for each codec',()=>{
  for(const codec of ['ac3','eac3','dts-core']){const {recipe,catalog,evidence}=fixture(codec);const r=resolveProviderRecipe(recipe,catalog,evidence,'test');assert.equal(r.state,'pending');assert.deepEqual(r.bindings.map(b=>b.state),['pending','pending']);assert.equal(selectComponentBinding(r,'fine').bindingId,'fine');}
- assert.throws(()=>audioRepairRecipe('dts-hd'));
+ assert.throws(()=>audioRepairRecipe('unknown'));
+ for(const codec of ['truehd','mlp','dts-hd']){
+  const {recipe,catalog,evidence}=fixture(codec,codec==='dts-hd'?8:2);assert.deepEqual(recipe.bindings.map(b=>b.id),['fine']);
+  assert.equal(selectComponentBinding(resolveProviderRecipe(recipe,catalog,evidence,'test'),'fine').bindingId,'fine');
+  assert.throws(()=>selectComponentBinding(resolveProviderRecipe(recipe,catalog,[],'test'),'fine'),e=>e.code==='QUALIFICATION_REQUIRED');
+  for(const channels of [2,6,8]){
+   const allowed=codec==='truehd'||codec==='mlp'&&channels!==8||codec==='dts-hd'&&channels===8;
+   if(allowed)assert.ok(audioRepairRecipe(codec,channels).id);else assert.throws(()=>audioRepairRecipe(codec,channels));
+  }
+ }
+ assert.throws(()=>audioRepairRecipe('ac3',8));
 });
 test('absent fine assets select the qualified common binding; absent both identify capabilities',()=>{
  const {recipe,catalog,evidence}=fixture();catalog.providers=catalog.providers.filter(p=>!['audio-ac3','audio-flac'].includes(p.id));let r=resolveProviderRecipe(recipe,catalog,evidence,'test');assert.equal(selectComponentBinding(r,'fine').bindingId,'common');catalog.providers=catalog.providers.filter(p=>p.id!=='audio-common');r=resolveProviderRecipe(recipe,catalog,evidence,'test');assert.throws(()=>selectComponentBinding(r,'fine'),e=>e.code==='DEPLOYMENT_UNAVAILABLE'&&/audio.decode.ac3/.test(e.message));

@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { FontAsset, RemoteSource, SubtitleAsset } from '../types.js';
 /** One mpv owner for embedded and external subtitles on the accepted media timeline. */
 export declare class NativeMpvSubtitles {

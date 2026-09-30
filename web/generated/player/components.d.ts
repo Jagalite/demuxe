@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 export declare const topBar: () => string;
 export declare const mediaStage: () => string;
 export declare const loadingIndicator: () => string;

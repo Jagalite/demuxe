@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 const paths = Object.freeze({
     'mpv-player': 'web/generated/internal/wasm-player.js',
     'mpv-audio': 'web/generated/internal/native-mpv-audio.js',

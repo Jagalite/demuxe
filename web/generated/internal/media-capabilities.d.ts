@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { Probe } from './selection.js';
 import type { BrowserMediaCapability } from './browser-media-capability.js';
 export type DecodingQuery = {

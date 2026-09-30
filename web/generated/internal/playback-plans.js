@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** Finite execution plans; qualification is local to a feature, not a browser claim. */
 export const PLAYBACK_PLANS = Object.freeze([
     { id: 'native-direct-mpv', mode: 'native', video: 'browser', audio: 'original', qualification: 'bounded' },

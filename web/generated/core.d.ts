@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 export * from './types.js';
 export * from './internal/selection.js';
 export * from './internal/playback-plans.js';

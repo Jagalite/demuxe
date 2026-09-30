@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 export type CapabilityEvidence = {
     audioEvidenceStrength?: import('./browser-evidence-adapters.js').AudioEvidenceStrength;
     audioObservation?: {

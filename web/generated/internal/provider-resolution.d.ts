@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { CapabilityRequest, ProviderDelivery, ProviderTechnology } from './execution-capabilities.js';
 export type ProviderAvailability = Readonly<{
     state: 'absent';

@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 export declare const qualifiedWebGPUCodecs: Readonly<Record<string, {
     module: string;
     assets: string[];

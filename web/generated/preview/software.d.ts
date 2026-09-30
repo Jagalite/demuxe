@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { MediaInputOptions, ResourceLimits, RemoteSource } from '../types.js';
 import type { PreviewContext, PreviewProvider, PreviewResult } from './controller.js';
 export type SoftwarePreviewSource = {

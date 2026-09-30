@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { ProviderRuntimeAssets } from './provider-runtime.js';
 import type { BufferingPolicy } from '../types.js';
 import type { RemoteSource, TextTrackSource, TrackType, SubtitleAsset, FontAsset } from '../types.js';
@@ -46,6 +45,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private destruction?;
     private opening;
     private remux?;
+    private remuxEnginePath?;
     private projection?;
     private adapted;
     private remuxSource?;

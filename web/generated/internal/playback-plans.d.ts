@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { PlaybackMode } from '../types.js';
 /** Finite execution plans; qualification is local to a feature, not a browser claim. */
 export declare const PLAYBACK_PLANS: readonly Readonly<{

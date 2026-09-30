@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { PreviewPregeneration } from '../types.js';
 export type PregenerationRequest = {
     time: number;

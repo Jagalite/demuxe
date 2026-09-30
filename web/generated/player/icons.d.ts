@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 export declare const icons: {
     readonly previous: "<path d=\"M5 5v14m14-14L8 12l11 7Z\" fill=\"currentColor\"/>";
     readonly next: "<path d=\"M19 5v14M5 5l11 7-11 7Z\" fill=\"currentColor\"/>";

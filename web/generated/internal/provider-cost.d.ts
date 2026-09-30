@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** Measured selection within qualified compositions; Player plan order is separate. */
 export type ProviderReadiness = Readonly<{
     providerId: string;

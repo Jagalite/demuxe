@@ -10,12 +10,15 @@ from pathlib import Path
 from license_policy import ROOT,encoded,sha
 p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--builds',type=Path,default=ROOT/'build/audio-providers')
+p.add_argument('--sdk',type=Path,help='Actual SDK directory used by this build')
 p.add_argument('--sdk-record',type=Path,required=True)
 p.add_argument('--source-archive',type=Path,required=True)
 p.add_argument('--output',type=Path,default=ROOT/'build/audio-providers/provenance')
+p.add_argument('--profiles',nargs='+',choices=['ac3','dts','flac','common','truehd-mlp','dts-hd'],default=['ac3','dts','flac','common'])
+p.add_argument('--replace-runtime',action='store_true',help='Retain prior runtime bytes in output before replacing verified generated assets')
 a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True)
-sdk_record=json.loads(a.sdk_record.read_bytes());inputs={};configurations={};artifacts={};source=None;keys=set()
-for profile in ['ac3','dts','flac','common']:
+sdk_record=json.loads(a.sdk_record.read_bytes());sdk_path=a.sdk.resolve() if a.sdk else Path(sdk_record['sdk']);inputs={};configurations={};artifacts={};source=None;keys=set()
+for profile in a.profiles:
  pointer=json.loads((a.builds/(profile+'.json')).read_bytes());directory=Path(pointer['directory']);raw=(directory/'build-record.json').read_bytes()
  if sha(raw)!=pointer['recordSHA256']:raise ValueError('Build record drift: '+profile)
  record=json.loads(raw);keys.add(record['sourceKey'])
@@ -34,7 +37,10 @@ for profile in ['ac3','dts','flac','common']:
   data=(directory/name).read_bytes()
   if len(data)!=item['bytes'] or sha(data)!=item['sha256']:raise ValueError('Native artifact drift: '+name)
   target=runtime/name
-  if target.exists() and target.read_bytes()!=data:raise ValueError('Refusing to replace different audio artifact: '+str(target))
+  if target.exists() and target.read_bytes()!=data:
+   if not a.replace_runtime:raise ValueError('Refusing to replace different audio artifact: '+str(target))
+   previous=target.read_bytes();backup=a.output/'replaced-runtime'/profile/(sha(previous)+'-'+name);backup.parent.mkdir(parents=True,exist_ok=True)
+   if not backup.exists():backup.write_bytes(previous)
   target.write_bytes(data);artifacts[str(target.relative_to(ROOT))]={'sha256':sha(data),'bytes':len(data)}
 if len(keys)!=1:raise ValueError('Fine/bundled sources diverged')
 if sha(a.source_archive.read_bytes())!=source['sha256']:raise ValueError('Pinned upstream source mismatch')
@@ -42,6 +48,6 @@ archive=ROOT/'build/downloads'/('ffmpeg-adaptation.tar.gz');archive.parent.mkdir
 if archive.exists() and sha(archive.read_bytes())!=source['sha256']:raise ValueError('Existing source archive mismatch')
 if not archive.exists():shutil.copyfile(a.source_archive,archive)
 for name,digest in sdk_record['sdkSources'].items():
- if sha((Path(sdk_record['sdk'])/'upstream/emscripten'/name).read_bytes())!=digest:raise ValueError('SDK source drift: '+name)
-engine={'schema':1,'clean':False,'qualification':'native-build-only','inputs':inputs,'configurations':configurations,'sdk':sdk_record['sdk'],'sdkSources':sdk_record['sdkSources'],'sources':{'ffmpeg-adaptation':source['sha256']},'artifacts':artifacts,'sourceKeys':sorted(keys)}
+ if sha((sdk_path/'upstream/emscripten'/name).read_bytes())!=digest:raise ValueError('SDK source drift: '+name)
+engine={'schema':1,'clean':False,'qualification':'native-build-only','inputs':inputs,'configurations':configurations,'sdk':str(sdk_path),'sdkSources':sdk_record['sdkSources'],'sources':{'ffmpeg-adaptation':source['sha256']},'artifacts':artifacts,'sourceKeys':sorted(keys)}
 (a.output/'engine-build.json').write_bytes(encoded(engine));(a.output/'recovered.json').write_bytes(encoded({'recovered':{name:str(ROOT/name) for name in inputs}}));print(a.output/'engine-build.json')

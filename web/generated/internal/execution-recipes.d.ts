@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { PLAYBACK_PLANS } from './playback-plans.js';
 import type { CapabilityRequest } from './execution-capabilities.js';
 import type { CurrentProviderBinding } from './media-providers.js';

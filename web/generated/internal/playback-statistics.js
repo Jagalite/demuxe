@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** Bounded, source-scoped observations; no backend counter inference. */
 export class PlaybackStatistics {
     now;

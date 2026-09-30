@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** Presentation options belong to the element, never the playback engine. */
 export type PlayerLayout = 'classic' | 'modern' | 'playground';
 export type PlayerTheme = 'demuxe' | 'light';

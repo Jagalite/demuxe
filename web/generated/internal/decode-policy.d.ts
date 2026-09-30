@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 export type DecodeQuality = 'exact' | 'balanced' | 'performance';
 export type AdaptiveDecodeState = 'normal' | 'reduced-reconstruction' | 'drop-non-reference';
 export type DecodeInput = {

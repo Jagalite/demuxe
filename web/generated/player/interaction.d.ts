@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 export declare function formatTime(value: number): string;
 export declare function outputDimensions(ratio: number): {
     width: number;

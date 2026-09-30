@@ -36,12 +36,25 @@ function float(bytes: Uint8Array): number {
 }
 export class MatroskaReader {
  private reads = 0;
+ private cacheOffset=-1;
+ private cache=new Uint8Array(0);
  private constructor(private readonly file: Blob, private readonly signal: AbortSignal,
    readonly tracks: readonly MatroskaTrack[], private readonly segment: Element,
    readonly timecodeScale: number) {}
  private async read(offset: number, size: number): Promise<Uint8Array> {
   this.signal.throwIfAborted();
   if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(size) || offset < 0 || size < 0 || size > 16 * 1024 * 1024 || offset + size > this.file.size) fail('Read bounds');
+  // Tiny EBML headers and lossless packets otherwise require thousands of
+  // Blob promises per second. Retain one bounded block and return owned copies.
+  if(size<=65536){
+   if(offset<this.cacheOffset||offset+size>this.cacheOffset+this.cache.length){
+    this.cacheOffset=offset;
+    const count=Math.min(65536,this.file.size-offset);
+    this.cache=new Uint8Array(await this.file.slice(offset,offset+count).arrayBuffer());
+    this.signal.throwIfAborted();if(this.cache.length!==count)fail('Short container read');this.reads+=count;
+   }
+   return this.cache.slice(offset-this.cacheOffset,offset-this.cacheOffset+size);
+  }
   const bytes = new Uint8Array(await this.file.slice(offset, offset + size).arrayBuffer());
   this.signal.throwIfAborted(); if (bytes.length !== size) fail('Short container read');
   this.reads += size; return bytes;
@@ -99,7 +112,7 @@ export class MatroskaReader {
      if (number < 1 || tracks.some(t => t.number === number) || ![1,2].includes(type)) fail('Unqualified track identity or type');
      const codec = fields.has(0x86) ? new TextDecoder('utf-8',{fatal:true}).decode(await reader.bytes(fields.get(0x86)!)) : '';
      if ((type===1&&!codec.startsWith('V_'))||(type===2&&!codec.startsWith('A_')))fail('Codec and track type disagree');
-     if (!['V_MPEG4/ISO/AVC','V_MPEGH/ISO/HEVC','A_AC3','A_EAC3','A_DTS','A_AAC','A_FLAC'].includes(codec)) fail('Unqualified track codec');
+     if (!['V_MPEG4/ISO/AVC','V_MPEGH/ISO/HEVC','A_AC3','A_EAC3','A_DTS','A_TRUEHD','A_MLP','A_AAC','A_FLAC'].includes(codec)) fail('Unqualified track codec');
      const track: {number:number;kind:'video'|'audio';codec:string;privateData:Uint8Array;codecDelayNs?:number;colour?:ContainerColour;defaultDurationNs?:number;channels?:number;rate?:number;width?:number;height?:number} = {
       number, kind: type === 1 ? 'video' : 'audio', codec,
       privateData: fields.has(0x63a2) ? await reader.bytes(fields.get(0x63a2)!) : new Uint8Array(),

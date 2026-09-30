@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { Player } from './unified-player.js';
 /** Public structural contract; excludes private engines and raw property access. */
 export type PlaybackControl = Pick<Player, 'state' | 'subscribe' | 'addEventListener' | 'removeEventListener' | 'play' | 'pause' | 'seek' | 'setVolume' | 'setMuted' | 'setPlaybackRate' | 'selectAudioTrack' | 'selectSubtitleTrack' | 'subtitleVisible' | 'setQuality' | 'seekToLive' | 'setLoop' | 'setPlaybackRange' | 'seekChapter' | 'preview' | 'getStats' | 'getPlaybackExplanation' | 'presentation' | 'host' | 'isDestroyed'>;

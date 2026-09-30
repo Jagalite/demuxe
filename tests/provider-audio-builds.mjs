@@ -44,4 +44,5 @@ for(const channels of [1,2,6]){
  }
  assert.deepEqual(encoded[0],encoded[1]);results.push({channels,flacRoundtripExact:true,fineBundledExact:true,partialFinalBlock:true,aborted:true});
 }
-await mkdir('results/media-components/audio-provider',{recursive:true});await writeFile('results/media-components/audio-provider/fine-bundled.json',JSON.stringify({passed:true,scope:'packet contracts; not automatic playback qualification',builds:[common,ac3,dts,flac].map(x=>x.record),results},null,2)+'\n');console.log(results);
+const resultRoot=process.env.AUDIO_RESULT_ROOT??'results/media-components/audio-provider';
+await mkdir(resultRoot,{recursive:true});await writeFile(resultRoot+'/fine-bundled.json',JSON.stringify({passed:true,scope:'packet contracts; not automatic playback qualification',builds:[common,ac3,dts,flac].map(x=>x.record),results},null,2)+'\n');console.log(results);

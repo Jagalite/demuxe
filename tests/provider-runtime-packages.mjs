@@ -1,16 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
 import assert from 'node:assert/strict';
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,realpath} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
 import {createServer} from 'node:http';
 import {chromium,firefox} from 'playwright';
-import {closeTestBrowser} from './head-to-head/browser-exit.mjs';
-const family=process.env.BROWSER??'chrome',root=process.cwd(),work=path.join(root,'build/runtime-provider-consumer',family+'-'+Date.now());
+import {closeTestBrowser,closeBrowserObserved} from './head-to-head/browser-exit.mjs';
+const family=process.env.BROWSER??'chrome',root=process.cwd(),work=process.env.RUNTIME_CONSUMER_WORK?await realpath(process.env.RUNTIME_CONSUMER_WORK):path.join(process.env.RUNTIME_CONSUMER_ROOT??path.join(root,'build/runtime-provider-consumer'),family+'-'+Date.now());
 const folders=[process.env.CORE_PACKAGE??'player-core-review-fixes','provider-ffmpeg-jspi-complete','provider-ffmpeg-asyncify-complete','provider-ffmpeg-complete','provider-mpv-complete'];
 const archives=await Promise.all(folders.map(async f=>{const a=JSON.parse(await readFile('build/media-components/'+f+'/assembly.json','utf8'));a.archive=path.resolve(a.archive);return a;}));
+if(process.env.RUNTIME_CONSUMER_WORK){
+ const inventory=JSON.parse(await readFile(archives[0].record,'utf8'));for(const [name,item]of Object.entries(inventory.files)){assert.equal(createHash('sha256').update(await readFile(path.join(work,'node_modules/demuxe',name))).digest('hex'),item.sha256,'Installed core differs from requested archive');}
+}else{
 await mkdir(work,{recursive:true});await writeFile(path.join(work,'package.json'),JSON.stringify({name:'runtime-provider-consumer',private:true,type:'module',version:'1.0.0'}));
 execFileSync('npm',['install','--ignore-scripts','--no-audit','--no-fund','--package-lock=false',...archives.map(a=>a.archive)],{cwd:work,stdio:'pipe'});
+}
 for(const [name,providers]of Object.entries({jspi:['ffmpeg-jspi'],asyncify:['ffmpeg-asyncify'],both:['ffmpeg-jspi','ffmpeg-asyncify'],all:['ffmpeg','ffmpeg-jspi','ffmpeg-asyncify','mpv'],mpv:['mpv'],core:[]}))execFileSync('python3',['scripts/deploy-providers.py','--core',path.join(work,'node_modules/demuxe'),...providers.flatMap(p=>['--provider',path.join(work,'node_modules/@demuxe/provider-'+p)]),'--output',path.join(work,name)],{stdio:'pipe'});
 execFileSync('ffmpeg',['-v','error','-i','fixtures/example.mp4','-t','4','-map','0:v:0','-map','0:a:0','-c','copy',path.join(work,'copy.ts')]);
 execFileSync('ffmpeg',['-v','error','-i','fixtures/example.mp4','-t','4','-map','0:v:0','-map','0:a:0','-c:v','copy','-c:a','ac3',path.join(work,'ac3.mkv')]);
@@ -23,10 +28,10 @@ const server=createServer(async(req,res)=>{
  const file=name==='example.mp4'?path.join(root,'fixtures/example.mp4'):path.resolve(work,name);
  if(name!=='example.mp4'&&!file.startsWith(work+path.sep)){res.writeHead(403).end();return;}
  try{const data=await readFile(file);res.setHeader('Content-Type',/\.(js|mjs)$/.test(file)?'text/javascript':file.endsWith('.wasm')?'application/wasm':file.endsWith('.json')?'application/json':'application/octet-stream');res.end(data);}catch{res.writeHead(404).end();}
-});await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
+});await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser,browserServer;
 const result={family,work,archives,cases:[],passed:false};
 try{
- browser=await(family==='firefox'?firefox:chromium).launch({headless:true,...(family==='firefox'?{firefoxUserPrefs:{'media.autoplay.default':0}}:{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']})});result.browser=browser.version();
+ if(family==='firefox'){browserServer=await firefox.launchServer({headless:true,firefoxUserPrefs:{'media.autoplay.default':0}});browser=await firefox.connect(browserServer.wsEndpoint());}else browser=await chromium.launch({headless:true,channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']});result.browser=browser.version();
  const cases=[];for(const runtime of ['jspi','asyncify'])for(const profile of ['copy','repair'])cases.push({id:runtime+'-'+profile,deployment:runtime,runtime,fixture:profile==='copy'?'copy.ts':'ac3.mkv',options:profile==='copy'?{mode:'native',nativeRemux:'always'}:{},plan:profile==='copy'?'native-remux':'native-transcode'});
  cases.push({id:'asyncify-only-auto',deployment:'asyncify',fixture:'copy.ts',options:{mode:'native',nativeRemux:'always'},plan:'native-remux'},
  {id:'both-auto',deployment:'both',fixture:'copy.ts',options:{mode:'native',nativeRemux:'always'},plan:'native-remux'},
@@ -59,4 +64,4 @@ try{
   await page.close();
  }
  result.passed=true;
-}finally{if(browser)result.cleanup=await closeTestBrowser(browser,family);server.closeAllConnections();await new Promise(r=>server.close(r));result.requests=requests;await mkdir('results/media-components/runtime-packages',{recursive:true});await writeFile(`results/media-components/runtime-packages/${family}.json`,JSON.stringify(result,null,2)+'\n');}
+}finally{if(browser)result.cleanup=browserServer?await closeBrowserObserved({close:()=>browserServer.close()},[browserServer.process().pid],{attempts:450}):await closeTestBrowser(browser,family);server.closeAllConnections();await new Promise(r=>server.close(r));result.requests=requests;const resultRoot=process.env.RUNTIME_RESULT_ROOT??'results/media-components/runtime-packages';await mkdir(resultRoot,{recursive:true});await writeFile(`${resultRoot}/${family}.json`,JSON.stringify(result,null,2)+'\n');}

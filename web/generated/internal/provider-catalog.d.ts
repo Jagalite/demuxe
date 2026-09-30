@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { ProviderAvailability, ProviderCatalog } from './provider-resolution.js';
 export type DeployedProviderAsset = Readonly<{
     id: string;

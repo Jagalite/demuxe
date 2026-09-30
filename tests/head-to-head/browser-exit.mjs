@@ -17,12 +17,12 @@ export async function closeBrowserObserved(browser,ids,{remaining=remainingProce
 }
 
 /** Bound test teardown and retain actual Chrome process retirement evidence. */
-export async function closeTestBrowser(browser, family) {
+export async function closeTestBrowser(browser, family, options) {
   if (family !== 'firefox') {
     const session = await browser.newBrowserCDPSession();
     const ids = (await session.send('SystemInfo.getProcessInfo')).processInfo.map(p => p.id);
     await session.detach();
-    return closeBrowserObserved(browser, ids);
+    return closeBrowserObserved(browser, ids, options);
   }
   let timer;
   try {

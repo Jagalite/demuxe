@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import { WasmPlayer } from './wasm-player.js';
 import type { RemoteSource } from '../types.js';
 import type { WatchdogPolicy } from '../types.js';

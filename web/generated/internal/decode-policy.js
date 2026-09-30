@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 export const supportsEmergencyFrameDrop = (codec) => ['mpeg2video', 'mpegvideo', 'h264', 'hevc'].includes(codec);
 /** Only controls with a bounded reconstruction contract belong here. The
  * following screened controls are deliberately excluded: skip_frame=bidir,

@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { ResolvableRecipe } from './provider-resolution.js';
 declare const decode: {
     readonly ac3: {
@@ -16,8 +15,23 @@ declare const decode: {
         readonly version: 1;
         readonly profile: "core-48khz-fltp";
     };
+    readonly truehd: {
+        readonly capability: "audio.decode.truehd";
+        readonly version: 1;
+        readonly profile: "48khz-integer";
+    };
+    readonly mlp: {
+        readonly capability: "audio.decode.mlp";
+        readonly version: 1;
+        readonly profile: "48khz-integer";
+    };
+    readonly 'dts-hd': {
+        readonly capability: "audio.decode.dts";
+        readonly version: 1;
+        readonly profile: "ma-48khz-s32p";
+    };
 };
 export type ComponentAudioCodec = keyof typeof decode;
-export declare function audioRepairRecipe(codec: ComponentAudioCodec): ResolvableRecipe;
+export declare function audioRepairRecipe(codec: ComponentAudioCodec, channels?: 2 | 6 | 8): ResolvableRecipe;
 export declare function packetCopyRecipe(): ResolvableRecipe;
 export {};

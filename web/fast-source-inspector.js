@@ -392,7 +392,7 @@ const mkCodec = new Map([
   ['V_MPEG4/ISO/AVC', 'h264'], ['V_MPEGH/ISO/HEVC', 'hevc'], ['V_AV1', 'av1'],
   ['V_VP8', 'vp8'], ['V_VP9', 'vp9'], ['A_AAC', 'aac'], ['A_OPUS', 'opus'],
   ['A_VORBIS', 'vorbis'], ['A_FLAC', 'flac'], ['A_AC3', 'ac3'], ['A_EAC3', 'eac3'],
-  ['A_DTS', 'dts'], ['A_PCM/INT/LIT', 'pcm_s16le'],
+  ['A_DTS', 'dts'], ['A_TRUEHD', 'truehd'], ['A_MLP', 'mlp'], ['A_PCM/INT/LIT', 'pcm_s16le'],
   ['S_TEXT/ASS', 'ass'], ['S_TEXT/SSA', 'ssa'], ['S_TEXT/UTF8', 'subrip'],
   ['S_HDMV/PGS', 'hdmv_pgs_subtitle'], ['S_VOBSUB', 'dvd_subtitle'],
 ]);

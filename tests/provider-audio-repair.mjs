@@ -25,4 +25,5 @@ for(const codec of ['ac3','eac3','dca']){
  controller.abort();await assert.rejects(()=>repairMatroskaAudio(new Blob([source]),components,controller.signal),e=>e.name==='AbortError');
  results.push({codec,videoDecodedExact:true,audioSamples:before.length/8,maxAudioError:maxError,output,fixtureSHA256:createHash('sha256').update(source).digest('hex'),wasmSHA256:record.artifacts['module.wasm'].sha256});
 }
-await mkdir('results/media-components/audio-provider',{recursive:true});await writeFile('results/media-components/audio-provider/repair.json',JSON.stringify({passed:true,scope:'local no-reorder AVC + stereo 48 kHz audio repair to FLAC24; host decoded output only',results},null,2)+'\n');console.log(results);
+const resultRoot=process.env.AUDIO_RESULT_ROOT??'results/media-components/audio-provider';
+await mkdir(resultRoot,{recursive:true});await writeFile(resultRoot+'/repair.json',JSON.stringify({passed:true,scope:'local no-reorder AVC + stereo 48 kHz audio repair to FLAC24; host decoded output only',results},null,2)+'\n');console.log(results);

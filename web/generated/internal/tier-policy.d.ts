@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** Configuration-scoped negative evidence. Never caches transport or deadlines. */
 export declare class TierAttempts {
     private sources;

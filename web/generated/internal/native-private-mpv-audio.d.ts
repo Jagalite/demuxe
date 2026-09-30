@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { RemoteSource, WatchdogPolicy } from '../types.js';
 /** Restricted stereo PCM service: private memory, acknowledged consumption and lifecycle. */
 export declare class NativePrivateMpvAudio extends EventTarget {

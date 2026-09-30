@@ -13,8 +13,16 @@ export const EXECUTION_CAPABILITIES = {
     contract: 'Complete E-AC-3 packets to owned float planes; no Atmos or dependent-substream composition qualification is implied.',
   },
   'audio.decode.dts': {
-    version: 1, profiles: ['core-48khz-fltp'] as const,
-    contract: 'Complete DTS core packets to owned float planes; DTS-HD extension fidelity is outside this contract.',
+    version: 1, profiles: ['core-48khz-fltp', 'ma-48khz-s32p'] as const,
+    contract: 'Complete DTS core packets to owned float planes; The MA profile preserves planar integer PCM; core and MA are separate offers.',
+  },
+  'audio.decode.truehd': {
+    version: 1, profiles: ['48khz-integer'] as const,
+    contract: 'Complete TrueHD packets to owned left-justified integer PCM, sample timestamps, reset, drain and cancellation. No Atmos object preservation claim.',
+  },
+  'audio.decode.mlp': {
+    version: 1, profiles: ['48khz-integer'] as const,
+    contract: 'Complete MLP packets to owned left-justified integer PCM with native channel layout, reset, drain and cancellation.',
   },
   'audio.encode.flac': {
     version: 1, profiles: ['48khz-s24'] as const,

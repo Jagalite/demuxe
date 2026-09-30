@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type Shaka from 'shaka-player';
 import type { RemoteSource } from '../types.js';
 import { PlayerError } from './errors.js';

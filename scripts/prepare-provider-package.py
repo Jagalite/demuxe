@@ -27,8 +27,8 @@ def assemble(target,engine_path,companion_path,output):
     for name in profile['files']+profile['engines']:
         data=(ROOT/name).read_bytes()
         if name in profile['engines'] and engine['artifacts'].get(name,{}).get('sha256')!=sha(data):raise ValueError('Engine differs from native build: '+name)
-        add('runtime/'+name,data,[name],kind='code' if name.endswith(('.js','.mjs','.wasm')) else 'asset',licenses=['Apache-2.0','LGPL-2.1-or-later','MIT','LicenseRef-Native-Dependencies'] if name in profile['engines'] else None)
-    for name,item in outputs.items():add('runtime/'+name,item['data'].encode(),item['inputs'])
+        add('runtime/'+(profile.get('runtimePrefix','')+name[len('web/'):] if profile.get('runtimePrefix') and name not in profile['engines'] else name),data,[name],kind='code' if name.endswith(('.js','.mjs','.wasm')) else 'asset',licenses=['Apache-2.0','LGPL-2.1-or-later','MIT','LicenseRef-Native-Dependencies'] if name in profile['engines'] else None)
+    for name,item in outputs.items():add('runtime/'+(profile.get('runtimePrefix','')+name[len('web/'):] if profile.get('runtimePrefix') else name),item['data'].encode(),item['inputs'])
     template=spec['template'];metadata=json.loads((ROOT/template).read_bytes());metadata.pop('private');metadata.pop('scripts')
     add('package.json',encoded(metadata),[template],'metadata',['Apache-2.0'])
     for name in spec['requiredFiles']:

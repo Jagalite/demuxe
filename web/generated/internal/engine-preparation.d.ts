@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { PreparationComponent, PreparationOptions, PreparationReport, PreparationProgress } from '../types.js';
 import type { ProviderRuntimeAssets } from './provider-runtime.js';
 export declare function preparationComponents(value: PreparationOptions): PreparationComponent[];

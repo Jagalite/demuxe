@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import { PlayerPresentation } from './presentation.js';
 import type { WatchdogOptions, WatchdogPolicy } from './types.js';
 import type { TrackPolicy } from './types.js';

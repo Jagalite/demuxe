@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import { PlayerError, isPlayerError } from './errors.js';
 const owners = new WeakMap();
 const installed = new WeakSet();

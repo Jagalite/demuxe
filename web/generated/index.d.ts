@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 export { Player } from './unified-player.js';
 export { PLAYBACK_MODES } from './types.js';
 export type { StreamingOptions, MediaInputOptions, AudioOutput, ToneMapping, ResourceLimits, SubtitleOptions, PlaybackMode, RemuxRuntimePolicy, PlayerOptions, RemoteSource, TextTrackSource, Capabilities, Diagnostics, PlaybackEvent, TrackType } from './types.js';

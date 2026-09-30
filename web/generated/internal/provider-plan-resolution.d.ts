@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { CompositionEvidence, ProviderCatalog, RecipeResolution } from './provider-resolution.js';
 export type AdmittedProviderPlan = Readonly<{
     id: string;

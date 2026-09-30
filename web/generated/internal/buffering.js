@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import { PlayerError } from './errors.js';
 const MiB = 1024 * 1024;
 export function bufferingPolicy(input = {}) {

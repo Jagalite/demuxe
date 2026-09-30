@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 const root=path.resolve(import.meta.dirname,'..'),work=path.join(root,'build/component-consumer',String(Date.now()));
-const folders=[process.env.CORE_PACKAGE??'player-core-review-fixes','provider-container-review-fixes','provider-audio-ac3-complete','provider-audio-dts-complete','provider-audio-flac-complete','provider-audio-common-complete'];
+const folders=[process.env.CORE_PACKAGE??'player-core-review-fixes',process.env.CONTAINER_PACKAGE??'provider-container-review-fixes',...['ac3','dts','flac','common'].map(p=>process.env['AUDIO_'+p.toUpperCase()+'_PACKAGE']??'provider-audio-'+p+'-complete')];
 const archives=await Promise.all(folders.map(async folder=>{
  const report=JSON.parse(await readFile(path.join(root,'build/media-components',folder,'assembly.json'),'utf8'));report.archive=path.resolve(root,report.archive);
  if(createHash('sha256').update(await readFile(report.archive)).digest('hex')!==(report.sha256??report.archiveSHA256))throw Error('Archive drift: '+folder);return report;

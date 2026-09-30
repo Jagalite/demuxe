@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** One isolated software engine per player; bounded remote ranges or local files up to 32 MiB. */
 export class BrowserPlayer extends EventTarget {
     worker;

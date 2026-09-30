@@ -8,7 +8,7 @@ void ae_destroy(Encoder *e) {
  avcodec_free_context(&e->c); av_frame_free(&e->f); av_packet_free(&e->p); av_free(e);
 }
 Encoder *ae_create(int channels, int level) {
- if ((channels != 1 && channels != 2 && channels != 6) || level < 0 || level > 12) return 0;
+ if ((channels != 1 && channels != 2 && channels != 6 && channels != 8) || level < 0 || level > 12) return 0;
  const AVCodec *codec = avcodec_find_encoder(AV_CODEC_ID_FLAC);
  if (!codec) return 0;
  Encoder *e = av_mallocz(sizeof(*e)); if (!e) return 0;

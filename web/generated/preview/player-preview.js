@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 /** Keep owner controls and the controller itself out of the runtime facade. */
 export function createPlayerPreview(controller) {
     return Object.freeze({

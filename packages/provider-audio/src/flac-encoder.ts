@@ -33,7 +33,7 @@ export class PacketFlacEncoder implements AudioPacketEncoder {
  constructor(private readonly module: FlacModule, readonly channels: number,
    private readonly signal: AbortSignal, level = 0) {
   signal.throwIfAborted();
-  if (![1, 2, 6].includes(channels) || !Number.isInteger(level) || level < 0 || level > 12) throw Error('Unqualified FLAC configuration');
+  if (![1, 2, 6, 8].includes(channels) || !Number.isInteger(level) || level < 0 || level > 12) throw Error('Unqualified FLAC configuration');
   this.owner = module._ae_create(channels, level);
   if (!this.owner) throw Error('FLAC initialization failed');
   try {

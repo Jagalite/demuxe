@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import type { CustomSource, MediaSourceInput, MediaInspection, InspectionOptions } from './types.js';
 export declare const CUSTOM_SOURCE_PLAYBACK_LIMIT: number;
 export declare function isCustomSource(value: unknown): value is CustomSource;

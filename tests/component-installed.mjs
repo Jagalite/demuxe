@@ -6,7 +6,7 @@ import path from 'node:path';
 import {createServer} from 'node:http';
 import {createHash} from 'node:crypto';
 import {chromium,firefox} from 'playwright';
-import {closeTestBrowser} from './head-to-head/browser-exit.mjs';
+import {closeTestBrowser,closeBrowserObserved} from './head-to-head/browser-exit.mjs';
 const family=process.env.BROWSER??'chrome',setup=JSON.parse(await readFile('build/component-consumer/latest.json','utf8'));
 const combined=JSON.parse(await readFile(path.join(setup.work,'combined/demuxe-providers.json'),'utf8'));
 const identities=Object.fromEntries(combined.providers.map(p=>[p.id,p.implementationIdentity]));
@@ -20,11 +20,11 @@ const server=createServer(async(req,res)=>{
  if(name!=='/fixtures/copy.mkv'&&!file.startsWith(base+path.sep)){res.writeHead(403).end();return;}
  try{const bytes=await readFile(file);res.setHeader('Content-Type',/\.(mjs|js)$/.test(file)?'text/javascript':file.endsWith('.wasm')?'application/wasm':file.endsWith('.json')?'application/json':'application/octet-stream');res.end(bytes);}catch{res.writeHead(404).end();}
 });
-await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
+await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser,browserServer;
 const result={family,setup,cases:[],costs:[],passed:false};
 const policy={objective:'startup',maxAgeMs:600000,maxStartupMs:10000,minThroughputRatio:1};
 try{
- browser=await(family==='firefox'?firefox:chromium).launch({headless:true,...(family==='firefox'?{firefoxUserPrefs:{'media.autoplay.default':0}}:{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']})});result.browser=browser.version();
+ if(family==='firefox'){browserServer=await firefox.launchServer({headless:true,firefoxUserPrefs:{'media.autoplay.default':0}});browser=await firefox.connect(browserServer.wsEndpoint());}else browser=await chromium.launch({headless:true,channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']});result.browser=browser.version();
  async function run({codec='ac3',deployment='combined',baseline='fine',measurement,verify=true,id}){
   active=id;const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(String(e)));await page.goto(`http://127.0.0.1:${server.address().port}`);await page.locator('#start').click();
   const sample=await page.evaluate(async({codec,deployment,baseline,identities,measurement,verify,policy,coreBuild})=>{
@@ -94,6 +94,6 @@ try{
  const selected=await run({id:'measured-selection',measurement:result.costs});assert.ok(selected.nonblack&&selected.audioPeak>0.001);assert.equal(selected.contextKey,contextKey);assert.ok(['baseline','measured-cost','uncertain-difference'].includes(selected.decision.reason));
  result.passed=true;
 }finally{
- if(browser)result.cleanup=await closeTestBrowser(browser,family);server.closeAllConnections();await new Promise(r=>server.close(r));result.requests=requests;
- await mkdir('results/media-components/component-installed',{recursive:true});await writeFile(`results/media-components/component-installed/${family}.json`,JSON.stringify(result,null,2)+'\n');
+ if(browser)result.cleanup=browserServer?await closeBrowserObserved({close:()=>browserServer.close()},[browserServer.process().pid]):await closeTestBrowser(browser,family);server.closeAllConnections();await new Promise(r=>server.close(r));result.requests=requests;
+ const output=process.env.COMPONENT_RESULT_ROOT??'results/media-components/component-installed';await mkdir(output,{recursive:true});await writeFile(`${output}/${family}.json`,JSON.stringify(result,null,2)+'\n');
 }
