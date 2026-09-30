@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-09-29T23:44:54.470117+00:00",
+  "scope": "Prototype merge qualification; public route remains excluded until integration gates pass",
+  "thresholds": {
+    "cadence": {
+      "minimumFramesRatio": 0.9,
+      "maximumSteadyPresentationGapMs": 250,
+      "durationToleranceSeconds": 1
+    },
+    "audio": {
+      "maximumUnderruns": 0,
+      "fullPCMRMSE": 0.002,
+      "maximumMissingSeconds": 0.1,
+      "maximumUnmatchedTailSamples": 9600
+    },
+    "avsync": {
+      "maximumNativeDiagnosticSeconds": 0.1,
+      "applicability": "selected audio and video only",
+      "limitation": "Not independent physical output timing"
+    },
+    "cleanup": {
+      "liveTasks": 0,
+      "retainedTasks": 0,
+      "waitKeys": 0,
+      "timers": 0,
+      "sourceHandles": 0,
+      "sourcePending": 0,
+      "freeSlots": 24,
+      "maxHeapBytes": 134217728
+    }
+  },
+  "retained_failures": [
+    "JSPI MP2 startup pause",
+    "JSPI MPEG4 startup pause",
+    "Video-only gate incorrectly demanded inapplicable avsync observation; harness corrected"
+  ],
+  "remaining": [
+    "Controlled startup trace retries",
+    "Installed asset, lifecycle and HTTP cases",
+    "Long GOP and resolution boundary checks",
+    "Actual Firefox Asyncify execution",
+    "Isolated baseline comparison",
+    "Public Backend controls and routing qualification"
+  ]
+}

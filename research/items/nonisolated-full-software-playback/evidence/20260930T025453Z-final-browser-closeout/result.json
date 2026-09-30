@@ -1,0 +1,104 @@
+{
+  "scope": "Current private Software final browser correctness retries and negative controls; no public route or CPU qualification",
+  "startedAt": "2026-09-30T02:54:53.186032+00:00",
+  "checks": [
+    {
+      "name": "mp2-phased-retry",
+      "command": [
+        "node",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/tests/run-playback.mjs",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-link-02",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/evidence/20260930T025453Z-mp2-phased-retry",
+        "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-row-refresh-stereo-20260926-01/fixtures/mpeg2-mp2/index.mpg",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/readme-references-01/mpeg2-mp2/reference.rgb",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/readme-references-01/mpeg2-mp2/reference.f32",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/readme-references-01/mpeg2-mp2/profile.json"
+      ],
+      "environment": {
+        "PLAYBACK_BROWSER": "chrome",
+        "PLAYBACK_QUALIFICATION": "continuous"
+      },
+      "output": "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/evidence/20260930T025453Z-mp2-phased-retry",
+      "returncode": 0
+    },
+    {
+      "name": "lifecycle-no-pcm-current",
+      "command": [
+        "node",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/tests/run-playback.mjs",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-link-02",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/evidence/20260930T025619Z-lifecycle-no-pcm-current",
+        "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-row-refresh-stereo-20260926-01/fixtures/mpeg2-ac3/index.ts",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/readme-references-01/mpeg2-ac3/reference.rgb",
+        "-",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/readme-references-01/mpeg2-ac3/profile.json"
+      ],
+      "environment": {
+        "PLAYBACK_BROWSER": "chrome",
+        "PLAYBACK_QUALIFICATION": "lifecycle",
+        "PLAYBACK_INSTALLED_ROOT": "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-install-02"
+      },
+      "output": "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/evidence/20260930T025619Z-lifecycle-no-pcm-current",
+      "returncode": 0
+    },
+    {
+      "name": "backend-failures-chrome-jspi",
+      "command": [
+        "node",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/tests/run-private-backend.mjs",
+        "/Volumes/seed2/Projects/demuxe",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/readme-references-01",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/evidence/20260930T025646Z-backend-failures-chrome-jspi"
+      ],
+      "environment": {
+        "PLAYBACK_BROWSER": "chrome",
+        "PLAYBACK_RUNTIME": "jspi",
+        "PLAYBACK_ROW": "mpeg2-ac3",
+        "PLAYBACK_INSTALLED_ROOT": "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-install-02",
+        "PLAYBACK_NEGATIVE_ONLY": "1"
+      },
+      "output": "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/evidence/20260930T025646Z-backend-failures-chrome-jspi",
+      "returncode": 1
+    },
+    {
+      "name": "backend-failures-chrome-asyncify",
+      "command": [
+        "node",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/tests/run-private-backend.mjs",
+        "/Volumes/seed2/Projects/demuxe",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/readme-references-01",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/evidence/20260930T025650Z-backend-failures-chrome-asyncify"
+      ],
+      "environment": {
+        "PLAYBACK_BROWSER": "chrome",
+        "PLAYBACK_RUNTIME": "asyncify",
+        "PLAYBACK_ROW": "mpeg2-ac3",
+        "PLAYBACK_INSTALLED_ROOT": "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-install-02",
+        "PLAYBACK_NEGATIVE_ONLY": "1"
+      },
+      "output": "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/evidence/20260930T025650Z-backend-failures-chrome-asyncify",
+      "returncode": 1
+    },
+    {
+      "name": "backend-failures-firefox-asyncify",
+      "command": [
+        "node",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/tests/run-private-backend.mjs",
+        "/Volumes/seed2/Projects/demuxe",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/readme-references-01",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/evidence/20260930T025654Z-backend-failures-firefox-asyncify"
+      ],
+      "environment": {
+        "PLAYBACK_BROWSER": "firefox",
+        "PLAYBACK_RUNTIME": "asyncify",
+        "PLAYBACK_ROW": "mpeg2-ac3",
+        "PLAYBACK_INSTALLED_ROOT": "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-install-02",
+        "PLAYBACK_NEGATIVE_ONLY": "1"
+      },
+      "output": "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/evidence/20260930T025654Z-backend-failures-firefox-asyncify",
+      "returncode": 1
+    }
+  ],
+  "passed": false,
+  "finishedAt": "2026-09-30T02:56:57.988181+00:00"
+}

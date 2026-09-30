@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "key": "nonisolated-full-software-playback",
+  "title": "Full Software playback without cross-origin isolation",
+  "definition": {
+    "hypothesis": "Existing cooperative mpv can be extended to finite-file software video plus consumed-audio feedback without shared memory.",
+    "scope_contract": "Implement a bounded finite-file private Software prototype on both JSPI and Asyncify.",
+    "baseline": "Existing isolated Software with the same media; reuse verified private mpv infrastructure.",
+    "success_criteria": "See README: actual reference pictures/audio, A/V timing, seek, cancellation and cleanup; renderer screen is a narrower gate.",
+    "stop_criteria": "Unsafe reentry/scheduling, unbounded queues, or inability to satisfy the declared workload without weakening fidelity.",
+    "primary_metric": "Additional correctly qualified playback capability without isolation.",
+    "negative_control": "Shared memory forbidden; JSPI absent in Asyncify; invalid render size rejected.",
+    "effort_limit": "Dedicated worktree prototype: private video build, decoded-picture/seek correctness, then synchronized stereo audio/video; no automatic public qualification.",
+    "definition_source": {
+      "path": "README.md",
+      "sha256": "677583b16c9c3fffc5d0bdb02216abfb1820574a921b55bcee36ecffe0c1ca15"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Source-grounded finite Software prototype contract and explicit investigation boundary.",
+      "evidence": [
+        "evidence/20260929T175300Z-render-prerequisite-01/run.json"
+      ]
+    },
+    "prepare": {
+      "status": "passed",
+      "basis": "Verified fresh playback libraries and pinned SDK; static private-memory/continuation audits; independent FFmpeg references for six real README rows.",
+      "evidence": [
+        "evidence/20260929T225500Z-playback-build-01/run.json",
+        "evidence/20260929T224600Z-readme-suite-02/accepted-rows.json"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Actual private full mpv Software host decoded all six ordinary row fixtures on JSPI and forced Asyncify without isolation.",
+      "evidence": [
+        "evidence/20260929T224600Z-readme-suite-02/accepted-rows.json"
+      ]
+    },
+    "correctness": {
+      "status": "passed",
+      "basis": "Bounded experimental prototype/Backend gates: 18 continuous cases with current host/PCM/worklet/engine bindings, 23 installed lifecycle/fault scenarios per runtime, current Backend controls/negative cases on three browser/runtime combinations, isolated baseline, long-GOP and bounded HD output. Public Player and full parity remain unqualified; failed variants retained.",
+      "evidence": [
+        "evidence/20260930T030401Z-accepted-continuous-cases/result.json",
+        "evidence/20260930T025619Z-lifecycle-no-pcm-current/result.json",
+        "evidence/20260930T030002Z-backend-final-retry-suite/result.json",
+        "evidence/20260930T030229Z-configured-final-source-validation/result.json",
+        "MERGE-QUALIFICATION.md"
+      ]
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Requires a declared workload and passing media correctness first.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Successful and failed variants retained with source snapshots, exact commands, independent references, build identities and hashed manifests.",
+      "evidence": [
+        "evidence/20260929T224600Z-readme-suite-02/accepted-rows.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Pursue maintained public Software integration from the working prototype; no current public route or shipping qualification change.",
+      "evidence": [
+        "evidence/20260929T224600Z-readme-suite-02/accepted-rows.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "timestamp": "2026-09-30T03:09:36.423099+00:00",
+    "disposition": "pursue",
+    "evidence_level": "bounded experimental continuous prototype and maintained Backend execution",
+    "scope": "Six 320x180/30fps finite Software fixtures, optional 48kHz stereo, Chrome JSPI/forced Asyncify and Firefox Asyncify; separate bounded HD/control/error checks",
+    "rationale": "Experimental gates support review of the implementation. Public factory/admission/preparation, public feature tests and exact-archive consumer gates still need implementation and qualification. An intermittent browser-harness stall is retained without an established cause.",
+    "run_ids": [
+      "20260930T030401Z-accepted-continuous-cases",
+      "20260930T025619Z-lifecycle-no-pcm-current",
+      "20260930T030002Z-backend-final-retry-suite",
+      "20260930T030229Z-configured-final-source-validation"
+    ],
+    "candidate_executed": true,
+    "media_executed": true,
+    "integration_status": "experimental_backend_implemented_public_admission_pending",
+    "qualification_status": "bounded_experimental_gates_passed_public_feature_pending",
+    "next_action": "Review the gated experimental implementation; complete public factory, preparation, finite admission and exact-archive consumers before claiming the public Software feature."
+  },
+  "next_action": "Review the gated experimental implementation; complete public factory, preparation, finite admission and exact-archive consumers before claiming the public Software feature.",
+  "integration": {
+    "status": "experimental_backend_implemented_public_admission_pending"
+  },
+  "qualification": {
+    "status": "bounded_experimental_passed_public_pending",
+    "renderer_prerequisite": "passed",
+    "media": "bounded_output_lifecycle_and_continuous_cases_passed",
+    "public_player": "pending",
+    "continuous_sound_cadence": "18_bounded_accepted_cases_historical_failures_retained",
+    "accepted_backend_cases": 18,
+    "isolated_baseline": "six_rows_passed",
+    "maintained_backend": "current_controls_negative_cases_passed_three_browser_runtime_combinations",
+    "installed_lifecycle": "23_scenarios_per_runtime_passed",
+    "large_resolution": "bounded_tagged_720p_1080p_output_passed_continuous_HD_pending",
+    "exact_archive_consumer": "pending",
+    "cpu": "not_run"
+  }
+}

@@ -1,0 +1,310 @@
+{
+  "scope": "Current maintained experimental Software configured source/type/packaging/license regression gate",
+  "startedAt": "2026-09-30T03:02:29.422629+00:00",
+  "checks": [
+    {
+      "command": [
+        "node",
+        "--test",
+        "tests/private-playback-host.mjs",
+        "tests/private-playback-pcm.mjs",
+        "tests/private-pcm-worklet.mjs",
+        "tests/private-playback-worker.mjs",
+        "tests/private-software-player.mjs",
+        "tests/plan-admission.mjs",
+        "tests/remux-runtime.mjs",
+        "tests/range-reader.mjs",
+        "tests/range-reader-deadline.mjs",
+        "tests/resource-loader.mjs"
+      ],
+      "returncode": 0,
+      "log": "0.log"
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/tests/review-regressions.mjs"
+      ],
+      "returncode": 0,
+      "log": "1.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/private-mpv-assets.py"
+      ],
+      "returncode": 0,
+      "log": "2.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/private-remux-assets.py"
+      ],
+      "returncode": 0,
+      "log": "3.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/install-private-mpv.py"
+      ],
+      "returncode": 0,
+      "log": "4.log"
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "returncode": 0,
+      "log": "5.log"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/check-core-boundary.mjs"
+      ],
+      "returncode": 0,
+      "log": "6.log"
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "web/private-mpv/playback-worker.js"
+      ],
+      "returncode": 0,
+      "log": "7.log"
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/tests/run-playback.mjs"
+      ],
+      "returncode": 0,
+      "log": "8.log"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "returncode": 0,
+      "log": "9.log"
+    }
+  ],
+  "sourceLicenses": [
+    {
+      "path": "scripts/install-private-playback.py",
+      "expected": "Apache-2.0",
+      "actual": "Apache-2.0",
+      "sha256": "c42117fcd7848384f35131b209404e19a1566729de2a99ca7d8508a97b3409a2",
+      "passed": true
+    },
+    {
+      "path": "src/internal/private-software-player.ts",
+      "expected": "Apache-2.0",
+      "actual": "Apache-2.0",
+      "sha256": "307780a3e9117861cf61082783212bee4c843d0c3070c03b5d3f6999441be0c6",
+      "passed": true
+    },
+    {
+      "path": "web/generated/internal/private-software-player.js",
+      "expected": "Apache-2.0",
+      "actual": "Apache-2.0",
+      "sha256": "10c473daf8618efe304a89bdcfb33ef30169668b70c61fb9aa27c6383b57749c",
+      "passed": true
+    },
+    {
+      "path": "web/generated/internal/private-software-player.d.ts",
+      "expected": "Apache-2.0",
+      "actual": "Apache-2.0",
+      "sha256": "cb1e90efa8f4a8cc210ef371bcddd1b6c581b4ed0bd1e5ecf11a3a569c35f6d9",
+      "passed": true
+    },
+    {
+      "path": "web/private-mpv/playback-host.js",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "04eb2ae45f5b88b86174d49dd56764a921b6c7b18e847b7d45b0fd0f87f593c8",
+      "passed": true
+    },
+    {
+      "path": "web/private-mpv/playback-pcm.js",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "da634d37b24591c4d95ff39c9f5d0f828764dacd28ca23897dd21ff8094a4068",
+      "passed": true
+    },
+    {
+      "path": "web/private-mpv/playback-worker.js",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "1ecae66246eb74d5492c01a4622b8e7b7024b175814d32a82dad2260f9b67b63",
+      "passed": true
+    },
+    {
+      "path": "tests/private-pcm-worklet.mjs",
+      "expected": "Apache-2.0",
+      "actual": "Apache-2.0",
+      "sha256": "b51a1600a13988024da9edc446c87731894aea30d5238f79bfcbe93f5bf17cbe",
+      "passed": true
+    },
+    {
+      "path": "tests/private-playback-host.mjs",
+      "expected": "Apache-2.0",
+      "actual": "Apache-2.0",
+      "sha256": "b3128a6480591586873b4b054a14ea706ae5a57d6901649916f5b5a6e948bf52",
+      "passed": true
+    },
+    {
+      "path": "tests/private-playback-pcm.mjs",
+      "expected": "Apache-2.0",
+      "actual": "Apache-2.0",
+      "sha256": "3d706ae7d369283e5f968c15e2b43de66b3fe5260b16302f0afcc5cb1a3b8e8f",
+      "passed": true
+    },
+    {
+      "path": "tests/private-playback-worker.mjs",
+      "expected": "Apache-2.0",
+      "actual": "Apache-2.0",
+      "sha256": "c6e1a7ec2159a53e5d50be26768dfb621bf2b1d5679eddffd8a5e4d1a475c93f",
+      "passed": true
+    },
+    {
+      "path": "tests/private-software-player.mjs",
+      "expected": "Apache-2.0",
+      "actual": "Apache-2.0",
+      "sha256": "0025ed3f0d144a1655003738c1a7276f533a0c9fff98fac605c46f223f88eca8",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/archive-results.py",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "1c9121483c700f93ea22c47383841f6f344c57fce0f4d735942b0c440941c8f3",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/build-playback.py",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "9528a2b0dd98f3102de54b1ce9dbefffbd956238a801ccb392501003d564073c",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/build-render-probe.py",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "ac1e2773a712f2f2907f2a67edc79d52be9d07a21892abd5fb02a1556bd77af2",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/lifecycle-worker.mjs",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "1604ebd3db13da3e950567c4ebcfbda6d8b389677b51842f14a036854d14aa4b",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/playback-worker.mjs",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "c4ed269380510be33eff4565bb58799d97dc6c4fa1a946ef60a4f195e4121445",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/prepare-fixture.py",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "57bf5d4cca7a2509892f5ec53bbc2972e566109d8b7449656f5c7303e72a23a9",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/prepare-readme-rows.py",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "2d132d77479eab04a69de1dae4c8da7a2423a40da69bbdf3fe539a2d9b740b6d",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/private-pcm-transport.mjs",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "d7c6345d2eebab92478a946cbc1fae88fc2924c67ec952895adeead28da71502",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/private-playback-host.mjs",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "ff3dc693800df2f915a6d2f69d16e82de496d5e0dc00775f09e94e124c8f9432",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/render-probe-worker.mjs",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "88a857d1ec2eb512439ed38a7166d46f76e8c89d80d1dce1cc0e06a7c657a6c0",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/review-regressions.mjs",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "4915aa687cd0ef4b2c9c01637ccd68888499c2a8ed6afd7c023cddc94015bca1",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/run-isolated-baseline.mjs",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "c1a09d583db4eba7afe553dc0c4a9230290396edd4d4e6d425221db06a024f76",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/run-playback.mjs",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "b9997d3a2bb24ca1da44c45cde92d57d429f50bb94925bb012f6dbbf259e9ce0",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/run-private-backend.mjs",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "227699ae015ad8c7a9909af0d118e6101ce833d8b93482e1c8c36c769f6d122f",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/run-qualification.py",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "8ba693a35e088b14fb3c96735b73fd735b78d7aa8ce55566356f9f9c2054c7b1",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/run-readme-rows.py",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "e47ed2276b34e2bd16567ce427553ea6060988a03038c41d5c9e76f4889291ec",
+      "passed": true
+    },
+    {
+      "path": "research/items/nonisolated-full-software-playback/tests/run-render-probe.mjs",
+      "expected": "MIT",
+      "actual": "MIT",
+      "sha256": "64eed9ad003ee901d281724c5a3b31efd1c8b733f3c7405547fd7b969024f290",
+      "passed": true
+    }
+  ],
+  "boundaryMapSHA256": "193b38c11f6c8891ba0e28d73175841deeb3313622be2201c4b80bde71363907",
+  "ownedServerClosed": true,
+  "passed": true,
+  "finishedAt": "2026-09-30T03:03:18.024386+00:00"
+}

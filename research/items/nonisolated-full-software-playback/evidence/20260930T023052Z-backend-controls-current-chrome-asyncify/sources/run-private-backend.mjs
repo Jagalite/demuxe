@@ -1,0 +1,175 @@
+// SPDX-License-Identifier: MIT
+// Maintained private Backend controls and pictures; no CPU measurements.
+import http from 'node:http';
+import path from 'node:path';
+import {readFile, writeFile, mkdir} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {chromium, firefox} from 'playwright';
+const [assetsArg, referencesArg, outputArg] = process.argv.slice(2);
+if (!outputArg) throw Error('Usage: node run-private-backend.mjs ENGINE_ASSET_ROOT REFERENCES FRESH_OUTPUT');
+const root = path.resolve(import.meta.dirname, '../../../..'), assets = path.resolve(assetsArg), references = path.resolve(referencesArg), output = path.resolve(outputArg);
+await mkdir(output, {recursive: false});await mkdir(path.join(output, 'sources'));
+await writeFile(path.join(output, 'sources/run-private-backend.mjs'), await readFile(import.meta.filename));
+const rows = JSON.parse(await readFile(path.join(references, 'references.json'))).rows.filter(row => !process.env.PLAYBACK_ROW || row.profile.key === process.env.PLAYBACK_ROW);
+if (!rows.length || !process.env.PLAYBACK_INSTALLED_ROOT) throw Error('Installed playback assets and matching fixtures required');
+const files = new Map(), hashes = {}, report = {scope: 'Experimental maintained private Software Backend picture/control/lifecycle checks; public routing remains disabled', startedAt: new Date().toISOString(), command: process.argv, environment: {runtime: process.env.PLAYBACK_RUNTIME ?? 'jspi', installedRoot: process.env.PLAYBACK_INSTALLED_ROOT, browser: process.env.PLAYBACK_BROWSER ?? 'chrome', row: process.env.PLAYBACK_ROW}, cases: [], sourceSHA256: hashes};
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const snapshots=[];
+report.rangeRequests = [];
+const server = http.createServer(async (req, res) => {
+
+  try {
+    if (req.url === '/') {res.setHeader('Content-Type', 'text/html');res.end('<!doctype html><canvas width="320" height="180"></canvas>');return;}
+    const url = new URL(req.url, 'http://localhost');
+    const rangeMode = url.searchParams.get('range');
+    if (rangeMode) {
+      report.rangeRequests.push({mode: rangeMode, range: req.headers.range, authorized: req.headers.authorization === 'Bearer refreshed'});
+      if (rangeMode === 'authorized' && req.headers.authorization !== 'Bearer refreshed') {res.writeHead(401).end();return;}
+      if (rangeMode === 'blocked') {res.writeHead(403).end();return;}
+    }
+    let file;
+    if (url.pathname.startsWith('/fixture/')) file = rows.find(row => row.profile.key === url.pathname.slice(9))?.profile.fixture;
+    else {
+      const relative = url.pathname.replace(/^\//, '');
+      if (!relative.startsWith('web/') && !relative.startsWith('fixtures/')) throw Error('Unknown asset');
+      const base = relative.startsWith('web/engine-mpv-playback-') ? path.resolve(process.env.PLAYBACK_INSTALLED_ROOT) : relative.startsWith('web/engine-') || relative.startsWith('fixtures/') ? assets : root;
+      file = path.resolve(base, relative);
+      if (!file.startsWith(base + path.sep)) throw Error('Invalid asset path');
+    }
+    if (!file) {res.writeHead(404).end();return;}
+    if (!files.has(file)) {
+      const bytes = await readFile(file);files.set(file, bytes);hashes[file] = {sha256: hash(bytes), bytes: bytes.length};
+      if (file.startsWith(root + '/web/') && /\.m?js$/.test(file)) {
+        const target = path.join(output, 'sources', file.slice(root.length + 1));
+        snapshots.push((async()=>{await mkdir(path.dirname(target), {recursive: true});await writeFile(target, bytes);})());
+      }
+    }
+    res.setHeader('Content-Type', file.endsWith('.wasm') ? 'application/wasm' : /\.m?js$/.test(file) ? 'text/javascript' : 'application/octet-stream');
+    if (rangeMode) {
+      const bytes=files.get(file), match=/^bytes=(\d+)-(\d+)$/.exec(req.headers.range ?? '');
+      if (!match) {res.writeHead(400).end();return;}
+      const start=Number(match[1]),end=Math.min(Number(match[2]),bytes.length-1);
+      if(start>=bytes.length){res.writeHead(416,{'Content-Range':'bytes */'+bytes.length}).end();return;}
+      res.writeHead(206,{'Content-Range':`bytes ${start}-${end}/${bytes.length}`,'Content-Length':end-start+1,'ETag':'"private-backend-fixture"'});res.end(bytes.subarray(start,end+1));return;
+    }
+    res.end(files.get(file));
+  } catch (error) {res.writeHead(404).end(String(error));}
+});
+await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+const save = () => writeFile(path.join(output, 'result.json'), JSON.stringify(report, null, 2) + '\n');
+try {
+  for (const {profile} of rows) {
+    const browser = process.env.PLAYBACK_BROWSER === 'firefox'
+      ? await firefox.launch({headless: true, firefoxUserPrefs: {'media.autoplay.default': 0, 'media.autoplay.block-webaudio': false}})
+      : await chromium.launch({channel: 'chrome', headless: true, args: ['--autoplay-policy=no-user-gesture-required']});
+    const row = {key: profile.key, browser: browser.version(), captures: [], passed: false};report.cases.push(row);
+    const page = await browser.newPage();page.setDefaultTimeout(30000);
+    row.progress=[];page.on('console',message=>{if(message.text().startsWith('private-control:')){row.progress.push({phase:message.text().slice(16),at:new Date().toISOString()});console.log(JSON.stringify({key:row.key,phase:message.text().slice(16)}));}});
+    const deadline=setTimeout(async()=>{row.deadlineExpired=true;row.deadlineState=await Promise.race([page.evaluate(()=>({diagnostics:window.baseline?.diagnostics,properties:window.baseline?Object.fromEntries(baseline.properties):undefined,failures:window.failures})).catch(String),new Promise(resolve=>setTimeout(()=>resolve('Inspection deadline'),2000))]);await browser.close();},120000);
+    try {
+      await page.goto('http://127.0.0.1:' + server.address().port);
+      await page.evaluate(async profile => {
+        console.log('private-control:initialize');
+        const {PrivateSoftwarePlayer} = await import('/web/generated/internal/private-software-player.js');
+        window.baseline = new PrivateSoftwarePlayer(document.querySelector('canvas'), {runtime: profile.runtime, assetBase: new URL('/', location.href), duration: profile.duration});
+        window.failures = [];baseline.addEventListener('error', e => failures.push(String(e.detail)));
+        await baseline.ready;
+        console.log('private-control:open');
+        await baseline.open(new File([await (await fetch('/fixture/' + profile.key)).blob()], profile.key));
+        console.log('private-control:opened');
+      }, {...profile,runtime:process.env.PLAYBACK_RUNTIME??'jspi'});
+      const ref = await readFile(path.join(references, profile.key, 'reference.rgb'));
+      for (const target of [0.5, 1.5, 2.5]) {
+        const before = await page.evaluate(() => baseline.diagnostics?.rendered ?? 0);
+        await page.evaluate(target => baseline.seek(target), target);
+        await page.waitForFunction(({target, before}) => baseline.diagnostics?.rendered > before && !baseline.diagnostics.seeking && Math.abs(baseline.diagnostics.presentedPosition - target) < 0.15, {target, before});
+        const rgba = await page.evaluate(async () => {
+          const source = document.querySelector('canvas'), image = await createImageBitmap(await (await fetch(source.toDataURL())).blob());
+          const canvas = document.createElement('canvas');canvas.width = source.width;canvas.height = source.height;
+          const context = canvas.getContext('2d');context.drawImage(image, 0, 0);image.close();return Array.from(context.getImageData(0, 0, canvas.width, canvas.height).data);
+        });
+        const rgb = Buffer.alloc(profile.width * profile.height * 3);
+        for (let i = 0; i < rgb.length; i++) rgb[i] = rgba[Math.floor(i / 3) * 4 + i % 3];
+        const name = profile.key + '-seek-' + target + '.rgb';await writeFile(path.join(output, name), rgb);
+        let best = {mae: Infinity};
+        for (let frame = Math.max(0, Math.floor((target - 1) * profile.fps)); frame <= Math.ceil((target + 1) * profile.fps); frame++) {
+          let sum = 0;for (let i = 0; i < rgb.length; i++) sum += Math.abs(rgb[i] - ref[frame * rgb.length + i]);
+          const mae = sum / rgb.length;if (mae < best.mae) best = {mae, frame, time: frame / profile.fps};
+        }
+        row.captures.push({target, picture: name, reference: best});
+        if (!(best.mae < 5 && Math.abs(best.time - target) <= 1 / profile.fps + 0.001)) throw Error('Baseline seek picture mismatch: ' + JSON.stringify(best));
+      }
+      await page.evaluate(async () => {await baseline.seek(0);await baseline.play();});
+      await page.waitForFunction(() => baseline.properties.get('time-pos') > 1);
+      row.evidence = await page.evaluate(() => ({isolated: crossOriginIsolated, diagnostics: baseline.diagnostics, audio: baseline.audioDiagnostics(), properties: Object.fromEntries(baseline.properties), failures}));
+      if (row.evidence.isolated || row.evidence.failures.length || row.evidence.diagnostics.decoder !== 'software') throw Error('Unexpected baseline path/failure');
+      row.controls = await page.evaluate(async profile => {
+        console.log('private-control:settings');
+        await baseline.pause();await baseline.rate(1.25);await baseline.volume(35);await baseline.gain(0.4);
+        await baseline.command('set','audio-delay','0.025');
+        if (baseline.properties.get('track-list').some(track=>track.type==='audio')) await baseline.selectTrack('audio','1');
+        await baseline.selectTrack('sub','no');await baseline.subtitleVisible(false);
+        await baseline.seek(2.5);
+        const seekConfirmed = await baseline.confirmSeek(2.5);
+        await baseline.open(new File([await (await fetch('/fixture/'+profile.key)).blob()],profile.key));
+        await baseline.seek(1.5);
+        const replaced = await baseline.confirmSeek(1.5);
+        const settings = String(await baseline.command('expand-text','${=speed}|${=volume}|${=audio-delay}')).split('|').map(Number);
+        const controls = {seekConfirmed,replaced,settings,properties:Object.fromEntries(baseline.properties),audio:baseline.audioDiagnostics()};
+        await baseline.play();await new Promise(resolve=>setTimeout(resolve,500));
+        console.log('private-control:interruption');
+        await baseline.context.suspend();
+        await new Promise(resolve=>setTimeout(resolve,250));
+        controls.interrupted = baseline.diagnostics?.audio?.header?.[6] === 0;
+        await baseline.context.resume();await new Promise(resolve=>setTimeout(resolve,500));
+        controls.resumed = baseline.diagnostics?.audio?.header?.[6] === 1;
+        await baseline.pause();await baseline.context.suspend();await baseline.context.resume();
+        await new Promise(resolve=>setTimeout(resolve,250));
+        controls.pauseRetained = baseline.properties.get('pause') === true;
+        const remote={url:new URL('/fixture/'+profile.key+'?range=authorized',location.href).href,immutable:true};
+        let refreshes=0;
+        console.log('private-control:authorized-remote');
+        await baseline.openRemote({...remote,refreshAuthorization:async()=>{refreshes++;return {headers:{Authorization:'Bearer refreshed'}};}});
+        await baseline.seek(1.5);controls.authorizedRemote=await baseline.confirmSeek(1.5)&&refreshes===1;
+        const local=new File([await (await fetch('/fixture/'+profile.key)).blob()],profile.key);
+        console.log('private-control:replace-pending-seek');
+        const oldSeek=baseline.seek(2.5);
+        const replace=baseline.open(local);
+        const replacement=await Promise.allSettled([oldSeek,replace]);
+        await baseline.seek(0.5);controls.concurrentReplacement=replacement[1].status==='fulfilled'&&await baseline.confirmSeek(0.5);
+        let refreshStarted=false,resolveRefresh;
+        console.log('private-control:replace-pending-authorization');
+        const oldRemote=baseline.openRemote({...remote,refreshAuthorization:()=>new Promise(resolve=>{refreshStarted=true;resolveRefresh=resolve;})});
+        void oldRemote.catch(()=>{});
+        const deadline=performance.now()+5000;
+        while(!refreshStarted&&performance.now()<deadline)await new Promise(resolve=>setTimeout(resolve,10));
+        if(!refreshStarted)throw Error('Authorization cancellation control did not become pending');
+        const localReplacement=baseline.open(local);
+        const superseded=await Promise.allSettled([oldRemote,localReplacement]);
+        resolveRefresh({headers:{Authorization:'Bearer refreshed'}});
+        await baseline.seek(0.5);
+        controls.staleAuthorization=superseded[0].status==='rejected'&&superseded[1].status==='fulfilled'&&await baseline.confirmSeek(0.5);
+        console.log('private-control:completed');
+        return controls;
+      },profile);
+      if (!row.controls.seekConfirmed || !row.controls.replaced || row.controls.settings.length !== 3 || !row.controls.settings.every((value,index)=>Number.isFinite(value)&&Math.abs(value-[1.25,35,0.025][index])<=0.0001) || row.controls.audio.gain !== 0.4 || !row.controls.interrupted || !row.controls.resumed || !row.controls.pauseRetained) throw Error('Private Backend control mismatch');
+      if (!row.controls.authorizedRemote || !row.controls.concurrentReplacement || !row.controls.staleAuthorization) throw Error('Private Backend source control mismatch');
+      row.permission = await page.evaluate(async profile => {
+        let error;
+        try {await baseline.openRemote({url:new URL('/fixture/'+profile.key+'?range=blocked',location.href).href,immutable:true});}
+        catch(cause){error=String(cause);}
+        await baseline.destroy();return {error,context:baseline.audioDiagnostics().state};
+      },profile);
+      if (!row.permission.error?.includes('403') || row.permission.context !== 'closed') throw Error('Permission failure did not close the Backend');
+      await page.evaluate(() => baseline.destroy());
+      await page.waitForFunction(() => document.querySelectorAll('iframe').length === 0);
+      for (let i = 0; i < 30 && page.workers().length; i++) await page.waitForTimeout(50);
+      row.cleanup = {workers: page.workers().length, context: await page.evaluate(() => baseline.audioDiagnostics().state), native:await page.evaluate(()=>baseline.diagnostics?.cleanup)};
+      if (row.cleanup.workers || row.cleanup.context !== 'closed') throw Error('Baseline cleanup failed');
+      if (!row.cleanup.native || row.cleanup.native.scheduler.liveTasks || row.cleanup.native.scheduler.retainedTasks || row.cleanup.native.scheduler.freeSlots !== 24 || row.cleanup.native.source.handles || row.cleanup.native.source.pending || row.cleanup.native.source.timers) throw Error('Private Backend native cleanup failed');
+      row.passed = true;
+    } catch (error) {row.error = String(error.stack ?? error);await page.evaluate(() => baseline?.destroy()).catch(() => {});}
+    finally {clearTimeout(deadline);await browser.close();await save();console.log(JSON.stringify({key: row.key, passed: row.passed, error: row.error}));}
+  }
+} finally {server.closeAllConnections();await new Promise(resolve => server.close(resolve));const saved=await Promise.allSettled(snapshots);report.snapshotErrors=saved.filter(result=>result.status==='rejected').map(result=>String(result.reason));report.finishedAt = new Date().toISOString();report.passed = !report.snapshotErrors.length&&report.cases.length === rows.length && report.cases.every(c => c.passed);await save();}
+process.exit(report.passed ? 0 : 1);

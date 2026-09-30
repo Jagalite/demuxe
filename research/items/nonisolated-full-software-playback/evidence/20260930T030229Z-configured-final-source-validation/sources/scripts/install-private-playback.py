@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+"""Install a distinct provenance-bound private Software candidate in a fresh root."""
+import argparse
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import shutil
+import subprocess
+
+ROOT = Path(__file__).resolve().parents[1]
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def install(build, runtime_root):
+    record = json.loads((build / 'build.json').read_text())
+    if record.get('status') != 'built_candidate_only' or record.get('dependencyProfile') != 'playback':
+        raise ValueError('Successful private playback build required')
+    deps = Path(record['dependencyPath'])
+    if digest(deps / 'build-result.json') != record['dependencyRecordSHA256']:
+        raise ValueError('Playback dependency record drift')
+    spec = importlib.util.spec_from_file_location('private_provenance', ROOT / 'experiments/jspi-asyncify/mpv/scripts/provenance.py')
+    provenance = importlib.util.module_from_spec(spec);spec.loader.exec_module(provenance)
+    dependency = json.loads((deps / 'build-result.json').read_text())
+    provenance.verify_dependencies(deps, Path(dependency['toolchain']['sdk']))
+    if dependency['profile'] != 'playback':
+        raise ValueError('Wrong playback dependency profile')
+    for name, wanted in record['adaptedSourceSHA256'].items():
+        if digest(build / 'inputs' / name) != wanted:
+            raise ValueError('Playback link input drift: ' + name)
+    names = ['playback.mjs', 'playback.wasm', 'playback.asyncify.wasm']
+    for name in names:
+        if digest(build / name) != record['artifacts'][name]:
+            raise ValueError('Playback artifact drift: ' + name)
+    targets = [runtime_root / 'web' / ('engine-mpv-playback-' + backend) for backend in ('jspi', 'asyncify')]
+    if any(target.exists() for target in targets):
+        raise ValueError('Refusing to replace installed playback assets')
+    auditor = build / 'inputs/experiments/jspi-asyncify/scripts/audit-wasm.mjs'
+    for backend in ('jspi', 'asyncify'):
+        subprocess.run(['node', str(auditor), str(build / ('playback.asyncify.wasm' if backend == 'asyncify' else 'playback.wasm')), *(['--asyncify'] if backend == 'asyncify' else [])], check=True, capture_output=True)
+    for backend, target in zip(('jspi', 'asyncify'), targets):
+        target.mkdir(parents=True)
+        sources = {'player.mjs': 'playback.mjs', 'player.wasm': 'playback.asyncify.wasm' if backend == 'asyncify' else 'playback.wasm'}
+        for dest, source in sources.items():
+            shutil.copyfile(build / source, target / dest)
+        (target / 'manifest.json').write_text(json.dumps({
+            'schema': 1, 'backend': backend, 'profile': 'playback',
+            'audioCapacity': record.get('audioCapacity', 8192),
+            'buildRecordSHA256': digest(build / 'build.json'),
+            'files': {dest: digest(build / source) for dest, source in sources.items()},
+            'qualification': 'Experimental finite Software candidate; public qualification pending',
+        }, indent=2) + '\n')
+        print(target)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--build', type=Path, required=True)
+    parser.add_argument('--runtime-root', type=Path, required=True)
+    args = parser.parse_args()
+    install(args.build.resolve(), args.runtime_root.resolve())

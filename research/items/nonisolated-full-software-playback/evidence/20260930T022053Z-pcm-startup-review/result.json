@@ -1,0 +1,19 @@
+{
+  "scope": "PCM startup-order and ring-view regression reproduced before correction",
+  "passed": false,
+  "finishedAt": "2026-09-30T02:20:57.746244+00:00",
+  "command": [
+    "node",
+    "--test",
+    "tests/private-playback-pcm.mjs"
+  ],
+  "observations": [
+    "Reset acknowledgment posts running=true while native write counter is zero",
+    "State is posted before available PCM messages",
+    "Float32 ring view is capacity*8 elements rather than capacity*2 stereo elements; exact-size heap exposes RangeError"
+  ],
+  "browser_failure": "20260930T021202Z-mpeg4-mp3-01/result.json: Chrome Asyncify epoch 10 has two underruns at read=written=0",
+  "limits": [
+    "Ordering is a concrete startup defect; it does not establish a cause for earlier multi-second pauses or all Firefox failures."
+  ]
+}

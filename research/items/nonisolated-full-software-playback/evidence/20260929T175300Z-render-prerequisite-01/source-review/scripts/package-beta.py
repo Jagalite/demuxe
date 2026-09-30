@@ -1,0 +1,180 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+"""Build an offline-installable beta candidate, without asserting release qualification."""
+import argparse,gzip,hashlib,io,json,pathlib,subprocess,tarfile,re
+from license_policy import Policy, LEGAL, encoded
+from private_remux_assets import private_remux_assets, private_mpv_assets, verify_private_release, verify_private_mpv_release
+root=pathlib.Path(__file__).resolve().parent.parent
+p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,default=root/'build/beta');p.add_argument('--yuv',action='store_true');p.add_argument('--release-tag');p.add_argument('--adaptation-build',type=pathlib.Path);p.add_argument('--mpv-subtitles',action='store_true');args=p.parse_args()
+# The switch remains accepted for older automation. A standard local candidate
+# includes the service whenever its built runtime assets are present.
+mpv_subtitles=args.mpv_subtitles or all((root/'web/engine-subtitles'/('service.'+ext)).is_file() for ext in ('mjs','wasm'))
+project=json.loads((root/'package.json').read_text())
+source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()
+dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=root))
+source_archive=None;optional_sources=[]
+if args.release_tag:
+ if dirty:raise SystemExit('Release packaging requires a clean source checkout')
+ if subprocess.check_output(['git','rev-parse',f'refs/tags/{args.release_tag}^{{commit}}'],cwd=root,text=True).strip()!=source_commit:raise SystemExit('Release tag must identify HEAD')
+ if not args.adaptation_build or not mpv_subtitles:raise SystemExit('Tagged release requires fresh optional preparation and mpv subtitle builds to retain published playback capability')
+if project.get('license') != 'Apache-2.0' or not (root/'LICENSE').is_file():raise SystemExit('Select and include the Apache original-code license before packaging')
+build_path=root/'build/beta-build.json'
+if not build_path.is_file():raise SystemExit('Packaging requires a completed LGPL engine build record')
+build=json.loads(build_path.read_text())
+if args.release_tag and not build['clean']:raise SystemExit('Release requires a completed clean engine build')
+private_files={**private_remux_assets(root),**private_mpv_assets(root)}
+if args.release_tag:
+ verify_private_release(private_files,build)
+ verify_private_mpv_release(private_files,build)
+for group in ['inputs','configurations','artifacts']:
+ for name,expected in build[group].items():
+  digest=expected['sha256'] if isinstance(expected,dict) else expected
+  if hashlib.sha256((root/name).read_bytes()).hexdigest()!=digest:raise SystemExit('Build record mismatch: '+name)
+subprocess.run(['python3',str(root/'scripts/verify-lgpl-closure.py')],cwd=root,check=True)
+if build.get('licensingEvidence')!=json.loads((root/'build/lgpl-closure.json').read_text()):raise SystemExit('LGPL closure differs from completed engine build')
+if mpv_subtitles and 'web/engine-subtitles/service.wasm' not in build['artifacts']:raise SystemExit('Subtitle service has no matching LGPL build record')
+if args.release_tag:
+ # Optional assets remain subject to clean source correspondence here and
+ # mandatory exact-archive optional evidence in verify-beta-release.py.
+ sdk=pathlib.Path(build['sdk'])
+ for name,digest in build['sdkSources'].items():
+  if hashlib.sha256((sdk/'upstream/emscripten'/name).read_bytes()).hexdigest()!=digest:raise SystemExit('SDK source changed: '+name)
+ for tool in build['sharedTools'].values():
+  if hashlib.sha256(pathlib.Path(tool['path']).read_bytes()).hexdigest()!=tool['sha256']:raise SystemExit('Build tool changed: '+tool['path'])
+ for group in ['inputs','configurations','artifacts']:
+  for name,expected in build[group].items():
+   digest=expected['sha256'] if isinstance(expected,dict) else expected
+   if hashlib.sha256((root/name).read_bytes()).hexdigest()!=digest:raise SystemExit('Build record mismatch: '+name)
+ for item in json.loads((root/'sources.lock.json').read_text())['sources']:
+  if hashlib.sha256((root/'build/downloads'/(item['name']+'.tar.gz')).read_bytes()).hexdigest()!=item['sha256']:raise SystemExit('Source archive mismatch: '+item['name'])
+ subprocess.run(['python3',str(root/'scripts/package-beta-source.py'),'--output',str(args.output),'--tag',args.release_tag],check=True)
+ source_path=args.output/f"{project['name']}-{project['version']}-source.tar.gz"
+ source_archive={'filename':source_path.name,'sha256':hashlib.sha256(source_path.read_bytes()).hexdigest(),'bytes':source_path.stat().st_size}
+
+subprocess.run(['node',str(root/'scripts/copy-shaka-assets.mjs')],cwd=root,check=True)
+subprocess.run(['python3',str(root/'scripts/check-licenses.py')],cwd=root,check=True)
+license_policy=Policy(root)
+# The default auto policy needs both private runtimes on non-isolated hosts.
+# Local installation verifies original build records; assembly rechecks every byte.
+files=dict(private_files)
+def add(name):
+ f=root/name
+ if not f.is_file():raise SystemExit('Missing runtime asset: '+name)
+ files[name]=f.read_bytes()
+# Parse real JS/declaration imports; runtime asset URLs are not module imports.
+for name in json.loads(subprocess.check_output(['node',str(root/'scripts/generated-runtime-files.mjs'),str(root)],text=True)):
+ add(name)
+for name in ['mpv-subtitle-worker.js','audio-worklet.js','selective-sync-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','external-video-decoder.js','video-presenter.js','webgl-yuv-presenter.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','fallback-stream-policy.js','split-mp4.js','native-remux-player.js','worker-remux-controller.js','native-mse-worker.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','hybrid-preflight.js','prepared-engine.js','fast-source-inspector.js','selected-mp4-view.js','progressive-mp4.js','video-codec-config.js','remux-packaging.js']:
+ add('web/'+name)
+add('web/yuv-presenter.js')
+for name in ['codecs/registry.js','codecs/adapter.js','runtime.js','mailbox-service.js','presenter.js','diagnostics.js']:
+ add('web/webgpu/'+name)
+add('web/generated/internal/webgpu-codecs.js')
+# Registered codec modules and shaders are included only when qualified.
+registry=(root/'src/internal/webgpu-codecs.ts').read_text()
+match=re.search(r'qualifiedWebGPUCodecs:[^=]+\s*=\s*Object\.freeze\(\s*(\{.*?\})\s*\)\s*;',registry,re.S)
+if not match:raise SystemExit('Invalid qualified WebGPU codec registry')
+registered=json.loads(match.group(1))
+for entry in registered.values():
+ for relative in [entry['module'],*entry['assets']]:
+  path=(root/'web/webgpu/codecs'/relative).resolve()
+  if not path.is_relative_to(root/'web/webgpu/codecs') or not path.is_file():raise SystemExit('Invalid qualified WebGPU codec asset: '+relative)
+  add(str(path.relative_to(root)))
+for name in json.loads((root/'third_party/shaka-player.json').read_text())['files']:add(name)
+engines={'remux':('engine-remux','remux'),'hybrid':('engine-hybrid','player'),'selective':('engine-selective','player'),'software':('engine-software-yuv','player'),'software-rgb':('engine-software-full','player')}
+if mpv_subtitles:engines['subtitles']=('engine-subtitles','service')
+for backend in ['jspi','asyncify']:
+ for profile in ['remux','adaptation']:engines[profile+'-'+backend]=('engine-'+profile+'-'+backend,'remux')
+if any(n.startswith('web/engine-mpv-') for n in private_files):
+ for backend in ['jspi','asyncify']:
+  for profile in ['subtitles','audio']:engines[f'mpv-{profile}-{backend}']=(f'engine-mpv-{profile}-{backend}','service')
+if args.adaptation_build:
+ adaptation=args.adaptation_build.resolve();record=json.loads((adaptation/'manifest.json').read_text())
+ if record.get('apiVersion')!=2:raise SystemExit('Preparation interface mismatch; rebuild matching assets')
+ if args.release_tag and not record.get('cleanSourceBuild'):raise SystemExit('Release preparation requires clean preferred-source verification')
+ preparation_verification=None
+ if record.get('cleanSourceBuild'):
+  preparation_verification=json.loads(subprocess.check_output(['python3',str(root/'scripts/verify-audio-adaptation-build.py'),str(adaptation)],text=True))
+ if record.get('linkSettings',{}).get('firstFragmentSeconds',0.5)!=0.5:raise SystemExit('Nondefault first-fragment sizing failed timestamp qualification; packaging is blocked')
+ if args.release_tag and (not record['inputs'].get('opus') or not record['inputs'].get('flac24')):raise SystemExit('Tagged release requires FLAC24 plus the published FLAC and explicit Opus preparation profiles')
+ for filename in ['remux.mjs','remux.wasm']:
+  expected=record['files'][str(adaptation/filename)]['sha256'];data=(adaptation/filename).read_bytes()
+  if hashlib.sha256(data).hexdigest()!=expected:raise SystemExit('Adaptation artifact hash mismatch: '+filename)
+  files['web/engine-adaptation/'+filename]=data
+ # Keep full preferred FFmpeg source, applied patches and build materials beside
+ # the local binary package. This is not release/source qualification.
+ args.output.mkdir(parents=True,exist_ok=True)
+ source_out=args.output/'demuxe-audio-adaptation-source.tar.gz'
+ optional_sources.append(source_out)
+ source_root=next((adaptation.parent/'source').iterdir())
+ with tarfile.open(source_out,'w:gz') as archive:
+  archive.add(source_root,arcname='ffmpeg')
+  archive.add(adaptation/'sources',arcname='demuxe')
+  source_checkout=pathlib.Path(next(k for k in record['files'] if k.endswith('/native/remux/remux.c'))).parents[2]
+  for name in ['patches/ffmpeg','patches/ffmpeg-adaptation','sources.lock.json','toolchain.lock.json']:
+   archive.add(source_checkout/name,arcname='demuxe/'+name)
+  archive.add(adaptation/'manifest.json',arcname='build-manifest.json')
+  for name in LEGAL:archive.add(root/name,arcname='demuxe/'+name)
+  archive.add(adaptation.parent/'inputs.json',arcname='locked-inputs.json')
+  archive.add(adaptation.parent/'ffmpeg/config.h',arcname='build/config.h')
+  archive.add(adaptation.parent/'ffmpeg/ffbuild/config.mak',arcname='build/config.mak')
+  archive.add(adaptation/'remux.map',arcname='build/remux.map')
+  if preparation_verification:
+   archive.add(adaptation.parent/'preferred-source-hashes.json',arcname='preferred-source-hashes.json')
+   archive.add(adaptation.parent/'ffmpeg/config_components.h',arcname='build/config_components.h')
+   archive.add(root/'scripts/verify-audio-adaptation-build.py',arcname='demuxe/scripts/verify-audio-adaptation-build.py')
+ files['web/engine-adaptation/manifest.json']=(json.dumps({'apiVersion':2,'sourceBuildVerification':preparation_verification,'inputs':record['inputs'],'files':{pathlib.Path(k).name:v for k,v in record['files'].items() if pathlib.Path(k).suffix in ['.mjs','.wasm']},'sourceCompanion':{'filename':source_out.name,'sha256':hashlib.sha256(source_out.read_bytes()).hexdigest()},'profiles':['flac']+(['opus'] if record['inputs'].get('opus') else [])+(['flac24'] if record['inputs'].get('flac24') else []),'linkSettings':record.get('linkSettings',{}),'qualification':'qualified file profiles; automatic FLAC24 requires source admission; integer FLAC and Opus remain explicit; Opus requires lossy permission'},indent=2)+'\n').encode()
+ for name in ['COPYING.LGPLv2.1','LICENSE.md']:
+  files['third_party/notices/ffmpeg-adaptation/'+name]=(source_root/name).read_bytes()
+for folder,stem in engines.values():
+ for ext in ['mjs','wasm']:
+  name=f'web/{folder}/{stem}.{ext}'
+  if name not in files:add(name)
+for name in ['fixtures/DejaVuSans.ttf','fixtures/FONT-LICENSE.txt','sources.lock.json','toolchain.lock.json','docs/BETA.md','docs/CAPABILITIES.md','docs/SOFTWARE-YUV-PRESENTER.md','docs/INTEGRATION.md','docs/COMPATIBILITY-EXPANSION.md','docs/LICENSING.md','docs/LGPL-RELINK.md','docs/UPSTREAM-MODIFICATIONS.md','docs/RELEASE.md']:add(name)
+files['docs/CAPABILITIES.md']=re.sub(rb'/(?:Users|Volumes|private/var)/[^\s`]+',b'[local evidence path omitted from runtime package]',files['docs/CAPABILITIES.md'])
+for name in LEGAL:add(name)
+if build:
+ # Absolute host paths belong in the source companion, not the installed runtime.
+ public_build={k:v for k,v in build.items() if k not in ['sdk','sharedTools']}
+ public_build['sharedTools']={name:{k:v for k,v in tool.items() if k!='path'} for name,tool in build['sharedTools'].items()}
+ files['engine-build.json']=(json.dumps(public_build,indent=2)+'\n').encode()
+for f in sorted((root/'third_party').rglob('*')):
+ if f.is_file():add(str(f.relative_to(root)))
+for name in ['bin/demuxe.mjs','docs/PUBLIC-API.md','docs/OPTIMIZATION-INTEGRATION.md','docs/OPTIMIZATION-COMPLETION.md','docs/OPTIMIZATION-FLAC.md','docs/OPTIMIZATION-REVIEW-FIXES.md','docs/PUBLIC-API-VALIDATION.md','docs/PLAYER-COMPONENT.md','docs/API-MIGRATION.md','docs/BRANDING-MIGRATION.md','docs/RUNTIME-ASSETS.md','docs/NON-ISOLATED-REMUX.md','docs/REMUX-RUNTIME.md','docs/PRIVATE-MPV-PLAYER.md','docs/PLAYBACK-TIER-POLICY.md','docs/PRODUCTION-PIPELINE.md','docs/STREAMING-ARCHITECTURE.md','examples/custom-controls.html','examples/player-element.html']:add(name)
+# The review report keeps local evidence locations in the repository only.
+report='docs/OPTIMIZATION-INTEGRATION.md'
+files[report]=re.sub(rb'/(?:Users|Volumes|private/var)/[^\s`]+',b'[local evidence path omitted from runtime package]',files[report])
+files['player.js']=b"// SPDX-License-Identifier: Apache-2.0\nexport * from './web/generated/player/index.js';\n"
+files['player.d.ts']=b"// SPDX-License-Identifier: Apache-2.0\nexport * from './web/generated/player/index.js';\n"
+files['index.js']=b"// SPDX-License-Identifier: Apache-2.0\nexport * from './web/generated/index.js';\n"
+files['index.d.ts']=b"// SPDX-License-Identifier: Apache-2.0\nexport * from './web/generated/index.js';\n"
+files['README.md']=(root/'README.md').read_bytes()
+for name in ['RELEASE.md','LICENSING.md','COMPATIBILITY-EXPANSION.md']:
+ files['README.md']=files['README.md'].replace((']('+name+')').encode(),('](docs/'+name+')').encode())
+package={'name':project['name'],'version':project['version'],'license':'Apache-2.0','demuxeLicenses':license_policy.config['packageLicenses'],'type':'module','main':'./index.js','types':'./index.d.ts','exports':{'.':{'types':'./index.d.ts','import':'./index.js'},'./player':{'types':'./player.d.ts','import':'./player.js'},'./release-manifest.json':'./release-manifest.json'},'bin':{project['name']:'./bin/demuxe.mjs'},'description':'Browser media compatibility runtime: Native, Hybrid, Software'}
+package.update({key:project[key] for key in ['description','repository','bugs','homepage','keywords']})
+for name,entry in project['exports'].items():
+ if name not in ('.','./player'):package['exports'][name]=entry
+package['exports']['./package.json']='./package.json'
+files['package.json']=(json.dumps(package,indent=2)+'\n').encode()
+files['license-map.json']=encoded(license_policy.package_map(files,'player'))
+license_policy.check_package(files,'player')
+manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':[*(['native-direct-mpv'] if mpv_subtitles else []),'native-direct',*(['native-remux-mpv'] if mpv_subtitles else []),'native-remux','shaka-mse','hybrid','software'],'adaptiveStreaming':{'backend':'shaka-mse','version':project['dependencies']['shaka-player'],'assets':'third_party/shaka-player.json','lazy':True},'engines':engines,'optionalQualificationRequired':bool(args.adaptation_build or mpv_subtitles),'defaultSoftwarePresenter':'auto','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'softwareYUV':'Qualified decoded-frame subset only; see docs/SOFTWARE-YUV-PRESENTER.md'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
+files['release-manifest.json']=(json.dumps(manifest,indent=2)+'\n').encode()
+# Reject host-specific paths and credential material, including strings in Wasm.
+for name,data in files.items():
+ if str(root).encode() in data or re.search(rb'/(?:Users|Volumes|private/var)/',data):raise SystemExit('Local build path leaked into package: '+name)
+ if re.search(rb'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',data):raise SystemExit('Private key material in package: '+name)
+args.output.mkdir(parents=True,exist_ok=True);out=args.output/f"{package['name']}-{package['version']}.tgz"
+with out.open('wb')as f:
+ with gzip.GzipFile(filename='',mode='wb',fileobj=f,mtime=0)as gz:
+  with tarfile.open(fileobj=gz,mode='w',format=tarfile.PAX_FORMAT)as tar:
+   for name,data in sorted(files.items()):
+    info=tarfile.TarInfo('package/'+name);info.size=len(data);info.mode=0o755 if name=='bin/demuxe.mjs' else 0o644;info.mtime=0;tar.addfile(info,io.BytesIO(data))
+(args.output/'release-manifest.json').write_bytes(files['release-manifest.json'])
+digest=hashlib.sha256(out.read_bytes()).hexdigest()
+lines=[f'{digest}  {out.name}']
+for companion in optional_sources:lines.append(f'{hashlib.sha256(companion.read_bytes()).hexdigest()}  {companion.name}')
+if source_archive:lines.append(f"{source_archive['sha256']}  {source_archive['filename']}")
+(args.output/'SHA256SUMS').write_text('\n'.join(lines)+'\n')
+print(out);print(digest)
