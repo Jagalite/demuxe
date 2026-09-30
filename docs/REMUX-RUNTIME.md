@@ -60,8 +60,8 @@ Browser-direct, browser gain and Shaka retain their existing requirements.
 The separate cooperative playback profile adds Software video decoding and Hybrid
 browser video decoding with mpv audio. Its full assets support the qualified
 finite-file codecs, resampling/downmixing, subtitles/fonts and filters described
-in [non-isolated completion](NONISOLATED-PLAYBACK-COMPLETION.md). Production
-qualification remains in progress. Selecting a runtime does not bypass source,
+in [non-isolated completion](NONISOLATED-PLAYBACK-COMPLETION.md), including the
+completed Chromium/Firefox package checks. Selecting a runtime does not bypass source,
 feature, asset or browser decoder checks. The restricted native-video/PCM service
 above retains its own contract; see [private mpv Player qualification](PRIVATE-MPV-PLAYER.md).
 

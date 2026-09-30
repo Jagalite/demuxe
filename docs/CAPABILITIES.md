@@ -354,8 +354,8 @@ instead of being silently dropped. Source and permission failures are terminal.
 Prepared Native, Hybrid and Software require matching Wasm/worker assets.
 Pthread components require cross-origin isolation. Matching JSPI/Asyncify assets
 provide non-isolated file remux, audio/subtitle services and cooperative finite-file
-Hybrid/Software playback. The full playback candidate is still undergoing
-[production qualification](NONISOLATED-PLAYBACK-COMPLETION.md); the codec matrix
+Hybrid/Software playback. The full playback candidate has completed the agreed
+[functional package qualification](NONISOLATED-PLAYBACK-COMPLETION.md); the codec matrix
 above does not independently qualify every row on each runtime. Native Direct
 and Shaka remain available without isolation where their browser/source
 requirements are met. Deployment failure is not codec incompatibility. See

@@ -131,8 +131,8 @@ otherwise JSPI when supported or Asyncify. Qualified non-isolated paths cover
 file remuxing, FLAC24 audio transcoding, embedded subtitles and restricted
 48 kHz stereo PCM16 audio. Cooperative Software and Hybrid additionally cover
 qualified finite files with matching full playback assets, including
-resampling/downmixing, subtitles, fonts and filters. Production qualification
-is still in progress. See
+resampling/downmixing, subtitles, fonts and filters. The agreed Chromium/Firefox
+functional package checks have passed. See
 [non-isolated playback completion](docs/NONISOLATED-PLAYBACK-COMPLETION.md) and
 [runtime selection and qualification](docs/REMUX-RUNTIME.md) for exact limits;
 these paths require a matching verified build.

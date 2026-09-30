@@ -2,8 +2,16 @@
 # Non-isolated playback production completion
 
 The user authorized committing the existing foundation and completing and testing
-this feature for production on 2026-09-30. Work continues in
-`codex/nonisolated-software-20260929`. The foundation is commit `24a3a9bf`.
+this feature for production on 2026-09-30. The implementation and agreed functional
+package gates are complete on `codex/nonisolated-software-20260929`; the internal
+qualification branch is `codex/nonisolated-production-20260930`. The foundation
+is commit `24a3a9bf`.
+
+**Final status:** 99 exact-package browser checks passed, with source/build, license
+and isolated-engine correspondence verified. See [Final package qualification](#final-package-qualification).
+The earlier checkpoint notes below retain historical pending and rejected results;
+the final section supersedes their status. No push, merge into main or deployment
+was performed.
 
 ## Completion contract
 
@@ -83,7 +91,7 @@ New evidence includes `20260930T1530-audio-public-01`,
 `20260930T1600-tracks-backend-01`, and `20260930T1552-tracks-public-01`. Some directory IDs were estimated during
 the run; each result's `startedAt` is the authoritative execution timestamp.
 
-## Qualification status before final packaging
+## Historical checkpoint before final packaging
 
 - HDR-to-SDR now passes PQ and HLG cadence, consumed PCM and independent RGB
   reference checks with both LUT implementations. PQ presented 179/180 and
@@ -224,3 +232,60 @@ remain separate and passed earlier.
 
 - `20260930T190442Z-isolated-patched-01`
 - `20260930T190717Z-isolated-patched-02`
+
+
+## Final package qualification
+
+The immutable runtime archive is bound to source commit
+`13643784d3863fd0d8f57cf85710397378303ef8` and local tag
+`qualification/nonisolated-20260930-03`. The subsequent licensing-rule reorder
+changes no runtime files or license assignments. The archive and corresponding
+source are retained in `final-package-04` under the external evidence root.
+
+| Gate | Accepted result |
+| --- | --- |
+| Firefox 146.0.1 offline package consumer | 32/32: public import/typecheck, Native/pthread routes, Asyncify Software/Hybrid, controls, replacement, cancellation and corrupt assets; unavailable JSPI is an expected negative case |
+| Chromium 152 T3 public codec/HDR matrix | 24/24: H.264, HEVC, VP8, VP9 and AV1; PQ/HLG Software; JSPI and Asyncify |
+| Firefox public Software codec/HDR matrix | 7/7 |
+| Consumed PCM, both audio tracks and EOF | Chromium 4/4, Firefox 2/2; 567,808 samples compared per track with zero RMS/peak error and no interior underruns |
+| Custom fonts and plain subtitles | Chromium 4/4, Firefox 2/2 |
+| Embedded subtitles | Chromium 24/24: SRT, mov_text, ASS, PGS, VobSub and multiple SRT tracks across both modes/runtimes |
+| Runtime/source correspondence | All 331 installed runtime files verified; all 12,727 source-companion files verified, including 225 native inputs, 409 configurations and 8,562 SDK source files |
+| Licensing and isolated regression | Standalone source license/core checks pass; isolated RGB/YUV/Hybrid binaries exactly match the accepted six-case EOF/track regression |
+
+Runtime SHA-256:
+`52a506e3bd8a4a13366b00cd4217e4e7cb32e2be305231b915ed8d10c1e0c81a`.
+Source SHA-256:
+`4d9b98179b15c1d2cbb172a68b4382a27fe6e9e9ebe953894f96ff91c7af1f75`.
+
+Canonical evidence: [qualification receipt](../research/items/nonisolated-full-software-playback/evidence/20260930-final-package-04/qualification.json).
+The failed earlier package attempts and browser assertions remain beside the final
+results. Package checks found host paths in libxml2's catalog default and copied
+subtitle-renderer filenames; stable CMake configuration and compiler prefix maps
+fixed both. `npm run check:build-portability` now exercises the actual recipes
+before a media build, including negative controls, and binary scanning runs before
+source archive creation. Firefox exposed an unrequested private Hybrid plan being
+reported as missing deployment when cooperative runtimes were disabled; admission
+ordering and a focused regression now preserve the intended rejection. HEAD asset
+availability probes are distinguished from downloading an engine. AudioContext
+checks wait for a bounded acknowledgement and record latency instead of sampling
+a fixed delay; the original rejected assertion is retained.
+
+The tested branch includes main `954729d7`. Main advanced to `5759d3e6` during
+qualification. A read-only merge preview is conflict-free after the nonoverlapping
+license-rule reorder, and that combined source passed TypeScript and 55 focused
+routing/provider/preparation tests. This preview does not change the qualified
+archive's source identity or claim a separately qualified merged binary.
+
+### Qualification limits
+
+This completes the agreed finite-file implementation and functional package gates.
+It does not relabel every historical README row as independently tested under each
+runtime. Full CPU benchmarks were excluded. Existing finite-source, resource,
+codec/feature admission and browser requirements still apply. The retained 4K
+continuous qualification is 5 fps, not higher frame rates; physical surround/HDR
+output and other browser versions are not established by these runs. Firefox's
+forced Hybrid HEVC configuration remains unsupported in the tested browser; its
+Software path passes. Browser-native and Shaka keep their own source contracts.
+The standard package manifest retains its beta-candidate status; this work did not
+publish a release or deploy production.
