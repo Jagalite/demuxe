@@ -123,10 +123,10 @@ export class Player extends EventTarget {
         this.promotionRunning=true;
         try{for(const plan of preferredPlans(plans,current)){
           if(!settings.pause&&plan.mode!=='native')continue;
-          if(this.tierAttempts.reason(source,this.tierConfiguration(settings),plan.id))continue;
+          if(this.tierAttempts.reason(source,this.tierConfiguration(settings),plan.id)||this.tierAttempts.promotionDeferred(source,this.tierConfiguration(settings),plan.id))continue;
           this.assertOperation();
           try{await this.replace(source,plan.mode,settings,true,this.nativeTracks,undefined,true,plan.id);return;}
-          catch(error){if(compatibilityFailure(error))this.tierAttempts.failure(source,this.tierConfiguration(settings),plan.id,String(error));else return;}
+          catch(error){if(error instanceof StartupEvidenceTimeout)this.tierAttempts.deferPromotion(source,this.tierConfiguration(settings),plan.id);if(compatibilityFailure(error))this.tierAttempts.failure(source,this.tierConfiguration(settings),plan.id,String(error));else return;}
         }}finally{this.promotionRunning=false;}
       },'switching',controller.signal,true).catch(()=>{}).finally(()=>{if(this.promotionController===controller)this.promotionController=undefined;});
     },200);
@@ -1153,6 +1153,7 @@ export class Player extends EventTarget {
         return;
       }catch(error){
         const compatible=compatibilityFailure(error);
+        if(error instanceof StartupEvidenceTimeout)this.tierAttempts.deferPromotion(source,this.tierConfiguration(settings),plan.id);
         // An inspected local File has no remote transport to retry or bypass.
         // A direct parser readiness deadline may try the already-admitted remux
         // route once, without caching a codec failure or broadening admission.

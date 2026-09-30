@@ -48,7 +48,7 @@ export const presentationStyles = `
 .shell[data-layout=playground] .time{font:11px ui-monospace,monospace;text-shadow:none}
 .shell[data-layout=playground] .queue-navigation{width:100%;justify-content:center;border-top:1px solid var(--demuxe-border);padding-top:4px}
 .shell[data-layout=playground] .settings{top:64px;bottom:auto;right:12px;width:320px;max-height:calc(100% - 80px)}
-.shell[data-layout=playground] .empty{background:radial-gradient(ellipse at 50% 25%,color-mix(in srgb,var(--demuxe-accent) 8%,transparent),transparent 65%);width:100%}
+.shell[data-layout=playground] .empty{width:100%}
 /* Chrome sits outside the picture and stays usable even while playback is idle. */
 .shell[data-layout=playground].idle{cursor:auto}
 .shell[data-layout=playground].idle .topbar,.shell[data-layout=playground].idle .controls,.shell[data-layout=playground].idle .transport,.shell[data-layout=playground].idle .controls .timeline,.shell[data-layout=playground].idle .controls .times{opacity:1;translate:none;pointer-events:auto}

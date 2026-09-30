@@ -39,3 +39,13 @@ test('mpv subtitles are a distinct finite local isolated copy plan',()=>{
  for(const extra of [{mpvSubtitles:false},{mpvSubtitleSourceQualified:false},{isolated:false},{manifest:true},{externalFormats:['ass']},{audioOutput:'5.1'},{gain:.5},{vf:'hflip'},{nativeRemux:'never'},{mpvSubtitleAVRejection:'Missing selected audio'},{remuxSourceRejection:'No codec mapping'}])assert.equal(admitted(extra),false);
  assert.equal(executionPlan('native','remux-mpv','').owners.subtitle,'mpv-subtitle-service');
 });
+
+test('startup deadlines defer only optional promotion for the source and settings until cleared',()=>{
+ const history=new TierAttempts(),source={};history.deferPromotion(source,'captions','native-direct-mpv');
+ assert.equal(history.promotionDeferred(source,'captions','native-direct-mpv'),true);
+ assert.equal(history.reason(source,'captions','native-direct-mpv'),undefined);
+ for(const args of [[{},'captions','native-direct-mpv'],[source,'hidden','native-direct-mpv'],[source,'captions','native-remux-mpv']])assert.equal(history.promotionDeferred(...args),false);
+ for(let i=0;i<65;i++)history.deferPromotion(source,String(i),'native-direct-mpv');
+ assert.equal(history.promotionDeferred(source,'captions','native-direct-mpv'),false);
+ history.clear();assert.equal(history.promotionDeferred(source,'64','native-direct-mpv'),false);
+});

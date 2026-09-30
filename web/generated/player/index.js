@@ -340,6 +340,7 @@ export class DemuxePlayerElement extends Base {
     openingStage = '';
     openingOperation = null;
     diagnosticsUpdated = 0;
+    diagnosticsTimer;
     dragging = false;
     dimensions = '';
     trackSignature = '';
@@ -474,6 +475,8 @@ export class DemuxePlayerElement extends Base {
             this.hoverPreview.hide();
             clearTimeout(this.hideTimer);
             clearTimeout(this.seekPreviewTimer);
+            clearTimeout(this.diagnosticsTimer);
+            this.diagnosticsTimer = undefined;
             this.sourceVersion++;
             this.sourceAbort?.abort();
             this.resetQueue();
@@ -611,6 +614,8 @@ export class DemuxePlayerElement extends Base {
             return this.cleanup;
         clearTimeout(this.hideTimer);
         clearTimeout(this.seekPreviewTimer);
+        clearTimeout(this.diagnosticsTimer);
+        this.diagnosticsTimer = undefined;
         this.terminal = true;
         this.connection++;
         this.sourceVersion++;
@@ -751,14 +756,24 @@ export class DemuxePlayerElement extends Base {
         this.geometry(state);
         this.updateDiagnostics();
     }
-    setDiagnostics(show) { show = show && this.showDiagnostics && this.controls; this.$('diagnostics-overlay').hidden = !show; this.$('diagnostics-toggle').setAttribute('aria-pressed', String(show)); this.iconButton('diagnostics-toggle', show ? 'eyeOff' : 'eye', this.labels.diagnostics); if (show)
+    setDiagnostics(show) { show = show && this.showDiagnostics && this.controls; if (!show) {
+        clearTimeout(this.diagnosticsTimer);
+        this.diagnosticsTimer = undefined;
+    } this.$('diagnostics-overlay').hidden = !show; this.$('diagnostics-toggle').setAttribute('aria-pressed', String(show)); this.iconButton('diagnostics-toggle', show ? 'eyeOff' : 'eye', this.labels.diagnostics); if (show)
         this.updateDiagnostics(true); }
     updateDiagnostics(force = false) {
         if (this.$('diagnostics-overlay').hidden || !this.core)
             return;
         const now = performance.now();
-        if (!force && now - this.diagnosticsUpdated < 500)
+        if (!force && now - this.diagnosticsUpdated < 500) {
+            // Paused playback may emit no more updates after an operation settles.
+            // Flush the latest snapshot at the throttle boundary rather than leaving
+            // the last transient operation visible indefinitely.
+            this.diagnosticsTimer ??= setTimeout(() => { this.diagnosticsTimer = undefined; this.updateDiagnostics(true); }, 500 - (now - this.diagnosticsUpdated));
             return;
+        }
+        clearTimeout(this.diagnosticsTimer);
+        this.diagnosticsTimer = undefined;
         this.diagnosticsUpdated = now;
         const s = this.core.state, d = this.core.diagnostics, m = s.mediaInfo;
         const lines = [this.labels.diagnostics, `Engine  ${s.activeMode ?? '—'} · ${s.automaticSelection ? 'automatic' : 'manual'}`, `State   ${s.status}${s.pendingOperation ? ' · ' + s.pendingOperation.kind : ''}`, `Time    ${formatTime(s.currentTime)} / ${s.streamType === 'live' ? this.labels.live : s.duration === null ? '—' : formatTime(s.duration)} · ${s.playbackRate}×`, `Video   ${m.video?.codec ?? '—'} · ${m.displayWidth ?? '—'} × ${m.displayHeight ?? '—'}`, `Audio   ${m.audio?.codec ?? '—'} · ${s.muted ? 'muted' : Math.round(s.volume * 100) + '%'}`];

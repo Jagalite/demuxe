@@ -255,6 +255,7 @@ export class DemuxePlayerElement extends Base {
   private openingStage='';
   private openingOperation:number|null=null;
   private diagnosticsUpdated=0;
+  private diagnosticsTimer?:ReturnType<typeof setTimeout>;
   private dragging=false;
   private dimensions='';
   private trackSignature='';
@@ -315,7 +316,7 @@ export class DemuxePlayerElement extends Base {
   }
   disconnectedCallback(){const token=++this.connection;queueMicrotask(()=>{
     if(this.isConnected||token!==this.connection||this.terminal)return;
-    this.hoverPreview.hide();clearTimeout(this.hideTimer);clearTimeout(this.seekPreviewTimer);this.sourceVersion++;this.sourceAbort?.abort();this.resetQueue();this.lastSource=undefined;this.lastOptions=undefined;this.sourceName='';this.sourceNameId=null;this.updateTitle();this.unsubscribe?.();this.resizeObserver?.disconnect();document.removeEventListener('fullscreenchange',this.fullscreenChanged);document.removeEventListener('pointerdown',this.dismissMenu,true);
+    this.hoverPreview.hide();clearTimeout(this.hideTimer);clearTimeout(this.seekPreviewTimer);clearTimeout(this.diagnosticsTimer);this.diagnosticsTimer=undefined;this.sourceVersion++;this.sourceAbort?.abort();this.resetQueue();this.lastSource=undefined;this.lastOptions=undefined;this.sourceName='';this.sourceNameId=null;this.updateTitle();this.unsubscribe?.();this.resizeObserver?.disconnect();document.removeEventListener('fullscreenchange',this.fullscreenChanged);document.removeEventListener('pointerdown',this.dismissMenu,true);
     const old=this.core;this.core=undefined;this.rejectReady(new PlayerError('ABORTED','Player element disconnected'));this.newReady();
     this.cleanup=Promise.all([this.connecting,old?.destroy()]).then(()=>{});
   });}
@@ -365,7 +366,7 @@ export class DemuxePlayerElement extends Base {
   addSubtitle(file:File,options?:SubtitleOptions){return this.ready.then(p=>p.addSubtitle(file,options));}
   destroy():Promise<void>{
     this.hoverPreview.destroy();
-    if(this.terminal)return this.cleanup;clearTimeout(this.hideTimer);clearTimeout(this.seekPreviewTimer);this.terminal=true;this.connection++;this.sourceVersion++;this.sourceAbort?.abort();this.resetQueue();this.lastSource=undefined;this.lastOptions=undefined;this.sourceName='';this.sourceNameId=null;this.updateTitle();this.unsubscribe?.();this.resizeObserver?.disconnect();document.removeEventListener('fullscreenchange',this.fullscreenChanged);document.removeEventListener('pointerdown',this.dismissMenu,true);
+    if(this.terminal)return this.cleanup;clearTimeout(this.hideTimer);clearTimeout(this.seekPreviewTimer);clearTimeout(this.diagnosticsTimer);this.diagnosticsTimer=undefined;this.terminal=true;this.connection++;this.sourceVersion++;this.sourceAbort?.abort();this.resetQueue();this.lastSource=undefined;this.lastOptions=undefined;this.sourceName='';this.sourceNameId=null;this.updateTitle();this.unsubscribe?.();this.resizeObserver?.disconnect();document.removeEventListener('fullscreenchange',this.fullscreenChanged);document.removeEventListener('pointerdown',this.dismissMenu,true);
     this.rejectReady(new PlayerError('ABORTED','Player element is destroyed'));const old=this.core;this.core=undefined;
     this.cleanup=Promise.all([this.cleanup,this.connecting,old?.destroy()]).then(()=>{this.$('surface').replaceChildren();this.$('controls').hidden=true;this.$('transport').hidden=true;this.$('topbar').hidden=true;this.$('settings').hidden=true;this.$('empty').hidden=true;this.$('diagnostics-overlay').hidden=true;this.$('buffering-indicator').hidden=true;});return this.cleanup;
   }
@@ -416,8 +417,13 @@ export class DemuxePlayerElement extends Base {
     if(!this.lastFailure)this.announce(activity||(!state.sourceId?preparationText:'')||(state.streamType==='live'&&!window?.length?labels.noWindow:''),!pill);
     this.geometry(state);this.updateDiagnostics();
   }
-  private setDiagnostics(show:boolean){show=show&&this.showDiagnostics&&this.controls;this.$('diagnostics-overlay').hidden=!show;this.$('diagnostics-toggle').setAttribute('aria-pressed',String(show));this.iconButton('diagnostics-toggle',show?'eyeOff':'eye',this.labels.diagnostics);if(show)this.updateDiagnostics(true);}
-  private updateDiagnostics(force=false){if(this.$('diagnostics-overlay').hidden||!this.core)return;const now=performance.now();if(!force&&now-this.diagnosticsUpdated<500)return;this.diagnosticsUpdated=now;const s=this.core.state,d=this.core.diagnostics,m=s.mediaInfo;
+  private setDiagnostics(show:boolean){show=show&&this.showDiagnostics&&this.controls;if(!show){clearTimeout(this.diagnosticsTimer);this.diagnosticsTimer=undefined;}this.$('diagnostics-overlay').hidden=!show;this.$('diagnostics-toggle').setAttribute('aria-pressed',String(show));this.iconButton('diagnostics-toggle',show?'eyeOff':'eye',this.labels.diagnostics);if(show)this.updateDiagnostics(true);}
+  private updateDiagnostics(force=false){if(this.$('diagnostics-overlay').hidden||!this.core)return;const now=performance.now();if(!force&&now-this.diagnosticsUpdated<500){
+      // Paused playback may emit no more updates after an operation settles.
+      // Flush the latest snapshot at the throttle boundary rather than leaving
+      // the last transient operation visible indefinitely.
+      this.diagnosticsTimer??=setTimeout(()=>{this.diagnosticsTimer=undefined;this.updateDiagnostics(true);},500-(now-this.diagnosticsUpdated));return;
+    }clearTimeout(this.diagnosticsTimer);this.diagnosticsTimer=undefined;this.diagnosticsUpdated=now;const s=this.core.state,d=this.core.diagnostics,m=s.mediaInfo;
     const lines=[this.labels.diagnostics,`Engine  ${s.activeMode??'—'} · ${s.automaticSelection?'automatic':'manual'}`,`State   ${s.status}${s.pendingOperation?' · '+s.pendingOperation.kind:''}`,`Time    ${formatTime(s.currentTime)} / ${s.streamType==='live'?this.labels.live:s.duration===null?'—':formatTime(s.duration)} · ${s.playbackRate}×`,`Video   ${m.video?.codec??'—'} · ${m.displayWidth??'—'} × ${m.displayHeight??'—'}`,`Audio   ${m.audio?.codec??'—'} · ${s.muted?'muted':Math.round(s.volume*100)+'%'}`];
     if(s.activeMode&&!['opening','switching','closing'].includes(s.pendingOperation?.kind??'')){
       if(!s.automaticSelection)lines.push('Selection  Selected manually.');

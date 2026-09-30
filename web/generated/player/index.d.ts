@@ -153,6 +153,7 @@ export declare class DemuxePlayerElement extends Base {
     private openingStage;
     private openingOperation;
     private diagnosticsUpdated;
+    private diagnosticsTimer?;
     private dragging;
     private dimensions;
     private trackSignature;

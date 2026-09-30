@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-/** Configuration-scoped negative evidence. Never caches transport or deadlines. */
+/** Configuration-scoped compatibility evidence and optional retry scheduling. */
 export class TierAttempts {
     sources = new WeakMap();
     serial = 0;
     failures = new Map();
+    deferredPromotions = new Set();
     key(source, configuration, plan) { let id = this.sources.get(source); if (!id) {
         id = ++this.serial;
         this.sources.set(source, id);
@@ -21,7 +22,18 @@ export class TierAttempts {
             return value.reason;
         this.failures.delete(key);
     }
-    clear() { this.failures.clear(); this.sources = new WeakMap(); }
+    // A startup deadline is inconclusive, but repeating it on pause blocks a
+    // working session. Defer only optional promotion for this source/settings;
+    // required discovery still retries and performs its usual readiness checks.
+    deferPromotion(source, configuration, plan) {
+        const key = this.key(source, configuration, plan);
+        this.deferredPromotions.delete(key);
+        this.deferredPromotions.add(key);
+        if (this.deferredPromotions.size > 64)
+            this.deferredPromotions.delete(this.deferredPromotions.values().next().value);
+    }
+    promotionDeferred(source, configuration, plan) { return this.deferredPromotions.has(this.key(source, configuration, plan)); }
+    clear() { this.failures.clear(); this.deferredPromotions.clear(); this.sources = new WeakMap(); }
 }
 /** Optional promotion only tries plans ahead of the currently accepted plan. */
 export function preferredPlans(plans, current) {

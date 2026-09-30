@@ -66,7 +66,7 @@ with tarfile.open(out/'test.tgz','w:gz') as t:
         self.assertEqual(run.returncode, 0, run.stdout+run.stderr)
         out = self.root/'build/pages-site'
         page = (out/'index.html').read_text()
-        self.assertIn('layout="playground"', page)
+        self.assertIn('layout="classic"', page)
         self.assertNotIn('prepare="all"', page)
         self.assertIn('<main inert>', page)
         self.assertIn('./pages-boot.js', page)
