@@ -1,0 +1,139 @@
+// SPDX-License-Identifier: Apache-2.0
+import { PlayerError } from './errors.js';
+export function preparationComponents(value) {
+    if (value === 'all')
+        return ['inspector', 'hybrid', 'software'];
+    if (!Array.isArray(value) || value.some(name => !['inspector', 'hybrid', 'software'].includes(name)))
+        throw new PlayerError('INVALID_ARGUMENT', 'prepare must be all or a list of inspector, hybrid, software');
+    return [...new Set(value)];
+}
+/** Per-player, bounded immutable assets. No media, workers or audio devices. */
+export class EnginePreparation {
+    base;
+    software;
+    changed;
+    remuxRuntime;
+    providerAssets;
+    controller = new AbortController();
+    pending = new Map();
+    modules = new Map();
+    font;
+    phases = new Map();
+    constructor(base, software = 'engine-software-full', changed = () => { }, remuxRuntime = 'pthread', providerAssets) {
+        this.base = base;
+        this.software = software;
+        this.changed = changed;
+        this.remuxRuntime = remuxRuntime;
+        this.providerAssets = providerAssets;
+    }
+    get inspectorEngine() { return 'engine-remux' + (this.remuxRuntime === 'pthread' ? '' : '-' + this.remuxRuntime); }
+    get cooperativePlayback() { return this.remuxRuntime !== 'pthread' && (!this.providerAssets || this.providerAssets.has?.(`web/engine-mpv-playback-${this.remuxRuntime}/player.wasm`) === true); }
+    get softwareEngine() { return this.cooperativePlayback ? 'engine-mpv-playback-' + this.remuxRuntime : this.software; }
+    get progress() { return [...this.phases].map(([name, status]) => ({ name, status })); }
+    phase(name, status) { if (this.controller.signal.aborted)
+        return; this.phases.set(name, status); this.changed(); }
+    module(name) { return this.modules.get(name); }
+    fontCopy() { return this.font?.slice(0); }
+    async readyModule(name) {
+        await this.pending.get(name === 'engine-remux' ? 'inspector' : name === 'engine-hybrid' ? 'hybrid' : 'software');
+        return this.module(name === 'engine-remux' ? this.inspectorEngine : name === 'engine-hybrid' && this.cooperativePlayback ? this.softwareEngine : name === 'engine-software-full' || name === 'engine-software-yuv' ? this.softwareEngine : name);
+    }
+    async readyEngine(name) {
+        const [module] = await Promise.all([this.readyModule(name), this.pending.get('font')]);
+        return { module, font: this.fontCopy() };
+    }
+    async warm(value) {
+        const names = preparationComponents(value), start = performance.now();
+        if (names.some(name => name === 'hybrid' || name === 'software'))
+            names.push('font');
+        for (const name of names)
+            if (!this.phases.has(name))
+                this.phases.set(name, 'queued');
+        const assets = await Promise.all(names.map(name => {
+            let pending = this.pending.get(name);
+            if (!pending) {
+                pending = this.load(name);
+                this.pending.set(name, pending);
+            }
+            return pending;
+        }));
+        return { milliseconds: performance.now() - start, assets };
+    }
+    async load(name) {
+        const start = performance.now(), controller = new AbortController(), parent = this.controller.signal;
+        const abort = () => controller.abort();
+        parent.addEventListener('abort', abort, { once: true });
+        if (parent.aborted)
+            abort();
+        const timer = setTimeout(abort, 15000);
+        let bytes = 0;
+        try {
+            if (!globalThis.crossOriginIsolated && !(name === 'inspector' ? this.remuxRuntime !== 'pthread' : this.cooperativePlayback))
+                throw Error('Wasm preparation requires cross-origin isolation');
+            this.phase(name, 'loading');
+            const engine = name === 'inspector' ? this.inspectorEngine : name === 'hybrid' && !this.cooperativePlayback ? 'engine-hybrid' : this.softwareEngine;
+            const path = name === 'font' ? 'fixtures/DejaVuSans.ttf' : `web/${engine}/${name === 'inspector' ? 'remux' : 'player'}.wasm`;
+            let data;
+            if (this.providerAssets) {
+                data = new Uint8Array(await this.providerAssets.bytes(path));
+                bytes = data.byteLength;
+            }
+            else {
+                const response = await fetch(new URL(path, this.base), { signal: controller.signal, priority: 'low' });
+                if (!response.ok)
+                    throw Error(`Preparation asset unavailable: ${path} (${response.status})`);
+                const limit = (name === 'font' ? 8 : 32) * 1024 * 1024;
+                if (Number(response.headers.get('content-length')) > limit) {
+                    await response.body?.cancel();
+                    throw Error('Preparation asset byte budget exceeded');
+                }
+                const reader = response.body?.getReader(), chunks = [];
+                if (!reader)
+                    throw Error('Preparation asset has no body');
+                try {
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done)
+                            break;
+                        bytes += value.byteLength;
+                        if (bytes > limit) {
+                            await reader.cancel();
+                            throw Error('Preparation asset byte budget exceeded');
+                        }
+                        chunks.push(value);
+                    }
+                }
+                finally {
+                    reader.releaseLock();
+                }
+                data = new Uint8Array(bytes);
+                let offset = 0;
+                for (const chunk of chunks) {
+                    data.set(chunk, offset);
+                    offset += chunk.byteLength;
+                }
+            }
+            if (name === 'font') {
+                if (!controller.signal.aborted)
+                    this.font = data.buffer;
+            }
+            else {
+                this.phase(name, 'compiling');
+                const module = await WebAssembly.compile(data);
+                if (!controller.signal.aborted)
+                    this.modules.set(engine, module);
+            }
+            this.phase(name, controller.signal.aborted ? 'aborted' : 'ready');
+            return { name, status: controller.signal.aborted ? 'aborted' : 'ready', bytes, milliseconds: performance.now() - start };
+        }
+        catch (error) {
+            this.phase(name, controller.signal.aborted ? 'aborted' : 'failed');
+            return { name, status: controller.signal.aborted ? 'aborted' : 'failed', bytes, milliseconds: performance.now() - start, error: String(error) };
+        }
+        finally {
+            clearTimeout(timer);
+            parent.removeEventListener('abort', abort);
+        }
+    }
+    destroy() { this.controller.abort(); this.modules.clear(); this.font = undefined; this.pending.clear(); }
+}

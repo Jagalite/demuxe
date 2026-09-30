@@ -112,9 +112,11 @@ the run; each result's `startedAt` is the authoritative execution timestamp.
   metadata and linked decoders; all 16 public cases also passed. Explicit
   demuxer hints now reach FFmpeg inspection and mpv, with a raw SBC fixture
   and matching inspector assets. A leftover positive-duration gate rejected finite raw SBC with unknown duration; full-profile admission now permits zero (unknown) duration while retaining source-size and decoder checks. All four public extension/hint and JSPI/Asyncify cases passed EOF and exact PCM comparison in `20260930T180403Z-demuxer-public-02` (288,000 frames and 567,808 compared samples per case).
-- Native/isolated regressions, automatic fallback, and exact archive/source
-  companion qualification remain pending. No production readiness or merge
-  claim follows yet.
+- The fresh isolated pthread EOF/track-switch regression passed RGB, YUV and
+  Hybrid with caching on and off (six cases). The former failing second audio
+  track now starts at position zero with the correct first picture. Exact
+  archive/source companion qualification remains pending; no production
+  readiness or merge claim follows yet.
 
 Recent accepted evidence: `20260930T163243Z-track-seek-fixed-01`,
 `20260930T163257Z-dual-track-pcm-fixed-01`,
@@ -204,3 +206,20 @@ New integration evidence:
 - `20260930T185104Z-hdr-inverse-rgb-01`
 - `20260930T185330Z-hdr-public-01`
 - `20260930T185446Z-firefox-hdr-public-01`
+
+## Fresh isolated regression
+
+The six-case run uses lossless readback of the displayed canvas and independent
+host RGB references. RGB MAE was 0.911, YUV 2.737 and Hybrid 2.676 for the first
+picture of both audio tracks; all paused positions were zero. Both tracks reached
+EOF and all cases closed their audio context and main-owned workers.
+
+The first expanded run is retained: JPEG snapshot compression exceeded the raw
+RGB threshold in YUV, and the pthread Hybrid worker did not implement the queried
+software-only snapshot command. The corrected regression measures displayed
+pictures without changing its error threshold. This qualifies EOF/seek/presentation,
+not the existing isolated Hybrid snapshot API. Cooperative public snapshot checks
+remain separate and passed earlier.
+
+- `20260930T190442Z-isolated-patched-01`
+- `20260930T190717Z-isolated-patched-02`
