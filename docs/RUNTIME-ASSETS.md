@@ -49,7 +49,11 @@ The local beta runtime now includes both private JSPI/Asyncify remux and adaptat
 engines for the default `remuxRuntime: 'auto'` policy. Assembly verifies their
 installed manifests and hashes. When the optional private mpv service set is
 installed, both standard and full copies also retain its four backend/profile
-folders, host modules and MIT notice. Partial service installations fail assembly. See [selection and current release boundary](REMUX-RUNTIME.md).
+folders, host modules and MIT notice. The cooperative playback pair additionally
+uses `web/engine-mpv-playback-{jspi,asyncify}/player.{mjs,wasm}` and each folder’s
+manifest. Both deployment sets retain that pair when present. Partial or
+hash-mismatched installations fail assembly. The playback pair’s production
+qualification remains in progress. See [selection and current release boundary](REMUX-RUNTIME.md).
 
 ## Choose a deployment set and folder
 

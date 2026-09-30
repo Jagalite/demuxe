@@ -3,7 +3,10 @@
 **Current local status: automatic FFmpeg runtime selection.**
 `remuxRuntime: 'auto'` is the default: pthread with isolation, JSPI without isolation
 when supported, otherwise Asyncify. `on`, `off`, `jspi`, and `asyncify` provide
-explicit control. Scope remains plain file remux and qualified FLAC24 transcode.
+explicit control. Qualified private services cover file remux, FLAC24 transcode
+and bounded audio/subtitle services. A matching cooperative playback pair adds
+finite-file Hybrid/Software playback; its [production qualification](NONISOLATED-PLAYBACK-COMPLETION.md)
+is in progress.
 See the [API and deployment requirements](REMUX-RUNTIME.md). No release is published.
 
 The following records the earlier removal decision and the requirements of the
