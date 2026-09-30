@@ -37,10 +37,10 @@ No production deployment or merge follows automatically from this worktree.
    lifetime and fallback contracts. Qualify Hybrid rows and preserved native video
    plus remux/adapted audio rows. In progress: bounded retained decoder and
    cooperative mailbox adapters have resource and cancellation unit coverage;
-   native integration, public codec coverage, 24 embedded-subtitle cases and 20 asset/cancellation fault cases passed. Automatic fallback coverage remains pending.
+   native integration, public codec coverage, 24 embedded-subtitle cases and 20 asset/cancellation fault cases passed. Automatic fallback and Native-to-filtered-Software promotion subsequently passed; see the regression evidence below.
 5. Remove prototype-only file/duration restrictions when bounded readers, seek
    policy, resource handling and representative long/large sources pass. Qualify
-   HD continuous playback and lifecycle/error/cancellation stress. The 132-second long-GOP source and 84 MiB source passed eight public mode/runtime cases; the large source read under 1 MiB with a 64 MiB heap. Eight public 720p/1080p 30 fps cases passed at full canvas resolution across both modes and runtimes; public 4K HEVC 10-bit at 5 fps passed both modes and runtimes. This does not qualify 4K at higher frame rates. Broader stress remains pending.
+   HD continuous playback and lifecycle/error/cancellation stress. The 132-second long-GOP source and 84 MiB source passed eight public mode/runtime cases; the large source read under 1 MiB with a 64 MiB heap. Eight public 720p/1080p 30 fps cases passed at full canvas resolution across both modes and runtimes; public 4K HEVC 10-bit at 5 fps passed both modes and runtimes. This does not qualify 4K at higher frame rates. Lifecycle fault, cancellation, malformed-manifest and sustained-pressure cases subsequently passed; see the evidence below.
 6. Include the private playback profile in the clean release recipe, source
    companion, runtime closure and asset manifests. Qualify both runtime consumers
    against the exact assembled archive and regression tests. Recipe and runtime closure implemented; exact archive qualification pending.
@@ -83,7 +83,7 @@ New evidence includes `20260930T1530-audio-public-01`,
 `20260930T1600-tracks-backend-01`, and `20260930T1552-tracks-public-01`. Some directory IDs were estimated during
 the run; each result's `startedAt` is the authoritative execution timestamp.
 
-## Current remaining blockers
+## Qualification status before final packaging
 
 - HDR-to-SDR now passes PQ and HLG cadence, consumed PCM and independent RGB
   reference checks with both LUT implementations. PQ presented 179/180 and
@@ -139,8 +139,7 @@ Policy evidence: `20260930T170623Z-public-policies-02` (10 passed);
 input audio evidence: `20260930T170648Z-extended-audio-backends-01`
 (16 passed). The first automatic-selection harness incorrectly still supplied
 a forced mode; its six rejected assertions are retained in
-`20260930T172343Z-format-automatic-01`, and a corrected default-selection run
-is prepared.
+`20260930T172343Z-format-automatic-01`, and the corrected default-selection run passed after the filter-selection repair described below.
 
 ## Current regression repairs
 
@@ -163,9 +162,10 @@ Cross-origin asset loading passed all four public mode/runtime combinations in
 origin and source-bound worker/glue/Wasm identities. The first adaptive workload
 remained synchronized with zero drops, so its pressure-transition deadline is
 retained as an inconclusive test setup in `20260930T174143Z-adaptive-pressure-02`.
-A stronger real filter workload is prepared; no adaptive transition is claimed.
-Malformed private playback manifests now retain `ASSET_LOAD_FAILED` for private
-routes while allowing usable Native routes to run; both sides need browser checks.
+The later real-filter workload proved pressure and recovery in
+`20260930T180644Z-adaptive-pressure-04`. Malformed private playback manifests
+retain `ASSET_LOAD_FAILED` for private routes while allowing usable Native routes
+to run; the browser checks for both sides are recorded below.
 
 The broader routing/lifecycle rerun passed all 100 tests with its range server active (`20260930T175833Z-routing-lifecycle-regressions-02`). SPDX and license-boundary checks also passed at this checkpoint. Two adaptive workload runs produced no actual decoder pressure and therefore did not prove a policy transition; their failed transition deadlines remain recorded.
 
@@ -173,7 +173,7 @@ Malformed private-playback JSON/schema manifests now fail as `ASSET_LOAD_FAILED`
 
 Automatic Native playback now advertises the available full Software filter switch. Both runtime cases pass Native → filtered Software → Native with worker cleanup in `20260930T181309Z-native-filter-capability-02`. The first harness asserted immediate promotion, before the existing 200 ms scheduled promotion; that rejected assertion remains in `20260930T181136Z-native-filter-capability-01`. The production promotion policy was not changed.
 
-The new isolated pthread regression reproduced the EOF/track-switch failure against the pre-patch main assets (`20260930T181838Z-isolated-baseline-01`): the first track passed first-picture/reference, audio, timeline and EOF checks, but selecting the second track and seeking to zero failed to present the requested position. The rebuilt patched engines must pass this same test before closeout.
+The new isolated pthread regression reproduced the EOF/track-switch failure against the pre-patch main assets (`20260930T181838Z-isolated-baseline-01`): the first track passed first-picture/reference, audio, timeline and EOF checks, but selecting the second track and seeking to zero failed to present the requested position. The rebuilt patched engines subsequently passed all six regression cases, as recorded below.
 
 ## Main integration and Firefox follow-up
 
@@ -194,8 +194,9 @@ selected cooperative plan's reason rather than an unrelated pthread plan.
 The integrated source passes TypeScript, 89 focused routing/provider/admission/
 preparation tests, seven release guards, and license/core-boundary checks.
 The clean native build started with verified locked archives and Emscripten
-4.0.14 in a fresh internal-SSD build directory. Isolated regression and exact
-binary/source archive checks are still pending; this is not release readiness.
+4.0.14 in a fresh internal-SSD build directory. The rebuilt isolated regression
+passed; exact binary/source archive checks remain pending. This is not release
+readiness.
 
 New integration evidence:
 
