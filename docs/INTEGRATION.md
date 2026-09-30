@@ -127,18 +127,22 @@ CORS. Range/redirect guarantees apply to the remux and mpv source adapters.
 Serve all `web/` assets and `fixtures/DejaVuSans.ttf` at the relative locations in
 the repository. Native direct lazily imports only its browser adapter and does not
 require cross-origin isolation. File remux/transcode uses automatic runtime selection
-by default; see [remuxRuntime](REMUX-RUNTIME.md). Pthread remux and Hybrid/software require a secure isolated page:
+by default; see [remuxRuntime](REMUX-RUNTIME.md). The pthread implementations
+of remux, Hybrid and Software require a secure isolated page:
 `Cross-Origin-Opener-Policy: same-origin` and
-`Cross-Origin-Embedder-Policy: require-corp`. The media server must satisfy CORS,
+`Cross-Origin-Embedder-Policy: require-corp`. Matching JSPI/Asyncify assets also
+provide cooperative Hybrid and Software for supported finite files without these
+headers; see the [qualification status and limits](NONISOLATED-PLAYBACK-COMPLETION.md).
+The media server must satisfy CORS,
 CORP where applicable, range and representation requirements. The complete
 checkout is not a published npm distribution. A standalone, offline-installable
 beta candidate and clean-consumer instructions are available in [BETA.md](BETA.md).
 
-Build the JS/API with `npm run build`. Software normally uses
+Build the JS/API with `npm run build`. The pthread Software implementation normally uses
 `web/engine-software-yuv` from `npm run build:software-yuv`, selecting YUV for
 qualified decoded frames and RGB otherwise. `web/engine-software-full` from
 `npm run build:software-full` remains the explicit RGB comparison override.
-Hybrid uses `web/engine-hybrid` from
+Pthread Hybrid uses `web/engine-hybrid` from
 `npm run build:hybrid`; Native remux uses `web/engine-remux` from `npm run build:remux`.
 These engine build scripts use the pinned local FFmpeg/Emscripten toolchain; see
 [build prerequisites and commands](MEDIA-ROUTING.md). Worker filenames are implementation
