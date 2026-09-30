@@ -1,0 +1,1340 @@
+--- a/build-unit.sh
++++ b/build-unit.sh
+@@ -4,7 +4,7 @@
+ cd "$(dirname "$0")"
+ CC=${CLANG:-clang}
+ mkdir -p artifacts logs
+-"$CC" --target=wasm32 -O2 -g -ffreestanding -fno-builtin -nostdlib \
++"$CC" --target=wasm32 -O2 -g "-ffile-prefix-map=$PWD=/demuxe-asyncify-study" -ffreestanding -fno-builtin -nostdlib \
+  -DDEMUXE_COOP_THREADS=1 -Itests/support -Iruntime -Iupstream -Iupstream/misc \
+  runtime/threads-coop.c runtime/asyncify-stacks.c runtime/stack.s tests/support.c tests/probe.c \
+  upstream/misc/dispatch.c upstream/misc/thread_pool.c \
+--- a/ffmpeg/runtime/ffmpeg-bridge.mjs
++++ b/ffmpeg/runtime/ffmpeg-bridge.mjs
+@@ -1,42 +1,75 @@
+ // SPDX-License-Identifier: MIT
+-// PREPARED integration: Emscripten must export ccall and HEAPU8, enable JSPI
+-// OR Asyncify. Mark I/O-capable exports for JSPI; instrument indirect AVIO calls
+-// for Asyncify. This shared host bridge never directly uses JSPI primitives.
++// Shared serialized Emscripten host contract; NOT a tested FFmpeg media engine.
++// A rejected ccall is an unexpected runtime failure. Negative C results are not.
++// A poisoned instance must be discarded, never retried with another backend.
+ import {SingleOwner} from './single-owner.mjs';
+ import {RangeSource} from '../../stage2/runtime/range-source.mjs';
++const boundModules=new WeakSet();
+ export function createFFmpegBridge(Module, {timeoutMs=5000,shutdownTimeoutMs=5000}={}) {
+-  if(typeof Module.ccall!=='function'||!(Module.HEAPU8?.buffer instanceof ArrayBuffer))
++  if(typeof Module?.ccall!=='function'||!(Module.HEAPU8?.buffer instanceof ArrayBuffer))
+     throw Error('Private FFmpeg memory and ccall are required');
+-  if(!Number.isInteger(shutdownTimeoutMs)||shutdownTimeoutMs<1||shutdownTimeoutMs>120000)throw Error('Invalid shutdown deadline');
++  if(boundModules.has(Module))throw Error('FFmpeg module already has an owner or requires discard');
++  if(!Number.isInteger(shutdownTimeoutMs)||shutdownTimeoutMs<1||shutdownTimeoutMs>120000)
++    throw Error('Invalid shutdown deadline');
+   const owner=new SingleOwner(),source=new RangeSource(owner,{timeoutMs,maxPending:1});
+   source.attach({get buffer(){return Module.HEAPU8.buffer;}});
+-  let handle=-1,state='ready',closing;
++  let handle=-1,state='ready',closing,fatal=null;
++  boundModules.add(Module);
+   Module.nonIsolatedRead=(ptr,count,offset)=>source.read(handle,ptr,count,offset);
+   const operations=new Set(['rm_probe','rm_open','rm_start','rm_step','rm_close','rm_error',
+     'rm_set_container','rm_duration','rm_video_codec','rm_audio_codec','rm_adapt_audio']);
++  function poison(error) {
++    if(fatal)return;
++    fatal=error instanceof Error?error:Error(String(error));
++    state='failed';source.close();owner.close(fatal);
++    Module.nonIsolatedRead=()=>-1;
++  }
++  async function ccall(name,returnType,argTypes,args) {
++    try{return await Module.ccall(name,returnType,argTypes,args,{async:true});}
++    catch(error){poison(error);throw error;}
++  }
+   return {
+     owner,source,
++    get state(){return state;},
++    get requiresDiscard(){return !!fatal;},
+     setSource(reader){
+       if(state!=='ready'||owner.active)throw Error('Cannot replace an active FFmpeg source; cancel and await first');
+-      if(handle>=0)source.closeHandle(handle);source.setSource(reader);handle=source.open();
++      // setSource validates before cancelling: invalid input preserves the old source.
++      source.setSource(reader);
++      if(handle>=0)source.closeHandle(handle);
++      handle=source.open();
+       if(handle<0)throw Error('Cannot open FFmpeg source');
+     },
+     call(name,returnType,argTypes,args){
+-      if(state!=='ready')return Promise.reject(Error('FFmpeg bridge is '+state));
++      if(state!=='ready')return Promise.reject(fatal??Error('FFmpeg bridge is '+state));
+       if(!operations.has(name))return Promise.reject(Error('Unadmitted FFmpeg API '+name));
+-      return owner.invoke(()=>Module.ccall(name,returnType,argTypes,args,{async:true}));
++      return owner.invoke(()=>ccall(name,returnType,argTypes,args));
+     },
+     cancel(){source.cancelSource();},
+     destroy(){
+-      if(closing)return closing;state='closing';source.cancelSource();
++      if(closing)return closing;
++      if(!fatal)state='closing';
++      source.cancelSource();
+       closing=(async()=>{
+         let timer;
+         try{
+-          const work=(async()=>{await owner.idle();await owner.invoke(()=>Module.ccall('rm_close',null,[],[],{async:true}));})();
+-          await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('FFmpeg shutdown deadline exceeded')),shutdownTimeoutMs);})]);
+-        }finally{
++          if(fatal)throw fatal;
++          const work=(async()=>{
++            await owner.idle();
++            if(fatal)throw fatal;
++            await owner.invoke(()=>ccall('rm_close',null,[],[]));
++          })();
++          await Promise.race([work,new Promise((_,reject)=>{
++            timer=setTimeout(()=>{
++              const error=Error('FFmpeg shutdown deadline exceeded; discard instance');
++              poison(error);reject(error);
++            },shutdownTimeoutMs);
++          })]);
++        } finally {
+           clearTimeout(timer);if(handle>=0)source.closeHandle(handle);handle=-1;
+-          source.close();owner.close();Module.nonIsolatedRead=()=>-1;state='closed';
++          source.close();owner.close(fatal??undefined);Module.nonIsolatedRead=()=>-1;
++          state=fatal?'failed':'closed';
++          if(!fatal)boundModules.delete(Module);
+         }
+       })();return closing;
+     },
+--- a/ffmpeg/runtime/single-owner.mjs
++++ b/ffmpeg/runtime/single-owner.mjs
+@@ -40,10 +40,10 @@
+     });return true;
+   }
+   async idle(){if(this.active)await this.active.promise.catch(()=>{});}
+-  close(){
++  close(reason=Error('FFmpeg owner closed')){
+     if(this.stopped)return;this.stopped=true;
+     for(const fn of this.stopListeners){try{fn();}catch{}}
+     this.stopListeners.clear();
+-    this.active?.rejectStop(Error('FFmpeg owner closed'));this.active=null;
++    this.active?.rejectStop(reason);this.active=null;
+   }
+ }
+--- a/ffmpeg/scripts/build-ffmpeg.py
++++ b/ffmpeg/scripts/build-ffmpeg.py
+@@ -20,7 +20,7 @@
+     version=subprocess.check_output([str(em/'emcc'),'--version'],env=env,text=True)
+     if not re.search(r'\b4\.0\.14\b',version):raise ValueError('Emscripten 4.0.14 required')
+     obj=out/'objects';obj.mkdir();engine=out/'engine';engine.mkdir();logs=out/'logs';logs.mkdir()
+-    commands=[];status={'startedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'status':'building','suspension':suspension,'mediaExecuted':False}
++    commands=[];status={'startedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'status':'building','suspension':suspension,'savedStackBytes':a.saved_stack_bytes,'mediaExecuted':False}
+     def run(args,cwd=obj):
+         args=list(map(str,args));entry={'argv':args,'cwd':str(cwd)};commands.append(entry)
+         with (logs/f'{len(commands):02d}.log').open('w') as f:rc=subprocess.run(args,cwd=cwd,env=env,stdout=f,stderr=subprocess.STDOUT).returncode
+@@ -34,13 +34,13 @@
+         if re.search(r'#define HAVE_(?:PTHREADS|W32THREADS|OS2THREADS) 1',(obj/'config.h').read_text()):raise ValueError('Threaded FFmpeg rejected')
+         exports=['rm_error','rm_probe','rm_open','rm_start','rm_set_container','rm_step','rm_close','rm_duration','rm_video_codec','rm_audio_codec','malloc','free']+(['rm_adapt_audio'] if transcode else [])
+         libs=['libavformat','libavcodec']+(['libswresample'] if transcode else [])+['libavutil']
+-        run(['emcc',*flags,*(['-DDEMUXE_AUDIO_ADAPTATION=1','-DDEMUXE_AUDIO_TRANSCODE=1'] if transcode else []),'-I'+str(obj),'-I'+str(out/'source'),out/'native/remux/remux.c',*[obj/l/(l+'.a') for l in libs],'-sMODULARIZE=1','-sEXPORT_ES6=1','-sEXPORT_NAME=createRemux','-sENVIRONMENT=worker',*suspension_flags(suspension,[x for x in exports if x.startswith('rm_')]),'-sASSERTIONS=1','-sINITIAL_MEMORY=67108864','-sMAXIMUM_MEMORY=134217728','-sALLOW_MEMORY_GROWTH=1','-sSTACK_SIZE=2097152','-sFILESYSTEM=0','-sWASM_BIGINT=1','-sEXPORTED_FUNCTIONS='+json.dumps(['_'+x for x in exports]),'-sEXPORTED_RUNTIME_METHODS=["HEAPU8","ccall","UTF8ToString"]','-Wl,-Map,'+str(engine/'remux.map'),'-o',engine/'remux.mjs'])
+-        audit='''const fs=require('fs');const b=fs.readFileSync(process.argv[1]);if(!WebAssembly.validate(b))throw Error('Invalid Wasm');const m=new WebAssembly.Module(b);const i=WebAssembly.Module.imports(m);if(i.some(x=>/pthread|futex|proxy_to|emscripten_thread/i.test(x.name)))throw Error('Thread imports');console.log(JSON.stringify(i,null,2));'''
+-        run([node,'-e',audit,engine/'remux.wasm'])
++        run(['emcc',*flags,*(['-DDEMUXE_AUDIO_ADAPTATION=1','-DDEMUXE_AUDIO_TRANSCODE=1'] if transcode else []),'-I'+str(obj),'-I'+str(out/'source'),out/'native/remux/remux.c',*[obj/l/(l+'.a') for l in libs],'-sMODULARIZE=1','-sEXPORT_ES6=1','-sEXPORT_NAME=createRemux','-sENVIRONMENT=worker',*suspension_flags(suspension,[x for x in exports if x.startswith('rm_')],a.saved_stack_bytes),'-sASSERTIONS=1','-sINITIAL_MEMORY=67108864','-sMAXIMUM_MEMORY=134217728','-sALLOW_MEMORY_GROWTH=1','-sSTACK_SIZE=2097152','-sFILESYSTEM=0','-sWASM_BIGINT=1','-sEXPORTED_FUNCTIONS='+json.dumps(['_'+x for x in exports]),'-sEXPORTED_RUNTIME_METHODS=["HEAPU8","ccall","UTF8ToString"]','-Wl,-Map,'+str(engine/'remux.map'),'-o',engine/'remux.mjs'])
++        run([node,out/'audit-wasm.mjs',engine/'remux.wasm','--emscripten'])
+         status.update(status='build_completed_only',fullFFmpegBuilt=True,artifacts={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in engine.iterdir() if p.is_file()})
+     except Exception as error:status.update(status='build_failed',error=str(error));raise
+     finally:(out/'build-result.json').write_text(json.dumps(status,indent=2)+'\n')
+ if __name__=='__main__':
+-    p=argparse.ArgumentParser();p.add_argument('--sdk',type=pathlib.Path,required=True);p.add_argument('--jobs',type=int,default=4);a=p.parse_args()
++    p=argparse.ArgumentParser();p.add_argument('--sdk',type=pathlib.Path,required=True);p.add_argument('--jobs',type=int,default=4);p.add_argument('--saved-stack-bytes',type=int,default=65536);a=p.parse_args()
+     if not 1<=a.jobs<=32:p.error('--jobs must be 1..32')
++    suspension_flags('asyncify',['rm_open'],a.saved_stack_bytes)
+     main(a)
+--- a/ffmpeg/scripts/prepare-ffmpeg.py
++++ b/ffmpeg/scripts/prepare-ffmpeg.py
+@@ -24,6 +24,7 @@
+     if text.count(OLD)!=1:raise ValueError('Expected exactly one pinned FFmpeg read bridge')
+     return text.replace(OLD,NEW)
+ def prepare(repo,out,profile,suspension='jspi'):
++    if profile not in ('remux','transcode'):raise ValueError('Unknown FFmpeg profile')
+     if suspension not in ('jspi','asyncify'):raise ValueError('Unknown suspension backend')
+     repo=repo.resolve();out=out.resolve()
+     if out.exists() or out==repo or repo in out.parents:raise ValueError('Use a NEW output directory OUTSIDE Demuxe')
+@@ -55,6 +56,7 @@
+     (out/'inputs.json').write_text(json.dumps({'demuxeRevision':BASE,'source':spec,'profile':profile,'suspension':suspension,'fullBuildTested':False,'productionModified':False},indent=2)+'\n')
+     shutil.copy2(ROOT/'ffmpeg/scripts/build-ffmpeg.py',out/'build-ffmpeg.py')
+     shutil.copy2(ROOT/'ffmpeg/scripts/suspension_profile.py',out/'suspension_profile.py')
++    shutil.copy2(ROOT/'scripts/audit-wasm.mjs',out/'audit-wasm.mjs')
+     print(out)
+ if __name__=='__main__':
+     p=argparse.ArgumentParser();p.add_argument('--repo',type=pathlib.Path,required=True);p.add_argument('--out',type=pathlib.Path,required=True);p.add_argument('--profile',choices=['remux','transcode'],default='remux');p.add_argument('--suspension',choices=['jspi','asyncify'],default='jspi');a=p.parse_args();prepare(a.repo,a.out,a.profile,a.suspension)
+--- a/ffmpeg/scripts/suspension_profile.py
++++ b/ffmpeg/scripts/suspension_profile.py
+@@ -3,14 +3,20 @@
+ import json
+ 
+ KINDS = ('jspi', 'asyncify')
++ALLOWED_EXPORTS = frozenset(('rm_error','rm_probe','rm_open','rm_start',
++    'rm_set_container','rm_step','rm_close','rm_duration','rm_video_codec',
++    'rm_audio_codec','rm_adapt_audio'))
+ 
+ def suspension_flags(kind, exports, saved_stack_bytes=65536):
+     if kind not in KINDS:
+         raise ValueError('Unknown suspension kind')
+     if not isinstance(saved_stack_bytes, int) or isinstance(saved_stack_bytes, bool) or not 4096 <= saved_stack_bytes <= 1048576 or saved_stack_bytes % 16:
+         raise ValueError('Saved-stack budget must be aligned and between 4 KiB and 1 MiB')
+-    if not exports or any(not isinstance(x, str) or not x.startswith('rm_') for x in exports):
+-        raise ValueError('Expected explicit rm_* exports')
++    if not isinstance(exports, (list, tuple)) or not exports or any(
++            not isinstance(x, str) or x not in ALLOWED_EXPORTS for x in exports):
++        raise ValueError('Expected explicit admitted rm_* exports')
++    if len(set(exports)) != len(exports):
++        raise ValueError('Duplicate async export')
+     if kind == 'jspi':
+         return ['-sJSPI=1', '-sJSPI_EXPORTS='+json.dumps(list(exports))]
+     # EM_ASYNC_JS declares the read boundary to the toolchain. In particular, do
+--- /dev/null
++++ b/review/build-probes.py
+@@ -0,0 +1,49 @@
++#!/usr/bin/env python3
++# SPDX-License-Identifier: MIT
++"""Build positive and deliberately broken continuation fixtures; never service assets."""
++import argparse,datetime,hashlib,json,os,pathlib,subprocess
++ROOT=pathlib.Path(__file__).resolve().parents[1]
++EXPORTS=['demuxe_coop_invoke','demuxe_coop_get_sp','demuxe_coop_set_sp','demuxe_coop_stack_base',
++'demuxe_coop_stack_top','demuxe_coop_stack_count','demuxe_asyncify_data','demuxe_asyncify_base',
++'demuxe_asyncify_end','demuxe_asyncify_count','probe_no_suspend','probe_once','probe_recursive',
++'probe_indirect','probe_entered','probe_after','probe_finished','probe_trap']
++ARTIFACTS=['continuation-probe.wasm','continuation-probe-small.wasm','continuation-probe.asyncify.wasm',
++'continuation-probe-small.asyncify.wasm','continuation-probe-omitted-import.asyncify.wasm']
++def main(a):
++ exe=a.wasm_opt.resolve()
++ if not exe.is_file():raise ValueError('wasm-opt missing')
++ env=dict(os.environ);lib=exe.parent.parent/'lib'
++ if lib.is_dir():env['LD_LIBRARY_PATH']=str(lib)+os.pathsep+env.get('LD_LIBRARY_PATH','')
++ record={'scope':'Additional infrastructure fixtures; small/omitted-import variants are deliberate negative inputs',
++  'recordedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'commands':[]}
++ def run(args):
++  args=list(map(str,args));p=subprocess.run(args,cwd=ROOT,env=env,capture_output=True,text=True)
++  record['commands'].append({'argv':args,'returncode':p.returncode,'stdout':p.stdout,'stderr':p.stderr})
++  if p.returncode:raise RuntimeError(p.stderr)
++  return p.stdout.strip()
++ try:
++  record['binaryen']=run([exe,'--version'])
++  base=[os.environ.get('CLANG','clang'),'--target=wasm32','-O2','-g','-ffreestanding','-fno-builtin','-nostdlib',
++   '-ffile-prefix-map='+str(ROOT)+'=/demuxe-asyncify-study','-DDEMUXE_COOP_THREADS=1','-Itests/support','-Iruntime','-Iupstream',
++   'runtime/threads-coop.c','runtime/asyncify-stacks.c','runtime/stack.s','review/tests/continuation-probe.c',
++   '-Wl,--no-entry','-Wl,--export-memory','-Wl,-z,stack-size=1048576','-Wl,--initial-memory=33554432',
++   '-Wl,--max-memory=67108864',*['-Wl,--export='+name for name in EXPORTS]]
++  run([*base,'-o','artifacts/continuation-probe.wasm'])
++  run([*base,'-DDEMUXE_ASYNCIFY_BYTES=256','-o','artifacts/continuation-probe-small.wasm'])
++  imports='demuxe_coop.wait,demuxe_coop.join,demuxe_coop.yield'
++  for src,dst,extra in [('continuation-probe.wasm','continuation-probe.asyncify.wasm',',review_io.value'),
++    ('continuation-probe-small.wasm','continuation-probe-small.asyncify.wasm',',review_io.value'),
++    ('continuation-probe.wasm','continuation-probe-omitted-import.asyncify.wasm','')]:
++   run([exe,'artifacts/'+src,'--asyncify','--pass-arg=asyncify-imports@'+imports+extra,
++     '--enable-bulk-memory','-g','-o','artifacts/'+dst])
++  record['status']='built'
++  record['artifacts']={'artifacts/'+name:{'bytes':(ROOT/'artifacts'/name).stat().st_size,
++    'sha256':hashlib.sha256((ROOT/'artifacts'/name).read_bytes()).hexdigest()} for name in ARTIFACTS}
++ except Exception as error:
++  record['status']='failed';record['error']=str(error)
++ finally:(ROOT/'results/review-probe-build.json').write_text(json.dumps(record,indent=2)+'\n')
++ if record['status']!='built':raise SystemExit(record['error'])
++ print('Built continuation fixtures (not media services).')
++if __name__=='__main__':
++ p=argparse.ArgumentParser();p.add_argument('--wasm-opt',type=pathlib.Path,required=True)
++ main(p.parse_args())
+--- /dev/null
++++ b/review/run-continuations.py
+@@ -0,0 +1,65 @@
++#!/usr/bin/env python3
++# SPDX-License-Identifier: MIT
++"""Additional actual-Wasm continuation tests; no media libraries."""
++import argparse, asyncio, base64, datetime, hashlib, importlib.util, json, os, pathlib, sys
++from playwright.async_api import async_playwright
++ROOT=pathlib.Path(__file__).resolve().parents[1]
++sys.path.insert(0,str(ROOT/'scripts'))
++spec=importlib.util.spec_from_file_location('dual',ROOT/'scripts/run-dual.py')
++dual=importlib.util.module_from_spec(spec);spec.loader.exec_module(dual)
++NAMES=['no-suspension-normal-return','single-suspension-no-placeholder-result','synchronous-ready-before-unwind',
++'duplicate-wakeup-is-ignored','nested-C-stacks-survive','memory-growth-with-saved-continuation',
++'multi-task-out-of-order','indirect-callback-instrumented','C-negative-result-is-not-runtime-failure',
++'throwing-import-is-terminal','trap-after-resume-is-terminal','abandon-pending-task-rejects-late-resume']
++async def main(a):
++ result={'scope':'Actual freestanding JSPI/Asyncify continuation checks; NOT Emscripten or media',
++ 'recordedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'transport':'about:blank/Blob Worker','runs':[],
++ 'sourceSHA256':{x:hashlib.sha256((ROOT/x).read_bytes()).hexdigest() for x in [
++ 'runtime/continuations.mjs','runtime/scheduler.mjs','review/tests/continuation-worker.js','review/run-continuations.py']}}
++ async with async_playwright() as p:
++  browser=await p.chromium.launch(executable_path=os.environ.get('CHROMIUM_EXECUTABLE','/usr/bin/chromium'),
++    headless=True,args=['--no-sandbox'])
++  try:
++   result['browser']=browser.version
++   page=await browser.new_page();await page.goto('about:blank')
++   src='\n'.join(dual.js(x) for x in ['runtime/continuations.mjs','runtime/scheduler.mjs','review/tests/continuation-worker.js'])
++   for backend in ['jspi','asyncify']:
++    cases=[(name,False) for name in NAMES]
++    if backend=='asyncify':cases += [('saved-stack-canary-is-fatal',False),('undersized-saved-stack-fails-closed',False),('indirect-callback-instrumented',True)]
++    for name,negative in cases:
++     if a.filter and a.filter not in name:continue
++     binary_name='artifacts/continuation-probe'
++     if negative:binary_name+='-omitted-import'
++     elif name=='undersized-saved-stack-fails-closed':binary_name+='-small'
++     if backend=='asyncify':binary_name+='.asyncify'
++     binary_name+='.wasm';binary=(ROOT/binary_name).read_bytes()
++     response=await page.evaluate("""async ({src,b64,name,backend})=>{
++       const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));
++       let w,timer;
++       try{return await new Promise(resolve=>{
++        const finish=r=>{clearTimeout(timer);resolve(r);};
++        timer=setTimeout(()=>finish({ok:false,error:'review watchdog timeout'}),20000);
++        w=new Worker(url);w.onmessage=({data})=>finish(data);w.onerror=e=>finish({ok:false,error:e.message});
++        const bytes=Uint8Array.from(atob(b64),x=>x.charCodeAt(0));
++        w.postMessage({name,backend,bytes},[bytes.buffer]);
++       });}finally{clearTimeout(timer);w?.terminate();URL.revokeObjectURL(url);}
++     }""",{'src':src,'b64':base64.b64encode(binary).decode(),'name':name,'backend':backend})
++     environment=(response.get('backend')==backend and response.get('crossOriginIsolated') is False and
++       response.get('sharedArrayBufferAvailable') is False and response.get('memoryType')=='ArrayBuffer' and
++       response.get('nestedWorkersCreated')==0 and response.get('jspiGetterAccesses')==0 and
++       (backend!='asyncify' or response.get('jspiDisabled') is True))
++     good=environment and (response.get('ok') is True if not negative else response.get('ok') is False and 'continuation side effects repeated' in response.get('error',''))
++     result['runs'].append({'backend':backend,'name':name,'negative':negative,'qualified':bool(good),
++       'artifact':binary_name,'wasmSHA256':hashlib.sha256(binary).hexdigest(),'result':response})
++     print(backend,name,'NEGATIVE' if negative else '', 'PASS' if good else 'FAIL',response.get('error','')[:250],flush=True)
++     (ROOT/'results'/a.output).write_text(json.dumps(result,indent=2)+'\n')
++  finally:await browser.close()
++ result.update(total=len(result['runs']),passed=sum(r['qualified'] for r in result['runs']))
++ (ROOT/'results'/a.output).write_text(json.dumps(result,indent=2)+'\n')
++ print('TOTAL',result['passed'],'/',result['total'])
++ return 0 if result['total'] and result['total']==result['passed'] else 1
++if __name__=='__main__':
++ p=argparse.ArgumentParser();p.add_argument('--filter',default='');p.add_argument('--output',default='review-continuations.json')
++ a=p.parse_args()
++ if pathlib.Path(a.output).name!=a.output:p.error('output must be a filename')
++ sys.exit(asyncio.run(main(a)))
+--- /dev/null
++++ b/review/test-result-contract.py
+@@ -0,0 +1,49 @@
++#!/usr/bin/env python3
++# SPDX-License-Identifier: MIT
++import copy,json,pathlib,sys,unittest
++ROOT=pathlib.Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'scripts'))
++from result_contract import validate_result
++def good(suite='units'):
++ r={'name':'fixture','testBackend':'asyncify','crossOriginIsolated':False,
++ 'sharedArrayBufferAvailable':False,'memoryType':'ArrayBuffer','nestedWorkersCreated':0,
++ 'jspiSuspendingAvailable':False,'jspiPromisingAvailable':False,'ok':True}
++ r['stats' if suite=='units' else 'scheduler']={'continuations':{'kind':'asyncify'},
++ 'liveTasks':0,'retainedTasks':0,'waitKeys':0,'timers':0,'freeSlots':24,'abandoned':0,'created':3,'completed':3}
++ if suite=='range':r.update(source={'handles':0,'pending':0,'timers':0},cLiveCookies=0)
++ return r
++class Contract(unittest.TestCase):
++ def valid(self,r,suite='units',negative=False):
++  return validate_result('asyncify',suite,negative,'fixture',r)[0]
++ def test_positive_unit(self):self.assertTrue(self.valid(good()))
++ def test_positive_range(self):self.assertTrue(self.valid(good('range'),'range'))
++ def test_missing_scheduler(self):
++  r=good();del r['stats'];self.assertFalse(self.valid(r))
++ def test_wrong_actual_backend(self):
++  r=good();r['stats']['continuations']['kind']='jspi';self.assertFalse(self.valid(r))
++ def test_one_JSPI_API_still_present(self):
++  r=good();r['jspiSuspendingAvailable']=True;self.assertFalse(self.valid(r))
++ def test_missing_JSPI_evidence(self):
++  r=good();del r['jspiPromisingAvailable'];self.assertFalse(self.valid(r))
++ def test_missing_memory_evidence(self):
++  r=good();del r['memoryType'];self.assertFalse(self.valid(r))
++ def test_source_leak_rejected(self):
++  r=good('range');r['source']['pending']=1;self.assertFalse(self.valid(r,'range'))
++ def test_missing_source_stats_rejected(self):
++  r=good('range');del r['source'];self.assertFalse(self.valid(r,'range'))
++ def test_abandon_not_completion(self):
++  r=good();r['stats']['abandoned']=1;self.assertFalse(self.valid(r))
++ def test_wrong_negative_error(self):
++  r=good();r.update(ok=False,error='watchdog timeout');self.assertFalse(self.valid(r,negative=True))
++ def test_negative_still_requires_runtime_evidence(self):
++  r=good();r.update(ok=False,error='C assertion');del r['stats'];self.assertFalse(self.valid(r,negative=True))
++ def test_expected_negative(self):
++  r=good();r.update(ok=False,error='C assertion: stack integrity');self.assertTrue(self.valid(r,negative=True))
++ def test_missing_worker_count(self):
++  r=good();del r['nestedWorkersCreated'];self.assertFalse(self.valid(r))
++ def test_wrong_case(self):
++  r=good();r['name']='other';self.assertFalse(self.valid(r))
++if __name__=='__main__':
++ result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Contract))
++ (ROOT/'results/review-contracts.json').write_text(json.dumps({'scope':'Host result validation tests','tests':result.testsRun,
++ 'failures':len(result.failures),'errors':len(result.errors)},indent=2)+'\n')
++ sys.exit(not result.wasSuccessful())
+--- /dev/null
++++ b/review/tests/audit-guards.mjs
+@@ -0,0 +1,21 @@
++// SPDX-License-Identifier: MIT
++import fs from 'node:fs';
++import assert from 'node:assert/strict';
++import {audit} from '../../scripts/audit-wasm.mjs';
++const raw=fs.readFileSync(new URL('../../artifacts/continuation-probe.wasm',import.meta.url));
++const transformed=fs.readFileSync(new URL('../../artifacts/continuation-probe.asyncify.wasm',import.meta.url));
++const tests=[];
++function test(name,fn){try{fn();tests.push({name,ok:true});}catch(e){tests.push({name,ok:false,error:String(e)});}}
++test('private-raw-module-accepted',()=>assert.equal(audit(raw).privateMemory,true));
++test('transformed-module-accepted',()=>assert.equal(audit(transformed,{asyncify:true}).privateMemory,true));
++test('uninstrumented-Asyncify-rejected',()=>assert.throws(()=>audit(raw,{asyncify:true}),/Uninstrumented/));
++test('wrong-JSPI-artifact-rejected',()=>assert.throws(()=>audit(transformed),/Unexpected Asyncify/));
++test('embedded-shared-memory-rejected',()=>{
++ const bytes=Uint8Array.from([0,97,115,109,1,0,0,0,5,4,1,3,1,1]);
++ assert.equal(WebAssembly.validate(bytes),true);
++ assert.throws(()=>audit(bytes,{raw:false}),/Shared/);
++});
++test('malformed-wasm-rejected',()=>assert.throws(()=>audit(new Uint8Array(3)),/Invalid/));
++test('missing-memory-rejected',()=>assert.throws(()=>audit(Uint8Array.from([0,97,115,109,1,0,0,0]),{raw:false}),/No private/));
++const record={scope:'Static WebAssembly binary/ABI audit, not instantiation or media',tests,total:tests.length,passed:tests.filter(t=>t.ok).length};
++console.log(JSON.stringify(record,null,2));if(record.total!==record.passed)process.exitCode=1;
+--- /dev/null
++++ b/review/tests/continuation-probe.c
+@@ -0,0 +1,37 @@
++// SPDX-License-Identifier: MIT
++// Freestanding continuation oracle. No libmpv/FFmpeg/media dependency.
++#include <stdint.h>
++#define HOST(mod,name) __attribute__((import_module(mod),import_name(name)))
++HOST("review_io","value") extern int host_value(int token);
++HOST("test","now") extern double host_now(void);
++int64_t mp_time_ns(void){return (int64_t)(host_now()*1000000);}
++static int entered,after,finished;
++int probe_entered(void){return entered;}
++int probe_after(void){return after;}
++int probe_finished(void){return finished;}
++__attribute__((noinline)) int probe_no_suspend(int token){return token+7;}
++__attribute__((noinline)) int probe_once(int token){
++    entered++;
++    int value=host_value(token);
++    after++;
++    finished++;
++    return value;
++}
++__attribute__((noinline)) int probe_recursive(int depth,int token){
++    volatile uint32_t local[32];
++    for(int i=0;i<32;i++)local[i]=(uint32_t)token*17u+(uint32_t)i*31u+(uint32_t)depth;
++    int result=depth ? probe_recursive(depth-1,token+1) : probe_once(token);
++    for(int i=0;i<32;i++)
++        if(local[i]!=(uint32_t)token*17u+(uint32_t)i*31u+(uint32_t)depth)__builtin_trap();
++    return result;
++}
++static __attribute__((noinline)) int indirect0(int token){return probe_once(token);}
++static __attribute__((noinline)) int indirect1(int token){return probe_once(token+1);}
++static int (*volatile callbacks[2])(int)={indirect0,indirect1};
++__attribute__((noinline)) int probe_indirect(int which,int token){
++    entered++; // distinguish correct rewind from replaying the entire export
++    int result=callbacks[which&1](token);
++    after++;
++    return result;
++}
++int probe_trap(int token){probe_once(token);__builtin_trap();}
+--- /dev/null
++++ b/review/tests/continuation-worker.js
+@@ -0,0 +1,130 @@
++// SPDX-License-Identifier: MIT
++self.onmessage=async({data})=>{
++ const expect=(ok,msg)=>{if(!ok)throw Error(msg);};
++ const delay=ms=>new Promise(r=>setTimeout(r,ms));
++ const until=async fn=>{for(let i=0;i<2000;i++){if(fn())return;await delay(1);}throw Error('barrier timeout');};
++ const results={scope:'Freestanding actual-Wasm continuation oracle; no media service',backend:data.backend};
++ let accesses=0,createdWorkers=0,s,e,release,callbacks=0,settlements=0;
++ let module;
++ const pending=[];
++ try{
++  if(data.backend==='asyncify'){
++   for(const key of ['Suspending','promising'])
++    Object.defineProperty(WebAssembly,key,{configurable:true,get(){accesses++;throw Error('Unexpected JSPI access');}});
++  }
++  self.Worker=class{constructor(){createdWorkers++;throw Error('Nested worker prohibited');}};
++  s=new CoopScheduler({backend:data.backend});
++  module=await WebAssembly.compile(data.bytes);
++  const imports=WebAssembly.Module.imports(module);
++  expect(imports.every(x=>['demuxe_coop','test','review_io'].includes(x.module)),'unadmitted import');
++  const instance=await WebAssembly.instantiate(module,{demuxe_coop:s.imports,test:{now:()=>performance.now()},review_io:{
++   value:s.wrapImport('review_io.value',token=>{
++    callbacks++;
++    if(data.name==='throwing-import-is-terminal')throw Error('injected import fault');
++    return s.park(w=>{
++     const done=()=>{
++      settlements++;
++      const first=s.readyWait(w,token*3+5);
++      if(data.name==='duplicate-wakeup-is-ignored')expect(first&&!s.readyWait(w,99),'duplicate wake was accepted');
++     };
++     if(data.name==='synchronous-ready-before-unwind')done();
++     else if(data.name==='multi-task-out-of-order')
++       setTimeout(done,Math.max(1,(20-token)%7));
++     else{pending.push(done);release=done;}
++    });
++   })
++  }});
++  e=instance.exports;s.attach(e);
++  const run=(name,...args)=>s.run(e[name],...args);
++  let discarded=false;
++  switch(data.name){
++   case 'no-suspension-normal-return':
++    expect(await run('probe_no_suspend',17)===24,'wrong non-suspending value');
++    expect(s.stats.suspensions===0,'unexpected suspension');break;
++   case 'single-suspension-no-placeholder-result':{
++    let complete=false;const p=run('probe_once',13).then(v=>{complete=true;return v;});
++    await until(()=>callbacks===1);await delay(5);
++    expect(!complete&&e.probe_after()===0,'unwind return was treated as completion');
++    release();expect(await p===44,'wrong resumed value');
++    expect(callbacks===1&&e.probe_entered()===1&&e.probe_after()===1,'continuation side effects repeated');break;
++   }
++   case 'synchronous-ready-before-unwind':
++   case 'duplicate-wakeup-is-ignored':{
++    const p=run('probe_once',7);if(data.name!=='synchronous-ready-before-unwind'){await until(()=>callbacks===1);release();}
++    expect(await p===26&&e.probe_after()===1&&callbacks===1,'ready/replay failure');break;
++   }
++   case 'nested-C-stacks-survive':
++   case 'memory-growth-with-saved-continuation':{
++    const p=run('probe_recursive',80,11);await until(()=>callbacks===1);
++    if(data.name==='memory-growth-with-saved-continuation')e.memory.grow(1);
++    release();expect(await p===(11+80)*3+5,'nested result changed');break;
++   }
++   case 'multi-task-out-of-order':{
++    const values=await Promise.all(Array.from({length:8},(_,i)=>run('probe_recursive',20,i)));
++    expect(values.every((v,i)=>v===(i+20)*3+5),'logical task result mixed');
++    expect(callbacks===8&&e.probe_entered()===8&&e.probe_after()===8,'duplicate multi-task execution');break;
++   }
++   case 'indirect-callback-instrumented':{
++    const p=run('probe_indirect',1,12);await until(()=>callbacks===1);
++    release();expect(await p===44,'indirect return value');
++    expect(e.probe_entered()===2&&e.probe_after()===2&&callbacks===1,'continuation side effects repeated');break;
++   }
++   case 'C-negative-result-is-not-runtime-failure':{
++    const p=run('probe_once',-2);await until(()=>callbacks===1);release();
++    expect(await p===-1,'signed C error lost');expect(await run('probe_no_suspend',1)===8&&!s.stopped,'C result poisoned runtime');break;
++   }
++   case 'throwing-import-is-terminal':{
++    let error;try{await run('probe_once',1);}catch(x){error=x;}
++    expect(String(error).includes('injected import fault')&&s.stopped,'import fault was not fatal');
++    await run('probe_no_suspend',1).then(()=>{throw Error('poisoned scheduler reused');},()=>{});
++    discarded=true;break;
++   }
++   case 'trap-after-resume-is-terminal':{
++    let error;const p=run('probe_trap',1).catch(x=>{error=x;});
++    await until(()=>callbacks===1);release();await p;
++    expect(error instanceof WebAssembly.RuntimeError&&s.stopped,'trap did not poison runtime');
++    discarded=true;break;
++   }
++   case 'abandon-pending-task-rejects-late-resume':{
++    let error;const p=run('probe_once',1).catch(x=>{error=x;});
++    await until(()=>callbacks===1);s.close(Error('deliberate abandon'));await p;
++    release();await delay(5);
++    expect(String(error).includes('deliberate abandon')&&e.probe_after()===0,'abandoned C resumed');
++    expect(s.stats.completed===0&&s.stats.abandoned===1,'abandon misreported as teardown');
++    discarded=true;break;
++   }
++   case 'saved-stack-canary-is-fatal':{
++    expect(data.backend==='asyncify','Asyncify-only case');
++    let error;const p=run('probe_once',1).catch(x=>{error=x;});
++    await until(()=>callbacks===1);
++    const task=[...s.tasks.values()].find(t=>t.status==='waiting');
++    new Uint8Array(e.memory.buffer)[task.asyncify.hi]=0;
++    release();await p;
++    expect(String(error).includes('Asyncify stack canary corrupted')&&s.stopped,'saved guard not enforced');
++    discarded=true;break;
++   }
++   case 'undersized-saved-stack-fails-closed':{
++    let error;const p=run('probe_recursive',80,11).catch(x=>{error=x;});
++    // Overflow may trap while unwinding, before any asynchronous callback.
++    await until(()=>s.stopped||callbacks===1);if(!s.stopped)release();await p;
++    expect((error instanceof WebAssembly.RuntimeError||/Asyncify.*(?:bounds|canary)/i.test(String(error)))&&s.stopped,'undersized saved stack not rejected');
++    discarded=true;break;
++   }
++   default:throw Error('Unknown review case');
++  }
++  const stats=s.snapshot();
++  expect(stats.liveTasks===0&&stats.retainedTasks===0&&stats.waitKeys===0&&stats.timers===0,'scheduler resources retained');
++  expect(discarded?stats.stopped&&stats.freeSlots===0:!stats.stopped&&stats.freeSlots===24,'incorrect reuse state');
++  expect(!crossOriginIsolated&&typeof SharedArrayBuffer==='undefined'&&e.memory.buffer instanceof ArrayBuffer,'non-isolation contract failed');
++  expect(accesses===0&&createdWorkers===0,'hidden JSPI/Worker dependency');
++  results.ok=true;results.stats=stats;results.discarded=discarded;
++ }catch(error){results.ok=false;results.error=String(error.stack??error);results.stats=s?.snapshot();}
++ finally{
++  results.jspiGetterAccesses=accesses;results.jspiDisabled=data.backend==='asyncify';
++  results.nestedWorkersCreated=createdWorkers;results.crossOriginIsolated=crossOriginIsolated;
++  results.sharedArrayBufferAvailable=typeof SharedArrayBuffer!=='undefined';
++  results.memoryType=e?.memory.buffer.constructor.name??null;
++  results.callbacks=callbacks;results.settlements=settlements;
++  s?.close();self.postMessage(results);
++ }
++};
+--- /dev/null
++++ b/review/tests/host-guards.mjs
+@@ -0,0 +1,81 @@
++// SPDX-License-Identifier: MIT
++import fs from 'node:fs';
++import assert from 'node:assert/strict';
++import {CoopScheduler} from '../../runtime/scheduler.mjs';
++import {createFFmpegBridge} from '../../ffmpeg/runtime/ffmpeg-bridge.mjs';
++import {SingleOwner} from '../../ffmpeg/runtime/single-owner.mjs';
++const runs=[];
++async function test(name,fn){try{await fn();runs.push({name,ok:true});}catch(e){runs.push({name,ok:false,error:String(e.stack??e)});}}
++for (const name of ['Suspending','promising'])
++  Object.defineProperty(WebAssembly,name,{get(){throw Error('JSPI getter was accessed');},configurable:true});
++const wasm = fs.readFileSync(new URL('../../artifacts/mpv-coop-units.asyncify.wasm',import.meta.url));
++async function makeScheduler(){
++ const s=new CoopScheduler({backend:'asyncify'});
++ const {instance}=await WebAssembly.instantiate(wasm,{demuxe_coop:s.imports,test:{now:()=>performance.now(),live:()=>0,fail:()=>{throw Error('test assertion')},read:()=>0}});
++ return {s,e:instance.exports};
++}
++await test('reject-overlapping-C-stack-layout',async()=>{
++ const {s,e}=await makeScheduler();
++ try{assert.throws(()=>s.attach({...e,demuxe_coop_stack_base:i=>e.demuxe_coop_stack_base(0),demuxe_coop_stack_top:i=>e.demuxe_coop_stack_top(0)}),/overlap/i);}finally{s.close();}
++});
++await test('reject-C-stack-saved-stack-alias',async()=>{
++ const {s,e}=await makeScheduler();
++ try{assert.throws(()=>s.attach({...e,demuxe_coop_stack_base:i=>e.demuxe_asyncify_data(i),demuxe_coop_stack_top:i=>e.demuxe_asyncify_end(i)}),/overlap/i);}finally{s.close();}
++});
++await test('failed-attach-closes-scheduler',async()=>{
++ const {s,e}=await makeScheduler();
++ try{assert.throws(()=>s.attach({...e,asyncify_start_unwind:undefined}),/Asyncify export/);assert.equal(s.stopped,true);}finally{s.close();}
++});
++await test('FFmpeg-unexpected-ccall-trap-poisons-instance',async()=>{
++ let entered=0;const error=new WebAssembly.RuntimeError('injected trap');
++ const module={HEAPU8:new Uint8Array(1024),ccall(){entered++;if(entered===1)throw error;return 99;}};
++ const b=createFFmpegBridge(module);
++ try{await assert.rejects(b.call('rm_step','number',[],[]));await assert.rejects(b.call('rm_step','number',[],[]));assert.equal(entered,1);await assert.rejects(b.destroy());assert.equal(entered,1);}
++ finally{b.owner.close();}
++});
++await test('FFmpeg-invalid-replacement-preserves-existing-source',async()=>{
++ const module={HEAPU8:new Uint8Array(1024),ccall(name){return name==='rm_step'?module.nonIsolatedRead(0,4,0):0;}};
++ const b=createFFmpegBridge(module);
++ try{b.setSource({size:4,read:async()=>new Uint8Array([1,2,3,4])});assert.throws(()=>b.setSource({size:-1}));assert.equal(await b.call('rm_step','number',[],[]),4);assert.deepEqual([...module.HEAPU8.slice(0,4)],[1,2,3,4]);}
++ finally{await b.destroy();}
++});
++
++await test('reject-unexported-JavaScript-root',async()=>{
++ const {s,e}=await makeScheduler();
++ try{s.attach(e);await assert.rejects(s.run(()=>9),/unadmitted/);assert.equal(s.stats.created,0);}
++ finally{s.close();}
++});
++await test('FFmpeg-negative-C-code-is-recoverable',async()=>{
++ let entered=0;
++ const b=createFFmpegBridge({HEAPU8:new Uint8Array(1024),ccall(name){entered++;return name==='rm_step'?-1:0;}});
++ try{assert.equal(await b.call('rm_step','number',[],[]),-1);assert.equal(await b.call('rm_step','number',[],[]),-1);assert.equal(b.requiresDiscard,false);}
++ finally{await b.destroy();}
++});
++await test('FFmpeg-busy-rejection-does-not-poison-active-call',async()=>{
++ let resolve;
++ const m={HEAPU8:new Uint8Array(1024),ccall(name){return name==='rm_step'?new Promise(r=>resolve=r):0;}};
++ const b=createFFmpegBridge(m);
++ const pending=b.call('rm_step','number',[],[]);
++ await assert.rejects(b.call('rm_step','number',[],[]),/already active/);
++ assert.equal(b.requiresDiscard,false);resolve(7);assert.equal(await pending,7);await b.destroy();
++});
++await test('FFmpeg-duplicate-module-owner-is-rejected',async()=>{
++ const m={HEAPU8:new Uint8Array(1024),ccall:()=>0};
++ const b=createFFmpegBridge(m);
++ try{assert.throws(()=>createFFmpegBridge(m),/already has an owner/);}finally{await b.destroy();}
++});
++await test('FFmpeg-shutdown-trap-is-terminal-and-idempotent',async()=>{
++ let entered=0;const m={HEAPU8:new Uint8Array(1024),ccall(){entered++;return Promise.reject(new WebAssembly.RuntimeError('close trap'));}};
++ const b=createFFmpegBridge(m);const closing=b.destroy();
++ assert.equal(closing,b.destroy());await assert.rejects(closing,/close trap/);
++ assert.equal(entered,1);assert.equal(b.requiresDiscard,true);assert.throws(()=>createFFmpegBridge(m),/requires discard/);
++});
++await test('FFmpeg-shutdown-deadline-requires-discard',async()=>{
++ const m={HEAPU8:new Uint8Array(1024),ccall(){return new Promise(()=>{});}};
++ const b=createFFmpegBridge(m,{shutdownTimeoutMs:10});await assert.rejects(b.destroy(),/deadline/);
++ assert.equal(b.requiresDiscard,true);assert.equal(b.owner.stopped,true);
++ assert.throws(()=>createFFmpegBridge(m),/requires discard/);
++});
++const record={scope:'Host/ABI guard tests using actual Wasm metadata and FFmpeg ccall doubles; no full media',tests:runs,total:runs.length,passed:runs.filter(t=>t.ok).length};
++console.log(JSON.stringify(record,null,2));
++if(record.passed!==record.total)process.exitCode=1;
+--- a/runtime/asyncify-stacks.c
++++ b/runtime/asyncify-stacks.c
+@@ -8,6 +8,9 @@
+ #ifndef DEMUXE_ASYNCIFY_BYTES
+ #define DEMUXE_ASYNCIFY_BYTES 65536
+ #endif
++_Static_assert(DEMUXE_COOP_SLOTS >= 1 && DEMUXE_COOP_SLOTS <= 256, "slot budget");
++_Static_assert(DEMUXE_ASYNCIFY_BYTES >= 256 && DEMUXE_ASYNCIFY_BYTES % 16 == 0,
++               "saved continuation stack must be aligned and nontrivial");
+ struct saved_stack {
+     uint32_t pointer, end;
+     unsigned char lower_guard[24];
+--- a/runtime/continuations.mjs
++++ b/runtime/continuations.mjs
+@@ -41,9 +41,14 @@
+       const data=e.demuxe_asyncify_data(i)>>>0,lo=e.demuxe_asyncify_base(i)>>>0,hi=e.demuxe_asyncify_end(i)>>>0;
+       if(data%16||lo%16||hi%16||lo<data+32||hi<=lo||hi+32>e.memory.buffer.byteLength)
+         throw Error('Invalid Asyncify stack bounds');
+-      if(ranges.some(r=>data<r.hi&&hi+32>r.lo))throw Error('Overlapping Asyncify stacks');
+-      ranges.push({lo:data,hi:hi+32});
++      if(ranges.some(r=>data<r.regionHi&&hi+32>r.regionLo))throw Error('Overlapping Asyncify stacks');
++      if(this.s.cStacks.some(r=>data<r.hi&&hi+32>r.lo))
++        throw Error('Asyncify saved stack overlaps C stack');
++      if(this.s.hostSP>=data&&this.s.hostSP<=hi+32)
++        throw Error('Asyncify saved stack overlaps host stack pointer');
++      ranges.push(Object.freeze({data,lo,hi,regionLo:data,regionHi:hi+32}));
+     }
++    this.stacks=Object.freeze(ranges);
+   }
+   view() {return new DataView(this.e.memory.buffer);}
+   wrapImport(name,fn) {
+@@ -66,7 +71,7 @@
+   }
+   prepare(t) {
+     const e=this.e;
+-    t.asyncify={data:e.demuxe_asyncify_data(t.slot)>>>0,lo:e.demuxe_asyncify_base(t.slot)>>>0,hi:e.demuxe_asyncify_end(t.slot)>>>0};
++    t.asyncify=this.stacks[t.slot];
+     const a=t.asyncify,u=new Uint8Array(e.memory.buffer);
+     u.fill(0xb6,a.data+8,a.lo);u.fill(0xb6,a.hi,a.hi+32);
+     this.view().setUint32(a.data,a.lo,true);this.view().setUint32(a.data+4,a.hi,true);
+--- a/runtime/scheduler.mjs
++++ b/runtime/scheduler.mjs
+@@ -35,15 +35,33 @@
+   }
+   wrapImport(name,fn) {return this.continuations.wrapImport(name,fn);}
+   attach(exports) {
+-    if(this.e)throw Error('Scheduler already attached');
+-    if(!(exports.memory instanceof WebAssembly.Memory)||!(exports.memory.buffer instanceof ArrayBuffer))
+-      throw Error('A private, non-shared Wasm heap is required');
+-    for(const n of ['demuxe_coop_invoke','demuxe_coop_get_sp','demuxe_coop_set_sp',
+-      'demuxe_coop_stack_base','demuxe_coop_stack_top','demuxe_coop_stack_count'])
+-      if(typeof exports[n]!=='function')throw Error('Missing scheduler export '+n);
+-    if(exports.demuxe_coop_stack_count()!==this.slots)throw Error('JS/C stack-slot ABI mismatch');
+-    this.e=exports;this.hostSP=exports.demuxe_coop_get_sp()>>>0;
+-    this.continuations.attach(exports);
++    if(this.e||this.stopped)throw Error('Scheduler already attached or closed');
++    try {
++      if(!(exports?.memory instanceof WebAssembly.Memory)||!(exports.memory.buffer instanceof ArrayBuffer))
++        throw Error('A private, non-shared Wasm heap is required');
++      for(const n of ['demuxe_coop_invoke','demuxe_coop_get_sp','demuxe_coop_set_sp',
++        'demuxe_coop_stack_base','demuxe_coop_stack_top','demuxe_coop_stack_count'])
++        if(typeof exports[n]!=='function')throw Error('Missing scheduler export '+n);
++      if(exports.demuxe_coop_stack_count()!==this.slots)throw Error('JS/C stack-slot ABI mismatch');
++      const bytes=exports.memory.buffer.byteLength,hostSP=exports.demuxe_coop_get_sp()>>>0;
++      if(!hostSP||hostSP%16||hostSP>bytes)throw Error('Invalid host stack pointer');
++      const ranges=[];
++      for(let slot=0;slot<this.slots;slot++) {
++        const lo=exports.demuxe_coop_stack_base(slot)>>>0,hi=exports.demuxe_coop_stack_top(slot)>>>0;
++        if(lo%16||hi%16||hi-lo<128||hi>bytes)throw Error('Invalid C-stack bounds');
++        if(ranges.some(r=>lo<r.hi&&hi>r.lo))throw Error('Overlapping C stacks');
++        if(hostSP>=lo&&hostSP<=hi)throw Error('C stack overlaps host stack pointer');
++        ranges.push(Object.freeze({lo,hi}));
++      }
++      this.cStacks=Object.freeze(ranges);
++      this.e=exports;this.hostSP=hostSP;
++      this.allowedEntries=new Set(Object.values(exports).filter(v=>typeof v==='function'));
++      this.continuations.attach(exports);
++    } catch(error) {
++      // Partial initialization is terminal; do not leave a runnable half-loader
++      // or an open MessageChannel behind after any ABI/layout rejection.
++      this.fail(error);throw error;
++    }
+   }
+   onStop(fn) {
+     if(this.stopped){fn();return ()=>{};}
+@@ -61,9 +79,10 @@
+   self() {if(!this.active)throw Error('Wasm entry without a logical owner');return this.active.id;}
+   create(fn,args,root) {
+     if(this.stopped||this.free.length===0||this.tasks.size>=this.maxRetainedTasks||this.nextId>0xffffffff)return null;
+-    if(!this.e||typeof fn!=='function')throw Error('Invalid or unattached Wasm entry');
++    if(!this.e||typeof fn!=='function'||!this.allowedEntries.has(fn))
++      throw Error('Invalid or unadmitted Wasm entry');
+     const slot=this.free[this.free.length-1],id=this.nextId;
+-    const lo=this.e.demuxe_coop_stack_base(slot)>>>0,hi=this.e.demuxe_coop_stack_top(slot)>>>0;
++    const {lo,hi}=this.cStacks[slot];
+     if(lo%16||hi%16||hi-lo<128||hi>this.e.memory.buffer.byteLength)throw Error('Invalid C-stack bounds');
+     new Uint8Array(this.e.memory.buffer,lo,64).fill(0xa5);
+     this.free.pop();this.nextId++;
+--- a/runtime/threads-coop.c
++++ b/runtime/threads-coop.c
+@@ -26,6 +26,9 @@
+ #ifndef DEMUXE_COOP_STACK_SIZE
+ #define DEMUXE_COOP_STACK_SIZE (512*1024)
+ #endif
++_Static_assert(DEMUXE_COOP_SLOTS >= 1 && DEMUXE_COOP_SLOTS <= 256, "slot budget");
++_Static_assert(DEMUXE_COOP_STACK_SIZE >= 128 && DEMUXE_COOP_STACK_SIZE % 32 == 0,
++               "C stack must preserve array alignment");
+ static _Alignas(32) unsigned char stacks[DEMUXE_COOP_SLOTS][DEMUXE_COOP_STACK_SIZE];
+ int demuxe_coop_stack_count(void) { return DEMUXE_COOP_SLOTS; }
+ uintptr_t demuxe_coop_stack_base(int slot) {
+--- /dev/null
++++ b/scripts/audit-wasm.mjs
+@@ -0,0 +1,48 @@
++// SPDX-License-Identifier: MIT
++import fs from 'node:fs';
++import crypto from 'node:crypto';
++import {pathToFileURL} from 'node:url';
++export function audit(bytes,{asyncify=false,raw=true}={}) {
++ if(!WebAssembly.validate(bytes))throw Error('Invalid Wasm');
++ const module=new WebAssembly.Module(bytes),imports=WebAssembly.Module.imports(module),exports=WebAssembly.Module.exports(module);
++ if(imports.some(x=>x.kind==='memory'||/pthread|futex|proxy_to|emscripten_thread/i.test(x.name)))
++  throw Error('Imported/shared/threaded memory profile rejected');
++ let at=8,memories=0;
++ const read=()=>{
++  let n=0,shift=0;
++  for(let i=0;i<5;i++){
++   if(at>=bytes.length)throw Error('Truncated unsigned LEB');
++   const b=bytes[at++];n+=(b&127)*2**shift;
++   if(!(b&128)){if(n>0xffffffff)throw Error('LEB overflow');return n;}shift+=7;
++  }throw Error('Oversized unsigned LEB');
++ };
++ while(at<bytes.length){
++  const section=bytes[at++],length=read(),end=at+length;
++  if(end>bytes.length)throw Error('Truncated section');
++  if(section===5){
++   memories=read();
++   if(memories!==1)throw Error('Expected one private memory');
++   const flags=read();
++   if(flags&6||flags>1)throw Error('Shared or memory64 profile rejected');
++   read();if(flags&1)read();
++   if(at!==end)throw Error('Unexpected memory layout');
++  }
++  at=end;
++ }
++ if(memories!==1)throw Error('No private defined memory');
++ const names=new Set(exports.filter(x=>x.kind==='function').map(x=>x.name));
++ if(raw){
++  for(const name of ['demuxe_coop_get_sp','demuxe_coop_set_sp','demuxe_coop_invoke'])
++   if(!names.has(name))throw Error('Missing raw scheduler export '+name);
++  const controls=['asyncify_start_unwind','asyncify_stop_unwind','asyncify_start_rewind','asyncify_stop_rewind','asyncify_get_state'];
++  if(asyncify&&!controls.every(x=>names.has(x)))throw Error('Uninstrumented Asyncify artifact');
++  if(!asyncify&&controls.some(x=>names.has(x)))throw Error('Unexpected Asyncify instrumentation');
++ }
++ return {bytes:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),
++   privateMemory:true,memory64:false,asyncifyControls:asyncify,imports,exports};
++}
++if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
++ const file=process.argv[2];
++ if(!file)throw Error('Usage: node audit-wasm.mjs file.wasm [--asyncify] [--emscripten]');
++ console.log(JSON.stringify(audit(fs.readFileSync(file),{asyncify:process.argv.includes('--asyncify'),raw:!process.argv.includes('--emscripten')}),null,2));
++}
+--- a/scripts/build-dual.py
++++ b/scripts/build-dual.py
+@@ -21,9 +21,21 @@
+  run(['bash','build-unit.sh']);run(['bash','stage2/scripts/build-bridge.sh'])
+  for src,dest,io in [('artifacts/mpv-coop-units.wasm','artifacts/mpv-coop-units.asyncify.wasm','test.read'),('stage2/artifacts/range-bridge.wasm','artifacts/range-bridge.asyncify.wasm','demuxe_source.read')]:
+   run([exe,src,'--asyncify','--pass-arg=asyncify-imports@demuxe_coop.wait,demuxe_coop.join,demuxe_coop.yield,'+io,'--enable-bulk-memory','-g','-o',dest])
++ run([sys.executable,'-B','review/build-probes.py','--wasm-opt',exe])
++ audits={}
++ for file in sorted([*ROOT.glob('artifacts/*.wasm'),*ROOT.glob('stage2/artifacts/*.wasm')]):
++  args=['node','scripts/audit-wasm.mjs',file]
++  if '.asyncify.' in file.name:args.append('--asyncify')
++  audits[str(file.relative_to(ROOT))]=json.loads(run(args))
++ record['audits']=audits
++ record['sourceSHA256']={str(f.relative_to(ROOT)):hashlib.sha256(f.read_bytes()).hexdigest() for f in [
++  ROOT/'runtime/threads-coop.c',ROOT/'runtime/threads-coop.h',ROOT/'runtime/asyncify-stacks.c',ROOT/'runtime/stack.s',
++  ROOT/'tests/probe.c',ROOT/'tests/support.c',ROOT/'stage2/native/stream-coop.c',ROOT/'stage2/tests/bridge-probe.c',
++  ROOT/'review/tests/continuation-probe.c',ROOT/'build-unit.sh',ROOT/'stage2/scripts/build-bridge.sh',
++  ROOT/'scripts/build-dual.py',ROOT/'review/build-probes.py',ROOT/'scripts/audit-wasm.mjs']}
+  record['status']='built'
+- record['artifacts']={str(f.relative_to(ROOT)):{'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in [ROOT/'artifacts/mpv-coop-units.wasm',ROOT/'artifacts/mpv-coop-units.asyncify.wasm',ROOT/'stage2/artifacts/range-bridge.wasm',ROOT/'artifacts/range-bridge.asyncify.wasm']}
++ record['artifacts']={str(f.relative_to(ROOT)):{'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted([*ROOT.glob('artifacts/*.wasm'),*ROOT.glob('stage2/artifacts/*.wasm')])}
+ except Exception as error:record['status']='failed';record['error']=str(error)
+ finally:(ROOT/'results/build.json').write_text(json.dumps(record,indent=2)+'\n')
+ if record['status']!='built':raise SystemExit(record['error'])
+-print(record['binaryen']);print('Built four test binaries; no media executed.')
++print(record['binaryen']);print('Built and audited nine infrastructure binaries; no media executed.')
+--- /dev/null
++++ b/scripts/result_contract.py
+@@ -0,0 +1,40 @@
++# SPDX-License-Identifier: MIT
++"""Fail-closed result validation; success booleans alone are not evidence."""
++BACKENDS=('jspi','asyncify')
++SUITES=('units','range')
++def validate_result(backend,suite,negative,name,result):
++    errors=[]
++    def check(value,message):
++        if not value:errors.append(message)
++    if not isinstance(result,dict):return False,['missing result object']
++    check(backend in BACKENDS and suite in SUITES,'unknown backend/suite')
++    check(result.get('name')==name,'wrong case identity')
++    check(result.get('testBackend')==backend,'wrong requested backend')
++    check(result.get('crossOriginIsolated') is False,'wrong isolation')
++    check(result.get('sharedArrayBufferAvailable') is False,'SAB exposed or unreported')
++    check(result.get('memoryType')=='ArrayBuffer','private memory unproved')
++    check(result.get('nestedWorkersCreated')==0,'nested workers unproved')
++    if backend=='asyncify':
++        check(result.get('jspiSuspendingAvailable') is False,'Suspending not disabled')
++        check(result.get('jspiPromisingAvailable') is False,'promising not disabled')
++    stats=result.get('stats' if suite=='units' else 'scheduler')
++    if not isinstance(stats,dict):
++        errors.append('missing scheduler evidence')
++        stats={}
++    check(stats.get('continuations',{}).get('kind')==backend,'wrong executed continuation backend')
++    if negative:
++        reason='C assertion' if suite=='units' else 'ready read not revoked'
++        check(result.get('ok') is False and reason in result.get('error',''),'wrong negative failure')
++    else:
++        check(result.get('ok') is True,'positive case failed')
++        for key in ('liveTasks','retainedTasks','waitKeys','timers'):
++            check(stats.get(key)==0,'unproved cleanup: '+key)
++        check(stats.get('freeSlots')==24,'unproved stack reclamation')
++        check(stats.get('abandoned')==0,'positive case abandoned execution')
++        check(stats.get('created')==stats.get('completed') and isinstance(stats.get('created'),int),'C completion unproved')
++        if suite=='range':
++            source=result.get('source',{})
++            for key in ('handles','pending','timers'):
++                check(source.get(key)==0,'unproved source cleanup: '+key)
++            check(result.get('cLiveCookies')==0,'C cookie cleanup unproved')
++    return not errors,errors
+--- a/scripts/run-dual.py
++++ b/scripts/run-dual.py
+@@ -5,6 +5,7 @@
+ """
+ import argparse,ast,asyncio,base64,datetime,hashlib,json,os,pathlib,platform,re,subprocess,sys
+ from playwright.async_api import async_playwright
++from result_contract import validate_result, BACKENDS, SUITES
+ ROOT=pathlib.Path(__file__).resolve().parents[1]
+ 
+ def names(path):
+@@ -19,7 +20,11 @@
+ async def main(a):
+     result={'scope':'Actual pinned mpv dispatch/thread-pool, and C stream bridge with test registration shim; NOT full libmpv or media',
+       'recordedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'host':platform.platform(),
+-      'clang':subprocess.check_output(['clang','--version'],text=True).splitlines()[0], 'runs':[]}
++      'transport':'about:blank/Blob Worker',
++      'sourceSHA256':{x:hashlib.sha256((ROOT/x).read_bytes()).hexdigest() for x in [
++        'runtime/continuations.mjs','runtime/scheduler.mjs','stage2/runtime/range-source.mjs',
++        'tests/browser-worker.js','stage2/tests/range-worker.js','scripts/run-dual.py','scripts/result_contract.py']},
++      'clang':subprocess.check_output([os.environ.get('CLANG','clang'),'--version'],text=True).splitlines()[0], 'runs':[]}
+     async with async_playwright() as p:
+         browser=await p.chromium.launch(executable_path=os.environ.get('CHROMIUM_EXECUTABLE','/usr/bin/chromium'),headless=True,args=['--no-sandbox'])
+         page=await browser.new_page();await page.goto('about:blank');result['browser']=browser.version
+@@ -33,16 +38,20 @@
+             binary=wasm_path.read_bytes()
+             # Force the Asyncify test realm to have neither JSPI primitive.
+             preamble='''const __post=self.postMessage.bind(self);
+-self.postMessage=(data,...rest)=>__post({...data,testBackend:%s,jspiAvailable:typeof WebAssembly.Suspending==='function'&&typeof WebAssembly.promising==='function'},...rest);
++self.postMessage=(data,...rest)=>__post({...data,testBackend:%s,jspiAvailable:typeof WebAssembly.Suspending==='function'&&typeof WebAssembly.promising==='function',
++jspiSuspendingAvailable:typeof WebAssembly.Suspending==='function',jspiPromisingAvailable:typeof WebAssembly.promising==='function'},...rest);
+ '''%json.dumps(backend)
+-            if backend=='asyncify':preamble+='''Object.defineProperty(WebAssembly,'Suspending',{value:undefined,configurable:true});
+-Object.defineProperty(WebAssembly,'promising',{value:undefined,configurable:true});
++            if backend=='asyncify':preamble+='''Object.defineProperty(WebAssembly,'Suspending',{value:undefined,writable:false,configurable:false});
++Object.defineProperty(WebAssembly,'promising',{value:undefined,writable:false,configurable:false});
+ '''
+             cases=[(name,i,False) for i,name in enumerate(test_names) if not a.filter or a.filter in name]
+             if not a.filter:cases.append(('negative-no-linear-stack-switch' if unit else 'cancel-after-ready-before-c-owner-resume',2 if unit else 0,True))
+             for name,i,negative in cases:
+               source=base
+-              if negative and not unit:source=source.replace('if(!this.valid(h) || r.cancelled)','if(false /* negative control */)')
++              if negative and not unit:
++                anchor='if(!this.valid(h) || r.cancelled)'
++                if source.count(anchor)!=1:raise ValueError('Negative-control source anchor changed')
++                source=source.replace(anchor,'if(false /* negative control */)')
+               response=await page.evaluate('''async ({src,b64,name,which,backend,unsafeSharedStack})=>{
+                 const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));const w=new Worker(url);
+                 return await new Promise(resolve=>{
+@@ -52,9 +61,8 @@
+                   const bytes=Uint8Array.from(atob(b64),x=>x.charCodeAt(0));w.postMessage({name,which,backend,unsafeSharedStack,bytes},[bytes.buffer]);
+                 });
+               }''',{'src':preamble+source,'b64':base64.b64encode(binary).decode(),'name':name,'which':i,'backend':backend,'unsafeSharedStack':negative and unit})
+-              good=(response.get('ok') and response.get('crossOriginIsolated') is False and response.get('sharedArrayBufferAvailable') is False and response.get('memoryType')=='ArrayBuffer' and (backend!='asyncify' or response.get('jspiAvailable') is False))
+-              if negative:good=not response.get('ok') and ('C assertion' if unit else 'ready read not revoked') in response.get('error','')
+-              entry={'backend':backend,'suite':suite,'name':name,'negative':negative,'qualified':bool(good),'wasmSHA256':hashlib.sha256(binary).hexdigest(),'result':response}
++              good,errors=validate_result(backend,suite,negative,name,response)
++              entry={'backend':backend,'suite':suite,'name':name,'negative':negative,'qualified':bool(good),'validationErrors':errors,'wasmSHA256':hashlib.sha256(binary).hexdigest(),'result':response}
+               result['runs'].append(entry);print(backend,suite,name,'PASS' if good else 'FAIL',response.get('error','')[:230],flush=True)
+               dest=ROOT/'results'/a.output;dest.write_text(json.dumps(result,indent=2)+'\n')
+         await browser.close()
+@@ -65,4 +73,10 @@
+ 
+ if __name__=='__main__':
+     p=argparse.ArgumentParser();p.add_argument('--backends',default='jspi,asyncify');p.add_argument('--suites',default='units,range');p.add_argument('--filter',default='');p.add_argument('--output',default='dual-runtime.json');a=p.parse_args()
++    if any(x not in BACKENDS for x in a.backends.split(',')) or len(set(a.backends.split(',')))!=len(a.backends.split(',')):
++        p.error('backends must be a unique subset of jspi,asyncify')
++    if any(x not in SUITES for x in a.suites.split(',')) or len(set(a.suites.split(',')))!=len(a.suites.split(',')):
++        p.error('suites must be a unique subset of units,range')
++    if pathlib.Path(a.output).name!=a.output or not a.output.endswith('.json'):
++        p.error('output must be a JSON filename')
+     sys.exit(asyncio.run(main(a)))
+--- a/scripts/test-profiles.py
++++ b/scripts/test-profiles.py
+@@ -22,6 +22,16 @@
+   with self.assertRaises(ValueError):m.suspension_flags('asyncify',['rm_open'],True)
+  def test_export_allowlist(self):
+   with self.assertRaises(ValueError):m.suspension_flags('jspi',['malloc'])
++ def test_wildcards_rejected(self):
++  with self.assertRaises(ValueError):m.suspension_flags('jspi',['rm_*'])
++ def test_unknown_rm_export_rejected(self):
++  with self.assertRaises(ValueError):m.suspension_flags('jspi',['rm_unreviewed'])
++ def test_duplicate_exports_rejected(self):
++  with self.assertRaises(ValueError):m.suspension_flags('jspi',['rm_open','rm_open'])
++ def test_string_export_container_rejected(self):
++  with self.assertRaises(ValueError):m.suspension_flags('jspi','rm_open')
++ def test_bool_export_rejected(self):
++  with self.assertRaises(ValueError):m.suspension_flags('asyncify',[True])
+  def test_common_read_import(self):
+   text=(ROOT/'ffmpeg/scripts/prepare-ffmpeg.py').read_text();tree=ast.parse(text)
+   new=next(ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='NEW' for x in n.targets))
+--- a/stage2/scripts/build-bridge.sh
++++ b/stage2/scripts/build-bridge.sh
+@@ -3,7 +3,7 @@
+ set -euo pipefail
+ cd "$(dirname "$0")/../.."
+ mkdir -p stage2/artifacts stage2/logs
+-"${CLANG:-clang}" --target=wasm32 -O2 -g -ffreestanding -fno-builtin -nostdlib \
++"${CLANG:-clang}" --target=wasm32 -O2 -g "-ffile-prefix-map=$PWD=/demuxe-asyncify-study" -ffreestanding -fno-builtin -nostdlib \
+  -DDEMUXE_COOP_THREADS=1 -Istage2/tests/support -Itests/support -Iruntime -Iupstream \
+  runtime/threads-coop.c runtime/asyncify-stacks.c runtime/stack.s tests/support.c \
+  stage2/native/stream-coop.c stage2/tests/bridge-probe.c \
+--- a/stage2/tests/range-worker.js
++++ b/stage2/tests/range-worker.js
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: MIT
+ self.onmessage=async ({data})=>{
+  const started=performance.now(),delay=ms=>new Promise(r=>setTimeout(r,ms));
+- let ticks=0,entered=0,resolveRead,requestAborted=false,details={};
++ let ticks=0,entered=0,resolveRead,requestAborted=false,details={},e,imports=[],nestedWorkersCreated=0;
+  const tick=setInterval(()=>ticks++,2);
+  const s=new CoopScheduler({backend:data.backend}),r=new RangeSource(s,{timeoutMs:1000});
+  const pattern=(offset,n)=>Uint8Array.from({length:n},(_,i)=>((offset+i)*73+17)%256);
+@@ -9,12 +9,12 @@
+  const expect=(x,msg)=>{if(!x)throw Error(msg);};
+  const until=async (fn)=>{for(let i=0;i<1000;i++){if(fn())return;await delay(1);}throw Error('barrier timeout');};
+  try {
+-  self.Worker=class {constructor(){throw Error('Nested Worker creation prohibited');}};
+-  const module=await WebAssembly.compile(data.bytes),imports=WebAssembly.Module.imports(module);
++  self.Worker=class {constructor(){nestedWorkersCreated++;throw Error('Nested Worker creation prohibited');}};
++  const module=await WebAssembly.compile(data.bytes);imports=WebAssembly.Module.imports(module);
+   expect(imports.every(x=>['demuxe_coop','demuxe_source','test'].includes(x.module)),'Unexpected imports');
+-  const {exports:e}=await WebAssembly.instantiate(module,{demuxe_coop:s.imports,demuxe_source:r.imports,test:{
++  ({exports:e}=await WebAssembly.instantiate(module,{demuxe_coop:s.imports,demuxe_source:r.imports,test:{
+    now:()=>performance.now(),fail:(a,b,l)=>{throw Error(`C assertion ${s.readString(a)} at ${s.readString(b)}:${l}`);}
+-  }});
++  }}));
+   s.attach(e);r.attach(e.memory);
+   const run=(fn,...args)=>s.run(e[fn],...args);
+   const ptr=e.bridge_ptr(),out=(n=1024,offset=0)=>new Uint8Array(e.memory.buffer,ptr+offset,n);
+@@ -164,6 +164,8 @@
+   r.close();s.close();clearInterval(tick);
+   self.postMessage({name:data.name,ok:true,scope:'new C mpv callback bridge with registration shim; NOT libmpv/media execution',
+    crossOriginIsolated:self.crossOriginIsolated,sharedArrayBufferAvailable:typeof SharedArrayBuffer!=='undefined',memoryType:e.memory.buffer.constructor.name,
+-   elapsedMs:performance.now()-started,heartbeatTicks:ticks,entered,requestAborted,details,source:rs,scheduler:ss,imports});
+- }catch(error){r.close();s.close();clearInterval(tick);self.postMessage({name:data.name,ok:false,error:String(error.stack??error),source:r.snapshot(),scheduler:s.snapshot()});}
++   elapsedMs:performance.now()-started,heartbeatTicks:ticks,entered,requestAborted,details,source:rs,scheduler:ss,imports,nestedWorkersCreated,cLiveCookies:e.demuxe_source_live()});
++ }catch(error){r.close();s.close();clearInterval(tick);self.postMessage({name:data.name,ok:false,error:String(error.stack??error),source:r.snapshot(),scheduler:s.snapshot(),imports,nestedWorkersCreated,
++    crossOriginIsolated:self.crossOriginIsolated,sharedArrayBufferAvailable:typeof SharedArrayBuffer!=='undefined',
++    memoryType:e?.memory.buffer.constructor.name});}
+ };
+--- a/tests/browser-worker.js
++++ b/tests/browser-worker.js
+@@ -3,15 +3,15 @@
+  const started=performance.now();let ticks=0;
+  const heartbeat=setInterval(()=>ticks++,2);
+  const scheduler=new CoopScheduler({unsafeSharedStack:!!data.unsafeSharedStack,backend:data.backend});
+- let pendingReads=0,reads=0,cancelledReads=0;
++ let pendingReads=0,reads=0,cancelledReads=0,memory,imports=[],nestedWorkersCreated=0;
+  const input=new Uint8Array(8192);for(let i=0;i<input.length;i++)input[i]=(i*73+17)%256;
+  const blob=new Blob([input]);
+  try {
+    const nestedWorkerAvailable=typeof Worker;
+    // Fail a hidden attempt to substitute real Workers for logical threads.
+-   self.Worker=class {constructor(){throw Error('Nested Worker creation is forbidden in this test');}};
++   self.Worker=class {constructor(){nestedWorkersCreated++;throw Error('Nested Worker creation is forbidden in this test');}};
+    const module=await WebAssembly.compile(data.bytes);
+-   const imports=WebAssembly.Module.imports(module);
++   imports=WebAssembly.Module.imports(module);
+    const instance=await WebAssembly.instantiate(module,{
+      demuxe_coop:scheduler.imports,
+      test:{
+@@ -20,19 +20,25 @@
+        live:()=>scheduler.snapshot().liveTasks,
+        read:scheduler.wrapImport('test.read',(ptr,offset,size,delayed)=>{
+          reads++;pendingReads++;
+-         const read=(async()=>{
+-           if(delayed)await new Promise(resolve=>setTimeout(resolve,25));
+-           if(delayed===2){cancelledReads++;pendingReads--;return -1;}
+-           const b=new Uint8Array(await blob.slice(offset,offset+size).arrayBuffer());
+-           // This writes only the buffer whose suspended C lifetime is still live.
+-           new Uint8Array(instance.exports.memory.buffer).set(b,ptr);
+-           pendingReads--;return b.length;
+-         })();
+-         return scheduler.suspend(read);
++         return scheduler.park(w=>{
++           (async()=>{
++             if(delayed)await new Promise(resolve=>setTimeout(resolve,25));
++             if(delayed===2){cancelledReads++;return -1;}
++             return new Uint8Array(await blob.slice(offset,offset+size).arrayBuffer());
++           })().then(bytes=>{
++             w.task.resumeAction=()=>{
++               pendingReads--;
++               if(typeof bytes==='number')return bytes;
++               new Uint8Array(instance.exports.memory.buffer).set(bytes,ptr);
++               return bytes.length;
++             };
++             scheduler.readyWait(w,0);
++           },error=>scheduler.fail(error));
++         });
+        })
+      }
+    });
+-   scheduler.attach(instance.exports);
++   memory=instance.exports.memory;scheduler.attach(instance.exports);
+    const result=await scheduler.run(instance.exports.test_run,data.which);
+    const stats=scheduler.snapshot();
+    if(stats.liveTasks||stats.retainedTasks||stats.waitKeys||stats.timers||stats.freeSlots!==24)
+@@ -43,11 +49,13 @@
+      sharedArrayBufferAvailable:typeof SharedArrayBuffer!=='undefined',
+      memoryType:instance.exports.memory.buffer.constructor.name,
+      jspi:typeof WebAssembly.Suspending==='function'&&typeof WebAssembly.promising==='function',
+-     nestedWorkerAvailable,nestedWorkersCreated:0,imports,
++     nestedWorkerAvailable,nestedWorkersCreated,imports,
+      elapsedMs:performance.now()-started,heartbeatTicks:ticks,reads,pendingReads,cancelledReads,stats});
+  }catch(error){
+    clearInterval(heartbeat);scheduler.close();
+    self.postMessage({name:data.name,which:data.which,ok:false,error:String(error.stack??error),
++     crossOriginIsolated:self.crossOriginIsolated,sharedArrayBufferAvailable:typeof SharedArrayBuffer!=='undefined',
++     memoryType:memory?.buffer.constructor.name,nestedWorkersCreated,imports,
+      elapsedMs:performance.now()-started,heartbeatTicks:ticks,stats:scheduler.snapshot()});
+  }
+ };
+--- a/verify.py
++++ b/verify.py
+@@ -1,132 +1,124 @@
+ #!/usr/bin/env python3
+ # SPDX-License-Identifier: MIT
+-"""Verify this immutable research package and the scope of its retained results.
++"""Verify immutable delivered files and scoped build/test evidence. No tests or downloads run."""
++import sys
++sys.dont_write_bytecode=True
++from pathlib import Path, PurePosixPath
++import ast,hashlib,json
++ROOT=Path(__file__).resolve().parent
++sys.path.insert(0,str(ROOT/'scripts'))
++from result_contract import validate_result
++def require(ok,message):
++    if not ok:raise ValueError(message)
++def load(name):
++    value=json.loads((ROOT/name).read_text())
++    require(isinstance(value,dict),'Expected object: '+name);return value
++def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
++def source_names(path):
++    tree=ast.parse((ROOT/path).read_text())
++    return next(ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.Assign)
++      and any(isinstance(x,ast.Name) and x.id=='NAMES' for x in n.targets))
++def source_check(record):
++    require(isinstance(record.get('sourceSHA256'),dict) and record['sourceSHA256'],'Missing source correspondence')
++    for name,wanted in record['sourceSHA256'].items():
++        require(digest(ROOT/name)==wanted,'Source/evidence mismatch: '+name)
++def verify():
++    manifest=load('MANIFEST.json')
++    require(manifest.get('schema')==2,'Unknown manifest schema')
++    files=manifest.get('files');require(isinstance(files,dict) and files,'Missing manifest')
++    for name,record in files.items():
++        rel=PurePosixPath(name)
++        require(name and not rel.is_absolute() and '..' not in rel.parts and '\\' not in name,'Unsafe manifest path')
++        path=ROOT.joinpath(*rel.parts)
++        require(path.is_file() and not path.is_symlink() and path.resolve().is_relative_to(ROOT),'Missing/linked/escaped path: '+name)
++        require(path.stat().st_size==record['bytes'] and digest(path)==record['sha256'],'File changed: '+name)
++    actual={p.relative_to(ROOT).as_posix() for p in ROOT.rglob('*') if p.is_file()}
++    require(actual==set(files)|{'MANIFEST.json'},'Unexpected files: keep an untouched verification copy')
++    require(not any(Path(x).suffix.lower() in {'.ttf','.otf','.ttc','.woff','.woff2'} for x in actual),'Font found')
++    summary=load('results/REVIEW_SUMMARY.json')
++    for key in ['fullEmscriptenBuilt','fullLibmpvExecuted','fullFFmpegExecuted','subtitlePixelsProduced',
++                'audioOutputExecuted','productionModified','httpDeploymentQualified','otherBrowsersQualified']:
++        require(summary.get(key) is False,'Unsupported qualification claim: '+key)
++    for name,wanted in summary['upstreamBlobHashes'].items():
++        data=(ROOT/name).read_bytes()
++        require(hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==wanted,'Upstream identity mismatch')
++    build=load('results/build.json')
++    require(build.get('status')=='built' and len(build.get('artifacts',{}))==9,'Missing nine-fixture build')
++    require(all(x.get('returncode')==0 for x in build['commands']),'Build command failed')
++    source_check(build)
++    for name,record in build['artifacts'].items():
++        require(digest(ROOT/name)==record['sha256'] and (ROOT/name).stat().st_size==record['bytes'],'Binary/build mismatch: '+name)
++        require(build['audits'][name]['privateMemory'] is True,'Missing private-memory audit')
++        require(build['audits'][name]['sha256']==record['sha256'],'Wrong audit binary')
++    tools=load('TOOLCHAIN.lock.json')
++    require(build['wasmOptSHA256']==tools['reviewWasmOptSHA256'],'Wrong Binaryen tool identity')
++    require(tools['artifactSHA256']==tools['downloadedArchiveSHA256'],'Original Binaryen archive mismatch')
+ 
+-No compilation, browser execution, downloading, or manifest regeneration occurs.
+-Use a second extraction for rebuilding and preserve this evidence copy.
+-"""
+-from __future__ import annotations
++    expected=set()
++    for backend in ['jspi','asyncify']:
++        for suite,script in [('units','run-units.py'),('range','stage2/scripts/run-bridge.py')]:
++            expected|={(backend,suite,name,False) for name in source_names(script)}
++            expected.add((backend,suite,'negative-no-linear-stack-switch' if suite=='units'
++                         else 'cancel-after-ready-before-c-owner-resume',True))
++    final=load('results/review-dual-final.json');source_check(final)
++    require(final.get('total')==94 and final.get('passed')==94 and len(final['runs'])==94,'Incomplete primary suite')
++    require(final['browser']==summary['browser'],'Browser mismatch')
++    seen=set()
++    artifacts={('jspi','units'):'artifacts/mpv-coop-units.wasm',
++       ('asyncify','units'):'artifacts/mpv-coop-units.asyncify.wasm',
++       ('jspi','range'):'stage2/artifacts/range-bridge.wasm',
++       ('asyncify','range'):'artifacts/range-bridge.asyncify.wasm'}
++    for run in final['runs']:
++        key=(run['backend'],run['suite'],run['name'],run['negative'])
++        require(key not in seen and key in expected,'Duplicate/unknown primary case');seen.add(key)
++        require(run.get('qualified') is True,'Failed primary case')
++        good,errors=validate_result(*key[:2],key[3],key[2],run['result'])
++        require(good,'Bad primary result: '+str(errors))
++        require(run['wasmSHA256']==build['artifacts'][artifacts[key[:2]]]['sha256'],'Primary run binary mismatch')
++    require(seen==expected,'Missing primary cases')
+ 
+-from collections import Counter
+-import hashlib
+-import json
+-from pathlib import Path, PurePosixPath
+-import sys
+-
+-ROOT = Path(__file__).resolve().parent
+-
+-
+-def require(condition: object, message: str) -> None:
+-    if not condition:
+-        raise ValueError(message)
+-
+-
+-def digest(path: Path) -> str:
+-    return hashlib.sha256(path.read_bytes()).hexdigest()
+-
+-
+-def load(name: str) -> dict:
+-    value = json.loads((ROOT / name).read_text(encoding="utf-8"))
+-    require(isinstance(value, dict), f"Expected object: {name}")
+-    return value
+-
+-
+-def verify() -> None:
+-    manifest = load("MANIFEST.json")
+-    require(manifest.get("schema") == 1, "Unknown manifest schema")
+-    records = manifest.get("files")
+-    require(isinstance(records, dict) and records, "Missing file hashes")
+-    for name, expected in records.items():
+-        rel = PurePosixPath(name)
+-        require(not rel.is_absolute() and ".." not in rel.parts and "\\" not in name,
+-                f"Unsafe manifest path: {name}")
+-        path = ROOT.joinpath(*rel.parts)
+-        require(path.is_file() and not path.is_symlink(), f"Missing/linked file: {name}")
+-        require(path.resolve().is_relative_to(ROOT), f"Path escapes package: {name}")
+-        require(path.stat().st_size == expected["bytes"], f"Size mismatch: {name}")
+-        require(digest(path) == expected["sha256"], f"Hash mismatch: {name}")
+-    actual = {p.relative_to(ROOT).as_posix() for p in ROOT.rglob("*") if p.is_file()}
+-    require(actual == set(records) | {"MANIFEST.json"},
+-            "Unexpected files; preserve an untouched extraction for verification")
+-    forbidden = {".ttf", ".otf", ".ttc", ".woff", ".woff2"}
+-    require(not any(Path(p).suffix.lower() in forbidden for p in actual), "Font file found")
+-
+-    summary = load("results/SUMMARY.json")
+-    for key in ["fullEmscriptenBuilt", "fullLibmpvExecuted", "fullFFmpegExecuted",
+-                "subtitlePixelsProduced", "audioOutputExecuted", "productionModified"]:
+-        require(summary.get(key) is False, f"Unsupported result scope: {key}")
+-    for name, expected in summary["upstreamBlobHashes"].items():
+-        data = (ROOT / name).read_bytes()
+-        blob = hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
+-        require(blob == expected, f"Pinned upstream source mismatch: {name}")
+-
+-    build = load("results/build.json")
+-    require(build.get("status") == "built", "Missing successful infrastructure build")
+-    require(all(c.get("returncode") == 0 for c in build["commands"]), "Failed build command")
+-    for name, expected in build["artifacts"].items():
+-        require(digest(ROOT / name) == expected["sha256"], f"Build binary mismatch: {name}")
+-        require((ROOT / name).stat().st_size == expected["bytes"], f"Build size mismatch: {name}")
+-
+-    final = load("results/dual-final.json")
+-    require(final.get("passed") == 94 and final.get("total") == 94, "Incomplete dual run")
+-    require(len(final["runs"]) == 94, "Wrong retained run count")
+-    expected_artifacts = {
+-        ("jspi", "units"): "artifacts/mpv-coop-units.wasm",
+-        ("asyncify", "units"): "artifacts/mpv-coop-units.asyncify.wasm",
+-        ("jspi", "range"): "stage2/artifacts/range-bridge.wasm",
+-        ("asyncify", "range"): "artifacts/range-bridge.asyncify.wasm",
+-    }
+-    counts: Counter = Counter()
+-    identities = set()
+-    for run in final["runs"]:
+-        backend, suite, negative = run["backend"], run["suite"], run["negative"]
+-        require((backend, suite) in expected_artifacts, "Unknown test variant")
+-        identity = (backend, suite, negative, run["name"])
+-        require(identity not in identities, "Duplicate test case")
+-        identities.add(identity)
+-        counts[(backend, suite, negative)] += 1
+-        require(run.get("qualified") is True, f"Unqualified test: {identity}")
+-        binary = expected_artifacts[(backend, suite)]
+-        require(run["wasmSHA256"] == build["artifacts"][binary]["sha256"],
+-                f"Run/build binary mismatch: {identity}")
+-        result = run["result"]
+-        if negative:
+-            reason = "C assertion" if suite == "units" else "ready read not revoked"
+-            require(result.get("ok") is False and reason in result.get("error", ""),
+-                    f"Wrong negative-control failure: {identity}")
+-            continue
+-        require(result.get("ok") is True, f"Positive test failed: {identity}")
+-        require(result.get("crossOriginIsolated") is False, f"Isolated test: {identity}")
+-        require(result.get("sharedArrayBufferAvailable") is False, f"SAB exposed: {identity}")
+-        require(result.get("memoryType") == "ArrayBuffer", f"Wrong memory: {identity}")
+-        require(result.get("testBackend") == backend, f"Wrong actual backend: {identity}")
+-        if backend == "asyncify":
+-            require(result.get("jspiAvailable") is False, "Asyncify case still has JSPI")
+-        require(result.get("nestedWorkersCreated", 0) == 0, "Nested Worker created")
+-        stats = result.get("stats", {})
+-        for field in ["liveTasks", "retainedTasks", "waitKeys", "timers"]:
+-            if field in stats:
+-                require(stats[field] == 0, f"Unclean scheduler {field}: {identity}")
+-    for backend in ["jspi", "asyncify"]:
+-        for suite, number in [("units", 15), ("range", 30)]:
+-            require(counts[(backend, suite, False)] == number, "Wrong positive suite count")
+-            require(counts[(backend, suite, True)] == 1, "Missing negative control")
+-
+-    host = load("results/ffmpeg-no-jspi-host.json")
+-    require(host.get("passed") == 8 and host.get("total") == 8 and len(host["tests"]) == 8,
+-            "Incomplete no-JSPI host tests")
+-    require(all(t.get("ok") is True for t in host["tests"]), "Failed host test")
+-    guards = load("results/profiles.json")
+-    require(guards.get("tests") == 12 and guards.get("failures") == 0 and guards.get("errors") == 0,
+-            "Failed/incomplete profile guards")
+-    print(f"Verified {len(records)} files, pinned source identities and build/run correspondence.")
+-    print("Evidence: 90 positive browser cases; 4 expected negative rejections; 8 host tests; 12 guards.")
+-    print("Scope: infrastructure only; full Emscripten/libmpv/FFmpeg media services remain unqualified.")
+-
+-
+-if __name__ == "__main__":
+-    try:
+-        verify()
+-    except (ValueError, KeyError, TypeError, OSError, json.JSONDecodeError) as error:
+-        print("VERIFICATION FAILED:", error, file=sys.stderr)
+-        sys.exit(1)
++    extra=load('results/review-continuations.json');source_check(extra)
++    require(extra.get('total')==27 and extra.get('passed')==27 and len(extra['runs'])==27,'Incomplete extra suite')
++    expected={(b,n,False) for b in ['jspi','asyncify'] for n in source_names('review/run-continuations.py')}
++    expected|={('asyncify','saved-stack-canary-is-fatal',False),('asyncify','undersized-saved-stack-fails-closed',False),
++               ('asyncify','indirect-callback-instrumented',True)}
++    seen=set()
++    for run in extra['runs']:
++        key=(run['backend'],run['name'],run['negative'])
++        require(key not in seen and key in expected,'Duplicate/unknown extra case');seen.add(key)
++        require(run.get('qualified') is True,'Failed extra case')
++        require(run['wasmSHA256']==build['artifacts'][run['artifact']]['sha256'],'Extra binary mismatch')
++        r=run['result'];require(r['backend']==key[0],'Extra backend mismatch')
++        require(r.get('crossOriginIsolated') is False and r.get('sharedArrayBufferAvailable') is False
++                and r.get('memoryType')=='ArrayBuffer','Extra private-memory proof missing')
++        require(r.get('nestedWorkersCreated')==0 and r.get('jspiGetterAccesses')==0,'Forbidden runtime access')
++        if key[0]=='asyncify':require(r.get('jspiDisabled') is True,'Extra JSPI not disabled')
++        require(r.get('stats',{}).get('continuations',{}).get('kind')==key[0],'Wrong actual extra driver')
++        if key[2]:
++            require(r.get('ok') is False and 'continuation side effects repeated' in r.get('error',''),'Wrong omitted-import negative')
++        else:
++            require(r.get('ok') is True,'Failed extra oracle')
++            stats=r['stats']
++            for name in ['liveTasks','retainedTasks','waitKeys','timers']:
++                require(stats.get(name)==0,'Leaked extra scheduler state')
++            if r.get('discarded'):
++                require(stats.get('stopped') is True and stats.get('freeSlots')==0,'Fatal instance not discarded')
++            else:
++                require(stats.get('stopped') is False and stats.get('freeSlots')==24 and stats.get('abandoned')==0,
++                        'Successful extra case lost execution')
++    require(seen==expected,'Missing extra cases')
++    source_check(load('results/review-host-inputs.json'))
++    for name,count in [('results/review-host-after.json',11),('results/ffmpeg-no-jspi-host.json',8),('results/review-audit.json',7)]:
++        r=load(name);require(r.get('passed')==count and r.get('total')==count and len(r['tests'])==count,'Incomplete host tests')
++        require(len({x['name'] for x in r['tests']})==count and all(x.get('ok') is True for x in r['tests']),'Host failure/duplicate')
++    for name,count in [('results/profiles.json',17),('results/review-contracts.json',15)]:
++        r=load(name);require(r.get('tests')==count and r.get('errors')==0 and r.get('failures')==0,'Failed guards')
++    before=load('results/review-before-fixes.json')
++    require(before['total']==5 and before['passed']==0,'Missing original failure record')
++    print(f"Verified {len(files)} files, pinned mpv sources and nine source/build/run binary identities.")
++    print("Expected browser outcomes: 121/121, including 5 deliberate negative controls.")
++    print("Host/build/audit checks: 58/58. Full Emscripten/libmpv/FFmpeg media qualification: NOT established.")
++if __name__=='__main__':
++    try:verify()
++    except (ValueError,KeyError,TypeError,OSError,StopIteration) as e:
++        print('VERIFICATION FAILED:',e,file=sys.stderr);sys.exit(1)

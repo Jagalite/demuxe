@@ -1,0 +1,32 @@
+{
+  "name": "@demuxe/provider-audio-truehd-mlp",
+  "version": "0.3.0-beta.4",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0 AND LGPL-2.1-or-later AND MIT AND CC-BY-4.0 AND LicenseRef-Native-Dependencies",
+  "description": "Optional truehd-mlp lossless audio packet provider for Demuxe; requires exact composition qualification.",
+  "files": [
+    "dist/",
+    "runtime/",
+    "LICENSE",
+    "LICENSES/",
+    "license-map.json",
+    "provider-manifest.json",
+    "engine-build.json",
+    "source-companion.json",
+    "LGPL-RELINK.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./manifest": "./provider-manifest.json"
+  },
+  "peerDependencies": {
+    "demuxe": "0.3.0-beta.4"
+  },
+  "scripts": {
+    "prepack": "node -e \"throw Error('Provider distribution is not release-qualified; assemble and audit exact artifacts first')\""
+  }
+}

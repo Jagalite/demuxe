@@ -1,0 +1,430 @@
+{
+  "check": true,
+  "purpose": "Controlled component contrasts, then separate Chrome trace using tts/tdur thread CPU; never label wall time or wait samples as CPU",
+  "fixture": "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/hevc10-ac3/index.mkv",
+  "fixtureSHA256": "2a84b2eed59a97e67ba49388d048b85966959081013555c6146063158c4b6c56",
+  "hashes": {
+    "web/generated/internal/native-mpv-audio.js": "94d6e4ad5803e63d40e1afb73c30a8f6949f8120b27b38efe722192b51de079e",
+    "web/generated/internal/native-player.js": "e59dd4aa865f17d35552b476bdde4ec16ed936c0991210d9d4aac5e0334cc9e2",
+    "web/generated/internal/wasm-player.js": "2eacbf30e3f6a2091d5ae2d045c640b152db5466bf4d5477d0906c212d361f43",
+    "web/filter-retained-engine-worker.js": "be952614570750e943c62975e42f4afec270d0d071b3038ca13ac5c7550792b0",
+    "web/selective-sync-worklet.js": "2a4cf572a4dcff11376b775aa70df898c7d868383fd10f16218b913dbd5b46f4",
+    "web/native-remux-player.js": "28b2a9b9745bd2b2a26f03b86c99ede7557a277313dc60d9f0cff5c14363c847",
+    "web/native-remux-worker.js": "338f76d7efe0313c2d84fbe503fc57e2eaa0af2451ad3ed550c7b4fb83fc19d4",
+    "web/engine-selective/player.wasm": "2fb5aa385486e108823e027caf315fc83cdf8ddfe36a6ec8436f8e4a60593cdf",
+    "web/engine-remux/remux.wasm": "cc7a72dd3f114d7d7bb769e652a72aadbccb06fc8e6fea951ab477343d31ff67"
+  },
+  "workletSHA256": "f2d55844f0566cbe015b4da7eb3646159c9bd6f5dd0ea60f1aee125274a56c41",
+  "wasm512SHA256": "2e22a55cb97a60c91e84c2fa1fa144e9c0c7037cab3e67f8c944f8521d5f6082",
+  "trials": [
+    {
+      "lane": "baseline",
+      "errors": [],
+      "served": [
+        "/web/selective-sync-worklet.js",
+        "/web/selective-sync-worklet.js"
+      ],
+      "audio": [
+        {
+          "channel": 0,
+          "rms": 0.10603307464812177,
+          "hz": 439.453125
+        },
+        {
+          "channel": 1,
+          "rms": 0.10601820955497317,
+          "hz": 878.90625
+        },
+        {
+          "channel": 0,
+          "rms": 0.10612709414304781,
+          "hz": 439.453125
+        },
+        {
+          "channel": 1,
+          "rms": 0.10601820955497317,
+          "hz": 878.90625
+        }
+      ],
+      "states": [
+        {
+          "lane": "baseline",
+          "position": 5.394791,
+          "videoTime": 6.550979,
+          "total": 82,
+          "dropped": 0,
+          "visible": "visible",
+          "focused": true,
+          "paused": false,
+          "errors": [],
+          "sameVideo": true,
+          "scanAck": false,
+          "quantum": 128,
+          "contextState": "running",
+          "latency": [
+            0.005333333333333333,
+            0.032
+          ],
+          "audio": {
+            "underruns": 0,
+            "errorMs": 3.01199089137949,
+            "corrections": 0,
+            "frames": 128256,
+            "videoTracks": 0,
+            "pumpTicks": 257
+          }
+        },
+        {
+          "lane": "baseline",
+          "position": 7.516609000000001,
+          "videoTime": 8.564273,
+          "total": 142,
+          "dropped": 0,
+          "visible": "visible",
+          "focused": true,
+          "paused": false,
+          "errors": [],
+          "sameVideo": true,
+          "scanAck": false,
+          "quantum": 128,
+          "contextState": "running",
+          "latency": [
+            0.005333333333333333,
+            0.032
+          ],
+          "audio": {
+            "underruns": 0,
+            "errorMs": 3.001005213701724,
+            "corrections": 0,
+            "frames": 224768,
+            "videoTracks": 0,
+            "pumpTicks": 428
+          }
+        }
+      ],
+      "accepted": true
+    },
+    {
+      "lane": "no-scan",
+      "errors": [],
+      "served": [
+        "/web/selective-sync-worklet.js",
+        "/web/selective-sync-worklet.js"
+      ],
+      "audio": [
+        {
+          "channel": 0,
+          "rms": 0.10612709414304781,
+          "hz": 439.453125
+        },
+        {
+          "channel": 1,
+          "rms": 0.10601820955497317,
+          "hz": 878.90625
+        },
+        {
+          "channel": 0,
+          "rms": 0.10612709414304781,
+          "hz": 439.453125
+        },
+        {
+          "channel": 1,
+          "rms": 0.10611536606435008,
+          "hz": 878.90625
+        }
+      ],
+      "states": [
+        {
+          "lane": "no-scan",
+          "position": 5.387712,
+          "videoTime": 6.55725,
+          "total": 82,
+          "dropped": 18,
+          "visible": "visible",
+          "focused": true,
+          "paused": false,
+          "errors": [],
+          "sameVideo": true,
+          "scanAck": true,
+          "quantum": 128,
+          "contextState": "running",
+          "latency": [
+            0.005333333333333333,
+            0.032
+          ],
+          "audio": {
+            "underruns": 0,
+            "errorMs": 2.0871529870456484,
+            "corrections": 0,
+            "frames": 128512,
+            "videoTracks": 0,
+            "pumpTicks": 256
+          }
+        },
+        {
+          "lane": "no-scan",
+          "position": 7.509835000000001,
+          "videoTime": 8.564866,
+          "total": 142,
+          "dropped": 36,
+          "visible": "visible",
+          "focused": true,
+          "paused": false,
+          "errors": [],
+          "sameVideo": true,
+          "scanAck": true,
+          "quantum": 128,
+          "contextState": "running",
+          "latency": [
+            0.005333333333333333,
+            0.032
+          ],
+          "audio": {
+            "underruns": 0,
+            "errorMs": 1.890632158481509,
+            "corrections": 0,
+            "frames": 224768,
+            "videoTracks": 0,
+            "pumpTicks": 426
+          }
+        }
+      ],
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n36 !== 18\n\n    at file:///Volumes/seed2/Projects/demuxe/experiments/audio-cost-attribution/run.mjs:73:122",
+      "failure": {
+        "lane": "no-scan",
+        "position": 7.509835000000001,
+        "videoTime": 8.568477,
+        "total": 142,
+        "dropped": 36,
+        "visible": "visible",
+        "focused": true,
+        "paused": false,
+        "errors": [],
+        "sameVideo": true,
+        "scanAck": true,
+        "quantum": 128,
+        "contextState": "running",
+        "latency": [
+          0.005333333333333333,
+          0.032
+        ],
+        "audio": {
+          "underruns": 0,
+          "errorMs": 1.7946321590782688,
+          "corrections": 0,
+          "frames": 225024,
+          "videoTracks": 0,
+          "pumpTicks": 426
+        }
+      }
+    },
+    {
+      "lane": "quantum512",
+      "errors": [],
+      "served": [
+        "/web/generated/internal/wasm-player.js",
+        "/web/selective-sync-worklet.js",
+        "/web/selective-sync-worklet.js"
+      ],
+      "audio": [
+        {
+          "channel": 0,
+          "rms": 0.10600378325406645,
+          "hz": 439.453125
+        },
+        {
+          "channel": 1,
+          "rms": 0.10601396263931426,
+          "hz": 878.90625
+        },
+        {
+          "channel": 0,
+          "rms": 0.10600378325406645,
+          "hz": 439.453125
+        },
+        {
+          "channel": 1,
+          "rms": 0.10601396263931426,
+          "hz": 878.90625
+        }
+      ],
+      "states": [
+        {
+          "lane": "quantum512",
+          "position": 5.383294,
+          "videoTime": 6.570741,
+          "total": 82,
+          "dropped": 0,
+          "visible": "visible",
+          "focused": true,
+          "paused": false,
+          "errors": [],
+          "sameVideo": true,
+          "scanAck": false,
+          "quantum": 512,
+          "contextState": "running",
+          "latency": [
+            0.010666666666666666,
+            0.032
+          ],
+          "audio": {
+            "underruns": 0,
+            "errorMs": 6.396478504897551,
+            "corrections": 0,
+            "frames": 129536,
+            "videoTracks": 0,
+            "pumpTicks": 253
+          }
+        },
+        {
+          "lane": "quantum512",
+          "position": 7.50811,
+          "videoTime": 8.585445,
+          "total": 143,
+          "dropped": 0,
+          "visible": "visible",
+          "focused": true,
+          "paused": false,
+          "errors": [],
+          "sameVideo": true,
+          "scanAck": false,
+          "quantum": 512,
+          "contextState": "running",
+          "latency": [
+            0.010666666666666666,
+            0.032
+          ],
+          "audio": {
+            "underruns": 0,
+            "errorMs": 6.24902798943161,
+            "corrections": 0,
+            "frames": 226304,
+            "videoTracks": 0,
+            "pumpTicks": 423
+          }
+        }
+      ],
+      "accepted": true
+    },
+    {
+      "lane": "video-only",
+      "errors": [],
+      "served": [
+        "/web/selective-sync-worklet.js",
+        "/web/selective-sync-worklet.js"
+      ],
+      "states": [
+        {
+          "lane": "video-only",
+          "position": 5.392179,
+          "videoTime": 6.620948,
+          "total": 84,
+          "dropped": 0,
+          "visible": "visible",
+          "focused": true,
+          "paused": false,
+          "errors": [],
+          "sameVideo": true,
+          "scanAck": null,
+          "latency": null,
+          "audio": null
+        },
+        {
+          "lane": "video-only",
+          "position": 7.516768000000001,
+          "videoTime": 8.625792,
+          "total": 144,
+          "dropped": 0,
+          "visible": "visible",
+          "focused": true,
+          "paused": false,
+          "errors": [],
+          "sameVideo": true,
+          "scanAck": null,
+          "latency": null,
+          "audio": null
+        }
+      ],
+      "accepted": true
+    }
+  ],
+  "browser": {
+    "startupReadiness": {
+      "status": "not-requested",
+      "purpose": "correctness or explicit startup measurement"
+    },
+    "configurationSHA256": "5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8",
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/153.0.8010.53",
+      "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+      "jsVersion": "15.3.76.13"
+    },
+    "channel": "chrome",
+    "effectiveArguments": [
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "--disable-field-trial-config",
+      "--disable-background-networking",
+      "--disable-background-timer-throttling",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-back-forward-cache",
+      "--disable-breakpad",
+      "--disable-client-side-phishing-detection",
+      "--disable-component-extensions-with-background-pages",
+      "--disable-component-update",
+      "--no-default-browser-check",
+      "--disable-default-apps",
+      "--disable-dev-shm-usage",
+      "--disable-extensions",
+      "--disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints",
+      "--enable-features=CDPScreenshotNewSurface",
+      "--allow-pre-commit-input",
+      "--disable-hang-monitor",
+      "--disable-ipc-flooding-protection",
+      "--disable-popup-blocking",
+      "--disable-prompt-on-repost",
+      "--disable-renderer-backgrounding",
+      "--force-color-profile=srgb",
+      "--metrics-recording-only",
+      "--no-first-run",
+      "--password-store=basic",
+      "--use-mock-keychain",
+      "--no-service-autorun",
+      "--export-tagged-pdf",
+      "--disable-search-engine-choice-screen",
+      "--unsafely-disable-devtools-self-xss-warnings",
+      "--edge-skip-compat-layer-relaunch",
+      "--enable-automation",
+      "--disable-infobars",
+      "--disable-search-engine-choice-screen",
+      "--disable-sync",
+      "--no-sandbox",
+      "--autoplay-policy=no-user-gesture-required",
+      "--user-data-dir=/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/playwright_chromiumdev_profile-mcviYd",
+      "--remote-debugging-pipe",
+      "--no-startup-window",
+      "--flag-switches-begin",
+      "--flag-switches-end"
+    ],
+    "headless": false,
+    "policy": {
+      "schema": 4,
+      "browserLifetime": "caller-declared comparison block; fresh context per arm",
+      "interArmIdleSeconds": 2,
+      "profile": "fresh temporary Playwright profile per launch",
+      "startupGateSeconds": 150,
+      "startupGate": "macOS Chrome hardware-key task completion; tracing off before measurement",
+      "startupIdleSeconds": 20,
+      "warmupSeconds": 5,
+      "measureSeconds": 20,
+      "sampleIntervalSeconds": 2,
+      "clock": "monotonic CPU-query midpoint; fixed sample deadlines",
+      "viewport": {
+        "width": 960,
+        "height": 540
+      },
+      "deviceScaleFactor": 1
+    }
+  }
+}

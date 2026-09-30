@@ -13,6 +13,7 @@ export declare class Player extends EventTarget {
     private previewSource?;
     readonly ready: Promise<void>;
     private assetBase;
+    private providerRuntime?;
     private buffering;
     private stateSnapshot;
     private subscribers;
@@ -85,6 +86,8 @@ export declare class Player extends EventTarget {
     private remuxSelection;
     private remuxRuntime;
     private get privateRemux();
+    private selectDeployedRuntime;
+    private get preparationProviderId();
     private get canInspectFFmpeg();
     private softwarePresenter;
     private decodeQuality;
@@ -163,7 +166,7 @@ export declare class Player extends EventTarget {
     private previewBuffering;
     private publish;
     private featureCapabilities;
-    get mode(): "software" | "hybrid" | "native";
+    get mode(): "native" | "hybrid" | "software";
     get automaticSelection(): boolean;
     get surface(): HTMLVideoElement | HTMLCanvasElement | undefined;
     get properties(): ReadonlyMap<string, unknown>;

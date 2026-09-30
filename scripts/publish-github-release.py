@@ -18,9 +18,16 @@ def gh(*args):
     return subprocess.check_output(['gh', *map(str, args)], text=True)
 
 
-def publish(directory, tag, commit, repo):
-    verify.validate(directory, tag, commit)
-    files = sorted(path for path in directory.iterdir() if path.is_file())
+def publish(directory, tag, commit, repo, modular=False):
+    if modular:
+        spec = importlib.util.spec_from_file_location('modular_release', ROOT / 'scripts/modular-release.py')
+        modular_verify = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(modular_verify)
+        record = modular_verify.validate(directory, tag, commit)
+        files = [directory / name for name in sorted(record['files'])] + [directory / 'modular-verification.json']
+    else:
+        verify.validate(directory, tag, commit)
+        files = sorted(path for path in directory.iterdir() if path.is_file())
     # Distinguish absence from API/authentication failure without swallowing errors.
     releases = json.loads(gh('api', '--paginate', '--slurp', f'repos/{repo}/releases?per_page=100'))
     found = [r for page in releases for r in page if r['tag_name'] == tag]
@@ -52,5 +59,6 @@ if __name__ == '__main__':
     p.add_argument('--tag', required=True)
     p.add_argument('--commit', required=True)
     p.add_argument('--repo', required=True)
+    p.add_argument('--modular', action='store_true', help='Validate the qualified modular package/source handoff')
     a = p.parse_args()
-    publish(a.assets, a.tag, a.commit, a.repo)
+    publish(a.assets, a.tag, a.commit, a.repo, a.modular)

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {chromium,firefox} from 'playwright';
+import {closeTestBrowser} from './head-to-head/browser-exit.mjs';
 import assert from 'node:assert/strict';
 import {readFile,mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
@@ -53,7 +54,7 @@ try{
  await check('software-codec',async p=>{await open(p,'mpeg4');return playback(p,'software');});
  await check('browser-rejection',async p=>{await open(p,'hevc');return playback(p,'software');});
  await check('reselect-new-source',async p=>{await open(p,'mpeg4');assert.equal(await p.evaluate(()=>player.mode),'software');await open(p,'avc');return playback(p,'native');});
- await check('automatic-filters',async p=>{await open(p,'avc');await p.evaluate(async()=>{await player.seek(.5);await player.volume(37);await player.rate(1.25);await player.setVideoFilters('hflip');});const r=await playback(p,'software');assert.equal(r.properties.volume,37);assert.equal(r.properties.speed,1.25);await p.evaluate(()=>player.setVideoFilters(''));assert.equal(await p.evaluate(()=>player.mode),'native');return r;});
+ await check('automatic-filters',async p=>{await open(p,'avc');await p.evaluate(async()=>{await player.seek(.5);await player.volume(37);await player.rate(1.25);await player.setVideoFilters('hflip');});const r=await playback(p,'software');assert.equal(r.properties.volume,37);assert.equal(r.properties.speed,1.25);await p.evaluate(()=>player.setVideoFilters(''));assert.equal(await p.evaluate(()=>player.diagnostics.videoFilters),'');await p.waitForFunction(()=>player.mode==='native');const promoted=await snapshot(p);assert.equal(promoted.properties.volume,37);assert.equal(promoted.properties.speed,1.25);assert.equal(promoted.properties.pause,true);return {filtered:r,promoted};});
  await check('explicit-mode-pins',async p=>{await open(p,'mpeg4');await p.evaluate(()=>player.setMode('software'));await open(p,'avc');assert.equal(await p.evaluate(()=>player.automaticSelection),false);assert.equal(await p.evaluate(()=>player.mode),'software');await p.evaluate(()=>player.setAutomaticSelection());return playback(p,'native');});
  await check('runtime-recovery',async p=>{await open(p,'hevc');await p.evaluate(async()=>{await player.volume(37);await player.rate(1.25);await player.play();});await p.waitForFunction(()=>Number(player.properties.get('time-pos'))>.5);await p.evaluate(()=>player.current.backend.dispatchEvent(new CustomEvent('error',{detail:'Injected runtime decoder failure'})));await p.waitForFunction(()=>player.mode==='software');const r=await snapshot(p);assert.equal(r.properties.volume,37);assert.equal(r.properties.speed,1.25);assert.equal(r.properties.pause,false);assert.deepEqual(r.errors,[]);assert.ok(r.diagnostics.selection.attempts.some(a=>a.mode==='hybrid'&&a.outcome==='failed'&&a.reason.includes('Injected runtime decoder failure')));return r;});
  await check('native-runtime-remux',async p=>{await open(p,'avc');await p.evaluate(()=>player.play());await p.waitForFunction(()=>Number(player.properties.get('time-pos'))>.3);await p.evaluate(()=>player.current.backend.dispatchEvent(new CustomEvent('error',{detail:'Injected native decode failure'})));await p.waitForFunction(()=>player.diagnostics.backend?.plan==='remux');assert.equal(await p.evaluate(()=>player.mode),'native');return snapshot(p);});
@@ -81,9 +82,25 @@ try{
  },{nativeRemux:'always'});
  await check('second-failure-during-recovery',async p=>{
   await open(p,'avc');await p.evaluate(()=>{
-   player.addEventListener('selectionchange',e=>{if(e.detail.outcome==='selected'&&player.diagnostics.backend.plan==='remux')player.current.backend.dispatchEvent(new CustomEvent('error',{detail:'Second decoder failure'}));});
+   window.failedRecoveryPlans=[];window.recoveryFailures=[];
+   // Full deployments admit FLAC24 and selected mpv audio before Hybrid. Exercise each
+   // accepted Native replacement instead of assuming remux is the last one.
+   player.addEventListener('selectionchange',e=>{
+    if(e.detail.outcome==='failed')recoveryFailures.push(e.detail.reason);
+    const id=player.diagnostics.plan?.id;
+    if(e.detail.outcome==='selected'&&['native-remux','native-transcode','native-video-mpv-audio'].includes(id)&&!failedRecoveryPlans.includes(id)){
+     failedRecoveryPlans.push(id);player.current.backend.dispatchEvent(new CustomEvent('error',{detail:'Injected '+id+' decoder failure'}));
+    }
+   });
    player.current.backend.dispatchEvent(new CustomEvent('error',{detail:'First decoder failure'}));
-  });await p.waitForFunction(()=>player.mode==='hybrid');assert.deepEqual(await p.evaluate(()=>errors),[]);return playback(p,'hybrid');
+  });await p.waitForFunction(()=>player.mode==='hybrid');assert.deepEqual(await p.evaluate(()=>errors),[]);
+  assert.deepEqual(await p.evaluate(()=>failedRecoveryPlans),['native-remux','native-transcode','native-video-mpv-audio']);
+  const playing=await playback(p,'hybrid');
+  // Diagnostics intentionally retain only the last 32 attempts; capture the
+  // emitted failures so early attempts are not lost when every plan is visited.
+  const failures=await p.evaluate(()=>recoveryFailures);
+  for(const id of ['native-direct','native-remux','native-transcode','native-video-mpv-audio'])assert.ok(failures.some(reason=>reason.startsWith(id+':')),id);
+  return {...playing,recoveryFailures:failures};
  });
  await check('identity-survives-decoder-fallback',async p=>{
   let changed=false;const requests=[];
@@ -104,4 +121,8 @@ try{
   assert.deepEqual(result,{destroyed:true,rejected:true});return result;
  });
  await check('destroy-during-probe',async p=>{await p.route('**/source-probe.js',async route=>{await new Promise(r=>setTimeout(r,300));await route.continue().catch(()=>{});});const r=await p.evaluate(async url=>{const opening=player.openRemote({url}).then(()=>false,()=>true);await new Promise(r=>setTimeout(r,50));await player.destroy();return {rejected:await opening};},server.origin+'/media/mkv');assert.equal(r.rejected,true);return r;});
-}finally{await browser.close();await fallbackBrowser?.close();await server.close();if(firefoxAudioFixture)await rm(firefoxAudioFixture,{recursive:true,force:true});result.passed=result.cases.every(c=>c.passed||c.skipped);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
+}finally{
+ try{result.browserCleanup=await closeTestBrowser(browser,'chrome');if(fallbackBrowser)result.fallbackBrowserCleanup=await closeTestBrowser(fallbackBrowser,'firefox');}
+ catch(error){result.teardownError=String(error);process.exitCode=1;}
+ finally{await server.close();if(firefoxAudioFixture)await rm(firefoxAudioFixture,{recursive:true,force:true});result.passed=!result.teardownError&&result.cases.every(c=>c.passed||c.skipped);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
+}

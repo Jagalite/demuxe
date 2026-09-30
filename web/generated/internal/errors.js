@@ -34,8 +34,29 @@ export class PlayerError extends Error {
     }
     toJSON() { return { code: this.code, message: this.message, operationId: this.operationId, operation: this.operation, scope: this.scope, retryable: this.retryable }; }
 }
-export function playerError(error, id = null, operation = null, scope = 'operation') {
+// A bundled core and a deployment-loaded provider have distinct constructors.
+// Keep the typed error contract across that boundary without trusting arbitrary
+// objects that merely contain a `code` string. The marker is not a security
+// credential and does not cross worker serialization; workers retain their
+// existing explicit message-to-error conversion.
+const playerErrorBrand = Symbol.for('demuxe.internal.PlayerError.v1');
+Object.defineProperty(PlayerError.prototype, playerErrorBrand, { value: true });
+const errorCodes = {
+    DEPLOYMENT_UNAVAILABLE: true, INVALID_ARGUMENT: true, ABORTED: true,
+    AUTOPLAY_BLOCKED: true, SOURCE_PERMISSION: true, SOURCE_CHANGED: true,
+    NETWORK_TIMEOUT: true, PLAYBACK_STALLED: true, UNSUPPORTED_MEDIA: true,
+    UNSUPPORTED_TIMELINE: true, UNSUPPORTED_FEATURE: true, ASSET_LOAD_FAILED: true,
+    ISOLATION_REQUIRED: true, DECODE_FAILED: true,
+};
+export function isPlayerError(error) {
     if (error instanceof PlayerError)
+        return true;
+    return error instanceof Error && error.name === 'PlayerError'
+        && error[playerErrorBrand] === true
+        && 'code' in error && typeof error.code === 'string' && Object.hasOwn(errorCodes, error.code);
+}
+export function playerError(error, id = null, operation = null, scope = 'operation') {
+    if (isPlayerError(error))
         return new PlayerError(error.code, error.message, id ?? error.operationId, operation ?? error.operation, scope, error.retryable);
     if (error instanceof Error && 'code' in error && error.code === 'UNSUPPORTED_TIMELINE')
         return new PlayerError('UNSUPPORTED_TIMELINE', error.message, id, operation, scope);

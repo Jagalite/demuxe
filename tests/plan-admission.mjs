@@ -5,6 +5,16 @@ import {planAdmission,executionPlan} from '../web/generated/internal/playback-pl
 import {losslessAdaptationRejection,audioTranscodeRejection} from '../web/generated/internal/selection.js';
 const facts={automatic:true,vf:'',af:'',gain:1,toneMapping:'off',hybridAudioFilters:false,allowLossy:false,nativeASS:false,externalFormats:[],browserTextTracks:false,audioOutput:'stereo',nativeRemux:'auto',manifest:false,requiresRemux:false,isolated:true,mse:true,webCodecs:true,webAudio:true};
 const eligible=extra=>planAdmission({...facts,...extra}).filter(p=>p.eligible).map(p=>p.id);
+test('prohibited preparation is a policy rejection, distinct from unavailable runtime facilities',()=>{
+ const prepared=['native-remux','native-remux-mpv','native-transcode','native-video-mpv-audio'];
+ const qualified={...facts,mpvSubtitles:true,mpvSubtitleSourceQualified:true,selectiveAudioQualified:true,transcodeAssetsAvailable:true};
+ for(const id of prepared){
+  const denied=planAdmission({...qualified,nativeRemux:'never'}).find(p=>p.id===id);
+  assert.equal(denied.eligible,false,id);assert.equal(denied.code,'POLICY_PROHIBITS_TRANSFORM',id);
+  const missing=planAdmission({...qualified,mse:false}).find(p=>p.id===id);
+  assert.equal(missing.eligible,false,id);assert.equal(missing.code,'DEPLOYMENT_UNAVAILABLE',id);
+ }
+});
 test('ordinary automatic admission contains copy plans and never implicitly permits adaptation',()=>{
  assert.deepEqual(eligible({}),['native-direct','native-remux','hybrid','software']);
  assert.deepEqual(eligible({adaptation:'opus',allowLossy:true}),eligible({}));
@@ -178,4 +188,14 @@ test('private mpv admission keeps service, source and composition qualifications
   const decisions=planAdmission({...base,...extra});assert.ok(!decisions.find(p=>p.id==='native-remux-mpv').eligible);
  }
  assert.ok(!planAdmission({...base,selectiveAudioQualified:false}).find(p=>p.id==='native-video-mpv-audio-subtitles').eligible);
+});
+
+test('modular private preparation does not suppress independent atomic mpv fallback',()=>{
+ for(const isolated of [false,true]){
+  const plans=planAdmission({...facts,privateRemux:true,atomicMpvProviders:true,isolated});
+  for(const id of ['hybrid','software']){
+   const plan=plans.find(p=>p.id===id);assert.equal(plan.eligible,isolated,id);
+   if(!isolated)assert.equal(plan.code,'ISOLATION_REQUIRED');
+  }
+ }
 });

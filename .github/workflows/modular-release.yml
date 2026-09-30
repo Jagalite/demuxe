@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Stage qualified modular codec packages
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published modular release tag with its exact qualification and source assets
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: modular-release-${{ inputs.tag }}
+  cancel-in-progress: false
+jobs:
+  stage:
+    runs-on: ubuntu-24.04
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --global npm@11.15.0 --ignore-scripts
+      - name: Download exact public packages, evidence and corresponding source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MODULAR_TAG: ${{ inputs.tag }}
+        run: |
+          mkdir -p build/modular-release
+          gh release download "$MODULAR_TAG" --repo "$GITHUB_REPOSITORY" --dir build/modular-release
+          python3 scripts/modular-release.py verify --assets build/modular-release \
+            --tag "$MODULAR_TAG" --commit "$(git rev-parse HEAD)"
+      - name: Stage every verified package for npm approval
+        env:
+          MODULAR_TAG: ${{ inputs.tag }}
+        run: |
+          python3 scripts/modular-release.py stage --assets build/modular-release \
+            --tag "$MODULAR_TAG" --commit "$(git rev-parse HEAD)"

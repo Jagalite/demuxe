@@ -1,0 +1,1108 @@
+{
+  "check": true,
+  "fixture": "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/hevc10-ac3/index.mkv",
+  "fixtureSHA256": "2a84b2eed59a97e67ba49388d048b85966959081013555c6146063158c4b6c56",
+  "engines": {
+    "flac24": {
+      "dir": "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/engine-1790456999880054000",
+      "wasmSHA256": "f78cf5bc2a3d2cabc313f24dd156c4af71a80876ec30cdc155452a053a6ccdb9",
+      "manifest": {
+        "apiVersion": 2,
+        "inputs": {
+          "ffmpeg": {
+            "name": "ffmpeg-adaptation",
+            "upstream": "https://github.com/FFmpeg/FFmpeg",
+            "revision": "n9.0.2",
+            "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+            "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+          },
+          "patches": {
+            "patches/ffmpeg-adaptation/0002-browser-nested-avio.patch": "4ceaf3185f152c596fc9617e47cc47cd2b264d6f8b2f098bbea8055b798da3ec",
+            "patches/ffmpeg-adaptation/0004-hls-ts-discontinuity-timeline.patch": "6635e6cb14090af54c20c526592df6cf4360cba0bb2e3199071688c37f146bb1",
+            "patches/ffmpeg-adaptation/0005-dfpwm-seek-reset.patch": "0f2e57a194e5d5f5ff23edb864084e5a1e9e05224a4ab1bb71e6598d614e9923",
+            "patches/ffmpeg-adaptation/0006-swf-audio-duration.patch": "e59e36d524f78b98862e5a484b4900e3ea28593d3a25fbc90a6f7f30d79b4c5f",
+            "patches/ffmpeg-adaptation/0007-nut-keyframe-recovery.patch": "b02b157a7a8f1dd3ddd65e541b4f3ae3057acb130044ddba97a148ece8cb0c95",
+            "patches/ffmpeg-adaptation/0008-hls-indexed-webvtt-seek.patch": "224da133f9c2b4c4243743145ec8d90845d98878eeb3535ace35d129b31f03ae",
+            "patches/ffmpeg-adaptation/0009-nut-discard-budget.patch": "9d6dde4654d72d4a810b60894befc2260185afd9fa91a9a6dd3f2dda71e343fe",
+            "patches/ffmpeg-adaptation/0010-strict-stream-resource-errors.patch": "f979b6232cef7ece804cbc7dcaf89788c109b9c8c0d4ce9fe6ac735267026e40",
+            "patches/ffmpeg-adaptation/0011-dash-continuous-fmp4.patch": "fe43a338fc469f38d10ff76b66ed56406fd4ccbacf8348dbb95351f107c2f3fd",
+            "patches/ffmpeg-adaptation/0012-demuxe-segment-plans.patch": "e4073571ea824fbeb68848e8918129bae172c2896503794fda085b8d8f47c705",
+            "patches/ffmpeg-adaptation/0013-demuxe-sparse-discovery.patch": "01c32d856f157845917d345f21ff3f4a36f1a0b38e5211a72e3a5bbdc20f537c",
+            "patches/ffmpeg-adaptation/0014-http-chunked-eof.patch": "b3b89b8e84da739a9e10de37eb9cd48e3fbe4104e63aac2b55ceb5da9238cad5",
+            "patches/ffmpeg-adaptation/0015-demuxe-live-hls-components.patch": "9516d75248ccd1f43281755410d3f7e3a58c94e917e02ec0e81840b296778486",
+            "patches/ffmpeg-adaptation/0016-demuxe-resource-retirement.patch": "199ff687d64e2f4d971c23ec352820bb21b1273e33def75bbcebdc7f125af1a7",
+            "patches/ffmpeg-adaptation/0017-demuxe-dash-period-session.patch": "0b5cadd65282139c04e21688e8fbdfa94813f9636461407e1aef5ce8b330fc9d",
+            "patches/ffmpeg-adaptation/0018-demuxe-discontinuity-retirement.patch": "1904f37c4cea150d35a82dabba4a82912d92d6d1bc4308b6b42a03589a889afd",
+            "patches/ffmpeg-adaptation/0019-demuxe-hls-window-anchor.patch": "1f20c83dab06c73c0e1345db1e38ccc36caa0df10e7e7f8962fd8c73b373f76e",
+            "patches/ffmpeg-adaptation/0020-mov-strict-sample-eof.patch": "f4d70438726c79d12d923893b8a8e322a43bc8415e816386a99217c25c3822ab",
+            "patches/ffmpeg-adaptation/0021-demuxe-dash-live-discovery.patch": "3ed99eda3249bd6d1d7e5319887b8923d4005ad6d73aab6a7faec9c4c45fa228"
+          },
+          "sdk": "4.0.14"
+        },
+        "cleanSourceBuild": true,
+        "linkCommand": [
+          "emcc",
+          "-DDEMUXE_AC3_AAC=0",
+          "-O2",
+          "-DDEMUXE_FIRST_FRAGMENT_SECONDS=0.5",
+          "-DDEMUXE_FLAC_LEVEL=0",
+          "-DDEMUXE_AUDIO_ADAPTATION=1",
+          "-ffile-prefix-map=/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/tree=/demuxe",
+          "-pthread",
+          "-msimd128",
+          "-I/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg",
+          "-I/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/source/FFmpeg-n9.0.2",
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/tree/native/remux/remux.c",
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/libavformat/libavformat.a",
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/libavcodec/libavcodec.a",
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/libavutil/libavutil.a",
+          "-Wl,-Map,/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/engine-1790456999880054000/remux.map",
+          "-sMODULARIZE=1",
+          "-sEXPORT_ES6=1",
+          "-sEXPORT_NAME=createRemux",
+          "-sENVIRONMENT=worker",
+          "-sINITIAL_MEMORY=67108864",
+          "-sMAXIMUM_MEMORY=134217728",
+          "-sALLOW_MEMORY_GROWTH=1",
+          "-sSTACK_SIZE=2097152",
+          "-sWASM_BIGINT=1",
+          "-sFILESYSTEM=0",
+          "-sEXPORTED_FUNCTIONS=[\"_rm_error\", \"_rm_probe\", \"_rm_open\", \"_rm_start\", \"_rm_set_container\", \"_rm_step\", \"_rm_close\", \"_rm_duration\", \"_rm_video_codec\", \"_rm_audio_codec\", \"_rm_adapt_audio\", \"_malloc\", \"_free\"]",
+          "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\",\"ccall\",\"UTF8ToString\"]",
+          "-o",
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/engine-1790456999880054000/remux.mjs"
+        ],
+        "linkSettings": {
+          "firstFragmentSeconds": 0.5,
+          "steadyFragmentSeconds": 0.5,
+          "flacLevel": 0
+        },
+        "files": {
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/tree/native/remux/remux.c": {
+            "sha256": "6ddc960c65a0b5ec0bde7c708ca7ee7142024d7f2e601b2a57c4113013da3436",
+            "bytes": 43553
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/tree/native/adaptation/flac.h": {
+            "sha256": "6fdda5d143536d09c8e7197314fc504eb545f7747e6c71615264f72b5ab126f1",
+            "bytes": 9779
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/tree/scripts/build-audio-adaptation.py": {
+            "sha256": "fcbc4a8ebb48dcf3d3097c45ed13711bfdf9fe148a8d2f7d6b5fff6e02c1df8c",
+            "bytes": 6911
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/tree/scripts/stamp-engine-license.py": {
+            "sha256": "cf531d1b6243e72e82f77821eb20e7b3b1a95d184c06cd9579a681a703c9eb36",
+            "bytes": 611
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/config.h": {
+            "sha256": "055bb6b2db93e088b41706ffa17ce4ec90cc66aaa1b3ba1231ecef49f22aa5ca",
+            "bytes": 24754
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/config_components.h": {
+            "sha256": "7e1dcc9e019eeb30d9cd3ebfbf05a1c89e54066e922e60ba7e6394b710a433f3",
+            "bytes": 75690
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/ffbuild/config.mak": {
+            "sha256": "2b2a72f47e1dd479711a8d66d5461f9e4bfd43a350a06c3fdc4be2e34f7289c9",
+            "bytes": 89583
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/engine-1790456999880054000/remux.map": {
+            "sha256": "21e0f96d46f3eac262b6c01c61a3143c67e79fa73a32fda019476017f999d90f",
+            "bytes": 1531363
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/engine-1790456999880054000/remux.mjs": {
+            "sha256": "a5074340d5029e624345a9353f74cd331fd3f6b9608f75ead8a3f30333113c23",
+            "bytes": 37062
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/engine-1790456999880054000/remux.wasm": {
+            "sha256": "f78cf5bc2a3d2cabc313f24dd156c4af71a80876ec30cdc155452a053a6ccdb9",
+            "bytes": 3647379
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/libavformat/libavformat.a": {
+            "sha256": "74d4febdecedc63bf210f9743ae7f776c85bb4962ddee4c52a05793994911478",
+            "bytes": 2504474
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/libavcodec/libavcodec.a": {
+            "sha256": "81b5771cb4427eb92b705413790b739efd07d378a50c971f5fbcc42d28b21f94",
+            "bytes": 3130124
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/libavutil/libavutil.a": {
+            "sha256": "5e14559795ec54e6598dcffbd9edddf8d4727478fa0ecc4a75641e4f820f9772",
+            "bytes": 1945544
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/preferred-source-hashes.json": {
+            "sha256": "7e0c9bee51fb5f84090fb84df598c0aaf64d6b94ef94acb09399c0ebc2ddb59a",
+            "bytes": 1073595
+          }
+        },
+        "scope": "EXPERIMENT ONLY: AC3 float PCM to AAC 192kbps or quantized FLAC24; copied video; not lossless or production qualified",
+        "experimentCodec": "flac24"
+      }
+    },
+    "aac": {
+      "dir": "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/engine-1790457030901499000",
+      "wasmSHA256": "557b001b38980c40357766a393c1f3c565b60e092dea23cb4bdb0f7f5df41360",
+      "manifest": {
+        "apiVersion": 2,
+        "inputs": {
+          "ffmpeg": {
+            "name": "ffmpeg-adaptation",
+            "upstream": "https://github.com/FFmpeg/FFmpeg",
+            "revision": "n9.0.2",
+            "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+            "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+          },
+          "patches": {
+            "patches/ffmpeg-adaptation/0002-browser-nested-avio.patch": "4ceaf3185f152c596fc9617e47cc47cd2b264d6f8b2f098bbea8055b798da3ec",
+            "patches/ffmpeg-adaptation/0004-hls-ts-discontinuity-timeline.patch": "6635e6cb14090af54c20c526592df6cf4360cba0bb2e3199071688c37f146bb1",
+            "patches/ffmpeg-adaptation/0005-dfpwm-seek-reset.patch": "0f2e57a194e5d5f5ff23edb864084e5a1e9e05224a4ab1bb71e6598d614e9923",
+            "patches/ffmpeg-adaptation/0006-swf-audio-duration.patch": "e59e36d524f78b98862e5a484b4900e3ea28593d3a25fbc90a6f7f30d79b4c5f",
+            "patches/ffmpeg-adaptation/0007-nut-keyframe-recovery.patch": "b02b157a7a8f1dd3ddd65e541b4f3ae3057acb130044ddba97a148ece8cb0c95",
+            "patches/ffmpeg-adaptation/0008-hls-indexed-webvtt-seek.patch": "224da133f9c2b4c4243743145ec8d90845d98878eeb3535ace35d129b31f03ae",
+            "patches/ffmpeg-adaptation/0009-nut-discard-budget.patch": "9d6dde4654d72d4a810b60894befc2260185afd9fa91a9a6dd3f2dda71e343fe",
+            "patches/ffmpeg-adaptation/0010-strict-stream-resource-errors.patch": "f979b6232cef7ece804cbc7dcaf89788c109b9c8c0d4ce9fe6ac735267026e40",
+            "patches/ffmpeg-adaptation/0011-dash-continuous-fmp4.patch": "fe43a338fc469f38d10ff76b66ed56406fd4ccbacf8348dbb95351f107c2f3fd",
+            "patches/ffmpeg-adaptation/0012-demuxe-segment-plans.patch": "e4073571ea824fbeb68848e8918129bae172c2896503794fda085b8d8f47c705",
+            "patches/ffmpeg-adaptation/0013-demuxe-sparse-discovery.patch": "01c32d856f157845917d345f21ff3f4a36f1a0b38e5211a72e3a5bbdc20f537c",
+            "patches/ffmpeg-adaptation/0014-http-chunked-eof.patch": "b3b89b8e84da739a9e10de37eb9cd48e3fbe4104e63aac2b55ceb5da9238cad5",
+            "patches/ffmpeg-adaptation/0015-demuxe-live-hls-components.patch": "9516d75248ccd1f43281755410d3f7e3a58c94e917e02ec0e81840b296778486",
+            "patches/ffmpeg-adaptation/0016-demuxe-resource-retirement.patch": "199ff687d64e2f4d971c23ec352820bb21b1273e33def75bbcebdc7f125af1a7",
+            "patches/ffmpeg-adaptation/0017-demuxe-dash-period-session.patch": "0b5cadd65282139c04e21688e8fbdfa94813f9636461407e1aef5ce8b330fc9d",
+            "patches/ffmpeg-adaptation/0018-demuxe-discontinuity-retirement.patch": "1904f37c4cea150d35a82dabba4a82912d92d6d1bc4308b6b42a03589a889afd",
+            "patches/ffmpeg-adaptation/0019-demuxe-hls-window-anchor.patch": "1f20c83dab06c73c0e1345db1e38ccc36caa0df10e7e7f8962fd8c73b373f76e",
+            "patches/ffmpeg-adaptation/0020-mov-strict-sample-eof.patch": "f4d70438726c79d12d923893b8a8e322a43bc8415e816386a99217c25c3822ab",
+            "patches/ffmpeg-adaptation/0021-demuxe-dash-live-discovery.patch": "3ed99eda3249bd6d1d7e5319887b8923d4005ad6d73aab6a7faec9c4c45fa228"
+          },
+          "sdk": "4.0.14"
+        },
+        "cleanSourceBuild": true,
+        "linkCommand": [
+          "emcc",
+          "-DDEMUXE_AC3_AAC=1",
+          "-O2",
+          "-DDEMUXE_FIRST_FRAGMENT_SECONDS=0.5",
+          "-DDEMUXE_FLAC_LEVEL=0",
+          "-DDEMUXE_AUDIO_ADAPTATION=1",
+          "-ffile-prefix-map=/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/tree=/demuxe",
+          "-pthread",
+          "-msimd128",
+          "-I/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg",
+          "-I/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/source/FFmpeg-n9.0.2",
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/tree/native/remux/remux.c",
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/libavformat/libavformat.a",
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/libavcodec/libavcodec.a",
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/libavutil/libavutil.a",
+          "-Wl,-Map,/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/engine-1790457030901499000/remux.map",
+          "-sMODULARIZE=1",
+          "-sEXPORT_ES6=1",
+          "-sEXPORT_NAME=createRemux",
+          "-sENVIRONMENT=worker",
+          "-sINITIAL_MEMORY=67108864",
+          "-sMAXIMUM_MEMORY=134217728",
+          "-sALLOW_MEMORY_GROWTH=1",
+          "-sSTACK_SIZE=2097152",
+          "-sWASM_BIGINT=1",
+          "-sFILESYSTEM=0",
+          "-sEXPORTED_FUNCTIONS=[\"_rm_error\", \"_rm_probe\", \"_rm_open\", \"_rm_start\", \"_rm_set_container\", \"_rm_step\", \"_rm_close\", \"_rm_duration\", \"_rm_video_codec\", \"_rm_audio_codec\", \"_rm_adapt_audio\", \"_malloc\", \"_free\"]",
+          "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\",\"ccall\",\"UTF8ToString\"]",
+          "-o",
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/engine-1790457030901499000/remux.mjs"
+        ],
+        "linkSettings": {
+          "firstFragmentSeconds": 0.5,
+          "steadyFragmentSeconds": 0.5,
+          "flacLevel": 0
+        },
+        "files": {
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/tree/native/remux/remux.c": {
+            "sha256": "6ddc960c65a0b5ec0bde7c708ca7ee7142024d7f2e601b2a57c4113013da3436",
+            "bytes": 43553
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/tree/native/adaptation/flac.h": {
+            "sha256": "6fdda5d143536d09c8e7197314fc504eb545f7747e6c71615264f72b5ab126f1",
+            "bytes": 9779
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/tree/scripts/build-audio-adaptation.py": {
+            "sha256": "fcbc4a8ebb48dcf3d3097c45ed13711bfdf9fe148a8d2f7d6b5fff6e02c1df8c",
+            "bytes": 6911
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/tree/scripts/stamp-engine-license.py": {
+            "sha256": "cf531d1b6243e72e82f77821eb20e7b3b1a95d184c06cd9579a681a703c9eb36",
+            "bytes": 611
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/config.h": {
+            "sha256": "055bb6b2db93e088b41706ffa17ce4ec90cc66aaa1b3ba1231ecef49f22aa5ca",
+            "bytes": 24754
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/config_components.h": {
+            "sha256": "7e1dcc9e019eeb30d9cd3ebfbf05a1c89e54066e922e60ba7e6394b710a433f3",
+            "bytes": 75690
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/ffbuild/config.mak": {
+            "sha256": "2b2a72f47e1dd479711a8d66d5461f9e4bfd43a350a06c3fdc4be2e34f7289c9",
+            "bytes": 89583
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/engine-1790457030901499000/remux.map": {
+            "sha256": "f0ce0ec55a6d802d0c86dd15144e42d5aa485283b730da22e31226af33717f5d",
+            "bytes": 1531300
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/engine-1790457030901499000/remux.mjs": {
+            "sha256": "215dffa8778bfad9243a106874525071907db4acd683b607adf62659493f9786",
+            "bytes": 36993
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/engine-1790457030901499000/remux.wasm": {
+            "sha256": "557b001b38980c40357766a393c1f3c565b60e092dea23cb4bdb0f7f5df41360",
+            "bytes": 3647259
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/libavformat/libavformat.a": {
+            "sha256": "74d4febdecedc63bf210f9743ae7f776c85bb4962ddee4c52a05793994911478",
+            "bytes": 2504474
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/libavcodec/libavcodec.a": {
+            "sha256": "81b5771cb4427eb92b705413790b739efd07d378a50c971f5fbcc42d28b21f94",
+            "bytes": 3130124
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/ffmpeg/libavutil/libavutil.a": {
+            "sha256": "5e14559795ec54e6598dcffbd9edddf8d4727478fa0ecc4a75641e4f820f9772",
+            "bytes": 1945544
+          },
+          "/Volumes/seed2/Projects/demuxe/build/ac3-transcode-01/build/preferred-source-hashes.json": {
+            "sha256": "7e0c9bee51fb5f84090fb84df598c0aaf64d6b94ef94acb09399c0ebc2ddb59a",
+            "bytes": 1073595
+          }
+        },
+        "scope": "EXPERIMENT ONLY: AC3 float PCM to AAC 192kbps or quantized FLAC24; copied video; not lossless or production qualified",
+        "experimentCodec": "aac"
+      }
+    }
+  },
+  "scope": "In-browser AC3 decoding and encoding included. FLAC quantizes float PCM to 24 bits; AAC is lossy 192kbps. Isolated RemuxPlayer prototype; no production Auto routing change. Whole Chrome CPU excludes external OS services.",
+  "trials": [
+    {
+      "lane": "ac3",
+      "errors": [],
+      "phases": [
+        {
+          "label": "audio",
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.10602344095941389,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10606876828598594,
+              "hz": 878.90625
+            },
+            {
+              "channel": 0,
+              "rms": 0.10602344095941389,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10606876828598594,
+              "hz": 878.90625
+            }
+          ]
+        },
+        {
+          "label": "steady",
+          "state": {
+            "lane": "ac3",
+            "plan": "native-video-mpv-audio",
+            "time": 1.3591829999999998,
+            "duration": 36,
+            "paused": false,
+            "ended": false,
+            "rate": 1,
+            "frames": 47,
+            "drops": 1,
+            "visible": "visible",
+            "focused": true,
+            "failures": [],
+            "audioDecodedBytes": 0,
+            "audio": {
+              "underruns": 0,
+              "errorMs": 0.45442121501859667,
+              "frames": 70400,
+              "videoTracks": 0
+            }
+          }
+        },
+        {
+          "label": "pause",
+          "state": {
+            "lane": "ac3",
+            "plan": "native-video-mpv-audio",
+            "time": 1.442478,
+            "duration": 36,
+            "paused": true,
+            "ended": false,
+            "rate": 1,
+            "frames": 48,
+            "drops": 1,
+            "visible": "visible",
+            "focused": true,
+            "failures": [],
+            "audioDecodedBytes": 0,
+            "audio": {
+              "underruns": 0,
+              "errorMs": 2.8556666666677,
+              "frames": 71168,
+              "videoTracks": 0
+            }
+          }
+        },
+        {
+          "label": "audio",
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.10612355253315915,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10603016379875317,
+              "hz": 878.90625
+            },
+            {
+              "channel": 0,
+              "rms": 0.10606925821065878,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10611783412885134,
+              "hz": 878.90625
+            }
+          ]
+        },
+        {
+          "label": "audio",
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.10612448244505135,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10602651230923073,
+              "hz": 878.90625
+            },
+            {
+              "channel": 0,
+              "rms": 0.10612448244505135,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10602651230923073,
+              "hz": 878.90625
+            }
+          ]
+        },
+        {
+          "label": "rate-0.5",
+          "state": {
+            "lane": "ac3",
+            "plan": "native-video-mpv-audio",
+            "time": 2.611501,
+            "duration": 36,
+            "paused": false,
+            "ended": false,
+            "rate": 0.5,
+            "frames": 85,
+            "drops": 1,
+            "visible": "visible",
+            "focused": true,
+            "failures": [],
+            "audioDecodedBytes": 0,
+            "audio": {
+              "underruns": 0,
+              "errorMs": 1.345280594788445,
+              "frames": 155904,
+              "videoTracks": 0
+            }
+          }
+        },
+        {
+          "label": "audio",
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.1060230951430189,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10606535803071443,
+              "hz": 878.90625
+            },
+            {
+              "channel": 0,
+              "rms": 0.1060230951430189,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10606535803071443,
+              "hz": 878.90625
+            }
+          ]
+        },
+        {
+          "label": "rate-2",
+          "state": {
+            "lane": "ac3",
+            "plan": "native-video-mpv-audio",
+            "time": 4.904159,
+            "duration": 36,
+            "paused": false,
+            "ended": false,
+            "rate": 2,
+            "frames": 154,
+            "drops": 8,
+            "visible": "visible",
+            "focused": true,
+            "failures": [],
+            "audioDecodedBytes": 0,
+            "audio": {
+              "underruns": 0,
+              "errorMs": 3.541102859819567,
+              "frames": 224000,
+              "videoTracks": 0
+            }
+          }
+        },
+        {
+          "label": "audio",
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.10608472132606936,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10610898570386394,
+              "hz": 878.90625
+            },
+            {
+              "channel": 0,
+              "rms": 0.10600429994272667,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10601443104800139,
+              "hz": 878.90625
+            }
+          ]
+        },
+        {
+          "label": "rate-1",
+          "state": {
+            "lane": "ac3",
+            "plan": "native-video-mpv-audio",
+            "time": 6.625314,
+            "duration": 36,
+            "paused": false,
+            "ended": false,
+            "rate": 1,
+            "frames": 206,
+            "drops": 8,
+            "visible": "visible",
+            "focused": true,
+            "failures": [],
+            "audioDecodedBytes": 0,
+            "audio": {
+              "underruns": 0,
+              "errorMs": 2.8504270815510324,
+              "frames": 291072,
+              "videoTracks": 0
+            }
+          }
+        },
+        {
+          "label": "audio",
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.10603746530181549,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10609582392582524,
+              "hz": 878.90625
+            },
+            {
+              "channel": 0,
+              "rms": 0.10603746530181549,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10609582392582524,
+              "hz": 878.90625
+            }
+          ]
+        },
+        {
+          "label": "seek-12",
+          "state": {
+            "lane": "ac3",
+            "plan": "native-video-mpv-audio",
+            "time": 12.799255,
+            "duration": 36,
+            "paused": false,
+            "ended": false,
+            "rate": 1,
+            "frames": 32,
+            "drops": 0,
+            "visible": "visible",
+            "focused": true,
+            "failures": [],
+            "audioDecodedBytes": 0,
+            "audio": {
+              "underruns": 0,
+              "errorMs": 1.1653209569857381,
+              "frames": 336384,
+              "videoTracks": 0
+            }
+          }
+        },
+        {
+          "label": "audio",
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.10603746477368467,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10609582366015774,
+              "hz": 878.90625
+            },
+            {
+              "channel": 0,
+              "rms": 0.10603746477368467,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10609582366015774,
+              "hz": 878.90625
+            }
+          ]
+        },
+        {
+          "label": "seek-2",
+          "state": {
+            "lane": "ac3",
+            "plan": "native-video-mpv-audio",
+            "time": 2.785882,
+            "duration": 36,
+            "paused": false,
+            "ended": false,
+            "rate": 1,
+            "frames": 31,
+            "drops": 1,
+            "visible": "visible",
+            "focused": true,
+            "failures": [],
+            "audioDecodedBytes": 0,
+            "audio": {
+              "underruns": 0,
+              "errorMs": 6.24719205133184,
+              "frames": 381568,
+              "videoTracks": 0
+            }
+          }
+        },
+        {
+          "label": "paused-seek",
+          "state": {
+            "lane": "ac3",
+            "plan": "native-video-mpv-audio",
+            "time": 3,
+            "duration": 36,
+            "paused": true,
+            "ended": false,
+            "rate": 1,
+            "frames": 4,
+            "drops": 0,
+            "visible": "visible",
+            "focused": true,
+            "failures": [],
+            "audioDecodedBytes": 0,
+            "audio": {
+              "underruns": 0,
+              "errorMs": null,
+              "frames": 382336,
+              "videoTracks": 0
+            }
+          }
+        },
+        {
+          "label": "EOF",
+          "state": {
+            "lane": "ac3",
+            "plan": "native-video-mpv-audio",
+            "time": 36,
+            "duration": 36,
+            "paused": true,
+            "ended": true,
+            "rate": 1,
+            "frames": 37,
+            "drops": 0,
+            "visible": "visible",
+            "focused": true,
+            "failures": [],
+            "audioDecodedBytes": 0,
+            "audio": {
+              "underruns": 0,
+              "errorMs": -5.353833333522573,
+              "frames": 439681,
+              "videoTracks": 0
+            }
+          }
+        },
+        {
+          "label": "audio",
+          "audio": [
+            {
+              "channel": 0,
+              "rms": 0.10603746477368467,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10601538157703377,
+              "hz": 878.90625
+            },
+            {
+              "channel": 0,
+              "rms": 0.10612783295149215,
+              "hz": 439.453125
+            },
+            {
+              "channel": 1,
+              "rms": 0.10601538157703377,
+              "hz": 878.90625
+            }
+          ]
+        },
+        {
+          "label": "replay",
+          "state": {
+            "lane": "ac3",
+            "plan": "native-video-mpv-audio",
+            "time": 2.786584,
+            "duration": 36,
+            "paused": false,
+            "ended": false,
+            "rate": 1,
+            "frames": 32,
+            "drops": 0,
+            "visible": "visible",
+            "focused": true,
+            "failures": [],
+            "audioDecodedBytes": 0,
+            "audio": {
+              "underruns": 0,
+              "errorMs": 1.7791920519281135,
+              "frames": 484225,
+              "videoTracks": 0
+            }
+          }
+        }
+      ],
+      "media": [
+        {
+          "name": "playerPropertiesChanged",
+          "playerId": "9336555BCA1AFC0F7210BFBA98FDF475",
+          "properties": [
+            {
+              "name": "kBitrate",
+              "value": "204313"
+            },
+            {
+              "name": "kVideoDecoderName",
+              "value": "VideoToolboxVideoDecoder"
+            },
+            {
+              "name": "kIsStreaming",
+              "value": "false"
+            },
+            {
+              "name": "kVideoTracks",
+              "value": "[{\"alpha mode\":\"is_opaque\",\"codec\":\"hevc\",\"coded size\":\"320x180\",\"color space\":{\"matrix\":\"SMPTE170M\",\"primaries\":\"SMPTE170M\",\"range\":\"LIMITED\",\"transfer\":\"SMPTE170M\"},\"encryption scheme\":\"Unencrypted\",\"has extra data\":true,\"hdr metadata\":{},\"natural size\":\"320x180\",\"orientation\":\"0°\",\"profile\":\"hevc main 10\",\"visible rect\":\"0,0 320x180\"}]"
+            },
+            {
+              "name": "kIsPlatformVideoDecoder",
+              "value": "true"
+            },
+            {
+              "name": "kFrameUrl",
+              "value": "http://127.0.0.1:63482/experiment/page.html"
+            },
+            {
+              "name": "kIsRangeHeaderSupported",
+              "value": "true"
+            },
+            {
+              "name": "kIsVideoDecryptingDemuxerStream",
+              "value": "false"
+            },
+            {
+              "name": "kStartTime",
+              "value": "0.0"
+            },
+            {
+              "name": "kResolution",
+              "value": "320x180"
+            },
+            {
+              "name": "kRendererName",
+              "value": "RendererImpl"
+            },
+            {
+              "name": "kTotalBytes",
+              "value": "0xe0771"
+            },
+            {
+              "name": "kMaxDuration",
+              "value": "36.0"
+            },
+            {
+              "name": "kIsSingleOrigin",
+              "value": "true"
+            },
+            {
+              "name": "kFrameTitle",
+              "value": "AC-3 audio transcoding experiment"
+            }
+          ]
+        },
+        {
+          "name": "playerPropertiesChanged",
+          "playerId": "2AAB465F850FE03636FC5FF488F11311",
+          "properties": [
+            {
+              "name": "kVideoDecoderName",
+              "value": "VideoToolboxVideoDecoder"
+            },
+            {
+              "name": "kVideoTracks",
+              "value": "[{\"alpha mode\":\"is_opaque\",\"codec\":\"hevc\",\"coded size\":\"320x180\",\"color space\":{\"matrix\":\"BT709\",\"primaries\":\"BT709\",\"range\":\"LIMITED\",\"transfer\":\"BT709\"},\"encryption scheme\":\"Unencrypted\",\"has extra data\":false,\"hdr metadata\":{},\"natural size\":\"320x180\",\"orientation\":\"0°\",\"profile\":\"hevc main 10\",\"visible rect\":\"0,0 320x180\"}]"
+            },
+            {
+              "name": "kFrameUrl",
+              "value": "http://127.0.0.1:63482/experiment/page.html"
+            },
+            {
+              "name": "kIsVideoDecryptingDemuxerStream",
+              "value": "false"
+            },
+            {
+              "name": "kResolution",
+              "value": "320x180"
+            },
+            {
+              "name": "kRendererName",
+              "value": "RendererImpl"
+            },
+            {
+              "name": "kIsPlatformVideoDecoder",
+              "value": "true"
+            },
+            {
+              "name": "kFrameTitle",
+              "value": "AC-3 audio transcoding experiment"
+            }
+          ]
+        },
+        {
+          "name": "playerPropertiesChanged",
+          "playerId": "7B9E73FFB02FC2A09A5C2F9D8C0B5DB3",
+          "properties": [
+            {
+              "name": "kVideoDecoderName",
+              "value": "VideoToolboxVideoDecoder"
+            },
+            {
+              "name": "kVideoTracks",
+              "value": "[{\"alpha mode\":\"is_opaque\",\"codec\":\"hevc\",\"coded size\":\"320x180\",\"color space\":{\"matrix\":\"BT709\",\"primaries\":\"BT709\",\"range\":\"LIMITED\",\"transfer\":\"BT709\"},\"encryption scheme\":\"Unencrypted\",\"has extra data\":false,\"hdr metadata\":{},\"natural size\":\"320x180\",\"orientation\":\"0°\",\"profile\":\"hevc main 10\",\"visible rect\":\"0,0 320x180\"}]"
+            },
+            {
+              "name": "kFrameUrl",
+              "value": "http://127.0.0.1:63482/experiment/page.html"
+            },
+            {
+              "name": "kIsVideoDecryptingDemuxerStream",
+              "value": "false"
+            },
+            {
+              "name": "kResolution",
+              "value": "320x180"
+            },
+            {
+              "name": "kRendererName",
+              "value": "RendererImpl"
+            },
+            {
+              "name": "kIsPlatformVideoDecoder",
+              "value": "true"
+            },
+            {
+              "name": "kFrameTitle",
+              "value": "AC-3 audio transcoding experiment"
+            }
+          ]
+        },
+        {
+          "name": "playerPropertiesChanged",
+          "playerId": "5C1CC3B6BE165B8EDDA27587F12AD912",
+          "properties": [
+            {
+              "name": "kVideoDecoderName",
+              "value": "VideoToolboxVideoDecoder"
+            },
+            {
+              "name": "kVideoTracks",
+              "value": "[{\"alpha mode\":\"is_opaque\",\"codec\":\"hevc\",\"coded size\":\"320x180\",\"color space\":{\"matrix\":\"BT709\",\"primaries\":\"BT709\",\"range\":\"LIMITED\",\"transfer\":\"BT709\"},\"encryption scheme\":\"Unencrypted\",\"has extra data\":false,\"hdr metadata\":{},\"natural size\":\"320x180\",\"orientation\":\"0°\",\"profile\":\"hevc main 10\",\"visible rect\":\"0,0 320x180\"}]"
+            },
+            {
+              "name": "kFrameUrl",
+              "value": "http://127.0.0.1:63482/experiment/page.html"
+            },
+            {
+              "name": "kIsVideoDecryptingDemuxerStream",
+              "value": "false"
+            },
+            {
+              "name": "kResolution",
+              "value": "320x180"
+            },
+            {
+              "name": "kRendererName",
+              "value": "RendererImpl"
+            },
+            {
+              "name": "kIsPlatformVideoDecoder",
+              "value": "true"
+            },
+            {
+              "name": "kFrameTitle",
+              "value": "AC-3 audio transcoding experiment"
+            }
+          ]
+        },
+        {
+          "name": "playerPropertiesChanged",
+          "playerId": "2E9A7B63E4E3F65B4AC0D5CFA203054D",
+          "properties": [
+            {
+              "name": "kVideoDecoderName",
+              "value": "VideoToolboxVideoDecoder"
+            },
+            {
+              "name": "kVideoTracks",
+              "value": "[{\"alpha mode\":\"is_opaque\",\"codec\":\"hevc\",\"coded size\":\"320x180\",\"color space\":{\"matrix\":\"BT709\",\"primaries\":\"BT709\",\"range\":\"LIMITED\",\"transfer\":\"BT709\"},\"encryption scheme\":\"Unencrypted\",\"has extra data\":false,\"hdr metadata\":{},\"natural size\":\"320x180\",\"orientation\":\"0°\",\"profile\":\"hevc main 10\",\"visible rect\":\"0,0 320x180\"}]"
+            },
+            {
+              "name": "kFrameUrl",
+              "value": "http://127.0.0.1:63482/experiment/page.html"
+            },
+            {
+              "name": "kIsVideoDecryptingDemuxerStream",
+              "value": "false"
+            },
+            {
+              "name": "kResolution",
+              "value": "320x180"
+            },
+            {
+              "name": "kRendererName",
+              "value": "RendererImpl"
+            },
+            {
+              "name": "kIsPlatformVideoDecoder",
+              "value": "true"
+            },
+            {
+              "name": "kFrameTitle",
+              "value": "AC-3 audio transcoding experiment"
+            }
+          ]
+        },
+        {
+          "name": "playerPropertiesChanged",
+          "playerId": "700E55B8B0ECBA8DEFFC543F898B6D7F",
+          "properties": [
+            {
+              "name": "kVideoDecoderName",
+              "value": "VideoToolboxVideoDecoder"
+            },
+            {
+              "name": "kVideoTracks",
+              "value": "[{\"alpha mode\":\"is_opaque\",\"codec\":\"hevc\",\"coded size\":\"320x180\",\"color space\":{\"matrix\":\"BT709\",\"primaries\":\"BT709\",\"range\":\"LIMITED\",\"transfer\":\"BT709\"},\"encryption scheme\":\"Unencrypted\",\"has extra data\":false,\"hdr metadata\":{},\"natural size\":\"320x180\",\"orientation\":\"0°\",\"profile\":\"hevc main 10\",\"visible rect\":\"0,0 320x180\"}]"
+            },
+            {
+              "name": "kFrameUrl",
+              "value": "http://127.0.0.1:63482/experiment/page.html"
+            },
+            {
+              "name": "kIsVideoDecryptingDemuxerStream",
+              "value": "false"
+            },
+            {
+              "name": "kResolution",
+              "value": "320x180"
+            },
+            {
+              "name": "kRendererName",
+              "value": "RendererImpl"
+            },
+            {
+              "name": "kIsPlatformVideoDecoder",
+              "value": "true"
+            },
+            {
+              "name": "kFrameTitle",
+              "value": "AC-3 audio transcoding experiment"
+            }
+          ]
+        },
+        {
+          "name": "playerPropertiesChanged",
+          "playerId": "B8A948F22A4413DCE30AAA4A59B56618",
+          "properties": [
+            {
+              "name": "kVideoDecoderName",
+              "value": "VideoToolboxVideoDecoder"
+            },
+            {
+              "name": "kVideoTracks",
+              "value": "[{\"alpha mode\":\"is_opaque\",\"codec\":\"hevc\",\"coded size\":\"320x180\",\"color space\":{\"matrix\":\"BT709\",\"primaries\":\"BT709\",\"range\":\"LIMITED\",\"transfer\":\"BT709\"},\"encryption scheme\":\"Unencrypted\",\"has extra data\":false,\"hdr metadata\":{},\"natural size\":\"320x180\",\"orientation\":\"0°\",\"profile\":\"hevc main 10\",\"visible rect\":\"0,0 320x180\"}]"
+            },
+            {
+              "name": "kFrameUrl",
+              "value": "http://127.0.0.1:63482/experiment/page.html"
+            },
+            {
+              "name": "kIsVideoDecryptingDemuxerStream",
+              "value": "false"
+            },
+            {
+              "name": "kResolution",
+              "value": "320x180"
+            },
+            {
+              "name": "kRendererName",
+              "value": "RendererImpl"
+            },
+            {
+              "name": "kIsPlatformVideoDecoder",
+              "value": "true"
+            },
+            {
+              "name": "kFrameTitle",
+              "value": "AC-3 audio transcoding experiment"
+            }
+          ]
+        }
+      ],
+      "startup": {
+        "openMs": 857.9950000047684,
+        "firstProgressMs": 12632.390000000596
+      },
+      "accepted": true
+    }
+  ],
+  "browser": {
+    "startupReadiness": {
+      "status": "not-requested",
+      "purpose": "correctness or explicit startup measurement"
+    },
+    "configurationSHA256": "5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8",
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/153.0.8010.53",
+      "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+      "jsVersion": "15.3.76.13"
+    },
+    "channel": "chrome",
+    "effectiveArguments": [
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "--disable-field-trial-config",
+      "--disable-background-networking",
+      "--disable-background-timer-throttling",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-back-forward-cache",
+      "--disable-breakpad",
+      "--disable-client-side-phishing-detection",
+      "--disable-component-extensions-with-background-pages",
+      "--disable-component-update",
+      "--no-default-browser-check",
+      "--disable-default-apps",
+      "--disable-dev-shm-usage",
+      "--disable-extensions",
+      "--disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints",
+      "--enable-features=CDPScreenshotNewSurface",
+      "--allow-pre-commit-input",
+      "--disable-hang-monitor",
+      "--disable-ipc-flooding-protection",
+      "--disable-popup-blocking",
+      "--disable-prompt-on-repost",
+      "--disable-renderer-backgrounding",
+      "--force-color-profile=srgb",
+      "--metrics-recording-only",
+      "--no-first-run",
+      "--password-store=basic",
+      "--use-mock-keychain",
+      "--no-service-autorun",
+      "--export-tagged-pdf",
+      "--disable-search-engine-choice-screen",
+      "--unsafely-disable-devtools-self-xss-warnings",
+      "--edge-skip-compat-layer-relaunch",
+      "--enable-automation",
+      "--disable-infobars",
+      "--disable-search-engine-choice-screen",
+      "--disable-sync",
+      "--no-sandbox",
+      "--autoplay-policy=no-user-gesture-required",
+      "--user-data-dir=/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/playwright_chromiumdev_profile-oTVHWY",
+      "--remote-debugging-pipe",
+      "--no-startup-window",
+      "--flag-switches-begin",
+      "--flag-switches-end"
+    ],
+    "headless": false,
+    "policy": {
+      "schema": 4,
+      "browserLifetime": "caller-declared comparison block; fresh context per arm",
+      "interArmIdleSeconds": 2,
+      "profile": "fresh temporary Playwright profile per launch",
+      "startupGateSeconds": 150,
+      "startupGate": "macOS Chrome hardware-key task completion; tracing off before measurement",
+      "startupIdleSeconds": 20,
+      "warmupSeconds": 5,
+      "measureSeconds": 20,
+      "sampleIntervalSeconds": 2,
+      "clock": "monotonic CPU-query midpoint; fixed sample deadlines",
+      "viewport": {
+        "width": 960,
+        "height": 540
+      },
+      "deviceScaleFactor": 1
+    }
+  }
+}

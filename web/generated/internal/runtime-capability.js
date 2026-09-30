@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { PlayerError, playerError } from './errors.js';
+import { PlayerError, playerError, isPlayerError } from './errors.js';
 /** Player-local, bounded evidence. No URL/credentials, persistent fingerprint or
  * cross-source acceptance shortcut. Every candidate must validate startup again. */
 export class RuntimeCapabilities {
@@ -49,25 +49,25 @@ export function compatibilityFailure(error) {
     // Legacy decoder-worker diagnostics contain the words "initialization data".
     // That source configuration report is not an asset initialization failure.
     // Match only this existing worker boundary; explicit typed terminal errors win.
-    if (!(error instanceof PlayerError) && error instanceof Error && /^Hybrid browser decoder: Error: Unsupported browser configuration \([^\n]+\)\.\nCodec string:/.test(error.message) && error.message.includes('WebCodecs reported supported=false') && !/Source transport:|integrity|identity|HTTP |received \d{3}/i.test(error.message))
+    if (!isPlayerError(error) && error instanceof Error && /^Hybrid browser decoder: Error: Unsupported browser configuration \([^\n]+\)\.\nCodec string:/.test(error.message) && error.message.includes('WebCodecs reported supported=false') && !/Source transport:|integrity|identity|HTTP |received \d{3}/i.test(error.message))
         return true;
     // The device-local service owns only reconstruction. A diagnosed failure in
     // that service permits the existing route policy to reopen in Software.
-    if (!(error instanceof PlayerError) && error instanceof Error && /^Hybrid WebGPU decoder: /.test(error.message) && !/Source transport:|integrity|identity|HTTP |received \d{3}/i.test(error.message))
+    if (!isPlayerError(error) && error instanceof Error && /^Hybrid WebGPU decoder: /.test(error.message) && !/Source transport:|integrity|identity|HTTP |received \d{3}/i.test(error.message))
         return true;
     // The remux worker uses "initialization" for an in-band AVC parameter-set
     // change. Recognize only this exact media rejection before the generic asset
     // classifier, which uses that word for module and Wasm startup failures.
-    if (!(error instanceof PlayerError) && error instanceof Error && /^(?:Error: )*FFmpeg error -1094995529: Selected AVC configuration changed; new initialization required$/.test(error.message.split('\n')[0]))
+    if (!isPlayerError(error) && error instanceof Error && /^(?:Error: )*FFmpeg error -1094995529: Selected AVC configuration changed; new initialization required$/.test(error.message.split('\n')[0]))
         return true;
     const code = playerError(error).code;
-    if (['ABORTED', 'AUTOPLAY_BLOCKED', 'SOURCE_CHANGED', 'SOURCE_PERMISSION', 'NETWORK_TIMEOUT', 'ASSET_LOAD_FAILED', 'INVALID_ARGUMENT', 'ISOLATION_REQUIRED'].includes(code))
+    if (['DEPLOYMENT_UNAVAILABLE', 'ABORTED', 'AUTOPLAY_BLOCKED', 'SOURCE_CHANGED', 'SOURCE_PERMISSION', 'NETWORK_TIMEOUT', 'ASSET_LOAD_FAILED', 'INVALID_ARGUMENT', 'ISOLATION_REQUIRED'].includes(code))
         return false;
     if (/Source transport:|integrity|identity|network|HTTP |received \d{3}/i.test(String(error)))
         return false;
     if (code === 'UNSUPPORTED_TIMELINE')
         return true;
-    if (error instanceof PlayerError)
+    if (isPlayerError(error))
         return ['UNSUPPORTED_MEDIA', 'DECODE_FAILED', 'UNSUPPORTED_FEATURE'].includes(code);
     // Existing preparation guards reject this pipeline, not the source. Keep the
     // allowlist exact so unrelated resource, transport and unknown errors stay terminal.

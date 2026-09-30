@@ -1,0 +1,332 @@
+{
+  "purpose": "Selective mpv runtime isolation: original AC3, predecoded float PCM substituted only in mpv, and 40 ms worker polling. Test-only; not production qualification.",
+  "check": true,
+  "trials": [
+    {
+      "lane": "ac3",
+      "state": {
+        "mode": "native",
+        "plan": "native-video-mpv-audio",
+        "position": 7.8610489999999995,
+        "total": 156,
+        "dropped": 0,
+        "visible": "visible",
+        "focused": true,
+        "paused": false,
+        "errors": [],
+        "browserAudioBytes": 0,
+        "codec": "ac3",
+        "worker": {
+          "audioOnly": true,
+          "pumpTicks": 633,
+          "decoder": "none",
+          "decoderBackend": "none",
+          "videoRenderCalls": 0,
+          "videoDecoderWorker": false,
+          "visibleCanvas": false,
+          "presenter": null,
+          "io": {
+            "fetchedBytes": 920136,
+            "requests": 5,
+            "retries": 0,
+            "aborts": 0,
+            "cacheBytes": 1310720,
+            "peakCacheBytes": 1310720,
+            "activeBytes": 0,
+            "peakActiveBytes": 262144,
+            "size": "919409",
+            "reads": 18,
+            "seeks": 3,
+            "interruptions": 0
+          },
+          "position": 7.85331316666667,
+          "queuedFrames": 5632,
+          "buffering": {
+            "requestedProfile": "balanced",
+            "preload": "auto",
+            "backend": "mpv",
+            "control": "profile",
+            "cache": true,
+            "forwardLimitBytes": 33554432,
+            "backwardLimitBytes": 8388608,
+            "notes": [
+              "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+              "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+              "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+            ],
+            "settings": {
+              "cache": "yes",
+              "demuxer-max-bytes": "33554432",
+              "demuxer-max-back-bytes": "8388608",
+              "demuxer-cache-state": {
+                "cache-end": 35.962666667,
+                "reader-pts": 8.186666667,
+                "cache-duration": 27.776,
+                "eof": true,
+                "underrun": false,
+                "idle": true,
+                "total-bytes": 1289048,
+                "fw-bytes": 992992,
+                "debug-low-level-seeks": 1,
+                "debug-byte-level-seeks": 2,
+                "debug-ts-last": 35.962666667,
+                "ts-per-stream": [
+                  {
+                    "type": "audio",
+                    "cache-duration": 27.776,
+                    "reader-pts": 8.186666667,
+                    "cache-end": 35.962666667
+                  }
+                ],
+                "bof-cached": true,
+                "eof-cached": true,
+                "seekable-ranges": [
+                  {
+                    "start": 0,
+                    "end": 35.962666667
+                  }
+                ]
+              },
+              "paused-for-cache": false,
+              "cache-buffering-state": 100
+            }
+          }
+        },
+        "audio": {
+          "underruns": 0,
+          "error": 6.665092440170994,
+          "softCorrections": 0,
+          "frames": 257024,
+          "videoTracks": 0
+        }
+      },
+      "audio": [
+        {
+          "channel": 0,
+          "rms": 0.10600932861051268,
+          "hz": 439.453125
+        },
+        {
+          "channel": 1,
+          "rms": 0.1060316382044766,
+          "hz": 878.90625
+        },
+        {
+          "channel": 0,
+          "rms": 0.10600932861051268,
+          "hz": 439.453125
+        },
+        {
+          "channel": 1,
+          "rms": 0.1060316382044766,
+          "hz": 878.90625
+        }
+      ],
+      "errors": [],
+      "accepted": true
+    },
+    {
+      "lane": "pcm",
+      "state": {
+        "mode": "native",
+        "plan": "native-video-mpv-audio",
+        "position": 7.857937,
+        "total": 156,
+        "dropped": 0,
+        "visible": "visible",
+        "focused": true,
+        "paused": false,
+        "errors": [],
+        "browserAudioBytes": 0,
+        "codec": "pcm_f32le",
+        "worker": {
+          "audioOnly": true,
+          "pumpTicks": 488,
+          "decoder": "none",
+          "decoderBackend": "none",
+          "videoRenderCalls": 0,
+          "videoDecoderWorker": false,
+          "visibleCanvas": false,
+          "presenter": null,
+          "io": {
+            "fetchedBytes": 13878095,
+            "requests": 54,
+            "retries": 0,
+            "aborts": 0,
+            "cacheBytes": 14155776,
+            "peakCacheBytes": 14155776,
+            "activeBytes": 0,
+            "peakActiveBytes": 262144,
+            "size": "13877366",
+            "reads": 283,
+            "seeks": 6,
+            "interruptions": 0
+          },
+          "position": 7.890646166666672,
+          "queuedFrames": 6912,
+          "buffering": {
+            "requestedProfile": "balanced",
+            "preload": "auto",
+            "backend": "mpv",
+            "control": "profile",
+            "cache": true,
+            "forwardLimitBytes": 33554432,
+            "backwardLimitBytes": 8388608,
+            "notes": [
+              "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+              "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+              "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+            ],
+            "settings": {
+              "cache": "yes",
+              "demuxer-max-bytes": "33554432",
+              "demuxer-max-back-bytes": "8388608",
+              "demuxer-cache-state": {
+                "cache-end": 35.963,
+                "reader-pts": 7.419,
+                "cache-duration": 28.544,
+                "eof": true,
+                "underrun": false,
+                "idle": true,
+                "total-bytes": 14247000,
+                "fw-bytes": 11296288,
+                "debug-low-level-seeks": 1,
+                "debug-byte-level-seeks": 2,
+                "debug-ts-last": 35.963,
+                "ts-per-stream": [
+                  {
+                    "type": "audio",
+                    "cache-duration": 28.544,
+                    "reader-pts": 7.419,
+                    "cache-end": 35.963
+                  }
+                ],
+                "bof-cached": true,
+                "eof-cached": true,
+                "seekable-ranges": [
+                  {
+                    "start": 0,
+                    "end": 35.963
+                  }
+                ]
+              },
+              "paused-for-cache": false,
+              "cache-buffering-state": 100
+            }
+          }
+        },
+        "audio": {
+          "underruns": 0,
+          "error": 3.9855097638419323,
+          "softCorrections": 0,
+          "frames": 247040,
+          "videoTracks": 0
+        }
+      },
+      "audio": [
+        {
+          "channel": 0,
+          "rms": 0.10600738863325544,
+          "hz": 439.453125
+        },
+        {
+          "channel": 1,
+          "rms": 0.10602564963865704,
+          "hz": 878.90625
+        },
+        {
+          "channel": 0,
+          "rms": 0.10600738863325544,
+          "hz": 439.453125
+        },
+        {
+          "channel": 1,
+          "rms": 0.10602564963865704,
+          "hz": 878.90625
+        }
+      ],
+      "errors": [],
+      "accepted": true
+    }
+  ],
+  "browser": {
+    "startupReadiness": {
+      "status": "not-requested",
+      "purpose": "correctness or explicit startup measurement"
+    },
+    "configurationSHA256": "5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8",
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/153.0.8010.53",
+      "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+      "jsVersion": "15.3.76.13"
+    },
+    "channel": "chrome",
+    "effectiveArguments": [
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "--disable-field-trial-config",
+      "--disable-background-networking",
+      "--disable-background-timer-throttling",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-back-forward-cache",
+      "--disable-breakpad",
+      "--disable-client-side-phishing-detection",
+      "--disable-component-extensions-with-background-pages",
+      "--disable-component-update",
+      "--no-default-browser-check",
+      "--disable-default-apps",
+      "--disable-dev-shm-usage",
+      "--disable-extensions",
+      "--disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints",
+      "--enable-features=CDPScreenshotNewSurface",
+      "--allow-pre-commit-input",
+      "--disable-hang-monitor",
+      "--disable-ipc-flooding-protection",
+      "--disable-popup-blocking",
+      "--disable-prompt-on-repost",
+      "--disable-renderer-backgrounding",
+      "--force-color-profile=srgb",
+      "--metrics-recording-only",
+      "--no-first-run",
+      "--password-store=basic",
+      "--use-mock-keychain",
+      "--no-service-autorun",
+      "--export-tagged-pdf",
+      "--disable-search-engine-choice-screen",
+      "--unsafely-disable-devtools-self-xss-warnings",
+      "--edge-skip-compat-layer-relaunch",
+      "--enable-automation",
+      "--disable-infobars",
+      "--disable-search-engine-choice-screen",
+      "--disable-sync",
+      "--no-sandbox",
+      "--autoplay-policy=no-user-gesture-required",
+      "--user-data-dir=/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/playwright_chromiumdev_profile-qCN8EC",
+      "--remote-debugging-pipe",
+      "--no-startup-window",
+      "--flag-switches-begin",
+      "--flag-switches-end"
+    ],
+    "headless": false,
+    "policy": {
+      "schema": 4,
+      "browserLifetime": "caller-declared comparison block; fresh context per arm",
+      "interArmIdleSeconds": 2,
+      "profile": "fresh temporary Playwright profile per launch",
+      "startupGateSeconds": 150,
+      "startupGate": "macOS Chrome hardware-key task completion; tracing off before measurement",
+      "startupIdleSeconds": 20,
+      "warmupSeconds": 5,
+      "measureSeconds": 20,
+      "sampleIntervalSeconds": 2,
+      "clock": "monotonic CPU-query midpoint; fixed sample deadlines",
+      "viewport": {
+        "width": 960,
+        "height": 540
+      },
+      "deviceScaleFactor": 1
+    }
+  },
+  "error": "page.evaluate: PlayerError: Playback engine initialization failed: undefined\n    at playerError (http://127.0.0.1:61109/demuxe/web/generated/internal/errors.js:39:16)\n    at http://127.0.0.1:61109/demuxe/web/generated/unified-player.js:506:36\n    at /Volumes/seed2/Projects/demuxe/tests/mpv-runtime-isolation.mjs:33:15"
+}

@@ -1,0 +1,1 @@
+self.onmessage=({data:{io,data}})=>{const h=new Int32Array(io,0,16),v=new DataView(io),dest=new Uint8Array(io,64);for(;;){while(Atomics.load(h,0)!==1)Atomics.wait(h,0,0,100);const at=v.getFloat64(32,true),n=Math.min(Atomics.load(h,2),data.length-at);dest.set(data.subarray(at,at+n));Atomics.store(h,3,n);Atomics.store(h,0,2);Atomics.notify(h,0);}};

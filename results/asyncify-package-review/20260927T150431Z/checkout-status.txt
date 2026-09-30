@@ -1,0 +1,265 @@
+ M .github/workflows/licensing.yml
+ M README.md
+ M docs/API-MIGRATION.md
+ M docs/PLAYER-COMPONENT.md
+ M docs/PREVIEWS.md
+ M docs/PUBLIC-API.md
+ M package.json
+ M src/index.ts
+ M src/internal/backend.ts
+ M src/internal/native-mpv-audio.ts
+ M src/internal/native-mpv-subtitles.ts
+ M src/internal/native-player.ts
+ M src/internal/shaka-backend.ts
+ M src/internal/wasm-player.ts
+ M src/player/index.ts
+ M src/player/preview.ts
+ M src/types.ts
+ M src/unified-player.ts
+ M tests/preview-browser.mjs
+ M tests/preview-options-browser.mjs
+ M tests/preview-software.mjs
+ M tests/retained-codec-worker.mjs
+ M tests/runtime-capability-contracts.mjs
+ M tests/runtime-capability.mjs
+ M web/filter-retained-engine-worker.js
+ M web/generated/index.d.ts
+ M web/generated/internal/backend.d.ts
+ M web/generated/internal/native-mpv-audio.d.ts
+ M web/generated/internal/native-mpv-audio.js
+ M web/generated/internal/native-mpv-subtitles.js
+ M web/generated/internal/native-player.d.ts
+ M web/generated/internal/native-player.js
+ M web/generated/internal/shaka-backend.d.ts
+ M web/generated/internal/shaka-backend.js
+ M web/generated/internal/wasm-player.d.ts
+ M web/generated/internal/wasm-player.js
+ M web/generated/player/index.d.ts
+ M web/generated/player/index.js
+ M web/generated/player/preview.d.ts
+ M web/generated/types.d.ts
+ M web/generated/unified-player.d.ts
+ M web/generated/unified-player.js
+ M web/retained-decoder-worker.js
+ M web/software-full-engine-worker.js
+?? docs/API-ROADMAP-IMPLEMENTATION-PLAN.md
+?? docs/WATCHDOG-REVIEW.md
+?? experiments/ac3-transcode/README.md
+?? experiments/ac3-transcode/build.py
+?? experiments/ac3-transcode/run.mjs
+?? experiments/ac3-transcode/verify-media.py
+?? experiments/audio-cost-attribution/
+?? experiments/audio-worklet-research/
+?? experiments/mediabunny-inspector/
+?? experiments/mediabunny-investigation/REPORT.md
+?? experiments/mediabunny-investigation/benchmark/aggregate.mjs
+?? experiments/mediabunny-investigation/benchmark/page.html
+?? experiments/mediabunny-investigation/benchmark/poc.js
+?? experiments/mediabunny-investigation/benchmark/prepare.py
+?? experiments/mediabunny-investigation/benchmark/presenter-worker.js
+?? experiments/mediabunny-investigation/benchmark/realtime.js
+?? experiments/mediabunny-investigation/benchmark/run-realtime.mjs
+?? experiments/mediabunny-investigation/benchmark/run.mjs
+?? experiments/mediabunny-investigation/benchmark/vendor/
+?? experiments/mediabunny-investigation/notes/extension-screen-20260925.json
+?? experiments/mediabunny-investigation/notes/fixture-manifest.json
+?? experiments/mediabunny-investigation/notes/format-screen-20260925.json
+?? experiments/mediabunny-investigation/notes/format-screen-final-20260925.json
+?? experiments/mediabunny-investigation/notes/low-complexity-screen-20260925.json
+?? experiments/mediabunny-investigation/notes/official-player-row-h264-eac3-20260925/
+?? experiments/mediabunny-investigation/notes/official-player-row-h264-eac3-cpu-matched-20260925/
+?? experiments/mediabunny-investigation/notes/real-fixture-screen-20260925.json
+?? experiments/mediabunny-investigation/notes/realtime-abba-20260925.json
+?? experiments/mediabunny-investigation/notes/realtime-abba-transmitted-20260925.json
+?? experiments/mediabunny-investigation/notes/realtime-gated-abba-20260925.json
+?? experiments/mediabunny-investigation/notes/realtime-gated-presentation-20260925.json
+?? experiments/mediabunny-investigation/notes/realtime-hybrid-smoke.json
+?? experiments/mediabunny-investigation/notes/realtime-smoke.json
+?? experiments/mediabunny-investigation/notes/realtime-worker-smoke.json
+?? experiments/mediabunny-investigation/notes/route-check/
+?? experiments/mediabunny-investigation/result.json
+?? experiments/route-ownership-audit/
+?? results/ac3-transcode/
+?? results/api-preview-facade/
+?? results/asyncify-package-review/
+?? results/audio-codec-path/
+?? results/audio-cost-attribution/
+?? results/audio-transcode-formats/check-01/ac3-prefix.mp4
+?? results/audio-transcode-formats/check-03/aac-44100-prefix.mp4
+?? results/audio-transcode-formats/check-03/aac-prefix.mp4
+?? results/audio-transcode-formats/check-03/ac3-mono-prefix.mp4
+?? results/audio-transcode-formats/check-03/ac3-prefix.mp4
+?? results/audio-transcode-formats/check-03/alac-prefix.mp4
+?? results/audio-transcode-formats/check-03/dca-prefix.mp4
+?? results/audio-transcode-formats/check-03/eac3-prefix.mp4
+?? results/audio-transcode-formats/check-03/flac-96000-prefix.mp4
+?? results/audio-transcode-formats/check-03/flac-prefix.mp4
+?? results/audio-transcode-formats/check-03/libmp3lame-prefix.mp4
+?? results/audio-transcode-formats/check-03/libopus-prefix.mp4
+?? results/audio-transcode-formats/check-03/pcm_f32le-prefix.mp4
+?? results/audio-transcode-formats/check-03/pcm_s16le-prefix.mp4
+?? results/audio-transcode-formats/check-03/pcm_s24le-prefix.mp4
+?? results/audio-transcode-formats/check-04/flac-96000-bits24-prefix.mp4
+?? results/audio-transcode-formats/check-04/flac-bits24-prefix.mp4
+?? results/audio-transcode-formats/legacy-flac/adaptation-flac-chrome-1790464435282/b0-start0-mismatch0.mp4
+?? results/audio-transcode-formats/legacy-opus/adaptation-opus-chrome-1790464442561/b0-start0-mismatch0.mp4
+?? results/audio-transcode-formats/production-fixes-01/ac3-prefix.mp4
+?? results/audio-transcode-formats/production-fixes-01/eac3-51-prefix.mp4
+?? results/audio-transcode-formats/production-fixes-01/flac-71-prefix.mp4
+?? results/audio-transcode-formats/production-fixes-01/truehd-51-prefix.mp4
+?? results/audio-transcode-formats/production-fixes-01/truehd-prefix.mp4
+?? results/audio-transcode-formats/production-fixes-01/vorbis-prefix.mp4
+?? results/audio-transcode-formats/production-fixes-02/truehd-51-prefix.mp4
+?? results/audio-transcode-formats/production-fixes-02/truehd-prefix.mp4
+?? results/audio-transcode-formats/production-fixes-03/truehd-prefix.mp4
+?? results/audio-transcode-formats/production-fixes-04/truehd-51-prefix.mp4
+?? results/audio-transcode-formats/production-fixes-04/truehd-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/aac-44100-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/aac-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/ac3-mono-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/ac3-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/alac-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/dca-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/eac3-51-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/eac3-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/flac-71-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/flac-96000-bits24-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/flac-96000-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/flac-bits24-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/flac-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/libmp3lame-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/libopus-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/pcm_f32le-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/pcm_s16le-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/pcm_s24le-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/truehd-51-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/truehd-prefix.mp4
+?? results/audio-transcode-formats/production-formats-05/vorbis-prefix.mp4
+?? results/audio-transcode-formats/production-surround-08/eac3-51-prefix.mp4
+?? results/audio-transcode-formats/production-surround-08/flac-71-prefix.mp4
+?? results/audio-transcode-formats/production-surround-08/truehd-51-prefix.mp4
+?? results/audio-variability/
+?? results/audio-worklet-research/
+?? results/browser-media-capability/run-2026-09-25T17-55-42.703Z/
+?? results/browser-media-capability/run-2026-09-25T17-57-24.001Z/
+?? results/browser-media-capability/run-2026-09-25T17-58-43.840Z/
+?? results/browser-media-capability/run-2026-09-25T17-59-30.563Z/
+?? results/browser-media-capability/run-2026-09-25T18-05-50.913Z/
+?? results/browser-media-capability/run-2026-09-25T18-06-43.435Z/
+?? results/browser-media-capability/run-2026-09-25T18-08-06.641Z/
+?? results/browser-media-capability/run-2026-09-25T18-08-57.884Z/
+?? results/browser-media-capability/run-2026-09-25T18-34-27.820Z/
+?? results/browser-media-capability/run-2026-09-25T18-36-46.924Z/
+?? results/browser-media-capability/run-2026-09-25T18-37-13.722Z/
+?? results/browser-media-capability/run-2026-09-25T18-38-35.677Z/
+?? results/browser-media-capability/run-2026-09-25T18-43-25.608Z/
+?? results/browser-media-capability/run-2026-09-25T18-44-00.857Z/
+?? results/browser-media-capability/run-2026-09-25T18-51-04.701Z/
+?? results/browser-media-capability/run-2026-09-25T18-52-15.749Z/
+?? results/browser-media-capability/run-2026-09-25T19-04-40.834Z/
+?? results/browser-media-capability/safari-2026-09-25T18-56-27.529Z/
+?? results/browser-media-capability/safari-2026-09-25T18-57-18.186Z/
+?? results/browser-media-capability/safari-2026-09-25T18-57-57.096Z/
+?? results/cpu-gap-investigation/corrected-hls/index.m3u8
+?? results/cpu-gap-investigation/corrected-hls/index0.m4s
+?? results/cpu-gap-investigation/corrected-hls/index1.m4s
+?? results/cpu-gap-investigation/corrected-hls/index10.m4s
+?? results/cpu-gap-investigation/corrected-hls/index11.m4s
+?? results/cpu-gap-investigation/corrected-hls/index12.m4s
+?? results/cpu-gap-investigation/corrected-hls/index13.m4s
+?? results/cpu-gap-investigation/corrected-hls/index14.m4s
+?? results/cpu-gap-investigation/corrected-hls/index15.m4s
+?? results/cpu-gap-investigation/corrected-hls/index16.m4s
+?? results/cpu-gap-investigation/corrected-hls/index17.m4s
+?? results/cpu-gap-investigation/corrected-hls/index2.m4s
+?? results/cpu-gap-investigation/corrected-hls/index3.m4s
+?? results/cpu-gap-investigation/corrected-hls/index4.m4s
+?? results/cpu-gap-investigation/corrected-hls/index5.m4s
+?? results/cpu-gap-investigation/corrected-hls/index6.m4s
+?? results/cpu-gap-investigation/corrected-hls/index7.m4s
+?? results/cpu-gap-investigation/corrected-hls/index8.m4s
+?? results/cpu-gap-investigation/corrected-hls/index9.m4s
+?? results/cpu-gap-investigation/corrected-hls/init.mp4
+?? results/cpu-gap-investigation/default-mux/
+?? results/cpu-gap-investigation/hevc-copy.mp4
+?? results/cpu-gap-investigation/historical-power-events.txt
+?? results/cpu-gap-investigation/skip-sidx-mux/
+?? results/fast-probe/
+?? results/ffmpeg-audio-decode/
+?? results/head-to-head/auto-main-a563f345-hevc10-ac3-cpu-20260927-01/
+?? results/head-to-head/row-h264-eac3-correctness-20260925-01/
+?? results/hevc-audio-cost/
+?? results/hevc-audio-path-comparison/
+?? results/hevc-diagnostics-quick/
+?? results/hevc-performance-attribution/
+?? results/hevc-root-isolation/
+?? results/hevc-root-trace/
+?? results/hevc-scheduled-pcm/
+?? results/mpv-runtime-isolation/
+?? results/pcm24-routing/browser-audio.json
+?? results/pcm24-routing/browser-blocks.json
+?? results/pcm24-routing/correctness-asset-gate.json
+?? results/pcm24-routing/correctness-first.json
+?? results/pcm24-routing/correctness-missing-font.json
+?? results/pcm24-routing/correctness.json
+?? results/pcm24-routing/cpu-summary.csv
+?? results/pcm24-routing/cpu.json
+?? results/pcm24-routing/fidelity-no-capture.json
+?? results/pcm24-routing/fidelity.json
+?? results/pcm24-routing/flac-recheck.json
+?? results/player-component/chrome-2026-09-27T14-25-13.346Z/
+?? results/public-api/chrome-2026-09-27T14-24-57.802Z/
+?? results/route-ownership-audit/
+?? results/runtime-capability/
+?? results/selected-mp4-view/2026-09-26T00-03-47.975Z/
+?? results/selected-mp4-view/2026-09-26T00-06-11.086Z/
+?? results/selected-mp4-view/2026-09-26T00-06-28.568Z/
+?? results/selected-mp4-view/2026-09-26T00-09-39.008Z/
+?? results/selected-mp4-view/2026-09-26T00-14-22.819Z/
+?? results/selective-audio-scheduling/
+?? results/startup-native-2026-09-27T03-31-08.604Z/
+?? results/startup-timeout/remux-preference-2026-09-27T03-35-05.011Z/
+?? results/startup-timeout/restoration-2026-09-27T03-17-16.529Z/
+?? results/startup-timeout/restoration-2026-09-27T03-29-33.477Z/
+?? results/watchdogs/
+?? src/internal/playback-statistics.ts
+?? src/internal/watchdogs.ts
+?? src/preview/player-preview.ts
+?? tests/audio-codec-path-probe.mjs
+?? tests/audio-variability-counters.mjs
+?? tests/audio-variability-probe.mjs
+?? tests/hevc-audio-cost-instrument.mjs
+?? tests/hevc-audio-cost.mjs
+?? tests/hevc-audio-path-comparison.mjs
+?? tests/hevc-audio-profile.mjs
+?? tests/hevc-diagnostics-quick.mjs
+?? tests/hevc-eof-callback-probe.mjs
+?? tests/hevc-native-stack-probe.mjs
+?? tests/hevc-output-isolation.mjs
+?? tests/hevc-performance-attribution.mjs
+?? tests/hevc-root-isolation.mjs
+?? tests/hevc-root-task-trace.mjs
+?? tests/hevc-root-trace-compare.mjs
+?? tests/hevc-root-trace.mjs
+?? tests/hevc-scheduled-pcm.mjs
+?? tests/mpv-runtime-isolation.mjs
+?? tests/mpv-tree-isolation.mjs
+?? tests/native-audio-scheduling.mjs
+?? tests/preview-facade.mjs
+?? tests/scheduled-pcm-prototype.mjs
+?? tests/selective-audio-execution-conditions.mjs
+?? tests/selective-audio-latency-cost.mjs
+?? tests/selective-audio-overhead-cost.mjs
+?? tests/selective-audio-pcm-profile.mjs
+?? tests/selective-audio-poll-margin.mjs
+?? tests/selective-audio-scheduling-browser.mjs
+?? tests/selective-audio-scheduling-cpu.mjs
+?? tests/selective-audio-work-audit.mjs
+?? tests/watchdogs-browser.mjs
+?? tests/watchdogs-followup-performance.mjs
+?? tests/watchdogs-performance.mjs
+?? tests/watchdogs.mjs
+?? web/generated/internal/watchdogs.d.ts
+?? web/generated/internal/watchdogs.js
+?? web/generated/preview/player-preview.d.ts
+?? web/generated/preview/player-preview.js

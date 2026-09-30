@@ -1,0 +1,32 @@
+{
+  "scope": "Host/ABI guard tests using actual Wasm metadata and FFmpeg ccall doubles; no full media",
+  "tests": [
+    {
+      "name": "reject-overlapping-C-stack-layout",
+      "ok": false,
+      "error": "AssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:19:13\n    at async test (file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:8:34)\n    at async file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:17:1"
+    },
+    {
+      "name": "reject-C-stack-saved-stack-alias",
+      "ok": false,
+      "error": "AssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:23:13\n    at async test (file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:8:34)\n    at async file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:21:1"
+    },
+    {
+      "name": "failed-attach-closes-scheduler",
+      "ok": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:27:99\n    at async test (file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:8:34)\n    at async file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:25:1"
+    },
+    {
+      "name": "FFmpeg-unexpected-ccall-trap-poisons-instance",
+      "ok": false,
+      "error": "AssertionError [ERR_ASSERTION]: Missing expected rejection.\n    at async file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:33:61\n    at async test (file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:8:34)\n    at async file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:29:1"
+    },
+    {
+      "name": "FFmpeg-invalid-replacement-preserves-existing-source",
+      "ok": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n-1 !== 4\n\n    at file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:39:117\n    at async test (file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:8:34)\n    at async file:///mnt/data/demuxe-asyncify-reviewed/review/tests/host-guards.mjs:36:1"
+    }
+  ],
+  "total": 5,
+  "passed": 0
+}

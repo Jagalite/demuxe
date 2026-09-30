@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {selectRemuxRuntime} from '../web/generated/internal/remux-runtime.js';
+import {selectRemuxRuntime,deployedRemuxRuntime} from '../web/generated/internal/remux-runtime.js';
 for(const isolated of [false,true])for(const jspi of [false,true]){
  const caps={isolated,jspi};
  test(`runtime selection: isolated=${isolated}, JSPI=${jspi}`,()=>{
@@ -21,4 +21,15 @@ test('legacy options remain explicit and ambiguous/invalid settings fail',()=>{
  for(const value of ['pthread','asyctify','',true,false,1,null])assert.throws(()=>selectRemuxRuntime({remuxRuntime:value},caps),{code:'INVALID_ARGUMENT'});
  assert.throws(()=>selectRemuxRuntime({remuxRuntime:'auto',experimentalRemuxRuntime:'jspi'},caps),{code:'INVALID_ARGUMENT'});
  assert.throws(()=>selectRemuxRuntime({experimentalRemuxRuntime:'auto'},caps),{code:'INVALID_ARGUMENT'});
+});
+
+test('modular auto runtime selection filters qualified deployed implementations only',()=>{
+ const choose=(policy,isolated,available)=>deployedRemuxRuntime(selectRemuxRuntime({remuxRuntime:policy},{isolated,jspi:true}),r=>available.includes(r)).runtime;
+ assert.equal(choose('auto',false,['asyncify']),'asyncify');
+ assert.equal(choose('auto',true,['jspi','asyncify']),'jspi');
+ assert.equal(choose('auto',true,['pthread','jspi']),'pthread');
+ assert.equal(choose('on',true,['pthread','asyncify']),'asyncify');
+ assert.equal(choose('jspi',false,['asyncify']),'jspi');
+ assert.equal(choose('off',true,['asyncify']),'pthread');
+ assert.equal(choose('auto',false,[]),'jspi');
 });

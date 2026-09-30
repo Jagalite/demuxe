@@ -83,7 +83,7 @@ export function planAdmission(f) {
         const reject = (c, r) => { code = c; reason = r; };
         const gain = plan.id.endsWith('-gain'), ass = plan.id.includes('-ass'), flac = plan.id.startsWith('native-flac'), opus = plan.id.startsWith('native-opus');
         const effect = featureRejection(plan.mode, { ...f });
-        if (f.privateRemux && !['native-direct', 'native-direct-ass', 'native-direct-ass-gain', 'native-remux-ass', 'native-remux-ass-gain', 'native-flac-gain', 'native-flac-ass-gain', 'native-direct-gain', 'shaka-mse', 'shaka-mse-gain', 'native-remux', 'native-flac', 'native-flac-ass', 'native-transcode', 'native-transcode-ass', 'native-direct-mpv', 'native-remux-mpv', 'native-transcode-mpv', 'native-video-mpv-audio', 'native-video-mpv-audio-subtitles'].includes(plan.id))
+        if (f.privateRemux && !(f.atomicMpvProviders && plan.mode !== 'native') && !['native-direct', 'native-direct-ass', 'native-direct-ass-gain', 'native-remux-ass', 'native-remux-ass-gain', 'native-flac-gain', 'native-flac-ass-gain', 'native-direct-gain', 'shaka-mse', 'shaka-mse-gain', 'native-remux', 'native-flac', 'native-flac-ass', 'native-transcode', 'native-transcode-ass', 'native-direct-mpv', 'native-remux-mpv', 'native-transcode-mpv', 'native-video-mpv-audio', 'native-video-mpv-audio-subtitles'].includes(plan.id))
             reject('QUALIFICATION_REQUIRED', 'Private runtime supports qualified finite-file remux, adaptation and subtitle plans');
         else if (effect)
             reject('FEATURE_UNSUPPORTED', effect);
@@ -98,8 +98,10 @@ export function planAdmission(f) {
                 reject('SOURCE_UNSUPPORTED', f.transcodeSourceRejection);
             else if (!f.isolated && !f.privateRemux)
                 reject('ISOLATION_REQUIRED', 'Audio transcoding requires cross-origin isolation');
-            else if (!f.mse || f.nativeRemux === 'never')
-                reject('DEPLOYMENT_UNAVAILABLE', 'Audio transcoding requires permitted MSE');
+            else if (f.nativeRemux === 'never')
+                reject('POLICY_PROHIBITS_TRANSFORM', 'Native preparation is disabled by policy');
+            else if (!f.mse)
+                reject('DEPLOYMENT_UNAVAILABLE', 'Audio transcoding requires MSE');
             else if (f.audioOutput !== 'stereo' || f.gain !== 1 || f.af)
                 reject('FEATURE_UNSUPPORTED', 'Requested audio processing requires mpv');
             else if (f.manifest || f.browserTextTracks)
@@ -130,8 +132,10 @@ export function planAdmission(f) {
                 reject('FEATURE_UNSUPPORTED', 'Selective audio currently requires stereo output');
             else if (!f.isolated && !f.privateRemux)
                 reject('ISOLATION_REQUIRED', 'Selective mpv audio requires cross-origin isolation');
-            else if (!f.mse || !f.webAudio || f.nativeRemux === 'never')
-                reject('DEPLOYMENT_UNAVAILABLE', 'Selective audio requires permitted MSE and Web Audio');
+            else if (f.nativeRemux === 'never')
+                reject('POLICY_PROHIBITS_TRANSFORM', 'Native preparation is disabled by policy');
+            else if (!f.mse || !f.webAudio)
+                reject('DEPLOYMENT_UNAVAILABLE', 'Selective audio requires MSE and Web Audio');
         }
         else if (plan.id === 'native-remux-mpv' || plan.id === 'native-direct-mpv') {
             if (!f.mpvSubtitles || !f.mpvSubtitleSourceQualified)
@@ -146,8 +150,10 @@ export function planAdmission(f) {
                 reject('FEATURE_UNSUPPORTED', 'Explicit PCM layout requires mpv A/V');
             else if (plan.id === 'native-direct-mpv' && (f.nativeRemux === 'always' || f.requiresRemux))
                 reject('SOURCE_UNSUPPORTED', 'Source policy requires controlled remux transport');
-            else if (plan.id === 'native-remux-mpv' && (f.nativeRemux === 'never' || !f.mse))
-                reject('DEPLOYMENT_UNAVAILABLE', 'Native preparation requires permitted MSE');
+            else if (plan.id === 'native-remux-mpv' && f.nativeRemux === 'never')
+                reject('POLICY_PROHIBITS_TRANSFORM', 'Native preparation is disabled by policy');
+            else if (plan.id === 'native-remux-mpv' && !f.mse)
+                reject('DEPLOYMENT_UNAVAILABLE', 'Native preparation requires MSE');
             else if (f.mpvSubtitleAVRejection || (plan.id === 'native-remux-mpv' && f.remuxSourceRejection))
                 reject('SOURCE_UNSUPPORTED', f.mpvSubtitleAVRejection ?? f.remuxSourceRejection);
         }
@@ -195,8 +201,10 @@ export function planAdmission(f) {
                 reject('QUALIFICATION_REQUIRED', 'File preparation is not qualified for manifest sources');
             else if (prepared && !f.isolated && !f.privateRemux)
                 reject('ISOLATION_REQUIRED', 'Native preparation requires cross-origin isolation');
-            else if (prepared && (f.nativeRemux === 'never' || !f.mse))
-                reject('DEPLOYMENT_UNAVAILABLE', 'Native preparation requires permitted MSE');
+            else if (prepared && f.nativeRemux === 'never')
+                reject('POLICY_PROHIBITS_TRANSFORM', 'Native preparation is disabled by policy');
+            else if (prepared && !f.mse)
+                reject('DEPLOYMENT_UNAVAILABLE', 'Native preparation requires MSE');
             else if (!prepared && (f.nativeRemux === 'always' || f.requiresRemux))
                 reject('SOURCE_UNSUPPORTED', 'This source policy requires controlled remux transport');
             else if ((flac || opus) && (f.automatic ? (!flac || !f.automaticLossless || f.audioPlayback === 'worklet') : f.adaptation !== (flac ? 'flac' : 'opus')))

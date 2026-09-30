@@ -74,7 +74,7 @@ export class NativeMpvAudio extends EventTarget {
     get selectedTrackId() { return this.engine.properties.get('track-list')?.find(t => t.type === 'audio' && t.selected)?.id; }
     get selectedStreamIndex() { return this.engine.properties.get('track-list')?.find(t => t.type === 'audio' && t.selected)?.['ff-index']; }
     ended = () => { void this.finishEOF().catch(error => this.fail(error)); };
-    constructor(video, time, assetBase, failed) {
+    constructor(video, time, assetBase, failed, prepared) {
         super();
         this.video = video;
         this.time = time;
@@ -85,7 +85,7 @@ export class NativeMpvAudio extends EventTarget {
         this.hidden.height = 1;
         this.hidden.hidden = true;
         document.body.append(this.hidden);
-        this.engine = new WasmPlayer(this.hidden, { assetBase, mode: 'selective-audio', audioOutput: 'stereo' });
+        this.engine = new WasmPlayer(this.hidden, { prepared, assetBase, mode: 'selective-audio', audioOutput: 'stereo' });
         this.engine.addEventListener('output', event => this.onOutput(event.detail));
         this.engine.addEventListener('error', event => this.fail(event.detail));
         video.addEventListener('ended', this.ended);

@@ -16,8 +16,29 @@ export class PlayerError extends Error implements SessionError {
   }
   toJSON(): SessionError {return {code:this.code,message:this.message,operationId:this.operationId,operation:this.operation,scope:this.scope,retryable:this.retryable};}
 }
+// A bundled core and a deployment-loaded provider have distinct constructors.
+// Keep the typed error contract across that boundary without trusting arbitrary
+// objects that merely contain a `code` string. The marker is not a security
+// credential and does not cross worker serialization; workers retain their
+// existing explicit message-to-error conversion.
+const playerErrorBrand = Symbol.for('demuxe.internal.PlayerError.v1');
+Object.defineProperty(PlayerError.prototype, playerErrorBrand, {value: true});
+const errorCodes = {
+  DEPLOYMENT_UNAVAILABLE: true, INVALID_ARGUMENT: true, ABORTED: true,
+  AUTOPLAY_BLOCKED: true, SOURCE_PERMISSION: true, SOURCE_CHANGED: true,
+  NETWORK_TIMEOUT: true, PLAYBACK_STALLED: true, UNSUPPORTED_MEDIA: true,
+  UNSUPPORTED_TIMELINE: true, UNSUPPORTED_FEATURE: true, ASSET_LOAD_FAILED: true,
+  ISOLATION_REQUIRED: true, DECODE_FAILED: true,
+} as const satisfies Record<PlayerErrorCode, true>;
+export function isPlayerError(error: unknown): error is PlayerError {
+  if (error instanceof PlayerError) return true;
+  return error instanceof Error && error.name === 'PlayerError'
+    && (error as unknown as Record<symbol, unknown>)[playerErrorBrand] === true
+    && 'code' in error && typeof error.code === 'string' && Object.hasOwn(errorCodes, error.code);
+}
+
 export function playerError(error: unknown, id: number | null = null, operation: OperationKind | null = null, scope: 'operation' | 'session' = 'operation'): PlayerError {
-  if (error instanceof PlayerError) return new PlayerError(error.code,error.message,id??error.operationId,operation??error.operation,scope,error.retryable);
+  if (isPlayerError(error)) return new PlayerError(error.code,error.message,id??error.operationId,operation??error.operation,scope,error.retryable);
   if(error instanceof Error&&'code' in error&&error.code==='UNSUPPORTED_TIMELINE')return new PlayerError('UNSUPPORTED_TIMELINE',error.message,id,operation,scope);
   const message = error instanceof Error ? error.message : String(error);
   const name = error instanceof Error ? error.name : '';

@@ -46,7 +46,10 @@ export declare class NativeMpvAudio extends EventTarget {
     get selectedTrackId(): string | undefined;
     get selectedStreamIndex(): number | undefined;
     private readonly ended;
-    constructor(video: HTMLVideoElement, time: () => number, assetBase: URL, failed: (error: Error) => void);
+    constructor(video: HTMLVideoElement, time: () => number, assetBase: URL, failed: (error: Error) => void, prepared?: {
+        module?: WebAssembly.Module;
+        font?: ArrayBuffer;
+    });
     private fail;
     private h;
     private set;

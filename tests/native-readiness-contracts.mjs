@@ -105,3 +105,41 @@ test('play rejection cancels subtitle sampling and restoration RPCs without wait
   await service.verify();assert.equal(service.verifiedTrack,1);assert.equal(service.pending.size,0);
  }
 });
+
+test('short output trials remain inconclusive even with a zero audio counter',async()=>{
+ const p=candidate({webkitAudioDecodedByteCount:0,paused:false});
+ await p.verifyStartup({video:true,audio:true});
+ await assert.rejects(()=>p.verifyOutput(undefined,20),e=>e instanceof StartupEvidenceTimeout&&e.stage==='output');
+ assert.equal(p.cancelers.size,0);assert.equal(p.capability.outputVerified,false);
+});
+
+test('only automatic unverified local direct output with an admitted alternative gets a short trial',async()=>{
+ const {Player}=await import('../web/generated/unified-player.js');
+ for(const change of [{},{automatic:false},{source:{kind:'remote'}},{nativeRemux:'never'},{verified:true},{planDecisions:[]}]){
+  const p=Object.create(Player.prototype),budgets=[];
+  const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},verifyOutput:async(_signal,budget)=>{budgets.push(budget);}};
+  Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',queued:0,destroyed:false,settings:{pause:true},planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({outputVerified:!!change.verified}),assertOperation(){},acceptEvidence(){},...change});
+  Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
+  await p.play();assert.deepEqual(budgets,[Object.keys(change).length?undefined:1500]);
+ }
+});
+
+test('inconclusive local direct-mpv output preserves position and restores full verification if fallback assets fail',async()=>{
+ const {Player}=await import('../web/generated/unified-player.js');
+ const p=Object.create(Player.prototype),budgets=[],seeks=[];let selected,cached=0;
+ const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},seek:async time=>{seeks.push(time);},verifyOutput:async(_signal,budget)=>{budgets.push(budget);if(budgets.length===1)throw new StartupEvidenceTimeout('output');}};
+ Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',queued:0,destroyed:false,settings:{pause:true},nativeTracks:[],planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({prepared:true}),assertOperation(){},acceptEvidence(){},failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;assert.equal(p.nativeRemux,'always');throw new PlayerError('ASSET_LOAD_FAILED','missing fallback');}});
+ Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
+ await p.play();assert.deepEqual(seeks,[2]);assert.deepEqual(budgets,[1500,undefined]);assert.equal(selected[5],2);assert.equal(cached,0);assert.equal(p.nativeRemux,'auto');assert.equal(p.settings.pause,false);
+});
+
+test('a short trial never retries the original route after terminal fallback errors',async()=>{
+ const {Player}=await import('../web/generated/unified-player.js');
+ for(const error of [new PlayerError('SOURCE_PERMISSION','denied'),new DOMException('cancelled','AbortError'),new DOMException('activation required','NotAllowedError')]){
+  const p=Object.create(Player.prototype);let verifications=0;
+  const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},verifyOutput:async()=>{verifications++;throw new StartupEvidenceTimeout('output');}};
+  Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',queued:0,destroyed:false,settings:{pause:true},nativeTracks:[],planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({prepared:true}),assertOperation(){},failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){assert.fail('Unknown output must not poison admission');}},select:async()=>{throw error;}});
+  Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
+  await assert.rejects(()=>p.play(),e=>e===error);assert.equal(verifications,1);assert.equal(p.nativeRemux,'auto');
+ }
+});

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import type { ProviderRuntimeAssets } from './provider-runtime.js';
 import type { BufferingPolicy } from '../types.js';
 import type { RemoteSource, TextTrackSource, TrackType, SubtitleAsset, FontAsset } from '../types.js';
 import type { Backend } from './backend.js';
@@ -18,6 +19,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private loadTimeoutMs;
     private defaultSubtitleStreamIndex?;
     private remuxRuntime;
+    private providerRuntime?;
     readonly ready: Promise<void>;
     readonly properties: Map<string, unknown>;
     private stopped;
@@ -25,6 +27,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private capability;
     private mpvSubs?;
     private mpvAudio?;
+    private get execution();
     private get selectiveAudio();
     private get mpvSubtitlePlan();
     private subtitleSource?;
@@ -43,6 +46,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private destruction?;
     private opening;
     private remux?;
+    private remuxEnginePath?;
     private projection?;
     private adapted;
     private remuxSource?;
@@ -71,7 +75,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
         frames: number | undefined;
         videoEnd: number | undefined;
     };
-    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | "flac24" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined, buffering?: BufferingPolicy, loadTimeoutMs?: number, defaultSubtitleStreamIndex?: number | undefined, remuxRuntime?: 'pthread' | 'jspi' | 'asyncify');
+    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | "flac24" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined, buffering?: BufferingPolicy, loadTimeoutMs?: number, defaultSubtitleStreamIndex?: number | undefined, remuxRuntime?: 'pthread' | 'jspi' | 'asyncify', providerRuntime?: ProviderRuntimeAssets | undefined);
     private emit;
     private assertActive;
     private wait;
@@ -258,8 +262,8 @@ export declare class NativePlayer extends EventTarget implements Backend {
     verifyStartup(expected?: {
         video: boolean;
         audio: boolean;
-    }, output?: boolean, signal?: AbortSignal): Promise<void>;
-    verifyOutput(signal?: AbortSignal): Promise<void>;
+    }, output?: boolean, signal?: AbortSignal, outputBudgetMs?: number): Promise<void>;
+    verifyOutput(signal?: AbortSignal, outputBudgetMs?: number): Promise<void>;
     private preparationError;
     private startRemux;
     private loadPlan;

@@ -1,0 +1,163 @@
+diff --git a/src/internal/native-mpv-audio.ts b/src/internal/native-mpv-audio.ts
+index 348250ce..26b6b5dc 100644
+--- a/src/internal/native-mpv-audio.ts
++++ b/src/internal/native-mpv-audio.ts
+@@ -41,7 +41,6 @@ export class NativeMpvAudio extends EventTarget {
+   private orderedErrors?:number[];
+   private maxAbsError=0;
+   private drain?:Promise<void>;
+-  private frameCallback?:number;
+   get selectedTrackId(){return (this.engine.properties.get('track-list') as Array<{id:string;type:string;selected?:boolean}>|undefined)?.find(t=>t.type==='audio'&&t.selected)?.id;}
+   get selectedStreamIndex(){return (this.engine.properties.get('track-list') as Array<{type:string;selected?:boolean;'ff-index'?:number}>|undefined)?.find(t=>t.type==='audio'&&t.selected)?.['ff-index'];}
+   private readonly ended=()=>{void this.finishEOF().catch(error=>this.fail(error));};
+@@ -53,12 +52,6 @@ export class NativeMpvAudio extends EventTarget {
+     this.engine.addEventListener('output',event=>this.onOutput((event as CustomEvent<Timeline>).detail));
+     this.engine.addEventListener('error',event=>this.fail(new Error(String((event as CustomEvent).detail))));
+     video.addEventListener('ended',this.ended);
+-    const frame=(_:number,metadata:VideoFrameCallbackMetadata)=>{
+-      if(this.stopped)return;
+-      if(this.header&&this.running&&Number.isFinite(video.duration)&&metadata.mediaTime>=video.duration-.2)this.set(7,1);
+-      this.frameCallback=video.requestVideoFrameCallback(frame);
+-    };
+-    this.frameCallback=video.requestVideoFrameCallback(frame);
+   }
+   private fail(error:unknown){if(!this.stopped&&!this.failedOnce){this.failedOnce=true;this.failed(playerError(error));}}
+   private h(index:number){return Atomics.load(this.header,index);}
+@@ -91,8 +84,17 @@ export class NativeMpvAudio extends EventTarget {
+     if(age>250)return null;
+     return latest.mediaTime+(this.running?age*latest.rate/1000:0);
+   }
++  private armEOF(){
++    if(this.stopped||!this.header||this.h(7)!==0||!Number.isFinite(this.video.duration))return;
++    // Preserve the final PCM across mpv's EOF epoch reset. Include one observer
++    // interval of lookahead, including a requested rate not yet presented.
++    const lead=.2+.25*Math.max(this.requestedRate,this.video.playbackRate);
++    if(this.video.currentTime>=this.video.duration-lead)this.set(7,1);
++  }
+   private observe(){
+-    if(!this.running||this.pendingRate||this.video.seeking||this.video.ended)return;
++    if(!this.running||this.video.seeking||this.video.ended)return;
++    this.armEOF();
++    if(this.pendingRate)return;
+     const position=this.estimatedAudioPresentationTime();
+     if(position===null){if(++this.missingTimeline>=8)this.fail(new PlayerError('DECODE_FAILED','Selective audio timeline stopped during playback'));return;}
+     this.missingTimeline=0;
+@@ -143,7 +145,7 @@ export class NativeMpvAudio extends EventTarget {
+     const due=first.wallTime!-performance.timeOrigin+(this.time()-first.mediaTime)/this.video.playbackRate*1000;
+     await new Promise(resolve=>setTimeout(resolve,Math.max(0,due-performance.now())));
+     if(this.stopped)throw Error('Selective audio destroyed during publication');
+-    await startVideo();this.running=true;
++    await startVideo();this.running=true;this.armEOF();
+   }
+   async play(startVideo:()=>Promise<void>){
+     if(this.running)return;
+@@ -169,6 +171,7 @@ export class NativeMpvAudio extends EventTarget {
+     if(this.context.state==='suspended')await this.context.resume();
+     await Promise.all([seekVideo(),this.engine.seek(seconds)]);this.hardCount++;
+     await wait(()=>this.h(3)!==oldEpoch&&this.h(3)===this.h(4));
++    this.armEOF();
+     await this.engine.play();
+     await wait(()=>this.engine.confirmSeek(seconds));
+     this.set(14,this.h(3));
+@@ -232,7 +235,6 @@ export class NativeMpvAudio extends EventTarget {
+     if(this.stopped)return;this.stopped=true;this.cancelRate('Selective service destroyed');
+     if(this.firstPoint){const pending=this.firstPoint;this.firstPoint=undefined;clearTimeout(pending.timer);pending.reject(Error('Selective PCM publication destroyed'));}
+     clearInterval(this.driftTimer);this.video.removeEventListener('ended',this.ended);
+-    if(this.frameCallback)this.video.cancelVideoFrameCallback(this.frameCallback);
+     if(this.header)this.set(12,0);
+     await this.engine.destroy();this.hidden.remove();
+   }
+diff --git a/web/generated/internal/native-mpv-audio.d.ts b/web/generated/internal/native-mpv-audio.d.ts
+index 52ef2ea7..7db9ca86 100644
+--- a/web/generated/internal/native-mpv-audio.d.ts
++++ b/web/generated/internal/native-mpv-audio.d.ts
+@@ -35,7 +35,6 @@ export declare class NativeMpvAudio extends EventTarget {
+     private orderedErrors?;
+     private maxAbsError;
+     private drain?;
+-    private frameCallback?;
+     get selectedTrackId(): string | undefined;
+     get selectedStreamIndex(): number | undefined;
+     private readonly ended;
+@@ -46,6 +45,7 @@ export declare class NativeMpvAudio extends EventTarget {
+     private cancelRate;
+     private onOutput;
+     estimatedAudioPresentationTime(at?: number): number | null;
++    private armEOF;
+     private observe;
+     private fadeOut;
+     private fadeIn;
+diff --git a/web/generated/internal/native-mpv-audio.js b/web/generated/internal/native-mpv-audio.js
+index 6d09bd50..f54e5d97 100644
+--- a/web/generated/internal/native-mpv-audio.js
++++ b/web/generated/internal/native-mpv-audio.js
+@@ -47,7 +47,6 @@ export class NativeMpvAudio extends EventTarget {
+     orderedErrors;
+     maxAbsError = 0;
+     drain;
+-    frameCallback;
+     get selectedTrackId() { return this.engine.properties.get('track-list')?.find(t => t.type === 'audio' && t.selected)?.id; }
+     get selectedStreamIndex() { return this.engine.properties.get('track-list')?.find(t => t.type === 'audio' && t.selected)?.['ff-index']; }
+     ended = () => { void this.finishEOF().catch(error => this.fail(error)); };
+@@ -66,14 +65,6 @@ export class NativeMpvAudio extends EventTarget {
+         this.engine.addEventListener('output', event => this.onOutput(event.detail));
+         this.engine.addEventListener('error', event => this.fail(new Error(String(event.detail))));
+         video.addEventListener('ended', this.ended);
+-        const frame = (_, metadata) => {
+-            if (this.stopped)
+-                return;
+-            if (this.header && this.running && Number.isFinite(video.duration) && metadata.mediaTime >= video.duration - .2)
+-                this.set(7, 1);
+-            this.frameCallback = video.requestVideoFrameCallback(frame);
+-        };
+-        this.frameCallback = video.requestVideoFrameCallback(frame);
+     }
+     fail(error) { if (!this.stopped && !this.failedOnce) {
+         this.failedOnce = true;
+@@ -131,8 +122,20 @@ export class NativeMpvAudio extends EventTarget {
+             return null;
+         return latest.mediaTime + (this.running ? age * latest.rate / 1000 : 0);
+     }
++    armEOF() {
++        if (this.stopped || !this.header || this.h(7) !== 0 || !Number.isFinite(this.video.duration))
++            return;
++        // Preserve the final PCM across mpv's EOF epoch reset. Include one observer
++        // interval of lookahead, including a requested rate not yet presented.
++        const lead = .2 + .25 * Math.max(this.requestedRate, this.video.playbackRate);
++        if (this.video.currentTime >= this.video.duration - lead)
++            this.set(7, 1);
++    }
+     observe() {
+-        if (!this.running || this.pendingRate || this.video.seeking || this.video.ended)
++        if (!this.running || this.video.seeking || this.video.ended)
++            return;
++        this.armEOF();
++        if (this.pendingRate)
+             return;
+         const position = this.estimatedAudioPresentationTime();
+         if (position === null) {
+@@ -222,6 +225,7 @@ export class NativeMpvAudio extends EventTarget {
+             throw Error('Selective audio destroyed during publication');
+         await startVideo();
+         this.running = true;
++        this.armEOF();
+     }
+     async play(startVideo) {
+         if (this.running)
+@@ -281,6 +285,7 @@ export class NativeMpvAudio extends EventTarget {
+         await Promise.all([seekVideo(), this.engine.seek(seconds)]);
+         this.hardCount++;
+         await wait(() => this.h(3) !== oldEpoch && this.h(3) === this.h(4));
++        this.armEOF();
+         await this.engine.play();
+         await wait(() => this.engine.confirmSeek(seconds));
+         this.set(14, this.h(3));
+@@ -380,8 +385,6 @@ export class NativeMpvAudio extends EventTarget {
+         }
+         clearInterval(this.driftTimer);
+         this.video.removeEventListener('ended', this.ended);
+-        if (this.frameCallback)
+-            this.video.cancelVideoFrameCallback(this.frameCallback);
+         if (this.header)
+             this.set(12, 0);
+         await this.engine.destroy();

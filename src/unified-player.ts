@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
+import {providerDeploymentEnabled, qualifiedProviderIdentities} from './internal/provider-build.js';
+import {ProviderRuntime} from './internal/provider-runtime.js';
+import {loadProviderModule} from './internal/provider-modules.js';
 import {routingRequirements, missingRoutingFacts} from './internal/probe-requirements.js';
 import {bufferingPolicy, resolveBuffering} from './internal/buffering.js';
 import {PlayerPresentation} from './presentation.js';
@@ -16,10 +19,12 @@ import {MediaCapabilityQueries} from './internal/media-capabilities.js';
 import {nativeBrowserCapabilities} from './internal/browser-media-capability.js';
 import type {BrowserMediaCapability} from './internal/browser-media-capability.js';
 import {featureRejection, executionPlan, qualifiedAudioFilter, planAdmission} from './internal/playback-plans.js';
+import {executionRecipe} from './internal/execution-recipes.js';
+import {deploymentRejectionError} from './internal/provider-deployment-errors.js';
 import {EnginePreparation,preparationComponents} from './internal/engine-preparation.js';
 import {TierAttempts,preferredPlans} from './internal/tier-policy.js';
 import {runtimeBase} from './internal/assets.js';
-import {selectRemuxRuntime} from './internal/remux-runtime.js';
+import {selectRemuxRuntime,deployedRemuxRuntime} from './internal/remux-runtime.js';
 import {webgpuDecoderSupported,hasQualifiedWebGPUCodecs} from './internal/webgpu-codecs.js';
 import {PlayerError, playerError, redact} from './internal/errors.js';
 import {freeze, ranges, cachedRanges, tracks, trackKey, usesRemuxTracks, mediaInfo} from './internal/state.js';
@@ -63,6 +68,7 @@ export class Player extends EventTarget {
   private previewSource?:Blob;
   readonly ready = Promise.resolve();
   private assetBase: URL;
+  private providerRuntime?: ProviderRuntime;
   private buffering: BufferingPolicy;
   private stateSnapshot!: PlayerState;
   private subscribers = new Set<(state:PlayerState)=>void>();
@@ -166,7 +172,16 @@ export class Player extends EventTarget {
   private remuxSelection: ReturnType<typeof selectRemuxRuntime>;
   private remuxRuntime: 'pthread' | 'jspi' | 'asyncify';
   private get privateRemux(){return this.remuxRuntime!=='pthread';}
-  private get canInspectFFmpeg(){return globalThis.crossOriginIsolated===true||this.privateRemux;}
+  private selectDeployedRuntime(){
+    if(!this.providerRuntime)return;
+    this.remuxSelection=deployedRemuxRuntime(this.remuxSelection,runtime=>{
+      const suffix=runtime==='pthread'?'':'-'+runtime;
+      return this.providerRuntime!.hasOffer('ffmpeg-file-preparation'+suffix,'packet-copy')&&this.providerRuntime!.has(`web/engine-remux${suffix}/remux.wasm`)||!!this.providerRuntime!.codecInspector(runtime);
+    });
+    this.remuxRuntime=this.remuxSelection.runtime;
+  }
+  private get preparationProviderId(){return 'ffmpeg-file-preparation'+(this.privateRemux?'-'+this.remuxRuntime:'');}
+  private get canInspectFFmpeg(){return (globalThis.crossOriginIsolated===true||this.privateRemux)&&(!this.providerRuntime||this.providerRuntime.hasOffer(this.preparationProviderId,'packet-copy')&&this.providerRuntime.has(`web/engine-remux${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`)||!!this.providerRuntime.codecInspector(this.remuxRuntime));}
   private softwarePresenter: 'auto' | 'rgb' | 'experimental-yuv';
   private decodeQuality:'exact'|'balanced'|'performance';
   private adaptiveFrameDrop:boolean;
@@ -251,6 +266,7 @@ export class Player extends EventTarget {
     if (typeof HTMLElement==='undefined') throw new PlayerError('INVALID_ARGUMENT','Player construction requires a browser');
     this.buffering=bufferingPolicy(options.buffering);
     this.assetBase=runtimeBase(options.assetBase);
+    if(providerDeploymentEnabled)this.providerRuntime=new ProviderRuntime(this.assetBase,qualifiedProviderIdentities);
     if (!(container instanceof HTMLElement) || container instanceof HTMLCanvasElement || container instanceof HTMLVideoElement) throw new PlayerError('INVALID_ARGUMENT','Pass a container element; Player owns its video/canvas surface');
     this.#previewController=new PreviewController([
       {id:'shaka',priority:20,canHandle:()=>!!this.current?.backend.previewFrame,
@@ -429,7 +445,7 @@ export class Player extends EventTarget {
     const unavailable=(reason:string):FeatureAvailability=>({availability:'unavailable',reason});
     const unknown:FeatureAvailability={availability:'unknown',reason:'Open a source to establish availability'};
     const nativeOverlay=(this.nativeASS&&(isolated||this.privateRemux)||!!(this.current?.backend.diagnostics as {mpvSubtitles?:unknown}|undefined)?.mpvSubtitles)&&backendPlan(this.current?.backend)!=='adapted-opus'&&!(this.source?.kind==='remote'&&this.source.options.format&&this.source.options.format!=='file');
-    const route=(mode:'hybrid'|'software'):FeatureAvailability=>this.privateRemux?unavailable('Private runtime has no qualified Hybrid or Software service'):!isolated?unavailable('This deployment requires cross-origin isolation'):this.mode===mode||(mode==='hybrid'&&this.mode==='software')?available:this.automatic?{availability:'switch',mode,reason:`This feature requires ${mode} playback`}:unavailable(`Select ${mode} mode first`);
+    const route=(mode:'hybrid'|'software'):FeatureAvailability=>this.privateRemux&&!this.providerRuntime?unavailable('Private runtime has no qualified Hybrid or Software service'):!isolated?unavailable('This deployment requires cross-origin isolation'):this.mode===mode||(mode==='hybrid'&&this.mode==='software')?available:this.automatic?{availability:'switch',mode,reason:`This feature requires ${mode} playback`}:unavailable(`Select ${mode} mode first`);
     const resolution=this.bufferingResolution();
     return {...this.legacyCapabilities,buffering:{control:resolution.control,preload:true,profile:resolution.backend!=='browser',memoryBudget:['mpv','remux'].includes(resolution.backend)},deployment:{isolated,webCodecs:typeof VideoDecoder!=='undefined',mediaSource:typeof MediaSource!=='undefined'},features:{
       subtitleDelay:route('hybrid'),audioDelay:route('hybrid'),subtitleStyle:route('hybrid'),
@@ -553,23 +569,34 @@ export class Player extends EventTarget {
     const selected=preparationComponents(components);
     if(this.promotionRunning)this.cancelPromotion();
     if(this.destroyed||this.activeOperation)return this.preparationTask;
-    this.preparation??=new EnginePreparation(this.assetBase,this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv',()=>{if(!this.destroyed)this.dispatchEvent(new CustomEvent('preparationchange',{detail:freeze(this.preparationProgress)}));},this.remuxRuntime);
-    return this.preparationTask=this.preparation.warm(selected);
+    const warm=()=>{
+      if(this.destroyed)return Promise.resolve({milliseconds:0,assets:[]});
+      this.selectDeployedRuntime();
+      this.preparation??=new EnginePreparation(this.assetBase,this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv',()=>{if(!this.destroyed)this.dispatchEvent(new CustomEvent('preparationchange',{detail:freeze(this.preparationProgress)}));},this.remuxRuntime,this.providerRuntime);
+      return this.preparation.warm(selected);
+    };
+    // EnginePreparation turns the retained deployment error into per-asset
+    // failure reports, just like fetch/compile errors. Constructor-started
+    // preparation must never leave a rejected promise unobserved.
+    return this.preparationTask=this.providerRuntime?this.providerRuntime.load().then(warm,warm):warm();
   }
   private async create(mode: PlaybackMode, aid='auto', adaptation?:'flac'|'opus'|'flac24', forcePreparation=false, planId?:string, loadTimeoutMs?:number): Promise<Session> {
     let backend: Backend;
+    const recipe=executionRecipe(planId);
+    const backendKind=recipe?.backend??(mode==='native'?'NativePlayer':'WasmPlayer');
     const surface = document.createElement(mode === 'native' ? 'video' : 'canvas');
     surface.width = this.width;surface.height = this.height;
     surface.style.cssText = 'display:none;width:100%;background:#000';
     // Import before allocating workers; destroy during import cannot orphan an engine.
-    const module = planId?.startsWith('shaka-') ? await this.interruptible(import('./internal/shaka-backend.js')) : mode === 'native' ? await this.interruptible(import('./internal/native-player.js')) : await this.interruptible(import('./internal/wasm-player.js'));
-    const prepared=mode==='native'?undefined:await this.interruptible(this.preparation?.readyEngine(mode==='hybrid'?'engine-hybrid':this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv')??Promise.resolve(undefined));
+    const module = backendKind==='ShakaBackend' ? await this.interruptible(import('./internal/shaka-backend.js')) : backendKind==='NativePlayer' ? await this.interruptible(import('./internal/native-player.js')) : await this.interruptible(loadProviderModule('mpv-player',this.assetBase));
+    const engine=mode==='hybrid'?'engine-hybrid':this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv';
+    const prepared=mode==='native'?undefined:await this.interruptible(this.providerRuntime?Promise.all([mode==='software'?Promise.resolve(undefined):this.providerRuntime.module(`web/${engine}/player.wasm`),this.providerRuntime.bytes('fixtures/DejaVuSans.ttf')]).then(([module,font])=>({module,font})):this.preparation?.readyEngine(engine)??Promise.resolve(undefined));
     this.assertOperation();
     this.root.append(surface);
     try {
       const subtitleTracks=this.sourceInspection?.probe.tracks.filter(t=>t.type==='sub')??[];
       const defaultSubtitleStreamIndex=(subtitleTracks.find(t=>t.default)??subtitleTracks[0])?.index;
-      backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface as HTMLVideoElement,this.assetBase,this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, forcePreparation?'always':this.nativeRemux,this.assetBase,this.bufferedNativeSeeks,adaptation,['auto','no'].includes(aid)?(this.privateRemux&&planId?.startsWith('native-video-mpv-audio')?this.sourceInspection?.probe.tracks.find(t=>t.type==='audio')?.index:undefined):Number(aid)-1,this.nativeASS,this.fonts,planId,this.buffering,loadTimeoutMs,defaultSubtitleStreamIndex,this.remuxRuntime) : new module.WasmPlayer(surface as HTMLCanvasElement, {buffering:this.buffering,mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase,prepared,decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop,videoTrack:this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture)});
+      backend = 'ShakaBackend' in module ? new module.ShakaBackend(surface as HTMLVideoElement,this.assetBase,this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, forcePreparation?'always':this.nativeRemux,this.assetBase,this.bufferedNativeSeeks,adaptation,['auto','no'].includes(aid)?(this.privateRemux&&recipe?.native?.selectedAudio?this.sourceInspection?.probe.tracks.find(t=>t.type==='audio')?.index:undefined):Number(aid)-1,this.nativeASS,this.fonts,planId,this.buffering,loadTimeoutMs,defaultSubtitleStreamIndex,this.remuxRuntime,this.providerRuntime) : new module.WasmPlayer(surface as HTMLCanvasElement, {buffering:this.buffering,mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase,prepared,providerAssets:this.providerRuntime,decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop,videoTrack:this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture)});
     } catch (error) {surface.remove();throw error;}
     backend.setWatchdogs?.(this.watchdogConfiguration);
     const session: Session = {backend, surface};
@@ -655,7 +682,7 @@ export class Player extends EventTarget {
       !this.selectiveAudioAssetsAvailable?'Selective audio engine or worklet assets are unavailable':
       undefined;
     const decisions:typeof this.planDecisions=planAdmission({automatic,...settings,
-      audioPlayback:this.audioPlayback,transcodeAssetsAvailable:this.transcodeAssetsAvailable,
+      audioPlayback:this.audioPlayback,transcodeAssetsAvailable:this.transcodeAssetsAvailable||!!this.providerRuntime?.codecPreparation(source,inspected?.probe,this.remuxRuntime,inspectedSettings?.aid)||!!this.providerRuntime?.audioRepairCandidate(source,inspected?.probe),
       transcodeSourceRejection:!this.fileServicesSource(source)||!inspected?'Audio transcoding requires an inspected random-access file':audioTranscodeRejection(inspected.probe,inspectedSettings!),
       selectiveAudioQualified:!selectiveAudioReason,selectiveAudioReason,
       mpvSubtitles:this.mpvSubtitles,selectedEmbeddedSubtitle:!!(settings.subtitles&&selectiveSubtitle),
@@ -670,7 +697,7 @@ export class Player extends EventTarget {
       adaptationSourceQualified:source.kind==='local'&&this.losslessInspection?.source===source&&!this.losslessInspection.reason,
       audioOutput:this.audioOutput,nativeRemux:this.nativeRemux,manifest:!!remote?.format&&remote.format!=='file',
       requiresRemux:!!(remote&&(remote.headers||remote.refreshAuthorization||remote.allowedOrigins||remote.immutable!==undefined||remote.credentials==='omit'||!!(settings.subtitles&&selectiveSubtitle))),
-      privateRemux:this.privateRemux,isolated:globalThis.crossOriginIsolated===true,mse:typeof MediaSource!=='undefined',webCodecs:typeof VideoDecoder!=='undefined',webAudio:typeof AudioContext!=='undefined',
+      privateRemux:this.privateRemux,atomicMpvProviders:!!this.providerRuntime,isolated:globalThis.crossOriginIsolated===true,mse:typeof MediaSource!=='undefined',webCodecs:typeof VideoDecoder!=='undefined',webAudio:typeof AudioContext!=='undefined',
       nativeSourceRejection:remote?.format&&remote.format!=='file'?nativeManifestRejection(remote,settings,!!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')):nativeSourceRejection});
     if(inspected){
       const element=document.createElement('video');
@@ -701,6 +728,10 @@ export class Player extends EventTarget {
     }
     if(this.subtitleDelay!==0||this.audioDelay!==0||Object.keys(this.subtitleStyle).length)for(const plan of decisions)if(plan.mode==='native'){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason='Requested timing/style controls require the mpv playback clock';}
     if(this.outputDeviceId&&(typeof AudioContext==='undefined'||!('setSinkId' in AudioContext.prototype)))for(const plan of decisions)if(plan.eligible&&(plan.mode!=='native'||plan.id.startsWith('native-video-mpv-audio')||plan.id.endsWith('-gain'))){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason='The requested output device requires AudioContext sink selection on this route';}
+    if(this.providerRuntime)for(const plan of decisions)if(plan.eligible){
+      const reason=this.providerRuntime.rejection(plan.id,source,JSON.stringify([this.tierConfiguration(settings),this.remuxRuntime,this.softwarePresenter,inspected?.probe.tracks]),this.remuxRuntime,inspected?.probe,inspectedSettings?.aid);
+      if(reason){plan.eligible=false;plan.code='DEPLOYMENT_UNAVAILABLE';plan.reason=reason;}
+    }
     return decisions;
   }
   private failedStreamingPlan(session:Session):boolean {
@@ -720,6 +751,8 @@ export class Player extends EventTarget {
     if(!admitted.some(p=>p.id===planId&&p.eligible)){
       const candidates=admitted.filter(p=>p.mode===mode);
       const rejection=candidates.find(p=>p.code==='ISOLATION_REQUIRED')??candidates.find(p=>p.code!=='PLAN_NOT_REQUESTED');
+      const deployment=deploymentRejectionError(admitted.filter(p=>p.id===planId));
+      if(rejection?.code!=='ISOLATION_REQUIRED'&&deployment)throw deployment;
       throw new PlayerError(rejection?.code==='ISOLATION_REQUIRED'?'ISOLATION_REQUIRED':'UNSUPPORTED_FEATURE',rejection?.reason??'No qualified complete playback plan');
     }
     const queried=admitted.find(p=>p.id===planId)?.browserCapability;
@@ -777,8 +810,9 @@ export class Player extends EventTarget {
           if(old!.error||this.observedWaiting||drops()>initialDrops||knownBytes(old!)+reserve>this.backgroundPromotion!.maxKnownBytes)this.cancelPromotion();
         },100);
       }
-      const adaptation=planId.startsWith('native-transcode')?'flac24':planId.startsWith('native-flac')?'flac':planId.startsWith('native-opus')?'opus':undefined;
-      candidate = this.candidate = await this.create(mode,desired.aid,adaptation,!planId.startsWith('native-direct'),planId,directLoadBudget);this.assertOperation();const p = candidate.backend;await this.interruptible(p.ready);
+      const recipe=executionRecipe(planId);
+      const adaptation=recipe?.native?.adaptation;
+      candidate = this.candidate = await this.create(mode,desired.aid,adaptation,recipe?.native?.transport!=='original',planId,directLoadBudget);this.assertOperation();const p = candidate.backend;await this.interruptible(p.ready);
       this.assertOperation();
       const tone=this.toneMapping==='hdr-to-sdr'?'zscale=transfer=linear:npl=100,format=gbrpf32le,zscale=primaries=bt709,tonemap=tonemap=mobius:desat=0,zscale=transfer=bt709:matrix=bt709:range=limited,format=yuv420p':'';
       const vf=[tone?`lavfi=[${tone}]`:'',desired.vf].filter(Boolean).join(',');
@@ -874,7 +908,7 @@ export class Player extends EventTarget {
     this.emit('selectionchange',{...attempt});
   }
   private async inspectForQualifiedWebGPU(source:Source,settings:Settings):Promise<void>{
-    if(!hasQualifiedWebGPUCodecs())return;
+    if(!hasQualifiedWebGPUCodecs()||this.providerRuntime&&!this.canInspectFFmpeg)return;
     if(this.sourceInspection?.source===source){
       const video=this.sourceInspection.probe.tracks.find(track=>track.type==='video'&&!track.attachedPicture);
       if(!video||!webgpuDecoderSupported(video.codec)||video.webCodecsSupported!==undefined)return;
@@ -883,26 +917,28 @@ export class Player extends EventTarget {
     try{
       const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
       const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();
-      const compiledWasm=await this.interruptible(this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
+      const compiledWasm=await this.interruptible(this.providerRuntime?this.providerRuntime.module(`web/engine-remux${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`):this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
       const probe:Probe=await probeSource(transport,controller.signal,undefined,compiledWasm,this.remuxRuntime);
       this.assertOperation();
       this.sourceInspection={source,probe,settings:{aid:settings.aid,sid:settings.sid,subtitles:settings.subtitles}};
     }catch(error){
-      if(this.destroyed||this.activeOperation?.controller.signal.aborted||controller.signal.aborted||terminalSourceFailure(error))throw error;
+      if(this.destroyed||this.activeOperation?.controller.signal.aborted||controller.signal.aborted||terminalSourceFailure(error)||this.providerRuntime&&['ASSET_LOAD_FAILED','DEPLOYMENT_UNAVAILABLE'].includes(playerError(error).code))throw error;
       // Unknown inspection still permits the existing WebCodecs trial.
     }finally{if(this.inspection===controller)this.inspection=undefined;}
   }
   private async inspectWithFFmpeg(source:Source,controller:AbortController):Promise<Probe>{
     this.emit('inspectionchange',{phase:'inspecting'});
-    const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
+    const codecInspector=this.providerRuntime?.codecInspector(this.remuxRuntime);
+    const {probeSource}=await this.interruptible(import(new URL(codecInspector?codecInspector.folder+'source-probe.js':'web/source-probe.js',this.assetBase).href));
     const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();
-    const compiledWasm=await this.interruptible(this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
+    const compiledWasm=await this.interruptible(this.providerRuntime?this.providerRuntime.module(codecInspector?.wasmPath??`web/engine-remux${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`):this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
     this.assertOperation();
-    const probe:Probe=await probeSource(transport,controller.signal,undefined,compiledWasm,this.remuxRuntime);
+    const probe:Probe=await probeSource(transport,controller.signal,codecInspector?'flac24':undefined,compiledWasm,this.remuxRuntime);
     this.assertOperation();
     return probe;
   }
   private async optionalAssetsAvailable(names:string[],controller:AbortController){
+    if(this.providerRuntime)return names.every(name=>this.providerRuntime!.has(name));
     const assetController=new AbortController();
     const abort=()=>assetController.abort();controller.signal.addEventListener('abort',abort,{once:true});
     const deadline=setTimeout(abort,5000);
@@ -918,6 +954,10 @@ export class Player extends EventTarget {
   }
   private async inspectFallbackAfterFastFailure(source:Source,settings:Settings):Promise<string|undefined>{
     this.fastInspectedSource=undefined;
+    if(this.sourceInspection?.source===source&&(this.providerRuntime?.codecPreparation(source,this.sourceInspection.probe,this.remuxRuntime,settings.aid)||this.providerRuntime?.audioRepairCandidate(source,this.sourceInspection.probe))){
+      this.record({mode:'probe',outcome:'selected',reason:'Retained bounded local metadata for codec preparation; complete packet validation remains required'});
+      return nativeRejection(this.sourceInspection.probe,{...settings},document.createElement('video'));
+    }
     if(!this.canInspectFFmpeg){
       this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;this.transcodeAssetsAvailable=false;this.transcodeAssetsChecked=false;
       return 'Wasm inspection requires cross-origin isolation';
@@ -931,34 +971,36 @@ export class Player extends EventTarget {
       this.record({mode:'probe',outcome:'selected',reason:'FFmpeg reinspection after Fast Inspector Direct startup failure'});
       return nativeRejection(probe,inspectedSettings);
     }catch(error){
-      if(this.destroyed||this.activeOperation?.controller.signal.aborted||controller.signal.aborted||terminalSourceFailure(error))throw error;
+      if(this.destroyed||this.activeOperation?.controller.signal.aborted||controller.signal.aborted||terminalSourceFailure(error)||this.providerRuntime&&['ASSET_LOAD_FAILED','DEPLOYMENT_UNAVAILABLE'].includes(playerError(error).code))throw error;
       this.sourceInspection=undefined;this.mpvSubtitleAssetsAvailable=false;this.selectiveAudioAssetsAvailable=false;this.selectiveAudioAssetsChecked=false;this.transcodeAssetsAvailable=false;this.transcodeAssetsChecked=false;
       this.record({mode:'probe',outcome:'failed',reason:`FFmpeg reinspection after Direct failure: ${String(error)}`});
       return 'Native eligibility could not be established: '+String(error);
     }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
   }
   private async select(source: Source, settings: Settings, preserve: boolean, tracks: (TextTrackSource & {attachmentId?:string})[], start=0, target?: number, priorAttempts:SelectionAttempt[]=[],inspectOnly=false){
+    if(this.providerRuntime){await this.interruptible(this.providerRuntime.load());this.assertOperation();this.selectDeployedRuntime();}
     if(!this.automatic&&this.mode!=='native'){
       if(this.mode==='hybrid')await this.inspectForQualifiedWebGPU(source,settings);
-      if(this.mode==='software'&&(this.decodeQuality!=='exact'||this.adaptiveFrameDrop)&&this.sourceInspection?.source!==source){
+      if((!this.providerRuntime||this.canInspectFFmpeg)&&this.mode==='software'&&(this.decodeQuality!=='exact'||this.adaptiveFrameDrop)&&this.sourceInspection?.source!==source){
         // Explicit Software skips the normal tier probe. Quality admission still
         // needs codec identity before mpv constructs its decoder.
         const controller=this.inspection=new AbortController();
         try{
           const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
           const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();
-          const compiledWasm=await this.interruptible(this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
+          const compiledWasm=await this.interruptible(this.providerRuntime?this.providerRuntime.module(`web/engine-remux${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`):this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
           const probe:Probe=await probeSource(transport,controller.signal,undefined,compiledWasm,this.remuxRuntime);
           this.assertOperation();
           this.sourceInspection={source,probe,settings:{aid:settings.aid,sid:settings.sid,subtitles:settings.subtitles}};
         }catch(error){
-          if(this.destroyed||this.activeOperation?.controller.signal.aborted||controller.signal.aborted||terminalSourceFailure(error))throw error;
+          if(this.destroyed||this.activeOperation?.controller.signal.aborted||controller.signal.aborted||terminalSourceFailure(error)||this.providerRuntime&&['ASSET_LOAD_FAILED','DEPLOYMENT_UNAVAILABLE'].includes(playerError(error).code))throw error;
           // The decoder remains usable when optional codec inspection cannot
           // classify a file; the unknown-codec policy permits exact only.
         }finally{if(this.inspection===controller)this.inspection=undefined;}
       }
       return this.replace(source,this.mode,settings,preserve,tracks,target);
     }
+    const componentRepairRetry=this.sourceInspection?.source===source&&!!(this.providerRuntime?.codecPreparation(source,this.sourceInspection.probe,this.remuxRuntime,settings.aid)||this.providerRuntime?.audioRepairCandidate(source,this.sourceInspection.probe));
     this.attempts=[];
     for(const attempt of priorAttempts)this.record(attempt);
     let nativeReason: string | undefined;
@@ -980,7 +1022,7 @@ export class Player extends EventTarget {
             const local=source.file instanceof File?source.file:new File([source.file],'media');
             // The filename only bypasses an optimization: FFmpeg still inspects
             // these known-unsupported families, whatever their actual bytes are.
-            if(!preserve&&!tracks.length&&settings.aid==='auto'&&settings.sid==='auto'&&!/\.(?:ogg|oga|opus|ts|m2ts)$/i.test(local.name)){
+            if((!preserve||componentRepairRetry)&&!tracks.length&&settings.aid==='auto'&&settings.sid==='auto'&&!/\.(?:ogg|oga|opus|ts|m2ts)$/i.test(local.name)){
               try{
                 const {inspectFastSource}=await this.interruptible(import(new URL('web/fast-source-inspector.js',this.assetBase).href));
                 const fast=await inspectFastSource(local,{signal:controller.signal,requirements:routingRequirements,onProgress:(progress:{phase:string})=>{
@@ -992,7 +1034,7 @@ export class Player extends EventTarget {
                   this.record({mode:'probe',outcome:'selected',reason:`Fast local metadata: ${fast.bytesRead} bytes; routing admission pending`});
                 }else this.record({mode:'probe',outcome:'skipped',reason:`Fast local metadata: ${fast.bytesRead} bytes; ${fast.reason}`});
               }catch(error){
-                if(controller.signal.aborted||this.activeOperation?.controller.signal.aborted||terminalSourceFailure(error))throw error;
+                if(controller.signal.aborted||this.activeOperation?.controller.signal.aborted||terminalSourceFailure(error)||this.providerRuntime&&['ASSET_LOAD_FAILED','DEPLOYMENT_UNAVAILABLE'].includes(playerError(error).code))throw error;
                 this.record({mode:'probe',outcome:'skipped',reason:`Fast inspector unavailable: ${String(error)}`});
               }
             }
@@ -1037,7 +1079,7 @@ export class Player extends EventTarget {
           // authorization, identity, cancellation and controlled transport stay terminal.
           const optionalInspection=this.privateRemux&&this.remuxSelection.policy==='auto'&&!preserve&&!inspectOnly&&
             source.kind==='remote'&&!source.options.identity&&settings.aid==='auto'&&settings.sid==='auto'&&
-            !this.destroyed&&!this.activeOperation?.controller.signal.aborted&&!controller.signal.aborted&&
+            !this.providerRuntime&&!this.destroyed&&!this.activeOperation?.controller.signal.aborted&&!controller.signal.aborted&&
             ((playerError(error).code==='ASSET_LOAD_FAILED'&&!terminalSourceFailure(error))||/^Error: Source transport: Error: Expected HTTP 206; received 200$/.test(String(error)))&&
             this.admissible(source,settings,[],tracks).some(plan=>plan.id==='native-direct'&&plan.eligible);
           if(optionalInspection){
@@ -1069,16 +1111,23 @@ export class Player extends EventTarget {
   }
   private localRemuxRetry(source:Source,planId:string,settings:Settings):string|undefined {
     // Match complete, existing plans: preserve gain and subtitle ownership.
-    const remux=({'native-direct':'native-remux','native-direct-mpv':'native-remux-mpv','native-direct-gain':'native-remux-gain','native-direct-ass':'native-remux-ass','native-direct-ass-gain':'native-remux-ass-gain'} as Record<string,string>)[planId];
+    let remux=({'native-direct':'native-remux','native-direct-mpv':'native-remux-mpv','native-direct-gain':'native-remux-gain','native-direct-ass':'native-remux-ass','native-direct-ass-gain':'native-remux-ass-gain'} as Record<string,string>)[planId];
+    // A diagnosed Direct readiness timeout may also try the already-admitted
+    // codec preparation plan. Preserve the full-budget original retry below.
+    if(planId==='native-direct'&&this.sourceInspection?.source===source&&!this.planDecisions.some(p=>p.eligible&&p.id===remux)&&
+      (this.providerRuntime?.codecPreparation(source,this.sourceInspection.probe,this.remuxRuntime,settings.aid)||this.providerRuntime?.audioRepairCandidate(source,this.sourceInspection.probe)))remux='native-transcode';
     if(source.kind==='local'&&this.sourceInspection?.source===source&&remux&&this.planDecisions.some(p=>p.eligible&&p.id===remux)&&!this.tierAttempts.reason(source,this.tierConfiguration(settings),remux))return remux;
   }
   private async discover(source:Source,settings:Settings,preserve:boolean,tracks:(TextTrackSource & {attachmentId?:string})[],target:number|undefined,automatic:boolean,pinnedMode?:PlaybackMode,start=0):Promise<void> {
+    if(this.providerRuntime){await this.interruptible(this.providerRuntime.load());this.assertOperation();this.selectDeployedRuntime();}
     let nativeReason=automatic?this.admissionContext.nativeReason:undefined;
     this.planDecisions=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic);
     this.runtimeCapabilities.begin(source,this.planDecisions);
     if(pinnedMode&&!this.planDecisions.some(p=>p.mode===pinnedMode&&p.eligible)){
       const candidates=this.planDecisions.filter(p=>p.mode===pinnedMode);
       const rejection=candidates.find(p=>p.code==='ISOLATION_REQUIRED')??candidates.find(p=>p.code!=='PLAN_NOT_REQUESTED');
+      const deployment=deploymentRejectionError(candidates);
+      if(rejection?.code!=='ISOLATION_REQUIRED'&&deployment)throw deployment;
       throw new PlayerError(rejection?.code==='ISOLATION_REQUIRED'?'ISOLATION_REQUIRED':'UNSUPPORTED_FEATURE',rejection?.reason??'No qualified complete playback plan');
     }
     const errors:string[]=[];
@@ -1111,14 +1160,15 @@ export class Player extends EventTarget {
       }
       // Optional inspection and preparation are strictly after original-copy attempts.
       // Never let adaptation bypass subtitle/transport/filter semantic rejection.
-      if(automatic&&plan.id.startsWith('native-flac')&&this.audioPlayback!=='worklet'&&this.automaticLossless&&!nativeReason&&this.sourceInspection?.source===source&&this.sourceInspection.probe.tracks.some(t=>t.type==='audio'&&['pcm_s16le','pcm_s24le'].includes(t.codec))&&!this.losslessInspection&&source.kind==='local'){
+      if((!this.providerRuntime||this.providerRuntime.hasOffer(this.preparationProviderId,'flac-lossless'))&&automatic&&plan.id.startsWith('native-flac')&&this.audioPlayback!=='worklet'&&this.automaticLossless&&!nativeReason&&this.sourceInspection?.source===source&&this.sourceInspection.probe.tracks.some(t=>t.type==='audio'&&['pcm_s16le','pcm_s24le'].includes(t.codec))&&!this.losslessInspection&&source.kind==='local'){
         const inspected=this.sourceInspection;
         const permitted=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic).find(p=>p.id===plan.id);
         if(permitted?.code==='SOURCE_UNSUPPORTED'){
           const controller=this.inspection=new AbortController();
           try{
             const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
-            const probe:Probe=await probeSource({file:source.file instanceof File?source.file:new File([source.file],'media')},controller.signal,'flac',undefined,this.remuxRuntime);
+            const compiledWasm=this.providerRuntime?await this.interruptible(this.providerRuntime.module(`web/engine-adaptation${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`)):undefined;
+            const probe:Probe=await probeSource({file:source.file instanceof File?source.file:new File([source.file],'media')},controller.signal,'flac',compiledWasm,this.remuxRuntime);
             this.assertOperation();this.losslessInspection={source,reason:losslessAdaptationRejection(probe,inspected.settings)};
           }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
           this.planDecisions=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,automatic);
@@ -1192,6 +1242,8 @@ export class Player extends EventTarget {
         }
       }
     }
+    const deployment=deploymentRejectionError(this.planDecisions.filter(p=>pinnedMode?p.mode===pinnedMode:PLAYBACK_MODES.indexOf(p.mode)>=start));
+    if(deployment)throw deployment;
     throw Error('No playback route satisfied the source: '+(errors.join('; ')||this.planDecisions.map(p=>p.reason).filter(Boolean).join('; ')));
   }
 
@@ -1303,9 +1355,9 @@ export class Player extends EventTarget {
   private setting(action: (p: Backend) => Promise<void>, update: () => void) {
     return this.enqueue(async () => {if (this.current) await action(this.current.backend);update();});
   }
-  private async playNativeVerified(backend:Backend,playing=backend.play()) {
+  private async playNativeVerified(backend:Backend,playing=backend.play(),outputBudgetMs?:number) {
     const controller=new AbortController();
-    const verification=(backend as Backend & {verifyOutput(signal?:AbortSignal):Promise<void>}).verifyOutput(controller.signal);
+    const verification=(backend as Backend & {verifyOutput(signal?:AbortSignal,outputBudgetMs?:number):Promise<void>}).verifyOutput(controller.signal,outputBudgetMs);
     try{await Promise.all([playing,verification]);}
     finally{controller.abort();await verification.catch(()=>{});}
   }
@@ -1317,20 +1369,36 @@ export class Player extends EventTarget {
     const immediate=!this.destroyed&&this.queued===0&&this.current?this.current.backend.play():undefined;
     immediate?.catch(()=>{});
     return this.enqueue(async()=>{if(!this.current)throw Error('No source');const session=this.current;this.settings.pause=false;
+      // A local original-copy trial can yield to an already-admitted route.
+      // This is a scheduling budget, not a codec rejection or a new route.
+      const boundedTrial=this.automatic&&this.source?.kind==='local'&&this.nativeRemux!=='never'&&!trialVerified&&
+        ['direct','direct-mpv'].includes(backendPlan(session.backend)??'')&&
+        this.planDecisions?.some(plan=>plan.eligible&&!plan.id.startsWith('native-direct'));
       try{
         const playing=immediate??session.backend.play();
-        if(this.mode==='native')await this.playNativeVerified(session.backend,playing);else await playing;
+        if(this.mode==='native')await this.playNativeVerified(session.backend,playing,boundedTrial?1500:undefined);else await playing;
         this.assertOperation();if(this.current===session){const plan=this.diagnostics.plan;if(plan)this.acceptEvidence(plan.id,session);}
       }catch(error){
         const inconclusiveOutput=this.source?.kind==='local'&&error instanceof StartupEvidenceTimeout&&error.stage==='output';
         if(this.automatic&&(compatibilityFailure(error)||inconclusiveOutput)&&this.source){
           const streaming=this.failedStreamingPlan(session);
-          const policy=this.nativeRemux,tryRemux=!streaming&&this.mode==='native'&&backendPlan(session.backend)==='direct'&&policy!=='never';
+          const policy=this.nativeRemux,tryRemux=!streaming&&this.mode==='native'&&['direct','direct-mpv'].includes(backendPlan(session.backend)??'')&&policy!=='never';
           const plan=this.diagnostics.plan;if(plan){
             this.runtimeCapabilities.update(plan.id,inconclusiveOutput?'prepared':'failed',this.evidence(session),String(error),inconclusiveOutput?undefined:'compatibility');
             if(!evidenceInterrupted(error))this.tierAttempts.failure(this.source,this.tierConfiguration(this.settings),plan.id,String(error));
           }
-          try{if(tryRemux)this.nativeRemux='always';await this.select(this.source,this.settings,true,this.nativeTracks,streaming||tryRemux||this.mode==='native'?0:PLAYBACK_MODES.indexOf(this.mode)+1,session===trialSession&&!trialVerified?trialPosition:undefined);}finally{this.nativeRemux=policy;}
+          try{
+            if(tryRemux)this.nativeRemux='always';
+            await this.select(this.source,this.settings,true,this.nativeTracks,streaming||tryRemux||this.mode==='native'?0:PLAYBACK_MODES.indexOf(this.mode)+1,session===trialSession&&!trialVerified?trialPosition:undefined);
+          }catch(fallbackError){
+            this.assertOperation();
+            // Slow original output is not incompatibility. If replacement fails,
+            // retain the accepted source and give it the ordinary full deadline.
+            if(!boundedTrial||!inconclusiveOutput||this.current!==session||!(compatibilityFailure(fallbackError)||['ASSET_LOAD_FAILED','NETWORK_TIMEOUT','ISOLATION_REQUIRED'].includes(playerError(fallbackError).code)))throw fallbackError;
+            if(session===trialSession&&!trialVerified){await session.backend.seek(trialPosition);this.assertOperation();}
+            await this.playNativeVerified(session.backend);
+            this.assertOperation();if(plan)this.acceptEvidence(plan.id,session);
+          }finally{this.nativeRemux=policy;}
         }
         else {const plan=this.diagnostics.plan;if(plan&&evidenceInterrupted(error))this.runtimeCapabilities.update(plan.id,'prepared',this.evidence(session),String(error));this.settings.pause=true;await session.backend.pause().catch(()=>{});throw error;}
       }});
@@ -1630,11 +1698,12 @@ export class Player extends EventTarget {
     this.cancelPromotion();
     if (this.destruction) return this.destruction;
     this.preparation?.destroy();
+    const providerCleanup=this.providerRuntime?.destroy();
     const presentationCleanup=this.presentation.destroy();
     const previewCleanup=this.#previewController.destroy();this.previewSource=undefined;
     this.destroyed = true;this.operationEpoch++;this.activeOperation?.controller.abort();this.lifetime.abort();this.inspection?.abort();this.stopWatchdogs();
     this.destruction = (async () => {
-      await Promise.all([presentationCleanup,previewCleanup,...[this.candidate, this.current].map(session => session?.backend.destroy().catch(() => {}))]);
+      await Promise.all([providerCleanup,presentationCleanup,previewCleanup,...[this.candidate, this.current].map(session => session?.backend.destroy().catch(() => {}))]);
       await this.queue;
       try {await this.dispose(this.current);} finally {this.statistics.clear();this.current = undefined;this.source = undefined;this.sourceInspection=undefined;this.losslessInspection=undefined;this.runtimeCapabilities.clear();this.tierAttempts.clear();this.nativeTracks = [];this.subtitleAssets=[];this.fonts=[];this.settings.pause=true;this.sessionError=null;this.publish();this.subscribers.clear();this.root.remove();}
     })();return this.destruction;

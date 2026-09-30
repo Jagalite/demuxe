@@ -16,3 +16,13 @@ export function selectRemuxRuntime(options:Pick<PlayerOptions,'remuxRuntime'|'ex
     policy==='jspi'||policy==='asyncify'?policy:capabilities.jspi?'jspi':'asyncify';
   return {policy,runtime,...capabilities};
 }
+
+/** Deployment filters runtime implementations, never playback-plan order.
+ * Explicit policies remain pinned. Absence preserves the original choice so
+ * normal plan rejection can report the missing provider requirement. */
+export function deployedRemuxRuntime(selection:ReturnType<typeof selectRemuxRuntime>,available:(runtime:'pthread'|'jspi'|'asyncify')=>boolean){
+ if(!['auto','on'].includes(selection.policy))return selection;
+ const ordered:('pthread'|'jspi'|'asyncify')[]=selection.policy==='auto'&&selection.isolated?['pthread','jspi','asyncify']:['jspi','asyncify'];
+ const runtime=ordered.find(r=>(r!=='jspi'||selection.jspi)&&available(r))??selection.runtime;
+ return {...selection,runtime};
+}

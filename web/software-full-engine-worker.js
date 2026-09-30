@@ -218,7 +218,9 @@ function tick() {
     if(performance.now()>=nextDiagnostics||(ptr&&sourceRendered<=5)){const diagnosticsStart=profileEnabled?performance.now():0;nextDiagnostics=performance.now()+200;post({type:'diagnostics', data:{decodePolicy,adaptiveFrameDrop,adaptiveReason,adaptiveSwitching,softwarePresenter:activePresenter,softwarePresenterPolicy:presenterPolicy,yuvRejectionReason,yuv:uploader?{...uploader.stats}:undefined,profile:profileEnabled?{...profile}:undefined,pumpTicks:ticks,rendered,renderMs,copyMs,maxRenderMs, heapBytes:engine.HEAPU8.byteLength, epoch, path:'wasm', decoder:decoderStats?.active?'webcodecs':'software',decoderBackend:decoderStats?.active?'webcodecs':'ffmpeg',webgpu:webgpuDiagnostics(),decoderStats, demuxFormat,seekPrerollSeconds,presentedPosition, ioPending:(Atomics.load(engine.HEAPU32,engine._web_io_ptr()>>>2)&7)===1, ioSerial:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+1), interruptions:Atomics.load(engine.HEAPU32,(engine._web_io_ptr()>>>2)+14), io:ioStats, seeking:pendingTarget!==null, position, queuedFrames:(Atomics.load(audio,0)-Atomics.load(audio,1))>>>0}});if(profileEnabled){profile.diagnosticsPosts++;profile.diagnosticsMs+=performance.now()-diagnosticsStart;}}
   } catch (error) {pumpFailed=true;clearInterval(timer);post({type:'error',message:String(error.stack || error)}); }
 }
+let receiveProviderModule;
 self.onmessage = async ({data}) => {
+  if(data.type==='provider-module'){receiveProviderModule?.(data);receiveProviderModule=undefined;return;}
   if(data.type==='watchdogs')return; // This public Software route has no external decoder watchdog.
   if(profileEnabled)profile.workerMessages++;
   try {
@@ -238,7 +240,11 @@ self.onmessage = async ({data}) => {
       pcm = new Float32Array(data.audio, 64);
       if(data.decoder!=='software')throw Error('This build supports software decoding only');
       const createEngine=(await import(uploader?'./engine-software-yuv/player.mjs':'./engine-software-full/player.mjs')).default;
-      engine = await createEngine({...preparedEngine(uploader||presenterPolicy==='rgb'?data.compiledWasm:undefined),printErr:message=>post({type:'log',message}),print:message=>post({type:'log',message})});
+      const compiled = data.verifiedProviderAssets ? await new Promise((resolve,reject)=>{
+        receiveProviderModule=result=>result.error?reject(Error(result.error)):resolve(result.module);
+        post({type:'provider-module',path:`web/engine-software-${uploader?'yuv':'full'}/player.wasm`});
+      }) : uploader||presenterPolicy==='rgb'?data.compiledWasm:undefined;
+      engine = await createEngine({...preparedEngine(compiled),printErr:message=>post({type:'log',message}),print:message=>post({type:'log',message})});
       if(uploader){engine.failOutput=message=>{pumpFailed=true;post({type:'error',message});};engine.drawYUV=d=>{try{uploader.draw(engine,d);activePresenter='yuv';yuvRejectionReason=null;}catch(e){engine.failOutput(String(e));}};engine.drawRGB=(ptr,w,h,stride,pts,reason,rotate,swapped,separateOSD)=>{try{uploader.drawRGB(engine,ptr,w,h,stride,pts,rotate,swapped,separateOSD);activePresenter='rgb';yuvRejectionReason=yuvRejections[reason]??'unknown';}catch(e){engine.failOutput(String(e));}};}
       if (closing) return;
       engine.FS.mkdir('/fonts');

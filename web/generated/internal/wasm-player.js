@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { runtimeWorker } from './runtime-worker.js';
 import { bufferingPolicy, resolveBuffering, mpvBufferingOptions } from './buffering.js';
-import { PlayerError } from './errors.js';
+import { PlayerError, isPlayerError } from './errors.js';
 import { resolveDecodePolicy } from './decode-policy.js';
 import { webgpuDecoderSupported } from './webgpu-codecs.js';
 import { selectExternalDecoderConfiguration } from './external-decoder-selection.js';
@@ -50,7 +50,7 @@ export class WasmPlayer extends EventTarget {
     browserCodecsAbsent = false;
     properties = new Map();
     ready;
-    constructor(canvas, { prepared, buffering = bufferingPolicy(), disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'auto', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url), decodeQuality = 'exact', adaptiveFrameDrop = false, videoTrack, webgpuDecodeIntent } = {}) {
+    constructor(canvas, { providerAssets, prepared, buffering = bufferingPolicy(), disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'auto', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url), decodeQuality = 'exact', adaptiveFrameDrop = false, videoTrack, webgpuDecodeIntent } = {}) {
         super();
         this.buffering = buffering;
         this.audioOnly = mode === 'selective-audio';
@@ -109,7 +109,17 @@ export class WasmPlayer extends EventTarget {
             this.worker.onerror = workerFailure;
             this.worker.onmessageerror = workerFailure;
             this.worker.onmessage = ({ data }) => {
-                if (data.type === 'ready') {
+                if (data.type === 'provider-module') {
+                    const path = data.path;
+                    if (!providerAssets || !['web/engine-software-full/player.wasm', 'web/engine-software-yuv/player.wasm'].includes(path)) {
+                        this.worker.postMessage({ type: 'provider-module', error: 'Unexpected provider engine request' });
+                        return;
+                    }
+                    void providerAssets.module(path).then(module => { if (!this.destroyed)
+                        this.worker.postMessage({ type: 'provider-module', module }); }, error => { if (!this.destroyed)
+                        this.worker.postMessage({ type: 'provider-module', error: String(error) }); });
+                }
+                else if (data.type === 'ready') {
                     clearTimeout(timeout);
                     this.browserCodecsAbsent = data.browserCodecsAbsent;
                     this.sendTiming(true);
@@ -118,7 +128,7 @@ export class WasmPlayer extends EventTarget {
                 else if (data.type === 'error') {
                     clearTimeout(timeout);
                     const error = data.assetFailure ? new PlayerError('ASSET_LOAD_FAILED', data.message) : data.decoderTimeout ? new PlayerError('NETWORK_TIMEOUT', data.message, null, null, 'operation', true) : data.decoderFailure ? new PlayerError('DECODE_FAILED', data.message) : new Error(data.message);
-                    reject(error instanceof PlayerError ? error : new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + error.message, null, null, 'operation', true));
+                    reject(isPlayerError(error) ? error : new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + error.message, null, null, 'operation', true));
                     this.fail(error, data.id);
                 }
                 else if (data.type === 'destroyed') {
@@ -202,7 +212,7 @@ export class WasmPlayer extends EventTarget {
                 }
                 const offscreen = canvas.transferControlToOffscreen();
                 this.initSent = true;
-                this.worker.postMessage({ type: 'init', decoderOutputWatchdog: this.watchdogs.decoderOutput, compiledWasm: prepared?.module, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0, decodeQuality, decodePolicy, adaptiveFrameDrop, videoTrack, ...(selectedDecodeIntent ? { webgpuDecodeIntent: selectedDecodeIntent } : {}), displayWidth: canvas.width, displayHeight: canvas.height }, [offscreen, font]);
+                this.worker.postMessage({ type: 'init', decoderOutputWatchdog: this.watchdogs.decoderOutput, compiledWasm: prepared?.module, verifiedProviderAssets: !!providerAssets, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0, decodeQuality, decodePolicy, adaptiveFrameDrop, videoTrack, ...(selectedDecodeIntent ? { webgpuDecodeIntent: selectedDecodeIntent } : {}), displayWidth: canvas.width, displayHeight: canvas.height }, [offscreen, font]);
                 this.timing = setInterval(() => this.sendTiming(), 20);
                 this.sendTiming();
             })().catch(error => { clearTimeout(timeout); reject(new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + String(error), null, null, 'operation', true)); });
@@ -232,7 +242,7 @@ export class WasmPlayer extends EventTarget {
         // Preserve typed terminal failures through the session listener. Turning an
         // asset error into a string would make it look like decoder compatibility.
         if (report)
-            this.dispatchEvent(new CustomEvent('error', { detail: error instanceof PlayerError ? error : error.message }));
+            this.dispatchEvent(new CustomEvent('error', { detail: isPlayerError(error) ? error : error.message }));
     }
     request(message, transfer = []) {
         if (this.destroyed)
