@@ -126,7 +126,10 @@ static int request(int operation) {
                'demuxe_asyncify_base', 'demuxe_asyncify_end', 'demuxe_source_live', 'malloc', 'free']
     sources = [inputs / p for p in files if p.endswith(('.c', '.s'))]
     maximum_memory = 536870912 if build['profile'] == 'playback-full' else 134217728
-    command = [sdk / 'upstream/emscripten/emcc', *flags, '-I' + str(inputs / 'native'), *sources, *libs,
+    command = [sdk / 'upstream/emscripten/emcc', *flags,
+               '-ffile-prefix-map=' + str(out) + '=/demuxe-private-playback',
+               '-ffile-prefix-map=' + str(ROOT) + '=/demuxe',
+               '-I' + str(inputs / 'native'), *sources, *libs,
                '--js-library', inputs / 'experiments/jspi-asyncify/mpv/runtime/imports.js', '-g2', '-sMODULARIZE=1', '-sEXPORT_ES6=1', '-sENVIRONMENT=worker',
                '-sALLOW_MEMORY_GROWTH=1', '-sINITIAL_MEMORY=67108864', '-sMAXIMUM_MEMORY='+str(maximum_memory),
                '-sSTACK_SIZE=2097152', '-sSTACK_OVERFLOW_CHECK=0', '-sASSERTIONS=1', '-sWASM_BIGINT=1',
