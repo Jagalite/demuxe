@@ -41,3 +41,8 @@ test('source errors retain their cause and invalid runtimes do not load assets',
  finally{reader.close();port2.close();}
  await assert.rejects(privateRemux('unknown',{}),/Invalid private remux runtime/);
 });
+
+test('invalid inspector demuxer hints reject before creating workers',async()=>{
+ const {probeSource}=await import('../web/source-probe.js');
+ for(const demuxer of ['sbc,other','../sbc',42,'a'.repeat(65)])await assert.rejects(probeSource({demuxer},new AbortController().signal,undefined,undefined,'asyncify'),/Invalid demuxer hint/);
+});

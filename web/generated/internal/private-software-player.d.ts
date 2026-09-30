@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { Backend } from './backend.js';
-import type { RemoteSource, MediaInputOptions, TrackType, ResourceLimits, FontAsset, SubtitleAsset } from '../types.js';
+import type { RemoteSource, MediaInputOptions, TrackType, ResourceLimits, FontAsset, SubtitleAsset, AudioOutput, BufferingPolicy } from '../types.js';
+import type { DecodeQuality } from './decode-policy.js';
 /** Experimental finite Software Backend. Public admission has its own gates. */
 export declare class PrivateSoftwarePlayer extends EventTarget implements Backend {
     private options;
@@ -24,6 +25,9 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     private userPaused;
     private gainValue;
     private outputVerified;
+    private outputChannels;
+    private deviceChannels;
+    private requestedOutput;
     private attachmentIds;
     private presentedDraws;
     private presentation?;
@@ -31,6 +35,16 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
         runtime: 'jspi' | 'asyncify';
         mode?: 'software' | 'hybrid';
         channels?: 2 | 6 | 8;
+        audioOutput?: AudioOutput;
+        audioFallback?: 'stereo' | 'reject';
+        buffering?: BufferingPolicy;
+        decodeQuality?: DecodeQuality;
+        adaptiveFrameDrop?: boolean;
+        videoTrack?: {
+            codec: string;
+            width?: number;
+            height?: number;
+        };
         assetBase: URL;
         duration?: number;
         resourceLimits?: ResourceLimits;
@@ -47,6 +61,7 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     openRemote(source: RemoteSource): Promise<void>;
     private load;
     private syncContext;
+    private configureBuffering;
     play(): Promise<void>;
     pause(): Promise<void>;
     seek(seconds: number): Promise<void>;
@@ -78,7 +93,10 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     audioDiagnostics(): {
         state: AudioContextState;
         sampleRate: number;
+        requestedOutput: AudioOutput;
         outputChannels: 2 | 8 | 6;
+        deviceChannels: number;
+        channelLayout: string;
         gain: number;
         rms: number;
         mediaFrames: any;

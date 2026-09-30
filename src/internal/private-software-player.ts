@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import type {Backend} from './backend.js';
-import type {RemoteSource, MediaInputOptions, TrackType, ResourceLimits, FontAsset, SubtitleAsset} from '../types.js';
+import type {RemoteSource, MediaInputOptions, TrackType, ResourceLimits, FontAsset, SubtitleAsset, AudioOutput, BufferingPolicy} from '../types.js';
+import type {DecodeQuality} from './decode-policy.js';
+import {bufferingPolicy,mpvBufferingOptions,resolveBuffering} from './buffering.js';
 import {runtimeWorker} from './runtime-worker.js';
 import {PlayerError, playerError} from './errors.js';
 
@@ -26,15 +28,23 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   private userPaused = true;
   private gainValue = 1;
   private outputVerified = false;
+  private outputChannels:2|6|8;
+  private deviceChannels:number;
+  private requestedOutput:AudioOutput;
   private attachmentIds:Array<string|undefined>=[];
   private presentedDraws=0;
   private presentation?:CanvasRenderingContext2D;
-  constructor(canvas:HTMLCanvasElement, private options:{runtime:'jspi'|'asyncify';mode?:'software'|'hybrid';channels?:2|6|8;assetBase:URL;duration?:number;resourceLimits?:ResourceLimits;fonts?:FontAsset[]}) {
+  constructor(canvas:HTMLCanvasElement, private options:{runtime:'jspi'|'asyncify';mode?:'software'|'hybrid';channels?:2|6|8;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';buffering?:BufferingPolicy;decodeQuality?:DecodeQuality;adaptiveFrameDrop?:boolean;videoTrack?:{codec:string;width?:number;height?:number};assetBase:URL;duration?:number;resourceLimits?:ResourceLimits;fonts?:FontAsset[]}) {
     super();
     this.planId=options.mode==='hybrid'?'hybrid-private':'software-private';
     if(typeof AudioContext==='undefined'||typeof OffscreenCanvas==='undefined')throw new PlayerError('UNSUPPORTED_FEATURE','Private Software requires Web Audio and OffscreenCanvas');
     this.context = new AudioContext({sampleRate:48000,latencyHint:'interactive'});
-    try{this.context.destination.channelCount=options.channels??2;this.context.destination.channelCountMode='explicit';}
+    this.requestedOutput=options.audioOutput??(options.channels===8?'7.1':options.channels===6?'5.1':'stereo');
+    this.deviceChannels=this.context.destination.maxChannelCount;
+    const wanted=this.requestedOutput==='auto'?(this.deviceChannels>=8?8:this.deviceChannels>=6?6:2):this.requestedOutput==='7.1'?8:this.requestedOutput==='5.1'?6:2;
+    if(wanted>this.deviceChannels&&options.audioFallback==='reject'){void this.context.close();throw new PlayerError('UNSUPPORTED_FEATURE','Requested audio layout is unavailable on this output device');}
+    this.outputChannels=wanted<=this.deviceChannels?wanted:2;
+    try{this.context.destination.channelCount=this.outputChannels;this.context.destination.channelCountMode='explicit';}
     catch(error){void this.context.close();throw error;}
     try {this.worker = runtimeWorker(new URL('web/private-mpv/playback-worker.js',options.assetBase),{type:'module'},Worker,new URL('web/generated/internal/runtime-worker.js',options.assetBase));}
     catch(error){void this.context.close();throw error;}
@@ -52,7 +62,7 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     this.presentation=presentation;
     await this.context.audioWorklet.addModule(new URL('web/private-mpv/audio-worklet.js',this.options.assetBase).href);
     if(this.closing)throw new PlayerError('ABORTED','Private Software closed during initialization');
-    this.node = new AudioWorkletNode(this.context,'demuxe-private-pcm',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[this.options.channels??2],channelCount:this.options.channels??2,channelCountMode:'explicit'});
+    this.node = new AudioWorkletNode(this.context,'demuxe-private-pcm',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[this.outputChannels],channelCount:this.outputChannels,channelCountMode:'explicit'});
     this.gainNode = this.context.createGain();this.analyser = this.context.createAnalyser();
     this.node.connect(this.gainNode);this.gainNode.connect(this.context.destination);this.gainNode.connect(this.analyser);
     this.node.port.onmessage = ({data}) => {if(data.type==='error')this.fail(new Error(data.error));};
@@ -62,8 +72,8 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     if(!response.ok)throw new PlayerError('ASSET_LOAD_FAILED','Private Software font HTTP '+response.status);
     const font = await response.arrayBuffer();if(font.byteLength>8*1024*1024)throw new PlayerError('ASSET_LOAD_FAILED','Private Software font byte limit');
     const fonts=(this.options.fonts??[]).map(font=>({...font,bytes:font.bytes.slice(0)}));
-    await this.request('init',{runtime:this.options.runtime,mode:this.options.mode??'software',channels:this.options.channels??2,canvas:offscreen,port:channel.port2,font,fonts,width:canvas.width,height:canvas.height,
-      contextRunning:this.context.state==='running',latencyUs:this.latency(),...this.options.resourceLimits},[offscreen,channel.port2,font,...fonts.map(font=>font.bytes)]);
+    await this.request('init',{runtime:this.options.runtime,mode:this.options.mode??'software',channels:this.outputChannels,canvas:offscreen,port:channel.port2,font,fonts,width:canvas.width,height:canvas.height,
+      contextRunning:this.context.state==='running',latencyUs:this.latency(),decodeQuality:this.options.decodeQuality,adaptiveFrameDrop:this.options.adaptiveFrameDrop,videoTrack:this.options.videoTrack,...this.options.resourceLimits},[offscreen,channel.port2,font,...fonts.map(font=>font.bytes)]);
   }
   private latency(){return Math.round((this.context.baseLatency+(this.context.outputLatency||0))*1e6);}
   private request(op:string,data:Record<string,unknown>={},transfer:Transferable[]=[]):Promise<any>{
@@ -90,7 +100,7 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
       finally{data.bitmap.close();if(!this.closing)this.worker.postMessage({op:'picture-presented',pictureId:data.pictureId});}
       return;
     }
-    if(data.id!==undefined){const pending=this.pending.get(data.id);if(pending){clearTimeout(pending.timer);this.pending.delete(data.id);data.error?pending.reject(playerError(new Error(data.error))):pending.resolve(data.result);}return;}
+    if(data.id!==undefined){const pending=this.pending.get(data.id);if(pending){clearTimeout(pending.timer);this.pending.delete(data.id);data.error?pending.reject(data.code==='ASSET_LOAD_FAILED'?new PlayerError('ASSET_LOAD_FAILED',data.error):playerError(new Error(data.error))):pending.resolve(data.result);}return;}
     if(data.type==='fatal'){this.diagnostics={...this.diagnostics,cleanup:data.cleanup,cleanupError:data.cleanupError};this.fail(playerError(new Error(data.error)));return;}
     if(data.type==='refresh'){
       if(data.generation!==this.generation){this.worker.postMessage({op:'refreshed',refreshId:data.refreshId,error:'Authorization source replaced'});return;}
@@ -100,7 +110,7 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
       },error=>{if(!this.closing)this.worker.postMessage({op:'refreshed',refreshId:data.refreshId,error:String(error)});});return;
     }
     if(this.closing||data.generation!==this.generation)return;
-    if(data.type==='diagnostics'){this.diagnostics=data.data;this.emit('diagnostics',data.data);}
+    if(data.type==='diagnostics'){this.diagnostics={...data.data,buffering:resolveBuffering(this.options.buffering??bufferingPolicy(),'mpv')};this.emit('diagnostics',this.diagnostics);}
     if(data.type==='output'){this.emit('output',data);}
     if(data.type==='event'){
       const event=data.event;
@@ -127,18 +137,22 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     throw new PlayerError('PLAYBACK_STALLED','Private Software output deadline');
   }
   async open(file:File|ArrayBuffer,input?:MediaInputOptions){
-    if(input?.demuxer)throw new PlayerError('UNSUPPORTED_FEATURE','Private Software requires finite files');
+    const suffix=file instanceof File?file.name.split('.').at(-1)?.toLowerCase():undefined;
+    const demuxer=input?.demuxer??(suffix==='sbc'||suffix==='msbc'?'sbc':'');
+    if(typeof demuxer!=='string'||demuxer!==''&&!/^[a-z0-9_]{1,64}$/.test(demuxer))throw new PlayerError('INVALID_ARGUMENT','Invalid demuxer hint');
     const blob=file instanceof ArrayBuffer?new File([file],'source'):file;
-    if(blob.size<=0||blob.size>64*1024*1024)throw new PlayerError('INVALID_ARGUMENT','Private Software source byte limit');
-    await this.load({file:blob});
+    if(!Number.isSafeInteger(blob.size)||blob.size<=0)throw new PlayerError('INVALID_ARGUMENT','Private playback requires a finite nonempty file');
+    if(file instanceof ArrayBuffer&&file.byteLength>32*1024*1024)throw new PlayerError('INVALID_ARGUMENT','ArrayBuffer sources are limited to 32 MiB; use File for larger sources');
+    await this.load({file:blob,demuxer});
   }
   async openRemote(source:RemoteSource){
-    if(source.demuxer||source.format&&source.format!=='file')throw new PlayerError('UNSUPPORTED_FEATURE','Private Software requires finite HTTP ranges');
+    if(source.format&&source.format!=='file')throw new PlayerError('UNSUPPORTED_FEATURE','Private Software requires finite HTTP ranges');
+    if(source.demuxer!==undefined&&(typeof source.demuxer!=='string'||source.demuxer!==''&&!/^[a-z0-9_]{1,64}$/.test(source.demuxer)))throw new PlayerError('INVALID_ARGUMENT','Invalid demuxer hint');
     const {refreshAuthorization,...options}=source;
-    await this.load({options,canRefresh:!!refreshAuthorization},refreshAuthorization);
+    await this.load({options,demuxer:source.demuxer??'',canRefresh:!!refreshAuthorization},refreshAuthorization);
   }
   private async load(data:Record<string,unknown>,refresh?:RemoteSource['refreshAuthorization']){
-    await this.ready;this.generation++;this.properties.clear();this.diagnostics=undefined;this.outputVerified=false;this.attachmentIds=[];this.presentedDraws=0;
+    await this.ready;await this.configureBuffering(true);this.generation++;this.properties.clear();this.diagnostics=undefined;this.outputVerified=false;this.attachmentIds=[];this.presentedDraws=0;
     const generation=this.generation;this.refresh=refresh;
     await this.request('load',{...data,generation,duration:this.options.duration});
     await this.waitUntil(()=>{
@@ -146,14 +160,15 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
       const tracks=this.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined;
       const video=tracks?.some(track=>track.type==='video'&&track.selected);
       const audio=tracks?.some(track=>track.type==='audio'&&track.selected);
-      return !!tracks?.length&&!this.diagnostics?.seeking&&(video?this.presentedDraws>0:!!audio&&this.startupEvidence().audioDecoded);
+      return !!tracks?.length&&!this.diagnostics?.seeking&&(video?this.presentedDraws>0:!!audio&&this.startupEvidence().audioDecoderConfigured);
     });
   }
   private async syncContext(){
     await this.request('context',{value:this.context.state==='running',latencyUs:this.latency()});
     if(this.context.state!=='running'&&!this.userPaused)this.emit('activity','waiting');
   }
-  async play(){await this.ready;this.userPaused=false;await this.context.resume();await this.syncContext();await this.request('pause',{value:false});this.emit('activity','play');}
+  private async configureBuffering(preparing:boolean){for(const [key,value] of Object.entries(mpvBufferingOptions(this.options.buffering??bufferingPolicy(),preparing)))await this.command('set',key,value);}
+  async play(){await this.ready;if(this.options.buffering?.preload&&this.options.buffering.preload!=='auto')await this.configureBuffering(false);this.userPaused=false;await this.context.resume();await this.syncContext();await this.request('pause',{value:false});this.emit('activity','play');}
   async pause(){await this.ready;this.userPaused=true;await this.request('pause',{value:true});this.emit('activity','pause');}
   async seek(seconds:number){
     if(!Number.isFinite(seconds)||seconds<0)throw new PlayerError('INVALID_ARGUMENT','Invalid seek time');
@@ -184,7 +199,7 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   startupEvidence(){const h=this.diagnostics?.audio?.header??[];return {metadata:!!this.properties.get('track-list'),audioDecoderConfigured:!!this.properties.get('audio-codec-name'),audioDecoded:h[0]>0,audioProgress:h[1]>0,videoPresented:!!(this.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined)?.some(track=>track.type==='video'&&track.selected)&&this.presentedDraws>0,decoderOutput:!!(this.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined)?.some(track=>track.type==='video'&&track.selected)&&this.presentedDraws>0||h[0]>0};}
   async verifyOutput(signal?:AbortSignal){await this.waitUntil(()=>{const evidence=this.startupEvidence(),tracks=this.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined;return !!tracks?.some(t=>(t.type==='video'||t.type==='audio')&&t.selected)&&(!tracks?.some(t=>t.type==='video'&&t.selected)||evidence.videoPresented)&&(!tracks?.some(t=>t.type==='audio'&&t.selected)||evidence.audioDecoded);},signal);this.outputVerified=true;}
   async setAudioOutputDevice(id:string){await this.ready;const context=this.context as AudioContext&{setSinkId?:(id:string)=>Promise<void>};if(!context.setSinkId)throw new PlayerError('UNSUPPORTED_FEATURE','AudioContext output selection unavailable');await context.setSinkId(id==='default'?'':id);}
-  audioDiagnostics(){const samples=new Float32Array(this.analyser?.fftSize??2048);this.analyser?.getFloatTimeDomainData(samples);return {state:this.context.state,sampleRate:this.context.sampleRate,outputChannels:this.options.channels??2,gain:this.gainValue,rms:Math.sqrt(samples.reduce((sum,value)=>sum+value*value,0)/samples.length),mediaFrames:this.diagnostics?.audio?.header?.[1]??0,transport:this.diagnostics?.audio,outputVerified:this.outputVerified};}
+  audioDiagnostics(){const samples=new Float32Array(this.analyser?.fftSize??2048);this.analyser?.getFloatTimeDomainData(samples);return {state:this.context.state,sampleRate:this.context.sampleRate,requestedOutput:this.requestedOutput,outputChannels:this.outputChannels,deviceChannels:this.deviceChannels,channelLayout:this.outputChannels===8?'7.1':this.outputChannels===6?'5.1':'stereo',gain:this.gainValue,rms:Math.sqrt(samples.reduce((sum,value)=>sum+value*value,0)/samples.length),mediaFrames:this.diagnostics?.audio?.header?.[1]??0,transport:this.diagnostics?.audio,outputVerified:this.outputVerified};}
   destroy():Promise<void>{
     if(this.destruction)return this.destruction;this.closing=true;this.loading.abort();
     return this.destruction=(async()=>{

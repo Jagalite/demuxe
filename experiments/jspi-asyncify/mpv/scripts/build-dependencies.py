@@ -29,6 +29,7 @@ def main(a):
     input_paths=[REPO/'sources.lock.json',pathlib.Path(__file__),pathlib.Path(__file__).with_name('provenance.py'),*sorted((REPO/'patches').glob('*.patch')),
                  *sorted((REPO/'patches/ffmpeg').glob('*.patch')),
                  REPO/'native/ao_browser.c',REPO/'native/audio_bridge.h',
+                 EXP/'mpv/patches/zimg-gamma-lut.patch',
                  EXP/'runtime/threads-coop.c',EXP/'runtime/threads-coop.h',EXP/'upstream/osdep/threads.h']
     for p in input_paths:
         dest=out/'inputs'/p.relative_to(REPO);dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,dest)
@@ -106,6 +107,7 @@ def main(a):
             state['adaptationSHA256'].update({str(p.relative_to(out)):digest(p) for p in [source/'meson.build',source/'src/lib.c']});save()
             meson('dav1d',['-Denable_asm=false','-Denable_tools=false','-Denable_tests=false'])
             zimg=out/'sources/zimg';recipe=out/'zimg-cmake';recipe.mkdir()
+            run(['patch','--batch','--forward','-p1','-i',out/'inputs/experiments/jspi-asyncify/mpv/patches/zimg-gamma-lut.patch'],zimg)
             section=(zimg/'Makefile.am').read_text().split('libzimg_internal_la_SOURCES =',1)[1].split('libzimg_internal_la_CPPFLAGS',1)[0]
             portable=re.findall(r'src/[\w/]+\.cpp',section)
             if len(portable)<20:raise ValueError('zimg portable source inventory drift')

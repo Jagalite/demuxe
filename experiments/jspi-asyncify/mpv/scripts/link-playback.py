@@ -54,6 +54,8 @@ def main(a):
         shutil.copyfile(ROOT / rel, dest)
     player = inputs / files[0]
     player.write_text(player.read_text().replace('{"vd-lavc-threads","2"}', '{"vd-lavc-threads","1"}'))
+    if a.trace_logs:
+        player.write_text(player.read_text().replace('mpv_request_log_messages(player,"warn")', 'mpv_request_log_messages(player,"trace")'))
     player.write_text(player.read_text().replace('#include "audio_bridge.h"', '#include "audio_bridge.h"\nEMSCRIPTEN_KEEPALIVE int web_audio_capacity(void) { return WEB_AUDIO_CAPACITY; }'))
     if a.audio_capacity == 32768:
         audio_header = inputs / 'native/audio_bridge.h'
@@ -123,9 +125,10 @@ static int request(int operation) {
                'demuxe_coop_stack_top', 'demuxe_coop_stack_count', 'demuxe_asyncify_count', 'demuxe_asyncify_data',
                'demuxe_asyncify_base', 'demuxe_asyncify_end', 'demuxe_source_live', 'malloc', 'free']
     sources = [inputs / p for p in files if p.endswith(('.c', '.s'))]
+    maximum_memory = 536870912 if build['profile'] == 'playback-full' else 134217728
     command = [sdk / 'upstream/emscripten/emcc', *flags, '-I' + str(inputs / 'native'), *sources, *libs,
                '--js-library', inputs / 'experiments/jspi-asyncify/mpv/runtime/imports.js', '-g2', '-sMODULARIZE=1', '-sEXPORT_ES6=1', '-sENVIRONMENT=worker',
-               '-sALLOW_MEMORY_GROWTH=1', '-sINITIAL_MEMORY=67108864', '-sMAXIMUM_MEMORY=134217728',
+               '-sALLOW_MEMORY_GROWTH=1', '-sINITIAL_MEMORY=67108864', '-sMAXIMUM_MEMORY='+str(maximum_memory),
                '-sSTACK_SIZE=2097152', '-sSTACK_OVERFLOW_CHECK=0', '-sASSERTIONS=1', '-sWASM_BIGINT=1',
                '-sFORCE_FILESYSTEM=1', '-sEXIT_RUNTIME=0', '-sEXPORTED_FUNCTIONS=' + json.dumps(['_' + n for n in exports]),
                '-sEXPORTED_RUNTIME_METHODS=["FS","HEAPU8","HEAP32","UTF8ToString"]', '-Wl,--export-memory',
@@ -146,8 +149,8 @@ static int request(int operation) {
     record = {'scope': 'Experimental private finite-file Software playback; runtime correctness must be tested separately',
               'dependencyPath': str(deps), 'dependencyRecordSHA256': digest(deps / 'build-result.json'),
               'dependencyProfile': build['profile'], 'sourceSHA256': source_hashes,
-              'audioCapacity': a.audio_capacity,
-              'retainedDecoder': a.hybrid,
+              'audioCapacity': a.audio_capacity, 'maxHeapBytes': maximum_memory,
+              'retainedDecoder': a.hybrid, 'traceLogs': a.trace_logs,
               'adaptedSourceSHA256': {p: digest(inputs / p) for p in files},
               'builderSHA256': digest(Path(__file__)), 'commands': []}
     try:
@@ -173,4 +176,5 @@ if __name__ == '__main__':
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--audio-capacity', type=int, choices=[8192, 32768], default=32768)
     parser.add_argument('--hybrid', action='store_true')
+    parser.add_argument('--trace-logs', action='store_true', help='Diagnostic build only: forward mpv trace messages')
     main(parser.parse_args())

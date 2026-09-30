@@ -3,7 +3,7 @@
 import json
 
 KINDS = ('jspi', 'asyncify')
-ALLOWED_EXPORTS = frozenset(('rm_error','rm_probe','rm_open','rm_start',
+ALLOWED_EXPORTS = frozenset(('rm_error','rm_set_demuxer','rm_probe','rm_open','rm_start',
     'rm_set_container','rm_step','rm_close','rm_duration','rm_video_codec',
     'rm_audio_codec','rm_adapt_audio'))
 

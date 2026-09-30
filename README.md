@@ -105,8 +105,8 @@ a different static folder or a CORS-enabled CDN. Add `--full` to `copy-assets`
 for the additional RGB Software fallback engine; see [asset deployment](docs/RUNTIME-ASSETS.md)
 for MIME types, CDN headers and CSP.
 
-**Cross-origin isolation enables Hybrid, Software and pthread Wasm services.**
-Serve the application with these headers, or an equivalent configuration that
+**Pthread Wasm services require cross-origin isolation.**
+For pthread playback, serve these headers or an equivalent configuration that
 makes `crossOriginIsolated` true:
 
 ```http
@@ -119,11 +119,12 @@ private runtime assets, `remuxRuntime: 'auto'` selects pthread when isolated,
 otherwise JSPI when supported or Asyncify. Qualified non-isolated paths cover
 file remuxing, FLAC24 audio transcoding, embedded subtitles and restricted
 48 kHz stereo PCM16 audio. Cooperative Software and Hybrid additionally cover
-qualified finite stereo files with matching playback assets; broader format,
-feature and release qualification is still in progress. See
+qualified finite files with matching full playback assets, including
+resampling/downmixing, subtitles, fonts and filters. Production qualification
+is still in progress. See
 [non-isolated playback completion](docs/NONISOLATED-PLAYBACK-COMPLETION.md) and
 [runtime selection and qualification](docs/REMUX-RUNTIME.md) for exact limits;
-these current-main paths require a matching verified build.
+these paths require a matching verified build.
 
 Remote media needs the CORS permissions and range support required by its path.
 Support depends on the browser, codec, source and requested features. Safari,

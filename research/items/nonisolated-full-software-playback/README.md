@@ -1,7 +1,14 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Full Software playback without cross-origin isolation
 
-Assessment: 2026-09-30. **Bounded public Software and Hybrid working on JSPI and Asyncify; production completion continues.** The full private codec build includes dav1d, zimg and XML. Original public Software fixtures and 20 additional public Software/Hybrid codec cases passed in Chromium without isolation. Direct ASS/filter/snapshot and continuous PCM/cadence checks passed. Full public feature, format, Firefox, long/large input, regression and release qualification remains incomplete. See [current public evidence](PUBLIC-PLAYER-QUALIFICATION.md) and [production completion contract](../../../docs/NONISOLATED-PLAYBACK-COMPLETION.md).
+Assessment: 2026-09-30. **Public Software and Hybrid are working on JSPI and
+Asyncify; production completion continues.** Expanded qualification now covers
+additional codecs, public subtitles/fonts/filters, exact consumed PCM,
+long/large files, dual audio, resampling/downmixing, audio-only/mono, HD output
+and bounded 4K. Firefox has public Software and feature coverage. HDR cadence,
+remaining failure/control/regression gates and exact release consumers are still
+in progress. See [current public evidence](PUBLIC-PLAYER-QUALIFICATION.md) and
+[production completion contract](../../../docs/NONISOLATED-PLAYBACK-COMPLETION.md).
 
 ## Finding
 

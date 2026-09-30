@@ -1,0 +1,15 @@
+--- a/demux/demux.c
++++ b/demux/demux.c
+@@ -4050,6 +4050,12 @@
+ {
+     if (!in->seekable_cache && in->current_range) {
+         clear_cached_range(in, in->current_range);
++        // A fresh seek abandons track-switch refresh positions. Match
++        // switch_current_range(): keeping refreshing set after clearing the
++        // queue discards the first new packet, which can be the only keyframe
++        // before the requested position.
++        for (int n = 0; n < in->num_streams; n++)
++            in->streams[n]->ds->refreshing = false;
+         return;
+     }
+ 

@@ -36,7 +36,7 @@ emcc -O2 "-ffile-prefix-map=$ROOT=/demuxe" "${FLAGS[@]}" -I"$OBJ" -Ibuild/source
  -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createRemux -sENVIRONMENT=worker \
  -sINITIAL_MEMORY=67108864 -sMAXIMUM_MEMORY=134217728 -sALLOW_MEMORY_GROWTH=1 \
  -sSTACK_SIZE=2097152 -sWASM_BIGINT=1 -sFILESYSTEM=0 \
- -sEXPORTED_FUNCTIONS='["_rm_error","_rm_probe","_rm_open","_rm_start","_rm_set_container","_rm_step","_rm_close","_rm_duration","_rm_video_codec","_rm_audio_codec","_malloc","_free"]' \
+ -sEXPORTED_FUNCTIONS='["_rm_error","_rm_set_demuxer","_rm_probe","_rm_open","_rm_start","_rm_set_container","_rm_step","_rm_close","_rm_duration","_rm_video_codec","_rm_audio_codec","_malloc","_free"]' \
  -sEXPORTED_RUNTIME_METHODS='["HEAPU8","ccall","UTF8ToString"]' \
  -o "$LINK_OUT/remux.mjs"
 # Verify the complete binary before publishing any served artifact.

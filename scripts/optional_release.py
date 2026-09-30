@@ -54,5 +54,6 @@ def required_consumer_cases(manifest):
     if any(n.startswith('web/engine-mpv-playback-') for n in manifest['files']):
         cases.update({'private-software-jspi','private-software-asyncify',
                       'private-software-controls','private-software-cancellation',
-                      'private-software-asset-mismatch'})
+                      'private-software-asset-mismatch','private-hybrid-jspi',
+                      'private-hybrid-asyncify','private-hybrid-controls'})
     return cases

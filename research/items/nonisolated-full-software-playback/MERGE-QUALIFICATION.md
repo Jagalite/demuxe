@@ -29,10 +29,12 @@ failures, pending-read cancellation, malformed sources, asset mismatch, repeated
 native teardown, source/type checks, and packaging/provenance rejection checks.
 HD output checks do not qualify continuous HD playback.
 
-## Current result
+## Historical bounded result
 
-The bounded experimental gates passed. **Public Software admission and exact
-release consumers remain unqualified.** No commit, push or merge was made.
+At this checkpoint, the bounded experimental gates passed and public admission
+was still pending. Subsequent local commits and public qualification are tracked
+in [the completion contract](../../../docs/NONISOLATED-PLAYBACK-COMPLETION.md).
+This historical result does not establish current production readiness.
 
 | Gate | Result and evidence |
 | --- | --- |

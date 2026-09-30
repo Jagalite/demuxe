@@ -17,8 +17,8 @@ def inputs():
  for name in ['native','patches','scripts']:
   paths.extend((root/name).rglob('*'))
  paths.extend((root/'experiments/retained-subtitles').glob('*.c'))
- for folder in ['runtime','upstream','stage2/native','mpv/native','mpv/runtime','mpv/scripts','ffmpeg/scripts','scripts']:
-  paths.extend(p for p in (root/'experiments/jspi-asyncify'/folder).rglob('*') if p.suffix in ['.py','.c','.h','.s','.js','.mjs'])
+ for folder in ['runtime','upstream','stage2/native','mpv/native','mpv/runtime','mpv/scripts','mpv/patches','ffmpeg/scripts','scripts']:
+  paths.extend(p for p in (root/'experiments/jspi-asyncify'/folder).rglob('*') if p.suffix in ['.py','.c','.h','.s','.js','.mjs','.patch'])
  paths.extend(root/p for p in ['experiments/retained-subtitles/compile-hook.py','experiments/software-full/build.sh','experiments/software-full/inventory.py','sources.lock.json','package-lock.json','toolchain.lock.json'])
  return {str(p.relative_to(root)):sha(p)for p in sorted(paths)if p.is_file()and '__pycache__'not in p.parts and str(p.relative_to(root))not in PACKAGING_ONLY}
 def sdk_sources(sdk):

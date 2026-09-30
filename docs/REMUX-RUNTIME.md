@@ -3,7 +3,8 @@
 
 `PlayerOptions.remuxRuntime` defaults to `'auto'`. It selects the FFmpeg runtime
 used for source inspection, finite file remux, qualified FLAC24 audio
-transcoding, and qualified private mpv subtitle/PCM services. It does not force remux when browser-direct playback is suitable.
+transcoding, qualified private mpv subtitle/PCM services, and cooperative
+Software/Hybrid playback when its matching assets are installed. It does not force remux when browser-direct playback is suitable.
 
 ```js
 const player = new Player(container, {
@@ -56,9 +57,13 @@ regression covers forced JSPI and Asyncify, rendered captions, audio/video outpu
 paused seek, visibility changes and cleanup (`node tests/private-adaptation-ass.mjs`).
 
 Browser-direct, browser gain and Shaka retain their existing requirements.
-Private Hybrid, Software, and other audio/video transforms remain outside
-this qualification. Selecting `on` or a named runtime does not broaden the service
-or codec limits. See [private mpv Player qualification](PRIVATE-MPV-PLAYER.md).
+The separate cooperative playback profile adds Software video decoding and Hybrid
+browser video decoding with mpv audio. Its full assets support the qualified
+finite-file codecs, resampling/downmixing, subtitles/fonts and filters described
+in [non-isolated completion](NONISOLATED-PLAYBACK-COMPLETION.md). Production
+qualification remains in progress. Selecting a runtime does not bypass source,
+feature, asset or browser decoder checks. The restricted native-video/PCM service
+above retains its own contract; see [private mpv Player qualification](PRIVATE-MPV-PLAYER.md).
 
 Selection does not retry a failed JSPI engine using Asyncify. With `auto`, an
 initial plain URL can still try browser Direct when optional private inspection
@@ -71,7 +76,8 @@ non-isolated page, selection never falls back to a pthread engine.
 ## Inspector preloading
 
 `prepare(['inspector'])` loads and compiles the selected remux runtime. Private
-inspectors can be prepared without isolation; Hybrid/Software preparation still
+inspectors and cooperative Hybrid/Software engines can be prepared without
+isolation when the matching playback assets are installed. Pthread preparation
 requires isolation. The compiled module is reused by source inspection and still
 passes the worker's backend/ABI checks. Preparation creates no media workers.
 

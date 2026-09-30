@@ -30,7 +30,7 @@ class PrivateMpvAssets(unittest.TestCase):
  def test_playback_is_an_independent_complete_pair_with_consumer_gates(self):
   base=optional.required_consumer_cases({'files':{}})
   playback=optional.required_consumer_cases({'files':{'web/engine-mpv-playback-jspi/player.wasm':{}}})
-  self.assertEqual(playback-base,{'private-software-jspi','private-software-asyncify','private-software-controls','private-software-cancellation','private-software-asset-mismatch'})
+  self.assertEqual(playback-base,{'private-software-jspi','private-software-asyncify','private-software-controls','private-software-cancellation','private-software-asset-mismatch','private-hybrid-jspi','private-hybrid-asyncify','private-hybrid-controls'})
   with tempfile.TemporaryDirectory() as tmp:
    root=pathlib.Path(tmp)
    for name in ['private-mpv.js','private-mpv/LICENSE.txt','private-mpv/engine.js','private-mpv/scheduler.js','private-mpv/continuations.js','private-mpv/range-source.js','private-mpv/audio-worklet.js','private-mpv/playback-worker.js','private-mpv/playback-host.js','private-mpv/playback-pcm.js','private-mpv/decoder-mailbox.js','private-mpv/retained-decoder.js','private-mpv/retained-presentation.js','external-video-decoder.js','video-codec-config.js','retained-video.js','subtitle-overlay.js']:

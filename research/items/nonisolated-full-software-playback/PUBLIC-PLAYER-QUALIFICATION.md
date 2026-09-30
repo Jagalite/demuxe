@@ -71,19 +71,43 @@ reached EOF, replayed and matched 577,024 consumed PCM samples against FFmpeg.
 Normalized RMS error was below 0.00000008, with a one-frame alignment offset.
 Recorded underruns were confined to the exhausted tail; no interior underruns
 occurred. Hybrid destruction closed all retained frames and left no decoder
-requests or timers. These feature results are direct Backend evidence; expanded
-public feature admission remains pending.
+requests or timers. These initial feature results are direct Backend evidence. Later public
+qualification is summarized below.
+
+## Expanded public evidence
+
+The full profile now has additional public evidence in Chromium:
+
+- 24 compressed/additional audio codec cases.
+- Eight long/large source cases (132 seconds and 84 MiB, with bounded reads).
+- Four subtitle/filter/snapshot/continuous consumed-PCM cases.
+- Twelve resampling and 5.1/7.1-to-stereo cases; eight audio-only/mono cases.
+- Four custom-font/SRT/VTT styling cases and 24 embedded SRT, mov_text, ASS,
+  PGS, VobSub and subtitle-track switching cases.
+- Four repaired dual-audio cases, matching both tracks' consumed PCM exactly.
+- Eight full-size 720p/1080p 30 fps output cases, presenting 179–180 pictures
+  with exact consumed PCM, no interior underruns and under 8 ms native A/V offset.
+- Four 4K HEVC Main10 5 fps cases, with 29–30 pictures and about 10 ms A/V offset.
+  This is a 5 fps correctness profile, not higher-frame-rate 4K qualification.
+
+Firefox Asyncify passed the six original Software fixtures, five expanded
+Software codecs and four supported Hybrid codecs. Forced HEVC Hybrid rejected
+an unsupported browser configuration. Two public feature/PCM cases also passed.
+
+These results use the full profile. Older bounded assets keep their original
+limits. Multi-track sources require the installed seek-repair feature; 4K
+admission requires the installed 512 MiB heap profile. The failed pre-fix seek,
+128 MiB 4K, and HDR cadence runs remain preserved.
 
 ## Remaining qualification
 
-Current public Chromium coverage is bounded: the original six Software fixtures
-plus five additional Software/Hybrid codec fixtures, stereo, finite sources up
-to 64 MiB and 60 seconds, without public filters or subtitle/font features.
-Firefox, other existing audio/format rows, public features, HD continuous output,
-long/large inputs, multichannel, faults, isolated/native regressions and exact
-release archive consumers remain pending. Full non-isolated support and
-production merge readiness are not established.
+HDR continuous playback remains a blocker. A numeric-checked gamma candidate is
+building; public tone mapping is still blocked. Current fault/lifetime tests,
+decode-policy controls, automatic fallback, Native/isolated regressions, and
+exact archive/source companion consumers remain in progress. Full non-isolated
+production merge readiness is not established. See the [completion contract](../../../docs/NONISOLATED-PLAYBACK-COMPLETION.md)
+for the authoritative remaining work and evidence references.
 
-The clean release recipe now builds and binds full cooperative playback assets;
+The clean release recipe builds and binds full cooperative playback assets;
 its exact assembled archive still needs consumer qualification. Full CPU
 comparisons are excluded from this completion scope.

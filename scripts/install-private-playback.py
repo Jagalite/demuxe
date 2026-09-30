@@ -36,6 +36,11 @@ def install(build, runtime_root):
             raise ValueError('Playback artifact drift: ' + name)
     config = (deps / 'objects/ffmpeg/config_components.h').read_text()
     decoders = sorted(name.lower() for name in re.findall(r'^#define CONFIG_(\w+)_DECODER 1$', config, re.M))
+    filters = sorted(name.lower() for name in re.findall(r'^#define CONFIG_(\w+)_FILTER 1$', config, re.M))
+    applied = {Path(c['argv'][-1]).name for c in dependency['commands'] if c.get('returncode') == 0 and c['argv'][0] == 'patch'}
+    features = [name for patch,name in [('0019-demux-seek-refresh-reset.patch','track-switch-seek'),('zimg-gamma-lut.patch','gamma-lut')] if patch in applied]
+    if 'gamma-lut' in features and 'ToLinearLutOperationWasm' in (deps / 'inputs/experiments/jspi-asyncify/mpv/patches/zimg-gamma-lut.patch').read_text():
+        features.append('inverse-gamma-lut')
     targets = [runtime_root / 'web' / ('engine-mpv-playback-' + backend) for backend in ('jspi', 'asyncify')]
     if any(target.exists() for target in targets):
         raise ValueError('Refusing to replace installed playback assets')
@@ -50,9 +55,11 @@ def install(build, runtime_root):
         (target / 'manifest.json').write_text(json.dumps({
             'schema': 1, 'backend': backend, 'profile': 'playback',
             'codecProfile': record['dependencyProfile'],
-            'decoders': decoders,
+            'decoders': decoders, 'filters': filters, 'features': features,
+            'maxHeapBytes': record.get('maxHeapBytes', 134217728),
             'audioCapacity': record.get('audioCapacity', 8192),
             'retainedDecoder': bool(record.get('retainedDecoder')),
+            'traceLogs': bool(record.get('traceLogs')),
             'buildRecordSHA256': digest(build / 'build.json'),
             'files': {dest: digest(build / source) for dest, source in sources.items()},
             'qualification': 'Experimental finite Software candidate; public qualification pending',

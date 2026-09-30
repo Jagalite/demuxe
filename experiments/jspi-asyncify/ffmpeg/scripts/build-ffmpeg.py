@@ -43,7 +43,7 @@ def main(a):
         header=obj/'config.h';header.write_text(header.read_text().replace(str(out),'/demuxe-ffmpeg'))
         run(['make','-j',a.jobs])
         if re.search(r'#define HAVE_(?:PTHREADS|W32THREADS|OS2THREADS) 1',(obj/'config.h').read_text()):raise ValueError('Threaded FFmpeg rejected')
-        exports=['rm_error','rm_probe','rm_open','rm_start','rm_set_container','rm_step','rm_close','rm_duration','rm_video_codec','rm_audio_codec','malloc','free']+(['rm_adapt_audio'] if transcode else [])
+        exports=['rm_error','rm_set_demuxer','rm_probe','rm_open','rm_start','rm_set_container','rm_step','rm_close','rm_duration','rm_video_codec','rm_audio_codec','malloc','free']+(['rm_adapt_audio'] if transcode else [])
         libs=['libavformat','libavcodec']+(['libswresample'] if transcode else [])+['libavutil']
         link=['emcc',*flags,*(['-DDEMUXE_AUDIO_ADAPTATION=1','-DDEMUXE_AUDIO_TRANSCODE=1','-DDEMUXE_FLAC_LEVEL='+str(a.flac_level)] if transcode else []),'-I'+str(obj),'-I'+str(out/'source'),out/'native/remux/remux.c',*[obj/l/(l+'.a') for l in libs],'-sMODULARIZE=1','-sEXPORT_ES6=1','-sEXPORT_NAME=createRemux','-sENVIRONMENT=worker',*suspension_flags(suspension,[x for x in exports if x.startswith('rm_')],a.saved_stack_bytes),'-sASSERTIONS=1','-sINITIAL_MEMORY=67108864','-sMAXIMUM_MEMORY=134217728','-sALLOW_MEMORY_GROWTH=1','-sSTACK_SIZE=2097152','-sFILESYSTEM=0','-sWASM_BIGINT=1','-sEXPORTED_FUNCTIONS='+json.dumps(['_'+x for x in exports]),'-sEXPORTED_RUNTIME_METHODS=["HEAPU8","ccall","UTF8ToString"]','-Wl,-Map,'+str(engine/'remux.map'),'-o',engine/'remux.mjs']
         link=list(map(str,link))

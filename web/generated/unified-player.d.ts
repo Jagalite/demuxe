@@ -73,6 +73,7 @@ export declare class Player extends EventTarget {
     private audioPlayback;
     private privatePlaybackAssetsAvailable;
     private privatePlaybackAssets?;
+    private privatePlaybackAssetsFailure?;
     private transcodeAssetsAvailable;
     private transcodeAssetsChecked;
     private losslessInspection?;
@@ -194,6 +195,8 @@ export declare class Player extends EventTarget {
     private create;
     private settled;
     private fileServicesSource;
+    private privateSourceDemuxer;
+    private privateFiniteSource;
     private admissible;
     private failedStreamingPlan;
     private replace;

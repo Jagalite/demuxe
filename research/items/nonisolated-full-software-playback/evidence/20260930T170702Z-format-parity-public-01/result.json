@@ -1,0 +1,4226 @@
+{
+  "scope": "Public Player non-isolated playback qualification",
+  "startedAt": "2026-09-30T17:07:04.754Z",
+  "command": [
+    "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/tests/public-preview-server.mjs",
+    "/Volumes/seed2/Projects/demuxe",
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/format-fixtures-01",
+    "research/items/nonisolated-full-software-playback/evidence/20260930T170702Z-format-parity-public-01"
+  ],
+  "environment": {
+    "runtime": "jspi",
+    "installedRoot": "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-05",
+    "browser": "chrome",
+    "negativeOnly": false,
+    "codeRoot": "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929"
+  },
+  "cases": [
+    {
+      "key": "mjpeg-pcm",
+      "runtime": "jspi",
+      "mode": "software",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.7889236111111111,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.770162037037037,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 0.7847164351851852,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 1211.2999999821186,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 3184939,
+            "milliseconds": 844.5999999940395
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 22362682,
+            "milliseconds": 965.9000000059605
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 1210.699999988079
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "mpv-rgb-canvas"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "jspi",
+        "plan": "software-private",
+        "decodePolicy": {
+          "requested": "exact",
+          "effective": "exact",
+          "codec": "mjpeg",
+          "threads": 1,
+          "skipFrame": "default",
+          "skipLoopFilter": "default",
+          "skipIdct": "default",
+          "lowres": 0,
+          "filmGrain": "default",
+          "adaptiveState": "normal",
+          "shortcuts": [],
+          "ffmpegOptions": {
+            "max_pixels": "8294400"
+          },
+          "reason": "Exact decoded output requested",
+          "requiresDecoderRestart": true
+        },
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "browserDecoder": {
+          "submitted": 0,
+          "received": 0,
+          "delivered": 0,
+          "closed": 0,
+          "peakFrames": 0,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": false,
+          "generation": 0
+        },
+        "decoderMailbox": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 361,
+          "completed": 355,
+          "abandoned": 0,
+          "suspensions": 155,
+          "resumes": 149,
+          "maxLive": 7,
+          "timerWakes": 37,
+          "signals": 64,
+          "stackChecks": 1020,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 48,
+          "bytes": 3213598,
+          "copies": 48,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.1666666666666667,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterMAE": 0.7889236111111111,
+      "filterApplied": true,
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 189,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 762,
+          "completed": 762,
+          "abandoned": 0,
+          "suspensions": 513,
+          "resumes": 513,
+          "maxLive": 7,
+          "timerWakes": 180,
+          "signals": 282,
+          "stackChecks": 2550,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 48,
+          "bytes": 3213598,
+          "copies": 48,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "mjpeg-pcm",
+      "runtime": "asyncify",
+      "mode": "software",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.7889236111111111,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.770162037037037,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 0.7847164351851852,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 934.9000000059605,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 4869255,
+            "milliseconds": 486.7000000178814
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 28064838,
+            "milliseconds": 934.8000000119209
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 3.7999999821186066
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "mpv-rgb-canvas"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "asyncify",
+        "plan": "software-private",
+        "decodePolicy": {
+          "requested": "exact",
+          "effective": "exact",
+          "codec": "mjpeg",
+          "threads": 1,
+          "skipFrame": "default",
+          "skipLoopFilter": "default",
+          "skipIdct": "default",
+          "lowres": 0,
+          "filmGrain": "default",
+          "adaptiveState": "normal",
+          "shortcuts": [],
+          "ffmpegOptions": {
+            "max_pixels": "8294400"
+          },
+          "reason": "Exact decoded output requested",
+          "requiresDecoderRestart": true
+        },
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "browserDecoder": {
+          "submitted": 0,
+          "received": 0,
+          "delivered": 0,
+          "closed": 0,
+          "peakFrames": 0,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": false,
+          "generation": 0
+        },
+        "decoderMailbox": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 359,
+          "completed": 353,
+          "abandoned": 0,
+          "suspensions": 152,
+          "resumes": 146,
+          "maxLive": 7,
+          "timerWakes": 34,
+          "signals": 64,
+          "stackChecks": 1010,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 988,
+            "unwinds": 152,
+            "rewinds": 146
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 48,
+          "bytes": 3213598,
+          "copies": 48,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.1666666666666667,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterMAE": 0.7889236111111111,
+      "filterApplied": true,
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 190,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 761,
+          "completed": 761,
+          "abandoned": 0,
+          "suspensions": 512,
+          "resumes": 512,
+          "maxLive": 7,
+          "timerWakes": 180,
+          "signals": 281,
+          "stackChecks": 2546,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 988,
+            "unwinds": 512,
+            "rewinds": 512
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 48,
+          "bytes": 3213598,
+          "copies": 48,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "ffv1-flac",
+      "runtime": "jspi",
+      "mode": "software",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.9218923611111111,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.9169444444444445,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 0.9533564814814814,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 142.60000002384186,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 3184939,
+            "milliseconds": 24.30000001192093
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 22362682,
+            "milliseconds": 141.60000002384186
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 9.099999994039536
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "mpv-rgb-canvas"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "jspi",
+        "plan": "software-private",
+        "decodePolicy": {
+          "requested": "exact",
+          "effective": "exact",
+          "codec": "ffv1",
+          "threads": 1,
+          "skipFrame": "default",
+          "skipLoopFilter": "default",
+          "skipIdct": "default",
+          "lowres": 0,
+          "filmGrain": "default",
+          "adaptiveState": "normal",
+          "shortcuts": [],
+          "ffmpegOptions": {
+            "max_pixels": "8294400"
+          },
+          "reason": "Exact decoded output requested",
+          "requiresDecoderRestart": true
+        },
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "browserDecoder": {
+          "submitted": 0,
+          "received": 0,
+          "delivered": 0,
+          "closed": 0,
+          "peakFrames": 0,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": false,
+          "generation": 0
+        },
+        "decoderMailbox": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 361,
+          "completed": 355,
+          "abandoned": 0,
+          "suspensions": 126,
+          "resumes": 120,
+          "maxLive": 7,
+          "timerWakes": 37,
+          "signals": 63,
+          "stackChecks": 962,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 20,
+          "bytes": 1320018,
+          "copies": 20,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.167,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterMAE": 0.9218923611111111,
+      "filterApplied": true,
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 190,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 759,
+          "completed": 759,
+          "abandoned": 0,
+          "suspensions": 473,
+          "resumes": 473,
+          "maxLive": 7,
+          "timerWakes": 177,
+          "signals": 273,
+          "stackChecks": 2464,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 20,
+          "bytes": 1320018,
+          "copies": 20,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "ffv1-flac",
+      "runtime": "asyncify",
+      "mode": "software",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.9218923611111111,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.9169444444444445,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 0.9533564814814814,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 210.5,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 4869255,
+            "milliseconds": 37.30000001192093
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 28064838,
+            "milliseconds": 210
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 9.099999994039536
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "mpv-rgb-canvas"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "asyncify",
+        "plan": "software-private",
+        "decodePolicy": {
+          "requested": "exact",
+          "effective": "exact",
+          "codec": "ffv1",
+          "threads": 1,
+          "skipFrame": "default",
+          "skipLoopFilter": "default",
+          "skipIdct": "default",
+          "lowres": 0,
+          "filmGrain": "default",
+          "adaptiveState": "normal",
+          "shortcuts": [],
+          "ffmpegOptions": {
+            "max_pixels": "8294400"
+          },
+          "reason": "Exact decoded output requested",
+          "requiresDecoderRestart": true
+        },
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "browserDecoder": {
+          "submitted": 0,
+          "received": 0,
+          "delivered": 0,
+          "closed": 0,
+          "peakFrames": 0,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": false,
+          "generation": 0
+        },
+        "decoderMailbox": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 361,
+          "completed": 355,
+          "abandoned": 0,
+          "suspensions": 125,
+          "resumes": 119,
+          "maxLive": 7,
+          "timerWakes": 36,
+          "signals": 63,
+          "stackChecks": 960,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 656,
+            "unwinds": 125,
+            "rewinds": 119
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 20,
+          "bytes": 1320018,
+          "copies": 20,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.167,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterMAE": 0.9218923611111111,
+      "filterApplied": true,
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 188,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 761,
+          "completed": 761,
+          "abandoned": 0,
+          "suspensions": 476,
+          "resumes": 476,
+          "maxLive": 7,
+          "timerWakes": 179,
+          "signals": 274,
+          "stackChecks": 2474,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 656,
+            "unwinds": 476,
+            "rewinds": 476
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 20,
+          "bytes": 1320018,
+          "copies": 20,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "msmpeg4-wma",
+      "runtime": "jspi",
+      "mode": "software",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.7824537037037037,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.7750405092592593,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 0.7933854166666666,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 153.30000001192093,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 3184939,
+            "milliseconds": 21.30000001192093
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 22362682,
+            "milliseconds": 152.69999998807907
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 6.9000000059604645
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "mpv-rgb-canvas"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "jspi",
+        "plan": "software-private",
+        "decodePolicy": {
+          "requested": "exact",
+          "effective": "exact",
+          "codec": "msmpeg4v3",
+          "threads": 1,
+          "skipFrame": "default",
+          "skipLoopFilter": "default",
+          "skipIdct": "default",
+          "lowres": 0,
+          "filmGrain": "default",
+          "adaptiveState": "normal",
+          "shortcuts": [],
+          "ffmpegOptions": {
+            "max_pixels": "8294400"
+          },
+          "reason": "Exact decoded output requested",
+          "requiresDecoderRestart": true
+        },
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "browserDecoder": {
+          "submitted": 0,
+          "received": 0,
+          "delivered": 0,
+          "closed": 0,
+          "peakFrames": 0,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": false,
+          "generation": 0
+        },
+        "decoderMailbox": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 361,
+          "completed": 355,
+          "abandoned": 0,
+          "suspensions": 120,
+          "resumes": 114,
+          "maxLive": 7,
+          "timerWakes": 36,
+          "signals": 62,
+          "stackChecks": 950,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 16,
+          "bytes": 1050537,
+          "copies": 16,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.21,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterMAE": 0.7824537037037037,
+      "filterApplied": true,
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 190,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 767,
+          "completed": 767,
+          "abandoned": 0,
+          "suspensions": 459,
+          "resumes": 459,
+          "maxLive": 7,
+          "timerWakes": 173,
+          "signals": 267,
+          "stackChecks": 2452,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 16,
+          "bytes": 1050537,
+          "copies": 16,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "msmpeg4-wma",
+      "runtime": "asyncify",
+      "mode": "software",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.7824537037037037,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.7750405092592593,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 0.7933854166666666,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 208.7000000178814,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 4869255,
+            "milliseconds": 38
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 28064838,
+            "milliseconds": 208.5
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 8.400000005960464
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "mpv-rgb-canvas"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "asyncify",
+        "plan": "software-private",
+        "decodePolicy": {
+          "requested": "exact",
+          "effective": "exact",
+          "codec": "msmpeg4v3",
+          "threads": 1,
+          "skipFrame": "default",
+          "skipLoopFilter": "default",
+          "skipIdct": "default",
+          "lowres": 0,
+          "filmGrain": "default",
+          "adaptiveState": "normal",
+          "shortcuts": [],
+          "ffmpegOptions": {
+            "max_pixels": "8294400"
+          },
+          "reason": "Exact decoded output requested",
+          "requiresDecoderRestart": true
+        },
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "browserDecoder": {
+          "submitted": 0,
+          "received": 0,
+          "delivered": 0,
+          "closed": 0,
+          "peakFrames": 0,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": false,
+          "generation": 0
+        },
+        "decoderMailbox": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0.043000000000000003,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 361,
+          "completed": 355,
+          "abandoned": 0,
+          "suspensions": 119,
+          "resumes": 113,
+          "maxLive": 7,
+          "timerWakes": 34,
+          "signals": 63,
+          "stackChecks": 948,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 956,
+            "unwinds": 119,
+            "rewinds": 113
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 16,
+          "bytes": 1050537,
+          "copies": 16,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.21,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterMAE": 0.7824537037037037,
+      "filterApplied": true,
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 190,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 769,
+          "completed": 769,
+          "abandoned": 0,
+          "suspensions": 448,
+          "resumes": 448,
+          "maxLive": 7,
+          "timerWakes": 170,
+          "signals": 259,
+          "stackChecks": 2434,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 956,
+            "unwinds": 448,
+            "rewinds": 448
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 16,
+          "bytes": 1050537,
+          "copies": 16,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-wavpack",
+      "runtime": "jspi",
+      "mode": "software",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.9753993055555555,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.9728356481481482,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 1.0017013888888888,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 159,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 3184939,
+            "milliseconds": 25.099999994039536
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 22362682,
+            "milliseconds": 158.7000000178814
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 9.5
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "mpv-rgb-canvas"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "jspi",
+        "plan": "software-private",
+        "decodePolicy": {
+          "requested": "exact",
+          "effective": "exact",
+          "codec": "h264",
+          "threads": 1,
+          "skipFrame": "default",
+          "skipLoopFilter": "default",
+          "skipIdct": "default",
+          "lowres": 0,
+          "filmGrain": "default",
+          "adaptiveState": "normal",
+          "shortcuts": [],
+          "ffmpegOptions": {
+            "max_pixels": "8294400"
+          },
+          "reason": "Exact decoded output requested",
+          "requiresDecoderRestart": true
+        },
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "browserDecoder": {
+          "submitted": 0,
+          "received": 0,
+          "delivered": 0,
+          "closed": 0,
+          "peakFrames": 0,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": false,
+          "generation": 0
+        },
+        "decoderMailbox": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 357,
+          "completed": 351,
+          "abandoned": 0,
+          "suspensions": 109,
+          "resumes": 103,
+          "maxLive": 7,
+          "timerWakes": 33,
+          "signals": 63,
+          "stackChecks": 920,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 7,
+          "bytes": 483258,
+          "copies": 7,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.167,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterMAE": 0.9753993055555555,
+      "filterApplied": true,
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 190,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 761,
+          "completed": 761,
+          "abandoned": 0,
+          "suspensions": 482,
+          "resumes": 482,
+          "maxLive": 7,
+          "timerWakes": 182,
+          "signals": 290,
+          "stackChecks": 2486,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 7,
+          "bytes": 483258,
+          "copies": 7,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-wavpack",
+      "runtime": "asyncify",
+      "mode": "software",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.9753993055555555,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.9728356481481482,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 1.0017013888888888,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 199.39999997615814,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 4869255,
+            "milliseconds": 33.79999998211861
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 28064838,
+            "milliseconds": 198.90000000596046
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 10.400000005960464
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "mpv-rgb-canvas"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "asyncify",
+        "plan": "software-private",
+        "decodePolicy": {
+          "requested": "exact",
+          "effective": "exact",
+          "codec": "h264",
+          "threads": 1,
+          "skipFrame": "default",
+          "skipLoopFilter": "default",
+          "skipIdct": "default",
+          "lowres": 0,
+          "filmGrain": "default",
+          "adaptiveState": "normal",
+          "shortcuts": [],
+          "ffmpegOptions": {
+            "max_pixels": "8294400"
+          },
+          "reason": "Exact decoded output requested",
+          "requiresDecoderRestart": true
+        },
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "browserDecoder": {
+          "submitted": 0,
+          "received": 0,
+          "delivered": 0,
+          "closed": 0,
+          "peakFrames": 0,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": false,
+          "generation": 0
+        },
+        "decoderMailbox": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 357,
+          "completed": 351,
+          "abandoned": 0,
+          "suspensions": 109,
+          "resumes": 103,
+          "maxLive": 7,
+          "timerWakes": 34,
+          "signals": 62,
+          "stackChecks": 920,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 656,
+            "unwinds": 109,
+            "rewinds": 103
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 7,
+          "bytes": 483258,
+          "copies": 7,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.167,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterMAE": 0.9753993055555555,
+      "filterApplied": true,
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 189,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 761,
+          "completed": 761,
+          "abandoned": 0,
+          "suspensions": 465,
+          "resumes": 465,
+          "maxLive": 7,
+          "timerWakes": 178,
+          "signals": 277,
+          "stackChecks": 2452,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 656,
+            "unwinds": 465,
+            "rewinds": 465
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 7,
+          "bytes": 483258,
+          "copies": 7,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-wavpack",
+      "runtime": "jspi",
+      "mode": "hybrid",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 2.5147627314814813,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 2.515364583333333,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 2.4277835648148147,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 145.09999999403954,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 3184939,
+            "milliseconds": 20.19999998807907
+          },
+          {
+            "name": "hybrid",
+            "status": "ready",
+            "bytes": 22362682,
+            "milliseconds": 144.59999999403954
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 8.199999988079071
+          }
+        ]
+      },
+      "plan": {
+        "id": "hybrid-private",
+        "mode": "hybrid",
+        "video": "webcodecs",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "browser-webcodecs",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "webcodecs",
+        "decoderBackend": "webcodecs",
+        "runtime": "jspi",
+        "plan": "hybrid-private",
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "presentation": {
+          "position": 0
+        },
+        "retained": {
+          "received": 2,
+          "presented": 2,
+          "closed": 0,
+          "dropped": 0,
+          "peakFrames": 2,
+          "queued": 1,
+          "held": 1,
+          "pending": 0,
+          "generation": 1
+        },
+        "browserDecoder": {
+          "submitted": 12,
+          "received": 9,
+          "delivered": 2,
+          "closed": 0,
+          "peakFrames": 7,
+          "resets": 0,
+          "queued": 7,
+          "outstanding": 0,
+          "active": true,
+          "generation": 1
+        },
+        "decoderMailbox": {
+          "requests": 163,
+          "committed": 163,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 364,
+          "completed": 358,
+          "abandoned": 0,
+          "suspensions": 272,
+          "resumes": 266,
+          "maxLive": 8,
+          "timerWakes": 37,
+          "signals": 59,
+          "stackChecks": 1260,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 7,
+          "bytes": 483258,
+          "copies": 7,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.167,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterError": "PlayerError: Video filters and tone mapping require Software. Clear filters before leaving software mode.",
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 189,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 957,
+          "completed": 957,
+          "abandoned": 0,
+          "suspensions": 1181,
+          "resumes": 1181,
+          "maxLive": 8,
+          "timerWakes": 185,
+          "signals": 289,
+          "stackChecks": 4276,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 7,
+          "bytes": 483258,
+          "copies": 7,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "retained": {
+          "received": 115,
+          "presented": 25,
+          "closed": 115,
+          "dropped": 90,
+          "peakFrames": 6,
+          "queued": 0,
+          "held": 0,
+          "pending": 0,
+          "generation": 5
+        },
+        "decoder": {
+          "requests": 697,
+          "committed": 697,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-wavpack",
+      "runtime": "asyncify",
+      "mode": "hybrid",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 2.5147627314814813,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 2.515364583333333,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 2.4277835648148147,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 185,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 4869255,
+            "milliseconds": 32.599999994039536
+          },
+          {
+            "name": "hybrid",
+            "status": "ready",
+            "bytes": 28064838,
+            "milliseconds": 184.69999998807907
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 6.800000011920929
+          }
+        ]
+      },
+      "plan": {
+        "id": "hybrid-private",
+        "mode": "hybrid",
+        "video": "webcodecs",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "browser-webcodecs",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "webcodecs",
+        "decoderBackend": "webcodecs",
+        "runtime": "asyncify",
+        "plan": "hybrid-private",
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "presentation": {
+          "position": 0
+        },
+        "retained": {
+          "received": 2,
+          "presented": 2,
+          "closed": 0,
+          "dropped": 0,
+          "peakFrames": 2,
+          "queued": 1,
+          "held": 1,
+          "pending": 0,
+          "generation": 1
+        },
+        "browserDecoder": {
+          "submitted": 5,
+          "received": 2,
+          "delivered": 2,
+          "closed": 0,
+          "peakFrames": 1,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": true,
+          "generation": 1
+        },
+        "decoderMailbox": {
+          "requests": 19,
+          "committed": 19,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 360,
+          "completed": 354,
+          "abandoned": 0,
+          "suspensions": 128,
+          "resumes": 122,
+          "maxLive": 8,
+          "timerWakes": 37,
+          "signals": 59,
+          "stackChecks": 964,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 656,
+            "unwinds": 128,
+            "rewinds": 122
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 7,
+          "bytes": 483258,
+          "copies": 7,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.167,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterError": "PlayerError: Video filters and tone mapping require Software. Clear filters before leaving software mode.",
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 190,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 956,
+          "completed": 956,
+          "abandoned": 0,
+          "suspensions": 998,
+          "resumes": 998,
+          "maxLive": 8,
+          "timerWakes": 183,
+          "signals": 279,
+          "stackChecks": 3908,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 696,
+            "unwinds": 998,
+            "rewinds": 998
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 7,
+          "bytes": 483258,
+          "copies": 7,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "retained": {
+          "received": 115,
+          "presented": 25,
+          "closed": 115,
+          "dropped": 90,
+          "peakFrames": 6,
+          "queued": 0,
+          "held": 0,
+          "pending": 0,
+          "generation": 5
+        },
+        "decoder": {
+          "requests": 526,
+          "committed": 526,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-float32",
+      "runtime": "jspi",
+      "mode": "software",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.9753993055555555,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.9728356481481482,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 1.0017013888888888,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 138,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 3184939,
+            "milliseconds": 23.900000005960464
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 22362682,
+            "milliseconds": 137.7000000178814
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 8.300000011920929
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "mpv-rgb-canvas"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "jspi",
+        "plan": "software-private",
+        "decodePolicy": {
+          "requested": "exact",
+          "effective": "exact",
+          "codec": "h264",
+          "threads": 1,
+          "skipFrame": "default",
+          "skipLoopFilter": "default",
+          "skipIdct": "default",
+          "lowres": 0,
+          "filmGrain": "default",
+          "adaptiveState": "normal",
+          "shortcuts": [],
+          "ffmpegOptions": {
+            "max_pixels": "8294400"
+          },
+          "reason": "Exact decoded output requested",
+          "requiresDecoderRestart": true
+        },
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "browserDecoder": {
+          "submitted": 0,
+          "received": 0,
+          "delivered": 0,
+          "closed": 0,
+          "peakFrames": 0,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": false,
+          "generation": 0
+        },
+        "decoderMailbox": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 359,
+          "completed": 353,
+          "abandoned": 0,
+          "suspensions": 143,
+          "resumes": 137,
+          "maxLive": 7,
+          "timerWakes": 36,
+          "signals": 63,
+          "stackChecks": 992,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 38,
+          "bytes": 2511099,
+          "copies": 38,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.167,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterMAE": 0.9753993055555555,
+      "filterApplied": true,
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 189,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 745,
+          "completed": 745,
+          "abandoned": 0,
+          "suspensions": 484,
+          "resumes": 484,
+          "maxLive": 7,
+          "timerWakes": 167,
+          "signals": 276,
+          "stackChecks": 2458,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 38,
+          "bytes": 2511099,
+          "copies": 38,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-float32",
+      "runtime": "asyncify",
+      "mode": "software",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.9753993055555555,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.9728356481481482,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 1.0017013888888888,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 217.30000001192093,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 4869255,
+            "milliseconds": 36.60000002384186
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 28064838,
+            "milliseconds": 217
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 11.300000011920929
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "mpv-rgb-canvas"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "asyncify",
+        "plan": "software-private",
+        "decodePolicy": {
+          "requested": "exact",
+          "effective": "exact",
+          "codec": "h264",
+          "threads": 1,
+          "skipFrame": "default",
+          "skipLoopFilter": "default",
+          "skipIdct": "default",
+          "lowres": 0,
+          "filmGrain": "default",
+          "adaptiveState": "normal",
+          "shortcuts": [],
+          "ffmpegOptions": {
+            "max_pixels": "8294400"
+          },
+          "reason": "Exact decoded output requested",
+          "requiresDecoderRestart": true
+        },
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "browserDecoder": {
+          "submitted": 0,
+          "received": 0,
+          "delivered": 0,
+          "closed": 0,
+          "peakFrames": 0,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": false,
+          "generation": 0
+        },
+        "decoderMailbox": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 357,
+          "completed": 351,
+          "abandoned": 0,
+          "suspensions": 141,
+          "resumes": 135,
+          "maxLive": 7,
+          "timerWakes": 34,
+          "signals": 63,
+          "stackChecks": 984,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 656,
+            "unwinds": 141,
+            "rewinds": 135
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 38,
+          "bytes": 2511099,
+          "copies": 38,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.167,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterMAE": 0.9753993055555555,
+      "filterApplied": true,
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 190,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 761,
+          "completed": 761,
+          "abandoned": 0,
+          "suspensions": 490,
+          "resumes": 490,
+          "maxLive": 7,
+          "timerWakes": 174,
+          "signals": 275,
+          "stackChecks": 2502,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 656,
+            "unwinds": 490,
+            "rewinds": 490
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 38,
+          "bytes": 2511099,
+          "copies": 38,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-float32",
+      "runtime": "jspi",
+      "mode": "hybrid",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 2.5147627314814813,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 2.515364583333333,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 2.4277835648148147,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 172.80000001192093,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 3184939,
+            "milliseconds": 30
+          },
+          {
+            "name": "hybrid",
+            "status": "ready",
+            "bytes": 22362682,
+            "milliseconds": 172.59999999403954
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 9.400000005960464
+          }
+        ]
+      },
+      "plan": {
+        "id": "hybrid-private",
+        "mode": "hybrid",
+        "video": "webcodecs",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "browser-webcodecs",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "webcodecs",
+        "decoderBackend": "webcodecs",
+        "runtime": "jspi",
+        "plan": "hybrid-private",
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "presentation": {
+          "position": 0
+        },
+        "retained": {
+          "received": 2,
+          "presented": 2,
+          "closed": 0,
+          "dropped": 0,
+          "peakFrames": 2,
+          "queued": 1,
+          "held": 1,
+          "pending": 0,
+          "generation": 1
+        },
+        "browserDecoder": {
+          "submitted": 5,
+          "received": 2,
+          "delivered": 2,
+          "closed": 0,
+          "peakFrames": 1,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": true,
+          "generation": 1
+        },
+        "decoderMailbox": {
+          "requests": 18,
+          "committed": 18,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 357,
+          "completed": 351,
+          "abandoned": 0,
+          "suspensions": 159,
+          "resumes": 153,
+          "maxLive": 7,
+          "timerWakes": 37,
+          "signals": 60,
+          "stackChecks": 1020,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 38,
+          "bytes": 2511099,
+          "copies": 38,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.167,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterError": "PlayerError: Video filters and tone mapping require Software. Clear filters before leaving software mode.",
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 187,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 961,
+          "completed": 961,
+          "abandoned": 0,
+          "suspensions": 1173,
+          "resumes": 1173,
+          "maxLive": 8,
+          "timerWakes": 184,
+          "signals": 282,
+          "stackChecks": 4268,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 38,
+          "bytes": 2511099,
+          "copies": 38,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "retained": {
+          "received": 115,
+          "presented": 26,
+          "closed": 115,
+          "dropped": 90,
+          "peakFrames": 6,
+          "queued": 0,
+          "held": 0,
+          "pending": 0,
+          "generation": 5
+        },
+        "decoder": {
+          "requests": 666,
+          "committed": 666,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-float32",
+      "runtime": "asyncify",
+      "mode": "hybrid",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 2.5147627314814813,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 2.515364583333333,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 2.4277835648148147,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 235.59999999403954,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 4869255,
+            "milliseconds": 36.79999998211861
+          },
+          {
+            "name": "hybrid",
+            "status": "ready",
+            "bytes": 28064838,
+            "milliseconds": 235.09999999403954
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 15.799999982118607
+          }
+        ]
+      },
+      "plan": {
+        "id": "hybrid-private",
+        "mode": "hybrid",
+        "video": "webcodecs",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "browser-webcodecs",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "webcodecs",
+        "decoderBackend": "webcodecs",
+        "runtime": "asyncify",
+        "plan": "hybrid-private",
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "presentation": {
+          "position": 0
+        },
+        "retained": {
+          "received": 2,
+          "presented": 2,
+          "closed": 0,
+          "dropped": 0,
+          "peakFrames": 2,
+          "queued": 1,
+          "held": 1,
+          "pending": 0,
+          "generation": 1
+        },
+        "browserDecoder": {
+          "submitted": 5,
+          "received": 2,
+          "delivered": 2,
+          "closed": 0,
+          "peakFrames": 1,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": true,
+          "generation": 1
+        },
+        "decoderMailbox": {
+          "requests": 18,
+          "committed": 18,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            21813,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 359,
+          "completed": 353,
+          "abandoned": 0,
+          "suspensions": 159,
+          "resumes": 153,
+          "maxLive": 8,
+          "timerWakes": 37,
+          "signals": 60,
+          "stackChecks": 1024,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 656,
+            "unwinds": 159,
+            "rewinds": 153
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 38,
+          "bytes": 2511099,
+          "copies": 38,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "advanced": 1.167,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterError": "PlayerError: Video filters and tone mapping require Software. Clear filters before leaving software mode.",
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 188,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5813,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 939,
+          "completed": 939,
+          "abandoned": 0,
+          "suspensions": 1018,
+          "resumes": 1018,
+          "maxLive": 8,
+          "timerWakes": 187,
+          "signals": 290,
+          "stackChecks": 3914,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 696,
+            "unwinds": 1018,
+            "rewinds": 1018
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 38,
+          "bytes": 2511099,
+          "copies": 38,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "retained": {
+          "received": 115,
+          "presented": 25,
+          "closed": 115,
+          "dropped": 90,
+          "peakFrames": 6,
+          "queued": 0,
+          "held": 0,
+          "pending": 0,
+          "generation": 5
+        },
+        "decoder": {
+          "requests": 500,
+          "committed": 500,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    }
+  ],
+  "sourceSHA256": {
+    "harness:public-preview-server.mjs": {
+      "sha256": "28e2d30abc8c5a0fd3724bf1d9728c523d9e425ecfb6731ddc6140fa3a79f550"
+    },
+    "harness:public-preview-check.mjs": {
+      "sha256": "4cb247038a6d86ef6a5282023225a1719b09bd0217f97237bb792cd48bbaf92d"
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/index.js": {
+      "sha256": "a4e108bc8bb24b841b43f8dfc7bae5128e541199c0d439dccd15e837bc86b3d2",
+      "bytes": 576
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/unified-player.js": {
+      "sha256": "dd3e9b316faec762ac829e1fa4be7526c4ae9249bec61e9dc8f00589843513b0",
+      "bytes": 180778
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/errors.js": {
+      "sha256": "1fa09786c054404b215e92f6ce28acb7a4ef158799ea611cf04468eebc47452b",
+      "bytes": 3750
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/types.js": {
+      "sha256": "9f71088e2aff63438958d3a0e607bffe9131128e1009bafea8f5405fa74dceb2",
+      "bytes": 406
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/preview/providers.js": {
+      "sha256": "f57fb144f45dbb0e8bad797f5f911e38356724c32b2e9124d809b3a2355ee796",
+      "bytes": 4784
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/preview/controller.js": {
+      "sha256": "48736385eb0e66f419600b16dd33aace3366e613bc80b832a1d8a9dc72bdb330",
+      "bytes": 16295
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/preview/software.js": {
+      "sha256": "86f09db773bd3ab3670e93145a760e4330bfd06cf0e9b91605943e3e0aa798d8",
+      "bytes": 4099
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/presentation.js": {
+      "sha256": "dcf92d9e3d147a894cfa9d696b4057bdaaa3fc6ac324d20b2c3e0fa8f889645f",
+      "bytes": 9403
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/sources.js": {
+      "sha256": "83244a282e54eddd3b55dda7e1b5582abe3dcb317abf958d919b4181933a6827",
+      "bytes": 9881
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/probe-requirements.js": {
+      "sha256": "2f463cc8c3dd7889fa0adc9dd6e61b12be0902113abfb27b5260749b3c967ba0",
+      "bytes": 1839
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/private-playback-admission.js": {
+      "sha256": "145faa96d467c95998d3a1743c69cfbd7471d37b9fc6e0e1e8f2bdf18ccb8c06",
+      "bytes": 6406
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/buffering.js": {
+      "sha256": "6f81659eace40e4aae67240cc4ab790ee8d1203999d85122e92cbe5a0cd55f14",
+      "bytes": 3758
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/playback-statistics.js": {
+      "sha256": "d96ed51f3e2ff00ed2a7f45918ebd88ad25d4b465f3f007146998abec2a0a87f",
+      "bytes": 2133
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/track-policy.js": {
+      "sha256": "0521500291dfb3f8db77dc1d5c9e3b7f8824c49daca45ab1405310e41ac10b65",
+      "bytes": 4869
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/watchdogs.js": {
+      "sha256": "b8b124722d7e2a5aa2805a3c8cad022c21b8d9a8758e78faaebce17817d3dc31",
+      "bytes": 3093
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/plain-vtt.js": {
+      "sha256": "b4ba5323d2d48d12ed92448fbd5e3d34e29c9e8589a460ed12b3063b2b32f59f",
+      "bytes": 1938
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/runtime-capability.js": {
+      "sha256": "33b634d533975c9ed79e3cea5a0f35af90efe1e0ca9c3ca0bf578af52fa0c998",
+      "bytes": 7172
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/media-capabilities.js": {
+      "sha256": "a11c64dec42fad874499dc776333dfbe31a7ccae95a148d5b208fbd21d8ee252",
+      "bytes": 6250
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/browser-media-capability.js": {
+      "sha256": "b044b6c8277009b35a9f4818d41af4b58cd731d60360cbd0cde5c7d9d303c501",
+      "bytes": 7346
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/playback-plans.js": {
+      "sha256": "d828e06f986e304efb414da01d2356adcc5f7823eb922fa01ecb65c51418816f",
+      "bytes": 27303
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/engine-preparation.js": {
+      "sha256": "b022e69e672f9a766c23d5879e0660b21facce7f7856caf9553038a22f22dd43",
+      "bytes": 6287
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/assets.js": {
+      "sha256": "15f5c6d9c845b97e1d61e14e0f4ddf64a58d8761310490bf170de3a2e7bda970",
+      "bytes": 556
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/remux-runtime.js": {
+      "sha256": "8a93338dbb7f438809e6d825f0f1ff9ea59a6fe043ccc3402b900dafb028a8d3",
+      "bytes": 1488
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/tier-policy.js": {
+      "sha256": "43967291e02d09ac2590d2978c7f0732e7f0962c9f3126b1848ab38ef8c5fa73",
+      "bytes": 1376
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/webgpu-codecs.js": {
+      "sha256": "2be99da4bc948c21569679c1e1a6edcf5b33406a857ecedae1454e6a322c2160",
+      "bytes": 615
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/state.js": {
+      "sha256": "deaf23d6b533d47a140cb4e9f9a5dd97db78da584369abdf9988cd5e5b40485b",
+      "bytes": 8540
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/selection.js": {
+      "sha256": "f0ee2919a2f87778b8abf6bdf287ffe5f0f1f88d3a7191c3a170d7df4dd14817",
+      "bytes": 7058
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/backend.js": {
+      "sha256": "1e7e166bdc972e34e0287312c2cb15522441db42965781e600d54e28e39376c3",
+      "bytes": 138
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/preview/pregeneration.js": {
+      "sha256": "2f42b0e26a7aec9db29ea6184ba7501c109da89aa0c4d482e2f0c1ee4bc045f0",
+      "bytes": 4028
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/preview/player-preview.js": {
+      "sha256": "57e35e4c161dec95fbacda30e5514879c820fa4bf230c4384a0567a50e5c8b6f",
+      "bytes": 889
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/wasm-player.js": {
+      "sha256": "652a551de8b74710877776ca70af437b55b4a4134ca2734c515e473e64d832f6",
+      "bytes": 32085
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/browser-evidence-adapters.js": {
+      "sha256": "1e2028752fe712be5635993b5b57be6a5213413f89df20fb3b1447b41e9e92f7",
+      "bytes": 1391
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/runtime-worker.js": {
+      "sha256": "be69b14e4b53c28f8918aa2dab19f918c4e9749a6104a0599f658270f4360e81",
+      "bytes": 2301
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/decode-policy.js": {
+      "sha256": "6f1e045eaa422c6109a797db85c1fb651ca043c9aaa3ee5de3e73ab50b400b7d",
+      "bytes": 4544
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/external-decoder-selection.js": {
+      "sha256": "5d7d239041ce70ef3fe0409b1f5167f88c4dc6accb122eec5a0d3bb2bd174be8",
+      "bytes": 1964
+    },
+    "/Volumes/seed2/Projects/demuxe/fixtures/DejaVuSans.ttf": {
+      "sha256": "7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954",
+      "bytes": 757076
+    },
+    "/Volumes/seed2/Projects/demuxe/web/engine-remux-jspi/remux.wasm": {
+      "sha256": "f5ff86b14d8cd00dc80d3d981ebe599bff5d0c8a0cbb32f1d8d91de013687b9e",
+      "bytes": 3184939
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-05/web/engine-mpv-playback-jspi/player.wasm": {
+      "sha256": "f8b17f3f434d415efda82d2ca4df82555558cebc6a51580e4c75be72a96e80d1",
+      "bytes": 22362682
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/format-fixtures-01/mjpeg-pcm/fixture.avi": {
+      "sha256": "75e3a604458a4934e8ac974f3847072f5276dd31e5f36cee69aa4b2e1d9af040",
+      "bytes": 2946644
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/source-probe.js": {
+      "sha256": "431d41fc9679659148d302513c3da0b5b142287ed02aba70f2fab330caacda35",
+      "bytes": 3948
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/native-remux-source-worker.js": {
+      "sha256": "a2ac3e0351d24574193e1f2eba5327f207e96a17a74b518f274c7c26289c9b7a",
+      "bytes": 3282
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/range-reader.js": {
+      "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe",
+      "bytes": 11897
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/file-reader.js": {
+      "sha256": "d6db3571409a9149df0d28699feb52bb2b694b1c350a6c3c1eae3e3da7e73858",
+      "bytes": 4773
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/native-remux-worker.js": {
+      "sha256": "0d4279aa27826362485502de2f5a0eeb928d9a8c6a8c42e8630388de8efb1493",
+      "bytes": 10164
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/prepared-engine.js": {
+      "sha256": "ea1b9f601687cb26fe8d7aa49884bdcb351af7e1f8346efb08edfcea7e38cf24",
+      "bytes": 318
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/video-codec-config.js": {
+      "sha256": "3ba4ffeda7aa21ad53625d129bad240a7a911dc1635f8f557650e371905a279c",
+      "bytes": 4773
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/remux-packaging.js": {
+      "sha256": "86285f603a8c875fc3c8eac291941d8a88007b8e23ed5b2bd584ad2d794dc433",
+      "bytes": 769
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/hybrid-preflight.js": {
+      "sha256": "6861e4c17a1d7b59772925eab77aaf075cf21708008bf6f1aff2ed1dc13dc524",
+      "bytes": 1618
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/progressive-mp4.js": {
+      "sha256": "e5c10d127144b9705c9024852f0d1701ad299ea12b1672a6b38233cca58dbd04",
+      "bytes": 5046
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-remux.js": {
+      "sha256": "5de328a538e1c8234c7956ea16546f471862e58e11b503ed7067f9d4f30fc323",
+      "bytes": 3655
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-ffmpeg/bridge.js": {
+      "sha256": "5cc6ff530231646b06a1034980c55087456d0f12e9fcb23e86327718ad752b19",
+      "bytes": 3594
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-ffmpeg/single-owner.js": {
+      "sha256": "ece37844d7cff6815cae49f1fe82d32120827a5949c90e94aaf73d1485fd3e33",
+      "bytes": 2307
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-ffmpeg/range-source.js": {
+      "sha256": "efc911a6ebd4f2b7b81572f93c95b0373c262afad5c3675cfd3c64e847839e78",
+      "bytes": 7352
+    },
+    "/Volumes/seed2/Projects/demuxe/web/engine-remux-jspi/remux.mjs": {
+      "sha256": "ea6ffd9339b0fa7a7eb6d2673012971fb67f1b523f27c8d86f704776655f73d7",
+      "bytes": 42486
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-05/web/engine-mpv-playback-jspi/manifest.json": {
+      "sha256": "ab7db8e62d0c127b95dc7ce7b0ffd586f0e6bb28f15788c6d75bb6ccb5ef82e9",
+      "bytes": 14737
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-05/web/engine-mpv-playback-jspi/player.mjs": {
+      "sha256": "f8fce923ccddd50bcf416ecad08f6ae87bd504ca467e06a30e514b0520a8eae1",
+      "bytes": 217523
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/private-software-player.js": {
+      "sha256": "c0bd3a21cdef373000cc3479c156d1b9bef0d33c962b5fd857a6a7190fca80fa",
+      "bytes": 20636
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/audio-worklet.js": {
+      "sha256": "8495c862abf54790c2f8bbdb61c8865ea4ca2a884886def51a19f0163880f67f",
+      "bytes": 4955
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/playback-worker.js": {
+      "sha256": "79a1baafdfb5e11137bb0247f5c22cb974492c58ca55ea746d8b7b8b1dd8ff70",
+      "bytes": 18000
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv.js": {
+      "sha256": "1453e68687a2b996b120bd60ce780ece539ae0dfac9ec66a77c76d28b72c7253",
+      "bytes": 4784
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/playback-host.js": {
+      "sha256": "474c1eae9886f08366e788e647c30631fe4c5f13b997cdf6b406061e64d0d279",
+      "bytes": 8239
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/retained-presentation.js": {
+      "sha256": "4ca600305774bc18bbaedc8245ccd38d4d47bc3c3e4f0206b17f07d3488353c3",
+      "bytes": 3720
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/engine.js": {
+      "sha256": "4a3839957db17196efba295443b7406bf1219016c99cc715cb187d5a5ba6d74f",
+      "bytes": 2689
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/playback-pcm.js": {
+      "sha256": "29226a691f7ded7031da24f9a85e10219fc7c8711ca4d9d79279999343286476",
+      "bytes": 3987
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/retained-video.js": {
+      "sha256": "79d4a2070a1e4dc82f9b3e03d5f88cfd98ff09f25106abadf6770faec1856475",
+      "bytes": 1616
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/subtitle-overlay.js": {
+      "sha256": "7a3299ed925ce5a6cc801a2d33532efd2d7377deb9ed626aa7bc66d45663edcd",
+      "bytes": 2289
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/scheduler.js": {
+      "sha256": "b50bdf45612a7d006d89d841794afb2dea5e9d75f02574db49da6608fc551131",
+      "bytes": 11702
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/range-source.js": {
+      "sha256": "efc911a6ebd4f2b7b81572f93c95b0373c262afad5c3675cfd3c64e847839e78",
+      "bytes": 7352
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/decoder-mailbox.js": {
+      "sha256": "6aa8d6386f3b6909238f275afcca77d12813247860ff2cbf812e8d6a7b0fecd5",
+      "bytes": 5990
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/retained-decoder.js": {
+      "sha256": "8a7f28c4189adaa2e80dbf895c38f7b1986d93156293172bfe49095c46de07ba",
+      "bytes": 6087
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/continuations.js": {
+      "sha256": "bdace5c572bd62eae24d86c28e16c9fc882568a009670f2a11020c8903daf5bd",
+      "bytes": 5399
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/external-video-decoder.js": {
+      "sha256": "dd87763e82c7fb197f45a62b05a97866c44faafe508375369b7e9dc4c0f02a66",
+      "bytes": 2886
+    },
+    "reference:mjpeg-pcm": {
+      "sha256": "2f9c8970eec79d0ca108fabd260a5f274d3df504b107e2e2484be85cec03564f",
+      "bytes": 31104000
+    },
+    "/Volumes/seed2/Projects/demuxe/web/engine-remux-asyncify/remux.wasm": {
+      "sha256": "033a67e7c2fdfb55dba393f8cc08c746118c80f71cac4f338fd1ab45dc2880c0",
+      "bytes": 4869255
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-05/web/engine-mpv-playback-asyncify/player.wasm": {
+      "sha256": "d3f1781257188e192e1275f78df98fceb2db3d93e7018714083110f3afc382fe",
+      "bytes": 28064838
+    },
+    "/Volumes/seed2/Projects/demuxe/web/engine-remux-asyncify/remux.mjs": {
+      "sha256": "106d706c9088947b8379bbda4c96bc53174272caa14ad0140f6b548c1bd1c795",
+      "bytes": 51012
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-05/web/engine-mpv-playback-asyncify/manifest.json": {
+      "sha256": "a8d4e7e81938d5770b79fae44881347af26f875f70a49a24921817403dc9b8d3",
+      "bytes": 14741
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-05/web/engine-mpv-playback-asyncify/player.mjs": {
+      "sha256": "f8fce923ccddd50bcf416ecad08f6ae87bd504ca467e06a30e514b0520a8eae1",
+      "bytes": 217523
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/format-fixtures-01/ffv1-flac/fixture.mkv": {
+      "sha256": "b7662516993ca0fda9339f9fe7fcf47f28f2f264d37561c430b21b7fdfa03ecd",
+      "bytes": 1320018
+    },
+    "reference:ffv1-flac": {
+      "sha256": "ced0aacd786b54726ccfef66c5c948a8ea7f25b5d2db1bba101bea39c9bc2305",
+      "bytes": 31104000
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/format-fixtures-01/msmpeg4-wma/fixture.asf": {
+      "sha256": "8ed6eecef9189141b8c260840ec6e3fb645361f11f859623f7c89a91fd478a66",
+      "bytes": 1050537
+    },
+    "reference:msmpeg4-wma": {
+      "sha256": "0949e802ca444cb6fa230263c0d82324a3ac6fc9e71b1dd673c8755a23428a70",
+      "bytes": 31276800
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/format-fixtures-01/h264-wavpack/fixture.mkv": {
+      "sha256": "7da6ead2b59d48bfac1698c3f06ca4e1fcd4b5b5949ef7111ba4e4da34099517",
+      "bytes": 483258
+    },
+    "reference:h264-wavpack": {
+      "sha256": "2178b2392620886a7fb13745de24a461e53bc1e8c081fc5a072bfcce00bf195e",
+      "bytes": 31104000
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/format-fixtures-01/h264-float32/fixture.mkv": {
+      "sha256": "d62397896390ac68cd08f5f5372d49beeeb7ea7dfa8a7b158c03b26d5993b1ce",
+      "bytes": 2511099
+    },
+    "reference:h264-float32": {
+      "sha256": "2178b2392620886a7fb13745de24a461e53bc1e8c081fc5a072bfcce00bf195e",
+      "bytes": 31104000
+    }
+  },
+  "heldReads": {
+    "started": 0,
+    "active": 0,
+    "aborted": 0
+  },
+  "rangeRequests": [],
+  "faultInjections": [],
+  "passed": true
+}

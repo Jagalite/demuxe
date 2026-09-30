@@ -1,0 +1,94 @@
+--- a/src/zimg/colorspace/operation_impl.cpp
++++ b/src/zimg/colorspace/operation_impl.cpp
+@@ -1,5 +1,9 @@
+ #include <algorithm>
+ #include <cfloat>
++#include <cmath>
++#include <cstdint>
++#include <cstring>
++#include <vector>
+ #include "common/make_unique.h"
+ #include "common/zassert.h"
+ #include "colorspace.h"
+@@ -70,6 +74,59 @@
+ 		}
+ 	}
+ };
++
++// Match the upstream SSE2 gamma LUT on portable Wasm. FFmpeg requests
++// approximate gamma by default; the scalar fallback otherwise evaluates a
++// transcendental function for every component of every output pixel.
++#if defined(__wasm__)
++class ToLinearLutOperationWasm final : public Operation {
++    std::vector<float> m_lut;
++public:
++    ToLinearLutOperationWasm(gamma_func func, float postscale) : m_lut(65537)
++    {
++        for (unsigned i = 0; i <= 65536; ++i)
++            m_lut[i] = func(static_cast<float>(i) / 32768.0f - 0.5f) * postscale;
++    }
++    void process(const float * const *src, float * const *dst, unsigned left, unsigned right) const override
++    {
++        for (unsigned p = 0; p < 3; ++p) {
++            for (unsigned i = left; i < right; ++i) {
++                float x = src[p][i] * 32768.0f + 16384.0f;
++                // SSE2 uses round-to-nearest-even and clamps the LUT index.
++                unsigned index = !std::isfinite(x) || x <= 0.0f ? 0 :
++                    x >= 65536.0f ? 65536 : static_cast<unsigned>(std::nearbyint(x));
++                dst[p][i] = m_lut[index];
++            }
++        }
++    }
++};
++
++class ToGammaLutOperationWasm final : public Operation {
++    std::vector<float> m_lut;
++public:
++    ToGammaLutOperationWasm(gamma_func func, float prescale) : m_lut(65536)
++    {
++        for (uint32_t i = 0; i < 65536; ++i) {
++            uint32_t bits = i << 16;
++            float x;
++            std::memcpy(&x, &bits, sizeof(x));
++            m_lut[i] = func(x * prescale);
++        }
++    }
++    void process(const float * const *src, float * const *dst, unsigned left, unsigned right) const override
++    {
++        for (unsigned p = 0; p < 3; ++p) {
++            for (unsigned i = left; i < right; ++i) {
++                uint32_t bits;
++                std::memcpy(&bits, src[p] + i, sizeof(bits));
++                // Same rounded bfloat16 index and saturation as SSE2.
++                unsigned index = std::min((bits >> 16) + ((bits >> 15) & 1), 65535U);
++                dst[p][i] = m_lut[index];
++            }
++        }
++    }
++};
++#endif
+ 
+ class AribB67OperationC final : public Operation {
+ 	float m_kr;
+@@ -316,6 +373,10 @@
+ #elif defined(ZIMG_ARM)
+ 	ret = create_gamma_operation_arm(transfer, params, cpu);
+ #endif
++#if defined(__wasm__)
++    if (!ret && params.approximate_gamma)
++        ret = ztd::make_unique<ToGammaLutOperationWasm>(transfer.to_gamma, transfer.to_gamma_scale);
++#endif
+ 	if (!ret)
+ 		ret = ztd::make_unique<GammaOperationC>(transfer.to_gamma, transfer.to_gamma_scale, 1.0f);
+ 
+@@ -331,6 +392,10 @@
+ #elif defined(ZIMG_ARM)
+ 	ret = create_inverse_gamma_operation_arm(transfer, params, cpu);
+ #endif
++#if defined(__wasm__)
++    if (!ret && params.approximate_gamma)
++        ret = ztd::make_unique<ToLinearLutOperationWasm>(transfer.to_linear, transfer.to_linear_scale);
++#endif
+ 	if (!ret)
+ 		ret = ztd::make_unique<GammaOperationC>(transfer.to_linear, 1.0f, transfer.to_linear_scale);
+ 
