@@ -93,7 +93,7 @@ the run; each result's `startedAt` is the authoritative execution timestamp.
   Both Firefox public HDR cases also passed. Public admission requires the full profile, both LUT feature markers and the
   zscale/format/tonemap filter closure. Older assets remain rejected. Firefox
   qualification is retained separately; the clean assembled archive remains pending.
-- The full playback heap ceiling is now 512 MiB, matching isolated Software.
+- The cooperative full playback heap ceiling is now 512 MiB.
   The previous 128 MiB build exhausted memory on 4K. New 4K seek pictures passed
   both Software runtimes at a 346,554,368-byte heap. Four public 5 fps continuous
   cases passed; source dimensions remain tied to the installed heap profile.
