@@ -82,7 +82,7 @@ export type PlanFacts={
   automatic:boolean;vf:string;af:string;gain:number;toneMapping:string;hybridAudioFilters:boolean;
   adaptation?:'flac'|'opus';allowLossy:boolean;nativeASS:boolean;externalFormats:string[];
   browserTextTracks:boolean;audioOutput:string;nativeRemux:'auto'|'never'|'always';
-  manifest:boolean;requiresRemux:boolean;isolated:boolean;privateRemux?:boolean;mse:boolean;webCodecs:boolean;webAudio:boolean;
+  manifest:boolean;requiresRemux:boolean;isolated:boolean;privateRemux?:boolean;atomicMpvProviders?:boolean;mse:boolean;webCodecs:boolean;webAudio:boolean;
   nativeSourceRejection?:string;remuxSourceRejection?:string;hybridSourceRejection?:string;webGPUCodecQualified?:boolean;
   shakaSourceRejection?:string;streamingFallbackRejection?:string;
   automaticLossless?:boolean;adaptationSourceQualified?:boolean;adaptationSourceRejection?:string;
@@ -102,10 +102,10 @@ export function planAdmission(f:PlanFacts){
       else if(sourceRejection)reject('SOURCE_UNSUPPORTED',sourceRejection);
       else if(!f.privatePlaybackAssetsAvailable||!f.offscreenCanvas||!f.webAudio)reject('DEPLOYMENT_UNAVAILABLE','Private Software playback assets, OffscreenCanvas and Web Audio are required');
       else if(gain!==(f.gain!==1))reject('PLAN_NOT_REQUESTED','Gain stage does not match the requested presentation');
-      else if(f.manifest||f.browserTextTracks||(!f.privatePlaybackFull&&f.audioOutput!=='stereo')||f.toneMapping!=='off'||(!f.privatePlaybackFull&&(f.externalFormats.length||f.vf||f.af))||f.externalFormats.some(format=>!['ass','ssa','srt','vtt','browser-vtt'].includes(format)))reject('FEATURE_UNSUPPORTED','Requested features are outside the installed private playback profile');
+      else if(f.manifest||f.browserTextTracks||(!f.privatePlaybackFull&&f.audioOutput!=='stereo')||(f.toneMapping!=='off'&&(!f.privatePlaybackFull||plan.mode==='hybrid'))||(!f.privatePlaybackFull&&(f.externalFormats.length||f.vf||f.af))||f.externalFormats.some(format=>!['ass','ssa','srt','vtt','browser-vtt'].includes(format)))reject('FEATURE_UNSUPPORTED','Requested features are outside the installed private playback profile');
       else if(plan.mode==='hybrid'&&effect)reject('FEATURE_UNSUPPORTED',effect);
     }
-    else if(f.privateRemux&&!['native-direct','native-direct-ass','native-direct-ass-gain','native-remux-ass','native-remux-ass-gain','native-flac-gain','native-flac-ass-gain','native-direct-gain','shaka-mse','shaka-mse-gain','native-remux','native-flac','native-flac-ass','native-transcode','native-transcode-ass','native-direct-mpv','native-remux-mpv','native-transcode-mpv','native-video-mpv-audio','native-video-mpv-audio-subtitles'].includes(plan.id))reject('QUALIFICATION_REQUIRED','Private runtime supports qualified finite-file remux, adaptation and subtitle plans');
+    else if(f.privateRemux&&!(f.atomicMpvProviders&&plan.mode!=='native')&&!['native-direct','native-direct-ass','native-direct-ass-gain','native-remux-ass','native-remux-ass-gain','native-flac-gain','native-flac-ass-gain','native-direct-gain','shaka-mse','shaka-mse-gain','native-remux','native-flac','native-flac-ass','native-transcode','native-transcode-ass','native-direct-mpv','native-remux-mpv','native-transcode-mpv','native-video-mpv-audio','native-video-mpv-audio-subtitles'].includes(plan.id))reject('QUALIFICATION_REQUIRED','Private runtime supports qualified finite-file remux, adaptation and subtitle plans');
     else if(effect)reject('FEATURE_UNSUPPORTED',effect);
     else if(gain!==(f.gain!==1))reject('PLAN_NOT_REQUESTED','Gain stage does not match the requested presentation');
     else if(gain&&!f.webAudio)reject('DEPLOYMENT_UNAVAILABLE','Web Audio is unavailable');
@@ -113,7 +113,8 @@ export function planAdmission(f:PlanFacts){
       if(!f.automatic||f.audioPlayback==='worklet'||f.adaptation||f.automaticLossless)reject('PLAN_NOT_REQUESTED','Automatic transcoding is disabled by the audio policy');
       else if(f.transcodeSourceRejection)reject('SOURCE_UNSUPPORTED',f.transcodeSourceRejection);
       else if(!f.isolated&&!f.privateRemux)reject('ISOLATION_REQUIRED','Audio transcoding requires cross-origin isolation');
-      else if(!f.mse||f.nativeRemux==='never')reject('DEPLOYMENT_UNAVAILABLE','Audio transcoding requires permitted MSE');
+      else if(f.nativeRemux==='never')reject('POLICY_PROHIBITS_TRANSFORM','Native preparation is disabled by policy');
+      else if(!f.mse)reject('DEPLOYMENT_UNAVAILABLE','Audio transcoding requires MSE');
       else if(f.audioOutput!=='stereo'||f.gain!==1||f.af)reject('FEATURE_UNSUPPORTED','Requested audio processing requires mpv');
       else if(f.manifest||f.browserTextTracks)reject('QUALIFICATION_REQUIRED','Adapted file audio with browser text tracks or manifests is not qualified');
       else if(!plan.id.endsWith('-mpv')&&ass!==!!f.externalFormats.length)reject('PLAN_NOT_REQUESTED','Subtitle component does not match the requested presentation');
@@ -130,7 +131,8 @@ export function planAdmission(f:PlanFacts){
       else if(plan.id.endsWith('-subtitles')?!f.selectedEmbeddedSubtitle||!f.mpvSubtitles||!f.mpvSubtitleSourceQualified:!!f.selectedEmbeddedSubtitle)reject('QUALIFICATION_REQUIRED',plan.id.endsWith('-subtitles')?'Selected embedded subtitles require an available mpv subtitle service':'Selected embedded subtitles require the combined native plan');
       else if(f.audioOutput!=='stereo')reject('FEATURE_UNSUPPORTED','Selective audio currently requires stereo output');
       else if(!f.isolated&&!f.privateRemux)reject('ISOLATION_REQUIRED','Selective mpv audio requires cross-origin isolation');
-      else if(!f.mse||!f.webAudio||f.nativeRemux==='never')reject('DEPLOYMENT_UNAVAILABLE','Selective audio requires permitted MSE and Web Audio');
+      else if(f.nativeRemux==='never')reject('POLICY_PROHIBITS_TRANSFORM','Native preparation is disabled by policy');
+      else if(!f.mse||!f.webAudio)reject('DEPLOYMENT_UNAVAILABLE','Selective audio requires MSE and Web Audio');
     }
     else if(plan.id==='native-remux-mpv'||plan.id==='native-direct-mpv'){
       if(!f.mpvSubtitles||!f.mpvSubtitleSourceQualified)reject('QUALIFICATION_REQUIRED','mpv subtitle service requires inspected finite file subtitles and available assets');
@@ -139,7 +141,8 @@ export function planAdmission(f:PlanFacts){
       else if(f.externalFormats.length&&(!f.nativeASS||f.externalFormats.some(format=>!['ass','ssa','srt','vtt'].includes(format))))reject('FEATURE_UNSUPPORTED','External subtitle composition requires admitted mpv attachments');
       else if(f.audioOutput!=='stereo')reject('FEATURE_UNSUPPORTED','Explicit PCM layout requires mpv A/V');
       else if(plan.id==='native-direct-mpv'&&(f.nativeRemux==='always'||f.requiresRemux))reject('SOURCE_UNSUPPORTED','Source policy requires controlled remux transport');
-      else if(plan.id==='native-remux-mpv'&&(f.nativeRemux==='never'||!f.mse))reject('DEPLOYMENT_UNAVAILABLE','Native preparation requires permitted MSE');
+      else if(plan.id==='native-remux-mpv'&&f.nativeRemux==='never')reject('POLICY_PROHIBITS_TRANSFORM','Native preparation is disabled by policy');
+      else if(plan.id==='native-remux-mpv'&&!f.mse)reject('DEPLOYMENT_UNAVAILABLE','Native preparation requires MSE');
       else if(f.mpvSubtitleAVRejection||(plan.id==='native-remux-mpv'&&f.remuxSourceRejection))reject('SOURCE_UNSUPPORTED',f.mpvSubtitleAVRejection??f.remuxSourceRejection!);
     }
     else if(plan.id.startsWith('shaka-')){
@@ -166,7 +169,8 @@ export function planAdmission(f:PlanFacts){
       else if(ass&&!f.isolated&&!f.privateRemux)reject('ISOLATION_REQUIRED','mpv subtitles require cross-origin isolation with the pthread runtime');
       else if(prepared&&f.manifest)reject('QUALIFICATION_REQUIRED','File preparation is not qualified for manifest sources');
       else if(prepared&&!f.isolated&&!f.privateRemux)reject('ISOLATION_REQUIRED','Native preparation requires cross-origin isolation');
-      else if(prepared&&(f.nativeRemux==='never'||!f.mse))reject('DEPLOYMENT_UNAVAILABLE','Native preparation requires permitted MSE');
+      else if(prepared&&f.nativeRemux==='never')reject('POLICY_PROHIBITS_TRANSFORM','Native preparation is disabled by policy');
+      else if(prepared&&!f.mse)reject('DEPLOYMENT_UNAVAILABLE','Native preparation requires MSE');
       else if(!prepared&&(f.nativeRemux==='always'||f.requiresRemux))reject('SOURCE_UNSUPPORTED','This source policy requires controlled remux transport');
       else if((flac||opus)&&(f.automatic?(!flac||!f.automaticLossless||f.audioPlayback==='worklet'):f.adaptation!==(flac?'flac':'opus')))reject('QUALIFICATION_REQUIRED','Audio adaptation requires explicit profile or qualified automatic lossless policy');
       else if(opus&&!f.allowLossy)reject('POLICY_PROHIBITS_TRANSFORM','Lossy audio permission is absent');

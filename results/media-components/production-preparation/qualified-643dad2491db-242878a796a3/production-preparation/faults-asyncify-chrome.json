@@ -1,0 +1,180 @@
+{
+  "passed": true,
+  "family": "chrome",
+  "runtime": "asyncify",
+  "setup": {
+    "work": "/Volumes/seed2/Projects/demuxe-media-components/build/codec-preparation/consumer-asyncify-1790727341670",
+    "runtime": "asyncify",
+    "archives": [
+      {
+        "archive": "/Volumes/seed2/Projects/demuxe-media-components/build/media-components/player-core-production-11/demuxe-0.3.0-beta.4.tgz",
+        "archiveSHA256": "2c35eb8ac0cb655102c3fa98bc7b5f4681b9c9cda59d444682c27c01c2b871ca",
+        "files": 108,
+        "qualification": "local-core-package-only; optional providers and release remain separate",
+        "record": "build/media-components/player-core-production-11/build-inventory.json",
+        "recordSHA256": "949b2f8de742aec27e77e4c5aabd6f06afcc7b9f1b135cdb5cdc0928e5bd4f11"
+      },
+      {
+        "archive": "/Volumes/seed2/Projects/demuxe-media-components/build/media-components/provider-ffmpeg-truehd-mlp-asyncify-production-01/demuxe-provider-ffmpeg-truehd-mlp-asyncify-0.3.0-beta.4.tgz",
+        "files": 35,
+        "implementationIdentity": "sha256:061f2efb55eb76ea7efb2ef36defae5508e6252b118e8fbfdc892011d637c2ad",
+        "qualification": "candidate-not-published",
+        "record": "/Volumes/seed2/Projects/demuxe-media-components/build/media-components/provider-ffmpeg-truehd-mlp-asyncify-production-01/build-inventory.json",
+        "recordSHA256": "47b66511e9c2ab4b57c550f516a738875c6e8bb0dabb499f01c6c7b21ce6024a",
+        "sha256": "df232a3c4075dd0edfc301fc7f5c1f3d7b43ecbfd9682b300bc0b4a910d28379"
+      },
+      {
+        "archive": "/Volumes/seed2/Projects/demuxe-media-components/build/media-components/provider-ffmpeg-dts-hd-asyncify-production-01/demuxe-provider-ffmpeg-dts-hd-asyncify-0.3.0-beta.4.tgz",
+        "files": 35,
+        "implementationIdentity": "sha256:cdc7e009b8bc311f867833de30a5373c7596257433571136cfdec046c3b2db5e",
+        "qualification": "candidate-not-published",
+        "record": "/Volumes/seed2/Projects/demuxe-media-components/build/media-components/provider-ffmpeg-dts-hd-asyncify-production-01/build-inventory.json",
+        "recordSHA256": "b47b3cacd999ee1888053008ee2914513771d15442ba5b0f8ba337852c31e467",
+        "sha256": "11c7c752730d3de1b5ff337f4e103b2a9f62e2410858ad099bd7e938cfd392fa"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "fault": "missing",
+      "code": "ASSET_LOAD_FAILED",
+      "message": "PlayerError: Deployed provider asset could not be read (404)",
+      "diagnostics": {
+        "remuxRuntime": {
+          "policy": "asyncify",
+          "runtime": "asyncify",
+          "isolated": true,
+          "jspi": true
+        },
+        "watchdogs": {
+          "nativeProgress": true,
+          "hybridDecoder": true,
+          "decoderOutput": true,
+          "selectiveAudio": true,
+          "nativeProgressTimeoutMs": 10000
+        },
+        "preview": {
+          "requests": 0,
+          "hits": 0,
+          "failures": 0,
+          "cancelled": 0,
+          "sourceId": "initial",
+          "cacheBytes": 0,
+          "cacheEntries": 0,
+          "active": false,
+          "pending": false
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "browser",
+          "control": "hint",
+          "notes": [
+            "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+            "Explicit open performs metadata discovery even with preload none."
+          ]
+        },
+        "mode": "native",
+        "planAdmission": [],
+        "runtimeCapabilities": [],
+        "selection": {
+          "automatic": true,
+          "attempts": [
+            {
+              "mode": "probe",
+              "outcome": "skipped",
+              "reason": "Fast local metadata: 65536 bytes; Matroska alternate tracks need FFmpeg selection"
+            }
+          ]
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 1,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "decodeQuality": "exact",
+        "adaptiveFrameDrop": false
+      }
+    },
+    {
+      "fault": "corrupt",
+      "code": "ASSET_LOAD_FAILED",
+      "message": "PlayerError: Provider asset integrity mismatch",
+      "diagnostics": {
+        "remuxRuntime": {
+          "policy": "asyncify",
+          "runtime": "asyncify",
+          "isolated": true,
+          "jspi": true
+        },
+        "watchdogs": {
+          "nativeProgress": true,
+          "hybridDecoder": true,
+          "decoderOutput": true,
+          "selectiveAudio": true,
+          "nativeProgressTimeoutMs": 10000
+        },
+        "preview": {
+          "requests": 0,
+          "hits": 0,
+          "failures": 0,
+          "cancelled": 0,
+          "sourceId": "initial",
+          "cacheBytes": 0,
+          "cacheEntries": 0,
+          "active": false,
+          "pending": false
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "browser",
+          "control": "hint",
+          "notes": [
+            "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+            "Explicit open performs metadata discovery even with preload none."
+          ]
+        },
+        "mode": "native",
+        "planAdmission": [],
+        "runtimeCapabilities": [],
+        "selection": {
+          "automatic": true,
+          "attempts": [
+            {
+              "mode": "probe",
+              "outcome": "skipped",
+              "reason": "Fast local metadata: 65536 bytes; Matroska alternate tracks need FFmpeg selection"
+            }
+          ]
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 1,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "decodeQuality": "exact",
+        "adaptiveFrameDrop": false
+      }
+    }
+  ],
+  "browser": "153.0.8010.53",
+  "cleanup": {
+    "trackedProcessIDs": [
+      79760,
+      79768,
+      79769,
+      79772
+    ],
+    "remainingProcessIDs": [],
+    "playwrightCloseAcknowledged": true
+  }
+}

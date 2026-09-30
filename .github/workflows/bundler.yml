@@ -1,0 +1,79 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Provider bundle loader
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      native_tag:
+        description: Release containing the native bundle CI inventory and its pinned artifacts
+        type: string
+      inventory_sha256:
+        description: SHA256 of bundle-ci-inventory.json
+        type: string
+permissions:
+  contents: read
+jobs:
+  loader:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, firefox]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: mkdir -p build/bundle-flexibility
+      - run: node --test tests/bundler.mjs tests/bundle-evidence.mjs tests/bundler-elements.mjs
+      - run: node tests/bundler-browser.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bundle-loader-${{ matrix.browser }}
+          path: build/bundle-flexibility/browser-*/report.json
+  native:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, firefox]
+        delivery: [assets, embedded]
+    env:
+      NATIVE_TAG: ${{ inputs.native_tag || vars.BUNDLE_NATIVE_TAG }}
+      BUNDLE_INVENTORY_SHA256: ${{ inputs.inventory_sha256 || vars.BUNDLE_NATIVE_INVENTORY_SHA256 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Require pinned native inputs
+        run: test -n "$NATIVE_TAG" && test -n "$BUNDLE_INVENTORY_SHA256"
+      - name: Download native packages and fixtures
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p build/bundle-ci-inputs
+          gh release download "$NATIVE_TAG" --repo "$GITHUB_REPOSITORY" --dir build/bundle-ci-inputs
+      - run: node scripts/prepare-bundle-ci.mjs
+      - name: Exercise FFmpeg, Hybrid and atomic mpv
+        env:
+          BROWSER: ${{ matrix.browser }}
+          BUNDLE_OUTPUT: build/bundle-flexibility/ci-${{ matrix.delivery }}
+        run: |
+          export BUNDLE_CASES="$(cat build/bundle-flexibility/ci-cases.json)"
+          node tests/bundle-playback.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-bundle-${{ matrix.browser }}-${{ matrix.delivery }}
+          path: |
+            build/bundle-flexibility/ci-*/bundle-manifest.json
+            build/bundle-flexibility/ci-*/playback-*.json

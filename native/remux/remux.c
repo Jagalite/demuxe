@@ -524,7 +524,9 @@ static int prepare_tail_seek(double target){
    if(prefetched>=256||bytes+q->size>2*1024*1024){av_packet_free(&q);return reject("Tail audio preroll retention budget exceeded");}
    bytes+=q->size;if(pts>tail_audio_max)tail_audio_max=pts;prefetch[prefetched++]=q;continue;
   }
-  av_packet_free(&q);if(pts>end+.5)break;
+  // Other tracks can run ahead in demux order. Stop only after packets from
+  // the completed track establish its declared end.
+  av_packet_free(&q);if(pts>end+.5&&covered>=end-.002)break;
  }
  if(!prefetched||covered<end-.002)return reject("Completed-track preroll does not establish declared end");
  int continuing=tail_short==video?audio:video;

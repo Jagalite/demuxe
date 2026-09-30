@@ -6,9 +6,9 @@ import {WorkerRemuxController,workerMSEAvailable} from './worker-remux-controlle
 const byteLength=value=>Array.isArray(value)?value.reduce((n,b)=>n+b.byteLength,0):value?.byteLength||0;
 export function windowedBrowserSupported(ua=globalThis.navigator?.userAgent??''){return /Chrome\//.test(ua)&&!/Firefox|Edg\/|OPR\/|Android|Mobile/.test(ua);}
 export class RemuxPlayer {
- constructor(video,{bufferedSeeks=false,audioAdaptation,buffering,mseOwner='auto',fragmentDelivery='separate',runtime='pthread',attachMedia}={}){
-  if(runtime==='pthread'&&globalThis.crossOriginIsolated&&mseOwner!=='window'&&!audioAdaptation&&workerMSEAvailable())return new WorkerRemuxController(video,{bufferedSeeks,audioAdaptation,buffering,fragmentDelivery},()=>new RemuxPlayer(video,{bufferedSeeks,audioAdaptation,buffering,mseOwner:'window',fragmentDelivery}));
-  this.runtime=runtime;this.attachMedia=attachMedia;this.fragmentDelivery=fragmentDelivery;
+ constructor(video,{bufferedSeeks=false,audioAdaptation,buffering,mseOwner='auto',fragmentDelivery='separate',runtime='pthread',compiledWasm,attachMedia}={}){
+  if(runtime==='pthread'&&globalThis.crossOriginIsolated&&mseOwner!=='window'&&!audioAdaptation&&workerMSEAvailable())return new WorkerRemuxController(video,{compiledWasm,bufferedSeeks,audioAdaptation,buffering,fragmentDelivery},()=>new RemuxPlayer(video,{compiledWasm,bufferedSeeks,audioAdaptation,buffering,mseOwner:'window',fragmentDelivery}));
+  this.runtime=runtime;this.compiledWasm=compiledWasm;this.attachMedia=attachMedia;this.fragmentDelivery=fragmentDelivery;
   this.buffering=buffering;
   this.audioAdaptation=audioAdaptation;
   this.bufferedSeeks=bufferedSeeks&&typeof video.requestVideoFrameCallback==='function';
@@ -117,7 +117,7 @@ export class RemuxPlayer {
     this.pending=data.buffers??[data.buffer];this.eof=!data.more;this.busy=this.pendingUpdates.size>0||this.sbs.some(s=>s.updating);this.stats.peakQueueDepth=Math.max(this.stats.peakQueueDepth,1);this.pump();
    }
   };
-  this.worker.postMessage({type:'init',runtime:this.runtime,port:this.sourcePort,fragmentDelivery:this.fragmentDelivery,mailbox:this.mailbox,size:ready.size,target,audioAdaptation:this.audioAdaptation,videoTrack:this.source.videoTrack,audioTrack:this.source.videoOnly?-2:this.source.audioTrack},this.sourcePort?[this.sourcePort]:[]);this.sourcePort=null;
+  this.worker.postMessage({type:'init',compiledWasm:this.compiledWasm,runtime:this.runtime,port:this.sourcePort,fragmentDelivery:this.fragmentDelivery,mailbox:this.mailbox,size:ready.size,target,audioAdaptation:this.audioAdaptation,videoTrack:this.source.videoTrack,audioTrack:this.source.videoOnly?-2:this.source.audioTrack},this.sourcePort?[this.sourcePort]:[]);this.sourcePort=null;
   await new Promise((resolve,reject)=>{
    const deadline=performance.now()+20000;const check=()=>{
     if(generation!==this.generation){reject(new DOMException('Superseded','AbortError'));return;}

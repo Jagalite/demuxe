@@ -13,7 +13,7 @@ try{
  browser=await(family==='firefox'?firefox:chromium).launch({headless:true,...(family==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{})});
  const page=await browser.newPage({viewport:{width:1200,height:1000},reducedMotion:'reduce'});
  const errors=[];page.on('pageerror',error=>errors.push(String(error)));
- const check=async(name,fn)=>{try{await fn();checks.push({name,passed:true});console.log('PASS',name);}catch(error){checks.push({name,passed:false,error:String(error.stack)});throw error;}finally{await writeFile(`${out}/result.json`,JSON.stringify({browser:browser.version(),checks},null,2));}};
+ const check=async(name,fn)=>{try{await fn();checks.push({name,passed:true});console.log('PASS',name);}catch(error){const diagnostic=await page.evaluate(()=>({host:document.querySelector('#viewer')?.outerHTML,shadow:document.querySelector('#viewer')?.shadowRoot?.innerHTML})).catch(()=>null);await page.screenshot({path:`${out}/failure.png`}).catch(()=>{});checks.push({name,passed:false,error:String(error.stack),pageErrors:[...errors],diagnostic});throw error;}finally{await writeFile(`${out}/result.json`,JSON.stringify({browser:browser.version(),checks},null,2));}};
  await page.goto(origin+'/examples/player-presentation.html');
  await page.evaluate(async()=>{window.viewer=document.querySelector('demuxe-player');window.core=await viewer.ready;window.$=id=>viewer.shadowRoot.getElementById(id);});
  await check('independent defaults, validation and pre-upgrade attributes',async()=>{

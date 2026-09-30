@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import type { ProviderRuntimeAssets } from './provider-runtime.js';
 import type { BufferingPolicy, BufferingResolution } from '../types.js';
 import type { AudioOutput, FontAsset, ResourceLimits, SubtitleAsset, MediaInputOptions, StreamingOptions } from '../types.js';
 import type { ExternalDecodeIntent } from './external-decoder-selection.js';
@@ -79,6 +80,7 @@ export declare class WasmPlayer extends EventTarget {
     private analyser?;
     private gainNode?;
     private gainValue;
+    private volumeValue;
     private timing?;
     private lastTiming?;
     private watchdogs;
@@ -107,7 +109,8 @@ export declare class WasmPlayer extends EventTarget {
     browserCodecsAbsent: boolean;
     properties: Map<string, unknown>;
     readonly ready: Promise<void>;
-    constructor(canvas: HTMLCanvasElement, { prepared, buffering, disableBrowserCodecs, measureOutput, mode, softwarePresenter, audioOutput, audioFallback, resourceLimits, fonts, assetBase, decodeQuality, adaptiveFrameDrop, videoTrack, webgpuDecodeIntent }?: {
+    constructor(canvas: HTMLCanvasElement, { providerAssets, prepared, buffering, disableBrowserCodecs, measureOutput, mode, softwarePresenter, audioOutput, audioFallback, resourceLimits, fonts, assetBase, decodeQuality, adaptiveFrameDrop, videoTrack, webgpuDecodeIntent }?: {
+        providerAssets?: ProviderRuntimeAssets;
         prepared?: {
             module?: WebAssembly.Module;
             font?: ArrayBuffer;

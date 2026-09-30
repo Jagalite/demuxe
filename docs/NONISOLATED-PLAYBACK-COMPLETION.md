@@ -85,14 +85,14 @@ the run; each result's `startedAt` is the authoritative execution timestamp.
 
 ## Current remaining blockers
 
-- HDR seek pictures match the host reference, but the original continuous PQ
-  pipeline fails cadence/A/V checks. Controlled filter isolation points to the
-  linear-to-SDR conversion. A private zimg candidate ports upstream's approximate
-  gamma LUT to Wasm; five transfer functions passed 1,310,725 numeric samples
-  against the exact scalar functions, with exact mode unchanged. Its browser continuous checks improved to 82–83 of 180 pictures but still
-  failed. Combining zscale stages also failed. A second candidate adds the
-  upstream inverse-transfer lookup table; dense numerical checks pass, and its
-  dependency build is running. Public tone mapping remains blocked.
+- HDR-to-SDR now passes PQ and HLG cadence, consumed PCM and independent RGB
+  reference checks with both LUT implementations. PQ presented 179/180 and
+  180/180 pictures, and HLG 180/180 in both runtimes, with exact compared PCM
+  and maximum observed A/V error below 7 ms. All four Chromium public Player
+  cases also passed seeks, filtering, controls, replacement and cleanup.
+  Both Firefox public HDR cases also passed. Public admission requires the full profile, both LUT feature markers and the
+  zscale/format/tonemap filter closure. Older assets remain rejected. Firefox
+  qualification is retained separately; the clean assembled archive remains pending.
 - The full playback heap ceiling is now 512 MiB, matching isolated Software.
   The previous 128 MiB build exhausted memory on 4K. New 4K seek pictures passed
   both Software runtimes at a 346,554,368-byte heap. Four public 5 fps continuous
@@ -172,3 +172,35 @@ Malformed private-playback JSON/schema manifests now fail as `ASSET_LOAD_FAILED`
 Automatic Native playback now advertises the available full Software filter switch. Both runtime cases pass Native → filtered Software → Native with worker cleanup in `20260930T181309Z-native-filter-capability-02`. The first harness asserted immediate promotion, before the existing 200 ms scheduled promotion; that rejected assertion remains in `20260930T181136Z-native-filter-capability-01`. The production promotion policy was not changed.
 
 The new isolated pthread regression reproduced the EOF/track-switch failure against the pre-patch main assets (`20260930T181838Z-isolated-baseline-01`): the first track passed first-picture/reference, audio, timeline and EOF checks, but selecting the second track and seeking to zero failed to present the requested position. The rebuilt patched engines must pass this same test before closeout.
+
+## Main integration and Firefox follow-up
+
+The feature is being integrated with main `954729d7` in the owned internal-SSD
+worktree `codex/nonisolated-production-20260930`; the original feature worktree
+will be advanced after qualification. Provider recipes retain finite plan
+ownership and separate cooperative runtime identities. Existing modular
+pthread preparation remains available when only its inspector uses Asyncify.
+No optional provider metadata self-qualifies the new engines.
+
+The fresh Firefox 146.0.1 checkpoint passed five Software codec cases and four
+Hybrid cases. Forced Hybrid HEVC retained an unsupported WebCodecs result;
+the same source passed Software. A separate public check passed the specific
+Hybrid configuration error, changing to Software, playback and cleanup. The
+original mixed-result run remains retained. Public rejection now reports the
+selected cooperative plan's reason rather than an unrelated pthread plan.
+
+The integrated source passes TypeScript, 89 focused routing/provider/admission/
+preparation tests, seven release guards, and license/core-boundary checks.
+The clean native build started with verified locked archives and Emscripten
+4.0.14 in a fresh internal-SSD build directory. Isolated regression and exact
+binary/source archive checks are still pending; this is not release readiness.
+
+New integration evidence:
+
+- `20260930T184505Z-firefox-public-checkpoint-05`
+- `20260930T185224Z-firefox-hybrid-rejection-01`
+- `20260930T184721Z-hdr-inverse-continuous-01`
+- `20260930T184958Z-hdr-inverse-continuous-02`
+- `20260930T185104Z-hdr-inverse-rgb-01`
+- `20260930T185330Z-hdr-public-01`
+- `20260930T185446Z-firefox-hdr-public-01`

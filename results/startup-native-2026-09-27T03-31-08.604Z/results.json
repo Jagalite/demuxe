@@ -1,0 +1,208 @@
+[
+  {
+    "browser": "chromium",
+    "trace": [
+      {
+        "phase": "reading",
+        "at": 60.29500000178814
+      },
+      {
+        "phase": "inspecting",
+        "at": 74.17499999701977
+      },
+      {
+        "name": "wait",
+        "event": "loadeddata",
+        "at": 79.5700000077486,
+        "ms": 384.98499999940395
+      },
+      {
+        "name": "openServices",
+        "at": 464.6050000041723,
+        "ms": 0.07500000298023224
+      },
+      {
+        "name": "open",
+        "at": 79.33500000834465,
+        "ms": 385.3449999988079
+      },
+      {
+        "name": "verifyStartup",
+        "at": 465.0349999964237,
+        "ms": 0.32999999821186066
+      },
+      {
+        "name": "replace",
+        "at": 76.76000000536442,
+        "ms": 390.5300000011921
+      },
+      {
+        "name": "open",
+        "at": 25.355000004172325,
+        "ms": 442.25999999046326
+      }
+    ],
+    "plan": {
+      "id": "native-direct",
+      "mode": "native",
+      "video": "browser",
+      "audio": "original",
+      "qualification": "existing",
+      "owners": {
+        "video": "browser-media-element",
+        "audio": "browser-media-element",
+        "subtitle": "browser-text-track",
+        "demux": "browser",
+        "presentation": "browser-media-element"
+      },
+      "source": "browser-supported source and selected tracks",
+      "prerequisites": "HTMLMediaElement",
+      "subtitles": "browser text tracks",
+      "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+      "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+      "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+    },
+    "attempts": [
+      {
+        "mode": "probe",
+        "outcome": "selected",
+        "reason": "Fast local metadata: 65536 bytes; routing admission pending"
+      },
+      {
+        "mode": "probe",
+        "outcome": "selected",
+        "reason": "Fast Inspector admitted native-direct without remux inspector Wasm"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-direct-mpv: mpv subtitle service requires inspected finite file subtitles and available assets"
+      },
+      {
+        "mode": "native",
+        "outcome": "selected",
+        "reason": "native-direct: Playback requirements and actual startup accepted"
+      }
+    ]
+  },
+  {
+    "browser": "firefox",
+    "trace": [
+      {
+        "phase": "reading",
+        "at": 31.6400000000001
+      },
+      {
+        "phase": "inspecting",
+        "at": 32.1400000000001
+      },
+      {
+        "name": "wait",
+        "event": "loadeddata",
+        "at": 55.27999999999997,
+        "ms": 1503.82,
+        "error": "NativeLoadTimeout: Native loadeddata timed out"
+      },
+      {
+        "name": "open",
+        "at": 55.180000000000064,
+        "ms": 1504.0199999999998,
+        "error": "NativeLoadTimeout: Native loadeddata timed out"
+      },
+      {
+        "name": "replace",
+        "at": 40.22000000000003,
+        "ms": 1520.4199999999998,
+        "error": "NativeLoadTimeout: Native loadeddata timed out"
+      },
+      {
+        "name": "wait",
+        "event": "seeked",
+        "at": 2346.56,
+        "ms": 58.19999999999982
+      },
+      {
+        "name": "startRemux",
+        "at": 1563.58,
+        "ms": 841.2400000000002
+      },
+      {
+        "name": "openServices",
+        "at": 2404.8399999999997,
+        "ms": 0
+      },
+      {
+        "name": "open",
+        "at": 1563.52,
+        "ms": 841.3400000000001
+      },
+      {
+        "name": "verifyStartup",
+        "at": 2405.0000000000005,
+        "ms": 0.07999999999992724
+      },
+      {
+        "name": "replace",
+        "at": 1561,
+        "ms": 846.1200000000003
+      },
+      {
+        "name": "open",
+        "at": 26.779999999999973,
+        "ms": 2380.84
+      }
+    ],
+    "plan": {
+      "id": "native-remux",
+      "mode": "native",
+      "video": "packet-copy",
+      "audio": "packet-copy",
+      "qualification": "existing",
+      "owners": {
+        "video": "browser-media-element",
+        "audio": "browser-media-element",
+        "subtitle": "browser-text-track",
+        "demux": "ffmpeg-preparation",
+        "presentation": "browser-media-element"
+      },
+      "source": "qualified random-access file and selected codec packaging",
+      "prerequisites": "MSE, qualified MIME; cross-origin isolation",
+      "subtitles": "browser text tracks",
+      "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+      "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+      "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+    },
+    "attempts": [
+      {
+        "mode": "probe",
+        "outcome": "selected",
+        "reason": "Fast local metadata: 65536 bytes; routing admission pending"
+      },
+      {
+        "mode": "probe",
+        "outcome": "selected",
+        "reason": "Fast Inspector admitted native-direct without remux inspector Wasm"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-direct-mpv: mpv subtitle service requires inspected finite file subtitles and available assets"
+      },
+      {
+        "mode": "native",
+        "outcome": "failed",
+        "reason": "native-direct: NativeLoadTimeout: Native loadeddata timed out"
+      },
+      {
+        "mode": "native",
+        "outcome": "skipped",
+        "reason": "native-remux-mpv: mpv subtitle service requires inspected finite file subtitles and available assets"
+      },
+      {
+        "mode": "native",
+        "outcome": "selected",
+        "reason": "native-remux: Playback requirements and actual startup accepted"
+      }
+    ]
+  }
+]

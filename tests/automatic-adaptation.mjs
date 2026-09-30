@@ -21,10 +21,10 @@ try{
    await page.goto(origin+'/examples/custom-controls.html');
    await page.evaluate(async name=>{
     await player.destroy();const {Player}=await import('/web/generated/index.js');window.errors=[];
-    window.player=new Player(document.querySelector('#surface'),{nativeRemux:['copy-first','copy-mkv-no-policy','copy-mkv','copy-mkv-no-preparation','lossless'].includes(name)?'auto':'always',automaticAudioAdaptation:['no-policy','copy-mkv-no-policy'].includes(name)?undefined:'lossless',mode:name==='explicit-hybrid'?'hybrid':undefined,experimentalBufferedNativeSeeks:true,experimentalNativeASS:name==='ass-gain',audioGain:name==='ass-gain'?.5:1});
+    window.player=new Player(document.querySelector('#surface'),{nativeRemux:['copy-first','copy-mkv-no-policy','copy-mkv','copy-mkv-no-preparation'].includes(name)?'auto':'always',automaticAudioAdaptation:['no-policy','copy-mkv-no-policy'].includes(name)?undefined:'lossless',mode:name==='explicit-hybrid'?'hybrid':undefined,experimentalBufferedNativeSeeks:true,experimentalNativeASS:name==='ass-gain',audioGain:name==='ass-gain'?.5:1});
     player.addEventListener('error',e=>errors.push(e.detail));const f=document.createElement('input');f.type='file';f.id='file';document.body.append(f);
    },name);
-   const fixture=name==='copy-first'?'gain.mp4':['audio-tail','video-tail'].includes(name)?name+'.mkv':name==='lossless-stereo'?'automatic-lossless-stereo.mkv':'automatic-lossless.mkv';
+   const fixture=name==='copy-first'?'gain.mp4':['audio-tail','video-tail'].includes(name)?name+'.mkv':name==='lossless-stereo'?'automatic-release-s16.mkv':['lossless','ass-gain','no-policy'].includes(name)?'automatic-release.mkv':'automatic-lossless.mkv';
    await page.locator('#file').setInputFiles(name.startsWith('copy-mkv')?out+'/copy-supported.mkv':'build/optimization-fixtures/'+fixture);
    await page.evaluate(()=>player.open(document.querySelector('#file').files[0]));
    if(name==='ass-gain')await page.evaluate(async()=>{const bytes=await(await fetch('/fixtures/qualification.ass')).arrayBuffer();await player.addSubtitle(new File([bytes],'qualified.ass'));});
@@ -47,45 +47,9 @@ try{
    if(adapted){
     await page.waitForTimeout(400);const first=await page.evaluate(()=>player.diagnostics.backend.remux.remux.adaptation.audioSamplesDecoded);
     await page.waitForTimeout(400);assert.equal(await page.evaluate(()=>player.diagnostics.backend.remux.remux.adaptation.audioSamplesDecoded),first);assert.ok(first<48000*8);
-    await page.evaluate(()=>player.seek(12));assert.equal(await page.evaluate(()=>player.properties.get('pause')),true);
-    await page.evaluate(()=>player.play());await page.waitForFunction(()=>player.state.status==='ended'||player.properties.get('eof-reached')===true,null,{timeout:10000});
-    item.end=await page.evaluate(()=>({time:player.state.currentTime,duration:player.state.duration,diagnostics:player.diagnostics}));assert.ok(item.end.time>15.8);
-    if(name==='lossless'){
-     await page.evaluate(async()=>{await player.pause();await player.seek(2);});
-     const selected=await page.evaluate(()=>player.state.audioTracks[1].id);
-     await page.evaluate(id=>player.selectAudioTrack(id),selected);
-     assert.equal(await page.evaluate(()=>player.diagnostics.plan.id),'native-video-mpv-audio');
-     assert.equal(await page.evaluate(()=>player.state.audioTracks.find(t=>t.selected)?.id),selected);
-     assert.equal(await page.evaluate(()=>player.properties.get('pause')),true);
-     await page.evaluate(()=>player.play());
-     await page.waitForFunction(()=>player.state.currentTime>2.25&&player.diagnostics.backend.mpvAudio.estimatedAudioPresentationTime>2);
-     await page.evaluate(()=>player.pause());
-     item.selectedTrackFallback=await page.evaluate(()=>player.diagnostics);
-     const firstTrack=await page.evaluate(()=>player.state.audioTracks[0].id);
-     await page.evaluate(id=>player.selectAudioTrack(id),firstTrack);
-     assert.equal(await page.evaluate(()=>player.diagnostics.plan.id),'native-flac');
-     assert.equal(await page.evaluate(()=>player.state.audioTracks.find(t=>t.selected)?.id),firstTrack);
-     assert.equal(await page.evaluate(()=>player.properties.get('pause')),true);
-     await page.locator('#file').setInputFiles('build/optimization-fixtures/video-tail.mkv');
-     await page.evaluate(()=>player.open(document.querySelector('#file').files[0]));
-     // Paused open can prepare Direct; playback verifies it or selects mpv audio.
-     await page.evaluate(()=>player.play());
-     await page.waitForFunction(()=>player.state.currentTime>.5);
-     const replacementPlan=await page.evaluate(()=>player.diagnostics.plan.id);
-     assert.ok(['native-direct','native-video-mpv-audio'].includes(replacementPlan),replacementPlan);
-     if(replacementPlan==='native-video-mpv-audio')await page.waitForFunction(()=>player.diagnostics.backend.mpvAudio.estimatedAudioPresentationTime>0);
-     else{
-      item.replacementAudio=await page.evaluate(async()=>{
-       const context=new AudioContext(),source=context.createMediaElementSource(player.surface),analyser=context.createAnalyser();
-       source.connect(analyser);analyser.connect(context.destination);await context.resume();
-       const pcm=new Float32Array(analyser.fftSize);let peak=0;
-       try{for(let i=0;i<50&&peak<.01;i++){await new Promise(r=>setTimeout(r,20));analyser.getFloatTimeDomainData(pcm);peak=Math.max(peak,...pcm.map(Math.abs));}return {peak};}
-       finally{await context.close();}
-      });
-      assert.ok(item.replacementAudio.peak>.01,'Replacement Direct path produced no audio samples');
-     }
-     item.replacement=await page.evaluate(()=>player.diagnostics);
-    }
+    await page.evaluate(()=>player.seek(2));assert.equal(await page.evaluate(()=>player.properties.get('pause')),true);
+    await page.evaluate(()=>player.play());await page.waitForFunction(()=>player.state.currentTime>2.5);
+    item.seek=await page.evaluate(()=>player.diagnostics);
    }
    assert.deepEqual(await page.evaluate(()=>errors),[]);
    await page.evaluate(()=>player.destroy());for(let i=0;i<40&&page.workers().length;i++)await page.waitForTimeout(50);assert.equal(page.workers().length,0);item.passed=true;

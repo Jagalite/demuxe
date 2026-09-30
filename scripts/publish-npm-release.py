@@ -131,10 +131,10 @@ def stage(archive, version):
         return
     # OIDC permits stage publish, not stage list/view/approve. A pending-stage
     # conflict must fail for a maintainer to inspect; never fall back to publish.
-    subprocess.run(['npm', 'stage', 'publish', str(archive.resolve()), '--tag', 'beta',
+    subprocess.run(['npm', 'stage', 'publish', str(archive.resolve()), '--tag', 'latest',
                     '--access', 'public', '--ignore-scripts', '--provenance',
                     '--registry', REGISTRY], check=True)
-    print(f'Staged demuxe@{version} for beta; awaiting maintainer approval with 2FA '
+    print(f'Staged demuxe@{version} for latest; awaiting maintainer approval with 2FA '
           'in npm Staged Packages. This version is not publicly available yet.')
 
 

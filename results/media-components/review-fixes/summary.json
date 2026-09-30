@@ -1,0 +1,67 @@
+{
+  "passed": true,
+  "scope": "Three review regressions and affected installed core/container execution; no broadened codec or routing qualification",
+  "fixes": [
+    "Retain startup, memory and throughput exclusions across runtime-absence retries",
+    "Reject display width/height metadata without assuming DisplayUnit is present",
+    "Convert deployment preload failures into existing per-asset reports; constructor preparation and destroy do not emit unhandled rejections"
+  ],
+  "unitTests": 52,
+  "browserEvidence": [
+    {
+      "path": "results/media-components/review-fixes/component-installed-chrome.json",
+      "sha256": "fb9ade8639724d1f0caee9530612fb7d1733d51ada6d47d38c582d221b4ac567",
+      "cases": 15,
+      "passed": true
+    },
+    {
+      "path": "results/media-components/review-fixes/component-installed-firefox.json",
+      "sha256": "7277f8a91b03fad0884b4f6426885860be15a98973cd4939be3b64efb9d579a1",
+      "cases": 15,
+      "passed": true
+    },
+    {
+      "path": "results/media-components/review-fixes/provider-completion-chrome.json",
+      "sha256": "89e170145265ddea841ca2b10ded7e8eed59b313456746737aa2f3bb885b599d",
+      "cases": 19,
+      "passed": true
+    },
+    {
+      "path": "results/media-components/review-fixes/provider-completion-firefox.json",
+      "sha256": "63a009039cd82733f5a331f36ec64d767ac14af9bdfee64bd958c532d012afde",
+      "cases": 19,
+      "passed": true
+    }
+  ],
+  "hostRemuxDecodedOutput": "Existing AVC/AAC output remains exact",
+  "testSources": {
+    "tests/component-selection.mjs": "0c069f10cf81fdc2a772b6442e9597e01e483532161b35832fac7f9a56521b5b",
+    "tests/provider-container-metadata.mjs": "3096815e6fcb18f4eb9a2daaedb0408ca8261f3f08e0c5e80f50bc6affc51022",
+    "tests/provider-deployment-browser.mjs": "2c44c307ebac8c6fd6e9531dd0e886ae2a3ad6ae90be22fa8e2510b375a09cd4",
+    "tests/component-installed.mjs": "fb35649c65716357eb592f76fb7dfa8ac60e4199182f3a8eab6851244808c12c",
+    "tests/provider-ts-remux.mjs": "cb68f07f15e0596b56766ed30deab9f2c5f143d3f0f219f5ec54693785991e3f"
+  },
+  "core": {
+    "archive": "build/media-components/player-core-review-fixes/demuxe-0.3.0-beta.4.tgz",
+    "archiveSHA256": "3a900313b562ccc8059ded2a520cde8802b46329c9be4fae382870a6115696f9",
+    "files": 99,
+    "qualification": "local-core-package-only; optional providers and release remain separate",
+    "record": "build/media-components/player-core-review-fixes/build-inventory.json",
+    "recordSHA256": "e14c739c6512686b509155ae452ea63ed2c3a799d469afe1a31b82431c729207"
+  },
+  "container": {
+    "archive": "/Volumes/seed2/Projects/demuxe-media-components/build/media-components/provider-container-review-fixes/demuxe-provider-container-0.3.0-beta.4.tgz",
+    "files": 13,
+    "implementationIdentity": "sha256:d5817d7b90dc924a7720f29b7754ad31d30708a99e13c7681f0791432ed4f41e",
+    "qualification": "candidate-not-published",
+    "record": "/Volumes/seed2/Projects/demuxe-media-components/build/media-components/provider-container-review-fixes/build-inventory.json",
+    "recordSHA256": "d6fc97c1b9db41e91cf46998ba40b705ab0e963ab32a8b505177694d9f4b52a2",
+    "sha256": "cd3808bbdb75eec3c038dc6f85e6e95438296e595be50e5d650f7a120411fbb4"
+  },
+  "finalCoreMatchesBrowserTestedCandidate": true,
+  "sourceHashes": {
+    "src/internal/component-selection.ts": "4da1210321a667fa52032b880579274c39869bb90961b010f85b9ed4c16860c9",
+    "src/unified-player.ts": "264ee64ead1add04a109dc690061ba6f5e3d82d359c4eed01ca2fda101a3669a",
+    "packages/provider-container/src/matroska.ts": "648488f773c6b789f9938556fe578ca92d8b773450c73ab7524717a9da76ba95"
+  }
+}

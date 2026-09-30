@@ -1,0 +1,61 @@
+{
+  "passed": false,
+  "setup": {
+    "work": "/Volumes/seed2/Projects/demuxe-media-components/build/codec-preparation/consumer-jspi-1790727342776",
+    "runtime": "jspi",
+    "archives": [
+      {
+        "archive": "/Volumes/seed2/Projects/demuxe-media-components/build/media-components/player-core-production-11/demuxe-0.3.0-beta.4.tgz",
+        "archiveSHA256": "2c35eb8ac0cb655102c3fa98bc7b5f4681b9c9cda59d444682c27c01c2b871ca",
+        "files": 108,
+        "qualification": "local-core-package-only; optional providers and release remain separate",
+        "record": "build/media-components/player-core-production-11/build-inventory.json",
+        "recordSHA256": "949b2f8de742aec27e77e4c5aabd6f06afcc7b9f1b135cdb5cdc0928e5bd4f11"
+      },
+      {
+        "archive": "/Volumes/seed2/Projects/demuxe-media-components/build/media-components/provider-ffmpeg-truehd-mlp-jspi-production-01/demuxe-provider-ffmpeg-truehd-mlp-jspi-0.3.0-beta.4.tgz",
+        "files": 35,
+        "implementationIdentity": "sha256:31cd721fd573a6aefe3a8848977bdc49f6606673995589c7351e5df1d9f4658d",
+        "qualification": "candidate-not-published",
+        "record": "/Volumes/seed2/Projects/demuxe-media-components/build/media-components/provider-ffmpeg-truehd-mlp-jspi-production-01/build-inventory.json",
+        "recordSHA256": "248d070edec865614d9cf100f4f6e39a9e570fabd4990db2bd27258f4efef22c",
+        "sha256": "c2cb920fdf39936e0a24efb218c75a2d999dda9aa9402a0f03449162d6a92ea3"
+      },
+      {
+        "archive": "/Volumes/seed2/Projects/demuxe-media-components/build/media-components/provider-ffmpeg-dts-hd-jspi-production-01/demuxe-provider-ffmpeg-dts-hd-jspi-0.3.0-beta.4.tgz",
+        "files": 35,
+        "implementationIdentity": "sha256:1f1f57e76cc3250334e58404242b029d44be2a7e0cd7714d20d204b6eea17451",
+        "qualification": "candidate-not-published",
+        "record": "/Volumes/seed2/Projects/demuxe-media-components/build/media-components/provider-ffmpeg-dts-hd-jspi-production-01/build-inventory.json",
+        "recordSHA256": "90cd896da049158770e04af1276bdd49efa213e17583e9e92ae6d287f0e1278b",
+        "sha256": "59c15edb33b8fa1b9a8b6a545d3007d9a030bd4f373afae91947655c21126f8a"
+      }
+    ]
+  },
+  "runtime": "jspi",
+  "baselineHashes": {
+    "tests/provider-lossless-broad-worker.mjs": "d830b6c043771fd2937309a17158d5b69a62619496c8b88e90b68ab3b0cdc1e6",
+    "web/private-ffmpeg/bridge.js": "5cc6ff530231646b06a1034980c55087456d0f12e9fcb23e86327718ad752b19",
+    "web/private-ffmpeg/range-source.js": "efc911a6ebd4f2b7b81572f93c95b0373c262afad5c3675cfd3c64e847839e78",
+    "web/private-ffmpeg/single-owner.js": "ece37844d7cff6815cae49f1fe82d32120827a5949c90e94aaf73d1485fd3e33",
+    "web/engine-adaptation-jspi/remux.mjs": "14996898603a70ecc463fae0a0e1e46e52f4fef6611c8489643edee6d1e5c617",
+    "web/engine-adaptation-jspi/remux.wasm": "8a5ddb9c263a7a0af0f48a4fdf26b8f98e989557866ea5068536c48c83aafeba"
+  },
+  "samples": [],
+  "scope": "matched full-file preparation; no-store HTTP with fresh page/instances; existing broad adaptation versus installed split packages. Process CPU is cumulative Chrome process CPU delta; Chrome RSS is sampled every 100 ms across the owned browser processes; it is a sampled peak, not an allocation maximum. Wasm resident bytes exclude JS and output.",
+  "browser": "153.0.8010.53",
+  "error": "Error: Command failed: ffmpeg -v error -i build/provider-lossless-audio/performance-truehd-stereo-split.mp4 -map 0:a:0 -f s32le -\n[in#0 @ 0x705024000] moov atom not found\n[in#0 @ 0x705020000] Error opening input: Invalid data found when processing input\nError opening input file build/provider-lossless-audio/performance-truehd-stereo-split.mp4.\nError opening input files: Invalid data found when processing input\n\n    at genericNodeError (node:internal/errors:983:15)\n    at wrappedFn (node:internal/errors:537:14)\n    at checkExecSyncError (node:child_process:882:11)\n    at execFileSync (node:child_process:918:15)\n    at raw (file:///Volumes/seed2/Projects/demuxe-media-components/tests/codec-preparation-performance.mjs:62:28)\n    at file:///Volumes/seed2/Projects/demuxe-media-components/tests/codec-preparation-performance.mjs:63:20",
+  "cleanup": {
+    "trackedProcessIDs": [
+      88924,
+      88976,
+      88948,
+      88947,
+      88936,
+      88937,
+      88938
+    ],
+    "remainingProcessIDs": [],
+    "playwrightCloseAcknowledged": true
+  }
+}

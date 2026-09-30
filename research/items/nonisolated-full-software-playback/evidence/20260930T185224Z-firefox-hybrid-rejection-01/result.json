@@ -1,0 +1,1664 @@
+{
+  "scope": "Public Player non-isolated playback qualification",
+  "startedAt": "2026-09-30T18:52:24.167Z",
+  "command": [
+    "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/research/items/nonisolated-full-software-playback/tests/public-preview-server.mjs",
+    "/Volumes/seed2/Projects/demuxe",
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/codec-fixtures-02",
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/firefox-hybrid-rejection-01"
+  ],
+  "environment": {
+    "runtime": "jspi",
+    "installedRoot": "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-06",
+    "inspectorRoot": "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/demuxer-inspector-relink-01",
+    "browser": "firefox",
+    "row": "hevc-ac3",
+    "negativeOnly": false,
+    "codeRoot": "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout",
+    "cors": false,
+    "packageEntry": false,
+    "isolated": false
+  },
+  "cases": [
+    {
+      "key": "hevc-ac3",
+      "runtime": "asyncify",
+      "scope": "Public Hybrid capability rejection and Software recovery",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:146.0) Gecko/20100101 Firefox/146.0",
+      "isolated": false,
+      "passed": true,
+      "rejection": {
+        "code": "UNSUPPORTED_FEATURE",
+        "message": "Hybrid browser configuration unsupported: hev1.1.6.L60.90 (320 × 180)"
+      },
+      "admission": [
+        {
+          "id": "native-direct-mpv",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+          "browserCapability": {
+            "status": "unknown",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "ac-3",
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/matroska; codecs=\"hev1.1.6.L60.90\"",
+                "result": "probably",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/matroska; codecs=\"ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/matroska; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"hev1.1.6.L60.90\"",
+                "result": "probably",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              }
+            ],
+            "unqueriedAudio": false,
+            "reason": "Browser capability is inconclusive; runtime verification is required"
+          }
+        },
+        {
+          "id": "native-direct",
+          "mode": "native",
+          "eligible": true,
+          "browserCapability": {
+            "status": "unknown",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "ac-3",
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/matroska; codecs=\"hev1.1.6.L60.90\"",
+                "result": "probably",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/matroska; codecs=\"ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/matroska; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"hev1.1.6.L60.90\"",
+                "result": "probably",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              }
+            ],
+            "unqueriedAudio": false,
+            "reason": "Browser capability is inconclusive; runtime verification is required"
+          }
+        },
+        {
+          "id": "native-remux-mpv",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+          "browserCapability": {
+            "status": "unsupported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "ac-3",
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"ac-3\"",
+                "result": false,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": false,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false,
+            "reason": "Browser isTypeSupported rejects selected video hev1.1.6.L60.90 + audio ac-3 for video/mp4"
+          }
+        },
+        {
+          "id": "native-remux",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Demuxe packet-copy AC3 initialization is not qualified; use direct playback or decoded audio",
+          "browserCapability": {
+            "status": "unsupported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "ac-3",
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"ac-3\"",
+                "result": false,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": false,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false,
+            "reason": "Browser isTypeSupported rejects selected video hev1.1.6.L60.90 + audio ac-3 for video/mp4"
+          }
+        },
+        {
+          "id": "native-direct-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "unknown",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "ac-3",
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/matroska; codecs=\"hev1.1.6.L60.90\"",
+                "result": "probably",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/matroska; codecs=\"ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/matroska; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"hev1.1.6.L60.90\"",
+                "result": "probably",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              }
+            ],
+            "unqueriedAudio": false,
+            "reason": "Browser capability is inconclusive; runtime verification is required"
+          }
+        },
+        {
+          "id": "shaka-mse",
+          "mode": "native",
+          "eligible": false,
+          "code": "SOURCE_UNSUPPORTED",
+          "reason": "Shaka is only used for adaptive HLS/DASH sources"
+        },
+        {
+          "id": "shaka-mse-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "native-remux-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+          "browserCapability": {
+            "status": "unsupported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "ac-3",
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"ac-3\"",
+                "result": false,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": false,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false,
+            "reason": "Browser isTypeSupported rejects selected video hev1.1.6.L60.90 + audio ac-3 for video/mp4"
+          }
+        },
+        {
+          "id": "native-flac",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "flac",
+                "adapted": true,
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-flac-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "flac",
+                "adapted": true,
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-direct-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation",
+          "browserCapability": {
+            "status": "unknown",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "ac-3",
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/matroska; codecs=\"hev1.1.6.L60.90\"",
+                "result": "probably",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/matroska; codecs=\"ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/matroska; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"hev1.1.6.L60.90\"",
+                "result": "probably",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              }
+            ],
+            "unqueriedAudio": false,
+            "reason": "Browser capability is inconclusive; runtime verification is required"
+          }
+        },
+        {
+          "id": "native-direct-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "unknown",
+            "api": "canPlayType",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "ac-3",
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/matroska; codecs=\"hev1.1.6.L60.90\"",
+                "result": "probably",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/matroska; codecs=\"ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/matroska; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"hev1.1.6.L60.90\"",
+                "result": "probably",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              },
+              {
+                "mime": "video/x-matroska; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": "",
+                "adapter": "matroska-direct",
+                "negativeDecisive": false,
+                "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+              }
+            ],
+            "unqueriedAudio": false,
+            "reason": "Browser capability is inconclusive; runtime verification is required"
+          }
+        },
+        {
+          "id": "native-remux-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation",
+          "browserCapability": {
+            "status": "unsupported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "ac-3",
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"ac-3\"",
+                "result": false,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": false,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false,
+            "reason": "Browser isTypeSupported rejects selected video hev1.1.6.L60.90 + audio ac-3 for video/mp4"
+          }
+        },
+        {
+          "id": "native-remux-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "unsupported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "ac-3",
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"ac-3\"",
+                "result": false,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,ac-3\"",
+                "result": false,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false,
+            "reason": "Browser isTypeSupported rejects selected video hev1.1.6.L60.90 + audio ac-3 for video/mp4"
+          }
+        },
+        {
+          "id": "native-flac-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Subtitle component does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "flac",
+                "adapted": true,
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-flac-ass-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "flac",
+                "adapted": true,
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-opus",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "opus",
+                "adapted": true,
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"opus\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,opus\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-opus-gain",
+          "mode": "native",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "opus",
+                "adapted": true,
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"opus\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,opus\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-transcode-mpv",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Automatic transcoding is disabled by the audio policy",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "flac",
+                "adapted": true,
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-transcode-ass",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Automatic transcoding is disabled by the audio policy",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "flac",
+                "adapted": true,
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-transcode",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Automatic transcoding is disabled by the audio policy",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              },
+              {
+                "index": 1,
+                "type": "audio",
+                "codec": "ac3",
+                "codecString": "flac",
+                "adapted": true,
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              },
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90,flac\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-video-mpv-audio",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Selective audio currently requires automatic selection",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "native-video-mpv-audio-subtitles",
+          "mode": "native",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Selective audio currently requires automatic selection",
+          "browserCapability": {
+            "status": "supported",
+            "api": "isTypeSupported",
+            "tracks": [
+              {
+                "index": 0,
+                "type": "video",
+                "codec": "hevc",
+                "codecString": "hev1.1.6.L60.90",
+                "serializationComplete": true
+              }
+            ],
+            "queries": [
+              {
+                "mime": "video/mp4; codecs=\"hev1.1.6.L60.90\"",
+                "result": true,
+                "adapter": "standard-mse",
+                "negativeDecisive": true
+              }
+            ],
+            "unqueriedAudio": false
+          }
+        },
+        {
+          "id": "hybrid",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans"
+        },
+        {
+          "id": "hybrid-audio-filter",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans"
+        },
+        {
+          "id": "hybrid-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans"
+        },
+        {
+          "id": "hybrid-audio-filter-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans"
+        },
+        {
+          "id": "hybrid-private-gain",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "hybrid-private",
+          "mode": "hybrid",
+          "eligible": false,
+          "code": "FEATURE_UNSUPPORTED",
+          "reason": "Hybrid browser configuration unsupported: hev1.1.6.L60.90 (320 × 180)"
+        },
+        {
+          "id": "software-private-gain",
+          "mode": "software",
+          "eligible": false,
+          "code": "PLAN_NOT_REQUESTED",
+          "reason": "Gain stage does not match the requested presentation"
+        },
+        {
+          "id": "software-private",
+          "mode": "software",
+          "eligible": true
+        },
+        {
+          "id": "software-gain",
+          "mode": "software",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans"
+        },
+        {
+          "id": "software",
+          "mode": "software",
+          "eligible": false,
+          "code": "QUALIFICATION_REQUIRED",
+          "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans"
+        }
+      ],
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "mpv-rgb-canvas"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "terminal"
+      },
+      "position": 1.333,
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 340,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            8,
+            48000,
+            33688,
+            1,
+            4
+          ]
+        },
+        "scheduler": {
+          "created": 760,
+          "completed": 760,
+          "abandoned": 0,
+          "suspensions": 536,
+          "resumes": 536,
+          "maxLive": 7,
+          "timerWakes": 207,
+          "signals": 321,
+          "stackChecks": 2592,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 656,
+            "unwinds": 536,
+            "rewinds": 536
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 5,
+          "bytes": 357008,
+          "copies": 5,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      },
+      "audioState": "closed"
+    }
+  ],
+  "sourceSHA256": {
+    "harness:public-preview-server.mjs": {
+      "sha256": "42a62d1c4a5d0279d22236e388b11f037ab48d72b2edf21488bfa6c64757f770"
+    },
+    "harness:public-preview-check.mjs": {
+      "sha256": "7795e8362095fd917b291078261ed7695074687853f30be6363bad8feb947e72"
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/index.js": {
+      "sha256": "a4e108bc8bb24b841b43f8dfc7bae5128e541199c0d439dccd15e837bc86b3d2",
+      "bytes": 576
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/types.js": {
+      "sha256": "9f71088e2aff63438958d3a0e607bffe9131128e1009bafea8f5405fa74dceb2",
+      "bytes": 406
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/unified-player.js": {
+      "sha256": "0a9b51238442ee16cb656b1f0ef7e6b66886546c06850f3229ffa4e42e25c007",
+      "bytes": 191981
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/errors.js": {
+      "sha256": "650d641d7a03ec1cbdd4e4fc25a6b9dc574d791c383600720682dc6d72c59b7c",
+      "bytes": 4922
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/preview/providers.js": {
+      "sha256": "2effac1450ccec3ae532b600e94d7666c3339a1405e64aa1ec593bb70829abc2",
+      "bytes": 4745
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/presentation.js": {
+      "sha256": "dcf92d9e3d147a894cfa9d696b4057bdaaa3fc6ac324d20b2c3e0fa8f889645f",
+      "bytes": 9403
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/preview/controller.js": {
+      "sha256": "48736385eb0e66f419600b16dd33aace3366e613bc80b832a1d8a9dc72bdb330",
+      "bytes": 16295
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/preview/software.js": {
+      "sha256": "cfb97079cca473c4d126344e09b80440ab15675e8ba7ff393f49e9d32385e58a",
+      "bytes": 5118
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/sources.js": {
+      "sha256": "83244a282e54eddd3b55dda7e1b5582abe3dcb317abf958d919b4181933a6827",
+      "bytes": 9881
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/private-playback-admission.js": {
+      "sha256": "d9b8251487aadca88ea7fb9258181517350c4c63cbfa063e6c736f6d637e4dd5",
+      "bytes": 6767
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-build.js": {
+      "sha256": "a427fca4a1eeec9159be1fe04048a3efa310012fcc40f79ac89aa9c1ff9ceecd",
+      "bytes": 381
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-modules.js": {
+      "sha256": "842386df84dd619cc33f11ef0cfb87169abaa15657b68213b9a69e93f87cb460",
+      "bytes": 494
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/probe-requirements.js": {
+      "sha256": "12f37bcfdb5984b401f4f87731997bece63da8519d86cc7be681fd4e5c82ad46",
+      "bytes": 1800
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-runtime.js": {
+      "sha256": "f50c276fcb9ad576cdd6b456e0334190c2d98bfe0ecb16481251324ff4b617ea",
+      "bytes": 20474
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/buffering.js": {
+      "sha256": "daa76013f5f29a0bd5bddff4357f97c0f0b0d6a08258081d25dbacbfc35b01cd",
+      "bytes": 3719
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/playback-statistics.js": {
+      "sha256": "8ed93135c83acf2e7433693a8b7258cf873791637dbdc654ffe74a8d067612b0",
+      "bytes": 2094
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/watchdogs.js": {
+      "sha256": "b8b124722d7e2a5aa2805a3c8cad022c21b8d9a8758e78faaebce17817d3dc31",
+      "bytes": 3093
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/track-policy.js": {
+      "sha256": "4cb4c7bfa84e30be4fbf31fb2ad2715cbd3204129b71aa878f7dfb4e3f6a544b",
+      "bytes": 4830
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/plain-vtt.js": {
+      "sha256": "b4ba5323d2d48d12ed92448fbd5e3d34e29c9e8589a460ed12b3063b2b32f59f",
+      "bytes": 1938
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/runtime-capability.js": {
+      "sha256": "25e329c4551a8f19992f2ccb0a4d395f3c80656bdfa4eb0cf0190849a7bd0e43",
+      "bytes": 7175
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/media-capabilities.js": {
+      "sha256": "f424451ec14e5b628d28d04d00602c3d596fd88a93875884ee6052d17d7eff85",
+      "bytes": 6211
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/browser-media-capability.js": {
+      "sha256": "b044b6c8277009b35a9f4818d41af4b58cd731d60360cbd0cde5c7d9d303c501",
+      "bytes": 7346
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/execution-recipes.js": {
+      "sha256": "8f6ac7adc9916e4624d3fc0125d9f54702b5d31153c8a9de6bdf81e763f20dc9",
+      "bytes": 9740
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-deployment-errors.js": {
+      "sha256": "db00dbe17a7f5a040bb684447444119e9791c005960093a11da0fa932cb96bce",
+      "bytes": 2420
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/engine-preparation.js": {
+      "sha256": "cfd43532027d14b99e2253401690a2d2c4812a985fa84bc7ccc82ee5124b7423",
+      "bytes": 6933
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/playback-plans.js": {
+      "sha256": "febfab8e7fe8bd393a0a0997add054a647eff1960ae0e4573731f859484dc8e7",
+      "bytes": 27798
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/tier-policy.js": {
+      "sha256": "43967291e02d09ac2590d2978c7f0732e7f0962c9f3126b1848ab38ef8c5fa73",
+      "bytes": 1376
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/remux-runtime.js": {
+      "sha256": "68bc96184fe1a6e1e451865b5c50f722f3ccdd9a181272f9d3684c6beaf57c57",
+      "bytes": 2091
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/webgpu-codecs.js": {
+      "sha256": "2be99da4bc948c21569679c1e1a6edcf5b33406a857ecedae1454e6a322c2160",
+      "bytes": 615
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/assets.js": {
+      "sha256": "15f5c6d9c845b97e1d61e14e0f4ddf64a58d8761310490bf170de3a2e7bda970",
+      "bytes": 556
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/backend.js": {
+      "sha256": "d73dab4dd9a764d8a47d54ebd11d0e850b6bede93800319dbad8e090413f527a",
+      "bytes": 99
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/selection.js": {
+      "sha256": "d32a7606267adfce4264f09c182ce2c25f733285ebe32111b2cd5fa0bbfb03b6",
+      "bytes": 7019
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/state.js": {
+      "sha256": "ae7b5c01ef9fb04e85213d8cd92864737ebaedd4301fe229d94dabef6e049a11",
+      "bytes": 8501
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/preview/player-preview.js": {
+      "sha256": "7c5a2c779e715915c4023c00707ff1ecda5edb4b46a0a0dcb1d20b45affd0f13",
+      "bytes": 850
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/preview/pregeneration.js": {
+      "sha256": "0f345bcba790e7a69d13f4594675eeb7d61c31efa1c96750d7ea9b538a2fe836",
+      "bytes": 3989
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-catalog.js": {
+      "sha256": "427ba0471f48afb604d571c92b15917539e16c4a9a0e5c5c9df59f2fdb969a1d",
+      "bytes": 7673
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-acquisition.js": {
+      "sha256": "6f32aca74129471dd9075c5d0f2a5f459f1a20c18585b51d717de734b119a16a",
+      "bytes": 11720
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-resolution.js": {
+      "sha256": "0ddf3083d14836c0522f16f7b8001374751616bd6a60ce711909c7a9e044bec9",
+      "bytes": 5905
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/component-recipes.js": {
+      "sha256": "cda933f1bde3c78dcaddf2a900baad7b8ff63686536fcc74ac647f95fab39ef4",
+      "bytes": 2508
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/component-selection.js": {
+      "sha256": "bf09f91d04d57142f243d3cb1021fe9f34e89902f1802be96a745a983bf730c6",
+      "bytes": 4059
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/browser-evidence-adapters.js": {
+      "sha256": "1e2028752fe712be5635993b5b57be6a5213413f89df20fb3b1447b41e9e92f7",
+      "bytes": 1391
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-cost.js": {
+      "sha256": "006bdc6410bb07dd38ebf68ad49440f35e4df33955f134edf92fc57e8c9c626b",
+      "bytes": 4086
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/execution-capabilities.js": {
+      "sha256": "384ee654e3340712cf28f01c47a8a7e8ba1f73eccd9b631b8296b4f0972a41f8",
+      "bytes": 3957
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/codec-fixtures-02/hevc-ac3/fixture.mkv": {
+      "sha256": "9d722036c216409b767d6eba13e57ccf69d18522ba43ab96ce2f6104f852894d",
+      "bytes": 357008
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/source-probe.js": {
+      "sha256": "431c4a19094b510043055d78304105c2738b9fab8acddc751eb8f15bd4adf1ab",
+      "bytes": 4152
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/runtime-worker.js": {
+      "sha256": "be69b14e4b53c28f8918aa2dab19f918c4e9749a6104a0599f658270f4360e81",
+      "bytes": 2301
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/native-remux-source-worker.js": {
+      "sha256": "a2ac3e0351d24574193e1f2eba5327f207e96a17a74b518f274c7c26289c9b7a",
+      "bytes": 3282
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/file-reader.js": {
+      "sha256": "d6db3571409a9149df0d28699feb52bb2b694b1c350a6c3c1eae3e3da7e73858",
+      "bytes": 4773
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/range-reader.js": {
+      "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe",
+      "bytes": 11897
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/native-remux-worker.js": {
+      "sha256": "645df2e039e09b9c953bc5e7e37a09a66b3a621ed8f9e910dc4546b66be8ff97",
+      "bytes": 10545
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/video-codec-config.js": {
+      "sha256": "3ba4ffeda7aa21ad53625d129bad240a7a911dc1635f8f557650e371905a279c",
+      "bytes": 4773
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/prepared-engine.js": {
+      "sha256": "ea1b9f601687cb26fe8d7aa49884bdcb351af7e1f8346efb08edfcea7e38cf24",
+      "bytes": 318
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/remux-packaging.js": {
+      "sha256": "86285f603a8c875fc3c8eac291941d8a88007b8e23ed5b2bd584ad2d794dc433",
+      "bytes": 769
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/hybrid-preflight.js": {
+      "sha256": "6861e4c17a1d7b59772925eab77aaf075cf21708008bf6f1aff2ed1dc13dc524",
+      "bytes": 1618
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/progressive-mp4.js": {
+      "sha256": "e5c10d127144b9705c9024852f0d1701ad299ea12b1672a6b38233cca58dbd04",
+      "bytes": 5046
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-remux.js": {
+      "sha256": "5de328a538e1c8234c7956ea16546f471862e58e11b503ed7067f9d4f30fc323",
+      "bytes": 3655
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-ffmpeg/bridge.js": {
+      "sha256": "d31d0e1d26feb29c5aa9bac7a60c997f4639b30c3b136dccf7f543fc23f65680",
+      "bytes": 3611
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-ffmpeg/range-source.js": {
+      "sha256": "efc911a6ebd4f2b7b81572f93c95b0373c262afad5c3675cfd3c64e847839e78",
+      "bytes": 7352
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-ffmpeg/single-owner.js": {
+      "sha256": "ece37844d7cff6815cae49f1fe82d32120827a5949c90e94aaf73d1485fd3e33",
+      "bytes": 2307
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/demuxer-inspector-relink-01/web/engine-remux-asyncify/remux.mjs": {
+      "sha256": "e20b76751cec2c86f72335cba6967ebe721957c8fb72473ef061a6de4c6aef39",
+      "bytes": 51182
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/demuxer-inspector-relink-01/web/engine-remux-asyncify/remux.wasm": {
+      "sha256": "20dfaaf13c28b7e781e88355417ca3a6b315ffd2dbc80143604e2f14ecf588de",
+      "bytes": 4871527
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-06/web/engine-mpv-playback-asyncify/player.mjs": {
+      "sha256": "a535e644090d35bae989efe68c280e161bcce26382367f8649d76ca2fbbf237b",
+      "bytes": 217523
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-06/web/engine-mpv-playback-asyncify/manifest.json": {
+      "sha256": "ef814e0ad6f8a5a4b6808b82c63c78de168a64eac1ef2f91ab221a292c2d8445",
+      "bytes": 14766
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-06/web/engine-mpv-playback-asyncify/player.wasm": {
+      "sha256": "d7baa6c736f27eec5d81a6b2ea6c8a3904e039bf75929425b827090eb6f0466c",
+      "bytes": 28065880
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/private-software-player.js": {
+      "sha256": "d27f2a9d7ea1af4918ce58a9b04ea8685fbd31b8650c5ee51526697e79c1c614",
+      "bytes": 21096
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/audio-worklet.js": {
+      "sha256": "8495c862abf54790c2f8bbdb61c8865ea4ca2a884886def51a19f0163880f67f",
+      "bytes": 4955
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/playback-worker.js": {
+      "sha256": "827f009fa1791da03ff10490efc611abbe3ecd93a2f219f5aa6afad7d735af25",
+      "bytes": 18250
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/decode-policy.js": {
+      "sha256": "e814ad357126637fd905eb3f933e1a7003cac701705f983f7d9b2b9bbe2684d4",
+      "bytes": 4505
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/retained-presentation.js": {
+      "sha256": "4ca600305774bc18bbaedc8245ccd38d4d47bc3c3e4f0206b17f07d3488353c3",
+      "bytes": 3720
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/playback-host.js": {
+      "sha256": "474c1eae9886f08366e788e647c30631fe4c5f13b997cdf6b406061e64d0d279",
+      "bytes": 8239
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv.js": {
+      "sha256": "1453e68687a2b996b120bd60ce780ece539ae0dfac9ec66a77c76d28b72c7253",
+      "bytes": 4784
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/subtitle-overlay.js": {
+      "sha256": "7a3299ed925ce5a6cc801a2d33532efd2d7377deb9ed626aa7bc66d45663edcd",
+      "bytes": 2289
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/retained-video.js": {
+      "sha256": "79d4a2070a1e4dc82f9b3e03d5f88cfd98ff09f25106abadf6770faec1856475",
+      "bytes": 1616
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/engine.js": {
+      "sha256": "4a3839957db17196efba295443b7406bf1219016c99cc715cb187d5a5ba6d74f",
+      "bytes": 2689
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/playback-pcm.js": {
+      "sha256": "29226a691f7ded7031da24f9a85e10219fc7c8711ca4d9d79279999343286476",
+      "bytes": 3987
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/scheduler.js": {
+      "sha256": "b50bdf45612a7d006d89d841794afb2dea5e9d75f02574db49da6608fc551131",
+      "bytes": 11702
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/range-source.js": {
+      "sha256": "efc911a6ebd4f2b7b81572f93c95b0373c262afad5c3675cfd3c64e847839e78",
+      "bytes": 7352
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/decoder-mailbox.js": {
+      "sha256": "6aa8d6386f3b6909238f275afcca77d12813247860ff2cbf812e8d6a7b0fecd5",
+      "bytes": 5990
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/retained-decoder.js": {
+      "sha256": "8a7f28c4189adaa2e80dbf895c38f7b1986d93156293172bfe49095c46de07ba",
+      "bytes": 6087
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/continuations.js": {
+      "sha256": "bdace5c572bd62eae24d86c28e16c9fc882568a009670f2a11020c8903daf5bd",
+      "bytes": 5399
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/external-video-decoder.js": {
+      "sha256": "dd87763e82c7fb197f45a62b05a97866c44faafe508375369b7e9dc4c0f02a66",
+      "bytes": 2886
+    },
+    "/Volumes/seed2/Projects/demuxe/fixtures/DejaVuSans.ttf": {
+      "sha256": "7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954",
+      "bytes": 757076
+    }
+  },
+  "heldReads": {
+    "started": 0,
+    "active": 0,
+    "aborted": 0
+  },
+  "rangeRequests": [],
+  "faultInjections": [],
+  "passed": true
+}

@@ -1,0 +1,289 @@
+{
+  "cases": [
+    {
+      "name": "auto-missing-engine",
+      "requests": [
+        "/web/engine-remux-jspi/remux.wasm"
+      ],
+      "result": {
+        "selection": {
+          "policy": "auto",
+          "runtime": "jspi",
+          "isolated": false,
+          "jspi": true
+        },
+        "plan": "native-direct",
+        "width": 320
+      },
+      "passed": true
+    },
+    {
+      "name": "auto-no-ranges",
+      "requests": [],
+      "result": {
+        "selection": {
+          "policy": "auto",
+          "runtime": "jspi",
+          "isolated": false,
+          "jspi": true
+        },
+        "plan": "native-direct",
+        "width": 320
+      },
+      "passed": true
+    },
+    {
+      "name": "off-missing-engine",
+      "requests": [],
+      "result": {
+        "selection": {
+          "policy": "off",
+          "runtime": "pthread",
+          "isolated": false,
+          "jspi": true
+        },
+        "plan": "native-direct",
+        "width": 320
+      },
+      "passed": true
+    },
+    {
+      "name": "forced-jspi-missing-engine",
+      "requests": [
+        "/web/engine-remux-jspi/remux.wasm"
+      ],
+      "result": {
+        "selection": {
+          "policy": "jspi",
+          "runtime": "jspi",
+          "isolated": false,
+          "jspi": true
+        },
+        "error": {
+          "code": "ASSET_LOAD_FAILED",
+          "message": "Private remux initialization: Private remux initialization: Wasm asset HTTP 404\nError: Private remux initialization: Private remux initialization: Wasm asset HTTP 404\n    at privateRemux (http://127.0.0.1:62615/web/private-remux.js:53:22)\n    at async self.onmessage (http://127.0.0.1:62615/web/native-remux-worker.js:34:17)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "required-remux-missing-engine",
+      "requests": [
+        "/web/engine-remux-jspi/remux.wasm"
+      ],
+      "result": {
+        "selection": {
+          "policy": "auto",
+          "runtime": "jspi",
+          "isolated": false,
+          "jspi": true
+        },
+        "error": {
+          "code": "ASSET_LOAD_FAILED",
+          "message": "Private remux initialization: Private remux initialization: Wasm asset HTTP 404\nError: Private remux initialization: Private remux initialization: Wasm asset HTTP 404\n    at privateRemux (http://127.0.0.1:62623/web/private-remux.js:53:22)\n    at async self.onmessage (http://127.0.0.1:62623/web/native-remux-worker.js:34:17)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "headers-missing-engine",
+      "requests": [
+        "/web/engine-remux-jspi/remux.wasm"
+      ],
+      "result": {
+        "selection": {
+          "policy": "auto",
+          "runtime": "jspi",
+          "isolated": false,
+          "jspi": true
+        },
+        "error": {
+          "code": "ASSET_LOAD_FAILED",
+          "message": "Private remux initialization: Private remux initialization: Wasm asset HTTP 404\nError: Private remux initialization: Private remux initialization: Wasm asset HTTP 404\n    at privateRemux (http://127.0.0.1:62631/web/private-remux.js:53:22)\n    at async self.onmessage (http://127.0.0.1:62631/web/native-remux-worker.js:34:17)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "immutable-no-ranges",
+      "requests": [],
+      "result": {
+        "selection": {
+          "policy": "auto",
+          "runtime": "jspi",
+          "isolated": false,
+          "jspi": true
+        },
+        "error": {
+          "code": "INVALID_ARGUMENT",
+          "message": "Source transport: Error: Expected HTTP 206; received 200"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "omit-credentials-no-ranges",
+      "requests": [],
+      "result": {
+        "selection": {
+          "policy": "auto",
+          "runtime": "jspi",
+          "isolated": false,
+          "jspi": true
+        },
+        "error": {
+          "code": "INVALID_ARGUMENT",
+          "message": "Source transport: Error: Expected HTTP 206; received 200"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "permission-401",
+      "requests": [],
+      "result": {
+        "selection": {
+          "policy": "auto",
+          "runtime": "jspi",
+          "isolated": false,
+          "jspi": true
+        },
+        "error": {
+          "code": "SOURCE_PERMISSION",
+          "message": "Source transport: Error: Error: Authorization refresh unavailable"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "permission-403",
+      "requests": [],
+      "result": {
+        "selection": {
+          "policy": "auto",
+          "runtime": "jspi",
+          "isolated": false,
+          "jspi": true
+        },
+        "error": {
+          "code": "SOURCE_PERMISSION",
+          "message": "Source transport: Error: Expected HTTP 206; received 403"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "prepare-default-jspi",
+      "requests": [
+        "/web/engine-remux-jspi/remux.wasm"
+      ],
+      "result": {
+        "selection": {
+          "policy": "auto",
+          "runtime": "jspi",
+          "isolated": false,
+          "jspi": true
+        },
+        "preparation": {
+          "milliseconds": 145.40000000596046,
+          "assets": [
+            {
+              "name": "inspector",
+              "status": "ready",
+              "bytes": 3184939,
+              "milliseconds": 145.2000000178814
+            }
+          ]
+        },
+        "plan": "native-direct",
+        "width": 320
+      },
+      "passed": true
+    },
+    {
+      "name": "prepare-asyncify-no-isolation",
+      "requests": [
+        "/web/engine-remux-asyncify/remux.wasm"
+      ],
+      "result": {
+        "selection": {
+          "policy": "asyncify",
+          "runtime": "asyncify",
+          "isolated": false,
+          "jspi": true
+        },
+        "preparation": {
+          "milliseconds": 177.7000000178814,
+          "assets": [
+            {
+              "name": "inspector",
+              "status": "ready",
+              "bytes": 4869255,
+              "milliseconds": 177.7000000178814
+            }
+          ]
+        },
+        "plan": "native-direct",
+        "width": 320
+      },
+      "passed": true
+    },
+    {
+      "name": "prepare-asyncify-isolated",
+      "requests": [
+        "/web/engine-remux-asyncify/remux.wasm"
+      ],
+      "result": {
+        "selection": {
+          "policy": "asyncify",
+          "runtime": "asyncify",
+          "isolated": true,
+          "jspi": true
+        },
+        "preparation": {
+          "milliseconds": 15.780000001192093,
+          "assets": [
+            {
+              "name": "inspector",
+              "status": "ready",
+              "bytes": 4869255,
+              "milliseconds": 15.650000005960464
+            }
+          ]
+        },
+        "plan": "native-direct",
+        "width": 320
+      },
+      "passed": true
+    },
+    {
+      "name": "prepare-on-isolated",
+      "requests": [
+        "/web/engine-remux-jspi/remux.wasm"
+      ],
+      "result": {
+        "selection": {
+          "policy": "on",
+          "runtime": "jspi",
+          "isolated": true,
+          "jspi": true
+        },
+        "preparation": {
+          "milliseconds": 30.044999986886978,
+          "assets": [
+            {
+              "name": "inspector",
+              "status": "ready",
+              "bytes": 3184939,
+              "milliseconds": 29.92500001192093
+            }
+          ]
+        },
+        "plan": "native-direct",
+        "width": 320
+      },
+      "passed": true
+    }
+  ],
+  "passed": true
+}

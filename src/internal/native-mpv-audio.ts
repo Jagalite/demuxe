@@ -61,11 +61,11 @@ export class NativeMpvAudio extends EventTarget {
   get selectedTrackId(){return (this.engine.properties.get('track-list') as Array<{id:string;type:string;selected?:boolean}>|undefined)?.find(t=>t.type==='audio'&&t.selected)?.id;}
   get selectedStreamIndex(){return (this.engine.properties.get('track-list') as Array<{type:string;selected?:boolean;'ff-index'?:number}>|undefined)?.find(t=>t.type==='audio'&&t.selected)?.['ff-index'];}
   private readonly ended=()=>{void this.finishEOF().catch(error=>this.fail(error));};
-  constructor(private video:HTMLVideoElement,private time:()=>number,private assetBase:URL,private failed:(error:Error)=>void){
+  constructor(private video:HTMLVideoElement,private time:()=>number,private assetBase:URL,private failed:(error:Error)=>void,prepared?:{module?:WebAssembly.Module;font?:ArrayBuffer}){
     super();
     this.hidden=document.createElement('canvas');this.hidden.width=1;this.hidden.height=1;this.hidden.hidden=true;
     document.body.append(this.hidden);
-    this.engine=new WasmPlayer(this.hidden,{assetBase,mode:'selective-audio',audioOutput:'stereo'});
+    this.engine=new WasmPlayer(this.hidden,{prepared,assetBase,mode:'selective-audio',audioOutput:'stereo'});
     this.engine.addEventListener('output',event=>this.onOutput((event as CustomEvent<Timeline>).detail));
     this.engine.addEventListener('error',event=>this.fail((event as CustomEvent).detail));
     video.addEventListener('ended',this.ended);

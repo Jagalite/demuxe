@@ -101,3 +101,13 @@ test('full finite files can have unknown duration without weakening byte bounds'
  assert.ok(privatePlaybackRejection(raw,{finite:false,bytes:source.bytes},features,assets));
  assert.ok(privatePlaybackRejection({...probe,duration:0},source,features));
 });
+
+test('tone mapping requires the full profile, filter closure and both qualified LUT implementations',()=>{
+ const assets={codecProfile:'playback-full',retainedDecoder:true,decoders:['mpeg2video','ac3'],features:['gamma-lut','inverse-gamma-lut'],filters:['zscale','format','tonemap']};
+ const hdr={...features,toneMapping:'hdr-to-sdr'};
+ assert.equal(privatePlaybackRejection(probe,source,hdr,assets),undefined);
+ for(const patch of [{features:['gamma-lut']},{features:['inverse-gamma-lut']},{features:[]},{filters:['zscale','format']},{codecProfile:'playback'}])assert.ok(privatePlaybackRejection(probe,source,hdr,{...assets,...patch}));
+ assert.ok(privatePlaybackRejection(probe,source,hdr,assets,'hybrid'));
+ assert.equal(planAdmission({...facts,privatePlaybackFull:true,toneMapping:'hdr-to-sdr'}).find(p=>p.id==='software-private').eligible,true);
+ assert.equal(planAdmission({...facts,privatePlaybackFull:true,toneMapping:'hdr-to-sdr',privatePlaybackSourceRejection:'Unqualified filter closure'}).find(p=>p.id==='software-private').eligible,false);
+});

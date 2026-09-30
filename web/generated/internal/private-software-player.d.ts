@@ -94,7 +94,7 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
         state: AudioContextState;
         sampleRate: number;
         requestedOutput: AudioOutput;
-        outputChannels: 2 | 8 | 6;
+        outputChannels: 2 | 6 | 8;
         deviceChannels: number;
         channelLayout: string;
         gain: number;

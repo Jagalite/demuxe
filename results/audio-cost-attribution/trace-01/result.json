@@ -1,0 +1,3997 @@
+{
+  "check": false,
+  "purpose": "Controlled component contrasts, then separate Chrome trace using tts/tdur thread CPU; never label wall time or wait samples as CPU",
+  "fixture": "build/head-to-head/assets-hevc10-ac3-bafdb3f3-20260926-01/fixtures/hevc10-ac3/index.mkv",
+  "fixtureSHA256": "2a84b2eed59a97e67ba49388d048b85966959081013555c6146063158c4b6c56",
+  "hashes": {
+    "web/generated/internal/native-mpv-audio.js": "94d6e4ad5803e63d40e1afb73c30a8f6949f8120b27b38efe722192b51de079e",
+    "web/generated/internal/native-player.js": "e59dd4aa865f17d35552b476bdde4ec16ed936c0991210d9d4aac5e0334cc9e2",
+    "web/generated/internal/wasm-player.js": "2eacbf30e3f6a2091d5ae2d045c640b152db5466bf4d5477d0906c212d361f43",
+    "web/filter-retained-engine-worker.js": "be952614570750e943c62975e42f4afec270d0d071b3038ca13ac5c7550792b0",
+    "web/selective-sync-worklet.js": "2a4cf572a4dcff11376b775aa70df898c7d868383fd10f16218b913dbd5b46f4",
+    "web/native-remux-player.js": "28b2a9b9745bd2b2a26f03b86c99ede7557a277313dc60d9f0cff5c14363c847",
+    "web/native-remux-worker.js": "338f76d7efe0313c2d84fbe503fc57e2eaa0af2451ad3ed550c7b4fb83fc19d4",
+    "web/engine-selective/player.wasm": "2fb5aa385486e108823e027caf315fc83cdf8ddfe36a6ec8436f8e4a60593cdf",
+    "web/engine-remux/remux.wasm": "cc7a72dd3f114d7d7bb769e652a72aadbccb06fc8e6fea951ab477343d31ff67"
+  },
+  "workletSHA256": "f2d55844f0566cbe015b4da7eb3646159c9bd6f5dd0ea60f1aee125274a56c41",
+  "wasm512SHA256": "2e22a55cb97a60c91e84c2fa1fa144e9c0c7037cab3e67f8c944f8521d5f6082",
+  "trials": [],
+  "correctness": "results/audio-cost-attribution/check-02/result.json,results/audio-cost-attribution/check-03/result.json",
+  "browser": {
+    "startupReadiness": {
+      "status": "complete",
+      "platform": "darwin",
+      "browserPid": 24596,
+      "observationSeconds": 150.49862725,
+      "traceStopped": true,
+      "completedTask": {
+        "args": {
+          "src_file": "crypto/unexportable_key_metrics.cc",
+          "src_func": "MaybeMeasureTpmOperations",
+          "src_line": 355
+        },
+        "cat": "toplevel",
+        "dur": 82684203,
+        "name": "ThreadPool_RunTask",
+        "ph": "X",
+        "pid": 24596,
+        "tdur": 27117990,
+        "tid": 3920537,
+        "ts": 80587097731,
+        "tts": 47454
+      },
+      "eventCount": 55927
+    },
+    "configurationSHA256": "5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8",
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/153.0.8010.53",
+      "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+      "jsVersion": "15.3.76.13"
+    },
+    "channel": "chrome",
+    "effectiveArguments": [
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "--disable-field-trial-config",
+      "--disable-background-networking",
+      "--disable-background-timer-throttling",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-back-forward-cache",
+      "--disable-breakpad",
+      "--disable-client-side-phishing-detection",
+      "--disable-component-extensions-with-background-pages",
+      "--disable-component-update",
+      "--no-default-browser-check",
+      "--disable-default-apps",
+      "--disable-dev-shm-usage",
+      "--disable-extensions",
+      "--disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints",
+      "--enable-features=CDPScreenshotNewSurface",
+      "--allow-pre-commit-input",
+      "--disable-hang-monitor",
+      "--disable-ipc-flooding-protection",
+      "--disable-popup-blocking",
+      "--disable-prompt-on-repost",
+      "--disable-renderer-backgrounding",
+      "--force-color-profile=srgb",
+      "--metrics-recording-only",
+      "--no-first-run",
+      "--password-store=basic",
+      "--use-mock-keychain",
+      "--no-service-autorun",
+      "--export-tagged-pdf",
+      "--disable-search-engine-choice-screen",
+      "--unsafely-disable-devtools-self-xss-warnings",
+      "--edge-skip-compat-layer-relaunch",
+      "--enable-automation",
+      "--disable-infobars",
+      "--disable-search-engine-choice-screen",
+      "--disable-sync",
+      "--no-sandbox",
+      "--autoplay-policy=no-user-gesture-required",
+      "--user-data-dir=/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/playwright_chromiumdev_profile-3zTKTU",
+      "--remote-debugging-pipe",
+      "--no-startup-window",
+      "--flag-switches-begin",
+      "--flag-switches-end"
+    ],
+    "headless": false,
+    "policy": {
+      "schema": 4,
+      "browserLifetime": "caller-declared comparison block; fresh context per arm",
+      "interArmIdleSeconds": 2,
+      "profile": "fresh temporary Playwright profile per launch",
+      "startupGateSeconds": 150,
+      "startupGate": "macOS Chrome hardware-key task completion; tracing off before measurement",
+      "startupIdleSeconds": 20,
+      "warmupSeconds": 5,
+      "measureSeconds": 20,
+      "sampleIntervalSeconds": 2,
+      "clock": "monotonic CPU-query midpoint; fixed sample deadlines",
+      "viewport": {
+        "width": 960,
+        "height": 540
+      },
+      "deviceScaleFactor": 1
+    }
+  },
+  "trace": {
+    "scope": "Instrumented thread CPU profile; complete-event exclusive accounting; sampling/wall waits are not CPU",
+    "errors": [],
+    "workers": [
+      {
+        "index": 0,
+        "url": "http://127.0.0.1:64323/web/filter-retained-engine-worker.js?mode=retained&audioOnly=1",
+        "start": true,
+        "end": true
+      },
+      {
+        "index": 1,
+        "url": "http://127.0.0.1:64323/web/engine-selective/player.mjs",
+        "start": true,
+        "end": true
+      },
+      {
+        "index": 2,
+        "url": "http://127.0.0.1:64323/web/engine-selective/player.mjs",
+        "start": true,
+        "end": true
+      },
+      {
+        "index": 3,
+        "url": "http://127.0.0.1:64323/web/engine-selective/player.mjs",
+        "start": true,
+        "end": true
+      },
+      {
+        "index": 4,
+        "url": "http://127.0.0.1:64323/web/engine-selective/player.mjs",
+        "start": "Error: Stamp timeout",
+        "end": "Error: Stamp timeout"
+      },
+      {
+        "index": 5,
+        "url": "http://127.0.0.1:64323/web/engine-selective/player.mjs",
+        "start": "Error: Stamp timeout",
+        "end": "Error: Stamp timeout"
+      },
+      {
+        "index": 6,
+        "url": "http://127.0.0.1:64323/web/engine-selective/player.mjs",
+        "start": "Error: Stamp timeout",
+        "end": "Error: Stamp timeout"
+      },
+      {
+        "index": 7,
+        "url": "http://127.0.0.1:64323/web/engine-selective/player.mjs",
+        "start": "Error: Stamp timeout",
+        "end": "Error: Stamp timeout"
+      },
+      {
+        "index": 8,
+        "url": "http://127.0.0.1:64323/web/engine-selective/player.mjs",
+        "start": "Error: Stamp timeout",
+        "end": "Error: Stamp timeout"
+      },
+      {
+        "index": 9,
+        "url": "http://127.0.0.1:64323/web/io-worker.js",
+        "start": true,
+        "end": true
+      },
+      {
+        "index": 10,
+        "url": "http://127.0.0.1:64323/web/native-remux-source-worker.js",
+        "start": true,
+        "end": true
+      },
+      {
+        "index": 11,
+        "url": "http://127.0.0.1:64323/web/native-remux-worker.js",
+        "start": true,
+        "end": true
+      }
+    ],
+    "before": {
+      "at": 169463.4408335,
+      "epochAt": 1790459466102,
+      "processQueryMs": 0.6706669999985024,
+      "processes": [
+        {
+          "type": "browser",
+          "id": 24596,
+          "cpuTime": 32.177374
+        },
+        {
+          "type": "renderer",
+          "id": 27228,
+          "cpuTime": 0.063178
+        },
+        {
+          "type": "renderer",
+          "id": 27226,
+          "cpuTime": 1.771764
+        },
+        {
+          "type": "renderer",
+          "id": 27225,
+          "cpuTime": 0.253245
+        },
+        {
+          "type": "GPU",
+          "id": 24602,
+          "cpuTime": 2.550467
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 24603,
+          "cpuTime": 0.341644
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 24605,
+          "cpuTime": 0.130983
+        },
+        {
+          "type": "tracing.mojom.TracingService",
+          "id": 24609,
+          "cpuTime": 0.807483
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 27234,
+          "cpuTime": 0.111867
+        }
+      ],
+      "rssKiB": 1272208,
+      "state": {
+        "lane": "baseline",
+        "position": 6.977205,
+        "videoTime": 8.069061,
+        "total": 127,
+        "dropped": 1,
+        "visible": "visible",
+        "focused": true,
+        "paused": false,
+        "errors": [],
+        "sameVideo": true,
+        "scanAck": false,
+        "quantum": 128,
+        "contextState": "running",
+        "latency": [
+          0.005333333333333333,
+          0.032
+        ],
+        "audio": {
+          "underruns": 0,
+          "errorMs": 1.3707688736550594,
+          "corrections": 0,
+          "frames": 201984,
+          "videoTracks": 0,
+          "pumpTicks": 391
+        }
+      }
+    },
+    "threadBefore": {
+      "at": 80751.961877,
+      "processes": [
+        {
+          "pid": 24596,
+          "listBytes": 368,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3920481,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CrBrowserMain",
+              "userNs": 841298000,
+              "systemNs": 229088000
+            },
+            {
+              "tid": 3920489,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 2000,
+              "systemNs": 9000
+            },
+            {
+              "tid": 3920508,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.NSEventThread",
+              "userNs": 4778000,
+              "systemNs": 3935000
+            },
+            {
+              "tid": 3920529,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 327000,
+              "systemNs": 476000
+            },
+            {
+              "tid": 3920530,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 46709000,
+              "systemNs": 16819000
+            },
+            {
+              "tid": 3920531,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 7173000,
+              "systemNs": 2776000
+            },
+            {
+              "tid": 3920532,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 35598000,
+              "systemNs": 178971000
+            },
+            {
+              "tid": 3920533,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 20041000,
+              "systemNs": 24804000
+            },
+            {
+              "tid": 3920534,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 61133000,
+              "systemNs": 65913000
+            },
+            {
+              "tid": 3920535,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 4591000,
+              "systemNs": 8843000
+            },
+            {
+              "tid": 3920536,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 5739000,
+              "systemNs": 6127000
+            },
+            {
+              "tid": 3920537,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 24198218000,
+              "systemNs": 2993823000
+            },
+            {
+              "tid": 3920540,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_IOThread",
+              "userNs": 83302000,
+              "systemNs": 67505000
+            },
+            {
+              "tid": 3920541,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "MemoryInfra",
+              "userNs": 7068000,
+              "systemNs": 3260000
+            },
+            {
+              "tid": 3920544,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkConfigWatcher",
+              "userNs": 952000,
+              "systemNs": 1565000
+            },
+            {
+              "tid": 3920545,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CrShutdownDetector",
+              "userNs": 13000,
+              "systemNs": 42000
+            },
+            {
+              "tid": 3920547,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkConfigWatcher",
+              "userNs": 109000,
+              "systemNs": 49000
+            },
+            {
+              "tid": 3920548,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 2097000,
+              "systemNs": 5067000
+            },
+            {
+              "tid": 3920549,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 4025000,
+              "systemNs": 3229000
+            },
+            {
+              "tid": 3920550,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 684000,
+              "systemNs": 4237000
+            },
+            {
+              "tid": 3920551,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 1409000,
+              "systemNs": 6480000
+            },
+            {
+              "tid": 3920552,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkNotificationThreadMac",
+              "userNs": 150000,
+              "systemNs": 98000
+            },
+            {
+              "tid": 3920553,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadForegroundBlocking",
+              "userNs": 1267000,
+              "systemNs": 6841000
+            },
+            {
+              "tid": 3920554,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CompositorTileWorker1",
+              "userNs": 6480000,
+              "systemNs": 2177000
+            },
+            {
+              "tid": 3920566,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedBackgroundBlocking",
+              "userNs": 153000,
+              "systemNs": 251000
+            },
+            {
+              "tid": 3920570,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkConfigWatcher",
+              "userNs": 189000,
+              "systemNs": 88000
+            },
+            {
+              "tid": 3920571,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadForegroundBlocking",
+              "userNs": 38000,
+              "systemNs": 71000
+            },
+            {
+              "tid": 3920572,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedForeground",
+              "userNs": 1254000,
+              "systemNs": 657000
+            },
+            {
+              "tid": 3920573,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 1004000,
+              "systemNs": 2913000
+            },
+            {
+              "tid": 3920574,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 64000,
+              "systemNs": 807000
+            },
+            {
+              "tid": 3920578,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkConfigWatcher",
+              "userNs": 119000,
+              "systemNs": 58000
+            },
+            {
+              "tid": 3920579,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 59000,
+              "systemNs": 75000
+            },
+            {
+              "tid": 3920580,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 131000,
+              "systemNs": 1298000
+            },
+            {
+              "tid": 3920581,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 124000,
+              "systemNs": 1156000
+            },
+            {
+              "tid": 3920582,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 197000,
+              "systemNs": 1001000
+            },
+            {
+              "tid": 3920583,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 91000,
+              "systemNs": 603000
+            },
+            {
+              "tid": 3920585,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 62000,
+              "systemNs": 794000
+            },
+            {
+              "tid": 3920596,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DevToolsPipeHandlerReadThread",
+              "userNs": 2033000,
+              "systemNs": 1821000
+            },
+            {
+              "tid": 3920597,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DevToolsPipeHandlerWriteThread",
+              "userNs": 5469000,
+              "systemNs": 16443000
+            },
+            {
+              "tid": 3920652,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CacheThread_BlockFile",
+              "userNs": 3494000,
+              "systemNs": 8290000
+            },
+            {
+              "tid": 3920862,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "org.libusb.device-hotplug",
+              "userNs": 123000,
+              "systemNs": 277000
+            },
+            {
+              "tid": 3920863,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "UsbEventHandler",
+              "userNs": 205000,
+              "systemNs": 439000
+            },
+            {
+              "tid": 3925488,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 3259000,
+              "systemNs": 2032000
+            },
+            {
+              "tid": 3925508,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkConfigWatcher",
+              "userNs": 414000,
+              "systemNs": 237000
+            },
+            {
+              "tid": 3925539,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 11000,
+              "systemNs": 29000
+            },
+            {
+              "tid": 3925658,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PowerSaveBlocker",
+              "userNs": 1116000,
+              "systemNs": 761000
+            }
+          ]
+        },
+        {
+          "pid": 27228,
+          "listBytes": 88,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3925572,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CrRendererMain",
+              "userNs": 31015000,
+              "systemNs": 18924000
+            },
+            {
+              "tid": 3925578,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 893000,
+              "systemNs": 649000
+            },
+            {
+              "tid": 3925579,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 106000,
+              "systemNs": 104000
+            },
+            {
+              "tid": 3925580,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 26000,
+              "systemNs": 21000
+            },
+            {
+              "tid": 3925581,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 7169000,
+              "systemNs": 1121000
+            },
+            {
+              "tid": 3925582,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 42000,
+              "systemNs": 62000
+            },
+            {
+              "tid": 3925583,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 569000,
+              "systemNs": 710000
+            },
+            {
+              "tid": 3925584,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 27000,
+              "systemNs": 20000
+            },
+            {
+              "tid": 3925587,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 0,
+              "systemNs": 3000
+            },
+            {
+              "tid": 3925590,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Compositor",
+              "userNs": 73000,
+              "systemNs": 56000
+            },
+            {
+              "tid": 3925591,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedForegroundBlocking",
+              "userNs": 42000,
+              "systemNs": 40000
+            }
+          ]
+        },
+        {
+          "pid": 27226,
+          "listBytes": 272,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3925513,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CrRendererMain",
+              "userNs": 317566000,
+              "systemNs": 55729000
+            },
+            {
+              "tid": 3925551,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 1061000,
+              "systemNs": 719000
+            },
+            {
+              "tid": 3925552,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 91000,
+              "systemNs": 58000
+            },
+            {
+              "tid": 3925554,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 193000,
+              "systemNs": 155000
+            },
+            {
+              "tid": 3925555,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 205977000,
+              "systemNs": 28124000
+            },
+            {
+              "tid": 3925556,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 217000,
+              "systemNs": 269000
+            },
+            {
+              "tid": 3925557,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 50413000,
+              "systemNs": 71975000
+            },
+            {
+              "tid": 3925558,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 42861000,
+              "systemNs": 4667000
+            },
+            {
+              "tid": 3925564,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 0,
+              "systemNs": 14000
+            },
+            {
+              "tid": 3925568,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Compositor",
+              "userNs": 8718000,
+              "systemNs": 4556000
+            },
+            {
+              "tid": 3925569,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedForegroundBlocking",
+              "userNs": 46000,
+              "systemNs": 62000
+            },
+            {
+              "tid": 3925573,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 48000,
+              "systemNs": 37000
+            },
+            {
+              "tid": 3925574,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 21010000,
+              "systemNs": 1915000
+            },
+            {
+              "tid": 3925592,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 20988000,
+              "systemNs": 1002000
+            },
+            {
+              "tid": 3925593,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 21824000,
+              "systemNs": 1011000
+            },
+            {
+              "tid": 3925603,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 42409000,
+              "systemNs": 981000
+            },
+            {
+              "tid": 3925604,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 21654000,
+              "systemNs": 1279000
+            },
+            {
+              "tid": 3925606,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Media",
+              "userNs": 82937000,
+              "systemNs": 35708000
+            },
+            {
+              "tid": 3925607,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "VideoFrameCompositor",
+              "userNs": 107847000,
+              "systemNs": 28843000
+            },
+            {
+              "tid": 3925762,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedForeground",
+              "userNs": 30000,
+              "systemNs": 15000
+            },
+            {
+              "tid": 3925763,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Realtime AudioWorklet thread",
+              "userNs": 74409000,
+              "systemNs": 15085000
+            },
+            {
+              "tid": 3925764,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 101310000,
+              "systemNs": 25328000
+            },
+            {
+              "tid": 3925780,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "AudioOutputDevice",
+              "userNs": 15274000,
+              "systemNs": 39497000
+            },
+            {
+              "tid": 3925795,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 5434000,
+              "systemNs": 1117000
+            },
+            {
+              "tid": 3925796,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 6225000,
+              "systemNs": 1043000
+            },
+            {
+              "tid": 3925797,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 6168000,
+              "systemNs": 1290000
+            },
+            {
+              "tid": 3925798,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 22226000,
+              "systemNs": 4284000
+            },
+            {
+              "tid": 3925799,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 8027000,
+              "systemNs": 1706000
+            },
+            {
+              "tid": 3925800,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 13131000,
+              "systemNs": 2427000
+            },
+            {
+              "tid": 3925801,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 6954000,
+              "systemNs": 1640000
+            },
+            {
+              "tid": 3925802,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 84354000,
+              "systemNs": 6088000
+            },
+            {
+              "tid": 3925803,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 8085000,
+              "systemNs": 1919000
+            },
+            {
+              "tid": 3925810,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 13683000,
+              "systemNs": 1931000
+            },
+            {
+              "tid": 3925811,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 33278000,
+              "systemNs": 4467000
+            }
+          ]
+        },
+        {
+          "pid": 27225,
+          "listBytes": 136,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3925509,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CrRendererMain",
+              "userNs": 123405000,
+              "systemNs": 36684000
+            },
+            {
+              "tid": 3925522,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 988000,
+              "systemNs": 420000
+            },
+            {
+              "tid": 3925524,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 93000,
+              "systemNs": 75000
+            },
+            {
+              "tid": 3925525,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 165000,
+              "systemNs": 134000
+            },
+            {
+              "tid": 3925526,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 17524000,
+              "systemNs": 4909000
+            },
+            {
+              "tid": 3925527,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 52000,
+              "systemNs": 58000
+            },
+            {
+              "tid": 3925528,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 3973000,
+              "systemNs": 4671000
+            },
+            {
+              "tid": 3925529,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 15689000,
+              "systemNs": 3372000
+            },
+            {
+              "tid": 3925530,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 0,
+              "systemNs": 7000
+            },
+            {
+              "tid": 3925531,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Compositor",
+              "userNs": 6968000,
+              "systemNs": 2430000
+            },
+            {
+              "tid": 3925532,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedForegroundBlocking",
+              "userNs": 67000,
+              "systemNs": 96000
+            },
+            {
+              "tid": 3925533,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 16417000,
+              "systemNs": 3694000
+            },
+            {
+              "tid": 3925534,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 3274000,
+              "systemNs": 1295000
+            },
+            {
+              "tid": 3925535,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 1352000,
+              "systemNs": 679000
+            },
+            {
+              "tid": 3925537,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 1763000,
+              "systemNs": 546000
+            },
+            {
+              "tid": 3925538,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 307000,
+              "systemNs": 203000
+            },
+            {
+              "tid": 3925542,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 249000,
+              "systemNs": 146000
+            }
+          ]
+        },
+        {
+          "pid": 24602,
+          "listBytes": 208,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3920555,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CrGpuMain",
+              "userNs": 642783000,
+              "systemNs": 306415000
+            },
+            {
+              "tid": 3920593,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 37363000,
+              "systemNs": 13581000
+            },
+            {
+              "tid": 3920594,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 392000,
+              "systemNs": 372000
+            },
+            {
+              "tid": 3920595,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "GpuWatchdog",
+              "userNs": 954000,
+              "systemNs": 439000
+            },
+            {
+              "tid": 3920646,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 181000,
+              "systemNs": 160000
+            },
+            {
+              "tid": 3920647,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 30293000,
+              "systemNs": 18354000
+            },
+            {
+              "tid": 3920648,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 108000,
+              "systemNs": 98000
+            },
+            {
+              "tid": 3920649,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 67540000,
+              "systemNs": 58946000
+            },
+            {
+              "tid": 3920650,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "VizCompositorThread",
+              "userNs": 337600000,
+              "systemNs": 64615000
+            },
+            {
+              "tid": 3920754,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedForeground",
+              "userNs": 118358000,
+              "systemNs": 60747000
+            },
+            {
+              "tid": 3920764,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 7707000,
+              "systemNs": 2919000
+            },
+            {
+              "tid": 3920766,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 2913000,
+              "systemNs": 695000
+            },
+            {
+              "tid": 3920767,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 634000,
+              "systemNs": 167000
+            },
+            {
+              "tid": 3920805,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 105000,
+              "systemNs": 193000
+            },
+            {
+              "tid": 3922992,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 17882000,
+              "systemNs": 56300000
+            },
+            {
+              "tid": 3925505,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 13337000,
+              "systemNs": 28299000
+            },
+            {
+              "tid": 3925622,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.coremedia.sharedRootQueue.47",
+              "userNs": 49947000,
+              "systemNs": 30131000
+            },
+            {
+              "tid": 3925625,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.coremedia.imagequeue.coreanimation.common",
+              "userNs": 80708000,
+              "systemNs": 30825000
+            },
+            {
+              "tid": 3925627,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 7163000,
+              "systemNs": 15340000
+            },
+            {
+              "tid": 3925651,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.coremedia.rootQueue.fP-48.mP-47",
+              "userNs": 545000,
+              "systemNs": 614000
+            },
+            {
+              "tid": 3925652,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.coremedia.rootQueue.fP-48.mP-47",
+              "userNs": 492000,
+              "systemNs": 565000
+            },
+            {
+              "tid": 3925804,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CVDisplayLink",
+              "userNs": 4181000,
+              "systemNs": 5170000
+            },
+            {
+              "tid": 3925805,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CVDisplayLink",
+              "userNs": 4040000,
+              "systemNs": 5167000
+            },
+            {
+              "tid": 3925808,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.coremedia.sharedRootQueue.49",
+              "userNs": 6000,
+              "systemNs": 11000
+            },
+            {
+              "tid": 3925813,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.coremedia.videomediaconverter",
+              "userNs": 45234000,
+              "systemNs": 22524000
+            },
+            {
+              "tid": 3925814,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 5000,
+              "systemNs": 15000
+            }
+          ]
+        },
+        {
+          "pid": 24603,
+          "listBytes": 120,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3920559,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "network.CrUtilityMain",
+              "userNs": 35968000,
+              "systemNs": 16853000
+            },
+            {
+              "tid": 3920598,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 282000,
+              "systemNs": 239000
+            },
+            {
+              "tid": 3920601,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 32676000,
+              "systemNs": 11033000
+            },
+            {
+              "tid": 3920602,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 303000,
+              "systemNs": 382000
+            },
+            {
+              "tid": 3920603,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 342000,
+              "systemNs": 268000
+            },
+            {
+              "tid": 3920604,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 9318000,
+              "systemNs": 14405000
+            },
+            {
+              "tid": 3920605,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 466000,
+              "systemNs": 2464000
+            },
+            {
+              "tid": 3920606,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 118976000,
+              "systemNs": 79200000
+            },
+            {
+              "tid": 3920607,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 1185000,
+              "systemNs": 4608000
+            },
+            {
+              "tid": 3920608,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkConfigWatcher",
+              "userNs": 1339000,
+              "systemNs": 2028000
+            },
+            {
+              "tid": 3920609,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 1391000,
+              "systemNs": 2718000
+            },
+            {
+              "tid": 3920610,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 905000,
+              "systemNs": 1882000
+            },
+            {
+              "tid": 3920642,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 249000,
+              "systemNs": 1265000
+            },
+            {
+              "tid": 3920643,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 259000,
+              "systemNs": 414000
+            },
+            {
+              "tid": 3920645,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 31000,
+              "systemNs": 17000
+            }
+          ]
+        },
+        {
+          "pid": 24605,
+          "listBytes": 80,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3920568,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "storage.CrUtilityMain",
+              "userNs": 28925000,
+              "systemNs": 15128000
+            },
+            {
+              "tid": 3920621,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 224000,
+              "systemNs": 158000
+            },
+            {
+              "tid": 3920630,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 31541000,
+              "systemNs": 10876000
+            },
+            {
+              "tid": 3920631,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 338000,
+              "systemNs": 383000
+            },
+            {
+              "tid": 3920633,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 15000,
+              "systemNs": 14000
+            },
+            {
+              "tid": 3920634,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 2236000,
+              "systemNs": 1614000
+            },
+            {
+              "tid": 3920635,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 83000,
+              "systemNs": 65000
+            },
+            {
+              "tid": 3920636,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 23543000,
+              "systemNs": 15286000
+            },
+            {
+              "tid": 3920637,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 112000,
+              "systemNs": 107000
+            },
+            {
+              "tid": 3920640,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 47000,
+              "systemNs": 39000
+            }
+          ]
+        },
+        {
+          "pid": 24609,
+          "listBytes": 72,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3920655,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "tracing.CrUtilityMain",
+              "userNs": 561190000,
+              "systemNs": 143604000
+            },
+            {
+              "tid": 3920665,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 167000,
+              "systemNs": 76000
+            },
+            {
+              "tid": 3920669,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 44562000,
+              "systemNs": 12813000
+            },
+            {
+              "tid": 3920670,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 297000,
+              "systemNs": 322000
+            },
+            {
+              "tid": 3920671,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 14000,
+              "systemNs": 16000
+            },
+            {
+              "tid": 3920672,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 2116000,
+              "systemNs": 2540000
+            },
+            {
+              "tid": 3920673,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 115000,
+              "systemNs": 96000
+            },
+            {
+              "tid": 3920674,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 21061000,
+              "systemNs": 18648000
+            },
+            {
+              "tid": 3925485,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 62000,
+              "systemNs": 256000
+            }
+          ]
+        },
+        {
+          "pid": 27234,
+          "listBytes": 144,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3925701,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "audio.CrUtilityMain",
+              "userNs": 49196000,
+              "systemNs": 30935000
+            },
+            {
+              "tid": 3925706,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 3174000,
+              "systemNs": 1361000
+            },
+            {
+              "tid": 3925707,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 2271000,
+              "systemNs": 1672000
+            },
+            {
+              "tid": 3925710,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 702000,
+              "systemNs": 372000
+            },
+            {
+              "tid": 3925711,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 13000,
+              "systemNs": 24000
+            },
+            {
+              "tid": 3925718,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 606000,
+              "systemNs": 1095000
+            },
+            {
+              "tid": 3925719,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 363000,
+              "systemNs": 124000
+            },
+            {
+              "tid": 3925726,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.NSEventThread",
+              "userNs": 48000,
+              "systemNs": 46000
+            },
+            {
+              "tid": 3925727,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 30000,
+              "systemNs": 24000
+            },
+            {
+              "tid": 3925728,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 33000,
+              "systemNs": 44000
+            },
+            {
+              "tid": 3925729,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 33000,
+              "systemNs": 24000
+            },
+            {
+              "tid": 3925730,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 398000,
+              "systemNs": 534000
+            },
+            {
+              "tid": 3925737,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 22000,
+              "systemNs": 11000
+            },
+            {
+              "tid": 3925739,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "caulk.messenger.shared:17",
+              "userNs": 1000,
+              "systemNs": 2000
+            },
+            {
+              "tid": 3925740,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "caulk.messenger.shared:high",
+              "userNs": 4000,
+              "systemNs": 20000
+            },
+            {
+              "tid": 3925776,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "caulk::deferred_logger",
+              "userNs": 2000,
+              "systemNs": 5000
+            },
+            {
+              "tid": 3925781,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.audio.IOThread.client",
+              "userNs": 9395000,
+              "systemNs": 10935000
+            },
+            {
+              "tid": 3925792,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "AudioSession - RootQueue",
+              "userNs": 167000,
+              "systemNs": 39000
+            }
+          ]
+        }
+      ],
+      "endAt": 80751.9652965
+    },
+    "samples": [
+      {
+        "at": 171704.6592915,
+        "epochAt": 1790459468348,
+        "processQueryMs": 2.0555830000084825,
+        "processes": [
+          {
+            "type": "browser",
+            "id": 24596,
+            "cpuTime": 32.190556
+          },
+          {
+            "type": "renderer",
+            "id": 27228,
+            "cpuTime": 0.063913
+          },
+          {
+            "type": "renderer",
+            "id": 27226,
+            "cpuTime": 2.165373
+          },
+          {
+            "type": "renderer",
+            "id": 27225,
+            "cpuTime": 0.254275
+          },
+          {
+            "type": "GPU",
+            "id": 24602,
+            "cpuTime": 2.84484
+          },
+          {
+            "type": "network.mojom.NetworkService",
+            "id": 24603,
+            "cpuTime": 0.344441
+          },
+          {
+            "type": "storage.mojom.StorageService",
+            "id": 24605,
+            "cpuTime": 0.13224
+          },
+          {
+            "type": "tracing.mojom.TracingService",
+            "id": 24609,
+            "cpuTime": 0.816366
+          },
+          {
+            "type": "audio.mojom.AudioService",
+            "id": 27234,
+            "cpuTime": 0.131002
+          }
+        ],
+        "rssKiB": 1281808,
+        "state": {
+          "lane": "baseline",
+          "position": 9.292552,
+          "videoTime": 10.31152,
+          "total": 194,
+          "dropped": 1,
+          "visible": "visible",
+          "focused": true,
+          "paused": false,
+          "errors": [],
+          "sameVideo": true,
+          "scanAck": false,
+          "quantum": 128,
+          "contextState": "running",
+          "latency": [
+            0.005333333333333333,
+            0.032
+          ],
+          "audio": {
+            "underruns": 0,
+            "errorMs": 1.35398567232059,
+            "corrections": 0,
+            "frames": 309504,
+            "videoTracks": 0,
+            "pumpTicks": 561
+          }
+        }
+      },
+      {
+        "at": 173706.3126665,
+        "epochAt": 1790459470347,
+        "processQueryMs": 2.263583000021754,
+        "processes": [
+          {
+            "type": "browser",
+            "id": 24596,
+            "cpuTime": 32.198648
+          },
+          {
+            "type": "renderer",
+            "id": 27228,
+            "cpuTime": 0.064927
+          },
+          {
+            "type": "renderer",
+            "id": 27226,
+            "cpuTime": 2.574942
+          },
+          {
+            "type": "renderer",
+            "id": 27225,
+            "cpuTime": 0.256539
+          },
+          {
+            "type": "GPU",
+            "id": 24602,
+            "cpuTime": 3.112465
+          },
+          {
+            "type": "network.mojom.NetworkService",
+            "id": 24603,
+            "cpuTime": 0.347137
+          },
+          {
+            "type": "storage.mojom.StorageService",
+            "id": 24605,
+            "cpuTime": 0.13315
+          },
+          {
+            "type": "tracing.mojom.TracingService",
+            "id": 24609,
+            "cpuTime": 0.823721
+          },
+          {
+            "type": "audio.mojom.AudioService",
+            "id": 27234,
+            "cpuTime": 0.148184
+          }
+        ],
+        "rssKiB": 1241168,
+        "state": {
+          "lane": "baseline",
+          "position": 11.232584,
+          "videoTime": 12.313173,
+          "total": 254,
+          "dropped": 1,
+          "visible": "visible",
+          "focused": true,
+          "paused": false,
+          "errors": [],
+          "sameVideo": true,
+          "scanAck": false,
+          "quantum": 128,
+          "contextState": "running",
+          "latency": [
+            0.005333333333333333,
+            0.032
+          ],
+          "audio": {
+            "underruns": 0,
+            "errorMs": 38.51736913347814,
+            "corrections": 0,
+            "frames": 405760,
+            "videoTracks": 0,
+            "pumpTicks": 731
+          }
+        },
+        "deadlineLatenessMs": 1.653374999994412
+      },
+      {
+        "at": 175706.46133299998,
+        "epochAt": 1790459472349,
+        "processQueryMs": 2.1547500000160653,
+        "processes": [
+          {
+            "type": "browser",
+            "id": 24596,
+            "cpuTime": 32.208142
+          },
+          {
+            "type": "renderer",
+            "id": 27228,
+            "cpuTime": 0.065838
+          },
+          {
+            "type": "renderer",
+            "id": 27226,
+            "cpuTime": 2.964077
+          },
+          {
+            "type": "renderer",
+            "id": 27225,
+            "cpuTime": 0.258069
+          },
+          {
+            "type": "GPU",
+            "id": 24602,
+            "cpuTime": 3.40297
+          },
+          {
+            "type": "network.mojom.NetworkService",
+            "id": 24603,
+            "cpuTime": 0.349912
+          },
+          {
+            "type": "storage.mojom.StorageService",
+            "id": 24605,
+            "cpuTime": 0.134075
+          },
+          {
+            "type": "tracing.mojom.TracingService",
+            "id": 24609,
+            "cpuTime": 0.830641
+          },
+          {
+            "type": "audio.mojom.AudioService",
+            "id": 27234,
+            "cpuTime": 0.167127
+          }
+        ],
+        "rssKiB": 1246928,
+        "state": {
+          "lane": "baseline",
+          "position": 13.24323,
+          "videoTime": 14.313156,
+          "total": 314,
+          "dropped": 1,
+          "visible": "visible",
+          "focused": true,
+          "paused": false,
+          "errors": [],
+          "sameVideo": true,
+          "scanAck": false,
+          "quantum": 128,
+          "contextState": "running",
+          "latency": [
+            0.005333333333333333,
+            0.032
+          ],
+          "audio": {
+            "underruns": 0,
+            "errorMs": 38.47375716027557,
+            "corrections": 0,
+            "frames": 501760,
+            "videoTracks": 0,
+            "pumpTicks": 900
+          }
+        },
+        "deadlineLatenessMs": 1.8020414999919012
+      },
+      {
+        "at": 177707.012021,
+        "epochAt": 1790459474346,
+        "processQueryMs": 2.725291999988258,
+        "processes": [
+          {
+            "type": "browser",
+            "id": 24596,
+            "cpuTime": 32.212132
+          },
+          {
+            "type": "renderer",
+            "id": 27228,
+            "cpuTime": 0.066647
+          },
+          {
+            "type": "renderer",
+            "id": 27226,
+            "cpuTime": 3.339073
+          },
+          {
+            "type": "renderer",
+            "id": 27225,
+            "cpuTime": 0.259397
+          },
+          {
+            "type": "GPU",
+            "id": 24602,
+            "cpuTime": 3.700836
+          },
+          {
+            "type": "network.mojom.NetworkService",
+            "id": 24603,
+            "cpuTime": 0.350905
+          },
+          {
+            "type": "storage.mojom.StorageService",
+            "id": 24605,
+            "cpuTime": 0.135029
+          },
+          {
+            "type": "tracing.mojom.TracingService",
+            "id": 24609,
+            "cpuTime": 0.836159
+          },
+          {
+            "type": "audio.mojom.AudioService",
+            "id": 27234,
+            "cpuTime": 0.184179
+          }
+        ],
+        "rssKiB": 1250400,
+        "state": {
+          "lane": "baseline",
+          "position": 15.212592,
+          "videoTime": 16.314012,
+          "total": 374,
+          "dropped": 1,
+          "visible": "visible",
+          "focused": true,
+          "paused": false,
+          "errors": [],
+          "sameVideo": true,
+          "scanAck": false,
+          "quantum": 128,
+          "contextState": "running",
+          "latency": [
+            0.005333333333333333,
+            0.032
+          ],
+          "audio": {
+            "underruns": 0,
+            "errorMs": 38.344215491223466,
+            "corrections": 0,
+            "frames": 597760,
+            "videoTracks": 0,
+            "pumpTicks": 1053
+          }
+        },
+        "deadlineLatenessMs": 2.3527295000094455
+      },
+      {
+        "at": 179705.475,
+        "epochAt": 1790459476347,
+        "processQueryMs": 0.8790840000147,
+        "processes": [
+          {
+            "type": "browser",
+            "id": 24596,
+            "cpuTime": 32.221321
+          },
+          {
+            "type": "renderer",
+            "id": 27228,
+            "cpuTime": 0.067582
+          },
+          {
+            "type": "renderer",
+            "id": 27226,
+            "cpuTime": 3.619279
+          },
+          {
+            "type": "renderer",
+            "id": 27225,
+            "cpuTime": 0.26055
+          },
+          {
+            "type": "GPU",
+            "id": 24602,
+            "cpuTime": 3.909181
+          },
+          {
+            "type": "network.mojom.NetworkService",
+            "id": 24603,
+            "cpuTime": 0.35324
+          },
+          {
+            "type": "storage.mojom.StorageService",
+            "id": 24605,
+            "cpuTime": 0.136099
+          },
+          {
+            "type": "tracing.mojom.TracingService",
+            "id": 24609,
+            "cpuTime": 0.842663
+          },
+          {
+            "type": "audio.mojom.AudioService",
+            "id": 27234,
+            "cpuTime": 0.200706
+          }
+        ],
+        "rssKiB": 1253248,
+        "state": {
+          "lane": "baseline",
+          "position": 17.196352,
+          "videoTime": 18.310722,
+          "total": 434,
+          "dropped": 1,
+          "visible": "visible",
+          "focused": true,
+          "paused": false,
+          "errors": [],
+          "sameVideo": true,
+          "scanAck": false,
+          "quantum": 128,
+          "contextState": "running",
+          "latency": [
+            0.005333333333333333,
+            0.032
+          ],
+          "audio": {
+            "underruns": 0,
+            "errorMs": 38.1323014221735,
+            "corrections": 0,
+            "frames": 693504,
+            "videoTracks": 0,
+            "pumpTicks": 1222
+          }
+        },
+        "deadlineLatenessMs": 0.8157085000129882
+      }
+    ],
+    "cpu": {
+      "wallSeconds": 8.000815708500014,
+      "processIdsStable": true,
+      "oneCorePercent": 33.34178785253041,
+      "cpuSeconds": 2.6676150000000023,
+      "roles": {
+        "browser": 0.3845232926352477,
+        "renderer": 18.296259448206207,
+        "gpu": 13.302906088303608,
+        "audio": 0.8712111682055983,
+        "utility": 0.4868878551797473,
+        "other": 0
+      },
+      "nonBrowserPercent": 32.95726455989516,
+      "perProcess": [
+        {
+          "id": 24596,
+          "type": "browser",
+          "role": "browser",
+          "cpuSeconds": 0.030765000000002374,
+          "oneCorePercent": 0.3845232926352477
+        },
+        {
+          "id": 27228,
+          "type": "renderer",
+          "role": "renderer",
+          "cpuSeconds": 0.0036690000000000056,
+          "oneCorePercent": 0.04585782417287883
+        },
+        {
+          "id": 27226,
+          "type": "renderer",
+          "role": "renderer",
+          "cpuSeconds": 1.453906,
+          "oneCorePercent": 18.171972120984865
+        },
+        {
+          "id": 27225,
+          "type": "renderer",
+          "role": "renderer",
+          "cpuSeconds": 0.0062750000000000306,
+          "oneCorePercent": 0.07842950304846433
+        },
+        {
+          "id": 24602,
+          "type": "GPU",
+          "role": "gpu",
+          "cpuSeconds": 1.0643409999999998,
+          "oneCorePercent": 13.302906088303608
+        },
+        {
+          "id": 24603,
+          "type": "network.mojom.NetworkService",
+          "role": "utility",
+          "cpuSeconds": 0.008799000000000001,
+          "oneCorePercent": 0.1099762864260453
+        },
+        {
+          "id": 24605,
+          "type": "storage.mojom.StorageService",
+          "role": "utility",
+          "cpuSeconds": 0.0038590000000000013,
+          "oneCorePercent": 0.048232582034107165
+        },
+        {
+          "id": 24609,
+          "type": "tracing.mojom.TracingService",
+          "role": "utility",
+          "cpuSeconds": 0.026297000000000015,
+          "oneCorePercent": 0.32867898671959483
+        },
+        {
+          "id": 27234,
+          "type": "audio.mojom.AudioService",
+          "role": "audio",
+          "cpuSeconds": 0.06970399999999999,
+          "oneCorePercent": 0.8712111682055983
+        }
+      ],
+      "peakSummedRssKiB": 1281808,
+      "maxProcessQueryMs": 2.725291999988258,
+      "maxDeadlineLatenessMs": 2.3527295000094455
+    },
+    "threadAfter": {
+      "at": 80764.229069541,
+      "processes": [
+        {
+          "pid": 24596,
+          "listBytes": 360,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3920481,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CrBrowserMain",
+              "userNs": 864844000,
+              "systemNs": 234120000
+            },
+            {
+              "tid": 3920489,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 2000,
+              "systemNs": 9000
+            },
+            {
+              "tid": 3920508,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.NSEventThread",
+              "userNs": 4778000,
+              "systemNs": 3935000
+            },
+            {
+              "tid": 3920529,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 341000,
+              "systemNs": 509000
+            },
+            {
+              "tid": 3920530,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 51253000,
+              "systemNs": 18127000
+            },
+            {
+              "tid": 3920531,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 7398000,
+              "systemNs": 2915000
+            },
+            {
+              "tid": 3920532,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 36356000,
+              "systemNs": 181354000
+            },
+            {
+              "tid": 3920533,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 20041000,
+              "systemNs": 24804000
+            },
+            {
+              "tid": 3920534,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 61133000,
+              "systemNs": 65913000
+            },
+            {
+              "tid": 3920535,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 4591000,
+              "systemNs": 8843000
+            },
+            {
+              "tid": 3920536,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 5739000,
+              "systemNs": 6127000
+            },
+            {
+              "tid": 3920537,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 24198218000,
+              "systemNs": 2993823000
+            },
+            {
+              "tid": 3920540,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_IOThread",
+              "userNs": 89781000,
+              "systemNs": 71637000
+            },
+            {
+              "tid": 3920541,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "MemoryInfra",
+              "userNs": 7139000,
+              "systemNs": 3287000
+            },
+            {
+              "tid": 3920544,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkConfigWatcher",
+              "userNs": 952000,
+              "systemNs": 1565000
+            },
+            {
+              "tid": 3920545,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CrShutdownDetector",
+              "userNs": 13000,
+              "systemNs": 42000
+            },
+            {
+              "tid": 3920547,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkConfigWatcher",
+              "userNs": 109000,
+              "systemNs": 49000
+            },
+            {
+              "tid": 3920548,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 2097000,
+              "systemNs": 5067000
+            },
+            {
+              "tid": 3920549,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 4025000,
+              "systemNs": 3229000
+            },
+            {
+              "tid": 3920550,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 684000,
+              "systemNs": 4237000
+            },
+            {
+              "tid": 3920551,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 1409000,
+              "systemNs": 6480000
+            },
+            {
+              "tid": 3920552,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkNotificationThreadMac",
+              "userNs": 150000,
+              "systemNs": 98000
+            },
+            {
+              "tid": 3920553,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadForegroundBlocking",
+              "userNs": 1267000,
+              "systemNs": 6841000
+            },
+            {
+              "tid": 3920554,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CompositorTileWorker1",
+              "userNs": 6480000,
+              "systemNs": 2177000
+            },
+            {
+              "tid": 3920566,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedBackgroundBlocking",
+              "userNs": 153000,
+              "systemNs": 251000
+            },
+            {
+              "tid": 3920570,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkConfigWatcher",
+              "userNs": 189000,
+              "systemNs": 88000
+            },
+            {
+              "tid": 3920571,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadForegroundBlocking",
+              "userNs": 38000,
+              "systemNs": 71000
+            },
+            {
+              "tid": 3920572,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedForeground",
+              "userNs": 1254000,
+              "systemNs": 657000
+            },
+            {
+              "tid": 3920573,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 1004000,
+              "systemNs": 2913000
+            },
+            {
+              "tid": 3920574,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 64000,
+              "systemNs": 807000
+            },
+            {
+              "tid": 3920578,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkConfigWatcher",
+              "userNs": 119000,
+              "systemNs": 58000
+            },
+            {
+              "tid": 3920579,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 59000,
+              "systemNs": 75000
+            },
+            {
+              "tid": 3920580,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 131000,
+              "systemNs": 1298000
+            },
+            {
+              "tid": 3920581,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 124000,
+              "systemNs": 1156000
+            },
+            {
+              "tid": 3920582,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 197000,
+              "systemNs": 1001000
+            },
+            {
+              "tid": 3920583,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 91000,
+              "systemNs": 603000
+            },
+            {
+              "tid": 3920585,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 62000,
+              "systemNs": 794000
+            },
+            {
+              "tid": 3920596,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DevToolsPipeHandlerReadThread",
+              "userNs": 2542000,
+              "systemNs": 2313000
+            },
+            {
+              "tid": 3920597,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DevToolsPipeHandlerWriteThread",
+              "userNs": 6446000,
+              "systemNs": 17646000
+            },
+            {
+              "tid": 3920652,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CacheThread_BlockFile",
+              "userNs": 3494000,
+              "systemNs": 8290000
+            },
+            {
+              "tid": 3920862,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "org.libusb.device-hotplug",
+              "userNs": 123000,
+              "systemNs": 277000
+            },
+            {
+              "tid": 3920863,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "UsbEventHandler",
+              "userNs": 205000,
+              "systemNs": 439000
+            },
+            {
+              "tid": 3925488,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 3259000,
+              "systemNs": 2032000
+            },
+            {
+              "tid": 3925508,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkConfigWatcher",
+              "userNs": 414000,
+              "systemNs": 237000
+            },
+            {
+              "tid": 3925658,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PowerSaveBlocker",
+              "userNs": 1116000,
+              "systemNs": 761000
+            }
+          ]
+        },
+        {
+          "pid": 27228,
+          "listBytes": 88,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3925572,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CrRendererMain",
+              "userNs": 31015000,
+              "systemNs": 18924000
+            },
+            {
+              "tid": 3925578,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 3504000,
+              "systemNs": 1889000
+            },
+            {
+              "tid": 3925579,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 130000,
+              "systemNs": 120000
+            },
+            {
+              "tid": 3925580,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 26000,
+              "systemNs": 21000
+            },
+            {
+              "tid": 3925581,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 7169000,
+              "systemNs": 1121000
+            },
+            {
+              "tid": 3925582,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 42000,
+              "systemNs": 62000
+            },
+            {
+              "tid": 3925583,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 1453000,
+              "systemNs": 1447000
+            },
+            {
+              "tid": 3925584,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 27000,
+              "systemNs": 20000
+            },
+            {
+              "tid": 3925587,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 0,
+              "systemNs": 3000
+            },
+            {
+              "tid": 3925590,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Compositor",
+              "userNs": 73000,
+              "systemNs": 56000
+            },
+            {
+              "tid": 3925591,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedForegroundBlocking",
+              "userNs": 42000,
+              "systemNs": 40000
+            }
+          ]
+        },
+        {
+          "pid": 27226,
+          "listBytes": 272,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3925513,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CrRendererMain",
+              "userNs": 660609000,
+              "systemNs": 89418000
+            },
+            {
+              "tid": 3925551,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 5259000,
+              "systemNs": 2301000
+            },
+            {
+              "tid": 3925552,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 153000,
+              "systemNs": 65000
+            },
+            {
+              "tid": 3925554,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 193000,
+              "systemNs": 155000
+            },
+            {
+              "tid": 3925555,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 334263000,
+              "systemNs": 33121000
+            },
+            {
+              "tid": 3925556,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 217000,
+              "systemNs": 269000
+            },
+            {
+              "tid": 3925557,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 79454000,
+              "systemNs": 117616000
+            },
+            {
+              "tid": 3925558,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 53983000,
+              "systemNs": 5865000
+            },
+            {
+              "tid": 3925564,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 0,
+              "systemNs": 14000
+            },
+            {
+              "tid": 3925568,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Compositor",
+              "userNs": 21667000,
+              "systemNs": 10826000
+            },
+            {
+              "tid": 3925569,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedForegroundBlocking",
+              "userNs": 46000,
+              "systemNs": 62000
+            },
+            {
+              "tid": 3925573,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 48000,
+              "systemNs": 37000
+            },
+            {
+              "tid": 3925574,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 24126000,
+              "systemNs": 2412000
+            },
+            {
+              "tid": 3925592,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 22475000,
+              "systemNs": 1291000
+            },
+            {
+              "tid": 3925593,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 22502000,
+              "systemNs": 1198000
+            },
+            {
+              "tid": 3925603,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 42553000,
+              "systemNs": 1142000
+            },
+            {
+              "tid": 3925604,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 21786000,
+              "systemNs": 1448000
+            },
+            {
+              "tid": 3925606,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Media",
+              "userNs": 172114000,
+              "systemNs": 69890000
+            },
+            {
+              "tid": 3925607,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "VideoFrameCompositor",
+              "userNs": 248632000,
+              "systemNs": 65253000
+            },
+            {
+              "tid": 3925762,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedForeground",
+              "userNs": 30000,
+              "systemNs": 15000
+            },
+            {
+              "tid": 3925763,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Realtime AudioWorklet thread",
+              "userNs": 477199000,
+              "systemNs": 93204000
+            },
+            {
+              "tid": 3925764,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 308806000,
+              "systemNs": 50122000
+            },
+            {
+              "tid": 3925780,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "AudioOutputDevice",
+              "userNs": 91294000,
+              "systemNs": 174725000
+            },
+            {
+              "tid": 3925795,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 6090000,
+              "systemNs": 1190000
+            },
+            {
+              "tid": 3925796,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 6865000,
+              "systemNs": 1127000
+            },
+            {
+              "tid": 3925797,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 6769000,
+              "systemNs": 1359000
+            },
+            {
+              "tid": 3925798,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 66798000,
+              "systemNs": 12650000
+            },
+            {
+              "tid": 3925799,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 12914000,
+              "systemNs": 3205000
+            },
+            {
+              "tid": 3925800,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 16732000,
+              "systemNs": 3893000
+            },
+            {
+              "tid": 3925801,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 11149000,
+              "systemNs": 3082000
+            },
+            {
+              "tid": 3925802,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 272593000,
+              "systemNs": 14389000
+            },
+            {
+              "tid": 3925803,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 10221000,
+              "systemNs": 2174000
+            },
+            {
+              "tid": 3925810,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 36789000,
+              "systemNs": 5178000
+            },
+            {
+              "tid": 3925811,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "DedicatedWorker thread",
+              "userNs": 57463000,
+              "systemNs": 6852000
+            }
+          ]
+        },
+        {
+          "pid": 27225,
+          "listBytes": 136,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3925509,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CrRendererMain",
+              "userNs": 124692000,
+              "systemNs": 36919000
+            },
+            {
+              "tid": 3925522,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 3942000,
+              "systemNs": 1339000
+            },
+            {
+              "tid": 3925524,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 117000,
+              "systemNs": 93000
+            },
+            {
+              "tid": 3925525,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 165000,
+              "systemNs": 134000
+            },
+            {
+              "tid": 3925526,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 17524000,
+              "systemNs": 4909000
+            },
+            {
+              "tid": 3925527,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 52000,
+              "systemNs": 58000
+            },
+            {
+              "tid": 3925528,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 4936000,
+              "systemNs": 5545000
+            },
+            {
+              "tid": 3925529,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 15689000,
+              "systemNs": 3372000
+            },
+            {
+              "tid": 3925530,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 0,
+              "systemNs": 7000
+            },
+            {
+              "tid": 3925531,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Compositor",
+              "userNs": 7723000,
+              "systemNs": 2762000
+            },
+            {
+              "tid": 3925532,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedForegroundBlocking",
+              "userNs": 67000,
+              "systemNs": 96000
+            },
+            {
+              "tid": 3925533,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 16417000,
+              "systemNs": 3694000
+            },
+            {
+              "tid": 3925534,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 3274000,
+              "systemNs": 1295000
+            },
+            {
+              "tid": 3925535,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 1352000,
+              "systemNs": 679000
+            },
+            {
+              "tid": 3925537,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 1763000,
+              "systemNs": 546000
+            },
+            {
+              "tid": 3925538,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 307000,
+              "systemNs": 203000
+            },
+            {
+              "tid": 3925542,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 249000,
+              "systemNs": 146000
+            }
+          ]
+        },
+        {
+          "pid": 24602,
+          "listBytes": 200,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3920555,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CrGpuMain",
+              "userNs": 1014157000,
+              "systemNs": 474765000
+            },
+            {
+              "tid": 3920593,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 41607000,
+              "systemNs": 15078000
+            },
+            {
+              "tid": 3920594,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 403000,
+              "systemNs": 378000
+            },
+            {
+              "tid": 3920595,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "GpuWatchdog",
+              "userNs": 1082000,
+              "systemNs": 562000
+            },
+            {
+              "tid": 3920646,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 181000,
+              "systemNs": 160000
+            },
+            {
+              "tid": 3920647,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 30293000,
+              "systemNs": 18354000
+            },
+            {
+              "tid": 3920648,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 108000,
+              "systemNs": 98000
+            },
+            {
+              "tid": 3920649,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 89733000,
+              "systemNs": 88154000
+            },
+            {
+              "tid": 3920650,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "VizCompositorThread",
+              "userNs": 597654000,
+              "systemNs": 111882000
+            },
+            {
+              "tid": 3920754,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolSingleThreadSharedForeground",
+              "userNs": 239501000,
+              "systemNs": 104791000
+            },
+            {
+              "tid": 3920764,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 7707000,
+              "systemNs": 2919000
+            },
+            {
+              "tid": 3920766,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 2913000,
+              "systemNs": 695000
+            },
+            {
+              "tid": 3920767,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 634000,
+              "systemNs": 167000
+            },
+            {
+              "tid": 3920805,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 105000,
+              "systemNs": 193000
+            },
+            {
+              "tid": 3922992,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 30395000,
+              "systemNs": 81496000
+            },
+            {
+              "tid": 3925505,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 22744000,
+              "systemNs": 46640000
+            },
+            {
+              "tid": 3925625,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.coremedia.imagequeue.coreanimation.common",
+              "userNs": 146906000,
+              "systemNs": 55467000
+            },
+            {
+              "tid": 3925651,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.coremedia.rootQueue.fP-48.mP-47",
+              "userNs": 984000,
+              "systemNs": 1084000
+            },
+            {
+              "tid": 3925652,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.coremedia.rootQueue.fP-48.mP-47",
+              "userNs": 901000,
+              "systemNs": 1011000
+            },
+            {
+              "tid": 3925804,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CVDisplayLink",
+              "userNs": 14714000,
+              "systemNs": 20469000
+            },
+            {
+              "tid": 3925805,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "CVDisplayLink",
+              "userNs": 14780000,
+              "systemNs": 20119000
+            },
+            {
+              "tid": 3925813,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.coremedia.videomediaconverter",
+              "userNs": 194633000,
+              "systemNs": 99974000
+            },
+            {
+              "tid": 3925814,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 8856000,
+              "systemNs": 18109000
+            },
+            {
+              "tid": 3926205,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.coremedia.sharedRootQueue.47",
+              "userNs": 32250000,
+              "systemNs": 20421000
+            },
+            {
+              "tid": 3926265,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.coremedia.sharedRootQueue.47",
+              "userNs": 5746000,
+              "systemNs": 3720000
+            }
+          ]
+        },
+        {
+          "pid": 24603,
+          "listBytes": 120,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3920559,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "network.CrUtilityMain",
+              "userNs": 36584000,
+              "systemNs": 16973000
+            },
+            {
+              "tid": 3920598,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 282000,
+              "systemNs": 239000
+            },
+            {
+              "tid": 3920601,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 35610000,
+              "systemNs": 11965000
+            },
+            {
+              "tid": 3920602,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 326000,
+              "systemNs": 394000
+            },
+            {
+              "tid": 3920603,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 342000,
+              "systemNs": 268000
+            },
+            {
+              "tid": 3920604,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 9318000,
+              "systemNs": 14405000
+            },
+            {
+              "tid": 3920605,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 466000,
+              "systemNs": 2464000
+            },
+            {
+              "tid": 3920606,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 126018000,
+              "systemNs": 82080000
+            },
+            {
+              "tid": 3920607,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 1185000,
+              "systemNs": 4608000
+            },
+            {
+              "tid": 3920608,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "NetworkConfigWatcher",
+              "userNs": 1339000,
+              "systemNs": 2028000
+            },
+            {
+              "tid": 3920609,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 1391000,
+              "systemNs": 2718000
+            },
+            {
+              "tid": 3920610,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 905000,
+              "systemNs": 1882000
+            },
+            {
+              "tid": 3920642,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 249000,
+              "systemNs": 1265000
+            },
+            {
+              "tid": 3920643,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 259000,
+              "systemNs": 414000
+            },
+            {
+              "tid": 3920645,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 31000,
+              "systemNs": 17000
+            }
+          ]
+        },
+        {
+          "pid": 24605,
+          "listBytes": 80,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3920568,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "storage.CrUtilityMain",
+              "userNs": 29386000,
+              "systemNs": 15217000
+            },
+            {
+              "tid": 3920621,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 224000,
+              "systemNs": 158000
+            },
+            {
+              "tid": 3920630,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 34250000,
+              "systemNs": 11707000
+            },
+            {
+              "tid": 3920631,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 360000,
+              "systemNs": 404000
+            },
+            {
+              "tid": 3920633,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 15000,
+              "systemNs": 14000
+            },
+            {
+              "tid": 3920634,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 2236000,
+              "systemNs": 1614000
+            },
+            {
+              "tid": 3920635,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 83000,
+              "systemNs": 65000
+            },
+            {
+              "tid": 3920636,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 24507000,
+              "systemNs": 16280000
+            },
+            {
+              "tid": 3920637,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 112000,
+              "systemNs": 107000
+            },
+            {
+              "tid": 3920640,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 47000,
+              "systemNs": 39000
+            }
+          ]
+        },
+        {
+          "pid": 24609,
+          "listBytes": 72,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3920655,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "tracing.CrUtilityMain",
+              "userNs": 580237000,
+              "systemNs": 155941000
+            },
+            {
+              "tid": 3920665,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 167000,
+              "systemNs": 76000
+            },
+            {
+              "tid": 3920669,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 47722000,
+              "systemNs": 13687000
+            },
+            {
+              "tid": 3920670,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 310000,
+              "systemNs": 351000
+            },
+            {
+              "tid": 3920671,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 14000,
+              "systemNs": 16000
+            },
+            {
+              "tid": 3920672,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 2116000,
+              "systemNs": 2540000
+            },
+            {
+              "tid": 3920673,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 115000,
+              "systemNs": 96000
+            },
+            {
+              "tid": 3920674,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 23439000,
+              "systemNs": 21082000
+            },
+            {
+              "tid": 3925485,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 62000,
+              "systemNs": 256000
+            }
+          ]
+        },
+        {
+          "pid": 27234,
+          "listBytes": 112,
+          "errno": 0,
+          "threads": [
+            {
+              "tid": 3925701,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "audio.CrUtilityMain",
+              "userNs": 70454000,
+              "systemNs": 35109000
+            },
+            {
+              "tid": 3925710,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "PerfettoTrace",
+              "userNs": 4812000,
+              "systemNs": 1656000
+            },
+            {
+              "tid": 3925711,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "HangWatcher",
+              "userNs": 79000,
+              "systemNs": 52000
+            },
+            {
+              "tid": 3925726,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.NSEventThread",
+              "userNs": 48000,
+              "systemNs": 46000
+            },
+            {
+              "tid": 3925727,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolServiceThread",
+              "userNs": 30000,
+              "systemNs": 24000
+            },
+            {
+              "tid": 3925728,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 33000,
+              "systemNs": 44000
+            },
+            {
+              "tid": 3925729,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolBackgroundWorker",
+              "userNs": 33000,
+              "systemNs": 24000
+            },
+            {
+              "tid": 3925730,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "Chrome_ChildIOThread",
+              "userNs": 1518000,
+              "systemNs": 1582000
+            },
+            {
+              "tid": 3925737,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "ThreadPoolForegroundWorker",
+              "userNs": 22000,
+              "systemNs": 11000
+            },
+            {
+              "tid": 3925739,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "caulk.messenger.shared:17",
+              "userNs": 1000,
+              "systemNs": 2000
+            },
+            {
+              "tid": 3925740,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "caulk.messenger.shared:high",
+              "userNs": 4000,
+              "systemNs": 20000
+            },
+            {
+              "tid": 3925776,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "caulk::deferred_logger",
+              "userNs": 2000,
+              "systemNs": 5000
+            },
+            {
+              "tid": 3925781,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "com.apple.audio.IOThread.client",
+              "userNs": 50385000,
+              "systemNs": 39945000
+            },
+            {
+              "tid": 3926243,
+              "returnBytes": 112,
+              "errno": 0,
+              "name": "",
+              "userNs": 1693000,
+              "systemNs": 101000
+            }
+          ]
+        }
+      ],
+      "endAt": 80764.233108291
+    },
+    "after": {
+      "at": 181968.738458,
+      "epochAt": 1790459478576,
+      "processQueryMs": 0.5222500000090804,
+      "processes": [
+        {
+          "type": "browser",
+          "id": 24596,
+          "cpuTime": 32.230359
+        },
+        {
+          "type": "renderer",
+          "id": 27228,
+          "cpuTime": 0.06869
+        },
+        {
+          "type": "renderer",
+          "id": 27226,
+          "cpuTime": 3.97809
+        },
+        {
+          "type": "renderer",
+          "id": 27225,
+          "cpuTime": 0.261679
+        },
+        {
+          "type": "GPU",
+          "id": 24602,
+          "cpuTime": 4.177489
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 24603,
+          "cpuTime": 0.356203
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 24605,
+          "cpuTime": 0.137074
+        },
+        {
+          "type": "tracing.mojom.TracingService",
+          "id": 24609,
+          "cpuTime": 0.848552
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 27234,
+          "cpuTime": 0.219206
+        }
+      ],
+      "rssKiB": 1244720,
+      "state": {
+        "lane": "baseline",
+        "position": 19.46144,
+        "videoTime": 20.573592,
+        "total": 502,
+        "dropped": 1,
+        "visible": "visible",
+        "focused": true,
+        "paused": false,
+        "errors": [],
+        "sameVideo": true,
+        "scanAck": false,
+        "quantum": 128,
+        "contextState": "running",
+        "latency": [
+          0.005333333333333333,
+          0.032
+        ],
+        "audio": {
+          "underruns": 0,
+          "errorMs": 38.02948242129034,
+          "corrections": 0,
+          "frames": 802176,
+          "videoTracks": 0,
+          "pumpTicks": 1409
+        }
+      }
+    },
+    "bracketCpu": {
+      "wallSeconds": 12.505297624500002,
+      "processIdsStable": true,
+      "oneCorePercent": 32.540904840421206,
+      "cpuSeconds": 4.069336999999999,
+      "roles": {
+        "browser": 0.42370043153705517,
+        "renderer": 17.754651401899544,
+        "gpu": 13.010661951878596,
+        "audio": 0.8583482234737435,
+        "utility": 0.49354283163226775,
+        "other": 0
+      },
+      "nonBrowserPercent": 32.11720440888415,
+      "perProcess": [
+        {
+          "id": 24596,
+          "type": "browser",
+          "role": "browser",
+          "cpuSeconds": 0.052984999999999616,
+          "oneCorePercent": 0.42370043153705517
+        },
+        {
+          "id": 27228,
+          "type": "renderer",
+          "role": "renderer",
+          "cpuSeconds": 0.005512000000000003,
+          "oneCorePercent": 0.044077319592946425
+        },
+        {
+          "id": 27226,
+          "type": "renderer",
+          "role": "renderer",
+          "cpuSeconds": 2.206326,
+          "oneCorePercent": 17.643130665498376
+        },
+        {
+          "id": 27225,
+          "type": "renderer",
+          "role": "renderer",
+          "cpuSeconds": 0.008433999999999997,
+          "oneCorePercent": 0.0674434168082202
+        },
+        {
+          "id": 24602,
+          "type": "GPU",
+          "role": "gpu",
+          "cpuSeconds": 1.6270219999999997,
+          "oneCorePercent": 13.010661951878596
+        },
+        {
+          "id": 24603,
+          "type": "network.mojom.NetworkService",
+          "role": "utility",
+          "cpuSeconds": 0.014558999999999989,
+          "oneCorePercent": 0.11642265891758093
+        },
+        {
+          "id": 24605,
+          "type": "storage.mojom.StorageService",
+          "role": "utility",
+          "cpuSeconds": 0.006091000000000013,
+          "oneCorePercent": 0.04870735733683546
+        },
+        {
+          "id": 24609,
+          "type": "tracing.mojom.TracingService",
+          "role": "utility",
+          "cpuSeconds": 0.04106900000000002,
+          "oneCorePercent": 0.32841281537785133
+        },
+        {
+          "id": 27234,
+          "type": "audio.mojom.AudioService",
+          "role": "audio",
+          "cpuSeconds": 0.10733900000000002,
+          "oneCorePercent": 0.8583482234737435
+        }
+      ],
+      "peakSummedRssKiB": 1272208,
+      "maxProcessQueryMs": 0.6706669999985024,
+      "maxDeadlineLatenessMs": 0
+    },
+    "eventCount": 212294
+  }
+}

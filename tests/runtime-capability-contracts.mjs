@@ -98,3 +98,19 @@ test('subtitle transfer budget permits fallback but malformed packets and typed 
  assert.equal(compatibilityFailure(new Error('Invalid subtitle tile')),false);
  assert.equal(compatibilityFailure(new PlayerError('ASSET_LOAD_FAILED','Subtitle bitmap budget exceeded')),false);
 });
+
+test('provider errors preserve codes across independently loaded core modules',async()=>{
+ const {PlayerError:ProviderError}=await import('../web/generated/internal/errors.js?provider-copy=1');
+ assert.notEqual(ProviderError,PlayerError);
+ for(const code of ['ASSET_LOAD_FAILED','SOURCE_PERMISSION','SOURCE_CHANGED','NETWORK_TIMEOUT','DEPLOYMENT_UNAVAILABLE','ISOLATION_REQUIRED','ABORTED']){
+  const foreign=new ProviderError(code,'Unsupported media',7,'open','operation',true);
+  assert.equal(foreign instanceof PlayerError,false);
+  const normalized=playerError(foreign);
+  assert.equal(normalized.code,code);assert.equal(normalized.operationId,7);assert.equal(normalized.retryable,true);
+  assert.equal(compatibilityFailure(foreign),false,code);
+ }
+ const compatible=new ProviderError('UNSUPPORTED_MEDIA','Unsupported source');
+ assert.equal(compatibilityFailure(compatible),true);
+ const {isPlayerError}=await import('../web/generated/internal/errors.js');
+ assert.equal(isPlayerError(Object.assign(Error('opaque failure'),{name:'PlayerError',code:'UNSUPPORTED_MEDIA'})),false);
+});

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { PlayerError } from './errors.js';
+import { PlayerError, isPlayerError } from './errors.js';
 const owners = new WeakMap();
 const installed = new WeakSet();
 function installTransport(runtime) {
@@ -107,7 +107,7 @@ export class ShakaNetworkPolicy {
                 }
                 catch (error) {
                     this.checkActive();
-                    throw this.fail(error instanceof PlayerError ? error : new PlayerError('SOURCE_PERMISSION', 'Streaming authorization refresh failed'));
+                    throw this.fail(isPlayerError(error) ? error : new PlayerError('SOURCE_PERMISSION', 'Streaming authorization refresh failed'));
                 }
                 finally {
                     controller.signal.removeEventListener('abort', cancel);
@@ -230,7 +230,7 @@ export class ShakaNetworkPolicy {
             // Demuxe ABORTED and suppresses all session events.
             if (!this.active)
                 throw new E(E.Severity.CRITICAL, E.Category.NETWORK, E.Code.HTTP_ERROR, 'Demuxe streaming source retired');
-            if (error instanceof PlayerError) {
+            if (isPlayerError(error)) {
                 if (error.code !== 'ABORTED')
                     this.terminalError = error;
                 throw new E(E.Severity.CRITICAL, E.Category.NETWORK, E.Code.HTTP_ERROR, '[authorized resource]', error);

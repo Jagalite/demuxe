@@ -34,6 +34,11 @@ def main():
     for name, channels in [('automatic-lossless', 6), ('automatic-lossless-stereo', 2)]:
         ff(base + name + '.mkv', '-i', base + 'long-pcm.mkv', '-map', '0:v', '-map', '0:a',
            '-c:v', 'copy', '-c:a', 'pcm_s24le', '-ac', str(channels))
+    # The strict automatic FLAC policy requires matched tails and mono/stereo PCM.
+    ff(base + 'automatic-release.mkv', '-i', base + 'gain.mp4', '-map', '0:v', '-map', '0:a',
+       '-c:v', 'copy', '-c:a', 'pcm_s24le', '-ac', '2')
+    ff(base + 'automatic-release-s16.mkv', '-i', base + 'gain.mp4', '-map', '0:v', '-map', '0:a',
+       '-c:v', 'copy', '-c:a', 'pcm_s16le', '-ac', '2')
     ff(base + 'opus-multi-audio.mkv', '-i', base + 'multi-audio.mkv', '-map', '0',
        '-c:v', 'copy', '-c:a', 'pcm_s16le', '-ar', '48000')
     ff(base + 'video-tail.mkv', '-f', 'lavfi', '-i', 'testsrc2=s=160x90:r=30:d=30',

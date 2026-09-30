@@ -14,7 +14,7 @@ try{for(const intent of ['playing','paused'])for(let trial=0;trial<3;trial++){
    await player.destroy();const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalAudioAdaptation:'flac',experimentalNativeASS:true,audioGain:.5,experimentalBufferedNativeSeeks:true});
    window.trace=[];const fn=HTMLVideoElement.prototype.requestVideoFrameCallback;HTMLVideoElement.prototype.requestVideoFrameCallback=function(cb){return fn.call(this,(now,m)=>{const r=player.current?.backend?.remux;trace.push({mediaTime:m.mediaTime,currentTime:this.currentTime,seeking:this.seeking,expected:r?.expectedVideoFrame?.(window.target),target:window.target,generation:r?.generation,paused:this.paused});if(trace.length>100)trace.shift();cb(now,m)});};
    const i=document.createElement('input');i.id='file';i.type='file';document.body.append(i);
-  });await page.locator('#file').setInputFiles('build/optimization-fixtures/automatic-lossless.mkv');
+  });await page.locator('#file').setInputFiles('build/optimization-fixtures/automatic-release.mkv');
   await page.evaluate(async()=>{await player.open(document.querySelector('#file').files[0]);await player.addSubtitle(new File([await(await fetch('/fixtures/qualification.ass')).arrayBuffer()],'qualification.ass'));await player.play()});
   await page.waitForFunction(()=>player.state.currentTime>5.3);if(intent==='paused')await page.evaluate(()=>player.pause());
   item.seeks=await page.evaluate(async()=>{

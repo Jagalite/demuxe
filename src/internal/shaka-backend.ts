@@ -6,7 +6,7 @@ import type {Backend} from './backend.js';
 import type {RemoteSource,TextTrackSource,SubtitleAsset,TrackType} from '../types.js';
 import {NativePlayer} from './native-player.js';
 import {ShakaNetworkPolicy} from './shaka-network.js';
-import {PlayerError} from './errors.js';
+import {PlayerError,isPlayerError} from './errors.js';
 import {rasterizePreview} from '../preview/images.js';
 import {plainVTT} from './plain-vtt.js';
 
@@ -144,7 +144,7 @@ export class ShakaBackend extends EventTarget implements Backend {
   private loaded(){this.active();if(!this.player)throw new PlayerError('INVALID_ARGUMENT','No streaming source');return this.player;}
   private mapped(error:unknown):Error {
     if(this.policy?.terminalError)return this.policy.terminalError;
-    if(error instanceof PlayerError)return error;
+    if(isPlayerError(error))return error;
     const e=error as {category?:number;code?:number};
     if(this.stopped)return new PlayerError('ABORTED','Player is destroyed');
     if(e.category===1)return new Error(`Source transport: Shaka network failure (${e.code})`);

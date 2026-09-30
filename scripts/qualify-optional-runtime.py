@@ -31,7 +31,7 @@ for engine,folder,stem in [(a.adaptation_build,'engine-adaptation','remux')]:
             raise SystemExit('Source build and installed runtime differ: '+name)
 env={**os.environ,'BETA_ARCHIVE':str(archive),'DEMUXE_RUNTIME_ROOT':str(out/'installed/package'),
      'ADAPTATION_FIXTURE':str(root/'build/optimization-fixtures/long-pcm.mkv'),
-     'AUTOMATIC_ADAPTATION_FIXTURE':str(root/'build/optimization-fixtures/automatic-lossless.mkv')}
+     'AUTOMATIC_ADAPTATION_FIXTURE':str(root/'build/optimization-fixtures/automatic-release.mkv')}
 for name in ['BROWSER','CASES','PROFILE','REPRO_UNQUALIFIED','SEEKS_ONLY','COMBINATION','REMOTE','ENGINE_BUILD','RUNTIME','DEMUXE_TEST_ASSET_ROOT']:env.pop(name,None)
 def run(name,command,extra=None):
     item={'name':name,'command':command,'harnesses':{f:digest(root/f) for f in command if (root/f).is_file()},'passed':False}

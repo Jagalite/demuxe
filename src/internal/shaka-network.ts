@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type Shaka from 'shaka-player';
 import type {RemoteSource} from '../types.js';
-import {PlayerError} from './errors.js';
+import {PlayerError,isPlayerError} from './errors.js';
 
 const owners=new WeakMap<Shaka.extern.Request,ShakaNetworkPolicy>();
 const installed=new WeakSet<typeof Shaka>();
@@ -82,7 +82,7 @@ export class ShakaNetworkPolicy {
         let update:Awaited<ReturnType<NonNullable<RemoteSource['refreshAuthorization']>>>;
         let cancel:()=>void=()=>{};
         try{update=await Promise.race([this.source.refreshAuthorization({url:uri}),new Promise<never>((_,reject)=>{cancel=()=>reject(new PlayerError('ABORTED','Streaming authorization refresh cancelled'));if(controller.signal.aborted)cancel();else controller.signal.addEventListener('abort',cancel,{once:true});})]);}
-        catch(error){this.checkActive();throw this.fail(error instanceof PlayerError?error:new PlayerError('SOURCE_PERMISSION','Streaming authorization refresh failed'));}
+        catch(error){this.checkActive();throw this.fail(isPlayerError(error)?error:new PlayerError('SOURCE_PERMISSION','Streaming authorization refresh failed'));}
         finally{controller.signal.removeEventListener('abort',cancel);}
         this.checkActive();
         if(controller.signal.aborted)throw new PlayerError('ABORTED','Streaming request cancelled');
@@ -148,7 +148,7 @@ export class ShakaNetworkPolicy {
       // destroy can acquire the load mutex; the backend maps retirement to
       // Demuxe ABORTED and suppresses all session events.
       if(!this.active)throw new E(E.Severity.CRITICAL,E.Category.NETWORK,E.Code.HTTP_ERROR,'Demuxe streaming source retired');
-      if(error instanceof PlayerError){if(error.code!=='ABORTED')this.terminalError=error;throw new E(E.Severity.CRITICAL,E.Category.NETWORK,E.Code.HTTP_ERROR,'[authorized resource]',error);}
+      if(isPlayerError(error)){if(error.code!=='ABORTED')this.terminalError=error;throw new E(E.Severity.CRITICAL,E.Category.NETWORK,E.Code.HTTP_ERROR,'[authorized resource]',error);}
       if(controller.signal.aborted)throw new E(E.Severity.RECOVERABLE,E.Category.NETWORK,timedOut?E.Code.TIMEOUT:E.Code.OPERATION_ABORTED);
       if(error instanceof E)throw error;
       throw new E(E.Severity.RECOVERABLE,E.Category.NETWORK,E.Code.HTTP_ERROR,'[authorized resource]',error);

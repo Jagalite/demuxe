@@ -2,7 +2,7 @@
 import { bufferingPolicy, resolveBuffering, shakaBufferingOptions } from './buffering.js';
 import { NativePlayer } from './native-player.js';
 import { ShakaNetworkPolicy } from './shaka-network.js';
-import { PlayerError } from './errors.js';
+import { PlayerError, isPlayerError } from './errors.js';
 import { rasterizePreview } from '../preview/images.js';
 import { plainVTT } from './plain-vtt.js';
 const runtimes = new Map();
@@ -201,7 +201,7 @@ export class ShakaBackend extends EventTarget {
     mapped(error) {
         if (this.policy?.terminalError)
             return this.policy.terminalError;
-        if (error instanceof PlayerError)
+        if (isPlayerError(error))
             return error;
         const e = error;
         if (this.stopped)

@@ -80,3 +80,11 @@ test('private inspectors preload without isolation and resolve the generic inspe
   assert.deepEqual(requests,['https://assets.example/web/engine-remux-jspi/remux.wasm','https://assets.example/web/engine-mpv-playback-jspi/player.wasm','https://assets.example/fixtures/DejaVuSans.ttf','https://assets.example/web/engine-remux-asyncify/remux.wasm','https://assets.example/web/engine-mpv-playback-asyncify/player.wasm','https://assets.example/fixtures/DejaVuSans.ttf']);
  }finally{globalThis.crossOriginIsolated=true;}
 });
+
+test('modular deployments keep atomic pthread playback when only their inspector uses a private runtime',async()=>{
+ const paths=[],provider={has:()=>false,bytes:async path=>{paths.push(path);return wasm.buffer.slice(0);}};
+ const assets=new EnginePreparation(base,undefined,undefined,'asyncify',provider);
+ assert.ok((await assets.warm('all')).assets.every(a=>a.status==='ready'));
+ assert.deepEqual(paths,['web/engine-remux-asyncify/remux.wasm','web/engine-hybrid/player.wasm','web/engine-software-full/player.wasm','fixtures/DejaVuSans.ttf']);
+ assert.ok((await assets.readyEngine('engine-hybrid')).module instanceof WebAssembly.Module);assets.destroy();
+});

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import http from 'node:http';
-import {stat} from 'node:fs/promises';
+import {stat,readFile} from 'node:fs/promises';
 import {createReadStream} from 'node:fs';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
@@ -25,17 +25,18 @@ const server=http.createServer(async(req,res)=>{
   try {
     if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{'Allow':'GET, HEAD'}).end();return;}
     const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
-    if(['/index.js','/player.js'].includes(pathname)&&runtime===root){res.setHeader('Content-Type','text/javascript');res.end(`export * from './web/generated/${pathname==='/player.js'?'player/':''}index.js';`);return;}
+    if(['/index.js','/player.js'].includes(pathname)){res.setHeader('Content-Type','text/javascript');res.end(`export * from '${pathname==='/player.js'?'./web/generated/player/index.js':runtime===root?'./web/generated/index.js':'./dist/index.js'}';`);return;}
     if(pathname==='/favicon.ico'){res.writeHead(204).end();return;}
-    if(!pathname.startsWith('/web/')&&!pathname.startsWith('/fixtures/')&&!pathname.startsWith('/examples/')&&pathname!=='/'&&!['/index.js','/player.js'].includes(pathname)) {res.writeHead(404).end();return;}
+    if(!pathname.startsWith('/dist/')&&pathname!=='/demuxe-providers.json'&&!pathname.startsWith('/web/')&&!pathname.startsWith('/fixtures/')&&!pathname.startsWith('/examples/')&&pathname!=='/'&&!['/index.js','/player.js'].includes(pathname)) {res.writeHead(404).end();return;}
     const facade=['/index.js','/player.js'].includes(pathname);
-    const packaged=facade||pathname.startsWith('/web/')&&!['/web/player.html','/web/player-demo.js','/web/player.css','/web/player-geometry.js'].includes(pathname)||['/fixtures/DejaVuSans.ttf','/fixtures/FONT-LICENSE.txt'].includes(pathname);
+    const packaged=facade||pathname==='/demuxe-providers.json'||pathname.startsWith('/dist/')||pathname.startsWith('/web/')&&!['/web/player.html','/web/player-demo.js','/web/player.css','/web/player-geometry.js'].includes(pathname)||['/fixtures/DejaVuSans.ttf','/fixtures/FONT-LICENSE.txt'].includes(pathname);
     const base=packaged?runtime:root;
     const file=path.resolve(base,'.'+(pathname==='/'?'/web/player.html':pathname));
-    const mount=facade?base:path.join(base,pathname==='/'?'web':pathname.split('/')[1]);
+    const mount=facade||pathname==='/demuxe-providers.json'?base:path.join(base,pathname==='/'?'web':pathname.split('/')[1]);
     if(!file.startsWith(mount+path.sep)) {res.writeHead(403).end();return;}
     const info=await stat(file);
     if(!info.isFile()) {res.writeHead(404).end();return;}
+    if(runtime!==root&&(pathname==='/'||pathname==='/web/player.html')){const html=(await readFile(file,'utf8')).replace(' prepare="all"','');res.setHeader('Content-Type','text/html');res.setHeader('Content-Length',Buffer.byteLength(html));res.end(req.method==='HEAD'?undefined:html);return;}
     res.setHeader('Content-Type',types[path.extname(file)]||'application/octet-stream');
     res.setHeader('Accept-Ranges','bytes');
     let start=0,end=info.size-1,code=200;

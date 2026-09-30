@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type {PreparationComponent,PreparationOptions,PreparationAsset,PreparationReport,PreparationProgress} from '../types.js';
+import type {ProviderRuntimeAssets} from './provider-runtime.js';
 import {PlayerError} from './errors.js';
 export function preparationComponents(value:PreparationOptions):PreparationComponent[]{
   if(value==='all')return ['inspector','hybrid','software'];
@@ -13,16 +14,17 @@ export class EnginePreparation {
   private modules=new Map<string,WebAssembly.Module>();
   private font?:ArrayBuffer;
   private phases=new Map<PreparationAsset['name'],PreparationProgress['status']>();
-  constructor(private base:URL,private software='engine-software-full',private changed=()=>{},private remuxRuntime:'pthread'|'jspi'|'asyncify'='pthread'){}
+  constructor(private base:URL,private software='engine-software-full',private changed=()=>{},private remuxRuntime:'pthread'|'jspi'|'asyncify'='pthread',private providerAssets?:ProviderRuntimeAssets){}
   private get inspectorEngine(){return 'engine-remux'+(this.remuxRuntime==='pthread'?'':'-'+this.remuxRuntime);}
-  private get softwareEngine(){return this.remuxRuntime==='pthread'?this.software:'engine-mpv-playback-'+this.remuxRuntime;}
+  private get cooperativePlayback(){return this.remuxRuntime!=='pthread'&&(!this.providerAssets||this.providerAssets.has?.(`web/engine-mpv-playback-${this.remuxRuntime}/player.wasm`)===true);}
+  private get softwareEngine(){return this.cooperativePlayback?'engine-mpv-playback-'+this.remuxRuntime:this.software;}
   get progress():PreparationProgress[]{return [...this.phases].map(([name,status])=>({name,status}));}
   private phase(name:PreparationAsset['name'],status:PreparationProgress['status']){if(this.controller.signal.aborted)return;this.phases.set(name,status);this.changed();}
   module(name:string){return this.modules.get(name);}
   fontCopy(){return this.font?.slice(0);}
   async readyModule(name:string){
     await this.pending.get(name==='engine-remux'?'inspector':name==='engine-hybrid'?'hybrid':'software');
-    return this.module(name==='engine-remux'?this.inspectorEngine:name==='engine-software-full'||name==='engine-software-yuv'?this.softwareEngine:name);
+    return this.module(name==='engine-remux'?this.inspectorEngine:name==='engine-hybrid'&&this.cooperativePlayback?this.softwareEngine:name==='engine-software-full'||name==='engine-software-yuv'?this.softwareEngine:name);
   }
   async readyEngine(name:string){
     const [module]=await Promise.all([this.readyModule(name),this.pending.get('font')]);
@@ -44,10 +46,12 @@ export class EnginePreparation {
     const abort=()=>controller.abort();parent.addEventListener('abort',abort,{once:true});if(parent.aborted)abort();
     const timer=setTimeout(abort,15000);let bytes=0;
     try{
-      if(!globalThis.crossOriginIsolated&&!(this.remuxRuntime!=='pthread'&&['inspector','hybrid','software','font'].includes(name)))throw Error('Wasm preparation requires cross-origin isolation');
+      if(!globalThis.crossOriginIsolated&&!(name==='inspector'?this.remuxRuntime!=='pthread':this.cooperativePlayback))throw Error('Wasm preparation requires cross-origin isolation');
       this.phase(name,'loading');
-      const engine=name==='inspector'?this.inspectorEngine:name==='hybrid'&&this.remuxRuntime==='pthread'?'engine-hybrid':this.softwareEngine;
+      const engine=name==='inspector'?this.inspectorEngine:name==='hybrid'&&!this.cooperativePlayback?'engine-hybrid':this.softwareEngine;
       const path=name==='font'?'fixtures/DejaVuSans.ttf':`web/${engine}/${name==='inspector'?'remux':'player'}.wasm`;
+      let data:Uint8Array<ArrayBuffer>;
+      if(this.providerAssets){data=new Uint8Array(await this.providerAssets.bytes(path));bytes=data.byteLength;}else{
       const response=await fetch(new URL(path,this.base),{signal:controller.signal,priority:'low'});
       if(!response.ok)throw Error(`Preparation asset unavailable: ${path} (${response.status})`);
       const limit=(name==='font'?8:32)*1024*1024;
@@ -56,7 +60,9 @@ export class EnginePreparation {
       if(!reader)throw Error('Preparation asset has no body');
       try{while(true){const {value,done}=await reader.read();if(done)break;bytes+=value.byteLength;if(bytes>limit){await reader.cancel();throw Error('Preparation asset byte budget exceeded');}chunks.push(value);}}
       finally{reader.releaseLock();}
-      const data=new Uint8Array(bytes);let offset=0;for(const chunk of chunks){data.set(chunk,offset);offset+=chunk.byteLength;}
+      data=new Uint8Array(bytes);let offset=0;for(const chunk of chunks){data.set(chunk,offset);offset+=chunk.byteLength;}
+
+      }
 
       if(name==='font'){if(!controller.signal.aborted)this.font=data.buffer;}
       else{this.phase(name,'compiling');const module=await WebAssembly.compile(data);if(!controller.signal.aborted)this.modules.set(engine,module);}

@@ -1,0 +1,4487 @@
+{
+  "startup": [
+    {
+      "browser": "chrome",
+      "version": "153.0.8010.53",
+      "variant": "candidate",
+      "file": "/Volumes/seed2/Projects/startup-repro/stuck.mkv",
+      "stages": [
+        {
+          "name": "open",
+          "at": 2.9200000017881393,
+          "ms": 553.7149999886751
+        }
+      ],
+      "status": "playing",
+      "time": 0.446443,
+      "diagnostics": {
+        "preview": {
+          "requests": 0,
+          "hits": 0,
+          "failures": 0,
+          "cancelled": 0,
+          "sourceId": "1:native",
+          "cacheBytes": 0,
+          "cacheEntries": 0,
+          "active": false,
+          "pending": false
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "browser",
+          "control": "hint",
+          "notes": [
+            "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+            "Explicit open performs metadata discovery even with preload none."
+          ],
+          "settings": {
+            "elementPreload": "auto"
+          }
+        },
+        "mode": "native",
+        "plan": {
+          "id": "native-direct",
+          "mode": "native",
+          "video": "browser",
+          "audio": "original",
+          "qualification": "existing",
+          "owners": {
+            "video": "browser-media-element",
+            "audio": "browser-media-element",
+            "subtitle": "browser-text-track",
+            "demux": "browser",
+            "presentation": "browser-media-element"
+          },
+          "source": "browser-supported source and selected tracks",
+          "prerequisites": "HTMLMediaElement",
+          "subtitles": "browser text tracks",
+          "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+          "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "planAdmission": [
+          {
+            "id": "native-direct-mpv",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+            "browserCapability": {
+              "status": "supported",
+              "api": "canPlayType",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                }
+              ],
+              "unqueriedAudio": false,
+              "decodingInfo": {
+                "api": "decodingInfo",
+                "queries": [
+                  {
+                    "track": 1,
+                    "configuration": {
+                      "type": "file",
+                      "audio": {
+                        "contentType": "audio/matroska; codecs=\"mp4a.40.2\"",
+                        "channels": "2",
+                        "samplerate": 48000
+                      }
+                    },
+                    "container": "video/matroska",
+                    "status": "answered",
+                    "supported": true,
+                    "smooth": true,
+                    "powerEfficient": true
+                  }
+                ],
+                "unqueriedTracks": [
+                  0
+                ],
+                "scope": "advisory",
+                "reason": "Exact source/output metadata or viable packaging unavailable for some tracks; no adaptation parameters, frame rate or bitrate are guessed"
+              }
+            }
+          },
+          {
+            "id": "native-direct",
+            "mode": "native",
+            "eligible": true,
+            "browserCapability": {
+              "status": "supported",
+              "api": "canPlayType",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                }
+              ],
+              "unqueriedAudio": false,
+              "decodingInfo": {
+                "api": "decodingInfo",
+                "queries": [
+                  {
+                    "track": 1,
+                    "configuration": {
+                      "type": "file",
+                      "audio": {
+                        "contentType": "audio/matroska; codecs=\"mp4a.40.2\"",
+                        "channels": "2",
+                        "samplerate": 48000
+                      }
+                    },
+                    "container": "video/matroska",
+                    "status": "answered",
+                    "supported": true,
+                    "smooth": true,
+                    "powerEfficient": true
+                  }
+                ],
+                "unqueriedTracks": [
+                  0
+                ],
+                "scope": "advisory",
+                "reason": "Exact source/output metadata or viable packaging unavailable for some tracks; no adaptation parameters, frame rate or bitrate are guessed"
+              }
+            }
+          },
+          {
+            "id": "native-remux-mpv",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-remux",
+            "mode": "native",
+            "eligible": true,
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-direct-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "canPlayType",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                }
+              ],
+              "unqueriedAudio": false,
+              "decodingInfo": {
+                "api": "decodingInfo",
+                "queries": [
+                  {
+                    "track": 1,
+                    "configuration": {
+                      "type": "file",
+                      "audio": {
+                        "contentType": "audio/matroska; codecs=\"mp4a.40.2\"",
+                        "channels": "2",
+                        "samplerate": 48000
+                      }
+                    },
+                    "container": "video/matroska",
+                    "status": "answered",
+                    "supported": true,
+                    "smooth": true,
+                    "powerEfficient": true
+                  }
+                ],
+                "unqueriedTracks": [
+                  0
+                ],
+                "scope": "advisory",
+                "reason": "Exact source/output metadata or viable packaging unavailable for some tracks; no adaptation parameters, frame rate or bitrate are guessed"
+              }
+            }
+          },
+          {
+            "id": "shaka-mse",
+            "mode": "native",
+            "eligible": false,
+            "code": "SOURCE_UNSUPPORTED",
+            "reason": "Shaka is only used for adaptive HLS/DASH sources"
+          },
+          {
+            "id": "shaka-mse-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "native-remux-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-flac",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "flac",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-flac-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "flac",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-direct-ass",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Subtitle component does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "canPlayType",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                }
+              ],
+              "unqueriedAudio": false,
+              "decodingInfo": {
+                "api": "decodingInfo",
+                "queries": [
+                  {
+                    "track": 1,
+                    "configuration": {
+                      "type": "file",
+                      "audio": {
+                        "contentType": "audio/matroska; codecs=\"mp4a.40.2\"",
+                        "channels": "2",
+                        "samplerate": 48000
+                      }
+                    },
+                    "container": "video/matroska",
+                    "status": "answered",
+                    "supported": true,
+                    "smooth": true,
+                    "powerEfficient": true
+                  }
+                ],
+                "unqueriedTracks": [
+                  0
+                ],
+                "scope": "advisory",
+                "reason": "Exact source/output metadata or viable packaging unavailable for some tracks; no adaptation parameters, frame rate or bitrate are guessed"
+              }
+            }
+          },
+          {
+            "id": "native-direct-ass-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "canPlayType",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                }
+              ],
+              "unqueriedAudio": false,
+              "decodingInfo": {
+                "api": "decodingInfo",
+                "queries": [
+                  {
+                    "track": 1,
+                    "configuration": {
+                      "type": "file",
+                      "audio": {
+                        "contentType": "audio/matroska; codecs=\"mp4a.40.2\"",
+                        "channels": "2",
+                        "samplerate": 48000
+                      }
+                    },
+                    "container": "video/matroska",
+                    "status": "answered",
+                    "supported": true,
+                    "smooth": true,
+                    "powerEfficient": true
+                  }
+                ],
+                "unqueriedTracks": [
+                  0
+                ],
+                "scope": "advisory",
+                "reason": "Exact source/output metadata or viable packaging unavailable for some tracks; no adaptation parameters, frame rate or bitrate are guessed"
+              }
+            }
+          },
+          {
+            "id": "native-remux-ass",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Subtitle component does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-remux-ass-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-flac-ass",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Subtitle component does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "flac",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-flac-ass-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "flac",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-opus",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "opus",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"opus\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,opus\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-opus-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "opus",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"opus\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,opus\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-transcode-mpv",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "Subtitle ownership does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "flac",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-transcode",
+            "mode": "native",
+            "eligible": false,
+            "code": "DEPLOYMENT_UNAVAILABLE",
+            "reason": "FLAC24 preparation assets are unavailable",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "flac",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-video-mpv-audio",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "Selective audio engine or worklet assets are unavailable",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-video-mpv-audio-subtitles",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "Selective audio engine or worklet assets are unavailable",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "hybrid",
+            "mode": "hybrid",
+            "eligible": true
+          },
+          {
+            "id": "hybrid-audio-filter",
+            "mode": "hybrid",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "mpv scalar filter stage does not match the request"
+          },
+          {
+            "id": "hybrid-gain",
+            "mode": "hybrid",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "hybrid-audio-filter-gain",
+            "mode": "hybrid",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "software-gain",
+            "mode": "software",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "software",
+            "mode": "software",
+            "eligible": true
+          }
+        ],
+        "runtimeCapabilities": [
+          {
+            "planId": "native-direct-mpv",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-direct",
+            "sourceIdentity": "source-1",
+            "eligible": true,
+            "state": "verified",
+            "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+            "previouslyVerified": false,
+            "evidence": {
+              "metadata": true,
+              "timing": {
+                "preparationRequested": 1796.3499999940395,
+                "metadata": 1796.4899999946356,
+                "ready": 1796.5,
+                "outputRequested": 1809.265000000596,
+                "firstFrame": 1910.1649999916553,
+                "outputAccepted": 1910.1749999970198
+              },
+              "decoderOutput": true,
+              "audioObservation": {
+                "initialBytes": 83,
+                "decodedBytes": 113,
+                "delta": 30,
+                "clockAdvanced": true
+              },
+              "prepared": true,
+              "completedAtEOF": false,
+              "outputVerified": true,
+              "videoPresented": true,
+              "playbackReady": true,
+              "audioProgress": true,
+              "audioEvidenceStrength": "decoded",
+              "audioDecoded": true,
+              "audioEvidence": "decoded-byte-counter"
+            }
+          },
+          {
+            "planId": "native-remux-mpv",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-remux",
+            "sourceIdentity": "source-1",
+            "eligible": true,
+            "state": "untested",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-direct-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "shaka-mse",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Shaka is only used for adaptive HLS/DASH sources",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "shaka-mse-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-remux-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-flac",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-flac-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-direct-ass",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Subtitle component does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-direct-ass-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-remux-ass",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Subtitle component does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-remux-ass-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-flac-ass",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Subtitle component does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-flac-ass-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-opus",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-opus-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-transcode-mpv",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Subtitle ownership does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-transcode",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "FLAC24 preparation assets are unavailable",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-video-mpv-audio",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Selective audio engine or worklet assets are unavailable",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-video-mpv-audio-subtitles",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Selective audio engine or worklet assets are unavailable",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "hybrid",
+            "sourceIdentity": "source-1",
+            "eligible": true,
+            "state": "untested",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "hybrid-audio-filter",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "mpv scalar filter stage does not match the request",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "hybrid-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "hybrid-audio-filter-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "software-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "software",
+            "sourceIdentity": "source-1",
+            "eligible": true,
+            "state": "untested",
+            "previouslyVerified": false
+          }
+        ],
+        "selection": {
+          "automatic": true,
+          "attempts": [
+            {
+              "mode": "probe",
+              "outcome": "selected",
+              "reason": "Fast local metadata: 65536 bytes; routing admission pending"
+            },
+            {
+              "mode": "probe",
+              "outcome": "selected",
+              "reason": "Fast Inspector admitted native-direct without remux inspector Wasm"
+            },
+            {
+              "mode": "native",
+              "outcome": "skipped",
+              "reason": "native-direct-mpv: mpv subtitle service requires inspected finite file subtitles and available assets"
+            },
+            {
+              "mode": "native",
+              "outcome": "selected",
+              "reason": "native-direct: Playback requirements and actual startup accepted"
+            }
+          ]
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 1,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "decodeQuality": "exact",
+        "adaptiveFrameDrop": false,
+        "backend": {
+          "buffering": {
+            "requestedProfile": "balanced",
+            "preload": "auto",
+            "backend": "browser",
+            "control": "hint",
+            "notes": [
+              "Browser owns buffering and eviction; profiles and memoryBudget are not enforceable.",
+              "Explicit open performs metadata discovery even with preload none."
+            ],
+            "settings": {
+              "elementPreload": "auto"
+            }
+          },
+          "capability": {
+            "metadata": true,
+            "timing": {
+              "preparationRequested": 1796.3499999940395,
+              "metadata": 1796.4899999946356,
+              "ready": 1796.5,
+              "outputRequested": 1809.265000000596,
+              "firstFrame": 1910.1649999916553,
+              "outputAccepted": 1910.1749999970198
+            },
+            "decoderOutput": true,
+            "audioObservation": {
+              "initialBytes": 83,
+              "decodedBytes": 113,
+              "delta": 30,
+              "clockAdvanced": true
+            },
+            "prepared": true,
+            "completedAtEOF": false,
+            "outputVerified": true,
+            "videoPresented": true,
+            "playbackReady": true,
+            "audioProgress": true,
+            "audioEvidenceStrength": "decoded",
+            "audioDecoded": true,
+            "audioEvidence": "decoded-byte-counter"
+          },
+          "path": "native",
+          "plan": "direct",
+          "audioProcessing": {
+            "component": "media-element",
+            "gain": 1
+          },
+          "seekPresentation": {
+            "bufferedRetries": 0
+          },
+          "position": 0.458909,
+          "rendered": 15,
+          "dropped": 0,
+          "readyState": 4
+        }
+      }
+    },
+    {
+      "browser": "firefox",
+      "version": "146.0.1",
+      "variant": "candidate",
+      "file": "/Volumes/seed2/Projects/startup-repro/stuck.mkv",
+      "stages": [
+        {
+          "name": "open",
+          "at": 3.660000000000082,
+          "ms": 838.8599999999999
+        }
+      ],
+      "status": "playing",
+      "time": 0.395041,
+      "diagnostics": {
+        "preview": {
+          "requests": 0,
+          "hits": 0,
+          "failures": 0,
+          "cancelled": 0,
+          "sourceId": "1:native",
+          "cacheBytes": 0,
+          "cacheEntries": 0,
+          "active": false,
+          "pending": false
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "remux",
+          "control": "profile",
+          "forwardSeconds": 5,
+          "backwardSeconds": 3,
+          "forwardLimitBytes": 12582912,
+          "notes": [
+            "Byte ceiling applies to coded data accounting; one bounded fragment and browser decoder resources are additional.",
+            "Forward time grows above 1x playback while playing; slower playback retains the base target and paused preload is bounded."
+          ],
+          "settings": {
+            "effectiveForwardSeconds": 5,
+            "playbackRate": 1,
+            "paused": false,
+            "waitingForMedia": false
+          }
+        },
+        "mode": "native",
+        "plan": {
+          "id": "native-remux",
+          "mode": "native",
+          "video": "packet-copy",
+          "audio": "packet-copy",
+          "qualification": "existing",
+          "owners": {
+            "video": "browser-media-element",
+            "audio": "browser-media-element",
+            "subtitle": "browser-text-track",
+            "demux": "ffmpeg-preparation",
+            "presentation": "browser-media-element"
+          },
+          "source": "qualified random-access file and selected codec packaging",
+          "prerequisites": "MSE, qualified MIME; cross-origin isolation",
+          "subtitles": "browser text tracks",
+          "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+          "resources": "existing bounded remux buffers when used; browser decoder allocations are opaque",
+          "fallback": "existing diagnosed-path fallback with source and user intent preserved"
+        },
+        "planAdmission": [
+          {
+            "id": "native-direct-mpv",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+            "browserCapability": {
+              "status": "supported",
+              "api": "canPlayType",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-direct",
+            "mode": "native",
+            "eligible": true,
+            "browserCapability": {
+              "status": "supported",
+              "api": "canPlayType",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-remux-mpv",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false,
+              "decodingInfo": {
+                "api": "decodingInfo",
+                "queries": [
+                  {
+                    "track": 1,
+                    "configuration": {
+                      "type": "media-source",
+                      "audio": {
+                        "contentType": "audio/mp4; codecs=\"mp4a.40.2\"",
+                        "channels": "2",
+                        "samplerate": 48000
+                      }
+                    },
+                    "container": "video/mp4",
+                    "status": "answered",
+                    "supported": true,
+                    "smooth": true,
+                    "powerEfficient": true
+                  }
+                ],
+                "unqueriedTracks": [
+                  0
+                ],
+                "scope": "advisory",
+                "reason": "Exact source/output metadata or viable packaging unavailable for some tracks; no adaptation parameters, frame rate or bitrate are guessed"
+              }
+            }
+          },
+          {
+            "id": "native-remux",
+            "mode": "native",
+            "eligible": true,
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false,
+              "decodingInfo": {
+                "api": "decodingInfo",
+                "queries": [
+                  {
+                    "track": 1,
+                    "configuration": {
+                      "type": "media-source",
+                      "audio": {
+                        "contentType": "audio/mp4; codecs=\"mp4a.40.2\"",
+                        "channels": "2",
+                        "samplerate": 48000
+                      }
+                    },
+                    "container": "video/mp4",
+                    "status": "answered",
+                    "supported": true,
+                    "smooth": true,
+                    "powerEfficient": true
+                  }
+                ],
+                "unqueriedTracks": [
+                  0
+                ],
+                "scope": "advisory",
+                "reason": "Exact source/output metadata or viable packaging unavailable for some tracks; no adaptation parameters, frame rate or bitrate are guessed"
+              }
+            }
+          },
+          {
+            "id": "native-direct-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "canPlayType",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "shaka-mse",
+            "mode": "native",
+            "eligible": false,
+            "code": "SOURCE_UNSUPPORTED",
+            "reason": "Shaka is only used for adaptive HLS/DASH sources"
+          },
+          {
+            "id": "shaka-mse-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "native-remux-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false,
+              "decodingInfo": {
+                "api": "decodingInfo",
+                "queries": [
+                  {
+                    "track": 1,
+                    "configuration": {
+                      "type": "media-source",
+                      "audio": {
+                        "contentType": "audio/mp4; codecs=\"mp4a.40.2\"",
+                        "channels": "2",
+                        "samplerate": 48000
+                      }
+                    },
+                    "container": "video/mp4",
+                    "status": "answered",
+                    "supported": true,
+                    "smooth": true,
+                    "powerEfficient": true
+                  }
+                ],
+                "unqueriedTracks": [
+                  0
+                ],
+                "scope": "advisory",
+                "reason": "Exact source/output metadata or viable packaging unavailable for some tracks; no adaptation parameters, frame rate or bitrate are guessed"
+              }
+            }
+          },
+          {
+            "id": "native-flac",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "flac",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-flac-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "flac",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-direct-ass",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Subtitle component does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "canPlayType",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-direct-ass-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "canPlayType",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                },
+                {
+                  "mime": "video/x-matroska; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": "probably",
+                  "adapter": "matroska-direct",
+                  "negativeDecisive": false,
+                  "reason": "Matroska codec-parameter rejection is not qualified as original-file rejection across browsers"
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-remux-ass",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Subtitle component does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false,
+              "decodingInfo": {
+                "api": "decodingInfo",
+                "queries": [
+                  {
+                    "track": 1,
+                    "configuration": {
+                      "type": "media-source",
+                      "audio": {
+                        "contentType": "audio/mp4; codecs=\"mp4a.40.2\"",
+                        "channels": "2",
+                        "samplerate": 48000
+                      }
+                    },
+                    "container": "video/mp4",
+                    "status": "answered",
+                    "supported": true,
+                    "smooth": true,
+                    "powerEfficient": true
+                  }
+                ],
+                "unqueriedTracks": [
+                  0
+                ],
+                "scope": "advisory",
+                "reason": "Exact source/output metadata or viable packaging unavailable for some tracks; no adaptation parameters, frame rate or bitrate are guessed"
+              }
+            }
+          },
+          {
+            "id": "native-remux-ass-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "mp4a.40.2",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,mp4a.40.2\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false,
+              "decodingInfo": {
+                "api": "decodingInfo",
+                "queries": [
+                  {
+                    "track": 1,
+                    "configuration": {
+                      "type": "media-source",
+                      "audio": {
+                        "contentType": "audio/mp4; codecs=\"mp4a.40.2\"",
+                        "channels": "2",
+                        "samplerate": 48000
+                      }
+                    },
+                    "container": "video/mp4",
+                    "status": "answered",
+                    "supported": true,
+                    "smooth": true,
+                    "powerEfficient": true
+                  }
+                ],
+                "unqueriedTracks": [
+                  0
+                ],
+                "scope": "advisory",
+                "reason": "Exact source/output metadata or viable packaging unavailable for some tracks; no adaptation parameters, frame rate or bitrate are guessed"
+              }
+            }
+          },
+          {
+            "id": "native-flac-ass",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Subtitle component does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "flac",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-flac-ass-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "flac",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-opus",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "opus",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"opus\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,opus\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-opus-gain",
+            "mode": "native",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "opus",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"opus\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,opus\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-transcode-mpv",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "Subtitle ownership does not match the requested presentation",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "flac",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-transcode",
+            "mode": "native",
+            "eligible": false,
+            "code": "DEPLOYMENT_UNAVAILABLE",
+            "reason": "FLAC24 preparation assets are unavailable",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                },
+                {
+                  "index": 1,
+                  "type": "audio",
+                  "codec": "aac",
+                  "codecString": "flac",
+                  "adapted": true,
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                },
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028,flac\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-video-mpv-audio",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "Selective audio engine or worklet assets are unavailable",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "native-video-mpv-audio-subtitles",
+            "mode": "native",
+            "eligible": false,
+            "code": "QUALIFICATION_REQUIRED",
+            "reason": "Selective audio engine or worklet assets are unavailable",
+            "browserCapability": {
+              "status": "supported",
+              "api": "isTypeSupported",
+              "tracks": [
+                {
+                  "index": 0,
+                  "type": "video",
+                  "codec": "h264",
+                  "codecString": "avc1.640028",
+                  "serializationComplete": true
+                }
+              ],
+              "queries": [
+                {
+                  "mime": "video/mp4; codecs=\"avc1.640028\"",
+                  "result": true,
+                  "adapter": "standard-mse",
+                  "negativeDecisive": true
+                }
+              ],
+              "unqueriedAudio": false
+            }
+          },
+          {
+            "id": "hybrid",
+            "mode": "hybrid",
+            "eligible": true
+          },
+          {
+            "id": "hybrid-audio-filter",
+            "mode": "hybrid",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "mpv scalar filter stage does not match the request"
+          },
+          {
+            "id": "hybrid-gain",
+            "mode": "hybrid",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "hybrid-audio-filter-gain",
+            "mode": "hybrid",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "software-gain",
+            "mode": "software",
+            "eligible": false,
+            "code": "PLAN_NOT_REQUESTED",
+            "reason": "Gain stage does not match the requested presentation"
+          },
+          {
+            "id": "software",
+            "mode": "software",
+            "eligible": true
+          }
+        ],
+        "runtimeCapabilities": [
+          {
+            "planId": "native-direct-mpv",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-remux",
+            "sourceIdentity": "source-1",
+            "eligible": true,
+            "state": "verified",
+            "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+            "previouslyVerified": false,
+            "evidence": {
+              "timing": {
+                "preparationRequested": 2460.12,
+                "metadata": 2460.14,
+                "ready": 2460.16,
+                "outputRequested": 2477.28,
+                "firstFrame": 2486.88,
+                "outputAccepted": 2669.14
+              },
+              "metadata": true,
+              "decoderOutput": true,
+              "audioObservation": {
+                "present": true,
+                "clockAdvanced": true
+              },
+              "prepared": true,
+              "completedAtEOF": false,
+              "outputVerified": true,
+              "videoPresented": true,
+              "playbackReady": true,
+              "audioProgress": true,
+              "audioEvidenceStrength": "presence",
+              "audioDecoded": false,
+              "audioEvidence": "browser-audio-presence-and-clock",
+              "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.640028,mp4a.40.2\")=true",
+              "sourceBufferCreated": true,
+              "initAccepted": true,
+              "mediaAccepted": true
+            }
+          },
+          {
+            "planId": "native-direct",
+            "sourceIdentity": "source-1",
+            "eligible": true,
+            "state": "untested",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-remux-mpv",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-direct-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "shaka-mse",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Shaka is only used for adaptive HLS/DASH sources",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "shaka-mse-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-remux-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-flac",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-flac-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-direct-ass",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Subtitle component does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-direct-ass-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-remux-ass",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Subtitle component does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-remux-ass-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-flac-ass",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Subtitle component does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-flac-ass-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-opus",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-opus-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-transcode-mpv",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Subtitle ownership does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-transcode",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "FLAC24 preparation assets are unavailable",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-video-mpv-audio",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Selective audio engine or worklet assets are unavailable",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "native-video-mpv-audio-subtitles",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Selective audio engine or worklet assets are unavailable",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "hybrid",
+            "sourceIdentity": "source-1",
+            "eligible": true,
+            "state": "untested",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "hybrid-audio-filter",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "mpv scalar filter stage does not match the request",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "hybrid-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "hybrid-audio-filter-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "software-gain",
+            "sourceIdentity": "source-1",
+            "eligible": false,
+            "state": "untested",
+            "reason": "Gain stage does not match the requested presentation",
+            "previouslyVerified": false
+          },
+          {
+            "planId": "software",
+            "sourceIdentity": "source-1",
+            "eligible": true,
+            "state": "untested",
+            "previouslyVerified": false
+          }
+        ],
+        "selection": {
+          "automatic": true,
+          "attempts": [
+            {
+              "mode": "probe",
+              "outcome": "selected",
+              "reason": "Fast local metadata: 65536 bytes; routing admission pending"
+            },
+            {
+              "mode": "probe",
+              "outcome": "selected",
+              "reason": "Fast Inspector admitted native-direct without remux inspector Wasm"
+            },
+            {
+              "mode": "native",
+              "outcome": "selected",
+              "reason": "Trying qualified remux before Firefox local Matroska Direct; original retained as fallback"
+            },
+            {
+              "mode": "native",
+              "outcome": "skipped",
+              "reason": "native-direct-mpv: mpv subtitle service requires inspected finite file subtitles and available assets"
+            },
+            {
+              "mode": "native",
+              "outcome": "selected",
+              "reason": "native-remux: Playback requirements and actual startup accepted"
+            }
+          ]
+        },
+        "switching": false,
+        "videoFilters": "",
+        "audioFilters": "",
+        "audioGain": 1,
+        "toneMapping": "off",
+        "resourceLimits": {
+          "maxDecodePixels": 8294400,
+          "maxAllocationBytes": 134217728
+        },
+        "decodeQuality": "exact",
+        "adaptiveFrameDrop": false,
+        "backend": {
+          "buffering": {
+            "requestedProfile": "balanced",
+            "preload": "auto",
+            "backend": "remux",
+            "control": "profile",
+            "forwardSeconds": 5,
+            "backwardSeconds": 3,
+            "forwardLimitBytes": 12582912,
+            "notes": [
+              "Byte ceiling applies to coded data accounting; one bounded fragment and browser decoder resources are additional.",
+              "Forward time grows above 1x playback while playing; slower playback retains the base target and paused preload is bounded."
+            ],
+            "settings": {
+              "effectiveForwardSeconds": 5,
+              "playbackRate": 1,
+              "paused": false,
+              "waitingForMedia": false
+            }
+          },
+          "capability": {
+            "timing": {
+              "preparationRequested": 2460.12,
+              "metadata": 2460.14,
+              "ready": 2460.16,
+              "outputRequested": 2477.28,
+              "firstFrame": 2486.88,
+              "outputAccepted": 2669.14
+            },
+            "metadata": true,
+            "decoderOutput": true,
+            "audioObservation": {
+              "present": true,
+              "clockAdvanced": true
+            },
+            "prepared": true,
+            "completedAtEOF": false,
+            "outputVerified": true,
+            "videoPresented": true,
+            "playbackReady": true,
+            "audioProgress": true,
+            "audioEvidenceStrength": "presence",
+            "audioDecoded": false,
+            "audioEvidence": "browser-audio-presence-and-clock",
+            "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.640028,mp4a.40.2\")=true",
+            "sourceBufferCreated": true,
+            "initAccepted": true,
+            "mediaAccepted": true
+          },
+          "path": "native",
+          "plan": "remux",
+          "audioProcessing": {
+            "component": "media-element",
+            "gain": 1
+          },
+          "remux": {
+            "delivery": {
+              "mode": "separate",
+              "queuedParts": 0,
+              "queuedBytes": 0,
+              "pulling": false,
+              "busy": false,
+              "pending": false,
+              "updating": [
+                false
+              ]
+            },
+            "buffering": {
+              "effectiveForwardSeconds": 5,
+              "playbackRate": 1,
+              "paused": false,
+              "waitingForMedia": false
+            },
+            "capability": {
+              "apiHint": "MediaSource.isTypeSupported(video/mp4; codecs=\"avc1.640028,mp4a.40.2\")=true",
+              "sourceBufferCreated": true,
+              "initAccepted": true,
+              "mediaAccepted": true
+            },
+            "stats": {
+              "fragments": [
+                {
+                  "lane": 0,
+                  "bytes": 1240,
+                  "at": 2386.44,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2391.34,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2391.7,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2391.78,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2391.86,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2391.96,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2392.24,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2392.46,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2392.72,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2392.94,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 52812,
+                  "at": 2393.22,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2394.7,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2395.46,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2395.66,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2395.74,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2396.06,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2396.12,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2396.54,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 10650,
+                  "at": 2396.72,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2399.7,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2399.9,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2399.96,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2400.44,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2400.62,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2400.82,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2400.88,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2400.92,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2401.4,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2401.78,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2401.92,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2401.96,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 58895,
+                  "at": 2402.38,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2434.4,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2434.68,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2434.72,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2435.18,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2435.32,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2435.36,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2435.8,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 2640,
+                  "at": 2436.04,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2437.46,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2437.92,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2438.14,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 14471,
+                  "at": 2438.32,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2439.76,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2440.06,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2440.16,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2440.44,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 29351,
+                  "at": 2440.74,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2442.64,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2442.78,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2443.14,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2443.42,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 43308,
+                  "at": 2443.62,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2446.24,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2446.56,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2446.78,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2446.98,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2447.06,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2447.18,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2447.24,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2447.34,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2447.38,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2447.44,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 433,
+                  "at": 2447.82,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2449.82,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2450,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2450.3,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2450.44,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2450.7,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2450.86,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 41531,
+                  "at": 2450.9,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2453.2,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2453.4,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2453.72,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2453.86,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2453.9,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2454.34,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 45901,
+                  "at": 2454.44,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2660.2,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2660.36,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2660.74,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2660.82,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2661.16,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2661.28,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2661.66,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 65536,
+                  "at": 2661.86,
+                  "generation": 1
+                },
+                {
+                  "lane": 0,
+                  "bytes": 21830,
+                  "at": 2662.16,
+                  "generation": 1
+                }
+              ],
+              "generatedBytes": 5303798,
+              "discardedBytes": 0,
+              "peakQueueDepth": 1,
+              "bufferedBytesUpperBound": 5303798,
+              "peakBufferedBytesUpperBound": 5303798,
+              "peakBufferedSeconds": 5.525,
+              "seeks": [
+                {
+                  "target": 0,
+                  "started": 1927.08
+                }
+              ],
+              "sessions": [
+                {
+                  "generation": 1,
+                  "target": 0,
+                  "sourceSize": 480746298,
+                  "firstPlayableMs": 474.5799999999999,
+                  "firstPlayableSourceBytes": 2000331,
+                  "packaging": [
+                    {
+                      "container": "mp4",
+                      "mime": "video/mp4; codecs=\"avc1.640028,mp4a.40.2\"",
+                      "selected": true
+                    }
+                  ],
+                  "generatedBytes": 1958605,
+                  "fetchedBytesAtLeastSourceSize": false
+                }
+              ],
+              "errors": [],
+              "workers": 2,
+              "recoveries": [],
+              "gapSkips": [],
+              "producerDispatchLatencyMs": [
+                0.0400390625,
+                0.0400390625,
+                0.039794921875,
+                0.019775390625,
+                0.0400390625,
+                0.02001953125,
+                0.02001953125,
+                0.02001953125,
+                0.0400390625,
+                0.0400390625,
+                0.019775390625,
+                0.019775390625
+              ],
+              "appendLatencyMs": [
+                4.099999999999909,
+                0.33999999999969077,
+                0.08000000000038199,
+                0.05999999999994543,
+                0.07999999999992724,
+                0.29999999999972715,
+                0.22000000000025466,
+                0.23999999999978172,
+                0.22000000000025466,
+                0.23999999999978172,
+                0.20000000000027285,
+                0.7400000000002365,
+                0.1999999999998181,
+                0.07999999999992724,
+                0.3200000000001637,
+                0.05999999999994543,
+                0.42000000000007276,
+                0.15999999999985448,
+                0.14000000000032742,
+                0.20000000000027285,
+                0.05999999999994543,
+                0.4600000000000364,
+                0.1799999999998363,
+                0.20000000000027285,
+                0.05999999999994543,
+                0.03999999999996362,
+                0.4600000000000364,
+                0.36000000000012733,
+                0.11999999999989086,
+                0.01999999999998181,
+                0.44000000000005457,
+                0.31999999999970896,
+                0.27999999999974534,
+                0.03999999999996362,
+                0.44000000000005457,
+                0.14000000000032742,
+                0.01999999999998181,
+                0.44000000000005457,
+                0.2199999999997999,
+                0.03999999999996362,
+                0.27999999999974534,
+                0.1999999999998181,
+                0.16000000000030923,
+                0.07999999999992724,
+                0.27999999999974534,
+                0.09999999999990905,
+                0.2800000000002001,
+                0.29999999999972715,
+                0.12000000000034561,
+                0.12000000000034561,
+                0.33999999999969077,
+                0.2800000000002001,
+                0.1999999999998181,
+                0.2800000000002001,
+                0.3000000000001819,
+                0.20000000000027285,
+                0.1799999999998363,
+                0.07999999999992724,
+                0.11999999999989086,
+                0.03999999999996362,
+                0.1000000000003638,
+                0.03999999999996362,
+                0.05999999999994543,
+                0.36000000000012733,
+                0.01999999999998181,
+                0.1799999999998363,
+                0.3000000000001819,
+                0.13999999999987267,
+                0.25999999999976353,
+                0.16000000000030923,
+                0.01999999999998181,
+                0.36000000000012733,
+                0.20000000000027285,
+                0.29999999999972715,
+                0.14000000000032742,
+                0.03999999999996362,
+                0.42000000000007276,
+                0.07999999999992724,
+                0.27999999999974534,
+                0.16000000000030923,
+                0.3599999999996726,
+                0.08000000000038199,
+                0.33999999999969077,
+                0.12000000000034561,
+                0.29999999999972715,
+                0.20000000000027285,
+                0.27999999999974534,
+                0.07999999999992724
+              ],
+              "peakDeliveryParts": 13
+            },
+            "source": {
+              "fetchedBytes": 5344334,
+              "requests": 71,
+              "aborts": 0,
+              "discardedBytes": 0,
+              "cacheBytes": 0,
+              "peakCacheBytes": 0,
+              "cacheHits": 0,
+              "activeBytes": 0,
+              "peakActiveBytes": 262144,
+              "peakChunkBytes": 65536,
+              "peakOwnedBytes": 327680
+            },
+            "remux": {
+              "calls": 11,
+              "remuxMs": 342.40000000000015,
+              "generatedBytes": 5303798,
+              "peakBatchBytes": 845327,
+              "heapBytes": 67108864,
+              "transport": "pthread",
+              "sharedHeap": true,
+              "gatherCopiedBytes": 1240,
+              "reusedOwnedBatches": 0,
+              "progressiveFragments": 0,
+              "separateFragments": 11,
+              "progressiveCopiedBytes": 0
+            },
+            "windowed": false,
+            "presentationFloor": 0,
+            "trackBounds": {
+              "videoEnd": 464.70799999999997,
+              "audioEnd": 464.686
+            },
+            "ranges": [
+              [
+                0.020999999999999908,
+                5.546
+              ]
+            ],
+            "timelineBias": 1,
+            "position": 0.395041,
+            "quality": {},
+            "readyState": 4,
+            "logs": [
+              "[mp4 @ 0x466c00] Packet duration: -16 / dts: 73584 in stream 1 is out of range",
+              "[mp4 @ 0x466c00] pts has no value"
+            ]
+          },
+          "seekPresentation": {
+            "bufferedRetries": 0
+          },
+          "position": 0.395041,
+          "rendered": 9,
+          "dropped": 0,
+          "readyState": 4
+        }
+      }
+    }
+  ],
+  "scope": "Sequential browser File probe, pre-imported JS, fresh contexts, first/repeat reads; OS cache uncontrolled; no CPU, engine preparation or playback timing",
+  "files": [
+    {
+      "path": "/Volumes/seed2/Projects/startup-repro/stuck.mkv",
+      "bytes": 480746298,
+      "sha256": "28e3abccfcc55c9a5f0ca78a592ac8e4fb35bb826ddcfdb1853d975fe5f66b87"
+    }
+  ],
+  "variants": {
+    "candidate": "2b937cbbb5d3613fdb0e9e9e511b03200d350badbda6b8db0aabd9870541ebce"
+  },
+  "runs": [
+    {
+      "browser": "chrome",
+      "version": "153.0.8010.53",
+      "round": 0,
+      "variant": "candidate",
+      "file": "/Volumes/seed2/Projects/startup-repro/stuck.mkv",
+      "repeat": 0,
+      "status": "satisfied",
+      "evidence": {
+        "tracks": [
+          {
+            "index": 0,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "video",
+            "width": 1920,
+            "height": 1080,
+            "codec": "h264",
+            "codecString": "avc1.640028",
+            "id": "1"
+          },
+          {
+            "index": 1,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "audio",
+            "channels": 2,
+            "sampleRate": 48000,
+            "bits": 32,
+            "codec": "aac",
+            "aacObject": 2,
+            "codecString": "mp4a.40.2",
+            "id": "1"
+          }
+        ],
+        "duration": 464.708,
+        "format": "matroska"
+      },
+      "available": [
+        "container",
+        "tracks",
+        "duration"
+      ],
+      "missing": [],
+      "reads": 1,
+      "batches": 1,
+      "readMs": 60.73499999940395,
+      "parseMs": 0.6749999970197678,
+      "bytesRead": 65536,
+      "wallMs": 61.67499999701977
+    },
+    {
+      "browser": "chrome",
+      "version": "153.0.8010.53",
+      "round": 0,
+      "variant": "candidate",
+      "file": "/Volumes/seed2/Projects/startup-repro/stuck.mkv",
+      "repeat": 1,
+      "status": "satisfied",
+      "evidence": {
+        "tracks": [
+          {
+            "index": 0,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "video",
+            "width": 1920,
+            "height": 1080,
+            "codec": "h264",
+            "codecString": "avc1.640028",
+            "id": "1"
+          },
+          {
+            "index": 1,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "audio",
+            "channels": 2,
+            "sampleRate": 48000,
+            "bits": 32,
+            "codec": "aac",
+            "aacObject": 2,
+            "codecString": "mp4a.40.2",
+            "id": "1"
+          }
+        ],
+        "duration": 464.708,
+        "format": "matroska"
+      },
+      "available": [
+        "container",
+        "tracks",
+        "duration"
+      ],
+      "missing": [],
+      "reads": 1,
+      "batches": 1,
+      "readMs": 0.375,
+      "parseMs": 0.10499998927116394,
+      "bytesRead": 65536,
+      "wallMs": 0.4949999898672104
+    },
+    {
+      "browser": "chrome",
+      "version": "153.0.8010.53",
+      "round": 1,
+      "variant": "candidate",
+      "file": "/Volumes/seed2/Projects/startup-repro/stuck.mkv",
+      "repeat": 0,
+      "status": "satisfied",
+      "evidence": {
+        "tracks": [
+          {
+            "index": 0,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "video",
+            "width": 1920,
+            "height": 1080,
+            "codec": "h264",
+            "codecString": "avc1.640028",
+            "id": "1"
+          },
+          {
+            "index": 1,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "audio",
+            "channels": 2,
+            "sampleRate": 48000,
+            "bits": 32,
+            "codec": "aac",
+            "aacObject": 2,
+            "codecString": "mp4a.40.2",
+            "id": "1"
+          }
+        ],
+        "duration": 464.708,
+        "format": "matroska"
+      },
+      "available": [
+        "container",
+        "tracks",
+        "duration"
+      ],
+      "missing": [],
+      "reads": 1,
+      "batches": 1,
+      "readMs": 0.5849999934434891,
+      "parseMs": 0.5999999940395355,
+      "bytesRead": 65536,
+      "wallMs": 1.4550000131130219
+    },
+    {
+      "browser": "chrome",
+      "version": "153.0.8010.53",
+      "round": 1,
+      "variant": "candidate",
+      "file": "/Volumes/seed2/Projects/startup-repro/stuck.mkv",
+      "repeat": 1,
+      "status": "satisfied",
+      "evidence": {
+        "tracks": [
+          {
+            "index": 0,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "video",
+            "width": 1920,
+            "height": 1080,
+            "codec": "h264",
+            "codecString": "avc1.640028",
+            "id": "1"
+          },
+          {
+            "index": 1,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "audio",
+            "channels": 2,
+            "sampleRate": 48000,
+            "bits": 32,
+            "codec": "aac",
+            "aacObject": 2,
+            "codecString": "mp4a.40.2",
+            "id": "1"
+          }
+        ],
+        "duration": 464.708,
+        "format": "matroska"
+      },
+      "available": [
+        "container",
+        "tracks",
+        "duration"
+      ],
+      "missing": [],
+      "reads": 1,
+      "batches": 1,
+      "readMs": 0.3400000035762787,
+      "parseMs": 0.0949999988079071,
+      "bytesRead": 65536,
+      "wallMs": 0.4450000077486038
+    },
+    {
+      "browser": "firefox",
+      "version": "146.0.1",
+      "round": 0,
+      "variant": "candidate",
+      "file": "/Volumes/seed2/Projects/startup-repro/stuck.mkv",
+      "repeat": 0,
+      "status": "satisfied",
+      "evidence": {
+        "tracks": [
+          {
+            "index": 0,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "video",
+            "width": 1920,
+            "height": 1080,
+            "codec": "h264",
+            "codecString": "avc1.640028",
+            "id": "1"
+          },
+          {
+            "index": 1,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "audio",
+            "channels": 2,
+            "sampleRate": 48000,
+            "bits": 32,
+            "codec": "aac",
+            "aacObject": 2,
+            "codecString": "mp4a.40.2",
+            "id": "1"
+          }
+        ],
+        "duration": 464.708,
+        "format": "matroska"
+      },
+      "available": [
+        "container",
+        "tracks",
+        "duration"
+      ],
+      "missing": [],
+      "reads": 1,
+      "batches": 1,
+      "readMs": 0.9800000000000182,
+      "parseMs": 1.1999999999999886,
+      "bytesRead": 65536,
+      "wallMs": 2.420000000000016
+    },
+    {
+      "browser": "firefox",
+      "version": "146.0.1",
+      "round": 0,
+      "variant": "candidate",
+      "file": "/Volumes/seed2/Projects/startup-repro/stuck.mkv",
+      "repeat": 1,
+      "status": "satisfied",
+      "evidence": {
+        "tracks": [
+          {
+            "index": 0,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "video",
+            "width": 1920,
+            "height": 1080,
+            "codec": "h264",
+            "codecString": "avc1.640028",
+            "id": "1"
+          },
+          {
+            "index": 1,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "audio",
+            "channels": 2,
+            "sampleRate": 48000,
+            "bits": 32,
+            "codec": "aac",
+            "aacObject": 2,
+            "codecString": "mp4a.40.2",
+            "id": "1"
+          }
+        ],
+        "duration": 464.708,
+        "format": "matroska"
+      },
+      "available": [
+        "container",
+        "tracks",
+        "duration"
+      ],
+      "missing": [],
+      "reads": 1,
+      "batches": 1,
+      "readMs": 0.7200000000000273,
+      "parseMs": 0.3599999999999568,
+      "bytesRead": 65536,
+      "wallMs": 1.1599999999999682
+    },
+    {
+      "browser": "firefox",
+      "version": "146.0.1",
+      "round": 1,
+      "variant": "candidate",
+      "file": "/Volumes/seed2/Projects/startup-repro/stuck.mkv",
+      "repeat": 0,
+      "status": "satisfied",
+      "evidence": {
+        "tracks": [
+          {
+            "index": 0,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "video",
+            "width": 1920,
+            "height": 1080,
+            "codec": "h264",
+            "codecString": "avc1.640028",
+            "id": "1"
+          },
+          {
+            "index": 1,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "audio",
+            "channels": 2,
+            "sampleRate": 48000,
+            "bits": 32,
+            "codec": "aac",
+            "aacObject": 2,
+            "codecString": "mp4a.40.2",
+            "id": "1"
+          }
+        ],
+        "duration": 464.708,
+        "format": "matroska"
+      },
+      "available": [
+        "container",
+        "tracks",
+        "duration"
+      ],
+      "missing": [],
+      "reads": 1,
+      "batches": 1,
+      "readMs": 0.660000000000025,
+      "parseMs": 0.8199999999999932,
+      "bytesRead": 65536,
+      "wallMs": 1.539999999999992
+    },
+    {
+      "browser": "firefox",
+      "version": "146.0.1",
+      "round": 1,
+      "variant": "candidate",
+      "file": "/Volumes/seed2/Projects/startup-repro/stuck.mkv",
+      "repeat": 1,
+      "status": "satisfied",
+      "evidence": {
+        "tracks": [
+          {
+            "index": 0,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "video",
+            "width": 1920,
+            "height": 1080,
+            "codec": "h264",
+            "codecString": "avc1.640028",
+            "id": "1"
+          },
+          {
+            "index": 1,
+            "default": false,
+            "forced": false,
+            "lang": "",
+            "title": "",
+            "type": "audio",
+            "channels": 2,
+            "sampleRate": 48000,
+            "bits": 32,
+            "codec": "aac",
+            "aacObject": 2,
+            "codecString": "mp4a.40.2",
+            "id": "1"
+          }
+        ],
+        "duration": 464.708,
+        "format": "matroska"
+      },
+      "available": [
+        "container",
+        "tracks",
+        "duration"
+      ],
+      "missing": [],
+      "reads": 1,
+      "batches": 1,
+      "readMs": 0.3599999999999852,
+      "parseMs": 0.3400000000000034,
+      "bytesRead": 65536,
+      "wallMs": 0.7599999999999909
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { PreparationComponent, PreparationOptions, PreparationReport, PreparationProgress } from '../types.js';
+import type { ProviderRuntimeAssets } from './provider-runtime.js';
 export declare function preparationComponents(value: PreparationOptions): PreparationComponent[];
 /** Per-player, bounded immutable assets. No media, workers or audio devices. */
 export declare class EnginePreparation {
@@ -7,13 +8,15 @@ export declare class EnginePreparation {
     private software;
     private changed;
     private remuxRuntime;
+    private providerAssets?;
     private controller;
     private pending;
     private modules;
     private font?;
     private phases;
-    constructor(base: URL, software?: string, changed?: () => void, remuxRuntime?: 'pthread' | 'jspi' | 'asyncify');
+    constructor(base: URL, software?: string, changed?: () => void, remuxRuntime?: 'pthread' | 'jspi' | 'asyncify', providerAssets?: ProviderRuntimeAssets | undefined);
     private get inspectorEngine();
+    private get cooperativePlayback();
     private get softwareEngine();
     get progress(): PreparationProgress[];
     private phase;

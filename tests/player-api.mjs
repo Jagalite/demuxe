@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {chromium} from 'playwright';
+import {closeTestBrowser} from './head-to-head/browser-exit.mjs';
 import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
@@ -127,4 +128,4 @@ try{
  });
  console.log("Verifying final source hashes");result.hashesAfter=await hashes();assert.deepEqual(result.hashesAfter,result.hashes);result.passed=result.tests.length===total&&result.tests.every(t=>t.passed);if(!result.passed)process.exitCode=1;
 }catch(e){result.failure=String(e.stack);process.exitCode=1;console.error(e);}
-finally{console.log('Final API harness cleanup');if(performanceConfig)result.assetSnapshotAfter=await(await fetch(origin+'/__metadata')).json();await page.evaluate(()=>window.player?.destroy()).catch(()=>{});await browser.close();server.kill('SIGTERM');result.finished=new Date().toISOString();await writeFile(`${out}/result.json`,JSON.stringify(result,null,2)+'\n');}
+finally{console.log('Final API harness cleanup');if(performanceConfig)result.assetSnapshotAfter=await(await fetch(origin+'/__metadata')).json();await page.evaluate(()=>window.player?.destroy()).catch(()=>{});try{result.browserTeardown=await closeTestBrowser(browser,'chrome');}finally{server.kill('SIGTERM');result.finished=new Date().toISOString();await writeFile(`${out}/result.json`,JSON.stringify(result,null,2)+'\n');}}

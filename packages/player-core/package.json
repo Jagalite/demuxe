@@ -1,0 +1,47 @@
+{
+  "name": "demuxe",
+  "version": "0.3.0-beta.4",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "Provider-independent Demuxe Player; optional runtime deployment required.",
+  "files": [
+    "dist/",
+    "web/",
+    "LICENSE",
+    "license-map.json"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./player": {
+      "types": "./web/generated/player/index.d.ts",
+      "import": "./web/generated/player/index.js"
+    },
+    "./contracts": {
+      "types": "./web/generated/contracts.d.ts",
+      "import": "./web/generated/contracts.js"
+    },
+    "./integration": {
+      "types": "./web/generated/integration/index.d.ts",
+      "import": "./web/generated/integration/index.js"
+    },
+    "./media-element": {
+      "types": "./web/generated/media-element/index.d.ts",
+      "import": "./web/generated/media-element/index.js"
+    },
+    "./adapters/videojs": {
+      "types": "./web/generated/adapters/videojs.d.ts",
+      "import": "./web/generated/adapters/videojs.js"
+    },
+    "./components": {
+      "types": "./web/generated/components.d.ts",
+      "import": "./web/generated/components.js"
+    }
+  },
+  "scripts": {
+    "prepack": "node -e \"throw Error('Provider distribution is not release-qualified; assemble and audit exact artifacts first')\""
+  }
+}
