@@ -47,3 +47,15 @@ test('Only the two declared PCM capacities are admitted, and reset clears old da
   p.receive({type:'reset',epoch:6});assert.equal(p.capacity,8192);assert.equal(p.written,0);
   p.receive({type:'reset',epoch:8,capacity:32769});assert.equal(p.failed,'Invalid PCM capacity');
 });
+for(const channels of [6,8])test(`Consumed PCM preserves all ${channels} discrete channels across ring wrap`,()=>{
+ const {processor:p,messages}=create();p.receive({type:'reset',epoch:4,channels});p.receive({type:'state',epoch:4,running:true});
+ p.read=p.written=8190;p.port.onmessage({data:{type:'record'}});
+ const samples=new Float32Array(4*channels);for(let frame=0;frame<4;frame++)for(let channel=0;channel<channels;channel++)samples[frame*channels+channel]=(channel+1)/16+frame/128;
+ p.receive({type:'pcm',epoch:4,start:8190,buffer:samples.buffer});const output=Array.from({length:channels},()=>new Float32Array(128));p.process([], [output]);
+ for(let channel=0;channel<channels;channel++)for(let frame=0;frame<4;frame++)assert.equal(output[channel][frame],samples[frame*channels+channel]);
+ assert.equal(p.read,8194);p.port.onmessage({data:{type:'inspect'}});assert.deepEqual(new Float32Array(messages.at(-1).pcm),samples);
+ p.receive({type:'reset',epoch:6,channels:2});assert.equal(p.channels,2);assert.equal(p.read,0);
+});
+test('unsupported channel geometry fails before accepting sample buffers',()=>{
+ const {processor:p}=create();p.receive({type:'reset',epoch:4,channels:7});assert.equal(p.failed,'Invalid PCM channel count');assert.equal(p.stopped,true);
+});

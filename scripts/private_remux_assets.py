@@ -88,11 +88,14 @@ def private_mpv_assets(root):
         raise ValueError('Private playback runtime capacities differ')
     runtime_files = ['private-mpv.js', 'private-mpv/LICENSE.txt', 'private-mpv/engine.js',
                      'private-mpv/scheduler.js', 'private-mpv/continuations.js',
-                     'private-mpv/range-source.js', 'private-mpv/audio-worklet.js']
+                     'private-mpv/range-source.js', 'private-mpv/audio-worklet.js',
+                     'private-mpv/decoder-mailbox.js', 'private-mpv/retained-decoder.js',
+                     'external-video-decoder.js', 'video-codec-config.js']
     if 'audio' in profiles:
         runtime_files.append('private-mpv/audio-worker.js')
     if 'playback' in profiles:
-        runtime_files.extend(('private-mpv/playback-worker.js', 'private-mpv/playback-host.js', 'private-mpv/playback-pcm.js'))
+        runtime_files.extend(('private-mpv/playback-worker.js', 'private-mpv/playback-host.js', 'private-mpv/playback-pcm.js',
+                              'private-mpv/retained-presentation.js','retained-video.js','subtitle-overlay.js'))
     for filename in runtime_files:
         files['web/' + filename] = (root / 'web' / filename).read_bytes()
     return files

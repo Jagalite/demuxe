@@ -60,3 +60,8 @@ test('malformed service results and invalid mailbox requests fail without writes
     assert.equal(h.wait.task.resumeAction(),-29);assert.equal(frame.closed,1);assert.equal(h.mailbox.snapshot().errors,1);
   } finally {h.mailbox.close();}
 });
+test('presentation rejection closes the incoming frame and returns a native error for graceful teardown',async()=>{
+ const frame={closed:0,close(){this.closed++;}},h=harness(async()=>({result:1,frame}),{onFrame:()=>{throw Error('Presentation budget');}});
+ try{h.mailbox.request(h.ptr,4);await turn();assert.equal(h.wait.task.resumeAction(),-29);assert.equal(h.header[3],-29);assert.equal(frame.closed,1);assert.match(h.mailbox.snapshot().error,/Presentation budget/);assert.equal(h.mailbox.snapshot().pending,0);}
+ finally{h.mailbox.close();}
+});

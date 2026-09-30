@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -33,6 +34,8 @@ def install(build, runtime_root):
     for name in names:
         if digest(build / name) != record['artifacts'][name]:
             raise ValueError('Playback artifact drift: ' + name)
+    config = (deps / 'objects/ffmpeg/config_components.h').read_text()
+    decoders = sorted(name.lower() for name in re.findall(r'^#define CONFIG_(\w+)_DECODER 1$', config, re.M))
     targets = [runtime_root / 'web' / ('engine-mpv-playback-' + backend) for backend in ('jspi', 'asyncify')]
     if any(target.exists() for target in targets):
         raise ValueError('Refusing to replace installed playback assets')
@@ -47,7 +50,9 @@ def install(build, runtime_root):
         (target / 'manifest.json').write_text(json.dumps({
             'schema': 1, 'backend': backend, 'profile': 'playback',
             'codecProfile': record['dependencyProfile'],
+            'decoders': decoders,
             'audioCapacity': record.get('audioCapacity', 8192),
+            'retainedDecoder': bool(record.get('retainedDecoder')),
             'buildRecordSHA256': digest(build / 'build.json'),
             'files': {dest: digest(build / source) for dest, source in sources.items()},
             'qualification': 'Experimental finite Software candidate; public qualification pending',

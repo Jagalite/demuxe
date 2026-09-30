@@ -73,9 +73,10 @@ test('private inspectors preload without isolation and resolve the generic inspe
    assert.equal((await assets.warm(['inspector'])).assets[0].status,'ready');
    assert.equal(await assets.readyModule('engine-remux'),assets.module('engine-remux-'+runtime));
    assert.ok(await assets.readyModule('engine-remux') instanceof WebAssembly.Module);
-   assert.ok((await assets.warm(['hybrid'])).assets.every(a=>a.status==='failed'));
+   assert.ok((await assets.warm(['hybrid'])).assets.every(a=>a.status==='ready'));
+   assert.ok(assets.module('engine-mpv-playback-'+runtime) instanceof WebAssembly.Module);
    assets.destroy();
   }
-  assert.deepEqual(requests,['https://assets.example/web/engine-remux-jspi/remux.wasm','https://assets.example/web/engine-remux-asyncify/remux.wasm']);
+  assert.deepEqual(requests,['https://assets.example/web/engine-remux-jspi/remux.wasm','https://assets.example/web/engine-mpv-playback-jspi/player.wasm','https://assets.example/fixtures/DejaVuSans.ttf','https://assets.example/web/engine-remux-asyncify/remux.wasm','https://assets.example/web/engine-mpv-playback-asyncify/player.wasm','https://assets.example/fixtures/DejaVuSans.ttf']);
  }finally{globalThis.crossOriginIsolated=true;}
 });

@@ -6,7 +6,7 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     private options;
     readonly properties: Map<string, unknown>;
     readonly ready: Promise<void>;
-    readonly planId = "software-private";
+    readonly planId: string;
     diagnostics?: Record<string, any>;
     private worker;
     private context;
@@ -29,6 +29,8 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     private presentation?;
     constructor(canvas: HTMLCanvasElement, options: {
         runtime: 'jspi' | 'asyncify';
+        mode?: 'software' | 'hybrid';
+        channels?: 2 | 6 | 8;
         assetBase: URL;
         duration?: number;
         resourceLimits?: ResourceLimits;
@@ -76,7 +78,7 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     audioDiagnostics(): {
         state: AudioContextState;
         sampleRate: number;
-        outputChannels: number;
+        outputChannels: 2 | 8 | 6;
         gain: number;
         rms: number;
         mediaFrames: any;

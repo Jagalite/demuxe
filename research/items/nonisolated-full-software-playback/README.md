@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Full Software playback without cross-origin isolation
 
-Assessment: 2026-09-29. **Working private Software prototype; pursue public integration.** A video-enabled private mpv build, RGB playback host and bounded stereo PCM transport are implemented. The six ordinary Software-dependent README fixtures passed bounded output/lifecycle checks on JSPI and Asyncify without isolation. Public routing and release qualification remain unchanged. This investigation authorizes no production admission change. There is no defensible calendar estimate yet.
+Assessment: 2026-09-30. **Bounded public Software and Hybrid working on JSPI and Asyncify; production completion continues.** The full private codec build includes dav1d, zimg and XML. Original public Software fixtures and 20 additional public Software/Hybrid codec cases passed in Chromium without isolation. Direct ASS/filter/snapshot and continuous PCM/cadence checks passed. Full public feature, format, Firefox, long/large input, regression and release qualification remains incomplete. See [current public evidence](PUBLIC-PLAYER-QUALIFICATION.md) and [production completion contract](../../../docs/NONISOLATED-PLAYBACK-COMPLETION.md).
 
 ## Finding
 

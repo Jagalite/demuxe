@@ -44,9 +44,9 @@ export class EnginePreparation {
     const abort=()=>controller.abort();parent.addEventListener('abort',abort,{once:true});if(parent.aborted)abort();
     const timer=setTimeout(abort,15000);let bytes=0;
     try{
-      if(!globalThis.crossOriginIsolated&&!(this.remuxRuntime!=='pthread'&&['inspector','software','font'].includes(name)))throw Error('Wasm preparation requires cross-origin isolation');
+      if(!globalThis.crossOriginIsolated&&!(this.remuxRuntime!=='pthread'&&['inspector','hybrid','software','font'].includes(name)))throw Error('Wasm preparation requires cross-origin isolation');
       this.phase(name,'loading');
-      const engine=name==='inspector'?this.inspectorEngine:name==='hybrid'?'engine-hybrid':this.softwareEngine;
+      const engine=name==='inspector'?this.inspectorEngine:name==='hybrid'&&this.remuxRuntime==='pthread'?'engine-hybrid':this.softwareEngine;
       const path=name==='font'?'fixtures/DejaVuSans.ttf':`web/${engine}/${name==='inspector'?'remux':'player'}.wasm`;
       const response=await fetch(new URL(path,this.base),{signal:controller.signal,priority:'low'});
       if(!response.ok)throw Error(`Preparation asset unavailable: ${path} (${response.status})`);

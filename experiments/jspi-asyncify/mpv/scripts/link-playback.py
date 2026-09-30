@@ -31,6 +31,8 @@ def main(a):
     build = provenance.verify_dependencies(deps, sdk)
     if build['profile'] not in ('playback','playback-full'):
         raise ValueError('Video-enabled private playback dependencies required')
+    if a.hybrid and build['profile'] != 'playback-full':
+        raise ValueError('Retained Hybrid requires the full codec dependency profile')
     out.mkdir(parents=True)
     files = ['native/player.c', 'native/events.c', 'native/audio_bridge.h', 'native/stream_bridge.h',
              'experiments/jspi-asyncify/stage2/native/stream-coop.c',
@@ -41,12 +43,16 @@ def main(a):
              'experiments/jspi-asyncify/mpv/runtime/imports.js',
              'native/ao_browser.c',
              'experiments/jspi-asyncify/scripts/audit-wasm.mjs']
+    if a.hybrid:
+        files[0]='experiments/retained-subtitles/player.c'
+        files[-1:-1]=['native/vd_browser.c','native/browser_decoder_bridge.h',
+                     'experiments/retained-subtitles/vo_libmpv.c','native/subtitles/bitmap.c']
     inputs = out / 'inputs'
     for rel in files:
         dest = inputs / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / rel, dest)
-    player = inputs / 'native/player.c'
+    player = inputs / files[0]
     player.write_text(player.read_text().replace('{"vd-lavc-threads","2"}', '{"vd-lavc-threads","1"}'))
     player.write_text(player.read_text().replace('#include "audio_bridge.h"', '#include "audio_bridge.h"\nEMSCRIPTEN_KEEPALIVE int web_audio_capacity(void) { return WEB_AUDIO_CAPACITY; }'))
     if a.audio_capacity == 32768:
@@ -60,6 +66,46 @@ def main(a):
     source_hashes = {rel: digest(ROOT / rel) for rel in files}
     stream = inputs / files[4]
     stream.write_text(stream.read_text().replace('import_name(#name)', 'import_name("demuxe_source_" #name)'))
+    if a.hybrid:
+        text=player.read_text()
+        anchor='EMSCRIPTEN_KEEPALIVE void web_experiment_skip_render(int value) { experiment_skip_render=value; }'
+        if anchor not in text:raise ValueError('Selected-frame oracle adaptation failed')
+        text=text.replace(anchor,anchor+'''
+struct private_selected_frame {
+    double pts,delay;
+    int serial,redraw;
+    uintptr_t subtitle;
+    int composites;
+};
+EMSCRIPTEN_KEEPALIVE uintptr_t web_selected_snapshot(void) {
+    extern uintptr_t web_subtitle_ptr(void);
+    extern int web_subtitle_composite_count(void);
+    static struct private_selected_frame snapshot;
+    snapshot.pts=selected_pts;
+    snapshot.delay=selected_target>0?(selected_target-mpv_get_time_us(player))/1000:0;
+    snapshot.serial=selected_serial;snapshot.redraw=selected_redraw;
+    snapshot.subtitle=web_subtitle_ptr();snapshot.composites=web_subtitle_composite_count();
+    return (uintptr_t)&snapshot;
+}
+''')
+        player.write_text(text)
+        decoder=inputs/'native/vd_browser.c'
+        original=decoder.read_text()
+        start=original.index('static int request(int operation) {')
+        end=original.index('struct browser_priv {',start)
+        replacement='''__attribute__((import_module("demuxe_decoder"), import_name("demuxe_decoder_request")))
+int private_decoder_request(uintptr_t pointer, int operation);
+static int request(int operation) {
+    web_decoder.operation=operation;
+    return private_decoder_request((uintptr_t)&web_decoder,operation);
+}
+'''
+        adapted=(original[:start]+replacement+original[end:]).replace('#include <emscripten/threading.h>','').replace('#include <pthread.h>','#include "osdep/threads.h"')
+        adapted=adapted.replace('pthread_mutex_t owner_lock=PTHREAD_MUTEX_INITIALIZER','mp_static_mutex owner_lock=MP_STATIC_MUTEX_INITIALIZER').replace('pthread_mutex_lock','mp_mutex_lock').replace('pthread_mutex_unlock','mp_mutex_unlock').replace('software->thread_count=2','software->thread_count=1')
+        if any(word in adapted for word in ['pthread','futex']):raise ValueError('Threaded decoder adaptation incomplete')
+        decoder.write_text(adapted)
+        imports=inputs/'experiments/jspi-asyncify/mpv/runtime/imports.js'
+        imports.write_text(imports.read_text()+"\naddToLibrary({demuxe_decoder_request:function(){throw new Error('Unbound decoder import');}});\n")
     config = out / 'em.config'
     config.write_text(f'LLVM_ROOT={str(sdk / "upstream/bin")!r}\nBINARYEN_ROOT={str(sdk / "upstream")!r}\nNODE_JS={shutil.which("node")!r}\nCACHE={str(out / "cache")!r}\n')
     env = {**os.environ, 'EM_CONFIG': str(config), 'EM_CACHE': str(out / 'cache'),
@@ -84,10 +130,15 @@ def main(a):
                '-sFORCE_FILESYSTEM=1', '-sEXIT_RUNTIME=0', '-sEXPORTED_FUNCTIONS=' + json.dumps(['_' + n for n in exports]),
                '-sEXPORTED_RUNTIME_METHODS=["FS","HEAPU8","HEAP32","UTF8ToString"]', '-Wl,--export-memory',
                '-Wl,-Map,' + str(out / 'playback.map'), '-o', out / 'playback.mjs']
+    if a.hybrid:
+        command.insert(1,'-I'+str(deps/'sources/mpv/video/out'))
+    if (deps/'prefix/lib/libzimg.a').is_file():command.insert(1,'-fexceptions')
+    suspending='demuxe_coop.demuxe_coop_wait,demuxe_coop.demuxe_coop_join,demuxe_coop.demuxe_coop_yield,demuxe_source.demuxe_source_read'
+    if a.hybrid:suspending+=',demuxe_decoder.demuxe_decoder_request'
     # Optimize before instrumentation: the upstream VP9 block decoder otherwise
     # exceeds V8's local-variable limit after Asyncify expands its temporaries.
     commands = [command, [sdk / 'upstream/bin/wasm-opt', out / 'playback.wasm', '-O2', '--asyncify',
-                '--pass-arg=asyncify-imports@demuxe_coop.demuxe_coop_wait,demuxe_coop.demuxe_coop_join,demuxe_coop.demuxe_coop_yield,demuxe_source.demuxe_source_read',
+                '--pass-arg=asyncify-imports@'+suspending,
                 '--enable-bulk-memory', '--enable-nontrapping-float-to-int', '--enable-sign-ext', '--enable-simd',
                 '-g', '-o', out / 'playback.asyncify.wasm'],
                 [shutil.which('node'), inputs / files[-1], out / 'playback.wasm'],
@@ -96,6 +147,7 @@ def main(a):
               'dependencyPath': str(deps), 'dependencyRecordSHA256': digest(deps / 'build-result.json'),
               'dependencyProfile': build['profile'], 'sourceSHA256': source_hashes,
               'audioCapacity': a.audio_capacity,
+              'retainedDecoder': a.hybrid,
               'adaptedSourceSHA256': {p: digest(inputs / p) for p in files},
               'builderSHA256': digest(Path(__file__)), 'commands': []}
     try:
@@ -120,4 +172,5 @@ if __name__ == '__main__':
     for name in ['deps', 'sdk', 'out']:
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--audio-capacity', type=int, choices=[8192, 32768], default=32768)
+    parser.add_argument('--hybrid', action='store_true')
     main(parser.parse_args())

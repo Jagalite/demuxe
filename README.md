@@ -118,7 +118,10 @@ Browser-native and Shaka/MSE playback do not require isolation. With the matchin
 private runtime assets, `remuxRuntime: 'auto'` selects pthread when isolated,
 otherwise JSPI when supported or Asyncify. Qualified non-isolated paths cover
 file remuxing, FLAC24 audio transcoding, embedded subtitles and restricted
-48 kHz stereo PCM16 audio. Hybrid and Software still require isolation. See
+48 kHz stereo PCM16 audio. Cooperative Software and Hybrid additionally cover
+qualified finite stereo files with matching playback assets; broader format,
+feature and release qualification is still in progress. See
+[non-isolated playback completion](docs/NONISOLATED-PLAYBACK-COMPLETION.md) and
 [runtime selection and qualification](docs/REMUX-RUNTIME.md) for exact limits;
 these current-main paths require a matching verified build.
 

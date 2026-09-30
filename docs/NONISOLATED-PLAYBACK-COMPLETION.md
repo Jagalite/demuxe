@@ -27,7 +27,7 @@ No production deployment or merge follows automatically from this worktree.
    qualify all six original Software fixtures through public Player on Chrome
    JSPI, Chrome forced Asyncify and Firefox Asyncify. In progress.
    Chromium JSPI and forced Asyncify passed all 12 public cases after repairing
-   canvas presentation ownership. Firefox and continuous playback remain pending.
+   canvas presentation ownership. Firefox remains pending. Five additional codecs passed public Software and Hybrid on both Chromium runtimes; direct continuous PCM/cadence and subtitle checks also passed.
 3. Expand the private playback codec/filter build to the upstream LGPL Software
    profile and port remaining public settings, subtitle/font and snapshot methods.
    Qualify the additional existing format and feature rows with independent
@@ -37,13 +37,13 @@ No production deployment or merge follows automatically from this worktree.
    lifetime and fallback contracts. Qualify Hybrid rows and preserved native video
    plus remux/adapted audio rows. In progress: bounded retained decoder and
    cooperative mailbox adapters have resource and cancellation unit coverage;
-   native integration and public Hybrid qualification remain pending.
+   native integration and ten public Hybrid codec cases passed; broader features and faults remain pending.
 5. Remove prototype-only file/duration restrictions when bounded readers, seek
    policy, resource handling and representative long/large sources pass. Qualify
    HD continuous playback and lifecycle/error/cancellation stress. Pending.
 6. Include the private playback profile in the clean release recipe, source
    companion, runtime closure and asset manifests. Qualify both runtime consumers
-   against the exact assembled archive and regression tests. Pending.
+   against the exact assembled archive and regression tests. Recipe and runtime closure implemented; exact archive qualification pending.
 7. Review and fix remaining findings; update README/support documentation from
    accepted public evidence and commit the production implementation. Pending.
 

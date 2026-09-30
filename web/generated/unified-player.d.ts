@@ -72,6 +72,7 @@ export declare class Player extends EventTarget {
     private automaticLossless;
     private audioPlayback;
     private privatePlaybackAssetsAvailable;
+    private privatePlaybackAssets?;
     private transcodeAssetsAvailable;
     private transcodeAssetsChecked;
     private losslessInspection?;

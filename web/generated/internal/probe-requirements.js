@@ -3,6 +3,8 @@ export const routingRequirements = ['container', 'tracks'];
 export function requirementsForPlan(id) {
     if (!id)
         return ['container', 'tracks', 'decoder-config'];
+    if (id.startsWith('hybrid-private'))
+        return [...routingRequirements, 'duration', 'decoder-config'];
     if (id.startsWith('software-private'))
         return [...routingRequirements, 'duration'];
     if (id.startsWith('software'))

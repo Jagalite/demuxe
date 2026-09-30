@@ -8,7 +8,7 @@ import {PlayerError, playerError} from './errors.js';
 export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   readonly properties = new Map<string, unknown>();
   readonly ready:Promise<void>;
-  readonly planId = 'software-private';
+  readonly planId:string;
   diagnostics?:Record<string, any>;
   private worker:Worker;
   private context:AudioContext;
@@ -29,10 +29,13 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   private attachmentIds:Array<string|undefined>=[];
   private presentedDraws=0;
   private presentation?:CanvasRenderingContext2D;
-  constructor(canvas:HTMLCanvasElement, private options:{runtime:'jspi'|'asyncify';assetBase:URL;duration?:number;resourceLimits?:ResourceLimits;fonts?:FontAsset[]}) {
+  constructor(canvas:HTMLCanvasElement, private options:{runtime:'jspi'|'asyncify';mode?:'software'|'hybrid';channels?:2|6|8;assetBase:URL;duration?:number;resourceLimits?:ResourceLimits;fonts?:FontAsset[]}) {
     super();
+    this.planId=options.mode==='hybrid'?'hybrid-private':'software-private';
     if(typeof AudioContext==='undefined'||typeof OffscreenCanvas==='undefined')throw new PlayerError('UNSUPPORTED_FEATURE','Private Software requires Web Audio and OffscreenCanvas');
     this.context = new AudioContext({sampleRate:48000,latencyHint:'interactive'});
+    try{this.context.destination.channelCount=options.channels??2;this.context.destination.channelCountMode='explicit';}
+    catch(error){void this.context.close();throw error;}
     try {this.worker = runtimeWorker(new URL('web/private-mpv/playback-worker.js',options.assetBase),{type:'module'},Worker,new URL('web/generated/internal/runtime-worker.js',options.assetBase));}
     catch(error){void this.context.close();throw error;}
     this.worker.onmessage = ({data}) => this.receive(data);
@@ -49,7 +52,7 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     this.presentation=presentation;
     await this.context.audioWorklet.addModule(new URL('web/private-mpv/audio-worklet.js',this.options.assetBase).href);
     if(this.closing)throw new PlayerError('ABORTED','Private Software closed during initialization');
-    this.node = new AudioWorkletNode(this.context,'demuxe-private-pcm',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[2]});
+    this.node = new AudioWorkletNode(this.context,'demuxe-private-pcm',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[this.options.channels??2],channelCount:this.options.channels??2,channelCountMode:'explicit'});
     this.gainNode = this.context.createGain();this.analyser = this.context.createAnalyser();
     this.node.connect(this.gainNode);this.gainNode.connect(this.context.destination);this.gainNode.connect(this.analyser);
     this.node.port.onmessage = ({data}) => {if(data.type==='error')this.fail(new Error(data.error));};
@@ -59,7 +62,7 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     if(!response.ok)throw new PlayerError('ASSET_LOAD_FAILED','Private Software font HTTP '+response.status);
     const font = await response.arrayBuffer();if(font.byteLength>8*1024*1024)throw new PlayerError('ASSET_LOAD_FAILED','Private Software font byte limit');
     const fonts=(this.options.fonts??[]).map(font=>({...font,bytes:font.bytes.slice(0)}));
-    await this.request('init',{runtime:this.options.runtime,canvas:offscreen,port:channel.port2,font,fonts,width:canvas.width,height:canvas.height,
+    await this.request('init',{runtime:this.options.runtime,mode:this.options.mode??'software',channels:this.options.channels??2,canvas:offscreen,port:channel.port2,font,fonts,width:canvas.width,height:canvas.height,
       contextRunning:this.context.state==='running',latencyUs:this.latency(),...this.options.resourceLimits},[offscreen,channel.port2,font,...fonts.map(font=>font.bytes)]);
   }
   private latency(){return Math.round((this.context.baseLatency+(this.context.outputLatency||0))*1e6);}
@@ -155,7 +158,10 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   async seek(seconds:number){
     if(!Number.isFinite(seconds)||seconds<0)throw new PlayerError('INVALID_ARGUMENT','Invalid seek time');
     await this.ready;await this.request('seek',{seconds});
-    await this.waitUntil(()=>this.presentedDraws>=Number(this.diagnostics?.rendered)&&this.presentedDraws>0&&!this.diagnostics?.seeking&&Math.abs(Number(this.diagnostics?.presentedPosition)-seconds)<0.15);
+    await this.waitUntil(()=>{
+      const video=(this.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined)?.some(track=>track.type==='video'&&track.selected);
+      return (!video||this.presentedDraws>=Number(this.diagnostics?.rendered)&&this.presentedDraws>0)&&!this.diagnostics?.seeking&&Math.abs(Number(this.diagnostics?.presentedPosition)-seconds)<0.15;
+    });
   }
   async confirmSeek(target:number){const value=String(await this.command('expand-text','${=time-pos}|${seeking}'));const [time,seeking]=value.split('|');return seeking==='no'&&Math.abs(Number(time)-target)<0.15;}
   rate(value:number){if(!Number.isFinite(value)||value<0.5||value>2)throw new PlayerError('INVALID_ARGUMENT','Playback rate must be 0.5 to 2');return this.command('set','speed',String(value));}
@@ -178,7 +184,7 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   startupEvidence(){const h=this.diagnostics?.audio?.header??[];return {metadata:!!this.properties.get('track-list'),audioDecoderConfigured:!!this.properties.get('audio-codec-name'),audioDecoded:h[0]>0,audioProgress:h[1]>0,videoPresented:!!(this.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined)?.some(track=>track.type==='video'&&track.selected)&&this.presentedDraws>0,decoderOutput:!!(this.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined)?.some(track=>track.type==='video'&&track.selected)&&this.presentedDraws>0||h[0]>0};}
   async verifyOutput(signal?:AbortSignal){await this.waitUntil(()=>{const evidence=this.startupEvidence(),tracks=this.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined;return !!tracks?.some(t=>(t.type==='video'||t.type==='audio')&&t.selected)&&(!tracks?.some(t=>t.type==='video'&&t.selected)||evidence.videoPresented)&&(!tracks?.some(t=>t.type==='audio'&&t.selected)||evidence.audioDecoded);},signal);this.outputVerified=true;}
   async setAudioOutputDevice(id:string){await this.ready;const context=this.context as AudioContext&{setSinkId?:(id:string)=>Promise<void>};if(!context.setSinkId)throw new PlayerError('UNSUPPORTED_FEATURE','AudioContext output selection unavailable');await context.setSinkId(id==='default'?'':id);}
-  audioDiagnostics(){const samples=new Float32Array(this.analyser?.fftSize??2048);this.analyser?.getFloatTimeDomainData(samples);return {state:this.context.state,sampleRate:this.context.sampleRate,outputChannels:2,gain:this.gainValue,rms:Math.sqrt(samples.reduce((sum,value)=>sum+value*value,0)/samples.length),mediaFrames:this.diagnostics?.audio?.header?.[1]??0,transport:this.diagnostics?.audio,outputVerified:this.outputVerified};}
+  audioDiagnostics(){const samples=new Float32Array(this.analyser?.fftSize??2048);this.analyser?.getFloatTimeDomainData(samples);return {state:this.context.state,sampleRate:this.context.sampleRate,outputChannels:this.options.channels??2,gain:this.gainValue,rms:Math.sqrt(samples.reduce((sum,value)=>sum+value*value,0)/samples.length),mediaFrames:this.diagnostics?.audio?.header?.[1]??0,transport:this.diagnostics?.audio,outputVerified:this.outputVerified};}
   destroy():Promise<void>{
     if(this.destruction)return this.destruction;this.closing=true;this.loading.abort();
     return this.destruction=(async()=>{

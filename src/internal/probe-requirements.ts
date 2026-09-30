@@ -4,6 +4,7 @@ export type ProbeFact = 'container' | 'tracks' | 'duration' | 'decoder-config' |
 export const routingRequirements: readonly ProbeFact[] = ['container', 'tracks'];
 export function requirementsForPlan(id: string | undefined): readonly ProbeFact[] {
   if (!id) return ['container', 'tracks', 'decoder-config'];
+  if (id.startsWith('hybrid-private')) return [...routingRequirements, 'duration', 'decoder-config'];
   if (id.startsWith('software-private')) return [...routingRequirements, 'duration'];
   if (id.startsWith('software')) return [];
   if (id.startsWith('hybrid')) return [...routingRequirements, 'decoder-config'];

@@ -1,0 +1,36 @@
+DASH io_open/io_close routing is upstream; retain browser HTTP protocol admission only.
+
+--- a/libavformat/hls.c
++++ b/libavformat/hls.c
+@@ -699,6 +699,14 @@
+     if (!proto_name)
+         proto_name = avio_find_protocol_name(url);
+ 
++#ifdef __EMSCRIPTEN__
++    // Browser custom AVIO has no native HTTP URLProtocol. Transport policy is
++    // enforced by the host's bounded loader, including every nested resource.
++    if (!proto_name && (s->flags & AVFMT_FLAG_CUSTOM_IO)) {
++        if (av_strstart(url, "https://", NULL)) proto_name = "https";
++        else if (av_strstart(url, "http://", NULL)) proto_name = "http";
++    }
++#endif
+     if (!proto_name)
+         return AVERROR_INVALIDDATA;
+ 
+--- a/libavformat/dashdec.c
++++ b/libavformat/dashdec.c
+@@ -429,6 +429,14 @@
+     if (!proto_name)
+         proto_name = avio_find_protocol_name(url);
+ 
++#ifdef __EMSCRIPTEN__
++    // Browser custom AVIO has no native HTTP URLProtocol. Transport policy is
++    // enforced by the host's bounded loader, including every nested resource.
++    if (!proto_name && (s->flags & AVFMT_FLAG_CUSTOM_IO)) {
++        if (av_strstart(url, "https://", NULL)) proto_name = "https";
++        else if (av_strstart(url, "http://", NULL)) proto_name = "http";
++    }
++#endif
+     if (!proto_name)
+         return AVERROR_INVALIDDATA;
+ 
