@@ -69,6 +69,19 @@ class ReleaseGuards(unittest.TestCase):
                 pipeline.qualify('v0.3.0-beta.4')
             run.assert_called_once_with(['python3', 'scripts/prepare-release-fixtures.py'])
 
+    def test_tagged_package_builds_required_preparation_profiles(self):
+        with patch.dict(pipeline.os.environ, {'DEMUXE_SDK': str(self.root / 'sdk')}), \
+             patch.object(pipeline, 'run') as run, \
+             patch.object(pipeline, 'adaptation', return_value=self.root / 'engine'):
+            pipeline.package('v0.3.0-beta.4-rc.17')
+        build, package = [call.args[0] for call in run.call_args_list]
+        self.assertEqual(build[:2], ['python3', 'scripts/build-audio-adaptation.py'])
+        self.assertIn('--transcode', build)
+        self.assertIn('--opus', build)
+        self.assertEqual(package[:2], ['python3', 'scripts/package-beta.py'])
+        self.assertIn('--release-tag', package)
+        self.assertIn('--adaptation-build', package)
+
     def test_unqualified_archive_never_creates_release(self):
         with patch.object(publisher.verify, 'validate', side_effect=ValueError('unqualified')), patch.object(publisher, 'gh') as gh:
             with self.assertRaises(ValueError):

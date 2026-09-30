@@ -46,7 +46,7 @@ jobs:
       - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build pkg-config make gcc g++ patch ffmpeg xvfb fonts-dejavu-core
+          sudo apt-get install -y cmake ninja-build pkg-config make gcc g++ patch ffmpeg pulseaudio xvfb fonts-dejavu-core
           python3 -m venv build/venv
           build/venv/bin/python -m pip install meson==1.7.2 Jinja2==3.1.6 MarkupSafe==3.0.2
           npm ci --ignore-scripts
@@ -86,7 +86,11 @@ jobs:
       - name: Assemble the current player and matching source downloads
         run: python3 scripts/build-pages.py --tag "$PAGES_TAG" --output build/pages-site
       - name: Install test browsers
-        run: npx playwright install --with-deps chromium chrome firefox
+        run: npx playwright install --with-deps chromium chrome firefox webkit
+      - name: Start audio service for Firefox playback checks
+        run: |
+          pulseaudio --start --exit-idle-time=-1
+          pactl info
       - name: Verify Chrome-family playback and record timings
         env:
           BROWSER: chromium
@@ -119,9 +123,20 @@ jobs:
             build/tag-release/baseline/summary.json
             build/tag-release/candidate/summary.json
             build/tag-release/optional/qualification.json
+            build/tag-release/optional/*.log
             results/beta/
             results/shaka-package/
             results/release-extra/
+            results/public-api-consumer/
+      - name: Retain unqualified runtime for failed release diagnosis
+        if: failure() && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unqualified-runtime-debug
+          path: build/release/*
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 1
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/pages-site
