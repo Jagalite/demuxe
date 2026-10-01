@@ -1,0 +1,1 @@
+| H.264 + AAC 5.1 / MP4 | 🟢 (Pass)\* · 14.8% CPU | 🟡 Screened* · 13.6% CPU | 🟡 Screened* · 17.4% CPU · forced-remux ref | 🟡 Screened* · 17.2% CPU · forced-remux ref | 🟡 Screened* · 36.3% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.4% CPU | 🟡 Screened* · 37.2% CPU | 🟡 Screened* · 6.1% CPU |
