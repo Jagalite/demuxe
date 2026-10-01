@@ -2,6 +2,10 @@
 import importlib.util,pathlib,unittest,copy,tempfile,json
 p=pathlib.Path(__file__).with_name('report-refresh-row.py');spec=importlib.util.spec_from_file_location('refresh',p);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 class Reporting(unittest.TestCase):
+ def test_only_exact_pcm_ass_label_alias_is_accepted(self):
+  m.validate_label('pcm-ass','H.264 + PCM24 / MKV + external ASS','H.264 + PCM24 / MKV + ASS')
+  for values in [('other','H.264 + PCM24 / MKV + external ASS','H.264 + PCM24 / MKV + ASS'),('pcm-ass','H.264 + PCM24 / MKV + external ASS extra','H.264 + PCM24 / MKV + ASS')]:
+   with self.assertRaises(AssertionError):m.validate_label(*values)
  def proof(self):
   return {'kind':'correctness','assetsSHA256':'assets','harnessSHA256':'captured','browserIdentity':'Chrome153/headed','cases':[{'id':'demuxe.auto.file','fixture':'file','player':'demuxe','lane':'auto','status':'passed'}]}
  def cpu(self):

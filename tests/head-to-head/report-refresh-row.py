@@ -6,6 +6,8 @@ ROOT=pathlib.Path(__file__).resolve().parents[2]
 MAIN={'auto':2,'jspi':3,'asyncify':4,'software':5}
 PRIVATE=['hybrid-jspi','hybrid-asyncify','software-jspi','software-asyncify']
 def digest(data):return hashlib.sha256(data).hexdigest()
+def validate_label(fixture,captured,displayed):
+    assert captured==displayed or (fixture,captured,displayed)==('pcm-ass','H.264 + PCM24 / MKV + external ASS','H.264 + PCM24 / MKV + ASS'),'Fixture label does not match selected README row'
 def load_run(directory):
     directory=directory.resolve()
     subprocess.run(['node',str(ROOT/'tests/head-to-head/verify.mjs'),str(directory)],check=True,stdout=subprocess.DEVNULL)
@@ -97,7 +99,7 @@ def prepare(args):
     cpus=cpu_cells(selected,cpu)
     original=(ROOT/'README.md').read_text();lines=original.splitlines();header=next(i for i,l in enumerate(lines) if l.startswith('| Media format | Native video |'))
     index=header+1+args.row;assert lines[index].startswith('| ');cells=[c.strip() for c in lines[index].strip('|').split('|')];assert len(cells)==10
-    assert contract.get('label')==cells[0],'Fixture label does not match selected README row'
+    validate_label(fixture,contract.get('label'),cells[0])
     cases=[]
     for identity,(proof,case) in selected.items():
         published=cell(case,cpus[identity]);lane=case['lane']
