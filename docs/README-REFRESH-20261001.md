@@ -215,3 +215,33 @@ Browser and CPU results retain their original captured harness. The later supple
 | hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
 | software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
 | software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 8: H.264 + AC-3 5.1 / MKV
+
+Browser: chromium/153.0.8010.53/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-08/receipt.json)
+
+Browser and CPU results retain their original captured harness. The later supplemental validator audits the same recorded rate samples; these runs did not execute that newer validator.
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 19.5% CPU | native-transcode; Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified. |
+| jspi | 🟡 Screened* · 17.6% CPU · forced-remux ref | native-transcode; Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified. |
+| asyncify | 🟡 Screened* · 18.3% CPU · forced-remux ref | native-transcode; Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified. |
+| software | 🟡 Screened* · 33.9% CPU | software; Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified. |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified. |
+| hybrid-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified. |
+| software-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified. |
+| software-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified. |
