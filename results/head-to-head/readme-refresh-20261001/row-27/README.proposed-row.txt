@@ -1,0 +1,1 @@
+| AV1 10-bit SDR + Opus / MKV | 🟢 (Pass) · 18.0% CPU | 🟢 (Pass) · 17.3% CPU | 🟢 (Pass) · 18.3% CPU · forced-remux ref | 🟢 (Pass) · 19.4% CPU · forced-remux ref | 🟢 (Pass) · 36.7% CPU | 🔴 (Fail) | 🟢 (Pass) · 38.5% CPU | 🟡 Screened · 36.3% CPU | 🟢 (Pass) · 25.3% CPU |
