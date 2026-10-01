@@ -1,0 +1,175 @@
+{
+  "schema": 1,
+  "passed": true,
+  "scope": "Explicit finite HE48 stereo and HEv2 44100 stereo native reader/conversion; no browser qualification",
+  "home": "/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/demuxe-aac-proof-7tbdBW",
+  "fixtureRoot": "/tmp/demuxe-aac-extensions",
+  "fixturesSHA256": "57422d0b88713ce30847af1c87c4f2b241a72bb526d60610b156b837fa3d8bd5",
+  "sources": {
+    "packages/provider-audio/src/aac-config.ts": "1d9a70d72a54e12814c3e50841842f9d0ddd7964eb5bfbd9c1348faa5972ed1b",
+    "packages/provider-audio/src/packet-decoder.ts": "fc14b8374a8de5cc3f32ea6f821ae13f625484183fd96b90e3ebc2bd141094cc",
+    "packages/provider-audio/src/flac-encoder.ts": "d752b513adc36301ec3a9f363effb036be6de463aae66339bb21e6e5cc08665f",
+    "packages/provider-audio/src/opus-encoder.ts": "70b1e1b6c975d1b70572afa8fc02a8689b2c9b337db21a5d0cd5e08571269fa3",
+    "packages/provider-container/src/audio-repair.ts": "bd19b33ec69beb95eedba7b6e3351894938bddebd43f214cd61131755127c8c2",
+    "packages/provider-container/src/isobmff.ts": "0df022ed7e8f59b841737d6fbb8af3dbcda856bb1256a8828a8ce9bc269bbed6",
+    "packages/provider-container/src/fmp4.ts": "a05c075ba0788e1a864cb5df1efcf5215d8082a4183146db94c791e977ec761b",
+    "packages/provider-container/src/matroska.ts": "811f06b49c4273902a92e950d8680003e50c89b9547bea241374b43fb08e0f26",
+    "tests/provider-aac-extensions.mjs": "6519c65d93997b4e5bc12962ee73b2499763a13313c5c276da00e6ecb4d56b9e"
+  },
+  "builds": [
+    {
+      "profile": "aac",
+      "recordSHA256": "bd00f2b7809aa20f585bf09a7ce6193cdf783ebd6b7df9d728f0739a6e28903f",
+      "moduleSHA256": "1d02101363b42e6a60d74d8f91bfcd5bc54f675b0ad0e2a530e912186b45fd7b",
+      "wasmSHA256": "d306b3e35524f53a7543692eec6489654793f5f8c8b0647b855617a43b04b1b8"
+    },
+    {
+      "profile": "flac",
+      "recordSHA256": "b9097e8cd47abd6e7ab976c17136669eb4ff2b6324715baa0e49ad64c3495bc8",
+      "moduleSHA256": "f1ad562a2c89a7e75ac4904d2360eef50042999854fd0f33644bcf4be0703351",
+      "wasmSHA256": "2bbc83ea09500ea64c8d6bce372f7d88ce18018989fa334ae49bc799c78d2868"
+    },
+    {
+      "profile": "opus-encoder",
+      "recordSHA256": "15ff922323c19f755ec23ec911304e8797658cb201f5a8fab064a9463354d6a8",
+      "moduleSHA256": "0fdaefe783f6e2f8ac47c9916c48ba2bb6c6c5e92aaa99b18476e16e97ecaf8c",
+      "wasmSHA256": "fe622d9d6a5eb98103254c054b09b40d359654b62557f4b8724ee69ea2824bbb"
+    }
+  ],
+  "results": [
+    {
+      "id": "aac-he-full",
+      "kind": "reader-decoder",
+      "packets": 754,
+      "samples": 1544192,
+      "maximumError": 8.344650268554688e-7
+    },
+    {
+      "id": "aac-he-full",
+      "kind": "composition",
+      "output": "flac",
+      "maxError": 8.642673492431641e-7,
+      "snr": 124.19916917907781,
+      "samples": 1544192,
+      "outputSHA256": "38d44d50f7d8fc1f4105ffb608d0937853dc8d0eb0a992677e2b8ad882f5da08",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "aac-he-full",
+      "kind": "composition",
+      "output": "opus",
+      "maxError": 0.028372667729854584,
+      "snr": 25.652061032941653,
+      "samples": 1544192,
+      "outputSHA256": "c1bf896b3bc8c1600f1fdd48448a48a8cb8e39d9231cef1c87fea6ffc0901a60",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "aac-he-bounded",
+      "kind": "reader-decoder",
+      "packets": 70,
+      "samples": 143360,
+      "maximumError": 4.470348358154297e-8
+    },
+    {
+      "id": "aac-he-bounded",
+      "kind": "composition",
+      "output": "flac",
+      "maxError": 9.685754776000977e-8,
+      "snr": 119.80769968308196,
+      "samples": 143360,
+      "outputSHA256": "b23fcdb982fdee167f50e9ad4ff37249b36569a93a2f4ae3e8235f37e0b0fe38",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "aac-he-bounded",
+      "kind": "composition",
+      "output": "opus",
+      "maxError": 0.009798392653465271,
+      "snr": 25.180454696631397,
+      "samples": 143360,
+      "outputSHA256": "400e6058684c8022047ca03521dd7e19ff5a53bf1979e375d845c699aa9b7e04",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "aac-he-v2-full",
+      "kind": "reader-decoder",
+      "packets": 169,
+      "samples": 346112,
+      "maximumError": 2.384185791015625e-7
+    },
+    {
+      "id": "aac-he-v2-full",
+      "kind": "composition",
+      "output": "flac",
+      "maxError": 2.384185791015625e-7,
+      "snr": 125.96415391863039,
+      "samples": 346112,
+      "outputSHA256": "86dcffbc777cd9596b4d5574434996e2c3ea373b39df244b5a46a352e6726dae",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "aac-he-v2-bounded",
+      "kind": "reader-decoder",
+      "packets": 64,
+      "samples": 131072,
+      "maximumError": 8.940696716308594e-8
+    },
+    {
+      "id": "aac-he-v2-bounded",
+      "kind": "composition",
+      "output": "flac",
+      "maxError": 1.1920928955078125e-7,
+      "snr": 126.80870939587382,
+      "samples": 131072,
+      "outputSHA256": "202c1dc4f0f23b8b55ebc7b766bbf3a105f868257f28e94338c081990ab36b0a",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "admission-controls",
+      "kind": "controls"
+    },
+    {
+      "id": "lifetime-controls",
+      "kind": "controls"
+    },
+    {
+      "id": "adts-snapshot-frame-profile-controls",
+      "kind": "controls",
+      "samples": 346112,
+      "configurationSnapshot": true,
+      "reset": true,
+      "frameProfileFailureDisposed": true
+    }
+  ]
+}

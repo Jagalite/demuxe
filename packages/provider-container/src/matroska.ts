@@ -14,6 +14,30 @@ export type MatroskaPacket = Readonly<{
 }>;
 type Element = {id: number; start: number; end: number};
 function fail(s: string): never { throw new ContainerProfileError(s); }
+/** Restore the maintained A_WAVPACK4 mapping, matching pinned FFmpeg matroska_parse_wavpack. */
+export function restoreMatroskaWavPack(payload: Uint8Array, privateData: Uint8Array): Uint8Array {
+ if(privateData.length!==2||payload.length<12||payload.length>1048576)fail('Invalid WavPack mapping bounds');
+ const version=new DataView(privateData.buffer,privateData.byteOffset,2).getUint16(0,true);
+ if(![0x403,0x410].includes(version))fail('Unqualified WavPack version');
+ const view=new DataView(payload.buffer,payload.byteOffset,payload.length),samples=view.getUint32(0,true);
+ if(!samples||samples>65536)fail('WavPack sample budget');
+ const blocks:Uint8Array[]=[];let offset=4,total=0;
+ while(offset<payload.length){
+  if(payload.length-offset<8||blocks.length>=8)fail('Truncated or excessive WavPack channel blocks');
+  const flags=view.getUint32(offset,true),crc=view.getUint32(offset+4,true);offset+=8;
+  if(flags&0x80000088)fail('Unqualified WavPack hybrid, float or DSD');
+  const multi=(flags&0x1800)!==0x1800;
+  let size=payload.length-offset;
+  if(multi){if(size<4)fail('Missing WavPack block length');size=view.getUint32(offset,true);offset+=4;}
+  if(!size||size>payload.length-offset)fail('Invalid WavPack block length');
+  if(!!(flags&0x800)!==(blocks.length===0)||!!(flags&0x1000)!==(offset+size===payload.length))fail('Invalid WavPack channel block order');
+  total+=32+size;if(total>1048576)fail('WavPack reconstructed packet budget');
+  const block=new Uint8Array(size+32),header=new DataView(block.buffer);block.set([119,118,112,107]);
+  header.setUint32(4,size+24,true);header.setUint16(8,version,true);header.setUint32(20,samples,true);header.setUint32(24,flags,true);header.setUint32(28,crc,true);
+  block.set(payload.subarray(offset,offset+size),32);blocks.push(block);offset+=size;
+ }
+ const result=new Uint8Array(total);offset=0;for(const block of blocks){result.set(block,offset);offset+=block.length;}return result;
+}
 function vint(bytes: Uint8Array, offset: number, id = false): {value: number; length: number} {
  const first = bytes[offset]; if (!first) return fail('Invalid EBML integer');
  let length = 1; while (length <= 8 && !(first & (1 << (8 - length)))) length++;
@@ -40,7 +64,7 @@ export class MatroskaReader {
  private cache=new Uint8Array(0);
  private constructor(private readonly file: Blob, private readonly signal: AbortSignal,
    readonly tracks: readonly MatroskaTrack[], private readonly segment: Element,
-   readonly timecodeScale: number) {}
+   readonly timecodeScale: number, readonly durationNs?: number) {}
  private async read(offset: number, size: number): Promise<Uint8Array> {
   this.signal.throwIfAborted();
   if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(size) || offset < 0 || size < 0 || size > 16 * 1024 * 1024 || offset + size > this.file.size) fail('Read bounds');
@@ -89,12 +113,13 @@ export class MatroskaReader {
    else if (![0xec, 0xbf].includes(e.id)) fail('Unqualified top-level structure');
   }
   if (!header || !segment) fail('Missing Matroska header or segment');
-  const tracks: MatroskaTrack[] = []; let scale = 1000000, infoSeen = false, tracksSeen = false;
+  const tracks: MatroskaTrack[] = []; let scale = 1000000, infoSeen = false, tracksSeen = false, durationTicks: number|undefined;
   for await (const e of reader.elements(segment.start, segment.end)) {
    if (e.id === 0x1549a966) {
     if (infoSeen || e.end - e.start > 65536) fail('Info budget'); infoSeen = true;
     for await (const i of reader.elements(e.start, e.end)) {
      if (i.id === 0x2ad7b1) scale = uint(await reader.bytes(i));
+     if (i.id === 0x4489) {if(durationTicks!==undefined)fail('Duplicate segment duration');durationTicks=float(await reader.bytes(i));if(durationTicks<=0)fail('Invalid segment duration');}
      if ([0x3cb923, 0x3eb923, 0x4444].includes(i.id)) fail('Linked segments unsupported');
     }
    } else if (e.id === 0x1654ae6b) {
@@ -112,7 +137,7 @@ export class MatroskaReader {
      if (number < 1 || tracks.some(t => t.number === number) || ![1,2].includes(type)) fail('Unqualified track identity or type');
      const codec = fields.has(0x86) ? new TextDecoder('utf-8',{fatal:true}).decode(await reader.bytes(fields.get(0x86)!)) : '';
      if ((type===1&&!codec.startsWith('V_'))||(type===2&&!codec.startsWith('A_')))fail('Codec and track type disagree');
-     if (!['V_MPEG4/ISO/AVC','V_MPEGH/ISO/HEVC','A_AC3','A_EAC3','A_DTS','A_TRUEHD','A_MLP','A_AAC','A_FLAC','A_ALAC','A_OPUS','A_VORBIS','A_MPEG/L3','A_PCM/INT/LIT','A_PCM/FLOAT/IEEE'].includes(codec)) fail('Unqualified track codec');
+     if (!['V_MPEG4/ISO/AVC','V_MPEGH/ISO/HEVC','V_VP8','V_VP9','V_AV1','A_AC3','A_EAC3','A_DTS','A_TRUEHD','A_MLP','A_AAC','A_FLAC','A_ALAC','A_OPUS','A_VORBIS','A_MPEG/L1','A_MPEG/L2','A_MPEG/L3','A_MS/ACM','A_WAVPACK4','A_PCM/INT/LIT','A_PCM/FLOAT/IEEE'].includes(codec)) fail('Unqualified track codec');
      const track: {number:number;kind:'video'|'audio';codec:string;privateData:Uint8Array;codecDelayNs?:number;seekPreRollNs?:number;colour?:ContainerColour;defaultDurationNs?:number;channels?:number;rate?:number;bitDepth?:number;width?:number;height?:number} = {
       number, kind: type === 1 ? 'video' : 'audio', codec,
       privateData: fields.has(0x63a2) ? await reader.bytes(fields.get(0x63a2)!) : new Uint8Array(),
@@ -154,7 +179,9 @@ export class MatroskaReader {
    }
   }
   if (!tracksSeen || !infoSeen || !tracks.length || !Number.isSafeInteger(scale) || scale <= 0 || scale > 1000000000) fail('Incomplete container metadata');
-  const ready = new MatroskaReader(file,signal,tracks,segment,scale); ready.reads = reader.reads; return ready;
+  const durationNs=durationTicks===undefined?undefined:durationTicks*scale;
+  if(durationNs!==undefined&&(!Number.isFinite(durationNs)||durationNs>Number.MAX_SAFE_INTEGER))fail('Segment duration overflow');
+  const ready = new MatroskaReader(file,signal,tracks,segment,scale,durationNs); ready.reads = reader.reads; return ready;
  }
  async *packets(): AsyncGenerator<MatroskaPacket> {
   for await (const e of this.elements(this.segment.start,this.segment.end)) {
@@ -184,7 +211,9 @@ export class MatroskaReader {
      if (flags & 0x0e) fail('Laced or invisible block requires another provider');
      const timestampNs = (time + view.getInt16(number.length)) * this.timecodeScale;
      if (!Number.isSafeInteger(timestampNs)) fail('Timestamp overflow');
-     yield {track:number.value,timestampNs,key:block.id===0xa3?!!(flags&0x80):groupKey,data:bytes.subarray(number.length+3),...(discardPaddingNs?{discardPaddingNs}:{}),...(durationNs?{durationNs}:{})};
+     const track=this.tracks.find(t=>t.number===number.value)!;
+     const raw=bytes.subarray(number.length+3),data=track.codec==='A_WAVPACK4'?restoreMatroskaWavPack(raw,track.privateData):raw;
+     yield {track:number.value,timestampNs,key:block.id===0xa3?!!(flags&0x80):groupKey,data,...(discardPaddingNs?{discardPaddingNs}:{}),...(durationNs?{durationNs}:{})};
     } else if (![0xec,0xbf,0xa7,0xab].includes(block.id)) fail('Cluster extension requires another provider');
    }
   }

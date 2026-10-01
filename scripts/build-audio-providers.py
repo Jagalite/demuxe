@@ -10,7 +10,7 @@ def digest(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--sdk', type=pathlib.Path, required=True)
 p.add_argument('--archive', type=pathlib.Path, required=True)
-p.add_argument('--profile', choices=['ac3', 'dts', 'flac', 'common', 'truehd-mlp', 'dts-hd', 'aac', 'opus-vorbis', 'lossless', 'mp3', 'pcm', 'opus-encoder'], required=True)
+p.add_argument('--profile', choices=['ac3', 'dts', 'flac', 'common', 'truehd-mlp', 'dts-hd', 'aac', 'opus-vorbis', 'lossless', 'mp3', 'pcm', 'legacy', 'archive', 'archive-more', 'archive-next', 'archive-historical', 'adpcm-wave', 'adpcm-qt', 'g726', 'telephony', 'speech', 'wma-advanced', 'opus-encoder'], required=True)
 p.add_argument('--out', type=pathlib.Path, default=ROOT/'build/audio-providers')
 a = p.parse_args(); sdk=a.sdk.resolve(); archive=a.archive.resolve(); out=a.out.resolve()
 lock=next(s for s in json.loads((ROOT/'sources.lock.json').read_text())['sources'] if s['name']=='ffmpeg-adaptation')
@@ -42,7 +42,18 @@ decoder_profiles = {
  'truehd-mlp': ('truehd,mlp', ['truehd','mlp']), 'dts-hd': ('dca', ['dts-hd']),
  'aac': ('aac', ['aac']), 'opus-vorbis': ('opus,vorbis', ['opus','vorbis']),
  'lossless': ('flac,alac', ['flac','alac']), 'mp3': ('mp3float', ['mp3']),
- 'pcm': ('pcm_s16le,pcm_s24le,pcm_s32le,pcm_f32le,pcm_f64le', ['pcm-s16le','pcm-s24le','pcm-s32le','pcm-f32le','pcm-f64le']),
+ 'archive': ('ape,wavpack', ['ape','wavpack']),
+ 'archive-more': ('tta', ['tta']),
+ 'archive-next': ('tak', ['tak']),
+ 'archive-historical': ('shorten', ['shorten']),
+ 'speech': ('speex,amrnb,amrwb', ['speex','amrnb','amrwb']),
+ 'telephony': ('pcm_alaw,pcm_mulaw,gsm,gsm_ms', ['pcm-alaw','pcm-mulaw','gsm','gsm-ms']),
+ 'adpcm-qt': ('adpcm_ima_qt', ['adpcm-ima-qt']),
+ 'g726': ('adpcm_g726,adpcm_g726le', ['adpcm-g726','adpcm-g726le']),
+ 'adpcm-wave': ('adpcm_ms,adpcm_ima_wav', ['adpcm-ms','adpcm-ima-wav']),
+ 'wma-advanced': ('wmapro,wmalossless,wmavoice', ['wmapro','wmalossless','wmavoice']),
+ 'legacy': ('mp1float,mp2float,wmav1,wmav2', ['mp1','mp2','wmav1','wmav2']),
+ 'pcm': ('pcm_s16le,pcm_s24le,pcm_s32le,pcm_f32le,pcm_f64le,pcm_u8,pcm_s8', ['pcm-s16le','pcm-s24le','pcm-s32le','pcm-f32le','pcm-f64le','pcm-u8','pcm-s8']),
 }
 if a.profile=='opus-vorbis':
  configure.remove('--disable-swresample'); configure+=['--enable-swresample']
@@ -53,10 +64,11 @@ if a.profile in decoder_profiles:
  capabilities+=['audio.decode.'+name for name in names]
  bridges.append(ROOT/'native/audio-codecs/decoder.c')
  exports+=['mc_create','mc_create_config','mc_configure','mc_decode','mc_frame','mc_flush','mc_reset','mc_destroy','mc_info','mc_plane']
+if a.profile in ['legacy','wma-advanced','adpcm-wave', 'adpcm-qt','g726','telephony']: exports+=['mc_create_config_v2']
 if a.profile in ['flac','common','opus-encoder']:
  encoder='opus' if a.profile=='opus-encoder' else 'flac'
  configure+=['--enable-encoder='+encoder]; capabilities.append('audio.encode.'+encoder); bridges.append(ROOT/'native/audio-codecs/encoder.c')
- exports+=['ae_create','ae_destroy','ae_size','ae_input','ae_send','ae_receive','ae_data','ae_bytes','ae_pts','ae_duration','ae_header','ae_header_size']
+ exports+=['ae_create','ae_create_config','ae_destroy','ae_size','ae_input','ae_send','ae_receive','ae_data','ae_bytes','ae_pts','ae_duration','ae_header','ae_header_size']
 if a.profile=='opus-encoder': exports+=['ae_preskip']
 commands=[]
 def run(cmd):

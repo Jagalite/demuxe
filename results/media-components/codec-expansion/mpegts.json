@@ -1,0 +1,195 @@
+{
+  "schema": 1,
+  "date": "2026-09-30",
+  "status": "native packet demux qualified within finite envelope; no mux, timestamp repair, seek, browser or Player route qualification",
+  "sources": {
+    "packages/provider-container/src/mpegts.ts": "c4ab4de926889d9f59a62be36b6d0fe8a22caf8b9cbb63056ff523a709779fbb",
+    "tests/mpegts-fixtures.py": "34d3a8bd316ddfb819e29ced53f2027f4bb27d4632735fd1221c28c058455ce8",
+    "tests/mpegts-reader.mjs": "1b35672010000cd7189b624478cea848fdb4a16d7772dfb8fe3ef20ddc8b54a6"
+  },
+  "nativeReference": {
+    "ffprobe": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "fixtures": [
+    {
+      "id": "stereo",
+      "input": "build/mpegts-fixtures/stereo.ts",
+      "channels": 2,
+      "bframes": 0,
+      "inputSHA256": "55882a4fd0788dcb6766c68c7fb26e2b6bc5eb93f730bef22f10d4b2ef357394"
+    },
+    {
+      "id": "mono",
+      "input": "build/mpegts-fixtures/mono.ts",
+      "channels": 1,
+      "bframes": 0,
+      "inputSHA256": "de96c45cdd44c343da0adf490b8e2d1ef394b97e25952dc6060bba20338f0551"
+    },
+    {
+      "id": "bframes",
+      "input": "build/mpegts-fixtures/bframes.ts",
+      "channels": 2,
+      "bframes": 2,
+      "inputSHA256": "b453cf1d33473d3eb67968c95dd8ebd3b2e93322b2a83de378ef71cf97ea338e"
+    }
+  ],
+  "cases": 27,
+  "reportSHA256": "b54d0dd1f0645080289cf643b43a7602f4dd0599b6bb3d0e8edd443a751bb5d5",
+  "passed": true,
+  "results": [
+    {
+      "id": "stereo",
+      "inputSHA256": "55882a4fd0788dcb6766c68c7fb26e2b6bc5eb93f730bef22f10d4b2ef357394",
+      "packets": 24,
+      "bytesRead": 29704,
+      "maxRead": 14852,
+      "referenceExact": true,
+      "passed": true
+    },
+    {
+      "id": "mono",
+      "inputSHA256": "de96c45cdd44c343da0adf490b8e2d1ef394b97e25952dc6060bba20338f0551",
+      "packets": 24,
+      "bytesRead": 25192,
+      "maxRead": 12596,
+      "referenceExact": true,
+      "passed": true
+    },
+    {
+      "id": "bframes",
+      "inputSHA256": "b453cf1d33473d3eb67968c95dd8ebd3b2e93322b2a83de378ef71cf97ea338e",
+      "packets": 24,
+      "bytesRead": 22184,
+      "maxRead": 11092,
+      "referenceExact": true,
+      "passed": true
+    },
+    {
+      "id": "partial-ts-packet",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "sync-loss",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "transport-error",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "scrambled",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "pat-crc",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "pmt-crc",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "pat-program-change",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "pmt-program-change",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "unsupported-stream",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "continuity-gap",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "adaptation-overrun",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "adaptation-discontinuity",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "invalid-pts-marker",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "video-dts-rollover",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "unadvertised-pes",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "unbounded-audio-pes",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "truncated-audio-pes",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "aac-pes-length-overrun",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "aac-pts-gap",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "aac-rollover-in-pes",
+      "rejected": true,
+      "passed": true
+    },
+    {
+      "id": "oversized-unbounded-video-pes-rejected",
+      "bytes": 5455572,
+      "passed": true
+    },
+    {
+      "id": "metadata-scan-budget-rejected",
+      "bytes": 5452564,
+      "passed": true
+    },
+    {
+      "id": "abort-before-open",
+      "passed": true
+    },
+    {
+      "id": "abort-during-packets",
+      "passed": true
+    }
+  ],
+  "limits": [
+    "188-byte transport packets; CRC-valid single-section stable PAT/PMT and exactly one program",
+    "One AUD-delimited AVC picture per PES in AnnexB, AAC LC ADTS48kmono/stereo",
+    "SourcePTS/DTS preserved in90000Hz clock; video duration unspecified; AACduration derived1024samples=1920ticks",
+    "BframePTS/DTS preserved; timestamp repair and output clock construction explicitly unqualified",
+    "Reject continuity gaps/duplicates, transport errors, scrambling, discontinuities, table changes, unsupported descriptors/codecs, PES truncation and33bit rollover",
+    "64KiB reads,4MiBmetadata scan plusoneblock,4MiB eachPES,10milliontransportpackets"
+  ]
+}

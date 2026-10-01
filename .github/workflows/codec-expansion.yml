@@ -1,0 +1,64 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Pinned codec expansion qualification
+on:
+  workflow_dispatch:
+    inputs:
+      native_tag:
+        description: Release containing codec-expansion-ci-inputs.tar.gz
+        required: true
+        type: string
+      inventory_sha256:
+        description: Reviewed SHA256 of codec-expansion-ci-inventory.json inside the input archive
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  functional:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+    env:
+      CODEC_EXPANSION_INVENTORY_SHA256: ${{ inputs.inventory_sha256 }}
+      CODEC_EXPANSION_INPUTS: build/codec-expansion-ci-inputs
+      BROWSER: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --ignore-scripts
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: node --test tests/codec-expansion-ci-contracts.mjs tests/provider-opus-roll.mjs
+      - run: python3 tests/codec-expansion-extract.py
+      - name: Download reviewed native packages, corresponding source and references
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NATIVE_TAG: ${{ inputs.native_tag }}
+        run: |
+          mkdir -p build/codec-expansion-ci-download
+          gh release download "$NATIVE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern codec-expansion-ci-inputs.tar.gz --dir build/codec-expansion-ci-download
+          python3 scripts/extract-codec-expansion-ci.py \
+            build/codec-expansion-ci-download/codec-expansion-ci-inputs.tar.gz "$CODEC_EXPANSION_INPUTS"
+      - name: Verify exact inputs, audit packages and install selective bundles
+        run: node scripts/codec-expansion-ci.mjs prepare "$CODEC_EXPANSION_INPUTS"
+      - name: Qualify packet decoding, compositions, seeking and silence rejection
+        run: node tests/codec-expansion-ci.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: codec-expansion-${{ matrix.browser }}
+          path: |
+            build/codec-expansion/ci-*/qualification.json
+            build/codec-expansion/browser/results.json
+            build/codec-expansion/consumer-*/bundles/*/bundle-manifest.json

@@ -4,7 +4,7 @@ import json
 from license_policy import ROOT
 
 FFMPEG_PROFILES = {'ac3', 'dts', 'flac', 'common', 'truehd-mlp', 'dts-hd',
-                   'aac', 'opus-vorbis', 'lossless', 'mp3', 'pcm'}
+                   'aac', 'opus-vorbis', 'lossless', 'mp3', 'pcm', 'legacy', 'archive', 'archive-more', 'archive-next', 'archive-historical', 'adpcm-wave', 'adpcm-qt', 'g726', 'telephony', 'speech', 'wma-advanced'}
 
 def pinned_audio_source(profile):
     profile = profile.removeprefix('audio-')

@@ -1,0 +1,848 @@
+{
+  "passed": true,
+  "scope": "Read-only bounded canonical4-bit MS/IMA WAV; whole original blocks and independently declared fact presentation extent. Independent host block restart integer PCM, malformed/framing/seek/abort controls. No native Wasm provider or composition admission.",
+  "inputs": {
+    "packages/provider-container/src/adpcm-wave.ts": "d2e641ddb6b08a2adce7842c8c3b6fc25b461ebd3a4d47f6d60c95762158a650",
+    "packages/provider-container/src/matroska.ts": "811f06b49c4273902a92e950d8680003e50c89b9547bea241374b43fb08e0f26",
+    "tests/adpcm-wave-fixtures.py": "acf4c6285f0a63231a5348d9758805f708cb26fdcebe008a05cd51ccb39e4dcb",
+    "tests/provider-adpcm-wave.mjs": "dc3fdcb4e8cb6c662424640feed55d1e99740b6bae3e8a8c6b90138d8d8c9875"
+  },
+  "fixturesSHA256": "34b39e9d48a9309563dcb97923e2e4fbff167bf23d31dd729e41ae6820398a2c",
+  "ffmpegVersion": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "seeks": 104,
+  "malformed": 416,
+  "results": [
+    {
+      "id": "ms-adpcm",
+      "passed": true,
+      "inputSHA256": "fe17a733b6a838315e03410478c1bf3a63b55940571e18efc5580f8b9f1869ac",
+      "samples": 66075,
+      "decodedSamples": 67188,
+      "discardPaddingSamples": 1113,
+      "blocks": 33,
+      "openingBytesRead": 321,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "c63285b4d61620159c82a6cb68887e00ad7dcd78b6d2a53d9d44f9a944789093",
+          "samples": 2036
+        },
+        {
+          "block": 8,
+          "pcmSHA256": "b4048d2b2d6af266e8276e5037ab685eaa27527a7934daf11499d85256a305d3",
+          "samples": 2036
+        },
+        {
+          "block": 23,
+          "pcmSHA256": "f27db0d1cf9cb54de60cc29ef10489e0573750604fcc35451c2acca3c60bb6bd",
+          "samples": 2036
+        },
+        {
+          "block": 32,
+          "pcmSHA256": "3490d660308bb9db5b7d2fc2cc33737549a2b49219b211790f3cd38ac4bc0a08",
+          "samples": 2036
+        }
+      ]
+    },
+    {
+      "id": "ima-wav",
+      "passed": true,
+      "inputSHA256": "beff125eee960345930d24b6533972cd5643570ed51f5c39e7df48e357dce530",
+      "samples": 50240,
+      "decodedSamples": 50500,
+      "discardPaddingSamples": 260,
+      "blocks": 100,
+      "openingBytesRead": 460,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "8017771024033658772f7887ef25f8d9268ac3c58618ee30b5f77aadd275434c",
+          "samples": 505
+        },
+        {
+          "block": 25,
+          "pcmSHA256": "e959f892b08c362f1da78bec40059b93226cd153bd9f476f24d88ecddcb87ef9",
+          "samples": 505
+        },
+        {
+          "block": 70,
+          "pcmSHA256": "cc2d14b60abf741205a1e50571a0f277c3eacce9cca4b6e296b67803f3e56919",
+          "samples": 505
+        },
+        {
+          "block": 99,
+          "pcmSHA256": "fc3a1cdea1575d03b06870935ee2ea21de53a8d952a0e007a907b8fa6037eef0",
+          "samples": 505
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ms-8000-1",
+      "passed": true,
+      "inputSHA256": "b550354983594edaa06167481e37dcb192952f5cbc22d094560628b9485c1e90",
+      "samples": 17096,
+      "decodedSamples": 18324,
+      "discardPaddingSamples": 1228,
+      "blocks": 9,
+      "openingBytesRead": 165,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "8c928227bf8f3d9541c8a4b00a7d9616ff8aabf0e006cf6a74644f48fea96105",
+          "samples": 2036
+        },
+        {
+          "block": 2,
+          "pcmSHA256": "3ebcdd2937dba262ab6bc9a225a4adbe87c5cf36924fab488bc016e8ece125f5",
+          "samples": 2036
+        },
+        {
+          "block": 6,
+          "pcmSHA256": "81a8be906162c4fb29ffdaf3dafe5c5bbc99a4bd025be02f3d5236cb3fd68401",
+          "samples": 2036
+        },
+        {
+          "block": 8,
+          "pcmSHA256": "3cf1b5322084248302f84ae1dc55974f6d16e2419fac5174f4cdd188319d679a",
+          "samples": 2036
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ms-8000-2",
+      "passed": true,
+      "inputSHA256": "98b61fc5c69cb1d594a5ea478ac7aff8d2496e29e2277093f6cabe5ef2b7c2e4",
+      "samples": 17096,
+      "decodedSamples": 17204,
+      "discardPaddingSamples": 108,
+      "blocks": 17,
+      "openingBytesRead": 340,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "7310430f6250d6c9fc16eeee6d61596a824882cc21ec2d363751b13c1a9ed02c",
+          "samples": 1012
+        },
+        {
+          "block": 4,
+          "pcmSHA256": "ceca70e82db7dcabd87950523ec41a4245f42f38ba49c94663fcaa695f561ae8",
+          "samples": 1012
+        },
+        {
+          "block": 11,
+          "pcmSHA256": "77b46383e3d6f0f6be5ccad57aedd54890a52672f77bb784932cc7a7b949b45d",
+          "samples": 1012
+        },
+        {
+          "block": 16,
+          "pcmSHA256": "c649f21f0dba3c5d4130a79e439c62b87922cb096bbe88d5c01c30ccb6e76802",
+          "samples": 1012
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ms-16000-1",
+      "passed": true,
+      "inputSHA256": "91d628830a283e9dad8c63e4e10f3c911b1da211745a99391945810e632743aa",
+      "samples": 34192,
+      "decodedSamples": 34612,
+      "discardPaddingSamples": 420,
+      "blocks": 17,
+      "openingBytesRead": 221,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "101f67511049d497559fda703373575ecdc59580225b2153ec95de72a9d726b4",
+          "samples": 2036
+        },
+        {
+          "block": 4,
+          "pcmSHA256": "6495d371ab3366f44258294f58fbc8ff22e72639fd74827d18a564c37694d34b",
+          "samples": 2036
+        },
+        {
+          "block": 11,
+          "pcmSHA256": "c95ce2272e81130009174ec4ca3084d647aded05fc7358198280de4795797f40",
+          "samples": 2036
+        },
+        {
+          "block": 16,
+          "pcmSHA256": "abeab5a283d9645c4a0262e1be0d33c08de12276360bc97f0d1c659018b2b04a",
+          "samples": 2036
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ms-16000-2",
+      "passed": true,
+      "inputSHA256": "6073959268571cb1c8002a17a147ff48d53068c8162023e0b875b2f2008922ff",
+      "samples": 34192,
+      "decodedSamples": 34408,
+      "discardPaddingSamples": 216,
+      "blocks": 34,
+      "openingBytesRead": 578,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "c883daebd862acf480c28e29159bd332698d52986d8bc1ad3d8ad0a2fc0750bb",
+          "samples": 1012
+        },
+        {
+          "block": 8,
+          "pcmSHA256": "bd3de2337c64488f78e75feb07781a2b1eb90959e29f5eb7f890d21edd43ef12",
+          "samples": 1012
+        },
+        {
+          "block": 23,
+          "pcmSHA256": "f7c3002c84447f047207213d2bad42edec7bc7a99a4180041ab8c370018ff602",
+          "samples": 1012
+        },
+        {
+          "block": 33,
+          "pcmSHA256": "0d15831c9f06e2738571b2ea6490cfd11ecb41dd5d18a2ec7a8ed604be1d468b",
+          "samples": 1012
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ms-22050-1",
+      "passed": true,
+      "inputSHA256": "088759553425c4e98e6d4153949bbd0624a3833eb6f72ab588f2d3bdb18716a9",
+      "samples": 47120,
+      "decodedSamples": 48864,
+      "discardPaddingSamples": 1744,
+      "blocks": 24,
+      "openingBytesRead": 270,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "96cafa6f880fa3fc5dbcc1f4dda66f0663e744f36917d5259fe26f5ea431cefa",
+          "samples": 2036
+        },
+        {
+          "block": 6,
+          "pcmSHA256": "53a13c268503f835e985d839f123925066e506a9a0aa40dc25db5a3f4b129c30",
+          "samples": 2036
+        },
+        {
+          "block": 16,
+          "pcmSHA256": "ac216acbcff184b1b816e565f50060eced5337b24d43ca6ceb1a5b70844253a2",
+          "samples": 2036
+        },
+        {
+          "block": 23,
+          "pcmSHA256": "5e1d7f09ba4de071b1ee868077ff4789958171112f902f29182ab24a5f65c209",
+          "samples": 2036
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ms-22050-2",
+      "passed": true,
+      "inputSHA256": "dfe4f661254738175827466d0d58e646635391aab9c0c13aad7ee67480f819f1",
+      "samples": 47120,
+      "decodedSamples": 47564,
+      "discardPaddingSamples": 444,
+      "blocks": 47,
+      "openingBytesRead": 760,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "df9b3dad1ebb7897a0c32e43b452a376f575e3427a2af0514c0d01cb292acbf3",
+          "samples": 1012
+        },
+        {
+          "block": 11,
+          "pcmSHA256": "910e254f16a28b78fd43ead23be8c3b9acb3d6c604c8c8da047df53961403be3",
+          "samples": 1012
+        },
+        {
+          "block": 32,
+          "pcmSHA256": "fa4824d1e1f994a4ba9a4ea6bc6293b1f9737c1069fa30497ed627a15856ce2f",
+          "samples": 1012
+        },
+        {
+          "block": 46,
+          "pcmSHA256": "52bd9379b53a0069f67713525e7c5ef04650366949ab3e1bd6d761e67af3730a",
+          "samples": 1012
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ms-32000-1",
+      "passed": true,
+      "inputSHA256": "79e653932a3b0cc95caa6014812e38c636fecddfe32672462b5baf620977685f",
+      "samples": 68384,
+      "decodedSamples": 69224,
+      "discardPaddingSamples": 840,
+      "blocks": 34,
+      "openingBytesRead": 340,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "1053cc3c8dc0836e3d63968fdbe329222b9e561f8115a55264541c051ba8c90c",
+          "samples": 2036
+        },
+        {
+          "block": 8,
+          "pcmSHA256": "06daf365fd7fbcad3297ba0c014ad69144332cc025caaa75ded83d12d2c9c0d5",
+          "samples": 2036
+        },
+        {
+          "block": 23,
+          "pcmSHA256": "8f6550de6547416d869b8c2df5fb7e7238c311610416b51d0c41b228700e5e1e",
+          "samples": 2036
+        },
+        {
+          "block": 33,
+          "pcmSHA256": "9b0ce8540e1350b6df6fbdb7fe5231f9cddea8a4f6c17c27dd161c125963b4d4",
+          "samples": 2036
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ms-32000-2",
+      "passed": true,
+      "inputSHA256": "c52fb31e601c67883112343925bae06fbe6cbb7171fe6e954241e3873023a39a",
+      "samples": 68384,
+      "decodedSamples": 68816,
+      "discardPaddingSamples": 432,
+      "blocks": 68,
+      "openingBytesRead": 1054,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "9a2a29795a52d26f827724f7b8816b87ec05c88dfe01a086777efb3b8870073a",
+          "samples": 1012
+        },
+        {
+          "block": 17,
+          "pcmSHA256": "60cd725003f622db4aba2cf880541a4ba69dce9e039cd8a5fd1b100f99daef50",
+          "samples": 1012
+        },
+        {
+          "block": 47,
+          "pcmSHA256": "72a00f414c4bf7d847e19be5f954967fba7a38e32747fd76fcaf6769cbcccbb0",
+          "samples": 1012
+        },
+        {
+          "block": 67,
+          "pcmSHA256": "87292f2499b51e8b83b03d4ee8e1f03d0bd1c97931cee68ebfd037b72994ee98",
+          "samples": 1012
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ms-44100-1",
+      "passed": true,
+      "inputSHA256": "0f6edff5a05fe1f110a78c2152cff2eec284ba9d8f1303a160ce95108dc73a02",
+      "samples": 94241,
+      "decodedSamples": 95692,
+      "discardPaddingSamples": 1451,
+      "blocks": 47,
+      "openingBytesRead": 431,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "b07557313a33d5b057c74b56d10aea7bb272d45f59332f9af8502d5fff59a091",
+          "samples": 2036
+        },
+        {
+          "block": 11,
+          "pcmSHA256": "bc09c639703719f9ed5627e674dc49c8d37c3c6b488074730eae911c0a4d1248",
+          "samples": 2036
+        },
+        {
+          "block": 32,
+          "pcmSHA256": "4ee8c7fb373a380b9eee3cac471be82f9c2e461059e81edee478e906a3cd4466",
+          "samples": 2036
+        },
+        {
+          "block": 46,
+          "pcmSHA256": "dbd548def36bc7a5ca38254d1c189d170dcc9d2d53887561d804bb2be9a41092",
+          "samples": 2036
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ms-44100-2",
+      "passed": true,
+      "inputSHA256": "e21c9542f6c411cb8d21b0bb1ef7d7d6a88cc6a8d77211940969ff33d4baf457",
+      "samples": 94241,
+      "decodedSamples": 95128,
+      "discardPaddingSamples": 887,
+      "blocks": 94,
+      "openingBytesRead": 1418,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "57637bfbc7491804ca038e7b026248f9aad30b4948ef8f815733c020b36f5459",
+          "samples": 1012
+        },
+        {
+          "block": 23,
+          "pcmSHA256": "d1c5d2f35e6dc86fb24a5e9e64d95bc396739c15270849987d289bd5a0e9e1ee",
+          "samples": 1012
+        },
+        {
+          "block": 65,
+          "pcmSHA256": "83ca71e0f7b2e3c4bed4cf0a0be6c96f713b1ea2b28bcc0f5a476bcb6753dc56",
+          "samples": 1012
+        },
+        {
+          "block": 93,
+          "pcmSHA256": "05010e8e784f6180c19c95e1213b00edea887e8b7052f4181ed58f087bc6f21a",
+          "samples": 1012
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ms-48000-1",
+      "passed": true,
+      "inputSHA256": "f7f3ffc3d7c0b45f1bf29239e1ed32f1fda5dca40732fce38bae7d7e0f02762f",
+      "samples": 102576,
+      "decodedSamples": 103836,
+      "discardPaddingSamples": 1260,
+      "blocks": 51,
+      "openingBytesRead": 459,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "ac44222bc8afa0bade931c920a4a97e94b690f7483dfe83e4b710639a062db2b",
+          "samples": 2036
+        },
+        {
+          "block": 12,
+          "pcmSHA256": "56983a64aed9fcbfefe2566981915cf0693ecfb99bd96bd58a0731534010ae37",
+          "samples": 2036
+        },
+        {
+          "block": 35,
+          "pcmSHA256": "86325009f360605cc1740dec26609343fa8900a40635b33de33b327339c77eae",
+          "samples": 2036
+        },
+        {
+          "block": 50,
+          "pcmSHA256": "8a6014cce659e8f76ad0837d0af94bf83b25cca7399dafadaeb34b10de94c490",
+          "samples": 2036
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ms-48000-2",
+      "passed": true,
+      "inputSHA256": "1dedaac330e006f92cfcbdd94535c528d5473289430a17f97e3f18886b14c07f",
+      "samples": 102576,
+      "decodedSamples": 103224,
+      "discardPaddingSamples": 648,
+      "blocks": 102,
+      "openingBytesRead": 1530,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "2593b83ade8687d1dfacffc8c3c1de6efc8a0054ce6004c24b47f0bfde71229f",
+          "samples": 1012
+        },
+        {
+          "block": 25,
+          "pcmSHA256": "12d55926ea71ec2aaf51a256f20d644807ce8228eb955217eed2f6e267c236be",
+          "samples": 1012
+        },
+        {
+          "block": 71,
+          "pcmSHA256": "8a01a408d960481a0279fb2e95a50cb8bb7f45ab1873a890c816f777af709e9e",
+          "samples": 1012
+        },
+        {
+          "block": 101,
+          "pcmSHA256": "12eb530e93afbbfb575ca3939a039e36cd998271ca699f1e9a216e88d61ebd24",
+          "samples": 1012
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ima_wav-8000-1",
+      "passed": true,
+      "inputSHA256": "405d984d9432302ed1a59543c404cb93068deea51b6eb8082fd3774a0d031a02",
+      "samples": 17096,
+      "decodedSamples": 18369,
+      "discardPaddingSamples": 1273,
+      "blocks": 9,
+      "openingBytesRead": 108,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "bef5c0bcc0de54b69db81097eec36c1ca4eb7f62b24e965591ac91731410cb9d",
+          "samples": 2041
+        },
+        {
+          "block": 2,
+          "pcmSHA256": "1809671e332289ba4397c76e276d93736f12622cc6106950054ac83029c42b75",
+          "samples": 2041
+        },
+        {
+          "block": 6,
+          "pcmSHA256": "0b5426158327b1a4480b09b833f418f86c202f93ea93b8f4b52ff7da4ab7ddc4",
+          "samples": 2041
+        },
+        {
+          "block": 8,
+          "pcmSHA256": "a9b986c694702bb5487e6d4262ab9bbf8210f8e99e8cc9cfbd9b62fe9353a058",
+          "samples": 2041
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ima_wav-8000-2",
+      "passed": true,
+      "inputSHA256": "90ae08a05a1de2d39146f03e1cd40262fb22270eff41ed893cd818d782e75db1",
+      "samples": 17096,
+      "decodedSamples": 17289,
+      "discardPaddingSamples": 193,
+      "blocks": 17,
+      "openingBytesRead": 208,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "c874d936a84578154d9d1e11e3dafd2badadbb24ed57c10021924ea5a503b779",
+          "samples": 1017
+        },
+        {
+          "block": 4,
+          "pcmSHA256": "75194bc03d06d487a68571084b1a19fb049403ed86be9a1dfb6c614030dcf8f1",
+          "samples": 1017
+        },
+        {
+          "block": 11,
+          "pcmSHA256": "103e6acc22bb47ac03d081828dd54d2b8e166e08d85e7e4a17a9316883b6ce3d",
+          "samples": 1017
+        },
+        {
+          "block": 16,
+          "pcmSHA256": "49b1c92c64ef8594bd31edc556d111cfcdb485222dee37ca9d4c37b367a4a5a1",
+          "samples": 1017
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ima_wav-16000-1",
+      "passed": true,
+      "inputSHA256": "0e8078c8f8fecfdaaaf485799e1631f83d81a131db064ae432ca57973f70dc8e",
+      "samples": 34192,
+      "decodedSamples": 34697,
+      "discardPaddingSamples": 505,
+      "blocks": 17,
+      "openingBytesRead": 140,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "b261e2398aa34fd37d915d9afb19beb726a16b4345a3e7be10cef71966cc99c4",
+          "samples": 2041
+        },
+        {
+          "block": 4,
+          "pcmSHA256": "6ac9f81bfad01ceab6e773d0c7351ad4c3f2602a1785220531b9025eb9307b38",
+          "samples": 2041
+        },
+        {
+          "block": 11,
+          "pcmSHA256": "f6e890267dd9bb3c48f2206c400531b9bc6fd8815e1593105ecb32daeac9bf62",
+          "samples": 2041
+        },
+        {
+          "block": 16,
+          "pcmSHA256": "aeee7d2a40fb09208eeb7ff48e057e70c6e45e9eac3415d5ccc41db8fa20b63c",
+          "samples": 2041
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ima_wav-16000-2",
+      "passed": true,
+      "inputSHA256": "b5028b08df33e85f3ab8b739e2cdf152c90fb617c390209936863e5d31135c0b",
+      "samples": 34192,
+      "decodedSamples": 34578,
+      "discardPaddingSamples": 386,
+      "blocks": 34,
+      "openingBytesRead": 344,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "13f1677eef545086a90d1a7ed7cac61aa5c0ea5dfebf21938d6ccf30a5691cf5",
+          "samples": 1017
+        },
+        {
+          "block": 8,
+          "pcmSHA256": "46a6532198761063b08b36d47c6c8ca8f9ebcbf55f1db618aec7c27cc8a980d6",
+          "samples": 1017
+        },
+        {
+          "block": 23,
+          "pcmSHA256": "fa8144525038334816641b5b6294ab69f7c6a1b4567a2fc895da156a102115b3",
+          "samples": 1017
+        },
+        {
+          "block": 33,
+          "pcmSHA256": "13052a8247f321af7a986d803f6f2f85917456b131b7c64159fb81f64578e308",
+          "samples": 1017
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ima_wav-22050-1",
+      "passed": true,
+      "inputSHA256": "3ceb01c848a78400d723f8a2bfc004b9631edfd1cc901a0a320ecd9b9f551e85",
+      "samples": 47120,
+      "decodedSamples": 48984,
+      "discardPaddingSamples": 1864,
+      "blocks": 24,
+      "openingBytesRead": 168,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "9333b0c1fd8decbbb63b5dc957a5828a9020da6943ba337483ac40feffdff9bb",
+          "samples": 2041
+        },
+        {
+          "block": 6,
+          "pcmSHA256": "4a1a469f0cd894b8f28948d325ec8ee0921b611bde765fa5fd2934a2a989c468",
+          "samples": 2041
+        },
+        {
+          "block": 16,
+          "pcmSHA256": "2fb7d45bfa85a67e6ecdb1d562b4b32fe23b873aa6f88c85447e9a17af317d03",
+          "samples": 2041
+        },
+        {
+          "block": 23,
+          "pcmSHA256": "3e18a6725dbfaffe5948989d8147e791c9efe98f355e4de2264637ac17e59d25",
+          "samples": 2041
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ima_wav-22050-2",
+      "passed": true,
+      "inputSHA256": "a65804c17fd0398b9f5d376f2ffcd8ca59e45163056268e1fe6bfc2bdf05281d",
+      "samples": 47120,
+      "decodedSamples": 47799,
+      "discardPaddingSamples": 679,
+      "blocks": 47,
+      "openingBytesRead": 448,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "f7be2bac877ac19f26d54171edbafcfe5b8d14993f79914d329d7b1ffd894a16",
+          "samples": 1017
+        },
+        {
+          "block": 11,
+          "pcmSHA256": "5b75b34db3227e78f0ae73e46e7a1a9f3500203fa9de232dc56d9398139eea36",
+          "samples": 1017
+        },
+        {
+          "block": 32,
+          "pcmSHA256": "d7d0e6608f4577f99ab2b34b6007bcbe8422c5b7ce2ae20bbb439f1bc9929242",
+          "samples": 1017
+        },
+        {
+          "block": 46,
+          "pcmSHA256": "75e4dc11a65e9980caa64a59412aeb3b8663b8c095f09be9e970226a45d076e2",
+          "samples": 1017
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ima_wav-32000-1",
+      "passed": true,
+      "inputSHA256": "18bbeb126c4a3b4bbe1f6e9ef0bfec650fb6772e9f357c75b441ea4e3c005505",
+      "samples": 68384,
+      "decodedSamples": 69394,
+      "discardPaddingSamples": 1010,
+      "blocks": 34,
+      "openingBytesRead": 208,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "ccb459ce7ee6da2650049bbee7662430c81af691f43feee26cef2f3f145a4f3c",
+          "samples": 2041
+        },
+        {
+          "block": 8,
+          "pcmSHA256": "73cfa8dc565fedad2976249e4e4cc1a341a492a7fb6f75d42d2d743dcf6d1053",
+          "samples": 2041
+        },
+        {
+          "block": 23,
+          "pcmSHA256": "718b84c7da741dff2fc7e2b7d1d4b72e662a2525fbb7c0aa1dec16121a402767",
+          "samples": 2041
+        },
+        {
+          "block": 33,
+          "pcmSHA256": "1fea14a632aa884ee1815d9a8f6e201071db0079e2ae9bf379c4ddac7e7439e0",
+          "samples": 2041
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ima_wav-32000-2",
+      "passed": true,
+      "inputSHA256": "1a7f058fa1ef72340b2d1b06fe4c36d559d8f98c9a1a6182925e1ba96b01c3b6",
+      "samples": 68384,
+      "decodedSamples": 69156,
+      "discardPaddingSamples": 772,
+      "blocks": 68,
+      "openingBytesRead": 616,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "312f1930704d9fcd046112eee4bc1424a7e9be3280fc54cb1a3f946e650afe47",
+          "samples": 1017
+        },
+        {
+          "block": 17,
+          "pcmSHA256": "6a05357781e158e1e1d9a6980a6d4266fd00550b9fa2f629b562c1218e2299e9",
+          "samples": 1017
+        },
+        {
+          "block": 47,
+          "pcmSHA256": "a5060b8fd66e5e1ff69e81539346d6fce3aea041f4c59df3e7b5849dc697ab20",
+          "samples": 1017
+        },
+        {
+          "block": 67,
+          "pcmSHA256": "fc89b857448674157276aec0e1fca494cfc3e3a5afce2e49f381d072766bdbbf",
+          "samples": 1017
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ima_wav-44100-1",
+      "passed": true,
+      "inputSHA256": "ab750d6a20a5746eae69183251b856508a9a3942b49c2a78cb3b0aea08de2312",
+      "samples": 94241,
+      "decodedSamples": 95927,
+      "discardPaddingSamples": 1686,
+      "blocks": 47,
+      "openingBytesRead": 260,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "803f38fa378a5191d20977e4f908d24a3242b824748017da3b904a8b2a2e7673",
+          "samples": 2041
+        },
+        {
+          "block": 11,
+          "pcmSHA256": "86dbb0b58a1bfb314adb8e507f9523a67cfd6fa9db699b5ccb93ee5b5edde929",
+          "samples": 2041
+        },
+        {
+          "block": 32,
+          "pcmSHA256": "78e6aa74077f954efa8cc7286c9b0bf4e97ba74e0e7d2d9c151e4f0afc2732a6",
+          "samples": 2041
+        },
+        {
+          "block": 46,
+          "pcmSHA256": "d35208b421ae1d60695d67201f8fcbc214dfd556edf5201813ee18244b805981",
+          "samples": 2041
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ima_wav-44100-2",
+      "passed": true,
+      "inputSHA256": "4ff3c73d74016e2e771ac3d39e7a267c8def96ea21193858fa635783facaefa9",
+      "samples": 94241,
+      "decodedSamples": 94581,
+      "discardPaddingSamples": 340,
+      "blocks": 93,
+      "openingBytesRead": 816,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "37ac96fe59aaaa672a97f0b2b82976230b67c1391f7f33fb624521eb40df722f",
+          "samples": 1017
+        },
+        {
+          "block": 23,
+          "pcmSHA256": "2cae9900b18a9f34947fe61bf9b898d16aae4356b161ef25efc5ef9d36d19de1",
+          "samples": 1017
+        },
+        {
+          "block": 65,
+          "pcmSHA256": "cc54b92dd4bfd166f407da36dc4804af57e0eecf2037592c00d801bffe694523",
+          "samples": 1017
+        },
+        {
+          "block": 92,
+          "pcmSHA256": "eef77c07d0e2e35d081ee6673085a9e43de78e683540e88373fe42d352125442",
+          "samples": 1017
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ima_wav-48000-1",
+      "passed": true,
+      "inputSHA256": "1da16887f99c6a339f10a9b5038ab8824839b5088dbabea1013edf810856dc58",
+      "samples": 102576,
+      "decodedSamples": 104091,
+      "discardPaddingSamples": 1515,
+      "blocks": 51,
+      "openingBytesRead": 276,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "59168a5401d84b3d4694261e215e3b7ea9ceb4763b36d6d23f032631b1429f2d",
+          "samples": 2041
+        },
+        {
+          "block": 12,
+          "pcmSHA256": "335b053345ba2fbee342cee5c65b4b686945c1e37f944d0220e7454d868703a4",
+          "samples": 2041
+        },
+        {
+          "block": 35,
+          "pcmSHA256": "bcd8a9d606b629c62d334178286251dc382ecfaad5a3ceb90fa6ff9242496ece",
+          "samples": 2041
+        },
+        {
+          "block": 50,
+          "pcmSHA256": "b7b1e4a41ca62443277543f441240ebf19786667b6f15250170a5cbb3e8967e0",
+          "samples": 2041
+        }
+      ]
+    },
+    {
+      "id": "adpcm_ima_wav-48000-2",
+      "passed": true,
+      "inputSHA256": "da546ca009657f004838614032ba2ef2f2104585ffd3e3580bc61d2787010d6a",
+      "samples": 102576,
+      "decodedSamples": 102717,
+      "discardPaddingSamples": 141,
+      "blocks": 101,
+      "openingBytesRead": 880,
+      "oracle": [
+        {
+          "block": 0,
+          "pcmSHA256": "c02008209b7cb4368bae16e13121b1beb4248df69542a78933952fabd4cd84f7",
+          "samples": 1017
+        },
+        {
+          "block": 25,
+          "pcmSHA256": "4b892e19cd44a71a3c9a2dc376df224bf65c5fe6c87af4c98dcd7e21edd5a453",
+          "samples": 1017
+        },
+        {
+          "block": 70,
+          "pcmSHA256": "17d1136bfd5c7d8496e2b406f91d9a042cff345265d52df5f57161d71595e31b",
+          "samples": 1017
+        },
+        {
+          "block": 100,
+          "pcmSHA256": "f8669762622833dc338b8c60c7c272f638d5bae995321d58319d9918b6941043",
+          "samples": 1017
+        }
+      ]
+    }
+  ]
+}

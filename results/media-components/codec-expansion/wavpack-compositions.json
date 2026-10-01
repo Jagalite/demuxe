@@ -1,0 +1,538 @@
+{
+  "schema": 1,
+  "passed": true,
+  "scope": "Native standalone integer WavPack original-clock audio-only conversion; no browser/public route qualification",
+  "nodeVersion": "v23.5.0",
+  "execArgv": [
+    "--no-maglev"
+  ],
+  "sources": {
+    "packages/provider-container/src/wavpack-repair.ts": "67d84e10ffae2d4caa88bf14572205a14b2ccc7d472045f07a0dfb353105a373",
+    "packages/provider-container/src/archive-repair.ts": "17b06a30d73578dbd080f5d5512ede0478df8cbe40be5bfe52d3a3a5bba9627e",
+    "packages/provider-container/src/wavpack.ts": "fc81d358f160405c45514f497d726125dbcb709aa23aef56c64f6babd64c1b3a",
+    "packages/provider-container/src/fmp4.ts": "d7b54a20cd945d02a47dbca0fa500b13bcaf39b7ad021822c58699d5b5623490",
+    "packages/provider-container/src/matroska.ts": "811f06b49c4273902a92e950d8680003e50c89b9547bea241374b43fb08e0f26",
+    "packages/provider-audio/src/packet-decoder.ts": "d61337f82d1428d5e4c534b244030a80dd8c71f5855dada1ffdefa94a103484d",
+    "packages/provider-audio/src/flac-encoder.ts": "9663b46b004754ed832d50e0a64a3b94657508005a460c6ca9f6505979b1df72",
+    "packages/provider-audio/src/opus-encoder.ts": "70b1e1b6c975d1b70572afa8fc02a8689b2c9b337db21a5d0cd5e08571269fa3",
+    "tests/provider-wavpack-repair.mjs": "d5db29a180ddc2cacaf42f346491ae7c3205652f7680ca0108e7cca6becf298a"
+  },
+  "builds": [
+    {
+      "profile": "archive",
+      "sourceKey": "b738e827f58734b48279c0c55a4ebf7bebc06486b11681514f59bc8f04e9d1d8",
+      "recordSHA256": "4be957cb034555299cc6c85b7ae9617d895f9b90ee0580b30963f556776a416c",
+      "wasmSHA256": "29dbf5acda840481b37ea5d395a44a3b2568179b1febfb50530b1be131bfd4c1",
+      "moduleSHA256": "1d02101363b42e6a60d74d8f91bfcd5bc54f675b0ad0e2a530e912186b45fd7b"
+    },
+    {
+      "profile": "flac",
+      "sourceKey": "ebb6f41f467e3d9e2549ece3b2b51f0bc0d5945bfe6f9545449c730e460deb38",
+      "recordSHA256": "b9097e8cd47abd6e7ab976c17136669eb4ff2b6324715baa0e49ad64c3495bc8",
+      "wasmSHA256": "2bbc83ea09500ea64c8d6bce372f7d88ce18018989fa334ae49bc799c78d2868",
+      "moduleSHA256": "f1ad562a2c89a7e75ac4904d2360eef50042999854fd0f33644bcf4be0703351"
+    },
+    {
+      "profile": "opus-encoder",
+      "sourceKey": "7da038b4e6607aaef5412430108316d8c335aba333f66e2a4aaaff39f9527ba9",
+      "recordSHA256": "15ff922323c19f755ec23ec911304e8797658cb201f5a8fab064a9463354d6a8",
+      "wasmSHA256": "fe622d9d6a5eb98103254c054b09b40d359654b62557f4b8724ee69ea2824bbb",
+      "moduleSHA256": "0fdaefe783f6e2f8ac47c9916c48ba2bb6c6c5e92aaa99b18476e16e97ecaf8c"
+    }
+  ],
+  "ffmpegVersion": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "fixturesSHA256": "32f9d6df3c867c404efa3b99a9ebe63eb01beb406a849d6634fccf24abbb5224",
+  "results": [
+    {
+      "id": "wavpack-canonical",
+      "output": "flac",
+      "inputSHA256": "e94c946cbad31706815ce55426a8b60a9c16ba8827d3aa69854192903b7a1645",
+      "referenceSHA256": "8e96d4eba1b732365ccf582d7bd94593c5c554c4d4a9f87ea773b78604a5aca8",
+      "samples": 2667168,
+      "integerExact": true,
+      "outputSHA256": "24793fff28a2e06f1f3c8573783f30f61cd7e7ed4dd6d63d01150b74039b1f50",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack16-44100-1",
+      "output": "flac",
+      "inputSHA256": "681f9c1a2ff40e937de548565ebe3326460068ec8e746fa7799e6773816e0199",
+      "referenceSHA256": "f4b734f432c6639524f768da0d63f8f3c3c9ba3c3c92edb62588ed2894dba433",
+      "samples": 270642,
+      "integerExact": true,
+      "outputSHA256": "4074056bdbac19e90a2c6f906a70535e314f0e5190bb79db3353182bd26e6692",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack16-44100-2",
+      "output": "flac",
+      "inputSHA256": "acb90b0710e301c06f2e9d22a82887c2a887d6d198ef64d87b1bf33cf689014f",
+      "referenceSHA256": "55452bb28467116dbe0a7dbea0273b6d6cf537714dc8fca3c29adde0337aa5f2",
+      "samples": 270642,
+      "integerExact": true,
+      "outputSHA256": "b92aa1e55803fe416be41f4b53efd586f331fddc6f9cb9d0331412a6b83a1ccb",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack16-48000-1",
+      "output": "flac",
+      "inputSHA256": "42fc4df0f64e62ab8d9db403888da35fd0eb9fcf4e212132dffa15a368d55b6c",
+      "referenceSHA256": "d2f491d5c15ec266cea98d3acc9980f42d6d3fe61023c47477121d81ae8db848",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "81d56499f46a16931d47beb51bf5d9dbf62f912f6fe99e6da95adb98418d5455",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack16-48000-2",
+      "output": "flac",
+      "inputSHA256": "1f8fd15e565d9bf0bf4392e65e9ea72a5c4a4c8a46c28b5bbc3312fcfc7b1b5d",
+      "referenceSHA256": "7ed58389acae27bbf71df6d8b72b1b58540c0057a9731d0d4fe459263b169184",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "5cb9fd35cba89bf0021b47bdd425ec7aebfb275b0df0ee516f900bea498d492b",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack16-48000-2",
+      "output": "opus",
+      "inputSHA256": "1f8fd15e565d9bf0bf4392e65e9ea72a5c4a4c8a46c28b5bbc3312fcfc7b1b5d",
+      "referenceSHA256": "7ed58389acae27bbf71df6d8b72b1b58540c0057a9731d0d4fe459263b169184",
+      "samples": 294576,
+      "integerExact": false,
+      "snr": 41.76907617273244,
+      "outputSHA256": "bde5bcf88e3257128eb7cbf1bf9af13e330dd4bc49192dace7a25b49ee4feea2",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack16-48000-6",
+      "output": "flac",
+      "inputSHA256": "692366c35f2791ee0c6874a1941064c6df1215e6d3ba4de3451e14d20258ebaf",
+      "referenceSHA256": "2e2ec4a65ab3648689a51061b22dee19b792423b33e4ee8a75020f9687b9d2db",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "66d2feb720f5d79c20940836260507a215cbc8a466907714b92dd200ce417969",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack16-48000-8",
+      "output": "flac",
+      "inputSHA256": "d019e8e4f9d48d0b411f8bc78aeb73120c42b0ad622564c953389bfcceae0040",
+      "referenceSHA256": "a08215728566a4a3f03229038d59f67e079d65daade39ec96a20102f059bdf89",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "2a516d28835b8c765a74cd42aa8f49ad625b707d059397b856a548d0e5871d0a",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack16-96000-1",
+      "output": "flac",
+      "inputSHA256": "e26ed1d79b4fb4c58e3e48044f590863e22bff6da1803c0bc0d300b6f029e3ff",
+      "referenceSHA256": "36a2e7d4e7f131ea9f6453f4880b94ce4bb0b57ffd8117b1a13931b1405596ce",
+      "samples": 589152,
+      "integerExact": true,
+      "outputSHA256": "ecda0f3aa7293384fd71efc426573c75210a2b2658dcfe05cb50303bf5293436",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack16-96000-2",
+      "output": "flac",
+      "inputSHA256": "fb957fcd03624d3993108a2d3db7439ddf63d0d6875fd15f20c811e8b588355e",
+      "referenceSHA256": "ef70b84e87dbead32f7528cdcc7e4fc8e9dbbda1d4c4f456038a30cd178d0205",
+      "samples": 589152,
+      "integerExact": true,
+      "outputSHA256": "4a7063811f71a88f6f1be84ca225c5525dbed8e79d50f5ccec3d9d0108e0e77f",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack16-96000-6",
+      "output": "flac",
+      "inputSHA256": "613bb765e2658d7c06bfe346e3a8176b273cc86f104f9b1b8ed8c7ce7e2e88fe",
+      "referenceSHA256": "e58a375df437c3dab9e45c87b8da19ffc19202edcdea52ed46c1775df5356845",
+      "samples": 589152,
+      "integerExact": true,
+      "outputSHA256": "ea6a052901b7b3c27070e01b4bc16a26bc2868978b1d35b967a33d1ef790756f",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack16-96000-8",
+      "output": "flac",
+      "inputSHA256": "c77479f8d8efa7a9a2fff712d15dce07f385ca6139648c65604ae472c492d40f",
+      "referenceSHA256": "2f2d00b954bb47c2e46fb0393c5e88e5146c23cdee744d4568ff57a081c60a80",
+      "samples": 589152,
+      "integerExact": true,
+      "outputSHA256": "cd23245e82154c32d58a61f593312313e6e2d62e670d93429deba27813d9dbca",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack24-44100-1",
+      "output": "flac",
+      "inputSHA256": "9b817597c0ef480aaeb20e78e8adaf6a207d8388064cd077ae367f7683be6762",
+      "referenceSHA256": "643bda792c47fc73b1a5e439813ae479ddb57d3c3c05e73eeb9a1ceaef82935b",
+      "samples": 270642,
+      "integerExact": true,
+      "outputSHA256": "7f99739bef33ea7d0935ec2c4c9f3f6081a53c6f17908546ecedc47e699594c6",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack24-44100-2",
+      "output": "flac",
+      "inputSHA256": "7f74797789175dba89e064850e79062d4978fee1a25de6cc0f24a51e2e86fd3d",
+      "referenceSHA256": "0d112870ad6e0dd982230bb7986a23928573987e218c0b79ecac4ae6052f641a",
+      "samples": 270642,
+      "integerExact": true,
+      "outputSHA256": "eca3c25761a9940624d35cc469ce9991094632f6d320e2843337028ed1f1e1a7",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack24-48000-1",
+      "output": "flac",
+      "inputSHA256": "a9aba1d8407a7c05e7366a15c248fecff152efd0691f5c6b5ddd9da9ddb67ee7",
+      "referenceSHA256": "74a2743b0ce6a5edc87712126aa2c143065d5a4dbd16f3a3f66fcab28ef863b6",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "91ac2a62ca26745a09ff015fec7e7444f240ddaab3081997e302170be51ff97a",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack24-48000-2",
+      "output": "flac",
+      "inputSHA256": "577a0c36ab3835fba500fb7e42256cb687224d4dda5078024a7cadacd3c30e89",
+      "referenceSHA256": "d18ce4ad5fb8ab85e2770dd7dac2ac5832c7c6a2c4533206192934178b059de6",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "6c1133ddc8607c68fcb83fa0d595a1f0d73c5da23348f61f479786541974349a",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack24-48000-2",
+      "output": "opus",
+      "inputSHA256": "577a0c36ab3835fba500fb7e42256cb687224d4dda5078024a7cadacd3c30e89",
+      "referenceSHA256": "d18ce4ad5fb8ab85e2770dd7dac2ac5832c7c6a2c4533206192934178b059de6",
+      "samples": 294576,
+      "integerExact": false,
+      "snr": 41.83672850112032,
+      "outputSHA256": "fa2f0459220ce1d9772198667d72fe13edcb062bbc7fa1d7ead72007499b2b5d",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack24-48000-6",
+      "output": "flac",
+      "inputSHA256": "48678acf312a3cf2b8e3f72a77d9dbc9d4ac7bfd57ccbb90ce6b79539f9f85c9",
+      "referenceSHA256": "b42eb599181b2598dc270c916707c283de44517ed7ddd818efd3bd9050688d3e",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "4ad84976dd31cd14da54fa872e94f52bb77c3e856904b11a302fc68fc7914283",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack24-48000-8",
+      "output": "flac",
+      "inputSHA256": "2ae5c00b96d9e2509359b1f17941f12b087ca1ff807099516e481dbf2d5f8386",
+      "referenceSHA256": "57a2a727d4ce0e6d9c799a3cc91552004720ffe76bd105c973695005f108d451",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "d02516cdbc52c45b852c689b79ca6d6fc05d4933d14bb26e97d3907f60c5941b",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack24-96000-1",
+      "output": "flac",
+      "inputSHA256": "114c3de535e110c69ec414f1295bb194a911f3646e4c2cd803ea22c85065649b",
+      "referenceSHA256": "ad83430f53b20806f70d2754d0241dddacf5c9ec3f376d670597ed0cb9c54d51",
+      "samples": 589152,
+      "integerExact": true,
+      "outputSHA256": "4dc0da2675bcb2477ba3d0a39f54d54a62e8fe0f5394a969cd4d84a06949f1f6",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack24-96000-2",
+      "output": "flac",
+      "inputSHA256": "5a5efaeb11c93b186cf7ee1c719ca6df040db871f2a9b4c45a6e1182ec041089",
+      "referenceSHA256": "c484be9899ae289cbac3946fe72270a001350fdbb5085b22910f6f22abeff2aa",
+      "samples": 589152,
+      "integerExact": true,
+      "outputSHA256": "232c653d738a04dab396cc2cb648fc7ea7df863c531f968f83b4dc4b7bea6256",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack24-96000-6",
+      "output": "flac",
+      "inputSHA256": "0b7df57097b20610fc1c92b495818043e38796d5b2dfcdd4431ae67cdfef2478",
+      "referenceSHA256": "ab062bb00d01413f0cebd188fa9f0a15d8a907b1d53b7b6191bedba7985fd036",
+      "samples": 589152,
+      "integerExact": true,
+      "outputSHA256": "a0e5599da785f12bc371c97c6874367c1497a0a19160a7de71cdae6e70efcd34",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack24-96000-8",
+      "output": "flac",
+      "inputSHA256": "640a7d4888b7d4526e17263874469db4e194cac8a313c0a23268233fe9bfbf29",
+      "referenceSHA256": "d59fecb9cc2d01a402012678fc3642fa930a38a193e1ea605aac25bed847338c",
+      "samples": 589152,
+      "integerExact": true,
+      "outputSHA256": "8da50093bef1642ed5673b486898ec105569620640b91c390f2f6874b60812cb",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack32-44100-1",
+      "output": "flac",
+      "precisionRejected": true,
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack32-44100-2",
+      "output": "flac",
+      "precisionRejected": true,
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack32-48000-1",
+      "output": "flac",
+      "precisionRejected": true,
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack32-48000-2",
+      "output": "flac",
+      "precisionRejected": true,
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack32-48000-2",
+      "output": "opus",
+      "inputSHA256": "55b44f58be37203d9fad554c98440b4e5f870ea1b753db22b08bd338ad480510",
+      "referenceSHA256": "62239ce39b5dbe5a29f800a7350ebfc6e5d19b32ff052f341b0c921cb187b9e4",
+      "samples": 294576,
+      "integerExact": false,
+      "snr": 41.836715019628166,
+      "outputSHA256": "fa2f0459220ce1d9772198667d72fe13edcb062bbc7fa1d7ead72007499b2b5d",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack32-48000-6",
+      "output": "flac",
+      "precisionRejected": true,
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack32-48000-8",
+      "output": "flac",
+      "precisionRejected": true,
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack32-96000-1",
+      "output": "flac",
+      "precisionRejected": true,
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack32-96000-2",
+      "output": "flac",
+      "precisionRejected": true,
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack32-96000-6",
+      "output": "flac",
+      "precisionRejected": true,
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack32-96000-8",
+      "output": "flac",
+      "precisionRejected": true,
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "wavpack-float-48000-2",
+      "output": "flac",
+      "floatRejected": true,
+      "counts": {
+        "decoderMade": 0,
+        "encoderMade": 0,
+        "decoderDisposed": 0,
+        "encoderDisposed": 0
+      }
+    },
+    {
+      "id": "ownership-clock-reset-abort-controls",
+      "passed": true,
+      "repeatExact": true,
+      "controls": 18
+    }
+  ],
+  "home": "/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/demuxe-wavpack-repair-RU6kyj"
+}

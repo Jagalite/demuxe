@@ -1,0 +1,329 @@
+{
+  "schema": 1,
+  "passed": true,
+  "scope": "Native standalone integer TTA original-clock audio-only conversion; no browser/public route qualification",
+  "nodeVersion": "v23.5.0",
+  "execArgv": [
+    "--no-maglev"
+  ],
+  "sources": {
+    "packages/provider-container/src/tta-repair.ts": "890b4f77abbbd35288129f357e775a7bead4ec5b6ff11a9c50858ce72d97e552",
+    "packages/provider-container/src/archive-repair.ts": "17b06a30d73578dbd080f5d5512ede0478df8cbe40be5bfe52d3a3a5bba9627e",
+    "packages/provider-container/src/tta.ts": "ef2b61c26896898dc8ea8b70bcbdc4338fcc3173091fe0c2154ed8f1c37bad3e",
+    "packages/provider-container/src/fmp4.ts": "d7b54a20cd945d02a47dbca0fa500b13bcaf39b7ad021822c58699d5b5623490",
+    "packages/provider-container/src/matroska.ts": "811f06b49c4273902a92e950d8680003e50c89b9547bea241374b43fb08e0f26",
+    "packages/provider-audio/src/packet-decoder.ts": "b154182da261124cbaf42d1b66ace453892a3873a6382f51924993157ae5ff06",
+    "packages/provider-audio/src/flac-encoder.ts": "9663b46b004754ed832d50e0a64a3b94657508005a460c6ca9f6505979b1df72",
+    "packages/provider-audio/src/opus-encoder.ts": "70b1e1b6c975d1b70572afa8fc02a8689b2c9b337db21a5d0cd5e08571269fa3",
+    "tests/provider-tta-repair.mjs": "ef465a67810f99f384c368f7761080adb5e0b102049bd50aab14ee67c44cc163"
+  },
+  "builds": [
+    {
+      "profile": "archive-more",
+      "sourceKey": "a53b8f8fe3e669de79cfbd02178f5ebfb2307f14500c4923ca40b545c2258344",
+      "recordSHA256": "254e87d75cb3567ffc3de0b3d560dd1b65a7e023d2638a0b20b7d4c9946d6efb",
+      "wasmSHA256": "a30253e4b6bb564b855d9b82053ad220fbc9782372a871a75cae5d9b25235f8e",
+      "moduleSHA256": "1d02101363b42e6a60d74d8f91bfcd5bc54f675b0ad0e2a530e912186b45fd7b"
+    },
+    {
+      "profile": "flac",
+      "sourceKey": "ebb6f41f467e3d9e2549ece3b2b51f0bc0d5945bfe6f9545449c730e460deb38",
+      "recordSHA256": "b9097e8cd47abd6e7ab976c17136669eb4ff2b6324715baa0e49ad64c3495bc8",
+      "wasmSHA256": "2bbc83ea09500ea64c8d6bce372f7d88ce18018989fa334ae49bc799c78d2868",
+      "moduleSHA256": "f1ad562a2c89a7e75ac4904d2360eef50042999854fd0f33644bcf4be0703351"
+    },
+    {
+      "profile": "opus-encoder",
+      "sourceKey": "7da038b4e6607aaef5412430108316d8c335aba333f66e2a4aaaff39f9527ba9",
+      "recordSHA256": "15ff922323c19f755ec23ec911304e8797658cb201f5a8fab064a9463354d6a8",
+      "wasmSHA256": "fe622d9d6a5eb98103254c054b09b40d359654b62557f4b8724ee69ea2824bbb",
+      "moduleSHA256": "0fdaefe783f6e2f8ac47c9916c48ba2bb6c6c5e92aaa99b18476e16e97ecaf8c"
+    }
+  ],
+  "ffmpegVersion": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "fixturesSHA256": "ff57c42e7d2dc0621eeed8eddccc636b84a515c35125e22eb494d1759dd41f52",
+  "results": [
+    {
+      "id": "tta-canonical",
+      "output": "flac",
+      "inputSHA256": "8bc3603af61b7a059e064aaca0b93bb5ef43e5a61f249f886bf9cbea3b73a953",
+      "referenceSHA256": "8e96d4eba1b732365ccf582d7bd94593c5c554c4d4a9f87ea773b78604a5aca8",
+      "samples": 2667168,
+      "integerExact": true,
+      "outputSHA256": "24793fff28a2e06f1f3c8573783f30f61cd7e7ed4dd6d63d01150b74039b1f50",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta16-44100-1",
+      "output": "flac",
+      "inputSHA256": "a4ad12f767fb9cba7a48c8810de02577355a1f2b9e1e7b47e3697fdff060a48a",
+      "referenceSHA256": "1eda28735794cb4943887e550ae6b75708600bd7a0b134e82e760162eeb9b0f8",
+      "samples": 270642,
+      "integerExact": true,
+      "outputSHA256": "712fcea0d10ce21420a59d922ce01b9b18cc472af220e9018145f639c65e413a",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta16-44100-2",
+      "output": "flac",
+      "inputSHA256": "01276f37ae40fb9f3c5f2d7832167f993afc74b6d42f10236389895ab7361237",
+      "referenceSHA256": "c376b428da7661dddec8490e6a1cb9fb244c9666eed962678eb4d083b1ac0368",
+      "samples": 270642,
+      "integerExact": true,
+      "outputSHA256": "05cd7516cb6ab930387240f70dcbdc0e42e40259bc68df63850b7a7231322f5a",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta16-44100-6",
+      "output": "flac",
+      "inputSHA256": "2a4ea5dfa2a744e99febaafc19b2492ab03bc48ebdad8ef20d37e7f1745e3cdd",
+      "referenceSHA256": "986711b7a86036800c82795e38068a0b2f253d730bd941b5703a4cfd7efc2bc3",
+      "samples": 270642,
+      "integerExact": true,
+      "outputSHA256": "f573c70fa43ff5e15e94deae36eefb4462e3a8819dde33235b930115f2e2e8de",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta16-48000-1",
+      "output": "flac",
+      "inputSHA256": "771af1dee7a18eb3c125d012c8e0adef4ca71fe7bdd4336fddb6f0539f018f54",
+      "referenceSHA256": "db37d69c0cae3152822bda4b99993636c58f2817720aa6faf59476f499b510ac",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "c45dadaf459c559a282426fadd63052b2b83284c13be7ce26cd40c5a9e31cf48",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta16-48000-2",
+      "output": "flac",
+      "inputSHA256": "3ba1ed66430e07d1efdcc847e0be0832956604dbeec1a85cc02565713671020d",
+      "referenceSHA256": "b20ce8a7f12740d989da7c77e0e03a6d61edc383b3cdf708a3d1d4e1965992d3",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "e1582d5170eca989ffd92527bab9b1a94a373b99f0d32f1827699688d2de9f77",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta16-48000-2",
+      "output": "opus",
+      "inputSHA256": "3ba1ed66430e07d1efdcc847e0be0832956604dbeec1a85cc02565713671020d",
+      "referenceSHA256": "b20ce8a7f12740d989da7c77e0e03a6d61edc383b3cdf708a3d1d4e1965992d3",
+      "samples": 294576,
+      "integerExact": false,
+      "snr": 41.50636863204192,
+      "outputSHA256": "78a04dce1615108eafe2bc758ca5f9ef85a9c3d2077b1ddd94668776215a6971",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta16-48000-6",
+      "output": "flac",
+      "inputSHA256": "d2890f5e56f672f4bef5d28501c7d160551b85830d018063886b4b1a9eaa9f26",
+      "referenceSHA256": "374d25d3a0b1fad67ae3ac8da81e0180147d9e5cafbee0bf257a33ed04c43348",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "099eec8eddc94172a67c7931538bd1f160850e1c6a452552762e70baf2fc3174",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta24-44100-1",
+      "output": "flac",
+      "inputSHA256": "d9ef539f13d885bc03f133031c27b64ffbd5daf7c99ee3b4d7e1efa00831cf83",
+      "referenceSHA256": "d921e0cdcfa108114162e2e3e1e28f42eae2d4dc669c600955c242bc1bf58153",
+      "samples": 270642,
+      "integerExact": true,
+      "outputSHA256": "6c25a068747cc590ae885dcf2ee7c6d4daf28365fff96dffcada9b95e3159b0f",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta24-44100-2",
+      "output": "flac",
+      "inputSHA256": "36e1b77b9bef1594516e854118ce760682b834bac665854cb1355a8f796e545a",
+      "referenceSHA256": "019416c59b1d2633a7f4e0e8da77ffe8e93eb093848de1644ee1235ab5d87fb1",
+      "samples": 270642,
+      "integerExact": true,
+      "outputSHA256": "33cf5940241b16fdc412b00dde2ba06bce6b7159d57bcccf1bdf726f56e3f4d4",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta24-44100-6-quiet-overbudget",
+      "output": "flac",
+      "profileRejected": true,
+      "expectedMessage": "TTA frame byte bounds",
+      "counts": {
+        "decoderMade": 0,
+        "encoderMade": 0,
+        "decoderDisposed": 0,
+        "encoderDisposed": 0
+      }
+    },
+    {
+      "id": "tta24-44100-6-smooth",
+      "output": "flac",
+      "inputSHA256": "13d24dad1c676f3899a5ad8a65832ee4302224e30d67cb1fcf157f836b0ea0dc",
+      "referenceSHA256": "fb0004a8871ba179817a61c24ba7801bb38cf81dcd9a5ce1f922e8d827b8f83f",
+      "samples": 270642,
+      "integerExact": true,
+      "outputSHA256": "056cbb42e983e3925e8196ee8d252ca89ff48dace000167ced9708f240e3f0d9",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta24-48000-1",
+      "output": "flac",
+      "inputSHA256": "9d5f18e812ce57a013b67addd9b8e65e2a926581df87ad33540809dd2a5a9caf",
+      "referenceSHA256": "d60f040fafbd449e51c05dfb024993cf7ef755509612febd43b7ba8250258e94",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "452b5c4d31d7e4ba5b8e89d37b05c0eb081cbdee1472911738b8ff85bd42973b",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta24-48000-2",
+      "output": "flac",
+      "inputSHA256": "91ec772097bd4863b8093ee9db2c29ee6c1607f92cedf1ef3369977276eb296d",
+      "referenceSHA256": "5e61db6353c55a3d38e40b858b5fa77c21995e39c7df5b8ea152a140c47ec5fc",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "47919aff7e66f2703af41434a9d272caa5d9af5819e61eb934347e36a750aa60",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta24-48000-2",
+      "output": "opus",
+      "inputSHA256": "91ec772097bd4863b8093ee9db2c29ee6c1607f92cedf1ef3369977276eb296d",
+      "referenceSHA256": "5e61db6353c55a3d38e40b858b5fa77c21995e39c7df5b8ea152a140c47ec5fc",
+      "samples": 294576,
+      "integerExact": false,
+      "snr": 41.548396525609306,
+      "outputSHA256": "d9e3df44ec9fdc3db2b3f1c56882846010fa4c1a7a2cf6fbef261515038cf358",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta24-48000-6-quiet-overbudget",
+      "output": "flac",
+      "profileRejected": true,
+      "expectedMessage": "TTA frame byte bounds",
+      "counts": {
+        "decoderMade": 0,
+        "encoderMade": 0,
+        "decoderDisposed": 0,
+        "encoderDisposed": 0
+      }
+    },
+    {
+      "id": "tta24-48000-6-smooth",
+      "output": "flac",
+      "inputSHA256": "16d7da4056852c3babafc398b75c42fdf7f46b5d4b19956d42b2c63b7d4283f3",
+      "referenceSHA256": "b42eb599181b2598dc270c916707c283de44517ed7ddd818efd3bd9050688d3e",
+      "samples": 294576,
+      "integerExact": true,
+      "outputSHA256": "4ad84976dd31cd14da54fa872e94f52bb77c3e856904b11a302fc68fc7914283",
+      "counts": {
+        "decoderMade": 1,
+        "encoderMade": 1,
+        "decoderDisposed": 1,
+        "encoderDisposed": 1
+      }
+    },
+    {
+      "id": "tta24-96000-2-unsupported",
+      "output": "flac",
+      "profileRejected": true,
+      "expectedMessage": "Unqualified TTA1 header",
+      "counts": {
+        "decoderMade": 0,
+        "encoderMade": 0,
+        "decoderDisposed": 0,
+        "encoderDisposed": 0
+      }
+    },
+    {
+      "id": "tta24-48000-8-unsupported",
+      "output": "flac",
+      "profileRejected": true,
+      "expectedMessage": "Unqualified TTA1 header",
+      "counts": {
+        "decoderMade": 0,
+        "encoderMade": 0,
+        "decoderDisposed": 0,
+        "encoderDisposed": 0
+      }
+    },
+    {
+      "id": "ownership-clock-reset-abort-controls",
+      "passed": true,
+      "repeatExact": true,
+      "controls": 18
+    }
+  ],
+  "home": "/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/demuxe-tta-repair-FLg8tV"
+}

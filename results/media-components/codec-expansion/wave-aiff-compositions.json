@@ -1,0 +1,780 @@
+{
+  "schema": 1,
+  "passed": true,
+  "scope": "Finite audio-only WAV/AIFF conversion; independent original PCM, exact rate/channels and mandatory FLAC24 precision guards; no browser qualification",
+  "builds": {
+    "pcm": {
+      "recordSHA256": "283fb3bf514479bf567c1fdc92a44c7a59a357867f31f9e492bc08518f0d1f16",
+      "sourceKey": "3f4dd3197086fa91d480db27df6c7b06385837ae8884799e837086694862f785",
+      "artifacts": {
+        "module.mjs": {
+          "sha256": "1d02101363b42e6a60d74d8f91bfcd5bc54f675b0ad0e2a530e912186b45fd7b",
+          "bytes": 13873
+        },
+        "module.wasm": {
+          "sha256": "8c8fe611e9ee80d8a0ef018e0fcf399b60c1e558161ccdb90457ebe8db3008bf",
+          "bytes": 245116
+        }
+      }
+    },
+    "flac": {
+      "recordSHA256": "b9097e8cd47abd6e7ab976c17136669eb4ff2b6324715baa0e49ad64c3495bc8",
+      "sourceKey": "ebb6f41f467e3d9e2549ece3b2b51f0bc0d5945bfe6f9545449c730e460deb38",
+      "artifacts": {
+        "module.mjs": {
+          "sha256": "f1ad562a2c89a7e75ac4904d2360eef50042999854fd0f33644bcf4be0703351",
+          "bytes": 14053
+        },
+        "module.wasm": {
+          "sha256": "2bbc83ea09500ea64c8d6bce372f7d88ce18018989fa334ae49bc799c78d2868",
+          "bytes": 252485
+        }
+      }
+    },
+    "opus-encoder": {
+      "recordSHA256": "15ff922323c19f755ec23ec911304e8797658cb201f5a8fab064a9463354d6a8",
+      "sourceKey": "7da038b4e6607aaef5412430108316d8c335aba333f66e2a4aaaff39f9527ba9",
+      "artifacts": {
+        "module.mjs": {
+          "sha256": "0fdaefe783f6e2f8ac47c9916c48ba2bb6c6c5e92aaa99b18476e16e97ecaf8c",
+          "bytes": 10408
+        },
+        "module.wasm": {
+          "sha256": "fe622d9d6a5eb98103254c054b09b40d359654b62557f4b8724ee69ea2824bbb",
+          "bytes": 201061
+        }
+      }
+    }
+  },
+  "sources": {
+    "packages/provider-container/src/audio-repair.ts": "253e2db94ef0e1976e89c50941cd759684422b2c377b20448e8443f5b480707b",
+    "packages/provider-container/src/wave-aiff.ts": "524d29e338fbf9e5f64d080b0e64aac85bd6de7b851bb9712b928eba51af748a",
+    "packages/provider-container/src/fmp4.ts": "d7b54a20cd945d02a47dbca0fa500b13bcaf39b7ad021822c58699d5b5623490",
+    "packages/provider-audio/src/packet-decoder.ts": "03dfd5f42efeba60ff232da421b842afe8844852bc5b0cad497dedc9290363ff",
+    "packages/provider-audio/src/flac-encoder.ts": "9663b46b004754ed832d50e0a64a3b94657508005a460c6ca9f6505979b1df72",
+    "tests/provider-wave-aiff-compositions.mjs": "24e8643fab4c424762ef14789cbd79f52251d61aefe57958a2e44f7bfd10b106"
+  },
+  "results": [
+    {
+      "id": "wav-s16-44100-1",
+      "codec": "pcm-s16le",
+      "output": "flac",
+      "rate": 44100,
+      "channels": 1,
+      "samples": 32237,
+      "inputSHA256": "80a040b388c3ec153d5a4856bd379539f61615ac1ec320b01cc543351672524a",
+      "outputSHA256": "80e230fece9f20c6facff12a8895ef0652234655439f92ff7b590aa8862f0acc",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-44100-1",
+      "codec": "pcm-s24le",
+      "output": "flac",
+      "rate": 44100,
+      "channels": 1,
+      "samples": 32237,
+      "inputSHA256": "0efe00c718d4b791285dae03f12b348c49a8412d46ed2b2e4e4a13a17150dbcb",
+      "outputSHA256": "d27c818fe8ad5065f5413ac85ceb8badee571387813bb7b91b07b22b31689c1a",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s32-44100-1",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "afdea429392cda2b32d57d6031ed9c8cf3bd7d1c8244f1d310644c6ad5ff43d5"
+    },
+    {
+      "id": "wav-f32-44100-1",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "d547c0e6b3c46f56d2705d3b150770cb864fd414e27c31c94f135a03ae62e607"
+    },
+    {
+      "id": "wav-f64-44100-1",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "43dd2e3a9b33aeed79843a81eeca20032db624e34f2723f67cc8d4f93b14c945"
+    },
+    {
+      "id": "wav-s16-44100-2",
+      "codec": "pcm-s16le",
+      "output": "flac",
+      "rate": 44100,
+      "channels": 2,
+      "samples": 32237,
+      "inputSHA256": "878cec3548b6cde8f37dac3aa150ad4c76e0f74431e0ad546ff20e4a3893d587",
+      "outputSHA256": "c71663ce24571c319e5d6f52e78179cfef81206dd192b665fc7c670c714e4791",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-44100-2",
+      "codec": "pcm-s24le",
+      "output": "flac",
+      "rate": 44100,
+      "channels": 2,
+      "samples": 32237,
+      "inputSHA256": "b673a4ff0f8f1e1e8be3ee2fd6ad50be222acfd319eb75dd4dd5dd57bd401876",
+      "outputSHA256": "de884d2fc822a582a9fad2123b33adeb41ed1325494f81fd3c9b9291758756f2",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s32-44100-2",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "6eb804570c55062e218c221c708e00bcc7280457a46f12427eede00af1fcf62f"
+    },
+    {
+      "id": "wav-f32-44100-2",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "da8b23d5586c3edadcf3ae3c6ac24e900c5b221f95bb1e2ea4fdd33d26c6fd40"
+    },
+    {
+      "id": "wav-f64-44100-2",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "d21813932cf1871f41114ba01f31b9a1a603b6c21bd4087e725e4bb4b4ee1132"
+    },
+    {
+      "id": "wav-s16-48000-1",
+      "codec": "pcm-s16le",
+      "output": "flac",
+      "rate": 48000,
+      "channels": 1,
+      "samples": 35088,
+      "inputSHA256": "73207af4a8f4e4c794307e6728b53f63f825b0f8760eccb6c19945caf73b0668",
+      "outputSHA256": "a9c828420e32628de9e94f5892c9257940900657745b552dd9b8c71d82cad69f",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-48000-1",
+      "codec": "pcm-s24le",
+      "output": "flac",
+      "rate": 48000,
+      "channels": 1,
+      "samples": 35088,
+      "inputSHA256": "0aa855379c3f6d1c760459bbc8a32c32d6e209db87026a8a1ce0cffd8b835260",
+      "outputSHA256": "e6865e30a0752d877a1cbee28dc5f4ec9f3d34cffa01424d8b5aa378b7d58000",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s32-48000-1",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "74e3bfec4be696cf6ffad6c2459e4e81f961ecd0271a9f26072f48363eee5d10"
+    },
+    {
+      "id": "wav-f32-48000-1",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "0d99219dc5c10472d54a4a269c7daec7a31d8a8eb46d524d2af56bfacf91bed3"
+    },
+    {
+      "id": "wav-f64-48000-1",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "f3c611f188532d8956409de9ad051bab8a46a7a5f10adab205b847fee485e3b1"
+    },
+    {
+      "id": "wav-s16-48000-2",
+      "codec": "pcm-s16le",
+      "output": "flac",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "894830d5d56b47bd4cc7fdc5dd2106341ffe7a12263c7549bb90fb990fb96607",
+      "outputSHA256": "13fe0ee3b4fe902d8bbb980baf493a4c95c66bba1eed0abbeaa1702672f56bb2",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s16-48000-2",
+      "codec": "pcm-s16le",
+      "output": "opus",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "894830d5d56b47bd4cc7fdc5dd2106341ffe7a12263c7549bb90fb990fb96607",
+      "outputSHA256": "a0095667c10f8fbf8a5ef7943baf8a7abc337c9a3d634530f53dfcf9a488b908",
+      "exactPCM": false,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-48000-2",
+      "codec": "pcm-s24le",
+      "output": "flac",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "8c1583430a8b78e6eb9c3249a33e330de9aed8623c5707f05f3a5fc271532356",
+      "outputSHA256": "00ca07bdd91912ff5f0d5bff5e05473c11154e08eb869630eda9fb3548746033",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-48000-2",
+      "codec": "pcm-s24le",
+      "output": "opus",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "8c1583430a8b78e6eb9c3249a33e330de9aed8623c5707f05f3a5fc271532356",
+      "outputSHA256": "aa75cf390b2e8a3517ff574c1b53663772f539f90c54703aec917b336ed6c020",
+      "exactPCM": false,
+      "passed": true
+    },
+    {
+      "id": "wav-s32-48000-2",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "849f32e72a3b1080a1f40e19c487a5d8c4959f136c39fe0ae962062d6fe87e9e"
+    },
+    {
+      "id": "wav-s32-48000-2",
+      "codec": "pcm-s32le",
+      "output": "opus",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "849f32e72a3b1080a1f40e19c487a5d8c4959f136c39fe0ae962062d6fe87e9e",
+      "outputSHA256": "aa75cf390b2e8a3517ff574c1b53663772f539f90c54703aec917b336ed6c020",
+      "exactPCM": false,
+      "passed": true
+    },
+    {
+      "id": "wav-f32-48000-2",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "c0212af5a20b82d52e6623ed9936f859b05852b406357624446b0fd98af17ab0"
+    },
+    {
+      "id": "wav-f32-48000-2",
+      "codec": "pcm-f32le",
+      "output": "opus",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "c0212af5a20b82d52e6623ed9936f859b05852b406357624446b0fd98af17ab0",
+      "outputSHA256": "25e5c871058effbee74228616248f9174eb49b6fc7ffcaf078bd15cab58423aa",
+      "exactPCM": false,
+      "passed": true
+    },
+    {
+      "id": "wav-f64-48000-2",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "b92375ddf2022a20aa16c05d1c4d384fab5d9e8846ffe0c66f46e88c334d2905"
+    },
+    {
+      "id": "wav-f64-48000-2",
+      "codec": "pcm-f64le",
+      "output": "opus",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "b92375ddf2022a20aa16c05d1c4d384fab5d9e8846ffe0c66f46e88c334d2905",
+      "outputSHA256": "6187013e4d4b549d5bf313cc6071b47fd34783a90f8690b6b77ad5a7d95ed068",
+      "exactPCM": false,
+      "passed": true
+    },
+    {
+      "id": "wav-s16-96000-1",
+      "codec": "pcm-s16le",
+      "output": "flac",
+      "rate": 96000,
+      "channels": 1,
+      "samples": 70176,
+      "inputSHA256": "09efb6045f252abf800616c2e6cc7663fdb7bc386f47b7e6f22fc6d9881caf3a",
+      "outputSHA256": "6c1c46ea285d111332b19418df89b584873d2fdb12f1319db3aa7469938fd329",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-96000-1",
+      "codec": "pcm-s24le",
+      "output": "flac",
+      "rate": 96000,
+      "channels": 1,
+      "samples": 70176,
+      "inputSHA256": "eeee07e17cf330f7216c6cca202c5bf45d7d35c358060a437b8a69c70012b1d6",
+      "outputSHA256": "875f50af6e1096406e00c5f82e8b97aa438417a50a325719980b4965eda5eb11",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s32-96000-1",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "65dbee1f9efe4fec1d04503c43382bd52652ae80267e244865bed720803727a8"
+    },
+    {
+      "id": "wav-f32-96000-1",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "9a953e9fae0443afd1832fcd99232e94b69accdb2f1fa531a7983a249a2f2fc6"
+    },
+    {
+      "id": "wav-f64-96000-1",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "a7a1a8afb3b940ce7a31a8cac050941ebea5dc37d226c6f41a73eb6be885e51c"
+    },
+    {
+      "id": "wav-s16-96000-2",
+      "codec": "pcm-s16le",
+      "output": "flac",
+      "rate": 96000,
+      "channels": 2,
+      "samples": 70176,
+      "inputSHA256": "054925f005dcf1a3d149e8a58912d1170928fde112fe95096a12d6243521197e",
+      "outputSHA256": "c3ee9db9ab846d054f7af8c2ebeb102333c66cc2e2e88a392111997227a487b0",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-96000-2",
+      "codec": "pcm-s24le",
+      "output": "flac",
+      "rate": 96000,
+      "channels": 2,
+      "samples": 70176,
+      "inputSHA256": "9c7624eac05fe395a3621cbc6ceaee794c0d4bf0c0cb79db2315dd25b036c82d",
+      "outputSHA256": "f59bde3b69e74d622293f5f69f39511c7d7e61673d72c3ccfd09b955704fe200",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s32-96000-2",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "db33ad3ceff1d748d927c665978d669dd827e39b27810bc7435139bcbc865b89"
+    },
+    {
+      "id": "wav-f32-96000-2",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "2f3d42a4bde559772c4c8921c8c55c068d7b4e93ebf6dcee376c11747f97678c"
+    },
+    {
+      "id": "wav-f64-96000-2",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "ee3a55cc8df1e7873fddfdfffd0106c045fe587096d74ef28ef0b734477aa3cb"
+    },
+    {
+      "id": "aiff-s16-44100-1",
+      "codec": "pcm-s16le",
+      "output": "flac",
+      "rate": 44100,
+      "channels": 1,
+      "samples": 32237,
+      "inputSHA256": "9211896da8675cdc0a360628d3576c24e93b4c276b0ae9a7e01fe75193d016a2",
+      "outputSHA256": "80e230fece9f20c6facff12a8895ef0652234655439f92ff7b590aa8862f0acc",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "aiff-s24-44100-1",
+      "codec": "pcm-s24le",
+      "output": "flac",
+      "rate": 44100,
+      "channels": 1,
+      "samples": 32237,
+      "inputSHA256": "7902f0eccb70d928418727ab6f3d3a6feb45b080a26ed61374367fa6cb5a07bb",
+      "outputSHA256": "d27c818fe8ad5065f5413ac85ceb8badee571387813bb7b91b07b22b31689c1a",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "aiff-s32-44100-1",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "15c536f87263be02949da49f88faa3e42ccce93dcecf554ac148a7d0a9874829"
+    },
+    {
+      "id": "aiff-s16-44100-2",
+      "codec": "pcm-s16le",
+      "output": "flac",
+      "rate": 44100,
+      "channels": 2,
+      "samples": 32237,
+      "inputSHA256": "42dac03ba2cdb0d5d431a402be65eaa52cc3606a415b83c98c5c406633dd8f8f",
+      "outputSHA256": "c71663ce24571c319e5d6f52e78179cfef81206dd192b665fc7c670c714e4791",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "aiff-s24-44100-2",
+      "codec": "pcm-s24le",
+      "output": "flac",
+      "rate": 44100,
+      "channels": 2,
+      "samples": 32237,
+      "inputSHA256": "b2390335516df0aab1897db8fd9750bcbaf787f2c3c29c6e4624dc56adf36da0",
+      "outputSHA256": "de884d2fc822a582a9fad2123b33adeb41ed1325494f81fd3c9b9291758756f2",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "aiff-s32-44100-2",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "e257d7f4b1039f248679cd4026d838e857ac9ebdcfbf4b11281eaeb5a3e159fb"
+    },
+    {
+      "id": "aiff-s16-48000-1",
+      "codec": "pcm-s16le",
+      "output": "flac",
+      "rate": 48000,
+      "channels": 1,
+      "samples": 35088,
+      "inputSHA256": "fb4a22dfaa012be99fa4b7aaac9dd4e75df62759138041d33e390fca20b0deda",
+      "outputSHA256": "a9c828420e32628de9e94f5892c9257940900657745b552dd9b8c71d82cad69f",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "aiff-s24-48000-1",
+      "codec": "pcm-s24le",
+      "output": "flac",
+      "rate": 48000,
+      "channels": 1,
+      "samples": 35088,
+      "inputSHA256": "0738c773dc3a49387a69c8c29355e033f849795eb5128ca270f810ffb1e0516f",
+      "outputSHA256": "e6865e30a0752d877a1cbee28dc5f4ec9f3d34cffa01424d8b5aa378b7d58000",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "aiff-s32-48000-1",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "29cc96e2eb2d52252f4459c94ad6e8738153e70f175920b55c5ee3d25b065cf0"
+    },
+    {
+      "id": "aiff-s16-48000-2",
+      "codec": "pcm-s16le",
+      "output": "flac",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "601fb92e3ca7159018ba580909dbb42c8af84fb93f185cf95d8cf0e2a29368d8",
+      "outputSHA256": "13fe0ee3b4fe902d8bbb980baf493a4c95c66bba1eed0abbeaa1702672f56bb2",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "aiff-s16-48000-2",
+      "codec": "pcm-s16le",
+      "output": "opus",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "601fb92e3ca7159018ba580909dbb42c8af84fb93f185cf95d8cf0e2a29368d8",
+      "outputSHA256": "a0095667c10f8fbf8a5ef7943baf8a7abc337c9a3d634530f53dfcf9a488b908",
+      "exactPCM": false,
+      "passed": true
+    },
+    {
+      "id": "aiff-s24-48000-2",
+      "codec": "pcm-s24le",
+      "output": "flac",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "77d012fba85ed61f11ca40406267d5409d67ff0e1f139d97928dfdc7323f0d79",
+      "outputSHA256": "00ca07bdd91912ff5f0d5bff5e05473c11154e08eb869630eda9fb3548746033",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "aiff-s24-48000-2",
+      "codec": "pcm-s24le",
+      "output": "opus",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "77d012fba85ed61f11ca40406267d5409d67ff0e1f139d97928dfdc7323f0d79",
+      "outputSHA256": "aa75cf390b2e8a3517ff574c1b53663772f539f90c54703aec917b336ed6c020",
+      "exactPCM": false,
+      "passed": true
+    },
+    {
+      "id": "aiff-s32-48000-2",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "2d311f5e5375c21cb23f2977e72ecd9d4e0108106a90b97b4be5410332fe6ec5"
+    },
+    {
+      "id": "aiff-s32-48000-2",
+      "codec": "pcm-s32le",
+      "output": "opus",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "2d311f5e5375c21cb23f2977e72ecd9d4e0108106a90b97b4be5410332fe6ec5",
+      "outputSHA256": "aa75cf390b2e8a3517ff574c1b53663772f539f90c54703aec917b336ed6c020",
+      "exactPCM": false,
+      "passed": true
+    },
+    {
+      "id": "aiff-s16-96000-1",
+      "codec": "pcm-s16le",
+      "output": "flac",
+      "rate": 96000,
+      "channels": 1,
+      "samples": 70176,
+      "inputSHA256": "6987c42a85f173bdab769b63a812b19a40c5388a97c7c9a730d73ee05fa4d7a9",
+      "outputSHA256": "6c1c46ea285d111332b19418df89b584873d2fdb12f1319db3aa7469938fd329",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "aiff-s24-96000-1",
+      "codec": "pcm-s24le",
+      "output": "flac",
+      "rate": 96000,
+      "channels": 1,
+      "samples": 70176,
+      "inputSHA256": "5b8feb99112238bef250f938dfde0c26667b75828a6199f2aca08908a5ae67ec",
+      "outputSHA256": "875f50af6e1096406e00c5f82e8b97aa438417a50a325719980b4965eda5eb11",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "aiff-s32-96000-1",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "d8308224cc65b0c665629670099f15a3abc0bd37dc026fe49bda6c570df2ac92"
+    },
+    {
+      "id": "aiff-s16-96000-2",
+      "codec": "pcm-s16le",
+      "output": "flac",
+      "rate": 96000,
+      "channels": 2,
+      "samples": 70176,
+      "inputSHA256": "7e2525daccf6b5a9267bcf55c46cdfc89736f9222c02e104640081dae219eaba",
+      "outputSHA256": "c3ee9db9ab846d054f7af8c2ebeb102333c66cc2e2e88a392111997227a487b0",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "aiff-s24-96000-2",
+      "codec": "pcm-s24le",
+      "output": "flac",
+      "rate": 96000,
+      "channels": 2,
+      "samples": 70176,
+      "inputSHA256": "1555a8a902dfd86a0ad728778266b81b4dea98accbfd008238dc8c1b4a9e1c38",
+      "outputSHA256": "f59bde3b69e74d622293f5f69f39511c7d7e61673d72c3ccfd09b955704fe200",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "aiff-s32-96000-2",
+      "output": "flac",
+      "passed": true,
+      "precisionRejected": true,
+      "inputSHA256": "c84e37ac76478565b4f1b38083cfca596eab76142fdd4c30a7342ff0d0646b51"
+    },
+    {
+      "id": "wav-s24-44100-1-exact-f32",
+      "codec": "pcm-f32le",
+      "output": "flac",
+      "rate": 44100,
+      "channels": 1,
+      "samples": 32237,
+      "inputSHA256": "03b785abbd305e4209d9ee3df71021aa11640a1cb95ba3c069b6d62a9bf9839c",
+      "outputSHA256": "d27c818fe8ad5065f5413ac85ceb8badee571387813bb7b91b07b22b31689c1a",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-44100-1-exact-f64",
+      "codec": "pcm-f64le",
+      "output": "flac",
+      "rate": 44100,
+      "channels": 1,
+      "samples": 32237,
+      "inputSHA256": "2bccef6a516818dd9e50cd953b6c69efa563b260776f9bb5d0b9b6b5e3042c82",
+      "outputSHA256": "d27c818fe8ad5065f5413ac85ceb8badee571387813bb7b91b07b22b31689c1a",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-44100-2-exact-f32",
+      "codec": "pcm-f32le",
+      "output": "flac",
+      "rate": 44100,
+      "channels": 2,
+      "samples": 32237,
+      "inputSHA256": "a4bbfec897830e8de57b046cee18ef7b7275fdffe631b98d33f863361d650daf",
+      "outputSHA256": "de884d2fc822a582a9fad2123b33adeb41ed1325494f81fd3c9b9291758756f2",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-44100-2-exact-f64",
+      "codec": "pcm-f64le",
+      "output": "flac",
+      "rate": 44100,
+      "channels": 2,
+      "samples": 32237,
+      "inputSHA256": "4f19ccb3b93f9e3e26fe0bcc11295009b783e7ecc43ef51603e06aa346ccb18d",
+      "outputSHA256": "de884d2fc822a582a9fad2123b33adeb41ed1325494f81fd3c9b9291758756f2",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-48000-1-exact-f32",
+      "codec": "pcm-f32le",
+      "output": "flac",
+      "rate": 48000,
+      "channels": 1,
+      "samples": 35088,
+      "inputSHA256": "4d2a16f3447120c67b2b24e9eab6cbaf5cea069c667fe4c4ab7fbe00a453918a",
+      "outputSHA256": "e6865e30a0752d877a1cbee28dc5f4ec9f3d34cffa01424d8b5aa378b7d58000",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-48000-1-exact-f64",
+      "codec": "pcm-f64le",
+      "output": "flac",
+      "rate": 48000,
+      "channels": 1,
+      "samples": 35088,
+      "inputSHA256": "6f9dcb35db3f4382b12375ceba3e379cc7d58e2e264a17467ed4f30bc1079bce",
+      "outputSHA256": "e6865e30a0752d877a1cbee28dc5f4ec9f3d34cffa01424d8b5aa378b7d58000",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-48000-2-exact-f32",
+      "codec": "pcm-f32le",
+      "output": "flac",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "5a9d75fefa2a693d2531a8881f56675884b3c4d2d9ae64469574b7c494df6382",
+      "outputSHA256": "00ca07bdd91912ff5f0d5bff5e05473c11154e08eb869630eda9fb3548746033",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-48000-2-exact-f32",
+      "codec": "pcm-f32le",
+      "output": "opus",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "5a9d75fefa2a693d2531a8881f56675884b3c4d2d9ae64469574b7c494df6382",
+      "outputSHA256": "aa75cf390b2e8a3517ff574c1b53663772f539f90c54703aec917b336ed6c020",
+      "exactPCM": false,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-48000-2-exact-f64",
+      "codec": "pcm-f64le",
+      "output": "flac",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "ced826f3fc7df9ae4076393b76e6a527170355042399f8a2067d0b328a056022",
+      "outputSHA256": "00ca07bdd91912ff5f0d5bff5e05473c11154e08eb869630eda9fb3548746033",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-48000-2-exact-f64",
+      "codec": "pcm-f64le",
+      "output": "opus",
+      "rate": 48000,
+      "channels": 2,
+      "samples": 35088,
+      "inputSHA256": "ced826f3fc7df9ae4076393b76e6a527170355042399f8a2067d0b328a056022",
+      "outputSHA256": "aa75cf390b2e8a3517ff574c1b53663772f539f90c54703aec917b336ed6c020",
+      "exactPCM": false,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-96000-1-exact-f32",
+      "codec": "pcm-f32le",
+      "output": "flac",
+      "rate": 96000,
+      "channels": 1,
+      "samples": 70176,
+      "inputSHA256": "92ad37ad7b30783e86aaf3249bbbbadd7f7d143edb2fabb6bd6e934b2e77c93c",
+      "outputSHA256": "875f50af6e1096406e00c5f82e8b97aa438417a50a325719980b4965eda5eb11",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-96000-1-exact-f64",
+      "codec": "pcm-f64le",
+      "output": "flac",
+      "rate": 96000,
+      "channels": 1,
+      "samples": 70176,
+      "inputSHA256": "fa505c5e47f2273d1bf5a5dfb272e30cc1b62e6b8cc0079e30006aff3dc60703",
+      "outputSHA256": "875f50af6e1096406e00c5f82e8b97aa438417a50a325719980b4965eda5eb11",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-96000-2-exact-f32",
+      "codec": "pcm-f32le",
+      "output": "flac",
+      "rate": 96000,
+      "channels": 2,
+      "samples": 70176,
+      "inputSHA256": "8db198091a2def5bbc4449ec39926b048ca397b6c84b1265cdf1ee79fb196042",
+      "outputSHA256": "f59bde3b69e74d622293f5f69f39511c7d7e61673d72c3ccfd09b955704fe200",
+      "exactPCM": true,
+      "passed": true
+    },
+    {
+      "id": "wav-s24-96000-2-exact-f64",
+      "codec": "pcm-f64le",
+      "output": "flac",
+      "rate": 96000,
+      "channels": 2,
+      "samples": 70176,
+      "inputSHA256": "79294464d8f409f2df54b64e7de7d5650518168993b38397abd269219cf75e91",
+      "outputSHA256": "f59bde3b69e74d622293f5f69f39511c7d7e61673d72c3ccfd09b955704fe200",
+      "exactPCM": true,
+      "passed": true
+    }
+  ],
+  "scratch": "/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/demuxe-wave-compositions-mDEp0v"
+}

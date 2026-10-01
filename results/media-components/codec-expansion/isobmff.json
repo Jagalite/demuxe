@@ -1,0 +1,853 @@
+{
+  "schema": 1,
+  "date": "2026-09-30",
+  "qualification": "native packet and finite composition correctness; browser qualification recorded separately by parent",
+  "sources": {
+    "packages/provider-container/src/isobmff.ts": "068109fdb3a8125bd0f6765a59735f079179f85b8858bf964e4c9ea73a14d213",
+    "tests/isobmff-fixtures.py": "1fef4d92f13fd05dd082d2f49b0998739dc3d54e335f1836972208bf5e9bc18b",
+    "tests/isobmff-reader.mjs": "aa1762a0d66fcca13eebf08dd50d01a3a546a91e13a32055134b23199489c9ac",
+    "tests/isobmff-compositions.mjs": "26063c41635f23bdccc72249f5de1a57194864050c87ad14b53c2365585427e9"
+  },
+  "nativeBuilds": [
+    {
+      "profile": "lossless",
+      "buildRecordSHA256": "f8451714e537a172f18420a1d9e7fba522b96935cb901777bf86af6a1d88163c",
+      "moduleSHA256": "1d02101363b42e6a60d74d8f91bfcd5bc54f675b0ad0e2a530e912186b45fd7b",
+      "wasmSHA256": "010a795e20d8e34a4b2e698dc481247dfa87cbafd0541ef547ab03813b4b0f42",
+      "sourceKey": "3f4dd3197086fa91d480db27df6c7b06385837ae8884799e837086694862f785",
+      "pointerRecordSHA256": "f8451714e537a172f18420a1d9e7fba522b96935cb901777bf86af6a1d88163c"
+    },
+    {
+      "profile": "aac",
+      "buildRecordSHA256": "bd00f2b7809aa20f585bf09a7ce6193cdf783ebd6b7df9d728f0739a6e28903f",
+      "moduleSHA256": "1d02101363b42e6a60d74d8f91bfcd5bc54f675b0ad0e2a530e912186b45fd7b",
+      "wasmSHA256": "d306b3e35524f53a7543692eec6489654793f5f8c8b0647b855617a43b04b1b8",
+      "sourceKey": "3f4dd3197086fa91d480db27df6c7b06385837ae8884799e837086694862f785",
+      "pointerRecordSHA256": "bd00f2b7809aa20f585bf09a7ce6193cdf783ebd6b7df9d728f0739a6e28903f"
+    },
+    {
+      "profile": "pcm",
+      "buildRecordSHA256": "283fb3bf514479bf567c1fdc92a44c7a59a357867f31f9e492bc08518f0d1f16",
+      "moduleSHA256": "1d02101363b42e6a60d74d8f91bfcd5bc54f675b0ad0e2a530e912186b45fd7b",
+      "wasmSHA256": "8c8fe611e9ee80d8a0ef018e0fcf399b60c1e558161ccdb90457ebe8db3008bf",
+      "sourceKey": "3f4dd3197086fa91d480db27df6c7b06385837ae8884799e837086694862f785",
+      "pointerRecordSHA256": "283fb3bf514479bf567c1fdc92a44c7a59a357867f31f9e492bc08518f0d1f16"
+    },
+    {
+      "profile": "flac",
+      "buildRecordSHA256": "b9097e8cd47abd6e7ab976c17136669eb4ff2b6324715baa0e49ad64c3495bc8",
+      "moduleSHA256": "f1ad562a2c89a7e75ac4904d2360eef50042999854fd0f33644bcf4be0703351",
+      "wasmSHA256": "2bbc83ea09500ea64c8d6bce372f7d88ce18018989fa334ae49bc799c78d2868",
+      "sourceKey": "ebb6f41f467e3d9e2549ece3b2b51f0bc0d5945bfe6f9545449c730e460deb38",
+      "pointerRecordSHA256": "b9097e8cd47abd6e7ab976c17136669eb4ff2b6324715baa0e49ad64c3495bc8"
+    },
+    {
+      "profile": "opus-encoder",
+      "buildRecordSHA256": "15ff922323c19f755ec23ec911304e8797658cb201f5a8fab064a9463354d6a8",
+      "moduleSHA256": "0fdaefe783f6e2f8ac47c9916c48ba2bb6c6c5e92aaa99b18476e16e97ecaf8c",
+      "wasmSHA256": "fe622d9d6a5eb98103254c054b09b40d359654b62557f4b8724ee69ea2824bbb",
+      "sourceKey": "7da038b4e6607aaef5412430108316d8c335aba333f66e2a4aaaff39f9527ba9",
+      "pointerRecordSHA256": "15ff922323c19f755ec23ec911304e8797658cb201f5a8fab064a9463354d6a8"
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "alac-mov",
+      "codec": "alac",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "referenceSamples": 15360,
+      "inputSHA256": "8853fb7967af6889b7014dfd989bc712ed7a203d3619fcf8d9808c4d091143b1",
+      "referenceF32SHA256": "f6090327dc01ac0c2cddee6189df13413d32727f1b82c4fe283492a1d9822e4b",
+      "precisionRejectedForFLAC24": false
+    },
+    {
+      "id": "alac-faststart",
+      "codec": "alac",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "referenceSamples": 15360,
+      "inputSHA256": "2628e0dcf386aa32bd023dbc95514f905557f6d3a1d5349ed534c4cbcbfeca67",
+      "referenceF32SHA256": "f6090327dc01ac0c2cddee6189df13413d32727f1b82c4fe283492a1d9822e4b",
+      "precisionRejectedForFLAC24": false
+    },
+    {
+      "id": "aac-mp4",
+      "codec": "aac",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "referenceSamples": 15360,
+      "inputSHA256": "40277b42f34aeaf4df4ea7bee7ffcc2f80f6f786c74e310044e1a08e28831b64",
+      "referenceF32SHA256": "beb82228a8c409f026ddcefefea6df820b1d4eb1b8ea393a493b94d4bcdd1c5b",
+      "precisionRejectedForFLAC24": false
+    },
+    {
+      "id": "flac-mp4",
+      "codec": "flac",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 32,
+      "referenceSamples": 15360,
+      "inputSHA256": "861a7d343e6d5c0951472a4462a5d5b3fd17a8cb9d26b3b44a8fca1c9aee9d2f",
+      "referenceF32SHA256": "f6090327dc01ac0c2cddee6189df13413d32727f1b82c4fe283492a1d9822e4b",
+      "precisionRejectedForFLAC24": false
+    },
+    {
+      "id": "f64-exact",
+      "codec": "pcm-f64le",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 64,
+      "referenceSamples": 15360,
+      "inputSHA256": "647287cfbe069ba5072a6dac3afe4257e9e84d891e62b9ed733a9b0ff67ac777",
+      "referenceF32SHA256": "f6090327dc01ac0c2cddee6189df13413d32727f1b82c4fe283492a1d9822e4b",
+      "precisionRejectedForFLAC24": false
+    },
+    {
+      "id": "f32-exact",
+      "codec": "pcm-f32le",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 32,
+      "referenceSamples": 15360,
+      "inputSHA256": "af761a24d8bfde717f8f6859933c3af9dc8e92c85c598d37d62f45171c1171ca",
+      "referenceF32SHA256": "f6090327dc01ac0c2cddee6189df13413d32727f1b82c4fe283492a1d9822e4b",
+      "precisionRejectedForFLAC24": false
+    },
+    {
+      "id": "flac-mono44100",
+      "codec": "flac",
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 24,
+      "referenceSamples": 14112,
+      "inputSHA256": "eea5b2ece5c898b52bf16d3f1567a86806ca06bbb5106b2912c7d78c94a967f0",
+      "referenceF32SHA256": "d413386a4767b60e5a60e43951d99418134380d3a75712fdae7172675165fceb",
+      "precisionRejectedForFLAC24": false
+    },
+    {
+      "id": "flac-stereo96000",
+      "codec": "flac",
+      "sampleRate": 96000,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "referenceSamples": 30720,
+      "inputSHA256": "70ee34f08b8fbeb401b0b29b4e1b29763e104c38fcd1aa3a7ebcb19bee729692",
+      "referenceF32SHA256": "a39fe6808f3b8f4fad8e5cc70e43d90a7d8395052a0dace0ac5bce15f6d3fd50",
+      "precisionRejectedForFLAC24": false
+    },
+    {
+      "id": "flac-surround6",
+      "codec": "flac",
+      "sampleRate": 48000,
+      "channels": 6,
+      "bitsPerSample": 24,
+      "referenceSamples": 15360,
+      "inputSHA256": "58cd3f673bd27ec1bb3f2ddaba352e2af285feeb3a3a37e1249f007be7d6ad73",
+      "referenceF32SHA256": "ccca1c88d6ccc9dcf4c1613705244f1a0e4fb2172673eb74a949b134f960799c",
+      "precisionRejectedForFLAC24": false
+    },
+    {
+      "id": "flac-surround8",
+      "codec": "flac",
+      "sampleRate": 48000,
+      "channels": 8,
+      "bitsPerSample": 24,
+      "referenceSamples": 15360,
+      "inputSHA256": "46b8d658577c16b7fc41a2878540242b480132674081336e0d792bd723f1c6da",
+      "referenceF32SHA256": "747658cfc4acd5f44e314943bd88bf7fd9450a2ba96dc7155a95a4bf7d20f163",
+      "precisionRejectedForFLAC24": false
+    },
+    {
+      "id": "alac-mono44100",
+      "codec": "alac",
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 24,
+      "referenceSamples": 14112,
+      "inputSHA256": "80e70ae7f75107cec8edc6552308c488e679feefcb6a36e5dfda760cb50e1a5a",
+      "referenceF32SHA256": "d413386a4767b60e5a60e43951d99418134380d3a75712fdae7172675165fceb",
+      "precisionRejectedForFLAC24": false
+    },
+    {
+      "id": "f64-mono44100",
+      "codec": "pcm-f64le",
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 64,
+      "referenceSamples": 14112,
+      "inputSHA256": "1ae953e8b563ea14b0f01cafd140b23a31d64406c83781138778993e1c2c0048",
+      "referenceF32SHA256": "c9fd49adbd2ddf99c45d8ed323bf3e3f2f1b7dda3208e9d6be279bb2996bb529",
+      "precisionRejectedForFLAC24": true
+    },
+    {
+      "id": "aac-mono44100",
+      "codec": "aac",
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "referenceSamples": 14112,
+      "inputSHA256": "92fed01abb5d0dde8388ff7a1ec031a7b7441300c2bc99cdbec2dbb819a7125d",
+      "referenceF32SHA256": "8c0a8f01ffd67bdb09e80b0dbbdb5afd53a0c9360839d315f513e428c1ae05f5",
+      "precisionRejectedForFLAC24": false
+    },
+    {
+      "id": "aac-odd",
+      "codec": "aac",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "referenceSamples": 15504,
+      "inputSHA256": "025a95d1bfc6cbb35dac3e23e9894dca74014468770b9ab5bd32b7a399ce5382",
+      "referenceF32SHA256": "1bd1f566e1c1c711f6e97178d6b74d9709bf21a13d2ea484d56a23f787fe2207",
+      "precisionRejectedForFLAC24": false
+    },
+    {
+      "id": "f64-precision",
+      "codec": "pcm-f64le",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 64,
+      "referenceSamples": 15360,
+      "inputSHA256": "1a0eb94f728e777efc624430821a2010134d59b6ae2c048679896f12fbf4918b",
+      "referenceF32SHA256": "62c11a054ec513ac80b3c0fc0574a117aa139783c49614a6266c09a24893737e",
+      "precisionRejectedForFLAC24": true
+    }
+  ],
+  "reader": {
+    "passed": true,
+    "cases": 35,
+    "reportSHA256": "5ee1d11f18eaaa3aee05ed104c791cb12786bcac8d6432c266c4c01e0028c5da",
+    "results": [
+      {
+        "id": "alac-mov",
+        "inputSHA256": "8853fb7967af6889b7014dfd989bc712ed7a203d3619fcf8d9808c4d091143b1",
+        "packets": 12,
+        "bytesRead": 51486,
+        "maxRead": 11555,
+        "passed": true
+      },
+      {
+        "id": "alac-faststart",
+        "inputSHA256": "2628e0dcf386aa32bd023dbc95514f905557f6d3a1d5349ed534c4cbcbfeca67",
+        "packets": 12,
+        "bytesRead": 51435,
+        "maxRead": 11555,
+        "passed": true
+      },
+      {
+        "id": "aac-mp4",
+        "inputSHA256": "40277b42f34aeaf4df4ea7bee7ffcc2f80f6f786c74e310044e1a08e28831b64",
+        "packets": 24,
+        "bytesRead": 13552,
+        "maxRead": 2719,
+        "passed": true
+      },
+      {
+        "id": "flac-mp4",
+        "inputSHA256": "861a7d343e6d5c0951472a4462a5d5b3fd17a8cb9d26b3b44a8fca1c9aee9d2f",
+        "packets": 12,
+        "bytesRead": 42833,
+        "maxRead": 10807,
+        "passed": true
+      },
+      {
+        "id": "f64-exact",
+        "inputSHA256": "647287cfbe069ba5072a6dac3afe4257e9e84d891e62b9ed733a9b0ff67ac777",
+        "packets": 23,
+        "bytesRead": 253976,
+        "maxRead": 16384,
+        "passed": true
+      },
+      {
+        "id": "f32-exact",
+        "inputSHA256": "af761a24d8bfde717f8f6859933c3af9dc8e92c85c598d37d62f45171c1171ca",
+        "packets": 23,
+        "bytesRead": 131096,
+        "maxRead": 8192,
+        "passed": true
+      },
+      {
+        "id": "flac-mono44100",
+        "inputSHA256": "eea5b2ece5c898b52bf16d3f1567a86806ca06bbb5106b2912c7d78c94a967f0",
+        "packets": 12,
+        "bytesRead": 23213,
+        "maxRead": 4977,
+        "passed": true
+      },
+      {
+        "id": "flac-stereo96000",
+        "inputSHA256": "70ee34f08b8fbeb401b0b29b4e1b29763e104c38fcd1aa3a7ebcb19bee729692",
+        "packets": 12,
+        "bytesRead": 62512,
+        "maxRead": 15361,
+        "passed": true
+      },
+      {
+        "id": "flac-surround6",
+        "inputSHA256": "58cd3f673bd27ec1bb3f2ddaba352e2af285feeb3a3a37e1249f007be7d6ad73",
+        "packets": 12,
+        "bytesRead": 42889,
+        "maxRead": 10821,
+        "passed": true
+      },
+      {
+        "id": "flac-surround8",
+        "inputSHA256": "46b8d658577c16b7fc41a2878540242b480132674081336e0d792bd723f1c6da",
+        "packets": 12,
+        "bytesRead": 42921,
+        "maxRead": 10829,
+        "passed": true
+      },
+      {
+        "id": "alac-mono44100",
+        "inputSHA256": "80e70ae7f75107cec8edc6552308c488e679feefcb6a36e5dfda760cb50e1a5a",
+        "packets": 12,
+        "bytesRead": 29184,
+        "maxRead": 6081,
+        "passed": true
+      },
+      {
+        "id": "f64-mono44100",
+        "inputSHA256": "1ae953e8b563ea14b0f01cafd140b23a31d64406c83781138778993e1c2c0048",
+        "packets": 24,
+        "bytesRead": 121152,
+        "maxRead": 8192,
+        "passed": true
+      },
+      {
+        "id": "aac-mono44100",
+        "inputSHA256": "92fed01abb5d0dde8388ff7a1ec031a7b7441300c2bc99cdbec2dbb819a7125d",
+        "packets": 23,
+        "bytesRead": 11551,
+        "maxRead": 2719,
+        "passed": true
+      },
+      {
+        "id": "aac-odd",
+        "inputSHA256": "025a95d1bfc6cbb35dac3e23e9894dca74014468770b9ab5bd32b7a399ce5382",
+        "packets": 25,
+        "bytesRead": 13625,
+        "maxRead": 2719,
+        "passed": true
+      },
+      {
+        "id": "f64-precision",
+        "inputSHA256": "1a0eb94f728e777efc624430821a2010134d59b6ae2c048679896f12fbf4918b",
+        "packets": 23,
+        "bytesRead": 253980,
+        "maxRead": 16384,
+        "passed": true
+      },
+      {
+        "id": "co64-reference-equivalence",
+        "passed": true
+      },
+      {
+        "id": "truncated-header",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "box-overrun",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "encrypted-entry",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "external-reference",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "nonidentity-edit",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "overlapping-chunks",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "chunk-outside-mdat",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "wrong-sample-count",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "wrong-chunk-description",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "transformed-video",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "fragmented-source",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "wrong-original-format",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "wrong-sample-config-kind",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "nonsquare-pixels",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "id": "fractional-aac-edit-rejected",
+        "passed": true
+      },
+      {
+        "id": "aac-edit-final-tail880",
+        "referenceSamples": 15504,
+        "discardSamples": 880,
+        "passed": true
+      },
+      {
+        "id": "abort-before-open",
+        "passed": true
+      },
+      {
+        "id": "abort-during-packets",
+        "passed": true
+      },
+      {
+        "id": "32mib-free-bounded",
+        "size": 33605906,
+        "bytesRead": 51502,
+        "passed": true
+      }
+    ]
+  },
+  "compositions": {
+    "passed": true,
+    "cases": 23,
+    "reportSHA256": "3c0247a01b4a2526faf7a8c4f167802edeb4f01608941c3371ce01efdfcd7654",
+    "results": [
+      {
+        "id": "alac-mov",
+        "codec": "alac",
+        "output": "flac",
+        "file": "build/isobmff-compositions/alac-mov-flac.mp4",
+        "inputSHA256": "8853fb7967af6889b7014dfd989bc712ed7a203d3619fcf8d9808c4d091143b1",
+        "outputSHA256": "f7e6f8dd6642183b87b8e271ac326a9b4f7724e3d746c6cafd8cbe0b58a8dd44",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 15360,
+        "referenceSamples": 15360,
+        "maxError": 0,
+        "snr": 324.52460540823273,
+        "integerExact": true,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "alac-mov",
+        "codec": "alac",
+        "output": "opus",
+        "file": "build/isobmff-compositions/alac-mov-opus.mp4",
+        "inputSHA256": "8853fb7967af6889b7014dfd989bc712ed7a203d3619fcf8d9808c4d091143b1",
+        "outputSHA256": "62ca4e51b63edf12e527cabb5900295c1f72ba21cfee2d1293e01ce9e9284dc5",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 16008,
+        "referenceSamples": 15360,
+        "maxError": 0.007161498069763184,
+        "snr": 42.21370000834503,
+        "integerExact": false,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "alac-faststart",
+        "codec": "alac",
+        "output": "flac",
+        "file": "build/isobmff-compositions/alac-faststart-flac.mp4",
+        "inputSHA256": "2628e0dcf386aa32bd023dbc95514f905557f6d3a1d5349ed534c4cbcbfeca67",
+        "outputSHA256": "f7e6f8dd6642183b87b8e271ac326a9b4f7724e3d746c6cafd8cbe0b58a8dd44",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 15360,
+        "referenceSamples": 15360,
+        "maxError": 0,
+        "snr": 324.52460540823273,
+        "integerExact": true,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "alac-faststart",
+        "codec": "alac",
+        "output": "opus",
+        "file": "build/isobmff-compositions/alac-faststart-opus.mp4",
+        "inputSHA256": "2628e0dcf386aa32bd023dbc95514f905557f6d3a1d5349ed534c4cbcbfeca67",
+        "outputSHA256": "62ca4e51b63edf12e527cabb5900295c1f72ba21cfee2d1293e01ce9e9284dc5",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 16008,
+        "referenceSamples": 15360,
+        "maxError": 0.007161498069763184,
+        "snr": 42.21370000834503,
+        "integerExact": false,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "aac-mp4",
+        "codec": "aac",
+        "output": "flac",
+        "file": "build/isobmff-compositions/aac-mp4-flac.mp4",
+        "inputSHA256": "40277b42f34aeaf4df4ea7bee7ffcc2f80f6f786c74e310044e1a08e28831b64",
+        "outputSHA256": "7560e8841385d2cde5b674b0f209ebc041161989acb31d9711a9d229200d50b4",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 15360,
+        "referenceSamples": 15360,
+        "maxError": 8.940696716308594e-08,
+        "snr": 128.70768393992566,
+        "integerExact": false,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "aac-mp4",
+        "codec": "aac",
+        "output": "opus",
+        "file": "build/isobmff-compositions/aac-mp4-opus.mp4",
+        "inputSHA256": "40277b42f34aeaf4df4ea7bee7ffcc2f80f6f786c74e310044e1a08e28831b64",
+        "outputSHA256": "8c75e0cdec9140c41937b6d3751550d30a034590cd4bb7c5172cf6e044e491bf",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 16008,
+        "referenceSamples": 15360,
+        "maxError": 0.0042716339230537415,
+        "snr": 41.72245805648007,
+        "integerExact": false,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "flac-mp4",
+        "codec": "flac",
+        "output": "flac",
+        "file": "build/isobmff-compositions/flac-mp4-flac.mp4",
+        "inputSHA256": "861a7d343e6d5c0951472a4462a5d5b3fd17a8cb9d26b3b44a8fca1c9aee9d2f",
+        "outputSHA256": "b941dd5937d187aa744e93ec15ee1a030b444e8211cdc59919cde8091fbe45a4",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 15360,
+        "referenceSamples": 15360,
+        "maxError": 0,
+        "snr": 324.52460540823273,
+        "integerExact": true,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "flac-mp4",
+        "codec": "flac",
+        "output": "opus",
+        "file": "build/isobmff-compositions/flac-mp4-opus.mp4",
+        "inputSHA256": "861a7d343e6d5c0951472a4462a5d5b3fd17a8cb9d26b3b44a8fca1c9aee9d2f",
+        "outputSHA256": "4208a5f3356d61416aa6a566b4cd2ba773032fbea04a4f472694f67e3a4f75ac",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 16008,
+        "referenceSamples": 15360,
+        "maxError": 0.007161498069763184,
+        "snr": 42.21370000834503,
+        "integerExact": false,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "f64-exact",
+        "codec": "pcm-f64le",
+        "output": "flac",
+        "file": "build/isobmff-compositions/f64-exact-flac.mp4",
+        "inputSHA256": "647287cfbe069ba5072a6dac3afe4257e9e84d891e62b9ed733a9b0ff67ac777",
+        "outputSHA256": "a0f9ba9843d0e5edf4e173f195069cedb26947e8747b9799bb3e0249ebc51af5",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 15360,
+        "referenceSamples": 15360,
+        "maxError": 0,
+        "snr": 324.52460540823273,
+        "integerExact": false,
+        "float64Exact": true,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "f64-exact",
+        "codec": "pcm-f64le",
+        "output": "opus",
+        "file": "build/isobmff-compositions/f64-exact-opus.mp4",
+        "inputSHA256": "647287cfbe069ba5072a6dac3afe4257e9e84d891e62b9ed733a9b0ff67ac777",
+        "outputSHA256": "c3a876f0178145ac0c669f6ea61d3f90bd2ed593fa721cced52e779106d85866",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 16008,
+        "referenceSamples": 15360,
+        "maxError": 0.007161498069763184,
+        "snr": 42.21370000834503,
+        "integerExact": false,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "f32-exact",
+        "codec": "pcm-f32le",
+        "output": "flac",
+        "file": "build/isobmff-compositions/f32-exact-flac.mp4",
+        "inputSHA256": "af761a24d8bfde717f8f6859933c3af9dc8e92c85c598d37d62f45171c1171ca",
+        "outputSHA256": "a0f9ba9843d0e5edf4e173f195069cedb26947e8747b9799bb3e0249ebc51af5",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 15360,
+        "referenceSamples": 15360,
+        "maxError": 0,
+        "snr": 324.52460540823273,
+        "integerExact": false,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "f32-exact",
+        "codec": "pcm-f32le",
+        "output": "opus",
+        "file": "build/isobmff-compositions/f32-exact-opus.mp4",
+        "inputSHA256": "af761a24d8bfde717f8f6859933c3af9dc8e92c85c598d37d62f45171c1171ca",
+        "outputSHA256": "c3a876f0178145ac0c669f6ea61d3f90bd2ed593fa721cced52e779106d85866",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 16008,
+        "referenceSamples": 15360,
+        "maxError": 0.007161498069763184,
+        "snr": 42.21370000834503,
+        "integerExact": false,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "flac-mono44100",
+        "codec": "flac",
+        "output": "flac",
+        "file": "build/isobmff-compositions/flac-mono44100-flac.mp4",
+        "inputSHA256": "eea5b2ece5c898b52bf16d3f1567a86806ca06bbb5106b2912c7d78c94a967f0",
+        "outputSHA256": "f2c136961bda4eef1c581623de826fd09919454f2334cdd9d5ad27b581bc22d1",
+        "sampleRate": 44100,
+        "channels": 1,
+        "samples": 14112,
+        "referenceSamples": 14112,
+        "maxError": 0,
+        "snr": 318.14222465383773,
+        "integerExact": true,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "flac-stereo96000",
+        "codec": "flac",
+        "output": "flac",
+        "file": "build/isobmff-compositions/flac-stereo96000-flac.mp4",
+        "inputSHA256": "70ee34f08b8fbeb401b0b29b4e1b29763e104c38fcd1aa3a7ebcb19bee729692",
+        "outputSHA256": "a45f8632132531519972d8c44aa43ccaa172b8d60194f67f5c513205d8e358e6",
+        "sampleRate": 96000,
+        "channels": 2,
+        "samples": 30720,
+        "referenceSamples": 30720,
+        "maxError": 0,
+        "snr": 327.53492164535487,
+        "integerExact": true,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "flac-surround6",
+        "codec": "flac",
+        "output": "flac",
+        "file": "build/isobmff-compositions/flac-surround6-flac.mp4",
+        "inputSHA256": "58cd3f673bd27ec1bb3f2ddaba352e2af285feeb3a3a37e1249f007be7d6ad73",
+        "outputSHA256": "b17f6d104c9b94938cbc51fa88f0f7f3260ff99a6e1d87b15ebb878a3dae4ae1",
+        "sampleRate": 48000,
+        "channels": 6,
+        "samples": 15360,
+        "referenceSamples": 15360,
+        "maxError": 0,
+        "snr": 324.52460540823273,
+        "integerExact": true,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "flac-surround8",
+        "codec": "flac",
+        "output": "flac",
+        "file": "build/isobmff-compositions/flac-surround8-flac.mp4",
+        "inputSHA256": "46b8d658577c16b7fc41a2878540242b480132674081336e0d792bd723f1c6da",
+        "outputSHA256": "b789cabafaa6bcc802583082976406f49da35f876ff726cd7ef2634d1acde11c",
+        "sampleRate": 48000,
+        "channels": 8,
+        "samples": 15360,
+        "referenceSamples": 15360,
+        "maxError": 0,
+        "snr": 324.52460540823273,
+        "integerExact": true,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "alac-mono44100",
+        "codec": "alac",
+        "output": "flac",
+        "file": "build/isobmff-compositions/alac-mono44100-flac.mp4",
+        "inputSHA256": "80e70ae7f75107cec8edc6552308c488e679feefcb6a36e5dfda760cb50e1a5a",
+        "outputSHA256": "902a4496b26de3c3fb49a733d1652fd9d03f84896f0777675ea2a04fe6bfd010",
+        "sampleRate": 44100,
+        "channels": 1,
+        "samples": 14112,
+        "referenceSamples": 14112,
+        "maxError": 0,
+        "snr": 318.14222465383773,
+        "integerExact": true,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "f64-mono44100",
+        "codec": "pcm-f64le",
+        "output": "flac",
+        "precisionRejected": true,
+        "passed": true
+      },
+      {
+        "id": "aac-mono44100",
+        "codec": "aac",
+        "output": "flac",
+        "file": "build/isobmff-compositions/aac-mono44100-flac.mp4",
+        "inputSHA256": "92fed01abb5d0dde8388ff7a1ec031a7b7441300c2bc99cdbec2dbb819a7125d",
+        "outputSHA256": "0f22f38475b947828d0b55d93e36655128708d5098091dac7ac8415a5a29db56",
+        "sampleRate": 44100,
+        "channels": 1,
+        "samples": 14112,
+        "referenceSamples": 14112,
+        "maxError": 8.940696716308594e-08,
+        "snr": 128.74494064528432,
+        "integerExact": false,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "aac-odd",
+        "codec": "aac",
+        "output": "flac",
+        "file": "build/isobmff-compositions/aac-odd-flac.mp4",
+        "inputSHA256": "025a95d1bfc6cbb35dac3e23e9894dca74014468770b9ab5bd32b7a399ce5382",
+        "outputSHA256": "67c0347a9c4c355066222d9c9956fbb23645ddc2f7ca9c4bb51541b0873eaba3",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 15504,
+        "referenceSamples": 15504,
+        "maxError": 8.940696716308594e-08,
+        "snr": 128.67671203559186,
+        "integerExact": false,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "aac-odd",
+        "codec": "aac",
+        "output": "opus",
+        "file": "build/isobmff-compositions/aac-odd-opus.mp4",
+        "inputSHA256": "025a95d1bfc6cbb35dac3e23e9894dca74014468770b9ab5bd32b7a399ce5382",
+        "outputSHA256": "a8ca19ba9a2339accf69e0fdfa599497d5b7543f686dfe49a27fc9f730c0d961",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 16008,
+        "referenceSamples": 15504,
+        "maxError": 0.0042716339230537415,
+        "snr": 41.92547895139568,
+        "integerExact": false,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      },
+      {
+        "id": "f64-precision",
+        "codec": "pcm-f64le",
+        "output": "flac",
+        "precisionRejected": true,
+        "passed": true
+      },
+      {
+        "id": "f64-precision",
+        "codec": "pcm-f64le",
+        "output": "opus",
+        "file": "build/isobmff-compositions/f64-precision-opus.mp4",
+        "inputSHA256": "1a0eb94f728e777efc624430821a2010134d59b6ae2c048679896f12fbf4918b",
+        "outputSHA256": "fe7513aef94b96b64f70a3bff57ac6b10dd278ec89822f03c4460a99aeec8b78",
+        "sampleRate": 48000,
+        "channels": 2,
+        "samples": 16008,
+        "referenceSamples": 15360,
+        "maxError": 0.00696178525686264,
+        "snr": 42.217963915847164,
+        "integerExact": false,
+        "float64Exact": false,
+        "videoExact": true,
+        "passed": true
+      }
+    ]
+  },
+  "limits": [
+    "Unfragmented self-contained clear MOV/MP4; exactly one constant-frame AVC video and one audio track",
+    "No reordered AVC, external data, complex edits, encrypted samples, nonsquare pixels or transforms",
+    "ALAC mono/stereo 44.1/48 kHz; AAC LC mono/stereo 44.1/48 kHz with exact integral priming/tail edits",
+    "FLAC 1/2/6/8 channels 44.1/48/96 kHz with STREAMINFO/sampleentry agreement",
+    "QuickTime version1 little endian float32/64 PCM44.1/48 kHz; QTversion2 and Opus MOV unsupported",
+    "Opus output explicit lossy stereo48k; FLAC24 rejects source precision beyond exact24bits",
+    "64 KiB source slices; 8MiB moov; 250000 nonPCM samples/chunks/table rows; 10million PCM samples; 24h duration limit"
+  ]
+}

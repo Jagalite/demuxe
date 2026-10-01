@@ -32,10 +32,15 @@ function sampleEntry(t: MP4Track): Uint8Array {
   const visual=join([common,new Uint8Array(16),u16(t.width),u16(t.height),u32(0x480000,0x480000,0),u16(1),new Uint8Array(32),u16(24),u16(0xffff)]);
   return box(t.codec,visual,box(t.codec==='avc1'?'avcC':'hvcC',t.config),...(t.colour?[box('colr',text('nclx'),u16(t.colour.primaries),u16(t.colour.transfer),u16(t.colour.matrix),bytes(t.colour.fullRange?128:0))]:[]));
  }
- if(!t.channels||!(t.codec==='fLaC'?[1,2,6,8]:t.codec==='Opus'?[1,2]:[1,2,6]).includes(t.channels)||t.timescale!==48000)throw Error('Unqualified audio configuration');
- const audio=join([common,new Uint8Array(8),u16(t.channels),u16(t.codec==='fLaC'?24:16),u32(0),u32(t.timescale*65536)]);
+ if(!t.channels||!(t.codec==='fLaC'?[1,2,6,8]:t.codec==='Opus'?[1,2]:[1,2,6]).includes(t.channels)||(t.codec==='fLaC'?![8000,16000,22050,32000,44100,48000,96000].includes(t.timescale):t.timescale!==48000)||(t.codec==='fLaC'&&t.timescale<44100&&t.channels>2))throw Error('Unqualified audio configuration');
+ // FLAC-in-ISO BMFF uses the greatest representable regular division
+ // above 65535 Hz; STREAMINFO and mdhd retain the actual sample rate.
+ // https://github.com/xiph/flac/blob/master/doc/isoflac.txt
+ const audio=join([common,new Uint8Array(8),u16(t.channels),u16(t.codec==='fLaC'?24:16),u32(0),u32((t.codec==='fLaC'&&t.timescale===96000?48000:t.timescale)*65536)]);
  if(t.codec==='fLaC'){
   if(t.config.length!==34)throw Error('FLAC stream info required');
+  const h=t.config,rate=(h[10]<<12)|(h[11]<<4)|(h[12]>>>4),channels=((h[12]>>>1)&7)+1,bits=(((h[12]&1)<<4)|(h[13]>>>4))+1;
+  if(rate!==t.timescale||channels!==t.channels||bits!==24)throw Error('FLAC stream info differs from track');
   return box('fLaC',audio,full('dfLa',0,bytes(0x80,0,0,34),t.config));
  }
  if(t.codec==='Opus'){

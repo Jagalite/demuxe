@@ -39,10 +39,11 @@ class AudioSourcePolicy(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'pinned native source'):
             audit.audit('audio-opus-encoder',{}, {'engineBuildRecord':engine})
 
-    def record(self, profiles, wrong_opus):
+    def record(self, profiles, wrong_opus, preferred=False, corrupt_preferred=False):
         with tempfile.TemporaryDirectory() as tmp:
             root=pathlib.Path(tmp).resolve();(root/'scripts').mkdir()
             (root/'scripts/audio_source_policy.py').write_bytes((ROOT/'scripts/audio_source_policy.py').read_bytes())
+            (root/'scripts/record-audio-provider-build.py').write_bytes((ROOT/'scripts/record-audio-provider-build.py').read_bytes())
             archive=root/'source.tar.gz';archive.write_bytes(b'fixture upstream source')
             active='ffmpeg-adaptation' if wrong_opus else 'opus-audio'
             pins=[{'name':name,'sha256':sha(archive.read_bytes()) if name==active else '0'*64} for name in ['ffmpeg-adaptation','opus-audio']]
@@ -53,10 +54,23 @@ class AudioSourcePolicy(unittest.TestCase):
                 record={'source':next(p for p in pins if p['name']==active),'sourceKey':'fixture','profile':profile,'inputs':{},'effectiveConfig':{'config.h':sha(b'fixture config')},'artifacts':{'module.wasm':{'sha256':sha(runtime),'bytes':len(runtime)}}}
                 raw=json.dumps(record).encode();(directory/'build-record.json').write_bytes(raw)
                 (builds/(profile+'.json')).write_text(json.dumps({'directory':str(directory),'recordSHA256':sha(raw)}))
+            if preferred:
+                expected=b'exact retained native source';(root/'native-source.c').write_bytes(b'changed checkout source')
+                retained=root/'native-retained.c';retained.write_bytes(b'wrong retained bytes' if corrupt_preferred else expected)
+                for profile in profiles:
+                    directory=builds/profile;record=json.loads((directory/'build-record.json').read_bytes());record['inputs']['native-source.c']=sha(expected)
+                    raw=json.dumps(record).encode();(directory/'build-record.json').write_bytes(raw)
+                    (builds/(profile+'.json')).write_text(json.dumps({'directory':str(directory),'recordSHA256':sha(raw)}))
+                recovered=root/'retained-inputs.json';recovered.write_text(json.dumps({'recovered':{'native-source.c':str(retained)}}))
             sdk=root/'sdk.json';sdk.write_text(json.dumps({'sdk':str(root/'sdk'),'sdkSources':{}}))
             argv=['record-audio-provider-build.py','--builds',str(builds),'--sdk-record',str(sdk),'--source-archive',str(archive),'--output',str(root/'provenance'),'--profiles',*profiles]
+            if preferred:argv+=['--preferred-inputs',str(recovered)]
             with patch.object(license_policy,'ROOT',root), patch.object(policy,'ROOT',root),patch.object(sys,'argv',argv),contextlib.redirect_stdout(io.StringIO()):
-                if wrong_opus:
+                if corrupt_preferred:
+                    with self.assertRaisesRegex(ValueError,'Native input drift'):
+                        runpy.run_path(str(ROOT/'scripts/record-audio-provider-build.py'),run_name='__main__')
+                    self.assertFalse((root/'web').exists())
+                elif wrong_opus:
                     with self.assertRaisesRegex(ValueError,'pinned native source'):
                         runpy.run_path(str(ROOT/'scripts/record-audio-provider-build.py'),run_name='__main__')
                     self.assertFalse((root/'web').exists(),'earlier valid profile wrote runtime before later invalid profile rejection')
@@ -66,11 +80,26 @@ class AudioSourcePolicy(unittest.TestCase):
                     engine=json.loads((root/'provenance/engine-build.json').read_bytes())
                     self.assertEqual(engine['sources'],{'opus-audio':sha(archive.read_bytes())})
                     self.assertIn('scripts/audio_source_policy.py',engine['inputs'])
+                    recovered=json.loads((root/'provenance/recovered.json').read_bytes())['recovered']
+                    retained=pathlib.Path(recovered['scripts/audio_source_policy.py'])
+                    if preferred:
+                        self.assertEqual(pathlib.Path(recovered['native-source.c']).read_bytes(),expected)
+                        self.assertEqual(engine['inputs']['native-source.c'],sha(expected))
+                    original=retained.read_bytes()
+                    (root/'scripts/audio_source_policy.py').write_bytes(b'changed after normalization')
+                    self.assertEqual(retained.read_bytes(),original)
+                    self.assertEqual(sha(original),engine['inputs']['scripts/audio_source_policy.py'])
 
     def test_all_profile_sources_checked_before_first_runtime_write(self):
         self.record(['ac3','opus-encoder'],True)
 
     def test_correct_pinned_libopus_record_is_accepted(self):
         self.record(['opus-encoder'],False)
+
+    def test_retained_native_inputs_survive_checkout_drift(self):
+        self.record(['opus-encoder'],False,preferred=True)
+
+    def test_corrupt_retained_native_input_fails_before_runtime_write(self):
+        self.record(['opus-encoder'],False,preferred=True,corrupt_preferred=True)
 
 if __name__=='__main__':unittest.main()

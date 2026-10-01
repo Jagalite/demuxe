@@ -1,0 +1,640 @@
+{
+  "schema": 1,
+  "scope": "Read-only source and host fixture inventory; no provider build/browser/production qualification",
+  "ffmpegRevision": "n9.0.2",
+  "archiveSHA256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9",
+  "hostReference": "FFmpeg 8.1.2 scalar -cpuflags 0, darwin arm64",
+  "sources": {
+    "configure": "5b281b249ad5ad859030b4da0a24ec105b5abff7b3d87a65b302df8bf5fd9833",
+    "libavcodec/Makefile": "4ac6f88ab0660089b9ede52fe276057ab2d2f0d7c4d784cfca51a11b5592e6bb",
+    "libavcodec/aac/Makefile": "f23a0eafeee71ea985f9bb40adeac0105ca230b9cb0d57ff0b0ae54d4ddd0572",
+    "libavcodec/aac/aacdec.c": "4117c2f4244af10f837ae3d30be6522a7557b27891f561841dc59912d08f662c",
+    "libavcodec/aac/aacdec_usac.c": "62b79a413667e0da3dcfc49d46af41578460704119241aaa0672882cd6197e97",
+    "libavcodec/speexdec.c": "d195fc338c90f87b7940aea8ee0d39a8a3e03dc726b3ddf274d601f169d63eb0",
+    "libavcodec/amrnbdec.c": "c330cbde4e5fdf3f4a137a23963088da99f0153a4a83b55b08a0fe183eb7ee88",
+    "libavcodec/amrwbdec.c": "26d5f8ccb3d47d65ec6a612aba878c8f89c6d33ff70cbc0b27b3173beb4457fd",
+    "libavcodec/gsmdec.c": "c2b03b38f4d8e0203140c0d3b5d6c69650b9dc69eaa2da8f8af491c49f03f618",
+    "libavcodec/msgsmdec.c": "cb7aab39db6875ad9915ded1ec7b5330965afb718e8c48c44874770a9e0b6303",
+    "libavcodec/pcm.c": "0f9744a1ab0d3316bfb2ffb81fd1b8b483651b9249ffc609960e2e9200894e39",
+    "libavcodec/adpcm.c": "6c4322dc3677bc5c74eeeb3c33ec2b076e25f454e6f1f1ef3d2d7ce6bf8cfbc2",
+    "libavformat/riff.c": "8fcb3f4b3c1503d18c5effd95412dfaf0b656f06222ecb2244c429e9c9af297e",
+    "tests/fate/aac.mak": "181e49c15ca6a20c0e6face11dd693f7ee3a1d8dc5e1b27f9c85ef89625ee946",
+    "tests/fate/amrnb.mak": "215c823e17d7859dac72703b80468534d321806e5fc2b6bd7a9528543a2ef477",
+    "tests/fate/amrwb.mak": "7714a6359615ddbe2abe49b87ddc9e540a6c3e793dfd981cbb3902db8340445f",
+    "tests/fate/voice.mak": "f2a723c2848a1b5eabdf06bac1eaaafe2130ad9c9ca820a19ba565e1b62351a7"
+  },
+  "realFixtures": [
+    {
+      "id": "amrnb-475",
+      "url": "https://fate-suite.ffmpeg.org/amrnb/4.75k.amr",
+      "path": "/tmp/demuxe-speech-adpcm-inventory/amrnb-475.amr",
+      "bytes": 3698,
+      "sha256": "02f83e3d2cf78d9224e57d2441e521f8063eeea5d92de67b4e574e6b3f229973",
+      "format": "amr",
+      "streams": [
+        {
+          "codec_name": "amr_nb",
+          "sample_fmt": "fltp",
+          "sample_rate": "8000",
+          "channels": 1,
+          "bits_per_sample": 0,
+          "block_align": null,
+          "extradata_size": null,
+          "duration": "5.680000",
+          "nb_frames": null
+        }
+      ],
+      "hostDecode": {
+        "passed": true,
+        "scalarS32Bytes": 181760,
+        "scalarSHA256": "6e8083e4951d4691d6d6fc5743a5806443ab91ddad4dbcc8d545eacfa2972892",
+        "error": ""
+      },
+      "packets": {
+        "count": 284,
+        "maximumBytes": 13,
+        "firstDuration": 160,
+        "firstTimeBasePTS": 0
+      }
+    },
+    {
+      "id": "amrwb-660",
+      "url": "https://fate-suite.ffmpeg.org/amrwb/seed-6k60.awb",
+      "path": "/tmp/demuxe-speech-adpcm-inventory/amrwb-660.awb",
+      "bytes": 11817,
+      "sha256": "5cd9696ce3b0df137c5c53f02392c3a9ee2ef0a614908d12f93c33fefa21b92f",
+      "format": "mov,mp4,m4a,3gp,3g2,mj2",
+      "streams": [
+        {
+          "codec_name": "amr_wb",
+          "sample_fmt": "fltp",
+          "sample_rate": "16000",
+          "channels": 1,
+          "bits_per_sample": 0,
+          "block_align": null,
+          "extradata_size": null,
+          "duration": "10.240000",
+          "nb_frames": "512"
+        }
+      ],
+      "hostDecode": {
+        "passed": true,
+        "scalarS32Bytes": 655360,
+        "scalarSHA256": "ca48ca930262670d5bd08ba603be8e57a46b69de375c904aeccd3613cb539d50",
+        "error": ""
+      },
+      "packets": {
+        "count": 512,
+        "maximumBytes": 18,
+        "firstDuration": 320,
+        "firstTimeBasePTS": 0
+      }
+    },
+    {
+      "id": "gsm",
+      "url": "https://samples.ffmpeg.org/A-codecs/GSM/sample.gsm",
+      "path": "/tmp/demuxe-speech-adpcm-inventory/gsm.gsm",
+      "bytes": 7260,
+      "sha256": "601e3370b2729e1ed8ce7d4d772f9643f0c838fc78e3d69508aa04fb9db2254c",
+      "format": "gsm",
+      "streams": [
+        {
+          "codec_name": "gsm",
+          "sample_fmt": "s16",
+          "sample_rate": "8000",
+          "channels": 1,
+          "bits_per_sample": 0,
+          "block_align": null,
+          "extradata_size": null,
+          "duration": "4.400000",
+          "nb_frames": null
+        }
+      ],
+      "hostDecode": {
+        "passed": true,
+        "scalarS32Bytes": 140800,
+        "scalarSHA256": "82d3908c03b819937062a679d26231b39663f0976fa81d911e86cea2722f5e4a",
+        "error": ""
+      },
+      "packets": {
+        "count": 220,
+        "maximumBytes": 33,
+        "firstDuration": 1,
+        "firstTimeBasePTS": 0
+      }
+    },
+    {
+      "id": "gsm-ms",
+      "url": "https://fate-suite.ffmpeg.org/gsm/ciao.wav",
+      "path": "/tmp/demuxe-speech-adpcm-inventory/gsm-ms.wav",
+      "bytes": 5846,
+      "sha256": "40c39ebf1f088f8092c148e57a15aefc943972549519765bd885f5c595c08fce",
+      "format": "wav",
+      "streams": [
+        {
+          "codec_name": "gsm_ms",
+          "sample_fmt": "s16",
+          "sample_rate": "8000",
+          "channels": 1,
+          "bits_per_sample": 0,
+          "block_align": null,
+          "extradata_size": 2,
+          "duration": "3.560000",
+          "nb_frames": null
+        }
+      ],
+      "hostDecode": {
+        "passed": true,
+        "scalarS32Bytes": 113920,
+        "scalarSHA256": "6c2a8fe8d81f5fb209a524f6871ac5c8dc8601089c6230394599729c4dd9bbc2",
+        "error": ""
+      },
+      "packets": {
+        "count": 89,
+        "maximumBytes": 65,
+        "firstDuration": 320,
+        "firstTimeBasePTS": 0
+      },
+      "wave": {
+        "tag": 49,
+        "blockAlign": 65,
+        "bitsPerCodedSample": 0,
+        "extradataHex": "4001"
+      },
+      "factSamples": 28480
+    },
+    {
+      "id": "speex-flv",
+      "url": "https://samples.ffmpeg.org/A-codecs/speex/testingSpeex.flv",
+      "path": "/tmp/demuxe-speech-adpcm-inventory/speex-flv.flv",
+      "bytes": 18209,
+      "sha256": "fb4db54c578240d5d39f2a22bedf103aa0f5a0e430626a5e83027635e536e36a",
+      "format": "flv",
+      "streams": [
+        {
+          "codec_name": "speex",
+          "sample_fmt": "flt",
+          "sample_rate": "16000",
+          "channels": 1,
+          "bits_per_sample": 0,
+          "block_align": null,
+          "extradata_size": null,
+          "duration": null,
+          "nb_frames": null
+        }
+      ],
+      "hostDecode": {
+        "passed": true,
+        "scalarS32Bytes": 437760,
+        "scalarSHA256": "ac627bac7785a6be64469ff302ec52d5520856c6647c561fcbdeee70911eede1",
+        "error": ""
+      },
+      "packets": {
+        "count": 171,
+        "maximumBytes": 103,
+        "firstDuration": null,
+        "firstTimeBasePTS": 0
+      }
+    },
+    {
+      "id": "ms-adpcm",
+      "url": "https://samples.ffmpeg.org/A-codecs/msadpcm-stereo/scatter.wav",
+      "path": "/tmp/demuxe-speech-adpcm-inventory/ms-adpcm.wav",
+      "bytes": 33882,
+      "sha256": "fe17a733b6a838315e03410478c1bf3a63b55940571e18efc5580f8b9f1869ac",
+      "format": "wav",
+      "streams": [
+        {
+          "codec_name": "adpcm_ms",
+          "sample_fmt": "s16",
+          "sample_rate": "44100",
+          "channels": 1,
+          "bits_per_sample": 4,
+          "block_align": null,
+          "extradata_size": 32,
+          "duration": "1.498299",
+          "nb_frames": null
+        }
+      ],
+      "hostDecode": {
+        "passed": true,
+        "scalarS32Bytes": 268752,
+        "scalarSHA256": "2cd053693609ec91864a7b97efb248547df82d8eb9d7213f1c682171dff40c7d",
+        "error": ""
+      },
+      "packets": {
+        "count": 17,
+        "maximumBytes": 2048,
+        "firstDuration": 4072,
+        "firstTimeBasePTS": 0
+      },
+      "wave": {
+        "tag": 2,
+        "blockAlign": 1024,
+        "bitsPerCodedSample": 4,
+        "extradataHex": "f407070000010000000200ff00000000c0004000f0000000cc0130ff880118ff"
+      },
+      "factSamples": 66075
+    },
+    {
+      "id": "ima-wav",
+      "url": "https://samples.ffmpeg.org/A-codecs/ima-adpcm/test_ima_adpcm.wav",
+      "path": "/tmp/demuxe-speech-adpcm-inventory/ima-wav.wav",
+      "bytes": 25660,
+      "sha256": "beff125eee960345930d24b6533972cd5643570ed51f5c39e7df48e357dce530",
+      "format": "wav",
+      "streams": [
+        {
+          "codec_name": "adpcm_ima_wav",
+          "sample_fmt": "s16p",
+          "sample_rate": "8000",
+          "channels": 1,
+          "bits_per_sample": 4,
+          "block_align": null,
+          "extradata_size": 2,
+          "duration": "6.280000",
+          "nb_frames": null
+        }
+      ],
+      "hostDecode": {
+        "passed": true,
+        "scalarS32Bytes": 202000,
+        "scalarSHA256": "4e288840609088bf9bc5e50cebb33fe2ab816cd9e6f39cf3db05ae5f279d8261",
+        "error": ""
+      },
+      "packets": {
+        "count": 100,
+        "maximumBytes": 256,
+        "firstDuration": 505,
+        "firstTimeBasePTS": 0
+      },
+      "wave": {
+        "tag": 17,
+        "blockAlign": 256,
+        "bitsPerCodedSample": 4,
+        "extradataHex": "f901"
+      },
+      "factSamples": 50240
+    }
+  ],
+  "aacFixtures": [
+    {
+      "id": "aac-he",
+      "url": "https://fate-suite.ffmpeg.org/aac/al_sbr_cm_48_2.mp4",
+      "path": "/tmp/demuxe-speech-adpcm-inventory/aac-he.mp4",
+      "bytes": 199678,
+      "sha256": "7e7c0390c950eda21775d1a193e05ee703257bed85602884e7d30a8b3c65be90",
+      "streams": [
+        {
+          "codec_name": "aac",
+          "profile": "HE-AAC",
+          "sample_rate": "48000",
+          "channels": 2,
+          "duration": "32.170667",
+          "extradata_size": 5,
+          "extradata": "\n00000000: 1310 56e5 98                             ..V..\n"
+        }
+      ],
+      "hostDecode": {
+        "passed": true,
+        "scalarF32Bytes": 12353536,
+        "scalarSHA256": "1c7e669bbf9bfece1f5f8663dc4cd404e0fa0e4fdfca9a826f20e41834398d11",
+        "error": ""
+      }
+    },
+    {
+      "id": "aac-hev2",
+      "url": "https://fate-suite.ffmpeg.org/aac/al_sbr_ps_04_new.mp4",
+      "path": "/tmp/demuxe-speech-adpcm-inventory/aac-hev2.mp4",
+      "bytes": 28612,
+      "sha256": "f5b3271f340162096a153a87e8b67c7e1b69f5c3198a6c6e525daa86ca548bb9",
+      "streams": [
+        {
+          "codec_name": "aac",
+          "profile": "HE-AAC",
+          "sample_rate": "32000",
+          "channels": 2,
+          "duration": "6.784000",
+          "extradata_size": 11,
+          "extradata": "\n00000000: 1400 0604 0000 0000 56e5 a8              ........V..\n"
+        }
+      ],
+      "hostDecode": {
+        "passed": true,
+        "scalarF32Bytes": 1736704,
+        "scalarSHA256": "442189b6403a0b9fbc4d08b6ef25a5d676d2b754b34259219defe3e4f0da7875",
+        "error": ""
+      }
+    },
+    {
+      "id": "aac-usac",
+      "url": "https://fate-suite.ffmpeg.org/aac/usac/Fd_1_c1_0x03.mp4",
+      "path": "/tmp/demuxe-speech-adpcm-inventory/aac-usac.mp4",
+      "bytes": 84991,
+      "sha256": "ccf48a4a55648bd8dc7e8655ffc0772ad86cb442b087b8e055ff78604153c7ec",
+      "streams": [
+        {
+          "codec_name": "aac",
+          "profile": "xHE-AAC",
+          "sample_rate": "48000",
+          "channels": 1,
+          "duration": "20.000000",
+          "extradata_size": 7,
+          "extradata": "\n00000000: f946 2321 10c0 00                        .F#!...\n"
+        }
+      ],
+      "hostDecode": {
+        "passed": true,
+        "scalarF32Bytes": 3841360,
+        "scalarSHA256": "3d99ac9a83f10035c8c57d26da72e7a5a53b459eb68dad577b127ce3919b87f9",
+        "error": ""
+      }
+    },
+    {
+      "id": "aac-hev2-explicit",
+      "url": "https://fate-suite.ffmpeg.org/aac/CT_DecoderCheck/sbr_i-ps_i.aac",
+      "path": "/tmp/demuxe-speech-adpcm-inventory/aac-hev2-explicit.aac",
+      "bytes": 32690,
+      "sha256": "76e84aa3e0d142696699bdb5d9bc8b037415065c604e2fa9f7d00e5f59bb597d",
+      "profile": "HE-AACv2",
+      "rate": "44100",
+      "channels": 2,
+      "hostDecodePassed": true,
+      "scalarSHA256": "c26c93724c3fba5b2593b9f334a2e16493051e4a244b4285f8018b0c49c25f94",
+      "scalarBytes": 2768896
+    }
+  ],
+  "generatedHostFixtures": [
+    {
+      "codec": "pcm_alaw",
+      "rate": 8000,
+      "channels": 1,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-pcm_alaw-8000-1.wav",
+      "bytes": 1052,
+      "sha256": "df4d7db51bb7255c95539c97ddc2675a9330701a967dfa4eb19914992e49b28a",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 960,
+      "scalarSHA256": "2022cf0bdb3e256d2ed4c7f44e0d09ed0cd9c9ff52cbfddbfcda771d8dd8bd87"
+    },
+    {
+      "codec": "pcm_alaw",
+      "rate": 16000,
+      "channels": 1,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-pcm_alaw-16000-1.wav",
+      "bytes": 2012,
+      "sha256": "59f845efca5d52bfd35f6a3dd59e0df84213663f8a91b3323897dc157731d559",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 1920,
+      "scalarSHA256": "03fa8a5f2829d0fa5071aa43517a31b118733a1a94abde9411d9233099753c98"
+    },
+    {
+      "codec": "pcm_alaw",
+      "rate": 22050,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-pcm_alaw-22050-2.wav",
+      "bytes": 5384,
+      "sha256": "c8a5d0d67b893e85d5ce339854d40876ba366f75e88ed82a15665c004efb8ae8",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 2646,
+      "scalarSHA256": "ab1ebb4dd8e13746fe3a6843f0f964a676b950bad5cb8c42c1293d873f49762d"
+    },
+    {
+      "codec": "pcm_alaw",
+      "rate": 32000,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-pcm_alaw-32000-2.wav",
+      "bytes": 7772,
+      "sha256": "acedb178a0f5fe54861652bfcb41ab67a0eef245073cc3dd1adb47c9076c0ea1",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 3840,
+      "scalarSHA256": "545d2f846a32b0a01b5f8d48ccb8b86c6092e328b18ded8f387add79ba8ef5a3"
+    },
+    {
+      "codec": "pcm_alaw",
+      "rate": 44100,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-pcm_alaw-44100-2.wav",
+      "bytes": 10676,
+      "sha256": "eaf1e97ace82343eba400b29e19c8db09211d5f68c8387da13c4dbf006c94424",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 5292,
+      "scalarSHA256": "6f11154d78a76a5253a85b342600452d81852e537c5f57360752cc13e993c08d"
+    },
+    {
+      "codec": "pcm_alaw",
+      "rate": 48000,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-pcm_alaw-48000-2.wav",
+      "bytes": 11612,
+      "sha256": "d1a1780fb7a4a71eb423fd6324ae840d2c26a3279fadfea3fab8222cade12851",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 5760,
+      "scalarSHA256": "8c7a3330782e920190743c4e23572d7f16b18dc9082f7d3fc0e8382da50891df"
+    },
+    {
+      "codec": "pcm_mulaw",
+      "rate": 8000,
+      "channels": 1,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-pcm_mulaw-8000-1.wav",
+      "bytes": 1052,
+      "sha256": "3fcc16974175218ee1a8b350efdb5da784c32d3fc546c9782454b2a06aaf65d2",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 960,
+      "scalarSHA256": "15c519c95d011c93f402d409cd3775e26233029a253f4da775f70b699637473a"
+    },
+    {
+      "codec": "pcm_mulaw",
+      "rate": 16000,
+      "channels": 1,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-pcm_mulaw-16000-1.wav",
+      "bytes": 2012,
+      "sha256": "9b527925a1c6f9a6362b8f6bc00a21d3c0fc2d87022c14712f10fdaeef27e5a0",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 1920,
+      "scalarSHA256": "de12b83e6c5f2f7144ce709e4899fad4c8f8e9ba26a96b7c9766f9c1c65612b1"
+    },
+    {
+      "codec": "pcm_mulaw",
+      "rate": 22050,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-pcm_mulaw-22050-2.wav",
+      "bytes": 5384,
+      "sha256": "2cee53105a4c947602140a39e1278e950d1684de3e1eebc10a37d1a0692b6188",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 2646,
+      "scalarSHA256": "b521604a210ee4e42eb7e9684415057a0ee9770eb39aa3116dfaa0f9094c5b14"
+    },
+    {
+      "codec": "pcm_mulaw",
+      "rate": 32000,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-pcm_mulaw-32000-2.wav",
+      "bytes": 7772,
+      "sha256": "e83b41d8b4da40857442c63ddb9b4498db083ffdc0894c74347ad16335cef279",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 3840,
+      "scalarSHA256": "c76e77fce47f8eaa3f7141faca323973997fcf67353e4a9ed653e07c85c69008"
+    },
+    {
+      "codec": "pcm_mulaw",
+      "rate": 44100,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-pcm_mulaw-44100-2.wav",
+      "bytes": 10676,
+      "sha256": "27b4d328c0461fad3de84e976a024841498c1b826607b39b16580cd725887119",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 5292,
+      "scalarSHA256": "0837200421eaf9e11982ee84d80a359a7be057fe0347a517eb1041fbb9a0b100"
+    },
+    {
+      "codec": "pcm_mulaw",
+      "rate": 48000,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-pcm_mulaw-48000-2.wav",
+      "bytes": 11612,
+      "sha256": "c4a53afb8d0503d6a5e5f8c7adcdc4d8d5db1dc3e96768f5440d76b7ff90263e",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 5760,
+      "scalarSHA256": "577fa4262063d2ea468746934bf6a7c2fadf7c86d6478d430d00c08c2bf6f352"
+    },
+    {
+      "codec": "adpcm_ms",
+      "rate": 8000,
+      "channels": 1,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-adpcm_ms-8000-1.wav",
+      "bytes": 1148,
+      "sha256": "62c6ca36bf1d846e8834651c44b6d40cae28c6fc90a93229cd987f2dee390c6a",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 2036,
+      "scalarSHA256": "6dbe34cfcca48faad2442e50fedb1d5267c4e76b8f453013137053b8c385b567"
+    },
+    {
+      "codec": "adpcm_ms",
+      "rate": 16000,
+      "channels": 1,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-adpcm_ms-16000-1.wav",
+      "bytes": 1148,
+      "sha256": "c21ea10b7b86948a24bf1103c261dcfa00c40c7de0a14d5f9cf8cc0c62eb4d15",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 2036,
+      "scalarSHA256": "2d442c94c3fede5cd05787f9d9b8c5c9c9b055c528e51e62ae3abbc0c9cf200e"
+    },
+    {
+      "codec": "adpcm_ms",
+      "rate": 22050,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-adpcm_ms-22050-2.wav",
+      "bytes": 3196,
+      "sha256": "e408e031bf4a5cb007bf82c6d7db5e4eb477970a72ea364ccbef0b098a29b28b",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 3036,
+      "scalarSHA256": "44a99e0bf0f253653213b7822862b21696af7c1cd48350643cfb653c0037ab06"
+    },
+    {
+      "codec": "adpcm_ms",
+      "rate": 32000,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-adpcm_ms-32000-2.wav",
+      "bytes": 4220,
+      "sha256": "870465d90a01304ff50267d1b1a4bc83fd1f8bf3749632cec74205b654d2c665",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 4048,
+      "scalarSHA256": "103d5525a43cd4adc96e1679218c0cfff11bbd8658eb63a166f9034638787253"
+    },
+    {
+      "codec": "adpcm_ms",
+      "rate": 44100,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-adpcm_ms-44100-2.wav",
+      "bytes": 6268,
+      "sha256": "2de3e2d1bac55c8af77ad24109f6e9d1e1c7068539ffa62b47fb84361d1d502f",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 6072,
+      "scalarSHA256": "e7f9e99ab1e394d45bc910859a72157987f0d503a5eb5b585186b64b1dab35eb"
+    },
+    {
+      "codec": "adpcm_ms",
+      "rate": 48000,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-adpcm_ms-48000-2.wav",
+      "bytes": 6268,
+      "sha256": "dcf4f76b48fdd2af718081cd7ca551a98ff6d7a01aa7019bd10cde0820a47d15",
+      "hostSampleFormat": "s16",
+      "decodedSamples": 6072,
+      "scalarSHA256": "a986c590acf5582b5022b37a0a59bef6a0ce678f8c3f1dfc558cf50b103100e3"
+    },
+    {
+      "codec": "adpcm_ima_wav",
+      "rate": 8000,
+      "channels": 1,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-adpcm_ima_wav-8000-1.wav",
+      "bytes": 1118,
+      "sha256": "a720f98119c2f78ffdcfb3f8c7d6e9c0fe6ee8bbf5c8ab29d00bb80db7745978",
+      "hostSampleFormat": "s16p",
+      "decodedSamples": 2041,
+      "scalarSHA256": "f320a6b8a112eebe39bd5b337f39c5bd1192f4addf78cd7b6b29c1d93324c41f"
+    },
+    {
+      "codec": "adpcm_ima_wav",
+      "rate": 16000,
+      "channels": 1,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-adpcm_ima_wav-16000-1.wav",
+      "bytes": 1118,
+      "sha256": "87ae673ba8c9de986f64349754f98b8a81075994c6da86118904c19484b01a38",
+      "hostSampleFormat": "s16p",
+      "decodedSamples": 2041,
+      "scalarSHA256": "012143b3091ccb976ce448cfa96133a2a68b52d238aa070f6f312cec538f6e5c"
+    },
+    {
+      "codec": "adpcm_ima_wav",
+      "rate": 22050,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-adpcm_ima_wav-22050-2.wav",
+      "bytes": 3166,
+      "sha256": "d0efc9bd611933b5f6003544b344f8dd216905c7f9b2d320736be502b100cc50",
+      "hostSampleFormat": "s16p",
+      "decodedSamples": 3051,
+      "scalarSHA256": "584283e76381b6056437322c20c52f506407274693b07280365be0bdc34b7bcd"
+    },
+    {
+      "codec": "adpcm_ima_wav",
+      "rate": 32000,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-adpcm_ima_wav-32000-2.wav",
+      "bytes": 4190,
+      "sha256": "be8f2045ec3e4346f62b95134cc08b0c87c6ede8161c6d547aefa224f020ae77",
+      "hostSampleFormat": "s16p",
+      "decodedSamples": 4068,
+      "scalarSHA256": "ea9151ba83f9180bdb5402f358c547c8aaf56b9c784f212c359322d5083526d9"
+    },
+    {
+      "codec": "adpcm_ima_wav",
+      "rate": 44100,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-adpcm_ima_wav-44100-2.wav",
+      "bytes": 6238,
+      "sha256": "1906490d5102a56c2777faf2330ed77d338391aecda71f5bacfee88a135eeec3",
+      "hostSampleFormat": "s16p",
+      "decodedSamples": 6102,
+      "scalarSHA256": "f1f053aaa8d178cfb2995e3c284067c28357f0f6cff1d4cdcbb42a8016988971"
+    },
+    {
+      "codec": "adpcm_ima_wav",
+      "rate": 48000,
+      "channels": 2,
+      "path": "/tmp/demuxe-speech-adpcm-inventory/generated-adpcm_ima_wav-48000-2.wav",
+      "bytes": 6238,
+      "sha256": "9383a07fc77732dfdd3fd5a52067c84d212e6feb3559d7936347a29a5e5d07f4",
+      "hostSampleFormat": "s16p",
+      "decodedSamples": 6102,
+      "scalarSHA256": "9b26245d30a35a09fb8ab3593a40a754a1935936f47f19feee9c34ce26367ea0"
+    }
+  ],
+  "remainingGates": [
+    "Bounded provider ABI/profile implementation",
+    "Pinned native/Wasm tests against independent references",
+    "Finite packet readers and declared presentation trims",
+    "Low output rate FLAC configuration and fMP4/browser qualification",
+    "Installed assets/embedded/browser CI"
+  ]
+}

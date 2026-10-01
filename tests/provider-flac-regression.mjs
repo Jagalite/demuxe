@@ -14,13 +14,15 @@ for(const [file,fact] of Object.entries(record.artifacts))assert.equal(hash(awai
 const factory=(await import(pathToFileURL(pointer.directory+'/module.mjs'))).default;
 const module=await factory({wasmBinary:await readFile(pointer.directory+'/module.wasm')});
 const out=process.env.FLAC_RESULT_ROOT??'build/codec-expansion/flac-results';await mkdir(out,{recursive:true});const results=[];
-for(const channels of [1,2,6,8]){
- const c=new AbortController(),e=new PacketFlacEncoder(module,channels,c.signal),count=e.blockSize*3+13;
+for(const sampleRate of [44100,48000,96000])for(const channels of [1,2,6,8]){
+ const c=new AbortController(),e=new PacketFlacEncoder(module,channels,c.signal,0,sampleRate),count=e.blockSize*3+13;
  const pcm=Int32Array.from({length:count*channels},(_,i)=>(i*100003%16777216-8388608)*256),packets=[];
  for(let offset=0;offset<pcm.length;offset+=e.blockSize*channels)packets.push(...e.encode(pcm.subarray(offset,offset+e.blockSize*channels)));
  packets.push(...e.flush());assert.deepEqual(e.flush(),[]);let pts=0;for(const p of packets){assert.equal(p.pts,pts);pts+=p.duration;}assert.equal(pts,count);
- const file=out+`/flac-${channels}.flac`;await writeFile(file,Buffer.concat([Buffer.from([102,76,97,67,128,0,0,34]),e.header,...packets.map(p=>p.data)]));
+ const file=out+`/flac-${sampleRate}-${channels}.flac`;await writeFile(file,Buffer.concat([Buffer.from([102,76,97,67,128,0,0,34]),e.header,...packets.map(p=>p.data)]));
+ const stream=JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-of','json',file],{encoding:'utf8'})).streams[0];
+ assert.equal(Number(stream.sample_rate),sampleRate);assert.equal(stream.channels,channels);
  const decoded=execFileSync('ffmpeg',['-v','error','-i',file,'-f','s32le','-'],{maxBuffer:16*1024*1024});assert.deepEqual(decoded,Buffer.from(pcm.buffer));
- c.abort();assert.throws(()=>e.encode(pcm.subarray(0,channels)));e.dispose();results.push({channels,samples:count,exactRoundtrip:true,partialFinalBlock:true,aborted:true});
+ c.abort();assert.throws(()=>e.encode(pcm.subarray(0,channels)));e.dispose();results.push({sampleRate,channels,samples:count,exactRoundtrip:true,partialFinalBlock:true,aborted:true});
 }
 await writeFile(out+'/report.json',JSON.stringify({passed:true,record,results},null,2)+'\n');console.log(results);

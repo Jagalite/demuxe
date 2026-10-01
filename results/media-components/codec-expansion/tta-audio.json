@@ -1,0 +1,916 @@
+{
+  "adapterSHA256": "d24b7ffe45f607bcbcc0cbdbea56fdff59799f368e5977d95b62fce02b77c4ef",
+  "passed": true,
+  "scope": "Canonical60.48sec TTA1 and finite441/48mono/stereo6 integer16/24 decoderPCM/reset/seek; exactvalidated22byte unencryptedheaderCRC+nativepacketCRC, monoheaderprovesmask4;96framebudget/8wide/32/encryptedblocked; no new container/player admission.",
+  "inputs": {
+    "native/audio-codecs/decoder.c": "f2a91eac3acd7d241cf0afae6bd932d1a34e74620d33d10a5ec2d8d2f6fff08c",
+    "packages/provider-audio/src/packet-decoder.ts": "f68fa4a9452bde7cb0b8ed64f20ac7b13a24229a0d222d0ef312bb862ea92064",
+    "scripts/build-audio-providers.py": "dbfd008aafc73ce1fb58f4ac21733e67ce364f631e69ad71f425bbc05f051656",
+    "tests/tta-audio-fixtures.py": "18f30b11613159d28367832b1c8ea600bf69149e8ba4b70812c3d340894c12f6",
+    "tests/tta-audio.mjs": "19f52a288f84a071fa422e47465b990a3b7cf74702b5ac78dc96c3ae600c286b"
+  },
+  "referenceTool": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "build": {
+    "profile": "archive-more",
+    "source": {
+      "name": "ffmpeg-adaptation",
+      "upstream": "https://github.com/FFmpeg/FFmpeg",
+      "revision": "n9.0.2",
+      "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+      "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+    },
+    "sourceKey": "a53b8f8fe3e669de79cfbd02178f5ebfb2307f14500c4923ca40b545c2258344",
+    "nativeBuildInputs": {
+      "patches/ffmpeg-adaptation/0002-browser-nested-avio.patch": "4ceaf3185f152c596fc9617e47cc47cd2b264d6f8b2f098bbea8055b798da3ec",
+      "patches/ffmpeg-adaptation/0004-hls-ts-discontinuity-timeline.patch": "6635e6cb14090af54c20c526592df6cf4360cba0bb2e3199071688c37f146bb1",
+      "patches/ffmpeg-adaptation/0005-dfpwm-seek-reset.patch": "0f2e57a194e5d5f5ff23edb864084e5a1e9e05224a4ab1bb71e6598d614e9923",
+      "patches/ffmpeg-adaptation/0006-swf-audio-duration.patch": "e59e36d524f78b98862e5a484b4900e3ea28593d3a25fbc90a6f7f30d79b4c5f",
+      "patches/ffmpeg-adaptation/0007-nut-keyframe-recovery.patch": "b02b157a7a8f1dd3ddd65e541b4f3ae3057acb130044ddba97a148ece8cb0c95",
+      "patches/ffmpeg-adaptation/0008-hls-indexed-webvtt-seek.patch": "224da133f9c2b4c4243743145ec8d90845d98878eeb3535ace35d129b31f03ae",
+      "patches/ffmpeg-adaptation/0009-nut-discard-budget.patch": "9d6dde4654d72d4a810b60894befc2260185afd9fa91a9a6dd3f2dda71e343fe",
+      "patches/ffmpeg-adaptation/0010-strict-stream-resource-errors.patch": "f979b6232cef7ece804cbc7dcaf89788c109b9c8c0d4ce9fe6ac735267026e40",
+      "patches/ffmpeg-adaptation/0011-dash-continuous-fmp4.patch": "fe43a338fc469f38d10ff76b66ed56406fd4ccbacf8348dbb95351f107c2f3fd",
+      "patches/ffmpeg-adaptation/0012-demuxe-segment-plans.patch": "e4073571ea824fbeb68848e8918129bae172c2896503794fda085b8d8f47c705",
+      "patches/ffmpeg-adaptation/0013-demuxe-sparse-discovery.patch": "01c32d856f157845917d345f21ff3f4a36f1a0b38e5211a72e3a5bbdc20f537c",
+      "patches/ffmpeg-adaptation/0014-http-chunked-eof.patch": "b3b89b8e84da739a9e10de37eb9cd48e3fbe4104e63aac2b55ceb5da9238cad5",
+      "patches/ffmpeg-adaptation/0015-demuxe-live-hls-components.patch": "9516d75248ccd1f43281755410d3f7e3a58c94e917e02ec0e81840b296778486",
+      "patches/ffmpeg-adaptation/0016-demuxe-resource-retirement.patch": "199ff687d64e2f4d971c23ec352820bb21b1273e33def75bbcebdc7f125af1a7",
+      "patches/ffmpeg-adaptation/0017-demuxe-dash-period-session.patch": "0b5cadd65282139c04e21688e8fbdfa94813f9636461407e1aef5ce8b330fc9d",
+      "patches/ffmpeg-adaptation/0018-demuxe-discontinuity-retirement.patch": "1904f37c4cea150d35a82dabba4a82912d92d6d1bc4308b6b42a03589a889afd",
+      "patches/ffmpeg-adaptation/0019-demuxe-hls-window-anchor.patch": "1f20c83dab06c73c0e1345db1e38ccc36caa0df10e7e7f8962fd8c73b373f76e",
+      "patches/ffmpeg-adaptation/0020-mov-strict-sample-eof.patch": "f4d70438726c79d12d923893b8a8e322a43bc8415e816386a99217c25c3822ab",
+      "patches/ffmpeg-adaptation/0021-demuxe-dash-live-discovery.patch": "3ed99eda3249bd6d1d7e5319887b8923d4005ad6d73aab6a7faec9c4c45fa228",
+      "native/audio-codecs/decoder.c": "31333b84124ab693a50bec9e9fedad4510d4e5f3c6e21ac50197f912711354f2",
+      "native/audio-codecs/encoder.c": "a40339c0030e3d674a111df3505824a8feedd7e2dfa24156b3542350462ff078",
+      "scripts/build-audio-providers.py": "3eb708618976c7da1fb7d0a238b62c91f37c117f3f3df4d5d4b1740b8960cf0e"
+    },
+    "recordSHA256": "254e87d75cb3567ffc3de0b3d560dd1b65a7e023d2638a0b20b7d4c9946d6efb",
+    "module": {
+      "sha256": "1d02101363b42e6a60d74d8f91bfcd5bc54f675b0ad0e2a530e912186b45fd7b",
+      "bytes": 13873
+    },
+    "wasm": {
+      "sha256": "a30253e4b6bb564b855d9b82053ad220fbc9782372a871a75cae5d9b25235f8e",
+      "bytes": 247866
+    },
+    "capabilities": [
+      "audio.decode.tta"
+    ]
+  },
+  "results": [
+    {
+      "id": "tta-canonical",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-tta-fixtures/tta-canonical.tta",
+      "inputSHA256": "8bc3603af61b7a059e064aaca0b93bb5ef43e5a61f249f886bf9cbea3b73a953",
+      "packetSHA256": "eb3fd9ef337900aab13aaacafeffc9986b7dd04d21b5e73cd4aa653f571239f5",
+      "referenceSHA256": "8e96d4eba1b732365ccf582d7bd94593c5c554c4d4a9f87ea773b78604a5aca8",
+      "framesSHA256": "ee7b791af3155a5425c6df2857fe96126eb8a55ae53967489e18525ff7137d52",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/lossless/luckynight.tta",
+      "expectedDecodeRejection": null,
+      "expectedRejection": null,
+      "referenceF32SHA256": "6ead09fa12f54f212c63415945667c363b2f05345f8f0398f2d848ca365c86db",
+      "passed": true,
+      "frames": 58,
+      "maxFrameSamples": 46080,
+      "maxPacketBytes": 123431,
+      "samples": 2667168,
+      "referencePCMHash": "8e96d4eba1b732365ccf582d7bd94593c5c554c4d4a9f87ea773b78604a5aca8",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 48.25,
+          "startPacket": 45,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 16.75,
+          "startPacket": 15,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 58.5,
+          "startPacket": 55,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 4.75,
+          "startPacket": 4,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "headerGuardsAndPacketCRCRejected": true,
+      "abort": true
+    },
+    {
+      "id": "tta16-44100-1",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-tta-fixtures/tta16-44100-1.tta",
+      "inputSHA256": "a4ad12f767fb9cba7a48c8810de02577355a1f2b9e1e7b47e3697fdff060a48a",
+      "packetSHA256": "dadaf09c3ff1be4d77c3911aa44ffcf957f1b4e706d118effca3c4565e4b88b7",
+      "referenceSHA256": "1eda28735794cb4943887e550ae6b75708600bd7a0b134e82e760162eeb9b0f8",
+      "framesSHA256": "bbfa773ce54f35b5aab60ae7d31af4583523f014128e4d5e973e31c2f2d0ddbc",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": null,
+      "referenceF32SHA256": "fe101c85591d3952dff7b3f003a6840f520a40b31a480ee8c02008516ce965c3",
+      "passed": true,
+      "frames": 6,
+      "maxFrameSamples": 46080,
+      "maxPacketBytes": 13957,
+      "samples": 270642,
+      "referencePCMHash": "1eda28735794cb4943887e550ae6b75708600bd7a0b134e82e760162eeb9b0f8",
+      "channelMasks": [
+        4
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 4,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "headerGuardsAndPacketCRCRejected": true,
+      "abort": true
+    },
+    {
+      "id": "tta16-44100-2",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-tta-fixtures/tta16-44100-2.tta",
+      "inputSHA256": "01276f37ae40fb9f3c5f2d7832167f993afc74b6d42f10236389895ab7361237",
+      "packetSHA256": "415cc9cba05f6ee2e6747e8679497a87850305991fe2218f7948f981f610710c",
+      "referenceSHA256": "c376b428da7661dddec8490e6a1cb9fb244c9666eed962678eb4d083b1ac0368",
+      "framesSHA256": "937d0b04cd0815b4aa030fbf54741f1c6fcc4c347bfc0f14c2d642f9ba9146bf",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": null,
+      "referenceF32SHA256": "9bedfd3be26a22f70e04e21ff8ae66915311fe482f26a9c507e2a2d4772ac219",
+      "passed": true,
+      "frames": 6,
+      "maxFrameSamples": 46080,
+      "maxPacketBytes": 29851,
+      "samples": 270642,
+      "referencePCMHash": "c376b428da7661dddec8490e6a1cb9fb244c9666eed962678eb4d083b1ac0368",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 4,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "headerGuardsAndPacketCRCRejected": true,
+      "abort": true
+    },
+    {
+      "id": "tta16-44100-6",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 44100,
+      "channels": 6,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-tta-fixtures/tta16-44100-6.tta",
+      "inputSHA256": "2a4ea5dfa2a744e99febaafc19b2492ab03bc48ebdad8ef20d37e7f1745e3cdd",
+      "packetSHA256": "a38305357903cddc938794d0c1797ff086d95c998d403443c079da868eb641b0",
+      "referenceSHA256": "986711b7a86036800c82795e38068a0b2f253d730bd941b5703a4cfd7efc2bc3",
+      "framesSHA256": "65599bf84c250c40bdca617d40fb9889cc332c6d7ab97dc4036a05ded0567c7c",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": null,
+      "referenceF32SHA256": "30e94da1c51177c888da1b0cabdd58af84801a7ef86dd720d2d97385a23977d0",
+      "passed": true,
+      "frames": 6,
+      "maxFrameSamples": 46080,
+      "maxPacketBytes": 108911,
+      "samples": 270642,
+      "referencePCMHash": "986711b7a86036800c82795e38068a0b2f253d730bd941b5703a4cfd7efc2bc3",
+      "channelMasks": [
+        63
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 4,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "headerGuardsAndPacketCRCRejected": true,
+      "abort": true
+    },
+    {
+      "id": "tta16-48000-1",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 48000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-tta-fixtures/tta16-48000-1.tta",
+      "inputSHA256": "771af1dee7a18eb3c125d012c8e0adef4ca71fe7bdd4336fddb6f0539f018f54",
+      "packetSHA256": "33b8c764d363d26cc0de57f68b3cc0e250dd9e0249685cf001279c79602e1e92",
+      "referenceSHA256": "db37d69c0cae3152822bda4b99993636c58f2817720aa6faf59476f499b510ac",
+      "framesSHA256": "f45c49ed6e08c4f38773dc53611885ddb98d36411d4d7e69ce793977dfd4fb80",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": null,
+      "referenceF32SHA256": "79b67634b74b503219f4449d89e73f4a6bc73476fc3d9e275a4d7e9c3cfa5c1b",
+      "passed": true,
+      "frames": 6,
+      "maxFrameSamples": 50155,
+      "maxPacketBytes": 14699,
+      "samples": 294576,
+      "referencePCMHash": "db37d69c0cae3152822bda4b99993636c58f2817720aa6faf59476f499b510ac",
+      "channelMasks": [
+        4
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 4,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "headerGuardsAndPacketCRCRejected": true,
+      "abort": true
+    },
+    {
+      "id": "tta16-48000-2",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-tta-fixtures/tta16-48000-2.tta",
+      "inputSHA256": "3ba1ed66430e07d1efdcc847e0be0832956604dbeec1a85cc02565713671020d",
+      "packetSHA256": "e49a95a4748020cc137cb2c4bc799e2a97d04cc6365337cdfc766eefb582fcfb",
+      "referenceSHA256": "b20ce8a7f12740d989da7c77e0e03a6d61edc383b3cdf708a3d1d4e1965992d3",
+      "framesSHA256": "ce999106641d518df1279ae8d6455c9ac3dc772d7e8ac3a68158614fae221320",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": null,
+      "referenceF32SHA256": "ef15fb9ce4d6fd0f503a861c35286429c38f6ade31d9f9fe3d9f0da78cdab312",
+      "passed": true,
+      "frames": 6,
+      "maxFrameSamples": 50155,
+      "maxPacketBytes": 31925,
+      "samples": 294576,
+      "referencePCMHash": "b20ce8a7f12740d989da7c77e0e03a6d61edc383b3cdf708a3d1d4e1965992d3",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 4,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "headerGuardsAndPacketCRCRejected": true,
+      "abort": true
+    },
+    {
+      "id": "tta16-48000-6",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 48000,
+      "channels": 6,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-tta-fixtures/tta16-48000-6.tta",
+      "inputSHA256": "d2890f5e56f672f4bef5d28501c7d160551b85830d018063886b4b1a9eaa9f26",
+      "packetSHA256": "4c763fd69bc70a9fa9d5d99ead1cb6f0e058db23a5511a5b3775868e70d49fea",
+      "referenceSHA256": "374d25d3a0b1fad67ae3ac8da81e0180147d9e5cafbee0bf257a33ed04c43348",
+      "framesSHA256": "799255c4a4cd9ee272086ffbf63db5450b06f3e113ff9818f2ccac02ee38aacd",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": null,
+      "referenceF32SHA256": "48bb42c1bea8a54961f8277160a4e54dcfe1f49cdda91f4c8317255803e3e9f9",
+      "passed": true,
+      "frames": 6,
+      "maxFrameSamples": 50155,
+      "maxPacketBytes": 115228,
+      "samples": 294576,
+      "referencePCMHash": "374d25d3a0b1fad67ae3ac8da81e0180147d9e5cafbee0bf257a33ed04c43348",
+      "channelMasks": [
+        63
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 4,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "headerGuardsAndPacketCRCRejected": true,
+      "abort": true
+    },
+    {
+      "id": "tta24-44100-1",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-tta-fixtures/tta24-44100-1.tta",
+      "inputSHA256": "d9ef539f13d885bc03f133031c27b64ffbd5daf7c99ee3b4d7e1efa00831cf83",
+      "packetSHA256": "16650d42598efa00ea408f3e1621f7f45fc84332802291b8b8e8b80ab168d1fc",
+      "referenceSHA256": "d921e0cdcfa108114162e2e3e1e28f42eae2d4dc669c600955c242bc1bf58153",
+      "framesSHA256": "0f75801e66c7d3628a5a04372390990fa92cace645e2d57d3495794229d83e18",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": null,
+      "referenceF32SHA256": "1663df66c18e189adcff6f2d25faa2af4abbbd2f6dc7df79b18367f4e7db8e32",
+      "passed": true,
+      "frames": 6,
+      "maxFrameSamples": 46080,
+      "maxPacketBytes": 260201,
+      "samples": 270642,
+      "referencePCMHash": "d921e0cdcfa108114162e2e3e1e28f42eae2d4dc669c600955c242bc1bf58153",
+      "channelMasks": [
+        4
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 4,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "headerGuardsAndPacketCRCRejected": true,
+      "abort": true
+    },
+    {
+      "id": "tta24-44100-2",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-tta-fixtures/tta24-44100-2.tta",
+      "inputSHA256": "36e1b77b9bef1594516e854118ce760682b834bac665854cb1355a8f796e545a",
+      "packetSHA256": "63d4f9bd3c65054fa42062eaa1e3bf149b67bd761dc54e0913c2404a5a86c34e",
+      "referenceSHA256": "019416c59b1d2633a7f4e0e8da77ffe8e93eb093848de1644ee1235ab5d87fb1",
+      "framesSHA256": "ff06267523a5e2dd49bec1e40b0d64f03e43abfd0e660ca00f3eb2941ae63449",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": null,
+      "referenceF32SHA256": "fdf7f011b525d6b34004e5426ea04c7156327c36dd6e718eb8aece6c4e41a0b7",
+      "passed": true,
+      "frames": 6,
+      "maxFrameSamples": 46080,
+      "maxPacketBytes": 547443,
+      "samples": 270642,
+      "referencePCMHash": "019416c59b1d2633a7f4e0e8da77ffe8e93eb093848de1644ee1235ab5d87fb1",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 4,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "headerGuardsAndPacketCRCRejected": true,
+      "abort": true
+    },
+    {
+      "id": "tta24-44100-6-quiet-overbudget",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 44100,
+      "channels": 6,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-tta-fixtures/tta24-44100-6.tta",
+      "inputSHA256": "620550a488e3f46ebac6753e164a381388ee8bb6daca683352be04fbdd34ba9c",
+      "packetSHA256": "299e5477d0027ea1e4de924ff8f9f02fd86a8893940207491ef6f8146c8197a1",
+      "referenceSHA256": "1fc98a400b86955017d000727895656c6814e47d8bb51d9b75d782738e6f7f12",
+      "framesSHA256": "5a93d9d17749bb1eecd0836de520e2b1048220e8b88c506d9a68eee18cf767e9",
+      "sourceURL": null,
+      "expectedDecodeRejection": "packet-budget",
+      "expectedRejection": null,
+      "passed": true,
+      "packetBudgetRejected": true,
+      "maxPacketBytes": 2230352
+    },
+    {
+      "id": "tta24-44100-6-smooth",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 44100,
+      "channels": 6,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-tta-fixtures/tta24-44100-6-smooth.tta",
+      "inputSHA256": "13d24dad1c676f3899a5ad8a65832ee4302224e30d67cb1fcf157f836b0ea0dc",
+      "packetSHA256": "b5bd7bc28ce862f24fde11d9d6915ce1824901480b59b873d81dcabecf3291bc",
+      "referenceSHA256": "fb0004a8871ba179817a61c24ba7801bb38cf81dcd9a5ce1f922e8d827b8f83f",
+      "framesSHA256": "5a93d9d17749bb1eecd0836de520e2b1048220e8b88c506d9a68eee18cf767e9",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": null,
+      "referenceF32SHA256": "6b5745a421e12f923278ef50f9ef8acdf75fc5c40c501ed15cc289c01147e633",
+      "passed": true,
+      "frames": 6,
+      "maxFrameSamples": 46080,
+      "maxPacketBytes": 325169,
+      "samples": 270642,
+      "referencePCMHash": "fb0004a8871ba179817a61c24ba7801bb38cf81dcd9a5ce1f922e8d827b8f83f",
+      "channelMasks": [
+        63
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 4,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "headerGuardsAndPacketCRCRejected": true,
+      "abort": true
+    },
+    {
+      "id": "tta24-48000-1",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 48000,
+      "channels": 1,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-tta-fixtures/tta24-48000-1.tta",
+      "inputSHA256": "9d5f18e812ce57a013b67addd9b8e65e2a926581df87ad33540809dd2a5a9caf",
+      "packetSHA256": "332ed404e5444b73bef877e7cd059127933d5dcad62b581d8bc4ebd2dd682ac6",
+      "referenceSHA256": "d60f040fafbd449e51c05dfb024993cf7ef755509612febd43b7ba8250258e94",
+      "framesSHA256": "4f656766c24ed93eb6f576724dbcfd6640195853ef0c3ed064f51d49745c615c",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": null,
+      "referenceF32SHA256": "6c4ab0eba25eba7c120431dc4c38d0e7d5272cbfb745f21880d771eef677c0d7",
+      "passed": true,
+      "frames": 6,
+      "maxFrameSamples": 50155,
+      "maxPacketBytes": 275742,
+      "samples": 294576,
+      "referencePCMHash": "d60f040fafbd449e51c05dfb024993cf7ef755509612febd43b7ba8250258e94",
+      "channelMasks": [
+        4
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 4,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "headerGuardsAndPacketCRCRejected": true,
+      "abort": true
+    },
+    {
+      "id": "tta24-48000-2",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-tta-fixtures/tta24-48000-2.tta",
+      "inputSHA256": "91ec772097bd4863b8093ee9db2c29ee6c1607f92cedf1ef3369977276eb296d",
+      "packetSHA256": "a50cde6a9f9471025fe3a290501115f4e9c6399f3df35138b4bed239ba8ecbde",
+      "referenceSHA256": "5e61db6353c55a3d38e40b858b5fa77c21995e39c7df5b8ea152a140c47ec5fc",
+      "framesSHA256": "c6d46a4be10f771d563c7e637facdd76156c64db67b05a8c189f28e705f1c268",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": null,
+      "referenceF32SHA256": "39828dd046da4f1b9af08593787647b4e9d7f26c4f6fb9bfbac904d928201fa0",
+      "passed": true,
+      "frames": 6,
+      "maxFrameSamples": 50155,
+      "maxPacketBytes": 541404,
+      "samples": 294576,
+      "referencePCMHash": "5e61db6353c55a3d38e40b858b5fa77c21995e39c7df5b8ea152a140c47ec5fc",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 4,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "headerGuardsAndPacketCRCRejected": true,
+      "abort": true
+    },
+    {
+      "id": "tta24-48000-6-quiet-overbudget",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 48000,
+      "channels": 6,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-tta-fixtures/tta24-48000-6.tta",
+      "inputSHA256": "3a3ffdcb6a02669d7b6a0d39201509f3482e86faca3fd7510b80288dd0e370ef",
+      "packetSHA256": "d322cb8e1978488a53f1380ff7c951d4b8d3bb70be27ac4174c8bbd155c16ddf",
+      "referenceSHA256": "5c7000b4feab2f289791a391022ac6ca951a1d72079b61d39379df2fdef6abf3",
+      "framesSHA256": "57fc3dc6acedad774cab18c4e00a910e5b42b8ac8dbe1455b81e2c8caa9d3db3",
+      "sourceURL": null,
+      "expectedDecodeRejection": "packet-budget",
+      "expectedRejection": null,
+      "passed": true,
+      "packetBudgetRejected": true,
+      "maxPacketBytes": 2191183
+    },
+    {
+      "id": "tta24-48000-6-smooth",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 48000,
+      "channels": 6,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-tta-fixtures/tta24-48000-6-smooth.tta",
+      "inputSHA256": "16d7da4056852c3babafc398b75c42fdf7f46b5d4b19956d42b2c63b7d4283f3",
+      "packetSHA256": "ebc30468b788e91134f0c40ccdd8999bb2944cd80a74d6800090d57f03720d98",
+      "referenceSHA256": "b42eb599181b2598dc270c916707c283de44517ed7ddd818efd3bd9050688d3e",
+      "framesSHA256": "57fc3dc6acedad774cab18c4e00a910e5b42b8ac8dbe1455b81e2c8caa9d3db3",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": null,
+      "referenceF32SHA256": "7050347c97911eefb1ed83df5c28914a7739d65315b0541d34792abc444f1e17",
+      "passed": true,
+      "frames": 6,
+      "maxFrameSamples": 50155,
+      "maxPacketBytes": 347542,
+      "samples": 294576,
+      "referencePCMHash": "b42eb599181b2598dc270c916707c283de44517ed7ddd818efd3bd9050688d3e",
+      "channelMasks": [
+        63
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 4,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "headerGuardsAndPacketCRCRejected": true,
+      "abort": true
+    },
+    {
+      "id": "tta24-96000-2-unsupported",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 96000,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-tta-fixtures/tta24-96000-2-unsupported.tta",
+      "inputSHA256": "e03d3f183aa398a864d87b11032593473da35ed46719c5a0cd5a17f716ca6e29",
+      "packetSHA256": "dda197fadfe097f674ea0a4ebc396de17984e85322036dab0f0a8c241a03e099",
+      "referenceSHA256": "c484be9899ae289cbac3946fe72270a001350fdbb5085b22910f6f22abeff2aa",
+      "framesSHA256": "4d49674bd63649273593b4377639f6c89759f655e99ce85c1e80c4b4bb2d914b",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": "PROVIDER_PROFILE_MISMATCH",
+      "passed": true,
+      "unsupportedRateOrLayoutRejected": true
+    },
+    {
+      "id": "tta24-48000-8-unsupported",
+      "profile": "archive-more",
+      "codec": "tta",
+      "sampleRate": 48000,
+      "channels": 8,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-tta-fixtures/tta24-48000-8-unsupported.tta",
+      "inputSHA256": "925f6e3a913b8a08152b54d875f18d6ba95903d606181ec4bb3a18c32e422853",
+      "packetSHA256": "f98d9f25e36707dc44f9bf6aa8d08d613ca758b13a4eece4a81a987884a65728",
+      "referenceSHA256": "57a2a727d4ce0e6d9c799a3cc91552004720ffe76bd105c973695005f108d451",
+      "framesSHA256": "a0751dbbd162c8c649970a23dd076075cda6f82eec010cad594cf0bb852ae355",
+      "sourceURL": null,
+      "expectedDecodeRejection": null,
+      "expectedRejection": "PROVIDER_PROFILE_MISMATCH",
+      "passed": true,
+      "unsupportedRateOrLayoutRejected": true
+    }
+  ]
+}

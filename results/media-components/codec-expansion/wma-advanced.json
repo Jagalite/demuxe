@@ -1,0 +1,898 @@
+{
+  "passed": true,
+  "scope": "Official bounded complete ASF codec-block WMA advanced packet decoding; no container, remux, playback, or implicit resampling admission.",
+  "referenceBuild": {
+    "recordSHA256": "44d4165ca74d059b379c74e49555be75dfd7b75353eeac1f5ba25e3da61c2c0b",
+    "source": {
+      "name": "ffmpeg-adaptation",
+      "upstream": "https://github.com/FFmpeg/FFmpeg",
+      "revision": "n9.0.2",
+      "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+      "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+    },
+    "commands": [
+      [
+        "/private/tmp/demuxe-wma-advanced-builds/sources/831a9b4483f37e5b03544e3934a335b0b9bf8a6bf03613f1808537be76dfb72f/source/FFmpeg-n9.0.2/configure",
+        "--disable-everything",
+        "--disable-doc",
+        "--disable-debug",
+        "--disable-autodetect",
+        "--disable-network",
+        "--disable-x86asm",
+        "--enable-ffmpeg",
+        "--enable-ffprobe",
+        "--enable-decoder=wmapro,wmalossless,wmavoice,pcm_s16le,pcm_s32le",
+        "--enable-demuxer=asf,wav",
+        "--enable-encoder=pcm_s32le,pcm_f32le",
+        "--enable-muxer=pcm_s32le,pcm_f32le",
+        "--enable-protocol=file,pipe",
+        "--enable-filter=asetpts,aresample,aformat,anull"
+      ],
+      [
+        "make",
+        "-j2"
+      ]
+    ],
+    "qualification": "independent-host-reference-only",
+    "inputSHA256": "7def2b882ae8b6a149f0194f4f1a20e8b185dc44631f0031d08d5ca070f8ff4a",
+    "sourceInputs": {
+      "configure": "5b281b249ad5ad859030b4da0a24ec105b5abff7b3d87a65b302df8bf5fd9833",
+      "libavcodec/wmaprodec.c": "803547a38dea1294891c00402d6b3576a16053b0f00b395768c4983740c86553",
+      "libavcodec/wmalosslessdec.c": "37af74c8eb8216b394b7e61b1861b4bef051b9e18a7e5875eae58febf58b1454",
+      "libavcodec/wmavoice.c": "f4e77847584383f3a3c145ace8b4bbe6eee13811362b0d9923d4f4cc450a4d37"
+    },
+    "effectiveConfig": {
+      "config.h": "0af22fc6ccf2fa21cf7e7d0a47ec28ed51e6cc3d13a9ac8d083b14c384fa9773",
+      "config_components.h": "792b0500b78318d60d330dbd5b8a46c18f70f71c0806458e51e9e7dcb4c0e1ae",
+      "ffbuild/config.mak": "91b1f500f799a5274336b70fcf32af9b3c0e043f49c4d0ed8e325f397bdbbe0d"
+    },
+    "artifacts": {
+      "ffmpeg": {
+        "sha256": "842f9c3bd3b0c48f894cb745c5f7c01086e843dd843dcc41062352f44f429096",
+        "bytes": 3138360
+      },
+      "ffprobe": {
+        "sha256": "add88ea8c4b002bc95cdc7f545e9ca909069e1ce69251d045a309fae6b11d564",
+        "bytes": 2945976
+      }
+    }
+  },
+  "referenceTool": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "inputs": {
+    "native/audio-codecs/decoder.c": "f2a91eac3acd7d241cf0afae6bd932d1a34e74620d33d10a5ec2d8d2f6fff08c",
+    "packages/provider-audio/src/packet-decoder.ts": "f68fa4a9452bde7cb0b8ed64f20ac7b13a24229a0d222d0ef312bb862ea92064",
+    "scripts/build-audio-providers.py": "5f12b0b7006d4bebdd2cc7e978bf456dc24f3398c7253eeef4160a816f2c824f",
+    "tests/wma-advanced-fixtures.py": "02579aedd66228b8939325e9c2c7b475610989b8fa9230316ea0b4fc35eb9b65",
+    "tests/wma-advanced-audio.mjs": "dbf06b14b780c82ef1a8a1247af138c41e16a3c5909df5b64989a409886c39b2",
+    "scripts/build-wma-reference.py": "7def2b882ae8b6a149f0194f4f1a20e8b185dc44631f0031d08d5ca070f8ff4a"
+  },
+  "build": {
+    "profile": "wma-advanced",
+    "source": {
+      "name": "ffmpeg-adaptation",
+      "upstream": "https://github.com/FFmpeg/FFmpeg",
+      "revision": "n9.0.2",
+      "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+      "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+    },
+    "sourceKey": "a1c412f42ce39db480f6e901b38b382b4d7411bf1e622dd1a8f4141a9636286c",
+    "nativeBuildInputs": {
+      "patches/ffmpeg-adaptation/0002-browser-nested-avio.patch": "4ceaf3185f152c596fc9617e47cc47cd2b264d6f8b2f098bbea8055b798da3ec",
+      "patches/ffmpeg-adaptation/0004-hls-ts-discontinuity-timeline.patch": "6635e6cb14090af54c20c526592df6cf4360cba0bb2e3199071688c37f146bb1",
+      "patches/ffmpeg-adaptation/0005-dfpwm-seek-reset.patch": "0f2e57a194e5d5f5ff23edb864084e5a1e9e05224a4ab1bb71e6598d614e9923",
+      "patches/ffmpeg-adaptation/0006-swf-audio-duration.patch": "e59e36d524f78b98862e5a484b4900e3ea28593d3a25fbc90a6f7f30d79b4c5f",
+      "patches/ffmpeg-adaptation/0007-nut-keyframe-recovery.patch": "b02b157a7a8f1dd3ddd65e541b4f3ae3057acb130044ddba97a148ece8cb0c95",
+      "patches/ffmpeg-adaptation/0008-hls-indexed-webvtt-seek.patch": "224da133f9c2b4c4243743145ec8d90845d98878eeb3535ace35d129b31f03ae",
+      "patches/ffmpeg-adaptation/0009-nut-discard-budget.patch": "9d6dde4654d72d4a810b60894befc2260185afd9fa91a9a6dd3f2dda71e343fe",
+      "patches/ffmpeg-adaptation/0010-strict-stream-resource-errors.patch": "f979b6232cef7ece804cbc7dcaf89788c109b9c8c0d4ce9fe6ac735267026e40",
+      "patches/ffmpeg-adaptation/0011-dash-continuous-fmp4.patch": "fe43a338fc469f38d10ff76b66ed56406fd4ccbacf8348dbb95351f107c2f3fd",
+      "patches/ffmpeg-adaptation/0012-demuxe-segment-plans.patch": "e4073571ea824fbeb68848e8918129bae172c2896503794fda085b8d8f47c705",
+      "patches/ffmpeg-adaptation/0013-demuxe-sparse-discovery.patch": "01c32d856f157845917d345f21ff3f4a36f1a0b38e5211a72e3a5bbdc20f537c",
+      "patches/ffmpeg-adaptation/0014-http-chunked-eof.patch": "b3b89b8e84da739a9e10de37eb9cd48e3fbe4104e63aac2b55ceb5da9238cad5",
+      "patches/ffmpeg-adaptation/0015-demuxe-live-hls-components.patch": "9516d75248ccd1f43281755410d3f7e3a58c94e917e02ec0e81840b296778486",
+      "patches/ffmpeg-adaptation/0016-demuxe-resource-retirement.patch": "199ff687d64e2f4d971c23ec352820bb21b1273e33def75bbcebdc7f125af1a7",
+      "patches/ffmpeg-adaptation/0017-demuxe-dash-period-session.patch": "0b5cadd65282139c04e21688e8fbdfa94813f9636461407e1aef5ce8b330fc9d",
+      "patches/ffmpeg-adaptation/0018-demuxe-discontinuity-retirement.patch": "1904f37c4cea150d35a82dabba4a82912d92d6d1bc4308b6b42a03589a889afd",
+      "patches/ffmpeg-adaptation/0019-demuxe-hls-window-anchor.patch": "1f20c83dab06c73c0e1345db1e38ccc36caa0df10e7e7f8962fd8c73b373f76e",
+      "patches/ffmpeg-adaptation/0020-mov-strict-sample-eof.patch": "f4d70438726c79d12d923893b8a8e322a43bc8415e816386a99217c25c3822ab",
+      "patches/ffmpeg-adaptation/0021-demuxe-dash-live-discovery.patch": "3ed99eda3249bd6d1d7e5319887b8923d4005ad6d73aab6a7faec9c4c45fa228",
+      "native/audio-codecs/decoder.c": "f2a91eac3acd7d241cf0afae6bd932d1a34e74620d33d10a5ec2d8d2f6fff08c",
+      "native/audio-codecs/encoder.c": "a40339c0030e3d674a111df3505824a8feedd7e2dfa24156b3542350462ff078",
+      "scripts/build-audio-providers.py": "dbfd008aafc73ce1fb58f4ac21733e67ce364f631e69ad71f425bbc05f051656"
+    },
+    "recordSHA256": "8c635d573375b4a5458e9876fe01b9b4a39b3bc563477cf9b7daa08d628aab00",
+    "module": {
+      "sha256": "30256e26618f6462500e70fb63c9fef0228a196a33a95752af8a0ed8f560a08e",
+      "bytes": 13963
+    },
+    "wasm": {
+      "sha256": "49c34f1583a68a68d2a7949bb770dd467c2d8073dd4fc406b888003d5f7554ee",
+      "bytes": 463619
+    },
+    "capabilities": [
+      "audio.decode.wmapro",
+      "audio.decode.wmalossless",
+      "audio.decode.wmavoice"
+    ]
+  },
+  "results": [
+    {
+      "id": "voice8",
+      "codec": "wmavoice",
+      "sampleRate": 8000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "inputSHA256": "42d5466de2fc43a289aeda7b8df5c7e28d03e504f0b9010efdb3b30b66229ae1",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/WMA9/WMAVoice/wmav_8.wma",
+      "passed": true,
+      "expectedFailure": "not-implemented"
+    },
+    {
+      "id": "voicevideo",
+      "codec": "wmavoice",
+      "sampleRate": 8000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "inputSHA256": "1bde2de6b9070c25842ad02998d774771f8140547637eb335e96b204d9941d40",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/WMA9/WMAVoice/wmv3-wmaspeeech.wmv",
+      "silentControlRejected": true,
+      "corruptOutputControlRejected": true,
+      "corruptNativeError": false,
+      "passed": true,
+      "frames": 166,
+      "drainFrames": 1,
+      "samples": 79467,
+      "referenceSHA256": "82f7d57624784529e9d0b142c4ca02763496272b3457837d5dc7aafaf77476b7",
+      "integerExact": false,
+      "nativeTimestampFrames": 38,
+      "maximumFramesPerBlock": 7,
+      "maximumScalarsPerBlock": 3360,
+      "resetExact": true,
+      "seekQualification": "Independent scalar decoder restarted at exact original block with original submitted packetPTS; no original-timeline seek/composition admission.",
+      "timestampOrigins": [
+        "native",
+        "packet-clock"
+      ],
+      "seeks": [
+        {
+          "startPacket": 24,
+          "originalPacketPTS": 46560,
+          "frames": 69,
+          "maxError": 0.0000014901161193847656,
+          "snr": 115.47574015085152,
+          "pcmSHA256": "c2d292fbb0fc686e7c852e5f291590ffab714238f15d057ac2d20a4a0a2fc44e"
+        },
+        {
+          "startPacket": 7,
+          "originalPacketPTS": 11040,
+          "frames": 143,
+          "maxError": 0.00010062754154205322,
+          "snr": 95.58389783849154,
+          "pcmSHA256": "9a11348c1a0c3cb0d143a245acb6c11328450a7391941613bb76ede1c8cf5cc2"
+        },
+        {
+          "startPacket": 32,
+          "originalPacketPTS": 67200,
+          "frames": 26,
+          "maxError": 8.940696716308594e-7,
+          "snr": 116.10508677471333,
+          "pcmSHA256": "ce1b0a8d892b53c2f9968c781ae6ada513f1bed93382ccd832d556c11aee3d2c"
+        },
+        {
+          "startPacket": 13,
+          "originalPacketPTS": 21600,
+          "frames": 121,
+          "maxError": 0.00010053813457489014,
+          "snr": 94.91903232114106,
+          "pcmSHA256": "e53a4cd56f44e3560903990be15b2199aa62346fc0a4d0e570484e6c733e89d6"
+        }
+      ],
+      "maxError": 0.00010062754154205322,
+      "snr": 96.45035251447652,
+      "pcmSHA256": "d812c33c86eceb723bf281e32a7c108d6c7b80dc12066a56de67205d2e9242a8",
+      "invalidFramingRejected": true,
+      "abort": true
+    },
+    {
+      "id": "lossless",
+      "codec": "wmalossless",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "inputSHA256": "37fe6efab1231f07f46ed8d8bec212c0b97e1535f4931ba02d92138a32f2b6ee",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/lossless/luckynight.wma",
+      "passed": true,
+      "frames": 1303,
+      "drainFrames": 2,
+      "samples": 2667168,
+      "referenceSHA256": "8e96d4eba1b732365ccf582d7bd94593c5c554c4d4a9f87ea773b78604a5aca8",
+      "integerExact": true,
+      "nativeTimestampFrames": 490,
+      "maximumFramesPerBlock": 4,
+      "maximumScalarsPerBlock": 16384,
+      "resetExact": true,
+      "seekQualification": "Independent scalar decoder restarted at exact original block with original submitted packetPTS; no original-timeline seek/composition admission.",
+      "timestampOrigins": [
+        "native",
+        "packet-clock"
+      ],
+      "seeks": [
+        {
+          "startPacket": 319,
+          "originalPacketPTS": 1748962,
+          "frames": 444,
+          "maxError": 0,
+          "snr": null,
+          "pcmSHA256": "873193726dc2c4ec6eeb342a5cc3939aa056f671b4bfb3cc36c18d302595fa48"
+        },
+        {
+          "startPacket": 98,
+          "originalPacketPTS": 536565,
+          "frames": 1034,
+          "maxError": 0,
+          "snr": null,
+          "pcmSHA256": "f249c5498d2bc04cdf9f7a7b0b2f5fd828978e8afc1d23d405642a1df787d125"
+        },
+        {
+          "startPacket": 417,
+          "originalPacketPTS": 2265064,
+          "frames": 194,
+          "maxError": 0,
+          "snr": null,
+          "pcmSHA256": "a3cfcc8df1317d1c3edc36f9bab09578705e24263e401fc58617eb7c64125069"
+        },
+        {
+          "startPacket": 171,
+          "originalPacketPTS": 921558,
+          "frames": 843,
+          "maxError": 0,
+          "snr": null,
+          "pcmSHA256": "0ca1cc3896fa1650dd285d8971b9ce5ec42f2cb1d2e630afbcea1ff50e0137f2"
+        }
+      ],
+      "maxError": 0,
+      "snr": null,
+      "pcmSHA256": "8e96d4eba1b732365ccf582d7bd94593c5c554c4d4a9f87ea773b78604a5aca8",
+      "invalidFramingRejected": true,
+      "abort": true
+    },
+    {
+      "id": "pro8",
+      "codec": "wmapro",
+      "sampleRate": 48000,
+      "channels": 8,
+      "bitsPerSample": 24,
+      "inputSHA256": "31af70c41bc5dc02ba8358284246911db851ab68a414c3dd78467abac5be5cad",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/WMA9/8_Channel_ID.wma",
+      "passed": true,
+      "frames": 329,
+      "drainFrames": 0,
+      "samples": 671919,
+      "referenceSHA256": "d6f496affd44f86d397c612f1692ec6c8de0023d313f30a4d60e911c594825c6",
+      "integerExact": false,
+      "nativeTimestampFrames": 0,
+      "maximumFramesPerBlock": 8,
+      "maximumScalarsPerBlock": 131072,
+      "resetExact": true,
+      "seekQualification": "Independent scalar decoder restarted at exact original block with original submitted packetPTS; no original-timeline seek/composition admission.",
+      "timestampOrigins": [
+        "packet-clock"
+      ],
+      "seeks": [
+        {
+          "startPacket": 27,
+          "originalPacketPTS": 442368,
+          "frames": 113,
+          "maxError": 8.940696716308594e-8,
+          "snr": 142.77811828251924,
+          "pcmSHA256": "ee5fdbb1b6fdb6a5f6c5d380fcd4b94d5a852face5efb6ae32f9bce91c21a609"
+        },
+        {
+          "startPacket": 8,
+          "originalPacketPTS": 131088,
+          "frames": 265,
+          "maxError": 8.940696716308594e-8,
+          "snr": 142.5868671956224,
+          "pcmSHA256": "e8a4ecdaa95d78e501e5c631c07a912e67adf0bc7776b0f9deace021bfd8d106"
+        },
+        {
+          "startPacket": 35,
+          "originalPacketPTS": 573456,
+          "frames": 49,
+          "maxError": 8.940696716308594e-8,
+          "snr": 143.14601541905216,
+          "pcmSHA256": "dfb560fc9ba19ea5b327f5813bf344ee6fa0dacb1b4462f9595b854e75d92aff"
+        },
+        {
+          "startPacket": 14,
+          "originalPacketPTS": 229392,
+          "frames": 217,
+          "maxError": 8.940696716308594e-8,
+          "snr": 142.6459328362273,
+          "pcmSHA256": "78927664789a9644c274a6f517c0ec85ea2f1f35dd71da3e6a217dfce241c0ba"
+        }
+      ],
+      "maxError": 8.940696716308594e-8,
+      "snr": 142.4889886582508,
+      "pcmSHA256": "9bd6667c2c200067152ec2de39a0b92c349045629eca0a336318b264dc27bd33",
+      "invalidFramingRejected": true,
+      "abort": true
+    },
+    {
+      "id": "pro51",
+      "codec": "wmapro",
+      "sampleRate": 48000,
+      "channels": 6,
+      "bitsPerSample": 24,
+      "inputSHA256": "55ff0b58a241f3dc4b82216eb046cfe3fc358161f50f6c96d9b77b82da65a7e0",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/WMA9/WMAPro_5dot1/ambient3_192_mulitchannel.wma",
+      "passed": true,
+      "frames": 1133,
+      "drainFrames": 0,
+      "samples": 2320130,
+      "referenceSHA256": "ec93d736149a0978a34470447f0ef8ddb10fe37209af3d323cc3ec0aeba3a3ea",
+      "integerExact": false,
+      "nativeTimestampFrames": 140,
+      "maximumFramesPerBlock": 19,
+      "maximumScalarsPerBlock": 233472,
+      "resetExact": true,
+      "seekQualification": "Independent scalar decoder restarted at exact original block with original submitted packetPTS; no original-timeline seek/composition admission.",
+      "timestampOrigins": [
+        "packet-clock",
+        "native"
+      ],
+      "seeks": [
+        {
+          "startPacket": 91,
+          "originalPacketPTS": 1509360,
+          "frames": 396,
+          "maxError": 1.1920928955078125e-7,
+          "snr": 139.1562534663372,
+          "pcmSHA256": "34e929f986756613440829c3c87210bc62472c4f5382527efb0c47acdc127717"
+        },
+        {
+          "startPacket": 28,
+          "originalPacketPTS": 606192,
+          "frames": 837,
+          "maxError": 1.7881393432617188e-7,
+          "snr": 141.12179561496032,
+          "pcmSHA256": "ed74a7b5ca3dc230f764fabdabaa7adbc88dea505cc7cc8f711a7f5255a99057"
+        },
+        {
+          "startPacket": 119,
+          "originalPacketPTS": 1798128,
+          "frames": 255,
+          "maxError": 4.470348358154297e-8,
+          "snr": 142.36515148270135,
+          "pcmSHA256": "7a8b812e80a1338c433a06fe10a4b44ce961ac0c26c8fac5c531fbd65d8e27b5"
+        },
+        {
+          "startPacket": 49,
+          "originalPacketPTS": 1015776,
+          "frames": 637,
+          "maxError": 1.1920928955078125e-7,
+          "snr": 140.3651624818105,
+          "pcmSHA256": "9b027bbda7d7c6603facb68adf21641ffff8b70f75bf45d6b8310eba4402a7cd"
+        }
+      ],
+      "maxError": 2.086162567138672e-7,
+      "snr": 141.55487515282093,
+      "pcmSHA256": "3478a8e42d10b9a9e96e9d86cd5fc6c036ddc1a98372e46b6c8bb9ecdea0e17c",
+      "invalidFramingRejected": true,
+      "abort": true
+    },
+    {
+      "id": "pro48",
+      "codec": "wmapro",
+      "sampleRate": 48000,
+      "channels": 6,
+      "bitsPerSample": 24,
+      "inputSHA256": "cf348eff5d609071cc640642c70eb95ff48fcbca39fde83c4b139d9ae361c827",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/WMA9/wmapro/Classical_48_24_6_Q25_2_3.wma",
+      "passed": true,
+      "frames": 17782,
+      "drainFrames": 0,
+      "samples": 9104321,
+      "referenceSHA256": "7a9c69ab08a050afdbd2e4a332a29287e38557aadb239d3824b85863070ac519",
+      "integerExact": false,
+      "nativeTimestampFrames": 1924,
+      "maximumFramesPerBlock": 58,
+      "maximumScalarsPerBlock": 177798,
+      "resetExact": true,
+      "seekQualification": "Independent scalar decoder restarted at exact original block with original submitted packetPTS; no original-timeline seek/composition admission.",
+      "timestampOrigins": [
+        "packet-clock",
+        "native"
+      ],
+      "seeks": [
+        {
+          "startPacket": 1253,
+          "originalPacketPTS": 5879808,
+          "frames": 6298,
+          "maxError": 1.7881393432617188e-7,
+          "snr": 140.57717479209498,
+          "pcmSHA256": "95b7fc2e387d23084a0cf43505c6dd8329de73a788b6ab8db89b0aaf4ef4818d"
+        },
+        {
+          "startPacket": 385,
+          "originalPacketPTS": 1747440,
+          "frames": 14369,
+          "maxError": 2.682209014892578e-7,
+          "snr": 140.58584706814776,
+          "pcmSHA256": "7cca1bbd2711655b6f9d9ab3071cc2b10a6c2887443b11caa59d81addb17a00f"
+        },
+        {
+          "startPacket": 1639,
+          "originalPacketPTS": 7741440,
+          "frames": 2662,
+          "maxError": 1.1920928955078125e-7,
+          "snr": 140.65635799126903,
+          "pcmSHA256": "2b02f08fe0fb85ae4ece393d08e93ee45267b19e97dfd7e88ce3bd177f344fd9"
+        },
+        {
+          "startPacket": 675,
+          "originalPacketPTS": 3045888,
+          "frames": 11833,
+          "maxError": 2.682209014892578e-7,
+          "snr": 140.56485480177707,
+          "pcmSHA256": "fc01584a49f5d11a8d78a76a23131abc1c991a1489d65bb03c0bc025dea78bf9"
+        }
+      ],
+      "maxError": 2.682209014892578e-7,
+      "snr": 140.60300184823726,
+      "pcmSHA256": "7ec2ae06eb3907a969050afeaa733b2954a05447a07d9abde2c2163f84703c61",
+      "invalidFramingRejected": true,
+      "abort": true
+    },
+    {
+      "id": "pro96",
+      "codec": "wmapro",
+      "sampleRate": 96000,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "inputSHA256": "5763bbdb6bc4175656dccd62289c2bca6292736672aec05555fe8f01bced260e",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/WMA9/wmapro/Classical_96_24_2_Q75_2_3.wma",
+      "passed": true,
+      "frames": 17782,
+      "drainFrames": 0,
+      "samples": 18208641,
+      "referenceSHA256": "4ca1d0d186e1c6a4d7567714cdd081c7429e6c19eb73706a96696a2453b47269",
+      "integerExact": false,
+      "nativeTimestampFrames": 1198,
+      "maximumFramesPerBlock": 120,
+      "maximumScalarsPerBlock": 245506,
+      "resetExact": true,
+      "seekQualification": "Independent scalar decoder restarted at exact original block with original submitted packetPTS; no original-timeline seek/composition admission.",
+      "timestampOrigins": [
+        "packet-clock",
+        "native"
+      ],
+      "seeks": [
+        {
+          "startPacket": 780,
+          "originalPacketPTS": 11723712,
+          "frames": 6333,
+          "maxError": 8.940696716308594e-8,
+          "snr": 143.10624242935708,
+          "pcmSHA256": "073423601d52ebf455657e53f6b5ef0e433fff6beca80fc33700b4fe46fff6ee"
+        },
+        {
+          "startPacket": 240,
+          "originalPacketPTS": 3511296,
+          "frames": 14353,
+          "maxError": 1.1920928955078125e-7,
+          "snr": 143.12375946929063,
+          "pcmSHA256": "cf83937793b616ab8d1d9739a599244fa7bcdf097c663358e07e0a68e12e4d0a"
+        },
+        {
+          "startPacket": 1020,
+          "originalPacketPTS": 15489984,
+          "frames": 2655,
+          "maxError": 7.450580596923828e-8,
+          "snr": 142.7575887702953,
+          "pcmSHA256": "852d715e19c1b99e4e455ac1d2aa2a8665de6bce277c99108f326f59a2d61d40"
+        },
+        {
+          "startPacket": 420,
+          "originalPacketPTS": 6036480,
+          "frames": 11887,
+          "maxError": 1.1920928955078125e-7,
+          "snr": 143.16263657326556,
+          "pcmSHA256": "f12450f3898e9933996b953c2ac3d49ef4fcc2d7cb06ab840984b591bedc214a"
+        }
+      ],
+      "maxError": 1.1920928955078125e-7,
+      "snr": 143.10100709992852,
+      "pcmSHA256": "bee599fc06a43be4a047996670b95fb5c92679ac011a233acf622166ec900633",
+      "invalidFramingRejected": true,
+      "abort": true
+    },
+    {
+      "id": "prostereo",
+      "codec": "wmapro",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "inputSHA256": "f7d406204b8675490f5d8de754f700520b81aaa310f3facc3e6a247b2740450e",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/WMA9/wmapro/Beethovens%20nionde%20symfoni%20(Scherzo)-2.wma",
+      "passed": true,
+      "frames": 1774,
+      "drainFrames": 0,
+      "samples": 3631205,
+      "referenceSHA256": "57e5640dfbe249d6334437afc8f4debdadfbafd1ccdcdecb4b09fa6ff7f13106",
+      "integerExact": false,
+      "nativeTimestampFrames": 577,
+      "maximumFramesPerBlock": 6,
+      "maximumScalarsPerBlock": 24576,
+      "resetExact": true,
+      "seekQualification": "Independent scalar decoder restarted at exact original block with original submitted packetPTS; no original-timeline seek/composition admission.",
+      "timestampOrigins": [
+        "packet-clock",
+        "native"
+      ],
+      "seeks": [
+        {
+          "startPacket": 384,
+          "originalPacketPTS": 2348976,
+          "frames": 627,
+          "maxError": 1.7881393432617188e-7,
+          "snr": 140.57640749620364,
+          "pcmSHA256": "340b5c83d236378425af15cbb688d7d8260c750c86f886731ad49f313fd88773"
+        },
+        {
+          "startPacket": 118,
+          "originalPacketPTS": 722400,
+          "frames": 1421,
+          "maxError": 1.7881393432617188e-7,
+          "snr": 140.67185835553926,
+          "pcmSHA256": "cfede88f854cb4d603682228aab32acde4998dc4c0414b49b33b651e48ff254d"
+        },
+        {
+          "startPacket": 503,
+          "originalPacketPTS": 3078096,
+          "frames": 271,
+          "maxError": 4.470348358154297e-8,
+          "snr": 140.57515526260227,
+          "pcmSHA256": "dbe0169017c429290eb031bb36c3812e3a0299274d5055535df1bb6b074a9402"
+        },
+        {
+          "startPacket": 207,
+          "originalPacketPTS": 1259472,
+          "frames": 1159,
+          "maxError": 1.7881393432617188e-7,
+          "snr": 140.66972060355272,
+          "pcmSHA256": "6c2a71a17b02005b77741d0cf59e26de4eb8f8c74a3d6cc790855dbce81d0eef"
+        }
+      ],
+      "maxError": 1.7881393432617188e-7,
+      "snr": 140.75763823573044,
+      "pcmSHA256": "a3a4183685b422ad76c26ece226ee7a59774e5773dc5244e21d4d0f30759ffe0",
+      "invalidFramingRejected": true,
+      "abort": true
+    },
+    {
+      "id": "voice16-stream",
+      "codec": "wmavoice",
+      "sampleRate": 16000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "inputSHA256": "8c27217adb15e65da49502ddd0b7188b71011fd4cc23b548d8576e4fa80764e1",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/WMSP/streaming_CBR-19K.wma",
+      "silentControlRejected": true,
+      "corruptOutputControlRejected": true,
+      "corruptNativeError": false,
+      "passed": true,
+      "frames": 550,
+      "drainFrames": 0,
+      "samples": 263953,
+      "referenceSHA256": "6e300f858b6179e70655c04b2164b62c642099afc03c51a7ce1f18086407b138",
+      "integerExact": false,
+      "nativeTimestampFrames": 61,
+      "maximumFramesPerBlock": 19,
+      "maximumScalarsPerBlock": 9120,
+      "resetExact": true,
+      "seekQualification": "Independent scalar decoder restarted at exact original block with original submitted packetPTS; no original-timeline seek/composition admission.",
+      "timestampOrigins": [
+        "native",
+        "packet-clock"
+      ],
+      "seeks": [
+        {
+          "startPacket": 39,
+          "originalPacketPTS": 165584,
+          "frames": 205,
+          "maxError": 0.002841576933860779,
+          "snr": 74.60362435111622,
+          "pcmSHA256": "1eb53275304b560aadd9ff8c2208973f65b16de586e1612c896b72b7b5375bb9"
+        },
+        {
+          "startPacket": 12,
+          "originalPacketPTS": 47520,
+          "frames": 451,
+          "maxError": 0.006417304277420044,
+          "snr": 69.9015646346151,
+          "pcmSHA256": "52f9e6be88b3e1b97ae7d6eecd1b8b285c6f89105589a4c60e01265ac7ce5751"
+        },
+        {
+          "startPacket": 51,
+          "originalPacketPTS": 216944,
+          "frames": 98,
+          "maxError": 0.000023126602172851562,
+          "snr": 98.64393905700437,
+          "pcmSHA256": "d554775bbae77f80f58b7b3d1f483e8a727d55f38ad5e700269637eb2734fbdc"
+        },
+        {
+          "startPacket": 21,
+          "originalPacketPTS": 87824,
+          "frames": 367,
+          "maxError": 0.006419509649276733,
+          "snr": 68.87456638977426,
+          "pcmSHA256": "40da03ace6e60c39e5a802ed270542495f530048834aa2c6df7128ba552f7031"
+        }
+      ],
+      "maxError": 0.006422638893127441,
+      "snr": 71.09954374957667,
+      "pcmSHA256": "9b7bae93013226f85cb004fbb56a71791f494dd1a65eae2b5cb495f64a113487",
+      "invalidFramingRejected": true,
+      "abort": true
+    },
+    {
+      "id": "voice16-web",
+      "codec": "wmavoice",
+      "sampleRate": 16000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "inputSHA256": "2a89ecd99a10cc986aabf6aad63b2a3590953b6936dc392515da2acf3d119588",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/WMSP/webserv-prog_CBR-19K.wma",
+      "silentControlRejected": true,
+      "corruptOutputControlRejected": true,
+      "corruptNativeError": false,
+      "passed": true,
+      "frames": 550,
+      "drainFrames": 0,
+      "samples": 263953,
+      "referenceSHA256": "6e300f858b6179e70655c04b2164b62c642099afc03c51a7ce1f18086407b138",
+      "integerExact": false,
+      "nativeTimestampFrames": 61,
+      "maximumFramesPerBlock": 19,
+      "maximumScalarsPerBlock": 9120,
+      "resetExact": true,
+      "seekQualification": "Independent scalar decoder restarted at exact original block with original submitted packetPTS; no original-timeline seek/composition admission.",
+      "timestampOrigins": [
+        "native",
+        "packet-clock"
+      ],
+      "seeks": [
+        {
+          "startPacket": 39,
+          "originalPacketPTS": 165584,
+          "frames": 205,
+          "maxError": 0.002841576933860779,
+          "snr": 74.60362435111622,
+          "pcmSHA256": "1eb53275304b560aadd9ff8c2208973f65b16de586e1612c896b72b7b5375bb9"
+        },
+        {
+          "startPacket": 12,
+          "originalPacketPTS": 47520,
+          "frames": 451,
+          "maxError": 0.006417304277420044,
+          "snr": 69.9015646346151,
+          "pcmSHA256": "52f9e6be88b3e1b97ae7d6eecd1b8b285c6f89105589a4c60e01265ac7ce5751"
+        },
+        {
+          "startPacket": 51,
+          "originalPacketPTS": 216944,
+          "frames": 98,
+          "maxError": 0.000023126602172851562,
+          "snr": 98.64393905700437,
+          "pcmSHA256": "d554775bbae77f80f58b7b3d1f483e8a727d55f38ad5e700269637eb2734fbdc"
+        },
+        {
+          "startPacket": 21,
+          "originalPacketPTS": 87824,
+          "frames": 367,
+          "maxError": 0.006419509649276733,
+          "snr": 68.87456638977426,
+          "pcmSHA256": "40da03ace6e60c39e5a802ed270542495f530048834aa2c6df7128ba552f7031"
+        }
+      ],
+      "maxError": 0.006422638893127441,
+      "snr": 71.09954374957667,
+      "pcmSHA256": "9b7bae93013226f85cb004fbb56a71791f494dd1a65eae2b5cb495f64a113487",
+      "invalidFramingRejected": true,
+      "abort": true
+    },
+    {
+      "id": "voice8-stream",
+      "codec": "wmavoice",
+      "sampleRate": 8000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "inputSHA256": "cf0eb21fb98a5b07bb4db6f46c23224c3c8ed48e361b8baab0b3bdf901715dc6",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/WMSP/streaming_CBR-11K.wma",
+      "silentControlRejected": true,
+      "corruptOutputControlRejected": true,
+      "corruptNativeError": false,
+      "passed": true,
+      "frames": 276,
+      "drainFrames": 1,
+      "samples": 132007,
+      "referenceSHA256": "c81cdd9bdded8e5aec17b30b01baa4e5ed48b7e9ed637a67fd7d951688473821",
+      "integerExact": false,
+      "nativeTimestampFrames": 61,
+      "maximumFramesPerBlock": 11,
+      "maximumScalarsPerBlock": 5280,
+      "resetExact": true,
+      "seekQualification": "Independent scalar decoder restarted at exact original block with original submitted packetPTS; no original-timeline seek/composition admission.",
+      "timestampOrigins": [
+        "native",
+        "packet-clock"
+      ],
+      "seeks": [
+        {
+          "startPacket": 39,
+          "originalPacketPTS": 79672,
+          "frames": 110,
+          "maxError": 0.000005900859832763672,
+          "snr": 114.08945420911415,
+          "pcmSHA256": "90f06d1898fbfc37c58ed30711f2ffc91d8148b6e71847a29f4e42eedee8242f"
+        },
+        {
+          "startPacket": 12,
+          "originalPacketPTS": 17760,
+          "frames": 239,
+          "maxError": 0.0017952285706996918,
+          "snr": 76.00656042836617,
+          "pcmSHA256": "996f0d857a1ccea8b00a833e98f8e6e95d19bc23d2f1593809e6bbdcf53d918a"
+        },
+        {
+          "startPacket": 51,
+          "originalPacketPTS": 107992,
+          "frames": 51,
+          "maxError": 0.000005155801773071289,
+          "snr": 113.26725764563975,
+          "pcmSHA256": "07d8f170f27dc1aa59e9f79a993d8dd51b0e0c3bebfd1563c80fe681e0dce5b1"
+        },
+        {
+          "startPacket": 21,
+          "originalPacketPTS": 35032,
+          "frames": 203,
+          "maxError": 0.0017952285706996918,
+          "snr": 74.88250690647538,
+          "pcmSHA256": "3e08ae978c43c5a1ac21e1055574065afaec71053384abd02edd03c05ece6c1c"
+        }
+      ],
+      "maxError": 0.0017952285706996918,
+      "snr": 76.78550841887629,
+      "pcmSHA256": "758b7339eedeca8d9c729edfa757aab7ea42135e782cf9a74affd81dcc7a4202",
+      "invalidFramingRejected": true,
+      "abort": true
+    },
+    {
+      "id": "lossless-alt",
+      "codec": "wmalossless",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "inputSHA256": "e12cf4e973f06fcf6fc1813aa8f3676bea0bbae2d04b1b4eb140521656000649",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/WMA9/wma_0x163.wma",
+      "passed": true,
+      "frames": 2103,
+      "drainFrames": 2,
+      "samples": 4305336,
+      "referenceSHA256": "0c1a4587f8277dff8523a038755d6c54f0614136f62ab8b4bf61be31da6e4e20",
+      "integerExact": true,
+      "nativeTimestampFrames": 814,
+      "maximumFramesPerBlock": 5,
+      "maximumScalarsPerBlock": 20480,
+      "resetExact": true,
+      "seekQualification": "Independent scalar decoder restarted at exact original block with original submitted packetPTS; no original-timeline seek/composition admission.",
+      "timestampOrigins": [
+        "native",
+        "packet-clock"
+      ],
+      "seeks": [
+        {
+          "startPacket": 529,
+          "originalPacketPTS": 2803658,
+          "frames": 734,
+          "maxError": 0,
+          "snr": null,
+          "pcmSHA256": "a485c35a6411025faa3d24ce68a0f4b92d20b14474d4215a709fb7e4e2fd2d41"
+        },
+        {
+          "startPacket": 163,
+          "originalPacketPTS": 864228,
+          "frames": 1675,
+          "maxError": 0,
+          "snr": null,
+          "pcmSHA256": "c6326ba52578dede29ce4d3f0e7c8677953e967be93af428ec0797972debfecc"
+        },
+        {
+          "startPacket": 692,
+          "originalPacketPTS": 3655625,
+          "frames": 313,
+          "maxError": 0,
+          "snr": null,
+          "pcmSHA256": "c501240f22eb175f74f1825e5af02bb78d52a4e465638548e81e5534c73afc6e"
+        },
+        {
+          "startPacket": 285,
+          "originalPacketPTS": 1529829,
+          "frames": 1354,
+          "maxError": 0,
+          "snr": null,
+          "pcmSHA256": "d1ada455bf1d45c643249c0570ede31032d01dc6e1c25f2e0e687272736fdebd"
+        }
+      ],
+      "maxError": 0,
+      "snr": null,
+      "pcmSHA256": "0c1a4587f8277dff8523a038755d6c54f0614136f62ab8b4bf61be31da6e4e20",
+      "invalidFramingRejected": true,
+      "abort": true
+    },
+    {
+      "id": "pro44",
+      "codec": "wmapro",
+      "sampleRate": 44100,
+      "channels": 6,
+      "bitsPerSample": 16,
+      "inputSHA256": "c594975a8fa205fe55b9dc6d3749d61660b97f85ac926acc765345fd781c46a0",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/WMA9/wmapro/Classical_44_16_6_256000_0_20.wma",
+      "passed": true,
+      "frames": 4079,
+      "drainFrames": 0,
+      "samples": 8353792,
+      "referenceSHA256": "1a9b16884e4ca14d8481d691f1cf32c12aeb54b539f69f6e7a80f925da9964a2",
+      "integerExact": false,
+      "nativeTimestampFrames": 483,
+      "maximumFramesPerBlock": 18,
+      "maximumScalarsPerBlock": 221184,
+      "resetExact": true,
+      "seekQualification": "Independent scalar decoder restarted at exact original block with original submitted packetPTS; no original-timeline seek/composition admission.",
+      "timestampOrigins": [
+        "packet-clock",
+        "native"
+      ],
+      "seeks": [
+        {
+          "startPacket": 332,
+          "originalPacketPTS": 5388270,
+          "frames": 1448,
+          "maxError": 2.384185791015625e-7,
+          "snr": 140.3909102950103,
+          "pcmSHA256": "64b622da45bc85be26dc212495edebc736fc726f65b4b4601b33fe0f7c7b7ef9"
+        },
+        {
+          "startPacket": 102,
+          "originalPacketPTS": 1617897,
+          "frames": 3289,
+          "maxError": 2.384185791015625e-7,
+          "snr": 140.45500326609454,
+          "pcmSHA256": "6bfb7f2937406061196194604173c03c0d30344befa20537165243e89c6c0337"
+        },
+        {
+          "startPacket": 434,
+          "originalPacketPTS": 7069671,
+          "frames": 627,
+          "maxError": 2.086162567138672e-7,
+          "snr": 140.46558310392012,
+          "pcmSHA256": "3a5acfc11af41e88456ad5981f587a7bcc7127e276b0ba63a0cc47bf5fcd3867"
+        },
+        {
+          "startPacket": 178,
+          "originalPacketPTS": 2869234,
+          "frames": 2678,
+          "maxError": 2.384185791015625e-7,
+          "snr": 140.46205268329595,
+          "pcmSHA256": "7474d94853a289c68c4d592fab19ff653d78327f041a6d3317ccbd7d231933e0"
+        }
+      ],
+      "maxError": 2.384185791015625e-7,
+      "snr": 140.4424823896782,
+      "pcmSHA256": "dc047e5ff78283aced7e51b265c13091d5a19a56acd456717b0d47657101c490",
+      "invalidFramingRejected": true,
+      "abort": true
+    }
+  ]
+}

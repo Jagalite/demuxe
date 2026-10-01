@@ -50,10 +50,51 @@ test('failed container acquisition does not leave an executable scope',async()=>
 test('failed older container preparation preserves the current scope',async()=>{
  const t=await setup(null);try{
  let rejectOld;const old=t.container.prepare({signal:new AbortController().signal,asset:()=>new Promise((_,reject)=>{rejectOld=reject;})});
- const check=assert.rejects(old,/old acquisition/);
+ const check=assert.rejects(old,{name:'AbortError'});
  const current=await t.container.prepare({signal:new AbortController().signal,asset:async()=>minimal});
  rejectOld(Error('old acquisition'));await check;
  assert.equal(t.owners.readiness().find(x=>x.providerId==='ts-container').bytes,'verified-resident');
  current.dispose();empty(t.owners,'ts-container','evaluated');
+ }finally{await t.dispose();}
+});
+
+function readyAudio(owners,bytes){
+ const state=owners.readiness().find(x=>x.providerId==='audio-aac');
+ assert.equal(state.bytes,'verified-resident');assert.equal(state.wasm,'compiled');assert.equal(state.javascript,'evaluated');assert.equal(state.instance,'idle-reusable');assert.equal(owners.allocatedWasmBytes(),bytes);
+}
+test('failed older audio acquisition preserves a newer owner with the same signal',async()=>{
+ const t=await setup('export default async()=>({HEAPU8:new Uint8Array(16)});');
+ try{const signal=new AbortController().signal;let rejectOld;
+ const old=t.owner.prepare({signal,asset:()=>new Promise((_,reject)=>{rejectOld=reject;})}),check=assert.rejects(old,{name:'AbortError'});
+ const current=await t.owner.prepare({signal,asset:async()=>minimal});readyAudio(t.owners,16);
+ rejectOld(Error('older audio fetch failed'));await check;readyAudio(t.owners,16);current.dispose();empty(t.owners,'audio-aac','evaluated');
+ }finally{await t.dispose();}
+});
+test('older ready handles cannot dispose newer audio or container generations sharing a signal',async()=>{
+ const t=await setup('let calls=0;export default async()=>({HEAPU8:new Uint8Array(++calls*16)});');
+ try{const signal=new AbortController().signal;
+ const oldAudio=await t.owner.prepare({signal,asset:async()=>minimal}),currentAudio=await t.owner.prepare({signal,asset:async()=>minimal});readyAudio(t.owners,32);
+ oldAudio.dispose();readyAudio(t.owners,32);
+ const oldContainer=await t.container.prepare({signal,asset:async()=>minimal}),currentContainer=await t.container.prepare({signal,asset:async()=>minimal});
+ oldContainer.dispose();assert.equal(t.owners.readiness().find(x=>x.providerId==='ts-container').bytes,'verified-resident');readyAudio(t.owners,32);
+ currentContainer.dispose();currentAudio.dispose();empty(t.owners,'audio-aac','evaluated');empty(t.owners,'ts-container','evaluated');
+ }finally{await t.dispose();}
+});
+test('late older audio factory completion cannot overwrite the newer module',async()=>{
+ const t=await setup('let calls=0;export default async()=>{const call=++calls;if(call===1){globalThis.__demuxeOwnerStarted();await globalThis.__demuxeOwnerFactoryWait;}return {HEAPU8:new Uint8Array(call===1?16:32)};};');
+ try{let started,finish;const reached=new Promise(resolve=>{started=resolve;});globalThis.__demuxeOwnerStarted=started;globalThis.__demuxeOwnerFactoryWait=new Promise(resolve=>{finish=resolve;});
+ const signal=new AbortController().signal,old=t.owner.prepare({signal,asset:async()=>minimal}),check=assert.rejects(old,{name:'AbortError'});await reached;
+ const current=await t.owner.prepare({signal,asset:async()=>minimal});readyAudio(t.owners,32);finish();await check;readyAudio(t.owners,32);
+ current.dispose();empty(t.owners,'audio-aac','evaluated');
+ }finally{delete globalThis.__demuxeOwnerStarted;delete globalThis.__demuxeOwnerFactoryWait;await t.dispose();}
+});
+test('late older audio bytes and container assets cannot commit superseded state',async()=>{
+ const t=await setup('export default async()=>({HEAPU8:new Uint8Array(16)});');
+ try{const signal=new AbortController().signal;const releases=[];
+ const oldAudio=t.owner.prepare({signal,asset:()=>new Promise(resolve=>releases.push(resolve))}),oldContainer=t.container.prepare({signal,asset:()=>new Promise(resolve=>releases.push(resolve))});
+ const checks=Promise.all([assert.rejects(oldAudio,{name:'AbortError'}),assert.rejects(oldContainer,{name:'AbortError'})]);
+ const currentAudio=await t.owner.prepare({signal,asset:async()=>minimal}),currentContainer=await t.container.prepare({signal,asset:async()=>minimal});
+ for(const release of releases)release(minimal);await checks;readyAudio(t.owners,16);assert.equal(t.owners.readiness().find(x=>x.providerId==='ts-container').bytes,'verified-resident');
+ currentAudio.dispose();currentContainer.dispose();empty(t.owners,'audio-aac','evaluated');empty(t.owners,'ts-container','evaluated');
  }finally{await t.dispose();}
 });

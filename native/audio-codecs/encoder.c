@@ -7,10 +7,12 @@ void ae_destroy(Encoder *e) {
  if (!e) return;
  avcodec_free_context(&e->c); av_frame_free(&e->f); av_packet_free(&e->p); av_free(e->input); av_free(e);
 }
-Encoder *ae_create(int channels, int level) {
+Encoder *ae_create_config(int channels, int level, int rate) {
+ if(rate!=8000&&rate!=16000&&rate!=22050&&rate!=32000&&rate!=44100&&rate!=48000&&rate!=96000)return 0;
  if ((channels != 1 && channels != 2 && channels != 6 && channels != 8) || level < 0 || level > 12) return 0;
+ if(rate<44100&&channels>2)return 0;
 #ifdef DEMUXE_OPUS_ENCODER
- if (channels > 2) return 0;
+ if (channels > 2 || rate != 48000) return 0;
  const AVCodec *codec = avcodec_find_encoder(AV_CODEC_ID_OPUS);
 #else
  const AVCodec *codec = avcodec_find_encoder(AV_CODEC_ID_FLAC);
@@ -19,8 +21,8 @@ Encoder *ae_create(int channels, int level) {
  Encoder *e = av_mallocz(sizeof(*e)); if (!e) return 0;
  e->c = avcodec_alloc_context3(codec); e->f = av_frame_alloc(); e->p = av_packet_alloc();
  if (!e->c || !e->f || !e->p) { ae_destroy(e); return 0; }
- e->c->sample_rate = 48000; e->c->sample_fmt = AV_SAMPLE_FMT_S32;
- e->c->bits_per_raw_sample = 24; e->c->time_base = (AVRational){1,48000};
+ e->c->sample_rate = rate; e->c->sample_fmt = AV_SAMPLE_FMT_S32;
+ e->c->bits_per_raw_sample = 24; e->c->time_base = (AVRational){1,rate};
 #ifdef DEMUXE_OPUS_ENCODER
  e->c->sample_fmt = AV_SAMPLE_FMT_FLTP;
  e->c->bits_per_raw_sample = 0;
@@ -28,7 +30,7 @@ Encoder *ae_create(int channels, int level) {
 #endif
  e->c->compression_level = level; av_channel_layout_default(&e->c->ch_layout, channels);
  if (avcodec_open2(e->c, codec, 0) < 0) { ae_destroy(e); return 0; }
- e->f->format = e->c->sample_fmt; e->f->sample_rate = 48000;
+ e->f->format = e->c->sample_fmt; e->f->sample_rate = rate;
  av_channel_layout_copy(&e->f->ch_layout, &e->c->ch_layout); e->f->nb_samples = e->c->frame_size;
  if (av_frame_get_buffer(e->f, 0) < 0) { ae_destroy(e); return 0; }
 #ifdef DEMUXE_OPUS_ENCODER
@@ -37,6 +39,7 @@ Encoder *ae_create(int channels, int level) {
 #endif
  return e;
 }
+Encoder *ae_create(int channels, int level) { return ae_create_config(channels,level,48000); }
 int ae_size(Encoder *e) { return e->c->frame_size; }
 int32_t *ae_input(Encoder *e) {
  e->f->nb_samples = e->c->frame_size;

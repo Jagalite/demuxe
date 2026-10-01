@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "passed": true,
+  "scope": "Finite USAC48mono frequency-domain exactASC realAV originalclock FLAC conversion; no public/browser routing qualification",
+  "sources": {
+    "packages/provider-audio/src/aac-config.ts": "1d9a70d72a54e12814c3e50841842f9d0ddd7964eb5bfbd9c1348faa5972ed1b",
+    "packages/provider-audio/src/packet-decoder.ts": "fc14b8374a8de5cc3f32ea6f821ae13f625484183fd96b90e3ebc2bd141094cc",
+    "packages/provider-audio/src/flac-encoder.ts": "d752b513adc36301ec3a9f363effb036be6de463aae66339bb21e6e5cc08665f",
+    "packages/provider-container/src/isobmff.ts": "0df022ed7e8f59b841737d6fbb8af3dbcda856bb1256a8828a8ce9bc269bbed6",
+    "packages/provider-container/src/audio-repair.ts": "bd19b33ec69beb95eedba7b6e3351894938bddebd43f214cd61131755127c8c2",
+    "packages/provider-container/src/fmp4.ts": "a05c075ba0788e1a864cb5df1efcf5215d8082a4183146db94c791e977ec761b",
+    "tests/provider-usac.mjs": "c5fbadbe5151a6e376815a64ac2acd0d061284f43232353922e0e9fabbd81d1c"
+  },
+  "builds": [
+    {
+      "profile": "aac",
+      "recordSHA256": "bd00f2b7809aa20f585bf09a7ce6193cdf783ebd6b7df9d728f0739a6e28903f",
+      "artifacts": {
+        "module.mjs": {
+          "sha256": "1d02101363b42e6a60d74d8f91bfcd5bc54f675b0ad0e2a530e912186b45fd7b",
+          "bytes": 13873
+        },
+        "module.wasm": {
+          "sha256": "d306b3e35524f53a7543692eec6489654793f5f8c8b0647b855617a43b04b1b8",
+          "bytes": 527527
+        }
+      }
+    },
+    {
+      "profile": "flac",
+      "recordSHA256": "b9097e8cd47abd6e7ab976c17136669eb4ff2b6324715baa0e49ad64c3495bc8",
+      "artifacts": {
+        "module.mjs": {
+          "sha256": "f1ad562a2c89a7e75ac4904d2360eef50042999854fd0f33644bcf4be0703351",
+          "bytes": 14053
+        },
+        "module.wasm": {
+          "sha256": "2bbc83ea09500ea64c8d6bce372f7d88ce18018989fa334ae49bc799c78d2868",
+          "bytes": 252485
+        }
+      }
+    }
+  ],
+  "fixturesSHA256": "dafc99f222335bda534e46c00f7cc0e38477face2ee5727bd6291dd030a34b7c",
+  "home": "/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/demuxe-usac-proof-WOchvz",
+  "results": [
+    {
+      "id": "usac-full",
+      "packets": 940,
+      "nativeSamples": 962560,
+      "initialSkip": 2220,
+      "finalDiscard": 340,
+      "presentedSamples": 960000,
+      "maxError": 3.129243850708008e-7,
+      "counts": {
+        "madeDecoder": 1,
+        "madeEncoder": 1,
+        "disposedDecoder": 1,
+        "disposedEncoder": 1
+      }
+    },
+    {
+      "id": "usac-bounded",
+      "packets": 143,
+      "nativeSamples": 146432,
+      "initialSkip": 2220,
+      "finalDiscard": 20,
+      "presentedSamples": 144192,
+      "maxError": 2.384185791015625e-7,
+      "counts": {
+        "madeDecoder": 1,
+        "madeEncoder": 1,
+        "disposedDecoder": 1,
+        "disposedEncoder": 1
+      }
+    },
+    {
+      "id": "feature-profile-trim-lifetime-controls",
+      "exactASCVariants": 7,
+      "defaultReject": true,
+      "wrongPrimingReject": true,
+      "frameProfileReject": true,
+      "factoryFailure": true,
+      "iteratorReturn": true,
+      "abort": true
+    }
+  ]
+}

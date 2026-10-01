@@ -1,0 +1,1029 @@
+{
+  "passed": true,
+  "scope": "Canonical MP1 32k stereo, MP2 and WMA v1/v2 finite mono/stereo44.1/48k packet decoding, exact ASF framing metadata, independent scalar reference, reset/preroll seeks. No container or playback admission implied. Canonical source binary stays in scratch storage.",
+  "referenceDecoders": {
+    "mp1": "mp1float",
+    "mp2": "mp2float",
+    "wmav1": "wmav1",
+    "wmav2": "wmav2"
+  },
+  "resetReferenceNote": "WMAv1 noise-table state resets: seek PCM is compared independently with scalar FFmpeg decoding of the same WAVEFORMATEX/block sequence; full-stream noise variation is retained with SNR.",
+  "referenceTool": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "inputs": {
+    "native/audio-codecs/decoder.c": "ef5b962b4cf5993c150185a83e5905ce8c24527af844af00914e194c23035864",
+    "packages/provider-audio/src/packet-decoder.ts": "efe5f07fb2704ea7e10dacb5b309db8fb71df6b67e9485cf96987e100a13e659",
+    "scripts/build-audio-providers.py": "dfaac48b502a8370adb37267ae4d2a135f64207f6c8fb6b15099644efe0096f4",
+    "tests/legacy-audio-fixtures.py": "7f9281a108e466d172260da97dbd96e2390a02c500bde3863a6928c94bfb4cd9",
+    "tests/legacy-audio.mjs": "3b33840b89539b49d26d19736be52bf0b82383dde59bf9a4f3951b6e8802e667"
+  },
+  "build": {
+    "profile": "legacy",
+    "source": {
+      "name": "ffmpeg-adaptation",
+      "upstream": "https://github.com/FFmpeg/FFmpeg",
+      "revision": "n9.0.2",
+      "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+      "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+    },
+    "sourceKey": "392680af5819a5059e03ccbbb95335a833b505cf1ae77e92f2520c45f0d78767",
+    "nativeBuildInputs": {
+      "patches/ffmpeg-adaptation/0002-browser-nested-avio.patch": "4ceaf3185f152c596fc9617e47cc47cd2b264d6f8b2f098bbea8055b798da3ec",
+      "patches/ffmpeg-adaptation/0004-hls-ts-discontinuity-timeline.patch": "6635e6cb14090af54c20c526592df6cf4360cba0bb2e3199071688c37f146bb1",
+      "patches/ffmpeg-adaptation/0005-dfpwm-seek-reset.patch": "0f2e57a194e5d5f5ff23edb864084e5a1e9e05224a4ab1bb71e6598d614e9923",
+      "patches/ffmpeg-adaptation/0006-swf-audio-duration.patch": "e59e36d524f78b98862e5a484b4900e3ea28593d3a25fbc90a6f7f30d79b4c5f",
+      "patches/ffmpeg-adaptation/0007-nut-keyframe-recovery.patch": "b02b157a7a8f1dd3ddd65e541b4f3ae3057acb130044ddba97a148ece8cb0c95",
+      "patches/ffmpeg-adaptation/0008-hls-indexed-webvtt-seek.patch": "224da133f9c2b4c4243743145ec8d90845d98878eeb3535ace35d129b31f03ae",
+      "patches/ffmpeg-adaptation/0009-nut-discard-budget.patch": "9d6dde4654d72d4a810b60894befc2260185afd9fa91a9a6dd3f2dda71e343fe",
+      "patches/ffmpeg-adaptation/0010-strict-stream-resource-errors.patch": "f979b6232cef7ece804cbc7dcaf89788c109b9c8c0d4ce9fe6ac735267026e40",
+      "patches/ffmpeg-adaptation/0011-dash-continuous-fmp4.patch": "fe43a338fc469f38d10ff76b66ed56406fd4ccbacf8348dbb95351f107c2f3fd",
+      "patches/ffmpeg-adaptation/0012-demuxe-segment-plans.patch": "e4073571ea824fbeb68848e8918129bae172c2896503794fda085b8d8f47c705",
+      "patches/ffmpeg-adaptation/0013-demuxe-sparse-discovery.patch": "01c32d856f157845917d345f21ff3f4a36f1a0b38e5211a72e3a5bbdc20f537c",
+      "patches/ffmpeg-adaptation/0014-http-chunked-eof.patch": "b3b89b8e84da739a9e10de37eb9cd48e3fbe4104e63aac2b55ceb5da9238cad5",
+      "patches/ffmpeg-adaptation/0015-demuxe-live-hls-components.patch": "9516d75248ccd1f43281755410d3f7e3a58c94e917e02ec0e81840b296778486",
+      "patches/ffmpeg-adaptation/0016-demuxe-resource-retirement.patch": "199ff687d64e2f4d971c23ec352820bb21b1273e33def75bbcebdc7f125af1a7",
+      "patches/ffmpeg-adaptation/0017-demuxe-dash-period-session.patch": "0b5cadd65282139c04e21688e8fbdfa94813f9636461407e1aef5ce8b330fc9d",
+      "patches/ffmpeg-adaptation/0018-demuxe-discontinuity-retirement.patch": "1904f37c4cea150d35a82dabba4a82912d92d6d1bc4308b6b42a03589a889afd",
+      "patches/ffmpeg-adaptation/0019-demuxe-hls-window-anchor.patch": "1f20c83dab06c73c0e1345db1e38ccc36caa0df10e7e7f8962fd8c73b373f76e",
+      "patches/ffmpeg-adaptation/0020-mov-strict-sample-eof.patch": "f4d70438726c79d12d923893b8a8e322a43bc8415e816386a99217c25c3822ab",
+      "patches/ffmpeg-adaptation/0021-demuxe-dash-live-discovery.patch": "3ed99eda3249bd6d1d7e5319887b8923d4005ad6d73aab6a7faec9c4c45fa228",
+      "native/audio-codecs/decoder.c": "b639bfc099640507957106baf95f4e16cc7c2fbf5ac7683a5dcd8cbbff3a4b72",
+      "native/audio-codecs/encoder.c": "a40339c0030e3d674a111df3505824a8feedd7e2dfa24156b3542350462ff078",
+      "scripts/build-audio-providers.py": "ac41f07f6beedf9a28a15650a62f3fce9aeb8a4c97380cbfa574b1170d6b267a"
+    },
+    "recordSHA256": "a3a143ea5cc1c38c2e294f7ff16f94a40f5a81f65503d18f1e489de55dde069a",
+    "module": {
+      "sha256": "30256e26618f6462500e70fb63c9fef0228a196a33a95752af8a0ed8f560a08e",
+      "bytes": 13963
+    },
+    "wasm": {
+      "sha256": "a33028edc3ff10d310d4b45c30e65bfaf7b5a4e732ca1620e168843bf93814de",
+      "bytes": 439866
+    },
+    "capabilities": [
+      "audio.decode.mp1",
+      "audio.decode.mp2",
+      "audio.decode.wmav1",
+      "audio.decode.wmav2"
+    ]
+  },
+  "results": [
+    {
+      "id": "mp1-canonical",
+      "profile": "legacy",
+      "codec": "mp1",
+      "sampleRate": 32000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-audio-fixtures/mp1-canonical.mp1",
+      "inputSHA256": "8bffe46c1a1ba709b35f4782c1a661d0081e8ef84222edcf518ee5e4c2e77f13",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/mp1-sample.mp1",
+      "packetSHA256": "9017f9c986086c55ab4d46fddc78912f962398089c6ec26bbfc988b5e36f50cc",
+      "framing": {},
+      "passed": true,
+      "frames": 48,
+      "samples": 18432,
+      "decodedSamples": 18432,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.2351741790771484e-8,
+      "referenceSHA256": "49d32d16abd943b178197fe8b40d0206927bfa56683768c0dd72f1dcd1f188f9",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 0.40319999999999995,
+          "startPacket": 24,
+          "prerollSeconds": 0.1152,
+          "comparedSamples": 3840,
+          "maxError": 0,
+          "snr": 315.8434886471553
+        },
+        {
+          "seconds": 0.17279999999999998,
+          "startPacket": 4,
+          "prerollSeconds": 0.1152,
+          "comparedSamples": 3456,
+          "maxError": 0,
+          "snr": 315.3846029190798
+        },
+        {
+          "seconds": 0.4895999999999999,
+          "startPacket": 31,
+          "prerollSeconds": 0.1152,
+          "comparedSamples": 2688,
+          "maxError": 0,
+          "snr": 314.2932421388083
+        },
+        {
+          "seconds": 0.08639999999999999,
+          "startPacket": 0,
+          "prerollSeconds": 0.1152,
+          "comparedSamples": 3456,
+          "maxError": 0,
+          "snr": 315.3850526415399
+        }
+      ],
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "mp2-44100-1",
+      "profile": "legacy",
+      "codec": "mp2",
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-audio-fixtures/mp2-44100-1.mkv",
+      "inputSHA256": "59e26d882872467200deaab26294e7d20d7d4ca6c50599a2878732edd4dfa61d",
+      "packetSHA256": "db13acb307098e1f149975f97459ffe75aa152dd071cf9b81d444f3d0c1d197e",
+      "framesSHA256": "e4ad2b408a1e712e8679ca9434cfe001d616b97b798c9b1b56a4b00e32914335",
+      "framing": {},
+      "passed": true,
+      "frames": 235,
+      "samples": 270239,
+      "decodedSamples": 270720,
+      "skipSamples": 481,
+      "discardSamples": 0,
+      "maxError": 2.2351741790771484e-8,
+      "referenceSHA256": "70b9caedbb716a2a8b8592d51634802c98d96b82ebfb08a0daf1163917e2cb25",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 143,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12672,
+          "maxError": 0,
+          "snr": 317.10848492022023
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 48,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12672,
+          "maxError": 0,
+          "snr": 317.1029187577072
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 191,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 13824,
+          "maxError": 0,
+          "snr": 317.48113420982145
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12672,
+          "maxError": 0,
+          "snr": 317.0999859871299
+        }
+      ],
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "mp2-44100-2",
+      "profile": "legacy",
+      "codec": "mp2",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-audio-fixtures/mp2-44100-2.mkv",
+      "inputSHA256": "c701cfd850a2af065e40ea32b0bf19afadab9528f7f5dc8f9957a800de551eee",
+      "packetSHA256": "a93885e072bb741bc2ab19750a09f3f2a02cf156efdb6f4f7b8c5971fc8bbaec",
+      "framesSHA256": "e4ad2b408a1e712e8679ca9434cfe001d616b97b798c9b1b56a4b00e32914335",
+      "framing": {},
+      "passed": true,
+      "frames": 235,
+      "samples": 270239,
+      "decodedSamples": 270720,
+      "skipSamples": 481,
+      "discardSamples": 0,
+      "maxError": 2.2351741790771484e-8,
+      "referenceSHA256": "cfd3058ba0f9d59e6feeeabe83523ba437d3bdee1af1ef3e1430e8ce5561816a",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 143,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12672,
+          "maxError": 0,
+          "snr": 320.13344516885473
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 48,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12672,
+          "maxError": 0,
+          "snr": 320.1339031792901
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 191,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 13824,
+          "maxError": 0,
+          "snr": 320.5078281070569
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12672,
+          "maxError": 0,
+          "snr": 320.1262949069439
+        }
+      ],
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "mp2-48000-1",
+      "profile": "legacy",
+      "codec": "mp2",
+      "sampleRate": 48000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-audio-fixtures/mp2-48000-1.mkv",
+      "inputSHA256": "7c6f6648401a90f5e049b4c539ece0c5cff31d88db92d2f0abb2b13904ff9f45",
+      "packetSHA256": "35ede3fbabfea6e4d49bd9132e962d8eb4516c22a45d5bffccf84529fdefe141",
+      "framesSHA256": "0bd0acb3d71026c3158a4417cc0749c4f3b51c60aa739a9880d84ba999226482",
+      "framing": {},
+      "passed": true,
+      "frames": 256,
+      "samples": 294431,
+      "decodedSamples": 294912,
+      "skipSamples": 481,
+      "discardSamples": 0,
+      "maxError": 2.2351741790771484e-8,
+      "referenceSHA256": "9ce944cfc20bc09e52b55a515c761e6ac293690a967b73a3907cb832790088c8",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 156,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 13824,
+          "maxError": 0,
+          "snr": 317.4830638422253
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 52,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 13824,
+          "maxError": 0,
+          "snr": 317.48280503928936
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 208,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14976,
+          "maxError": 0,
+          "snr": 317.8251238874331
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14976,
+          "maxError": 0,
+          "snr": 317.82361747133217
+        }
+      ],
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "mp2-48000-2",
+      "profile": "legacy",
+      "codec": "mp2",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-audio-fixtures/mp2-48000-2.mkv",
+      "inputSHA256": "b6f2aa2e415cafd2b8c8efb5ff20d10daf2c8b2ec9062c6c339ae71dc2d85b2b",
+      "packetSHA256": "f488281f30c142ad9753fadb109c4519acf54ff2641fbfab4b35ed760f73dbce",
+      "framesSHA256": "0bd0acb3d71026c3158a4417cc0749c4f3b51c60aa739a9880d84ba999226482",
+      "framing": {},
+      "passed": true,
+      "frames": 256,
+      "samples": 294431,
+      "decodedSamples": 294912,
+      "skipSamples": 481,
+      "discardSamples": 0,
+      "maxError": 2.2351741790771484e-8,
+      "referenceSHA256": "f81a30bddad38dcb912ac3cc72430ad0e1b091e2a304503dc0b8dac607b1c5f5",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 156,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 13824,
+          "maxError": 0,
+          "snr": 320.49733596278855
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 52,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 13824,
+          "maxError": 0,
+          "snr": 320.49586942429335
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 208,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14976,
+          "maxError": 0,
+          "snr": 320.8461429060606
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14976,
+          "maxError": 0,
+          "snr": 320.84473822292614
+        }
+      ],
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav1-44100-1",
+      "profile": "legacy",
+      "codec": "wmav1",
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-audio-fixtures/wmav1-44100-1.wma",
+      "inputSHA256": "8d83856f2bfbf622428c56ad3772f90626de92d3c996fe6ddc2fda02be34bfc2",
+      "packetSHA256": "e25c2e3d4639ee3135f47aa87c84271604978e9abf3c0fc902a02c46f49c8b3a",
+      "framesSHA256": "f5f097e966179ebc9ec91f9d9e2bca877acfbddade1edf371a8de25734619e39",
+      "framing": {
+        "codecTag": 352,
+        "channels": 1,
+        "sampleRate": 44100,
+        "bitRate": 128000,
+        "blockAlign": 743,
+        "bitsPerSample": 16,
+        "extradataHex": "00000100",
+        "waveFormatHex": "6001010044ac0000803e0000e7021000040000000100"
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 132,
+      "samples": 270336,
+      "decodedSamples": 270336,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.9802322387695312e-8,
+      "referenceSHA256": "06f00068852eaad9b73d6a838964a94e446dafcc9e2e8617e79c0b40f958bf0b",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 80,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12288,
+          "maxError": 0,
+          "snr": 316.9690702001076,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 26,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0,
+          "snr": 317.63813738792516,
+          "independentResetReferenceError": 2.60770320892334e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 107,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12288,
+          "maxError": 0,
+          "snr": 316.9649648285773,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12288,
+          "maxError": 0,
+          "snr": 316.96910019910183,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav1-44100-2",
+      "profile": "legacy",
+      "codec": "wmav1",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-audio-fixtures/wmav1-44100-2.wma",
+      "inputSHA256": "bc8a021c3495ea6d409460c650be4a4cf19efb81dc1ae16db5a1be839ba0f60f",
+      "packetSHA256": "7b65b6aa21b708cd51d7fe8942bb611156eb9a7db97bb420b633f5e56df33a39",
+      "framesSHA256": "f5f097e966179ebc9ec91f9d9e2bca877acfbddade1edf371a8de25734619e39",
+      "framing": {
+        "codecTag": 352,
+        "channels": 2,
+        "sampleRate": 44100,
+        "bitRate": 128000,
+        "blockAlign": 743,
+        "bitsPerSample": 16,
+        "extradataHex": "00000100",
+        "waveFormatHex": "6001020044ac0000803e0000e7021000040000000100"
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 132,
+      "samples": 270336,
+      "decodedSamples": 270336,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 3.725290298461914e-8,
+      "referenceSHA256": "259b2538f943c08167fb965fdfa5db72d6d423672e7dd55f324efbf577ac9ace",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 80,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12288,
+          "maxError": 0,
+          "snr": 319.9793189919522,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 26,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0,
+          "snr": 320.6496550948867,
+          "independentResetReferenceError": 3.725290298461914e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 107,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12288,
+          "maxError": 0,
+          "snr": 319.97705819846226,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12288,
+          "maxError": 0,
+          "snr": 319.9788544048569,
+          "independentResetReferenceError": 3.725290298461914e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav1-48000-1",
+      "profile": "legacy",
+      "codec": "wmav1",
+      "sampleRate": 48000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-audio-fixtures/wmav1-48000-1.wma",
+      "inputSHA256": "8c2a7eddf78df889edc913880b5241fd4994bbdf6c5e0eeec8f2d0c674081a1b",
+      "packetSHA256": "9106a6f51e3ec8f6696327748679e7bc01fee6c418dd64d5446a2aba6a9a2b1b",
+      "framesSHA256": "8a23d02a6b653d8309774266fe99d1c88bc5e4f96273583c77a766e835823798",
+      "framing": {
+        "codecTag": 352,
+        "channels": 1,
+        "sampleRate": 48000,
+        "bitRate": 128000,
+        "blockAlign": 682,
+        "bitsPerSample": 16,
+        "extradataHex": "00000100",
+        "waveFormatHex": "6001010080bb0000803e0000aa021000040000000100"
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 143,
+      "samples": 292864,
+      "decodedSamples": 292864,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 3.725290298461914e-8,
+      "referenceSHA256": "b06db523a703a2c60b72e46cf1888918388933a5622540bd2efa39e5e14173e8",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 87,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0.0003121420741081238,
+          "snr": 62.28132118837317,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 29,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 16384,
+          "maxError": 0.0003096647560596466,
+          "snr": 61.603603083152976,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 117,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0.0003125816583633423,
+          "snr": 61.913511445759,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0.0003369078040122986,
+          "snr": 60.46761680631772,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav1-48000-2",
+      "profile": "legacy",
+      "codec": "wmav1",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-audio-fixtures/wmav1-48000-2.wma",
+      "inputSHA256": "26ffed46082be074d14f1b7611fdfb95b05e7b8e7806971c579981e0cd43b4b5",
+      "packetSHA256": "48e4f330c702199c78780b4d9565a3e71783a1f0c4c2f124438d7a613e295a0b",
+      "framesSHA256": "8a23d02a6b653d8309774266fe99d1c88bc5e4f96273583c77a766e835823798",
+      "framing": {
+        "codecTag": 352,
+        "channels": 2,
+        "sampleRate": 48000,
+        "bitRate": 128000,
+        "blockAlign": 682,
+        "bitsPerSample": 16,
+        "extradataHex": "00000100",
+        "waveFormatHex": "6001020080bb0000803e0000aa021000040000000100"
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 143,
+      "samples": 292864,
+      "decodedSamples": 292864,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 3.725290298461914e-8,
+      "referenceSHA256": "ccc1d951ab021fdb64f4edf2c5d4ca85197eabf8f6376e1733f86948e14ba5a8",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 87,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0.00005646795034408569,
+          "snr": 72.34602318526102,
+          "independentResetReferenceError": 3.725290298461914e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 29,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 16384,
+          "maxError": 0.00005647540092468262,
+          "snr": 72.7249502312244,
+          "independentResetReferenceError": 3.725290298461914e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 117,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0.00005650520324707031,
+          "snr": 72.91659667218934,
+          "independentResetReferenceError": 3.725290298461914e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0.00005646795034408569,
+          "snr": 72.5744261957897,
+          "independentResetReferenceError": 3.725290298461914e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav2-44100-1",
+      "profile": "legacy",
+      "codec": "wmav2",
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-audio-fixtures/wmav2-44100-1.wma",
+      "inputSHA256": "594eb47a974c8bb07ffb7443cacc567fc06fcd4b989d1b9cec898d3880f1e065",
+      "packetSHA256": "ba576bb3e74bd120efd0bed2c5d865ac3fe876eba7dc52e7a7aa6408eed31226",
+      "framesSHA256": "f5f097e966179ebc9ec91f9d9e2bca877acfbddade1edf371a8de25734619e39",
+      "framing": {
+        "codecTag": 353,
+        "channels": 1,
+        "sampleRate": 44100,
+        "bitRate": 128000,
+        "blockAlign": 743,
+        "bitsPerSample": 16,
+        "extradataHex": "00000000010000000000",
+        "waveFormatHex": "6101010044ac0000803e0000e70210000a0000000000010000000000"
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 132,
+      "samples": 270336,
+      "decodedSamples": 270336,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.2351741790771484e-8,
+      "referenceSHA256": "107a1f9b12e562b37e1a30c48d9bf4ddfd0a1d97a0b857ae4283e58b3784cd77",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 80,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12288,
+          "maxError": 0,
+          "snr": 316.96918446551524,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 26,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0,
+          "snr": 317.6392780706937,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 107,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12288,
+          "maxError": 0,
+          "snr": 316.9663081094006,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12288,
+          "maxError": 0,
+          "snr": 316.96734663772725,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav2-44100-2",
+      "profile": "legacy",
+      "codec": "wmav2",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-audio-fixtures/wmav2-44100-2.wma",
+      "inputSHA256": "9686a86e3e0edd432ff7523b08bf06d99ee5c52ceca33bbf8e887b9ea91b6e85",
+      "packetSHA256": "c51d48df08715026b508e81e4c0b40045a774494696746cce7a7b3ffb9795ffc",
+      "framesSHA256": "f5f097e966179ebc9ec91f9d9e2bca877acfbddade1edf371a8de25734619e39",
+      "framing": {
+        "codecTag": 353,
+        "channels": 2,
+        "sampleRate": 44100,
+        "bitRate": 128000,
+        "blockAlign": 743,
+        "bitsPerSample": 16,
+        "extradataHex": "00000000010000000000",
+        "waveFormatHex": "6101020044ac0000803e0000e70210000a0000000000010000000000"
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 132,
+      "samples": 270336,
+      "decodedSamples": 270336,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.9802322387695312e-8,
+      "referenceSHA256": "39d44e6560a66bc0cafae69606ed145a81288aa3a81733587be17b918ca41eec",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 80,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12288,
+          "maxError": 0,
+          "snr": 319.97769937510833,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 26,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0,
+          "snr": 320.6498757022212,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 107,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12288,
+          "maxError": 0,
+          "snr": 319.9763331082917,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 12288,
+          "maxError": 0,
+          "snr": 319.9786696743143,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav2-48000-1",
+      "profile": "legacy",
+      "codec": "wmav2",
+      "sampleRate": 48000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-audio-fixtures/wmav2-48000-1.wma",
+      "inputSHA256": "7dcb5122e7894bdf5d51fbc0ab88641cac451482e3efa48a9ee14fe7b584f7cd",
+      "packetSHA256": "7bfc57ef3d2d966a413da8f6236eaff0f1404de8e8b11e3b130670e606a021a3",
+      "framesSHA256": "8a23d02a6b653d8309774266fe99d1c88bc5e4f96273583c77a766e835823798",
+      "framing": {
+        "codecTag": 353,
+        "channels": 1,
+        "sampleRate": 48000,
+        "bitRate": 128000,
+        "blockAlign": 682,
+        "bitsPerSample": 16,
+        "extradataHex": "00000000010000000000",
+        "waveFormatHex": "6101010080bb0000803e0000aa0210000a0000000000010000000000"
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 143,
+      "samples": 292864,
+      "decodedSamples": 292864,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.9802322387695312e-8,
+      "referenceSHA256": "c3c72705c522094af551aeb0bea0f63088df0d26b0fe832ea7c99be582c21306",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 87,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0,
+          "snr": 317.63290579768136,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 29,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 16384,
+          "maxError": 0,
+          "snr": 318.217256744882,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 117,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0,
+          "snr": 317.6363024226514,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0,
+          "snr": 317.6357028250837,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav2-48000-2",
+      "profile": "legacy",
+      "codec": "wmav2",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-audio-fixtures/wmav2-48000-2.wma",
+      "inputSHA256": "af44a7b3b845c1fd3be235a18c68cc72d3966dfbf87f0371f12d0f539129f0b9",
+      "packetSHA256": "711c42f64ce19fc19c1511a5995dc2b58a2856cfc4926cbb238fd424d1381fab",
+      "framesSHA256": "8a23d02a6b653d8309774266fe99d1c88bc5e4f96273583c77a766e835823798",
+      "framing": {
+        "codecTag": 353,
+        "channels": 2,
+        "sampleRate": 48000,
+        "bitRate": 128000,
+        "blockAlign": 682,
+        "bitsPerSample": 16,
+        "extradataHex": "00000000010000000000",
+        "waveFormatHex": "6101020080bb0000803e0000aa0210000a0000000000010000000000"
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 143,
+      "samples": 292864,
+      "decodedSamples": 292864,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.9802322387695312e-8,
+      "referenceSHA256": "083e12110c9b7fc6a45fbed1054dd48b948e34645fa81d11aada920418e21d61",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 87,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0,
+          "snr": 320.647119214926,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 29,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 16384,
+          "maxError": 0,
+          "snr": 321.2316266815068,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 117,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0,
+          "snr": 320.6466695228383,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 14336,
+          "maxError": 0,
+          "snr": 320.6474695607965,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    }
+  ]
+}

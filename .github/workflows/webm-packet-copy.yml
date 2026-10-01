@@ -1,0 +1,66 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Pinned WebM packet-copy qualification
+on:
+  workflow_dispatch:
+    inputs:
+      input_tag:
+        description: Release containing reviewed webm-installed-inputs.tar.gz
+        required: true
+        type: string
+      inventory_sha256:
+        description: Reviewed SHA256 of webm-installed-input-inventory.json
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  functional:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+    env:
+      WEBM_INPUT_INVENTORY_SHA256: ${{ inputs.inventory_sha256 }}
+      WEBM_INPUTS: build/webm-installed-inputs
+      WEBM_INSTALLED_ROOT: build/codec-expansion/webm-installed
+      BROWSER: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --ignore-scripts
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: node --test tests/webm-installed-input-contracts.mjs tests/media-reference-environment-contracts.mjs
+      - run: python3 tests/webm-installed-extract.py
+      - name: Download reviewed two-package and nine-media inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ inputs.input_tag }}
+        run: |
+          mkdir -p build/webm-input-download
+          gh release download "$INPUT_TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern webm-installed-inputs.tar.gz --dir build/webm-input-download
+          python3 scripts/extract-webm-installed-inputs.py \
+            build/webm-input-download/webm-installed-inputs.tar.gz "$WEBM_INPUTS"
+      - name: Verify pin, source closure, package audits and selected bundle inputs
+        run: node scripts/webm-installed-inputs.mjs prepare "$WEBM_INPUTS"
+      - name: Qualify exact 18 cases, silence and frozen-canvas rejection
+        run: node tests/webm-installed-ci.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: webm-packet-copy-${{ matrix.browser }}
+          path: |
+            build/codec-expansion/webm-installed/ci-*/qualification.json
+            build/codec-expansion/webm-installed/browser/*.json
+            build/codec-expansion/webm-installed/browser/*.sha256
+            build/codec-expansion/webm-installed/consumer-*/bundles/*/bundle-manifest.json

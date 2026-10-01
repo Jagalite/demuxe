@@ -39,7 +39,17 @@ presentation end; a raw decoder can emit up to one extra coded packet of samples
 The native seek check explicitly decodes that preroll. Direct FFmpeg seeking
 without preroll was not accepted as output-quality evidence.
 
-## Current evidence
+## Follow-up qualification in progress
+
+The newer [rate/layout campaign](AUDIO-COVERAGE-EXPANSION.md) adds 73 packet
+cases, 292 reset/seek intervals, and 49 longer Matroska composition checks.
+The configurable FLAC encoder preserves 44.1, 48 and 96 kHz and has 12 exact
+round trips across mono/stereo/5.1/7.1. These are bounded local native tests.
+MOV/MP4 reader and composition qualification is being added separately;
+installed browser and release evidence must bind the changed package bytes.
+The original results below retain their original stereo48 and package scope.
+
+## Original committed evidence
 
 | Check | Result | Scope |
 | --- | --- | --- |

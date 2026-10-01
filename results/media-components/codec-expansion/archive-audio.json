@@ -1,0 +1,1902 @@
+{
+  "passed": true,
+  "scope": "Canonical60.48sec APE/WavPack and finite synthetic integer WavPack decoder PCM/reset/seek proof; float WavPack rejected. Modern APE3930-3990,16/24bit mono/stereo,≤1MiB packets and294912declaredsamples; no new container/player admission.",
+  "inputs": {
+    "native/audio-codecs/decoder.c": "ef5b962b4cf5993c150185a83e5905ce8c24527af844af00914e194c23035864",
+    "packages/provider-audio/src/packet-decoder.ts": "efe5f07fb2704ea7e10dacb5b309db8fb71df6b67e9485cf96987e100a13e659",
+    "scripts/build-audio-providers.py": "dfaac48b502a8370adb37267ae4d2a135f64207f6c8fb6b15099644efe0096f4",
+    "tests/archive-audio-fixtures.py": "a467b7608f317184164c1597992c75fedea8ecf37680239f9b939e1733dee64c",
+    "tests/archive-audio.mjs": "a700af4b4cc87289f2777b5b1559bf6aca3fd85c50f2ed96ba62d851f45ffed0"
+  },
+  "referenceTool": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "build": {
+    "profile": "archive",
+    "source": {
+      "name": "ffmpeg-adaptation",
+      "upstream": "https://github.com/FFmpeg/FFmpeg",
+      "revision": "n9.0.2",
+      "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+      "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+    },
+    "sourceKey": "b738e827f58734b48279c0c55a4ebf7bebc06486b11681514f59bc8f04e9d1d8",
+    "nativeBuildInputs": {
+      "patches/ffmpeg-adaptation/0002-browser-nested-avio.patch": "4ceaf3185f152c596fc9617e47cc47cd2b264d6f8b2f098bbea8055b798da3ec",
+      "patches/ffmpeg-adaptation/0004-hls-ts-discontinuity-timeline.patch": "6635e6cb14090af54c20c526592df6cf4360cba0bb2e3199071688c37f146bb1",
+      "patches/ffmpeg-adaptation/0005-dfpwm-seek-reset.patch": "0f2e57a194e5d5f5ff23edb864084e5a1e9e05224a4ab1bb71e6598d614e9923",
+      "patches/ffmpeg-adaptation/0006-swf-audio-duration.patch": "e59e36d524f78b98862e5a484b4900e3ea28593d3a25fbc90a6f7f30d79b4c5f",
+      "patches/ffmpeg-adaptation/0007-nut-keyframe-recovery.patch": "b02b157a7a8f1dd3ddd65e541b4f3ae3057acb130044ddba97a148ece8cb0c95",
+      "patches/ffmpeg-adaptation/0008-hls-indexed-webvtt-seek.patch": "224da133f9c2b4c4243743145ec8d90845d98878eeb3535ace35d129b31f03ae",
+      "patches/ffmpeg-adaptation/0009-nut-discard-budget.patch": "9d6dde4654d72d4a810b60894befc2260185afd9fa91a9a6dd3f2dda71e343fe",
+      "patches/ffmpeg-adaptation/0010-strict-stream-resource-errors.patch": "f979b6232cef7ece804cbc7dcaf89788c109b9c8c0d4ce9fe6ac735267026e40",
+      "patches/ffmpeg-adaptation/0011-dash-continuous-fmp4.patch": "fe43a338fc469f38d10ff76b66ed56406fd4ccbacf8348dbb95351f107c2f3fd",
+      "patches/ffmpeg-adaptation/0012-demuxe-segment-plans.patch": "e4073571ea824fbeb68848e8918129bae172c2896503794fda085b8d8f47c705",
+      "patches/ffmpeg-adaptation/0013-demuxe-sparse-discovery.patch": "01c32d856f157845917d345f21ff3f4a36f1a0b38e5211a72e3a5bbdc20f537c",
+      "patches/ffmpeg-adaptation/0014-http-chunked-eof.patch": "b3b89b8e84da739a9e10de37eb9cd48e3fbe4104e63aac2b55ceb5da9238cad5",
+      "patches/ffmpeg-adaptation/0015-demuxe-live-hls-components.patch": "9516d75248ccd1f43281755410d3f7e3a58c94e917e02ec0e81840b296778486",
+      "patches/ffmpeg-adaptation/0016-demuxe-resource-retirement.patch": "199ff687d64e2f4d971c23ec352820bb21b1273e33def75bbcebdc7f125af1a7",
+      "patches/ffmpeg-adaptation/0017-demuxe-dash-period-session.patch": "0b5cadd65282139c04e21688e8fbdfa94813f9636461407e1aef5ce8b330fc9d",
+      "patches/ffmpeg-adaptation/0018-demuxe-discontinuity-retirement.patch": "1904f37c4cea150d35a82dabba4a82912d92d6d1bc4308b6b42a03589a889afd",
+      "patches/ffmpeg-adaptation/0019-demuxe-hls-window-anchor.patch": "1f20c83dab06c73c0e1345db1e38ccc36caa0df10e7e7f8962fd8c73b373f76e",
+      "patches/ffmpeg-adaptation/0020-mov-strict-sample-eof.patch": "f4d70438726c79d12d923893b8a8e322a43bc8415e816386a99217c25c3822ab",
+      "patches/ffmpeg-adaptation/0021-demuxe-dash-live-discovery.patch": "3ed99eda3249bd6d1d7e5319887b8923d4005ad6d73aab6a7faec9c4c45fa228",
+      "native/audio-codecs/decoder.c": "ef5b962b4cf5993c150185a83e5905ce8c24527af844af00914e194c23035864",
+      "native/audio-codecs/encoder.c": "a40339c0030e3d674a111df3505824a8feedd7e2dfa24156b3542350462ff078",
+      "scripts/build-audio-providers.py": "dfaac48b502a8370adb37267ae4d2a135f64207f6c8fb6b15099644efe0096f4"
+    },
+    "recordSHA256": "4be957cb034555299cc6c85b7ae9617d895f9b90ee0580b30963f556776a416c",
+    "module": {
+      "sha256": "1d02101363b42e6a60d74d8f91bfcd5bc54f675b0ad0e2a530e912186b45fd7b",
+      "bytes": 13873
+    },
+    "wasm": {
+      "sha256": "29dbf5acda840481b37ea5d395a44a3b2568179b1febfb50530b1be131bfd4c1",
+      "bytes": 278388
+    },
+    "capabilities": [
+      "audio.decode.ape",
+      "audio.decode.wavpack"
+    ]
+  },
+  "results": [
+    {
+      "id": "ape-canonical",
+      "profile": "archive",
+      "codec": "ape",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-archive-audio-fixtures/ape-canonical.ape",
+      "inputSHA256": "6a7b79a6d530e9847c18119d627bd43c8d27dcefb3ec7ec979b9b6306e34ac15",
+      "packetSHA256": "556fff5011313d041e03a3a4228e59badd775bdc941d1bef1e519a487da08b64",
+      "referenceSHA256": "8e96d4eba1b732365ccf582d7bd94593c5c554c4d4a9f87ea773b78604a5aca8",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/lossless/luckynight.ape",
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 109,
+      "maxFrameSamples": 32768,
+      "maxPacketBytes": 194208,
+      "samples": 2667168,
+      "referencePCMHash": "8e96d4eba1b732365ccf582d7bd94593c5c554c4d4a9f87ea773b78604a5aca8",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 48.25,
+          "startPacket": 28,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 16.75,
+          "startPacket": 9,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 58.5,
+          "startPacket": 34,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 4.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "oldVersionAndOverbudgetRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack-canonical",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack-canonical.wv",
+      "inputSHA256": "e94c946cbad31706815ce55426a8b60a9c16ba8827d3aa69854192903b7a1645",
+      "packetSHA256": "c0c2ed00cb3457f878cc55260ad8c3e143ba8962e349c9df56c46a43e2f293db",
+      "referenceSHA256": "8e96d4eba1b732365ccf582d7bd94593c5c554c4d4a9f87ea773b78604a5aca8",
+      "sourceURL": "https://samples.ffmpeg.org/A-codecs/lossless/luckynight.wv",
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 121,
+      "maxFrameSamples": 22050,
+      "maxPacketBytes": 60738,
+      "samples": 2667168,
+      "referencePCMHash": "8e96d4eba1b732365ccf582d7bd94593c5c554c4d4a9f87ea773b78604a5aca8",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 48.25,
+          "startPacket": 95,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 16.75,
+          "startPacket": 32,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 58.5,
+          "startPacket": 116,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 4.75,
+          "startPacket": 8,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack16-44100-1",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack16-44100-1.wv",
+      "inputSHA256": "681f9c1a2ff40e937de548565ebe3326460068ec8e746fa7799e6773816e0199",
+      "packetSHA256": "f38d7580259479971ec99961ae74d70a9ac2a2915c6968671378f49a6d5c2a3a",
+      "referenceSHA256": "f4b734f432c6639524f768da0d63f8f3c3c9ba3c3c92edb62588ed2894dba433",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 7,
+      "maxFrameSamples": 44100,
+      "maxPacketBytes": 21966,
+      "samples": 270642,
+      "referencePCMHash": "f4b734f432c6639524f768da0d63f8f3c3c9ba3c3c92edb62588ed2894dba433",
+      "channelMasks": [
+        4
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack16-44100-2",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack16-44100-2.wv",
+      "inputSHA256": "acb90b0710e301c06f2e9d22a82887c2a887d6d198ef64d87b1bf33cf689014f",
+      "packetSHA256": "2abc81fc3f0e411568ad8c7cd60d1f5b74227f4e4d7d08f78d0caf879ed1a38a",
+      "referenceSHA256": "55452bb28467116dbe0a7dbea0273b6d6cf537714dc8fca3c29adde0337aa5f2",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 22050,
+      "maxPacketBytes": 20792,
+      "samples": 270642,
+      "referencePCMHash": "55452bb28467116dbe0a7dbea0273b6d6cf537714dc8fca3c29adde0337aa5f2",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack16-48000-1",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 48000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack16-48000-1.wv",
+      "inputSHA256": "42fc4df0f64e62ab8d9db403888da35fd0eb9fcf4e212132dffa15a368d55b6c",
+      "packetSHA256": "21826d8a8346e76dd5162ab933ce060970758a1967441142745f19926e51023c",
+      "referenceSHA256": "d2f491d5c15ec266cea98d3acc9980f42d6d3fe61023c47477121d81ae8db848",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 7,
+      "maxFrameSamples": 48000,
+      "maxPacketBytes": 24824,
+      "samples": 294576,
+      "referencePCMHash": "d2f491d5c15ec266cea98d3acc9980f42d6d3fe61023c47477121d81ae8db848",
+      "channelMasks": [
+        4
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack16-48000-2",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack16-48000-2.wv",
+      "inputSHA256": "1f8fd15e565d9bf0bf4392e65e9ea72a5c4a4c8a46c28b5bbc3312fcfc7b1b5d",
+      "packetSHA256": "d444896c36da0ec2799ddb3093c1c9b02505bf495c00719d00d761b3426e3e4b",
+      "referenceSHA256": "7ed58389acae27bbf71df6d8b72b1b58540c0057a9731d0d4fe459263b169184",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 24000,
+      "maxPacketBytes": 23272,
+      "samples": 294576,
+      "referencePCMHash": "7ed58389acae27bbf71df6d8b72b1b58540c0057a9731d0d4fe459263b169184",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack16-48000-6",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 48000,
+      "channels": 6,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack16-48000-6.wv",
+      "inputSHA256": "692366c35f2791ee0c6874a1941064c6df1215e6d3ba4de3451e14d20258ebaf",
+      "packetSHA256": "0167b5a345e0ad63a6c6fdaef4c0310b326f7d65eb0efc3ffc394ac62833be86",
+      "referenceSHA256": "2e2ec4a65ab3648689a51061b22dee19b792423b33e4ee8a75020f9687b9d2db",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 24000,
+      "maxPacketBytes": 67434,
+      "samples": 294576,
+      "referencePCMHash": "2e2ec4a65ab3648689a51061b22dee19b792423b33e4ee8a75020f9687b9d2db",
+      "channelMasks": [
+        63
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack16-48000-8",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 48000,
+      "channels": 8,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack16-48000-8.wv",
+      "inputSHA256": "d019e8e4f9d48d0b411f8bc78aeb73120c42b0ad622564c953389bfcceae0040",
+      "packetSHA256": "5e5ff1d09541d3126ecc44057e5eabd0bb0f4f3b576c604f1cb6cc2f39a0a3af",
+      "referenceSHA256": "a08215728566a4a3f03229038d59f67e079d65daade39ec96a20102f059bdf89",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 25,
+      "maxFrameSamples": 12000,
+      "maxPacketBytes": 45854,
+      "samples": 294576,
+      "referencePCMHash": "a08215728566a4a3f03229038d59f67e079d65daade39ec96a20102f059bdf89",
+      "channelMasks": [
+        1599
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 15,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 20,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack16-96000-1",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 96000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack16-96000-1.wv",
+      "inputSHA256": "e26ed1d79b4fb4c58e3e48044f590863e22bff6da1803c0bc0d300b6f029e3ff",
+      "packetSHA256": "ed823426b9fd872d265bec1b81c66415e291ccf2570e9743ae3c3ad147bb45f4",
+      "referenceSHA256": "36a2e7d4e7f131ea9f6453f4880b94ce4bb0b57ffd8117b1a13931b1405596ce",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 48000,
+      "maxPacketBytes": 34740,
+      "samples": 589152,
+      "referencePCMHash": "36a2e7d4e7f131ea9f6453f4880b94ce4bb0b57ffd8117b1a13931b1405596ce",
+      "channelMasks": [
+        4
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack16-96000-2",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 96000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack16-96000-2.wv",
+      "inputSHA256": "fb957fcd03624d3993108a2d3db7439ddf63d0d6875fd15f20c811e8b588355e",
+      "packetSHA256": "6d0063faafd49a2d3056212b03558db7cd6c328b05545313bd7767d92d7e276b",
+      "referenceSHA256": "ef70b84e87dbead32f7528cdcc7e4fc8e9dbbda1d4c4f456038a30cd178d0205",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 48000,
+      "maxPacketBytes": 64540,
+      "samples": 589152,
+      "referencePCMHash": "ef70b84e87dbead32f7528cdcc7e4fc8e9dbbda1d4c4f456038a30cd178d0205",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack16-96000-6",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 96000,
+      "channels": 6,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack16-96000-6.wv",
+      "inputSHA256": "613bb765e2658d7c06bfe346e3a8176b273cc86f104f9b1b8ed8c7ce7e2e88fe",
+      "packetSHA256": "5c2f4e30f6ad6af06e4e125c3c9c2a64c3db0710ce813841f5f5bb44477d79f2",
+      "referenceSHA256": "e58a375df437c3dab9e45c87b8da19ffc19202edcdea52ed46c1775df5356845",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 25,
+      "maxFrameSamples": 24000,
+      "maxPacketBytes": 79224,
+      "samples": 589152,
+      "referencePCMHash": "e58a375df437c3dab9e45c87b8da19ffc19202edcdea52ed46c1775df5356845",
+      "channelMasks": [
+        63
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 15,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 20,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack16-96000-8",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 96000,
+      "channels": 8,
+      "bitsPerSample": 16,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack16-96000-8.wv",
+      "inputSHA256": "c77479f8d8efa7a9a2fff712d15dce07f385ca6139648c65604ae472c492d40f",
+      "packetSHA256": "9298b6528da7e07bdc72914b989837f5193cce4193db1c50fa939dfd567b1a7d",
+      "referenceSHA256": "2f2d00b954bb47c2e46fb0393c5e88e5146c23cdee744d4568ff57a081c60a80",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 50,
+      "maxFrameSamples": 12000,
+      "maxPacketBytes": 50636,
+      "samples": 589152,
+      "referencePCMHash": "2f2d00b954bb47c2e46fb0393c5e88e5146c23cdee744d4568ff57a081c60a80",
+      "channelMasks": [
+        1599
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 30,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 40,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack24-44100-1",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack24-44100-1.wv",
+      "inputSHA256": "9b817597c0ef480aaeb20e78e8adaf6a207d8388064cd077ae367f7683be6762",
+      "packetSHA256": "127c0b8904fa7fe2fb7a684392081f580c51ea9ac68893c1b6b9a4b8daac7c22",
+      "referenceSHA256": "643bda792c47fc73b1a5e439813ae479ddb57d3c3c05e73eeb9a1ceaef82935b",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 7,
+      "maxFrameSamples": 44100,
+      "maxPacketBytes": 54176,
+      "samples": 270642,
+      "referencePCMHash": "643bda792c47fc73b1a5e439813ae479ddb57d3c3c05e73eeb9a1ceaef82935b",
+      "channelMasks": [
+        4
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack24-44100-2",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack24-44100-2.wv",
+      "inputSHA256": "7f74797789175dba89e064850e79062d4978fee1a25de6cc0f24a51e2e86fd3d",
+      "packetSHA256": "39f46f47dfb65b55635f7eda340811734aa5e7a7ee9ade6111edab394065b183",
+      "referenceSHA256": "0d112870ad6e0dd982230bb7986a23928573987e218c0b79ecac4ae6052f641a",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 22050,
+      "maxPacketBytes": 52680,
+      "samples": 270642,
+      "referencePCMHash": "0d112870ad6e0dd982230bb7986a23928573987e218c0b79ecac4ae6052f641a",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack24-48000-1",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 48000,
+      "channels": 1,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack24-48000-1.wv",
+      "inputSHA256": "a9aba1d8407a7c05e7366a15c248fecff152efd0691f5c6b5ddd9da9ddb67ee7",
+      "packetSHA256": "abdca540f41e522fa45cfe4db2c40b934af280c3b9762b3ca8265f40f49b83d1",
+      "referenceSHA256": "74a2743b0ce6a5edc87712126aa2c143065d5a4dbd16f3a3f66fcab28ef863b6",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 7,
+      "maxFrameSamples": 48000,
+      "maxPacketBytes": 60692,
+      "samples": 294576,
+      "referencePCMHash": "74a2743b0ce6a5edc87712126aa2c143065d5a4dbd16f3a3f66fcab28ef863b6",
+      "channelMasks": [
+        4
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack24-48000-2",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack24-48000-2.wv",
+      "inputSHA256": "577a0c36ab3835fba500fb7e42256cb687224d4dda5078024a7cadacd3c30e89",
+      "packetSHA256": "1421ac8b250c1327075e9bf07d34a014f9dfe2ee60937b6258740f95bbc505cf",
+      "referenceSHA256": "d18ce4ad5fb8ab85e2770dd7dac2ac5832c7c6a2c4533206192934178b059de6",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 24000,
+      "maxPacketBytes": 57844,
+      "samples": 294576,
+      "referencePCMHash": "d18ce4ad5fb8ab85e2770dd7dac2ac5832c7c6a2c4533206192934178b059de6",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack24-48000-6",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 48000,
+      "channels": 6,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack24-48000-6.wv",
+      "inputSHA256": "48678acf312a3cf2b8e3f72a77d9dbc9d4ac7bfd57ccbb90ce6b79539f9f85c9",
+      "packetSHA256": "ca847ecb48aff493fe4e7e1765175b4601ac5468feb0e7b0bedf6f8123a78ed6",
+      "referenceSHA256": "b42eb599181b2598dc270c916707c283de44517ed7ddd818efd3bd9050688d3e",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 24000,
+      "maxPacketBytes": 183668,
+      "samples": 294576,
+      "referencePCMHash": "b42eb599181b2598dc270c916707c283de44517ed7ddd818efd3bd9050688d3e",
+      "channelMasks": [
+        63
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack24-48000-8",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 48000,
+      "channels": 8,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack24-48000-8.wv",
+      "inputSHA256": "2ae5c00b96d9e2509359b1f17941f12b087ca1ff807099516e481dbf2d5f8386",
+      "packetSHA256": "59be944090eef072e572dd4bd2a9651dbef12e777615c2ceffd12f8eb1f27807",
+      "referenceSHA256": "57a2a727d4ce0e6d9c799a3cc91552004720ffe76bd105c973695005f108d451",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 25,
+      "maxFrameSamples": 12000,
+      "maxPacketBytes": 126410,
+      "samples": 294576,
+      "referencePCMHash": "57a2a727d4ce0e6d9c799a3cc91552004720ffe76bd105c973695005f108d451",
+      "channelMasks": [
+        1599
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 15,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 20,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack24-96000-1",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 96000,
+      "channels": 1,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack24-96000-1.wv",
+      "inputSHA256": "114c3de535e110c69ec414f1295bb194a911f3646e4c2cd803ea22c85065649b",
+      "packetSHA256": "b175c07def0f1ea4e928c7b6fc4133e937e365d70f6e7761c6dcd3a1b85a86d1",
+      "referenceSHA256": "ad83430f53b20806f70d2754d0241dddacf5c9ec3f376d670597ed0cb9c54d51",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 48000,
+      "maxPacketBytes": 80688,
+      "samples": 589152,
+      "referencePCMHash": "ad83430f53b20806f70d2754d0241dddacf5c9ec3f376d670597ed0cb9c54d51",
+      "channelMasks": [
+        4
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack24-96000-2",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 96000,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack24-96000-2.wv",
+      "inputSHA256": "5a5efaeb11c93b186cf7ee1c719ca6df040db871f2a9b4c45a6e1182ec041089",
+      "packetSHA256": "860baf281627b9ff77ef09fa736608ba766b042f7c19094cea414e40571e0ea2",
+      "referenceSHA256": "c484be9899ae289cbac3946fe72270a001350fdbb5085b22910f6f22abeff2aa",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 48000,
+      "maxPacketBytes": 153670,
+      "samples": 589152,
+      "referencePCMHash": "c484be9899ae289cbac3946fe72270a001350fdbb5085b22910f6f22abeff2aa",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack24-96000-6",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 96000,
+      "channels": 6,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack24-96000-6.wv",
+      "inputSHA256": "0b7df57097b20610fc1c92b495818043e38796d5b2dfcdd4431ae67cdfef2478",
+      "packetSHA256": "e9ce04208671d391f221cc4cf0948a039a3cc123f436a9b4c77a416508501028",
+      "referenceSHA256": "ab062bb00d01413f0cebd188fa9f0a15d8a907b1d53b7b6191bedba7985fd036",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 25,
+      "maxFrameSamples": 24000,
+      "maxPacketBytes": 192630,
+      "samples": 589152,
+      "referencePCMHash": "ab062bb00d01413f0cebd188fa9f0a15d8a907b1d53b7b6191bedba7985fd036",
+      "channelMasks": [
+        63
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 15,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 20,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack24-96000-8",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 96000,
+      "channels": 8,
+      "bitsPerSample": 24,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack24-96000-8.wv",
+      "inputSHA256": "640a7d4888b7d4526e17263874469db4e194cac8a313c0a23268233fe9bfbf29",
+      "packetSHA256": "02fb737b7b9be2be7b7d51330870bb22885c24115fefb366bb927c8919b35844",
+      "referenceSHA256": "d59fecb9cc2d01a402012678fc3642fa930a38a193e1ea605aac25bed847338c",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 50,
+      "maxFrameSamples": 12000,
+      "maxPacketBytes": 125738,
+      "samples": 589152,
+      "referencePCMHash": "d59fecb9cc2d01a402012678fc3642fa930a38a193e1ea605aac25bed847338c",
+      "channelMasks": [
+        1599
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 30,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 40,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack32-44100-1",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 44100,
+      "channels": 1,
+      "bitsPerSample": 32,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack32-44100-1.wv",
+      "inputSHA256": "8fff2674b3e9e9cdc95b7619ef7e66a81ff3ce618dbe1a46a1b3706761ba8c85",
+      "packetSHA256": "b061b7db32e37ab849449e69b14e8034ad645508552a45a83d5011df75d68e0e",
+      "referenceSHA256": "a9ce184a9aada0036449ae63b1875f9a3d20689acfae914ab6a56d7bf17e445e",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 7,
+      "maxFrameSamples": 44100,
+      "maxPacketBytes": 98252,
+      "samples": 270642,
+      "referencePCMHash": "a9ce184a9aada0036449ae63b1875f9a3d20689acfae914ab6a56d7bf17e445e",
+      "channelMasks": [
+        4
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack32-44100-2",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 32,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack32-44100-2.wv",
+      "inputSHA256": "fa97b97cef80cfeac4bc3588edb657439dc4cf9551bcb1a160c59d4b2ac6218b",
+      "packetSHA256": "4d7047db5d7612ff1f6ed528215d5add82889f22b27e767fd23c826fe832e304",
+      "referenceSHA256": "3746c7a32ab9eef59b0c6056fbc21be9992954f12335214da04ba545d26d790b",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 22050,
+      "maxPacketBytes": 93394,
+      "samples": 270642,
+      "referencePCMHash": "3746c7a32ab9eef59b0c6056fbc21be9992954f12335214da04ba545d26d790b",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 26460,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack32-48000-1",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 48000,
+      "channels": 1,
+      "bitsPerSample": 32,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack32-48000-1.wv",
+      "inputSHA256": "70e2f1472c6d18c436532772f09299b8e341b2e45e57cfc0989533468a72a1b9",
+      "packetSHA256": "3fb569d315f3f8b9a94e03ca5e4d7851bf7e92375edd754a11b3ee7256287120",
+      "referenceSHA256": "c034002da14c8e513f5802d9b7a4f08d98ca2d3f232cda7167c83bd8857675a5",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 7,
+      "maxFrameSamples": 48000,
+      "maxPacketBytes": 108636,
+      "samples": 294576,
+      "referencePCMHash": "c034002da14c8e513f5802d9b7a4f08d98ca2d3f232cda7167c83bd8857675a5",
+      "channelMasks": [
+        4
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack32-48000-2",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 32,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack32-48000-2.wv",
+      "inputSHA256": "55b44f58be37203d9fad554c98440b4e5f870ea1b753db22b08bd338ad480510",
+      "packetSHA256": "028bcd50f386c41d3fb80fefa85e0379391552033126fc0e8933951f61f5a67d",
+      "referenceSHA256": "62239ce39b5dbe5a29f800a7350ebfc6e5d19b32ff052f341b0c921cb187b9e4",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 24000,
+      "maxPacketBytes": 102070,
+      "samples": 294576,
+      "referencePCMHash": "62239ce39b5dbe5a29f800a7350ebfc6e5d19b32ff052f341b0c921cb187b9e4",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack32-48000-6",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 48000,
+      "channels": 6,
+      "bitsPerSample": 32,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack32-48000-6.wv",
+      "inputSHA256": "0f64b4d67f325cf3def4ec8cbe4d2c9f99639cb3e87e8856716a8280d91bf6b6",
+      "packetSHA256": "c8e853e19a6b12e8f863a913d30ee83bc78863041027975b47d711b7f0470b07",
+      "referenceSHA256": "4ddf176f9aa36bdd6aa3c9e5aea2f09900e2fc50e8c90a380574bb0e81409de0",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 24000,
+      "maxPacketBytes": 322998,
+      "samples": 294576,
+      "referencePCMHash": "4ddf176f9aa36bdd6aa3c9e5aea2f09900e2fc50e8c90a380574bb0e81409de0",
+      "channelMasks": [
+        63
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack32-48000-8",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 48000,
+      "channels": 8,
+      "bitsPerSample": 32,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack32-48000-8.wv",
+      "inputSHA256": "d3612542d877e13d04653b091ff3815b08558402e8ddc3e1bf2364c4c36fdd73",
+      "packetSHA256": "be05e3a1fab91061b90449f15754eaef8defd833a7426e7a11770e5fbd668b1e",
+      "referenceSHA256": "38bdd37340daf8b9092f64792d160a57c06aee6a35e29d71924867d50d6ba149",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 25,
+      "maxFrameSamples": 12000,
+      "maxPacketBytes": 220044,
+      "samples": 294576,
+      "referencePCMHash": "38bdd37340daf8b9092f64792d160a57c06aee6a35e29d71924867d50d6ba149",
+      "channelMasks": [
+        1599
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 15,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 20,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 28800,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack32-96000-1",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 96000,
+      "channels": 1,
+      "bitsPerSample": 32,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack32-96000-1.wv",
+      "inputSHA256": "cc61c048f3464587c983ad11ea0c793fef32d123d5b0613145e57dcac1a2746b",
+      "packetSHA256": "5c619114de3313879feb1812f2f2b87aca806dfd3b8569337b2b24f4551eb220",
+      "referenceSHA256": "7452ffb4de8106e8f79b1148b518fafc8c4d87a3046beb05582609b8fd8bb6ac",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 48000,
+      "maxPacketBytes": 128692,
+      "samples": 589152,
+      "referencePCMHash": "7452ffb4de8106e8f79b1148b518fafc8c4d87a3046beb05582609b8fd8bb6ac",
+      "channelMasks": [
+        4
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack32-96000-2",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 96000,
+      "channels": 2,
+      "bitsPerSample": 32,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack32-96000-2.wv",
+      "inputSHA256": "a697c16665ba43626e80084cb890995bd5c5f72cb7f5ed1d74fe6c48c78832eb",
+      "packetSHA256": "7e70243adc453a0df0b1f29db6cc4fd94e79d0926fd184b3be3027f94c1567f3",
+      "referenceSHA256": "cc9db617d02691ba347bf8b87d5a24870fd192a33d35128aa9cad1b4e678a4bc",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 13,
+      "maxFrameSamples": 48000,
+      "maxPacketBytes": 241466,
+      "samples": 589152,
+      "referencePCMHash": "cc9db617d02691ba347bf8b87d5a24870fd192a33d35128aa9cad1b4e678a4bc",
+      "channelMasks": [
+        3
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 0,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack32-96000-6",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 96000,
+      "channels": 6,
+      "bitsPerSample": 32,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack32-96000-6.wv",
+      "inputSHA256": "131d1a20c1a90d86933543b993421211c3f526f5e550f1c4fc1d2141d15b25ff",
+      "packetSHA256": "262efb5c0fdd395ad7612ecc1b4daf1c7e4772bea90d9fd08a14c44d83ef1d4c",
+      "referenceSHA256": "883a86d71e235ca93aca1f90e20367c9a8444a47f0dea98c32fb8b5f5127a2f2",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 25,
+      "maxFrameSamples": 24000,
+      "maxPacketBytes": 327848,
+      "samples": 589152,
+      "referencePCMHash": "883a86d71e235ca93aca1f90e20367c9a8444a47f0dea98c32fb8b5f5127a2f2",
+      "channelMasks": [
+        63
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 15,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 20,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 1,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack32-96000-8",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 96000,
+      "channels": 8,
+      "bitsPerSample": 32,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack32-96000-8.wv",
+      "inputSHA256": "8ba313fcf12790a3ee90374c426019d64a723673c9b71983ef92a280f14758c1",
+      "packetSHA256": "df570b6dc835c259e10f6c1d9f0ee1bf18a97d75d14687366594da90721a37d7",
+      "referenceSHA256": "ddcceca6c316297870b436c9e9d4dab9fa463f54c3deddb418a372be4383ca38",
+      "sourceURL": null,
+      "expectedRejection": null,
+      "passed": true,
+      "frames": 50,
+      "maxFrameSamples": 12000,
+      "maxPacketBytes": 216170,
+      "samples": 589152,
+      "referencePCMHash": "ddcceca6c316297870b436c9e9d4dab9fa463f54c3deddb418a372be4383ca38",
+      "channelMasks": [
+        1599
+      ],
+      "integerExact": true,
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 30,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 10,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 40,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 2,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 57600,
+          "integerExact": true
+        }
+      ],
+      "hybridFloatDsdAndMalformedHeaderRejected": true,
+      "abort": true
+    },
+    {
+      "id": "wavpack-float-48000-2",
+      "profile": "archive",
+      "codec": "wavpack",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 32,
+      "input": "/tmp/demuxe-archive-audio-fixtures/wavpack-float-48000-2.wv",
+      "inputSHA256": "867a17a36a973fae3f976861bf75476257d6f5b09a97ba18f9a0608b37c6b012",
+      "packetSHA256": "dc70992a4aae3b36256a4afaa5b1a00c2e42809df1eb9dfcfc57118f64027003",
+      "referenceSHA256": "41c5a5d0d83168838f2ec8a116a40f11a5a15ba5f129a94f1fea1cdf96d90d31",
+      "sourceURL": null,
+      "expectedRejection": "PROVIDER_PROFILE_MISMATCH",
+      "passed": true,
+      "precisionProfileRejected": true
+    }
+  ]
+}

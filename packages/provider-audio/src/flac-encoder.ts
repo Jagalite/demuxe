@@ -2,6 +2,7 @@
 export interface FlacModule {
  HEAPU8: Uint8Array; HEAP32: Int32Array;
  _ae_create(channels: number, level: number): number;
+ _ae_create_config?(channels: number, level: number, rate: number): number;
  _ae_destroy(owner: number): void;
  _ae_size(owner: number): number;
  _ae_input(owner: number): number;
@@ -15,7 +16,7 @@ export interface FlacModule {
  _ae_header_size(owner: number): number;
 }
 export type FlacPacket = Readonly<{data: Uint8Array; pts: number; duration: number}>;
-/** 48 kHz signed 24-bit PCM, represented left justified in interleaved Int32.
+/** Finite 8/16/22.05/32/44.1/48/96 kHz signed 24-bit PCM, left justified in Int32.
  * Callers own float quantization, channel mapping and timeline alignment. */
 export interface AudioPacketEncoder {
  readonly blockSize: number;
@@ -31,10 +32,13 @@ export class PacketFlacEncoder implements AudioPacketEncoder {
  readonly blockSize: number;
  readonly header: Uint8Array;
  constructor(private readonly module: FlacModule, readonly channels: number,
-   private readonly signal: AbortSignal, level = 0) {
+   private readonly signal: AbortSignal, level = 0, readonly sampleRate = 48000) {
   signal.throwIfAborted();
+  if (![8000,16000,22050,32000,44100,48000,96000].includes(sampleRate))throw Error('Unqualified FLAC sample rate');
   if (![1, 2, 6, 8].includes(channels) || !Number.isInteger(level) || level < 0 || level > 12) throw Error('Unqualified FLAC configuration');
-  this.owner = module._ae_create(channels, level);
+  if(sampleRate<44100&&channels>2)throw Error('Unqualified low-rate FLAC channels');
+  if(sampleRate!==48000&&!module._ae_create_config)throw Error('FLAC sample-rate configuration ABI unavailable');
+  this.owner = module._ae_create_config?.(channels,level,sampleRate)??module._ae_create(channels, level);
   if (!this.owner) throw Error('FLAC initialization failed');
   try {
    this.blockSize = module._ae_size(this.owner);

@@ -8,11 +8,12 @@ its unified engine is a local candidate, not a released replacement.
 
 ## Scope and counts
 
-- **19 optional slice packages**: 12 audio components, one container component,
-  and six full-file preparation variants. Eight local candidates extend the
-  historical 11 packages; these are not 19 distinct codecs.
+- **28 audited optional slice packages**: 21 audio components, one container
+  component, and six full-file preparation variants, counted across exact
+  historical and local assembly records. Seventeen candidates extend the
+  historical 11 packages; these are not 28 distinct codecs or 28 release-qualified packages.
 - **Four broad provider packages**: primary FFmpeg, FFmpeg Asyncify, FFmpeg JSPI,
-  and mpv. Together with slices, the package inventory has 23 providers.
+  and mpv. Together with slices, the package inventory has 32 providers. The catalog and all 28 optional archive/assembly-record hashes were checked; native-only IMA-QT and G726 experiments are excluded.
 - Broad audio preparation explicitly requests **17 decoder implementations and
   two encoders**. MP3 has two implementations; DTS core/HD share FFmpeg `dca`.
 - The local broad FFmpeg configuration used as the dependency location for mpv
@@ -26,7 +27,7 @@ its unified engine is a local candidate, not a released replacement.
 [Machine-readable inventory](codec-slice-inventory.json) retains every enabled
 component name from that broad configuration, its hash, the actual linked archive
 hashes, the explicit audio configure set, and the historical 11 package identities.
-The JSON also records eight new packages and the rebuilt container/FLAC dependencies. Historical identities retain their historical status; current candidate evidence is
+The JSON retains the seven-group checkpoint and separately records newer packet packages, the rebuilt container/FLAC dependencies, and two separately scoped completed installed campaigns. Historical identities retain their historical status; current candidate evidence is
 described in [the codec expansion report](CODEC-EXPANSION.md). The
 historical unified build record did not hash that configuration; the snapshot
 records this limitation rather than claiming source correspondence.
@@ -42,6 +43,7 @@ It is not the same scope as splitting the codecs already enabled here.
 | --- | --- |
 | Historical qualified | Exact prior package/core identities passed the recorded bounded contracts; not a blanket qualification of this worktree |
 | Local smoke passed | Representative fixtures passed in local Chromium; not the full layout/rate/container/browser matrix |
+| Installed Chromium passed | Exact frozen package identities passed the stated assets/embedded matrix and required controls; current Firefox, Linux CI and release remain separate |
 | Native candidate passed | Exact local native builds passed the stated packet/output tests; browser and release gates remain separate |
 | Local candidate passed | Current unified mpv candidate passed its scoped tests; source/release/remote gates remain |
 | Build profile only | Script accepts the family; no qualified installed slice is claimed |
@@ -91,41 +93,85 @@ AVC/HEVC input contract. See [exact contracts](CODEC-SPLIT-PRODUCTION.md).
 
 ## Seven priority groups implemented locally
 
-These eight packages implement the seven priority groups. The local browser matrix passed **64 assets/embedded checks plus 12 full-file checks**; none is published or release-qualified.
+At the seven-group checkpoint, these eight packages implemented the priority groups. Its local browser matrix passed **64 assets/embedded checks plus 12 full-file checks**; none was published or release-qualified. Later finite scope is recorded separately below.
 See [contracts, measurements and commands](CODEC-EXPANSION.md).
 
 | Priority | New package suffix | Implemented contract | Current evidence |
 | --- | --- | --- | --- |
 | P1.1 | `ffmpeg-ac3-eac3-jspi`, `ffmpeg-ac3-eac3-asyncify` | Full-file AC3/EAC3 → FLAC with copied video; existing streaming preparation ABI | Both variants built/audited; 12 local installed browser checks (10 positive, 2 negative), stereo/5.1 and bounded large-file reads |
 | P1.2 | `audio-opus-encoder` | Explicitly lossy 48 kHz mono/stereo libopus output; packet delay and final duration | 8 real-Wasm output cases; independent decode and seek with 80 ms preroll |
-| P1.3 | `audio-aac` | AAC-LC packet decoder; stereo 48 kHz maintained composition | Native reference checks; Matroska → FLAC/Opus composition checks |
+| P1.3 | `audio-aac` | AAC-LC default; explicit finite HE stereo48, HEv2 stereo44100, USAC mono48 | AAC-LC Matroska/MOV checks in the frozen 762 campaign; explicit extensions passed the 296 campaign, with original priming/padding and finite output policies |
 | P1.4 | `audio-opus-vorbis` | Opus/Vorbis packet decoders; stereo 48 kHz maintained composition | Native reference checks; intrinsic pre-skip/overlap handled once |
-| P1.5 | `audio-lossless` | FLAC/ALAC integer packet decoders | Native reference checks; FLAC Matroska composition; ALAC MOV is packet-fixture coverage only |
+| P1.5 | `audio-lossless` | FLAC/ALAC integer packet decoders | Native reference checks; FLAC Matroska composition; bounded ALAC MOV conversion passed the exact installed 762 campaign |
 | P1.6 | `audio-mp3` | FFmpeg `mp3float` decoder | Native reference checks and stereo 48 kHz Matroska compositions |
-| P1.7 | `audio-pcm` | Little-endian s16/s24/s32/f32/f64 packet decoding | Native reference checks; finite precision/range guards; f64 MOV is packet-fixture coverage only |
+| P1.7 | `audio-pcm` | Little-endian s16/s24/s32/f32/f64 packet decoding | Native reference checks; finite precision/range guards; f64 MOV passed the frozen 762 campaign; WAV unsigned8/AIFF signed8 at 44.1/48/96 kHz mono/stereo passed the 296 campaign with exact integer PCM |
 
-The packet family suites record **34 decoder checks**, **8 Opus encoder cases**,
+The original seven-group checkpoint packet suites record **34 decoder checks**, **8 Opus encoder cases**,
 **4 FLAC regression cases**, **6 owner-failure tests**, and **20 composition
 checks**, including **3 expected precision rejections**. These counts describe
-bounded checks, not codec or browser counts. New compositions admit stereo 48 kHz
+bounded checks, not codec or browser counts. At that checkpoint, compositions admitted stereo 48 kHz
 Matroska with one audio and one non-reordered AVC/HEVC video track. The current
-composition fixtures exercise AVC. Additional rates/channels covered by packet
-tests do not expand that composition admission.
+composition fixtures exercise AVC. Additional rates/channels in those checkpoint packet
+tests did not expand composition admission; the later finite extensions below have separate evidence.
 
 The new Opus encoder uses pinned **libopus 1.6.1**, with retained BSD terms and a
 matching source archive; it does not link FFmpeg's experimental native encoder.
 mpv remains atomic. The historical broad FFmpeg component snapshot is unchanged.
 
+Two completed installed Chromium campaigns have distinct artifact scopes:
+
+| Campaign | Exact scope | Evidence |
+| --- | --- | --- |
+| Frozen expansion: **762 cases** | 16 exact packages; assets/embedded; 528 compositions and 234 packet cases; 114 required precision, 28 explicit profile, four packet-budget and two unsupported-feature rejections; 30 selective Wasm paths; actual muted post-seek control | [Verified report](../results/media-components/codec-expansion/extended-browser.json), [scope and preserved segments](INSTALLED-AUDIO-762-QUALIFICATION.md) |
+| Priority cohort: **296 cases** | 13 exact newer packages and 18 bundles; 138 packet, 136 FLAC and 22 Opus cases; six required precision rejections; 22 selective Wasm paths; actual muted post-seek and speech decoded silence/corruption controls | [Verified report](../results/media-components/codec-expansion/priority-browser.json), [scope and preserved segments](INSTALLED-AUDIO-PRIORITY-296-QUALIFICATION.md) |
+
+The campaigns overlap the required baseline. They are not 1,058 unique cases,
+not a single current-package matrix, and not Firefox, Linux CI or release
+qualification. Earlier 620-case and 18-case WebM evidence retains its historical
+identity scope; the hidden WebM preview qualified decoded frames and canvas
+changes, not visible compositor callbacks. Default Player routing is unchanged.
+
+MLP supports at most six channels in the pinned FFmpeg implementation; MLP 7.1 is not an implementable slice extension.
+
+## Follow-up transfer sizes
+
+Exact candidate Wasm sizes (bytes; compression measured locally):
+
+| Provider | Raw Wasm | Gzip level 9 | Brotli quality 11 |
+| --- | ---: | ---: | ---: |
+| Legacy MP1/MP2/WMA v1/v2 | 439,866 | 200,690 | 163,898 |
+| APE/WavPack | 278,388 | 131,067 | 111,627 |
+| TTA | 247,866 | 115,731 | 99,291 |
+
+The companion module JavaScript is additional. These measurements describe encoded transfer bytes, not startup time or CPU performance. Exact hashes and package sizes are in `results/media-components/codec-expansion/followup-sizes.json`.
+
+## Completed finite follow-ups
+
+These are installed Chromium results for the named campaign artifacts, not broad
+admission of every FFmpeg profile, rate, layout or container.
+
+| Family / provider | Completed evidence and finite boundary |
+| --- | --- |
+| TrueHD/MLP and DTS-HD | The 762 campaign passed maintained lossless rate/layout extensions and historical 48 kHz regressions. Audible original DTS-HD 5.1/7.1 composition ranges passed exact PCM/video, pause, seek and fresh audio. MLP remains at most six channels. |
+| Legacy MP1/MP2/WMA v1/v2 | Packet and finite MP2/WMA compositions passed the 762 campaign. MP1 remains its canonical packet-only profile. |
+| WMA Pro/Lossless/Voice | Exact advanced WMA package passed the 762 packet campaign, including the codec-specific Voice quality and actual decoded controls; no ASF reader or conversion recipe. |
+| APE/WavPack/TTA/TAK | The 762 campaign passed finite standalone/Matroska archive cases and canonical TAK. Canonical APE and TAK profiles remain explicitly bounded; 32-bit precision and unsupported archive modes reject as specified. |
+| Canonical Shorten | Native original stream-clock, full-restart seeks, reader/conversion/owner proof and the 296 installed cohort passed. No arbitrary packet restart or broader Shorten profile admission. |
+| WAV MS/IMA ADPCM | All **26** native fact-trimmed FLAC conversions and corresponding packet/reader/owner proofs passed; the 296 cohort passed original sample extent, exact PCM and actual playback at 8/16/22.05/32/44.1/48 kHz mono/stereo. |
+| Telephony | **16** native conversions and installed 296 cases passed: G711 A-law/mu-law 8/16 kHz mono/stereo and GSM/GSM-MS 8 kHz mono, with original fact clipping and GSM restart/discard policy. |
+| AAC explicit extensions | HE stereo48 and HEv2 stereo44100, plus USAC mono48 ISO BMFF → FLAC with exact original priming/tail extent, passed the 296 cohort. AAC-LC remains the default; profiles are explicit aliases in the existing AAC provider. |
+| Low-rate FLAC / PCM8 | `low-rate-s24` output and WAV unsigned8/AIFF signed8 `integer-8bit` decoding passed the 296 cohort. Low-rate recipes remain specific to qualified ADPCM/telephony; PCM8 remains 44.1/48/96 kHz mono/stereo → FLAC. |
+| Speex / AMR-NB / AMR-WB | Finite FLV Speex wideband mono and AMR mode0 packets passed native and 296 installed speech quality, reset, clocks and actual decoded silence/corruption controls. **Packet-only: no reader or conversion recipe.** |
+
 ## Ranked remaining audio work
 
 | Priority | Work | Testing status / boundary |
 | --- | --- | --- |
-| P1 | Broaden installed browser qualification across supported browsers | Local Chromium assets/embedded and AC3 JSPI/Asyncify passed; current Firefox and combined broad-fallback qualification remain |
-| P1 | Extend current families across rates, channels, containers, priming/gapless and real-world fixtures | Only the finite contracts above are admitted; ALAC/f64 packet tests do not add a MOV demux provider |
-| P2.1 | Existing lossless extensions: MLP 7.1, DTS-HD stereo/5.1, further rates/layouts | Existing finite matrix remains historical; extensions unqualified |
-| P2.2 | Legacy audio: `mp1,mp2,wmav1,wmav2,wmapro,wmalossless` | Broad mpv FFmpeg includes these; no dedicated conversion slices or qualification |
-| P2.3 | Archival lossless: `ape,wavpack,tta,tak,shorten` | Broad mpv FFmpeg includes these; grouping, lossless comparisons and seeking remain |
-| P3 | Speech, ADPCM/DPCM, DSD, game/proprietary audio | Inventory only; prioritize using input demand and representative fixtures |
+| P0 | Current Firefox/Linux CI and final release qualification | Local Chromium campaigns passed their exact artifacts. Remote current-package Firefox/Linux, combined broad fallback/full FFmpeg/atomic mpv and final release/source sealing remain pending. |
+| P2.1 | MOV IMA-QT reader/conversion integration | Four native packet cases, 16 restart/discard seek checks and 104 controls passed. Public MOV reader, conversion and owner integration passed; source/package sealing and installed browser qualification remain pending. |
+| P2.2 | G726/G726LE explicit packing and finite container integration | Twelve synthetic native configurations passed exact original-clock proof; explicit raw and WAV conversion, public recipes and owner tests passed. Source/package sealing and installed browser qualification remain pending; official fixture packing remains unqualified. |
+| P2.3 | Broaden remaining modes/rates/layouts in existing AAC, speech, lossless and legacy families | Only the listed finite profiles are admitted. More real fixtures, exact framing/gapless clocks, precision/layout controls and installed tests are required before broader offers. No additional family package is automatically needed for a profile alias. |
+| P3 | Other DPCM/game/proprietary audio and DSD | Follow concrete fixture demand after important container/profile gaps. Inventory presence does not qualify native framing, conversion or playback. |
 
 The existing explicit audio-preparation decoder families now have corresponding
 slice implementations, subject to these finite bounds. MP3 uses `mp3float`;
@@ -138,7 +184,7 @@ Opus and FLAC encoding remain distinct from their decoder providers.
 | --- | --- | --- |
 | P1 | Declarative codec-family build/package matrix instead of adding string-replacement recipes for every family | FFmpeg packet family map, dedicated libopus recipe and three full-file families implemented; generalized policy/qualification matrix remains |
 | P1 | Per-family fixture manifest and automated installed-package matrix | Native expansion suites and local installed assets/embedded browser matrix passed; remote automation remains |
-| P2 | Additional container slices: MOV/MP4, WebM/Ogg, MPEG-TS, WAV/AIFF | Broad FFmpeg contains demux support; only the bounded TypeScript Matroska→fMP4 component is separately maintained. One container per codec is unnecessary |
+| P2 | Additional container slices: MOV/MP4, WebM/Ogg, MPEG-TS, WAV/AIFF | Bounded MOV/MP4, Ogg, WAV/AIFF, standalone APE/WavPack and WebM copy implemented with native proofs; finite MOV/Ogg/WAV/AIFF and archive conversions passed their scoped installed campaigns. MPEG-TS remains explicit packet-only. One container per codec is unnecessary |
 | P2 | Subtitle formats | Remain behind the existing mpv service; no new standalone subtitle splits proposed or qualified |
 | P3 | Standalone video decoder providers (H264/HEVC, VP8/VP9/AV1 first if demanded) | mpv broad decoder build and browser routes already serve their existing contracts. Independent providers need a new frame/presenter integration and tests; audio slice infrastructure alone does not supply it |
 | P3 | Remaining image/video/subtitle/demux entries in the 500-decoder snapshot | Inventory only; not individual promised packages or qualified browser playback routes |
@@ -175,7 +221,7 @@ or turn local candidates into production-qualified packages.
 | Current branch review and CI | P0 before merge | Local scoped checks passed; remote exact-head status not verified in this inventory. Confirm required checks before merging |
 | Native bundle CI inputs | P0 for a green native workflow | `.github/workflows/bundler.yml` requires `BUNDLE_NATIVE_TAG` and `BUNDLE_NATIVE_INVENTORY_SHA256` (or dispatch inputs). No completed remote run recorded here; pin matching packages/fixtures and run it |
 | Keep candidate behavior isolated | P0 before merge | Unified packaging clones private test packages and does not update production registry/default configuration; retain that boundary |
-| Unified mpv source correspondence | P0 before shipping unified mpv | Source companion explicitly pending; record complete build input/dependency closure and assemble/verify matching source archive |
+| Unified mpv source correspondence | P0 before shipping unified mpv | Isolated source/package audit and byte-identical retained-input relink passed; clean dependency rebuild remains pending. See [source gate](UNIFIED-MPV-SOURCE-GATE.md) |
 | Unified mpv production assembly | P0 before shipping unified mpv | Integrate the one-engine layout into ordinary release packaging, regenerate audited manifests and qualify the exact resulting packages |
 | Current combined browser matrix | P0 before shipping changed bundles | Rerun slice/broad fallback combinations on latest core plus unified mpv; remote Chromium/Firefox native qualification pending |
 | Publication/staging | After qualification | No release upload/npm publication or change to default delivery authorized by this inventory |
@@ -183,3 +229,11 @@ or turn local candidates into production-qualified packages.
 A merge of the candidate tooling/backlog can keep these shipping gates open.
 A merge described as “production-ready unified mpv” cannot. This expansion has not been committed, pushed, tagged or published. Historical
 provider architecture merges do not qualify these new candidate bytes.
+
+## Current priority campaign
+
+See [expanded audio evidence](AUDIO-COVERAGE-EXPANSION.md), [container backlog](CONTAINER-CODEC-NEXT.md), and [exact CI input workflow](CODEC-EXPANSION-CI.md). These updates preserve the original committed results and do not promote the production qualification registry. mpv remains atomic.
+
+### Current finite extensions
+
+HE-AAC stereo48, HEv2 stereo44100 and USAC mono48 use explicit profile admission in the existing AAC slice; AAC-LC stays the default. Their maintained native/converter/owner proofs and exact 296-case installed cohort passed. Low-rate FLAC output (8/16/22.05/32 kHz mono/stereo) has a distinct `low-rate-s24` offer and passed qualified ADPCM/telephony compositions in that cohort. Profiles and packet families do not broaden default Player routing or imply all-FFmpeg codec support.
