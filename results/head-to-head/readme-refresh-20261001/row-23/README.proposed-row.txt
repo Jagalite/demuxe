@@ -1,0 +1,1 @@
+| HEVC Main 10-bit SDR + AC-3 / MKV | 🔴 (Fail) | 🟢 (Pass) · CPU withheld | 🟢 (Pass) · 19.8% CPU · forced-remux ref | 🟢 (Pass) · 20.3% CPU · forced-remux ref | 🟢 (Pass) · 36.2% CPU | 🔴 (Fail) | 🟢 (Pass) · 36.8% CPU | 🟡 Screened · 40.6% CPU | 🔴 (Fail) |
