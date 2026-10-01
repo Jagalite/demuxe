@@ -455,3 +455,7 @@ Browser and CPU results retain their original captured harness. The later supple
 | hybrid-asyncify | 🔴 (Fail) | hybrid-private; Error: Seek output: displayed timeline marker incorrect |
 | software-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified. |
 | software-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; Multichannel encoded input screened through stereo output; discrete channel fidelity remains unqualified. |
+
+### Recorded seek failure
+
+The Hybrid/Asyncify `seek-6` observation retained a red frame where the fixture required blue. Diagnostics recorded `Retained presentation frame budget`, a peak of 16 retained frames, and an inactive browser decoder while the playback clock continued to advance. The trigger for the queue growth remains unresolved; a targeted reproduction and runtime fix are follow-up work. The original failed result is preserved in the compact correctness archive above.
