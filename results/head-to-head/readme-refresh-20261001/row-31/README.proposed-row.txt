@@ -1,0 +1,1 @@
+| VP8 + Vorbis / WebM | 🟢 (Pass) · 13.4% CPU | 🟢 (Pass) · 12.7% CPU | 🟢 (Pass) · 13.0% CPU · forced-remux ref | 🟢 (Pass) · 13.9% CPU · forced-remux ref | 🟢 (Pass) · 36.1% CPU | 🔴 (Fail) | 🟢 (Pass) · 35.6% CPU | 🟡 Screened · 32.8% CPU | 🟢 (Pass) · 22.1% CPU |
