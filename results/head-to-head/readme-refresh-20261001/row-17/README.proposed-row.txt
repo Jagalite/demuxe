@@ -1,0 +1,1 @@
+| H.264 + PCM16 stereo / MKV | 🟢 (Pass) · 12.9% CPU | 🟢 (Pass) · 14.0% CPU | 🟢 (Pass) · 18.3% CPU · forced-remux ref | 🟢 (Pass) · 19.0% CPU · forced-remux ref | 🟢 (Pass) · 34.3% CPU | 🟢 (Pass) · 33.2% CPU | 🔴 (Fail) | 🟡 Screened · 32.5% CPU | 🟢 (Pass) · 21.5% CPU |
