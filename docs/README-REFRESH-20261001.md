@@ -699,3 +699,37 @@ Bounded marked-output and lifecycle correctness; CPU only for exact matching ass
 | hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
 | software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
 | software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+#### CPU rejection diagnostic
+
+Auto round 1 failed the presentation-cadence gate: 464 frames were presented during a 20.001-second measurement, below the allowed 582.04–618.04 range. The video counter recorded 601 total frames and 137 dropped frames; the drop limit was approximately 6. Playback time advanced normally on the isolated pthread `native-transcode` route (`adapted-flac24`). The specific cause of the dropped frames is unproven. Later accepted Auto rounds do not replace the rejected round, so its CPU median remains withheld.
+
+Failed result SHA-256: `fa21f255f68d6876a45529726ce5482c1b758b22f6613c3a72a361c127a52a00`. Local diagnostic: `build/readme-refresh-20261001/row23-auto-cpu-analysis.json`, SHA-256 `3f8df200f6b58482784cd72b9c8dd90939668176a491ed60570e151e9ededfca`.
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 24: HEVC Main 10-bit SDR + E-AC-3 / MKV
+
+Browser: chromium/153.0.8010.53/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-24/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 20.4% CPU | native-transcode; Bounded playback checks passed |
+| jspi | 🟢 (Pass) · 19.8% CPU · forced-remux ref | native-transcode; Bounded playback checks passed |
+| asyncify | 🟢 (Pass) · 20.8% CPU · forced-remux ref | native-transcode; Bounded playback checks passed |
+| software | 🟢 (Pass) · 35.5% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
