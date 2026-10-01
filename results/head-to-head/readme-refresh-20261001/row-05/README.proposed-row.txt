@@ -1,0 +1,1 @@
+| H.264 + PCM24 / MKV + ASS | 🟢 (Pass) · CPU withheld · host libass | 🟢 (Pass) · 16.2% CPU | 🟢 (Pass) · 18.3% CPU · forced-remux ref | 🟢 (Pass) · 7.5% CPU · forced-remux ref | 🟢 (Pass) · 26.0% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) · external ASS unavailable | 🔴 (Fail) |
