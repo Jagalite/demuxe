@@ -7,8 +7,10 @@ package gates are complete on `codex/nonisolated-software-20260929`; the interna
 qualification branch is `codex/nonisolated-production-20260930`. The foundation
 is commit `24a3a9bf`.
 
-**Final status:** 99 exact-package browser checks passed, with source/build, license
-and isolated-engine correspondence verified. See [Final package qualification](#final-package-qualification).
+**Final status:** The original 99 exact-package browser checks passed, followed by
+21 package checks for the review fixes. Source/build, license and isolated-engine
+correspondence were verified. See [Final package qualification](#final-package-qualification)
+and [Review follow-up](#review-follow-up-timeline-and-provider-asset-ownership).
 The earlier checkpoint notes below retain historical pending and rejected results;
 the final section supersedes their status. No push, merge into main or deployment
 was performed.
@@ -308,5 +310,11 @@ TypeScript, licensing and 110 focused source tests passed. The focused package
 follow-up uses `review-preview-server.mjs` and `review-preview-check.mjs` to verify
 public seekability, seeks, whole-file/range loops, playback ranges, modular
 Software/Hybrid playback and corrupt manifest/Wasm/glue rejection. The preceding
-99-check archive remains immutable; the follow-up artifact and browser results
-will be recorded separately when complete.
+99-check archive remains immutable. The follow-up archive is bound to source
+`ef838b4f501166ccc95b159c7deba21eececa7ad`; all 21 new checks passed (14 Chromium,
+7 Firefox). All 331 installed runtime files and 12,763 source-companion files
+were verified, and the isolated engine binaries remain byte-identical.
+See [review qualification](../research/items/nonisolated-full-software-playback/evidence/20260930-review-package-02/qualification.json).
+This focused follow-up qualifies the JavaScript changes and preserves the existing
+format/browser/resource limits; it does not count the earlier 99 checks as a rerun
+of this new archive.

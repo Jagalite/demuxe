@@ -73,6 +73,12 @@ forced remux, selected tracks, and identity constraints are not bypassed. Requir
 engine failures and source permission/identity errors remain terminal. On a
 non-isolated page, selection never falls back to a pthread engine.
 
+Modular cooperative playback acquires its manifest, Wasm, glue and default font
+through the deployment's verified provider loader. Verified glue is imported using
+a temporary Blob URL; pages with an explicit Content Security Policy must permit
+Blob module scripts for this modular path. The legacy package loader retains its
+existing deployment behavior.
+
 ## Inspector preloading
 
 `prepare(['inspector'])` loads and compiles the selected remux runtime. Private
