@@ -1,0 +1,1 @@
+| VP9 8-bit + Opus / WebM | 🟢 (Pass) · 14.0% CPU | 🟢 (Pass) · 4.3% CPU | 🟢 (Pass) · 4.7% CPU · forced-remux ref | 🟢 (Pass) · 4.9% CPU · forced-remux ref | 🟢 (Pass) · 36.1% CPU | 🔴 (Fail) | 🟢 (Pass) · 34.9% CPU | 🟡 Screened · 34.2% CPU | 🟢 (Pass) · 22.6% CPU |
