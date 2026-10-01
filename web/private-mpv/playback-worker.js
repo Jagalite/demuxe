@@ -133,7 +133,7 @@ onmessage = ({data}) => {
       if (initialized) throw Error('Playback host already initialized');initialized = true;
       if(data.mode!==undefined&&!['software','hybrid'].includes(data.mode))throw Error('Invalid private playback mode');
       if(data.mode==='hybrid')retained=new PrivateRetainedPresentation();
-      engine = await privateMpv(data.runtime, 'playback', {signal: loading.signal,maxDecodePixels:data.maxDecodePixels,onFrame:(frame,epoch)=>retained?retained.enqueue(frame,epoch):frame.close()});
+      engine = await privateMpv(data.runtime, 'playback', {signal: loading.signal,assets:data.playbackAssets,maxDecodePixels:data.maxDecodePixels,onFrame:(frame,epoch)=>retained?retained.enqueue(frame,epoch):frame.close()});
       if(retained&&(!engine.decoder||!engine.raw.web_selected_snapshot))throw Error('Private Hybrid engine assets required');
       if (data.font) {engine.module.FS.mkdirTree('/fonts');engine.module.FS.writeFile('/fonts/DejaVuSans.ttf', new Uint8Array(data.font));}
       let fontBytes=0;

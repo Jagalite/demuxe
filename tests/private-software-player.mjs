@@ -81,3 +81,71 @@ test('demuxer hints reach each load and do not leak into the next source',async(
  await player.open(new File(['container'],'video.mkv'),{demuxer:''});assert.equal(loads[4].demuxer,'');
  assert.equal(loads.length,5);
 });
+
+test('finite cooperative loads report actual seekability for public timeline and range controls',async()=>{
+ for(const value of ['yes','no','']){
+  const {player}=control(),queries=[];
+  player.request=async(op,data)=>{
+   if(op==='load'){
+    player.properties.set('track-list',[{type:'video',selected:true}]);
+    player.properties.set('duration',6);player.diagnostics={seeking:false,rendered:1};player.presentedDraws=1;
+   }
+   if(op==='command'&&data.args[1]==='${seekable}'){queries.push(data.args);return value;}
+  };
+  await player.open(new File(['fixture'],'media.mkv'));
+  assert.equal(queries.length,1);
+  assert.equal(player.properties.get('seekable'),value==='yes'?true:value==='no'?false:undefined);
+ }
+});
+
+test('a seekability response from a retired load cannot overwrite its replacement',async()=>{
+ const {player}=control();let release,queried;
+ const query=new Promise(resolve=>queried=resolve);
+ player.request=async(op,data)=>{
+  if(op==='load'){player.properties.set('track-list',[{type:'video',selected:true}]);player.diagnostics={seeking:false};player.presentedDraws=1;}
+  if(op==='command'&&data.args[1]==='${seekable}'){queried();return new Promise(resolve=>release=resolve);}
+ };
+ const loading=player.open(new File(['fixture'],'media.mkv'));await query;
+ player.generation++;player.properties.set('seekable',false);release('yes');
+ await assert.rejects(loading,error=>error.code==='ABORTED');assert.equal(player.properties.get('seekable'),false);
+});
+
+function replaceGlobal(t,name,value){
+ const descriptor=Object.getOwnPropertyDescriptor(globalThis,name);
+ Object.defineProperty(globalThis,name,{value,writable:true,configurable:true});
+ t.after(()=>descriptor?Object.defineProperty(globalThis,name,descriptor):delete globalThis[name]);
+}
+function initialization(t,provider){
+ const {player}=control();player.options={runtime:'asyncify',assetBase:new URL('https://example.test/'),providerAssets:provider};
+ player.loading=new AbortController();player.outputChannels=2;
+ player.context={state:'suspended',baseLatency:0,outputLatency:0,currentTime:0,audioWorklet:{addModule:async()=>{}},createGain:()=>({connect(){}}),createAnalyser:()=>({})};
+ t.mock.method(globalThis,'fetch',()=>{throw Error('Unverified asset fetch');});
+ replaceGlobal(t,'AudioWorkletNode',class{constructor(){this.port={postMessage(){}};}connect(){}});
+ replaceGlobal(t,'OffscreenCanvas',class{});
+ return player;
+}
+
+test('cooperative initialization acquires provider-verified engine, manifest, glue and font bytes',async t=>{
+ const requested=[],assets=new Map(),ports=[];
+ const provider={bytes:async path=>{requested.push(path);const bytes=new ArrayBuffer(8);assets.set(path,bytes);return bytes;}};
+ const player=initialization(t,provider);
+ const OriginalChannel=globalThis.MessageChannel;
+ replaceGlobal(t,'MessageChannel',class extends OriginalChannel{constructor(){super();ports.push(this.port1,this.port2);}});
+ let init;player.request=async(op,data,transfer)=>{assert.equal(op,'init');init={data,transfer};};
+ try{
+  await player.initialize({width:320,height:180,getContext:()=>({})});
+  const folder='web/engine-mpv-playback-asyncify/';
+  assert.deepEqual(requested,[folder+'manifest.json',folder+'player.wasm',folder+'player.mjs','fixtures/DejaVuSans.ttf']);
+  for(const name of ['manifest.json','player.wasm','player.mjs']){assert.equal(init.data.playbackAssets[name],assets.get(folder+name));assert.ok(init.transfer.includes(assets.get(folder+name)));}
+  assert.equal(init.data.font,assets.get('fixtures/DejaVuSans.ttf'));
+ }finally{for(const port of ports)port.close();}
+});
+
+test('provider integrity failure prevents cooperative native initialization',async t=>{
+ const ports=[],OriginalChannel=globalThis.MessageChannel;
+ const player=initialization(t,{bytes:async()=>{throw Object.assign(new Error('Declared provider bytes changed'),{code:'ASSET_LOAD_FAILED'});}});
+ replaceGlobal(t,'MessageChannel',class extends OriginalChannel{constructor(){super();ports.push(this.port1,this.port2);}});
+ let calls=0;player.request=async()=>calls++;
+ try{await assert.rejects(player.initialize({width:320,height:180,getContext:()=>({})}),error=>error.code==='ASSET_LOAD_FAILED');assert.equal(calls,0);}
+ finally{for(const port of ports)port.close();}
+});

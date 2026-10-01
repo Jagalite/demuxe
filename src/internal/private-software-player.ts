@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type {Backend} from './backend.js';
 import type {RemoteSource, MediaInputOptions, TrackType, ResourceLimits, FontAsset, SubtitleAsset, AudioOutput, BufferingPolicy} from '../types.js';
+import type {ProviderRuntimeAssets} from './provider-runtime.js';
 import type {DecodeQuality} from './decode-policy.js';
 import {bufferingPolicy,mpvBufferingOptions,resolveBuffering} from './buffering.js';
 import {runtimeWorker} from './runtime-worker.js';
@@ -34,7 +35,7 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   private attachmentIds:Array<string|undefined>=[];
   private presentedDraws=0;
   private presentation?:CanvasRenderingContext2D;
-  constructor(canvas:HTMLCanvasElement, private options:{runtime:'jspi'|'asyncify';mode?:'software'|'hybrid';channels?:2|6|8;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';buffering?:BufferingPolicy;decodeQuality?:DecodeQuality;adaptiveFrameDrop?:boolean;videoTrack?:{codec:string;width?:number;height?:number};assetBase:URL;duration?:number;resourceLimits?:ResourceLimits;fonts?:FontAsset[]}) {
+  constructor(canvas:HTMLCanvasElement, private options:{providerAssets?:ProviderRuntimeAssets;runtime:'jspi'|'asyncify';mode?:'software'|'hybrid';channels?:2|6|8;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';buffering?:BufferingPolicy;decodeQuality?:DecodeQuality;adaptiveFrameDrop?:boolean;videoTrack?:{codec:string;width?:number;height?:number};assetBase:URL;duration?:number;resourceLimits?:ResourceLimits;fonts?:FontAsset[]}) {
     super();
     this.planId=options.mode==='hybrid'?'hybrid-private':'software-private';
     if(typeof AudioContext==='undefined'||typeof OffscreenCanvas==='undefined')throw new PlayerError('UNSUPPORTED_FEATURE','Private Software requires Web Audio and OffscreenCanvas');
@@ -66,14 +67,23 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     this.gainNode = this.context.createGain();this.analyser = this.context.createAnalyser();
     this.node.connect(this.gainNode);this.gainNode.connect(this.context.destination);this.gainNode.connect(this.analyser);
     this.node.port.onmessage = ({data}) => {if(data.type==='error')this.fail(new Error(data.error));};
+    const provider=this.options.providerAssets;
+    const assetPath=`web/engine-mpv-playback-${this.options.runtime}/`;
+    const playbackAssets=provider?Object.fromEntries(await Promise.all(['manifest.json','player.wasm','player.mjs'].map(async name=>[name,await provider.bytes(assetPath+name)] as const))):undefined;
+    let font:ArrayBuffer;
+    if(provider)font=await provider.bytes('fixtures/DejaVuSans.ttf');
+    else{
+      const response = await fetch(new URL('fixtures/DejaVuSans.ttf',this.options.assetBase),{signal:this.loading.signal});
+      if(!response.ok)throw new PlayerError('ASSET_LOAD_FAILED','Private Software font HTTP '+response.status);
+      font=await response.arrayBuffer();
+    }
+    if(font.byteLength>8*1024*1024)throw new PlayerError('ASSET_LOAD_FAILED','Private Software font byte limit');
+    if(this.closing)throw new PlayerError('ABORTED','Private Software closed during asset acquisition');
     const channel = new MessageChannel();this.node.port.postMessage({type:'connect',port:channel.port1},[channel.port1]);
     const offscreen = new OffscreenCanvas(canvas.width,canvas.height);
-    const response = await fetch(new URL('fixtures/DejaVuSans.ttf',this.options.assetBase),{signal:this.loading.signal});
-    if(!response.ok)throw new PlayerError('ASSET_LOAD_FAILED','Private Software font HTTP '+response.status);
-    const font = await response.arrayBuffer();if(font.byteLength>8*1024*1024)throw new PlayerError('ASSET_LOAD_FAILED','Private Software font byte limit');
     const fonts=(this.options.fonts??[]).map(font=>({...font,bytes:font.bytes.slice(0)}));
-    await this.request('init',{runtime:this.options.runtime,mode:this.options.mode??'software',channels:this.outputChannels,canvas:offscreen,port:channel.port2,font,fonts,width:canvas.width,height:canvas.height,
-      contextRunning:this.context.state==='running',latencyUs:this.latency(),decodeQuality:this.options.decodeQuality,adaptiveFrameDrop:this.options.adaptiveFrameDrop,videoTrack:this.options.videoTrack,...this.options.resourceLimits},[offscreen,channel.port2,font,...fonts.map(font=>font.bytes)]);
+    await this.request('init',{runtime:this.options.runtime,mode:this.options.mode??'software',channels:this.outputChannels,playbackAssets,canvas:offscreen,port:channel.port2,font,fonts,width:canvas.width,height:canvas.height,
+      contextRunning:this.context.state==='running',latencyUs:this.latency(),decodeQuality:this.options.decodeQuality,adaptiveFrameDrop:this.options.adaptiveFrameDrop,videoTrack:this.options.videoTrack,...this.options.resourceLimits},[offscreen,channel.port2,font,...fonts.map(font=>font.bytes),...Object.values(playbackAssets??{})]);
   }
   private latency(){return Math.round((this.context.baseLatency+(this.context.outputLatency||0))*1e6);}
   private request(op:string,data:Record<string,unknown>={},transfer:Transferable[]=[]):Promise<any>{
@@ -162,6 +172,11 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
       const audio=tracks?.some(track=>track.type==='audio'&&track.selected);
       return !!tracks?.length&&!this.diagnostics?.seeking&&(video?this.presentedDraws>0:!!audio&&this.startupEvidence().audioDecoderConfigured);
     });
+    // Public timeline, loop and range controls require the backend's observed
+    // seekability; successful direct seeks alone do not establish this state.
+    const seekable=await this.command('expand-text','${seekable}');
+    if(generation!==this.generation)throw new PlayerError('ABORTED','Source load replaced');
+    if(seekable==='yes'||seekable==='no')this.properties.set('seekable',seekable==='yes');
   }
   private async syncContext(){
     await this.request('context',{value:this.context.state==='running',latencyUs:this.latency()});

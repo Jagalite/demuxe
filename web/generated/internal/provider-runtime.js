@@ -270,7 +270,7 @@ export class ProviderRuntime {
             required.push(...(hybrid ? ['web/engine-hybrid/player.wasm'] : ['web/engine-software-full/player.wasm', 'web/engine-software-yuv/player.wasm']), 'fixtures/DejaVuSans.ttf');
         }
         if (description.backend === 'PrivateSoftwarePlayer')
-            required.push(`web/engine-mpv-playback-${runtime}/player.wasm`, `web/engine-mpv-playback-${runtime}/manifest.json`, 'fixtures/DejaVuSans.ttf');
+            required.push(`web/engine-mpv-playback-${runtime}/player.wasm`, `web/engine-mpv-playback-${runtime}/manifest.json`, `web/engine-mpv-playback-${runtime}/player.mjs`, 'fixtures/DejaVuSans.ttf');
         const absent = required.filter(path => !this.has(path));
         if (absent.length)
             return 'Required provider runtime assets are not deployed: ' + absent.join(', ');

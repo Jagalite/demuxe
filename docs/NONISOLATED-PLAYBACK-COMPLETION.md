@@ -289,3 +289,24 @@ forced Hybrid HEVC configuration remains unsupported in the tested browser; its
 Software path passes. Browser-native and Shaka keep their own source contracts.
 The standard package manifest retains its beta-candidate status; this work did not
 publish a release or deploy production.
+
+## Review follow-up: timeline and provider asset ownership
+
+A subsequent source review found two gaps outside the accepted package matrix.
+The cooperative backend did not publish `seekable`, which left the public timeline
+unknown and made loop/range controls reject finite files despite successful direct
+seeks. It now queries mpv after loading and rejects late replies from retired loads.
+
+Modular cooperative playback checked provider availability but bypassed verified
+byte acquisition when initializing its engine. It now acquires the playback
+manifest, Wasm, glue and default font through `ProviderRuntime.bytes`. The worker
+uses those verified buffers; verified glue is imported from a temporary Blob URL
+that is immediately revoked. Modular admission also requires the glue asset.
+The public manifest read uses the same provider verification boundary.
+
+TypeScript, licensing and 110 focused source tests passed. The focused package
+follow-up uses `review-preview-server.mjs` and `review-preview-check.mjs` to verify
+public seekability, seeks, whole-file/range loops, playback ranges, modular
+Software/Hybrid playback and corrupt manifest/Wasm/glue rejection. The preceding
+99-check archive remains immutable; the follow-up artifact and browser results
+will be recorded separately when complete.

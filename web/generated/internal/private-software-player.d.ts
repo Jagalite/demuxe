@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { Backend } from './backend.js';
 import type { RemoteSource, MediaInputOptions, TrackType, ResourceLimits, FontAsset, SubtitleAsset, AudioOutput, BufferingPolicy } from '../types.js';
+import type { ProviderRuntimeAssets } from './provider-runtime.js';
 import type { DecodeQuality } from './decode-policy.js';
 /** Experimental finite Software Backend. Public admission has its own gates. */
 export declare class PrivateSoftwarePlayer extends EventTarget implements Backend {
@@ -32,6 +33,7 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     private presentedDraws;
     private presentation?;
     constructor(canvas: HTMLCanvasElement, options: {
+        providerAssets?: ProviderRuntimeAssets;
         runtime: 'jspi' | 'asyncify';
         mode?: 'software' | 'hybrid';
         channels?: 2 | 6 | 8;

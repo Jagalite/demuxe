@@ -5,11 +5,14 @@ import {RangeReader} from './range-reader.js';
 
 const digest=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');
 /** The scheduler owns every mpv call; source IO stays asynchronous and bounded. */
-export async function privateMpv(runtime,profile,{signal,decoderService,onFrame,maxDecodePixels}={}) {
+export async function privateMpv(runtime,profile,{signal,decoderService,onFrame,maxDecodePixels,assets}={}) {
  if(!['jspi','asyncify'].includes(runtime)||!['subtitles','audio','playback'].includes(profile))throw Error('Invalid private mpv runtime');
  if(runtime==='jspi'&&(typeof WebAssembly.Suspending!=='function'||typeof WebAssembly.promising!=='function'))throw Error('Selected JSPI runtime unavailable');
  const base=new URL(`./engine-mpv-${profile}-${runtime}/`,import.meta.url);
- const get=async name=>{const r=await fetch(new URL(name,base),{signal});if(!r.ok)throw Error('Private mpv asset HTTP '+r.status);return r;};
+ const get=async name=>{
+  signal?.throwIfAborted();
+  if(assets){if(!(assets[name] instanceof ArrayBuffer))throw Error('Missing verified private mpv asset: '+name);return new Response(assets[name]);}
+  const r=await fetch(new URL(name,base),{signal});if(!r.ok)throw Error('Private mpv asset HTTP '+r.status);return r;};
  const manifest=await(await get('manifest.json')).json();
  if(manifest.schema!==1||manifest.backend!==runtime||manifest.profile!==profile)throw Error('Private mpv asset identity mismatch');
  const stem=profile==='playback'?'player':'service';
@@ -24,7 +27,11 @@ export async function privateMpv(runtime,profile,{signal,decoderService,onFrame,
  for(const name of ['demuxe_coop_invoke','demuxe_source_live',...(profile==='playback'?['web_create','web_render','web_event','web_command_args','web_destroy','web_audio_ptr']: [profile==='audio'?'private_audio_create':'subtitle_service_create'])])if(!names.has(name))throw Error('Private mpv ABI mismatch');
  const glue=await(await get(stem+'.mjs')).arrayBuffer();
  if(await digest(glue)!==manifest.files[stem+'.mjs'])throw Error('Private mpv module hash mismatch');
- const {default:create}=await import(new URL(stem+'.mjs',base));
+ let create;
+ if(assets){
+  const url=URL.createObjectURL(new Blob([glue],{type:'text/javascript'}));
+  try{({default:create}=await import(url));}finally{URL.revokeObjectURL(url);}
+ }else({default:create}=await import(new URL(stem+'.mjs',base)));
  signal?.throwIfAborted();
  const host=await createCooperativeEngine(create,bytes,runtime,{print:()=>{},printErr:()=>{}},{service:decoderService,onFrame,maxDecodePixels});
  if(!(host.raw.memory.buffer instanceof ArrayBuffer)){host.dispose();throw Error('Private mpv memory mismatch');}
