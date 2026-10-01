@@ -1,0 +1,1 @@
+| HEVC Main 8-bit + AAC / MP4 (hev1) | 🟢 (Pass) · 14.7% CPU | 🟢 (Pass) · 15.2% CPU | 🟢 (Pass) · 17.0% CPU · forced-remux ref | 🟢 (Pass) · 17.1% CPU · forced-remux ref | 🟢 (Pass) · 35.2% CPU | 🔴 (Fail) | 🟢 (Pass) · 34.4% CPU | 🟡 Screened · 41.6% CPU | 🟢 (Pass) · 23.0% CPU |
