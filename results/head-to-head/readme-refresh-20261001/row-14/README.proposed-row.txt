@@ -1,0 +1,1 @@
+| H.264 + FLAC stereo / MKV | 🟢 (Pass) · 13.2% CPU | 🟢 (Pass) · 13.9% CPU | 🟢 (Pass) · 16.5% CPU · forced-remux ref | 🟢 (Pass) · 17.9% CPU · forced-remux ref | 🟢 (Pass) · 33.6% CPU | 🔴 (Fail) | 🟢 (Pass) · 33.7% CPU | 🟡 Screened · 33.1% CPU | 🟢 (Pass) · CPU withheld |
