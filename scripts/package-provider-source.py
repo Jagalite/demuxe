@@ -13,11 +13,17 @@ from license_policy import ROOT, encoded, sha
 
 EXCLUDED = {'build/subtitle-service/link-command.json','build/subtitle-service/manifest.json','build/link-maps/subtitles.map'}
 
-def application_source_paths():
+def application_source_paths(profile_name=None):
     config=json.loads((ROOT/'licensing/provider-packages.json').read_bytes())
     current=set(config['playerCoreSources'])
-    for profile in config['profiles'].values():
-        current.update(profile.get('sources', []));current.update(profile['files']);current.update(name.replace('web/generated/','src/').replace('.js','.ts') for name in profile['generated'])
+    current.update(['scripts/ci-slices.py', 'scripts/ci-native-providers.py',
+                    'scripts/collect-ci-providers.py', 'licensing/ci-slices.json',
+                    '.github/workflows/ci-providers.yml', 'tests/ci-slices.py', 'tests/ci-slice-native.mjs'])
+    profiles = [config['profiles'][profile_name]] if profile_name else config['profiles'].values()
+    for profile in profiles:
+        current.update(profile.get('sources', []))
+        current.update(profile.get('fileOverrides', {}).get(name, name) for name in profile['files'])
+        current.update(name.replace('web/generated/','src/').replace('.js','.ts') for name in profile['generated'])
     current.update(str(p.relative_to(ROOT)) for p in (ROOT/'src').rglob('*.ts'))
     for target in {str(Path(t['template']).parent.relative_to('packages')) for t in config['targets'].values()}:
         current.update(str(p.relative_to(ROOT)) for p in (ROOT/'packages'/target).rglob('*') if p.is_file())
@@ -57,7 +63,7 @@ def assemble(record_path, recovered_path, build_root, output, profile_name=None)
     for name, digest in record['sdkSources'].items(): add('toolchain/emscripten/'+name,recovered['toolchain/emscripten/'+name] if record.get('nativeGroups') else Path(record['sdk'])/'upstream/emscripten'/name,digest)
     # Current application/provider integration source, separately named so it
     # never overwrites the original native-build inputs.
-    current=application_source_paths()
+    current=application_source_paths(profile_name)
     for name in sorted(current):add('application/'+name,ROOT/name)
     add('engine-build.json',record_path)
     manifest={'schema':1,'engineBuildSHA256':sha(record_path.read_bytes()),'excludedConfigurations':sorted(excluded),'files':{name:digest for name,(_,digest) in paths.items()}}

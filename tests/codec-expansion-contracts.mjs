@@ -41,7 +41,9 @@ test('new packet families require exact composition evidence and explicit lossy 
  assert.throws(()=>audioRepairRecipe('pcm-s24le',6,'flac','wave-aiff'));
  assert.throws(()=>audioRepairRecipe('opus',2,'flac','isobmff'));
  assert.equal(audioRepairRecipe('truehd',2,'flac','matroska',44100).requirements[2].profile,'configured-integer');
- assert.throws(()=>audioRepairRecipe('truehd',1,'flac','matroska',48000));
+ for(const codec of ['truehd','mlp'])assert.equal(audioRepairRecipe(codec,1,'flac','matroska',48000).requirements[2].profile,'configured-integer');
+ assert.throws(()=>audioRepairRecipe('mlp',8,'flac','matroska',48000));
+ assert.throws(()=>audioRepairRecipe('dts-hd',1,'flac','matroska',48000));
  for(const channels of [2,6])assert.equal(audioRepairRecipe('dts-hd',channels,'flac','matroska',48000).requirements[2].profile,'ma-configured-integer');
  assert.equal(audioRepairRecipe('dts-hd',8,'flac','matroska',48000).requirements[2].profile,'ma-48khz-s32p');
 });
@@ -64,12 +66,12 @@ test('AC3 full-file provider selection respects runtime, selected track and depl
 });
 
 test('explicit AAC extensions select finite offers and keep the LC default distinct',()=>{
- for(const [profile,rate,offer]of [['he',48000,'he-stereo48'],['he-v2',44100,'he-v2-stereo44100']]){
+ for(const [profile,rate,offer]of [['he',48000,'he-configured-float'],['he-v2',44100,'he-v2-stereo44100']]){
   const recipe=audioRepairRecipe('aac',2,'flac','isobmff',rate,profile);
   assert.equal(recipe.requirements[2].profile,offer);assert.equal(recipe.bindings[0].assignments[1].providerId,'audio-aac');
   const lc=audioRepairRecipe('aac',2,'flac','isobmff',rate);assert.match(lc.requirements[2].profile,/^lc-/);assert.notEqual(recipe.id,lc.id);
   for(const args of [['aac',1,'flac','isobmff',rate,profile],['aac',2,'flac','matroska',rate,profile],['aac',2,'flac','isobmff',rate===48000?44100:48000,profile],['alac',2,'flac','isobmff',rate,profile]])assert.throws(()=>audioRepairRecipe(...args));
  }
  assert.throws(()=>audioRepairRecipe('aac',2,'opus','isobmff',44100,'he-v2'));
- assert.equal(audioRepairRecipe('aac',2,'opus','isobmff',48000,'he').requirements[2].profile,'he-stereo48');
+ assert.equal(audioRepairRecipe('aac',2,'opus','isobmff',48000,'he').requirements[2].profile,'he-configured-float');
 });

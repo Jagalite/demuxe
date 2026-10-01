@@ -17,8 +17,8 @@ test('fine and common are explicit qualified compositions for each codec',()=>{
   const {recipe,catalog,evidence}=fixture(codec,codec==='dts-hd'?8:2);assert.deepEqual(recipe.bindings.map(b=>b.id),['fine']);
   assert.equal(selectComponentBinding(resolveProviderRecipe(recipe,catalog,evidence,'test'),'fine').bindingId,'fine');
   assert.throws(()=>selectComponentBinding(resolveProviderRecipe(recipe,catalog,[],'test'),'fine'),e=>e.code==='QUALIFICATION_REQUIRED');
-  for(const channels of [2,6,8]){
-   const allowed=codec==='truehd'||codec==='mlp'&&channels!==8||codec==='dts-hd'&&channels===8;
+  for(const channels of [1,2,6,8]){
+   const allowed=codec==='truehd'||codec==='mlp'&&channels!==8||codec==='dts-hd'&&channels!==1;
    if(allowed)assert.ok(audioRepairRecipe(codec,channels).id);else assert.throws(()=>audioRepairRecipe(codec,channels));
   }
  }
