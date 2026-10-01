@@ -21,6 +21,31 @@ class Reporting(unittest.TestCase):
   proof=self.proof();proof['cases'][0]['lane']='future-private'
   with self.assertRaises(AssertionError):m.selected_cases([proof])
   with self.assertRaises(AssertionError):m.selected_cases([self.proof(),self.proof()])
+ def test_unqualified_browser_preflight_preserves_failure_without_cpu_value(self):
+  selected=m.selected_cases([self.proof()]);cpu=self.cpu();del cpu['browserIdentity']
+  cpu['browserBlocks']=[{'status':'failed','arms':0,'startupReadiness':{'status':'failed','traceStopped':True,'completedTask':None}}]
+  for r in cpu['cases']:
+   r.update(status='failed',failureStage='setup',reason='Startup readiness unconfirmed\nstack trace');del r['measurement']
+  result=m.cpu_cells(selected,[cpu])['demuxe.auto.file']
+  self.assertEqual(result['status'],'withheld');self.assertNotIn('medianOneCorePercent',result)
+  self.assertEqual(result['reasons'],['Startup readiness unconfirmed']*3)
+  self.assertIn('CPU withheld: Startup readiness unconfirmed',m.route_reason({'route':'software','reason':'Correctness passed','cpu':result}))
+  for mutation in ['accepted','measurement','samples','stage','assets','browser','initial','screenMeasured','caseBrowser','blocks','arms','task','trace','readiness']:
+   wrong=copy.deepcopy(cpu);r=wrong['cases'][0]
+   if mutation=='accepted':r.update(status='passed',measurement={'oneCorePercent':10})
+   elif mutation=='measurement':r['measurement']={'oneCorePercent':10}
+   elif mutation=='samples':r['samples']=[{'state':{}}]
+   elif mutation=='stage':r['failureStage']='presentation-cadence'
+   elif mutation=='assets':wrong['assetsSHA256']='different'
+   elif mutation=='browser':wrong['browserIdentity']='different'
+   elif mutation in ['initial','screenMeasured']:r[mutation]=True
+   elif mutation=='caseBrowser':r['browserIdentity']='Chrome'
+   elif mutation=='blocks':wrong['browserBlocks']=[]
+   elif mutation=='arms':wrong['browserBlocks'][0]['arms']=1
+   elif mutation=='task':wrong['browserBlocks'][0]['startupReadiness']['completedTask']={'name':'finished'}
+   elif mutation=='readiness':wrong['browserBlocks'][0]['startupReadiness']['status']='passed'
+   else:wrong['browserBlocks'][0]['startupReadiness']['traceStopped']=False
+   with self.assertRaises(AssertionError):m.cpu_cells(selected,[wrong])
  def test_multitrack_cpu_names_only_the_measured_initial_track(self):
   proof=self.proof();case=proof['cases'][0];track={'id':'audio:1','codec':'aac'}
   case.update(initial={'selectedAudioTrack':track},audioTrackTransitions=[{'requestedCodec':'ac3','route':'native-transcode'},{'requestedCodec':'aac','route':'native-direct'}])

@@ -28,10 +28,16 @@ def cpu_cells(selected,cpu_runs):
     windows={}
     for run in cpu_runs:
         assert run['kind']=='performance'
+        if not run.get('browserIdentity'):
+            assert run.get('cases') and all(c['status']=='failed' and c.get('failureStage')=='setup' and not any(c.get(k) for k in ['measurement','samples','initial','browserIdentity','screenMeasured']) for c in run['cases']),'Unidentified browser can only preserve rejected CPU setup evidence'
+            blocks=run.get('browserBlocks',[])
+            assert blocks and all(b.get('status')=='failed' and b.get('arms')==0 and b.get('startupReadiness',{}).get('status')=='failed' and b['startupReadiness'].get('traceStopped') is True and b['startupReadiness'].get('completedTask') is None for b in blocks),'Missing rejected browser startup evidence'
         for case in run['cases']:
             assert case['id'] in selected,'CPU case lacks selected correctness proof'
             proof,correct=selected[case['id']]
-            assert all(run[k]==proof[k] for k in ['assetsSHA256','harnessSHA256','browserIdentity']),'CPU identity differs from its captured correctness harness'
+            assert all(run.get(k) and run[k]==proof[k] for k in ['assetsSHA256','harnessSHA256']),'CPU identity differs from its captured correctness harness'
+            if run.get('browserIdentity'):
+                assert run['browserIdentity']==proof['browserIdentity'],'CPU browser differs from its captured correctness harness'
             windows.setdefault(case['id'],[]).append(case)
     results={}
     for identity,(proof,case) in selected.items():
