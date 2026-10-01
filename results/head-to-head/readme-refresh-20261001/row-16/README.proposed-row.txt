@@ -1,0 +1,1 @@
+| H.264 + Opus stereo / MKV | 🟢 (Pass) · 14.3% CPU | 🟢 (Pass) · 14.0% CPU | 🟢 (Pass) · 17.7% CPU · forced-remux ref | 🟢 (Pass) · 16.9% CPU · forced-remux ref | 🟢 (Pass) · 37.5% CPU | 🟢 (Pass) · 30.2% CPU | 🟢 (Pass) · 35.3% CPU | 🟡 Screened · 35.2% CPU | 🟢 (Pass) · 25.0% CPU |
