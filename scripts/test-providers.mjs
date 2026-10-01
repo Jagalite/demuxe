@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import assert from 'node:assert/strict';
 import {readFile, writeFile, mkdir, lstat} from 'node:fs/promises';
-import {fork} from 'node:child_process';
-import {once} from 'node:events';
+import {fork, execFileSync} from 'node:child_process';
 import path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {verifyProvider, checkUnchanged, contractKey, sha} from '../tests/provider-conformance/package.mjs';
@@ -32,7 +31,8 @@ export async function resolveConfig(arguments_) {
   const providers = [...(configuration.providers ?? []), ...arguments_.providers.map(item => ({...item, path: path.resolve(item.path)}))].map(item => ({...item, path: resolve(item.path),
     adapter: adapter(item.adapter), adapters: item.adapters?.map(adapter),
     fixtures: item.fixtures?.map(fixture => ({...fixture, input: resolve(fixture.input),
-      ...Object.fromEntries(['reference', 'integerReference', 'doubleReference'].filter(key => fixture[key]).map(key => [key, resolve(fixture[key])]))})),
+      ...Object.fromEntries(['reference', 'integerReference', 'doubleReference', 'packetFile', 'timingFile', 'originalTimingFile', 'referenceBuildFile', 'referenceBinary'].filter(key => fixture[key]).map(key => [key, resolve(fixture[key])]))})),
+    containerFixtures: item.containerFixtures?.map(fixture=>({...fixture,input:resolve(fixture.input)})),
     ...(item.containerFixture ? {containerFixture: resolve(item.containerFixture)} : {}),
     ...(item.muxFixture ? {muxFixture: resolve(item.muxFixture)} : {})}));
   assert.ok(providers.length && providers.length <= 256, 'Supply at least one --provider or config provider');
@@ -49,6 +49,23 @@ export async function resolveConfig(arguments_) {
     configPath: filename,
     configSHA256: filename ? sha(await readFile(filename)) : undefined};
 }
+export async function reconcileExitedGroup({pid, uid, readGroup, isExited, waitForExit}) {
+  const before = readGroup();
+  const zombiesOnly = rows => rows.every(row => row.pgid === pid && row.uid === uid && row.state.startsWith('Z'));
+  assert.ok(zombiesOnly(before), 'EPERM group contains live or foreign processes');
+  assert.ok(isExited() ? before.length === 0 : before.some(row => row.pid === pid), 'EPERM group has no verified original leader');
+  await waitForExit();
+  assert.ok(isExited(), 'Provider leader was not reaped');
+  const after = readGroup();
+  assert.ok(zombiesOnly(after), 'EPERM group contains live or foreign processes after leader exit');
+  assert.equal(after.length, 0, 'EPERM group remains after original leader reaping');
+  return {outcome: 'exited-leader-reaped-no-live-group-members', verifiedGroupAbsent:true, before, after};
+}
+export async function terminateWorkerGroup({killGroup, waitForExit, delay = () => new Promise(resolve => setTimeout(resolve,100))}) {
+  const termination = await killGroup('SIGTERM');
+  if (!termination?.verifiedGroupAbsent) {await delay(); await killGroup('SIGKILL');}
+  await waitForExit();
+}
 export function runWorker(data, timeout) {
   return new Promise(resolve => {
     assert.notEqual(process.platform, 'win32', 'Provider suite requires POSIX subprocess groups');
@@ -59,14 +76,39 @@ export function runWorker(data, timeout) {
     let settled = false;
     const finish = async result => {
       if (settled) return; settled = true; clearTimeout(timer);
-      const killGroup = signal => {try {process.kill(-worker.pid, signal);} catch (error) {if (error.code !== 'ESRCH') throw error;}};
-      try {
-        killGroup('SIGTERM');
-        // Kill the group even if its leader has exited: descendants may remain.
-        await new Promise(resolve => setTimeout(resolve, 100)); killGroup('SIGKILL');
-        if (worker.exitCode === null && worker.signalCode === null) {
-          await Promise.race([once(worker, 'exit'), new Promise((_, reject) => setTimeout(() => reject(Error('Provider subprocess did not exit')), 2000))]);
+      const isExited = () => worker.exitCode !== null || worker.signalCode !== null;
+      const waitForExit = async () => {
+        if (isExited()) return;
+        await new Promise((resolve, reject) => {
+          const done = () => {clearTimeout(deadline); worker.off('exit', done); resolve();};
+          const deadline = setTimeout(() => {worker.off('exit', done); reject(Error('Provider subprocess did not exit'));}, 2000);
+          worker.once('exit', done);
+          if (isExited()) done();
+        });
+      };
+      const readGroup = () => execFileSync('ps', ['-axo', 'pid,pgid,uid,state'], {encoding:'utf8', maxBuffer:1024*1024, timeout:2000})
+        .trim().split('\n').slice(1).map(line => {
+          const [pid, pgid, uid, state] = line.trim().split(/\s+/);
+          const row={pid:Number(pid), pgid:Number(pgid), uid:Number(uid), state};
+          assert.ok(Number.isSafeInteger(row.pid)&&row.pid>0&&Number.isSafeInteger(row.pgid)&&row.pgid>=0&&Number.isSafeInteger(row.uid)&&row.uid>=0&&/^[A-Za-z?][A-Za-z0-9+<>=\s-]*$/.test(state??''),'Invalid process ownership row');
+          return row;
+        }).filter(row => row.pgid === worker.pid);
+      const killGroup = async signal => {
+        try {process.kill(-worker.pid, signal);}
+        catch (error) {
+          if (error.code === 'ESRCH') return {verifiedGroupAbsent:true, outcome:'group-absent'};
+          result.cleanupDiagnostic = {signal, pid:worker.pid, exitCode:worker.exitCode, signalCode:worker.signalCode};
+          if (error.code !== 'EPERM') throw error;
+          // macOS can return EPERM for a zombie before Node delivers its exit event.
+          // A live member or foreign group never satisfies this reconciliation.
+          const reconciled = await reconcileExitedGroup({pid:worker.pid, uid:process.getuid(), readGroup, isExited, waitForExit});
+          result.cleanupDiagnostic = {...result.cleanupDiagnostic, ...reconciled};
+          return reconciled;
         }
+      };
+      try {
+        // Reaped, absent groups cannot safely be signaled again after PID reuse.
+        await terminateWorkerGroup({killGroup, waitForExit});
       } catch (error) {result = {...result, status: 'failed', cleanupError: String(error)};}
       if (stderr) result.subprocessLog = stderr;
       resolve(result);

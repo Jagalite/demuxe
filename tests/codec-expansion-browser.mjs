@@ -6,6 +6,7 @@ import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import {readPinnedAacPresentation} from './provider-conformance/aac-presentation-reference.mjs';
 import {prepareAudioTimingReference} from './provider-conformance/audio-fixtures.mjs';
 const root=process.cwd(),home=path.resolve('build/codec-expansion');
 const installed=JSON.parse(await readFile(home+'/installed.json'));
@@ -35,7 +36,7 @@ const server=createServer(async(req,res)=>{
    const audio=(p,codec,fixture)=>execFileSync('ffmpeg',['-v','error','-cpuflags','0',...rawG726Options(fixture),...(['mp1','mp2'].includes(codec)?['-c:a',codec+'float']:[]),'-i',p,'-map','0:a:0','-f','f32le','-'],{maxBuffer:128*1024*1024});
    const streams=JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-of','json',file],{encoding:'utf8'})).streams;
    const stream=streams.find(s=>s.codec_type==='audio');assert.ok(stream);assert.equal(Number(stream.sample_rate),f.sampleRate);assert.equal(stream.channels,f.channels);if(audioOnly(f))assert.equal(streams.length,1);
-   const actual=audio(file),decodedReference=audio(path.resolve(f.input),f.codec,f),trimReference=(f.container==='isobmff'&&['aac','adpcm-ima-qt'].includes(f.codec))||['ogg','adpcm-wave','telephony','wave-g726','raw-g726'].includes(f.container),reference=trimReference?decodedReference.subarray(0,f.referenceSamples*f.channels*4):decodedReference;
+   const retainedReference=f.referenceContract?await readPinnedAacPresentation(f,p=>readFile(path.resolve(p)),sha):null;const actual=audio(file),decodedReference=retainedReference?Buffer.from(retainedReference.bytes):audio(path.resolve(f.input),f.codec,f),trimReference=(f.container==='isobmff'&&['aac','adpcm-ima-qt'].includes(f.codec))||['ogg','adpcm-wave','telephony','wave-g726','raw-g726'].includes(f.container),reference=trimReference?decodedReference.subarray(0,f.referenceSamples*f.channels*4):decodedReference;
    if(trimReference)assert.ok(Number.isSafeInteger(f.referenceSamples)&&f.referenceSamples>0,'Missing independent presentation duration');if(trimReference)assert.equal(reference.length,f.referenceSamples*f.channels*4,'Independent duration exceeds host decoded PCM');assert.ok(actual.length>=reference.length);
    if(['pcm-u8','pcm-s8'].includes(f.codec)||['wavpack','ape','tta','tak','shorten','adpcm-wave','telephony','wave-g726','raw-g726'].includes(f.container))assert.equal(reference.length,f.referenceSamples*f.channels*4,'Original archive sample extent changed');if(encoding==='flac')assert.equal(actual.length,reference.length);else assert.ok(actual.length-reference.length<=960*(f.channels??2)*4);
    let energy=0,error=0,maxError=0;for(let i=0;i<reference.length;i+=4){const a=actual.readFloatLE(i),b=reference.readFloatLE(i);energy+=b*b;error+=(a-b)**2;maxError=Math.max(maxError,Math.abs(a-b));}
@@ -47,7 +48,7 @@ const server=createServer(async(req,res)=>{
     const decodedInteger=integer(path.resolve(f.input),f),referenceInteger=trimReference?decodedInteger.subarray(0,f.referenceSamples*f.channels*4):decodedInteger;assert.deepEqual(integer(file),referenceInteger,'Exact integer composition PCM mismatch');integerExact=true;
    }
    const video=p=>execFileSync('ffmpeg',['-v','error','-cpuflags','0','-i',p,'-map','0:v:0','-f','rawvideo','-'],{maxBuffer:128*1024*1024});if(!audioOnly(f))assert.equal(sha(video(file)),sha(video(path.resolve(f.input))));
-   res.end(JSON.stringify({passed:true,samples:reference.length/((f.channels??2)*4),sampleRate:Number(stream.sample_rate),channels:stream.channels,maxError,snr,integerExact,videoExact:!audioOnly(f),audioOnly:audioOnly(f),outputSHA256:sha(data)}));return;
+   res.end(JSON.stringify({passed:true,samples:reference.length/((f.channels??2)*4),sampleRate:Number(stream.sample_rate),channels:stream.channels,maxError,snr,integerExact,...(retainedReference?{referenceEvidence:retainedReference.evidence}:{}),videoExact:!audioOnly(f),audioOnly:audioOnly(f),outputSHA256:sha(data)}));return;
   }
   let file;
   if(name==='/page.mjs')file=root+'/tests/codec-expansion-page.mjs';

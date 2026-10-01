@@ -5,7 +5,7 @@ import {pathToFileURL} from 'node:url';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {PacketAudioDecoder} from '../build/component-candidates/provider-audio/src/packet-decoder.js';
+const {PacketAudioDecoder}=await import(pathToFileURL(path.resolve(process.env.LEGACY_ADAPTER_MODULE??'build/component-candidates/provider-audio/src/packet-decoder.js')));
 const root=process.env.LEGACY_AUDIO_FIXTURE_ROOT??'/tmp/demuxe-legacy-audio-fixtures';
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const unhex=(s='')=>Uint8Array.from(Buffer.from(s.split('\n').filter(l=>l.includes(':')).map(l=>l.split(':')[1].split('  ')[0].replaceAll(' ','')).join(''),'hex'));
@@ -21,6 +21,7 @@ function maxError(a,b){assert.equal(a.length,b.length);let m=0;for(let i=0;i<a.l
 for(const f of JSON.parse(await readFile(root+'/fixtures.json'))){
  if(!f.generated){results.push({...f,passed:null,blocked:f.generationError});continue;}
  const row={...f};try{
+  assert.equal(hash(await readFile(f.input)),f.inputSHA256,'Original source changed');
   const raw=await readFile(root+'/'+f.id+'.json');assert.equal(hash(raw),f.packetSHA256);const data=JSON.parse(raw),extra=unhex(data.streams[0].extradata);
   const config={sampleRate:f.sampleRate,channels:f.channels,bitsPerSample:f.bitsPerSample,extradata:extra,...(f.framing.blockAlign?{blockAlign:f.framing.blockAlign,bitRate:f.framing.bitRate}:{})};
   if(f.codec.startsWith('wma'))assert.equal(Buffer.from(extra).toString('hex'),f.framing.extradataHex,'ASF header matches ffprobe decoder metadata');
@@ -36,6 +37,7 @@ for(const f of JSON.parse(await readFile(root+'/fixtures.json'))){
     assert.equal(fullDrain.length,1,'exact delayed frame delivered on drain');assert.equal(metadata.at(-1).pts_time,undefined,'host confirms missing final packetPTS');assert.equal(fullDrain[0].pts,frames.at(-2).pts+frames.at(-2).samples,'recovered drain timestamp continues established clock');row.hostFramePTSExact=true;row.drainFramePTSRecovered=true;
    }assert.ok(frames.every(x=>x.channels===f.channels&&x.rate===f.sampleRate));
    const actual=Float32Array.from(frames.flatMap(f=>Array.from(pcm(f)))),referenceRaw=await readFile(root+'/'+f.id+'.f32'),reference=new Float32Array(referenceRaw.buffer,referenceRaw.byteOffset,referenceRaw.length/4);
+   if(f.referenceF32SHA256)assert.equal(hash(referenceRaw),f.referenceF32SHA256,'Independent PCM changed');
    const side=data.packets.flatMap(p=>p.side_data_list??[]).filter(x=>x.side_data_type==='Skip Samples'),skip=side.reduce((n,x)=>n+(x.skip_samples??0),0),discard=side.reduce((n,x)=>n+(x.discard_padding??0),0);const trimmed=actual.subarray(skip*f.channels,actual.length-discard*f.channels);
    const error=maxError(trimmed,reference);assert.ok(error<2e-5,'independent scalar reference PCM '+error);
    d.reset();const repeat=decodeFrom(0);assert.deepEqual(repeat.map(({generation,...f})=>f),frames.map(({generation,...f})=>f),'reset entire output exact');
@@ -43,6 +45,7 @@ for(const f of JSON.parse(await readFile(root+'/fixtures.json'))){
    const duration=actual.length/f.channels/f.sampleRate,preroll=Math.min(.5,duration*.2),window=Math.min(.3,duration*.2);
    for(const seconds of duration<1?[.7,.3,.85,.15].map(x=>x*duration):[4.25,1.75,5.5,0.75]){
     const target=Math.round(seconds*f.sampleRate);let start=0;for(let i=0;i<packets.length;i++){if(packets[i].ptsSamples<=target-Math.round(preroll*f.sampleRate))start=i;else break;}
+    if(f.seekContract==='restart-from-start-and-discard')start=0;
     d.reset();const seekFrames=decodeFrom(start);let count=0,error=0,energy=0,squareError=0,resetReferenceError;
     if(f.codec.startsWith('wma')){
      const format=Buffer.from(f.framing.waveFormatHex,'hex'),payload=Buffer.concat(packets.slice(start).map(p=>Buffer.from(p.bytes)));
@@ -52,7 +55,7 @@ for(const f of JSON.parse(await readFile(root+'/fixtures.json'))){
      resetReferenceError=maxError(Float32Array.from(seekFrames.flatMap(frame=>Array.from(pcm(frame)))),reference);assert.ok(resetReferenceError<2e-5,'independent reset sequence PCM');
     }
     for(const frame of seekFrames){if(frame.pts<target||frame.pts>=target+Math.round(window*f.sampleRate))continue;const source=baseline.get(`${frame.pts}:${frame.samples}`);assert.ok(source,'corresponding seek timestamp');const a=pcm(frame),b=pcm(source);error=Math.max(error,maxError(a,b));for(let i=0;i<a.length;i++){energy+=b[i]*b[i];squareError+=(a[i]-b[i])**2;}count+=frame.samples;}
-    assert.ok(count>Math.min(.15,duration*.08)*f.sampleRate,'fresh seek audio');const snr=10*Math.log10(energy/Math.max(squareError,1e-30));if(f.codec==='wmav1'){assert.ok(snr>40,'WMA1 reset noise variation quality '+snr);}else assert.ok(error<2e-5,'seek PCM reconstruction '+error);seeks.push({seconds,startPacket:start,prerollSeconds:preroll,comparedSamples:count,maxError:error,snr,...(resetReferenceError!==undefined?{independentResetReferenceError:resetReferenceError}:{})});
+    assert.ok(count>Math.min(.15,duration*.08)*f.sampleRate,'fresh seek audio');const snr=10*Math.log10(energy/Math.max(squareError,1e-30));if(f.codec==='wmav1'&&f.seekContract!=='restart-from-start-and-discard'){assert.ok(snr>40,'WMA1 reset noise variation quality '+snr);}else assert.ok(error<2e-5,'seek PCM reconstruction '+error);seeks.push({seconds,startPacket:start,prerollSeconds:preroll,comparedSamples:count,maxError:error,snr,...(resetReferenceError!==undefined?{independentResetReferenceError:resetReferenceError}:{})});
    }
    Object.assign(row,{passed:true,frames:frames.length,samples:trimmed.length/f.channels,decodedSamples:actual.length/f.channels,skipSamples:skip,discardSamples:discard,maxError:error,referenceSHA256:hash(referenceRaw),channelMasks:[...new Set(frames.map(x=>x.layout))],resetExact:true,seeks});
   }finally{d.dispose();d.dispose();}
@@ -68,6 +71,6 @@ for(const f of JSON.parse(await readFile(root+'/fixtures.json'))){
  }catch(e){Object.assign(row,{passed:false,error:String(e.stack??e)});console.error(f.id,'FAILED',e.message);}
  results.push(row);
 }
-const inputs=Object.fromEntries(await Promise.all(['native/audio-codecs/decoder.c','packages/provider-audio/src/packet-decoder.ts','scripts/build-audio-providers.py','tests/legacy-audio-fixtures.py','tests/legacy-audio.mjs'].map(async p=>[p,hash(await readFile(p))])));
-const report={passed:results.filter(r=>r.generated).every(r=>r.passed),scope:'Canonical MP1 32k stereo, MP2 and WMA v1/v2 finite mono/stereo44.1/48k packet decoding, exact ASF framing metadata, independent scalar reference, reset/preroll seeks. No container or playback admission implied. Canonical source binary stays in scratch storage.',referenceDecoders:{mp1:'mp1float',mp2:'mp2float',wmav1:'wmav1',wmav2:'wmav2'},resetReferenceNote:'WMAv1 noise-table state resets: seek PCM is compared independently with scalar FFmpeg decoding of the same WAVEFORMATEX/block sequence; full-stream noise variation is retained with SNR.',referenceTool:execFileSync('ffmpeg',['-version'],{encoding:'utf8'}).split('\n')[0],inputs,build:{profile:record.profile,source:record.source,sourceKey:record.sourceKey,nativeBuildInputs:record.inputs,recordSHA256:pointer.recordSHA256,module:record.artifacts['module.mjs'],wasm:record.artifacts['module.wasm'],capabilities:record.capabilities},results};
-await mkdir('results/media-components/codec-expansion',{recursive:true});await writeFile('results/media-components/codec-expansion/legacy-audio.json',JSON.stringify(report,null,2)+'\n');if(!report.passed)process.exitCode=1;
+const inputs=Object.fromEntries(await Promise.all(['native/audio-codecs/decoder.c','packages/provider-audio/src/packet-decoder.ts','scripts/build-audio-providers.py',process.env.LEGACY_FIXTURE_GENERATOR??'tests/legacy-audio-fixtures.py','tests/legacy-audio.mjs'].map(async p=>[p,hash(await readFile(p))])));
+const report={passed:results.filter(r=>r.generated).every(r=>r.passed),scope:'Exact listed MP1/MP2/WMA v1/v2 source tuples, ASF framing metadata, independent scalar reference and reset/preroll seeks. No container or playback admission implied. Source binaries stay in scratch storage.',referenceDecoders:{mp1:'mp1float',mp2:'mp2float',wmav1:'wmav1',wmav2:'wmav2'},resetReferenceNote:'WMAv1 noise-table state resets: seek PCM is compared independently with scalar FFmpeg decoding of the same WAVEFORMATEX/block sequence; full-stream noise variation is retained with SNR.',referenceTool:execFileSync('ffmpeg',['-version'],{encoding:'utf8'}).split('\n')[0],inputs,build:{profile:record.profile,source:record.source,sourceKey:record.sourceKey,nativeBuildInputs:record.inputs,recordSHA256:pointer.recordSHA256,module:record.artifacts['module.mjs'],wasm:record.artifacts['module.wasm'],capabilities:record.capabilities},results};
+await mkdir('results/media-components/codec-expansion',{recursive:true});await writeFile(process.env.LEGACY_AUDIO_REPORT??'results/media-components/codec-expansion/legacy-audio.json',JSON.stringify(report,null,2)+'\n');if(!report.passed)process.exitCode=1;

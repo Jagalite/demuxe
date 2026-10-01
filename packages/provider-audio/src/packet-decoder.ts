@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-import {aacProfileNumber,validateExtendedAacConfiguration,validateHeV2Adts} from './aac-config.js';
+import {speexOggFrameSamples} from './speex-config.js';
+import {aacProfileNumber,aacFrameSamples,validateLcStereoPacket,validateExtendedAacConfiguration,validateHeV2Adts} from './aac-config.js';
 import type {AacProfile} from './aac-config.js';
 export type {AacProfile} from './aac-config.js';
 /** One synchronous codec owner. The asset loader supplies an already verified
@@ -38,7 +39,7 @@ export type AudioFrame = Readonly<{
   pcm?: Int32Array;
 }>;
 export type PacketAudioCodec = 'ac3' | 'eac3' | 'dts-core' | 'truehd' | 'mlp' | 'dts-hd' | 'aac' | 'opus' | 'vorbis' | 'flac' | 'alac' | 'mp3' | 'pcm-s16le' | 'pcm-s24le' | 'pcm-s32le' | 'pcm-f32le' | 'pcm-f64le' | 'mp1' | 'mp2' | 'wmav1' | 'wmav2' | 'ape' | 'wavpack' | 'tta' | 'wmapro' | 'wmalossless' | 'wmavoice' | 'tak' | 'shorten' | 'adpcm-ms' | 'adpcm-ima-wav' | 'pcm-alaw' | 'pcm-mulaw' | 'gsm' | 'gsm-ms' | 'speex' | 'amrnb' | 'amrwb' | 'pcm-u8' | 'pcm-s8' | 'adpcm-ima-qt' | 'adpcm-g726' | 'adpcm-g726le';
-export interface AudioDecoderConfiguration { sampleRate: number; channels: number; bitsPerSample?: number; extradata?: Uint8Array; blockAlign?: number; bitRate?: number; aacProfile?: AacProfile; }
+export interface AudioDecoderConfiguration { sampleRate: number; channels: number; bitsPerSample?: number; extradata?: Uint8Array; blockAlign?: number; bitRate?: number; aacProfile?: AacProfile; amrModes?: readonly number[]; }
 const integerCodecs = new Set<PacketAudioCodec>(['truehd', 'mlp', 'dts-hd', 'flac', 'alac', 'pcm-s16le', 'pcm-s24le', 'pcm-s32le','ape','wavpack','tta','tak','shorten','wmalossless','adpcm-ms','adpcm-ima-wav','pcm-alaw','pcm-mulaw','gsm','gsm-ms','pcm-u8','pcm-s8','adpcm-ima-qt','adpcm-g726','adpcm-g726le']);
 
 // Emscripten uses errno 6 for EAGAIN; this is the Wasm ABI, not host errno.
@@ -52,6 +53,11 @@ export interface AudioPacketDecoder {
 export class PacketAudioDecoder implements AudioPacketDecoder {
   private readonly configuration?: Pick<AudioDecoderConfiguration, 'sampleRate' | 'channels' | 'bitsPerSample' | 'aacProfile'>;
   private readonly aacAdts:boolean=false;
+  private readonly aacPsTransition:boolean=false;
+  private aacPsSeen=false;
+  private readonly aacSamples?:number;
+  private readonly speexFrameSamples?:number;
+  private readonly amrModes: readonly number[] = [0];
   private readonly adpcm?:Readonly<{align:number;samples:number}>;
   private owner = 0;
   private packet = 0;
@@ -65,17 +71,32 @@ export class PacketAudioDecoder implements AudioPacketDecoder {
     if (kind === undefined) throw Error('Unsupported decoder capability');
     if (configuration) {
       const {sampleRate, channels, bitsPerSample = 0, extradata = new Uint8Array(),blockAlign=0,bitRate=0} = configuration;
+      if(codec==='truehd'&&sampleRate!==48000&&bitsPerSample&&bitsPerSample!==24)throw Object.assign(Error('Unqualified TrueHD source precision'),{code:'PROVIDER_PROFILE_MISMATCH'});
+      if((codec==='truehd'||codec==='mlp')&&(![44100,48000,96000].includes(sampleRate)||!([1,2,6].includes(channels)||(codec==='truehd'&&sampleRate===48000&&channels===8))))throw Object.assign(Error('Unqualified lossless rate/channel tuple'),{code:'PROVIDER_PROFILE_MISMATCH'});
+      if(configuration.amrModes!==undefined){
+        const modes=configuration.amrModes,max=codec==='amrnb'?7:8;
+        if(!['amrnb','amrwb'].includes(codec)||!Array.isArray(modes)||!modes.length||modes.length>max+1||new Set(modes).size!==modes.length||modes.some(mode=>!Number.isInteger(mode)||mode<0||mode>max))throw Object.assign(Error('Unqualified AMR ordinary mode whitelist'),{code:'PROVIDER_PROFILE_MISMATCH'});
+        this.amrModes=Object.freeze([...modes]);
+      }
       if(configuration.aacProfile!==undefined&&codec!=='aac')throw Object.assign(Error('AAC profile requires AAC codec'),{code:'PROVIDER_PROFILE_MISMATCH'});
       if(codec==='aac'){
         const profile=configuration.aacProfile??'lc';aacProfileNumber(profile);
+        if(profile==='lc'&&channels===8){validateExtendedAacConfiguration(profile,sampleRate,channels,extradata);if(bitsPerSample||blockAlign||bitRate)throw Object.assign(Error('Unqualified AAC PCE framing'),{code:'PROVIDER_PROFILE_MISMATCH'});this.aacSamples=1024;}
         if(profile!=='lc'){
           if(bitsPerSample||blockAlign||bitRate)throw Object.assign(Error('Unqualified explicit AAC framing configuration'),{code:'PROVIDER_PROFILE_MISMATCH'});
           validateExtendedAacConfiguration(profile,sampleRate,channels,extradata,true);
           this.aacAdts=!extradata.length;
+          this.aacPsTransition=profile==='he-v2'&&sampleRate===32000;
+          this.aacSamples=aacFrameSamples(profile,extradata);
         }
       }
       if((codec==='pcm-u8'||codec==='pcm-s8')&&(![44100,48000,96000].includes(sampleRate)||![1,2].includes(channels)||bitsPerSample!==8||extradata.length||blockAlign||bitRate))throw Object.assign(Error('Unqualified PCM8 source precision/rate/layout'),{code:'PROVIDER_PROFILE_MISMATCH'});
-      if(['speex','amrnb','amrwb'].includes(codec)&&(sampleRate!==(codec==='amrnb'?8000:16000)||channels!==1||bitsPerSample!==0||extradata.length||blockAlign||bitRate))throw Object.assign(Error('Unqualified initial speech metadata/profile'),{code:'PROVIDER_PROFILE_MISMATCH'});
+      if(codec==='speex'){
+        if(channels!==1||bitsPerSample!==0||blockAlign||bitRate)throw Object.assign(Error('Unqualified initial speech metadata/profile'),{code:'PROVIDER_PROFILE_MISMATCH'});
+        if(extradata.length)this.speexFrameSamples=speexOggFrameSamples(extradata,sampleRate,channels);
+        else if(sampleRate!==16000)throw Object.assign(Error('Unqualified initial speech metadata/profile'),{code:'PROVIDER_PROFILE_MISMATCH'});
+      }
+      if(['amrnb','amrwb'].includes(codec)&&(sampleRate!==(codec==='amrnb'?8000:16000)||channels!==1||bitsPerSample!==0||extradata.length||blockAlign||bitRate))throw Object.assign(Error('Unqualified initial speech metadata/profile'),{code:'PROVIDER_PROFILE_MISMATCH'});
       if(['pcm-alaw','pcm-mulaw','gsm','gsm-ms'].includes(codec)){
         const reject=():never=>{throw Object.assign(Error('Unqualified telephony source framing/metadata'),{code:'PROVIDER_PROFILE_MISMATCH'});};
         if(codec==='pcm-alaw'||codec==='pcm-mulaw'){
@@ -102,6 +123,7 @@ export class PacketAudioDecoder implements AudioPacketDecoder {
       }
       if(codec==='ape'&&(![44100,48000,96000].includes(sampleRate)||![1,2].includes(channels)||![16,24].includes(bitsPerSample)||extradata.length!==6||(extradata[0]|(extradata[1]<<8))<3930||(extradata[0]|(extradata[1]<<8))>3990))throw Error('Unqualified APE configuration');
       if(codec==='wavpack'&&(![44100,48000,96000].includes(sampleRate)||![1,2,6,8].includes(channels)||![16,24,32].includes(bitsPerSample)))throw Error('Unqualified integer WavPack configuration');
+      if(codec==='dts-hd'&&!((sampleRate===48000&&[2,6,8].includes(channels)&&[16,24].includes(bitsPerSample))||(sampleRate===96000&&[6,8].includes(channels)&&bitsPerSample===24)||(sampleRate===192000&&channels===6&&bitsPerSample===16)))throw Object.assign(Error('Unqualified finite DTS-HD rate/layout/precision'),{code:'PROVIDER_PROFILE_MISMATCH'});
       if(codec==='shorten'&&(sampleRate!==44100||channels!==2||bitsPerSample!==16||extradata.length||blockAlign||bitRate))throw Object.assign(Error('Unqualified Shorten version2 RIFF44100stereo16 profile'),{code:'PROVIDER_PROFILE_MISMATCH'});
       if(codec==='tak'){
         const reject=():never=>{throw Object.assign(Error('Unqualified TAK codec2/profile2 44100mono16 header'),{code:'PROVIDER_PROFILE_MISMATCH'});};
@@ -120,14 +142,14 @@ export class PacketAudioDecoder implements AudioPacketDecoder {
       const advancedWma=codec==='wmapro'||codec==='wmalossless'||codec==='wmavoice';
       const wma=legacyWma||advancedWma;
       if(!Number.isInteger(blockAlign)||blockAlign<0||blockAlign>65536||!Number.isInteger(bitRate)||bitRate<0||bitRate>10000000)throw Error('Invalid packet framing configuration');
-      if(legacyWma&&(![44100,48000].includes(sampleRate)||![1,2].includes(channels)||!blockAlign||!bitRate||extradata.length!==(codec==='wmav1'?4:10)))throw Error('Unqualified WMA configuration');
+      if(legacyWma&&(![8000,16000,22050,32000,44100,48000].includes(sampleRate)||![1,2].includes(channels)||!blockAlign||!bitRate||extradata.length!==(codec==='wmav1'?4:10)))throw Error('Unqualified WMA configuration');
       if(advancedWma){
         const reject=():never=>{throw Object.assign(Error('Unqualified advanced WMA configuration'),{code:'PROVIDER_PROFILE_MISMATCH'});};
         if(!blockAlign||!bitRate)reject();
         if(codec==='wmavoice'){if(![8000,16000].includes(sampleRate)||channels!==1||bitsPerSample!==16||extradata.length!==46)reject();}
         else {
           if(extradata.length!==18)reject();
-          const admitted=codec==='wmalossless'?sampleRate===44100&&channels===2&&bitsPerSample===16:(sampleRate===44100&&channels===6&&bitsPerSample===16)||(sampleRate===48000&&[2,6,8].includes(channels)&&bitsPerSample===24)||(sampleRate===96000&&channels===2&&bitsPerSample===24);
+          const admitted=codec==='wmalossless'?channels===2&&((sampleRate===44100&&[16,24].includes(bitsPerSample))||(sampleRate===48000&&bitsPerSample===24)):(sampleRate===44100&&((channels===6&&[16,24].includes(bitsPerSample))||(channels===2&&bitsPerSample===24)))||(sampleRate===48000&&[2,6,8].includes(channels)&&bitsPerSample===24)||(sampleRate===96000&&[2,6].includes(channels)&&bitsPerSample===24)||(sampleRate===16000&&channels===1&&bitsPerSample===16)||(sampleRate===22050&&channels===1&&bitsPerSample===16);
           if(!admitted)reject();
           const h=new DataView(extradata.buffer,extradata.byteOffset,extradata.length),masks:Record<number,number>={1:4,2:3,6:63,8:1599};
           if(h.getUint16(0,true)!==bitsPerSample||h.getUint32(2,true)!==masks[channels])reject();
@@ -138,7 +160,7 @@ export class PacketAudioDecoder implements AudioPacketDecoder {
       this.configuration = {sampleRate, channels,bitsPerSample,...(codec==='aac'?{aacProfile:configuration.aacProfile??'lc'}:{})};
       const headerOwned=codec==='truehd'||codec==='mlp'||codec==='dts-hd';
       const oldHeaderABI=!module._mc_create_config&&headerOwned&&typeof module._mc_configure==='function';
-      if(oldHeaderABI&&(![44100,48000,96000].includes(sampleRate)||![1,2,6,8].includes(channels)||(codec==='mlp'&&channels===8)||![16,24].includes(bitsPerSample)||extradata.length||blockAlign||bitRate))throw Object.assign(Error('Unqualified legacy header-owned configuration'),{code:'PROVIDER_PROFILE_MISMATCH'});
+      if(oldHeaderABI&&(![44100,48000,96000,...(codec==='dts-hd'?[192000]:[])].includes(sampleRate)||![1,2,6,8].includes(channels)||(codec==='mlp'&&channels===8)||![16,24].includes(bitsPerSample)||extradata.length||blockAlign||bitRate))throw Object.assign(Error('Unqualified legacy header-owned configuration'),{code:'PROVIDER_PROFILE_MISMATCH'});
       if(!module._mc_create_config&&!oldHeaderABI)throw Error('Decoder configuration ABI unavailable');
       const p = extradata.length ? module._malloc(extradata.length) : 0;
       if (extradata.length && !p) throw Error('Extradata allocation failed');
@@ -174,9 +196,13 @@ export class PacketAudioDecoder implements AudioPacketDecoder {
       const integer = integerCodecs.has(this.codec);
       const headerOwned=this.codec==='truehd'||this.codec==='mlp'||this.codec==='dts-hd';
       if((headerOwned||this.codec==='tak'||shorten)&&this.configuration?.bitsPerSample&&m._mc_info(this.owner,9)!==this.configuration.bitsPerSample)throw Object.assign(Error('Lossless source precision differs from configuration'),{code:'PROVIDER_PROFILE_MISMATCH'});
+      if(this.codec==='truehd'&&rate!==48000&&m._mc_info(this.owner,9)!==24)throw Object.assign(Error('Unqualified TrueHD decoded source precision'),{code:'PROVIDER_PROFILE_MISMATCH'});
+      if((this.codec==='truehd'||this.codec==='mlp')&&(![44100,48000,96000].includes(rate)||!([1,2,6].includes(channels)||(this.codec==='truehd'&&rate===48000&&channels===8))))throw Object.assign(Error('Unqualified lossless decoded rate/channel tuple'),{code:'PROVIDER_PROFILE_MISMATCH'});
+      if(this.codec==='dts-hd'){const bits=m._mc_info(this.owner,9);if(!((rate===48000&&[2,6,8].includes(channels)&&[16,24].includes(bits))||(rate===96000&&[6,8].includes(channels)&&bits===24)||(rate===192000&&channels===6&&bits===16)))throw Object.assign(Error('Unqualified finite DTS-HD decoded rate/layout/precision'),{code:'PROVIDER_PROFILE_MISMATCH'});}
+      if(headerOwned&&!Number.isSafeInteger(pts+samples))throw Object.assign(Error('Unqualified lossless decoded end clock'),{code:'PROVIDER_PROFILE_MISMATCH'});
       if(headerOwned){const masks:Record<number,readonly number[]>={1:[4],2:[3],6:[63,1551],8:[1599]};if(!masks[channels]?.includes(layout)||(this.codec==='mlp'&&channels===8))throw Object.assign(Error('Unqualified lossless channel layout'),{code:'PROVIDER_PROFILE_MISMATCH'});}
 
-      if(['speex','amrnb','amrwb'].includes(this.codec)&&(layout!==4||format!==(this.codec==='speex'?3:8)||(this.codec==='speex'?![320,640].includes(samples):samples!==(this.codec==='amrnb'?160:320))||!Number.isSafeInteger(pts+samples)))throw Object.assign(Error('Unqualified initial speech decoded profile/clock'),{code:'PROVIDER_PROFILE_MISMATCH'});
+      if(['speex','amrnb','amrwb'].includes(this.codec)&&(layout!==4||format!==(this.codec==='speex'?3:8)||(this.codec==='speex'?(this.speexFrameSamples!==undefined?samples!==this.speexFrameSamples:![320,640].includes(samples)):samples!==(this.codec==='amrnb'?160:320))||(this.speexFrameSamples!==undefined?pts<=-this.speexFrameSamples:pts<0)||!Number.isSafeInteger(pts+samples)))throw Object.assign(Error('Unqualified initial speech decoded profile/clock'),{code:'PROVIDER_PROFILE_MISMATCH'});
       if(shorten&&(samples>256||format!==6||layout!==3||m._mc_info(this.owner,11)!==2))throw Object.assign(Error('Unqualified Shorten decoded block/clock'),{code:'PROVIDER_PROFILE_MISMATCH'});
       if(['pcm-alaw','pcm-mulaw','gsm','gsm-ms'].includes(this.codec)&&!Number.isSafeInteger(pts+samples))throw Object.assign(Error('Unqualified telephony decoded end clock'),{code:'PROVIDER_PROFILE_MISMATCH'});
       if((this.codec==='adpcm-g726'||this.codec==='adpcm-g726le')&&(format!==1||layout!==4||pts<0||!Number.isSafeInteger(pts+samples)))throw Object.assign(Error('Unqualified G726 decoded precision/layout/clock'),{code:'PROVIDER_PROFILE_MISMATCH'});
@@ -189,7 +215,14 @@ export class PacketAudioDecoder implements AudioPacketDecoder {
         const masks:Record<number,number>={1:4,2:3,6:63,8:1599};
         if(layout!==masks[channels]||(this.codec==='wmalossless'&&!(this.configuration?.bitsPerSample===16?format===6:this.configuration?.bitsPerSample===24&&format===7&&m._mc_info(this.owner,9)===24)))throw Object.assign(Error('Unqualified advanced WMA decoded layout/precision'),{code:'PROVIDER_PROFILE_MISMATCH'});
       }
-      if (this.codec === 'aac' && m._mc_info(this.owner, 10) !== aacProfileNumber(this.configuration?.aacProfile??'lc')) throw Object.assign(Error('Decoded AAC profile differs from admitted profile'), {code: 'PROVIDER_PROFILE_MISMATCH'});
+      if(this.codec==='aac'){
+        if(!Number.isSafeInteger(pts+samples))throw Object.assign(Error('Unqualified AAC decoded end clock'),{code:'PROVIDER_PROFILE_MISMATCH'});
+        if(((this.configuration?.aacProfile??'lc')!=='lc'||channels===8)&&layout!==(channels===8?20543:channels===6?207:channels===1?4:3))throw Object.assign(Error('Decoded AAC layout differs from admitted configuration'),{code:'PROVIDER_PROFILE_MISMATCH'});
+        if(this.aacSamples!==undefined&&samples!==this.aacSamples)throw Object.assign(Error('Decoded AAC frame size differs from admitted configuration'),{code:'PROVIDER_PROFILE_MISMATCH'});
+        const actual=m._mc_info(this.owner,10);
+        if(this.aacPsTransition&&actual===28)this.aacPsSeen=true;
+        if(this.aacPsTransition?actual!==28&&(actual!==4||this.aacPsSeen):actual!==aacProfileNumber(this.configuration?.aacProfile??'lc'))throw Object.assign(Error('Decoded AAC profile differs from admitted profile'),{code:'PROVIDER_PROFILE_MISMATCH'});
+      }
       const pcm8=this.codec==='pcm-u8'||this.codec==='pcm-s8';
       if(pcm8&&(format!==0||layout!==(channels===1?4:3)))throw Object.assign(Error('Unqualified PCM8 decoded precision/layout'),{code:'PROVIDER_PROFILE_MISMATCH'});
       if ((!integer && ![3, 4, 8, 9].includes(format)) || (integer && !(pcm8?[0]:[1, 2, 6, 7]).includes(format))
@@ -249,10 +282,15 @@ export class PacketAudioDecoder implements AudioPacketDecoder {
     try {
       if (this.ended) throw Error('Decoder already drained');
       if (!packet.byteLength || packet.byteLength > MAX_PACKET || !Number.isSafeInteger(pts)) throw Error('Invalid audio packet');
+      // The maintained stereo LC envelope uses CPE channel pairs. A leading SCE
+      // can leave a signaled second plane unwritten in the pinned decoder; do
+      // not expose allocator-dependent PCM or invent a duplicated channel.
+      if(this.codec==='aac'&&(this.configuration?.aacProfile??'lc')==='lc'&&this.configuration?.channels===2)validateLcStereoPacket(packet);
       if(['speex','amrnb','amrwb'].includes(this.codec)){
         const sid=this.codec==='amrnb'?68:76;
         if(this.codec!=='speex'&&packet[0]===sid)throw Object.assign(Error('Unsupported AMR SID/DTX profile'),{code:'PROVIDER_PROFILE_MISMATCH'});
-        if(pts<0||(this.codec==='speex'?packet.length>2048:(packet[0]!==4||packet.length!==(this.codec==='amrnb'?13:18))))throw Object.assign(Error('Unqualified initial speech packet/header/clock'),{code:'PROVIDER_PROFILE_MISMATCH'});
+        const mode=packet[0]>>>3,sizes=this.codec==='amrnb'?[13,14,16,18,20,21,27,32]:[18,24,33,37,41,47,51,59,61];
+        if((this.speexFrameSamples!==undefined?pts<=-this.speexFrameSamples:pts<0)||(this.codec==='speex'?packet.length>2048||(this.speexFrameSamples!==undefined&&!Number.isSafeInteger(pts+this.speexFrameSamples)):((packet[0]&0x87)!==4||!this.amrModes.includes(mode)||packet.length!==sizes[mode]||!Number.isSafeInteger(pts+(this.codec==='amrnb'?160:320)))))throw Object.assign(Error('Unqualified initial speech packet/header/clock'),{code:'PROVIDER_PROFILE_MISMATCH'});
       }
       if((this.codec==='pcm-u8'||this.codec==='pcm-s8')&&(packet.length>65536||packet.length%this.configuration!.channels!==0||pts<0||!Number.isSafeInteger(pts+packet.length/this.configuration!.channels)))throw Object.assign(Error('Unqualified PCM8 packet geometry/clock'),{code:'PROVIDER_PROFILE_MISMATCH'});
       if(['pcm-alaw','pcm-mulaw','gsm','gsm-ms'].includes(this.codec)){
@@ -280,13 +318,13 @@ export class PacketAudioDecoder implements AudioPacketDecoder {
       if (this.ended) return [];
       this.check(this.module._mc_flush(this.owner));
       this.ended = true;
-      return this.receive();
+      const frames=this.receive();if(this.aacPsTransition&&!this.aacPsSeen)throw Object.assign(Error('Missing in-band AAC PS profile transition'),{code:'PROVIDER_PROFILE_MISMATCH'});return frames;
     } catch (error) { this.dispose(); throw error; }
     finally { this.busy = false; }
   }
   reset(): void {
     this.enter();
-    try { this.check(this.module._mc_reset(this.owner, 1)); this.generation++; this.ended = false; }
+    try { this.check(this.module._mc_reset(this.owner, 1)); this.generation++; this.ended = false; this.aacPsSeen = false; }
     catch (error) { this.dispose(); throw error; }
     finally { this.busy = false; }
   }

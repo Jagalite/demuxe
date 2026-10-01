@@ -5,7 +5,7 @@ import {mkdtemp, mkdir, writeFile, readFile, rm, realpath} from 'node:fs/promise
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {encoded, sha} from './package.mjs';
-import {parseArguments, resolveConfig, runProviders, reportStatus} from '../../scripts/test-providers.mjs';
+import {parseArguments, resolveConfig, runProviders, reportStatus, reconcileExitedGroup, terminateWorkerGroup} from '../../scripts/test-providers.mjs';
 
 async function fixture(t, {capability = 'test.new', profile = 'bounded', code = 'export const value=42;', adapter = '', checks = ''} = {}) {
   const root = await realpath(await mkdtemp(path.join(tmpdir(), 'demuxe-provider-suite-'))); t.after(() => rm(root, {recursive: true, force: true}));
@@ -222,4 +222,34 @@ test('corrupt baseline fails input verification before candidate execution', asy
   const report = await runProviders(state.configuration);
   assert.equal(report.status, 'failed'); assert.match(report.error, /artifact integrity/);
   assert.equal(report.contracts.length, 0);
+});
+
+test('EPERM reconciliation requires an owned zombie leader, reaping, and no live group members', async () => {
+  const zombie={pid:123,pgid:123,uid:501,state:'Z'};let reaped=false,reads=0;
+  const evidence=await reconcileExitedGroup({pid:123,uid:501,readGroup:()=>reads++?[ ]:[zombie],isExited:()=>reaped,waitForExit:async()=>{reaped=true;}});
+  assert.equal(evidence.outcome,'exited-leader-reaped-no-live-group-members');assert.deepEqual(evidence.before,[zombie]);assert.deepEqual(evidence.after,[]);
+  for(const member of [{...zombie,state:'S'},{...zombie,uid:0},{...zombie,pgid:456}])
+    await assert.rejects(()=>reconcileExitedGroup({pid:123,uid:501,readGroup:()=>[member],isExited:()=>false,waitForExit:async()=>{}}),/live or foreign/);
+  await assert.rejects(()=>reconcileExitedGroup({pid:123,uid:501,readGroup:()=>[],isExited:()=>false,waitForExit:async()=>{}}),/no verified original leader/);
+  await assert.rejects(()=>reconcileExitedGroup({pid:123,uid:501,readGroup:()=>[zombie],isExited:()=>false,waitForExit:async()=>{}}),/not reaped/);
+  await assert.rejects(()=>reconcileExitedGroup({pid:123,uid:501,readGroup:()=>[zombie],isExited:()=>true,waitForExit:async()=>{}}),/no verified original leader/);
+  for(const remaining of [{...zombie,state:'S'}, {...zombie,pid:124}]) {
+    let checked=0,finished=false;
+    await assert.rejects(()=>reconcileExitedGroup({pid:123,uid:501,readGroup:()=>checked++?[remaining]:[zombie],isExited:()=>finished,waitForExit:async()=>{finished=true;}}),/after leader exit|remains after original leader reaping/);
+  }
+});
+
+test('verified absent group is never signaled again after PID reuse', async () => {
+  const signals=[];let waits=0;
+  await terminateWorkerGroup({killGroup:async signal=>{signals.push(signal);return {verifiedGroupAbsent:true};},waitForExit:async()=>{waits++;},delay:async()=>assert.fail('Absent group must not be delayed and signaled again')});
+  assert.deepEqual(signals,['SIGTERM']);assert.equal(waits,1);
+  const normal=[];
+  await terminateWorkerGroup({killGroup:async signal=>normal.push(signal),waitForExit:async()=>{},delay:async()=>{}});
+  assert.deepEqual(normal,['SIGTERM','SIGKILL']);
+});
+
+test('first ESRCH absence skips any later signal and still waits for original exit', async () => {
+ const signals=[];let reaped=false;
+ await terminateWorkerGroup({killGroup:async signal=>{signals.push(signal);return {verifiedGroupAbsent:true,outcome:'group-absent'};},waitForExit:async()=>{reaped=true;},delay:async()=>assert.fail('Absent group must never be signaled again')});
+ assert.deepEqual(signals,['SIGTERM']);assert.equal(reaped,true);
 });

@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "passed": true,
+  "scope": "Focused source review fixes and native regression evidence; installed package and merged Player gates recorded separately",
+  "fixes": [
+    "Reject 3/4-byte AAC-LC AudioSpecificConfig descriptors while retaining declared extended AAC profiles",
+    "Enforce finite DTS-HD decoded rate/layout/precision even when configuration is omitted"
+  ],
+  "sources": {
+    "packages/provider-container/src/isobmff.ts": "9951522195e7f5bf1f5319cbec3457f6acf3fcfe7c47f99dd5f5fd1cafaa63aa",
+    "tests/provider-conformance/container-specific-isobmff.mjs": "7033f08351c37f83c206f6d61fb55f6b5f122b6786eccff752371461e4af8d04",
+    "packages/provider-audio/src/packet-decoder.ts": "2487c750ba3e01b29bb54699df29715c66556a09b6a6e0acc2bc4d0202d6c195",
+    "tests/dtshd-high-rate-admission.mjs": "b9532d535f70ec73cd260960567000c5c9fa0d5b8ce54ace0077fa3196416059",
+    "tests/dtshd-high-rate-admission-controls.mjs": "6de701369b67731cdc18f41ccb437401d0020a04deb2fd450739cd8d928f4d8d",
+    "tests/provider-conformance/dtshd-high-rate-admission-contracts.mjs": "cebc7f408832d3c718892034288449f6886dfa9b22c331a4e6b0dc53a09fb1eb"
+  },
+  "proofs": [
+    {
+      "path": "build/codec-expansion/recovery-06/lc-asc-review-proof.json",
+      "sha256": "374a82d3e27145a4e007e6c042ef2b344f3cdbf84c1964136b326831a96a3ed6",
+      "passed": true
+    },
+    {
+      "path": "build/mpv-merge-recovery-01/runtime-review/dtshd-admission.json",
+      "sha256": "862affd084eee4665c2978b925be0ce6ea8dee7d90b58f886cd0988547aab47e",
+      "passed": true
+    }
+  ],
+  "contracts": {
+    "path": "build/codec-expansion/recovery-06/contracts-final-review.log",
+    "sha256": "ef327bfeebf51e19a250cb7c1136f035bcbc02061cf519ab5a19b8803554c336",
+    "tests": 189,
+    "passed": 187,
+    "failed": 0,
+    "optionalSkipped": 2,
+    "note": "New focused DTS-HD contract passed separately after moving into the standard glob."
+  },
+  "dtsContract": {
+    "path": "build/codec-expansion/recovery-06/dtshd-admission-contract.log",
+    "sha256": "d65c77e5a630b54f88cdf8e55b9462a8dac77224768e69e2c30c8608ead25dc9",
+    "tests": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0
+  }
+}

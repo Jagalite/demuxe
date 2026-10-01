@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: Apache-2.0
+import assert from 'node:assert/strict';
+import {readFile,writeFile,mkdir,readdir} from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import path from 'node:path';
+import {mediaReferenceEnvironment} from '../scripts/media-reference-environment.mjs';
+const compiledRoot=path.resolve(process.env.AAC_COMPONENT_ROOT??'build/component-candidates');
+const {repairMatroskaAudio}=await import(pathToFileURL(compiledRoot+'/provider-container/src/audio-repair.js'));
+const {PacketAudioDecoder}=await import(pathToFileURL(compiledRoot+'/provider-audio/src/packet-decoder.js'));
+const {PacketFlacEncoder}=await import(pathToFileURL(compiledRoot+'/provider-audio/src/flac-encoder.js'));
+const fixtureRoot=process.env.AAC_COMPOSITION_FIXTURE_ROOT??'/tmp/demuxe-aac-p23-compositions',out=process.env.AAC_COMPOSITION_OUTPUT_ROOT??'/tmp/demuxe-aac-p23-composition-output';await mkdir(out,{recursive:true});
+const sha=b=>createHash('sha256').update(b).digest('hex'),builds=[];
+async function load(pointerPath){const pointer=JSON.parse(await readFile(pointerPath));const raw=await readFile(pointer.directory+'/build-record.json');assert.equal(sha(raw),pointer.recordSHA256);const record=JSON.parse(raw),wasm=await readFile(pointer.directory+'/module.wasm');assert.equal(sha(wasm),record.artifacts['module.wasm'].sha256);const moduleBytes=await readFile(pointer.directory+'/module.mjs');assert.equal(sha(moduleBytes),record.artifacts['module.mjs'].sha256);builds.push({moduleSHA256:sha(moduleBytes),profile:record.profile,sourceKey:record.sourceKey,recordSHA256:pointer.recordSHA256,wasmSHA256:sha(wasm)});return (await import(pathToFileURL(path.resolve(pointer.directory,'module.mjs')))).default({wasmBinary:wasm});}
+const sourceNames=['tests/aac-profile-gap-compositions.mjs','tests/aac-profile-gap-composition-fixtures.py','packages/provider-container/src/audio-repair.ts','packages/provider-container/src/isobmff.ts','packages/provider-container/src/fmp4.ts','packages/provider-container/src/matroska.ts','packages/provider-audio/src/aac-config.ts','packages/provider-audio/src/packet-decoder.ts','packages/provider-audio/src/flac-encoder.ts'];
+const inputs=Object.fromEntries(await Promise.all(sourceNames.map(async p=>[p,sha(await readFile(p))]))),compiledInputs={};
+async function pinCompiled(directory){for(const entry of await readdir(directory,{withFileTypes:true})){const name=path.join(directory,entry.name);if(entry.isDirectory())await pinCompiled(name);else if(name.endsWith('.js'))compiledInputs[path.relative(compiledRoot,name)]=sha(await readFile(name));}}await pinCompiled(compiledRoot);
+const referenceEnvironment=await mediaReferenceEnvironment(),referenceRecordPath='/tmp/demuxe-aac-profile-native-reference/build-record.json',referenceRecordBytes=await readFile(referenceRecordPath),referenceBuild=JSON.parse(referenceRecordBytes);
+for(const name of ['ffmpeg','ffprobe'])assert.equal(sha(await readFile('/tmp/demuxe-aac-profile-native-reference/'+name)),referenceBuild.artifacts[name].sha256);
+const decoder=await load(process.env.AAC_BUILD_POINTER??'build/codec-expansion/decoder-families/aac.json'),encoder=await load(process.env.FLAC_BUILD_POINTER??'/tmp/demuxe-flac-lowrate-builds/flac.json'),results=[];
+function audio(p,codec){const args=['-v','error','-cpuflags','0',...(codec==='mp2'?['-c:a','mp2float']:[]),'-i',p,'-map','0:a:0','-f','f32le','-'];return execFileSync('ffmpeg',args,{maxBuffer:64*1024*1024});}
+const video=p=>execFileSync('ffmpeg',['-v','error','-cpuflags','0','-i',p,'-map','0:v:0','-f','rawvideo','-'],{maxBuffer:32*1024*1024});
+for(const f of JSON.parse(await readFile(fixtureRoot+'/fixtures.json'))){const row={id:f.id,codec:f.codec,sampleRate:f.sampleRate,channels:f.channels,inputSHA256:f.inputSHA256};try{
+ assert.equal(f.referenceBuildSHA256,sha(referenceRecordBytes));assert.equal(f.referenceExecutableSHA256,referenceBuild.artifacts.ffmpeg.sha256);const source=await readFile(f.input);assert.equal(sha(source),f.inputSHA256);const signal=new AbortController();
+ const file=await repairMatroskaAudio(new Blob([source]),{codec:f.codec,channels:f.channels,sampleRate:f.sampleRate,output:'flac',container:'isobmff',aacProfile:f.aacProfile,decoder:(codec,signal,config)=>new PacketAudioDecoder(decoder,codec,signal,config),encoder:(channels,signal,rate)=>new PacketFlacEncoder(encoder,channels,signal,0,rate)},signal.signal);
+ const bytes=Buffer.from(await file.arrayBuffer()),name=path.join(out,f.id+'.mp4');await writeFile(name,bytes);const original=await readFile(f.reference),converted=audio(name);assert.equal(sha(original),f.referenceF32SHA256);const a=new Float32Array(original.buffer,original.byteOffset,original.length/4),b=new Float32Array(converted.buffer,converted.byteOffset,converted.length/4);assert.equal(a.length,b.length,'exact complete source sample count');let error=0;for(let i=0;i<a.length;i++)error=Math.max(error,Math.abs(a[i]-b[i]));assert.ok(error<2e-5,'independent scalar PCM error '+error);
+ const probe=JSON.parse(execFileSync('ffprobe',['-v','error','-select_streams','a:0','-show_streams','-of','json',name],{encoding:'utf8'})).streams[0];assert.equal(Number(probe.sample_rate),f.sampleRate);assert.equal(probe.channels,f.channels);assert.equal(sha(video(name)),sha(video(f.input)),'decoded video copied exactly');
+ Object.assign(row,{passed:true,outputSHA256:sha(bytes),referenceSHA256:sha(original),samples:a.length/f.channels,maxError:error,videoExact:true,sourceRatePreserved:true});console.log(f.id,'PASS',error);
+ }catch(e){Object.assign(row,{passed:false,error:String(e.stack??e)});console.error(f.id,'FAILED',e.message);}results.push(row);}
+for(const [name,hash]of Object.entries(inputs))assert.equal(sha(await readFile(name)),hash,'Source changed during AAC composition proof');
+assert.equal(results.length,5,'All five finite composition tuples required');
+const report={passed:results.every(r=>r.passed),scope:'Five finite AAC HE/PS/USAC stereo ASC/rate tuples beside original copied AVC; scalar FFmpeg9 presentation PCM reference, exact audio count/rate and decoded video identity',inputs,compiledInputs,referenceEnvironment,referenceBuildSHA256:sha(referenceRecordBytes),fixtureManifestSHA256:sha(await readFile(fixtureRoot+'/fixtures.json')),builds,results};await mkdir('results/media-components/codec-expansion',{recursive:true});await writeFile(process.env.AAC_COMPOSITIONS_REPORT??'results/media-components/codec-expansion/aac-profile-gap-compositions.json',JSON.stringify(report,null,2)+'\n');if(!report.passed)process.exitCode=1;

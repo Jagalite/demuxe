@@ -3,7 +3,7 @@
  * means this finite provider cannot preserve the source, not unsupported media. */
 import {ContainerProfileError} from './matroska.js';
 import type {MatroskaTrack,MatroskaPacket} from './matroska.js';
-import {aacProfileNumber,validateExtendedAacConfiguration} from '../../provider-audio/src/aac-config.js';
+import {aacProfileNumber,validateExtendedAacConfiguration,aacExtensionTiming} from '../../provider-audio/src/aac-config.js';
 import type {AacProfile} from '../../provider-audio/src/aac-config.js';
 type Box={type:string;start:number;end:number;header:number};
 type Timing={count:number;delta:number};
@@ -38,8 +38,8 @@ function aacConfig(b:Uint8Array,x:Box,rate:number,channels:number,profile:AacPro
  let p=full(b,x),d=descriptor(b,p,x.end);if(d.tag!==3||d.end!==x.end||d.end-d.start<3)fail('Unqualified ES descriptor');
  p=d.start+3;if(b[d.start+2]!==0)fail('External or dependent ES descriptor');d=descriptor(b,p,d.end);
  if(d.tag!==4||d.end-d.start<13||b[d.start]!==0x40||(b[d.start+1]>>2)!==5)fail('Unqualified AAC decoder descriptor');
- const config=descriptor(b,d.start+13,d.end);if(config.tag!==5||!(profile==='usac'?[7]:[2,5]).includes(config.end-config.start))fail('Unqualified AAC configuration');
- const c=b.slice(config.start,config.end);if(profile!=='lc'){validateExtendedAacConfiguration(profile,rate,channels,c);return c;}if(c.length===5&&(c[2]!==0x56||c[3]!==0xe5||c[4]!==0))fail('AAC extension requires another provider');if((c[0]>>3)!==2||({0:96000,3:48000,4:44100} as Record<number,number>)[((c[0]&7)<<1|c[1]>>7)]!==rate||((c[1]>>3)&15)!==channels||(c[1]&7)!==0)fail('Only bounded AAC-LC sample rates and channels admitted');return c;
+ const config=descriptor(b,d.start+13,d.end);if(config.tag!==5||config.end-config.start<2||config.end-config.start>32)fail('Unqualified AAC configuration');
+ const c=b.slice(config.start,config.end);if(profile!=='lc'){validateExtendedAacConfiguration(profile,rate,channels,c);return c;}if(![2,5].includes(c.length))fail('Unqualified AAC-LC configuration length');if(c.length===5&&(c[2]!==0x56||c[3]!==0xe5||c[4]!==0))fail('AAC extension requires another provider');if((c[0]>>3)!==2||({0:96000,3:48000,4:44100} as Record<number,number>)[((c[0]&7)<<1|c[1]>>7)]!==rate||((c[1]>>3)&15)!==channels||(c[1]&7)!==0)fail('Only bounded AAC-LC sample rates and channels admitted');return c;
 }
 function sampleDescription(b:Uint8Array,x:Box,kind:'audio'|'video',number:number,aacProfile:AacProfile):{track:MatroskaTrack;pcm:boolean}{
  const p=full(b,x);if(u32(b,p)!==1)fail('Multiple sample descriptions require another provider');
@@ -55,7 +55,7 @@ function sampleDescription(b:Uint8Array,x:Box,kind:'audio'|'video',number:number
  }
  const version=u16(b,start+8);if(![0,1].includes(version)||e.end-start<(version===1?44:28))fail('Unqualified QuickTime audio version');
  const channels=u16(b,start+16);let rate=u32(b,start+24)/65536;
- if(![1,2,6,8].includes(channels)||![44100,48000].includes(rate))fail('Unqualified ISO audio sample rate or channels');
+ if(![1,2,6,8].includes(channels)||!(e.type==='mp4a'&&aacProfile!=='lc'?[32000,44100,48000]:[44100,48000]).includes(rate))fail('Unqualified ISO audio sample rate or channels');
  const children=boxes(b,start+(version===1?44:28),e.end),flat=children.flatMap(v=>v.type==='wave'?boxes(b,v.start,v.end):[v]);
  if(e.type==='ima4'){
   if(version!==1||![1,2].includes(channels)||u16(b,start+18)!==16||u16(b,start+20)!==65534||u16(b,start+22)!==0||[28,32,36].some(p=>u32(b,start+p)!==0)||u32(b,start+40)!==2)fail('Unqualified MOV IMA-QT sample description');
@@ -131,7 +131,7 @@ export class IsoBmffReader {
    const refs=boxes(b,dp+4,dref.end);if(u32(b,dp)!==1||refs.length!==1||refs[0].type!=='url '||refs[0].end-refs[0].start!==4||u32(b,refs[0].start)!==1)fail('External ISO data reference');
    const stbl=one(mf,'stbl'),st=boxes(b,stbl.start,stbl.end);if(st.some(x=>!['stsd','stts','stsc','stsz','stco','co64','stss','ctts','sgpd','sbgp'].includes(x.type)))fail('ISO sample extension requires another provider');
    const {track,pcm}=sampleDescription(b,one(st,'stsd'),handler==='vide'?'video':'audio',number,aacProfile);
-   if(editDelay){if(track.codec!=='A_AAC'||editDelay!==(aacProfile==='usac'?2220:1024)||scale!==track.rate)fail('Nonidentity ISO edit requires another provider');(track as {codecDelayNs?:number}).codecDelayNs=Math.round(editDelay*1e9/scale);}
+   if(editDelay){if(track.codec!=='A_AAC'||editDelay!==(aacProfile==='lc'?1024:aacExtensionTiming(aacProfile,track.rate!,track.channels!,track.privateData).primingSamples)||scale!==track.rate)fail('Nonidentity ISO edit requires another provider');(track as {codecDelayNs?:number}).codecDelayNs=Math.round(editDelay*1e9/scale);}
    const ts=entries(b,one(st,'stts'),8),timing:Timing[]=[];let timed=0,totalDuration=0;
    for(let i=0;i<ts.count;i++){const count=u32(b,ts.start+i*8),delta=u32(b,ts.start+i*8+4);if(!count||!delta)fail('Invalid ISO sample duration');timing.push({count,delta});timed+=count;totalDuration+=count*delta;}
    const sz=one(st,'stsz'),sp=full(b,sz),fixed=u32(b,sp),count=u32(b,sp+4),sizes:number[]=[];
@@ -153,11 +153,19 @@ export class IsoBmffReader {
    let discardSamples=0;
    if(track.kind==='audio'&&scale!==track.rate)fail('ISO audio clock differs from sample rate');
    if(track.codec==='A_AAC'){
-    const frameSamples=aacProfile==='lc'||aacProfile==='usac'?1024:2048;
-    if(aacProfile==='usac'&&editDelay!==2220||!['lc','usac'].includes(aacProfile)&&editDelay)fail('Unqualified AAC extension delay');
+    const geometry=aacProfile==='lc'?{frameSamples:1024,primingSamples:0}:aacExtensionTiming(aacProfile,track.rate!,track.channels!,track.privateData);
+    const frameSamples=geometry.frameSamples;
+    if(aacProfile!=='lc'&&editDelay!==geometry.primingSamples)fail('Unqualified AAC extension delay');
     for(let i=0;i<timing.length;i++)if(timing[i].delta!==frameSamples&&(i!==timing.length-1||timing[i].count!==1||timing[i].delta>frameSamples))fail('Unqualified AAC sample timing');
     discardSamples=frameSamples-timing[timing.length-1].delta;
-    if(edit.length){const presented=Math.round(editDuration*scale);if(Math.abs(presented-editDuration*scale)>0.001)fail('Fractional ISO AAC edit sample');discardSamples=count*frameSamples-editDelay-presented;}
+    if(edit.length){
+     const endpoint=editDuration*scale,available=count*frameSamples-editDelay;
+     // A millisecond movie edit can extend beyond the final complete coded
+     // sample by less than one movie tick. It cannot create additional PCM.
+     // Interior fractional sample edits remain outside this finite reader.
+     if(endpoint>=available&&endpoint-available<=scale/movieScale)discardSamples=0;
+     else {const presented=Math.round(endpoint);if(Math.abs(presented-endpoint)>0.001)fail('Fractional ISO AAC edit sample');discardSamples=available-presented;}
+    }
     if(discardSamples<0||discardSamples>=frameSamples)fail('AAC presentation trim exceeds final frame');
    }
    if(track.codec==='A_ADPCM/IMA_QT'){if(fixed!==34*track.channels!||keys||groups.length)fail('Unqualified MOV IMA-QT block mapping');for(let i=0;i<timing.length;i++)if(timing[i].delta!==64&&(i!==timing.length-1||timing[i].count!==1||timing[i].delta>64))fail('Unqualified MOV IMA-QT block timing');discardSamples=64-timing[timing.length-1].delta;}

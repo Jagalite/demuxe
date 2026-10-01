@@ -13,8 +13,8 @@ export const EXECUTION_CAPABILITIES = {
     contract: 'Complete E-AC-3 packets to owned float planes; no Atmos or dependent-substream composition qualification is implied.',
   },
   'audio.decode.dts': {
-    version: 1, profiles: ['core-48khz-fltp', 'ma-48khz-s32p', 'ma-configured-integer'] as const,
-    contract: 'Complete DTS core packets to owned float planes; The MA profile preserves planar integer PCM; core and MA are separate offers.',
+    version: 1, profiles: ['core-48khz-fltp', 'ma-48khz-s32p', 'ma-configured-integer', 'ma-high-rate-integer'] as const,
+    contract: 'Complete DTS core packets to owned float planes; The MA profiles preserve planar integer PCM; high-rate MA is finite96 kHz6/8-channel24-bit or192 kHz6-channel16-bit packet decoding. Only96 kHz qualifies FLAC composition; core and MA are separate offers.',
   },
   'audio.decode.truehd': {
     version: 1, profiles: ['48khz-integer','configured-integer'] as const,
@@ -25,8 +25,8 @@ export const EXECUTION_CAPABILITIES = {
     contract: 'Complete MLP packets to owned left-justified integer PCM with native channel layout, reset, drain and cancellation.',
   },
   'audio.decode.aac': {
-    version: 1, profiles: ['lc-48khz-stereo', 'lc-configured', 'he-stereo48', 'he-v2-stereo44100','usac-mono48'] as const,
-    contract: 'Explicitly admitted AAC-LC or finite HE stereo48/HEv2 stereo44100/USAC mono48 packets with verified AudioSpecificConfig and actual decoded profile to owned PCM; explicit priming and discard padding belong to the container.',
+    version: 1, profiles: ['lc-48khz-stereo', 'lc-configured', 'he-stereo48', 'he-v2-stereo44100','usac-mono48','he-configured-float','he-v2-stereo32','usac-stereo-configured','lc-pce8-44100'] as const,
+    contract: 'Explicitly admitted AAC-LC or exact ASC-owned HE48 stereo/six-channel, HEv2 stereo44100/32000, USAC mono48/stereo32/44100/48000/88200 and PCE eight-channel44100 packets with verified AudioSpecificConfig and actual decoded profile to owned PCM; explicit priming and discard padding belong to the container.',
   },
   'audio.decode.opus': {
     version: 1, profiles: ['48khz-stereo', 'configured-pcm'] as const,
@@ -65,16 +65,16 @@ export const EXECUTION_CAPABILITIES = {
     contract: 'Explicit least-significant-first G726 8 kHz mono coded2/3/4/5-bit complete bit groups to owned signed16 integer PCM; seek requires original full restart and discard.',
   },
   'audio.decode.speex': {
-    version: 1, profiles: ['flv-wideband-float'] as const,
-    contract: 'Canonical headerless Speex FLV 16 kHz mono packets to owned float PCM with original packet PTS and gaps; max two decoded frames, scalar error below7e-5 and whole-stream SNR above80dB; no container composition admission.',
+    version: 1, profiles: ['flv-wideband-float', 'ogg-mono-cbr'] as const,
+    contract: 'Canonical headerless Speex FLV 16 kHz mono packets to owned float PCM with original packet PTS and gaps; max two decoded frames, scalar error below7e-5 and whole-stream SNR above80dB; no container composition admission. Explicit ogg-mono-cbr admits canonical 80-byte Speex headers, 8/32 kHz mono CBR single160/640-sample frames with original signed Ogg PTS and full coded padding; unchanged7e-5/SNR80 qualification.',
   },
   'audio.decode.amrnb': {
-    version: 1, profiles: ['mode0-float'] as const,
-    contract: 'Complete mode0 4.75 kbps AMR-NB speech packets at8 kHz mono to owned float PCM, original PTS and restart-from-start/discard seeks; SID/DTX rejected; no container admission.',
+    version: 1, profiles: ['mode0-float', 'ordinary-modes-float'] as const,
+    contract: 'Complete ordinary AMR-NB modes0–7 at8 kHz mono; defaultmode0 or explicit immutable amrModes whitelist; quality1 complete frames to owned float PCM, original PTS and restart-from-start/discard seeks; SID/DTX rejected; no container admission.',
   },
   'audio.decode.amrwb': {
-    version: 1, profiles: ['mode0-float'] as const,
-    contract: 'Complete mode0 6.60 kbps AMR-WB speech packets at16 kHz mono to owned float PCM, original PTS and restart-from-start/discard seeks; SID rejected; no container admission.',
+    version: 1, profiles: ['mode0-float', 'ordinary-modes-float'] as const,
+    contract: 'Complete ordinary AMR-WB modes0–8 at16 kHz mono; defaultmode0 or explicit immutable amrModes whitelist; quality1 complete frames to owned float PCM, original PTS and restart-from-start/discard seeks; SID rejected; no container admission.',
   },
   'audio.decode.pcm-alaw': {
     version: 1, profiles: ['configured-integer'] as const,
@@ -129,15 +129,15 @@ export const EXECUTION_CAPABILITIES = {
     contract: 'Complete MPEG Layer I packets to owned PCM; canonical 32 kHz stereo packet evidence only.',
   },
   'audio.decode.mp2': {
-    version: 1, profiles: ['configured-pcm'] as const,
+    version: 1, profiles: ['configured-pcm', 'lower-rate-pcm'] as const,
     contract: 'Configured MPEG Layer II packets with container priming to owned PCM.',
   },
   'audio.decode.wmav1': {
-    version: 1, profiles: ['configured-pcm'] as const,
+    version: 1, profiles: ['configured-pcm', 'lower-rate-pcm'] as const,
     contract: 'WMA v1/v2 complete blocks with explicit WAVEFORMATEX framing, bitrate and bounded drain timing to owned PCM.',
   },
   'audio.decode.wmav2': {
-    version: 1, profiles: ['configured-pcm'] as const,
+    version: 1, profiles: ['configured-pcm', 'lower-rate-pcm'] as const,
     contract: 'WMA v1/v2 complete blocks with explicit WAVEFORMATEX framing, bitrate and bounded drain timing to owned PCM.',
   },
   'audio.decode.mp3': {

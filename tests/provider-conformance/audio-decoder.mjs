@@ -3,7 +3,7 @@
 const assert = (condition, message) => { if (!condition) throw Error(message); };
 const arrays = frame => [...(frame.planes ?? []), ...(frame.planes64 ?? []), ...(frame.pcm ? [frame.pcm] : [])];
 const equal = (a, b) => a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
-const integerCodecs = new Set(['truehd', 'mlp', 'dts-hd', 'flac', 'alac', 'pcm-s16le', 'pcm-s24le', 'pcm-s32le']);
+const integerCodecs = new Set(['truehd', 'mlp', 'dts-hd', 'flac', 'alac', 'pcm-s16le', 'pcm-s24le', 'pcm-s32le','pcm-u8','pcm-s8','adpcm-ima-qt','adpcm-g726','adpcm-g726le']);
 
 export function packetTrimMetadata(codec, extradata, packets) {
   const sides = packets.flatMap(packet => packet.side_data_list ?? []).filter(side => side.side_data_type === 'Skip Samples');
@@ -36,15 +36,19 @@ export async function runAudioDecoderChecks({createDecoder, fixture, packets, re
   const controller = new AbortController();
   let decoder;
   const retained = [];
-  const checkOwned = () => {
-    for (const {frame, metadata, views} of retained) {
+  const checkOwned = (recent = false) => {
+    // Check first/current views on every call, and every retained owned view
+    // at complete replay/reset/cancel/dispose boundaries. Full streams must not
+    // turn buffer ownership checks into quadratic work across every packet.
+    const selected=recent&&retained.length>2?[retained[0],retained[retained.length-1]]:retained;
+    for (const {frame, metadata, views} of selected) {
       assert(metadata.every(([key, value]) => Object.is(frame[key], value)), 'Retained frame metadata changed');
       assert(arrays(frame).length === views.length && arrays(frame).every((view, i) => view === views[i].view), 'Retained PCM views changed');
       for (const {view, copy} of views) assert(equal(view, copy), 'Retained PCM buffer changed');
     }
   };
   const collect = batch => {
-    checkOwned();
+    checkOwned(true);
     assert(Array.isArray(batch), 'Decoder must return frame arrays');
     for (const frame of batch) {
       assert(frame && frame.rate === fixture.sampleRate && frame.channels === fixture.channels, 'Decoded frame configuration mismatch');
@@ -69,6 +73,7 @@ export async function runAudioDecoderChecks({createDecoder, fixture, packets, re
     }
     frames.push(...collect(await owner.flush()));
     assert(collect(await owner.flush()).length === 0, 'Repeated flush emitted PCM');
+    checkOwned();
     assert(frames.length > 0, 'Decoder emitted no PCM');
     for (let i = 1; i < frames.length; i++) assert(frames[i].generation === frames[0].generation && frames[i].pts >= frames[i - 1].pts, 'Decoded timing moved backwards');
     return frames;
@@ -120,6 +125,16 @@ export async function runAudioDecoderChecks({createDecoder, fixture, packets, re
     const frames = await decodeAll(decoder), pcm = flatten(frames, 'float'), actual = trim(pcm);
     assert(actual.length === reference.length, 'Packet sample count ' + actual.length + '/' + reference.length);
     checkAbsoluteTiming(frames);
+    const predictive=['adpcm-ima-qt','adpcm-g726','adpcm-g726le'].includes(fixture.codec);
+    if(predictive){
+      assert(fixture.seekContract==='restart-from-start-and-discard','Missing predictive restart contract');
+      assert(frames.length===packets.length&&frames.every((frame,i)=>frame.pts===packets[i].pts&&frame.samples===(fixture.codec==='adpcm-ima-qt'?64:packets[i].data.length*8/fixture.bitsPerSample)&&(frame.duration===0||frame.duration===frame.samples)),'Original predictive packet clock mismatch');
+      for(const target of [1,Math.floor(reference.length/fixture.channels/2),reference.length/fixture.channels-1]){
+        await decoder.reset();const replay=await decodeAll(decoder);
+        assert(equal(trim(flatten(replay,'integer')).slice(target*fixture.channels),integerReference.slice(target*fixture.channels)),'Restart/discard seek integer mismatch');
+      }
+    }
+
     let maxError = 0;
     for (let i = 0; i < actual.length; i++) maxError = Math.max(maxError, Math.abs(actual[i] - reference[i]));
     assert(Number.isFinite(maxError) && maxError < 2e-5, 'Packet PCM error ' + maxError);
@@ -153,7 +168,18 @@ export async function runAudioDecoderChecks({createDecoder, fixture, packets, re
       cancel.abort(); checkOwned();
       for (const method of ['decode', 'flush', 'reset']) await rejects(() => method === 'decode' ? canceledDecoder.decode(packets[0].data.slice(), packets[0].pts) : canceledDecoder[method](), 'Aborted decoder accepted ' + method);
     } finally { cancel.abort(); await canceledDecoder.dispose(); checkOwned(); }
-    const result = {samples: actual.length / fixture.channels, maxError, integerExact: Boolean(integerReference), doubleExact: Boolean(doubleReference), reset: true, ownership: true, cancellation: true, lifecycle: true, timing: true, timingToleranceSamples: timingReference.toleranceSamples};
+    if(predictive){
+      for(const configuration of [{sampleRate:16000},{channels:3},{bitsPerSample:1}]){
+        let unexpected;
+        try{await rejects(async()=>{unexpected=await createDecoder({...fixture,...configuration},new AbortController().signal);},'Predictive invalid configuration accepted');}finally{await unexpected?.dispose();}
+      }
+      const invalid=await createDecoder(fixture,new AbortController().signal);
+      try{
+        await rejects(()=>invalid.decode(packets[0].data.slice(),Number.MAX_SAFE_INTEGER),'Predictive unsafe end clock accepted');
+        if(fixture.codec==='adpcm-ima-qt'||[3,5].includes(fixture.bitsPerSample))await rejects(()=>invalid.decode(Uint8Array.of(0),0),'Predictive incomplete coded group accepted');
+      }finally{await invalid.dispose();}
+    }
+    const result = {samples: actual.length / fixture.channels, maxError, integerExact: Boolean(integerReference), doubleExact: Boolean(doubleReference), reset: true, ownership: true, cancellation: true, lifecycle: true, timing: true, timingToleranceSamples: timingReference.toleranceSamples, ...(predictive?{restartDiscard:true,originalPacketClock:true}: {})};
     if (parityOutput) {
       // Node-only artifact delivery is opt-in; the same checks run in browsers.
       const [{mkdir, writeFile}, {default: path}] = await Promise.all([import('node:fs/promises'), import('node:path')]);

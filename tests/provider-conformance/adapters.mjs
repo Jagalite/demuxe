@@ -71,6 +71,7 @@ export async function loadAdapter(provider, fact, specification, outputDirectory
   const adapter = {};
   const compileFixture = async filename => {
     const {build} = await import('esbuild');
+    if(options.fixtureRoot){const file=path.join(options.fixtureRoot,filename+'.js');Object.assign(harnessInputs,await collectHarnessInputs(file));return import(pathToFileURL(file).href);}
     const source = path.join(repository, 'packages/provider-container/src', filename + '.ts');
     const bundled = await build({entryPoints: [source], bundle: true, write: false, format: 'esm', platform: 'node', metafile: true});
     for (const input of Object.keys(bundled.metafile.inputs)) {
@@ -95,6 +96,17 @@ export async function loadAdapter(provider, fact, specification, outputDirectory
       adapter.fixtureReader = (blob, signal) => MatroskaReader.open(blob, signal);
     }
   }
+  for(const [name,filename,exported] of [['openIsoBmff','isobmff','IsoBmffReader'],['openOgg','ogg','OggAudioReader'],['openWaveAiff','wave-aiff','WaveAiffReader'],['openMpegTs','mpegts','MpegTsReader'],['openApe','ape','ApeReader'],['openWavpack','wavpack','WavPackReader'],['openTta','tta','TtaReader'],['openTak','tak','TakReader'],['openShorten','shorten','ShortenReader'],['openAdpcmWave','adpcm-wave','AdpcmWaveReader'],['openTelephony','telephony','TelephonyReader']]){
+    const candidate=find('/provider-container/src/'+filename+'.js');
+    if(candidate){const module=await importArtifact(candidate);adapter[name]=(blob,signal,configuration)=>module[exported].open(blob,signal,configuration);}
+  }
+  if(readerPath){const {MatroskaReader}=await importArtifact(readerPath);adapter.openWebm=(blob,signal)=>MatroskaReader.open(blob,signal);}
+  const g726Reader=find('/provider-container/src/g726.js');
+  if(g726Reader){const {G726Reader}=await importArtifact(g726Reader);adapter.openG726=(blob,signal)=>G726Reader.openWave(blob,signal);adapter.openRawG726=(blob,signal,configuration)=>G726Reader.openRaw(blob,configuration,signal);}
+  const webmRemux=find('/provider-container/src/webm-remux.js');
+  if(webmRemux){const {remuxWebm}=await importArtifact(webmRemux);adapter.remuxWebm=(blob,signal)=>remuxWebm(blob,signal);}
+  const webmWriter=find('/provider-container/src/webm.js');
+  if(webmWriter){const {WebmPacketWriter}=await importArtifact(webmWriter);adapter.createWebmWriter=(...args)=>new WebmPacketWriter(...args);}
   const factoryPath = options.factory ?? find('/module.mjs');
   const wasmPath = options.wasm ?? (factoryPath && factoryPath.slice(0, -4) + '.wasm');
   if (factoryPath && allowed.has(wasmPath)) {
@@ -104,19 +116,20 @@ export async function loadAdapter(provider, fact, specification, outputDirectory
     // These are test ABI adapters, recorded separately from provider artifacts.
     // The media implementation always comes from the verified candidate package.
     const compile = async (filename, exported) => {
+      if(options.wrapperRoot){const file=path.join(options.wrapperRoot,filename+'.js');Object.assign(harnessInputs,await collectHarnessInputs(file));return (await import(pathToFileURL(file).href))[exported];}
+      if(filename==='packet-decoder'&&options.decoderWrapper){Object.assign(harnessInputs,await collectHarnessInputs(options.decoderWrapper));return (await import(pathToFileURL(options.decoderWrapper).href))[exported];}
       const source = path.join(repository, 'packages/provider-audio/src', filename + '.ts');
-      const bytes = await readFile(source); harnessInputs[source] = sha(bytes);
-      const {default: ts} = await import('typescript');
-      const result = ts.transpileModule(bytes.toString(), {compilerOptions: {target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022}});
-      await mkdir(outputDirectory, {recursive: true});
-      const file = path.join(outputDirectory, filename + '.mjs'); await writeFile(file, result.outputText);
-      harnessInputs[file] = sha(Buffer.from(result.outputText));
+      const {build} = await import('esbuild');
+      const bundled = await build({entryPoints:[source],bundle:true,write:false,format:'esm',platform:'node',metafile:true});
+      for(const input of Object.keys(bundled.metafile.inputs)){const name=path.resolve(input);harnessInputs[name]=sha(await readFile(name));}
+      const file = path.join(outputDirectory, filename + '.mjs'); await writeFile(file,bundled.outputFiles[0].contents);
+      harnessInputs[file]=sha(bundled.outputFiles[0].contents);
       return (await import(pathToFileURL(file).href))[exported];
     };
     if (fact.offers.some(offer => offer.capability.startsWith('audio.decode.'))) {
       const Decoder = await compile('packet-decoder', 'PacketAudioDecoder');
       adapter.createDecoder = (fixture, signal) => new Decoder(module, fixture.codec, signal,
-        ['ac3', 'eac3', 'dts-core', 'truehd', 'mlp', 'dts-hd'].includes(fixture.codec) ? undefined : fixture);
+        ['ac3', 'eac3', 'dts-core'].includes(fixture.codec) ? undefined : {...fixture,...fixture.framing});
     }
     if (fact.offers.some(offer => offer.capability === 'audio.encode.flac')) {
       const Encoder = await compile('flac-encoder', 'PacketFlacEncoder');

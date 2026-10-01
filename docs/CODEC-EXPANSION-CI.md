@@ -1,8 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Pinned codec expansion CI qualification
 
-The maintained CI workflow tests the same installed-package packet and composition
-matrix in Chromium and Firefox. It covers both assets and embedded delivery,
+The maintained CI workflow first runs the standard [provider conformance suite](PROVIDER-TESTING.md) against every offer in the selected installed packages. It then tests the installed-package packet and composition matrix in Chromium and Firefox. It covers both assets and embedded delivery,
 reference PCM and video, precision rejection, pause, seek, fresh post-seek audio,
 selective native loading, and a deliberate silence control. It is a functional
 package gate; it does not promote the production registry or publish packages.
@@ -17,6 +16,7 @@ Regenerate inventories when their recorded inputs change even if archive bytes d
 not change. Export into a fresh directory:
 
 ```sh
+CODEC_EXPANSION_CONFORMANCE=build/codec-expansion/conformance-fixtures.json \
 CODEC_EXPANSION_SUPPLEMENTAL=build/codec-expansion/supplemental-browser.json \
   node scripts/codec-expansion-ci.mjs export build/codec-expansion-ci-inputs
 ```
@@ -31,6 +31,14 @@ is the separately reviewed pin supplied to CI; it is not read from the downloade
 archive as an authority.
 
 Optional packet manifests use `CODEC_EXPANSION_PACKET_MANIFESTS`, a JSON array of paths (or `CODEC_EXPANSION_PACKET_MANIFEST` for one path). The exporter preserves codec framing, original sample counts, timestamp provenance and exact rejection reasons. Raw TrueHD, MLP and DTS-HD inputs are admitted only with their matching codec/family metadata. WMA Pro/Lossless/Voice are packet-only; Voice has a fixed SNR/error qualification and mandatory decoded silence/corruption controls. TAK standalone rows retain the full original integer sample extent.
+
+Retained conformance descriptors use `CODEC_EXPANSION_CONFORMANCE`. Their source media, original packet JSON, independent PCM and native timing references are copied and hash pinned separately from composition references. Missing suites or matching references make conformance incomplete and stop the workflow. The conformance adapter loads the installed core wrapper and selected provider artifacts; checkout compilation does not substitute for the candidate.
+
+Run the installed standard gate locally after preparing a cohort:
+
+```sh
+node scripts/test-codec-expansion-providers.mjs build/codec-expansion/installed.json
+```
 
 CI reports also record the actual host FFmpeg and ffprobe executable paths, binary hashes and version output. Packet references remain pinned independently; this provenance identifies the host tools used for composition validation.
 

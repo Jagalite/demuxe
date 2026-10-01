@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // Install exact audited local archives and prepare both supported delivery forms.
-import {readFile,writeFile,mkdir,cp} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,cp,access} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {buildDemuxe,collectPackages} from '../packages/bundler/index.mjs';
+import {resolveCohortFixtures,automaticConformanceFixture} from './test-codec-expansion-providers.mjs';
 const root=path.resolve('build/codec-expansion'),work=path.join(path.resolve(process.env.CODEC_EXPANSION_CONSUMER_ROOT??root),'consumer-'+Date.now());
 import {requestedTargets,baseFamilies,families,packetManifestPaths,compositionEncodings,validatePacketFixture} from './codec-expansion-ci.mjs';
 const targets=requestedTargets(),archives=[];
@@ -12,7 +13,7 @@ for(const target of targets){
  const record=JSON.parse(await readFile(path.join(root,'packages',target,'assembly.json')));
  const bytes=await readFile(record.archive),hash=createHash('sha256').update(bytes).digest('hex');
  if(hash!==(record.sha256??record.archiveSHA256))throw Error('Package changed: '+target);
- archives.push({...record,archive:path.resolve(record.archive)});
+ archives.push({...record,target,archive:path.resolve(record.archive)});
 }
 await mkdir(work,{recursive:true});await writeFile(work+'/package.json',JSON.stringify({name:'demuxe-codec-expansion-consumer',version:'1.0.0',private:true,type:'module'}));
 execFileSync('npm',['install','--ignore-scripts','--no-audit','--no-fund','--package-lock=false',...archives.map(a=>a.archive)],{cwd:work,stdio:'inherit'});
@@ -46,5 +47,9 @@ for(const family of activeFamilies)for(const delivery of ['assets','embedded']){
  }
 }
 await writeFile(work+'/cases.json',JSON.stringify(cases,null,2)+'\n');
-await writeFile(root+'/installed.json',JSON.stringify({work,archives,bundles:activeFamilies.length*2,cases:cases.length,supplemental,packetFixtures},null,2)+'\n');
+const explicitConformance=process.env.CODEC_EXPANSION_CONFORMANCE?JSON.parse(await readFile(process.env.CODEC_EXPANSION_CONFORMANCE)):[];
+const autoConformance=[];for(const f of [...fixtures,...packetFixtures]){const row=await automaticConformanceFixture(f,root+'/decoder-fixtures');if(row)autoConformance.push(row);}
+const conformanceFixtures=resolveCohortFixtures(autoConformance,explicitConformance.filter(f=>f.kind!=='container')),containerFixtures=explicitConformance.filter(f=>f.kind==='container');
+
+await writeFile(root+'/installed.json',JSON.stringify({work,targets,archives,conformanceFixtures,containerFixtures,bundles:activeFamilies.length*2,cases:cases.length,supplemental,packetFixtures},null,2)+'\n');
 console.log(work);

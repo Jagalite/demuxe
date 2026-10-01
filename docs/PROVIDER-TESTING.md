@@ -273,3 +273,158 @@ CI runs the harness contracts and an installed container package check on change
 to the harness or relevant provider sources. Native provider packages can be
 passed to the same runner as exact external inputs; the automatic harness job
 does not provide the full native/browser matrix.
+
+## Predictive packet audio fixtures
+
+The maintained registry includes the exact `configured-integer` decoder offers
+for `adpcm-ima-qt`, `adpcm-g726` and `adpcm-g726le`. These require explicit
+retained fixtures; missing matching fixtures remain blocked. Raw G726 is never
+sniffed, and an unqualified original packing declaration cannot pass.
+
+Each provider's configuration supplies `fixtures` with the maintained packet
+manifest metadata plus these absolute paths and exact SHA256 fields:
+
+| Path | Required hash |
+| --- | --- |
+| `input` | `inputSHA256` |
+| `packetFile` (retained packet JSON) | `packetSHA256` |
+| `reference` (full interleaved Float32 PCM) | `referenceF32SHA256` |
+| `integerReference` (full left-justified Int32 PCM) | `referenceSHA256` |
+
+IMA-QT requires original MOV block framing, 34 bytes per channel, 64 decoded
+samples per block, 44.1/48 kHz mono/stereo, and a restart/discard seek contract.
+Packet references retain every decoded block sample; the independently declared
+MOV presentation tail belongs to container/conversion tests and must not replace
+those full packet references. G726 requires 8 kHz mono, explicit codec, 2/3/4/5
+coded bits, matching bitrate and packing, complete byte/code groups, qualified
+origin packing, and an exact source sample clock. WAV `fact` trimming and raw
+presentation counts remain separate from full predictive packet decoding.
+
+The generic decoder suite compares exact integers and original packet clocks,
+replays from stream origin for three discard targets, and checks owned buffers,
+reset, shifted timestamps, cancellation, disposal, invalid configuration,
+incomplete coded groups and unsafe end clocks. It does not qualify opening a
+fresh predictive decoder at a later packet. Package artifacts and the complete
+adapter compilation closure are hashed separately; a transient package check
+establishes no source-companion, release or installed browser qualification.
+
+AAC `he-stereo48`, `he-v2-stereo44100` and `usac-mono48` also require retained
+packet and native PCM references. Set explicit `aacProfile` (`he`, `he-v2`,
+`usac`), exact rate/layout, and `timingFile` with `timingSHA256`. The timing JSON
+contains independently decoded `{segments:[{pts,samples}],toleranceSamples:0}`;
+its segments describe presented PCM in original sample units. Supply
+`initialSkipSamples` and `finalDiscardSamples` explicitly. USAC's admitted
+priming is 2,220 samples and its final trim comes from the original movie endpoint.
+A host lacking the fixture decoder must use retained independent references;
+the runner does not regenerate extension timing or PCM. Extension fixtures cannot
+satisfy a default LC offer. Supply LC fixtures separately when a package offers
+both LC and extensions.
+
+## Installed codec cohorts and CI
+
+`node scripts/test-codec-expansion-providers.mjs` reads the current
+`build/codec-expansion/installed.json`, verifies every installed package file
+against its pinned assembly archive/record, and runs every declared provider
+offer. Decoder/encoder ABI wrappers and fixture readers/writers come from the installed
+container package. The runner requires its audited packet, FLAC, and Opus wrapper
+files and never substitutes checkout files for a missing installed wrapper. Unsupported tuples or missing
+fixtures leave an incomplete report and a nonzero exit status. An installed file
+mutation invalidates qualification even after successful contract checks.
+
+Consumer setup persists exact selected targets and baseline/packet fixture
+metadata. `CODEC_EXPANSION_CONFORMANCE=/absolute/manifest.json` adds explicit AAC
+native timing descriptors and container inputs (`kind: "container"`, with the
+maintained `container` tag). Canonical archive and block reader profiles need
+retained sources; native-only packet dumps without the maintained stream metadata
+cannot substitute for the normalized packet fixture manifest. Use the maintained
+browser packet manifests as the shared source of framing/clock/reference facts.
+
+Portable export rewrites and pins these media, packet, scalar PCM, timing and
+fixture-manifest paths into the reviewed inventory. Browser cohorts retain the
+existing size limits; split large selections across pinned cohorts. The workflow
+runs installed provider conformance before browser playback qualification and
+retains both reports. Registered suites cover every maintained optional audio and
+container offer; a catalog coverage contract catches newly added offers without
+an explicit suite. Registration alone is not successful runtime qualification.
+
+The `lower-rate-pcm` MP2/WMA profiles require
+`seekContract: "restart-from-start-and-discard"` and an independently pinned
+`timingFile`/`timingSHA256`. The runner checks the first complete decode clock
+and three fresh predictor restarts against retained PCM. WMA timing remains
+exact; MP2 permits only half the original container clock tick, derived from
+the pinned packet stream `time_base`. Caller-selected alignment and clock
+tolerances cannot replace that derivation.
+
+Speex `ogg-mono-cbr` fixtures retain their original signed Ogg packet/frame
+timestamps, complete coded PCM padding, and zero native frame duration. The
+standard gate pins original timing, scalar reference build and binary inputs;
+it checks three predictor restart/discard windows with the unchanged
+`7e-5` maximum error and SNR above 80. A hidden timestamp offset cannot satisfy
+this profile. Existing FLV Speex and AMR profile limits remain separate.
+
+### Assembly campaigns
+
+`scripts/qualify-codec-expansion.mjs` drives the existing corresponding-source
+sealer, audited package assemblers, npm installation, installed conformance and
+portable exports. It never builds native codecs, publishes, or changes the
+production provider registry. Start sealing after application/native sources
+are frozen.
+
+A reviewed schema-1 plan declares `id`, `catalogSHA256`, all optional audio
+package `targets` plus `core`/`container`, and these inputs:
+
+| Field | Contents |
+| --- | --- |
+| `sources` | `{id,profile,targets,record:{path,sha256},recovered:{path,sha256},buildRoot}` for every native target; shared engine groups seal once |
+| `applicationSnapshot` | `{path,sha256}` for the exact pre-seal application inventory; rediscovered membership and hashes must remain identical |
+| `baselineManifest` | `{path,sha256}` for baseline fixtures |
+| `packetManifests` | Array of pinned normalized packet manifests |
+| `conformanceManifests` | Array of pinned retained AAC/native timing descriptors |
+| `containerManifests` | Array of pinned maintained container fixture descriptors |
+| `cohorts` | `{id,targets,packetManifests:[indices],conformanceManifests:[indices],containerManifests:[indices],supplemental?:{path,sha256}}` |
+
+Every browser cohort keeps the mandatory nine targets. Historical AC3/DTS/common
+packages participate in the complete installed standard gate independently of
+the browser cohort target list. Every other target must appear in a cohort.
+Exports enforce the existing 256 MiB file and 2 GiB unique blob budgets; an
+oversized cohort fails and must be split. Fixture/reference policies are not
+weakened to fit those budgets.
+
+```sh
+python3 scripts/package-provider-source.py --application-inventory > build/codec-expansion/application-snapshot.json
+# Record that file pin in the reviewed plan before starting the campaign.
+export CODEC_EXPANSION_PLAN_SHA256='<reviewed plan SHA256>'
+node scripts/qualify-codec-expansion.mjs validate build/codec-expansion/plan.json
+node scripts/qualify-codec-expansion.mjs seal build/codec-expansion/plan.json
+node scripts/qualify-codec-expansion.mjs assemble build/codec-expansion/plan.json
+node scripts/qualify-codec-expansion.mjs install build/codec-expansion/plan.json
+node scripts/qualify-codec-expansion.mjs conformance build/codec-expansion/plan.json
+node scripts/qualify-codec-expansion.mjs export build/codec-expansion/plan.json
+```
+
+Outputs live under `build/codec-expansion/campaigns/<id>` and bind the plan pin.
+Existing source/package/install/report outputs are preserved: choose a new
+campaign identity for a changed plan. Export refreshes local assembly aliases
+and writes each exact inventory pin/budget report; browser runs and isolated
+portable preparation remain additional gates.
+
+Explicit AAC AV references use `referenceContract: "independent-scalar-aac-presentation"`,
+`referenceInputSHA256` matching the movie pin, and pinned F32, scalar build/binary
+and presentation timing files. The host validator decodes the converted audio
+and copied video independently while reading this pinned source PCM. Missing or
+changed evidence fails; the host AAC decoder cannot substitute for it. Timing
+starts at zero, advances by each segment's sample count, and uses the original
+`1/sampleRate` clock.
+
+### Real AAC syntax negatives
+
+Retained LC stereo source and ADTS packet descriptors may declare
+`negativeContract: "real-lc-stereo-leading-syntax"`, with the exact
+`PROVIDER_PROFILE_MISMATCH` code and
+`Unqualified AAC stereo single-channel element or leading syntax` message.
+These descriptors pin the original input and packet JSON, require a valid
+44.1 kHz stereo LC decoder configuration, and exercise the original packet
+sequence with fresh owners and resets before replay. The syntax exception
+releases its owner; subsequent reset/decode must report disposal. The suite
+never reads PCM from these unsupported sources. At least one positive fixture
+must pass for the offered LC profile; negative-only evidence cannot qualify it.

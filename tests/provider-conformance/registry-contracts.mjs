@@ -31,3 +31,4 @@ test('AC3, EAC3 and DTS core profiles admit explicit mono, stereo and 5.1 fixtur
     for (const channels of [0, 3, 8]) assert.equal(fixtureMatches(offer, {codec, channels, sampleRate: 48000}), false);
   }
 });
+test('every maintained optional audio/container offer has an explicit standard suite',async()=>{const catalog=JSON.parse(await readFile(new URL('../../licensing/provider-packages.json',import.meta.url)));let checked=0;for(const [target,profile]of Object.entries(catalog.profiles))if(target==='container'||target.startsWith('audio-'))for(const descriptor of Object.values(profile.descriptors??{}))for(const offer of descriptor.provides??[]){assert.ok(selectSuite(offer),'Missing '+JSON.stringify(offer));checked++;}assert.ok(checked>=78,'Unexpectedly reduced maintained offer inventory');});

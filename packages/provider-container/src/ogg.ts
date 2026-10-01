@@ -10,7 +10,7 @@ const crcTable=Uint32Array.from({length:256},(_,n)=>{let value=n<<24;for(let bit
 export function oggCRC(bytes:Uint8Array):number{let crc=0;for(let i=0;i<bytes.length;i++)crc=((crc<<8)^crcTable[((crc>>>24)^((i>=22&&i<26)?0:bytes[i]))&255])>>>0;return crc;}
 type RawPacket={data:Uint8Array;granuleEndSamples?:number;endOfStream:boolean;pageSequence:number;bos:boolean};
 export type OggAudioPacket=Readonly<{data:Uint8Array;granuleEndSamples?:number;endOfStream:boolean;pageSequence:number;startSample?:number;durationSamples?:number}>;
-type Header={codec:'opus'|'vorbis'|'flac';rate:number;channels:number;bits:number;preSkip:number;count:number;streamInfo?:Uint8Array;declaredSamples?:number;maximumBlockSamples?:number};
+type Header={codec:'opus'|'vorbis'|'flac'|'speex';rate:number;channels:number;bits:number;preSkip:number;count:number;streamInfo?:Uint8Array;declaredSamples?:number;maximumBlockSamples?:number;frameSamples?:number;firstSample?:number};
 function opusSamples(packet:Uint8Array):number{
  if(!packet.length)fail('Empty Opus packet');const config=packet[0]>>3,code=packet[0]&3;
  const frame=config>=16?120<<(config&3):config>=12?480<<(config&1):(config&3)===3?2880:480<<(config&3);
@@ -25,6 +25,12 @@ function comments(bytes:Uint8Array,start:number,framing:boolean,padding:boolean)
 }
 function header(first:Uint8Array):Header{
  const v=view(first);
+ if(magic(first,0,8)==='Speex   '){
+  if(first.length!==80)fail('Unsupported Ogg Speex identification');
+  const rate=v.getUint32(36,true),mode=rate===8000?0:rate===32000?2:-1,frame=rate===8000?160:640;
+  if(mode<0||v.getUint32(28,true)!==1||v.getUint32(32,true)!==80||v.getUint32(40,true)!==mode||v.getUint32(44,true)!==4||v.getUint32(48,true)!==1||v.getInt32(52,true)!==-1||v.getUint32(56,true)!==frame||v.getUint32(60,true)!==0||v.getUint32(64,true)!==1||v.getUint32(68,true)!==0||v.getUint32(72,true)!==0||v.getUint32(76,true)!==0)fail('Unsupported Ogg Speex identification');
+  return {codec:'speex',rate,channels:1,bits:0,preSkip:0,count:2,frameSamples:frame};
+ }
  if(magic(first,0,8)==='OpusHead'){
   if(first.length!==19||first[8]!==1||![1,2].includes(first[9])||v.getInt16(16,true)!==0||first[18]!==0)fail('Unsupported Ogg Opus version, mapping, gain or channels');
   const preSkip=v.getUint16(10,true);if(preSkip>3840)fail('Ogg Opus pre-skip budget');return {codec:'opus',rate:48000,channels:first[9],bits:0,preSkip,count:2};
@@ -60,10 +66,13 @@ export class OggAudioReader {
  readonly sampleCount:number;
  private constructor(private readonly file:Blob,private readonly signal:AbortSignal,private readonly headers:Header,
   readonly granuleEndSamples:number,readonly packetCount:number,extra:Uint8Array){
-  this.sampleCount=granuleEndSamples-headers.preSkip;
+  this.sampleCount=granuleEndSamples-(headers.codec==='speex'?headers.firstSample!:headers.preSkip);
   this.tracks=Object.freeze([Object.freeze({number:1,kind:'audio' as const,codec:headers.codec,rate:headers.rate,channels:headers.channels,bitDepth:headers.bits,privateData:extra})]);
  }
  get preSkip():number{return this.headers.preSkip;}
+ /** Speex retains the signed initial packet position inferred from its first
+  * completed audio page. This is not a decoder timestamp normalization. */
+ get firstSample():number{return this.headers.firstSample??-this.preSkip;}
  get bytesRead():number{return this.reads;}
  private async read(start:number,length:number):Promise<Uint8Array>{
   this.signal.throwIfAborted();if(start<0||length<0||length>65536||start+length>this.file.size)fail('Ogg page read bounds');const bytes=new Uint8Array(await this.file.slice(start,start+length).arrayBuffer());this.signal.throwIfAborted();if(bytes.length!==length)fail('Short Ogg page read');this.reads+=length;return bytes;
@@ -94,13 +103,17 @@ export class OggAudioReader {
    if(!info){info=header(packet.data);headers.push(packet.data);if(packet.endOfStream)fail('Ogg stream has no audio');continue;}
    if(headers.length<info.count){
     const index=headers.length,bytes=packet.data;if(info.codec==='vorbis'&&headers.reduce((n,b)=>n+b.length,bytes.length+8)>65536)fail('Vorbis codec header budget');
-    if(info.codec==='opus'){if(magic(bytes,0,8)!=='OpusTags')fail('Missing Ogg Opus comments');comments(bytes,8,false,true);}
+    if(info.codec==='speex')comments(bytes,0,false,false);
+    else if(info.codec==='opus'){if(magic(bytes,0,8)!=='OpusTags')fail('Missing Ogg Opus comments');comments(bytes,8,false,true);}
     else if(info.codec==='vorbis'){if(bytes[0]!==[1,3,5][index]||magic(bytes,1,6)!=='vorbis')fail('Missing or reordered Vorbis header');if(index===1)comments(bytes,7,true,false);if(index===2&&bytes.length<8)fail('Truncated Vorbis setup');}
     else{const last=index===info.count-1;if(bytes.length<4||((bytes[0]&128)!==0)!==last||(bytes[0]&127)!==(index===1?4:1)||bytes.length!==4+bytes[1]*65536+bytes[2]*256+bytes[3])fail('Unsupported Ogg FLAC metadata');if(index===1)comments(bytes,4,false,false);}
     headers.push(bytes);if(packet.endOfStream||packet.granuleEndSamples!==undefined&&packet.granuleEndSamples!==0)fail('Ogg header granule or premature EOS');if(headers.length===info.count&&packet.granuleEndSamples!==0)fail('Ogg headers and audio share a page');continue;
    }
-   if(info.codec==='vorbis'&&(packet.data[0]&1))fail('Unexpected Vorbis header in audio');const duration=info.codec==='opus'?opusSamples(packet.data):info.codec==='flac'?flacSamples(packet.data):0;if(info.codec==='flac'&&duration>view(info.streamInfo!).getUint16(2))fail('FLAC block exceeds STREAMINFO');codedSamples+=duration;lastDuration=duration;packets++;
-   if(packet.granuleEndSamples!==undefined){const g=packet.granuleEndSamples;if(info.codec==='vorbis'&&g>(packets-1)*info.maximumBlockSamples!)fail('Vorbis granule exceeds possible decoded sample extent');if(info.codec!=='vorbis'&&((!packet.endOfStream&&g!==codedSamples)||(packet.endOfStream&&(g>codedSamples||g<codedSamples-lastDuration))))fail('Ogg granule differs from coded sample clock');granuleEnd=g;}
+   if(info.codec==='speex'&&packet.data.length>2048)fail('Ogg Speex packet budget');
+   if(info.codec==='vorbis'&&(packet.data[0]&1))fail('Unexpected Vorbis header in audio');const duration=info.codec==='opus'?opusSamples(packet.data):info.codec==='flac'?flacSamples(packet.data):info.codec==='speex'?info.frameSamples!:0;if(info.codec==='flac'&&duration>view(info.streamInfo!).getUint16(2))fail('FLAC block exceeds STREAMINFO');codedSamples+=duration;lastDuration=duration;packets++;
+   if(packet.granuleEndSamples!==undefined){const g=packet.granuleEndSamples;
+    if(info.codec==='speex'&&info.firstSample===undefined){if(packet.endOfStream)fail('Ogg Speex requires a separate initial audio page');const first=g-codedSamples;if(first>0||first<=-duration)fail('Ogg Speex initial granule bounds');info.firstSample=first;}
+    const expected=codedSamples+(info.firstSample??0);if(info.codec==='vorbis'&&g>(packets-1)*info.maximumBlockSamples!)fail('Vorbis granule exceeds possible decoded sample extent');if(info.codec!=='vorbis'&&((!packet.endOfStream&&g!==expected)||(packet.endOfStream&&(g>expected||(info.codec==='speex'?g<=expected-lastDuration:g<expected-lastDuration)))))fail('Ogg granule differs from coded sample clock');granuleEnd=g;}
   }
   if(!info||headers.length!==info.count||!packets||granuleEnd<=info.preSkip)fail('Missing Ogg codec headers or audio samples');if(info.codec==='flac'&&info.declaredSamples&&info.declaredSamples!==granuleEnd)fail('Ogg FLAC total samples disagree');
   const extra=info.codec==='vorbis'?vorbisExtra(headers):info.codec==='flac'?info.streamInfo!:headers[0];const ready=new OggAudioReader(file,signal,info,granuleEnd,packets,extra);ready.reads=scan.reads;return ready;
@@ -108,8 +121,8 @@ export class OggAudioReader {
  async *packets():AsyncGenerator<OggAudioPacket>{
   let index=0,samples=0;
   for await(const packet of this.raw()){
-   if(index++<this.headers.count)continue;const duration=this.headers.codec==='opus'?opusSamples(packet.data):this.headers.codec==='flac'?flacSamples(packet.data):undefined;
-   yield {data:packet.data,granuleEndSamples:packet.granuleEndSamples,endOfStream:packet.endOfStream,pageSequence:packet.pageSequence,...(duration===undefined?{}:{startSample:samples-this.preSkip,durationSamples:duration})};samples+=duration??0;
+   if(index++<this.headers.count)continue;const duration=this.headers.codec==='opus'?opusSamples(packet.data):this.headers.codec==='flac'?flacSamples(packet.data):this.headers.codec==='speex'?this.headers.frameSamples:undefined;
+   yield {data:packet.data,granuleEndSamples:packet.granuleEndSamples,endOfStream:packet.endOfStream,pageSequence:packet.pageSequence,...(duration===undefined?{}:{startSample:samples+(this.headers.codec==='speex'?this.firstSample:-this.preSkip),durationSamples:duration})};samples+=duration??0;
   }
  }
 }

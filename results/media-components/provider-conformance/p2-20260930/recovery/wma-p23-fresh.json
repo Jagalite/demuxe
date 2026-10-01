@@ -1,0 +1,309 @@
+{
+  "passed": true,
+  "scope": "Official bounded complete ASF codec-block WMA advanced packet decoding; no container, remux, playback, or implicit resampling admission.",
+  "referenceBuild": {
+    "recordSHA256": "1aad7e8537b128f48f18910a92630af4b9db50b5d3520e4da103d3772ef6b1cb",
+    "source": {
+      "name": "ffmpeg-adaptation",
+      "upstream": "https://github.com/FFmpeg/FFmpeg",
+      "revision": "n9.0.2",
+      "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+      "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+    },
+    "commands": [
+      [
+        "/Volumes/seed2/Projects/demuxe/build/sources/ffmpeg-adaptation/configure",
+        "--disable-everything",
+        "--disable-doc",
+        "--disable-debug",
+        "--disable-autodetect",
+        "--disable-network",
+        "--disable-x86asm",
+        "--enable-ffmpeg",
+        "--enable-ffprobe",
+        "--enable-decoder=wmapro,wmalossless,wmavoice,pcm_s16le,pcm_s32le",
+        "--enable-demuxer=asf,wav",
+        "--enable-encoder=pcm_s32le,pcm_f32le",
+        "--enable-muxer=pcm_s32le,pcm_f32le",
+        "--enable-protocol=file,pipe",
+        "--enable-filter=asetpts,aresample,aformat,anull"
+      ],
+      [
+        "make",
+        "-j2"
+      ]
+    ],
+    "qualification": "independent-host-reference-only",
+    "inputSHA256": "7def2b882ae8b6a149f0194f4f1a20e8b185dc44631f0031d08d5ca070f8ff4a",
+    "sourceInputs": {
+      "configure": "5b281b249ad5ad859030b4da0a24ec105b5abff7b3d87a65b302df8bf5fd9833",
+      "libavcodec/wmaprodec.c": "803547a38dea1294891c00402d6b3576a16053b0f00b395768c4983740c86553",
+      "libavcodec/wmalosslessdec.c": "37af74c8eb8216b394b7e61b1861b4bef051b9e18a7e5875eae58febf58b1454",
+      "libavcodec/wmavoice.c": "f4e77847584383f3a3c145ace8b4bbe6eee13811362b0d9923d4f4cc450a4d37"
+    },
+    "effectiveConfig": {
+      "config.h": "0af22fc6ccf2fa21cf7e7d0a47ec28ed51e6cc3d13a9ac8d083b14c384fa9773",
+      "config_components.h": "792b0500b78318d60d330dbd5b8a46c18f70f71c0806458e51e9e7dcb4c0e1ae",
+      "ffbuild/config.mak": "eb455b7ccaeae70ee55e12a13946951db4eb22b67417ed28b3b7a31ec8c73718"
+    },
+    "artifacts": {
+      "ffmpeg": {
+        "sha256": "ebe11a70382da66ae7439881e5e61f6415b6a4f36ed8faa7f6fcc8e27ccfd30e",
+        "bytes": 3138360
+      },
+      "ffprobe": {
+        "sha256": "1a80703059aee69ca3064fbb8eae31bf0dad70be9d1a83cc9de7af119691efc6",
+        "bytes": 2945976
+      }
+    }
+  },
+  "referenceTool": "ffmpeg version v0.3.0-beta.4-rc.32-18-g0133a080 Copyright (c) 2000-2026 the FFmpeg developers",
+  "inputs": {
+    "native/audio-codecs/decoder.c": "7135a6ac8b2c754ee7881f90d1f03804cc27e84052b92314fa971af4b3920dfe",
+    "packages/provider-audio/src/packet-decoder.ts": "97b9969fe7da7f500ffc63e88a270272795a89eec6d952193d8b4a619730e9d7",
+    "scripts/build-audio-providers.py": "9af79058e732a84f0d670060037c1b8cb6e8086aae2595a385745adaf37241bc",
+    "tests/wma-p23-fixtures.py": "338bc14c75203fa2c8b2b2adcda17bc9056f53c19890b3d019d895a17c4cb710",
+    "tests/wma-p23-audio.mjs": "939bec91daeff61a7f946aca5a839a96547bbdd855ff96c13610e9dfed48c3fe",
+    "scripts/build-wma-reference.py": "7def2b882ae8b6a149f0194f4f1a20e8b185dc44631f0031d08d5ca070f8ff4a"
+  },
+  "build": {
+    "profile": "wma-advanced",
+    "source": {
+      "name": "ffmpeg-adaptation",
+      "upstream": "https://github.com/FFmpeg/FFmpeg",
+      "revision": "n9.0.2",
+      "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+      "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+    },
+    "sourceKey": "dee88e474ed3a1ff69dc80ec33e96dadac0c065caf4f70f4fa3db4a60f8b6446",
+    "nativeBuildInputs": {
+      "patches/ffmpeg-adaptation/0002-browser-nested-avio.patch": "4ceaf3185f152c596fc9617e47cc47cd2b264d6f8b2f098bbea8055b798da3ec",
+      "patches/ffmpeg-adaptation/0004-hls-ts-discontinuity-timeline.patch": "6635e6cb14090af54c20c526592df6cf4360cba0bb2e3199071688c37f146bb1",
+      "patches/ffmpeg-adaptation/0005-dfpwm-seek-reset.patch": "0f2e57a194e5d5f5ff23edb864084e5a1e9e05224a4ab1bb71e6598d614e9923",
+      "patches/ffmpeg-adaptation/0006-swf-audio-duration.patch": "e59e36d524f78b98862e5a484b4900e3ea28593d3a25fbc90a6f7f30d79b4c5f",
+      "patches/ffmpeg-adaptation/0007-nut-keyframe-recovery.patch": "b02b157a7a8f1dd3ddd65e541b4f3ae3057acb130044ddba97a148ece8cb0c95",
+      "patches/ffmpeg-adaptation/0008-hls-indexed-webvtt-seek.patch": "224da133f9c2b4c4243743145ec8d90845d98878eeb3535ace35d129b31f03ae",
+      "patches/ffmpeg-adaptation/0009-nut-discard-budget.patch": "9d6dde4654d72d4a810b60894befc2260185afd9fa91a9a6dd3f2dda71e343fe",
+      "patches/ffmpeg-adaptation/0010-strict-stream-resource-errors.patch": "f979b6232cef7ece804cbc7dcaf89788c109b9c8c0d4ce9fe6ac735267026e40",
+      "patches/ffmpeg-adaptation/0011-dash-continuous-fmp4.patch": "fe43a338fc469f38d10ff76b66ed56406fd4ccbacf8348dbb95351f107c2f3fd",
+      "patches/ffmpeg-adaptation/0012-demuxe-segment-plans.patch": "e4073571ea824fbeb68848e8918129bae172c2896503794fda085b8d8f47c705",
+      "patches/ffmpeg-adaptation/0013-demuxe-sparse-discovery.patch": "01c32d856f157845917d345f21ff3f4a36f1a0b38e5211a72e3a5bbdc20f537c",
+      "patches/ffmpeg-adaptation/0014-http-chunked-eof.patch": "b3b89b8e84da739a9e10de37eb9cd48e3fbe4104e63aac2b55ceb5da9238cad5",
+      "patches/ffmpeg-adaptation/0015-demuxe-live-hls-components.patch": "9516d75248ccd1f43281755410d3f7e3a58c94e917e02ec0e81840b296778486",
+      "patches/ffmpeg-adaptation/0016-demuxe-resource-retirement.patch": "199ff687d64e2f4d971c23ec352820bb21b1273e33def75bbcebdc7f125af1a7",
+      "patches/ffmpeg-adaptation/0017-demuxe-dash-period-session.patch": "0b5cadd65282139c04e21688e8fbdfa94813f9636461407e1aef5ce8b330fc9d",
+      "patches/ffmpeg-adaptation/0018-demuxe-discontinuity-retirement.patch": "1904f37c4cea150d35a82dabba4a82912d92d6d1bc4308b6b42a03589a889afd",
+      "patches/ffmpeg-adaptation/0019-demuxe-hls-window-anchor.patch": "1f20c83dab06c73c0e1345db1e38ccc36caa0df10e7e7f8962fd8c73b373f76e",
+      "patches/ffmpeg-adaptation/0020-mov-strict-sample-eof.patch": "f4d70438726c79d12d923893b8a8e322a43bc8415e816386a99217c25c3822ab",
+      "patches/ffmpeg-adaptation/0021-demuxe-dash-live-discovery.patch": "3ed99eda3249bd6d1d7e5319887b8923d4005ad6d73aab6a7faec9c4c45fa228",
+      "native/audio-codecs/decoder.c": "7135a6ac8b2c754ee7881f90d1f03804cc27e84052b92314fa971af4b3920dfe",
+      "native/audio-codecs/encoder.c": "2d0c6bf57bc6ccea91c880a8cbbbe23e3da947e61dab9dfe045c3dc800b7ebd0",
+      "scripts/build-audio-providers.py": "9af79058e732a84f0d670060037c1b8cb6e8086aae2595a385745adaf37241bc"
+    },
+    "recordSHA256": "69dd23a154345c097666168fa12aa3f94525c28e94feb4c4e7c9076c08750e7f",
+    "module": {
+      "sha256": "30256e26618f6462500e70fb63c9fef0228a196a33a95752af8a0ed8f560a08e",
+      "bytes": 13963
+    },
+    "wasm": {
+      "sha256": "7951cb007ac1d2d14a3badfc482fec9a232bd43a5b2e7e497d0de495768961ce",
+      "bytes": 467963
+    },
+    "capabilities": [
+      "audio.decode.wmapro",
+      "audio.decode.wmalossless",
+      "audio.decode.wmavoice"
+    ]
+  },
+  "results": [
+    {
+      "id": "g2_24bit",
+      "codec": "wmalossless",
+      "sampleRate": 44100,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "inputSHA256": "0dbe31e8b7bc8b589df5109cf6e2a1a782cdf8491ecbc1cc1fee887648ff45b7",
+      "sourceURL": "https://fate-suite.ffmpeg.org/lossless-audio/g2_24bit.wma",
+      "passed": true,
+      "frames": 5,
+      "drainFrames": 1,
+      "samples": 10143,
+      "referenceSHA256": "a16924e258f94881acdfcd686ebde955d4a56ef8d813a3e1c3e0b25b1b8d8729",
+      "integerExact": true,
+      "nativeTimestampFrames": 4,
+      "maximumFramesPerBlock": 2,
+      "maximumScalarsPerBlock": 8192,
+      "resetExact": true,
+      "seekQualification": "Fresh complete original stream decode followed by discard to target frame; exact original scalar PCM and original frame timestamp, no arbitrary packet restart or container composition admission.",
+      "timestampOrigins": [
+        "native",
+        "packet-clock"
+      ],
+      "seeks": [
+        {
+          "firstPacket": 0,
+          "targetFrame": 3,
+          "originalFramePTS": 8159,
+          "comparedSamples": 2048,
+          "integerExact": true,
+          "contract": "original-stream-restart-and-discard"
+        },
+        {
+          "firstPacket": 0,
+          "targetFrame": 1,
+          "originalFramePTS": 6105,
+          "comparedSamples": 2048,
+          "integerExact": true,
+          "contract": "original-stream-restart-and-discard"
+        },
+        {
+          "firstPacket": 0,
+          "targetFrame": 4,
+          "originalFramePTS": 10099,
+          "comparedSamples": 1951,
+          "integerExact": true,
+          "contract": "original-stream-restart-and-discard"
+        },
+        {
+          "firstPacket": 0,
+          "targetFrame": 1,
+          "originalFramePTS": 6105,
+          "comparedSamples": 2048,
+          "integerExact": true,
+          "contract": "original-stream-restart-and-discard"
+        }
+      ],
+      "maxError": 0,
+      "snr": null,
+      "pcmSHA256": "a16924e258f94881acdfcd686ebde955d4a56ef8d813a3e1c3e0b25b1b8d8729",
+      "invalidFramingRejected": true,
+      "abort": true
+    },
+    {
+      "id": "Mega_Weird_Audio_Test_24bit",
+      "codec": "wmalossless",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "inputSHA256": "1ce71dcd98db91d23896e84c602c774fc93eeb6afc94fd762382744d680d2bbd",
+      "sourceURL": "https://fate-suite.ffmpeg.org/lossless-audio/Mega_Weird_Audio_Test_24bit.wma",
+      "passed": true,
+      "frames": 9,
+      "drainFrames": 4,
+      "samples": 18432,
+      "referenceSHA256": "8eb08faec14bd85a2bc2a2ed79d01e4464500e06e8b4505f3d25913c8198ed56",
+      "integerExact": true,
+      "nativeTimestampFrames": 1,
+      "maximumFramesPerBlock": 5,
+      "maximumScalarsPerBlock": 20480,
+      "resetExact": true,
+      "seekQualification": "Fresh complete original stream decode followed by discard to target frame; exact original scalar PCM and original frame timestamp, no arbitrary packet restart or container composition admission.",
+      "timestampOrigins": [
+        "native",
+        "packet-clock"
+      ],
+      "seeks": [
+        {
+          "firstPacket": 0,
+          "targetFrame": 5,
+          "originalFramePTS": 10288,
+          "comparedSamples": 2048,
+          "integerExact": true,
+          "contract": "original-stream-restart-and-discard"
+        },
+        {
+          "firstPacket": 0,
+          "targetFrame": 1,
+          "originalFramePTS": 2096,
+          "comparedSamples": 2048,
+          "integerExact": true,
+          "contract": "original-stream-restart-and-discard"
+        },
+        {
+          "firstPacket": 0,
+          "targetFrame": 7,
+          "originalFramePTS": 14384,
+          "comparedSamples": 2048,
+          "integerExact": true,
+          "contract": "original-stream-restart-and-discard"
+        },
+        {
+          "firstPacket": 0,
+          "targetFrame": 3,
+          "originalFramePTS": 6192,
+          "comparedSamples": 2048,
+          "integerExact": true,
+          "contract": "original-stream-restart-and-discard"
+        }
+      ],
+      "maxError": 0,
+      "snr": null,
+      "pcmSHA256": "8eb08faec14bd85a2bc2a2ed79d01e4464500e06e8b4505f3d25913c8198ed56",
+      "invalidFramingRejected": true,
+      "abort": true
+    },
+    {
+      "id": "master_audio_2.0_24bit",
+      "codec": "wmalossless",
+      "sampleRate": 48000,
+      "channels": 2,
+      "bitsPerSample": 24,
+      "inputSHA256": "a4d6a181944cc53e60a9b7e41e2e399ead9d58947b1285e81b1182bf0d9d121f",
+      "sourceURL": "https://fate-suite.ffmpeg.org/lossless-audio/master_audio_2.0_24bit.wma",
+      "passed": true,
+      "frames": 45,
+      "drainFrames": 4,
+      "samples": 92160,
+      "referenceSHA256": "20fcf53bcd8ec4eaeb138cd08d681443ebd3914531131561439955548bd2df81",
+      "integerExact": true,
+      "nativeTimestampFrames": 8,
+      "maximumFramesPerBlock": 27,
+      "maximumScalarsPerBlock": 110592,
+      "resetExact": true,
+      "seekQualification": "Fresh complete original stream decode followed by discard to target frame; exact original scalar PCM and original frame timestamp, no arbitrary packet restart or container composition admission.",
+      "timestampOrigins": [
+        "native",
+        "packet-clock"
+      ],
+      "seeks": [
+        {
+          "firstPacket": 0,
+          "targetFrame": 29,
+          "originalFramePTS": 67552,
+          "comparedSamples": 2048,
+          "integerExact": true,
+          "contract": "original-stream-restart-and-discard"
+        },
+        {
+          "firstPacket": 0,
+          "targetFrame": 9,
+          "originalFramePTS": 73728,
+          "comparedSamples": 2048,
+          "integerExact": true,
+          "contract": "original-stream-restart-and-discard"
+        },
+        {
+          "firstPacket": 0,
+          "targetFrame": 38,
+          "originalFramePTS": 88048,
+          "comparedSamples": 2048,
+          "integerExact": true,
+          "contract": "original-stream-restart-and-discard"
+        },
+        {
+          "firstPacket": 0,
+          "targetFrame": 15,
+          "originalFramePTS": 86016,
+          "comparedSamples": 2048,
+          "integerExact": true,
+          "contract": "original-stream-restart-and-discard"
+        }
+      ],
+      "maxError": 0,
+      "snr": null,
+      "pcmSHA256": "20fcf53bcd8ec4eaeb138cd08d681443ebd3914531131561439955548bd2df81",
+      "invalidFramingRejected": true,
+      "abort": true
+    }
+  ]
+}

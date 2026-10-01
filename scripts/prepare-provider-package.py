@@ -45,12 +45,15 @@ def assemble(target,engine_path,companion_path,output):
     artifacts={name:sha(data) for name,data in files.items() if name.startswith('runtime/')}
     identity='sha256:'+sha(encoded(artifacts))
     descriptions=json.loads(subprocess.check_output(['node','--input-type=module','-e',"import {MEDIA_PROVIDERS} from './web/generated/internal/media-providers.js';console.log(JSON.stringify(MEDIA_PROVIDERS));"],cwd=ROOT))
+    asset_graph={'roots':[p[len('runtime/'):] for p in artifacts],'dependencies':{}}
+    if target=='container':
+        asset_graph=json.loads(subprocess.check_output(['node','scripts/provider-asset-graph.mjs'],input=json.dumps({'files':{p[len('runtime/'):]:files[p].decode() for p in artifacts},'computedImports':profile.get('computedImports',[])}).encode(),cwd=ROOT))
     providers=[]
     for id in profile['providers']:
         d=profile.get('descriptors',{}).get(id) or descriptions[id];offers=d['provides']
         if target=='ffmpeg':offers=[o for o in offers if o['profile'] in ['packet-copy','video-only']]
-        providers.append({'id':id,'implementationIdentity':identity,'technology':d['technology'],'delivery':list(d['delivery']),'applicationBuild':identity,'offers':offers,'packageName':spec['npmName'],'assetIds':[p[len('runtime/'):] for p in artifacts]})
-    manifest={'schema':1,'providerContractVersion':1,'package':spec['npmName'],'version':metadata['version'],'compatibleCore':metadata['peerDependencies']['demuxe'],'provides':providers,'artifacts':artifacts,'assets':[{'id':p[len('runtime/'):],'path':p[len('runtime/'):],'sha256':digest,'bytes':len(files[p]),'dependencies':[]} for p,digest in artifacts.items()]}
+        providers.append({'id':id,'implementationIdentity':identity,'technology':d['technology'],'delivery':list(d['delivery']),'applicationBuild':identity,'offers':offers,'packageName':spec['npmName'],'assetIds':asset_graph['roots']})
+    manifest={'schema':1,'providerContractVersion':1,'package':spec['npmName'],'version':metadata['version'],'compatibleCore':metadata['peerDependencies']['demuxe'],'provides':providers,'artifacts':artifacts,'assets':[{'id':p[len('runtime/'):],'path':p[len('runtime/'):],'sha256':digest,'bytes':len(files[p]),'dependencies':asset_graph['dependencies'].get(p[len('runtime/'):],[])} for p,digest in artifacts.items()]}
     for name,value in [('provider-manifest.json',manifest)]+([('engine-build.json',engine),('source-companion.json',companion)] if native else []):add(name,encoded(value),['licensing/provider-packages.json'],'metadata',['Apache-2.0'])
     add('license-map.json',encoded({name:item['licenses'] for name,item in record['files'].items()}|{'license-map.json':['Apache-2.0']}),['licensing/provider-packages.json'],'metadata',['Apache-2.0'])
     output.mkdir(parents=True,exist_ok=True);payload=output/'payload'

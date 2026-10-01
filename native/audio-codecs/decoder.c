@@ -59,10 +59,19 @@ static int adpcm_block(Decoder *d,const uint8_t *data,int n){
   else if(data[4*c+2]>88||data[4*c+3])return 0;
  }return 1;
 }
+// Explicit Ogg Speex header profiles, independently qualified at native rates.
+// Empty extradata retains the original headerless16k FLV admission.
+static int speex_profile(int rate,int channels,int bits,const uint8_t *extra,int size,int align,int bit_rate){
+ if(channels!=1||bits||align||bit_rate)return 0;
+ if(!size)return rate==16000;
+ if(size!=80||!extra||memcmp(extra,"Speex   ",8)||AV_RL32(extra+28)!=1||AV_RL32(extra+32)!=80||AV_RL32(extra+36)!=rate)return 0;
+ const int mode=rate==8000?0:rate==32000?2:-1,frame=rate==8000?160:640;
+ return mode>=0&&AV_RL32(extra+40)==mode&&AV_RL32(extra+44)==4&&AV_RL32(extra+48)==1&&AV_RL32(extra+52)==UINT32_MAX&&AV_RL32(extra+56)==frame&&!AV_RL32(extra+60)&&AV_RL32(extra+64)==1&&!AV_RL32(extra+68)&&!AV_RL32(extra+72)&&!AV_RL32(extra+76);
+}
 Decoder *mc_create_config_v2(int kind,int rate,int channels,int bits,const uint8_t *extra,int size,int block_align,int bit_rate) {
  static const enum AVCodecID ids[]={AV_CODEC_ID_AC3,AV_CODEC_ID_EAC3,AV_CODEC_ID_DTS,AV_CODEC_ID_TRUEHD,AV_CODEC_ID_MLP,AV_CODEC_ID_DTS,AV_CODEC_ID_AAC,AV_CODEC_ID_OPUS,AV_CODEC_ID_VORBIS,AV_CODEC_ID_FLAC,AV_CODEC_ID_ALAC,AV_CODEC_ID_MP3,AV_CODEC_ID_PCM_S16LE,AV_CODEC_ID_PCM_S24LE,AV_CODEC_ID_PCM_S32LE,AV_CODEC_ID_PCM_F32LE,AV_CODEC_ID_PCM_F64LE,AV_CODEC_ID_MP1,AV_CODEC_ID_MP2,AV_CODEC_ID_WMAV1,AV_CODEC_ID_WMAV2,AV_CODEC_ID_APE,AV_CODEC_ID_WAVPACK,AV_CODEC_ID_TTA,AV_CODEC_ID_WMAPRO,AV_CODEC_ID_WMALOSSLESS,AV_CODEC_ID_WMAVOICE,AV_CODEC_ID_TAK,AV_CODEC_ID_SHORTEN,AV_CODEC_ID_ADPCM_MS,AV_CODEC_ID_ADPCM_IMA_WAV,AV_CODEC_ID_PCM_ALAW,AV_CODEC_ID_PCM_MULAW,AV_CODEC_ID_GSM,AV_CODEC_ID_GSM_MS,AV_CODEC_ID_SPEEX,AV_CODEC_ID_AMR_NB,AV_CODEC_ID_AMR_WB,AV_CODEC_ID_PCM_U8,AV_CODEC_ID_PCM_S8,AV_CODEC_ID_ADPCM_IMA_QT,AV_CODEC_ID_ADPCM_G726,AV_CODEC_ID_ADPCM_G726LE};
  if(kind<0||kind>=sizeof(ids)/sizeof(ids[0])||rate<8000||rate>192000||channels<0||channels>8||bits<0||bits>64||size<0||size>65536||(size&&!extra)||block_align<0||block_align>65536||bit_rate<0||bit_rate>10000000)return 0;
- if((kind==19||kind==20)&&(channels<1||channels>2||(rate!=44100&&rate!=48000)||!block_align||!bit_rate||(kind==19?size!=4:size!=10)))return 0;
+ if((kind==19||kind==20)&&(channels<1||channels>2||(rate!=8000&&rate!=16000&&rate!=22050&&rate!=32000&&rate!=44100&&rate!=48000)||!block_align||!bit_rate||(kind==19?size!=4:size!=10)))return 0;
 #ifdef DEMUXE_DTS_FULL
  if(kind==2)return 0;
 #else
@@ -74,7 +83,8 @@ Decoder *mc_create_config_v2(int kind,int rate,int channels,int bits,const uint8
  if((kind==41||kind==42)&&(rate!=8000||channels!=1||bits<2||bits>5||size||block_align||bit_rate!=8000*bits))return 0;
  if(kind==40&&((rate!=44100&&rate!=48000)||(channels!=1&&channels!=2)||bits!=4||size||block_align!=34*channels||bit_rate))return 0;
  if((kind==38||kind==39)&&((rate!=44100&&rate!=48000&&rate!=96000)||(channels!=1&&channels!=2)||bits!=8||size||block_align||bit_rate))return 0;
- if(kind>=35&&kind<=37&&((kind==36?rate!=8000:rate!=16000)||channels!=1||bits||size||block_align||bit_rate))return 0;
+ if(kind==35&&!speex_profile(rate,channels,bits,extra,size,block_align,bit_rate))return 0;
+ if(kind>=36&&kind<=37&&((kind==36?rate!=8000:rate!=16000)||channels!=1||bits||size||block_align||bit_rate))return 0;
  if(kind==31||kind==32){if((rate!=8000&&rate!=16000)||(channels!=1&&channels!=2)||bits!=8||size||block_align!=channels||bit_rate!=rate*channels*8)return 0;}
  if(kind==33&&(rate!=8000||channels!=1||bits||size||block_align!=33||bit_rate!=13200))return 0;
  if(kind==34&&(rate!=8000||channels!=1||bits||size!=2||AV_RL16(extra)!=320||block_align!=65||bit_rate!=13000))return 0;
@@ -86,8 +96,8 @@ Decoder *mc_create_config_v2(int kind,int rate,int channels,int bits,const uint8
   if(kind==26){if((rate!=8000&&rate!=16000)||channels!=1||bits!=16||size!=46)return 0;}
   else {
    if(size!=18||AV_RL16(extra)!=bits)return 0;
-   if(kind==25){if(rate!=44100||channels!=2||bits!=16)return 0;}
-   else if(!((rate==44100&&channels==6&&bits==16)||(rate==48000&&(channels==2||channels==6||channels==8)&&bits==24)||(rate==96000&&channels==2&&bits==24)))return 0;
+   if(kind==25){if(channels!=2||!((rate==44100&&(bits==16||bits==24))||(rate==48000&&bits==24)))return 0;}
+   else if(!((rate==44100&&((channels==6&&(bits==16||bits==24))||(channels==2&&bits==24)))||(rate==48000&&(channels==2||channels==6||channels==8)&&bits==24)||(rate==96000&&(channels==2||channels==6)&&bits==24)||(rate==16000&&channels==1&&bits==16)||(rate==22050&&channels==1&&bits==16)))return 0;
    uint32_t mask=AV_RL32(extra+2),expected=channels==1?4:channels==2?3:channels==6?63:1599;
    if(mask!=expected)return 0;
   }
@@ -109,13 +119,17 @@ int mc_decode(Decoder *d,const uint8_t *data,int n,double pts){
  if(d->id==AV_CODEC_ID_PCM_U8||d->id==AV_CODEC_ID_PCM_S8){if(n>65536||n%d->channels||!(pts>=0&&pts<=9007199254740991.0-n/d->channels)||pts!=(int64_t)pts)return AVERROR(EINVAL);}
  if((d->id==AV_CODEC_ID_ADPCM_MS||d->id==AV_CODEC_ID_ADPCM_IMA_WAV)&&!adpcm_block(d,data,n))return AVERROR(EINVAL);
  if(d->id==AV_CODEC_ID_SPEEX||d->id==AV_CODEC_ID_AMR_NB||d->id==AV_CODEC_ID_AMR_WB){
-  if(!(pts>=0&&pts<=9007199254740991.0)||pts!=(int64_t)pts)return AVERROR(EINVAL);
+  const int speex_frame=d->id==AV_CODEC_ID_SPEEX&&d->extra_size?(d->rate==8000?160:640):0;
+  if(!(pts>=(speex_frame?1-speex_frame:0)&&pts<=9007199254740991.0-speex_frame)||pts!=(int64_t)pts)return AVERROR(EINVAL);
   if(d->id==AV_CODEC_ID_SPEEX){if(n>2048)return AVERROR(EINVAL);}
   else{
-   // Initial finite mode0 speech. SID/DTX reaches the decoder only to preserve
-   // its explicit unsupported-feature error; the adapter rejects that mode.
-   const int sid=d->id==AV_CODEC_ID_AMR_NB?68:76;
-   if(!((data[0]==4&&n==(d->id==AV_CODEC_ID_AMR_NB?13:18))||(data[0]==sid&&n==6)))return AVERROR(EINVAL);
+   // One quality=1 ordinary speech frame; SID retains its explicit decoder
+   // unsupported-feature error. The adapter owns the requested mode whitelist.
+   static const int nb_sizes[]={13,14,16,18,20,21,27,32};
+   static const int wb_sizes[]={18,24,33,37,41,47,51,59,61};
+   const int nb=d->id==AV_CODEC_ID_AMR_NB,mode=data[0]>>3,sid=nb?68:76;
+   if(!(pts<=9007199254740991.0-(nb?160:320)))return AVERROR(EINVAL);
+   if(!((!(data[0]&0x83)&&(data[0]&4)&&mode<(nb?8:9)&&n==(nb?nb_sizes[mode]:wb_sizes[mode]))||(data[0]==sid&&n==6)))return AVERROR(EINVAL);
   }
  }
  if(d->id==AV_CODEC_ID_PCM_ALAW||d->id==AV_CODEC_ID_PCM_MULAW||d->id==AV_CODEC_ID_GSM||d->id==AV_CODEC_ID_GSM_MS){
@@ -137,13 +151,13 @@ int mc_frame(Decoder *d){
  if(r>=0&&(d->id==AV_CODEC_ID_ADPCM_G726||d->id==AV_CODEC_ID_ADPCM_G726LE)){if(d->f->sample_rate!=8000||d->f->ch_layout.nb_channels!=1||d->f->format!=AV_SAMPLE_FMT_S16||d->f->ch_layout.order!=AV_CHANNEL_ORDER_NATIVE||d->f->ch_layout.u.mask!=4||d->f->nb_samples<=0||d->f->nb_samples!=d->expected_samples||d->f->nb_samples>65536)return AVERROR_INVALIDDATA;}
  if(r>=0&&(d->id==AV_CODEC_ID_PCM_U8||d->id==AV_CODEC_ID_PCM_S8)){if(d->f->sample_rate!=d->rate||d->f->ch_layout.nb_channels!=d->channels||d->f->format!=AV_SAMPLE_FMT_U8||d->f->ch_layout.order!=AV_CHANNEL_ORDER_NATIVE||d->f->ch_layout.u.mask!=(d->channels==1?4:3)||d->f->nb_samples<=0||d->f->nb_samples*d->channels>65536)return AVERROR_INVALIDDATA;}
  if(r>=0&&d->id==AV_CODEC_ID_SPEEX&&d->channels==1&&d->f->ch_layout.nb_channels==1&&d->f->ch_layout.order==AV_CHANNEL_ORDER_UNSPEC){
-  // Explicit admitted FLV16kmono profile and actual single decoded channel
+  // Explicit admitted mono header/FLV profile and actual single decoded channel
   // have no channel-order ambiguity. No surround normalization is performed.
   av_channel_layout_uninit(&d->f->ch_layout);av_channel_layout_from_mask(&d->f->ch_layout,AV_CH_LAYOUT_MONO);
  }
  if(r>=0&&(d->id==AV_CODEC_ID_SPEEX||d->id==AV_CODEC_ID_AMR_NB||d->id==AV_CODEC_ID_AMR_WB)){
   if(d->f->sample_rate!=d->rate||d->f->ch_layout.nb_channels!=1||d->f->ch_layout.order!=AV_CHANNEL_ORDER_NATIVE||d->f->ch_layout.u.mask!=4)return AVERROR_INVALIDDATA;
-  if(d->id==AV_CODEC_ID_SPEEX?(d->f->format!=AV_SAMPLE_FMT_FLT||(d->f->nb_samples!=320&&d->f->nb_samples!=640)):(d->f->format!=AV_SAMPLE_FMT_FLTP||d->f->nb_samples!=(d->id==AV_CODEC_ID_AMR_NB?160:320)))return AVERROR_INVALIDDATA;
+  if(d->id==AV_CODEC_ID_SPEEX?(d->f->format!=AV_SAMPLE_FMT_FLT||(d->extra_size?d->f->nb_samples!=(d->rate==8000?160:640):(d->f->nb_samples!=320&&d->f->nb_samples!=640))):(d->f->format!=AV_SAMPLE_FMT_FLTP||d->f->nb_samples!=(d->id==AV_CODEC_ID_AMR_NB?160:320)))return AVERROR_INVALIDDATA;
  }
  if(r>=0&&(d->id==AV_CODEC_ID_TTA||d->id==AV_CODEC_ID_TAK)&&d->channels==1&&d->f->ch_layout.nb_channels==1&&d->f->ch_layout.order==AV_CHANNEL_ORDER_UNSPEC){
   // The validated TTA1/TAK header declares exactly one channel; its only channel has no ordering ambiguity.

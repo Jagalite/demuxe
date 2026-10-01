@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "packets": 54,
+  "tracks": [
+    {
+      "codec": "h264",
+      "packets": 18,
+      "configurationSHA256": "26b3935fa50dd2571665e7abc2453abc8c0dc8c71270d66ba3ac9ae29239725c"
+    },
+    {
+      "codec": "aac",
+      "packets": 36,
+      "configurationSHA256": "b3108813350006ef07740046fab14af9c374938867d16db02fe1a8baa5e72f10"
+    }
+  ],
+  "configurationRejections": [
+    "unqualified-lc-asc-length-3",
+    "unqualified-lc-asc-length-4"
+  ],
+  "maximumRead": 2051,
+  "ownedOutput": true,
+  "iteratorReturn": true,
+  "abortBeforeOpen": true,
+  "abortDuringPackets": true,
+  "truncationRejected": true,
+  "inputs": {
+    "packages/provider-container/src/isobmff.ts": "9951522195e7f5bf1f5319cbec3457f6acf3fcfe7c47f99dd5f5fd1cafaa63aa",
+    "tests/provider-conformance/container-specific-isobmff.mjs": "7033f08351c37f83c206f6d61fb55f6b5f122b6786eccff752371461e4af8d04",
+    "build/codec-expansion/recovery-06/container-base/isobmff/aac-tail.mp4": "e63a8694d839e77cf29749c677d283d0eac82778b18231068223bdf2ae60b7e2"
+  },
+  "regression": {
+    "previousInstalledCampaign": "p2-final-05",
+    "observed": "Declared three-byte LC AudioSpecificConfig was accepted by the installed reader",
+    "fix": "Keep LC configurations at exactly two or five bytes while retaining the explicit extended AAC envelopes"
+  }
+}

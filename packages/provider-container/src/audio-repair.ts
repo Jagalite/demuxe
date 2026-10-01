@@ -41,10 +41,11 @@ export async function* repairMatroskaAudioFragments(file: Blob, components: Audi
  if(components.container!==undefined&&!['matroska','isobmff','wave-aiff'].includes(components.container))throw new ContainerProfileError('Unknown input container');
  const audioOnly=components.container==='wave-aiff';
  const aacProfile=components.aacProfile??'lc';
- if(aacProfile!=='lc'&&(components.codec!=='aac'||components.container!=='isobmff'))throw new ContainerProfileError('AAC extension requires explicit ISO AAC recipe');
+ const declaredRate=components.sampleRate??48000,declaredChannels=components.channels??2,declaredOutput=components.output??'flac';
+ if(!['lc','he','he-v2','usac'].includes(aacProfile)||aacProfile!=='lc'&&(components.codec!=='aac'||components.container!=='isobmff'||(aacProfile==='usac'?declaredOutput!=='flac'||!((declaredChannels===1&&declaredRate===48000)||(declaredChannels===2&&[32000,44100,48000].includes(declaredRate))):declaredChannels!==2||!(aacProfile==='he'?[48000]:[32000,44100]).includes(declaredRate))))throw new ContainerProfileError('Unqualified explicit AAC composition profile');
  const reader=await (audioOnly?WaveAiffReader.open(file,signal):components.container==='isobmff'?IsoBmffReader.open(file,signal,{aacProfile}):MatroskaReader.open(file,signal));
  const rate=components.sampleRate??48000;
- if(![44100,48000,96000].includes(rate))throw new ContainerProfileError('Unqualified input sample rate');
+ if(![8000,16000,22050,32000,44100,48000,96000].includes(rate))throw new ContainerProfileError('Unqualified input sample rate');
  const videos=reader.tracks.filter(t=>t.kind==='video'),audios=reader.tracks.filter(t=>t.kind==='audio');
  if(videos.length!==(audioOnly?0:1)||audios.length!==1)throw new ContainerProfileError('Exactly one video and one audio required');
  const video=videos[0],audio=audios[0];
@@ -56,10 +57,11 @@ export async function* repairMatroskaAudioFragments(file: Blob, components: Audi
  if(audioOnly&&audio.codec.startsWith('pcm-'))codecs[audio.codec]=audio.codec as PacketAudioCodec;
  const codec=components.codec??codecs[audio.codec];
  if(!codec || (codec==='dts-hd'?audio.codec!=='A_DTS':codec!==codecs[audio.codec]))throw new ContainerProfileError('Source codec differs from admitted recipe');
- if(codec==='mp1'||['mp2','wmav1','wmav2'].includes(codec)&&(![44100,48000].includes(rate)||![1,2].includes(audio.channels??0)))throw new ContainerProfileError('Unqualified legacy composition profile');
+ if(rate<44100&&!['mp2','wmav1','wmav2'].includes(codec)&&!(codec==='aac'&&aacProfile!=='lc'))throw new ContainerProfileError('Unqualified low-rate source codec');
+ if(codec==='mp1'||['mp2','wmav1','wmav2'].includes(codec)&&(!(codec==='mp2'?[32000,44100,48000]:[8000,16000,22050,32000,44100,48000]).includes(rate)||![1,2].includes(audio.channels??0)))throw new ContainerProfileError('Unqualified legacy composition profile');
  if(codec==='wavpack'&&rate===44100&&(audio.channels??0)>2)throw new ContainerProfileError('Unqualified WavPack rate or channel profile');
  const headerOwned=codec==='truehd'||codec==='mlp'||codec==='dts-hd';
- if(headerOwned&&(![16,24].includes(audio.bitDepth??0)||(codec==='mlp'&&audio.channels===8)||(rate===48000&&audio.channels===1)||(codec==='truehd'&&rate!==48000&&audio.bitDepth!==24)||(audio.channels===8&&rate!==48000)||(codec==='dts-hd'&&(rate!==48000||audio.channels===1))))throw new ContainerProfileError('Unqualified header-owned composition metadata');
+ if(headerOwned&&(![16,24].includes(audio.bitDepth??0)||(codec==='mlp'&&audio.channels===8)||(codec==='truehd'&&rate!==48000&&audio.bitDepth!==24)||(audio.channels===8&&rate!==48000&&codec!=='dts-hd')||(codec==='dts-hd'&&!((rate===48000&&[2,6,8].includes(audio.channels??0))||(rate===96000&&[6,8].includes(audio.channels??0)&&audio.bitDepth===24)))))throw new ContainerProfileError('Unqualified header-owned composition metadata');
  if(codec==='adpcm-ima-qt'&&(components.container!=='isobmff'||![44100,48000].includes(rate)||![1,2].includes(audio.channels??0)||audio.bitDepth!==16||(components.output??'flac')!=='flac'))throw new ContainerProfileError('Unqualified MOV IMA-QT composition profile');
  const integer=['adpcm-ima-qt','truehd','mlp','dts-hd','flac','alac','wavpack','pcm-s16le','pcm-s24le','pcm-s32le','pcm-u8','pcm-s8'].includes(codec),channels=audio.channels;
  const output=components.output??'flac';
@@ -90,7 +92,7 @@ export async function* repairMatroskaAudioFragments(file: Blob, components: Audi
  }
  const configured=!['ac3','eac3','dts-core'].includes(codec);
  if(codec==='wavpack'||headerOwned)extradata=new Uint8Array();
- if(!configured&&rate!==48000||codec==='opus'&&rate!==48000||rate===96000&&!['flac','alac','wavpack','truehd','mlp'].includes(codec)&&!codec.startsWith('pcm-'))throw new ContainerProfileError('Unqualified codec sample rate');
+ if(!configured&&rate!==48000||codec==='opus'&&rate!==48000||rate===96000&&!['flac','alac','wavpack','truehd','mlp','dts-hd'].includes(codec)&&!codec.startsWith('pcm-'))throw new ContainerProfileError('Unqualified codec sample rate');
  const decoder=await components.decoder(codec,signal,configured?{sampleRate:rate,channels:channelCount,bitsPerSample:codec==='adpcm-ima-qt'?4:audio.bitDepth,extradata,...(codec==='adpcm-ima-qt'?{blockAlign:34*channelCount,bitRate:0}:{}),...wma?.configuration,...(codec==='aac'?{aacProfile}:{})}:undefined);
  let encoder:AudioPacketEncoder|undefined;
  try {

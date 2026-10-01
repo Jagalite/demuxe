@@ -1,19 +1,16 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Codec slices: inventory and remaining work
 
-Snapshot: **2026-09-30**, local codec expansion in the `demuxe` checkout. This is
+Snapshot: **2026-10-01**, local codec expansion in the `demuxe` checkout. This is
 the scoped inventory and backlog for selectable audio providers. It does not enable new plans,
 change defaults, or authorize publishing. mpv remains **one atomic provider**;
 its unified engine is a local candidate, not a released replacement.
 
 ## Scope and counts
 
-- **28 audited optional slice packages**: 21 audio components, one container
-  component, and six full-file preparation variants, counted across exact
-  historical and local assembly records. Seventeen candidates extend the
-  historical 11 packages; these are not 28 distinct codecs or 28 release-qualified packages.
-- **Four broad provider packages**: primary FFmpeg, FFmpeg Asyncify, FFmpeg JSPI,
-  and mpv. Together with slices, the package inventory has 32 providers. The catalog and all 28 optional archive/assembly-record hashes were checked; native-only IMA-QT and G726 experiments are excluded.
+- **30 optional slice packages in the current catalog**:23 audio components, one container component and six full-file preparation variants. The retained28 historical audited identities remain historical; Qt and G726 add two current optional targets. A package count is not a codec count or a release qualification.
+- **Four broad provider packages**: primary FFmpeg, FFmpeg Asyncify, FFmpeg JSPI and atomic mpv. Together with optional slices, the current catalog has34 providers (plus the separate core package).
+- The current P2 gate assembles25 packages: core, container and23 audio packages. Six historical full-file preparation variants and four broad providers are outside this gate. Fresh post-merge atomic mpv/core playback proof is separate. The05 gate remained failed because one worker cleanup failed after86 standard passes; recovered fixtures and corrected runner require a fresh gate.
 - Broad audio preparation explicitly requests **17 decoder implementations and
   two encoders**. MP3 has two implementations; DTS core/HD share FFmpeg `dca`.
 - The local broad FFmpeg configuration used as the dependency location for mpv
@@ -36,6 +33,8 @@ records this limitation rather than claiming source correspondence.
 contract**, then qualified extensions. Covering all upstream FFmpeg codecs would
 also require new external dependencies, build/platform checks and API contracts.
 It is not the same scope as splitting the codecs already enabled here.
+
+The [provider conformance suite](PROVIDER-TESTING.md) is the standard functional gate for exact provider offers. Every declared offer must be represented; missing suites or retained references remain incomplete. Installed browser playback, package/source audits and release qualification retain separate gates.
 
 ## Testing status vocabulary
 
@@ -170,7 +169,7 @@ admission of every FFmpeg profile, rate, layout or container.
 | P0 | Current Firefox/Linux CI and final release qualification | Local Chromium campaigns passed their exact artifacts. Remote current-package Firefox/Linux, combined broad fallback/full FFmpeg/atomic mpv and final release/source sealing remain pending. |
 | P2.1 | MOV IMA-QT reader/conversion integration | Four native packet cases, 16 restart/discard seek checks and 104 controls passed. Public MOV reader, conversion and owner integration passed; source/package sealing and installed browser qualification remain pending. |
 | P2.2 | G726/G726LE explicit packing and finite container integration | Twelve synthetic native configurations passed exact original-clock proof; explicit raw and WAV conversion, public recipes and owner tests passed. Source/package sealing and installed browser qualification remain pending; official fixture packing remains unqualified. |
-| P2.3 | Broaden remaining modes/rates/layouts in existing AAC, speech, lossless and legacy families | Only the listed finite profiles are admitted. More real fixtures, exact framing/gapless clocks, precision/layout controls and installed tests are required before broader offers. No additional family package is automatically needed for a profile alias. |
+| P2.3 | Broaden remaining modes/rates/layouts in existing AAC, speech, lossless and legacy families | [Ranked profile inventory](AUDIO-PROFILE-GAP-INVENTORY.md) tracks seven concrete extensions. AMR ordinary modes have native proof; packaged conformance and installed checks are pending. Remaining tuples require real fixtures, exact framing/gapless clocks and precision/layout controls before broader offers. No additional family package is automatically needed for a profile alias. |
 | P3 | Other DPCM/game/proprietary audio and DSD | Follow concrete fixture demand after important container/profile gaps. Inventory presence does not qualify native framing, conversion or playback. |
 
 The existing explicit audio-preparation decoder families now have corresponding
@@ -237,3 +236,9 @@ See [expanded audio evidence](AUDIO-COVERAGE-EXPANSION.md), [container backlog](
 ### Current finite extensions
 
 HE-AAC stereo48, HEv2 stereo44100 and USAC mono48 use explicit profile admission in the existing AAC slice; AAC-LC stays the default. Their maintained native/converter/owner proofs and exact 296-case installed cohort passed. Low-rate FLAC output (8/16/22.05/32 kHz mono/stereo) has a distinct `low-rate-s24` offer and passed qualified ADPCM/telephony compositions in that cohort. Profiles and packet families do not broaden default Player routing or imply all-FFmpeg codec support.
+
+## Current P2 qualification checkpoint
+
+The standard provider conformance runner is the functional gate for every finite declared offer. Current recovery binds exact historical data or newly generated data with fresh native/reference/reset/seek proof. Fresh 25-package assembly/audit, standard conformance and installed assets/embedded playback must finish before the current P2 scope can be marked passed. The 762-case and 296-case campaigns retain their original frozen identities; they do not qualify this new cohort.
+
+The scope is selectable public component providers. It does not claim every configuration of every FFmpeg decoder, automatic admission of all families to the default Player, or a production release. Atomic mpv/core merge qualification and public Player playback remain separate.

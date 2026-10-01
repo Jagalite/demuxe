@@ -28,9 +28,13 @@ test('header-owned lossless recipes select only qualified rate/layout profiles',
   const recipe=audioRepairRecipe('dts-hd',channels,'flac','matroska',48000),assignment=recipe.bindings[0].assignments.find(a=>a.providerId==='audio-dts-hd');
   assert.ok(assignment);assert.ok(assignment.requirements.some(r=>r.profile===(channels===8?'ma-48khz-s32p':'ma-configured-integer')));
  }
- for(const codec of ['truehd','mlp','dts-hd'])assert.throws(()=>audioRepairRecipe(codec,1,'flac','matroska',48000));
+ for(const codec of ['truehd','mlp']){const recipe=audioRepairRecipe(codec,1,'flac','matroska',48000);assert.ok(recipe.bindings[0].assignments.find(a=>a.providerId==='audio-truehd-mlp').requirements.some(r=>r.profile==='configured-integer'));}
+ assert.throws(()=>audioRepairRecipe('dts-hd',1,'flac','matroska',48000));
  for(const codec of ['truehd','mlp'])for(const rate of [44100,96000])assert.throws(()=>audioRepairRecipe(codec,8,'flac','matroska',rate));
- for(const rate of [44100,96000])for(const channels of [2,6,8])assert.throws(()=>audioRepairRecipe('dts-hd',channels,'flac','matroska',rate));
+ for(const channels of [2,6,8])assert.throws(()=>audioRepairRecipe('dts-hd',channels,'flac','matroska',44100));
+ assert.throws(()=>audioRepairRecipe('dts-hd',2,'flac','matroska',96000));
+ for(const channels of [6,8]){const recipe=audioRepairRecipe('dts-hd',channels,'flac','matroska',96000);assert.ok(recipe.requirements.some(r=>r.profile==='ma-high-rate-integer'));}
+ assert.throws(()=>audioRepairRecipe('dts-hd',6,'flac','matroska',192000));
  assert.throws(()=>audioRepairRecipe('mlp',8,'flac','matroska',48000));
  for(const codec of ['truehd','dts-hd'])assert.doesNotThrow(()=>audioRepairRecipe(codec,8,'flac','matroska',48000));
 });

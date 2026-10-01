@@ -1,0 +1,278 @@
+{
+  "passed": true,
+  "scope": "Actual Ogg headers: generated Xiph speech8k narrowband and original VideoLAN32k ultrawideband mono, one CBR frame per packet. Full coded PCM with unchanged signed original packet PTS; no Ogg presentation conversion, FLV gap composition, Player, release or broad mode qualification.",
+  "controls": 92,
+  "results": [
+    {
+      "id": "speex-nb8",
+      "inputSHA256": "781f42691eaea8c814ed28cb8395f6e469a6ce6a578ffa2ee70dd135e908743a",
+      "generated": true,
+      "originalFirstPTS": -40,
+      "frameSamples": 160,
+      "decodedSamples": 48160,
+      "presentationEndSample": 48000,
+      "resetExact": true,
+      "seeks": [
+        {
+          "packet": 240,
+          "originalPTS": 38360,
+          "nativePTS": 38360,
+          "maxAbsoluteError": 8.940696716308594e-8,
+          "snr": 108.10062828751984
+        },
+        {
+          "packet": 90,
+          "originalPTS": 14360,
+          "nativePTS": 14360,
+          "maxAbsoluteError": 0,
+          "snr": 306.44984423587186
+        },
+        {
+          "packet": 285,
+          "originalPTS": 45560,
+          "nativePTS": 45560,
+          "maxAbsoluteError": 0,
+          "snr": 254.9866470389215
+        },
+        {
+          "packet": 30,
+          "originalPTS": 4760,
+          "nativePTS": 4760,
+          "maxAbsoluteError": 9.220093488693237e-8,
+          "snr": 106.45166851608036
+        }
+      ],
+      "maxAbsoluteError": 0.00002294778823852539,
+      "snr": 97.96412138622549
+    },
+    {
+      "id": "speex-uwb32",
+      "inputSHA256": "27cafad25ee99586d80d42571acd02d0b4a8cb8465331d7c6962a1c9efb8f974",
+      "generated": false,
+      "originalFirstPTS": -349,
+      "frameSamples": 640,
+      "decodedSamples": 213760,
+      "presentationEndSample": 212948,
+      "resetExact": true,
+      "seeks": [
+        {
+          "packet": 267,
+          "originalPTS": 170531,
+          "nativePTS": 170531,
+          "maxAbsoluteError": 5.066394805908203e-7,
+          "snr": 97.30493956214099
+        },
+        {
+          "packet": 100,
+          "originalPTS": 63651,
+          "nativePTS": 63651,
+          "maxAbsoluteError": 3.748573362827301e-8,
+          "snr": 104.37191133469356
+        },
+        {
+          "packet": 317,
+          "originalPTS": 202531,
+          "nativePTS": 202531,
+          "maxAbsoluteError": 4.3585896492004395e-7,
+          "snr": 110.36056335192227
+        },
+        {
+          "packet": 33,
+          "originalPTS": 20771,
+          "nativePTS": 20771,
+          "maxAbsoluteError": 0.000005453824996948242,
+          "snr": 89.64095176913656
+        }
+      ],
+      "maxAbsoluteError": 0.0000353492796421051,
+      "snr": 95.00797975850062
+    }
+  ],
+  "fixtureSHA256": "795cf557cd37824838a8ab783e6eb3043588aec95fedccf7198a110f96f0bf6f",
+  "adapterSHA256": "a72ce6d29a14676ba373620d42231173c83fb1caf9e00e47d0bf59c8e3f4100f",
+  "sourceInputs": {
+    "native/audio-codecs/decoder.c": "7135a6ac8b2c754ee7881f90d1f03804cc27e84052b92314fa971af4b3920dfe",
+    "packages/provider-audio/src/packet-decoder.ts": "97b9969fe7da7f500ffc63e88a270272795a89eec6d952193d8b4a619730e9d7",
+    "packages/provider-audio/src/speex-config.ts": "4e101de56af50da10319b437ac4c7ea8cc412b4d9b76c7dc0e4a8946f1510f0e",
+    "scripts/build-speex-ogg-reference.py": "1897cf42e5326718e3a373ade3965d163d0a340dcc3d6ec8cc8114c9d500d104",
+    "tests/speex-ogg-fixtures.py": "55bca8d9674e7db542a729d1cc14e7240f27323600fc23eff3a47e96275ea481",
+    "tests/speex-ogg-audio.mjs": "9ab114b2077e64f4fb1ecd77af20ed83f8cba96922840d62a8a285e56890009f"
+  },
+  "native": {
+    "recordSHA256": "dd59da5413e9150072d88c002e698ef09d489c0af9626a46e1fff11e4b1a50f3",
+    "schema": 1,
+    "source": {
+      "name": "ffmpeg-adaptation",
+      "upstream": "https://github.com/FFmpeg/FFmpeg",
+      "revision": "n9.0.2",
+      "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+      "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+    },
+    "sourceKey": "f0cf92e7704c29e318d312516d5ce9ccf49be9debe31face6c1a5013f577ab25",
+    "sdk": "4.0.14",
+    "inputs": {
+      "patches/ffmpeg-adaptation/0002-browser-nested-avio.patch": "4ceaf3185f152c596fc9617e47cc47cd2b264d6f8b2f098bbea8055b798da3ec",
+      "patches/ffmpeg-adaptation/0004-hls-ts-discontinuity-timeline.patch": "6635e6cb14090af54c20c526592df6cf4360cba0bb2e3199071688c37f146bb1",
+      "patches/ffmpeg-adaptation/0005-dfpwm-seek-reset.patch": "0f2e57a194e5d5f5ff23edb864084e5a1e9e05224a4ab1bb71e6598d614e9923",
+      "patches/ffmpeg-adaptation/0006-swf-audio-duration.patch": "e59e36d524f78b98862e5a484b4900e3ea28593d3a25fbc90a6f7f30d79b4c5f",
+      "patches/ffmpeg-adaptation/0007-nut-keyframe-recovery.patch": "b02b157a7a8f1dd3ddd65e541b4f3ae3057acb130044ddba97a148ece8cb0c95",
+      "patches/ffmpeg-adaptation/0008-hls-indexed-webvtt-seek.patch": "224da133f9c2b4c4243743145ec8d90845d98878eeb3535ace35d129b31f03ae",
+      "patches/ffmpeg-adaptation/0009-nut-discard-budget.patch": "9d6dde4654d72d4a810b60894befc2260185afd9fa91a9a6dd3f2dda71e343fe",
+      "patches/ffmpeg-adaptation/0010-strict-stream-resource-errors.patch": "f979b6232cef7ece804cbc7dcaf89788c109b9c8c0d4ce9fe6ac735267026e40",
+      "patches/ffmpeg-adaptation/0011-dash-continuous-fmp4.patch": "fe43a338fc469f38d10ff76b66ed56406fd4ccbacf8348dbb95351f107c2f3fd",
+      "patches/ffmpeg-adaptation/0012-demuxe-segment-plans.patch": "e4073571ea824fbeb68848e8918129bae172c2896503794fda085b8d8f47c705",
+      "patches/ffmpeg-adaptation/0013-demuxe-sparse-discovery.patch": "01c32d856f157845917d345f21ff3f4a36f1a0b38e5211a72e3a5bbdc20f537c",
+      "patches/ffmpeg-adaptation/0014-http-chunked-eof.patch": "b3b89b8e84da739a9e10de37eb9cd48e3fbe4104e63aac2b55ceb5da9238cad5",
+      "patches/ffmpeg-adaptation/0015-demuxe-live-hls-components.patch": "9516d75248ccd1f43281755410d3f7e3a58c94e917e02ec0e81840b296778486",
+      "patches/ffmpeg-adaptation/0016-demuxe-resource-retirement.patch": "199ff687d64e2f4d971c23ec352820bb21b1273e33def75bbcebdc7f125af1a7",
+      "patches/ffmpeg-adaptation/0017-demuxe-dash-period-session.patch": "0b5cadd65282139c04e21688e8fbdfa94813f9636461407e1aef5ce8b330fc9d",
+      "patches/ffmpeg-adaptation/0018-demuxe-discontinuity-retirement.patch": "1904f37c4cea150d35a82dabba4a82912d92d6d1bc4308b6b42a03589a889afd",
+      "patches/ffmpeg-adaptation/0019-demuxe-hls-window-anchor.patch": "1f20c83dab06c73c0e1345db1e38ccc36caa0df10e7e7f8962fd8c73b373f76e",
+      "patches/ffmpeg-adaptation/0020-mov-strict-sample-eof.patch": "f4d70438726c79d12d923893b8a8e322a43bc8415e816386a99217c25c3822ab",
+      "patches/ffmpeg-adaptation/0021-demuxe-dash-live-discovery.patch": "3ed99eda3249bd6d1d7e5319887b8923d4005ad6d73aab6a7faec9c4c45fa228",
+      "native/audio-codecs/decoder.c": "56f1443ba869adef97b1448ae73be90b17ad22cc7163ca7a385fdb09e176e8d9",
+      "native/audio-codecs/encoder.c": "2d0c6bf57bc6ccea91c880a8cbbbe23e3da947e61dab9dfe045c3dc800b7ebd0",
+      "scripts/build-audio-providers.py": "9af79058e732a84f0d670060037c1b8cb6e8086aae2595a385745adaf37241bc"
+    },
+    "configure": [
+      "/private/tmp/demuxe-speex-signed-builds/sources/831a9b4483f37e5b03544e3934a335b0b9bf8a6bf03613f1808537be76dfb72f/source/FFmpeg-n9.0.2/configure",
+      "--target-os=none",
+      "--arch=wasm32",
+      "--enable-cross-compile",
+      "--cc=emcc",
+      "--cxx=em++",
+      "--ar=emar",
+      "--ranlib=emranlib",
+      "--nm=emnm",
+      "--enable-static",
+      "--disable-shared",
+      "--disable-programs",
+      "--disable-doc",
+      "--disable-debug",
+      "--disable-autodetect",
+      "--disable-network",
+      "--disable-asm",
+      "--disable-everything",
+      "--disable-avdevice",
+      "--disable-avfilter",
+      "--disable-swscale",
+      "--disable-swresample",
+      "--disable-avformat",
+      "--enable-avcodec",
+      "--enable-avutil",
+      "--disable-pthreads",
+      "--disable-w32threads",
+      "--disable-os2threads",
+      "--optflags=-Oz",
+      "--extra-cflags=-Oz -flto -msimd128",
+      "--extra-ldflags=-Oz -flto -msimd128",
+      "--enable-decoder=speex,amrnb,amrwb"
+    ],
+    "link": [
+      "emcc",
+      "-Oz",
+      "-flto",
+      "-msimd128",
+      "-I/private/tmp/demuxe-speex-signed-builds/f0cf92e7704c29e318d312516d5ce9ccf49be9debe31face6c1a5013f577ab25/speech",
+      "-I/private/tmp/demuxe-speex-signed-builds/sources/831a9b4483f37e5b03544e3934a335b0b9bf8a6bf03613f1808537be76dfb72f/source/FFmpeg-n9.0.2",
+      "/Volumes/seed2/Projects/demuxe/native/audio-codecs/decoder.c",
+      "/private/tmp/demuxe-speex-signed-builds/f0cf92e7704c29e318d312516d5ce9ccf49be9debe31face6c1a5013f577ab25/speech/libavcodec/libavcodec.a",
+      "/private/tmp/demuxe-speex-signed-builds/f0cf92e7704c29e318d312516d5ce9ccf49be9debe31face6c1a5013f577ab25/speech/libavutil/libavutil.a",
+      "-sMODULARIZE=1",
+      "-sEXPORT_ES6=1",
+      "-sENVIRONMENT=web,worker,node",
+      "-sINITIAL_MEMORY=2097152",
+      "-sSTACK_SIZE=262144",
+      "-sALLOW_MEMORY_GROWTH=1",
+      "-sMAXIMUM_MEMORY=134217728",
+      "-sFILESYSTEM=0",
+      "-sMALLOC=emmalloc",
+      "-sSUPPORT_LONGJMP=0",
+      "-sWASM_BIGINT=1",
+      "-sEXPORTED_FUNCTIONS=[\"_malloc\", \"_free\", \"_mc_create\", \"_mc_create_config\", \"_mc_configure\", \"_mc_decode\", \"_mc_frame\", \"_mc_flush\", \"_mc_reset\", \"_mc_destroy\", \"_mc_info\", \"_mc_plane\"]",
+      "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\", \"HEAPF32\", \"HEAP32\"]",
+      "-o",
+      "/private/tmp/demuxe-speex-signed-builds/f0cf92e7704c29e318d312516d5ce9ccf49be9debe31face6c1a5013f577ab25/speech/module.mjs"
+    ],
+    "capabilities": [
+      "audio.decode.speex",
+      "audio.decode.amrnb",
+      "audio.decode.amrwb"
+    ],
+    "profile": "speech",
+    "qualification": "build-only",
+    "artifacts": {
+      "module.mjs": {
+        "sha256": "1d02101363b42e6a60d74d8f91bfcd5bc54f675b0ad0e2a530e912186b45fd7b",
+        "bytes": 13873
+      },
+      "module.wasm": {
+        "sha256": "f51ddbb9991e3d699d58dccf36052f27f021284dd17380fcaa5aba9f24e401ff",
+        "bytes": 344060
+      }
+    },
+    "effectiveConfig": {
+      "config.h": "7b63944cffbeb7c0646a7a717171203ba0fc1ab09c76ba68ef6e6d2c10d0b7f5",
+      "config_components.h": "6c9aebc0eda96d1a6a590766b05a935b99933377ae90b4b11a2448ec9c3ee926",
+      "ffbuild/config.mak": "2587d895c34e30537b636cee976a466296c747a3756cc1a7f630f45071fea5d6"
+    }
+  },
+  "referenceBuild": {
+    "recordSHA256": "93e12b35f065d206eb2a9d2246eebb02343c134d916b76c670a1dacfa8906a04",
+    "source": {
+      "name": "ffmpeg-adaptation",
+      "upstream": "https://github.com/FFmpeg/FFmpeg",
+      "revision": "n9.0.2",
+      "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+      "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+    },
+    "commands": [
+      [
+        "/private/tmp/demuxe-telephony-builds/sources/831a9b4483f37e5b03544e3934a335b0b9bf8a6bf03613f1808537be76dfb72f/source/FFmpeg-n9.0.2/configure",
+        "--disable-everything",
+        "--disable-doc",
+        "--disable-debug",
+        "--disable-autodetect",
+        "--disable-network",
+        "--disable-x86asm",
+        "--extra-cflags=-ffp-contract=off -fno-vectorize -fno-slp-vectorize",
+        "--enable-ffmpeg",
+        "--enable-ffprobe",
+        "--enable-decoder=speex",
+        "--enable-demuxer=ogg",
+        "--enable-encoder=pcm_s32le,pcm_f32le",
+        "--enable-muxer=pcm_s32le,pcm_f32le",
+        "--enable-protocol=file,pipe",
+        "--enable-filter=asetpts,aresample,aformat,anull"
+      ],
+      [
+        "make",
+        "-j4"
+      ]
+    ],
+    "qualification": "independent-host-reference-only",
+    "inputSHA256": "1897cf42e5326718e3a373ade3965d163d0a340dcc3d6ec8cc8114c9d500d104",
+    "sourceInputs": {
+      "configure": "5b281b249ad5ad859030b4da0a24ec105b5abff7b3d87a65b302df8bf5fd9833",
+      "libavcodec/speexdec.c": "d195fc338c90f87b7940aea8ee0d39a8a3e03dc726b3ddf274d601f169d63eb0",
+      "libavcodec/speexdata.h": "f24c26ddc60f062c20e0f2b5b6761316adc4c4b93518dfa4ae49a23fcfa60504",
+      "libavformat/oggdec.c": "43d988cc30a355832e50a1873db80663741706ed4e7b50760cbdab8e10446c9f",
+      "libavformat/oggparsespeex.c": "d3aa27c5ba93e98944fa300c42ac6ed875b3eabf58cd483a154bc176f57f63c8"
+    },
+    "effectiveConfig": {
+      "config.h": "14e9d1011c4a302742804187cf8e021029495773df77f349c44cb6f742978d7d",
+      "config_components.h": "6f75bbc110832b2afbfe036fdd3f9d9e9060441b6208bedaf73c5dba63d09ed8",
+      "ffbuild/config.mak": "b61d4e8ab340cdae0b12cbe6cf314a58220d30134d472a5791f45d89794c2b6f"
+    },
+    "artifacts": {
+      "ffmpeg": {
+        "sha256": "5465b171013e2d078fd4f82b15b6e4eaad0534f5104230b84ba52970a6f88211",
+        "bytes": 2762776
+      },
+      "ffprobe": {
+        "sha256": "80895c30a5aab7c14cb543057afda2050ecc0466890d3a3622309e21b057b51d",
+        "bytes": 2587016
+      }
+    }
+  }
+}

@@ -13,6 +13,8 @@ files stay in the browser; the runtime never uploads them.
 **Developer beta.** This README describes the source candidate. Features and
 qualification depend on the exact runtime archive; Chrome and Firefox have
 representative coverage, with broader browser and device support still unqualified.
+The tested non-isolated Hybrid/Software work on
+`codex/nonisolated-software-20260929` is included below as **pending merge into main**.
 
 [Live player demo](https://jagalite.github.io/demuxe/) · [Capabilities](#what-you-can-build) ·
 [Technologies](#technologies) · [Non-isolated playback](#playback-without-cross-origin-isolation) ·
@@ -34,7 +36,9 @@ representative coverage, with broader browser and device support still unqualifi
   container contracts determine which combinations are available.
 - **Hybrid and full software decoding.** Use WebCodecs-assisted video or
   FFmpeg/mpv software decoding for sources that need it, including tested
-  MPEG-2, MPEG-4 Part 2 and ProRes fixtures. These modes require isolation.
+  MPEG-2, MPEG-4 Part 2 and ProRes fixtures. Threaded engines use isolation;
+  tested cooperative JSPI/Asyncify engines support qualified finite files without
+  isolation (**pending merge**).
 - **Text, styled and bitmap subtitles.** Qualified routes handle external and
   embedded captions, including WebVTT, SRT, ASS/SSA, mov_text, PGS and VobSub.
   Subtitle support is checked together with the selected audio/video route.
@@ -55,7 +59,7 @@ representative coverage, with broader browser and device support still unqualifi
 | Shaka Player | HLS/DASH manifest handling and adaptive playback through the Shaka/MSE route. |
 | WebCodecs | Video decoding in Hybrid mode when the browser accepts the exact codec configuration. Hardware acceleration depends on the browser and device. |
 | FFmpeg and mpv compiled to WebAssembly | Inspection, demuxing, remuxing, selected-audio conversion, software decoding, timing and subtitle services. |
-| WebAssembly pthreads, JSPI and Asyncify | Isolated threaded engines plus qualified non-isolated file preparation and subtitle/audio services. |
+| WebAssembly pthreads, JSPI and Asyncify | Isolated threaded engines, non-isolated file preparation and subtitle/audio services, plus tested cooperative Hybrid/Software playback (pending merge). |
 | AudioWorklet and Web Audio | PCM audio output and browser audio processing; private services transfer PCM without shared memory. |
 | WebGL2 | YUV presentation for qualified 8-bit SDR software frames, with RGB fallback for other frames. See [presentation limits](docs/SOFTWARE-YUV-PRESENTER.md). |
 | TypeScript and web components | A typed playback API, ready-made controls and application-owned interfaces. |
@@ -66,13 +70,19 @@ representative coverage, with broader browser and device support still unqualifi
 COOP/COEP headers.** Non-isolated deployment can keep video decoding in the
 browser while Demuxe prepares the file or supplies subtitles and selected audio.
 
+**Tested and pending merge:** cooperative Hybrid and full Software playback also
+run without isolation using matching JSPI/Asyncify playback assets. The finite-file
+coverage includes audio resampling/downmixing, subtitles, custom fonts and filters.
+Hybrid retains browser video decoding; Software decodes video in Wasm. This work
+is complete on `codex/nonisolated-software-20260929`; it is not yet part of main.
+
 | Capability | Without isolation | With isolation |
 | --- | --- | --- |
 | Browser-native and Shaka/MSE playback | Available, subject to browser/source support | Available |
 | Finite-file remux and qualified FLAC24 audio conversion | JSPI or Asyncify assets | Pthread by default; JSPI/Asyncify can be selected |
 | Qualified embedded and external subtitle services | Private mpv JSPI/Asyncify assets | Pthread or selected private services |
 | Browser video with private mpv PCM audio | One 48 kHz stereo PCM16 stream; can compose with subtitles | Private profile or separately qualified pthread audio routes |
-| Hybrid and full Software playback | Not available | Available with matching engines |
+| Hybrid and full Software playback | Tested cooperative JSPI/Asyncify engines for qualified finite files; pending merge | Pthread engines; cooperative engines can also be selected after merge |
 
 The default `remuxRuntime: 'auto'` chooses pthread when isolated, otherwise JSPI
 when its browser APIs are present, then Asyncify. These are runtime choices;
@@ -91,9 +101,21 @@ combinations; they do not qualify every feature together or every newer build.**
 | --- | --- |
 | Complete-file playback | The [media comparison](#media-comparison) records Auto, forced Software, JSPI and Asyncify results across video, audio, containers and subtitles, including failures and pending measurements. |
 | Non-isolated services | The [private mpv Player campaign](docs/PRIVATE-MPV-PLAYER.md) records 31 playback, 18 lifecycle and 12 route-extension passes on a frozen Chrome/macOS runtime. Selected exact-archive consumer checks also cover Firefox; the full matrix is not a Firefox/Safari qualification. |
+| Non-isolated Hybrid/Software — pending merge | 99 exact-package browser checks passed across Chromium and Firefox, followed by 21 checks on a separate review-fix archive (14 Chromium, 7 Firefox). Coverage includes codecs, consumed PCM, subtitles, controls, seeking, lifecycle and verified provider assets; see the scope below. |
 | HLS/DASH | [Streaming qualification](docs/STREAMING-QUALIFICATION.md) records six passing automatic-route fixtures, including bounded live HLS. Forced-route failures and long-duration limits remain documented. |
 | Modular codecs and bundles | The [slice inventory](docs/CODEC-SLICE-INVENTORY.md) separates historical package qualification, exact installed Chromium campaigns and native packet/output tests. Coverage is finite; current Firefox/Linux and release gates remain open. |
 | Browser and device coverage | Representative Chrome/macOS and selected Firefox checks exist. Safari/mobile, physical HDR and surround output, PiP/casting and broad device/performance coverage remain unqualified. |
+
+The pending-merge completion record is
+`docs/NONISOLATED-PLAYBACK-COMPLETION.md` on
+`codex/nonisolated-software-20260929`. Its original 99 checks bind to source
+`13643784d3863fd0d8f57cf85710397378303ef8`; the 21 review checks bind to
+`ef838b4f501166ccc95b159c7deba21eececa7ad`. The latter are a focused follow-up,
+not a rerun of all 99 checks. Runtime/source correspondence and unchanged isolated
+engine binaries were verified. Full CPU benchmarks were outside this campaign;
+continuous 4K qualification is limited to 5 fps, and forced Hybrid HEVC remains
+unsupported in the tested Firefox configuration. These results do not relabel the
+historical comparison rows or qualify a merged build or published release.
 
 Playback success alone does not establish lossless output, discrete surround,
 Atmos object rendering or Dolby Vision/HDR fidelity. See the
@@ -201,8 +223,8 @@ a different static folder or a CORS-enabled CDN. Add `--full` to `copy-assets`
 for the additional RGB Software fallback engine; see [asset deployment](docs/RUNTIME-ASSETS.md)
 for MIME types, CDN headers and CSP.
 
-**Cross-origin isolation enables Hybrid, Software and pthread Wasm services.**
-Serve the application with these headers, or an equivalent configuration that
+**Pthread Wasm engines require cross-origin isolation.**
+For pthread playback, serve these headers or an equivalent configuration that
 makes `crossOriginIsolated` true:
 
 ```http
@@ -214,9 +236,12 @@ Browser-native and Shaka/MSE playback do not require isolation. With the matchin
 private runtime assets, `remuxRuntime: 'auto'` selects pthread when isolated,
 otherwise JSPI when supported or Asyncify. Qualified non-isolated paths cover
 file remuxing, FLAC24 audio transcoding, embedded subtitles and restricted
-48 kHz stereo PCM16 audio. Hybrid and Software still require isolation. See
-[runtime selection and qualification](docs/REMUX-RUNTIME.md) for exact limits;
-these current-main paths require a matching verified build.
+48 kHz stereo PCM16 audio. The tested cooperative Hybrid/Software addition
+(**pending merge**) extends non-isolated playback to qualified finite files with
+matching full playback assets. See [tested coverage](#what-has-been-tested) for
+that branch's package evidence and limits, and
+[runtime selection and qualification](docs/REMUX-RUNTIME.md) for current-main
+services. Always use the matching verified package and runtime assets.
 
 Remote media needs the CORS permissions and range support required by its path.
 Support depends on the browser, codec, source and requested features. Safari,

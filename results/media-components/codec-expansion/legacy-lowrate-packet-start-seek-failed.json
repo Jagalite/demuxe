@@ -1,0 +1,1698 @@
+{
+  "passed": false,
+  "scope": "Exact listed MP1/MP2/WMA v1/v2 source tuples, ASF framing metadata, independent scalar reference and reset/preroll seeks. No container or playback admission implied. Source binaries stay in scratch storage.",
+  "referenceDecoders": {
+    "mp1": "mp1float",
+    "mp2": "mp2float",
+    "wmav1": "wmav1",
+    "wmav2": "wmav2"
+  },
+  "resetReferenceNote": "WMAv1 noise-table state resets: seek PCM is compared independently with scalar FFmpeg decoding of the same WAVEFORMATEX/block sequence; full-stream noise variation is retained with SNR.",
+  "referenceTool": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "inputs": {
+    "native/audio-codecs/decoder.c": "d5f044bcb27c16c73a8934fc53b0c9d9ca6f234cc9f416fcd681fab24b375e4e",
+    "packages/provider-audio/src/packet-decoder.ts": "3f19555f9d0097d890ff741e68b8d6ad867d5fd36875f8d1dfca57b9c7488808",
+    "scripts/build-audio-providers.py": "9af79058e732a84f0d670060037c1b8cb6e8086aae2595a385745adaf37241bc",
+    "tests/legacy-lowrate-fixtures.py": "00afe7b0e4d1667d3680b538fcc13426e0bab1d4f93b06671af043318ca9ee70",
+    "tests/legacy-audio.mjs": "8f1fe30a51b77e9af495141685f043bca65f46ba55535a5a4cc38d2dfa302ac7"
+  },
+  "build": {
+    "profile": "legacy",
+    "source": {
+      "name": "ffmpeg-adaptation",
+      "upstream": "https://github.com/FFmpeg/FFmpeg",
+      "revision": "n9.0.2",
+      "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/refs/tags/n9.0.2",
+      "sha256": "6e374ed621e48faa40639307dff48ba6fe574a509977956d2cce9669b7cc27e9"
+    },
+    "sourceKey": "383a72208a72ec2d0a60eada211edf7170eee9d4474c0ec8c98234647198b704",
+    "nativeBuildInputs": {
+      "patches/ffmpeg-adaptation/0002-browser-nested-avio.patch": "4ceaf3185f152c596fc9617e47cc47cd2b264d6f8b2f098bbea8055b798da3ec",
+      "patches/ffmpeg-adaptation/0004-hls-ts-discontinuity-timeline.patch": "6635e6cb14090af54c20c526592df6cf4360cba0bb2e3199071688c37f146bb1",
+      "patches/ffmpeg-adaptation/0005-dfpwm-seek-reset.patch": "0f2e57a194e5d5f5ff23edb864084e5a1e9e05224a4ab1bb71e6598d614e9923",
+      "patches/ffmpeg-adaptation/0006-swf-audio-duration.patch": "e59e36d524f78b98862e5a484b4900e3ea28593d3a25fbc90a6f7f30d79b4c5f",
+      "patches/ffmpeg-adaptation/0007-nut-keyframe-recovery.patch": "b02b157a7a8f1dd3ddd65e541b4f3ae3057acb130044ddba97a148ece8cb0c95",
+      "patches/ffmpeg-adaptation/0008-hls-indexed-webvtt-seek.patch": "224da133f9c2b4c4243743145ec8d90845d98878eeb3535ace35d129b31f03ae",
+      "patches/ffmpeg-adaptation/0009-nut-discard-budget.patch": "9d6dde4654d72d4a810b60894befc2260185afd9fa91a9a6dd3f2dda71e343fe",
+      "patches/ffmpeg-adaptation/0010-strict-stream-resource-errors.patch": "f979b6232cef7ece804cbc7dcaf89788c109b9c8c0d4ce9fe6ac735267026e40",
+      "patches/ffmpeg-adaptation/0011-dash-continuous-fmp4.patch": "fe43a338fc469f38d10ff76b66ed56406fd4ccbacf8348dbb95351f107c2f3fd",
+      "patches/ffmpeg-adaptation/0012-demuxe-segment-plans.patch": "e4073571ea824fbeb68848e8918129bae172c2896503794fda085b8d8f47c705",
+      "patches/ffmpeg-adaptation/0013-demuxe-sparse-discovery.patch": "01c32d856f157845917d345f21ff3f4a36f1a0b38e5211a72e3a5bbdc20f537c",
+      "patches/ffmpeg-adaptation/0014-http-chunked-eof.patch": "b3b89b8e84da739a9e10de37eb9cd48e3fbe4104e63aac2b55ceb5da9238cad5",
+      "patches/ffmpeg-adaptation/0015-demuxe-live-hls-components.patch": "9516d75248ccd1f43281755410d3f7e3a58c94e917e02ec0e81840b296778486",
+      "patches/ffmpeg-adaptation/0016-demuxe-resource-retirement.patch": "199ff687d64e2f4d971c23ec352820bb21b1273e33def75bbcebdc7f125af1a7",
+      "patches/ffmpeg-adaptation/0017-demuxe-dash-period-session.patch": "0b5cadd65282139c04e21688e8fbdfa94813f9636461407e1aef5ce8b330fc9d",
+      "patches/ffmpeg-adaptation/0018-demuxe-discontinuity-retirement.patch": "1904f37c4cea150d35a82dabba4a82912d92d6d1bc4308b6b42a03589a889afd",
+      "patches/ffmpeg-adaptation/0019-demuxe-hls-window-anchor.patch": "1f20c83dab06c73c0e1345db1e38ccc36caa0df10e7e7f8962fd8c73b373f76e",
+      "patches/ffmpeg-adaptation/0020-mov-strict-sample-eof.patch": "f4d70438726c79d12d923893b8a8e322a43bc8415e816386a99217c25c3822ab",
+      "patches/ffmpeg-adaptation/0021-demuxe-dash-live-discovery.patch": "3ed99eda3249bd6d1d7e5319887b8923d4005ad6d73aab6a7faec9c4c45fa228",
+      "native/audio-codecs/decoder.c": "d5f044bcb27c16c73a8934fc53b0c9d9ca6f234cc9f416fcd681fab24b375e4e",
+      "native/audio-codecs/encoder.c": "2d0c6bf57bc6ccea91c880a8cbbbe23e3da947e61dab9dfe045c3dc800b7ebd0",
+      "scripts/build-audio-providers.py": "9af79058e732a84f0d670060037c1b8cb6e8086aae2595a385745adaf37241bc"
+    },
+    "recordSHA256": "d10b516abaf65b34afe8fa280486842a6c8e5489b8326b1f820f1418cb478033",
+    "module": {
+      "sha256": "30256e26618f6462500e70fb63c9fef0228a196a33a95752af8a0ed8f560a08e",
+      "bytes": 13963
+    },
+    "wasm": {
+      "sha256": "490257f6ca8692156c247144eaa17ba168b1991fe253f070ab8c0f6cc5506b19",
+      "bytes": 445619
+    },
+    "capabilities": [
+      "audio.decode.mp1",
+      "audio.decode.mp2",
+      "audio.decode.wmav1",
+      "audio.decode.wmav2"
+    ]
+  },
+  "results": [
+    {
+      "id": "mp2-lowrate-32000-1",
+      "profile": "legacy",
+      "codec": "mp2",
+      "sampleRate": 32000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/mp2-lowrate-32000-1.mkv",
+      "inputSHA256": "cfe14944a57016b73144f71125e058fad1206b9e6eb86cb6eb4505ba6102fa00",
+      "packetSHA256": "8d52db403e961cc1f7cd6dd1c8645b05d40a2b44250765a8294c2472a5ffaae2",
+      "framesSHA256": "487c860cfada625756024b5e3508e30e5dcbe19f22ace59abf3e705fa86484dc",
+      "referenceF32SHA256": "00cbceceb77b73debc41a1903a3df63723d8a89fc935d822a86951ab51bfc111",
+      "referenceSamples": 196511,
+      "framing": {},
+      "frequencies": [
+        337
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "passed": true,
+      "frames": 171,
+      "samples": 196511,
+      "decodedSamples": 196992,
+      "skipSamples": 481,
+      "discardSamples": 0,
+      "maxError": 2.2351741790771484e-8,
+      "referenceSHA256": "00cbceceb77b73debc41a1903a3df63723d8a89fc935d822a86951ab51bfc111",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 104,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 9216,
+          "maxError": 0,
+          "snr": 315.71966347051887
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 35,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 9216,
+          "maxError": 0,
+          "snr": 315.7167341677618
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 139,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 9216,
+          "maxError": 0,
+          "snr": 315.7209347425554
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 9216,
+          "maxError": 0,
+          "snr": 315.7191250218772
+        }
+      ],
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "mp2-lowrate-32000-2",
+      "profile": "legacy",
+      "codec": "mp2",
+      "sampleRate": 32000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/mp2-lowrate-32000-2.mkv",
+      "inputSHA256": "056ed9b4b704966dc6a284526cba8de921b510308977baa2d0b2f48aa28f6cf4",
+      "packetSHA256": "035c2a4211f93b96a98c4d47c78ea3104526f397a2eb19a89571471de2ac47e2",
+      "framesSHA256": "487c860cfada625756024b5e3508e30e5dcbe19f22ace59abf3e705fa86484dc",
+      "referenceF32SHA256": "1dfafe55b33cc52177bfd145d36e4c82dcbc4baa327a9d79711c92d3243b8a1b",
+      "referenceSamples": 196511,
+      "framing": {},
+      "frequencies": [
+        337,
+        528
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "passed": true,
+      "frames": 171,
+      "samples": 196511,
+      "decodedSamples": 196992,
+      "skipSamples": 481,
+      "discardSamples": 0,
+      "maxError": 2.2351741790771484e-8,
+      "referenceSHA256": "1dfafe55b33cc52177bfd145d36e4c82dcbc4baa327a9d79711c92d3243b8a1b",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 104,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 9216,
+          "maxError": 0,
+          "snr": 318.7322827856983
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 35,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 9216,
+          "maxError": 0,
+          "snr": 318.7314323576472
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 139,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 9216,
+          "maxError": 0,
+          "snr": 318.73067168541337
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 9216,
+          "maxError": 0,
+          "snr": 318.73074208718083
+        }
+      ],
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav1-lowrate-8000-1",
+      "profile": "legacy",
+      "codec": "wmav1",
+      "sampleRate": 8000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav1-lowrate-8000-1.wma",
+      "inputSHA256": "2c6bc48f099b3656d22ad815be381af738a2baea59cdd1536874371ee18fb8c4",
+      "packetSHA256": "57504ba3f73209aa6dae6d5dcdcb11eb7e78797e1afbe4b8d16af97d31e855c1",
+      "framesSHA256": "1f325d13e29bf78fd3cb754a35c11cfab6a35569984baed43d18fde653a995cc",
+      "referenceF32SHA256": "91469fc0d36016160d367c55a6f63bd011c2a2243516913a41d3ab2340c8603e",
+      "referenceSamples": 48640,
+      "framing": {
+        "codecTag": 352,
+        "channels": 1,
+        "sampleRate": 8000,
+        "bitRate": 32000,
+        "blockAlign": 256,
+        "bitsPerSample": 16,
+        "extradataHex": "00000100",
+        "waveFormatHex": "60010100401f0000a00f000000011000040000000100"
+      },
+      "frequencies": [
+        337
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 95,
+      "samples": 48640,
+      "decodedSamples": 48640,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.9802322387695312e-8,
+      "referenceSHA256": "91469fc0d36016160d367c55a6f63bd011c2a2243516913a41d3ab2340c8603e",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 58,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 310.157761266206,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 19,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 310.1514317719157,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 78,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 310.15302589677736,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 310.1554558612737,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav1-lowrate-8000-2",
+      "profile": "legacy",
+      "codec": "wmav1",
+      "sampleRate": 8000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav1-lowrate-8000-2.wma",
+      "inputSHA256": "3c3cf4b0f15cc60d76efd118e059ba25cbd36b7d86a3d3aaf5abfc46e51adee3",
+      "packetSHA256": "448914378ab0acdc3bc80f8a85bc92370168454b067b6e3cf10b83581cc924a3",
+      "framesSHA256": "1f325d13e29bf78fd3cb754a35c11cfab6a35569984baed43d18fde653a995cc",
+      "referenceF32SHA256": "a45f4f4a1461a9052948cc39ffaf3500e809d67d5f37161c8ff3d2a26f8d8912",
+      "referenceSamples": 48640,
+      "framing": {
+        "codecTag": 352,
+        "channels": 2,
+        "sampleRate": 8000,
+        "bitRate": 32000,
+        "blockAlign": 256,
+        "bitsPerSample": 16,
+        "extradataHex": "00000100",
+        "waveFormatHex": "60010200401f0000a00f000000011000040000000100"
+      },
+      "frequencies": [
+        337,
+        528
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 95,
+      "samples": 48640,
+      "decodedSamples": 48640,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.9802322387695312e-8,
+      "referenceSHA256": "a45f4f4a1461a9052948cc39ffaf3500e809d67d5f37161c8ff3d2a26f8d8912",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 58,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 313.16740556153525,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 19,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 313.16432132494305,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 78,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 313.1649885084125,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 313.1662064833741,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav1-lowrate-16000-1",
+      "profile": "legacy",
+      "codec": "wmav1",
+      "sampleRate": 16000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav1-lowrate-16000-1.wma",
+      "inputSHA256": "5b436b2e5c577f7b9a996b3085535bf018b7804c1c5aeaecbfa7a9e31f438152",
+      "packetSHA256": "e4ed3ef5ae20718745a890c4bc9c5c1e528c2b20e1720cfe29e98fca29c27a37",
+      "framesSHA256": "47315e5d2c6b84b1d83ee84eff4bc7eb03f32ac1b2659422895a524a0a48f083",
+      "referenceF32SHA256": "3a95fa98d98b7e81d3a2b63fb4d2d3375e84082e7b5fd64beeec78c23ffb6b1b",
+      "referenceSamples": 97792,
+      "framing": {
+        "codecTag": 352,
+        "channels": 1,
+        "sampleRate": 16000,
+        "bitRate": 64000,
+        "blockAlign": 256,
+        "bitsPerSample": 16,
+        "extradataHex": "00000100",
+        "waveFormatHex": "60010100803e0000401f000000011000040000000100"
+      },
+      "frequencies": [
+        337
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 191,
+      "samples": 97792,
+      "decodedSamples": 97792,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 3.725290298461914e-8,
+      "referenceSHA256": "3a95fa98d98b7e81d3a2b63fb4d2d3375e84082e7b5fd64beeec78c23ffb6b1b",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 117,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 5120,
+          "maxError": 0.000037007033824920654,
+          "snr": 76.59650816585841,
+          "independentResetReferenceError": 3.725290298461914e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 39,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 5120,
+          "maxError": 0.0000486522912979126,
+          "snr": 76.58860636979148,
+          "independentResetReferenceError": 3.725290298461914e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 156,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 5120,
+          "maxError": 0.00004131533205509186,
+          "snr": 76.53188251811542,
+          "independentResetReferenceError": 3.725290298461914e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 4608,
+          "maxError": 0.000043276697397232056,
+          "snr": 76.49369731421054,
+          "independentResetReferenceError": 3.725290298461914e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav1-lowrate-16000-2",
+      "profile": "legacy",
+      "codec": "wmav1",
+      "sampleRate": 16000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav1-lowrate-16000-2.wma",
+      "inputSHA256": "faa0b123f937a1914ce178cda347ac794ccd30afffd97ce49f6331eb7a150462",
+      "packetSHA256": "5453546bd88dbaae8f5739baea05558a9e23928c74f858e63ab8fccb45a8155f",
+      "framesSHA256": "47315e5d2c6b84b1d83ee84eff4bc7eb03f32ac1b2659422895a524a0a48f083",
+      "referenceF32SHA256": "7920a2e83c528a01ae1ec872233708886bbe0e2a2d301b2077e8c40d0304185c",
+      "referenceSamples": 97792,
+      "framing": {
+        "codecTag": 352,
+        "channels": 2,
+        "sampleRate": 16000,
+        "bitRate": 64000,
+        "blockAlign": 256,
+        "bitsPerSample": 16,
+        "extradataHex": "00000100",
+        "waveFormatHex": "60010200803e0000401f000000011000040000000100"
+      },
+      "frequencies": [
+        337,
+        528
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 191,
+      "samples": 97792,
+      "decodedSamples": 97792,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 3.725290298461914e-8,
+      "referenceSHA256": "7920a2e83c528a01ae1ec872233708886bbe0e2a2d301b2077e8c40d0304185c",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 117,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 5120,
+          "maxError": 0.00003489106893539429,
+          "snr": 78.1742770631104,
+          "independentResetReferenceError": 3.3527612686157227e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 39,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 5120,
+          "maxError": 0.000032261013984680176,
+          "snr": 78.29663206406255,
+          "independentResetReferenceError": 3.725290298461914e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 156,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 5120,
+          "maxError": 0.000041389837861061096,
+          "snr": 78.80843172682185,
+          "independentResetReferenceError": 3.725290298461914e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 4608,
+          "maxError": 0.00003349035978317261,
+          "snr": 78.21435150535264,
+          "independentResetReferenceError": 3.725290298461914e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav1-lowrate-22050-1",
+      "profile": "legacy",
+      "codec": "wmav1",
+      "sampleRate": 22050,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav1-lowrate-22050-1.wma",
+      "inputSHA256": "d89573283278d93453db44741b2fdae8fbaf71e60214752e62eed5d6495d9b0f",
+      "packetSHA256": "c06777cce32ea4369245fc4270cbed45bb74100ca56b75aed8d61e0368d83744",
+      "framesSHA256": "e791f3264929a84d26379dda0326a3ddc8765384c294ccfd4f87ec6b9ef56017",
+      "referenceF32SHA256": "2807ebadcd3b4dfe038726c63a5aad4cc4c94874e5c080ed64c0f5da6d78dccc",
+      "referenceSamples": 135168,
+      "framing": {
+        "codecTag": 352,
+        "channels": 1,
+        "sampleRate": 22050,
+        "bitRate": 64000,
+        "blockAlign": 371,
+        "bitsPerSample": 16,
+        "extradataHex": "00000100",
+        "waveFormatHex": "6001010022560000401f000073011000040000000100"
+      },
+      "frequencies": [
+        337
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 132,
+      "samples": 135168,
+      "decodedSamples": 135168,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.2351741790771484e-8,
+      "referenceSHA256": "2807ebadcd3b4dfe038726c63a5aad4cc4c94874e5c080ed64c0f5da6d78dccc",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 80,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 6144,
+          "maxError": 0,
+          "snr": 313.95980269831705,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 26,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 7168,
+          "maxError": 0,
+          "snr": 314.6277408323207,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 107,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 6144,
+          "maxError": 0,
+          "snr": 313.9564582283783,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 6144,
+          "maxError": 0,
+          "snr": 313.95731854898327,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav1-lowrate-22050-2",
+      "profile": "legacy",
+      "codec": "wmav1",
+      "sampleRate": 22050,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav1-lowrate-22050-2.wma",
+      "inputSHA256": "8d941bd296e049bea19c461a27800de2503daa3e1c049122d3915c64a6ad71fa",
+      "packetSHA256": "9889c401ea92e1c68ab8e1ccc42e7b63405481ccb1fa257dc9d6f99ed8a48005",
+      "framesSHA256": "e791f3264929a84d26379dda0326a3ddc8765384c294ccfd4f87ec6b9ef56017",
+      "referenceF32SHA256": "ad997cab51f5cc96fa6cda0bae8c1d7e6cff69205af2f61146dc5f608c0eecce",
+      "referenceSamples": 135168,
+      "framing": {
+        "codecTag": 352,
+        "channels": 2,
+        "sampleRate": 22050,
+        "bitRate": 64000,
+        "blockAlign": 371,
+        "bitsPerSample": 16,
+        "extradataHex": "00000100",
+        "waveFormatHex": "6001020022560000401f000073011000040000000100"
+      },
+      "frequencies": [
+        337,
+        528
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 132,
+      "samples": 135168,
+      "decodedSamples": 135168,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.9802322387695312e-8,
+      "referenceSHA256": "ad997cab51f5cc96fa6cda0bae8c1d7e6cff69205af2f61146dc5f608c0eecce",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 80,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 6144,
+          "maxError": 0,
+          "snr": 316.96953028406983,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 26,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 7168,
+          "maxError": 0,
+          "snr": 317.6392269991685,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 107,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 6144,
+          "maxError": 0,
+          "snr": 316.96690152251233,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 6144,
+          "maxError": 0,
+          "snr": 316.96855791625524,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav1-lowrate-32000-1",
+      "profile": "legacy",
+      "codec": "wmav1",
+      "sampleRate": 32000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav1-lowrate-32000-1.wma",
+      "inputSHA256": "4a7132c3a2367f56bb9871b1b1992dba355bfbc34c7bb11db28e7249cc43ac54",
+      "packetSHA256": "45a98025e258c6c391731409270581f639965f93ef08ee11ce39dc78ee24d1aa",
+      "framesSHA256": "ad2d1933ef65d528c03f0a35c98b0c14c9ace0cfbb866dedaeaf23ba19edc950",
+      "referenceF32SHA256": "e72f5b7a7cd3bbd77cf07c0200f2b43cdf9259c490fd41d4721eac72e840f89a",
+      "referenceSamples": 195584,
+      "framing": {
+        "codecTag": 352,
+        "channels": 1,
+        "sampleRate": 32000,
+        "bitRate": 96000,
+        "blockAlign": 384,
+        "bitsPerSample": 16,
+        "extradataHex": "00000100",
+        "waveFormatHex": "60010100007d0000e02e000080011000040000000100"
+      },
+      "frequencies": [
+        337
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 191,
+      "samples": 195584,
+      "decodedSamples": 195584,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 3.725290298461914e-8,
+      "referenceSHA256": "e72f5b7a7cd3bbd77cf07c0200f2b43cdf9259c490fd41d4721eac72e840f89a",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 117,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0.00012119242455810308,
+          "snr": 69.71671146179256,
+          "independentResetReferenceError": 3.725290298461914e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 39,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0.0001259148120880127,
+          "snr": 70.02821030530525,
+          "independentResetReferenceError": 4.470348358154297e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 156,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0.00012017041444778442,
+          "snr": 69.37627019057481,
+          "independentResetReferenceError": 3.725290298461914e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 9216,
+          "maxError": 0.00013653188943862915,
+          "snr": 71.10578990978507,
+          "independentResetReferenceError": 4.470348358154297e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav1-lowrate-32000-2",
+      "profile": "legacy",
+      "codec": "wmav1",
+      "sampleRate": 32000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav1-lowrate-32000-2.wma",
+      "inputSHA256": "e355b666bb57c5457596c97f4c7a00fb37c5943d88647f6c76d431614c7b5677",
+      "packetSHA256": "96e2f2a6e1a601dc0cf36e9a093b0b1d0cfc418797387361fa8160f4a5c8ee2c",
+      "framesSHA256": "ad2d1933ef65d528c03f0a35c98b0c14c9ace0cfbb866dedaeaf23ba19edc950",
+      "referenceF32SHA256": "8b9aa772eed1d727ea98523c7e6982d1d9ce290af5aebdcefc301a9d5d3ea654",
+      "referenceSamples": 195584,
+      "framing": {
+        "codecTag": 352,
+        "channels": 2,
+        "sampleRate": 32000,
+        "bitRate": 96000,
+        "blockAlign": 384,
+        "bitsPerSample": 16,
+        "extradataHex": "00000100",
+        "waveFormatHex": "60010200007d0000e02e000080011000040000000100"
+      },
+      "frequencies": [
+        337,
+        528
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 191,
+      "samples": 195584,
+      "decodedSamples": 195584,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 4.470348358154297e-8,
+      "referenceSHA256": "8b9aa772eed1d727ea98523c7e6982d1d9ce290af5aebdcefc301a9d5d3ea654",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 117,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0.00004842132329940796,
+          "snr": 75.21366895899311,
+          "independentResetReferenceError": 3.725290298461914e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 39,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0.00004793703556060791,
+          "snr": 75.56787033441293,
+          "independentResetReferenceError": 4.470348358154297e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 156,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0,
+          "snr": 319.189950789218,
+          "independentResetReferenceError": 4.470348358154297e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 7,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 9216,
+          "maxError": 0.000053241848945617676,
+          "snr": 75.39535911684669,
+          "independentResetReferenceError": 4.470348358154297e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav2-lowrate-8000-1",
+      "profile": "legacy",
+      "codec": "wmav2",
+      "sampleRate": 8000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav2-lowrate-8000-1.wma",
+      "inputSHA256": "1a90821a4bf9565df66958a5d9bcb93bf28033afc0c4e63134545ee475a6eb9b",
+      "packetSHA256": "b7cb0050f5fc2f0cd9a5c86a126458f91597b675cbd5bb34d1e80d03ed146605",
+      "framesSHA256": "1f325d13e29bf78fd3cb754a35c11cfab6a35569984baed43d18fde653a995cc",
+      "referenceF32SHA256": "b588471211d3eb7baa957453502e3a14394d3316140bcbcc000f4ada149b2bd8",
+      "referenceSamples": 48640,
+      "framing": {
+        "codecTag": 353,
+        "channels": 1,
+        "sampleRate": 8000,
+        "bitRate": 32000,
+        "blockAlign": 256,
+        "bitsPerSample": 16,
+        "extradataHex": "00000000010000000000",
+        "waveFormatHex": "61010100401f0000a00f0000000110000a0000000000010000000000"
+      },
+      "frequencies": [
+        337
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 95,
+      "samples": 48640,
+      "decodedSamples": 48640,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.9802322387695312e-8,
+      "referenceSHA256": "b588471211d3eb7baa957453502e3a14394d3316140bcbcc000f4ada149b2bd8",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 58,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 310.16160427011016,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 19,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 310.1508689149445,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 78,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 310.15685447201133,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 310.1521566207783,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav2-lowrate-8000-2",
+      "profile": "legacy",
+      "codec": "wmav2",
+      "sampleRate": 8000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav2-lowrate-8000-2.wma",
+      "inputSHA256": "683c768498ea8b682072814325caef495378e5176033de492ef2029927404583",
+      "packetSHA256": "5eca3f760cc6d9ba3b987b41e95319439d95b1f93539e36bb2eee8a4729a9c39",
+      "framesSHA256": "1f325d13e29bf78fd3cb754a35c11cfab6a35569984baed43d18fde653a995cc",
+      "referenceF32SHA256": "6ec4eed985394f8e95b8deeb008c75501b920cd1bfb77fe08624c6d2deb7cfc1",
+      "referenceSamples": 48640,
+      "framing": {
+        "codecTag": 353,
+        "channels": 2,
+        "sampleRate": 8000,
+        "bitRate": 32000,
+        "blockAlign": 256,
+        "bitsPerSample": 16,
+        "extradataHex": "00000000010000000000",
+        "waveFormatHex": "61010200401f0000a00f0000000110000a0000000000010000000000"
+      },
+      "frequencies": [
+        337,
+        528
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 95,
+      "samples": 48640,
+      "decodedSamples": 48640,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.9802322387695312e-8,
+      "referenceSHA256": "6ec4eed985394f8e95b8deeb008c75501b920cd1bfb77fe08624c6d2deb7cfc1",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 58,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 313.16530310566463,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 19,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 313.16557623341487,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 78,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 313.16325616470033,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 2560,
+          "maxError": 0,
+          "snr": 313.1653137879043,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav2-lowrate-16000-1",
+      "profile": "legacy",
+      "codec": "wmav2",
+      "sampleRate": 16000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav2-lowrate-16000-1.wma",
+      "inputSHA256": "13f20f1fe30d6a10095a7d570871dad0bcc13319fbc35b9cbe105fa9d7652ffd",
+      "packetSHA256": "3d4793f781f32dcf4ce91c58b7665dcd79593cc1816b2d697cbb3450fbfa9f4b",
+      "framesSHA256": "47315e5d2c6b84b1d83ee84eff4bc7eb03f32ac1b2659422895a524a0a48f083",
+      "referenceF32SHA256": "a3e61f2229b5a913fadf1a6d39fe3c2c22cdbcdd3c1fd1ec62d621a418a774ad",
+      "referenceSamples": 97792,
+      "framing": {
+        "codecTag": 353,
+        "channels": 1,
+        "sampleRate": 16000,
+        "bitRate": 64000,
+        "blockAlign": 256,
+        "bitsPerSample": 16,
+        "extradataHex": "00000000010000000000",
+        "waveFormatHex": "61010100803e0000401f0000000110000a0000000000010000000000"
+      },
+      "frequencies": [
+        337
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: seek PCM reconstruction 0.0003246515989303589\n    at file:///Volumes/seed2/Projects/demuxe/tests/legacy-audio.mjs:57:236"
+    },
+    {
+      "id": "wmav2-lowrate-16000-2",
+      "profile": "legacy",
+      "codec": "wmav2",
+      "sampleRate": 16000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav2-lowrate-16000-2.wma",
+      "inputSHA256": "36e4168dbf12baa740b6526b0912826c7a0ae4b5e5317c353c3050948ff1070d",
+      "packetSHA256": "de9c3cd120e13c76d03c8a3fb70bcf6f1fc024cedc31c8d1373996b6480aff82",
+      "framesSHA256": "47315e5d2c6b84b1d83ee84eff4bc7eb03f32ac1b2659422895a524a0a48f083",
+      "referenceF32SHA256": "7866596a5b1c5051e181c97a8e9baae54a5afaca7740552100f8aff98e3ffe18",
+      "referenceSamples": 97792,
+      "framing": {
+        "codecTag": 353,
+        "channels": 2,
+        "sampleRate": 16000,
+        "bitRate": 64000,
+        "blockAlign": 256,
+        "bitsPerSample": 16,
+        "extradataHex": "00000000010000000000",
+        "waveFormatHex": "61010200803e0000401f0000000110000a0000000000010000000000"
+      },
+      "frequencies": [
+        337,
+        528
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: seek PCM reconstruction 0.00030537694692611694\n    at file:///Volumes/seed2/Projects/demuxe/tests/legacy-audio.mjs:57:236"
+    },
+    {
+      "id": "wmav2-lowrate-22050-1",
+      "profile": "legacy",
+      "codec": "wmav2",
+      "sampleRate": 22050,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav2-lowrate-22050-1.wma",
+      "inputSHA256": "d284e0585bbd696c32bab6aab4c80c1b248f64b3c477677ca147b25a3f3f739e",
+      "packetSHA256": "5115622714c321042371dac719d955fde39fdd11f761f90c8acecdfdb3ebb44e",
+      "framesSHA256": "e791f3264929a84d26379dda0326a3ddc8765384c294ccfd4f87ec6b9ef56017",
+      "referenceF32SHA256": "eb98371abe56123451b693f9340d0e320e6780e6a78d7ebf33f7b52e2b3337c9",
+      "referenceSamples": 135168,
+      "framing": {
+        "codecTag": 353,
+        "channels": 1,
+        "sampleRate": 22050,
+        "bitRate": 64000,
+        "blockAlign": 371,
+        "bitsPerSample": 16,
+        "extradataHex": "00000000010000000000",
+        "waveFormatHex": "6101010022560000401f0000730110000a0000000000010000000000"
+      },
+      "frequencies": [
+        337
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 132,
+      "samples": 135168,
+      "decodedSamples": 135168,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.2351741790771484e-8,
+      "referenceSHA256": "eb98371abe56123451b693f9340d0e320e6780e6a78d7ebf33f7b52e2b3337c9",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 80,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 6144,
+          "maxError": 0,
+          "snr": 313.9576372826644,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 26,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 7168,
+          "maxError": 0,
+          "snr": 314.62550862602814,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 107,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 6144,
+          "maxError": 0,
+          "snr": 313.95600256843045,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 6144,
+          "maxError": 0,
+          "snr": 313.9560717197814,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav2-lowrate-22050-2",
+      "profile": "legacy",
+      "codec": "wmav2",
+      "sampleRate": 22050,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav2-lowrate-22050-2.wma",
+      "inputSHA256": "bf81e34d13b7bc562c496d3703504b0fdfcd3668b1835da8d5e810cdefc5f32e",
+      "packetSHA256": "1a441b0c65cb36ff12b8ea6cd9418e8881150d57c62707eb4d15ea9b24794c58",
+      "framesSHA256": "e791f3264929a84d26379dda0326a3ddc8765384c294ccfd4f87ec6b9ef56017",
+      "referenceF32SHA256": "5629f5f9b62d6aee1a581a0af2464553078cded5b4214e669e1dfeb805f6a255",
+      "referenceSamples": 135168,
+      "framing": {
+        "codecTag": 353,
+        "channels": 2,
+        "sampleRate": 22050,
+        "bitRate": 64000,
+        "blockAlign": 371,
+        "bitsPerSample": 16,
+        "extradataHex": "00000000010000000000",
+        "waveFormatHex": "6101020022560000401f0000730110000a0000000000010000000000"
+      },
+      "frequencies": [
+        337,
+        528
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 132,
+      "samples": 135168,
+      "decodedSamples": 135168,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.9802322387695312e-8,
+      "referenceSHA256": "5629f5f9b62d6aee1a581a0af2464553078cded5b4214e669e1dfeb805f6a255",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 80,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 6144,
+          "maxError": 0,
+          "snr": 316.9693621558816,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 26,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 7168,
+          "maxError": 0,
+          "snr": 317.6388761304872,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 107,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 6144,
+          "maxError": 0,
+          "snr": 316.9683287642248,
+          "independentResetReferenceError": 2.2351741790771484e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 5,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 6144,
+          "maxError": 0,
+          "snr": 316.97090620586056,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav2-lowrate-32000-1",
+      "profile": "legacy",
+      "codec": "wmav2",
+      "sampleRate": 32000,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav2-lowrate-32000-1.wma",
+      "inputSHA256": "e7b217553be2d71785855527dc92e4d8be992649447410406f85d8b55527bb05",
+      "packetSHA256": "c581f13df45a35490642d4f9a07c24522242eebc69a208db9de5fd1e2f730927",
+      "framesSHA256": "25ae5971d1a680d9ff2392de0940e16ad498c480395af619a2381ab40fd738a7",
+      "referenceF32SHA256": "efb2bc59003e47989130190294e62f9503f80875e888134ecf68688449a97f97",
+      "referenceSamples": 194560,
+      "framing": {
+        "codecTag": 353,
+        "channels": 1,
+        "sampleRate": 32000,
+        "bitRate": 96000,
+        "blockAlign": 768,
+        "bitsPerSample": 16,
+        "extradataHex": "00000000010000000000",
+        "waveFormatHex": "61010100007d0000e02e0000000310000a0000000000010000000000"
+      },
+      "frequencies": [
+        337
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 95,
+      "samples": 194560,
+      "decodedSamples": 194560,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.9802322387695312e-8,
+      "referenceSHA256": "efb2bc59003e47989130190294e62f9503f80875e888134ecf68688449a97f97",
+      "channelMasks": [
+        4
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 58,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0,
+          "snr": 316.1781269846909,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 19,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0,
+          "snr": 316.1725131653059,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 78,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0,
+          "snr": 316.17348769328163,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0,
+          "snr": 316.17731696492274,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    },
+    {
+      "id": "wmav2-lowrate-32000-2",
+      "profile": "legacy",
+      "codec": "wmav2",
+      "sampleRate": 32000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "generated": true,
+      "input": "/tmp/demuxe-legacy-lowrate-fixtures/wmav2-lowrate-32000-2.wma",
+      "inputSHA256": "f5b646cf77f832eabd089ac43c4c643cba46b55380f81905e4df5562a883987d",
+      "packetSHA256": "b9d05380ff9fe875b8eee4bba2910e823bb95f8d43a917ed3d05dda32c7f38aa",
+      "framesSHA256": "25ae5971d1a680d9ff2392de0940e16ad498c480395af619a2381ab40fd738a7",
+      "referenceF32SHA256": "86da914254344e127089af084055bf642508e0dcb212b89ccb32ab1fab3fb511",
+      "referenceSamples": 194560,
+      "framing": {
+        "codecTag": 353,
+        "channels": 2,
+        "sampleRate": 32000,
+        "bitRate": 96000,
+        "blockAlign": 768,
+        "bitsPerSample": 16,
+        "extradataHex": "00000000010000000000",
+        "waveFormatHex": "61010200007d0000e02e0000000310000a0000000000010000000000"
+      },
+      "frequencies": [
+        337,
+        528
+      ],
+      "referenceTools": {
+        "ffmpeg": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+          "sha256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+          "version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        "ffprobe": {
+          "path": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffprobe",
+          "sha256": "c806a3513d745902058911abf087d7dd26bcc7c1e62e5133e36a37eb42ae72b0",
+          "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+        }
+      },
+      "hostFramePTSExact": true,
+      "drainFramePTSRecovered": true,
+      "passed": true,
+      "frames": 95,
+      "samples": 194560,
+      "decodedSamples": 194560,
+      "skipSamples": 0,
+      "discardSamples": 0,
+      "maxError": 2.9802322387695312e-8,
+      "referenceSHA256": "86da914254344e127089af084055bf642508e0dcb212b89ccb32ab1fab3fb511",
+      "channelMasks": [
+        3
+      ],
+      "resetExact": true,
+      "seeks": [
+        {
+          "seconds": 4.25,
+          "startPacket": 58,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0,
+          "snr": 319.1867368877815,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 1.75,
+          "startPacket": 19,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0,
+          "snr": 319.18497219704545,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 5.5,
+          "startPacket": 78,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0,
+          "snr": 319.1853992868991,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        },
+        {
+          "seconds": 0.75,
+          "startPacket": 3,
+          "prerollSeconds": 0.5,
+          "comparedSamples": 10240,
+          "maxError": 0,
+          "snr": 319.185135340085,
+          "independentResetReferenceError": 2.9802322387695312e-8
+        }
+      ],
+      "invalidFramingRejected": true,
+      "groupedPacketRejected": true,
+      "malformedExtraRejected": true,
+      "oldABIRejectsWMA": true,
+      "abort": true,
+      "truncatedPacketRejected": true
+    }
+  ]
+}

@@ -39,6 +39,7 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: node --test tests/codec-expansion-ci-contracts.mjs tests/provider-opus-roll.mjs
+      - run: node --test tests/provider-conformance/*-contracts.mjs
       - run: python3 tests/codec-expansion-extract.py
       - name: Download reviewed native packages, corresponding source and references
         env:
@@ -52,6 +53,8 @@ jobs:
             build/codec-expansion-ci-download/codec-expansion-ci-inputs.tar.gz "$CODEC_EXPANSION_INPUTS"
       - name: Verify exact inputs, audit packages and install selective bundles
         run: node scripts/codec-expansion-ci.mjs prepare "$CODEC_EXPANSION_INPUTS"
+      - name: Conform every declared installed provider offer
+        run: node scripts/test-codec-expansion-providers.mjs
       - name: Qualify packet decoding, compositions, seeking and silence rejection
         run: node tests/codec-expansion-ci.mjs
       - uses: actions/upload-artifact@v4
@@ -59,6 +62,8 @@ jobs:
         with:
           name: codec-expansion-${{ matrix.browser }}
           path: |
+            build/codec-expansion/provider-conformance-*/qualification.json
+            build/codec-expansion/provider-conformance-*/contracts/report.json
             build/codec-expansion/ci-*/qualification.json
             build/codec-expansion/browser/results.json
             build/codec-expansion/consumer-*/bundles/*/bundle-manifest.json

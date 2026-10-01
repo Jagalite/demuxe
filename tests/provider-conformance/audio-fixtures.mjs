@@ -3,9 +3,11 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {fixtureMatches} from './registry.mjs';
 import {packetTrimMetadata} from './audio-decoder.mjs';
 const exec = promisify(execFile);
-const integerCodecs = new Set(['truehd', 'mlp', 'dts-hd', 'flac', 'alac', 'pcm-s16le', 'pcm-s24le', 'pcm-s32le']);
+const integerCodecs = new Set(['truehd', 'mlp', 'dts-hd', 'flac', 'alac', 'pcm-s16le', 'pcm-s24le', 'pcm-s32le','pcm-u8','pcm-s8']);
 
 export function decodeProbeHex(value = '') {
   const hex = value.split('\n').filter(line => line.includes(':')).map(line => line.slice(line.indexOf(':') + 1).split('  ')[0].replaceAll(' ', '')).join('');
@@ -65,8 +67,11 @@ export async function prepareAudioTimingReference(descriptor) {
 /** Creates native reference PCM and packet data from an existing media input. */
 export async function prepareAudioFixture(descriptor, outputDirectory) {
   if (!descriptor || !/^[a-zA-Z0-9._-]+$/.test(descriptor.id) || !path.isAbsolute(descriptor.input ?? '')) throw Error('Fixture needs a safe id and absolute input path');
+  if ((['adpcm-ima-qt','adpcm-g726','adpcm-g726le'].includes(descriptor.codec)||(['he','he-v2','usac'].includes(descriptor.aacProfile)||descriptor.decoderProfile==='lc-pce8-44100'))&&!descriptor.packetFile)throw Error('Codec requires retained packet descriptor');
+  if (descriptor.packetFile&&(['adpcm-ima-qt','adpcm-g726','adpcm-g726le'].includes(descriptor.codec)||(['he','he-v2','usac'].includes(descriptor.aacProfile)||descriptor.decoderProfile==='lc-pce8-44100'))) return prepareRetainedAudioFixture(descriptor, outputDirectory);
   await mkdir(outputDirectory, {recursive: true});
-  const probe = JSON.parse((await command('ffprobe', ['-v', 'error', '-select_streams', 'a:0', '-show_streams', '-show_packets', '-show_data', '-of', 'json', descriptor.input])).stdout.toString());
+  let packetBytes;if(descriptor.packetFile){packetBytes=await readFile(descriptor.packetFile);if(createHash('sha256').update(packetBytes).digest('hex')!==descriptor.packetSHA256)throw Error('Original packet JSON changed');}
+  const probe = JSON.parse(packetBytes??(await command('ffprobe', ['-v', 'error', '-select_streams', 'a:0', '-show_streams', '-show_packets', '-show_data', '-of', 'json', descriptor.input])).stdout.toString());
   const stream = probe.streams?.[0];
   if (!stream || !probe.packets?.length) throw Error('Fixture has no audio packets');
   const sampleRate = Number(descriptor.sampleRate ?? stream.sample_rate), channels = Number(descriptor.channels ?? stream.channels);
@@ -117,4 +122,37 @@ export async function generateAudioFixture({codec, sampleRate = 48000, channels 
   args.push(input);
   await command('ffmpeg', args);
   return {id, codec, sampleRate, channels, input};
+}
+
+/** Retained packet references preserve codec packing and full decoded clocks;
+ * they never infer raw metadata or replace packet PCM with presentation PCM. */
+async function prepareRetainedAudioFixture(d, outputDirectory) {
+  if(d.codec==='aac')return prepareRetainedAacFixture(d,outputDirectory);
+  if(!fixtureMatches({capability:'audio.decode.'+d.codec,version:1,profile:'configured-integer'},d)||!['adpcm-ima-qt','adpcm-g726','adpcm-g726le'].includes(d.codec))throw Error('Invalid retained finite codec descriptor');
+  const hash=b=>createHash('sha256').update(b).digest('hex');
+  const pinned=async(file,digest)=>{if(!path.isAbsolute(file??'')||!/^[a-f0-9]{64}$/.test(digest??''))throw Error('Retained fixture needs absolute paths and SHA256');const b=await readFile(file);if(hash(b)!==digest)throw Error('Retained fixture SHA256 mismatch');return b;};
+  await pinned(d.input,d.inputSHA256);
+  const probe=JSON.parse(await pinned(d.packetFile,d.packetSHA256));
+  const reference=typed(await pinned(d.reference,d.referenceF32SHA256),Float32Array),integerReference=typed(await pinned(d.integerReference,d.referenceSHA256),Int32Array);
+  if(!Number.isSafeInteger(d.referenceSamples)||d.referenceSamples<=0||reference.length!==d.referenceSamples*d.channels||integerReference.length!==reference.length)throw Error('Retained reference extent mismatch');
+  const fixture={...d,extradata:decodeProbeHex(probe.streams?.[0]?.extradata)};
+  const packets=probe.packets.map(p=>({data:decodeProbeHex(p.data),pts:Math.round(Number(p.pts_time)*d.sampleRate)}));
+  let clock=0;const segments=[];
+  for(const p of packets){const samples=d.codec==='adpcm-ima-qt'?64:p.data.length*8/d.bitsPerSample;if(!Number.isSafeInteger(samples)||samples<=0||p.pts!==clock||d.codec==='adpcm-ima-qt'&&p.data.length!==34*d.channels)throw Error('Retained original packet framing/clock mismatch');segments.push({pts:clock,samples});clock+=samples;}
+  if(clock!==d.referenceSamples)throw Error('Retained full packet extent mismatch');
+  await mkdir(outputDirectory,{recursive:true});
+  return {input:d.input,fixture,packets,reference,integerReference,timingReference:{segments,toleranceSamples:0},skipSamples:0,discardSamples:0};
+}
+
+async function prepareRetainedAacFixture(d,outputDirectory){
+  const profile=d.decoderProfile??{he:'he-stereo48','he-v2':'he-v2-stereo44100',usac:'usac-mono48'}[d.aacProfile];
+  if(!['he-stereo48','he-v2-stereo44100','usac-mono48','he-configured-float','he-v2-stereo32','usac-stereo-configured','lc-pce8-44100'].includes(profile)||!fixtureMatches({capability:'audio.decode.aac',version:1,profile},d))throw Error('Invalid retained AAC extension');
+  const pinned=async(file,digest)=>{if(!path.isAbsolute(file??'')||!/^[a-f0-9]{64}$/.test(digest??''))throw Error('AAC extension requires pinned native timing/packet/reference paths');const b=await readFile(file);if(createHash('sha256').update(b).digest('hex')!==digest)throw Error('AAC retained SHA256 mismatch');return b;};
+  await pinned(d.input,d.inputSHA256);const probe=JSON.parse(await pinned(d.packetFile,d.packetSHA256)),reference=typed(await pinned(d.reference,d.referenceF32SHA256),Float32Array),timingReference=JSON.parse(await pinned(d.timingFile,d.timingSHA256));
+  if(!Number.isSafeInteger(d.referenceSamples)||reference.length!==d.referenceSamples*d.channels)throw Error('AAC original presentation extent mismatch');
+  if(![d.initialSkipSamples,d.finalDiscardSamples].every(n=>Number.isSafeInteger(n)&&n>=0)||d.aacProfile==='usac'&&d.initialSkipSamples!==(d.sampleRate===88200?2323:2220))throw Error('AAC explicit priming/final trim missing');
+  const stream=probe.streams?.find(s=>s.codec_type==='audio')??probe.streams?.[0],extradata=decodeProbeHex(stream?.extradata),packets=probe.packets.filter(p=>stream.index===undefined||p.stream_index===stream.index).map(p=>({data:decodeProbeHex(p.data),pts:Math.round(Number(p.pts_time)*d.sampleRate)}));
+  if(d.ascHex&&Buffer.from(extradata).toString('hex')!==d.ascHex)throw Error('AAC retained ASC differs from original packet stream');
+  if(timingReference.toleranceSamples!==0)throw Error('AAC retained timing must use exact sample clock');
+  await mkdir(outputDirectory,{recursive:true});return {input:d.input,fixture:{...d,extradata},packets,reference,timingReference,skipSamples:d.initialSkipSamples,discardSamples:d.finalDiscardSamples};
 }

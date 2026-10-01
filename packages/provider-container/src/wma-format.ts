@@ -9,7 +9,7 @@ export function parseWmaFormat(bytes:Uint8Array,rate:number|undefined,channels:n
  // FFmpeg Matroska reports decoded float precision (32) while the
  // WAVEFORMATEX coded sample width is 16 for these WMA profiles.
  const count=v.getUint16(2,true),sampleRate=v.getUint32(4,true),bitRate=v.getUint32(8,true)*8,blockAlign=v.getUint16(12,true),width=v.getUint16(14,true),extra=v.getUint16(16,true);
- if(extra!==(tag===0x160?4:10)||bytes.length!==18+extra||![44100,48000].includes(sampleRate)||![1,2].includes(count)
+ if(extra!==(tag===0x160?4:10)||bytes.length!==18+extra||![8000,16000,22050,32000,44100,48000].includes(sampleRate)||![1,2].includes(count)
   ||rate!==sampleRate||channels!==count||width!==16||(bits!==undefined&&bits!==16&&bits!==32)||!blockAlign||!bitRate||bitRate>10000000)return fail();
  return {codec:tag===0x160?'wmav1':'wmav2',configuration:{sampleRate,channels:count,bitsPerSample:width,bitRate,blockAlign,extradata:bytes.slice(18)}};
 }
