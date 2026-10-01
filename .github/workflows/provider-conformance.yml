@@ -9,6 +9,9 @@ on:
       - 'tests/codec-expansion-page.mjs'
       - 'tests/codec-expansion-browser.mjs'
       - 'scripts/test-providers.mjs'
+      - 'scripts/build-ci-reference.py'
+      - '.github/actions/reference-tools/**'
+      - 'sources.lock.json'
       - 'scripts/compile-component-providers.mjs'
       - 'src/internal/execution-capabilities.ts'
       - 'licensing/provider-packages.json'
@@ -31,6 +34,9 @@ on:
       - 'tests/codec-expansion-page.mjs'
       - 'tests/codec-expansion-browser.mjs'
       - 'scripts/test-providers.mjs'
+      - 'scripts/build-ci-reference.py'
+      - '.github/actions/reference-tools/**'
+      - 'sources.lock.json'
       - 'scripts/compile-component-providers.mjs'
       - 'src/internal/execution-capabilities.ts'
       - 'licensing/provider-packages.json'
@@ -50,7 +56,7 @@ permissions:
 jobs:
   conformance:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,8 +67,8 @@ jobs:
           cache: npm
       - name: Install test dependencies
         run: npm ci --ignore-scripts
-      - name: Install independent reference decoders
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Build pinned independent reference tools
+        uses: ./.github/actions/reference-tools
       - name: Run contracts and installed provider checks
         run: npm run test:provider-harness
       - uses: actions/upload-artifact@v4
@@ -71,4 +77,5 @@ jobs:
           name: provider-conformance-reports
           path: |
             build/provider-conformance*/**/*.json
+            ${{ runner.temp }}/demuxe-reference-tools/reference-tools.json
           if-no-files-found: warn

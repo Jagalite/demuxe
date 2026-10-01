@@ -41,6 +41,15 @@ the actual tested output. The packaged core and maintained qualification registr
 are not changed by this admission. Candidate packages must not be treated as
 release-qualified merely because compilation or this bounded browser matrix passes.
 
+## Independent reference tools
+
+Provider conformance and pinned codec/WebM workflows build their host FFmpeg and
+ffprobe from the locked FFmpeg source. Ubuntu's older system ffprobe normalized
+mutated AAC fragment durations to 1,024 samples, defeating duration-corruption
+controls. The pinned tools retain those controls without widening tolerances or
+skipping failures. Version and binary hashes are recorded. Host x264 and other
+fixture/reference libraries remain test tools, outside provider runtime packages.
+
 ## Maintenance
 
 Add a tested slice deliberately to `licensing/ci-slices.json`, with an exact
