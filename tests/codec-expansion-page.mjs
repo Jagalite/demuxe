@@ -40,9 +40,23 @@ function packetMetrics(actual,reference,voice,speech=false){
 const telephonyCodecs=new Set(['pcm-u8','pcm-s8','pcm-alaw','pcm-mulaw','gsm','gsm-ms']);
 const adpcmCodecs=new Set(['adpcm-ms','adpcm-ima-wav']);
 function packetPts(f,p){if(f.codec==='shorten'){assert(p.pts===undefined&&p.pts_time===undefined,'Shorten source chunks must not invent packet PTS');return 0;}return Math.round(Number(p.pts_time)*f.sampleRate);}
+// Extended finite profiles retain their dedicated framing, clock and rejection gates.
+function usesSharedPacketChecks(f){
+ return ['aac','opus-vorbis','lossless','mp3','pcm'].includes(f.profile)&&f.sampleRate===48000&&f.channels===2&&!f.aacProfile&&!f.expectedRejection&&!f.expectedDecodeRejection&&['aac','opus','vorbis','flac','alac','mp3','pcm-s16le','pcm-s24le','pcm-s32le','pcm-f32le','pcm-f64le'].includes(f.codec);
+}
 async function packet(api,base,f){
  const qualification=packetQualification(f);
  const data=await(await fetch('/fixtures/'+f.id+'.json')).json(),stream=data.streams[0];
+ if(usesSharedPacketChecks(f)){
+  const {runAudioDecoderChecks,packetTrimMetadata}=await import('./provider-conformance/audio-decoder.mjs');
+  const module=await api.loadTestModule(base,f.profile),extradata=unhex(stream.extradata);
+  const reference=new Float32Array(await(await fetch('/fixtures/'+f.id+'.f32')).arrayBuffer());
+  const integerReference=integerCodecs.has(f.codec)?new Int32Array(await(await fetch('/fixtures/'+f.id+'.s32')).arrayBuffer()):undefined;
+  const doubleReference=f.codec==='pcm-f64le'?new Float64Array(await(await fetch('/fixtures/'+f.id+'.f64')).arrayBuffer()):undefined;
+  const response=await fetch('/timing/'+encodeURIComponent(f.id));assert(response.ok,'native timing reference unavailable');
+  return runAudioDecoderChecks({createDecoder:(_,signal)=>new api.PacketAudioDecoder(module,f.codec,signal,{sampleRate:f.sampleRate,channels:f.channels,bitsPerSample:f.bitsPerSample,extradata}),fixture:{...f,extradata},packets:data.packets.map(p=>({data:unhex(p.data),pts:packetPts(f,p)})),reference,timingReference:await response.json(),integerReference,doubleReference,...packetTrimMetadata(f.codec,extradata,data.packets)});
+ }
+
  const module=await api.loadTestModule(base,f.profile),abort=new AbortController();
  let decoder;
  try{

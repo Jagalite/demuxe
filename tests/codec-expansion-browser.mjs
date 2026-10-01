@@ -6,6 +6,7 @@ import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import {prepareAudioTimingReference} from './provider-conformance/audio-fixtures.mjs';
 const root=process.cwd(),home=path.resolve('build/codec-expansion');
 const installed=JSON.parse(await readFile(home+'/installed.json'));
 const rawG726Options=f=>{if(f?.container!=='raw-g726')return [];assert.ok(f.profile==='g726'&&['adpcm-g726','adpcm-g726le'].includes(f.codec)&&f.sampleRate===8000&&f.channels===1&&[2,3,4,5].includes(f.bitsPerSample)&&f.bitOrder===(f.codec==='adpcm-g726'?'most-significant-first':'least-significant-first')&&f.originPackingQualified===true,'Invalid explicit host G726 source metadata');return ['-f',f.codec==='adpcm-g726le'?'g726le':'g726','-code_size',String(f.bitsPerSample),'-sample_rate','8000'];};
@@ -22,6 +23,11 @@ const server=createServer(async(req,res)=>{
   if(name==='/result'){
    const chunks=[];for await(const c of req)chunks.push(c);const result=JSON.parse(Buffer.concat(chunks));
    await writeFile(out+'/results.json',JSON.stringify({...result,installed,requests},null,2)+'\n');res.end('saved');console.log('Browser matrix',result.passed,result.results.length,result.error??'');return;
+  }
+  if(name.startsWith('/timing/')){
+   const f=fixtures.find(f=>f.id===name.slice('/timing/'.length));assert.ok(f);
+   res.setHeader('Content-Type','application/json');
+   res.end(JSON.stringify(await prepareAudioTimingReference({...f,input:path.resolve(f.input)})));return;
   }
   if(name==='/validate'){
    const f=fixtures.find(f=>f.id===url.searchParams.get('id'));assert.ok(f);const encoding=url.searchParams.get('encoding');assert.ok(['flac','opus'].includes(encoding));
@@ -45,6 +51,7 @@ const server=createServer(async(req,res)=>{
   }
   let file;
   if(name==='/page.mjs')file=root+'/tests/codec-expansion-page.mjs';
+  else if(name==='/provider-conformance/audio-decoder.mjs')file=root+'/tests/provider-conformance/audio-decoder.mjs';
   else if(name==='/cases.json')file=installed.work+'/cases.json';
   else if(name.startsWith('/fixtures/')){
    const relative=name.slice(10);const f=fixtures.find(f=>['json','mkv','mov','mp4','wav','aiff','ogg','opus','oga','mp1','mp2','wma','ape','wv','tta','tak','shn','gsm','g726','g726le','thd','mlp','dts','f32','s32','f64'].some(ext=>relative===f.id+'.'+ext));assert.ok(f);file=path.join(f.fixtureRoot??home+'/decoder-fixtures',relative);
