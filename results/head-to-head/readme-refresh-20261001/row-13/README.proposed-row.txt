@@ -1,0 +1,1 @@
+| H.264 + DTS core stereo / MKV | 🔴 (Fail) | 🟢 (Pass) · 18.2% CPU | 🟢 (Pass) · 18.1% CPU · forced-remux ref | 🟢 (Pass) · 18.4% CPU · forced-remux ref | 🟢 (Pass) · 36.9% CPU | 🔴 (Fail) | 🟢 (Pass) · 37.8% CPU | 🟡 Screened · 35.5% CPU | 🔴 (Fail) |
