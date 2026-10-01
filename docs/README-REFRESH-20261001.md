@@ -761,3 +761,37 @@ Bounded marked-output and lifecycle correctness; CPU only for exact matching ass
 | hybrid-asyncify | 🔴 (Fail) | hybrid-private; Error: Seek output: displayed timeline marker incorrect |
 | software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
 | software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+#### Seek failure diagnostic
+
+Nonisolated Hybrid Asyncify failed `seek-6` with the recurring retained-frame budget signature: red output (`[252, 1, 0]`) instead of blue at position 6.139 seconds, retained-frame peak 16, one mailbox error (`Retained presentation frame budget`), and an inactive browser decoder. Audio output remained healthy. The paired JSPI case passed all three seeks with peak 13 and no mailbox errors. This supports a shared presentation-queue failure across runtimes; it does not establish the exact trigger or a DTS-specific cause.
+
+Failed result SHA-256: `ce8e2e7396302263ddb66a37cc0a3fed6839c68da94093fae6c00e8a4289003e`. Local diagnostic: `build/readme-refresh-20261001/row25-seek-analysis.json`, SHA-256 `ebf0b6240f76b14ae1df58bb0aadd0b96965f63b5598b44ae3ece461448d22ec`. No runtime changes or replacement results were introduced.
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 26: AV1 8-bit + AAC / MP4
+
+Browser: chromium/153.0.8010.53/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-26/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 13.7% CPU | native-direct; Bounded playback checks passed |
+| jspi | 🟢 (Pass) · 14.9% CPU · forced-remux ref | native-remux; Bounded playback checks passed |
+| asyncify | 🟢 (Pass) · 14.9% CPU · forced-remux ref | native-remux; Bounded playback checks passed |
+| software | 🟢 (Pass) · 33.8% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |

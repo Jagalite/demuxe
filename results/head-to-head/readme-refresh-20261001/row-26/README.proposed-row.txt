@@ -1,0 +1,1 @@
+| AV1 8-bit + AAC / MP4 | 🟢 (Pass) · 13.6% CPU | 🟢 (Pass) · 13.7% CPU | 🟢 (Pass) · 14.9% CPU · forced-remux ref | 🟢 (Pass) · 14.9% CPU · forced-remux ref | 🟢 (Pass) · 33.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 37.2% CPU | 🟡 Screened · 33.5% CPU | 🟢 (Pass) · 21.8% CPU |
