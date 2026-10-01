@@ -1,0 +1,1 @@
+| H.264 + MP3 stereo / MP4 | 🟢 (Pass) · 13.3% CPU | 🟢 (Pass) · 13.5% CPU | 🟢 (Pass) · 17.7% CPU · forced-remux ref | 🟢 (Pass) · 17.2% CPU · forced-remux ref | 🟢 (Pass) · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 34.2% CPU | 🟡 Screened · 34.7% CPU | 🟢 (Pass) · 9.0% CPU |
