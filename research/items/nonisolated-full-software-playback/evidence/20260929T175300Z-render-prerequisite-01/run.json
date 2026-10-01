@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "run_id": "20260929T175300Z-render-prerequisite-01",
+  "item_keys": [
+    "nonisolated-full-software-playback"
+  ],
+  "stage": "screen",
+  "status": "passed",
+  "working_directory": "/Volumes/seed2/Projects/demuxe",
+  "commands": [
+    "python3 research/items/nonisolated-full-software-playback/tests/build-render-probe.py --deps /Volumes/seed2/Projects/demuxe-jspi-asyncify-builds-20260927/mpv-review-deps-01 --sdk /Volumes/seed2/Projects/demuxe-release-closeout-20260916/build/emsdk-4.0.14 --out /Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/render-probe-01",
+    "node research/items/nonisolated-full-software-playback/tests/run-render-probe.mjs /Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/render-probe-01 research/items/nonisolated-full-software-playback/evidence/20260929T175300Z-render-prerequisite-01"
+  ],
+  "environment": {
+    "git_revision": "73e1ba0f47b28c8278af4a50f1630f711a43d8dd",
+    "dirty_diff_sha256": "01bb4a1c438fe0869a3a247eedb73b13e2c78b082343c9b11a4a7c3a4022ed3a",
+    "tracked_status": "tracked-status.txt",
+    "runtime_manifest": "manifest.json",
+    "browser": "153.0.8010.53",
+    "os_device": "Darwin arm64",
+    "headless": true
+  },
+  "candidate": {
+    "executed": true,
+    "execution_scope": "renderer lifecycle prerequisite only",
+    "full_playback_executed": false,
+    "fallback_observed": false
+  },
+  "acceptance": {
+    "contract": "Private RGB renderer create/black idle render/destroy/recreate under JSPI and Asyncify",
+    "baseline": "Existing native/player.c entry points and verified restricted private mpv libraries; no isolated runtime comparison",
+    "oracle": "Success statuses, valid black RGB buffer, private memory, independent Asyncify API absence, empty scheduler after destroy",
+    "adverse_control": "Zero-width render must return zero; shared-memory or JSPI leakage rejects",
+    "passed": true
+  },
+  "correctness_gate": {
+    "run_id": null,
+    "manifest_sha256": null,
+    "passed": null,
+    "reason": "Media correctness not attempted"
+  },
+  "performance": {
+    "applicable": false,
+    "reason": "No correctness-qualified media workload or performance claim"
+  },
+  "decision": {
+    "disposition": "pursue",
+    "scope": "bounded next media prototype"
+  },
+  "limits": [
+    "No media, canvas display or audio device exercised",
+    "No new performance, full playback, Firefox, Safari or release evidence",
+    "Renderer and scheduler code reused; full decoded-frame path still untested"
+  ],
+  "next_action": "Build a separate MPEG-2 private playback profile and verify video-only decode, presentation and seeks on both runtimes."
+}

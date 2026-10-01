@@ -8,7 +8,7 @@ Inventory of the 80-row README table, checked against its linked evidence notes.
 
 The [row results](README-BACKLOG-RESULTS.md) record fresh gap tests in README order. The sections below retain the initial inventory; the summary counts track the current table.
 
-Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4), following the completed rows 1–42. The row results below track subsequent completed campaigns; each completed row is committed and pushed separately.
+Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4), following the completed rows 1–42. The row results below track subsequent completed campaigns, including rows 62–80 on the frozen September 28 candidate.
 
 ### TODO: CPU withheld or follow-up required in this campaign
 
@@ -51,22 +51,100 @@ Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4
 | PCM24 audio-only / WAV | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy audio construction contract for pcm_s24… | [Evidence](../results/head-to-head/backlog-57-audio-pcm24-correctness/summary.json) |
 | PCM24 audio-only / WAV | Movi | Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement | [Evidence](../results/head-to-head/backlog-57-audio-pcm24-cpu/summary.json) |
 | HEVC + TrueHD 7.1 / MKV | Auto | Error: Presentation cadence outside declared frame budget | [Evidence](../results/head-to-head/backlog-61-hevc-truehd-screened-cpu/summary.json) |
+| HEVC + DTS-HD MA 7.1 / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-62-hevc-dtshd-correctness/summary.json) |
+| HEVC + DTS-HD MA 7.1 / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-62-hevc-dtshd-correctness/summary.json) |
+| HEVC + DTS-HD MA 7.1 / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-62-hevc-dtshd-correctness/summary.json) |
+| HEVC + DTS-HD MA 7.1 / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-62-hevc-dtshd-correctness/summary.json) |
+| HEVC + DTS-HD MA 7.1 / MKV | AVPlayer | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-62-hevc-dtshd-correctness/summary.json) |
+| HEVC + DTS-HD MA 7.1 / MKV | MediaBunny | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-62-hevc-dtshd-mediabunny-correctness/summary.json) |
+| HEVC + E-AC-3 with Atmos metadata / MP4 | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-63-hevc-atmos-correctness/summary.json) |
+| HEVC + E-AC-3 with Atmos metadata / MP4 | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-63-hevc-atmos-correctness/summary.json) |
+| HEVC + E-AC-3 with Atmos metadata / MP4 | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-63-hevc-atmos-correctness/summary.json) |
+| HEVC + E-AC-3 with Atmos metadata / MP4 | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-63-hevc-atmos-correctness/summary.json) |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-64-dv5-correctness/summary.json) |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-64-dv5-correctness/summary.json) |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-64-dv5-correctness/summary.json) |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-64-dv5-correctness/summary.json) |
+| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | AVPlayer | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-64-dv5-correctness/summary.json) |
+| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-65-dv81-correctness/summary.json) |
+| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-65-dv81-correctness/summary.json) |
+| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-65-dv81-correctness/summary.json) |
+| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-65-dv81-correctness/summary.json) |
+| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | AVPlayer | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-65-dv81-correctness/summary.json) |
+| H.264 + AAC / HLS VOD (TS segments) | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-66-hls-ts-correctness/summary.json) |
+| H.264 + AAC / HLS VOD (TS segments) | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-66-hls-ts-correctness/summary.json) |
+| H.264 + AAC / HLS VOD (fMP4 segments) | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-67-hls-fmp4-correctness/summary.json) |
+| H.264 + AAC / HLS VOD (fMP4 segments) | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-67-hls-fmp4-correctness/summary.json) |
+| HEVC + AAC / HLS VOD (fMP4 segments) | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-68-hls-hevc-correctness/summary.json) |
+| H.264 + AAC / DASH VOD (fMP4 segments) | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-69-dash-h264-correctness/summary.json) |
+| H.264 + AAC / DASH VOD (fMP4 segments) | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-69-dash-h264-correctness/summary.json) |
+| AV1 + Opus / DASH VOD (WebM segments) | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-70-dash-av1-correctness/summary.json) |
+| H.264 + AAC / HLS live (sliding window) | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-71-hls-live-correctness/summary.json) |
+| H.264 + AAC / HLS live (sliding window) | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-71-hls-live-correctness/summary.json) |
+| HEVC Main 10 + AAC / MKV | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-72-hevc10-aac-correctness/summary.json) |
+| HEVC Main 10 + AAC / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-72-hevc10-aac-correctness/summary.json) |
+| HEVC Main 10 + AAC / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-72-hevc10-aac-correctness/summary.json) |
+| HEVC Main 10 + AAC / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-72-hevc10-aac-correctness/summary.json) |
+| HEVC Main 10 + AAC / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-72-hevc10-aac-correctness/summary.json) |
+| HEVC Main 10 + AAC / MKV | MediaBunny | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-72-hevc10-aac-mediabunny-correctness/summary.json) |
+| HEVC Main 10 + FLAC / MKV | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-73-hevc10-flac-correctness/summary.json) |
+| HEVC Main 10 + FLAC / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-73-hevc10-flac-correctness/summary.json) |
+| HEVC Main 10 + FLAC / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-73-hevc10-flac-correctness/summary.json) |
+| HEVC Main 10 + FLAC / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-73-hevc10-flac-correctness/summary.json) |
+| HEVC Main 10 + FLAC / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-73-hevc10-flac-correctness/summary.json) |
+| HEVC Main 10 + FLAC / MKV | MediaBunny | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-73-hevc10-flac-mediabunny-correctness/summary.json) |
+| HEVC Main 10 + Opus / MKV | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-74-hevc10-opus-correctness/summary.json) |
+| HEVC Main 10 + Opus / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-74-hevc10-opus-correctness/summary.json) |
+| HEVC Main 10 + Opus / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-74-hevc10-opus-correctness/summary.json) |
+| HEVC Main 10 + Opus / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-74-hevc10-opus-correctness/summary.json) |
+| HEVC Main 10 + Opus / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-74-hevc10-opus-correctness/summary.json) |
+| HEVC Main 10 + Opus / MKV | MediaBunny | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-74-hevc10-opus-mediabunny-correctness/summary.json) |
+| HEVC Main 10 + FLAC + ASS / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-75-hevc10-flac-ass-correctness/summary.json) |
+| HEVC Main 10 + FLAC + ASS / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-75-hevc10-flac-ass-correctness/summary.json) |
+| HEVC Main 10 + FLAC + ASS / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-75-hevc10-flac-ass-correctness/summary.json) |
+| HEVC Main 10 + FLAC + ASS / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-75-hevc10-flac-ass-correctness/summary.json) |
+| HEVC Main 10 + Opus + ASS / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-76-hevc10-opus-ass-correctness/summary.json) |
+| HEVC Main 10 + Opus + ASS / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-76-hevc10-opus-ass-correctness/summary.json) |
+| HEVC Main 10 + Opus + ASS / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-76-hevc10-opus-ass-correctness/summary.json) |
+| HEVC Main 10 + Opus + ASS / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-76-hevc10-opus-ass-correctness/summary.json) |
+| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-77-hdr10-truehd-pgs-correctness/summary.json) |
+| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-77-hdr10-truehd-pgs-correctness/summary.json) |
+| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-77-hdr10-truehd-pgs-correctness/summary.json) |
+| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-77-hdr10-truehd-pgs-correctness/summary.json) |
+| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-78-hdr10-dtshd-pgs-correctness/summary.json) |
+| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-78-hdr10-dtshd-pgs-correctness/summary.json) |
+| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-78-hdr10-dtshd-pgs-correctness/summary.json) |
+| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-78-hdr10-dtshd-pgs-correctness/summary.json) |
+| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-79-dv5-atmos-ass-correctness/summary.json) |
+| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-79-dv5-atmos-ass-correctness/summary.json) |
+| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-79-dv5-atmos-ass-correctness/summary.json) |
+| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-79-dv5-atmos-ass-correctness/summary.json) |
+| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-80-dv81-atmos-ass-correctness/summary.json) |
+| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-80-dv81-atmos-ass-correctness/summary.json) |
+| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-80-dv81-atmos-ass-correctness/summary.json) |
+| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-80-dv81-atmos-ass-correctness/summary.json) |
 
 ## Summary
 
 | Lane | Untested | Passing/screened without published CPU | Unqualified | Failed | Partial playback |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Native | 4 | 7 | 0 | 35 | 2 |
-| Auto | 0 | 9 | 0 | 0 | 0 |
-| JSPI | 19 | 2 | 0 | 11 | 0 |
-| Asyncify | 19 | 1 | 0 | 11 | 0 |
+| Native | 0 | 7 | 0 | 39 | 2 |
+| Auto | 0 | 14 | 0 | 0 | 0 |
+| JSPI | 0 | 11 | 0 | 15 | 0 |
+| Asyncify | 0 | 10 | 0 | 15 | 0 |
 | Software | 0 | 19 | 0 | 0 | 0 |
-| Movi | 4 | 15 | 0 | 55 | 0 |
-| AVPlayer | 4 | 9 | 0 | 30 | 0 |
-| MediaBunny | 19 | 0 | 0 | 16 | 0 |
-| Video.js | 19 | 2 | 0 | 27 | 0 |
+| Movi | 0 | 15 | 0 | 59 | 0 |
+| AVPlayer | 0 | 10 | 0 | 33 | 0 |
+| MediaBunny | 0 | 4 | 0 | 25 | 0 |
+| Video.js | 0 | 9 | 0 | 39 | 0 |
 
-There are **88 untested cells** and **64 passing/screened cells without published CPU** (48 green passes and 16 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+There are **0 untested cells**, **18 N/A playlist cells**, and **99 passing/screened cells without published CPU** (43 green passes and 56 yellow screens). N/A records an inapplicable integration, not a playback pass. Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
+
+The row 62 CPU replay matched the captured correctness assets and harness but
+Chrome did not confirm the required startup hardware-key task. The rejected
+attempt supplies no publishable CPU value. Re-establish that benchmark gate
+before measuring the remaining cells; a bounded playback screen does not
+qualify the missing HDR, channel, lossless or object fidelity checks.
 
 ## 1. Requalify the four reset specialist rows
 
@@ -174,7 +252,7 @@ Asyncify, MediaBunny and Video.js cells are included in the lane totals below.
 
 ## 4. Complete missing CPU measurements
 
-The following is the complete list of 81 passing/screened cells without a numeric CPU value. A lane listed here needs evidence review and, where necessary, a fresh correctness-qualified CPU campaign. Historical numeric results elsewhere do not automatically qualify publication in this table.
+The following is the original pre-campaign list of 81 passing/screened cells without a numeric CPU value. The current count is in the summary above. A lane listed here needs evidence review and, where necessary, a fresh correctness-qualified CPU campaign. Historical numeric results elsewhere do not automatically qualify publication in this table.
 
 | Exact README row | Lanes without CPU |
 | --- | --- |

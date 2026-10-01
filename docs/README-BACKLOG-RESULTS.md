@@ -2,7 +2,15 @@
 
 # README backlog row results
 
+See [artifact retention](COMPARISON-EVIDENCE-RETENTION.md) for the committed report archive and locally retained screenshots/request traces.
+
 Rows are exercised in README order. Existing cells outside each selected gap retain their original campaigns. Video.js 8.24.1 uses its default HTML5/VHS player, local URL input, no codec plugins, and hidden controls. Its public [Player API](https://docs.videojs.com/player) drives the same bounded checks as the other maintained adapters. The pinned package URL and SHA-256 are captured in each asset manifest.
+
+All 80 rows have ordered campaign records. The 18 JSPI, Asyncify and MediaBunny
+cells across rows 66–71 are N/A by integration scope: JSPI/Asyncify columns
+measure file remux/transcode, while the pinned MediaBunny example accepts a
+local File rather than a playlist URL with segment requests. N/A is not a
+playback result. CPU and fidelity gates remain separate from row screening.
 
 Demuxe uses the frozen September 28 source candidate based on `7f4407d2` plus captured local changes; this is not a clean release qualification. Private engine additions are separately hashed. JSPI/Asyncify run without isolation headers; a direct-playback bypass exercises neither remux runtime. CPU requires matching correctness, three accepted windows, foreground, stable processes, presentation cadence and cleanup. One gated Chrome launch per row uses fresh contexts for each arm; its three rounds do not establish independent-launch reproducibility.
 
@@ -705,3 +713,242 @@ The original Video.js attempt received `application/octet-stream` because the ad
 | Asyncify | 🟡 Screened* · 23.4% CPU · forced-remux ref | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; observed routes: native-transcode; CPU rounds: 23.43%, 15.22%, 25.67%; CPU route: native-transcode |
 | Software | 🟡 Screened* · 39.6% CPU | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; CPU rounds: 38.49%, 39.59%, 39.69%; CPU route: software |
 | MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Open failed or downgraded: {"position":0,"duration":36,"frames":1,"audioStarts":0,"visible":true,"focused":true,"playerVisible":true,"errors":["Unsupported audio codec."],"audio":[{"channel":0,"rms":0,"hz":0},{"channel":1,"rms":0,"hz":0}]} |
+
+## Row 62: HEVC + DTS-HD MA 7.1 / MKV
+
+[Correctness](../results/head-to-head/backlog-62-hevc-dtshd-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-62-hevc-dtshd-mediabunny-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| Auto | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
+| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; observed routes: native-transcode |
+| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; observed routes: native-transcode |
+| Software | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
+| AVPlayer | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
+| MediaBunny | 🟡 Screened* · CPU pending | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters |
+
+## Row 63: HEVC + E-AC-3 with Atmos metadata / MP4
+
+[Correctness](../results/head-to-head/backlog-63-hevc-atmos-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-63-hevc-atmos-mediabunny-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| Auto | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
+| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; observed routes: native-transcode |
+| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; observed routes: native-transcode |
+| Software | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
+| AVPlayer | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| MediaBunny | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+
+## Row 64: Dolby Vision profile 5 HEVC + E-AC-3 / MP4
+
+[Correctness](../results/head-to-head/backlog-64-dv5-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-64-dv5-mediabunny-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| Auto | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
+| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
+| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
+| Software | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
+| AVPlayer | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
+| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Video did not change |
+
+## Row 65: Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV
+
+[Correctness](../results/head-to-head/backlog-65-dv81-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-65-dv81-mediabunny-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| Auto | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
+| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
+| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
+| Software | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
+| AVPlayer | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
+| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Video did not change |
+
+## Row 66: H.264 + AAC / HLS VOD (TS segments)
+
+[Correctness](../results/head-to-head/backlog-66-hls-ts-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
+| Software | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
+
+## Row 67: H.264 + AAC / HLS VOD (fMP4 segments)
+
+[Correctness](../results/head-to-head/backlog-67-hls-fmp4-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
+| Software | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
+
+## Row 68: HEVC + AAC / HLS VOD (fMP4 segments)
+
+[Correctness](../results/head-to-head/backlog-68-hls-hevc-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: open deadline |
+| Software | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
+
+## Row 69: H.264 + AAC / DASH VOD (fMP4 segments)
+
+[Correctness](../results/head-to-head/backlog-69-dash-h264-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
+| Software | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
+
+## Row 70: AV1 + Opus / DASH VOD (WebM segments)
+
+[Correctness](../results/head-to-head/backlog-70-dash-av1-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: open deadline |
+| Software | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
+
+## Row 71: H.264 + AAC / HLS live (sliding window)
+
+[Correctness](../results/head-to-head/backlog-71-hls-live-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
+| Software | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
+
+## Row 72: HEVC Main 10 + AAC / MKV
+
+[Correctness](../results/head-to-head/backlog-72-hevc10-aac-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-72-hevc10-aac-mediabunny-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux |
+| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux |
+| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| MediaBunny | 🟡 Screened* · CPU pending | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters |
+
+## Row 73: HEVC Main 10 + FLAC / MKV
+
+[Correctness](../results/head-to-head/backlog-73-hevc10-flac-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-73-hevc10-flac-mediabunny-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux |
+| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux |
+| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| MediaBunny | 🟡 Screened* · CPU pending | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters |
+
+## Row 74: HEVC Main 10 + Opus / MKV
+
+[Correctness](../results/head-to-head/backlog-74-hevc10-opus-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-74-hevc10-opus-mediabunny-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux |
+| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux |
+| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| MediaBunny | 🟡 Screened* · CPU pending | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters |
+
+## Row 75: HEVC Main 10 + FLAC + ASS / MKV
+
+[Correctness](../results/head-to-head/backlog-75-hevc10-flac-ass-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-75-hevc10-flac-ass-mediabunny-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
+| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux-mpv |
+| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
+| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Required subtitle drawing missing |
+
+## Row 76: HEVC Main 10 + Opus + ASS / MKV
+
+[Correctness](../results/head-to-head/backlog-76-hevc10-opus-ass-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-76-hevc10-opus-ass-mediabunny-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Video.js | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
+| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux-mpv |
+| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
+| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Required subtitle drawing missing |
+
+## Row 77: HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV
+
+[Correctness](../results/head-to-head/backlog-77-hdr10-truehd-pgs-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-77-hdr10-truehd-pgs-mediabunny-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Native | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-transcode-mpv |
+| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-transcode-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
+| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| Movi | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
+| AVPlayer | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Open failed or downgraded: {"position":0,"duration":36,"frames":1,"audioStarts":0,"visible":true,"focused":true,"playerVisible":true,"errors":["Unsupported audio codec."],"audio":[{"channel":0,"rms":0,"hz":0},{"channel":1,"rms":0,"hz":0}]} |
+
+## Row 78: HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV
+
+[Correctness](../results/head-to-head/backlog-78-hdr10-dtshd-pgs-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-78-hdr10-dtshd-pgs-mediabunny-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Native | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-transcode-mpv |
+| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-transcode-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
+| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| Movi | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
+| AVPlayer | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
+| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Required subtitle drawing missing |
+
+## Row 79: Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV
+
+[Correctness](../results/head-to-head/backlog-79-dv5-atmos-ass-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-79-dv5-atmos-ass-mediabunny-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Native | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
+| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
+| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| Movi | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
+| AVPlayer | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
+| MediaBunny | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+
+## Row 80: Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV
+
+[Correctness](../results/head-to-head/backlog-80-dv81-atmos-ass-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-80-dv81-atmos-ass-mediabunny-correctness/summary.json)
+
+| Lane | Result | Observation |
+| --- | --- | --- |
+| Native | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
+| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
+| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| Movi | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
+| AVPlayer | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
+| MediaBunny | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |

@@ -1,0 +1,788 @@
+diff --git a/docs/MEDIA-COMPONENT-IMPLEMENTATION-PLAN.md b/docs/MEDIA-COMPONENT-IMPLEMENTATION-PLAN.md
+index 0f3f5397..ae916f80 100644
+--- a/docs/MEDIA-COMPONENT-IMPLEMENTATION-PLAN.md
++++ b/docs/MEDIA-COMPONENT-IMPLEMENTATION-PLAN.md
+@@ -101,6 +101,8 @@ provides: [{capability, contractVersion, profile, implementationId, technology,
+ bindings: [{id, interfaceVersion, acquisitionGroup, availabilityProbe, runtimeRequirements, resourceLimits}]
+ build: {sourceRevision, sourceHashes, toolchain, configurationHash}
+ qualificationRefs: [evidence record identities]
++distribution: {npmPackage, packageVersion, coreCompatibility, providerContractVersion}
++licensing: {packageLicense, fileLicenseMap, notices, sourceBuildRecord}
+ ```
+ 
+ Asset lists can be empty for browser-provided execution, while any Demuxe adapter remains part of its actual application or asset build. Use browser/environment identity for native implementation evidence instead of inventing a browser engine hash. Runtime readiness and measured cost are mutable evidence kept outside the immutable manifest.
+@@ -143,6 +145,77 @@ Do not grant blanket qualification inheritance from shared source. Each physical
+ 
+ Planning impact: steps 0–1 should represent capability requirements separately from technology/delivery bindings and record only existing browser, JS and broad FFmpeg/mpv execution paths. Cost-based choice, fine/bundled builds, new packet interfaces and additional automatic bindings remain later experimental work. No public Player API or production routing changes are included in this addition.
+ 
++## Distribution and missing-provider behavior
++
++### One monorepo, independently published packages
++
++Keep core, provider adapters, engine sources/build recipes and qualification fixtures in this monorepo. Introduce independently packable workspace packages in a later distribution slice; physical source moves are not required for the initial recipe refactor. Shared source/build tooling can remain repository-local, with each publish target having an explicit file allowlist and dependency closure.
++
++| Publish target | Intended responsibility | License metadata |
++| --- | --- | --- |
++| `demuxe` | Apache core: Player/control plane, contracts, policy, generic provider loading, browser execution and admitted core-owned code | `Apache-2.0` for Demuxe core; audited per-file notices for any expressly approved third-party material |
++| `@demuxe/provider-ffmpeg` | FFmpeg-specific adapters, engine assets, build profiles and their runtime dependencies | Exact SPDX expression and per-file/component map derived from the built FFmpeg closure, including applicable LGPL components |
++| `@demuxe/provider-mpv` | mpv/FFmpeg execution, provider-specific adapters, services and runtime dependencies | Exact license expression and component map from its actual mpv/FFmpeg build; do not infer it from the package name |
++| Future TS/Wasm/third-party providers | Additional implementations and fine/bundled delivery variants | Independent artifact-specific license metadata, notices and provenance |
++
++Core must not depend on, bundle, re-export implementation code from, or auto-install optional FFmpeg/mpv providers. Providers target a versioned internal provider contract and declare compatible core versions; their npm versions can advance independently. Keep shared interfaces Apache-owned and free of provider implementation dependencies. Engine assets, native glue and provider-specific loaders stay with their owning provider even if some individual files have permissive licenses. Inventory existing generic versus provider-specific JS before extracting packages; Shaka and any other third-party assets also need explicit package ownership rather than accidental inclusion.
++
++Distribution selection is a build/deployment concern, separate from the public Player API. Installed npm packages are not browser deployment facts: a build must explicitly include/configure provider descriptors and deploy their complete asset closures. A generated deployment catalog records configured package versions, provider/contract identities, asset roots and hashes. Preserve `assetBase` for the existing layout; future package-root mappings belong to deployment metadata, not a new Player option in this task. No runtime npm discovery, silent CDN download or registry installation.
++
++### Explicit availability and rejection semantics
++
++Track provider availability separately from loaded/cache state: absent from deployment, configured but unverified, ready for acquisition, or failed validation/acquisition. Record the reason and deployment-catalog revision. Browser-native and application-bundled JS providers use the same availability model with their appropriate configuration/build evidence; they need no npm engine package.
++
++For each semantically admitted candidate, resolve only its qualified binding sets against the configured deployment and current environment:
++
++1. If no installed/configured qualified provider set can fulfill a required capability/profile, reject that candidate with `DEPLOYMENT_UNAVAILABLE`. Include the missing capability/profile and the acceptable qualified provider or complete binding requirement. An installed but unqualified or incompatible provider does not satisfy it. Distinguish those reasons from simple absence.
++2. If no composition has ever been qualified for the requested semantics, retain `QUALIFICATION_REQUIRED` or the existing source/feature rejection instead. Do not suggest that installing a package will enable an unqualified composition. A genuine media rejection remains a media rejection.
++3. Continue in the existing admitted plan order, honoring explicit mode pins and user policy. Before starting any next candidate, establish that its own provider set is available. Broad FFmpeg and full mpv are options only when actually configured, deployed, compatible and qualified; neither is an implicit resident fallback.
++4. If deployment gaps exhaust otherwise admitted recipes, return a typed deployment failure plus bounded per-candidate diagnostics. Do not turn it into `UNSUPPORTED_MEDIA`. Preserve all other rejection reasons for explanation; a terminal source/authorization/integrity/runtime error retains its existing precedence and stops fallback.
++
++Configured-but-unverified is not equivalent to absent. Validate through bounded existing discovery/acquisition mechanisms, retaining lazy downloads. A package omitted from the deployment catalog is a known deployment gap; a declared required asset that fails to load, has an invalid hash, or cannot initialize remains an asset/integrity/runtime failure under current classification. Do not relabel a 404, network failure or corrupt configured package as optional absence to enable silent fallback. Existing optional-inspection and bounded timeout/restoration exceptions remain unchanged.
++
++Example internal diagnostic:
++
++```text
++code: DEPLOYMENT_UNAVAILABLE
++planId: native-transcode
++recipeId: <qualified recipe identity>
++missing: [{capability: audio.decode.ac3, profile: <required semantic profile>,
++           acceptableBindings: [<qualified binding identities>],
++           providerPackages: [@demuxe/provider-ffmpeg], reason: not-configured}]
++deploymentRevision: <catalog identity>
++```
++
++Provider package names are actionable context, not proof that every build of that package supplies the capability. List binding groups when several providers must be installed together; do not imply that an individual package completes the recipe. Bound and redact diagnostics, excluding credentials, signed URLs and local paths. Cache deployment rejections by deployment revision and selection/configuration, separately from source compatibility evidence; do not poison `TierAttempts` with missing-provider failures.
++
++Current-code gap: `PlaybackDecisionCode`/`PlanRejectionCode` already include `DEPLOYMENT_UNAVAILABLE`, but `PlayerErrorCode` does not. `discover()` currently ends with a generic no-route error that `playerError()` can classify as `UNSUPPORTED_MEDIA`. The later distribution implementation must introduce a typed final deployment outcome and preserve its structured reasons through existing diagnostic/error plumbing. An additive public error-code declaration may be necessary and must receive consumer compatibility tests; do not implement a string-message workaround. This planning edit changes neither the public API nor current production behavior.
++
++### Machine-checkable package boundaries
++
++Extend the existing `scripts/license_policy.py`, `scripts/check-licenses.py` and `scripts/check-core-boundary.mjs` checks with independent publish-target policies. Keep distribution ownership separate from license permission: a provider-owned file must not enter core merely because its own header says Apache or MIT.
++
++- Maintain a machine-readable ownership/license map for every source, generated output, vendored dependency and shipped binary. Record target package, SPDX expression, provenance and required notices/source/build records. Unknown ownership/license fails packaging; generated outputs inherit audited input closure, not a newly stamped license claim.
++- Build each target into a fresh staging directory using positive file allowlists. Reject paths/symlinks escaping the declared inputs, workspace imports into provider implementation from core, hidden optional-install scripts, provider dependencies in the core install closure, and cross-package source-map content. No broad root `files` glob or copied runtime directory may pull engines into core.
++- Inspect bundler input metadata and dependency graphs as well as filenames: provider code can be inlined into JS, source maps or embedded binary data. Compare generated file hashes to build/provenance records and fail on undeclared inputs or changed artifacts. Wasm presence alone is not the rule; package ownership and actual license closure are.
++- Pack each package, then audit the exact npm tarball contents, `package.json` dependencies/exports/license, file license map, notices and artifact hashes. Assert that core contains no LGPL or provider-owned implementation/assets. Provider tarballs must retain their own verified notices and source/relink/build companion bindings under the existing release policy. Core metadata cannot substitute for provider metadata.
++- Install the audited tarballs into clean external consumers, rather than resolving through workspace symlinks. Verify core-only installation has no provider package/assets or implicit downloads; test each supported core/provider version pairing and reject ABI mismatches. Publish only the exact audited tarball identities.
++
++These gates enforce the repository's distribution policy and retained licensing evidence; a package-level `license` string alone is insufficient. The package split does not relabel engine code or erase existing release obligations. Do not copy provider documentation/source archives into core as an accidental consequence of monorepo packaging.
++
++### Distribution delivery and acceptance gates
++
++Keep steps 0–4 below as the existing-layout behavior-preserving migration. After that baseline, add a separate distribution slice: inventory ownership; define package manifests/compatibility and deployment catalogs; implement typed deployment rejection; build/audit separate tarballs; qualify core-only and selected-provider deployments. Full existing provider deployment must retain the same route order and behavior. Reduced deployments intentionally have fewer available candidates, with deployment-specific diagnostics.
++
++Required regression cases:
++
++- Core/browser-only playback works without requesting FFmpeg/mpv assets. An admitted recipe with no provider rejects as `DEPLOYMENT_UNAVAILABLE`, never as unsupported media.
++- FFmpeg absent with a qualified mpv plan available skips only unavailable candidates and retains admitted order. mpv absent does not start a fictitious Software fallback. Neither available yields an aggregate missing-requirement diagnostic when such recipes were otherwise admitted.
++- Installed-but-not-configured, omitted dependency closure, incompatible provider ABI, and installed-but-unqualified offers produce precise preflight reasons. Unknown configuration is not silently treated as present or absent.
++- Declared asset download/integrity/initialization failure remains terminal where it is today; no fallback regression is hidden by deployment classification. Explicit mode/source/transport constraints remain binding.
++- Updating the deployment catalog invalidates missing-provider evidence without widening qualification or reusing another provider's runtime evidence.
++- Negative package tests deliberately insert an LGPL source/Wasm, a permissively licensed provider-owned loader, bundled provider code, a leaking source map, and an undeclared generated asset into core staging. Every case must fail the tarball/boundary gate; separately verify provider notice/provenance omissions fail.
++
+ ## Delivery sequence and gates
+ 
+ ### 0. Capture the behavior baseline
+@@ -213,6 +286,8 @@ Run the build and relevant maintained suites for each implementation slice; broa
+ | Common sources or cached assets could be mistaken for qualification | Share semantic test definitions, bind evidence to actual artifacts/compositions, and use cache state only after eligibility filtering |
+ | Native or already-loaded providers could receive unjustified priority | Separate availability/readiness from measured startup and execution cost; compare qualified binding sets, retaining the baseline when evidence is insufficient |
+ | Wasm-oriented manifests could exclude browser-native or application-bundled JS execution | Keep capability, implementation technology, delivery and mutable runtime state separate; permit asset-free native offers and build-bound JS offers |
++| Missing optional providers could be mislabeled as unsupported media or assumed present for fallback | Resolve explicit deployment facts per admitted candidate; preserve typed deployment exhaustion and available-provider-only fallback |
++| Separate package names could conceal LGPL/provider code inside core bundles | Enforce ownership and license closure on inputs, generated outputs, dependency graphs and exact packed tarballs |
+ 
+ Review conclusion: proceed with steps 0–1 as the first implementation slice. The design needs no new media binary and no general graph executor. Steps 2–4 are gated behavior-preserving migrations, not permission to widen routing. Main remaining uncertainty is whether metadata consolidation materially reduces scattered construction logic; reassess after step 2 before adding more abstraction.
+ 
+@@ -221,5 +296,6 @@ Review conclusion: proceed with steps 0–1 as the first implementation slice. T
+ - [Plans and admission](../src/internal/playback-plans.ts), [selection predicates](../src/internal/selection.ts), [discovery and session ownership](../src/unified-player.ts).
+ - [Backend contract](../src/internal/backend.ts), [Native composition](../src/internal/native-player.ts), [runtime evidence and failures](../src/internal/runtime-capability.ts), [negative evidence](../src/internal/tier-policy.ts).
+ - [Runtime selection](../src/internal/remux-runtime.ts), [preparation](../src/internal/engine-preparation.ts), [runtime policy](REMUX-RUNTIME.md), [asset deployment](RUNTIME-ASSETS.md).
++- [Error normalization](../src/internal/errors.ts), [public decision/error codes](../src/types.ts), [license policy](../scripts/license_policy.py), [license checks](../scripts/check-licenses.py), [core boundary checker](../scripts/check-core-boundary.mjs), [current package assembly](../scripts/package-beta.py).
+ 
+ Document validation: source inspection and local link/whitespace checks only. Implementation parity, browser qualification and performance remain untested by this planning task.
+diff --git a/docs/README-BACKLOG-RESULTS.md b/docs/README-BACKLOG-RESULTS.md
+index ea40a8b1..ed45210e 100644
+--- a/docs/README-BACKLOG-RESULTS.md
++++ b/docs/README-BACKLOG-RESULTS.md
+@@ -4,6 +4,12 @@
+ 
+ Rows are exercised in README order. Existing cells outside each selected gap retain their original campaigns. Video.js 8.24.1 uses its default HTML5/VHS player, local URL input, no codec plugins, and hidden controls. Its public [Player API](https://docs.videojs.com/player) drives the same bounded checks as the other maintained adapters. The pinned package URL and SHA-256 are captured in each asset manifest.
+ 
++All 80 rows have ordered campaign records. The 18 JSPI, Asyncify and MediaBunny
++cells across rows 66–71 are N/A by integration scope: JSPI/Asyncify columns
++measure file remux/transcode, while the pinned MediaBunny example accepts a
++local File rather than a playlist URL with segment requests. N/A is not a
++playback result. CPU and fidelity gates remain separate from row screening.
++
+ Demuxe uses the frozen September 28 source candidate based on `7f4407d2` plus captured local changes; this is not a clean release qualification. Private engine additions are separately hashed. JSPI/Asyncify run without isolation headers; a direct-playback bypass exercises neither remux runtime. CPU requires matching correctness, three accepted windows, foreground, stable processes, presentation cadence and cleanup. One gated Chrome launch per row uses fresh contexts for each arm; its three rounds do not establish independent-launch reproducibility.
+ 
+ The forced-remux reference follow-up uses `nativeRemux: 'always'` with the requested
+@@ -705,3 +711,242 @@ The original Video.js attempt received `application/octet-stream` because the ad
+ | Asyncify | 🟡 Screened* · 23.4% CPU · forced-remux ref | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; observed routes: native-transcode; CPU rounds: 23.43%, 15.22%, 25.67%; CPU route: native-transcode |
+ | Software | 🟡 Screened* · 39.6% CPU | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; CPU rounds: 38.49%, 39.59%, 39.69%; CPU route: software |
+ | MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Open failed or downgraded: {"position":0,"duration":36,"frames":1,"audioStarts":0,"visible":true,"focused":true,"playerVisible":true,"errors":["Unsupported audio codec."],"audio":[{"channel":0,"rms":0,"hz":0},{"channel":1,"rms":0,"hz":0}]} |
++
++## Row 62: HEVC + DTS-HD MA 7.1 / MKV
++
++[Correctness](../results/head-to-head/backlog-62-hevc-dtshd-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-62-hevc-dtshd-mediabunny-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| Auto | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
++| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; observed routes: native-transcode |
++| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; observed routes: native-transcode |
++| Software | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
++| AVPlayer | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
++| MediaBunny | 🟡 Screened* · CPU pending | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters |
++
++## Row 63: HEVC + E-AC-3 with Atmos metadata / MP4
++
++[Correctness](../results/head-to-head/backlog-63-hevc-atmos-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-63-hevc-atmos-mediabunny-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| Auto | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
++| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; observed routes: native-transcode |
++| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification.; observed routes: native-transcode |
++| Software | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
++| AVPlayer | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| MediaBunny | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++
++## Row 64: Dolby Vision profile 5 HEVC + E-AC-3 / MP4
++
++[Correctness](../results/head-to-head/backlog-64-dv5-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-64-dv5-mediabunny-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| Auto | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
++| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
++| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
++| Software | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
++| AVPlayer | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
++| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Video did not change |
++
++## Row 65: Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV
++
++[Correctness](../results/head-to-head/backlog-65-dv81-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-65-dv81-mediabunny-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| Auto | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
++| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
++| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
++| Software | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
++| AVPlayer | 🟡 Screened* · CPU pending | Basic playback only; no lossless, discrete surround, Atmos objects, Dolby Vision color, tone mapping or physical HDR qualification. |
++| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Video did not change |
++
++## Row 66: H.264 + AAC / HLS VOD (TS segments)
++
++[Correctness](../results/head-to-head/backlog-66-hls-ts-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
++| Software | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
++
++## Row 67: H.264 + AAC / HLS VOD (fMP4 segments)
++
++[Correctness](../results/head-to-head/backlog-67-hls-fmp4-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
++| Software | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
++
++## Row 68: HEVC + AAC / HLS VOD (fMP4 segments)
++
++[Correctness](../results/head-to-head/backlog-68-hls-hevc-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🔴 (Fail) | Error: open deadline |
++| Software | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
++
++## Row 69: H.264 + AAC / DASH VOD (fMP4 segments)
++
++[Correctness](../results/head-to-head/backlog-69-dash-h264-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
++| Software | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
++
++## Row 70: AV1 + Opus / DASH VOD (WebM segments)
++
++[Correctness](../results/head-to-head/backlog-70-dash-av1-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🔴 (Fail) | Error: open deadline |
++| Software | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
++
++## Row 71: H.264 + AAC / HLS live (sliding window)
++
++[Correctness](../results/head-to-head/backlog-71-hls-live-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
++| Software | 🟢 (Pass) · CPU pending | All bounded playback checks passed |
++
++## Row 72: HEVC Main 10 + AAC / MKV
++
++[Correctness](../results/head-to-head/backlog-72-hevc10-aac-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-72-hevc10-aac-mediabunny-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux |
++| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux |
++| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| MediaBunny | 🟡 Screened* · CPU pending | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters |
++
++## Row 73: HEVC Main 10 + FLAC / MKV
++
++[Correctness](../results/head-to-head/backlog-73-hevc10-flac-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-73-hevc10-flac-mediabunny-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux |
++| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux |
++| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| MediaBunny | 🟡 Screened* · CPU pending | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters |
++
++## Row 74: HEVC Main 10 + Opus / MKV
++
++[Correctness](../results/head-to-head/backlog-74-hevc10-opus-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-74-hevc10-opus-mediabunny-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux |
++| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux |
++| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| MediaBunny | 🟡 Screened* · CPU pending | Published example with local File input; no library-wide compatibility claim; No playback-rate control or independently observable decoder/AudioContext teardown API; No discrete channel, lossless, spatial-audio, HDR or Dolby Vision fidelity qualification; Canvas draw submissions are not physical presentation or decoder drop counters |
++
++## Row 75: HEVC Main 10 + FLAC + ASS / MKV
++
++[Correctness](../results/head-to-head/backlog-75-hevc10-flac-ass-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-75-hevc10-flac-ass-mediabunny-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
++| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux-mpv |
++| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
++| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Required subtitle drawing missing |
++
++## Row 76: HEVC Main 10 + Opus + ASS / MKV
++
++[Correctness](../results/head-to-head/backlog-76-hevc10-opus-ass-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-76-hevc10-opus-ass-mediabunny-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Video.js | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
++| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux-mpv |
++| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-remux-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
++| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Required subtitle drawing missing |
++
++## Row 77: HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV
++
++[Correctness](../results/head-to-head/backlog-77-hdr10-truehd-pgs-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-77-hdr10-truehd-pgs-mediabunny-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Native | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-transcode-mpv |
++| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-transcode-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
++| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| Movi | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
++| AVPlayer | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Open failed or downgraded: {"position":0,"duration":36,"frames":1,"audioStarts":0,"visible":true,"focused":true,"playerVisible":true,"errors":["Unsupported audio codec."],"audio":[{"channel":0,"rms":0,"hz":0},{"channel":1,"rms":0,"hz":0}]} |
++
++## Row 78: HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV
++
++[Correctness](../results/head-to-head/backlog-78-hdr10-dtshd-pgs-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-78-hdr10-dtshd-pgs-mediabunny-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Native | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| JSPI | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-transcode-mpv |
++| Asyncify | 🟡 Screened* · CPU pending · forced-remux ref | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; observed routes: native-transcode-mpv; companion mpv uses the verified Asyncify build with JSPI APIs still available; JSPI-less companion execution is not qualified |
++| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| Movi | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
++| AVPlayer | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
++| MediaBunny | 🔴 (Fail) | AssertionError [ERR_ASSERTION]: Required subtitle drawing missing |
++
++## Row 79: Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV
++
++[Correctness](../results/head-to-head/backlog-79-dv5-atmos-ass-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-79-dv5-atmos-ass-mediabunny-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Native | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
++| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
++| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| Movi | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
++| AVPlayer | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
++| MediaBunny | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++
++## Row 80: Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV
++
++[Correctness](../results/head-to-head/backlog-80-dv81-atmos-ass-correctness/summary.json) · [Supplement 1](../results/head-to-head/backlog-80-dv81-atmos-ass-mediabunny-correctness/summary.json)
++
++| Lane | Result | Observation |
++| --- | --- | --- |
++| Native | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| Video.js | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
++| Auto | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| JSPI | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
++| Asyncify | 🔴 (Fail) · forced-remux ref | page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets |
++| Software | 🟡 Screened* · CPU pending | 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
++| Movi | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
++| AVPlayer | 🔴 (Fail) | Error: Required marked subtitle drawing missing |
++| MediaBunny | 🔴 (Fail) | page.waitForFunction: Timeout 7000ms exceeded. |
+diff --git a/docs/README-TESTING-BACKLOG.md b/docs/README-TESTING-BACKLOG.md
+index 1c2112a9..4673b1ad 100644
+--- a/docs/README-TESTING-BACKLOG.md
++++ b/docs/README-TESTING-BACKLOG.md
+@@ -8,7 +8,7 @@ Inventory of the 80-row README table, checked against its linked evidence notes.
+ 
+ The [row results](README-BACKLOG-RESULTS.md) record fresh gap tests in README order. The sections below retain the initial inventory; the summary counts track the current table.
+ 
+-Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4), following the completed rows 1–42. The row results below track subsequent completed campaigns; each completed row is committed and pushed separately.
++Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4), following the completed rows 1–42. The row results below track subsequent completed campaigns, including rows 62–80 on the frozen September 28 candidate.
+ 
+ ### TODO: CPU withheld or follow-up required in this campaign
+ 
+@@ -51,22 +51,100 @@ Resumed at the user’s request from row 43 (H.264 + AAC + external WebVTT / MP4
+ | PCM24 audio-only / WAV | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; This source policy requires controlled remux transport; mpv subtitle service requires inspected finite file subtitles and available assets; Demuxe has no packet-copy audio construction contract for pcm_s24… | [Evidence](../results/head-to-head/backlog-57-audio-pcm24-correctness/summary.json) |
+ | PCM24 audio-only / WAV | Movi | Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement; Error: Playback stalled or reached EOF during measurement | [Evidence](../results/head-to-head/backlog-57-audio-pcm24-cpu/summary.json) |
+ | HEVC + TrueHD 7.1 / MKV | Auto | Error: Presentation cadence outside declared frame budget | [Evidence](../results/head-to-head/backlog-61-hevc-truehd-screened-cpu/summary.json) |
++| HEVC + DTS-HD MA 7.1 / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-62-hevc-dtshd-correctness/summary.json) |
++| HEVC + DTS-HD MA 7.1 / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-62-hevc-dtshd-correctness/summary.json) |
++| HEVC + DTS-HD MA 7.1 / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-62-hevc-dtshd-correctness/summary.json) |
++| HEVC + DTS-HD MA 7.1 / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-62-hevc-dtshd-correctness/summary.json) |
++| HEVC + DTS-HD MA 7.1 / MKV | AVPlayer | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-62-hevc-dtshd-correctness/summary.json) |
++| HEVC + DTS-HD MA 7.1 / MKV | MediaBunny | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-62-hevc-dtshd-mediabunny-correctness/summary.json) |
++| HEVC + E-AC-3 with Atmos metadata / MP4 | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-63-hevc-atmos-correctness/summary.json) |
++| HEVC + E-AC-3 with Atmos metadata / MP4 | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-63-hevc-atmos-correctness/summary.json) |
++| HEVC + E-AC-3 with Atmos metadata / MP4 | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-63-hevc-atmos-correctness/summary.json) |
++| HEVC + E-AC-3 with Atmos metadata / MP4 | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-63-hevc-atmos-correctness/summary.json) |
++| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-64-dv5-correctness/summary.json) |
++| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-64-dv5-correctness/summary.json) |
++| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-64-dv5-correctness/summary.json) |
++| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-64-dv5-correctness/summary.json) |
++| Dolby Vision profile 5 HEVC + E-AC-3 / MP4 | AVPlayer | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-64-dv5-correctness/summary.json) |
++| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-65-dv81-correctness/summary.json) |
++| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-65-dv81-correctness/summary.json) |
++| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-65-dv81-correctness/summary.json) |
++| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-65-dv81-correctness/summary.json) |
++| Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV | AVPlayer | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-65-dv81-correctness/summary.json) |
++| H.264 + AAC / HLS VOD (TS segments) | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-66-hls-ts-correctness/summary.json) |
++| H.264 + AAC / HLS VOD (TS segments) | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-66-hls-ts-correctness/summary.json) |
++| H.264 + AAC / HLS VOD (fMP4 segments) | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-67-hls-fmp4-correctness/summary.json) |
++| H.264 + AAC / HLS VOD (fMP4 segments) | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-67-hls-fmp4-correctness/summary.json) |
++| HEVC + AAC / HLS VOD (fMP4 segments) | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-68-hls-hevc-correctness/summary.json) |
++| H.264 + AAC / DASH VOD (fMP4 segments) | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-69-dash-h264-correctness/summary.json) |
++| H.264 + AAC / DASH VOD (fMP4 segments) | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-69-dash-h264-correctness/summary.json) |
++| AV1 + Opus / DASH VOD (WebM segments) | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-70-dash-av1-correctness/summary.json) |
++| H.264 + AAC / HLS live (sliding window) | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-71-hls-live-correctness/summary.json) |
++| H.264 + AAC / HLS live (sliding window) | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-71-hls-live-correctness/summary.json) |
++| HEVC Main 10 + AAC / MKV | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-72-hevc10-aac-correctness/summary.json) |
++| HEVC Main 10 + AAC / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-72-hevc10-aac-correctness/summary.json) |
++| HEVC Main 10 + AAC / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-72-hevc10-aac-correctness/summary.json) |
++| HEVC Main 10 + AAC / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-72-hevc10-aac-correctness/summary.json) |
++| HEVC Main 10 + AAC / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-72-hevc10-aac-correctness/summary.json) |
++| HEVC Main 10 + AAC / MKV | MediaBunny | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-72-hevc10-aac-mediabunny-correctness/summary.json) |
++| HEVC Main 10 + FLAC / MKV | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-73-hevc10-flac-correctness/summary.json) |
++| HEVC Main 10 + FLAC / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-73-hevc10-flac-correctness/summary.json) |
++| HEVC Main 10 + FLAC / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-73-hevc10-flac-correctness/summary.json) |
++| HEVC Main 10 + FLAC / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-73-hevc10-flac-correctness/summary.json) |
++| HEVC Main 10 + FLAC / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-73-hevc10-flac-correctness/summary.json) |
++| HEVC Main 10 + FLAC / MKV | MediaBunny | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-73-hevc10-flac-mediabunny-correctness/summary.json) |
++| HEVC Main 10 + Opus / MKV | Video.js | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-74-hevc10-opus-correctness/summary.json) |
++| HEVC Main 10 + Opus / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-74-hevc10-opus-correctness/summary.json) |
++| HEVC Main 10 + Opus / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-74-hevc10-opus-correctness/summary.json) |
++| HEVC Main 10 + Opus / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-74-hevc10-opus-correctness/summary.json) |
++| HEVC Main 10 + Opus / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-74-hevc10-opus-correctness/summary.json) |
++| HEVC Main 10 + Opus / MKV | MediaBunny | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-74-hevc10-opus-mediabunny-correctness/summary.json) |
++| HEVC Main 10 + FLAC + ASS / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-75-hevc10-flac-ass-correctness/summary.json) |
++| HEVC Main 10 + FLAC + ASS / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-75-hevc10-flac-ass-correctness/summary.json) |
++| HEVC Main 10 + FLAC + ASS / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-75-hevc10-flac-ass-correctness/summary.json) |
++| HEVC Main 10 + FLAC + ASS / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-75-hevc10-flac-ass-correctness/summary.json) |
++| HEVC Main 10 + Opus + ASS / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-76-hevc10-opus-ass-correctness/summary.json) |
++| HEVC Main 10 + Opus + ASS / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-76-hevc10-opus-ass-correctness/summary.json) |
++| HEVC Main 10 + Opus + ASS / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-76-hevc10-opus-ass-correctness/summary.json) |
++| HEVC Main 10 + Opus + ASS / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-76-hevc10-opus-ass-correctness/summary.json) |
++| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-77-hdr10-truehd-pgs-correctness/summary.json) |
++| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-77-hdr10-truehd-pgs-correctness/summary.json) |
++| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-77-hdr10-truehd-pgs-correctness/summary.json) |
++| HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-77-hdr10-truehd-pgs-correctness/summary.json) |
++| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-78-hdr10-dtshd-pgs-correctness/summary.json) |
++| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | JSPI | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-78-hdr10-dtshd-pgs-correctness/summary.json) |
++| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | Asyncify | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-78-hdr10-dtshd-pgs-correctness/summary.json) |
++| HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-78-hdr10-dtshd-pgs-correctness/summary.json) |
++| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-79-dv5-atmos-ass-correctness/summary.json) |
++| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-79-dv5-atmos-ass-correctness/summary.json) |
++| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-79-dv5-atmos-ass-correctness/summary.json) |
++| Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-79-dv5-atmos-ass-correctness/summary.json) |
++| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | Auto | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-80-dv81-atmos-ass-correctness/summary.json) |
++| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | JSPI | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-80-dv81-atmos-ass-correctness/summary.json) |
++| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | Asyncify | CPU withheld: forced playback did not qualify; page.evaluate: PlayerError: No playback route satisfied the source: native-transcode-mpv: PlayerError: Error: FFmpeg error -1094995529: Missing HEVC parameter sets | [Evidence](../results/head-to-head/backlog-80-dv81-atmos-ass-correctness/summary.json) |
++| Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV | Software | Matching CPU campaign still required | [Evidence](../results/head-to-head/backlog-80-dv81-atmos-ass-correctness/summary.json) |
+ 
+ ## Summary
+ 
+ | Lane | Untested | Passing/screened without published CPU | Unqualified | Failed | Partial playback |
+ | --- | ---: | ---: | ---: | ---: | ---: |
+-| Native | 4 | 7 | 0 | 35 | 2 |
+-| Auto | 0 | 9 | 0 | 0 | 0 |
+-| JSPI | 19 | 2 | 0 | 11 | 0 |
+-| Asyncify | 19 | 1 | 0 | 11 | 0 |
++| Native | 0 | 7 | 0 | 39 | 2 |
++| Auto | 0 | 14 | 0 | 0 | 0 |
++| JSPI | 0 | 11 | 0 | 15 | 0 |
++| Asyncify | 0 | 10 | 0 | 15 | 0 |
+ | Software | 0 | 19 | 0 | 0 | 0 |
+-| Movi | 4 | 15 | 0 | 55 | 0 |
+-| AVPlayer | 4 | 9 | 0 | 30 | 0 |
+-| MediaBunny | 19 | 0 | 0 | 16 | 0 |
+-| Video.js | 19 | 2 | 0 | 27 | 0 |
++| Movi | 0 | 15 | 0 | 59 | 0 |
++| AVPlayer | 0 | 10 | 0 | 33 | 0 |
++| MediaBunny | 0 | 4 | 0 | 25 | 0 |
++| Video.js | 0 | 9 | 0 | 39 | 0 |
+ 
+-There are **88 untested cells** and **64 passing/screened cells without published CPU** (48 green passes and 16 yellow screens). Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
++There are **0 untested cells**, **18 N/A playlist cells**, and **99 passing/screened cells without published CPU** (43 green passes and 56 yellow screens). N/A records an inapplicable integration, not a playback pass. Withheld CPU is included in the latter count; it is not necessarily unattempted. The [TrueHD Auto row](BASE-SPECIALIST-TRUEHD-ROW.md) passed a bounded screen but its CPU was withheld after a frame-drop rejection. No Demuxe Auto or Software cell remains Untested or Unqualified.
++
++The row 62 CPU replay matched the captured correctness assets and harness but
++Chrome did not confirm the required startup hardware-key task. The rejected
++attempt supplies no publishable CPU value. Re-establish that benchmark gate
++before measuring the remaining cells; a bounded playback screen does not
++qualify the missing HDR, channel, lossless or object fidelity checks.
+ 
+ ## 1. Requalify the four reset specialist rows
+ 
+@@ -174,7 +252,7 @@ Asyncify, MediaBunny and Video.js cells are included in the lane totals below.
+ 
+ ## 4. Complete missing CPU measurements
+ 
+-The following is the complete list of 81 passing/screened cells without a numeric CPU value. A lane listed here needs evidence review and, where necessary, a fresh correctness-qualified CPU campaign. Historical numeric results elsewhere do not automatically qualify publication in this table.
++The following is the original pre-campaign list of 81 passing/screened cells without a numeric CPU value. The current count is in the summary above. A lane listed here needs evidence review and, where necessary, a fresh correctness-qualified CPU campaign. Historical numeric results elsewhere do not automatically qualify publication in this table.
+ 
+ | Exact README row | Lanes without CPU |
+ | --- | --- |
+diff --git a/scripts/tag-release.py b/scripts/tag-release.py
+index 8abd27e7..6aa49511 100644
+--- a/scripts/tag-release.py
++++ b/scripts/tag-release.py
+@@ -141,7 +141,8 @@ def adaptation():
+ 
+ def package(tag):
+     run(['python3', 'scripts/build-audio-adaptation.py', '--output', WORK / 'adaptation',
+-         '--sdk', os.environ['DEMUXE_SDK'], '--archive', ROOT / 'build/downloads/ffmpeg-adaptation.tar.gz', '--opus'])
++         '--sdk', os.environ['DEMUXE_SDK'], '--archive', ROOT / 'build/downloads/ffmpeg-adaptation.tar.gz',
++         '--transcode', '--opus'])
+     run(['python3', 'scripts/package-beta.py', '--release-tag', tag, '--output', RELEASE,
+          '--adaptation-build', adaptation()])
+ 
+diff --git a/src/internal/native-player.ts b/src/internal/native-player.ts
+index c7713094..f930ca2f 100644
+--- a/src/internal/native-player.ts
++++ b/src/internal/native-player.ts
+@@ -196,7 +196,7 @@ export class NativePlayer extends EventTarget implements Backend {
+   private expectedOutput?:{video:boolean;audio:boolean};
+   /** A paused candidate may prepare current data without presenting it. Only
+    * verifyOutput can promote this evidence to executed playback. */
+-  async verifyStartup(expected?:{video:boolean;audio:boolean}, output=false,signal?:AbortSignal) {
++  async verifyStartup(expected?:{video:boolean;audio:boolean}, output=false,signal?:AbortSignal,outputBudgetMs=10000) {
+     signal?.throwIfAborted();this.assertActive();await this.mpvSubs?.verify(signal);signal?.throwIfAborted();this.expectedOutput=expected??this.expectedOutput;
+     expected=this.expectedOutput;
+     if(this.mpvAudio)expected={...expected,video:true,audio:false};
+@@ -252,8 +252,9 @@ export class NativePlayer extends EventTarget implements Backend {
+       };
+       const timer=setTimeout(()=>{
+         const missing=v.readyState>=3&&((active.video&&!v.videoWidth)||(output&&active.audio&&(v.webkitAudioDecodedByteCount===0||v.mozHasAudio===false)));
+-        finish(missing?new PlayerError('DECODE_FAILED','Native selected track produced no decoded output'):new StartupEvidenceTimeout(output?'output':'preparation'));
+-      },10000);
++        // A scheduling trial is inconclusive; it must never poison codec admission.
++        finish(missing&&(!output||outputBudgetMs>=10000)?new PlayerError('DECODE_FAILED','Native selected track produced no decoded output'):new StartupEvidenceTimeout(output?'output':'preparation'));
++      },output?outputBudgetMs:10000);
+       const poll=setInterval(check,25);this.cancelers.add(cancel);signal?.addEventListener('abort',aborted,{once:true});
+       if(signal?.aborted){aborted();return;}
+       if(output&&typeof v.requestVideoFrameCallback==='function')frame=v.requestVideoFrameCallback(()=>{if(!finished&&!this.stopped){presented=true;check();}});
+@@ -261,7 +262,7 @@ export class NativePlayer extends EventTarget implements Backend {
+     });
+     if(output&&this.mpvAudio){try{await this.mpvAudio.verifyOutput(signal);signal?.throwIfAborted();}catch(error){signal?.throwIfAborted();throw new PlayerError('DECODE_FAILED','Selective audio runtime output was not verified: '+String(error));}this.capability.audioProgress=true;this.capability.audioEvidence='mpv-pcm-worklet-consumption';this.capability.audioEvidenceStrength='consumed';this.capability.audioDecoded=true;}
+   }
+-  async verifyOutput(signal?:AbortSignal){try{await this.verifyStartup(this.expectedOutput,true,signal);}catch(error){this.capability.outputVerified=false;throw error;}}
++  async verifyOutput(signal?:AbortSignal,outputBudgetMs=10000){try{await this.verifyStartup(this.expectedOutput,true,signal,outputBudgetMs);}catch(error){this.capability.outputVerified=false;throw error;}}
+   private preparationError(error:unknown):unknown {
+     // These are explicit media/profile rejections from the selected audio engine.
+     // Source transport, asset failures and cancellations keep their original type.
+diff --git a/src/unified-player.ts b/src/unified-player.ts
+index eaba6aa0..e0f41155 100644
+--- a/src/unified-player.ts
++++ b/src/unified-player.ts
+@@ -1303,9 +1303,9 @@ export class Player extends EventTarget {
+   private setting(action: (p: Backend) => Promise<void>, update: () => void) {
+     return this.enqueue(async () => {if (this.current) await action(this.current.backend);update();});
+   }
+-  private async playNativeVerified(backend:Backend,playing=backend.play()) {
++  private async playNativeVerified(backend:Backend,playing=backend.play(),outputBudgetMs?:number) {
+     const controller=new AbortController();
+-    const verification=(backend as Backend & {verifyOutput(signal?:AbortSignal):Promise<void>}).verifyOutput(controller.signal);
++    const verification=(backend as Backend & {verifyOutput(signal?:AbortSignal,outputBudgetMs?:number):Promise<void>}).verifyOutput(controller.signal,outputBudgetMs);
+     try{await Promise.all([playing,verification]);}
+     finally{controller.abort();await verification.catch(()=>{});}
+   }
+@@ -1317,20 +1317,36 @@ export class Player extends EventTarget {
+     const immediate=!this.destroyed&&this.queued===0&&this.current?this.current.backend.play():undefined;
+     immediate?.catch(()=>{});
+     return this.enqueue(async()=>{if(!this.current)throw Error('No source');const session=this.current;this.settings.pause=false;
++      // A local original-copy trial can yield to an already-admitted route.
++      // This is a scheduling budget, not a codec rejection or a new route.
++      const boundedTrial=this.automatic&&this.source?.kind==='local'&&this.nativeRemux!=='never'&&!trialVerified&&
++        ['direct','direct-mpv'].includes(backendPlan(session.backend)??'')&&
++        this.planDecisions?.some(plan=>plan.eligible&&!plan.id.startsWith('native-direct'));
+       try{
+         const playing=immediate??session.backend.play();
+-        if(this.mode==='native')await this.playNativeVerified(session.backend,playing);else await playing;
++        if(this.mode==='native')await this.playNativeVerified(session.backend,playing,boundedTrial?1500:undefined);else await playing;
+         this.assertOperation();if(this.current===session){const plan=this.diagnostics.plan;if(plan)this.acceptEvidence(plan.id,session);}
+       }catch(error){
+         const inconclusiveOutput=this.source?.kind==='local'&&error instanceof StartupEvidenceTimeout&&error.stage==='output';
+         if(this.automatic&&(compatibilityFailure(error)||inconclusiveOutput)&&this.source){
+           const streaming=this.failedStreamingPlan(session);
+-          const policy=this.nativeRemux,tryRemux=!streaming&&this.mode==='native'&&backendPlan(session.backend)==='direct'&&policy!=='never';
++          const policy=this.nativeRemux,tryRemux=!streaming&&this.mode==='native'&&['direct','direct-mpv'].includes(backendPlan(session.backend)??'')&&policy!=='never';
+           const plan=this.diagnostics.plan;if(plan){
+             this.runtimeCapabilities.update(plan.id,inconclusiveOutput?'prepared':'failed',this.evidence(session),String(error),inconclusiveOutput?undefined:'compatibility');
+             if(!evidenceInterrupted(error))this.tierAttempts.failure(this.source,this.tierConfiguration(this.settings),plan.id,String(error));
+           }
+-          try{if(tryRemux)this.nativeRemux='always';await this.select(this.source,this.settings,true,this.nativeTracks,streaming||tryRemux||this.mode==='native'?0:PLAYBACK_MODES.indexOf(this.mode)+1,session===trialSession&&!trialVerified?trialPosition:undefined);}finally{this.nativeRemux=policy;}
++          try{
++            if(tryRemux)this.nativeRemux='always';
++            await this.select(this.source,this.settings,true,this.nativeTracks,streaming||tryRemux||this.mode==='native'?0:PLAYBACK_MODES.indexOf(this.mode)+1,session===trialSession&&!trialVerified?trialPosition:undefined);
++          }catch(fallbackError){
++            this.assertOperation();
++            // Slow original output is not incompatibility. If replacement fails,
++            // retain the accepted source and give it the ordinary full deadline.
++            if(!boundedTrial||!inconclusiveOutput||this.current!==session||!(compatibilityFailure(fallbackError)||['ASSET_LOAD_FAILED','NETWORK_TIMEOUT','ISOLATION_REQUIRED'].includes(playerError(fallbackError).code)))throw fallbackError;
++            if(session===trialSession&&!trialVerified){await session.backend.seek(trialPosition);this.assertOperation();}
++            await this.playNativeVerified(session.backend);
++            this.assertOperation();if(plan)this.acceptEvidence(plan.id,session);
++          }finally{this.nativeRemux=policy;}
+         }
+         else {const plan=this.diagnostics.plan;if(plan&&evidenceInterrupted(error))this.runtimeCapabilities.update(plan.id,'prepared',this.evidence(session),String(error));this.settings.pause=true;await session.backend.pause().catch(()=>{});throw error;}
+       }});
+diff --git a/tests/native-readiness-contracts.mjs b/tests/native-readiness-contracts.mjs
+index c40c2590..74b40d9f 100644
+--- a/tests/native-readiness-contracts.mjs
++++ b/tests/native-readiness-contracts.mjs
+@@ -105,3 +105,41 @@ test('play rejection cancels subtitle sampling and restoration RPCs without wait
+   await service.verify();assert.equal(service.verifiedTrack,1);assert.equal(service.pending.size,0);
+  }
+ });
++
++test('short output trials remain inconclusive even with a zero audio counter',async()=>{
++ const p=candidate({webkitAudioDecodedByteCount:0,paused:false});
++ await p.verifyStartup({video:true,audio:true});
++ await assert.rejects(()=>p.verifyOutput(undefined,20),e=>e instanceof StartupEvidenceTimeout&&e.stage==='output');
++ assert.equal(p.cancelers.size,0);assert.equal(p.capability.outputVerified,false);
++});
++
++test('only automatic unverified local direct output with an admitted alternative gets a short trial',async()=>{
++ const {Player}=await import('../web/generated/unified-player.js');
++ for(const change of [{},{automatic:false},{source:{kind:'remote'}},{nativeRemux:'never'},{verified:true},{planDecisions:[]}]){
++  const p=Object.create(Player.prototype),budgets=[];
++  const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},verifyOutput:async(_signal,budget)=>{budgets.push(budget);}};
++  Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',queued:0,destroyed:false,settings:{pause:true},planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({outputVerified:!!change.verified}),assertOperation(){},acceptEvidence(){},...change});
++  Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
++  await p.play();assert.deepEqual(budgets,[Object.keys(change).length?undefined:1500]);
++ }
++});
++
++test('inconclusive local direct-mpv output preserves position and restores full verification if fallback assets fail',async()=>{
++ const {Player}=await import('../web/generated/unified-player.js');
++ const p=Object.create(Player.prototype),budgets=[],seeks=[];let selected,cached=0;
++ const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},seek:async time=>{seeks.push(time);},verifyOutput:async(_signal,budget)=>{budgets.push(budget);if(budgets.length===1)throw new StartupEvidenceTimeout('output');}};
++ Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',queued:0,destroyed:false,settings:{pause:true},nativeTracks:[],planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({prepared:true}),assertOperation(){},acceptEvidence(){},failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;assert.equal(p.nativeRemux,'always');throw new PlayerError('ASSET_LOAD_FAILED','missing fallback');}});
++ Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
++ await p.play();assert.deepEqual(seeks,[2]);assert.deepEqual(budgets,[1500,undefined]);assert.equal(selected[5],2);assert.equal(cached,0);assert.equal(p.nativeRemux,'auto');assert.equal(p.settings.pause,false);
++});
++
++test('a short trial never retries the original route after terminal fallback errors',async()=>{
++ const {Player}=await import('../web/generated/unified-player.js');
++ for(const error of [new PlayerError('SOURCE_PERMISSION','denied'),new DOMException('cancelled','AbortError'),new DOMException('activation required','NotAllowedError')]){
++  const p=Object.create(Player.prototype);let verifications=0;
++  const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},verifyOutput:async()=>{verifications++;throw new StartupEvidenceTimeout('output');}};
++  Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',queued:0,destroyed:false,settings:{pause:true},nativeTracks:[],planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({prepared:true}),assertOperation(){},failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){assert.fail('Unknown output must not poison admission');}},select:async()=>{throw error;}});
++  Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
++  await assert.rejects(()=>p.play(),e=>e===error);assert.equal(verifications,1);assert.equal(p.nativeRemux,'auto');
++ }
++});
+diff --git a/tests/tag-release.py b/tests/tag-release.py
+index fe37b1d0..ac75d59f 100644
+--- a/tests/tag-release.py
++++ b/tests/tag-release.py
+@@ -69,6 +69,19 @@ class ReleaseGuards(unittest.TestCase):
+                 pipeline.qualify('v0.3.0-beta.4')
+             run.assert_called_once_with(['python3', 'scripts/prepare-release-fixtures.py'])
+ 
++    def test_tagged_package_builds_required_preparation_profiles(self):
++        with patch.dict(pipeline.os.environ, {'DEMUXE_SDK': str(self.root / 'sdk')}), \
++             patch.object(pipeline, 'run') as run, \
++             patch.object(pipeline, 'adaptation', return_value=self.root / 'engine'):
++            pipeline.package('v0.3.0-beta.4-rc.17')
++        build, package = [call.args[0] for call in run.call_args_list]
++        self.assertEqual(build[:2], ['python3', 'scripts/build-audio-adaptation.py'])
++        self.assertIn('--transcode', build)
++        self.assertIn('--opus', build)
++        self.assertEqual(package[:2], ['python3', 'scripts/package-beta.py'])
++        self.assertIn('--release-tag', package)
++        self.assertIn('--adaptation-build', package)
++
+     def test_unqualified_archive_never_creates_release(self):
+         with patch.object(publisher.verify, 'validate', side_effect=ValueError('unqualified')), patch.object(publisher, 'gh') as gh:
+             with self.assertRaises(ValueError):
+diff --git a/web/generated/internal/native-player.d.ts b/web/generated/internal/native-player.d.ts
+index ebb6c7b7..d4510d9e 100644
+--- a/web/generated/internal/native-player.d.ts
++++ b/web/generated/internal/native-player.d.ts
+@@ -258,8 +258,8 @@ export declare class NativePlayer extends EventTarget implements Backend {
+     verifyStartup(expected?: {
+         video: boolean;
+         audio: boolean;
+-    }, output?: boolean, signal?: AbortSignal): Promise<void>;
+-    verifyOutput(signal?: AbortSignal): Promise<void>;
++    }, output?: boolean, signal?: AbortSignal, outputBudgetMs?: number): Promise<void>;
++    verifyOutput(signal?: AbortSignal, outputBudgetMs?: number): Promise<void>;
+     private preparationError;
+     private startRemux;
+     private loadPlan;
+diff --git a/web/generated/internal/native-player.js b/web/generated/internal/native-player.js
+index edf7fd77..eeeea8a2 100644
+--- a/web/generated/internal/native-player.js
++++ b/web/generated/internal/native-player.js
+@@ -247,7 +247,7 @@ export class NativePlayer extends EventTarget {
+     expectedOutput;
+     /** A paused candidate may prepare current data without presenting it. Only
+      * verifyOutput can promote this evidence to executed playback. */
+-    async verifyStartup(expected, output = false, signal) {
++    async verifyStartup(expected, output = false, signal, outputBudgetMs = 10000) {
+         signal?.throwIfAborted();
+         this.assertActive();
+         await this.mpvSubs?.verify(signal);
+@@ -353,8 +353,9 @@ export class NativePlayer extends EventTarget {
+             };
+             const timer = setTimeout(() => {
+                 const missing = v.readyState >= 3 && ((active.video && !v.videoWidth) || (output && active.audio && (v.webkitAudioDecodedByteCount === 0 || v.mozHasAudio === false)));
+-                finish(missing ? new PlayerError('DECODE_FAILED', 'Native selected track produced no decoded output') : new StartupEvidenceTimeout(output ? 'output' : 'preparation'));
+-            }, 10000);
++                // A scheduling trial is inconclusive; it must never poison codec admission.
++                finish(missing && (!output || outputBudgetMs >= 10000) ? new PlayerError('DECODE_FAILED', 'Native selected track produced no decoded output') : new StartupEvidenceTimeout(output ? 'output' : 'preparation'));
++            }, output ? outputBudgetMs : 10000);
+             const poll = setInterval(check, 25);
+             this.cancelers.add(cancel);
+             signal?.addEventListener('abort', aborted, { once: true });
+@@ -384,8 +385,8 @@ export class NativePlayer extends EventTarget {
+             this.capability.audioDecoded = true;
+         }
+     }
+-    async verifyOutput(signal) { try {
+-        await this.verifyStartup(this.expectedOutput, true, signal);
++    async verifyOutput(signal, outputBudgetMs = 10000) { try {
++        await this.verifyStartup(this.expectedOutput, true, signal, outputBudgetMs);
+     }
+     catch (error) {
+         this.capability.outputVerified = false;
+diff --git a/web/generated/unified-player.js b/web/generated/unified-player.js
+index a2e284ea..a733077b 100644
+--- a/web/generated/unified-player.js
++++ b/web/generated/unified-player.js
+@@ -1930,9 +1930,9 @@ export class Player extends EventTarget {
+         return this.enqueue(async () => { if (this.current)
+             await action(this.current.backend); update(); });
+     }
+-    async playNativeVerified(backend, playing = backend.play()) {
++    async playNativeVerified(backend, playing = backend.play(), outputBudgetMs) {
+         const controller = new AbortController();
+-        const verification = backend.verifyOutput(controller.signal);
++        const verification = backend.verifyOutput(controller.signal, outputBudgetMs);
+         try {
+             await Promise.all([playing, verification]);
+         }
+@@ -1953,10 +1953,15 @@ export class Player extends EventTarget {
+                 throw Error('No source');
+             const session = this.current;
+             this.settings.pause = false;
++            // A local original-copy trial can yield to an already-admitted route.
++            // This is a scheduling budget, not a codec rejection or a new route.
++            const boundedTrial = this.automatic && this.source?.kind === 'local' && this.nativeRemux !== 'never' && !trialVerified &&
++                ['direct', 'direct-mpv'].includes(backendPlan(session.backend) ?? '') &&
++                this.planDecisions?.some(plan => plan.eligible && !plan.id.startsWith('native-direct'));
+             try {
+                 const playing = immediate ?? session.backend.play();
+                 if (this.mode === 'native')
+-                    await this.playNativeVerified(session.backend, playing);
++                    await this.playNativeVerified(session.backend, playing, boundedTrial ? 1500 : undefined);
+                 else
+                     await playing;
+                 this.assertOperation();
+@@ -1970,7 +1975,7 @@ export class Player extends EventTarget {
+                 const inconclusiveOutput = this.source?.kind === 'local' && error instanceof StartupEvidenceTimeout && error.stage === 'output';
+                 if (this.automatic && (compatibilityFailure(error) || inconclusiveOutput) && this.source) {
+                     const streaming = this.failedStreamingPlan(session);
+-                    const policy = this.nativeRemux, tryRemux = !streaming && this.mode === 'native' && backendPlan(session.backend) === 'direct' && policy !== 'never';
++                    const policy = this.nativeRemux, tryRemux = !streaming && this.mode === 'native' && ['direct', 'direct-mpv'].includes(backendPlan(session.backend) ?? '') && policy !== 'never';
+                     const plan = this.diagnostics.plan;
+                     if (plan) {
+                         this.runtimeCapabilities.update(plan.id, inconclusiveOutput ? 'prepared' : 'failed', this.evidence(session), String(error), inconclusiveOutput ? undefined : 'compatibility');
+@@ -1982,6 +1987,21 @@ export class Player extends EventTarget {
+                             this.nativeRemux = 'always';
+                         await this.select(this.source, this.settings, true, this.nativeTracks, streaming || tryRemux || this.mode === 'native' ? 0 : PLAYBACK_MODES.indexOf(this.mode) + 1, session === trialSession && !trialVerified ? trialPosition : undefined);
+                     }
++                    catch (fallbackError) {
++                        this.assertOperation();
++                        // Slow original output is not incompatibility. If replacement fails,
++                        // retain the accepted source and give it the ordinary full deadline.
++                        if (!boundedTrial || !inconclusiveOutput || this.current !== session || !(compatibilityFailure(fallbackError) || ['ASSET_LOAD_FAILED', 'NETWORK_TIMEOUT', 'ISOLATION_REQUIRED'].includes(playerError(fallbackError).code)))
++                            throw fallbackError;
++                        if (session === trialSession && !trialVerified) {
++                            await session.backend.seek(trialPosition);
++                            this.assertOperation();
++                        }
++                        await this.playNativeVerified(session.backend);
++                        this.assertOperation();
++                        if (plan)
++                            this.acceptEvidence(plan.id, session);
++                    }
+                     finally {
+                         this.nativeRemux = policy;
+                     }

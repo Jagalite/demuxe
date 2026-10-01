@@ -14,9 +14,91 @@ files stay in the browser; the runtime never uploads them.
 qualification depend on the exact runtime archive; Chrome and Firefox have
 representative coverage, with broader browser and device support still unqualified.
 
-[Live player demo](https://jagalite.github.io/demuxe/) · [Quick start](#quick-start) · [Custom UI](#build-your-own-ui) ·
-[Deployment](#deployment-and-compatibility) · [Demo builds](docs/PAGES.md) · [Media comparison](#media-comparison) ·
-[Documentation](#documentation)
+[Live player demo](https://jagalite.github.io/demuxe/) · [Capabilities](#what-you-can-build) ·
+[Technologies](#technologies) · [Non-isolated playback](#playback-without-cross-origin-isolation) ·
+[Tested coverage](#what-has-been-tested) · [Quick start](#quick-start) ·
+[Custom UI](#build-your-own-ui) · [Deployment](#deployment-and-compatibility) ·
+[Demo builds](docs/PAGES.md) · [Media comparison](#media-comparison) · [Documentation](#documentation)
+
+## What you can build
+
+- **A complete media player or your own UI.** Use the `<demuxe-player>` web
+  component with a file queue, track selection, subtitles and keyboard controls,
+  or drive the same playback system through the `Player` API.
+- **Local-file, remote-file and streaming playback.** Open files and URLs, play
+  HLS/DASH VOD and bounded live streams, and let Demuxe select an eligible route.
+  Local media processing stays in the browser.
+- **Browser video with broader container and audio support.** Remux compatible
+  compressed packets without re-encoding video, or convert selected audio to
+  FLAC while retaining browser video decoding. Exact codec, precision and
+  container contracts determine which combinations are available.
+- **Hybrid and full software decoding.** Use WebCodecs-assisted video or
+  FFmpeg/mpv software decoding for sources that need it, including tested
+  MPEG-2, MPEG-4 Part 2 and ProRes fixtures. These modes require isolation.
+- **Text, styled and bitmap subtitles.** Qualified routes handle external and
+  embedded captions, including WebVTT, SRT, ASS/SSA, mov_text, PGS and VobSub.
+  Subtitle support is checked together with the selected audio/video route.
+- **Timeline previews and diagnostics.** Request thumbnails independently of
+  playback, pre-generate previews, inspect selected routes and runtime state,
+  and manage playback through one API. See [previews](docs/PREVIEWS.md) and the
+  [public API](docs/PUBLIC-API.md).
+- **Selectable runtime packages.** Choose codec slices, broad FFmpeg providers
+  and the atomic mpv provider; deliver separate assets or embedded runtime
+  JavaScript. Engines load on demand. See [bundling](docs/BUNDLING.md) and the
+  [slice inventory](docs/CODEC-SLICE-INVENTORY.md) for local candidate status.
+
+## Technologies
+
+| Technology | What Demuxe uses it for |
+| --- | --- |
+| HTML media elements and Media Source Extensions (MSE) | Browser decoding and presentation of original or prepared media, including packet-copy remux output. |
+| Shaka Player | HLS/DASH manifest handling and adaptive playback through the Shaka/MSE route. |
+| WebCodecs | Video decoding in Hybrid mode when the browser accepts the exact codec configuration. Hardware acceleration depends on the browser and device. |
+| FFmpeg and mpv compiled to WebAssembly | Inspection, demuxing, remuxing, selected-audio conversion, software decoding, timing and subtitle services. |
+| WebAssembly pthreads, JSPI and Asyncify | Isolated threaded engines plus qualified non-isolated file preparation and subtitle/audio services. |
+| AudioWorklet and Web Audio | PCM audio output and browser audio processing; private services transfer PCM without shared memory. |
+| WebGL2 | YUV presentation for qualified 8-bit SDR software frames, with RGB fallback for other frames. See [presentation limits](docs/SOFTWARE-YUV-PRESENTER.md). |
+| TypeScript and web components | A typed playback API, ready-made controls and application-owned interfaces. |
+
+## Playback without cross-origin isolation
+
+**Native playback, Shaka/MSE and qualified JSPI/Asyncify services work without
+COOP/COEP headers.** Non-isolated deployment can keep video decoding in the
+browser while Demuxe prepares the file or supplies subtitles and selected audio.
+
+| Capability | Without isolation | With isolation |
+| --- | --- | --- |
+| Browser-native and Shaka/MSE playback | Available, subject to browser/source support | Available |
+| Finite-file remux and qualified FLAC24 audio conversion | JSPI or Asyncify assets | Pthread by default; JSPI/Asyncify can be selected |
+| Qualified embedded and external subtitle services | Private mpv JSPI/Asyncify assets | Pthread or selected private services |
+| Browser video with private mpv PCM audio | One 48 kHz stereo PCM16 stream; can compose with subtitles | Private profile or separately qualified pthread audio routes |
+| Hybrid and full Software playback | Not available | Available with matching engines |
+
+The default `remuxRuntime: 'auto'` chooses pthread when isolated, otherwise JSPI
+when its browser APIs are present, then Asyncify. These are runtime choices;
+they do not expand codec or output guarantees. Matching assets, HTTPS/localhost,
+and applicable CORS/range permissions are still required. See
+[runtime selection](docs/REMUX-RUNTIME.md) and
+[private subtitle/audio contracts](docs/PRIVATE-MPV-PLAYER.md).
+
+## What has been tested
+
+The repository retains playback, output, seek, lifecycle and CPU evidence with
+fixture, browser and build identities. **Recorded passes apply to those exact
+combinations; they do not qualify every feature together or every newer build.**
+
+| Area | Recorded coverage and limits |
+| --- | --- |
+| Complete-file playback | The [media comparison](#media-comparison) records Auto, forced Software, JSPI and Asyncify results across video, audio, containers and subtitles, including failures and pending measurements. |
+| Non-isolated services | The [private mpv Player campaign](docs/PRIVATE-MPV-PLAYER.md) records 31 playback, 18 lifecycle and 12 route-extension passes on a frozen Chrome/macOS runtime. Selected exact-archive consumer checks also cover Firefox; the full matrix is not a Firefox/Safari qualification. |
+| HLS/DASH | [Streaming qualification](docs/STREAMING-QUALIFICATION.md) records six passing automatic-route fixtures, including bounded live HLS. Forced-route failures and long-duration limits remain documented. |
+| Modular codecs and bundles | The [slice inventory](docs/CODEC-SLICE-INVENTORY.md) separates historical package qualification, exact installed Chromium campaigns and native packet/output tests. Coverage is finite; current Firefox/Linux and release gates remain open. |
+| Browser and device coverage | Representative Chrome/macOS and selected Firefox checks exist. Safari/mobile, physical HDR and surround output, PiP/casting and broad device/performance coverage remain unqualified. |
+
+Playback success alone does not establish lossless output, discrete surround,
+Atmos object rendering or Dolby Vision/HDR fidelity. See the
+[capability reference](docs/CAPABILITIES.md) for implemented contracts and the
+[comparison evidence guide](docs/MEDIA-COMPARISON-EVIDENCE.md) for measured scope.
 
 ## Quick start
 
@@ -39,7 +121,7 @@ installed provider, including both broad builds and slices. The guide includes
 CLI and JavaScript examples, runtime cleanup and testing status. The bundler is
 currently a local package candidate and has not been published to npm.
 See the [codec slice inventory and prioritized backlog](docs/CODEC-SLICE-INVENTORY.md)
-for all 11 slices, their testing status, and the remaining codec and release work.
+for the maintained slice packages, their testing status, and the remaining codec and release work.
 
 Serve the copied directory at `/assets/demuxe/`. In your application's JavaScript
 entry point, register the player:

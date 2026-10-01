@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "key": "nonisolated-full-software-playback",
+  "title": "Full Software playback without cross-origin isolation",
+  "definition": {
+    "hypothesis": "Existing cooperative mpv can be extended to finite-file software video plus consumed-audio feedback without shared memory.",
+    "scope_contract": "Investigate and run renderer prerequisites; plan a bounded real-media Software prototype.",
+    "baseline": "Existing isolated Software with the same media; reuse verified private mpv infrastructure.",
+    "success_criteria": "See README: actual reference pictures/audio, A/V timing, seek, cancellation and cleanup; renderer screen is a narrower gate.",
+    "stop_criteria": "Unsafe reentry/scheduling, unbounded queues, or inability to satisfy the declared workload without weakening fidelity.",
+    "primary_metric": "Additional correctly qualified playback capability without isolation.",
+    "negative_control": "Shared memory forbidden; JSPI absent in Asyncify; invalid render size rejected.",
+    "effort_limit": "Source review and one two-backend renderer lifecycle prerequisite; no codec rebuild/media implementation or benchmark.",
+    "definition_source": {
+      "path": "README.md",
+      "sha256": "81affb97bd02df3a4dcb1a72ef64cb08832098d7c7db3fa3cda89df81854297d"
+    }
+  },
+  "stages": {
+    "define": {
+      "status": "passed",
+      "basis": "Source-grounded finite Software prototype contract and explicit investigation boundary.",
+      "evidence": [
+        "evidence/20260929T175300Z-render-prerequisite-01/run.json"
+      ]
+    },
+    "prepare": {
+      "status": "passed",
+      "basis": "Verified private dependencies/SDK; copied and hashed source inputs; generated two renderer prerequisite binaries. No media fixture preparation claim.",
+      "evidence": [
+        "evidence/20260929T175300Z-render-prerequisite-01/run.json"
+      ]
+    },
+    "screen": {
+      "status": "passed",
+      "basis": "Source audit and two-backend idle renderer lifecycle passed, three cycles each.",
+      "evidence": [
+        "evidence/20260929T175300Z-render-prerequisite-01/run.json"
+      ]
+    },
+    "correctness": {
+      "status": "pending",
+      "basis": "Actual media decode, canvas output, audio and A/V lifecycle untested.",
+      "evidence": []
+    },
+    "performance": {
+      "status": "pending",
+      "basis": "Requires a declared workload and passing media correctness first.",
+      "evidence": []
+    },
+    "results": {
+      "status": "passed",
+      "basis": "Commands, build records, browser outcomes, source snapshots and hashes retained.",
+      "evidence": [
+        "evidence/20260929T175300Z-render-prerequisite-01/run.json"
+      ]
+    },
+    "decision": {
+      "status": "passed",
+      "basis": "Pursue a bounded real-media private Software prototype; no production qualification.",
+      "evidence": [
+        "evidence/20260929T175300Z-render-prerequisite-01/run.json"
+      ]
+    }
+  },
+  "current_decision": {
+    "timestamp": "2026-09-29T17:58:01.640173+00:00",
+    "disposition": "pursue",
+    "evidence_level": "source review and prerequisite probe",
+    "scope": "Private Software finite-file prototype; RGB first, synchronized stereo A/V next",
+    "rationale": "Existing private mpv accepts the full native RGB renderer lifecycle; missing codec/worker/transport integration is concrete.",
+    "run_ids": [
+      "20260929T175300Z-render-prerequisite-01"
+    ],
+    "candidate_executed": true,
+    "media_executed": false,
+    "next_action": "Build a separate MPEG-2 private playback profile and verify video-only decode, presentation and seeks on both runtimes.",
+    "integration_status": "not_started",
+    "qualification_status": "not_started"
+  },
+  "next_action": "Build a separate MPEG-2 private playback profile and verify video-only decode, presentation and seeks on both runtimes.",
+  "integration": {
+    "status": "not_started"
+  },
+  "qualification": {
+    "status": "not_started",
+    "renderer_prerequisite": "passed",
+    "media": "pending"
+  }
+}
