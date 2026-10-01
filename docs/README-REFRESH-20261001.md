@@ -631,3 +631,37 @@ Bounded marked-output and lifecycle correctness; CPU only for exact matching ass
 | hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
 | software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
 | software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+#### Seek failure diagnostic
+
+The nonisolated Hybrid JSPI `seek-6` failure shows the same retained-frame budget error observed in rows 15 and 19. The sampled output was red (`[252, 1, 0]`) instead of blue at playback position 6.144 seconds. The decoder mailbox recorded `Retained presentation frame budget`, retained frames peaked at 16, and the browser decoder became inactive. One pending presentation drained (204 to 205 presented frames), but no new decoder frames arrived as the playback clock advanced. Audio output remained healthy. The paired Asyncify case passed all three seek checks with a retained-frame peak of 13 and no mailbox error. This identifies the observed failure mechanism; the exact scheduling trigger remains unproven.
+
+Failed result SHA-256: `2858b02b3665269c95880cde71caa19836785d5776103f98db8fcd12281c0f80`. Local diagnostic: `build/readme-refresh-20261001/row21-seek-analysis.json`, SHA-256 `10d5534228fc7589261568bff12f7b977b412c3dcdc4e353c24b5f013d1f06b7`. No runtime changes or replacement results were introduced.
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 22: HEVC Main 10 4:2:2 + AAC / MKV
+
+Browser: chromium/153.0.8010.53/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-22/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 16.7% CPU | native-direct; Bounded playback checks passed |
+| jspi | 🟢 (Pass) · 18.8% CPU · forced-remux ref | native-remux; Bounded playback checks passed |
+| asyncify | 🟢 (Pass) · 17.1% CPU · forced-remux ref | native-remux; Bounded playback checks passed |
+| software | 🟢 (Pass) · 37.9% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🔴 (Fail) | hybrid-private; Error: Seek output: displayed timeline marker incorrect |
+| hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
