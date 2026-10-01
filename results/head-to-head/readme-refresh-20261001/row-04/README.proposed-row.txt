@@ -1,0 +1,1 @@
+| H.264 + PCM24 / MKV | 🟢 (Pass) · 9.6% CPU | 🟢 (Pass) · 13.2% CPU | 🟢 (Pass) · 18.0% CPU · forced-remux ref | 🟢 (Pass) · 19.2% CPU · forced-remux ref | 🟢 (Pass) · 33.6% CPU | 🟢 (Pass) · CPU withheld | 🔴 (Fail) | 🟡 Screened · 32.5% CPU | 🟢 (Pass) · 17.2% CPU |
