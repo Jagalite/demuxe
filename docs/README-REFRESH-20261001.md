@@ -991,3 +991,39 @@ Bounded marked-output and lifecycle correctness; CPU only for exact matching ass
 | hybrid-asyncify | 🔴 (Fail) | page.evaluate: PlayerError: Video codec is outside the private Software playback profile |
 | software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
 | software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+#### Capability and CPU startup diagnostics
+
+Both nonisolated Hybrid runtimes rejected MPEG-2 at codec admission: the maintained Hybrid WebCodecs profile includes H.264, HEVC, VP8, VP9, and AV1. The shared error wording mentions the private Software profile, but these failures occurred in Hybrid admission. They are not retained-frame budget failures. Both forced-remux checks fell back to working `software-private` playback; that fallback does not qualify the requested remux runtime. Auto, Software, and both explicit nonisolated Software lanes passed correctness.
+
+The subsequent Auto/Software CPU block was rejected before any measured arm ran because Chrome startup readiness did not confirm the completed hardware-key task. All six scheduled rounds are preserved as failed setup attempts; no browser identity or CPU values were fabricated. Both main CPU medians remain withheld.
+
+Correctness summary SHA-256: `711845bf8d26447c6ad1d2b3578ef7cc390909b6f5aeec21f8d3d7a81f1018b0`. Local capability analysis: `build/readme-refresh-20261001/row33-mpeg2-ac3-analysis.json`, SHA-256 `4b78533d84eeb7242d656cb002b39e62680828d97e2f86269de9fdade94a5dcd`. Original CPU startup evidence is preserved in this row's compact evidence archive.
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 34: Interlaced MPEG-2 + AC-3 stereo / MPEG-TS
+
+Browser: chromium/153.0.8010.53/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-34/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 33.2% CPU | software; Bounded playback checks passed |
+| jspi | — Blocked | Error: UNQUALIFIED: requested remux runtime was not observed on software-private |
+| asyncify | — Blocked | Error: UNQUALIFIED: requested remux runtime was not observed on software-private |
+| software | 🟢 (Pass) · 32.3% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🔴 (Fail) | page.evaluate: PlayerError: Video codec is outside the private Software playback profile |
+| hybrid-asyncify | 🔴 (Fail) | page.evaluate: PlayerError: Video codec is outside the private Software playback profile |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
