@@ -4,16 +4,16 @@
   "title": "Full Software playback without cross-origin isolation",
   "definition": {
     "hypothesis": "Existing cooperative mpv can be extended to finite-file software video plus consumed-audio feedback without shared memory.",
-    "scope_contract": "Investigate and run renderer prerequisites; plan a bounded real-media Software prototype.",
+    "scope_contract": "Preserve renderer and bounded private Software/Hybrid evidence, integrate the source changes with current component providers, and qualify the exact merged core/atomic-mpv candidate.",
     "baseline": "Existing isolated Software with the same media; reuse verified private mpv infrastructure.",
     "success_criteria": "See README: actual reference pictures/audio, A/V timing, seek, cancellation and cleanup; renderer screen is a narrower gate.",
     "stop_criteria": "Unsafe reentry/scheduling, unbounded queues, or inability to satisfy the declared workload without weakening fidelity.",
     "primary_metric": "Additional correctly qualified playback capability without isolation.",
     "negative_control": "Shared memory forbidden; JSPI absent in Asyncify; invalid render size rejected.",
-    "effort_limit": "Source review and one two-backend renderer lifecycle prerequisite; no codec rebuild/media implementation or benchmark.",
+    "effort_limit": "Dedicated worktree prototype: private video build, decoded-picture/seek correctness, then synchronized stereo audio/video; no automatic public qualification.",
     "definition_source": {
       "path": "README.md",
-      "sha256": "81affb97bd02df3a4dcb1a72ef64cb08832098d7c7db3fa3cda89df81854297d"
+      "sha256": "66c665134a8972243f9dc98ff4102a05fed2a5818247805caf5cb851dceff81d"
     }
   },
   "stages": {
@@ -26,22 +26,30 @@
     },
     "prepare": {
       "status": "passed",
-      "basis": "Verified private dependencies/SDK; copied and hashed source inputs; generated two renderer prerequisite binaries. No media fixture preparation claim.",
+      "basis": "Verified fresh playback libraries and pinned SDK; static private-memory/continuation audits; independent FFmpeg references for six real README rows.",
       "evidence": [
-        "evidence/20260929T175300Z-render-prerequisite-01/run.json"
+        "evidence/20260929T225500Z-playback-build-01/run.json",
+        "evidence/20260929T224600Z-readme-suite-02/accepted-rows.json"
       ]
     },
     "screen": {
       "status": "passed",
-      "basis": "Source audit and two-backend idle renderer lifecycle passed, three cycles each.",
+      "basis": "Actual private full mpv Software host decoded all six ordinary row fixtures on JSPI and forced Asyncify without isolation.",
       "evidence": [
-        "evidence/20260929T175300Z-render-prerequisite-01/run.json"
+        "evidence/20260929T224600Z-readme-suite-02/accepted-rows.json"
       ]
     },
     "correctness": {
       "status": "pending",
-      "basis": "Actual media decode, canvas output, audio and A/V lifecycle untested.",
-      "evidence": []
+      "basis": "Historical bounded experimental/public branch results remain passed at their recorded identities. The newly merged source/core/atomic-mpv candidate requires fresh correctness/qualification gates; historical evidence below is preserved.",
+      "evidence": [
+        "evidence/20260930T030401Z-accepted-continuous-cases/result.json",
+        "evidence/20260930T025619Z-lifecycle-no-pcm-current/result.json",
+        "evidence/20260930T030002Z-backend-final-retry-suite/result.json",
+        "evidence/20260930T030229Z-configured-final-source-validation/result.json",
+        "MERGE-QUALIFICATION.md"
+      ],
+      "historical_status": "passed"
     },
     "performance": {
       "status": "pending",
@@ -50,41 +58,159 @@
     },
     "results": {
       "status": "passed",
-      "basis": "Commands, build records, browser outcomes, source snapshots and hashes retained.",
+      "basis": "Successful and failed variants retained with source snapshots, exact commands, independent references, build identities and hashed manifests.",
       "evidence": [
-        "evidence/20260929T175300Z-render-prerequisite-01/run.json"
+        "evidence/20260929T224600Z-readme-suite-02/accepted-rows.json"
       ]
     },
     "decision": {
       "status": "passed",
-      "basis": "Pursue a bounded real-media private Software prototype; no production qualification.",
+      "basis": "Pursue maintained public Software integration from the working prototype; no current public route or shipping qualification change.",
       "evidence": [
-        "evidence/20260929T175300Z-render-prerequisite-01/run.json"
+        "evidence/20260929T224600Z-readme-suite-02/accepted-rows.json"
       ]
     }
   },
   "current_decision": {
-    "timestamp": "2026-09-29T17:58:01.640173+00:00",
+    "timestamp": "2026-10-01T14:53:27.978327+00:00",
     "disposition": "pursue",
-    "evidence_level": "source review and prerequisite probe",
-    "scope": "Private Software finite-file prototype; RGB first, synchronized stereo A/V next",
-    "rationale": "Existing private mpv accepts the full native RGB renderer lifecycle; missing codec/worker/transport integration is concrete.",
+    "evidence_level": "historical renderer prerequisite and bounded incoming public/Backend results; merged qualification pending",
+    "scope": "Exact merged core/component providers and atomic mpv; retain incoming finite runtime/browser limits",
+    "rationale": "Both research histories and exact evidence records are preserved. Their source/package identities differ from the newly merged current candidate.",
     "run_ids": [
-      "20260929T175300Z-render-prerequisite-01"
+      "20260929T175300Z-render-prerequisite-01",
+      "20260930T1508-features-pcm-02"
     ],
-    "candidate_executed": true,
+    "candidate_executed": false,
     "media_executed": false,
-    "next_action": "Build a separate MPEG-2 private playback profile and verify video-only decode, presentation and seeks on both runtimes.",
-    "integration_status": "not_started",
-    "qualification_status": "not_started"
+    "integration_status": "merged_source_candidate_qualification_pending",
+    "qualification_status": "historical_bounded_passes_preserved_merged_candidate_pending",
+    "next_action": "Finish merged source/core/atomic-mpv package audits and fresh registered-offer/public Player gates; keep release and broader parity limits explicit.",
+    "historical_candidate_and_media_executed": true
   },
-  "next_action": "Build a separate MPEG-2 private playback profile and verify video-only decode, presentation and seeks on both runtimes.",
+  "next_action": "Finish merged source/core/atomic-mpv package audits and fresh registered-offer/public Player gates; keep release and broader parity limits explicit.",
   "integration": {
-    "status": "not_started"
+    "status": "merged_source_candidate_qualification_pending"
   },
   "qualification": {
-    "status": "not_started",
+    "status": "historical_bounded_passes_preserved_merged_candidate_pending",
     "renderer_prerequisite": "passed",
-    "media": "pending"
+    "media": "bounded_output_lifecycle_and_continuous_cases_passed",
+    "public_player": "bounded_chromium_software_hybrid_passed",
+    "continuous_sound_cadence": "18_bounded_accepted_cases_historical_failures_retained",
+    "accepted_backend_cases": 18,
+    "isolated_baseline": "six_rows_passed",
+    "maintained_backend": "current_controls_negative_cases_passed_three_browser_runtime_combinations",
+    "installed_lifecycle": "23_scenarios_per_runtime_passed",
+    "large_resolution": "bounded_tagged_720p_1080p_output_passed_continuous_HD_pending",
+    "exact_archive_consumer": "pending",
+    "cpu": "not_run",
+    "historical_status": "bounded_experimental_passed_public_pending",
+    "merged_current_source": "pending",
+    "production_release": "not_qualified"
+  },
+  "historical_definitions": [
+    {
+      "origin": "main-before-merge",
+      "definition": {
+        "hypothesis": "Existing cooperative mpv can be extended to finite-file software video plus consumed-audio feedback without shared memory.",
+        "scope_contract": "Investigate and run renderer prerequisites; plan a bounded real-media Software prototype.",
+        "baseline": "Existing isolated Software with the same media; reuse verified private mpv infrastructure.",
+        "success_criteria": "See README: actual reference pictures/audio, A/V timing, seek, cancellation and cleanup; renderer screen is a narrower gate.",
+        "stop_criteria": "Unsafe reentry/scheduling, unbounded queues, or inability to satisfy the declared workload without weakening fidelity.",
+        "primary_metric": "Additional correctly qualified playback capability without isolation.",
+        "negative_control": "Shared memory forbidden; JSPI absent in Asyncify; invalid render size rejected.",
+        "effort_limit": "Source review and one two-backend renderer lifecycle prerequisite; no codec rebuild/media implementation or benchmark.",
+        "definition_source": {
+          "path": "README.md",
+          "sha256": "81affb97bd02df3a4dcb1a72ef64cb08832098d7c7db3fa3cda89df81854297d"
+        }
+      },
+      "readmeSHA256": "81affb97bd02df3a4dcb1a72ef64cb08832098d7c7db3fa3cda89df81854297d"
+    },
+    {
+      "origin": "incoming-worktree-before-merge",
+      "definition": {
+        "hypothesis": "Existing cooperative mpv can be extended to finite-file software video plus consumed-audio feedback without shared memory.",
+        "scope_contract": "Implement a bounded finite-file private Software prototype on both JSPI and Asyncify.",
+        "baseline": "Existing isolated Software with the same media; reuse verified private mpv infrastructure.",
+        "success_criteria": "See README: actual reference pictures/audio, A/V timing, seek, cancellation and cleanup; renderer screen is a narrower gate.",
+        "stop_criteria": "Unsafe reentry/scheduling, unbounded queues, or inability to satisfy the declared workload without weakening fidelity.",
+        "primary_metric": "Additional correctly qualified playback capability without isolation.",
+        "negative_control": "Shared memory forbidden; JSPI absent in Asyncify; invalid render size rejected.",
+        "effort_limit": "Dedicated worktree prototype: private video build, decoded-picture/seek correctness, then synchronized stereo audio/video; no automatic public qualification.",
+        "definition_source": {
+          "path": "README.md",
+          "sha256": "677583b16c9c3fffc5d0bdb02216abfb1820574a921b55bcee36ecffe0c1ca15"
+        }
+      },
+      "readmeSHA256": "11e252da4e3ee2458d88c153065635aba238875832c700631e5b16c99d8c8c87"
+    }
+  ],
+  "historical_decisions": [
+    {
+      "origin": "main-before-merge",
+      "decision": {
+        "timestamp": "2026-09-29T17:58:01.640173+00:00",
+        "disposition": "pursue",
+        "evidence_level": "source review and prerequisite probe",
+        "scope": "Private Software finite-file prototype; RGB first, synchronized stereo A/V next",
+        "rationale": "Existing private mpv accepts the full native RGB renderer lifecycle; missing codec/worker/transport integration is concrete.",
+        "run_ids": [
+          "20260929T175300Z-render-prerequisite-01"
+        ],
+        "candidate_executed": true,
+        "media_executed": false,
+        "next_action": "Build a separate MPEG-2 private playback profile and verify video-only decode, presentation and seeks on both runtimes.",
+        "integration_status": "not_started",
+        "qualification_status": "not_started"
+      }
+    },
+    {
+      "origin": "incoming-worktree-before-merge",
+      "decision": {
+        "timestamp": "2026-09-30T15:04:56.534276+00:00",
+        "disposition": "pursue",
+        "evidence_level": "bounded public Chromium Software and Hybrid plus direct continuous Backend features",
+        "scope": "JSPI and Asyncify; original six Software fixtures and five additional codec fixtures; stereo finite source limits remain",
+        "rationale": "Public integration and full codec build work in bounded tests. Full format and feature parity, Firefox, long/large inputs, regressions and exact release consumers remain pending.",
+        "run_ids": [
+          "20260930T-public-expanded-codecs-01",
+          "20260930T-public-hybrid-contract-02",
+          "20260930T1508-features-pcm-02"
+        ],
+        "candidate_executed": true,
+        "media_executed": true,
+        "integration_status": "bounded_public_software_hybrid_implemented",
+        "qualification_status": "bounded_public_chromium_passed_full_completion_pending",
+        "next_action": "Complete source, format and public feature coverage, Firefox and exact release qualification."
+      }
+    }
+  ],
+  "merge_provenance": {
+    "sourceStages": {
+      "2": {
+        "README.md": "81affb97bd02df3a4dcb1a72ef64cb08832098d7c7db3fa3cda89df81854297d",
+        "evidence/index.json": "65d30fc25f579d4020e2e282c5e297b4fbe2be3745461ee10a84616a88f79ee2",
+        "history.jsonl": "6cd0a6bd6f4a2011e07e2adcbf35fd92394f0359ae3c505c4c47888d3e43620a",
+        "item.json": "d302992a98103c2ca350eae24549f14f8cc76285b276ead30e46ff805d0ec48b"
+      },
+      "3": {
+        "README.md": "11e252da4e3ee2458d88c153065635aba238875832c700631e5b16c99d8c8c87",
+        "evidence/index.json": "9f473f6727c6cc623c3468755e6826cd7c253b85b639a2de19d802630b16d2b4",
+        "history.jsonl": "4444e71769fc193ec56b062e8f3e6cbecc327aa0030a3b9b7b7abb3bdbba7c39",
+        "item.json": "261e28e19d0f4fa8c97944021bd4d4814cceba21b9331836a5a3e8aee8384f04"
+      }
+    },
+    "evidenceArtifacts": 2873,
+    "evidenceRuns": 148,
+    "historyPreservation": "All original JSONL records from both stages retained verbatim and deduplicated by identical original bytes; new merge decision appended.",
+    "evidence_availability": {
+      "presentInMergedCheckout": 2230,
+      "presentInRetainedIncomingWorktree": 643,
+      "unresolved": 0,
+      "hashVerification": "All2873 indexed artifacts matched original pinned SHA256 in either mergedcheckout or retained incomingworktree;643ignoredbinary references were not copied or retargeted.",
+      "retainedIncomingWorktree": "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929"
+    }
   }
 }

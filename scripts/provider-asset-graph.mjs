@@ -14,7 +14,7 @@ export function providerAssetGraph(files,computedImports=[]){
    if(ts.isCallExpression(node)&&node.expression.kind===ts.SyntaxKind.ImportKeyword){
     assert(node.arguments.length===1,'Invalid dynamic provider import');
     if(ts.isStringLiteral(node.arguments[0]))imports.push(node.arguments[0].text);
-    else assert(computedImports.includes(node.arguments[0].getText(ast)),'Unreviewed computed provider import');
+    else assert(computedImports.some(rule=>typeof rule==='string'?rule===node.arguments[0].getText(ast):rule.file===name&&rule.expression===node.arguments[0].getText(ast)),'Unreviewed computed provider import');
    }
    ts.forEachChild(node,visit);
   };visit(ast);

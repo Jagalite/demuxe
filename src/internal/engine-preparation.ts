@@ -16,13 +16,15 @@ export class EnginePreparation {
   private phases=new Map<PreparationAsset['name'],PreparationProgress['status']>();
   constructor(private base:URL,private software='engine-software-full',private changed=()=>{},private remuxRuntime:'pthread'|'jspi'|'asyncify'='pthread',private providerAssets?:ProviderRuntimeAssets){}
   private get inspectorEngine(){return 'engine-remux'+(this.remuxRuntime==='pthread'?'':'-'+this.remuxRuntime);}
+  private get cooperativePlayback(){return this.remuxRuntime!=='pthread'&&(!this.providerAssets||this.providerAssets.has?.(`web/engine-mpv-playback-${this.remuxRuntime}/player.wasm`)===true);}
+  private get softwareEngine(){return this.cooperativePlayback?'engine-mpv-playback-'+this.remuxRuntime:this.software;}
   get progress():PreparationProgress[]{return [...this.phases].map(([name,status])=>({name,status}));}
   private phase(name:PreparationAsset['name'],status:PreparationProgress['status']){if(this.controller.signal.aborted)return;this.phases.set(name,status);this.changed();}
   module(name:string){return this.modules.get(name);}
   fontCopy(){return this.font?.slice(0);}
   async readyModule(name:string){
     await this.pending.get(name==='engine-remux'?'inspector':name==='engine-hybrid'?'hybrid':'software');
-    return this.module(name==='engine-remux'?this.inspectorEngine:name);
+    return this.module(name==='engine-remux'?this.inspectorEngine:name==='engine-hybrid'&&this.cooperativePlayback?this.softwareEngine:name==='engine-software-full'||name==='engine-software-yuv'?this.softwareEngine:name);
   }
   async readyEngine(name:string){
     const [module]=await Promise.all([this.readyModule(name),this.pending.get('font')]);
@@ -44,9 +46,9 @@ export class EnginePreparation {
     const abort=()=>controller.abort();parent.addEventListener('abort',abort,{once:true});if(parent.aborted)abort();
     const timer=setTimeout(abort,15000);let bytes=0;
     try{
-      if(!globalThis.crossOriginIsolated&&!(name==='inspector'&&this.remuxRuntime!=='pthread'))throw Error('Wasm preparation requires cross-origin isolation');
+      if(!globalThis.crossOriginIsolated&&!(name==='inspector'?this.remuxRuntime!=='pthread':this.cooperativePlayback))throw Error('Wasm preparation requires cross-origin isolation');
       this.phase(name,'loading');
-      const engine=name==='inspector'?this.inspectorEngine:name==='hybrid'?'engine-hybrid':this.software;
+      const engine=name==='inspector'?this.inspectorEngine:name==='hybrid'&&!this.cooperativePlayback?'engine-hybrid':this.softwareEngine;
       const path=name==='font'?'fixtures/DejaVuSans.ttf':`web/${engine}/${name==='inspector'?'remux':'player'}.wasm`;
       let data:Uint8Array<ArrayBuffer>;
       if(this.providerAssets){data=new Uint8Array(await this.providerAssets.bytes(path));bytes=data.byteLength;}else{

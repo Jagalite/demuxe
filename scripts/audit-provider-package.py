@@ -100,9 +100,9 @@ def local_sha(path):
     return digest.hexdigest()
 
 
-def verify_corresponding_source(companion, engine, record, profile):
+def verify_corresponding_source(companion, engine, record, profile, files):
     """Inspect the companion itself, not only a self-declared archive hash."""
-    observed = {}; source_manifest = None; native_record = None; total = 0
+    observed = {}; retained = {}; source_manifest = None; native_record = None; total = 0
     with tarfile.open(local_file(companion['repositoryPath']), 'r|gz') as archive:
         for entry in archive:
             safe_path(entry.name)
@@ -113,6 +113,7 @@ def verify_corresponding_source(companion, engine, record, profile):
                 raise ValueError('Corresponding-source archive exceeds budget')
             stream=archive.extractfile(entry)
             data=stream.read();observed[entry.name]=sha(data)
+            if entry.name.startswith('demuxe/native-groups/') and entry.name.endswith('.json'):retained[entry.name[len('demuxe/'):]]=data
             if entry.name=='source-manifest.json':source_manifest=json.loads(data)
             if entry.name=='engine-build.json':native_record=json.loads(data)
     if not source_manifest or native_record!=engine:
@@ -123,6 +124,10 @@ def verify_corresponding_source(companion, engine, record, profile):
     excluded=set(profile.get('excludedSourceConfigurations', []))
     if set(source_manifest.get('excludedConfigurations',[]))!=excluded:
         raise ValueError('Unreviewed native configuration exclusion')
+    if profile.get('nativeGroupIds'):
+        from mpv_composite_source import verify_groups
+        if set(engine.get('nativeGroups',{}))!=set(profile['nativeGroupIds']):raise ValueError('Unexpected native source groups')
+        verify_groups(engine,lambda name:retained[name],{name[len('runtime/'):]:data for name,data in files.items() if name.startswith('runtime/')})
     for group,prefix in [('inputs','demuxe/'),('sdkSources','toolchain/emscripten/'),('configurations','build-materials/')]:
         for path,digest in engine[group].items():
             if group=='configurations' and path in excluded:continue
@@ -237,7 +242,7 @@ def audit(target, files, record):
             # a separate mandatory release gate, not replaced by this tarball audit.
             if local_sha(companion['repositoryPath']) != companion['sha256'] or companion != record.get('sourceCompanion'):
                 raise ValueError('Provider source companion differs')
-            verify_corresponding_source(companion, engine, record, config['profiles'][target])
+            verify_corresponding_source(companion, engine, record, config['profiles'][target], files)
         if manifest.get('package') != spec['npmName'] or manifest.get('version') != metadata['version'] or manifest.get('providerContractVersion') != 1:
             raise ValueError('Provider manifest identity/contract mismatch')
         if manifest.get('compatibleCore') != metadata.get('peerDependencies', {}).get('demuxe'):

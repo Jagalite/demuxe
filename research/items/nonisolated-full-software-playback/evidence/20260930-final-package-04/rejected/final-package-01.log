@@ -1,0 +1,81 @@
+/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/build/lgpl-closure.json
+Core dependency boundary verified (48 source/output files)
+License boundaries, SPDX headers and preserved notices verified
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/urllib/request.py", line 1319, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              encode_chunked=req.has_header('Transfer-encoding'))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/http/client.py", line 1338, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/http/client.py", line 1384, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/http/client.py", line 1333, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/http/client.py", line 1093, in _send_output
+    self.send(msg)
+    ~~~~~~~~~^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/http/client.py", line 1037, in send
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/http/client.py", line 1479, in connect
+    self.sock = self._context.wrap_socket(self.sock,
+                ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+                                          server_hostname=server_hostname)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/ssl.py", line 455, in wrap_socket
+    return self.sslsocket_class._create(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sock=sock,
+        ^^^^^^^^^^
+    ...<5 lines>...
+        session=session
+        ^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/ssl.py", line 1076, in _create
+    self.do_handshake()
+    ~~~~~~~~~~~~~~~~~^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/ssl.py", line 1372, in do_handshake
+    self._sslobj.do_handshake()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1028)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/scripts/package-beta-source.py", line 17, in <module>
+    shaka_source=ensure_source(root)
+  File "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/scripts/shaka_source.py", line 30, in ensure_source
+    with urllib.request.urlopen(pin['url'], timeout=60) as source, temporary.open('wb') as output:
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/urllib/request.py", line 189, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/urllib/request.py", line 489, in open
+    response = self._open(req, data)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/urllib/request.py", line 506, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/urllib/request.py", line 466, in _call_chain
+    result = func(*args)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/urllib/request.py", line 1367, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        context=self._context)
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/urllib/request.py", line 1322, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1028)>
+Traceback (most recent call last):
+  File "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/scripts/package-beta.py", line 50, in <module>
+    subprocess.run(['python3',str(root/'scripts/package-beta-source.py'),'--output',str(args.output),'--tag',args.release_tag],check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['python3', '/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/scripts/package-beta-source.py', '--output', '/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/final-package-01', '--tag', 'qualification/nonisolated-20260930-01']' returned non-zero exit status 1.

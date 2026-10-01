@@ -15,7 +15,7 @@ export type NativeExecutionProfile = Readonly<{
 }>;
 export type RecipeDescription = Readonly<{
   requirements: readonly CapabilityRequest[];
-  backend: 'NativePlayer' | 'ShakaBackend' | 'WasmPlayer';
+  backend: 'NativePlayer' | 'ShakaBackend' | 'WasmPlayer' | 'PrivateSoftwarePlayer';
   native?: NativeExecutionProfile;
   /** Unordered catalog of current guarded alternatives. Never routing order. */
   bindings: readonly Readonly<{
@@ -84,6 +84,16 @@ function atomic(provider: 'mpv-hybrid' | 'mpv-software', audioFilter = false): R
     synchronizationOwner: 'WasmPlayer / mpv timing and retained presentation', features: {gain: false, audioFilter},
   };
 }
+
+const privatePlayback: RecipeDescription = {
+  requirements: [complete], backend: 'PrivateSoftwarePlayer',
+  bindings: (['jspi','asyncify'] as const).map(runtime => ({
+    id:'mpv-playback-'+runtime,owner:'UnifiedPlayer.create / cooperative mpv backend',
+    providers:[{provider:runtime==='jspi'?'mpv-playback-jspi':'mpv-playback-asyncify',request:complete}],
+  })),
+  synchronizationOwner:'PrivateSoftwarePlayer / mpv timing and transferred PCM',
+  features:{gain:false,audioFilter:true},
+};
 
 function append(base: RecipeDescription, binding: CurrentProviderBinding): RecipeDescription {
   return {
@@ -164,6 +174,10 @@ export const EXECUTION_RECIPES = freezeDescription({
   'native-transcode': flac24,
   'native-video-mpv-audio': splitAudio,
   'native-video-mpv-audio-subtitles': subtitles(splitAudio, 'embedded'),
+  'hybrid-private': privatePlayback,
+  'hybrid-private-gain': gain(privatePlayback),
+  'software-private': privatePlayback,
+  'software-private-gain': gain(privatePlayback),
   'hybrid': hybrid,
   'hybrid-audio-filter': hybridFilter,
   'hybrid-gain': gain(hybrid),
@@ -183,7 +197,7 @@ export function executionRecipe(planId: string | undefined): RecipeDescription |
  */
 export function resolvableExecutionRecipe(planId: PlaybackPlanId, runtime?: 'pthread'|'jspi'|'asyncify'): ResolvableRecipe {
   const recipe: RecipeDescription = EXECUTION_RECIPES[planId];
-  return {id: planId, requirements: recipe.requirements, bindings: recipe.bindings.filter(binding=>!runtime||!binding.id.startsWith('ffmpeg')||binding.id===(runtime==='pthread'?'ffmpeg':'ffmpeg-'+runtime)).map(binding => ({
+  return {id: planId, requirements: recipe.requirements, bindings: recipe.bindings.filter(binding=>!runtime||(binding.id.startsWith('mpv-playback-')?binding.id==='mpv-playback-'+runtime:!binding.id.startsWith('ffmpeg')||binding.id===(runtime==='pthread'?'ffmpeg':'ffmpeg-'+runtime))).map(binding => ({
     id: binding.id,
     assignments: binding.providers.map(provider => ({providerId: provider.provider, requirements: [provider.request]})),
   }))};

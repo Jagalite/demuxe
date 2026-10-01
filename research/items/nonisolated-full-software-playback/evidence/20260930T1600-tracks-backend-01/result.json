@@ -1,0 +1,3558 @@
+{
+  "scope": "Direct Backend non-isolated playback qualification",
+  "startedAt": "2026-09-30T15:43:22.061Z",
+  "command": [
+    "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/tests/public-preview-server.mjs",
+    "/Volumes/seed2/Projects/demuxe",
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/track-fixtures-02",
+    "research/items/nonisolated-full-software-playback/evidence/20260930T1600-tracks-backend-01"
+  ],
+  "environment": {
+    "runtime": "jspi",
+    "installedRoot": "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-02",
+    "browser": "chrome",
+    "negativeOnly": false
+  },
+  "cases": [
+    {
+      "key": "h264-dual-audio",
+      "runtime": "jspi",
+      "mode": "software",
+      "audioOutput": "stereo",
+      "scope": "Direct Backend track selection, resampling and output layout PCM qualification",
+      "isolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "passed": false,
+      "tracks": [
+        {
+          "index": 0,
+          "id": "1",
+          "frames": 288000,
+          "eof": true,
+          "comparison": {
+            "offsetFrames": 0,
+            "comparedSamples": 567808,
+            "normalizedRMS": 0,
+            "peakError": 0
+          },
+          "interiorUnderruns": []
+        }
+      ],
+      "output": {
+        "state": "running",
+        "sampleRate": 48000,
+        "requestedOutput": "stereo",
+        "outputChannels": 2,
+        "deviceChannels": 2,
+        "channelLayout": "stereo",
+        "gain": 1,
+        "rms": 0,
+        "mediaFrames": 0,
+        "transport": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "outputVerified": false
+      },
+      "error": "PlayerError: Private Software output deadline\n    at PrivateSoftwarePlayer.waitUntil (http://localhost:58497/web/generated/internal/private-software-player.js:221:15)\n    at async PrivateSoftwarePlayer.seek (http://localhost:58497/web/generated/internal/private-software-player.js:271:9)\n    at async window.trackCheck (http://localhost:58497/qualification.mjs:24:64)\n    at async <anonymous>:1:229",
+      "diagnostics": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "jspi",
+        "plan": "software-private",
+        "browserDecoder": {
+          "submitted": 0,
+          "received": 0,
+          "delivered": 0,
+          "closed": 0,
+          "peakFrames": 0,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": false,
+          "generation": 0
+        },
+        "decoderMailbox": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 185,
+        "presentedPosition": 2,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 2250,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            10
+          ]
+        },
+        "scheduler": {
+          "created": 7056,
+          "completed": 7050,
+          "abandoned": 0,
+          "suspensions": 4903,
+          "resumes": 4897,
+          "maxLive": 7,
+          "timerWakes": 3326,
+          "signals": 1447,
+          "stackChecks": 23906,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 1,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 124,
+          "bytes": 8263949,
+          "copies": 124,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        }
+      }
+    },
+    {
+      "key": "dual-track-seek-control",
+      "scope": "Diagnostic control only; delayed and immediate seeks after EOF track switch",
+      "passed": false,
+      "results": [
+        {
+          "delay": 0,
+          "error": "PlayerError: Private Software output deadline",
+          "position": 2,
+          "audio": {
+            "capacity": 32768,
+            "channels": 2,
+            "maxOutstanding": 32768,
+            "feedbackCount": 2250,
+            "staleFeedback": 0,
+            "error": null,
+            "header": [
+              0,
+              0,
+              0,
+              8,
+              48000,
+              37333,
+              1,
+              8
+            ]
+          }
+        },
+        {
+          "delay": 200,
+          "position": 2,
+          "audio": {
+            "capacity": 32768,
+            "channels": 2,
+            "maxOutstanding": 32768,
+            "feedbackCount": 2250,
+            "staleFeedback": 0,
+            "error": null,
+            "header": [
+              0,
+              0,
+              0,
+              8,
+              48000,
+              37333,
+              1,
+              8
+            ]
+          }
+        }
+      ],
+      "trace": [
+        {
+          "phase": "open",
+          "ms": 70867.09999999404,
+          "event": "command-reply",
+          "id": 1,
+          "result": null
+        },
+        {
+          "phase": "open",
+          "ms": 70916.29999998212,
+          "event": "command-reply",
+          "id": 2,
+          "result": {
+            "playlist_entry_id": 1
+          }
+        },
+        {
+          "phase": "open",
+          "ms": 70916.29999998212,
+          "event": "start-file",
+          "playlist_entry_id": 1
+        },
+        {
+          "phase": "open",
+          "ms": 70916.29999998212,
+          "event": "audio-reconfig"
+        },
+        {
+          "phase": "open",
+          "ms": 70916.29999998212,
+          "event": "audio-reconfig"
+        },
+        {
+          "phase": "open",
+          "ms": 70916.39999997616,
+          "event": "file-loaded"
+        },
+        {
+          "phase": "open",
+          "ms": 70916.39999997616,
+          "event": "audio-reconfig"
+        },
+        {
+          "phase": "open",
+          "ms": 70916.39999997616,
+          "event": "video-reconfig"
+        },
+        {
+          "phase": "open",
+          "ms": 70916.39999997616,
+          "event": "video-reconfig"
+        },
+        {
+          "phase": "open",
+          "ms": 70916.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0
+        },
+        {
+          "phase": "open",
+          "ms": 70916.5,
+          "event": "property-change",
+          "id": 4,
+          "name": "eof-reached",
+          "data": false
+        },
+        {
+          "phase": "open",
+          "ms": 70930.5,
+          "event": "playback-restart"
+        },
+        {
+          "phase": "play",
+          "ms": 71177.59999999404,
+          "event": "command-reply",
+          "id": 3,
+          "result": null
+        },
+        {
+          "phase": "play",
+          "ms": 71189.69999998808,
+          "event": "command-reply",
+          "id": 4,
+          "result": null
+        },
+        {
+          "phase": "play",
+          "ms": 71189.69999998808,
+          "event": "property-change",
+          "id": 3,
+          "name": "pause",
+          "data": false
+        },
+        {
+          "phase": "play",
+          "ms": 71264.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.033
+        },
+        {
+          "phase": "play",
+          "ms": 71299.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.06699999999999999
+        },
+        {
+          "phase": "play",
+          "ms": 71334.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.09999999999999999
+        },
+        {
+          "phase": "play",
+          "ms": 71358.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.133
+        },
+        {
+          "phase": "play",
+          "ms": 71402.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.16699999999999998
+        },
+        {
+          "phase": "play",
+          "ms": 71434.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.19999999999999998
+        },
+        {
+          "phase": "play",
+          "ms": 71466.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.23299999999999998
+        },
+        {
+          "phase": "play",
+          "ms": 71499.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.267
+        },
+        {
+          "phase": "play",
+          "ms": 71533.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.3
+        },
+        {
+          "phase": "play",
+          "ms": 71558,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.33299999999999996
+        },
+        {
+          "phase": "play",
+          "ms": 71600.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.367
+        },
+        {
+          "phase": "play",
+          "ms": 71632.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.39999999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 71664.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.433
+        },
+        {
+          "phase": "play",
+          "ms": 71696.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.46699999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 71728.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.5
+        },
+        {
+          "phase": "play",
+          "ms": 71760.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.533
+        },
+        {
+          "phase": "play",
+          "ms": 71793,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.567
+        },
+        {
+          "phase": "play",
+          "ms": 71836.39999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.6
+        },
+        {
+          "phase": "play",
+          "ms": 71868.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.633
+        },
+        {
+          "phase": "play",
+          "ms": 71900.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.6669999999999999
+        },
+        {
+          "phase": "play",
+          "ms": 71932.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.7
+        },
+        {
+          "phase": "play",
+          "ms": 71964.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.733
+        },
+        {
+          "phase": "play",
+          "ms": 71996.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.767
+        },
+        {
+          "phase": "play",
+          "ms": 72030.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.7999999999999999
+        },
+        {
+          "phase": "play",
+          "ms": 72065.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.833
+        },
+        {
+          "phase": "play",
+          "ms": 72097.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.867
+        },
+        {
+          "phase": "play",
+          "ms": 72129.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.8999999999999999
+        },
+        {
+          "phase": "play",
+          "ms": 72165.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.9329999999999999
+        },
+        {
+          "phase": "play",
+          "ms": 72197.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0.967
+        },
+        {
+          "phase": "play",
+          "ms": 72229.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1
+        },
+        {
+          "phase": "play",
+          "ms": 72261.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.033
+        },
+        {
+          "phase": "play",
+          "ms": 72304.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.067
+        },
+        {
+          "phase": "play",
+          "ms": 72326.39999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.0999999999999999
+        },
+        {
+          "phase": "play",
+          "ms": 72369.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.133
+        },
+        {
+          "phase": "play",
+          "ms": 72391.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.167
+        },
+        {
+          "phase": "play",
+          "ms": 72426,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.2
+        },
+        {
+          "phase": "play",
+          "ms": 72470.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.2329999999999999
+        },
+        {
+          "phase": "play",
+          "ms": 72503.39999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.267
+        },
+        {
+          "phase": "play",
+          "ms": 72535.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.3
+        },
+        {
+          "phase": "play",
+          "ms": 72567.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.333
+        },
+        {
+          "phase": "play",
+          "ms": 72599.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.367
+        },
+        {
+          "phase": "play",
+          "ms": 72631.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.4
+        },
+        {
+          "phase": "play",
+          "ms": 72663.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.4329999999999998
+        },
+        {
+          "phase": "play",
+          "ms": 72695.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.4669999999999999
+        },
+        {
+          "phase": "play",
+          "ms": 72729.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.5
+        },
+        {
+          "phase": "play",
+          "ms": 72763,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.533
+        },
+        {
+          "phase": "play",
+          "ms": 72795,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.567
+        },
+        {
+          "phase": "play",
+          "ms": 72837.39999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.5999999999999999
+        },
+        {
+          "phase": "play",
+          "ms": 72869.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.633
+        },
+        {
+          "phase": "play",
+          "ms": 72901,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.6669999999999998
+        },
+        {
+          "phase": "play",
+          "ms": 72934.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.7
+        },
+        {
+          "phase": "play",
+          "ms": 72967.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.7329999999999999
+        },
+        {
+          "phase": "play",
+          "ms": 72999.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.767
+        },
+        {
+          "phase": "play",
+          "ms": 73031.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.7999999999999998
+        },
+        {
+          "phase": "play",
+          "ms": 73066.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.833
+        },
+        {
+          "phase": "play",
+          "ms": 73098.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.867
+        },
+        {
+          "phase": "play",
+          "ms": 73131.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.9
+        },
+        {
+          "phase": "play",
+          "ms": 73162.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.9329999999999998
+        },
+        {
+          "phase": "play",
+          "ms": 73195,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 1.9669999999999999
+        },
+        {
+          "phase": "play",
+          "ms": 73226.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2
+        },
+        {
+          "phase": "play",
+          "ms": 73269.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.033
+        },
+        {
+          "phase": "play",
+          "ms": 73301.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.0669999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 73333.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.1
+        },
+        {
+          "phase": "play",
+          "ms": 73365.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.133
+        },
+        {
+          "phase": "play",
+          "ms": 73397.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.167
+        },
+        {
+          "phase": "play",
+          "ms": 73437.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.1999999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 73471.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.233
+        },
+        {
+          "phase": "play",
+          "ms": 73498.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.267
+        },
+        {
+          "phase": "play",
+          "ms": 73530.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.3
+        },
+        {
+          "phase": "play",
+          "ms": 73563,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.3329999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 73594.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.367
+        },
+        {
+          "phase": "play",
+          "ms": 73627,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.4
+        },
+        {
+          "phase": "play",
+          "ms": 73660.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.433
+        },
+        {
+          "phase": "play",
+          "ms": 73693.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.467
+        },
+        {
+          "phase": "play",
+          "ms": 73725,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.5
+        },
+        {
+          "phase": "play",
+          "ms": 73758.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.533
+        },
+        {
+          "phase": "play",
+          "ms": 73802.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.5669999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 73834.39999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.6
+        },
+        {
+          "phase": "play",
+          "ms": 73866.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.633
+        },
+        {
+          "phase": "play",
+          "ms": 73898.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.667
+        },
+        {
+          "phase": "play",
+          "ms": 73930.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.6999999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 73962.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.733
+        },
+        {
+          "phase": "play",
+          "ms": 73995.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.767
+        },
+        {
+          "phase": "play",
+          "ms": 74026.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.8
+        },
+        {
+          "phase": "play",
+          "ms": 74070.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.8329999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 74101.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.867
+        },
+        {
+          "phase": "play",
+          "ms": 74133.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.9
+        },
+        {
+          "phase": "play",
+          "ms": 74166.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.933
+        },
+        {
+          "phase": "play",
+          "ms": 74197.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2.967
+        },
+        {
+          "phase": "play",
+          "ms": 74229.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3
+        },
+        {
+          "phase": "play",
+          "ms": 74261.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.033
+        },
+        {
+          "phase": "play",
+          "ms": 74304.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.0669999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 74336.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.0999999999999996
+        },
+        {
+          "phase": "play",
+          "ms": 74359.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.133
+        },
+        {
+          "phase": "play",
+          "ms": 74393.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.167
+        },
+        {
+          "phase": "play",
+          "ms": 74426.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.1999999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 74469.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.2329999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 74501.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.267
+        },
+        {
+          "phase": "play",
+          "ms": 74533.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.3
+        },
+        {
+          "phase": "play",
+          "ms": 74565.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.3329999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 74597.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.367
+        },
+        {
+          "phase": "play",
+          "ms": 74631.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.4
+        },
+        {
+          "phase": "play",
+          "ms": 74663.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.433
+        },
+        {
+          "phase": "play",
+          "ms": 74694.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.4669999999999996
+        },
+        {
+          "phase": "play",
+          "ms": 74736.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.5
+        },
+        {
+          "phase": "play",
+          "ms": 74758.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.533
+        },
+        {
+          "phase": "play",
+          "ms": 74790,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.5669999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 74832.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.5999999999999996
+        },
+        {
+          "phase": "play",
+          "ms": 74864.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.633
+        },
+        {
+          "phase": "play",
+          "ms": 74896.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.667
+        },
+        {
+          "phase": "play",
+          "ms": 74928.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.6999999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 74959.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.7329999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 74994.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.767
+        },
+        {
+          "phase": "play",
+          "ms": 75028.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.8
+        },
+        {
+          "phase": "play",
+          "ms": 75062.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.8329999999999997
+        },
+        {
+          "phase": "play",
+          "ms": 75105.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.867
+        },
+        {
+          "phase": "play",
+          "ms": 75128.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.9
+        },
+        {
+          "phase": "play",
+          "ms": 75162.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.933
+        },
+        {
+          "phase": "play",
+          "ms": 75194.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 3.9669999999999996
+        },
+        {
+          "phase": "play",
+          "ms": 75227.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4
+        },
+        {
+          "phase": "play",
+          "ms": 75269.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.0329999999999995
+        },
+        {
+          "phase": "play",
+          "ms": 75301.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.067
+        },
+        {
+          "phase": "play",
+          "ms": 75333.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.1
+        },
+        {
+          "phase": "play",
+          "ms": 75365.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.133
+        },
+        {
+          "phase": "play",
+          "ms": 75397.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.167
+        },
+        {
+          "phase": "play",
+          "ms": 75429.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.2
+        },
+        {
+          "phase": "play",
+          "ms": 75461.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.233
+        },
+        {
+          "phase": "play",
+          "ms": 75504.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.2669999999999995
+        },
+        {
+          "phase": "play",
+          "ms": 75536.39999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.3
+        },
+        {
+          "phase": "play",
+          "ms": 75558,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.333
+        },
+        {
+          "phase": "play",
+          "ms": 75590.39999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.367
+        },
+        {
+          "phase": "play",
+          "ms": 75632.39999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.3999999999999995
+        },
+        {
+          "phase": "play",
+          "ms": 75664.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.433
+        },
+        {
+          "phase": "play",
+          "ms": 75696.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.467
+        },
+        {
+          "phase": "play",
+          "ms": 75728.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.5
+        },
+        {
+          "phase": "play",
+          "ms": 75770.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.5329999999999995
+        },
+        {
+          "phase": "play",
+          "ms": 75804.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.567
+        },
+        {
+          "phase": "play",
+          "ms": 75826.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.6
+        },
+        {
+          "phase": "play",
+          "ms": 75859.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.633
+        },
+        {
+          "phase": "play",
+          "ms": 75904.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.667
+        },
+        {
+          "phase": "play",
+          "ms": 75926.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.7
+        },
+        {
+          "phase": "play",
+          "ms": 75959.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.733
+        },
+        {
+          "phase": "play",
+          "ms": 75990,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.7669999999999995
+        },
+        {
+          "phase": "play",
+          "ms": 76032.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.8
+        },
+        {
+          "phase": "play",
+          "ms": 76064.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.833
+        },
+        {
+          "phase": "play",
+          "ms": 76096.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.867
+        },
+        {
+          "phase": "play",
+          "ms": 76128.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.8999999999999995
+        },
+        {
+          "phase": "play",
+          "ms": 76160.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.933
+        },
+        {
+          "phase": "play",
+          "ms": 76192.39999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 4.967
+        },
+        {
+          "phase": "play",
+          "ms": 76224.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5
+        },
+        {
+          "phase": "play",
+          "ms": 76256.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.0329999999999995
+        },
+        {
+          "phase": "play",
+          "ms": 76298.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.067
+        },
+        {
+          "phase": "play",
+          "ms": 76330.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.1
+        },
+        {
+          "phase": "play",
+          "ms": 76362.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.133
+        },
+        {
+          "phase": "play",
+          "ms": 76395.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.167
+        },
+        {
+          "phase": "play",
+          "ms": 76426.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.2
+        },
+        {
+          "phase": "play",
+          "ms": 76459,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.233
+        },
+        {
+          "phase": "play",
+          "ms": 76491,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.2669999999999995
+        },
+        {
+          "phase": "play",
+          "ms": 76522.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.3
+        },
+        {
+          "phase": "play",
+          "ms": 76555.39999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.333
+        },
+        {
+          "phase": "play",
+          "ms": 76597.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.367
+        },
+        {
+          "phase": "play",
+          "ms": 76629.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.3999999999999995
+        },
+        {
+          "phase": "play",
+          "ms": 76661.59999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.433
+        },
+        {
+          "phase": "play",
+          "ms": 76693.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.467
+        },
+        {
+          "phase": "play",
+          "ms": 76725.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.5
+        },
+        {
+          "phase": "play",
+          "ms": 76757.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.5329999999999995
+        },
+        {
+          "phase": "play",
+          "ms": 76790.09999999404,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.567
+        },
+        {
+          "phase": "play",
+          "ms": 76832.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.6
+        },
+        {
+          "phase": "play",
+          "ms": 76864.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.633
+        },
+        {
+          "phase": "play",
+          "ms": 76896.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.667
+        },
+        {
+          "phase": "play",
+          "ms": 76928.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.7
+        },
+        {
+          "phase": "play",
+          "ms": 76960.5,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.733
+        },
+        {
+          "phase": "play",
+          "ms": 76992.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.7669999999999995
+        },
+        {
+          "phase": "play",
+          "ms": 77024.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.8
+        },
+        {
+          "phase": "play",
+          "ms": 77056.19999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.832999999999999
+        },
+        {
+          "phase": "play",
+          "ms": 77098.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.867
+        },
+        {
+          "phase": "play",
+          "ms": 77130.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.8999999999999995
+        },
+        {
+          "phase": "play",
+          "ms": 77162.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.933
+        },
+        {
+          "phase": "play",
+          "ms": 77194.89999997616,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 5.967
+        },
+        {
+          "phase": "play",
+          "ms": 77195,
+          "event": "property-change",
+          "id": 4,
+          "name": "eof-reached",
+          "data": true
+        },
+        {
+          "phase": "play",
+          "ms": 77322.5,
+          "event": "command-reply",
+          "id": 5,
+          "result": null
+        },
+        {
+          "phase": "play",
+          "ms": 77322.5,
+          "event": "property-change",
+          "id": 3,
+          "name": "pause",
+          "data": true
+        },
+        {
+          "phase": "switch",
+          "ms": 77333.39999997616,
+          "event": "audio-reconfig"
+        },
+        {
+          "phase": "switch",
+          "ms": 77333.39999997616,
+          "event": "audio-reconfig"
+        },
+        {
+          "phase": "switch",
+          "ms": 77333.39999997616,
+          "event": "audio-reconfig"
+        },
+        {
+          "phase": "switch",
+          "ms": 77333.39999997616,
+          "event": "command-reply",
+          "id": 6,
+          "result": null
+        },
+        {
+          "phase": "seek",
+          "ms": 77351.79999998212,
+          "event": "command-reply",
+          "id": 7,
+          "result": null
+        },
+        {
+          "phase": "seek",
+          "ms": 77351.79999998212,
+          "event": "command-reply",
+          "id": 1073741831,
+          "result": null
+        },
+        {
+          "phase": "seek",
+          "ms": 77351.79999998212,
+          "event": "seek"
+        },
+        {
+          "phase": "seek",
+          "ms": 77351.79999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0
+        },
+        {
+          "phase": "seek",
+          "ms": 77351.79999998212,
+          "event": "property-change",
+          "id": 4,
+          "name": "eof-reached",
+          "data": false
+        },
+        {
+          "phase": "seek",
+          "ms": 77374,
+          "event": "playback-restart"
+        },
+        {
+          "phase": "finished",
+          "ms": 77395.29999998212,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 2
+        },
+        {
+          "phase": "finished",
+          "ms": 103250.69999998808,
+          "event": "command-reply",
+          "id": 8,
+          "result": null
+        },
+        {
+          "phase": "finished",
+          "ms": 103250.69999998808,
+          "event": "command-reply",
+          "id": 1073741832,
+          "result": null
+        },
+        {
+          "phase": "finished",
+          "ms": 103250.69999998808,
+          "event": "seek"
+        },
+        {
+          "phase": "finished",
+          "ms": 103250.69999998808,
+          "event": "property-change",
+          "id": 1,
+          "name": "time-pos",
+          "data": 0
+        },
+        {
+          "phase": "finished",
+          "ms": 103261.59999999404,
+          "event": "playback-restart"
+        }
+      ]
+    },
+    {
+      "key": "h264-resample",
+      "runtime": "jspi",
+      "mode": "software",
+      "audioOutput": "stereo",
+      "scope": "Direct Backend track selection, resampling and output layout PCM qualification",
+      "isolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "passed": true,
+      "tracks": [
+        {
+          "index": 0,
+          "id": "1",
+          "frames": 288000,
+          "eof": true,
+          "comparison": {
+            "offsetFrames": 0,
+            "comparedSamples": 567808,
+            "normalizedRMS": 0.00003558052263493601,
+            "peakError": 0.0000040084123611450195
+          },
+          "interiorUnderruns": []
+        }
+      ],
+      "output": {
+        "state": "running",
+        "sampleRate": 48000,
+        "requestedOutput": "stereo",
+        "outputChannels": 2,
+        "deviceChannels": 2,
+        "channelLayout": "stereo",
+        "gain": 1,
+        "rms": 0,
+        "mediaFrames": 0,
+        "transport": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "outputVerified": false
+      },
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 2250,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 2290,
+          "completed": 2290,
+          "abandoned": 0,
+          "suspensions": 2386,
+          "resumes": 2386,
+          "maxLive": 7,
+          "timerWakes": 949,
+          "signals": 1399,
+          "stackChecks": 9352,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 35,
+          "bytes": 2318128,
+          "copies": 35,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-resample",
+      "runtime": "asyncify",
+      "mode": "software",
+      "audioOutput": "stereo",
+      "scope": "Direct Backend track selection, resampling and output layout PCM qualification",
+      "isolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "passed": true,
+      "tracks": [
+        {
+          "index": 0,
+          "id": "1",
+          "frames": 288000,
+          "eof": true,
+          "comparison": {
+            "offsetFrames": 0,
+            "comparedSamples": 567808,
+            "normalizedRMS": 0.00003558052263493601,
+            "peakError": 0.0000040084123611450195
+          },
+          "interiorUnderruns": []
+        }
+      ],
+      "output": {
+        "state": "running",
+        "sampleRate": 48000,
+        "requestedOutput": "stereo",
+        "outputChannels": 2,
+        "deviceChannels": 2,
+        "channelLayout": "stereo",
+        "gain": 1,
+        "rms": 0,
+        "mediaFrames": 0,
+        "transport": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "outputVerified": false
+      },
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 2250,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 2260,
+          "completed": 2260,
+          "abandoned": 0,
+          "suspensions": 2376,
+          "resumes": 2376,
+          "maxLive": 7,
+          "timerWakes": 936,
+          "signals": 1402,
+          "stackChecks": 9272,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 1112,
+            "unwinds": 2376,
+            "rewinds": 2376
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 35,
+          "bytes": 2318128,
+          "copies": 35,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-resample",
+      "runtime": "jspi",
+      "mode": "hybrid",
+      "audioOutput": "stereo",
+      "scope": "Direct Backend track selection, resampling and output layout PCM qualification",
+      "isolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "passed": true,
+      "tracks": [
+        {
+          "index": 0,
+          "id": "1",
+          "frames": 288000,
+          "eof": true,
+          "comparison": {
+            "offsetFrames": 0,
+            "comparedSamples": 567808,
+            "normalizedRMS": 0.00003558052263493601,
+            "peakError": 0.0000040084123611450195
+          },
+          "interiorUnderruns": []
+        }
+      ],
+      "output": {
+        "state": "running",
+        "sampleRate": 48000,
+        "requestedOutput": "stereo",
+        "outputChannels": 2,
+        "deviceChannels": 2,
+        "channelLayout": "stereo",
+        "gain": 1,
+        "rms": 0,
+        "mediaFrames": 0,
+        "transport": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "outputVerified": false
+      },
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 2250,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 2696,
+          "completed": 2696,
+          "abandoned": 0,
+          "suspensions": 3234,
+          "resumes": 3234,
+          "maxLive": 8,
+          "timerWakes": 933,
+          "signals": 1514,
+          "stackChecks": 11860,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 35,
+          "bytes": 2318128,
+          "copies": 35,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "retained": {
+          "received": 182,
+          "presented": 183,
+          "closed": 182,
+          "dropped": 0,
+          "peakFrames": 4,
+          "queued": 0,
+          "held": 0,
+          "pending": 0,
+          "generation": 3
+        },
+        "decoder": {
+          "requests": 749,
+          "committed": 749,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-resample",
+      "runtime": "asyncify",
+      "mode": "hybrid",
+      "audioOutput": "stereo",
+      "scope": "Direct Backend track selection, resampling and output layout PCM qualification",
+      "isolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "passed": true,
+      "tracks": [
+        {
+          "index": 0,
+          "id": "1",
+          "frames": 288000,
+          "eof": true,
+          "comparison": {
+            "offsetFrames": 0,
+            "comparedSamples": 567808,
+            "normalizedRMS": 0.00003558052263493601,
+            "peakError": 0.0000040084123611450195
+          },
+          "interiorUnderruns": []
+        }
+      ],
+      "output": {
+        "state": "running",
+        "sampleRate": 48000,
+        "requestedOutput": "stereo",
+        "outputChannels": 2,
+        "deviceChannels": 2,
+        "channelLayout": "stereo",
+        "gain": 1,
+        "rms": 0,
+        "mediaFrames": 0,
+        "transport": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "outputVerified": false
+      },
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 2250,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 2691,
+          "completed": 2691,
+          "abandoned": 0,
+          "suspensions": 3197,
+          "resumes": 3197,
+          "maxLive": 8,
+          "timerWakes": 925,
+          "signals": 1486,
+          "stackChecks": 11776,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 1112,
+            "unwinds": 3197,
+            "rewinds": 3197
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 35,
+          "bytes": 2318128,
+          "copies": 35,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "retained": {
+          "received": 182,
+          "presented": 183,
+          "closed": 182,
+          "dropped": 0,
+          "peakFrames": 4,
+          "queued": 0,
+          "held": 0,
+          "pending": 0,
+          "generation": 3
+        },
+        "decoder": {
+          "requests": 748,
+          "committed": 748,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-pcm-51",
+      "runtime": "jspi",
+      "mode": "software",
+      "audioOutput": "5.1",
+      "scope": "Direct Backend track selection, resampling and output layout PCM qualification",
+      "isolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "passed": true,
+      "tracks": [
+        {
+          "index": 0,
+          "id": "1",
+          "frames": 288000,
+          "eof": true,
+          "comparison": {
+            "offsetFrames": 0,
+            "comparedSamples": 567808,
+            "normalizedRMS": 3.3160310645836636e-8,
+            "peakError": 1.4901161193847656e-8
+          },
+          "interiorUnderruns": []
+        }
+      ],
+      "output": {
+        "state": "running",
+        "sampleRate": 48000,
+        "requestedOutput": "5.1",
+        "outputChannels": 2,
+        "deviceChannels": 2,
+        "channelLayout": "stereo",
+        "gain": 1,
+        "rms": 0,
+        "mediaFrames": 0,
+        "transport": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "outputVerified": false
+      },
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 2250,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 2294,
+          "completed": 2294,
+          "abandoned": 0,
+          "suspensions": 2508,
+          "resumes": 2508,
+          "maxLive": 7,
+          "timerWakes": 968,
+          "signals": 1431,
+          "stackChecks": 9604,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 106,
+          "bytes": 6963546,
+          "copies": 106,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-pcm-51",
+      "runtime": "asyncify",
+      "mode": "software",
+      "audioOutput": "5.1",
+      "scope": "Direct Backend track selection, resampling and output layout PCM qualification",
+      "isolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "passed": true,
+      "tracks": [
+        {
+          "index": 0,
+          "id": "1",
+          "frames": 288000,
+          "eof": true,
+          "comparison": {
+            "offsetFrames": 0,
+            "comparedSamples": 567808,
+            "normalizedRMS": 3.3160310645836636e-8,
+            "peakError": 1.4901161193847656e-8
+          },
+          "interiorUnderruns": []
+        }
+      ],
+      "output": {
+        "state": "running",
+        "sampleRate": 48000,
+        "requestedOutput": "5.1",
+        "outputChannels": 2,
+        "deviceChannels": 2,
+        "channelLayout": "stereo",
+        "gain": 1,
+        "rms": 0,
+        "mediaFrames": 0,
+        "transport": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "outputVerified": false
+      },
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 2250,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 2260,
+          "completed": 2260,
+          "abandoned": 0,
+          "suspensions": 2444,
+          "resumes": 2444,
+          "maxLive": 7,
+          "timerWakes": 929,
+          "signals": 1406,
+          "stackChecks": 9408,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 1112,
+            "unwinds": 2444,
+            "rewinds": 2444
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 106,
+          "bytes": 6963546,
+          "copies": 106,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-pcm-51",
+      "runtime": "jspi",
+      "mode": "hybrid",
+      "audioOutput": "5.1",
+      "scope": "Direct Backend track selection, resampling and output layout PCM qualification",
+      "isolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "passed": true,
+      "tracks": [
+        {
+          "index": 0,
+          "id": "1",
+          "frames": 288000,
+          "eof": true,
+          "comparison": {
+            "offsetFrames": 0,
+            "comparedSamples": 567808,
+            "normalizedRMS": 3.3160310645836636e-8,
+            "peakError": 1.4901161193847656e-8
+          },
+          "interiorUnderruns": []
+        }
+      ],
+      "output": {
+        "state": "running",
+        "sampleRate": 48000,
+        "requestedOutput": "5.1",
+        "outputChannels": 2,
+        "deviceChannels": 2,
+        "channelLayout": "stereo",
+        "gain": 1,
+        "rms": 0,
+        "mediaFrames": 0,
+        "transport": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "outputVerified": false
+      },
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 2250,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 2705,
+          "completed": 2705,
+          "abandoned": 0,
+          "suspensions": 3286,
+          "resumes": 3286,
+          "maxLive": 8,
+          "timerWakes": 931,
+          "signals": 1498,
+          "stackChecks": 11982,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 106,
+          "bytes": 6963546,
+          "copies": 106,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "retained": {
+          "received": 182,
+          "presented": 183,
+          "closed": 182,
+          "dropped": 0,
+          "peakFrames": 4,
+          "queued": 0,
+          "held": 0,
+          "pending": 0,
+          "generation": 3
+        },
+        "decoder": {
+          "requests": 748,
+          "committed": 748,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-pcm-51",
+      "runtime": "asyncify",
+      "mode": "hybrid",
+      "audioOutput": "5.1",
+      "scope": "Direct Backend track selection, resampling and output layout PCM qualification",
+      "isolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "passed": true,
+      "tracks": [
+        {
+          "index": 0,
+          "id": "1",
+          "frames": 288000,
+          "eof": true,
+          "comparison": {
+            "offsetFrames": 0,
+            "comparedSamples": 567808,
+            "normalizedRMS": 3.3160310645836636e-8,
+            "peakError": 1.4901161193847656e-8
+          },
+          "interiorUnderruns": []
+        }
+      ],
+      "output": {
+        "state": "running",
+        "sampleRate": 48000,
+        "requestedOutput": "5.1",
+        "outputChannels": 2,
+        "deviceChannels": 2,
+        "channelLayout": "stereo",
+        "gain": 1,
+        "rms": 0,
+        "mediaFrames": 0,
+        "transport": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "outputVerified": false
+      },
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 2250,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 2696,
+          "completed": 2696,
+          "abandoned": 0,
+          "suspensions": 3312,
+          "resumes": 3312,
+          "maxLive": 8,
+          "timerWakes": 922,
+          "signals": 1443,
+          "stackChecks": 12016,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 1112,
+            "unwinds": 3312,
+            "rewinds": 3312
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 106,
+          "bytes": 6963546,
+          "copies": 106,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "retained": {
+          "received": 182,
+          "presented": 183,
+          "closed": 182,
+          "dropped": 0,
+          "peakFrames": 4,
+          "queued": 0,
+          "held": 0,
+          "pending": 0,
+          "generation": 3
+        },
+        "decoder": {
+          "requests": 838,
+          "committed": 838,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-pcm-71",
+      "runtime": "jspi",
+      "mode": "software",
+      "audioOutput": "7.1",
+      "scope": "Direct Backend track selection, resampling and output layout PCM qualification",
+      "isolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "passed": true,
+      "tracks": [
+        {
+          "index": 0,
+          "id": "1",
+          "frames": 288000,
+          "eof": true,
+          "comparison": {
+            "offsetFrames": 0,
+            "comparedSamples": 567808,
+            "normalizedRMS": 4.277141843523321e-8,
+            "peakError": 2.9802322387695312e-8
+          },
+          "interiorUnderruns": []
+        }
+      ],
+      "output": {
+        "state": "running",
+        "sampleRate": 48000,
+        "requestedOutput": "7.1",
+        "outputChannels": 2,
+        "deviceChannels": 2,
+        "channelLayout": "stereo",
+        "gain": 1,
+        "rms": 0,
+        "mediaFrames": 0,
+        "outputVerified": false
+      },
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 2250,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 2248,
+          "completed": 2248,
+          "abandoned": 0,
+          "suspensions": 2456,
+          "resumes": 2456,
+          "maxLive": 7,
+          "timerWakes": 925,
+          "signals": 1389,
+          "stackChecks": 9408,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 139,
+          "bytes": 9150301,
+          "copies": 139,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-pcm-71",
+      "runtime": "asyncify",
+      "mode": "software",
+      "audioOutput": "7.1",
+      "scope": "Direct Backend track selection, resampling and output layout PCM qualification",
+      "isolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "passed": true,
+      "tracks": [
+        {
+          "index": 0,
+          "id": "1",
+          "frames": 288000,
+          "eof": true,
+          "comparison": {
+            "offsetFrames": 0,
+            "comparedSamples": 567808,
+            "normalizedRMS": 4.277141843523321e-8,
+            "peakError": 2.9802322387695312e-8
+          },
+          "interiorUnderruns": []
+        }
+      ],
+      "output": {
+        "state": "running",
+        "sampleRate": 48000,
+        "requestedOutput": "7.1",
+        "outputChannels": 2,
+        "deviceChannels": 2,
+        "channelLayout": "stereo",
+        "gain": 1,
+        "rms": 0,
+        "mediaFrames": 0,
+        "transport": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "outputVerified": false
+      },
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 2250,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 2230,
+          "completed": 2230,
+          "abandoned": 0,
+          "suspensions": 2482,
+          "resumes": 2482,
+          "maxLive": 7,
+          "timerWakes": 922,
+          "signals": 1418,
+          "stackChecks": 9424,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 1112,
+            "unwinds": 2482,
+            "rewinds": 2482
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 139,
+          "bytes": 9150301,
+          "copies": 139,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-pcm-71",
+      "runtime": "jspi",
+      "mode": "hybrid",
+      "audioOutput": "7.1",
+      "scope": "Direct Backend track selection, resampling and output layout PCM qualification",
+      "isolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "passed": true,
+      "tracks": [
+        {
+          "index": 0,
+          "id": "1",
+          "frames": 288000,
+          "eof": true,
+          "comparison": {
+            "offsetFrames": 0,
+            "comparedSamples": 567808,
+            "normalizedRMS": 4.277141843523321e-8,
+            "peakError": 2.9802322387695312e-8
+          },
+          "interiorUnderruns": []
+        }
+      ],
+      "output": {
+        "state": "running",
+        "sampleRate": 48000,
+        "requestedOutput": "7.1",
+        "outputChannels": 2,
+        "deviceChannels": 2,
+        "channelLayout": "stereo",
+        "gain": 1,
+        "rms": 0,
+        "mediaFrames": 0,
+        "transport": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "outputVerified": false
+      },
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 2250,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 2694,
+          "completed": 2694,
+          "abandoned": 0,
+          "suspensions": 3349,
+          "resumes": 3349,
+          "maxLive": 8,
+          "timerWakes": 919,
+          "signals": 1482,
+          "stackChecks": 12086,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 139,
+          "bytes": 9150301,
+          "copies": 139,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "retained": {
+          "received": 182,
+          "presented": 183,
+          "closed": 182,
+          "dropped": 0,
+          "peakFrames": 4,
+          "queued": 0,
+          "held": 0,
+          "pending": 0,
+          "generation": 3
+        },
+        "decoder": {
+          "requests": 806,
+          "committed": 806,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "h264-pcm-71",
+      "runtime": "asyncify",
+      "mode": "hybrid",
+      "audioOutput": "7.1",
+      "scope": "Direct Backend track selection, resampling and output layout PCM qualification",
+      "isolated": false,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "passed": true,
+      "tracks": [
+        {
+          "index": 0,
+          "id": "1",
+          "frames": 288000,
+          "eof": true,
+          "comparison": {
+            "offsetFrames": 0,
+            "comparedSamples": 567808,
+            "normalizedRMS": 4.277141843523321e-8,
+            "peakError": 2.9802322387695312e-8
+          },
+          "interiorUnderruns": []
+        }
+      ],
+      "output": {
+        "state": "running",
+        "sampleRate": 48000,
+        "requestedOutput": "7.1",
+        "outputChannels": 2,
+        "deviceChannels": 2,
+        "channelLayout": "stereo",
+        "gain": 1,
+        "rms": 0,
+        "mediaFrames": 0,
+        "transport": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "outputVerified": false
+      },
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 2250,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 2700,
+          "completed": 2700,
+          "abandoned": 0,
+          "suspensions": 3318,
+          "resumes": 3318,
+          "maxLive": 8,
+          "timerWakes": 936,
+          "signals": 1490,
+          "stackChecks": 12036,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 1112,
+            "unwinds": 3318,
+            "rewinds": 3318
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 139,
+          "bytes": 9150301,
+          "copies": 139,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "retained": {
+          "received": 182,
+          "presented": 183,
+          "closed": 182,
+          "dropped": 0,
+          "peakFrames": 4,
+          "queued": 0,
+          "held": 0,
+          "pending": 0,
+          "generation": 3
+        },
+        "decoder": {
+          "requests": 750,
+          "committed": 750,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    }
+  ],
+  "sourceSHA256": {
+    "harness:public-preview-server.mjs": {
+      "sha256": "ad0c97253722b5cff611fb870cb4ddb3fecbe322451bea5d2acd5f5ef8a84d76"
+    },
+    "harness:track-preview-check.mjs": {
+      "sha256": "c69843c4828770eec27b7b79f5c7350b7ea633ce5c31b133c8bb2a0a9d6e4c84"
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/private-software-player.js": {
+      "sha256": "7b37cb91de3c19a1442d94c5b4eefc4ed19e236a0821d076996bc342ecfcceeb",
+      "bytes": 19840
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/runtime-worker.js": {
+      "sha256": "be69b14e4b53c28f8918aa2dab19f918c4e9749a6104a0599f658270f4360e81",
+      "bytes": 2301
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/errors.js": {
+      "sha256": "1fa09786c054404b215e92f6ce28acb7a4ef158799ea611cf04468eebc47452b",
+      "bytes": 3750
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/audio-worklet.js": {
+      "sha256": "8495c862abf54790c2f8bbdb61c8865ea4ca2a884886def51a19f0163880f67f",
+      "bytes": 4955
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/playback-worker.js": {
+      "sha256": "c4e69c72d3b9a26fb846ed795b9306e127012b5b0d10accded3be8ceda163742",
+      "bytes": 14295
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/track-fixtures-02/h264-dual-audio/fixture.mkv": {
+      "sha256": "42bb5ecb1146900372c2fabf82d68a51c7d5ecf199eee8f4911bd167cb261816",
+      "bytes": 3665272
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv.js": {
+      "sha256": "ed76471e6e642efe5341cc8955af4f9f6f7962c41e0706718a040ea2169b01ff",
+      "bytes": 4640
+    },
+    "/Volumes/seed2/Projects/demuxe/fixtures/DejaVuSans.ttf": {
+      "sha256": "7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954",
+      "bytes": 757076
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/playback-host.js": {
+      "sha256": "474c1eae9886f08366e788e647c30631fe4c5f13b997cdf6b406061e64d0d279",
+      "bytes": 8239
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/retained-presentation.js": {
+      "sha256": "4ca600305774bc18bbaedc8245ccd38d4d47bc3c3e4f0206b17f07d3488353c3",
+      "bytes": 3720
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/engine.js": {
+      "sha256": "4a3839957db17196efba295443b7406bf1219016c99cc715cb187d5a5ba6d74f",
+      "bytes": 2689
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/file-reader.js": {
+      "sha256": "d6db3571409a9149df0d28699feb52bb2b694b1c350a6c3c1eae3e3da7e73858",
+      "bytes": 4773
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/range-reader.js": {
+      "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe",
+      "bytes": 11897
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/playback-pcm.js": {
+      "sha256": "29226a691f7ded7031da24f9a85e10219fc7c8711ca4d9d79279999343286476",
+      "bytes": 3987
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/retained-video.js": {
+      "sha256": "79d4a2070a1e4dc82f9b3e03d5f88cfd98ff09f25106abadf6770faec1856475",
+      "bytes": 1616
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/subtitle-overlay.js": {
+      "sha256": "7a3299ed925ce5a6cc801a2d33532efd2d7377deb9ed626aa7bc66d45663edcd",
+      "bytes": 2289
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/scheduler.js": {
+      "sha256": "b50bdf45612a7d006d89d841794afb2dea5e9d75f02574db49da6608fc551131",
+      "bytes": 11702
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/range-source.js": {
+      "sha256": "efc911a6ebd4f2b7b81572f93c95b0373c262afad5c3675cfd3c64e847839e78",
+      "bytes": 7352
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/decoder-mailbox.js": {
+      "sha256": "6aa8d6386f3b6909238f275afcca77d12813247860ff2cbf812e8d6a7b0fecd5",
+      "bytes": 5990
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/retained-decoder.js": {
+      "sha256": "8a7f28c4189adaa2e80dbf895c38f7b1986d93156293172bfe49095c46de07ba",
+      "bytes": 6087
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/continuations.js": {
+      "sha256": "bdace5c572bd62eae24d86c28e16c9fc882568a009670f2a11020c8903daf5bd",
+      "bytes": 5399
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/video-codec-config.js": {
+      "sha256": "3ba4ffeda7aa21ad53625d129bad240a7a911dc1635f8f557650e371905a279c",
+      "bytes": 4773
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/external-video-decoder.js": {
+      "sha256": "dd87763e82c7fb197f45a62b05a97866c44faafe508375369b7e9dc4c0f02a66",
+      "bytes": 2886
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-02/web/engine-mpv-playback-jspi/manifest.json": {
+      "sha256": "322038d168b044300050ee5782c79cf986c6f7f675648f45a6e1889316ae3178",
+      "bytes": 7528
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-02/web/engine-mpv-playback-jspi/player.wasm": {
+      "sha256": "e5f3ea5cf73024d3c798e6183aabbc6555271a3c1ccdb047bfeeb2ee98a60ef5",
+      "bytes": 22360965
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-02/web/engine-mpv-playback-jspi/player.mjs": {
+      "sha256": "c1a5a9ef8f778eb4b552dab1e4610b45ec524bacd3c8990f03cf8cb6c5f185ae",
+      "bytes": 217523
+    },
+    "reference-pcm:h264-dual-audio:0-stereo": {
+      "sha256": "5b55a59d59c52ea2c68a3be04ba04fadc382872a777387dc826451eabc694ecb",
+      "bytes": 2304000
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/track-fixtures-02/h264-resample/fixture.mkv": {
+      "sha256": "e0319f5a998577cd7d91cea919d6f88edce82bb8ad10b372849849b8fb047310",
+      "bytes": 1794535
+    },
+    "reference-pcm:h264-resample:0-stereo": {
+      "sha256": "b762d524eac3c68ea4a43af6a12d7dfe6090252c72e4b55b4d5c9dcfd897b82f",
+      "bytes": 2304000
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-02/web/engine-mpv-playback-asyncify/manifest.json": {
+      "sha256": "8179570133ab64a373c3957ac40a2bdd2faaf03a7099065d931f97da6baf0a2b",
+      "bytes": 7532
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-02/web/engine-mpv-playback-asyncify/player.wasm": {
+      "sha256": "b241b1a1c5746a3756bd00d1b282d888f18f003d61f5647c518b3911496b58c4",
+      "bytes": 28063139
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-02/web/engine-mpv-playback-asyncify/player.mjs": {
+      "sha256": "c1a5a9ef8f778eb4b552dab1e4610b45ec524bacd3c8990f03cf8cb6c5f185ae",
+      "bytes": 217523
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/track-fixtures-02/h264-pcm-51/fixture.mkv": {
+      "sha256": "c7ba8ab59f7f8f2007e17e1dcb45f909aa21aacc59b2db9acddaa3063b47cb4c",
+      "bytes": 5391377
+    },
+    "reference-pcm:h264-pcm-51:0-stereo": {
+      "sha256": "46579e109fcf70a308fe285160609c74733790d8dde0f9432ca73eec832ae6e0",
+      "bytes": 2304000
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/track-fixtures-02/h264-pcm-71/fixture.mkv": {
+      "sha256": "01bd308d042394c7349a7276d82fb4facb0c4d7b3c40846ae7557827ebf15f24",
+      "bytes": 7119380
+    },
+    "reference-pcm:h264-pcm-71:0-stereo": {
+      "sha256": "80e3af609e7873eec69b0ab287d73385ad0c9af9c9e0c786875f0615af3c3210",
+      "bytes": 2304000
+    }
+  },
+  "heldReads": {
+    "started": 0,
+    "active": 0,
+    "aborted": 0
+  },
+  "rangeRequests": [],
+  "passed": false
+}

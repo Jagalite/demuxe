@@ -20,6 +20,7 @@ export type CodecPreparation = Readonly<{
     videoIndex?: number;
 }>;
 export interface ProviderRuntimeAssets {
+    has?(path: string): boolean;
     module(path: string): Promise<WebAssembly.Module>;
     bytes(path: string): Promise<ArrayBuffer>;
     preparation?(file: File, runtime: 'pthread' | 'jspi' | 'asyncify', audioTrack?: number): CodecPreparation | undefined;

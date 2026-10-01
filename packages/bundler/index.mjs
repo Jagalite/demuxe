@@ -27,9 +27,10 @@ export async function collectPackages({core, providers = [], providerDirectory})
     providers = (await readdir(providerDirectory)).filter(n => n.startsWith('provider-')).sort().map(n => path.join(providerDirectory, n));
   }
   if (!Array.isArray(providers) || providers.some(p => typeof p !== 'string')) throw Error('providers must be all or an array of installed package directories');
+  const coreLicenses=await json(core,'license-map.json');
   const metadata = await json(core, 'package.json'), files = new Map(), records = [], assets = new Map(), ids = new Set();
   if (metadata.name !== 'demuxe' || metadata.dependencies) throw Error('Expected standalone modular Demuxe core');
-  for (const [name, licenses] of Object.entries(await json(core, 'license-map.json'))) {
+  for (const [name, licenses] of Object.entries(coreLicenses)) {
     if (JSON.stringify(licenses) !== '["Apache-2.0"]') throw Error('Non-Apache core file: ' + name);
     files.set(name, await file(core, name));
   }
@@ -39,12 +40,14 @@ export async function collectPackages({core, providers = [], providerDirectory})
     const pkg = await json(root, 'package.json'), manifest = await json(root, 'provider-manifest.json');
     if (!/^@demuxe\/provider-[a-z0-9-]+$/.test(pkg.name)) throw Error('Invalid provider package name');
     if (manifest.providerContractVersion !== 1 || manifest.package !== pkg.name || manifest.version !== pkg.version || manifest.compatibleCore !== metadata.version || pkg.peerDependencies?.demuxe !== metadata.version) throw Error('Incompatible provider package: ' + pkg.name);
+    const providerLicenses=await json(root,'license-map.json');
     const identity = 'sha256:' + hash(encoded(manifest.artifacts)), deployed = new Map();
     for (const [name, digest] of Object.entries(manifest.artifacts)) {
       if (!name.startsWith('runtime/')) throw Error('Provider artifact outside runtime/');
       const bytes = await file(root, name), target = safeName(name.slice(8));
       if (hash(bytes) !== digest) throw Error('Provider artifact integrity mismatch: ' + name);
-      if (files.has(target) && (!providerPaths.has(target) || !files.get(target).equals(bytes))) throw Error('Runtime package collision: ' + target);
+      const sharedCore=target.startsWith('web/')&&/\.m?js$/.test(target)&&JSON.stringify(coreLicenses[target])==='["Apache-2.0"]'&&JSON.stringify(providerLicenses[name])==='["Apache-2.0"]';
+      if (files.has(target) && (!files.get(target).equals(bytes) || (Object.hasOwn(coreLicenses,target)?!sharedCore:!providerPaths.has(target)))) throw Error('Runtime package collision: ' + target);
       files.set(target, bytes); providerPaths.add(target); deployed.set(target, {digest, bytes:bytes.length});
     }
     for (const asset of manifest.assets) {

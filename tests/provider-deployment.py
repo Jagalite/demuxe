@@ -10,7 +10,7 @@ spec=importlib.util.spec_from_file_location('deployment',ROOT/'scripts/deploy-pr
 class DeploymentTests(unittest.TestCase):
     def fixture(self,root):
         core=root/'core';core.mkdir();(core/'package.json').write_text(json.dumps({'name':'demuxe','version':'1.0.0'}));(core/'license-map.json').write_text(json.dumps({'package.json':['Apache-2.0'],'license-map.json':['Apache-2.0']}))
-        provider=root/'provider';(provider/'runtime').mkdir(parents=True);(provider/'runtime/engine.wasm').write_bytes(b'bytes')
+        provider=root/'provider';(provider/'runtime').mkdir(parents=True);(provider/'runtime/engine.wasm').write_bytes(b'bytes');(provider/'license-map.json').write_text('{}')
         artifacts={'runtime/engine.wasm':deploy.sha(b'bytes')};identity='sha256:'+deploy.sha(deploy.encoded(artifacts))
         metadata={'name':'@demuxe/test','version':'1.0.0','peerDependencies':{'demuxe':'1.0.0'}}
         manifest={'providerContractVersion':1,'package':'@demuxe/test','version':'1.0.0','compatibleCore':'1.0.0','artifacts':artifacts,'assets':[{'id':'engine','path':'engine.wasm','bytes':5,'sha256':deploy.sha(b'bytes'),'dependencies':[]}],'provides':[{'id':'test','implementationIdentity':identity,'assetIds':['engine']}]}
@@ -35,6 +35,15 @@ class DeploymentTests(unittest.TestCase):
             inventory=json.loads((core/'license-map.json').read_text());inventory['engine.wasm']=['Apache-2.0']
             (core/'license-map.json').write_text(json.dumps(inventory));(core/'engine.wasm').write_bytes(b'bytes')
             with self.assertRaisesRegex(ValueError,'collision'):deploy.compose(core,[provider],root/'rejected')
+
+    def test_shared_core_apache_license_boundary_for_each_provider(self):
+        with tempfile.TemporaryDirectory()as temp:
+            root=Path(temp).resolve();core,provider,_=self.fixture(root);data=b'export const answer=42;';target='web/dependency.js';(core/'web').mkdir();(core/target).write_bytes(data);inventory=json.loads((core/'license-map.json').read_text());inventory[target]=['Apache-2.0'];(core/'license-map.json').write_text(json.dumps(inventory))
+            def package(name,license):
+                p=root/name;(p/'runtime/web').mkdir(parents=True);(p/('runtime/'+target)).write_bytes(data);artifacts={'runtime/'+target:deploy.sha(data)};identity='sha256:'+deploy.sha(deploy.encoded(artifacts));(p/'package.json').write_text(json.dumps({'name':'@demuxe/'+name,'version':'1.0.0','peerDependencies':{'demuxe':'1.0.0'}}));(p/'license-map.json').write_text(json.dumps({'runtime/'+target:[license]}));(p/'provider-manifest.json').write_text(json.dumps({'providerContractVersion':1,'package':'@demuxe/'+name,'version':'1.0.0','compatibleCore':'1.0.0','artifacts':artifacts,'assets':[{'id':'shared','path':target,'bytes':len(data),'sha256':deploy.sha(data),'dependencies':[]}],'provides':[{'id':name,'implementationIdentity':identity,'assetIds':['shared']}]}));return p
+            a=package('a','Apache-2.0');b=package('b','LGPL-2.1-or-later');c=package('c','Apache-2.0')
+            with self.assertRaisesRegex(ValueError,'collision'):deploy.compose(core,[a,b],root/'bad')
+            result=deploy.compose(core,[a,c],root/'good');self.assertIn('a',result['providers']);self.assertIn('c',result['providers']);self.assertEqual((root/'good'/target).read_bytes(),data)
 
     def test_corrupt_unqualified_incompatible_and_incomplete_assets(self):
         for fault in ['hash','identity','version','inventory','collision','symlink']:

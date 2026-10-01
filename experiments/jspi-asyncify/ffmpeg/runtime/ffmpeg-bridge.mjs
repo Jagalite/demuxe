@@ -16,7 +16,7 @@ export function createFFmpegBridge(Module, {timeoutMs=5000,shutdownTimeoutMs=500
   let handle=-1,state='ready',closing,fatal=null;
   boundModules.add(Module);
   Module.nonIsolatedRead=(ptr,count,offset)=>source.read(handle,ptr,count,offset);
-  const operations=new Set(['rm_probe','rm_open','rm_start','rm_step','rm_close','rm_error',
+  const operations=new Set(['rm_set_demuxer','rm_probe','rm_open','rm_start','rm_step','rm_close','rm_error',
     'rm_set_container','rm_duration','rm_video_codec','rm_audio_codec','rm_adapt_audio']);
   function poison(error) {
     if(fatal)return;

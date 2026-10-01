@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "run_id": "20260930T004819Z-maintained-validation",
+  "item_keys": [
+    "nonisolated-full-software-playback"
+  ],
+  "stage": "correctness",
+  "status": "passed",
+  "recordedAt": "2026-09-30T03:05:40.484756+00:00",
+  "working_directory": "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929",
+  "candidate": {
+    "executed": true,
+    "execution_scope": "Maintained host/PCM, loader/asset and preserved admission regression checks; no browser/CPU claim",
+    "public_player_executed": false
+  },
+  "acceptance": {
+    "passed": true,
+    "oracle": "Recorded exact-run thresholds and independent RGB/PCM references where applicable"
+  },
+  "performance": {
+    "applicable": false,
+    "reason": "No CPU benchmark or release qualification"
+  },
+  "limits": [
+    "Experimental private Software; browser and workload recorded in raw result. Native avsync is an internal diagnostic."
+  ],
+  "commands": [
+    [
+      "node",
+      "--test",
+      "tests/private-playback-host.mjs",
+      "tests/private-pcm-worklet.mjs",
+      "tests/private-mpv-worker-errors.mjs",
+      "tests/private-mpv-eof-race.mjs",
+      "tests/engine-preparation.mjs",
+      "tests/plan-admission.mjs",
+      "tests/remux-runtime.mjs"
+    ],
+    [
+      "node",
+      "research/items/nonisolated-full-software-playback/tests/review-regressions.mjs"
+    ],
+    [
+      "python3",
+      "tests/private-mpv-assets.py"
+    ],
+    [
+      "python3",
+      "tests/private-remux-assets.py"
+    ],
+    [
+      "python3",
+      "tests/install-private-mpv.py"
+    ],
+    [
+      "./node_modules/.bin/tsc",
+      "--noEmit"
+    ]
+  ],
+  "environment": {
+    "browserKind": null,
+    "continuous": false
+  },
+  "analysis": "Retain every case and failure, including cadence, underruns, startup timing and teardown. No automatic admission follows."
+}

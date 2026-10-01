@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
 """Build a private, non-pthread restricted mpv dependency closure."""
-import argparse,datetime,hashlib,json,os,pathlib,shutil,subprocess,tarfile
+import argparse,datetime,hashlib,json,os,pathlib,re,shutil,subprocess,tarfile
 from provenance import link_inputs
 
 REPO=pathlib.Path(__file__).resolve().parents[4]
@@ -14,6 +14,7 @@ def main(a):
     for name in ['sources','objects','prefix','logs','inputs']:(out/name).mkdir()
     lock=json.loads((REPO/'sources.lock.json').read_text())
     names=['zlib','freetype','fribidi','harfbuzz','libass','libplacebo','vulkan-headers','ffmpeg','mpv']
+    if a.profile=='playback-full':names+=['dav1d','zimg','libxml2']
     sources={x['name']:x for x in lock['sources'] if x['name'] in names}
     state={'status':'building','scope':'Private '+a.profile+' dependencies; not a playback qualification','profile':a.profile,
            'startedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'sources':sources,'commands':[]}
@@ -28,6 +29,7 @@ def main(a):
     input_paths=[REPO/'sources.lock.json',pathlib.Path(__file__),pathlib.Path(__file__).with_name('provenance.py'),*sorted((REPO/'patches').glob('*.patch')),
                  *sorted((REPO/'patches/ffmpeg').glob('*.patch')),
                  REPO/'native/ao_browser.c',REPO/'native/audio_bridge.h',
+                 EXP/'mpv/patches/zimg-gamma-lut.patch',
                  EXP/'runtime/threads-coop.c',EXP/'runtime/threads-coop.h',EXP/'upstream/osdep/threads.h']
     for p in input_paths:
         dest=out/'inputs'/p.relative_to(REPO);dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,dest)
@@ -89,8 +91,43 @@ def main(a):
         meson('harfbuzz',['-Dfreetype=enabled','-Dtests=disabled','-Dutilities=disabled'])
         meson('libass',['-Drequire-system-font-provider=false'])
         meson('libplacebo',['-Ddemos=false','-Dtests=false'])
+        if a.profile=='playback-full':
+            # dav1d's one-thread path runs synchronously. Enforce that path and
+            # use the SDK's ordinary non-pthread libc; no worker is created.
+            source=out/'sources/dav1d'
+            p=source/'meson.build';text=p.read_text()
+            if text.count("thread_dependency = dependency('threads')")!=1:raise ValueError('dav1d threading recipe drift')
+            p.write_text(text.replace("thread_dependency = dependency('threads')","thread_dependency = declare_dependency()"))
+            p=source/'src/lib.c';text=p.read_text()
+            if text.count('s->n_threads = 0;')!=1:raise ValueError('dav1d default threading drift')
+            text=text.replace('s->n_threads = 0;','s->n_threads = 1;')
+            expected='s->n_threads >= 0 &&\n                          s->n_threads <= DAV1D_MAX_THREADS'
+            if text.count(expected)!=2:raise ValueError('dav1d thread admission drift')
+            p.write_text(text.replace(expected,'s->n_threads == 1'))
+            state['adaptationSHA256'].update({str(p.relative_to(out)):digest(p) for p in [source/'meson.build',source/'src/lib.c']});save()
+            meson('dav1d',['-Denable_asm=false','-Denable_tools=false','-Denable_tests=false'])
+            zimg=out/'sources/zimg';recipe=out/'zimg-cmake';recipe.mkdir()
+            run(['patch','--batch','--forward','-p1','-i',out/'inputs/experiments/jspi-asyncify/mpv/patches/zimg-gamma-lut.patch'],zimg)
+            section=(zimg/'Makefile.am').read_text().split('libzimg_internal_la_SOURCES =',1)[1].split('libzimg_internal_la_CPPFLAGS',1)[0]
+            portable=re.findall(r'src/[\w/]+\.cpp',section)
+            if len(portable)<20:raise ValueError('zimg portable source inventory drift')
+            pc=(zimg/'zimg.pc.in').read_text()
+            for key,value in {'prefix':str(prefix),'exec_prefix':'${prefix}','libdir':'${prefix}/lib','includedir':'${prefix}/include','VERSION':'3.0.6','STL_LIBS':'-lstdc++'}.items():pc=pc.replace('@'+key+'@',value)
+            (recipe/'zimg.pc').write_text(pc)
+            cmake=['cmake_minimum_required(VERSION 3.16)','project(demuxe_private_zimg LANGUAGES CXX)',
+                   'add_library(zimg STATIC '+ ' '.join(json.dumps(str(zimg/p)) for p in portable)+')',
+                   'target_compile_features(zimg PRIVATE cxx_std_14)','target_compile_options(zimg PRIVATE -O2 -msimd128 -fexceptions)',
+                   'target_include_directories(zimg PRIVATE '+json.dumps(str(zimg/'src/zimg'))+')',
+                   'install(TARGETS zimg ARCHIVE DESTINATION lib)',
+                   'install(FILES '+json.dumps(str(zimg/'src/zimg/api/zimg.h'))+' DESTINATION include)',
+                   'install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/zimg.pc" DESTINATION lib/pkgconfig)']
+            (recipe/'CMakeLists.txt').write_text('\n'.join(cmake)+'\n')
+            for component,src,extra in [('zimg',recipe,[]),('libxml2',out/'sources/libxml2',['-DLIBXML2_WITH_'+option+'=OFF' for option in ['PROGRAMS','TESTS','PYTHON','ICONV','ZLIB','LZMA','HTTP','FTP','MODULES']])]:
+                obj=out/'objects'/component
+                run(['emcmake','cmake','-S',src,'-B',obj,'-G','Ninja','-DCMAKE_INSTALL_PREFIX='+str(prefix),'-DCMAKE_INSTALL_SYSCONFDIR=/demuxe/etc','-DCMAKE_BUILD_TYPE=Release','-DBUILD_SHARED_LIBS=OFF',*extra])
+                run(['cmake','--build',obj,'-j',a.jobs]);run(['cmake','--install',obj])
         ff=out/'objects/ffmpeg';ff.mkdir()
-        run(['/bin/bash',out/'sources/ffmpeg/configure','--prefix='+str(prefix),'--target-os=none','--arch=wasm32','--enable-cross-compile','--cc=emcc','--cxx=em++','--ar=emar','--ranlib=emranlib','--nm=emnm','--enable-static','--disable-shared','--disable-programs','--disable-doc','--disable-debug','--disable-autodetect','--disable-network','--disable-asm','--disable-everything','--disable-pthreads','--disable-w32threads','--disable-os2threads','--disable-avdevice','--enable-demuxers','--enable-decoder=ass,ssa,subrip,movtext,pgssub,dvdsub,webvtt'+(',aac,ac3,pcm_s16le,pcm_s24le,pcm_f32le' if a.profile=='audio' else ''),'--enable-protocol=file','--enable-filter=aresample,aformat,format,scale,anull,null','--extra-cflags='+' '.join(flags)],ff)
+        run(['/bin/bash',out/'sources/ffmpeg/configure','--prefix='+str(prefix),'--target-os=none','--arch=wasm32','--enable-cross-compile','--cc=emcc','--cxx=em++','--ar=emar','--ranlib=emranlib','--nm=emnm','--enable-static','--disable-shared','--disable-programs','--disable-doc','--disable-debug','--disable-autodetect','--disable-network','--disable-asm',*(['--disable-encoders','--disable-muxers','--disable-devices','--disable-hwaccels','--disable-protocols','--enable-protocol=file','--enable-libdav1d','--enable-libzimg','--enable-libxml2','--enable-libass'] if a.profile=='playback-full' else ['--disable-everything']),'--disable-pthreads','--disable-w32threads','--disable-os2threads','--disable-avdevice','--enable-demuxers','--enable-decoder=ass,ssa,subrip,movtext,pgssub,dvdsub,webvtt'+(',aac,ac3,pcm_s16le,pcm_s24le,pcm_f32le' if a.profile in ('audio','playback','playback-full') else ''),*(['--enable-decoder=mpeg2video,mpeg4,prores,mp2,mp3', '--enable-parser=mpegvideo,mpeg4video,mpegaudio,aac,ac3'] if a.profile=='playback' else []),'--enable-protocol=file','--enable-filter=aresample,aformat,format,scale,anull,null','--extra-cflags='+' '.join(flags)],ff)
         header=ff/'config.h';header.write_text(header.read_text().replace(str(out),'/demuxe-mpv-private'))
         run(['make','-j',a.jobs],ff);run(['make','install'],ff)
         meson('mpv',['-Dgpl=false','-Dlibmpv=true','-Dcplayer=false','-Dgl=disabled','-Dlua=disabled','-Dbuild-date=false','-Dzlib=enabled'])
@@ -103,5 +140,5 @@ def main(a):
     finally:save()
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--out',type=pathlib.Path,required=True);p.add_argument('--sdk',type=pathlib.Path,required=True);p.add_argument('--downloads',type=pathlib.Path,required=True);p.add_argument('--tools',type=pathlib.Path,required=True);p.add_argument('--jobs',type=int,default=4);p.add_argument('--profile',choices=['subtitles','audio'],default='subtitles')
+    p=argparse.ArgumentParser();p.add_argument('--out',type=pathlib.Path,required=True);p.add_argument('--sdk',type=pathlib.Path,required=True);p.add_argument('--downloads',type=pathlib.Path,required=True);p.add_argument('--tools',type=pathlib.Path,required=True);p.add_argument('--jobs',type=int,default=4);p.add_argument('--profile',choices=['subtitles','audio','playback','playback-full'],default='subtitles')
     main(p.parse_args())

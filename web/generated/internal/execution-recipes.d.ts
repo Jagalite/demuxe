@@ -13,7 +13,7 @@ export type NativeExecutionProfile = Readonly<{
 }>;
 export type RecipeDescription = Readonly<{
     requirements: readonly CapabilityRequest[];
-    backend: 'NativePlayer' | 'ShakaBackend' | 'WasmPlayer';
+    backend: 'NativePlayer' | 'ShakaBackend' | 'WasmPlayer' | 'PrivateSoftwarePlayer';
     native?: NativeExecutionProfile;
     /** Unordered catalog of current guarded alternatives. Never routing order. */
     bindings: readonly Readonly<{
@@ -39,7 +39,7 @@ export type RecipeDescription = Readonly<{
 export declare const EXECUTION_RECIPES: {
     readonly 'native-direct-mpv': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -55,7 +55,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-direct': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -71,7 +71,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-remux-mpv': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -87,7 +87,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-remux': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -103,7 +103,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-direct-gain': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -119,7 +119,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'shaka-mse': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -135,7 +135,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'shaka-mse-gain': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -151,7 +151,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-remux-gain': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -167,7 +167,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-flac': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -183,7 +183,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-flac-gain': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -199,7 +199,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-direct-ass': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -215,7 +215,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-direct-ass-gain': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -231,7 +231,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-remux-ass': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -247,7 +247,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-remux-ass-gain': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -263,7 +263,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-flac-ass': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -279,7 +279,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-flac-ass-gain': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -295,7 +295,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-opus': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -311,7 +311,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-opus-gain': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -327,7 +327,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-transcode-mpv': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -343,7 +343,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-transcode-ass': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -359,7 +359,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-transcode': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -375,7 +375,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-video-mpv-audio': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -391,7 +391,71 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'native-video-mpv-audio-subtitles': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
+        native?: NativeExecutionProfile;
+        /** Unordered catalog of current guarded alternatives. Never routing order. */
+        bindings: readonly Readonly<{
+            id: string;
+            owner: string;
+            providers: readonly CurrentProviderBinding[];
+        }>[];
+        synchronizationOwner: string;
+        features: Readonly<{
+            gain: boolean;
+            audioFilter: boolean;
+        }>;
+    }>;
+    readonly 'hybrid-private': Readonly<{
+        requirements: readonly CapabilityRequest[];
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
+        native?: NativeExecutionProfile;
+        /** Unordered catalog of current guarded alternatives. Never routing order. */
+        bindings: readonly Readonly<{
+            id: string;
+            owner: string;
+            providers: readonly CurrentProviderBinding[];
+        }>[];
+        synchronizationOwner: string;
+        features: Readonly<{
+            gain: boolean;
+            audioFilter: boolean;
+        }>;
+    }>;
+    readonly 'hybrid-private-gain': Readonly<{
+        requirements: readonly CapabilityRequest[];
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
+        native?: NativeExecutionProfile;
+        /** Unordered catalog of current guarded alternatives. Never routing order. */
+        bindings: readonly Readonly<{
+            id: string;
+            owner: string;
+            providers: readonly CurrentProviderBinding[];
+        }>[];
+        synchronizationOwner: string;
+        features: Readonly<{
+            gain: boolean;
+            audioFilter: boolean;
+        }>;
+    }>;
+    readonly 'software-private': Readonly<{
+        requirements: readonly CapabilityRequest[];
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
+        native?: NativeExecutionProfile;
+        /** Unordered catalog of current guarded alternatives. Never routing order. */
+        bindings: readonly Readonly<{
+            id: string;
+            owner: string;
+            providers: readonly CurrentProviderBinding[];
+        }>[];
+        synchronizationOwner: string;
+        features: Readonly<{
+            gain: boolean;
+            audioFilter: boolean;
+        }>;
+    }>;
+    readonly 'software-private-gain': Readonly<{
+        requirements: readonly CapabilityRequest[];
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -407,7 +471,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly hybrid: Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -423,7 +487,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'hybrid-audio-filter': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -439,7 +503,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'hybrid-gain': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -455,7 +519,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'hybrid-audio-filter-gain': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -471,7 +535,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly 'software-gain': Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{
@@ -487,7 +551,7 @@ export declare const EXECUTION_RECIPES: {
     }>;
     readonly software: Readonly<{
         requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer";
+        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
         native?: NativeExecutionProfile;
         /** Unordered catalog of current guarded alternatives. Never routing order. */
         bindings: readonly Readonly<{

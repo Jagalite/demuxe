@@ -18,13 +18,35 @@ class PrivateMpvAssets(unittest.TestCase):
       (p/name).write_text(folder+name);hashes[name]=hashlib.sha256((p/name).read_bytes()).hexdigest();build['artifacts'][folder+'/'+name]={'sha256':hashes[name]}
      (p/'manifest.json').write_text(json.dumps({'schema':1,'backend':backend,'profile':profile,'files':hashes}))
      build['privateMpv'][folder]={'inputs':['source.c'],'configurations':['config.h']}
-   for name in ['private-mpv.js','private-mpv/LICENSE.txt','private-mpv/engine.js','private-mpv/scheduler.js','private-mpv/continuations.js','private-mpv/range-source.js','private-mpv/audio-worker.js','private-mpv/audio-worklet.js']:
+   for name in ['private-mpv.js','private-mpv/LICENSE.txt','private-mpv/engine.js','private-mpv/scheduler.js','private-mpv/continuations.js','private-mpv/range-source.js','private-mpv/audio-worker.js','private-mpv/audio-worklet.js','private-mpv/decoder-mailbox.js','private-mpv/retained-decoder.js','external-video-decoder.js','video-codec-config.js']:
     p=root/'web'/name;p.parent.mkdir(exist_ok=True);p.write_text(name)
-   files=assets.private_mpv_assets(root);self.assertEqual(len(files),20);assets.verify_private_mpv_release(files,build)
+   files=assets.private_mpv_assets(root);self.assertEqual(len(files),24);assets.verify_private_mpv_release(files,build)
    for key in ['clean','privateMpv','artifacts','inputs','configurations']:
     with self.subTest(key=key),self.assertRaises(ValueError):assets.verify_private_mpv_release(files,{**build,key:False if key=='clean' else {}})
    p=root/'web/engine-mpv-audio-jspi/service.wasm';p.write_bytes(b'corrupt')
    with self.assertRaisesRegex(ValueError,'artifact mismatch'):assets.private_mpv_assets(root)
    p.unlink()
    with self.assertRaises(FileNotFoundError):assets.private_mpv_assets(root)
+ def test_playback_is_an_independent_complete_pair_with_consumer_gates(self):
+  base=optional.required_consumer_cases({'files':{}})
+  playback=optional.required_consumer_cases({'files':{'web/engine-mpv-playback-jspi/player.wasm':{}}})
+  self.assertEqual(playback-base,{'private-software-jspi','private-software-asyncify','private-software-controls','private-software-cancellation','private-software-asset-mismatch','private-hybrid-jspi','private-hybrid-asyncify','private-hybrid-controls'})
+  with tempfile.TemporaryDirectory() as tmp:
+   root=pathlib.Path(tmp)
+   for name in ['private-mpv.js','private-mpv/LICENSE.txt','private-mpv/engine.js','private-mpv/scheduler.js','private-mpv/continuations.js','private-mpv/range-source.js','private-mpv/audio-worklet.js','private-mpv/playback-worker.js','private-mpv/playback-host.js','private-mpv/playback-pcm.js','private-mpv/decoder-mailbox.js','private-mpv/retained-decoder.js','private-mpv/retained-presentation.js','external-video-decoder.js','video-codec-config.js','retained-video.js','subtitle-overlay.js']:
+    p=root/'web'/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(name)
+   for backend in ['jspi','asyncify']:
+    p=root/f'web/engine-mpv-playback-{backend}';p.mkdir();hashes={}
+    for name in ['player.mjs','player.wasm']:
+     (p/name).write_text(backend+name);hashes[name]=hashlib.sha256((p/name).read_bytes()).hexdigest()
+    (p/'manifest.json').write_text(json.dumps({'schema':1,'backend':backend,'profile':'playback','audioCapacity':32768,'files':hashes}))
+    if backend=='jspi':
+     with self.assertRaises(FileNotFoundError):assets.private_mpv_assets(root)
+   files=assets.private_mpv_assets(root);self.assertEqual(len(files),23)
+   with self.assertRaisesRegex(ValueError,'clean'):assets.verify_private_mpv_release(files,{'clean':False})
+   with self.assertRaisesRegex(ValueError,'recorded inputs'):assets.verify_private_mpv_release(files,{'clean':True})
+   p=root/'web/engine-mpv-playback-asyncify/manifest.json';r=json.loads(p.read_text());r['audioCapacity']=8192;p.write_text(json.dumps(r))
+   with self.assertRaisesRegex(ValueError,'capacities differ'):assets.private_mpv_assets(root)
+   r['audioCapacity']=32769;p.write_text(json.dumps(r))
+   with self.assertRaisesRegex(ValueError,'capacity mismatch'):assets.private_mpv_assets(root)
 if __name__=='__main__':unittest.main()

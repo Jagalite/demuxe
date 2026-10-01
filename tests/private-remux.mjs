@@ -41,3 +41,17 @@ test('source errors retain their cause and invalid runtimes do not load assets',
  finally{reader.close();port2.close();}
  await assert.rejects(privateRemux('unknown',{}),/Invalid private remux runtime/);
 });
+
+test('invalid inspector demuxer hints reject before creating workers',async()=>{
+ const {probeSource}=await import('../web/source-probe.js');
+ for(const demuxer of ['sbc,other','../sbc',42,'a'.repeat(65)])await assert.rejects(probeSource({demuxer},new AbortController().signal,undefined,undefined,'asyncify'),/Invalid demuxer hint/);
+});
+
+test('verified cooperative assets never fall back to an unverified network manifest',async t=>{
+ const {privateMpv}=await import('../web/private-mpv.js');
+ t.mock.method(globalThis,'fetch',()=>{throw Error('Unverified asset fetch');});
+ const encode=value=>new TextEncoder().encode(JSON.stringify(value)).buffer;
+ await assert.rejects(privateMpv('asyncify','playback',{assets:{}}),/Missing verified private mpv asset: manifest.json/);
+ await assert.rejects(privateMpv('asyncify','playback',{assets:{'manifest.json':encode({schema:1,backend:'jspi',profile:'playback'})}}),/identity mismatch/);
+ await assert.rejects(privateMpv('asyncify','playback',{assets:{'manifest.json':encode({schema:1,backend:'asyncify',profile:'playback',files:{'player.wasm':'0'.repeat(64)}}),'player.wasm':new ArrayBuffer(8)}}),/Wasm hash mismatch/);
+});

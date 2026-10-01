@@ -933,6 +933,12 @@
   },
   "ownershipRules": [
     {
+      "owner": "core",
+      "paths": [
+        "src/internal/private-playback-admission.ts"
+      ]
+    },
+    {
       "paths": [
         "packages/provider-audio-g726/index.*",
         "packages/provider-audio-g726/package.json"
@@ -1251,7 +1257,10 @@
         "web/webgpu/diagnostics.js",
         "web/webgpu/codecs/registry.js",
         "web/webgpu/codecs/adapter.js",
-        "fixtures/DejaVuSans.ttf"
+        "fixtures/DejaVuSans.ttf",
+        "src/internal/private-software-player.ts",
+        "web/engine-mpv/*",
+        "packages/provider-mpv/runtime/*"
       ]
     },
     {
@@ -1455,7 +1464,8 @@
     "web/video-codec-config.js",
     "src/internal/component-recipes.ts",
     "src/internal/component-selection.ts",
-    "src/components.ts"
+    "src/components.ts",
+    "src/internal/private-playback-admission.ts"
   ],
   "playerCoreComputedImports": {
     "src/unified-player.ts": [
@@ -1510,50 +1520,121 @@
     },
     "mpv": {
       "files": [
+        "fixtures/DejaVuSans.ttf",
         "web/audio-worklet.js",
-        "web/selective-sync-worklet.js",
-        "web/filter-retained-engine-worker.js",
-        "web/retained-decoder-worker.js",
+        "web/browser-decoder-worker.js",
+        "web/engine-hybrid/player.mjs",
+        "web/engine-selective/player.mjs",
+        "web/engine-software-full/player.mjs",
+        "web/engine-software-yuv/player.mjs",
         "web/external-video-decoder.js",
+        "web/fallback-stream-policy.js",
+        "web/file-reader.js",
+        "web/filter-retained-engine-worker.js",
+        "web/io-worker.js",
+        "web/prepared-engine.js",
+        "web/private-mpv.js",
+        "web/private-mpv/audio-worklet.js",
+        "web/private-mpv/continuations.js",
+        "web/private-mpv/decoder-mailbox.js",
+        "web/private-mpv/engine.js",
+        "web/private-mpv/playback-host.js",
+        "web/private-mpv/playback-pcm.js",
+        "web/private-mpv/playback-worker.js",
+        "web/private-mpv/range-source.js",
+        "web/private-mpv/retained-decoder.js",
+        "web/private-mpv/retained-presentation.js",
+        "web/private-mpv/scheduler.js",
+        "web/range-reader.js",
+        "web/resource-loader.js",
+        "web/retained-decoder-worker.js",
+        "web/retained-video.js",
+        "web/selective-sync-worklet.js",
+        "web/software-full-engine-worker.js",
+        "web/subtitle-overlay.js",
+        "web/video-codec-config.js",
         "web/video-presenter.js",
         "web/webgl-yuv-presenter.js",
-        "web/retained-video.js",
-        "web/subtitle-overlay.js",
-        "web/software-full-engine-worker.js",
-        "web/io-worker.js",
-        "web/yuv-presenter.js",
-        "web/browser-decoder-worker.js",
-        "web/webgpu/runtime.js",
+        "web/webgpu/codecs/adapter.js",
+        "web/webgpu/codecs/registry.js",
+        "web/webgpu/diagnostics.js",
         "web/webgpu/mailbox-service.js",
         "web/webgpu/presenter.js",
-        "web/webgpu/diagnostics.js",
-        "web/webgpu/codecs/registry.js",
-        "web/webgpu/codecs/adapter.js",
-        "fixtures/DejaVuSans.ttf"
+        "web/webgpu/runtime.js",
+        "web/yuv-presenter.js"
       ],
       "engines": [
-        "web/engine-hybrid/player.mjs",
-        "web/engine-hybrid/player.wasm",
-        "web/engine-selective/player.mjs",
-        "web/engine-selective/player.wasm",
-        "web/engine-software-full/player.mjs",
-        "web/engine-software-full/player.wasm",
-        "web/engine-software-yuv/player.mjs",
-        "web/engine-software-yuv/player.wasm"
+        "web/engine-mpv/player.mjs",
+        "web/engine-mpv/player.wasm",
+        "web/engine-mpv-playback-jspi/player.mjs",
+        "web/engine-mpv-playback-jspi/player.wasm",
+        "web/engine-mpv-playback-jspi/manifest.json",
+        "web/engine-mpv-playback-asyncify/player.mjs",
+        "web/engine-mpv-playback-asyncify/player.wasm",
+        "web/engine-mpv-playback-asyncify/manifest.json"
       ],
       "providers": [
         "mpv-hybrid",
         "mpv-software",
-        "mpv-selected-audio"
+        "mpv-selected-audio",
+        "mpv-playback-jspi",
+        "mpv-playback-asyncify"
       ],
       "generated": [
+        "web/generated/internal/buffering.js",
+        "web/generated/internal/decode-policy.js",
+        "web/generated/internal/errors.js",
+        "web/generated/internal/external-decoder-selection.js",
+        "web/generated/internal/native-mpv-audio.js",
+        "web/generated/internal/private-software-player.js",
+        "web/generated/internal/runtime-worker.js",
         "web/generated/internal/wasm-player.js",
-        "web/generated/internal/native-mpv-audio.js"
+        "web/generated/internal/watchdogs.js",
+        "web/generated/internal/webgpu-codecs.js"
       ],
       "excludedSourceConfigurations": [
         "build/subtitle-service/link-command.json",
         "build/subtitle-service/manifest.json",
         "build/link-maps/subtitles.map"
+      ],
+      "assetGraph": true,
+      "nativeGroupIds": [
+        "pthread",
+        "private-playback"
+      ],
+      "fileOverrides": {
+        "web/engine-hybrid/player.mjs": "packages/provider-mpv/runtime/web/engine-hybrid/player.mjs",
+        "web/engine-selective/player.mjs": "packages/provider-mpv/runtime/web/engine-selective/player.mjs",
+        "web/engine-software-full/player.mjs": "packages/provider-mpv/runtime/web/engine-software-full/player.mjs",
+        "web/engine-software-yuv/player.mjs": "packages/provider-mpv/runtime/web/engine-software-yuv/player.mjs"
+      },
+      "sources": [
+        "packages/provider-mpv/runtime/web/engine-hybrid/player.mjs",
+        "packages/provider-mpv/runtime/web/engine-selective/player.mjs",
+        "packages/provider-mpv/runtime/web/engine-software-full/player.mjs",
+        "packages/provider-mpv/runtime/web/engine-software-yuv/player.mjs"
+      ],
+      "computedImports": [
+        {
+          "file": "web/filter-retained-engine-worker.js",
+          "expression": "audioOnly?'./engine-selective/player.mjs':data.decoder==='webcodecs'||data.decoder==='webgpu'?'./engine-hybrid/player.mjs':'./engine/player.mjs'"
+        },
+        {
+          "file": "web/software-full-engine-worker.js",
+          "expression": "uploader?'./engine-software-yuv/player.mjs':'./engine-software-full/player.mjs'"
+        },
+        {
+          "file": "web/webgpu/codecs/registry.js",
+          "expression": "new URL(entry.module,import.meta.url).href"
+        },
+        {
+          "file": "web/private-mpv.js",
+          "expression": "url"
+        },
+        {
+          "file": "web/private-mpv.js",
+          "expression": "new URL(stem+'.mjs',base)"
+        }
       ]
     },
     "audio-ac3": {

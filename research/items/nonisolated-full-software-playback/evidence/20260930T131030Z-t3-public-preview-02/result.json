@@ -1,0 +1,3111 @@
+{
+  "scope": "Public Player non-isolated Software qualification",
+  "startedAt": "2026-09-30T13:10:30.479Z",
+  "command": [
+    "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/research/items/nonisolated-full-software-playback/tests/public-preview-server.mjs",
+    "/Volumes/seed2/Projects/demuxe",
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/readme-references-01",
+    "research/items/nonisolated-full-software-playback/evidence/20260930T131030Z-t3-public-preview-02"
+  ],
+  "environment": {
+    "runtime": "jspi",
+    "installedRoot": "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-install-02",
+    "browser": "chrome",
+    "negativeOnly": false
+  },
+  "cases": [
+    {
+      "key": "mpeg2-ac3",
+      "runtime": "jspi",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.19765625,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.20074652777777777,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 0.2009027777777778,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 1010.2999999970198,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 3184939,
+            "milliseconds": 943.4000000059605
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 8190624,
+            "milliseconds": 1007.4000000059605
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 201.5
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "inspected finite file within the private playback codec, duration and byte profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "not admitted",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "64 MiB source, 128 MiB Wasm heap, 32768-frame stereo PCM ring and one RGB canvas frame",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "jspi",
+        "plan": "software-private",
+        "rendered": 2,
+        "presentedPosition": 0.005333333333333334,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 366,
+          "completed": 360,
+          "abandoned": 0,
+          "suspensions": 137,
+          "resumes": 131,
+          "maxLive": 7,
+          "timerWakes": 67,
+          "signals": 59,
+          "stackChecks": 994,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 2,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 5,
+          "bytes": 512144,
+          "copies": 5,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        }
+      },
+      "advanced": 1.1723333333333334,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterError": "PlayerError: Private Software filters and tone mapping are not qualified",
+      "recovered": 0.5053333333333334,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "maxOutstanding": 32768,
+          "feedbackCount": 196,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 706,
+          "completed": 706,
+          "abandoned": 0,
+          "suspensions": 527,
+          "resumes": 527,
+          "maxLive": 7,
+          "timerWakes": 175,
+          "signals": 341,
+          "stackChecks": 2466,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 8,
+          "bytes": 774288,
+          "copies": 8,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        }
+      }
+    },
+    {
+      "key": "mpeg2-interlaced-ac3",
+      "runtime": "jspi",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.1991724537037037,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.20142361111111112,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 0.20102430555555556,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 879.7999999970198,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 3184939,
+            "milliseconds": 879.7000000029802
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 8190624,
+            "milliseconds": 872.3999999910593
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 158.40000000596046
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "inspected finite file within the private playback codec, duration and byte profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "not admitted",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "64 MiB source, 128 MiB Wasm heap, 32768-frame stereo PCM ring and one RGB canvas frame",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "jspi",
+        "plan": "software-private",
+        "rendered": 2,
+        "presentedPosition": 0.005333333333333334,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 294,
+          "completed": 288,
+          "abandoned": 0,
+          "suspensions": 103,
+          "resumes": 97,
+          "maxLive": 7,
+          "timerWakes": 33,
+          "signals": 59,
+          "stackChecks": 782,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 5,
+          "bytes": 512144,
+          "copies": 5,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        }
+      },
+      "advanced": 1.1723333333333334,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterError": "PlayerError: Private Software filters and tone mapping are not qualified",
+      "recovered": 0.5053333333333334,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "maxOutstanding": 32768,
+          "feedbackCount": 188,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 719,
+          "completed": 719,
+          "abandoned": 0,
+          "suspensions": 528,
+          "resumes": 528,
+          "maxLive": 7,
+          "timerWakes": 189,
+          "signals": 328,
+          "stackChecks": 2494,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 8,
+          "bytes": 774288,
+          "copies": 8,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        }
+      }
+    },
+    {
+      "key": "mpeg2-mp2",
+      "runtime": "jspi",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.19765625,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.20074652777777777,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 0.2009027777777778,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 631.7999999970198,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 3184939,
+            "milliseconds": 628.4000000059605
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 8190624,
+            "milliseconds": 630.5
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 592.4000000059605
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "inspected finite file within the private playback codec, duration and byte profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "not admitted",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "64 MiB source, 128 MiB Wasm heap, 32768-frame stereo PCM ring and one RGB canvas frame",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "jspi",
+        "plan": "software-private",
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 274,
+          "completed": 268,
+          "abandoned": 0,
+          "suspensions": 90,
+          "resumes": 84,
+          "maxLive": 7,
+          "timerWakes": 23,
+          "signals": 56,
+          "stackChecks": 716,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 5,
+          "bytes": 512144,
+          "copies": 5,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        }
+      },
+      "advanced": 1.1763555555555556,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterError": "PlayerError: Private Software filters and tone mapping are not qualified",
+      "recovered": 0.5096888888888889,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "maxOutstanding": 32768,
+          "feedbackCount": 196,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 703,
+          "completed": 703,
+          "abandoned": 0,
+          "suspensions": 572,
+          "resumes": 572,
+          "maxLive": 7,
+          "timerWakes": 182,
+          "signals": 377,
+          "stackChecks": 2550,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 10,
+          "bytes": 905360,
+          "copies": 10,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        }
+      }
+    },
+    {
+      "key": "mpeg4-mp3",
+      "runtime": "jspi",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.20860532407407406,
+          "time": 0.5333333333333333
+        },
+        {
+          "target": 1.5,
+          "mae": 0.18965277777777778,
+          "time": 1.5333333333333334
+        },
+        {
+          "target": 2.5,
+          "mae": 0.19013888888888889,
+          "time": 2.533333333333333
+        }
+      ],
+      "preparation": {
+        "milliseconds": 12072.20000000298,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 3184939,
+            "milliseconds": 12067.300000011921
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 8190624,
+            "milliseconds": 12066.70000000298
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 67.29999999701977
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "inspected finite file within the private playback codec, duration and byte profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "not admitted",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "64 MiB source, 128 MiB Wasm heap, 32768-frame stereo PCM ring and one RGB canvas frame",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "jspi",
+        "plan": "software-private",
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 290,
+          "completed": 284,
+          "abandoned": 0,
+          "suspensions": 109,
+          "resumes": 103,
+          "maxLive": 7,
+          "timerWakes": 32,
+          "signals": 58,
+          "stackChecks": 786,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 13,
+          "bytes": 1124688,
+          "copies": 13,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        }
+      },
+      "advanced": 1.157,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterError": "PlayerError: Private Software filters and tone mapping are not qualified",
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "maxOutstanding": 32768,
+          "feedbackCount": 204,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            37333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 696,
+          "completed": 696,
+          "abandoned": 0,
+          "suspensions": 475,
+          "resumes": 475,
+          "maxLive": 7,
+          "timerWakes": 157,
+          "signals": 299,
+          "stackChecks": 2342,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 16,
+          "bytes": 1386832,
+          "copies": 16,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        }
+      }
+    },
+    {
+      "key": "prores-pcm",
+      "runtime": "jspi",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 0,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 274.5,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 3184939,
+            "milliseconds": 199.19999998807907
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 8190624,
+            "milliseconds": 226.1000000089407
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 273.70000000298023
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "inspected finite file within the private playback codec, duration and byte profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "not admitted",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "64 MiB source, 128 MiB Wasm heap, 32768-frame stereo PCM ring and one RGB canvas frame",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "jspi",
+        "plan": "software-private",
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 278,
+          "completed": 272,
+          "abandoned": 0,
+          "suspensions": 92,
+          "resumes": 86,
+          "maxLive": 7,
+          "timerWakes": 27,
+          "signals": 56,
+          "stackChecks": 728,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 3,
+          "bytes": 619691,
+          "copies": 3,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        }
+      },
+      "advanced": 1.167,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterError": "PlayerError: Private Software filters and tone mapping are not qualified",
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "maxOutstanding": 32768,
+          "feedbackCount": 186,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            5333,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 699,
+          "completed": 699,
+          "abandoned": 0,
+          "suspensions": 454,
+          "resumes": 454,
+          "maxLive": 7,
+          "timerWakes": 163,
+          "signals": 277,
+          "stackChecks": 2306,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 11,
+          "bytes": 2451843,
+          "copies": 11,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        }
+      }
+    },
+    {
+      "key": "mpeg2-video-only",
+      "runtime": "jspi",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.19765625,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.20074652777777777,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 0.2009027777777778,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 204.8999999910593,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 3184939,
+            "milliseconds": 162.79999999701977
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 8190624,
+            "milliseconds": 200.70000000298023
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 83.80000001192093
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "inspected finite file within the private playback codec, duration and byte profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "not admitted",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "64 MiB source, 128 MiB Wasm heap, 32768-frame stereo PCM ring and one RGB canvas frame",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "jspi",
+        "plan": "software-private",
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            0,
+            48000,
+            37333,
+            1,
+            0
+          ]
+        },
+        "scheduler": {
+          "created": 283,
+          "completed": 278,
+          "abandoned": 0,
+          "suspensions": 99,
+          "resumes": 94,
+          "maxLive": 6,
+          "timerWakes": 34,
+          "signals": 53,
+          "stackChecks": 754,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 5,
+          "retainedTasks": 5,
+          "waitKeys": 5,
+          "timers": 3,
+          "freeSlots": 19,
+          "stopped": false
+        },
+        "io": {
+          "reads": 7,
+          "bytes": 577572,
+          "copies": 7,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        }
+      },
+      "advanced": 1.2,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterError": "PlayerError: Private Software filters and tone mapping are not qualified",
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            0,
+            48000,
+            5333,
+            1,
+            0
+          ]
+        },
+        "scheduler": {
+          "created": 677,
+          "completed": 677,
+          "abandoned": 0,
+          "suspensions": 410,
+          "resumes": 410,
+          "maxLive": 6,
+          "timerWakes": 161,
+          "signals": 240,
+          "stackChecks": 2174,
+          "continuations": {
+            "kind": "jspi"
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 7,
+          "bytes": 577572,
+          "copies": 7,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        }
+      }
+    },
+    {
+      "key": "mpeg2-ac3",
+      "runtime": "asyncify",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3Code(Alpha)/0.0.44 Chrome/152.0.7977.130 Electron/44.4.2 Safari/537.36",
+      "isolated": false,
+      "passed": false,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.2077835648148148,
+          "time": 0
+        }
+      ],
+      "preparation": {
+        "milliseconds": 716.2000000029802,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 4869255,
+            "milliseconds": 344.69999998807907
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 20830781,
+            "milliseconds": 715.7999999970198
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 10.399999991059303
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "demuxe-retained-frame"
+        },
+        "source": "inspected finite file within the private playback codec, duration and byte profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "not admitted",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "64 MiB source, 128 MiB Wasm heap, 32768-frame stereo PCM ring and one RGB canvas frame",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "asyncify",
+        "plan": "software-private",
+        "rendered": 2,
+        "presentedPosition": 0.005333333333333334,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            37333,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 298,
+          "completed": 292,
+          "abandoned": 0,
+          "suspensions": 99,
+          "resumes": 93,
+          "maxLive": 7,
+          "timerWakes": 31,
+          "signals": 57,
+          "stackChecks": 782,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 5524,
+            "unwinds": 99,
+            "rewinds": 93
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 5,
+          "bytes": 512144,
+          "copies": 5,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        }
+      },
+      "error": "Error: Seek picture mismatch\n    at window.publicCheck (http://localhost:54596/qualification.mjs:26:114)\n    at async <anonymous>:1:198",
+      "failureState": {
+        "state": {
+          "status": "paused",
+          "playbackIntent": "pause",
+          "pendingOperation": null,
+          "sourceId": 1,
+          "currentTime": 0.5053333333333334,
+          "duration": 36.00033333333334,
+          "streamType": "vod",
+          "subtitlesVisible": true,
+          "volume": 1,
+          "muted": false,
+          "playbackRate": 1,
+          "activeMode": "software",
+          "automaticSelection": false,
+          "buffered": null,
+          "seekable": null,
+          "cached": [],
+          "timing": {
+            "subtitleDelay": 0,
+            "audioDelay": 0,
+            "effectiveSubtitleDelay": 0,
+            "effectiveAudioDelay": 0,
+            "subtitleStyle": {},
+            "styleScope": "plain-text"
+          },
+          "loop": false,
+          "playbackRange": null,
+          "streaming": null,
+          "audioOutputDevice": "",
+          "trackPolicy": {},
+          "audioTracks": [
+            {
+              "id": "1:audio:stream:1",
+              "type": "audio",
+              "attachedPicture": false,
+              "sampleRate": 48000,
+              "channelLayout": "stereo",
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "AC3 · Stereo",
+              "language": null,
+              "codec": "ac3",
+              "selected": true,
+              "external": false,
+              "title": null,
+              "streamIndex": 1,
+              "default": false,
+              "forced": false,
+              "channels": 2
+            }
+          ],
+          "subtitleTracks": [],
+          "mediaInfo": {
+            "metadataCoverage": {
+              "chapters": "unknown",
+              "tags": "unknown"
+            },
+            "videoTracks": [
+              {
+                "id": "1:video:stream:0",
+                "type": "video",
+                "attachedPicture": false,
+                "sampleRate": null,
+                "channelLayout": null,
+                "frameRate": 30,
+                "bitDepth": null,
+                "profile": "Main",
+                "roles": [],
+                "label": "MPEG2VIDEO",
+                "language": null,
+                "codec": "mpeg2video",
+                "selected": true,
+                "external": false,
+                "title": null,
+                "streamIndex": 0,
+                "default": false,
+                "forced": false,
+                "channels": null
+              }
+            ],
+            "chapters": null,
+            "tags": null,
+            "color": {
+              "primaries": "bt.709",
+              "transfer": "bt.1886",
+              "matrix": "bt.601",
+              "range": "limited",
+              "reportedOnly": true
+            },
+            "displayWidth": 320,
+            "displayHeight": 180,
+            "aspectRatio": 1.7777777777777777,
+            "rotation": 0,
+            "video": {
+              "id": "1:video:stream:0",
+              "type": "video",
+              "attachedPicture": false,
+              "sampleRate": null,
+              "channelLayout": null,
+              "frameRate": 30,
+              "bitDepth": null,
+              "profile": "Main",
+              "roles": [],
+              "label": "MPEG2VIDEO",
+              "language": null,
+              "codec": "mpeg2video",
+              "selected": true,
+              "external": false,
+              "title": null,
+              "streamIndex": 0,
+              "default": false,
+              "forced": false,
+              "channels": null
+            },
+            "audio": {
+              "id": "1:audio:stream:1",
+              "type": "audio",
+              "attachedPicture": false,
+              "sampleRate": 48000,
+              "channelLayout": "stereo",
+              "frameRate": null,
+              "bitDepth": null,
+              "profile": null,
+              "roles": [],
+              "label": "AC3 · Stereo",
+              "language": null,
+              "codec": "ac3",
+              "selected": true,
+              "external": false,
+              "title": null,
+              "streamIndex": 1,
+              "default": false,
+              "forced": false,
+              "channels": 2
+            },
+            "subtitle": null
+          },
+          "capabilities": {
+            "videoFilters": true,
+            "audioFilters": true,
+            "mpvSubtitles": true,
+            "externalTextTracks": false,
+            "externalSubtitles": true,
+            "customFonts": true,
+            "customRequestHeaders": true,
+            "buffering": {
+              "control": "profile",
+              "preload": true,
+              "profile": true,
+              "memoryBudget": true
+            },
+            "deployment": {
+              "isolated": false,
+              "webCodecs": true,
+              "mediaSource": true
+            },
+            "features": {
+              "subtitleDelay": {
+                "availability": "unavailable",
+                "reason": "Private Software subtitles are not qualified"
+              },
+              "audioDelay": {
+                "availability": "available"
+              },
+              "subtitleStyle": {
+                "availability": "unavailable",
+                "reason": "Private Software subtitle styling is not qualified"
+              },
+              "quality": {
+                "availability": "unavailable",
+                "reason": "This route does not expose adaptive qualities"
+              },
+              "liveNavigation": {
+                "availability": "unavailable",
+                "reason": "No controlled live timeline"
+              },
+              "loop": {
+                "availability": "unknown",
+                "reason": "Open a source to establish availability"
+              },
+              "playbackRange": {
+                "availability": "unknown",
+                "reason": "Open a source to establish availability"
+              },
+              "frameStep": {
+                "availability": "available"
+              },
+              "snapshot": {
+                "availability": "unknown",
+                "reason": "Readback depends on the active renderer and source permissions"
+              },
+              "audioOutputDevice": {
+                "availability": "unknown",
+                "reason": "Output selection depends on browser permission and the active audio sink"
+              },
+              "seek": {
+                "availability": "unknown",
+                "reason": "Seek window has not been established"
+              },
+              "audioTracks": {
+                "availability": "available"
+              },
+              "subtitleTracks": {
+                "availability": "unavailable",
+                "reason": "No subtitle tracks are available"
+              },
+              "audioGain": {
+                "availability": "available"
+              },
+              "externalSubtitles": {
+                "availability": "unavailable",
+                "reason": "Private Software external subtitles are not qualified"
+              },
+              "customFonts": {
+                "availability": "unavailable",
+                "reason": "Private Software custom fonts are not qualified"
+              },
+              "videoFilters": {
+                "availability": "unavailable",
+                "reason": "Private runtime has no qualified Hybrid or Software service"
+              },
+              "audioFilters": {
+                "availability": "unavailable",
+                "reason": "Private runtime has no qualified Hybrid or Software service"
+              }
+            }
+          },
+          "error": null
+        },
+        "diagnostics": {
+          "remuxRuntime": {
+            "policy": "asyncify",
+            "runtime": "asyncify",
+            "isolated": false,
+            "jspi": true
+          },
+          "watchdogs": {
+            "nativeProgress": true,
+            "hybridDecoder": true,
+            "decoderOutput": true,
+            "selectiveAudio": true,
+            "nativeProgressTimeoutMs": 10000
+          },
+          "preview": {
+            "requests": 0,
+            "hits": 0,
+            "failures": 0,
+            "cancelled": 0,
+            "sourceId": "1:software",
+            "cacheBytes": 0,
+            "cacheEntries": 0,
+            "active": false,
+            "pending": false
+          },
+          "buffering": {
+            "requestedProfile": "balanced",
+            "preload": "auto",
+            "backend": "mpv",
+            "control": "profile",
+            "cache": true,
+            "forwardLimitBytes": 33554432,
+            "backwardLimitBytes": 8388608,
+            "notes": [
+              "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+              "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+              "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+            ]
+          },
+          "mode": "software",
+          "plan": {
+            "id": "software-private",
+            "mode": "software",
+            "video": "ffmpeg",
+            "audio": "mpv",
+            "qualification": "bounded",
+            "owners": {
+              "video": "ffmpeg",
+              "audio": "mpv-pcm-worklet",
+              "subtitle": "mpv",
+              "demux": "mpv",
+              "presentation": "demuxe-retained-frame"
+            },
+            "source": "inspected finite file within the private playback codec, duration and byte profile",
+            "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+            "subtitles": "not admitted",
+            "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+            "resources": "64 MiB source, 128 MiB Wasm heap, 32768-frame stereo PCM ring and one RGB canvas frame",
+            "fallback": "terminal"
+          },
+          "planAdmission": [
+            {
+              "id": "native-direct-mpv",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "ac-3",
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp2t; codecs=\"ac-3\"",
+                    "result": "",
+                    "adapter": "standard-file",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-direct",
+              "mode": "native",
+              "eligible": true,
+              "browserCapability": {
+                "status": "unknown",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "ac-3",
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp2t; codecs=\"ac-3\"",
+                    "result": "",
+                    "adapter": "standard-file",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-remux-mpv",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "ac-3",
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"ac-3\"",
+                    "result": false,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-remux",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Demuxe packet-copy AC3 initialization is not qualified; use direct playback or decoded audio",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "ac-3",
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"ac-3\"",
+                    "result": false,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-direct-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "ac-3",
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp2t; codecs=\"ac-3\"",
+                    "result": "",
+                    "adapter": "standard-file",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "shaka-mse",
+              "mode": "native",
+              "eligible": false,
+              "code": "SOURCE_UNSUPPORTED",
+              "reason": "Shaka is only used for adaptive HLS/DASH sources"
+            },
+            {
+              "id": "shaka-mse-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "native-remux-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "ac-3",
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"ac-3\"",
+                    "result": false,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-flac",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "flac",
+                    "adapted": true,
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-flac-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "flac",
+                    "adapted": true,
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-direct-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "ac-3",
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp2t; codecs=\"ac-3\"",
+                    "result": "",
+                    "adapter": "standard-file",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-direct-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "canPlayType",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "ac-3",
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp2t; codecs=\"ac-3\"",
+                    "result": "",
+                    "adapter": "standard-file",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-remux-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "ac-3",
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"ac-3\"",
+                    "result": false,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-remux-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "ac-3",
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"ac-3\"",
+                    "result": false,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-flac-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Subtitle component does not match the requested presentation",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "flac",
+                    "adapted": true,
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-flac-ass-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "flac",
+                    "adapted": true,
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-opus",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "opus",
+                    "adapted": true,
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"opus\"",
+                    "result": true,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  },
+                  {
+                    "mime": "video/webm; codecs=\"opus\"",
+                    "result": true,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-opus-gain",
+              "mode": "native",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "opus",
+                    "adapted": true,
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"opus\"",
+                    "result": true,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  },
+                  {
+                    "mime": "video/webm; codecs=\"opus\"",
+                    "result": true,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-transcode-mpv",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Automatic transcoding is disabled by the audio policy",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "flac",
+                    "adapted": true,
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-transcode-ass",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Automatic transcoding is disabled by the audio policy",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "flac",
+                    "adapted": true,
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-transcode",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Automatic transcoding is disabled by the audio policy",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  },
+                  {
+                    "index": 1,
+                    "type": "audio",
+                    "codec": "ac3",
+                    "codecString": "flac",
+                    "adapted": true,
+                    "serializationComplete": true
+                  }
+                ],
+                "queries": [
+                  {
+                    "mime": "video/mp4; codecs=\"flac\"",
+                    "result": true,
+                    "adapter": "standard-mse",
+                    "negativeDecisive": true
+                  }
+                ],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is incomplete; runtime verification is required"
+              }
+            },
+            {
+              "id": "native-video-mpv-audio",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Selective audio currently requires automatic selection",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  }
+                ],
+                "queries": [],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is unavailable"
+              }
+            },
+            {
+              "id": "native-video-mpv-audio-subtitles",
+              "mode": "native",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Selective audio currently requires automatic selection",
+              "browserCapability": {
+                "status": "unknown",
+                "api": "isTypeSupported",
+                "tracks": [
+                  {
+                    "index": 0,
+                    "type": "video",
+                    "codec": "mpeg2video",
+                    "serializationComplete": false
+                  }
+                ],
+                "queries": [],
+                "unqueriedAudio": false,
+                "reason": "Selected codec configuration is unavailable"
+              }
+            },
+            {
+              "id": "hybrid",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans"
+            },
+            {
+              "id": "hybrid-audio-filter",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans"
+            },
+            {
+              "id": "hybrid-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans"
+            },
+            {
+              "id": "hybrid-audio-filter-gain",
+              "mode": "hybrid",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans"
+            },
+            {
+              "id": "software-private-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "PLAN_NOT_REQUESTED",
+              "reason": "Gain stage does not match the requested presentation"
+            },
+            {
+              "id": "software-private",
+              "mode": "software",
+              "eligible": true
+            },
+            {
+              "id": "software-gain",
+              "mode": "software",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans"
+            },
+            {
+              "id": "software",
+              "mode": "software",
+              "eligible": false,
+              "code": "QUALIFICATION_REQUIRED",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans"
+            }
+          ],
+          "runtimeCapabilities": [
+            {
+              "planId": "native-direct-mpv",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "untested",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-mpv",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "mpv subtitle service requires inspected finite file subtitles and available assets",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Demuxe packet-copy AC3 initialization is not qualified; use direct playback or decoded audio",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "shaka-mse",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Shaka is only used for adaptive HLS/DASH sources",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "shaka-mse-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Audio adaptation requires explicit profile or qualified automatic lossless policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-direct-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-remux-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Subtitle component does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-flac-ass-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-opus-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-transcode-mpv",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Automatic transcoding is disabled by the audio policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-transcode-ass",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Automatic transcoding is disabled by the audio policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-transcode",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Automatic transcoding is disabled by the audio policy",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-video-mpv-audio",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Selective audio currently requires automatic selection",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "native-video-mpv-audio-subtitles",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Selective audio currently requires automatic selection",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "hybrid-audio-filter-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software-private-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Gain stage does not match the requested presentation",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software-private",
+              "sourceIdentity": "source-1",
+              "eligible": true,
+              "state": "verified",
+              "reason": "Runtime output observed; physical output and opaque track internals remain unverified",
+              "previouslyVerified": false,
+              "evidence": {
+                "metadata": true,
+                "audioDecoderConfigured": true,
+                "audioDecoded": false,
+                "audioProgress": false,
+                "videoPresented": true,
+                "decoderOutput": true
+              }
+            },
+            {
+              "planId": "software-gain",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+              "previouslyVerified": false
+            },
+            {
+              "planId": "software",
+              "sourceIdentity": "source-1",
+              "eligible": false,
+              "state": "untested",
+              "reason": "Private runtime supports qualified finite-file remux, adaptation and subtitle plans",
+              "previouslyVerified": false
+            }
+          ],
+          "selection": {
+            "automatic": false,
+            "attempts": [
+              {
+                "mode": "software",
+                "outcome": "selected",
+                "reason": "software-private: Playback requirements and actual startup accepted"
+              }
+            ]
+          },
+          "switching": false,
+          "videoFilters": "",
+          "audioFilters": "",
+          "audioGain": 1,
+          "toneMapping": "off",
+          "resourceLimits": {
+            "maxDecodePixels": 8294400,
+            "maxAllocationBytes": 134217728
+          },
+          "decodeQuality": "exact",
+          "adaptiveFrameDrop": false,
+          "backend": {
+            "path": "wasm",
+            "decoder": "software",
+            "decoderBackend": "ffmpeg",
+            "runtime": "asyncify",
+            "plan": "software-private",
+            "rendered": 4,
+            "presentedPosition": 0.5053333333333334,
+            "seeking": false,
+            "heapBytes": 67108864,
+            "audio": {
+              "capacity": 32768,
+              "maxOutstanding": 0,
+              "feedbackCount": 0,
+              "staleFeedback": 0,
+              "error": null,
+              "header": [
+                0,
+                0,
+                0,
+                4,
+                48000,
+                37333,
+                1,
+                4
+              ]
+            },
+            "scheduler": {
+              "created": 1627,
+              "completed": 1621,
+              "abandoned": 0,
+              "suspensions": 769,
+              "resumes": 763,
+              "maxLive": 7,
+              "timerWakes": 682,
+              "signals": 76,
+              "stackChecks": 4780,
+              "continuations": {
+                "kind": "asyncify",
+                "maxSavedBytes": 5524,
+                "unwinds": 769,
+                "rewinds": 763
+              },
+              "liveTasks": 6,
+              "retainedTasks": 6,
+              "waitKeys": 6,
+              "timers": 2,
+              "freeSlots": 18,
+              "stopped": false
+            },
+            "io": {
+              "reads": 5,
+              "bytes": 512144,
+              "copies": 5,
+              "cancelled": 0,
+              "timeouts": 0,
+              "errors": 0,
+              "lateCompletions": 0,
+              "staleCommitsRejected": 0,
+              "maxPending": 1,
+              "abandonedRequests": 0,
+              "handles": 1,
+              "pending": 0,
+              "timers": 0
+            }
+          }
+        }
+      }
+    }
+  ],
+  "sourceSHA256": {
+    "harness:public-preview-server.mjs": {
+      "sha256": "581fef31c9ae43523bed0651fb20a3701df3224475ffe62c592849033a553a07"
+    },
+    "harness:public-preview-check.mjs": {
+      "sha256": "bc4f913e244c4d306b5f1c08dff3ce5aab149369bf6187fd367088825590765e"
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/index.js": {
+      "sha256": "a4e108bc8bb24b841b43f8dfc7bae5128e541199c0d439dccd15e837bc86b3d2",
+      "bytes": 576
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/unified-player.js": {
+      "sha256": "01862c76eb688757e49451e8953b01d48a6a7caad309d656a7ea1cbd83a94d9a",
+      "bytes": 177483
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/types.js": {
+      "sha256": "9f71088e2aff63438958d3a0e607bffe9131128e1009bafea8f5405fa74dceb2",
+      "bytes": 406
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/errors.js": {
+      "sha256": "1fa09786c054404b215e92f6ce28acb7a4ef158799ea611cf04468eebc47452b",
+      "bytes": 3750
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/preview/controller.js": {
+      "sha256": "48736385eb0e66f419600b16dd33aace3366e613bc80b832a1d8a9dc72bdb330",
+      "bytes": 16295
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/preview/providers.js": {
+      "sha256": "f57fb144f45dbb0e8bad797f5f911e38356724c32b2e9124d809b3a2355ee796",
+      "bytes": 4784
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/preview/software.js": {
+      "sha256": "86f09db773bd3ab3670e93145a760e4330bfd06cf0e9b91605943e3e0aa798d8",
+      "bytes": 4099
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/sources.js": {
+      "sha256": "83244a282e54eddd3b55dda7e1b5582abe3dcb317abf958d919b4181933a6827",
+      "bytes": 9881
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/presentation.js": {
+      "sha256": "dcf92d9e3d147a894cfa9d696b4057bdaaa3fc6ac324d20b2c3e0fa8f889645f",
+      "bytes": 9403
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/private-playback-admission.js": {
+      "sha256": "da0a11d42ba944a97d3a113f91786ac3536d229ade2dd39adac8687658553583",
+      "bytes": 2002
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/buffering.js": {
+      "sha256": "6f81659eace40e4aae67240cc4ab790ee8d1203999d85122e92cbe5a0cd55f14",
+      "bytes": 3758
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/probe-requirements.js": {
+      "sha256": "4f734f1497ca235ec334740b55513733b1b6fbb596db084c351b2f0f37e86c08",
+      "bytes": 1727
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/playback-statistics.js": {
+      "sha256": "d96ed51f3e2ff00ed2a7f45918ebd88ad25d4b465f3f007146998abec2a0a87f",
+      "bytes": 2133
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/watchdogs.js": {
+      "sha256": "b8b124722d7e2a5aa2805a3c8cad022c21b8d9a8758e78faaebce17817d3dc31",
+      "bytes": 3093
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/track-policy.js": {
+      "sha256": "0521500291dfb3f8db77dc1d5c9e3b7f8824c49daca45ab1405310e41ac10b65",
+      "bytes": 4869
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/plain-vtt.js": {
+      "sha256": "b4ba5323d2d48d12ed92448fbd5e3d34e29c9e8589a460ed12b3063b2b32f59f",
+      "bytes": 1938
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/runtime-capability.js": {
+      "sha256": "33b634d533975c9ed79e3cea5a0f35af90efe1e0ca9c3ca0bf578af52fa0c998",
+      "bytes": 7172
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/media-capabilities.js": {
+      "sha256": "a11c64dec42fad874499dc776333dfbe31a7ccae95a148d5b208fbd21d8ee252",
+      "bytes": 6250
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/browser-media-capability.js": {
+      "sha256": "b044b6c8277009b35a9f4818d41af4b58cd731d60360cbd0cde5c7d9d303c501",
+      "bytes": 7346
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/engine-preparation.js": {
+      "sha256": "16b2a7dc2ad7660ad39a85574b4034ca8cb0f2e7c59e09a6cb74a405d2c6a836",
+      "bytes": 6242
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/tier-policy.js": {
+      "sha256": "43967291e02d09ac2590d2978c7f0732e7f0962c9f3126b1848ab38ef8c5fa73",
+      "bytes": 1376
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/playback-plans.js": {
+      "sha256": "d0e9f3f3207af6f3e0174b30917322d075a613d85651d96160d9364102772f7e",
+      "bytes": 25769
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/remux-runtime.js": {
+      "sha256": "8a93338dbb7f438809e6d825f0f1ff9ea59a6fe043ccc3402b900dafb028a8d3",
+      "bytes": 1488
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/assets.js": {
+      "sha256": "15f5c6d9c845b97e1d61e14e0f4ddf64a58d8761310490bf170de3a2e7bda970",
+      "bytes": 556
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/webgpu-codecs.js": {
+      "sha256": "2be99da4bc948c21569679c1e1a6edcf5b33406a857ecedae1454e6a322c2160",
+      "bytes": 615
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/state.js": {
+      "sha256": "deaf23d6b533d47a140cb4e9f9a5dd97db78da584369abdf9988cd5e5b40485b",
+      "bytes": 8540
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/selection.js": {
+      "sha256": "f0ee2919a2f87778b8abf6bdf287ffe5f0f1f88d3a7191c3a170d7df4dd14817",
+      "bytes": 7058
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/backend.js": {
+      "sha256": "1e7e166bdc972e34e0287312c2cb15522441db42965781e600d54e28e39376c3",
+      "bytes": 138
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/preview/player-preview.js": {
+      "sha256": "57e35e4c161dec95fbacda30e5514879c820fa4bf230c4384a0567a50e5c8b6f",
+      "bytes": 889
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/preview/pregeneration.js": {
+      "sha256": "2f42b0e26a7aec9db29ea6184ba7501c109da89aa0c4d482e2f0c1ee4bc045f0",
+      "bytes": 4028
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/wasm-player.js": {
+      "sha256": "652a551de8b74710877776ca70af437b55b4a4134ca2734c515e473e64d832f6",
+      "bytes": 32085
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/browser-evidence-adapters.js": {
+      "sha256": "1e2028752fe712be5635993b5b57be6a5213413f89df20fb3b1447b41e9e92f7",
+      "bytes": 1391
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/runtime-worker.js": {
+      "sha256": "be69b14e4b53c28f8918aa2dab19f918c4e9749a6104a0599f658270f4360e81",
+      "bytes": 2301
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/decode-policy.js": {
+      "sha256": "6f1e045eaa422c6109a797db85c1fb651ca043c9aaa3ee5de3e73ab50b400b7d",
+      "bytes": 4544
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/external-decoder-selection.js": {
+      "sha256": "5d7d239041ce70ef3fe0409b1f5167f88c4dc6accb122eec5a0d3bb2bd174be8",
+      "bytes": 1964
+    },
+    "/Volumes/seed2/Projects/demuxe/fixtures/DejaVuSans.ttf": {
+      "sha256": "7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954",
+      "bytes": 757076
+    },
+    "/Volumes/seed2/Projects/demuxe/web/engine-remux-jspi/remux.wasm": {
+      "sha256": "f5ff86b14d8cd00dc80d3d981ebe599bff5d0c8a0cbb32f1d8d91de013687b9e",
+      "bytes": 3184939
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-install-02/web/engine-mpv-playback-jspi/player.wasm": {
+      "sha256": "41ab0305c2b79d9b9c0d30f5204037d8ffefd67a05a29fab05b45a179eefaa49",
+      "bytes": 8190624
+    },
+    "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-row-refresh-stereo-20260926-01/fixtures/mpeg2-ac3/index.ts": {
+      "sha256": "3b7dd719dbfb1dc215f7f5294c9bdc3d2bcd349da9fd90166ba1d3958774e514",
+      "bytes": 1504000
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/source-probe.js": {
+      "sha256": "431d41fc9679659148d302513c3da0b5b142287ed02aba70f2fab330caacda35",
+      "bytes": 3948
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/native-remux-source-worker.js": {
+      "sha256": "a2ac3e0351d24574193e1f2eba5327f207e96a17a74b518f274c7c26289c9b7a",
+      "bytes": 3282
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/range-reader.js": {
+      "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe",
+      "bytes": 11897
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/file-reader.js": {
+      "sha256": "d6db3571409a9149df0d28699feb52bb2b694b1c350a6c3c1eae3e3da7e73858",
+      "bytes": 4773
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/native-remux-worker.js": {
+      "sha256": "0d4279aa27826362485502de2f5a0eeb928d9a8c6a8c42e8630388de8efb1493",
+      "bytes": 10164
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/prepared-engine.js": {
+      "sha256": "ea1b9f601687cb26fe8d7aa49884bdcb351af7e1f8346efb08edfcea7e38cf24",
+      "bytes": 318
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/video-codec-config.js": {
+      "sha256": "3ba4ffeda7aa21ad53625d129bad240a7a911dc1635f8f557650e371905a279c",
+      "bytes": 4773
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/remux-packaging.js": {
+      "sha256": "86285f603a8c875fc3c8eac291941d8a88007b8e23ed5b2bd584ad2d794dc433",
+      "bytes": 769
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/hybrid-preflight.js": {
+      "sha256": "6861e4c17a1d7b59772925eab77aaf075cf21708008bf6f1aff2ed1dc13dc524",
+      "bytes": 1618
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/progressive-mp4.js": {
+      "sha256": "e5c10d127144b9705c9024852f0d1701ad299ea12b1672a6b38233cca58dbd04",
+      "bytes": 5046
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-remux.js": {
+      "sha256": "5de328a538e1c8234c7956ea16546f471862e58e11b503ed7067f9d4f30fc323",
+      "bytes": 3655
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-ffmpeg/bridge.js": {
+      "sha256": "5cc6ff530231646b06a1034980c55087456d0f12e9fcb23e86327718ad752b19",
+      "bytes": 3594
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-ffmpeg/single-owner.js": {
+      "sha256": "ece37844d7cff6815cae49f1fe82d32120827a5949c90e94aaf73d1485fd3e33",
+      "bytes": 2307
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-ffmpeg/range-source.js": {
+      "sha256": "efc911a6ebd4f2b7b81572f93c95b0373c262afad5c3675cfd3c64e847839e78",
+      "bytes": 7352
+    },
+    "/Volumes/seed2/Projects/demuxe/web/engine-remux-jspi/remux.mjs": {
+      "sha256": "ea6ffd9339b0fa7a7eb6d2673012971fb67f1b523f27c8d86f704776655f73d7",
+      "bytes": 42486
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-install-02/web/engine-mpv-playback-jspi/manifest.json": {
+      "sha256": "82cd6fe5250255e620faec3fb19632df3f9e06fbd23261792bcef3b3ffc5e168",
+      "bytes": 462
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-install-02/web/engine-mpv-playback-jspi/player.mjs": {
+      "sha256": "3f8fc2db34938a063de98c469cefbbd308c13a31700865bc12d0a8e77a121212",
+      "bytes": 202118
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/generated/internal/private-software-player.js": {
+      "sha256": "3a1f80a003d1c7f101ee3321bae98c87fd67b8c2ee91e895672ef001636ec84e",
+      "bytes": 16680
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/audio-worklet.js": {
+      "sha256": "0224dad30d5174615f7072c6d76f526c6bbd90399fd9bdeb2c1e234888d5ac92",
+      "bytes": 4530
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/playback-worker.js": {
+      "sha256": "1700eef7e848fdca4394d626276e75c8e84f4a9c93e46d25dfb7e952f5b3deef",
+      "bytes": 12909
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv.js": {
+      "sha256": "c84f4a33602cf89b9add64fc576ca32966f6b34078010ce70d16e4b1189a47c8",
+      "bytes": 4354
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/playback-host.js": {
+      "sha256": "263f4d60a150b6d38f060d5155d3e7d40b99d2f8991a1b7c46e80db8e21797b0",
+      "bytes": 7269
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/engine.js": {
+      "sha256": "512e7d0b1b4a2d9b96daeeac0a6a28b00e721bbfb20c71e3258202915acf7510",
+      "bytes": 1761
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/scheduler.js": {
+      "sha256": "b50bdf45612a7d006d89d841794afb2dea5e9d75f02574db49da6608fc551131",
+      "bytes": 11702
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/playback-pcm.js": {
+      "sha256": "da634d37b24591c4d95ff39c9f5d0f828764dacd28ca23897dd21ff8094a4068",
+      "bytes": 3743
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/range-source.js": {
+      "sha256": "efc911a6ebd4f2b7b81572f93c95b0373c262afad5c3675cfd3c64e847839e78",
+      "bytes": 7352
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-software-20260929/web/private-mpv/continuations.js": {
+      "sha256": "bdace5c572bd62eae24d86c28e16c9fc882568a009670f2a11020c8903daf5bd",
+      "bytes": 5399
+    },
+    "reference:mpeg2-ac3": {
+      "sha256": "bd91398d51acfb883f3dac2ab409ab6669897b13eed24f0062721c0d7d22f3a6",
+      "bytes": 186624000
+    },
+    "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-row-refresh-stereo-20260926-01/fixtures/mpeg2-interlaced-ac3/index.ts": {
+      "sha256": "7e418266b4d0953fe909195a990dc6a4a11c699c3fcae488f854d53e33964a0c",
+      "bytes": 1504940
+    },
+    "reference:mpeg2-interlaced-ac3": {
+      "sha256": "2786db29b87be2ef7cecc3f09eda31608690b0a0de150df5c84b3214773b8fcf",
+      "bytes": 186624000
+    },
+    "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-row-refresh-stereo-20260926-01/fixtures/mpeg2-mp2/index.mpg": {
+      "sha256": "99e4a3df8781dcdb1e51b8965871f75424be462849749527ba3e4a5931b90fc6",
+      "bytes": 1972224
+    },
+    "reference:mpeg2-mp2": {
+      "sha256": "bd91398d51acfb883f3dac2ab409ab6669897b13eed24f0062721c0d7d22f3a6",
+      "bytes": 186624000
+    },
+    "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-row-refresh-stereo-20260926-01/fixtures/mpeg4-mp3/index.avi": {
+      "sha256": "cb27e85e1abf8ad7c86c5790913d6613ae6f31fb73e3248dcabef78dcd5ea1ec",
+      "bytes": 1891008
+    },
+    "reference:mpeg4-mp3": {
+      "sha256": "9a6ba52822f436633a5000910da8c680a968d591b49a61da944378936c6d30da",
+      "bytes": 186796800
+    },
+    "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-row-refresh-stereo-20260926-01/fixtures/prores-pcm/index.mov": {
+      "sha256": "30d576f6f82351b955eb9d8cf357928b31668e698313af519eef72f32874689a",
+      "bytes": 10217848
+    },
+    "reference:prores-pcm": {
+      "sha256": "3dda6e6fd2967a5b36ed177abd273ddf9e9bdb959a9b15f40d234be42834b341",
+      "bytes": 186624000
+    },
+    "/Volumes/seed2/Projects/demuxe/build/head-to-head/assets-row-refresh-stereo-20260926-01/fixtures/mpeg2-video-only/index.ts": {
+      "sha256": "ffed2c71c683d7b18d0ea407eb37484523e61be768103f709116e359e294773a",
+      "bytes": 446500
+    },
+    "reference:mpeg2-video-only": {
+      "sha256": "bd91398d51acfb883f3dac2ab409ab6669897b13eed24f0062721c0d7d22f3a6",
+      "bytes": 186624000
+    },
+    "/Volumes/seed2/Projects/demuxe/web/engine-remux-asyncify/remux.wasm": {
+      "sha256": "033a67e7c2fdfb55dba393f8cc08c746118c80f71cac4f338fd1ab45dc2880c0",
+      "bytes": 4869255
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-install-02/web/engine-mpv-playback-asyncify/player.wasm": {
+      "sha256": "7b545974db4391daaa16616d29eeb6c4ee034c064104d5c4496a710697648105",
+      "bytes": 20830781
+    },
+    "/Volumes/seed2/Projects/demuxe/web/engine-remux-asyncify/remux.mjs": {
+      "sha256": "106d706c9088947b8379bbda4c96bc53174272caa14ad0140f6b548c1bd1c795",
+      "bytes": 51012
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-install-02/web/engine-mpv-playback-asyncify/manifest.json": {
+      "sha256": "f478144beaf1bb2b1e86d1d8c6deec7b1d9699055cbb9dfa1fd0aeb0a812449b",
+      "bytes": 466
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-install-02/web/engine-mpv-playback-asyncify/player.mjs": {
+      "sha256": "3f8fc2db34938a063de98c469cefbbd308c13a31700865bc12d0a8e77a121212",
+      "bytes": 202118
+    }
+  },
+  "heldReads": {
+    "started": 0,
+    "active": 0,
+    "aborted": 0
+  },
+  "rangeRequests": [],
+  "passed": false
+}

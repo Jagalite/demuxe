@@ -8,9 +8,10 @@ subprocess.run(['python3',str(root/'scripts/check-licenses.py')],cwd=root,check=
 p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,required=True);p.add_argument('--tag',required=True);args=p.parse_args()
 build=json.loads((root/'build/beta-build.json').read_text());sdk=pathlib.Path(build['sdk'])
 files={}
+preserved=set(json.loads((root/'licensing/boundaries.json').read_text())['preservedFiles'])
 # Only tracked, reviewed source; omit historical test output and its media metadata.
 for name in subprocess.check_output(['git','ls-files','-z'],cwd=root).decode().split('\0'):
- if name and not name.startswith('results/') and (root/name).is_file():files['demuxe/'+name]=root/name
+ if name and (not name.startswith('results/') or name in preserved) and (root/name).is_file():files['demuxe/'+name]=root/name
 for item in json.loads((root/'sources.lock.json').read_text())['sources']:
  files['demuxe/build/downloads/'+item['name']+'.tar.gz']=root/'build/downloads'/(item['name']+'.tar.gz')
 shaka_source=ensure_source(root)

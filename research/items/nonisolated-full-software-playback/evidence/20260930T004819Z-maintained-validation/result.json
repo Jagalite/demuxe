@@ -1,0 +1,96 @@
+{
+  "scope": "Maintained host/PCM, loader/asset and preserved admission regression checks; no browser/CPU claim",
+  "command": [
+    [
+      "node",
+      "--test",
+      "tests/private-playback-host.mjs",
+      "tests/private-pcm-worklet.mjs",
+      "tests/private-mpv-worker-errors.mjs",
+      "tests/private-mpv-eof-race.mjs",
+      "tests/engine-preparation.mjs",
+      "tests/plan-admission.mjs",
+      "tests/remux-runtime.mjs"
+    ],
+    [
+      "node",
+      "research/items/nonisolated-full-software-playback/tests/review-regressions.mjs"
+    ],
+    [
+      "python3",
+      "tests/private-mpv-assets.py"
+    ],
+    [
+      "python3",
+      "tests/private-remux-assets.py"
+    ],
+    [
+      "python3",
+      "tests/install-private-mpv.py"
+    ],
+    [
+      "./node_modules/.bin/tsc",
+      "--noEmit"
+    ]
+  ],
+  "checks": [
+    {
+      "command": [
+        "node",
+        "--test",
+        "tests/private-playback-host.mjs",
+        "tests/private-pcm-worklet.mjs",
+        "tests/private-mpv-worker-errors.mjs",
+        "tests/private-mpv-eof-race.mjs",
+        "tests/engine-preparation.mjs",
+        "tests/plan-admission.mjs",
+        "tests/remux-runtime.mjs"
+      ],
+      "returncode": 0,
+      "log": "0.log"
+    },
+    {
+      "command": [
+        "node",
+        "research/items/nonisolated-full-software-playback/tests/review-regressions.mjs"
+      ],
+      "returncode": 0,
+      "log": "1.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/private-mpv-assets.py"
+      ],
+      "returncode": 0,
+      "log": "2.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/private-remux-assets.py"
+      ],
+      "returncode": 0,
+      "log": "3.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/install-private-mpv.py"
+      ],
+      "returncode": 0,
+      "log": "4.log"
+    },
+    {
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit"
+      ],
+      "returncode": 0,
+      "log": "5.log"
+    }
+  ],
+  "passed": true,
+  "timestamp": "2026-09-30T00:48:20.105494+00:00",
+  "finishedAt": "2026-09-30T00:52:17.099718+00:00"
+}

@@ -18,6 +18,7 @@ type RepairCodec='truehd'|'mlp'|'dts-hd';
 type PacketOwners={owners:readonly ProviderOwner[];execute(file:Blob,codec:RepairCodec,binding:'fine'|'common',signal:AbortSignal,channels:2|6|8):Promise<Blob>};
 export type CodecPreparation = Readonly<{providerId:string;folder:string;wasmPath:string;runtime:'jspi'|'asyncify';audioIndex?:number;videoIndex?:number}>;
 export interface ProviderRuntimeAssets {
+  has?(path: string): boolean;
   module(path: string): Promise<WebAssembly.Module>;
   bytes(path: string): Promise<ArrayBuffer>;
   preparation?(file:File,runtime:'pthread'|'jspi'|'asyncify',audioTrack?:number):CodecPreparation|undefined;
@@ -192,6 +193,7 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
       const hybrid=description.bindings.some(b=>b.providers.some(p=>p.provider==='mpv-hybrid'));
       required.push(...(hybrid?['web/engine-hybrid/player.wasm']:['web/engine-software-full/player.wasm','web/engine-software-yuv/player.wasm']), 'fixtures/DejaVuSans.ttf');
     }
+    if(description.backend==='PrivateSoftwarePlayer') required.push(`web/engine-mpv-playback-${runtime}/player.wasm`, `web/engine-mpv-playback-${runtime}/manifest.json`, `web/engine-mpv-playback-${runtime}/player.mjs`, 'fixtures/DejaVuSans.ttf');
     const absent = required.filter(path => !this.has(path));
     if (absent.length) return 'Required provider runtime assets are not deployed: '+absent.join(', ');
     const recipe = resolvableExecutionRecipe(planId as PlaybackPlanId,runtime);

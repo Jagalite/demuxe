@@ -47,7 +47,7 @@ const decode = {
 export function audioRepairRecipe(codec, channels = 2, output = 'flac', container = 'matroska', sampleRate = 48000, aacProfile = 'lc') {
     if (!Object.prototype.hasOwnProperty.call(decode, codec))
         throw Error('No maintained audio repair recipe');
-    if (!['lc', 'he', 'he-v2', 'usac'].includes(aacProfile) || aacProfile !== 'lc' && (codec !== 'aac' || container !== 'isobmff' || (aacProfile === 'usac' ? channels !== 1 || sampleRate !== 48000 || output !== 'flac' : channels !== 2 || sampleRate !== (aacProfile === 'he' ? 48000 : 44100))))
+    if (!['lc', 'he', 'he-v2', 'usac'].includes(aacProfile) || aacProfile !== 'lc' && (codec !== 'aac' || container !== 'isobmff' || (aacProfile === 'usac' ? output !== 'flac' || !((channels === 1 && sampleRate === 48000) || (channels === 2 && [32000, 44100, 48000].includes(sampleRate))) : channels !== 2 || !(aacProfile === 'he' ? [48000] : [32000, 44100]).includes(sampleRate))))
         throw Error('No maintained explicit AAC extension recipe');
     const pcm8 = codec === 'pcm-u8' || codec === 'pcm-s8';
     if (pcm8 && (container !== 'wave-aiff' || ![1, 2].includes(channels) || ![44100, 48000, 96000].includes(sampleRate) || output !== 'flac'))
@@ -89,14 +89,17 @@ export function audioRepairRecipe(codec, channels = 2, output = 'flac', containe
     const telephony = ['pcm-alaw', 'pcm-mulaw', 'gsm', 'gsm-ms'].includes(codec);
     if (telephony && (container !== 'telephony' || output !== 'flac' || (codec === 'gsm' || codec === 'gsm-ms' ? sampleRate !== 8000 || channels !== 1 : ![8000, 16000].includes(sampleRate) || ![1, 2].includes(channels))) || container === 'telephony' && !telephony)
         throw Error('No maintained telephony recipe');
-    if (sampleRate < 44100 && !adpcm && !telephony && !g726)
+    const lowLegacy = ['mp2', 'wmav1', 'wmav2'].includes(codec) && sampleRate < 44100;
+    if (lowLegacy && (container !== 'matroska' || output !== 'flac'))
+        throw Error('No maintained lower-rate legacy transport/output');
+    if (sampleRate < 44100 && !adpcm && !telephony && !g726 && !lowLegacy && !(codec === 'aac' && aacProfile !== 'lc'))
         throw Error('No maintained low-rate audio recipe');
     const configured = !['ac3', 'eac3', 'dts-core'].includes(codec);
-    if (integer && (container !== 'matroska' || codec === 'dts-hd' && sampleRate !== 48000 || sampleRate !== 48000 && channels === 8 || sampleRate === 48000 && channels === 1))
+    if (integer && (container !== 'matroska' || codec === 'dts-hd' && !((sampleRate === 48000 && [2, 6, 8].includes(channels)) || (sampleRate === 96000 && [6, 8].includes(channels))) || sampleRate !== 48000 && channels === 8 && codec !== 'dts-hd'))
         throw Error('No maintained header-owned lossless recipe');
-    if (!configured && sampleRate !== 48000 || codec === 'opus' && sampleRate !== 48000 || sampleRate === 96000 && !['flac', 'alac', 'wavpack', 'truehd', 'mlp'].includes(codec) && !codec.startsWith('pcm-'))
+    if (!configured && sampleRate !== 48000 || codec === 'opus' && sampleRate !== 48000 || sampleRate === 96000 && !['flac', 'alac', 'wavpack', 'truehd', 'mlp', 'dts-hd'].includes(codec) && !codec.startsWith('pcm-'))
         throw Error('No maintained audio rate recipe');
-    if (['mp2', 'wmav1', 'wmav2'].includes(codec) && (![1, 2].includes(channels) || ![44100, 48000].includes(sampleRate)))
+    if (['mp2', 'wmav1', 'wmav2'].includes(codec) && (![1, 2].includes(channels) || !(codec === 'mp2' ? [32000, 44100, 48000] : [8000, 16000, 22050, 32000, 44100, 48000]).includes(sampleRate)))
         throw Error('No maintained legacy audio recipe');
     if (codec === 'wavpack' && sampleRate === 44100 && channels > 2)
         throw Error('No maintained WavPack rate or channel recipe');
@@ -112,7 +115,7 @@ export function audioRepairRecipe(codec, channels = 2, output = 'flac', containe
     const encoding = output === 'opus' ? opusEncode : sampleRate < 44100 ? { capability: 'audio.encode.flac', version: 1, profile: 'low-rate-s24' } : sampleRate === 48000 ? encode : { capability: 'audio.encode.flac', version: 1, profile: 'configured-s24' };
     if (!(codec === 'truehd' ? [1, 2, 6, 8] : codec === 'mlp' ? [1, 2, 6] : codec === 'dts-hd' ? [2, 6, 8] : configured && codec !== 'vorbis' && codec !== 'mp3' ? [1, 2, 6, 8] : codec === 'mp3' ? [1, 2] : [2]).includes(channels))
         throw Error('No maintained audio channel recipe');
-    const decoding = aacProfile !== 'lc' ? { capability: 'audio.decode.aac', version: 1, profile: aacProfile === 'usac' ? 'usac-mono48' : aacProfile === 'he' ? 'he-stereo48' : 'he-v2-stereo44100' } : ['adpcm-ima-qt', 'adpcm-g726', 'adpcm-g726le', 'pcm-u8', 'pcm-s8', 'tak', 'shorten', 'adpcm-ms', 'adpcm-ima-wav', 'pcm-alaw', 'pcm-mulaw', 'gsm', 'gsm-ms'].includes(codec) ? decode[codec] : integer ? { ...decode[codec], profile: codec === 'dts-hd' ? (channels === 8 ? 'ma-48khz-s32p' : 'ma-configured-integer') : sampleRate === 48000 ? '48khz-integer' : 'configured-integer' } : sampleRate === 48000 && channels === 2 ? decode[codec] : configured ? { ...decode[codec], profile: codec === 'aac' ? 'lc-configured' : ['flac', 'alac', 'wavpack', 'ape', 'tta', 'tak', 'shorten'].includes(codec) ? 'configured-integer' : 'configured-pcm' } : decode[codec];
+    const decoding = lowLegacy ? { ...decode[codec], profile: 'lower-rate-pcm' } : aacProfile !== 'lc' ? { capability: 'audio.decode.aac', version: 1, profile: aacProfile === 'usac' ? (channels === 1 ? 'usac-mono48' : 'usac-stereo-configured') : aacProfile === 'he' ? 'he-configured-float' : sampleRate === 32000 ? 'he-v2-stereo32' : 'he-v2-stereo44100' } : ['adpcm-ima-qt', 'adpcm-g726', 'adpcm-g726le', 'pcm-u8', 'pcm-s8', 'tak', 'shorten', 'adpcm-ms', 'adpcm-ima-wav', 'pcm-alaw', 'pcm-mulaw', 'gsm', 'gsm-ms'].includes(codec) ? decode[codec] : integer ? { ...decode[codec], profile: codec === 'dts-hd' ? (sampleRate === 96000 ? 'ma-high-rate-integer' : channels === 8 ? 'ma-48khz-s32p' : 'ma-configured-integer') : sampleRate === 48000 && channels !== 1 ? '48khz-integer' : 'configured-integer' } : sampleRate === 48000 && channels === 2 ? decode[codec] : configured ? { ...decode[codec], profile: codec === 'aac' ? 'lc-configured' : ['flac', 'alac', 'wavpack', 'ape', 'tta', 'tak', 'shorten'].includes(codec) ? 'configured-integer' : 'configured-pcm' } : decode[codec];
     const decoderId = codec === 'dts-core' ? 'audio-dts' : codec === 'dts-hd' ? 'audio-dts-hd' : integer ? 'audio-truehd-mlp' : codec === 'aac' ? 'audio-aac' : ['opus', 'vorbis'].includes(codec) ? 'audio-opus-vorbis' : ['flac', 'alac'].includes(codec) ? 'audio-lossless' : codec === 'mp3' ? 'audio-mp3' : qt ? 'audio-adpcm-qt' : g726 ? 'audio-g726' : telephony ? 'audio-telephony' : adpcm ? 'audio-adpcm-wave' : codec === 'shorten' ? 'audio-archive-historical' : codec === 'tak' ? 'audio-archive-next' : codec === 'tta' ? 'audio-archive-more' : ['wavpack', 'ape'].includes(codec) ? 'audio-archive' : ['mp2', 'wmav1', 'wmav2'].includes(codec) ? 'audio-legacy' : codec.startsWith('pcm-') ? 'audio-pcm' : 'audio-ac3';
     return { id: container + '-' + (output === 'opus' ? 'opus' : 'flac24') + '-' + (sampleRate === 48000 ? (channels === 2 ? 'stereo48' : channels + 'ch48') : channels + 'ch' + sampleRate) + '-' + codec + (aacProfile === 'lc' ? '' : '-' + aacProfile), requirements: [reading, mux, decoding, encoding], bindings: [
             { id: 'fine', assignments: [{ providerId: 'ts-container', requirements: [reading, mux] },

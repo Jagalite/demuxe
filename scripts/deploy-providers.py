@@ -33,12 +33,14 @@ def compose(core, providers, output):
     for root in providers:
         package=json.loads(relative_file(root,'package.json').read_bytes());manifest=json.loads(relative_file(root,'provider-manifest.json').read_bytes())
         if manifest.get('providerContractVersion')!=1 or manifest.get('package')!=package['name'] or manifest.get('version')!=package['version'] or manifest.get('compatibleCore')!=metadata['version'] or package.get('peerDependencies',{}).get('demuxe')!=metadata['version']:raise ValueError('Incompatible provider package')
+        provider_licenses=json.loads(relative_file(root,'license-map.json').read_bytes())
         artifacts=manifest['artifacts'];identity='sha256:'+sha(encoded(artifacts));deployed={}
         for name,digest in artifacts.items():
             if not name.startswith('runtime/'):raise ValueError('Provider artifact is outside runtime/')
             data=relative_file(root,name).read_bytes();path=name[len('runtime/'):]
             if sha(data)!=digest:raise ValueError('Installed provider artifact integrity mismatch: '+name)
-            if path in files and (path not in provider_paths or files[path]!=data):raise ValueError('Runtime package collision: '+path)
+            shared_core=path.startswith('web/') and path.endswith(('.js','.mjs')) and inventory.get(path)==['Apache-2.0'] and provider_licenses.get(name)==['Apache-2.0']
+            if path in files and (files[path]!=data or (not shared_core if path in inventory else path not in provider_paths)):raise ValueError('Runtime package collision: '+path)
             provider_paths.add(path)
             files[path]=data;deployed[path]=(digest,len(data))
         for asset in manifest['assets']:

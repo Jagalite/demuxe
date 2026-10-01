@@ -5,25 +5,41 @@ import {RangeReader} from './range-reader.js';
 
 const digest=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');
 /** The scheduler owns every mpv call; source IO stays asynchronous and bounded. */
-export async function privateMpv(runtime,profile,{signal}={}) {
- if(!['jspi','asyncify'].includes(runtime)||!['subtitles','audio'].includes(profile))throw Error('Invalid private mpv runtime');
+export async function privateMpv(runtime,profile,{signal,decoderService,onFrame,maxDecodePixels,assets}={}) {
+ if(!['jspi','asyncify'].includes(runtime)||!['subtitles','audio','playback'].includes(profile))throw Error('Invalid private mpv runtime');
  if(runtime==='jspi'&&(typeof WebAssembly.Suspending!=='function'||typeof WebAssembly.promising!=='function'))throw Error('Selected JSPI runtime unavailable');
  const base=new URL(`./engine-mpv-${profile}-${runtime}/`,import.meta.url);
- const get=async name=>{const r=await fetch(new URL(name,base),{signal});if(!r.ok)throw Error('Private mpv asset HTTP '+r.status);return r;};
+ const get=async name=>{
+  signal?.throwIfAborted();
+  if(assets){if(!(assets[name] instanceof ArrayBuffer))throw Error('Missing verified private mpv asset: '+name);return new Response(assets[name]);}
+  const r=await fetch(new URL(name,base),{signal});if(!r.ok)throw Error('Private mpv asset HTTP '+r.status);return r;};
  const manifest=await(await get('manifest.json')).json();
  if(manifest.schema!==1||manifest.backend!==runtime||manifest.profile!==profile)throw Error('Private mpv asset identity mismatch');
- const bytes=await(await get('service.wasm')).arrayBuffer();
- if(await digest(bytes)!==manifest.files['service.wasm'])throw Error('Private mpv Wasm hash mismatch');
+ const stem=profile==='playback'?'player':'service';
+ const bytes=await(await get(stem+'.wasm')).arrayBuffer();
+ if(await digest(bytes)!==manifest.files[stem+'.wasm'])throw Error('Private mpv Wasm hash mismatch');
  const compiled=await WebAssembly.compile(bytes),names=new Set(WebAssembly.Module.exports(compiled).map(e=>e.name));
+ if(manifest.retainedDecoder!==undefined&&typeof manifest.retainedDecoder!=='boolean')throw Error('Invalid private retained decoder identity');
+ const retained=WebAssembly.Module.imports(compiled).some(item=>item.module==='demuxe_decoder');
+ if(retained!==!!manifest.retainedDecoder)throw Error('Private retained decoder identity mismatch');
  const controls=['asyncify_start_unwind','asyncify_stop_unwind','asyncify_start_rewind','asyncify_stop_rewind'];
  if(runtime==='asyncify'?!controls.every(n=>names.has(n)):controls.some(n=>names.has(n)))throw Error('Private mpv backend mismatch');
- for(const name of ['demuxe_coop_invoke','demuxe_source_live',profile==='audio'?'private_audio_create':'subtitle_service_create'])if(!names.has(name))throw Error('Private mpv ABI mismatch');
- const glue=await(await get('service.mjs')).arrayBuffer();
- if(await digest(glue)!==manifest.files['service.mjs'])throw Error('Private mpv module hash mismatch');
- const {default:create}=await import(new URL('service.mjs',base));
+ for(const name of ['demuxe_coop_invoke','demuxe_source_live',...(profile==='playback'?['web_create','web_render','web_event','web_command_args','web_destroy','web_audio_ptr']: [profile==='audio'?'private_audio_create':'subtitle_service_create'])])if(!names.has(name))throw Error('Private mpv ABI mismatch');
+ const glue=await(await get(stem+'.mjs')).arrayBuffer();
+ if(await digest(glue)!==manifest.files[stem+'.mjs'])throw Error('Private mpv module hash mismatch');
+ let create;
+ if(assets){
+  const url=URL.createObjectURL(new Blob([glue],{type:'text/javascript'}));
+  try{({default:create}=await import(url));}finally{URL.revokeObjectURL(url);}
+ }else({default:create}=await import(new URL(stem+'.mjs',base)));
  signal?.throwIfAborted();
- const host=await createCooperativeEngine(create,bytes,runtime,{print:()=>{},printErr:()=>{}});
+ const host=await createCooperativeEngine(create,bytes,runtime,{print:()=>{},printErr:()=>{}},{service:decoderService,onFrame,maxDecodePixels});
  if(!(host.raw.memory.buffer instanceof ArrayBuffer)){host.dispose();throw Error('Private mpv memory mismatch');}
+ if(profile==='playback'){
+  const capacity=host.raw.web_audio_capacity?await host.call('web_audio_capacity'):8192;
+  if(![8192,32768].includes(capacity)||capacity!==(manifest.audioCapacity??8192)){host.dispose();throw Error('Private playback PCM ABI mismatch');}
+  host.audioCapacity=capacity;
+ }
  host.asset=base.href;host.runtime=runtime;host.profile=profile;
  host.facts=()=>({runtime,profile,asset:base.href,memory:host.raw.memory.buffer.constructor.name,heapBytes:host.raw.memory.buffer.byteLength,crossOriginIsolated:globalThis.crossOriginIsolated,sharedArrayBuffer:typeof SharedArrayBuffer,jspiSuspending:typeof WebAssembly.Suspending,jspiPromising:typeof WebAssembly.promising,scheduler:host.scheduler.snapshot(),source:host.source.snapshot()});
  if(signal?.aborted){host.dispose();signal.throwIfAborted();}

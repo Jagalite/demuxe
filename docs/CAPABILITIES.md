@@ -230,8 +230,9 @@ Sources: [production caption routing](COMPONENT-ROUTING.md),
 | TTF/OTF and embedded fonts | mpv subtitle service | Same service | mpv/libass fonts | mpv/libass fonts | Not tested | Same subtitle route | **functional/bounded** supplied fonts/shaping. External file ≤8 MiB; ≤16 fonts/32 MiB aggregate; subtitle ≤8 MiB, ≤16/16 MiB aggregate. Over-budget/missing fonts do not imply fidelity. |
 
 The Native + mpv service is automatic only for inspected, finite local Files with
-qualified embedded tracks, native-compatible selected A/V, cross-origin isolation,
-and no external browser text-track or file-attachment conflict. Automatic
+qualified embedded tracks, native-compatible selected A/V, matching selected-runtime
+assets, and no external browser text-track or file-attachment conflict. The pthread
+service requires cross-origin isolation; its JSPI/Asyncify counterparts do not. Automatic
 admission first checks that both optional subtitle-engine assets are served;
 an asset-omitting package retains the Hybrid/Software route. mpv track IDs
 are matched to inspected stream indexes so `auto` honors the file's default
@@ -351,7 +352,14 @@ manifests, merge subtitles or select representations. Explicit quality constrain
 HLS subtitle renditions, multi-period/text DASH and unsupported extensions reject
 instead of being silently dropped. Source and permission failures are terminal.
 Prepared Native, Hybrid and Software require matching Wasm/worker assets.
-Prepared Native, Hybrid and Software require cross-origin isolation. Native Direct and Shaka remain available without isolation where browser/source requirements are met. Deployment failure is not codec incompatibility. See [runtime requirements](NON-ISOLATED-REMUX.md).
+Pthread components require cross-origin isolation. Matching JSPI/Asyncify assets
+provide non-isolated file remux, audio/subtitle services and cooperative finite-file
+Hybrid/Software playback. The full playback candidate has completed the agreed
+[functional package qualification](NONISOLATED-PLAYBACK-COMPLETION.md); the codec matrix
+above does not independently qualify every row on each runtime. Native Direct
+and Shaka remain available without isolation where their browser/source
+requirements are met. Deployment failure is not codec incompatibility. See
+[runtime selection](REMUX-RUNTIME.md).
 
 ## Processing and playback features
 

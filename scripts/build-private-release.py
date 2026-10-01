@@ -80,7 +80,7 @@ def main(args):
                   'scripts/build-private-release.py', 'scripts/install-private-remux.py',
                   'experiments/jspi-asyncify/ffmpeg/scripts/', 'experiments/jspi-asyncify/scripts/audit-wasm.mjs'])
 
-    for profile in ['subtitles', 'audio']:
+    for profile in ['subtitles', 'audio', 'playback-full']:
         deps = base/f'mpv-deps-{profile}'
         service = base/f'mpv-review-{profile}-01'
         run(sys.executable, EXP/'mpv/scripts/build-dependencies.py', '--out', deps, '--sdk', sdk,
@@ -92,14 +92,18 @@ def main(args):
         options = json.loads((deps/'objects/mpv/meson-info/intro-buildoptions.json').read_text())
         if next(v['value'] for v in options if v['name'] == 'gpl'):
             raise ValueError('Private mpv GPL configuration enabled')
-        run(sys.executable, EXP/'mpv/scripts/link-subtitles.py', '--deps', deps, '--out', service, '--sdk', sdk, '--profile', profile)
+        if profile == 'playback-full':
+            run(sys.executable, EXP/'mpv/scripts/link-playback.py', '--deps', deps, '--out', service, '--sdk', sdk, '--hybrid')
+            run(sys.executable, ROOT/'scripts/install-private-playback.py', '--build', service, '--runtime-root', ROOT)
+        else:
+            run(sys.executable, EXP/'mpv/scripts/link-subtitles.py', '--deps', deps, '--out', service, '--sdk', sdk, '--profile', profile)
     run(sys.executable, ROOT/'scripts/install-private-mpv.py', '--builds', base, '--runtime-root', ROOT)
-    for profile in ['subtitles', 'audio']:
+    for profile in ['subtitles', 'audio', 'playback-full']:
         deps = base/f'mpv-deps-{profile}'
         service = base/f'mpv-review-{profile}-01'
         configs = []
         for directory in [deps, service]:
-            selected = set(directory.glob('*.json')) | set(directory.glob('*.ini')) | set(directory.glob('*.config'))
+            selected = set(directory.glob('*.json')) | set(directory.glob('*.ini')) | set(directory.glob('*.config')) | set(directory.glob('*.log'))
             for folder in ['inputs', 'logs']:
                 selected.update(p for p in (directory/folder).rglob('*') if p.is_file())
             if directory == deps:
@@ -107,12 +111,12 @@ def main(args):
                     'objects/ffmpeg/ffbuild/config.mak', 'objects/mpv/config.h', 'objects/mpv/compile_commands.json',
                     'objects/mpv/meson-info/intro-buildoptions.json'])
             else:
-                selected.add(directory/'service.map')
+                selected.add(directory/('playback.map' if profile == 'playback-full' else 'service.map'))
             configs.extend(retain(p, str(p.relative_to(base))) for p in sorted(selected))
         for backend in ['jspi', 'asyncify']:
-            bind(f'web/engine-mpv-{profile}-{backend}', 'privateMpv', configs,
+            bind(f'web/engine-mpv-{"playback" if profile == "playback-full" else profile}-{backend}', 'privateMpv', configs,
                  ['native/', 'patches/', 'sources.lock.json', 'experiments/jspi-asyncify/',
-                  'scripts/build-private-release.py', 'scripts/install-private-mpv.py'])
+                  'scripts/build-private-release.py', 'scripts/install-private-mpv.py', 'scripts/install-private-playback.py'])
     # Revalidate source inputs after all compiles, before making a usable record.
     for name, wanted in start['inputs'].items():
         if sha(ROOT/name) != wanted:

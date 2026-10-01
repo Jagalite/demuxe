@@ -3,6 +3,7 @@
  * Apache control plane has no static import/re-export of provider code. These
  * are existing modules and lifecycle owners, not new playback backends. */
 type Modules = {
+    'mpv-private-player': typeof import('./private-software-player.js');
     'mpv-player': typeof import('./wasm-player.js');
     'mpv-audio': typeof import('./native-mpv-audio.js');
     'mpv-private-audio': typeof import('./native-private-mpv-audio.js');

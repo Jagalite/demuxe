@@ -27,9 +27,10 @@ def assemble(target,engine_path,companion_path,output):
         record['files'][name]={'sha256':sha(data),'inputs':inputs,'kind':kind,'licenses':licenses}
         for p in inputs:record['sources'][p]={'sha256':sha((ROOT/p).read_bytes())}
     for name in profile['files']+profile['engines']:
-        data=(ROOT/name).read_bytes()
+        source=profile.get('fileOverrides',{}).get(name,name)
+        data=(ROOT/source).read_bytes()
         if name in profile['engines'] and engine['artifacts'].get(name,{}).get('sha256')!=sha(data):raise ValueError('Engine differs from native build: '+name)
-        add('runtime/'+(profile.get('runtimePrefix','')+name[len('web/'):] if profile.get('runtimePrefix') and name not in profile['engines'] else name),data,[name],kind='code' if name.endswith(('.js','.mjs','.wasm')) else 'asset',licenses=profile.get('engineLicenses',['Apache-2.0','LGPL-2.1-or-later','MIT','LicenseRef-Native-Dependencies']) if name in profile['engines'] else None)
+        add('runtime/'+(profile.get('runtimePrefix','')+name[len('web/'):] if profile.get('runtimePrefix') and name not in profile['engines'] else name),data,[source],kind='code' if name.endswith(('.js','.mjs','.wasm')) else 'asset',licenses=profile.get('engineLicenses',['Apache-2.0','LGPL-2.1-or-later','MIT','LicenseRef-Native-Dependencies']) if name in profile['engines'] else None)
     for name,item in outputs.items():add('runtime/'+(profile.get('runtimePrefix','')+name[len('web/'):] if profile.get('runtimePrefix') else name),item['data'].encode(),item['inputs'])
     template=spec['template'];metadata=json.loads((ROOT/template).read_bytes());metadata.pop('private');metadata.pop('scripts')
     add('package.json',encoded(metadata),[template],'metadata',['Apache-2.0'])
@@ -46,8 +47,8 @@ def assemble(target,engine_path,companion_path,output):
     identity='sha256:'+sha(encoded(artifacts))
     descriptions=json.loads(subprocess.check_output(['node','--input-type=module','-e',"import {MEDIA_PROVIDERS} from './web/generated/internal/media-providers.js';console.log(JSON.stringify(MEDIA_PROVIDERS));"],cwd=ROOT))
     asset_graph={'roots':[p[len('runtime/'):] for p in artifacts],'dependencies':{}}
-    if target=='container':
-        asset_graph=json.loads(subprocess.check_output(['node','scripts/provider-asset-graph.mjs'],input=json.dumps({'files':{p[len('runtime/'):]:files[p].decode() for p in artifacts},'computedImports':profile.get('computedImports',[])}).encode(),cwd=ROOT))
+    if target=='container' or profile.get('assetGraph',False):
+        asset_graph=json.loads(subprocess.check_output(['node','scripts/provider-asset-graph.mjs'],input=json.dumps({'files':{p[len('runtime/'):]:files[p].decode() if p.endswith(('.js','.mjs')) else '' for p in artifacts},'computedImports':profile.get('computedImports',[])}).encode(),cwd=ROOT))
     providers=[]
     for id in profile['providers']:
         d=profile.get('descriptors',{}).get(id) or descriptions[id];offers=d['provides']

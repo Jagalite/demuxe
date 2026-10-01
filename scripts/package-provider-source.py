@@ -31,6 +31,8 @@ def application_source_paths():
     current.update(str(p.relative_to(ROOT)) for p in (ROOT/'LICENSES').glob('*.txt'))
     current.update(str(p.relative_to(ROOT)) for p in (ROOT/'tests/provider-conformance').glob('*.mjs'))
     current.update(['docs/PROVIDER-CONFORMANCE-CONTAINERS.md','docs/AUDIO-PROFILE-GAP-INVENTORY.md','docs/AAC-PROFILE-COMPOSITIONS.md','docs/AAC-PROFILE-GAPS.md','docs/CODEC-SLICE-INVENTORY.md','docs/codec-slice-inventory.json','scripts/provider-asset-graph.mjs','scripts/prepare-container-conformance.mjs','scripts/test-codec-expansion-providers.mjs','scripts/qualify-codec-expansion.mjs','scripts/test-providers.mjs','tests/provider-conformance-installed.mjs','docs/PROVIDER-TESTING.md','.github/workflows/provider-conformance.yml'])
+    if (ROOT/'licensing/provider-runtime-qualification.historical.json').is_file():current.add('licensing/provider-runtime-qualification.historical.json')
+    current.update(['packages/bundler/index.mjs','packages/bundler/embedded-runtime.mjs','tests/bundler.mjs','tests/provider-deployment.py','scripts/mpv_composite_source.py','scripts/private_remux_assets.py','tests/mpv-composite-source.py','tests/provider-asset-graph-scoped.mjs'])
     return current
 
 def application_inventory():
@@ -50,9 +52,9 @@ def assemble(record_path, recovered_path, build_root, output, profile_name=None)
         paths[name] = (path, actual)
     for name, digest in record['inputs'].items(): add('demuxe/'+name, recovered[name], digest)
     for name, digest in record['configurations'].items():
-        if name not in excluded: add('build-materials/'+name, build_root/name, digest)
-    for name, digest in record['sources'].items(): add('demuxe/build/downloads/'+name+'.tar.gz',build_root/'build/downloads'/(name+'.tar.gz'),digest)
-    for name, digest in record['sdkSources'].items(): add('toolchain/emscripten/'+name,Path(record['sdk'])/'upstream/emscripten'/name,digest)
+        if name not in excluded: add('build-materials/'+name, recovered['build-materials/'+name] if record.get('nativeGroups') else build_root/name, digest)
+    for name, digest in record['sources'].items(): add('demuxe/build/downloads/'+name+'.tar.gz',recovered['build/downloads/'+name+'.tar.gz'] if record.get('nativeGroups') else build_root/'build/downloads'/(name+'.tar.gz'),digest)
+    for name, digest in record['sdkSources'].items(): add('toolchain/emscripten/'+name,recovered['toolchain/emscripten/'+name] if record.get('nativeGroups') else Path(record['sdk'])/'upstream/emscripten'/name,digest)
     # Current application/provider integration source, separately named so it
     # never overwrites the original native-build inputs.
     current=application_source_paths()

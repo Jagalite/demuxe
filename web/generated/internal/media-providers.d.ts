@@ -136,6 +136,32 @@ export declare const MEDIA_PROVIDERS: {
         readonly configurationOwner: "ShakaBackend";
         readonly acquisition: "backend-owned";
     };
+    readonly 'mpv-playback-jspi': {
+        readonly technology: "mixed";
+        readonly delivery: readonly ["application-bundle", "optional-assets"];
+        readonly provides: readonly [{
+            readonly capability: "media.play.complete";
+            readonly version: 1;
+            readonly profile: "source-tracks";
+        }];
+        readonly implementation: readonly ["src/internal/private-software-player.ts", "web/engine-mpv-playback-jspi/player.mjs" | "web/engine-mpv-playback-asyncify/player.mjs"];
+        readonly requirementsOwner: "planAdmission / privatePlaybackRejection / private engine manifest and ABI checks";
+        readonly configurationOwner: "UnifiedPlayer.create / PrivateSoftwarePlayer";
+        readonly acquisition: "backend-owned";
+    };
+    readonly 'mpv-playback-asyncify': {
+        readonly technology: "mixed";
+        readonly delivery: readonly ["application-bundle", "optional-assets"];
+        readonly provides: readonly [{
+            readonly capability: "media.play.complete";
+            readonly version: 1;
+            readonly profile: "source-tracks";
+        }];
+        readonly implementation: readonly ["src/internal/private-software-player.ts", "web/engine-mpv-playback-jspi/player.mjs" | "web/engine-mpv-playback-asyncify/player.mjs"];
+        readonly requirementsOwner: "planAdmission / privatePlaybackRejection / private engine manifest and ABI checks";
+        readonly configurationOwner: "UnifiedPlayer.create / PrivateSoftwarePlayer";
+        readonly acquisition: "backend-owned";
+    };
     readonly 'mpv-hybrid': {
         readonly technology: "mixed";
         readonly delivery: readonly ["browser", "application-bundle", "optional-assets"];

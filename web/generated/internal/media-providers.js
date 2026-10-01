@@ -8,6 +8,13 @@ function privatePreparation(runtime) {
         ], implementation: ['web/private-remux.js', `web/engine-remux-${runtime}/remux.mjs`, `web/engine-adaptation-${runtime}/remux.mjs`],
         requirementsOwner: 'selectRemuxRuntime / private engine ABI and capability checks', configurationOwner: 'NativePlayer.startRemux', acquisition: 'backend-owned' };
 }
+function privatePlayback(runtime) {
+    return { technology: 'mixed', delivery: ['application-bundle', 'optional-assets'],
+        provides: [{ capability: 'media.play.complete', version: 1, profile: 'source-tracks' }],
+        implementation: ['src/internal/private-software-player.ts', `web/engine-mpv-playback-${runtime}/player.mjs`],
+        requirementsOwner: 'planAdmission / privatePlaybackRejection / private engine manifest and ABI checks',
+        configurationOwner: 'UnifiedPlayer.create / PrivateSoftwarePlayer', acquisition: 'backend-owned' };
+}
 /** Current source inventory, not a deployment manifest or qualification grant.
  * Loader owners retain asset dependencies, ABI checks and runtime/presenter
  * choices. Do not fetch or instantiate anything by importing this module.
@@ -57,6 +64,8 @@ export const MEDIA_PROVIDERS = {
         requirementsOwner: 'planAdmission / ShakaBackend',
         configurationOwner: 'ShakaBackend', acquisition: 'backend-owned',
     },
+    'mpv-playback-jspi': privatePlayback('jspi'),
+    'mpv-playback-asyncify': privatePlayback('asyncify'),
     'mpv-hybrid': {
         technology: 'mixed', delivery: ['browser', 'application-bundle', 'optional-assets'],
         provides: [{ capability: 'media.play.complete', version: 1, profile: 'source-tracks' }],

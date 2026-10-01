@@ -1,0 +1,956 @@
+{
+  "scope": "Public Player non-isolated playback qualification",
+  "startedAt": "2026-09-30T18:54:46.859Z",
+  "command": [
+    "/Users/jagatranvo/.nvm/versions/node/v23.5.0/bin/node",
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/research/items/nonisolated-full-software-playback/tests/public-preview-server.mjs",
+    "/Volumes/seed2/Projects/demuxe",
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/color-fixtures-04",
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/firefox-hdr-public-01"
+  ],
+  "environment": {
+    "runtime": "jspi",
+    "installedRoot": "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-06",
+    "inspectorRoot": "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/demuxer-inspector-relink-01",
+    "browser": "firefox",
+    "negativeOnly": false,
+    "codeRoot": "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout",
+    "cors": false,
+    "packageEntry": false,
+    "isolated": false
+  },
+  "cases": [
+    {
+      "key": "hevc10-pq",
+      "runtime": "asyncify",
+      "mode": "software",
+      "automatic": false,
+      "assetBase": "http://localhost:64651/",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:146.0) Gecko/20100101 Firefox/146.0",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.6100405092592592,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.6345717592592592,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 0.6888831018518519,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 1646,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 4871527,
+            "milliseconds": 532
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 28065880,
+            "milliseconds": 1645
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 130
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "mpv-rgb-canvas"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "asyncify",
+        "plan": "software-private",
+        "decodePolicy": {
+          "requested": "exact",
+          "effective": "exact",
+          "codec": "hevc",
+          "threads": 1,
+          "skipFrame": "default",
+          "skipLoopFilter": "default",
+          "skipIdct": "default",
+          "lowres": 0,
+          "filmGrain": "default",
+          "adaptiveState": "normal",
+          "shortcuts": [],
+          "ffmpegOptions": {
+            "max_pixels": "8294400"
+          },
+          "reason": "Exact decoded output requested",
+          "requiresDecoderRestart": true
+        },
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "browserDecoder": {
+          "submitted": 0,
+          "received": 0,
+          "delivered": 0,
+          "closed": 0,
+          "peakFrames": 0,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": false,
+          "generation": 0
+        },
+        "decoderMailbox": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            33688,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 404,
+          "completed": 398,
+          "abandoned": 0,
+          "suspensions": 152,
+          "resumes": 146,
+          "maxLive": 7,
+          "timerWakes": 51,
+          "signals": 66,
+          "stackChecks": 1100,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 656,
+            "unwinds": 152,
+            "rewinds": 146
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 29,
+          "bytes": 1917570,
+          "copies": 29,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "selection": {
+        "automatic": false,
+        "attempts": [
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software-private: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "advanced": 1.133,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterMAE": 0.6100405092592592,
+      "filterApplied": true,
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 260,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            33688,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 713,
+          "completed": 713,
+          "abandoned": 0,
+          "suspensions": 365,
+          "resumes": 365,
+          "maxLive": 7,
+          "timerWakes": 116,
+          "signals": 217,
+          "stackChecks": 2156,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 656,
+            "unwinds": 365,
+            "rewinds": 365
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 29,
+          "bytes": 1917570,
+          "copies": 29,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    },
+    {
+      "key": "hevc10-hlg",
+      "runtime": "asyncify",
+      "mode": "software",
+      "automatic": false,
+      "assetBase": "http://localhost:64651/",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:146.0) Gecko/20100101 Firefox/146.0",
+      "isolated": false,
+      "passed": true,
+      "pictures": [
+        {
+          "target": 0.5,
+          "mae": 0.9235532407407407,
+          "time": 0.5
+        },
+        {
+          "target": 1.5,
+          "mae": 0.9580150462962963,
+          "time": 1.5
+        },
+        {
+          "target": 2.5,
+          "mae": 0.9803587962962963,
+          "time": 2.5
+        }
+      ],
+      "preparation": {
+        "milliseconds": 1172,
+        "assets": [
+          {
+            "name": "inspector",
+            "status": "ready",
+            "bytes": 4871527,
+            "milliseconds": 222
+          },
+          {
+            "name": "software",
+            "status": "ready",
+            "bytes": 28065880,
+            "milliseconds": 1172
+          },
+          {
+            "name": "font",
+            "status": "ready",
+            "bytes": 757076,
+            "milliseconds": 12
+          }
+        ]
+      },
+      "plan": {
+        "id": "software-private",
+        "mode": "software",
+        "video": "ffmpeg",
+        "audio": "mpv",
+        "qualification": "bounded",
+        "owners": {
+          "video": "ffmpeg",
+          "audio": "mpv-pcm-worklet",
+          "subtitle": "mpv",
+          "demux": "mpv",
+          "presentation": "mpv-rgb-canvas"
+        },
+        "source": "inspected finite random-access file within the installed playback codec and feature profile",
+        "prerequisites": "selected JSPI or Asyncify runtime, verified playback assets, OffscreenCanvas and Web Audio",
+        "subtitles": "mpv/libass when admitted by the installed full playback profile",
+        "fidelity": "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply",
+        "resources": "bounded source reads, 128 MiB legacy or 512 MiB full Wasm heap, 32768-frame PCM ring for the selected output layout, one presented canvas and up to 16 retained Hybrid frames",
+        "fallback": "terminal"
+      },
+      "backend": {
+        "path": "wasm",
+        "decoder": "software",
+        "decoderBackend": "ffmpeg",
+        "runtime": "asyncify",
+        "plan": "software-private",
+        "decodePolicy": {
+          "requested": "exact",
+          "effective": "exact",
+          "codec": "hevc",
+          "threads": 1,
+          "skipFrame": "default",
+          "skipLoopFilter": "default",
+          "skipIdct": "default",
+          "lowres": 0,
+          "filmGrain": "default",
+          "adaptiveState": "normal",
+          "shortcuts": [],
+          "ffmpegOptions": {
+            "max_pixels": "8294400"
+          },
+          "reason": "Exact decoded output requested",
+          "requiresDecoderRestart": true
+        },
+        "adaptiveFrameDrop": false,
+        "adaptiveReason": "disabled",
+        "adaptiveSwitching": false,
+        "browserDecoder": {
+          "submitted": 0,
+          "received": 0,
+          "delivered": 0,
+          "closed": 0,
+          "peakFrames": 0,
+          "resets": 0,
+          "queued": 0,
+          "outstanding": 0,
+          "active": false,
+          "generation": 0
+        },
+        "decoderMailbox": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": false
+        },
+        "rendered": 2,
+        "presentedPosition": 0,
+        "seeking": false,
+        "heapBytes": 67108864,
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 0,
+          "feedbackCount": 0,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            2,
+            48000,
+            33688,
+            1,
+            2
+          ]
+        },
+        "scheduler": {
+          "created": 402,
+          "completed": 396,
+          "abandoned": 0,
+          "suspensions": 149,
+          "resumes": 143,
+          "maxLive": 7,
+          "timerWakes": 48,
+          "signals": 66,
+          "stackChecks": 1090,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 656,
+            "unwinds": 149,
+            "rewinds": 143
+          },
+          "liveTasks": 6,
+          "retainedTasks": 6,
+          "waitKeys": 6,
+          "timers": 3,
+          "freeSlots": 18,
+          "stopped": false
+        },
+        "io": {
+          "reads": 29,
+          "bytes": 1917570,
+          "copies": 29,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 1,
+          "pending": 0,
+          "timers": 0
+        },
+        "buffering": {
+          "requestedProfile": "balanced",
+          "preload": "auto",
+          "backend": "mpv",
+          "control": "profile",
+          "cache": true,
+          "forwardLimitBytes": 33554432,
+          "backwardLimitBytes": 8388608,
+          "notes": [
+            "Packet budgets are mpv limits, not a whole-player memory cap. Packet granularity and unused-forward donation can affect actual history.",
+            "Source byte cache, decoded frames, audio and Wasm linear memory are separate.",
+            "Explicit open prepares metadata and initial output; none and metadata limit speculative readahead."
+          ]
+        }
+      },
+      "selection": {
+        "automatic": false,
+        "attempts": [
+          {
+            "mode": "software",
+            "outcome": "selected",
+            "reason": "software-private: Playback requirements and actual startup accepted"
+          }
+        ]
+      },
+      "advanced": 1.2,
+      "settings": {
+        "rate": 1.25,
+        "volume": 0.35,
+        "gain": 0.4
+      },
+      "filterMAE": 0.9235532407407407,
+      "filterApplied": true,
+      "recovered": 0.5,
+      "suspended": 0,
+      "resumed": 1,
+      "context": "closed",
+      "cleanup": {
+        "audio": {
+          "capacity": 32768,
+          "channels": 2,
+          "maxOutstanding": 32768,
+          "feedbackCount": 224,
+          "staleFeedback": 0,
+          "error": null,
+          "header": [
+            0,
+            0,
+            0,
+            10,
+            48000,
+            33688,
+            1,
+            6
+          ]
+        },
+        "scheduler": {
+          "created": 698,
+          "completed": 698,
+          "abandoned": 0,
+          "suspensions": 341,
+          "resumes": 341,
+          "maxLive": 7,
+          "timerWakes": 115,
+          "signals": 194,
+          "stackChecks": 2078,
+          "continuations": {
+            "kind": "asyncify",
+            "maxSavedBytes": 656,
+            "unwinds": 341,
+            "rewinds": 341
+          },
+          "liveTasks": 0,
+          "retainedTasks": 0,
+          "waitKeys": 0,
+          "timers": 0,
+          "freeSlots": 24,
+          "stopped": false
+        },
+        "source": {
+          "reads": 29,
+          "bytes": 1917570,
+          "copies": 29,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateCompletions": 0,
+          "staleCommitsRejected": 0,
+          "maxPending": 1,
+          "abandonedRequests": 0,
+          "handles": 0,
+          "pending": 0,
+          "timers": 0
+        },
+        "decoder": {
+          "requests": 0,
+          "committed": 0,
+          "cancelled": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "lateResults": 0,
+          "error": null,
+          "pending": 0,
+          "timers": 0,
+          "closed": true
+        }
+      }
+    }
+  ],
+  "sourceSHA256": {
+    "harness:public-preview-server.mjs": {
+      "sha256": "42a62d1c4a5d0279d22236e388b11f037ab48d72b2edf21488bfa6c64757f770"
+    },
+    "harness:public-preview-check.mjs": {
+      "sha256": "ab7cc6de086e6b7c43eee2f850bf4ebfea77bdb13f22f0c42c3222802e2207b9"
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/index.js": {
+      "sha256": "a4e108bc8bb24b841b43f8dfc7bae5128e541199c0d439dccd15e837bc86b3d2",
+      "bytes": 576
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/unified-player.js": {
+      "sha256": "0a9b51238442ee16cb656b1f0ef7e6b66886546c06850f3229ffa4e42e25c007",
+      "bytes": 191981
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/errors.js": {
+      "sha256": "17315300e252320a1f1c5b354bff494a58a5de4b60b5bbb9e1d857cca8fb6e1e",
+      "bytes": 4961
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/types.js": {
+      "sha256": "9f71088e2aff63438958d3a0e607bffe9131128e1009bafea8f5405fa74dceb2",
+      "bytes": 406
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/preview/providers.js": {
+      "sha256": "f57fb144f45dbb0e8bad797f5f911e38356724c32b2e9124d809b3a2355ee796",
+      "bytes": 4784
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/preview/controller.js": {
+      "sha256": "48736385eb0e66f419600b16dd33aace3366e613bc80b832a1d8a9dc72bdb330",
+      "bytes": 16295
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/sources.js": {
+      "sha256": "83244a282e54eddd3b55dda7e1b5582abe3dcb317abf958d919b4181933a6827",
+      "bytes": 9881
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/preview/software.js": {
+      "sha256": "cfb97079cca473c4d126344e09b80440ab15675e8ba7ff393f49e9d32385e58a",
+      "bytes": 5118
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/presentation.js": {
+      "sha256": "dcf92d9e3d147a894cfa9d696b4057bdaaa3fc6ac324d20b2c3e0fa8f889645f",
+      "bytes": 9403
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/private-playback-admission.js": {
+      "sha256": "d9b8251487aadca88ea7fb9258181517350c4c63cbfa063e6c736f6d637e4dd5",
+      "bytes": 6767
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-runtime.js": {
+      "sha256": "f50c276fcb9ad576cdd6b456e0334190c2d98bfe0ecb16481251324ff4b617ea",
+      "bytes": 20474
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-modules.js": {
+      "sha256": "346c6b33872f14f8516a1b66b62583ba6044b52af950dd942aa2df24d43b022b",
+      "bytes": 533
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/probe-requirements.js": {
+      "sha256": "2f463cc8c3dd7889fa0adc9dd6e61b12be0902113abfb27b5260749b3c967ba0",
+      "bytes": 1839
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-build.js": {
+      "sha256": "a427fca4a1eeec9159be1fe04048a3efa310012fcc40f79ac89aa9c1ff9ceecd",
+      "bytes": 381
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/buffering.js": {
+      "sha256": "6f81659eace40e4aae67240cc4ab790ee8d1203999d85122e92cbe5a0cd55f14",
+      "bytes": 3758
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/playback-statistics.js": {
+      "sha256": "d96ed51f3e2ff00ed2a7f45918ebd88ad25d4b465f3f007146998abec2a0a87f",
+      "bytes": 2133
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/plain-vtt.js": {
+      "sha256": "b4ba5323d2d48d12ed92448fbd5e3d34e29c9e8589a460ed12b3063b2b32f59f",
+      "bytes": 1938
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/watchdogs.js": {
+      "sha256": "b8b124722d7e2a5aa2805a3c8cad022c21b8d9a8758e78faaebce17817d3dc31",
+      "bytes": 3093
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/track-policy.js": {
+      "sha256": "0521500291dfb3f8db77dc1d5c9e3b7f8824c49daca45ab1405310e41ac10b65",
+      "bytes": 4869
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/runtime-capability.js": {
+      "sha256": "25e329c4551a8f19992f2ccb0a4d395f3c80656bdfa4eb0cf0190849a7bd0e43",
+      "bytes": 7175
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/media-capabilities.js": {
+      "sha256": "a11c64dec42fad874499dc776333dfbe31a7ccae95a148d5b208fbd21d8ee252",
+      "bytes": 6250
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/browser-media-capability.js": {
+      "sha256": "b044b6c8277009b35a9f4818d41af4b58cd731d60360cbd0cde5c7d9d303c501",
+      "bytes": 7346
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/playback-plans.js": {
+      "sha256": "16063a3320b70293783ca286d844fd2dfd1989dba79d22ea0674327434378653",
+      "bytes": 27837
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/execution-recipes.js": {
+      "sha256": "b86ca082561d6986da0d99a75890a9b3a9e2f4557a847c98341a3370ff8f26fb",
+      "bytes": 9779
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/engine-preparation.js": {
+      "sha256": "731e5c081c2518f75670b3db1028efda4d9d8140424f0092740983e5375f8269",
+      "bytes": 6972
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-deployment-errors.js": {
+      "sha256": "db00dbe17a7f5a040bb684447444119e9791c005960093a11da0fa932cb96bce",
+      "bytes": 2420
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/tier-policy.js": {
+      "sha256": "43967291e02d09ac2590d2978c7f0732e7f0962c9f3126b1848ab38ef8c5fa73",
+      "bytes": 1376
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/assets.js": {
+      "sha256": "15f5c6d9c845b97e1d61e14e0f4ddf64a58d8761310490bf170de3a2e7bda970",
+      "bytes": 556
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/webgpu-codecs.js": {
+      "sha256": "2be99da4bc948c21569679c1e1a6edcf5b33406a857ecedae1454e6a322c2160",
+      "bytes": 615
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/remux-runtime.js": {
+      "sha256": "56eba1be2de520ed32a286c157d94b78420df8c463c0e970a02273b631c7900f",
+      "bytes": 2130
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/selection.js": {
+      "sha256": "f0ee2919a2f87778b8abf6bdf287ffe5f0f1f88d3a7191c3a170d7df4dd14817",
+      "bytes": 7058
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/backend.js": {
+      "sha256": "1e7e166bdc972e34e0287312c2cb15522441db42965781e600d54e28e39376c3",
+      "bytes": 138
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/state.js": {
+      "sha256": "deaf23d6b533d47a140cb4e9f9a5dd97db78da584369abdf9988cd5e5b40485b",
+      "bytes": 8540
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/preview/pregeneration.js": {
+      "sha256": "2f42b0e26a7aec9db29ea6184ba7501c109da89aa0c4d482e2f0c1ee4bc045f0",
+      "bytes": 4028
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/preview/player-preview.js": {
+      "sha256": "57e35e4c161dec95fbacda30e5514879c820fa4bf230c4384a0567a50e5c8b6f",
+      "bytes": 889
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-catalog.js": {
+      "sha256": "427ba0471f48afb604d571c92b15917539e16c4a9a0e5c5c9df59f2fdb969a1d",
+      "bytes": 7673
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-acquisition.js": {
+      "sha256": "6f32aca74129471dd9075c5d0f2a5f459f1a20c18585b51d717de734b119a16a",
+      "bytes": 11720
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/component-recipes.js": {
+      "sha256": "58942e2964221b6a465ff48bdaa903fbd1d830e76d68b074a12a8878726c171f",
+      "bytes": 2547
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-resolution.js": {
+      "sha256": "903ee113a5293cc6d123141da2332cec8206b11f41cf10cfacfd79cf6060b9b9",
+      "bytes": 5944
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/component-selection.js": {
+      "sha256": "bf09f91d04d57142f243d3cb1021fe9f34e89902f1802be96a745a983bf730c6",
+      "bytes": 4059
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/browser-evidence-adapters.js": {
+      "sha256": "1e2028752fe712be5635993b5b57be6a5213413f89df20fb3b1447b41e9e92f7",
+      "bytes": 1391
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/execution-capabilities.js": {
+      "sha256": "384ee654e3340712cf28f01c47a8a7e8ba1f73eccd9b631b8296b4f0972a41f8",
+      "bytes": 3957
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/provider-cost.js": {
+      "sha256": "9a8becc03935c028f30546b788531325acbcba931c57fff0fa8c179c9190ecb2",
+      "bytes": 4125
+    },
+    "/Volumes/seed2/Projects/demuxe/fixtures/DejaVuSans.ttf": {
+      "sha256": "7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954",
+      "bytes": 757076
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/demuxer-inspector-relink-01/web/engine-remux-asyncify/remux.wasm": {
+      "sha256": "20dfaaf13c28b7e781e88355417ca3a6b315ffd2dbc80143604e2f14ecf588de",
+      "bytes": 4871527
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-06/web/engine-mpv-playback-asyncify/player.wasm": {
+      "sha256": "d7baa6c736f27eec5d81a6b2ea6c8a3904e039bf75929425b827090eb6f0466c",
+      "bytes": 28065880
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/color-fixtures-04/hevc10-pq/fixture.mkv": {
+      "sha256": "ca93b95b637fb231bc6a41341dbe507c05ff1ca141f7b7ff36efbf3f52c3f7bb",
+      "bytes": 1917570
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/source-probe.js": {
+      "sha256": "431c4a19094b510043055d78304105c2738b9fab8acddc751eb8f15bd4adf1ab",
+      "bytes": 4152
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/runtime-worker.js": {
+      "sha256": "be69b14e4b53c28f8918aa2dab19f918c4e9749a6104a0599f658270f4360e81",
+      "bytes": 2301
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/native-remux-source-worker.js": {
+      "sha256": "a2ac3e0351d24574193e1f2eba5327f207e96a17a74b518f274c7c26289c9b7a",
+      "bytes": 3282
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/file-reader.js": {
+      "sha256": "d6db3571409a9149df0d28699feb52bb2b694b1c350a6c3c1eae3e3da7e73858",
+      "bytes": 4773
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/range-reader.js": {
+      "sha256": "cd5fdd6f4ac0c516ad4f748928e1531204bea3cb82f52f3b1a19f0dccf6e8bfe",
+      "bytes": 11897
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/native-remux-worker.js": {
+      "sha256": "645df2e039e09b9c953bc5e7e37a09a66b3a621ed8f9e910dc4546b66be8ff97",
+      "bytes": 10545
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/video-codec-config.js": {
+      "sha256": "3ba4ffeda7aa21ad53625d129bad240a7a911dc1635f8f557650e371905a279c",
+      "bytes": 4773
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/hybrid-preflight.js": {
+      "sha256": "6861e4c17a1d7b59772925eab77aaf075cf21708008bf6f1aff2ed1dc13dc524",
+      "bytes": 1618
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/prepared-engine.js": {
+      "sha256": "ea1b9f601687cb26fe8d7aa49884bdcb351af7e1f8346efb08edfcea7e38cf24",
+      "bytes": 318
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/remux-packaging.js": {
+      "sha256": "86285f603a8c875fc3c8eac291941d8a88007b8e23ed5b2bd584ad2d794dc433",
+      "bytes": 769
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/progressive-mp4.js": {
+      "sha256": "e5c10d127144b9705c9024852f0d1701ad299ea12b1672a6b38233cca58dbd04",
+      "bytes": 5046
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-remux.js": {
+      "sha256": "5de328a538e1c8234c7956ea16546f471862e58e11b503ed7067f9d4f30fc323",
+      "bytes": 3655
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-ffmpeg/bridge.js": {
+      "sha256": "d31d0e1d26feb29c5aa9bac7a60c997f4639b30c3b136dccf7f543fc23f65680",
+      "bytes": 3611
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-ffmpeg/range-source.js": {
+      "sha256": "efc911a6ebd4f2b7b81572f93c95b0373c262afad5c3675cfd3c64e847839e78",
+      "bytes": 7352
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-ffmpeg/single-owner.js": {
+      "sha256": "ece37844d7cff6815cae49f1fe82d32120827a5949c90e94aaf73d1485fd3e33",
+      "bytes": 2307
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/demuxer-inspector-relink-01/web/engine-remux-asyncify/remux.mjs": {
+      "sha256": "e20b76751cec2c86f72335cba6967ebe721957c8fb72473ef061a6de4c6aef39",
+      "bytes": 51182
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-06/web/engine-mpv-playback-asyncify/manifest.json": {
+      "sha256": "ef814e0ad6f8a5a4b6808b82c63c78de168a64eac1ef2f91ab221a292c2d8445",
+      "bytes": 14766
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/playback-parity-install-06/web/engine-mpv-playback-asyncify/player.mjs": {
+      "sha256": "a535e644090d35bae989efe68c280e161bcce26382367f8649d76ca2fbbf237b",
+      "bytes": 217523
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/private-software-player.js": {
+      "sha256": "9037cc358e577f1f27d61bbf048b42c0e04405119e5e664224d852760eab7273",
+      "bytes": 21135
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/audio-worklet.js": {
+      "sha256": "8495c862abf54790c2f8bbdb61c8865ea4ca2a884886def51a19f0163880f67f",
+      "bytes": 4955
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/playback-worker.js": {
+      "sha256": "827f009fa1791da03ff10490efc611abbe3ecd93a2f219f5aa6afad7d735af25",
+      "bytes": 18250
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv.js": {
+      "sha256": "1453e68687a2b996b120bd60ce780ece539ae0dfac9ec66a77c76d28b72c7253",
+      "bytes": 4784
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/playback-host.js": {
+      "sha256": "474c1eae9886f08366e788e647c30631fe4c5f13b997cdf6b406061e64d0d279",
+      "bytes": 8239
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/generated/internal/decode-policy.js": {
+      "sha256": "6f1e045eaa422c6109a797db85c1fb651ca043c9aaa3ee5de3e73ab50b400b7d",
+      "bytes": 4544
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/retained-presentation.js": {
+      "sha256": "4ca600305774bc18bbaedc8245ccd38d4d47bc3c3e4f0206b17f07d3488353c3",
+      "bytes": 3720
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/engine.js": {
+      "sha256": "4a3839957db17196efba295443b7406bf1219016c99cc715cb187d5a5ba6d74f",
+      "bytes": 2689
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/playback-pcm.js": {
+      "sha256": "29226a691f7ded7031da24f9a85e10219fc7c8711ca4d9d79279999343286476",
+      "bytes": 3987
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/retained-video.js": {
+      "sha256": "79d4a2070a1e4dc82f9b3e03d5f88cfd98ff09f25106abadf6770faec1856475",
+      "bytes": 1616
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/subtitle-overlay.js": {
+      "sha256": "7a3299ed925ce5a6cc801a2d33532efd2d7377deb9ed626aa7bc66d45663edcd",
+      "bytes": 2289
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/scheduler.js": {
+      "sha256": "b50bdf45612a7d006d89d841794afb2dea5e9d75f02574db49da6608fc551131",
+      "bytes": 11702
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/range-source.js": {
+      "sha256": "efc911a6ebd4f2b7b81572f93c95b0373c262afad5c3675cfd3c64e847839e78",
+      "bytes": 7352
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/decoder-mailbox.js": {
+      "sha256": "6aa8d6386f3b6909238f275afcca77d12813247860ff2cbf812e8d6a7b0fecd5",
+      "bytes": 5990
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/retained-decoder.js": {
+      "sha256": "8a7f28c4189adaa2e80dbf895c38f7b1986d93156293172bfe49095c46de07ba",
+      "bytes": 6087
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/private-mpv/continuations.js": {
+      "sha256": "bdace5c572bd62eae24d86c28e16c9fc882568a009670f2a11020c8903daf5bd",
+      "bytes": 5399
+    },
+    "/Users/jagatranvo/Library/Caches/demuxe-nonisolated-20260930/checkout/web/external-video-decoder.js": {
+      "sha256": "dd87763e82c7fb197f45a62b05a97866c44faafe508375369b7e9dc4c0f02a66",
+      "bytes": 2886
+    },
+    "reference:hevc10-pq": {
+      "sha256": "e341fe62770409f699ec0b8188d9f6026f2d5f459e07149d86d729e96fbfa450",
+      "bytes": 31104000
+    },
+    "/Volumes/seed2/Projects/demuxe-nonisolated-full-playback-20260929/color-fixtures-04/hevc10-hlg/fixture.mkv": {
+      "sha256": "fe36c0dcc57a60377e5176b06831690d3e632a216cea7516f2433a45a4aeb2fa",
+      "bytes": 1917570
+    },
+    "reference:hevc10-hlg": {
+      "sha256": "3db63c96e3f9278ef0db5ac50ce46c865b108fc61685c0625aa9f4ae7176cd40",
+      "bytes": 31104000
+    }
+  },
+  "heldReads": {
+    "started": 0,
+    "active": 0,
+    "aborted": 0
+  },
+  "rangeRequests": [],
+  "faultInjections": [],
+  "passed": true
+}

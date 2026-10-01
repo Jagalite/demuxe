@@ -314,13 +314,24 @@ static void close_output(void){
  av_bsf_free(&audio_bsf);
 }
 EMSCRIPTEN_KEEPALIVE void rm_close(void){clear_prefetch();ff_h264_ps_uninit(&ps);close_output();if(in)avformat_close_input(&in);if(input_io){av_freep(&input_io->buffer);avio_context_free(&input_io);}av_packet_free(&packet);}
+static const AVInputFormat *input_format;
+EMSCRIPTEN_KEEPALIVE int rm_set_demuxer(const char *name){
+ if(!name)return AVERROR(EINVAL);
+ size_t n=0;
+ for(;name[n];n++){
+  if(n>=64||!((name[n]>='a'&&name[n]<='z')||(name[n]>='0'&&name[n]<='9')||name[n]=='_'))return AVERROR(EINVAL);
+ }
+ const AVInputFormat *selected=n?av_find_input_format(name):NULL;
+ if(n&&!selected)return reject("Unknown demuxer hint");
+ input_format=selected;return 0;
+}
 static int open_input(double size){
  rm_close();failure[0]=0;av_max_alloc(16*1024*1024);total=(int64_t)size;position=0;
  input_io=avio_alloc_context(av_malloc(65536),65536,0,NULL,read_cb,NULL,seek_cb);
  if(!input_io)return AVERROR(ENOMEM);
  in=avformat_alloc_context();in->pb=input_io;in->flags|=AVFMT_FLAG_CUSTOM_IO;
  in->probesize=1024*1024;in->max_analyze_duration=1000000;in->max_index_size=4*1024*1024;
- int ret=avformat_open_input(&in,NULL,NULL,NULL);if(ret<0)return ret;
+ int ret=avformat_open_input(&in,NULL,input_format,NULL);if(ret<0)return ret;
  if(in->nb_streams>64)return AVERROR(EINVAL);
 #ifdef DEMUXE_AUDIO_ADAPTATION
  // Metadata discovery must not secretly decode unselected audio (or video).

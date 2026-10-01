@@ -50,13 +50,21 @@ def verify_private_release(files, build):
 
 
 def private_mpv_assets(root):
-    """Private mpv is an optional complete service set, never a partial install."""
+    """Service and playback profiles are optional complete sets."""
     root = Path(root)
     if not any((root / 'web').glob('engine-mpv-*-*')):
         return {}
+    profiles = []
+    if any((root / 'web').glob('engine-mpv-subtitles-*')) or any((root / 'web').glob('engine-mpv-audio-*')):
+        profiles.extend(('subtitles', 'audio'))
+    if any((root / 'web').glob('engine-mpv-playback-*')):
+        profiles.append('playback')
+    if not profiles:
+        raise ValueError('Unknown private mpv asset profile')
     files = {}
+    playback_capacities = set()
     for backend in ('jspi', 'asyncify'):
-        for profile in ('subtitles', 'audio'):
+        for profile in profiles:
             folder = f'web/engine-mpv-{profile}-{backend}'
             name = folder + '/manifest.json'
             data = (root / name).read_bytes()
@@ -64,15 +72,31 @@ def private_mpv_assets(root):
             if manifest.get('schema') != 1 or manifest.get('backend') != backend or manifest.get('profile') != profile:
                 raise ValueError('Private mpv identity mismatch: ' + folder)
             files[name] = data
-            for filename in ('service.mjs', 'service.wasm'):
+            if profile == 'playback':
+                capacity = manifest.get('audioCapacity')
+                if capacity not in (8192, 32768):
+                    raise ValueError('Private playback PCM capacity mismatch: ' + folder)
+                playback_capacities.add(capacity)
+            stem = 'player' if profile == 'playback' else 'service'
+            for filename in (stem + '.mjs', stem + '.wasm'):
                 name = folder + '/' + filename
                 data = (root / name).read_bytes()
                 if hashlib.sha256(data).hexdigest() != manifest['files'].get(filename):
                     raise ValueError('Private mpv artifact mismatch: ' + name)
                 files[name] = data
-    for filename in ('private-mpv.js', 'private-mpv/LICENSE.txt', 'private-mpv/engine.js',
+    if len(playback_capacities) > 1:
+        raise ValueError('Private playback runtime capacities differ')
+    runtime_files = ['private-mpv.js', 'private-mpv/LICENSE.txt', 'private-mpv/engine.js',
                      'private-mpv/scheduler.js', 'private-mpv/continuations.js',
-                     'private-mpv/range-source.js', 'private-mpv/audio-worker.js', 'private-mpv/audio-worklet.js'):
+                     'private-mpv/range-source.js', 'private-mpv/audio-worklet.js',
+                     'private-mpv/decoder-mailbox.js', 'private-mpv/retained-decoder.js',
+                     'external-video-decoder.js', 'video-codec-config.js']
+    if 'audio' in profiles:
+        runtime_files.append('private-mpv/audio-worker.js')
+    if 'playback' in profiles:
+        runtime_files.extend(('private-mpv/playback-worker.js', 'private-mpv/playback-host.js', 'private-mpv/playback-pcm.js',
+                              'private-mpv/retained-presentation.js','retained-video.js','subtitle-overlay.js'))
+    for filename in runtime_files:
         files['web/' + filename] = (root / 'web' / filename).read_bytes()
     return files
 
@@ -83,14 +107,16 @@ def verify_private_mpv_release(files, build):
     if not build.get('clean'):
         raise ValueError('Private mpv release requires a clean engine build')
     for backend in ('jspi', 'asyncify'):
-        for profile in ('subtitles', 'audio'):
+        for profile in ('subtitles', 'audio', 'playback'):
             folder = f'web/engine-mpv-{profile}-{backend}'
+            if folder + '/manifest.json' not in files:
+                continue
             record = build.get('privateMpv', {}).get(folder, {})
             for group in ('inputs', 'configurations'):
                 names = record.get(group, [])
                 if not names or not all(isinstance(n, str) and n in build.get(group, {}) for n in names):
                     raise ValueError('Private mpv release lacks recorded ' + group + ': ' + folder)
             for ext in ('mjs', 'wasm'):
-                name = folder + '/service.' + ext
+                name = folder + ('/player.' if profile == 'playback' else '/service.') + ext
                 if name not in files or build.get('artifacts', {}).get(name, {}).get('sha256') != hashlib.sha256(files[name]).hexdigest():
                     raise ValueError('Private mpv release lacks matching build artifact: ' + name)

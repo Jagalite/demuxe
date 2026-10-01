@@ -16,8 +16,8 @@ export declare const EXECUTION_CAPABILITIES: {
     };
     readonly 'audio.decode.dts': {
         readonly version: 1;
-        readonly profiles: readonly ["core-48khz-fltp", "ma-48khz-s32p", "ma-configured-integer"];
-        readonly contract: "Complete DTS core packets to owned float planes; The MA profile preserves planar integer PCM; core and MA are separate offers.";
+        readonly profiles: readonly ["core-48khz-fltp", "ma-48khz-s32p", "ma-configured-integer", "ma-high-rate-integer"];
+        readonly contract: "Complete DTS core packets to owned float planes; The MA profiles preserve planar integer PCM; high-rate MA is finite96 kHz6/8-channel24-bit or192 kHz6-channel16-bit packet decoding. Only96 kHz qualifies FLAC composition; core and MA are separate offers.";
     };
     readonly 'audio.decode.truehd': {
         readonly version: 1;
@@ -31,8 +31,8 @@ export declare const EXECUTION_CAPABILITIES: {
     };
     readonly 'audio.decode.aac': {
         readonly version: 1;
-        readonly profiles: readonly ["lc-48khz-stereo", "lc-configured", "he-stereo48", "he-v2-stereo44100", "usac-mono48"];
-        readonly contract: "Explicitly admitted AAC-LC or finite HE stereo48/HEv2 stereo44100/USAC mono48 packets with verified AudioSpecificConfig and actual decoded profile to owned PCM; explicit priming and discard padding belong to the container.";
+        readonly profiles: readonly ["lc-48khz-stereo", "lc-configured", "he-stereo48", "he-v2-stereo44100", "usac-mono48", "he-configured-float", "he-v2-stereo32", "usac-stereo-configured", "lc-pce8-44100"];
+        readonly contract: "Explicitly admitted AAC-LC or exact ASC-owned HE48 stereo/six-channel, HEv2 stereo44100/32000, USAC mono48/stereo32/44100/48000/88200 and PCE eight-channel44100 packets with verified AudioSpecificConfig and actual decoded profile to owned PCM; explicit priming and discard padding belong to the container.";
     };
     readonly 'audio.decode.opus': {
         readonly version: 1;
@@ -81,18 +81,18 @@ export declare const EXECUTION_CAPABILITIES: {
     };
     readonly 'audio.decode.speex': {
         readonly version: 1;
-        readonly profiles: readonly ["flv-wideband-float"];
-        readonly contract: "Canonical headerless Speex FLV 16 kHz mono packets to owned float PCM with original packet PTS and gaps; max two decoded frames, scalar error below7e-5 and whole-stream SNR above80dB; no container composition admission.";
+        readonly profiles: readonly ["flv-wideband-float", "ogg-mono-cbr"];
+        readonly contract: "Canonical headerless Speex FLV 16 kHz mono packets to owned float PCM with original packet PTS and gaps; max two decoded frames, scalar error below7e-5 and whole-stream SNR above80dB; no container composition admission. Explicit ogg-mono-cbr admits canonical 80-byte Speex headers, 8/32 kHz mono CBR single160/640-sample frames with original signed Ogg PTS and full coded padding; unchanged7e-5/SNR80 qualification.";
     };
     readonly 'audio.decode.amrnb': {
         readonly version: 1;
-        readonly profiles: readonly ["mode0-float"];
-        readonly contract: "Complete mode0 4.75 kbps AMR-NB speech packets at8 kHz mono to owned float PCM, original PTS and restart-from-start/discard seeks; SID/DTX rejected; no container admission.";
+        readonly profiles: readonly ["mode0-float", "ordinary-modes-float"];
+        readonly contract: "Complete ordinary AMR-NB modes0–7 at8 kHz mono; defaultmode0 or explicit immutable amrModes whitelist; quality1 complete frames to owned float PCM, original PTS and restart-from-start/discard seeks; SID/DTX rejected; no container admission.";
     };
     readonly 'audio.decode.amrwb': {
         readonly version: 1;
-        readonly profiles: readonly ["mode0-float"];
-        readonly contract: "Complete mode0 6.60 kbps AMR-WB speech packets at16 kHz mono to owned float PCM, original PTS and restart-from-start/discard seeks; SID rejected; no container admission.";
+        readonly profiles: readonly ["mode0-float", "ordinary-modes-float"];
+        readonly contract: "Complete ordinary AMR-WB modes0–8 at16 kHz mono; defaultmode0 or explicit immutable amrModes whitelist; quality1 complete frames to owned float PCM, original PTS and restart-from-start/discard seeks; SID rejected; no container admission.";
     };
     readonly 'audio.decode.pcm-alaw': {
         readonly version: 1;
@@ -161,17 +161,17 @@ export declare const EXECUTION_CAPABILITIES: {
     };
     readonly 'audio.decode.mp2': {
         readonly version: 1;
-        readonly profiles: readonly ["configured-pcm"];
+        readonly profiles: readonly ["configured-pcm", "lower-rate-pcm"];
         readonly contract: "Configured MPEG Layer II packets with container priming to owned PCM.";
     };
     readonly 'audio.decode.wmav1': {
         readonly version: 1;
-        readonly profiles: readonly ["configured-pcm"];
+        readonly profiles: readonly ["configured-pcm", "lower-rate-pcm"];
         readonly contract: "WMA v1/v2 complete blocks with explicit WAVEFORMATEX framing, bitrate and bounded drain timing to owned PCM.";
     };
     readonly 'audio.decode.wmav2': {
         readonly version: 1;
-        readonly profiles: readonly ["configured-pcm"];
+        readonly profiles: readonly ["configured-pcm", "lower-rate-pcm"];
         readonly contract: "WMA v1/v2 complete blocks with explicit WAVEFORMATEX framing, bitrate and bounded drain timing to owned PCM.";
     };
     readonly 'audio.decode.mp3': {
