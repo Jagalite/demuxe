@@ -38,7 +38,14 @@ class Reporting(unittest.TestCase):
  def test_failed_or_missing_cpu_never_publishes_a_number(self):
   selected=m.selected_cases([self.proof()]);self.assertEqual(m.cpu_cells(selected,[])['demuxe.auto.file']['status'],'pending')
   cpu=self.cpu();cpu['cases'][1]['status']='failed';cpu['cases'][1]['reason']='Foreground lost'
+  cpu['cases'][0]['reason']='Accepted measurement';cpu['cases'][2]['reason']='Another accepted measurement'
   withheld=m.cpu_cells(selected,[cpu])['demuxe.auto.file'];self.assertEqual(withheld['status'],'withheld');self.assertNotIn('medianOneCorePercent',withheld)
+  self.assertEqual(withheld['reasons'],['Foreground lost'])
+  detail=m.route_reason({'route':'native-transcode','reason':'Correctness passed','cpu':withheld})
+  self.assertIn('CPU withheld: Foreground lost',detail);self.assertNotIn('Accepted measurement',detail)
+  incomplete=self.cpu();incomplete['cases']=incomplete['cases'][:2]
+  result=m.cpu_cells(selected,[incomplete])['demuxe.auto.file']
+  self.assertEqual(result['reasons'],['Incomplete CPU rounds: 2 accepted; at least 3 required'])
   proof=self.proof();proof['cases'][0]['status']='failed'
   with self.assertRaises(AssertionError):m.cpu_cells(m.selected_cases([proof]),[self.cpu()])
  def test_supplemental_audit_must_bind_selected_summary_record_and_samples(self):

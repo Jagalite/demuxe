@@ -52,7 +52,11 @@ def cpu_cells(selected,cpu_runs):
                 assert all(s and (s.get('selectedAudioTrack') or {}).get('id')==track['id'] and s['selectedAudioTrack'].get('codec')==track['codec'] for s in states),'CPU measured another or unknown audio track'
                 results[identity]['initialAudioTrack']=track
                 results[identity]['sampleRoutes']=sorted({s['route'] for s in states if s.get('route')})
-        elif rounds:results[identity]={'status':'withheld','reasons':[str(r.get('reason','Incomplete accepted CPU rounds')).splitlines()[0] for r in rounds],'rounds':len(rounds)}
+        elif rounds:
+            rejected=[r for r in rounds if r not in accepted]
+            reasons=[str(r.get('reason','Rejected CPU round')).splitlines()[0] for r in rejected]
+            if not rejected:reasons=[f'Incomplete CPU rounds: {len(accepted)} accepted; at least 3 required']
+            results[identity]={'status':'withheld','reasons':reasons,'rounds':len(rounds)}
         else:results[identity]={'status':('outside-scope' if case['lane'] in PRIVATE else 'pending') if good else 'not-applicable'}
     return results
 def cell(case,cpu):
@@ -66,6 +70,7 @@ def cell(case,cpu):
     return label
 def route_reason(case):
     detail=(case['route']+'; ' if case['route'] else '')+case['reason']
+    if case['cpu']['status']=='withheld':detail+='; CPU withheld: '+'; '.join(case['cpu']['reasons'])
     transitions=case.get('audioTrackTransitions',[])
     if transitions:
         detail+='; audio selections: '+', '.join(str(t.get('requestedCodec','unknown')).upper()+' via '+str(t.get('route','unknown')) for t in transitions)
