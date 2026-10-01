@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {runAudioDecoderChecks, packetTrimMetadata} from './provider-conformance/audio-decoder.mjs';
 const status=document.querySelector('#status');
 const assert=(condition,message)=>{if(!condition)throw Error(message);};
 const sha=async b=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',b)),n=>n.toString(16).padStart(2,'0')).join('');
@@ -18,33 +19,16 @@ async function precisionMustReject(f,encoding){
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 async function packet(api,base,f){
  const data=await(await fetch('/fixtures/'+f.id+'.json')).json(),stream=data.streams[0];
- const module=await api.loadTestModule(base,f.profile),abort=new AbortController();
- const decoder=new api.PacketAudioDecoder(module,f.codec,abort.signal,{sampleRate:f.sampleRate,channels:f.channels,bitsPerSample:f.bitsPerSample,extradata:unhex(stream.extradata)});
- try{
-  const frames=[];for(const p of data.packets)frames.push(...decoder.decode(unhex(p.data),Math.round(Number(p.pts_time)*f.sampleRate)));frames.push(...decoder.flush());
-  const sides=data.packets.flatMap(p=>p.side_data_list??[]).filter(s=>s.side_data_type==='Skip Samples');
-  const decoderSkip=f.codec==='opus'?new DataView(unhex(stream.extradata).buffer).getUint16(10,true):f.codec==='vorbis'?sides.reduce((n,s)=>n+(s.skip_samples??0),0):0;
-  const skip=Math.max(0,sides.reduce((n,s)=>n+(s.skip_samples??0),0)-decoderSkip),discard=sides.reduce((n,s)=>n+(s.discard_padding??0),0);
-  const pcm=Float32Array.from(frames.flatMap(frame=>Array.from({length:frame.samples*f.channels},(_,i)=>frame.pcm?frame.pcm[i]/2147483648:frame.planes[i%f.channels][Math.floor(i/f.channels)])));
-  const actual=pcm.subarray(skip*f.channels,pcm.length-discard*f.channels),reference=new Float32Array(await(await fetch('/fixtures/'+f.id+'.f32')).arrayBuffer());
-  assert(actual.length===reference.length,'packet sample count '+actual.length+'/'+reference.length);
-  let error=0;for(let i=0;i<actual.length;i++)error=Math.max(error,Math.abs(actual[i]-reference[i]));assert(error<2e-5,'packet PCM error '+error);
-  let integerExact=false,doubleExact=false;
-  if(integerCodecs.has(f.codec)){
-   assert(frames.every(frame=>frame.pcm instanceof Int32Array),'missing owned integer PCM');
-   const integer=Int32Array.from(frames.flatMap(frame=>Array.from(frame.pcm)));
-   const trimmedInteger=integer.slice(skip*f.channels,integer.length-discard*f.channels),integerReference=await(await fetch('/fixtures/'+f.id+'.s32')).arrayBuffer();
-   assert(trimmedInteger.byteLength===integerReference.byteLength,'exact integer sample count');assert(await sha(trimmedInteger.buffer)===await sha(integerReference),'exact integer PCM mismatch');integerExact=true;
-  }
-  if(f.codec==='pcm-f64le'){
-   assert(frames.every(frame=>frame.planes64?.length===f.channels),'missing original double PCM');
-   const doubles=Float64Array.from(frames.flatMap(frame=>Array.from({length:frame.samples*f.channels},(_,i)=>frame.planes64[i%f.channels][Math.floor(i/f.channels)])));
-   const trimmedDouble=doubles.slice(skip*f.channels,doubles.length-discard*f.channels),doubleReference=await(await fetch('/fixtures/'+f.id+'.f64')).arrayBuffer();
-   assert(trimmedDouble.byteLength===doubleReference.byteLength,'exact double sample count');assert(await sha(trimmedDouble.buffer)===await sha(doubleReference),'exact double PCM mismatch');doubleExact=true;
-  }
-  decoder.reset();let repeated=0;for(const p of data.packets)repeated+=decoder.decode(unhex(p.data),Math.round(Number(p.pts_time)*f.sampleRate)).reduce((n,f)=>n+f.samples,0);repeated+=decoder.flush().reduce((n,f)=>n+f.samples,0);
-  assert(repeated*f.channels===pcm.length,'reset sample count');return {samples:actual.length/f.channels,maxError:error,integerExact,doubleExact,reset:true};
- }finally{decoder.dispose();abort.abort();}
+ const module=await api.loadTestModule(base,f.profile),extradata=unhex(stream.extradata);
+ const reference=new Float32Array(await(await fetch('/fixtures/'+f.id+'.f32')).arrayBuffer());
+ const integerReference=integerCodecs.has(f.codec)?new Int32Array(await(await fetch('/fixtures/'+f.id+'.s32')).arrayBuffer()):undefined;
+ const doubleReference=f.codec==='pcm-f64le'?new Float64Array(await(await fetch('/fixtures/'+f.id+'.f64')).arrayBuffer()):undefined;
+ const timingResponse=await fetch('/timing/'+encodeURIComponent(f.id));assert(timingResponse.ok,'native timing reference unavailable');const timingReference=await timingResponse.json();
+ return runAudioDecoderChecks({
+  createDecoder:(fixture,signal)=>new api.PacketAudioDecoder(module,fixture.codec,signal,fixture),
+  fixture:{...f,extradata},packets:data.packets.map(p=>({data:unhex(p.data),pts:Math.round(Number(p.pts_time)*f.sampleRate)})),
+  reference,timingReference,integerReference,doubleReference,...packetTrimMetadata(f.codec,extradata,data.packets)
+ });
 }
 async function composition(api,base,manifest,item){
  const f=item.fixture,source=await(await fetch('/fixtures/'+f.id+'.mkv')).blob();

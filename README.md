@@ -40,6 +40,9 @@ CLI and JavaScript examples, runtime cleanup and testing status. The bundler is
 currently a local package candidate and has not been published to npm.
 See the [codec slice inventory and prioritized backlog](docs/CODEC-SLICE-INVENTORY.md)
 for all 11 slices, their testing status, and the remaining codec and release work.
+Use the [provider testing guide](docs/PROVIDER-TESTING.md) to run the shared
+conformance checks against a candidate package, compare it with packaged Wasm
+FFmpeg using `--baseline`, or adapt a replacement provider.
 
 Serve the copied directory at `/assets/demuxe/`. In your application's JavaScript
 entry point, register the player:

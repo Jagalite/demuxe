@@ -6,6 +6,7 @@ import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import {prepareAudioTimingReference} from './provider-conformance/audio-fixtures.mjs';
 const root=process.cwd(),home=path.resolve('build/codec-expansion');
 const installed=JSON.parse(await readFile(home+'/installed.json'));
 const fixtures=JSON.parse(await readFile(home+'/decoder-fixtures/fixtures.json'));
@@ -20,6 +21,11 @@ const server=createServer(async(req,res)=>{
   if(name==='/result'){
    const chunks=[];for await(const c of req)chunks.push(c);const result=JSON.parse(Buffer.concat(chunks));
    await writeFile(out+'/results.json',JSON.stringify({...result,installed,requests},null,2)+'\n');res.end('saved');console.log('Browser matrix',result.passed,result.results.length,result.error??'');return;
+  }
+  if(name.startsWith('/timing/')){
+   const f=fixtures.find(f=>f.id===name.slice('/timing/'.length));assert.ok(f);
+   res.setHeader('Content-Type','application/json');
+   res.end(JSON.stringify(await prepareAudioTimingReference({...f,input:path.resolve(f.input)})));return;
   }
   if(name==='/validate'){
    const f=fixtures.find(f=>f.id===url.searchParams.get('id'));assert.ok(f);const encoding=url.searchParams.get('encoding');assert.ok(['flac','opus'].includes(encoding));
@@ -40,6 +46,7 @@ const server=createServer(async(req,res)=>{
   }
   let file;
   if(name==='/page.mjs')file=root+'/tests/codec-expansion-page.mjs';
+  else if(name==='/provider-conformance/audio-decoder.mjs')file=root+'/tests/provider-conformance/audio-decoder.mjs';
   else if(name==='/cases.json')file=installed.work+'/cases.json';
   else if(name.startsWith('/fixtures/')){
    const relative=name.slice(10);assert.ok(fixtures.some(f=>['json','mkv','mov','f32','s32','f64'].some(ext=>relative===f.id+'.'+ext)));file=home+'/decoder-fixtures/'+relative;

@@ -1,0 +1,64 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Provider conformance harness
+on:
+  pull_request:
+    paths:
+      - 'tests/provider-conformance/**'
+      - 'tests/provider-conformance-installed.mjs'
+      - 'tests/provider-*.mjs'
+      - 'tests/codec-expansion-page.mjs'
+      - 'tests/codec-expansion-browser.mjs'
+      - 'scripts/test-providers.mjs'
+      - 'scripts/compile-component-providers.mjs'
+      - 'src/internal/execution-capabilities.ts'
+      - 'licensing/provider-packages.json'
+      - 'packages/provider-container/**'
+      - 'packages/provider-audio/**'
+      - 'package*'
+      - 'docs/PROVIDER-TESTING.md'
+      - '.github/workflows/provider-conformance.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tests/provider-conformance/**'
+      - 'tests/provider-conformance-installed.mjs'
+      - 'tests/provider-*.mjs'
+      - 'tests/codec-expansion-page.mjs'
+      - 'tests/codec-expansion-browser.mjs'
+      - 'scripts/test-providers.mjs'
+      - 'scripts/compile-component-providers.mjs'
+      - 'src/internal/execution-capabilities.ts'
+      - 'licensing/provider-packages.json'
+      - 'packages/provider-container/**'
+      - 'packages/provider-audio/**'
+      - 'package*'
+      - 'docs/PROVIDER-TESTING.md'
+      - '.github/workflows/provider-conformance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  conformance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install test dependencies
+        run: npm ci --ignore-scripts
+      - name: Install independent reference decoders
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Run contracts and installed provider checks
+        run: npm run test:provider-harness
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: provider-conformance-reports
+          path: |
+            build/provider-conformance*/**/*.json
+          if-no-files-found: warn
