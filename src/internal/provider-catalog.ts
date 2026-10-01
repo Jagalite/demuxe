@@ -63,7 +63,9 @@ export function parseProviderDeployment(value: unknown, assetBase: URL): ParsedP
   if (!['http:', 'https:'].includes(assetBase.protocol) || assetBase.username || assetBase.password || assetBase.search || assetBase.hash || !assetBase.pathname.endsWith('/')) throw Error('Invalid provider asset base');
   const revision = identifier(input.revision);
   const assets = new Map<string, DeployedProviderAsset>();
-  for (const value of list(input.assets)) {
+  // The complete optional-provider deployment currently contains 343 assets.
+  // Keep a finite budget while allowing all reviewed slices to coexist.
+  for (const value of list(input.assets, 512)) {
     const item = object(value), id = identifier(item.id), path = text(item.path);
     if (assets.has(id)) throw Error('Duplicate deployment asset');
     if (path.split('/').some(part => !part || part === '.' || part === '..' || !/^[a-zA-Z0-9_.-]+$/.test(part))) throw Error('Invalid provider asset path');
