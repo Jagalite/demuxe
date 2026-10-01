@@ -13,9 +13,10 @@ import {markedAudio,markedImage,decodePNG,selectCases,performanceEligible,marked
 import {frameObservation,validateFrameWindow} from './performance-metrics.mjs';
 import {closeBrowserObserved} from './browser-exit.mjs';
 import {waitInitialOutput} from './initial-output.mjs';
-import {remuxEvidence,requireRemuxCPU} from './remux-evidence.mjs';
+import {remuxEvidence,requireRemuxCPU,nonisolatedPlaybackLanes,playbackLane,requiresNonisolated} from './remux-evidence.mjs';
 import {referenceAudio,waitReferenceAudio} from './specialist-audio.mjs';
 import {referenceFixture} from './specialist-contract.mjs';
+import {rateObservation,validatePlaybackRate} from './playback-rate.mjs';
 
 const here=import.meta.dirname,repo=path.resolve(here,'../..');
 const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'string'},cases:{type:'string',default:'all'},
@@ -31,6 +32,7 @@ const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'str
   'include-software':{type:'boolean',default:false},
   'include-native':{type:'boolean',default:false},
   'include-hybrid':{type:'boolean',default:false},
+  'include-nonisolated-playback':{type:'boolean',default:false},
   'controlled-streaming':{type:'boolean',default:false},
   'streaming-backends':{type:'boolean',default:false},
   performance:{type:'boolean',default:false},exclusive:{type:'boolean',default:false},correctness:{type:'string'},rounds:{type:'string',default:'3'},'browser-scope':{type:'string',default:'round'},
@@ -50,6 +52,7 @@ if(args['streaming-backends']&&(!args.catalogue||args['demuxe-mode']!=='auto'||!
 if(args['configured-alternatives']&&!args.catalogue)throw Error('--configured-alternatives requires --catalogue');
 if(args['include-private-remux']&&(!args.catalogue||args['demuxe-mode']!=='auto'))throw Error('Private remux comparison requires automatic catalogue routing');
 if(args['force-private-remux']&&!args['include-private-remux'])throw Error('--force-private-remux requires --include-private-remux');
+if(args['include-nonisolated-playback']&&(!args.catalogue||args['demuxe-mode']!=='auto'))throw Error('--include-nonisolated-playback requires --catalogue with automatic Demuxe routing');
 let matrix=JSON.parse(await fs.readFile(path.join(here,'matrix.json')));
 if(args.catalogue) {
   if(!args.assets)throw Error('--catalogue requires --assets');
@@ -60,9 +63,10 @@ if(args.catalogue) {
   }
   for(const fixture of Object.values(fixtures))if(!fixture.referenceScreen)fixture.blockedReason??=markedFixtureBlock(fixture);
   matrix={schema:2,fixtures,cases:Object.entries(fixtures).flatMap(([fixture,f])=>[
-    ['video','default'],...(args['include-videojs']?[['videojs','default']]:[]),['demuxe',args['demuxe-mode']],...(args['include-private-remux']?[['demuxe','jspi'],['demuxe','asyncify']]:[]),...(args['include-native']?[['demuxe','native']]:[]),...(args['include-software']?[['demuxe','software']]:[]),...(args['include-hybrid']?[['demuxe','hybrid']]:[]),['movi','default'],['libmedia','default'],...(args['configured-alternatives']?[['movi','native-first'],['libmedia','prefer-mse'],['libmedia','webcodecs-off'],...(!f.streamFormat&&!f.live?[['libmedia','file-input']]:[]),...(f.streamFormat?[['movi','shaka-first']]:[]),...(f.live?[['libmedia','live'],['libmedia','live-mse']]:[])]:[]),...(args['streaming-backends']?[['demuxe','hybrid'],['demuxe','software']]:[])
+    ['video','default'],...(args['include-videojs']?[['videojs','default']]:[]),['demuxe',args['demuxe-mode']],...(args['include-private-remux']?[['demuxe','jspi'],['demuxe','asyncify']]:[]),...(args['include-native']?[['demuxe','native']]:[]),...(args['include-software']?[['demuxe','software']]:[]),...(args['include-hybrid']?[['demuxe','hybrid']]:[]),...(args['include-nonisolated-playback']?nonisolatedPlaybackLanes.map(lane=>['demuxe',lane]):[]),['movi','default'],['libmedia','default'],...(args['configured-alternatives']?[['movi','native-first'],['libmedia','prefer-mse'],['libmedia','webcodecs-off'],...(!f.streamFormat&&!f.live?[['libmedia','file-input']]:[]),...(f.streamFormat?[['movi','shaka-first']]:[]),...(f.live?[['libmedia','live'],['libmedia','live-mse']]:[])]:[]),...(args['streaming-backends']?[['demuxe','hybrid'],['demuxe','software']]:[])
   ].map(([player,lane])=>({id:`${player}.${lane}.${fixture}`,player,lane,fixture,
     ...(args['force-private-remux']&&['jspi','asyncify'].includes(lane)?{forceRemux:true}:{}),
+    ...(playbackLane(lane)&&(f.streamFormat||f.live)?{blockedReason:'Nonisolated playback lane is bounded to finite file sources; streaming is not qualified'}:{}),
     requirements:[...(f.video?['moving-video']:[]),...(f.audio?['marked-audio']:[]),'pause-resume','rate',...(f.live?['live-window']:['seek','eof']),'cleanup',...(f.subtitleCheck?['subtitle-output']:[])],
     ...(f.qualificationLimit?{qualificationLimit:f.qualificationLimit}:{})}))) };
 }
@@ -102,7 +106,7 @@ for(const key of new Set(selected.map(c=>c.fixture))){
 }
 const output=path.resolve(args.output??`results/head-to-head/${stamp}-${args.performance?'performance':'correctness'}`);
 await fs.mkdir(path.dirname(output),{recursive:true});await fs.mkdir(output); // EEXIST intentionally prevents overwrites.
-const sourceNames=['campaign-progress.mjs','benchmark-browser.mjs','browser-exit.mjs','performance-metrics.mjs','component-trials.mjs','initial-output.mjs','remux-evidence.mjs','specialist-audio.mjs','specialist-contract.mjs','run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
+const sourceNames=['campaign-progress.mjs','benchmark-browser.mjs','browser-exit.mjs','performance-metrics.mjs','playback-rate.mjs','component-trials.mjs','initial-output.mjs','remux-evidence.mjs','specialist-audio.mjs','specialist-contract.mjs','run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
 const sourceHashes={};
 await fs.mkdir(path.join(output,'files','harness'),{recursive:true});
 for(const name of sourceNames){const bytes=name==='matrix.json'?Buffer.from(JSON.stringify(matrix,null,2)+'\n'):await fs.readFile(path.join(here,name));sourceHashes[name]=hash(bytes);await fs.writeFile(path.join(output,'files','harness',name),bytes);}
@@ -208,7 +212,7 @@ async function correctness(page,config,result,directory) {
     await waitReferenceAudio(page,references[0]);
   }else await waitInitialOutput(page,{audio:hasAudio,stage,audioTimeout:error=>{result.initialAudioTimeout=error;}});
   if(config.subtitleCheck||config.subtitleIntegration){result.subtitleSelection=await page.evaluate(()=>api.subtitles());await delay(250);}
-  result.initial=await snap();if(['jspi','asyncify'].includes(config.lane))result.runtimeCPUApplicable=!remuxEvidence(config,result.initial).bypass;if(hasAudio&&!references)expect(markedAudio(result.initial),'Marked left/right audio missing or incorrect');
+  result.initial=await snap();if(requiresNonisolated(config.lane))result.runtimeCPUApplicable=!remuxEvidence(config,result.initial).bypass;if(hasAudio&&!references)expect(markedAudio(result.initial),'Marked left/right audio missing or incorrect');
   if(config.player==='demuxe'&&config.expectedAudioCodec) {
     const selected=result.initial.selectedAudioTrack;
     expect(codecKey(selected?.codec)===codecKey(config.expectedAudioCodec),`Expected ${config.expectedAudioCodec} selected; observed ${JSON.stringify(selected)}`);
@@ -243,7 +247,11 @@ async function correctness(page,config,result,directory) {
   await page.evaluate(()=>api.resume());await delay(300);expect((await snap()).position>paused+.08,'Resume did not advance');
   stage('playback-rate');
   await page.evaluate(()=>api.rate(1.25));const r1=(await snap()).position;await delay(800);const r2=(await snap()).position;
-  result.rateAdvance=r2-r1;expect(result.rateAdvance>.7&&result.rateAdvance<1.5,'Playback-rate progression outside bounded tolerance');
+  result.rateAdvance=r2-r1; // Preserve immediate observation; queued output may still be settling.
+  stage('sustained-playback-rate');await delay(1200);
+  const rateSample=async()=>{const began=performance.now(),state=await snap(),finished=performance.now();return rateObservation(state,began,finished);};
+  const firstRate=await rateSample();await delay(2000);const lastRate=await rateSample();
+  result.rateSamples=[firstRate,lastRate];result.rateMeasurement=validatePlaybackRate(result.rateSamples);
   await page.evaluate(()=>api.rate(1));
   if(config.live) {
     stage('live-window');
@@ -362,8 +370,8 @@ try {
     const recordName=c.id+(c.round?'.round-'+c.round:'');result.recordPath=recordName+'/result.json';
     const directory=path.join(output,recordName);await fs.mkdir(directory);await save();
     const fixture=matrix.fixtures[c.fixture];
-    if(fixture.blockedReason) {
-      result.status='blocked';result.reason=fixture.blockedReason;
+    if(c.blockedReason||fixture.blockedReason) {
+      result.status='blocked';result.reason=c.blockedReason??fixture.blockedReason;
       await fs.writeFile(path.join(directory,'result.json'),JSON.stringify(result,null,2)+'\n');await save();
       console.log('BLOCKED',c.id,result.reason);progress.finish('blocked');continue;
     }
@@ -402,8 +410,8 @@ try {
       page.on('pageerror',e=>result.console.length<80&&result.console.push(e.message));
       page.on('requestfailed',q=>result.requestFailures.push({url:q.url(),error:q.failure()}));
       page.on('response',r=>{if(r.status()>=400)result.requestFailures.push({url:r.url(),status:r.status()});});
-      const documentResponse=await page.goto(server.origin+'/harness/harness.html'+(['jspi','asyncify'].includes(c.lane)?'?isolation=off':''));result.documentHeaders=await documentResponse.allHeaders();await page.bringToFront();await page.waitForFunction(()=>window.api);
-      const config={...c,...matrix.fixtures[c.fixture],...(c.player==='video'&&c.fixture==='pcm-ass'?{subtitleIntegration:'host-libass'}:{}),...(args['controlled-streaming']&&c.player==='demuxe'&&['auto','native'].includes(c.lane)?{streaming:{maxBandwidth:100000000}}:{}),...(args['component-trial']?{componentTrial:args['component-trial']}:{})};
+      const documentResponse=await page.goto(server.origin+'/harness/harness.html'+(requiresNonisolated(c.lane)?'?isolation=off':''));result.documentHeaders=await documentResponse.allHeaders();await page.bringToFront();await page.waitForFunction(()=>window.api);
+      const config={...c,...matrix.fixtures[c.fixture],...(manifest.demuxe?{demuxePackage:manifest.demuxe}:{}),...(c.player==='video'&&c.fixture==='pcm-ass'?{subtitleIntegration:'host-libass'}:{}),...(args['controlled-streaming']&&c.player==='demuxe'&&['auto','native'].includes(c.lane)?{streaming:{maxBandwidth:100000000}}:{}),...(args['component-trial']?{componentTrial:args['component-trial']}:{})};
       await (args['diagnostic-failed-cpu']?measureFailedPlayer(page,config,result,active):args.performance?measure(page,config,result,active):correctness(page,config,result,directory));
       result.status=args['diagnostic-failed-cpu']?'failed':args['screened-cpu']?'blocked':'passed';
       if(args['diagnostic-failed-cpu']){result.failureStage=prior.failureStage??'correctness';result.reason='Correctness failed: '+String(prior.reason??'unknown failure').split('\n')[0];result.correctnessRecord=prior.recordPath;}

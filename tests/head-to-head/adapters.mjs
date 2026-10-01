@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Public-API adapters adapted from the retained comparison and qualification harnesses.
+import {demuxeLaneOptions} from './remux-evidence.mjs';
 const stage = document.querySelector('#stage');
 let player, config, overlay, overlayCanvas, overlayTimer, observer;
 const observedMedia = [];
@@ -96,9 +97,13 @@ export async function start(c) {
       } else if(c.componentTrial==='dash')await trial.installDASHTrial();
       else if(c.componentTrial==='audio'){options.experimentalAudioAdaptation='flac';options.nativeRemux='always';}
     }
-    const {Player}=await import('/demuxe/web/generated/index.js');
+    const entry=c.demuxePackage?.entry??'/demuxe/web/generated/index.js';
+    const assetBase=c.demuxePackage?.assetBase??'/demuxe/';
+    const nativePlayerEntry=c.demuxePackage?.nativePlayerEntry??'/demuxe/web/generated/internal/native-player.js';
+    for(const value of [entry,assetBase,nativePlayerEntry])if(typeof value!=='string'||!value.startsWith('/demuxe/')||value.includes('..')||value.includes('?')||value.includes('#'))throw Error('Invalid pinned Demuxe package path');
+    const {Player}=await import(entry);
     if(c.correctness) {
-      const {NativePlayer}=await import('/demuxe/web/generated/internal/native-player.js');
+      const {NativePlayer}=await import(nativePlayerEntry);
       const verify=NativePlayer.prototype.verifyOutput;
       NativePlayer.prototype.verifyOutput=async function(...args) {
         try {return await verify.apply(this,args);}
@@ -108,7 +113,7 @@ export async function start(c) {
         }
       };
     }
-    player=new Player(stage,{assetBase:'/demuxe/',width:960,height:540,...options,...(['jspi','asyncify'].includes(c.lane)?{experimentalRemuxRuntime:c.lane}:c.lane!=='auto'?{mode:c.lane}:{})});
+    player=new Player(stage,{assetBase,width:960,height:540,...options,...demuxeLaneOptions(c.lane)});
     if(c.componentTrial)window.componentPlayer=player;
     if(c.correctness)player.addEventListener('selectionchange',event=>{if(selectionTrace.length<100)selectionTrace.push(plain(event.detail));});
     await player.ready; await player.open(c.streamFormat?{url:source,format:c.streamFormat,streaming:{live:!!c.live,...c.streaming}}:source);
@@ -178,7 +183,7 @@ export function snapshot() {
     let bin=0;for(let i=1;i<bins.length;i++)if(bins[i]>bins[bin])bin=i;
     return {channel,rms:Math.sqrt(wave.reduce((n,x)=>n+x*x,0)/wave.length),hz:bin*analyser.context.sampleRate/analyser.fftSize};
   });
-  return plain({...state,audio,observedMedia:observedMedia.map(({element,detachedWhenObserved})=>({detachedWhenObserved,connected:element.isConnected,source:element.currentSrc,time:element.currentTime,paused:element.paused,muted:element.muted,volume:element.volume})),errors:failures,events,visible:document.visibilityState==='visible',focused:document.hasFocus(),
+  return plain({...state,environment:{crossOriginIsolated:globalThis.crossOriginIsolated,sharedArrayBuffer:typeof SharedArrayBuffer,jspiSuspending:typeof WebAssembly.Suspending,jspiPromising:typeof WebAssembly.promising},audio,observedMedia:observedMedia.map(({element,detachedWhenObserved})=>({detachedWhenObserved,connected:element.isConnected,source:element.currentSrc,time:element.currentTime,paused:element.paused,muted:element.muted,volume:element.volume})),errors:failures,events,visible:document.visibilityState==='visible',focused:document.hasFocus(),
     video:video?{source:video.currentSrc,time:video.currentTime,ended:video.ended,paused:video.paused,total:video.getVideoPlaybackQuality().totalVideoFrames,dropped:video.getVideoPlaybackQuality().droppedVideoFrames}:null});
 }
 export async function subtitles() {

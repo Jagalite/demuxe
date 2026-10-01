@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tarfile
 import urllib.request
 
@@ -58,6 +59,34 @@ def preserve_specialist_contracts(catalogue, specialist):
             catalogue[key][field] = entry.get(field, False)
 
 
+def player_runtime_snapshot(repo):
+    # These helpers validate complete private sets against their native manifests.
+    # Missing optional sets remain absent; partial or corrupt installs must fail.
+    sys.path.insert(0, str(REPO / 'scripts'))
+    from private_remux_assets import private_remux_assets, private_mpv_assets
+    private = private_mpv_assets(repo)
+    if any((repo / 'web').glob('engine-remux-*')) or any((repo / 'web').glob('engine-adaptation-*')):
+        private.update(private_remux_assets(repo))
+    engines = {name: (repo / 'web' / name).is_dir() for name in
+               ['engine-remux', 'engine-hybrid', 'engine-selective', 'engine-software-full',
+                'engine-software-yuv', 'engine-subtitles', 'engine-adaptation']}
+    paths = set()
+    for name, present in engines.items():
+        if present:
+            paths.update(p for p in (repo / 'web' / name).rglob('*') if p.is_file())
+    for name, data in private.items():
+        source = repo / name
+        if source.read_bytes() != data:
+            raise ValueError('Private runtime changed during validation: ' + name)
+        paths.add(source)
+        folder = name.split('/')[1]
+        if folder.startswith('engine-'):
+            engines[folder] = True
+    for name in ['private-mpv', 'private-ffmpeg']:
+        paths.update(p for p in (repo / 'web' / name).rglob('*') if p.is_file())
+    return sorted(paths), engines, private
+
+
 def prepare(args):
     if args.duration < 12:
         raise ValueError('Fixture duration must be at least 12 seconds')
@@ -97,10 +126,13 @@ def prepare(args):
     # Freeze source and compile current TS to the snapshot, not web/generated in the checkout.
     run(['node', 'scripts/copy-shaka-assets.mjs'])
     shaka = json.loads((REPO / 'third_party/shaka-player.json').read_text())
-    source_paths = (sorted((REPO / 'src').rglob('*.ts')) + sorted((REPO / 'web').glob('*.js')) +
+    runtime_paths, engines, private_runtime = player_runtime_snapshot(REPO)
+    source_paths = (runtime_paths + sorted((REPO / 'src').rglob('*.ts')) + sorted((REPO / 'web').glob('*.js')) +
                     [REPO / name for name in shaka['files']] +
-                    [REPO / name for name in ['third_party/shaka-player.json', 'package-lock.json', 'scripts/copy-shaka-assets.mjs']])
+                    [REPO / name for name in ['third_party/shaka-player.json', 'package-lock.json', 'scripts/copy-shaka-assets.mjs', 'scripts/private_remux_assets.py']])
     before = {str(p.relative_to(REPO)): sha(p) for p in source_paths}
+    if any(before[name] != hashlib.sha256(data).hexdigest() for name, data in private_runtime.items()):
+        raise ValueError('Private runtime changed after manifest validation')
     player = out / 'demuxe'
     (player / 'web').mkdir(parents=True)
     for path in (REPO / 'web').glob('*.js'):
@@ -116,12 +148,10 @@ def prepare(args):
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(REPO / name, target)
     run(['node', 'node_modules/typescript/bin/tsc', '--project', 'tsconfig.json', '--outDir', str(player / 'web/generated')])
-    engines = {}
-    for name in ['engine-remux', 'engine-hybrid', 'engine-selective', 'engine-software-full', 'engine-software-yuv', 'engine-subtitles', 'engine-adaptation']:
-        source = REPO / 'web' / name
-        engines[name] = source.is_dir()
-        if source.is_dir():
-            shutil.copytree(source, player / 'web' / name)
+    for source in runtime_paths:
+        target = player / source.relative_to(REPO)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
     optional_archive_sha = None
     if args.optional_archive:
         optional_archive = Path(args.optional_archive).resolve()
@@ -237,7 +267,7 @@ def prepare(args):
     manifest = {'schema': 1, 'fixture_parent': fixture_parent, 'specialist_parent': specialist_parent, 'fixture': {'duration': args.duration, 'dimensions': [320,180], 'fps': 30},
                 'git_revision': run(['git', 'rev-parse', 'HEAD']).strip(),
                 'source_sha256': before, 'dirty_diff': run(['git', 'diff', '--', 'src', 'web']),
-                'engines': engines, 'optionalArchiveSHA256': optional_archive_sha,
+                'engines': engines, 'privateManifestValidated': sorted(name for name in private_runtime if name.endswith('manifest.json')), 'optionalArchiveSHA256': optional_archive_sha,
                 'ffmpeg': run(['ffmpeg', '-version']).splitlines()[0],
                 'setup_script_sha256': sha(Path(__file__)), 'expanded_generator_sha256': sha(preparation / 'expand.py') if args.expanded and not fixture_parent else None, 'assets_lock_sha256': sha(HERE / 'assets.lock.json'),
                 'limits': ['Digital marked-output checks only, not physical output, exhaustive codec support or release qualification.',

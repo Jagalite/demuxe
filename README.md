@@ -283,9 +283,11 @@ For HLS/DASH playlist rows, JSPI and Asyncify are N/A because these columns meas
 file remux/transcode runtimes; the MediaBunny example is N/A because its local
 File chooser cannot supply the playlist URL and segment requests.
 
+The [October 2026 row refresh](docs/README-REFRESH-20261001.md) identifies the current captured player source, browser and per-row evidence. Other cells retain their historical campaigns; nonisolated Hybrid/Software observations are reported separately.
+
 | Media format | Native video | Demuxe (auto) | Demuxe JSPI | Demuxe Asyncify | Demuxe (software decode) | Movi 0.4.0 (default) | AVPlayer 1.3.1 (default) | MediaBunny (player example) | Video.js 8.24.1 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| H.264 + AAC / MP4 | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · 13.0% CPU · native-direct | 🟢 (Pass) · 17.1% CPU · forced-remux ref | 🟢 (Pass) · 17.0% CPU · forced-remux ref | 🟢 (Pass) · 32.0% CPU | 🔴 (Fail) | 🟢 (Pass) · 32.4% CPU | 🟡 Screened · 34.6% CPU | 🟢 (Pass) · 24.0% CPU |
+| H.264 + AAC / MP4 | 🟢 (Pass) · 11.7% CPU | 🟢 (Pass) · 13.5% CPU | 🟢 (Pass) · 15.4% CPU · forced-remux ref | 🟢 (Pass) · 16.0% CPU · forced-remux ref | 🟢 (Pass) · 35.0% CPU | 🔴 (Fail) | 🟢 (Pass) · 32.4% CPU | 🟡 Screened · 34.6% CPU | 🟢 (Pass) · 24.0% CPU |
 | H.264 + AAC / MKV | 🟢 (Pass) · 9.3% CPU | 🟢 (Pass) · 9.6% CPU · native-direct | 🟢 (Pass) · 16.5% CPU · forced-remux ref | 🟢 (Pass) · 17.1% CPU · forced-remux ref | 🟢 (Pass) · 27.4% CPU | 🔴 (Fail) | 🟢 (Pass) · 28.3% CPU | 🟡 Screened · 33.8% CPU | 🟢 (Pass) · 21.7% CPU |
 | Dual-audio H.264 + AAC + AC-3 stereo / MKV | 🟢 (Pass) · 13.9% CPU · default AAC | 🟢 (Pass) · 14.0% CPU · native-direct; AC-3 switch: native-transcode (18.1% selected) | 🟢 (Pass) · 17.8% CPU · forced-remux ref | 🟢 (Pass) · 17.2% CPU · forced-remux ref | 🟢 (Pass) · 36.3% CPU | 🔴 (Fail) | 🟢 (Pass) · 32.8% CPU | 🟡 Screened · 35.3% CPU · primary track | 🟢 (Pass) · 23.5% CPU · default track |
 | H.264 + PCM24 / MKV | 🟢 (Pass) · 9.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | 🟢 (Pass) · 19.4% CPU · forced-remux ref | 🟢 (Pass) · 18.2% CPU · forced-remux ref | 🟢 (Pass) · 26.6% CPU | 🟢 (Pass) · CPU withheld | 🔴 (Fail) | 🟡 Screened · 32.5% CPU | 🟢 (Pass) · 17.2% CPU |
