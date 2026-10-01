@@ -1,0 +1,1 @@
+| HEVC Main 10-bit SDR + DTS core / MKV | 🔴 (Fail) | 🟢 (Pass) · 21.1% CPU | 🟢 (Pass) · 20.8% CPU · forced-remux ref | 🟢 (Pass) · 21.4% CPU · forced-remux ref | 🟢 (Pass) · 35.8% CPU | 🔴 (Fail) | 🟢 (Pass) · 41.4% CPU | 🟡 Screened* · 44.1% CPU | 🔴 (Fail) |
