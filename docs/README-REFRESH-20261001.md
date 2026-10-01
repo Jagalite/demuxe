@@ -571,3 +571,7 @@ Bounded marked-output and lifecycle correctness; CPU only for exact matching ass
 | hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
 | software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
 | software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+### Recorded seek failure
+
+The Hybrid/JSPI `seek-6` result also reached the 16-frame retained-queue limit: the browser decoder became inactive and a red frame remained visible while the clock advanced past the blue-marker interval. This matches the observed limit in row 15 across a different runtime and codec. The scheduling or backpressure trigger remains unresolved; the original failed result is preserved in the compact correctness archive above.
