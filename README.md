@@ -322,7 +322,7 @@ The [October 2026 row refresh](docs/README-REFRESH-20261001.md) identifies the c
 | MPEG-2 video + AC-3 / MPEG-TS | 🔴 (Fail) | 🟢 (Pass) · CPU withheld | — Blocked | — Blocked | 🟢 (Pass) · CPU withheld | 🟢 (Pass) · 30.1% CPU | 🟢 (Pass) · 34.7% CPU | 🔴 (Fail) | 🔴 (Fail) |
 | Interlaced MPEG-2 + AC-3 stereo / MPEG-TS | 🔴 (Fail) | 🟢 (Pass) · 33.2% CPU | — Blocked | — Blocked | 🟢 (Pass) · 32.3% CPU | 🔴 (Fail) | 🟢 (Pass)\* · 33.6% CPU | 🔴 (Fail) | 🔴 (Fail) |
 | MPEG-2 video + MP2 / MPEG-PS | 🔴 (Fail) | 🟢 (Pass) · 33.0% CPU | — Blocked | — Blocked | 🟢 (Pass) · 32.6% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
-| MPEG-4 Part 2 + MP3 / AVI | 🔴 (Fail) | 🟢 (Pass)\* · 33.7% CPU · software | 🔴 (Fail) · forced-remux ref | 🔴 (Fail) · forced-remux ref | 🟢 (Pass) · 34.5% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
+| MPEG-4 Part 2 + MP3 / AVI | 🔴 (Fail) | 🟢 (Pass) · 34.4% CPU | — Blocked | — Blocked | 🟢 (Pass) · 31.9% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
 | ProRes + PCM / MOV | 🔴 (Fail) | 🟢 (Pass)\* · 36.9% CPU · software | 🔴 (Fail) · forced-remux ref | 🔴 (Fail) · forced-remux ref | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened* · 33.0% CPU | 🔴 (Fail) |
 | H.264 + AAC / fragmented MP4 (single file) | 🟢 (Pass) · 13.6% CPU | 🟢 (Pass) · 14.0% CPU · native-direct | 🟢 (Pass) · 14.9% CPU · forced-remux ref | 🟢 (Pass) · 16.8% CPU · forced-remux ref | 🟢 (Pass) · 35.1% CPU | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened · 33.1% CPU | 🟢 (Pass) · 23.9% CPU |
 | H.264 video-only / MP4 | 🟢 (Pass) · 11.5% CPU | 🟢 (Pass) · 12.1% CPU · native-direct | 🟢 (Pass) · 14.7% CPU · forced-remux ref | 🟢 (Pass) · 14.0% CPU · forced-remux ref | 🟢 (Pass) · 31.9% CPU | 🟢 (Pass) · 32.1% CPU | 🟢 (Pass) · 25.5% CPU | 🟡 Screened · 31.8% CPU | 🟢 (Pass) · 18.9% CPU |
