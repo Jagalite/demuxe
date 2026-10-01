@@ -1,0 +1,1 @@
+| HEVC Main 10-bit SDR + AAC / MP4 | 🟢 (Pass) · 18.4% CPU | 🟢 (Pass) · 16.8% CPU | 🟢 (Pass) · 18.7% CPU · forced-remux ref | 🟢 (Pass) · 19.1% CPU · forced-remux ref | 🟢 (Pass) · 38.1% CPU | 🔴 (Fail) | 🟢 (Pass) · 37.4% CPU | 🟡 Screened · 41.1% CPU | 🟢 (Pass) · 25.1% CPU |
