@@ -44,6 +44,14 @@ def cpu_cells(selected,cpu_runs):
             values=[r['measurement']['oneCorePercent'] for r in accepted]
             assert all(isinstance(v,(float,int)) and math.isfinite(v) and v>=0 for v in values),'Invalid CPU value'
             results[identity]={'status':'accepted','rounds':len(values),'oneCorePercent':values,'medianOneCorePercent':statistics.median(values)}
+            if case.get('audioTrackTransitions'):
+                track=case.get('initial',{}).get('selectedAudioTrack')
+                assert track and track.get('id') and track.get('codec'),'Missing initial audio identity for multi-track CPU'
+                states=[s.get('state') for r in accepted for s in r.get('samples',[])]
+                assert all(r.get('samples') for r in accepted) and states,'Missing measured audio-track samples'
+                assert all(s and (s.get('selectedAudioTrack') or {}).get('id')==track['id'] and s['selectedAudioTrack'].get('codec')==track['codec'] for s in states),'CPU measured another or unknown audio track'
+                results[identity]['initialAudioTrack']=track
+                results[identity]['sampleRoutes']=sorted({s['route'] for s in states if s.get('route')})
         elif rounds:results[identity]={'status':'withheld','reasons':[str(r.get('reason','Incomplete accepted CPU rounds')).splitlines()[0] for r in rounds],'rounds':len(rounds)}
         else:results[identity]={'status':('outside-scope' if case['lane'] in PRIVATE else 'pending') if good else 'not-applicable'}
     return results
@@ -53,8 +61,16 @@ def cell(case,cpu):
     if not good:return '🔴 (Fail)' if case['status']=='failed' else '— Blocked'
     label='🟡 Screened*' if case.get('screenPassed') else '🟢 (Pass)'
     label+=' · '+(f"{cpu['medianOneCorePercent']:.1f}% CPU" if cpu['status']=='accepted' else 'not measured (outside CPU campaign scope)' if cpu['status']=='outside-scope' else 'CPU '+cpu['status'])
+    if cpu.get('initialAudioTrack'):label+=' · initial '+cpu['initialAudioTrack']['codec'].upper()
     if case.get('forceRemux'):label+=' · forced-remux ref'
     return label
+def route_reason(case):
+    detail=(case['route']+'; ' if case['route'] else '')+case['reason']
+    transitions=case.get('audioTrackTransitions',[])
+    if transitions:
+        detail+='; audio selections: '+', '.join(str(t.get('requestedCodec','unknown')).upper()+' via '+str(t.get('route','unknown')) for t in transitions)
+        if case['cpu'].get('initialAudioTrack'):detail+='; CPU measures initial '+case['cpu']['initialAudioTrack']['codec'].upper()+' only'
+    return detail.replace('|','/')
 def validate_audit(audit,directories,proofs):
     assert audit.get('passed') is True,'Supplemental audit did not pass'
     summaries={str(pathlib.Path(s['path']).resolve()):s['sha256'] for s in audit.get('summaries',[])}
@@ -105,6 +121,9 @@ def prepare(args):
         published=cell(case,cpus[identity]);lane=case['lane']
         if lane in MAIN:cells[MAIN[lane]]=published
         cases.append({'id':identity,'lane':lane,'status':case['status'],'cell':published,'reason':str(case.get('reason','Bounded playback checks passed')).splitlines()[0],'route':case.get('initial',{}).get('route'),'runtimeObservations':case.get('runtimeObservations',[]),'runtimeBypass':case.get('runtimeBypass',False),'cpu':cpus[identity],'correctnessHarnessSHA256':proof['harnessSHA256'],'canonicalCaseSHA256':digest(json.dumps(case,sort_keys=True,separators=(',',':')).encode())})
+        if case.get('audioTrackTransitions'):
+            cases[-1]['initialAudioTrack']=case.get('initial',{}).get('selectedAudioTrack')
+            cases[-1]['audioTrackTransitions']=case['audioTrackTransitions']
     if streaming:
         for lane in ['jspi','asyncify']:cells[MAIN[lane]]='N/A · finite-file scope'
     replacement='| '+' | '.join(cells)+' |';lines[index]=replacement
@@ -132,10 +151,10 @@ def prepare(args):
     if retained:details+=['','Earlier attempts are retained unchanged as historical evidence, including the earlier rate-gate failures. They are excluded from the selected current proof.']
     details+=['','### README lanes','','| Lane | Result | Route / reason |','| --- | --- | --- |']
     for c in cases:
-        if c['lane'] in MAIN:details.append(f"| {c['lane']} | {c['cell']} | {((c['route']+'; ' if c['route'] else '')+c['reason']).replace('|','/')} |")
+        if c['lane'] in MAIN:details.append(f"| {c['lane']} | {c['cell']} | {route_reason(c)} |")
     details+=['','### Nonisolated observations','','| Mode / runtime | Result | Route / reason |','| --- | --- | --- |']
     for lane in PRIVATE:
-        c=next((c for c in cases if c['lane']==lane),None);details.append(f"| {lane} | {c['cell'] if c else 'N/A · finite-file scope'} | {((c['route']+'; ' if c['route'] else '')+c['reason']).replace('|','/') if c else 'Streaming excluded from this lane'} |")
+        c=next((c for c in cases if c['lane']==lane),None);details.append(f"| {lane} | {c['cell'] if c else 'N/A · finite-file scope'} | {route_reason(c) if c else 'Streaming excluded from this lane'} |")
     (args.output/'row-observations.md').write_text('\n'.join(details)+'\n')
     (args.output/'README.proposed-row.txt').write_text(replacement+'\n')
     if args.apply:

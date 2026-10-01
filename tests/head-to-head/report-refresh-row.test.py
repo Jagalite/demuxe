@@ -21,6 +21,20 @@ class Reporting(unittest.TestCase):
   proof=self.proof();proof['cases'][0]['lane']='future-private'
   with self.assertRaises(AssertionError):m.selected_cases([proof])
   with self.assertRaises(AssertionError):m.selected_cases([self.proof(),self.proof()])
+ def test_multitrack_cpu_names_only_the_measured_initial_track(self):
+  proof=self.proof();case=proof['cases'][0];track={'id':'audio:1','codec':'aac'}
+  case.update(initial={'selectedAudioTrack':track},audioTrackTransitions=[{'requestedCodec':'ac3','route':'native-transcode'},{'requestedCodec':'aac','route':'native-direct'}])
+  cpu=self.cpu()
+  for r in cpu['cases']:r['samples']=[{'state':{'selectedAudioTrack':track,'route':'native-direct'}}]
+  selected=m.selected_cases([proof]);result=m.cpu_cells(selected,[cpu])[case['id']]
+  self.assertIn('initial AAC',m.cell(case,result));self.assertEqual(result['sampleRoutes'],['native-direct'])
+  detail=m.route_reason({'route':'native-direct','reason':'Passed','audioTrackTransitions':case['audioTrackTransitions'],'cpu':result})
+  self.assertIn('AC3 via native-transcode',detail);self.assertIn('AAC via native-direct',detail);self.assertIn('CPU measures initial AAC only',detail)
+  for replacement in [None,{'id':'audio:2','codec':'ac3'},{}]:
+   wrong=copy.deepcopy(cpu);wrong['cases'][0]['samples'][0]['state']['selectedAudioTrack']=replacement
+   with self.assertRaises(AssertionError):m.cpu_cells(selected,[wrong])
+  wrong=copy.deepcopy(cpu);wrong['cases'][0]['samples']=[]
+  with self.assertRaises(AssertionError):m.cpu_cells(selected,[wrong])
  def test_failed_or_missing_cpu_never_publishes_a_number(self):
   selected=m.selected_cases([self.proof()]);self.assertEqual(m.cpu_cells(selected,[])['demuxe.auto.file']['status'],'pending')
   cpu=self.cpu();cpu['cases'][1]['status']='failed';cpu['cases'][1]['reason']='Foreground lost'
