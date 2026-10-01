@@ -1,0 +1,1 @@
+| AV1 + Opus / WebM | 🟢 (Pass) · 14.6% CPU | 🟢 (Pass) · 12.3% CPU | 🟢 (Pass) · 15.8% CPU · forced-remux ref | 🟢 (Pass) · 16.3% CPU · forced-remux ref | 🟢 (Pass) · 33.2% CPU | 🔴 (Fail) | 🟢 (Pass) · 38.3% CPU | 🟡 Screened · 34.9% CPU | 🟢 (Pass) · 24.0% CPU |
