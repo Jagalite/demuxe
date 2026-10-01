@@ -1,0 +1,1 @@
+| VP9 10-bit SDR + Opus / WebM | 🟢 (Pass) · 16.6% CPU | 🟢 (Pass) · 15.4% CPU | 🟢 (Pass) · 18.8% CPU · forced-remux ref | 🟢 (Pass) · 11.5% CPU · forced-remux ref | 🟢 (Pass) · 33.6% CPU | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened · 34.7% CPU | 🟢 (Pass) · 25.5% CPU |
