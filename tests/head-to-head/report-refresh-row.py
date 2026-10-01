@@ -148,7 +148,7 @@ def prepare(args):
     (args.output/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
     details=['<!-- SPDX-License-Identifier: CC-BY-4.0 -->','',f"## Row {args.row}: {cells[0]}",'',f"Browser: {receipt['browserIdentity']}. Player source: `{receipt['playerSourceRevision']}`.",'',receipt['scope'],'','[Compact evidence](receipt.json)']
     if audits:details+=['','Browser and CPU results retain their original captured harness. The later supplemental validator audits the same recorded rate samples; these runs did not execute that newer validator.']
-    if retained:details+=['','Earlier attempts are retained unchanged as historical evidence, including the earlier rate-gate failures. They are excluded from the selected current proof.']
+    if retained:details+=['','Earlier attempts and their original failure reasons are retained unchanged as historical evidence. They are excluded from the selected current proof.']
     details+=['','### README lanes','','| Lane | Result | Route / reason |','| --- | --- | --- |']
     for c in cases:
         if c['lane'] in MAIN:details.append(f"| {c['lane']} | {c['cell']} | {route_reason(c)} |")
