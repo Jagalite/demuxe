@@ -72,6 +72,8 @@ export class AdvancedSettings {
     run;
     dirty = new Set();
     busy = false;
+    operation = 0;
+    owner;
     sourceId = null;
     signatures = new Map();
     labels = { ...advancedLabels };
@@ -89,7 +91,8 @@ export class AdvancedSettings {
         const change = (id, action) => this.control(id).addEventListener('change', () => this.act(action));
         const click = (id, action) => this.control(id).addEventListener('click', () => this.act(action));
         const submit = (id, action, fields) => {
-            this.el(`advanced-${id}`).addEventListener('submit', event => { event.preventDefault(); this.act(async (p) => { await action(p); for (const field of fields)
+            this.el(`advanced-${id}`).addEventListener('submit', event => { event.preventDefault(); this.act(async (p) => { const operation = this.operation; await action(p); if (operation !== this.operation)
+                return; for (const field of fields)
                 this.dirty.delete(`advanced-${field}`); }); });
         };
         this.control('preset').addEventListener('change', () => {
@@ -103,7 +106,10 @@ export class AdvancedSettings {
         submit('audio-form', p => p.setAudioFilters(this.value('af')), ['af']);
         for (const [id, key] of [['clear-vf', 'vf'], ['clear-af', 'af']])
             click(id, async (p) => {
+                const operation = this.operation;
                 await (key === 'vf' ? p.setVideoFilters('') : p.setAudioFilters(''));
+                if (operation !== this.operation)
+                    return;
                 this.dirty.delete(`advanced-${key}`);
                 this.dirty.delete('advanced-preset');
             });
@@ -126,14 +132,16 @@ export class AdvancedSettings {
                 style.fontFamily = this.value('sub-font');
             return p.setSubtitleStyle(style);
         }, styleFields);
-        click('style-reset', async (p) => { await p.setSubtitleStyle({}); for (const id of styleFields)
+        click('style-reset', async (p) => { const operation = this.operation; await p.setSubtitleStyle({}); if (operation !== this.operation)
+            return; for (const id of styleFields)
             this.dirty.delete(`advanced-${id}`); });
-        change('font-file', async (p) => { const input = this.control('font-file'); const file = input.files?.[0]; try {
+        change('font-file', async (p) => { const input = this.control('font-file'); const file = input.files?.[0], operation = this.operation; try {
             if (file)
                 await p.addFont(file);
         }
         finally {
-            input.value = '';
+            if (operation === this.operation)
+                input.value = '';
         } });
         change('chapter', p => this.value('chapter') ? p.seekChapter(this.value('chapter')) : undefined);
         change('loop', p => this.value('loop') === 'range' ? p.setLoop(this.range()) : p.setLoop(this.value('loop') === 'all'));
@@ -187,11 +195,24 @@ export class AdvancedSettings {
     numeric(id) { const input = this.control(id); if (!input.value || !input.checkValidity())
         throw new Error(`Invalid value: ${input.closest('label')?.textContent?.trim() ?? id}`); return input.valueAsNumber; }
     range() { return { start: this.numeric('start'), end: this.numeric('end') }; }
+    reconcile() {
+        const owner = this.getPlayer(), source = owner?.state.sourceId ?? null;
+        if (owner !== this.owner || source !== this.sourceId) {
+            this.owner = owner;
+            this.sourceId = source;
+            this.operation++;
+            this.busy = false;
+            this.dirty.clear();
+            this.signatures.clear();
+        }
+    }
     act(action) {
+        this.reconcile();
         const player = this.getPlayer();
         if (!player || player.isDestroyed || !this.root.host.isConnected || this.busy || player.state.pendingOperation)
             return;
         const focused = this.root.activeElement;
+        const operation = ++this.operation;
         this.busy = true;
         // Invoke immediately to preserve browser user activation for PiP/output pickers.
         this.run((async () => {
@@ -199,11 +220,13 @@ export class AdvancedSettings {
                 await action(player);
             }
             finally {
-                this.busy = false;
-                if (this.getPlayer() === player) {
-                    this.update(player.state, true);
-                    if (focused?.isConnected && !focused.matches(':disabled') && !this.el('settings').hidden && !this.root.activeElement && this.root.ownerDocument.hasFocus() && [this.root.host, this.root.ownerDocument.body, null].includes(this.root.ownerDocument.activeElement))
-                        focused.focus({ preventScroll: true });
+                if (operation === this.operation) {
+                    this.busy = false;
+                    if (this.getPlayer() === player) {
+                        this.update(player.state, true);
+                        if (focused?.isConnected && !focused.matches(':disabled') && !this.el('settings').hidden && !this.root.activeElement && this.root.ownerDocument.hasFocus() && [this.root.host, this.root.ownerDocument.body, null].includes(this.root.ownerDocument.activeElement))
+                            focused.focus({ preventScroll: true });
+                    }
                 }
             }
         })());
@@ -219,11 +242,7 @@ export class AdvancedSettings {
         const player = this.getPlayer();
         if (!player)
             return;
-        if (state.sourceId !== this.sourceId) {
-            this.sourceId = state.sourceId;
-            this.dirty.clear();
-            this.signatures.clear();
-        }
+        this.reconcile();
         const blocked = player.isDestroyed || this.busy || !!state.pendingOperation || state.sourceId === null;
         for (const node of Array.from(this.el('advanced-settings').querySelectorAll('input,select,button')))
             node.disabled = blocked;

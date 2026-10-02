@@ -507,6 +507,7 @@ export class DemuxePlayerElement extends Base {
             document.removeEventListener('pointerdown', this.dismissMenu, true);
             const old = this.core;
             this.core = undefined;
+            this.advanced?.reconcile();
             this.rejectReady(new PlayerError('ABORTED', 'Player element disconnected'));
             this.newReady();
             this.cleanup = Promise.all([this.connecting, old?.destroy()]).then(() => { });
@@ -654,13 +655,15 @@ export class DemuxePlayerElement extends Base {
     run(work) { void work.catch(error => { if (!this.terminal && playerError(error).code !== 'ABORTED')
         this.showError(playerError(error).toJSON()); }); }
     runSettings(work) {
-        const failure = this.lastFailure, owner = this.core;
-        this.run(work.then(() => {
+        const failure = this.lastFailure, owner = this.core, source = owner?.state.sourceId;
+        const current = () => this.core === owner && owner?.state.sourceId === source && this.isConnected && !this.terminal;
+        void work.then(() => {
             // A successful correction retires the previous operation error, but must
             // not hide a newer failure or an active session error from another action.
-            if (this.core === owner && this.lastFailure === failure && !owner?.state.error)
+            if (current() && this.lastFailure === failure && !owner?.state.error)
                 this.clearError();
-        }));
+        }, error => { if (current() && playerError(error).code !== 'ABORTED')
+            this.showError(playerError(error).toJSON()); });
     }
     componentError(error) { const detail = playerError(error).toJSON(); this.showError(detail); this.dispatchEvent(new CustomEvent('error', { detail })); }
     showError(error) { if (error.code === 'ABORTED')
@@ -677,6 +680,7 @@ export class DemuxePlayerElement extends Base {
         this.core?.resize(width, height);
     } }
     update(state) {
+        this.advanced?.reconcile();
         if (!this.$('settings').hidden)
             this.advanced?.update(state);
         this.syncPreviewStrategy();

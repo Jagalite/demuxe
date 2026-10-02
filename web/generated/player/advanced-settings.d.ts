@@ -79,6 +79,8 @@ export declare class AdvancedSettings {
     private run;
     private dirty;
     private busy;
+    private operation;
+    private owner?;
     private sourceId;
     private signatures;
     private labels;
@@ -89,6 +91,7 @@ export declare class AdvancedSettings {
     private checked;
     private numeric;
     private range;
+    reconcile(): void;
     private act;
     label(labels: Labels): void;
     update(state: PlayerState, force?: boolean): void;
