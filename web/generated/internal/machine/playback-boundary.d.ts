@@ -67,6 +67,7 @@ export declare function transitionBoundary(state: PlayerControlState, input: Bou
         revision: number;
         captureRevision: number;
         resources: import("./resource-ledger.js").ResourceLedgerState;
+        executor: import("./effect-runtime.js").EffectRuntimeState;
         readiness: import("./player-readiness.js").PlayerReadinessState;
         actions: import("./player-actions.js").PlayerActionState;
         publication: import("./player-publication.js").PlayerPublicationState;

@@ -19,7 +19,7 @@ export function createEffectRuntimeState(limit=32):EffectRuntimeState {
 }
 export function effectRuntimeWork(state:EffectRuntimeState,id:number):EffectRuntimeWork|undefined{return state.pending.find(work=>work.effect.id===id);}
 function copyEffect(input:Effect):Effect {
-  const scope=Object.freeze({owner:input.scope.owner,lifetime:input.scope.lifetime,sourceId:input.scope.sourceId,sessionId:input.scope.sessionId,operationId:input.scope.operationId});
+  const scope=Object.freeze({owner:input.scope.owner,lifetime:input.scope.lifetime,sourceId:input.scope.sourceId,sessionId:input.scope.sessionId,operationId:input.scope.operationId,...input.scope.playId!==undefined?{playId:input.scope.playId}:{}});
   const identity={id:input.id,scope,lane:input.lane};
   return input.kind==='timer.wait'?Object.freeze({...identity,kind:input.kind,deadlineMs:input.deadlineMs}):Object.freeze({...identity,kind:input.kind,resourceId:input.resourceId});
 }

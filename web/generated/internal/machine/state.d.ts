@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type EffectRuntimeState } from './effect-runtime.js';
 import { type ResourceLedgerState } from './resource-ledger.js';
 import { type PlayerReadinessState } from './player-readiness.js';
 import { type PlayerActionState } from './player-actions.js';
@@ -17,6 +18,7 @@ export type PlayerControlState = Readonly<{
     revision: number;
     captureRevision: number;
     resources: ResourceLedgerState;
+    executor: EffectRuntimeState;
     readiness: PlayerReadinessState;
     actions: PlayerActionState;
     publication: PlayerPublicationState;

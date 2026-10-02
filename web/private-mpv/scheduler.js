@@ -1,230 +1,159 @@
 import {createContinuationBackend} from './continuations.js';
+import {initialCoopState,beginCoopAttachment,finishCoopAttachment,coopTask,coopCanCreate,createCoopTask,scheduleCoopPump,consumeCoopPump,startCoopTask,parkCoopTask,bindCoopWait,releaseCoopTask,settleCoopWait,coopConditionWaits,prepareCoopJoin,detachCoopTask,completeCoopTask,checkedCoopStack,closeCoopState,snapshotCoopState} from '../generated/internal/machine/private-scheduler.js';
 /* SPDX-License-Identifier: MIT
- * Experimental logical mpv threads on one Worker. Not a POSIX implementation.
- * Every suspending import must use park()/suspend(): independent Promise resume
- * would bypass C-stack ownership. Fatal shutdown abandons the instance; it does
- * NOT unwind suspended C frames. The owner must dispose/terminate the Worker.
+ * One Worker owns physical Wasm stacks and continuation handles. Logical task,
+ * wait, join and slot authority lives in the synchronous scheduler machine.
+ * Fatal shutdown abandons suspended C frames; the Worker must be disposed.
  */
 export class CoopScheduler {
-  constructor({slots=24, maxRetainedTasks=256, unsafeSharedStack=false, contextHooks=null, backend='jspi'}={}) {
+  constructor({slots=24,maxRetainedTasks=256,unsafeSharedStack=false,contextHooks=null,backend='jspi'}={}){
     if(!Number.isInteger(slots)||slots<1||slots>256)throw Error('Invalid task stack capacity');
-    if(!Number.isInteger(maxRetainedTasks)||maxRetainedTasks<slots||maxRetainedTasks>4096)
-      throw Error('Invalid retained-task limit');
-    this.continuations=createContinuationBackend(backend,this);
-    this.contextHooks=contextHooks;this.slots=slots;this.maxRetainedTasks=maxRetainedTasks;
-    this.tasks=new Map();this.ready=[];this.waits=new Map();this.active=null;
-    this.free=Array.from({length:slots},(_,i)=>i);this.nextId=1;this.stopListeners=new Set();
-    this.unsafeSharedStack=unsafeSharedStack;this.timeoutCode=1;
-    this.pendingPump=false;this.stopped=false;this.timers=new Set();
-    this.stats={created:0,completed:0,abandoned:0,suspensions:0,resumes:0,maxLive:0,
-      timerWakes:0,signals:0,stackChecks:0};
-    this.channel=new MessageChannel();
-    this.channel.port1.onmessage=()=>{this.pendingPump=false;this.pump();};
-    this.imports={
-      self:()=>this.self(),
-      panic:(ptr,line)=>{throw Error(`Cooperative backend invariant: ${this.readString(ptr)} at threads-coop.c:${line}`);},
-      wait:this.wrapImport('demuxe_coop.wait',(key,ms)=>this.wait(key,ms)),
-      wake:(key,all)=>this.wake(key,!!all),
-      waiters:key=>(this.waits.get(key)?.size??0),
-      create:(fn,arg)=>this.create(this.e.demuxe_coop_invoke,[fn,arg],false)?.id??0,
-      join:this.wrapImport('demuxe_coop.join',id=>this.join(id)),
-      detach:id=>this.detach(id),
-      name:ptr=>{this.self();this.active.name=this.readString(ptr);},
-      yield:this.wrapImport('demuxe_coop.yield',()=>this.yield()),
-    };
+    if(!Number.isInteger(maxRetainedTasks)||maxRetainedTasks<slots||maxRetainedTasks>4096)throw Error('Invalid retained-task limit');
+    this.machine=initialCoopState(slots,maxRetainedTasks);this.tasks=new Map();this.waiters=new Map();this.stopListeners=new Set();this.timers=new Set();
+    this.continuations=createContinuationBackend(backend,this);this.contextHooks=contextHooks;this.unsafeSharedStack=unsafeSharedStack;this.timeoutCode=1;
+    this.channel=new MessageChannel();this.channel.port1.onmessage=()=>{this.machine=consumeCoopPump(this.machine);this.pump();};
+    this.imports={self:()=>this.self(),panic:(ptr,line)=>{throw Error(`Cooperative backend invariant: ${this.readString(ptr)} at threads-coop.c:${line}`);},wait:this.wrapImport('demuxe_coop.wait',(key,ms)=>this.wait(key,ms)),wake:(key,all)=>this.wake(key,!!all),waiters:key=>coopConditionWaits(this.machine,key,true).length,create:(fn,arg)=>this.create(this.e.demuxe_coop_invoke,[fn,arg],false)?.id??0,join:this.wrapImport('demuxe_coop.join',id=>this.join(id)),detach:id=>this.detach(id),name:ptr=>{this.self();this.active.name=this.readString(ptr);},yield:this.wrapImport('demuxe_coop.yield',()=>this.yield())};
   }
+  get slots(){return this.machine.slots;}
+  get maxRetainedTasks(){return this.machine.maxRetainedTasks;}
+  get active(){return this.machine.active===null?null:this.tasks.get(this.machine.active)??null;}
+  get stopped(){return this.machine.stopped;}
+  get pendingPump(){return this.machine.pendingPump;}
+  get stats(){return this.machine.stats;}
+  get free(){return this.machine.free;}
+  get nextId(){return this.machine.nextId;}
+  get ready(){return this.machine.ready.map(id=>this.tasks.get(id)).filter(Boolean);}
   wrapImport(name,fn) {return this.continuations.wrapImport(name,fn);}
-  attach(exports) {
-    if(this.e||this.stopped)throw Error('Scheduler already attached or closed');
-    try {
-      if(!(exports?.memory instanceof WebAssembly.Memory)||!(exports.memory.buffer instanceof ArrayBuffer))
-        throw Error('A private, non-shared Wasm heap is required');
-      for(const n of ['demuxe_coop_invoke','demuxe_coop_get_sp','demuxe_coop_set_sp',
-        'demuxe_coop_stack_base','demuxe_coop_stack_top','demuxe_coop_stack_count'])
-        if(typeof exports[n]!=='function')throw Error('Missing scheduler export '+n);
-      if(exports.demuxe_coop_stack_count()!==this.slots)throw Error('JS/C stack-slot ABI mismatch');
-      const bytes=exports.memory.buffer.byteLength,hostSP=exports.demuxe_coop_get_sp()>>>0;
-      if(!hostSP||hostSP%16||hostSP>bytes)throw Error('Invalid host stack pointer');
+  attach(exports){
+    const admitted=beginCoopAttachment(this.machine);this.machine=admitted.state;if(!admitted.accepted)throw Error('Scheduler already attached or closed');
+    const current=()=>{if(this.stopped||this.machine.attachment!=='attaching')throw Error('Scheduler closed during attachment');};
+    try{
+      const memory=exports?.memory;current();const buffer=memory?.buffer;current();
+      if(!(memory instanceof WebAssembly.Memory)||!(buffer instanceof ArrayBuffer))throw Error('A private, non-shared Wasm heap is required');
+      const api={};
+      for(const name of ['demuxe_coop_invoke','demuxe_coop_get_sp','demuxe_coop_set_sp','demuxe_coop_stack_base','demuxe_coop_stack_top','demuxe_coop_stack_count']){const value=exports[name];current();if(typeof value!=='function')throw Error('Missing scheduler export '+name);api[name]=value;}
+      const count=api.demuxe_coop_stack_count.call(exports);current();if(count!==this.slots)throw Error('JS/C stack-slot ABI mismatch');
+      const bytes=buffer.byteLength,hostSP=api.demuxe_coop_get_sp.call(exports)>>>0;current();if(!hostSP||hostSP%16||hostSP>bytes)throw Error('Invalid host stack pointer');
       const ranges=[];
-      for(let slot=0;slot<this.slots;slot++) {
-        const lo=exports.demuxe_coop_stack_base(slot)>>>0,hi=exports.demuxe_coop_stack_top(slot)>>>0;
-        if(lo%16||hi%16||hi-lo<128||hi>bytes)throw Error('Invalid C-stack bounds');
-        if(ranges.some(r=>lo<r.hi&&hi>r.lo))throw Error('Overlapping C stacks');
-        if(hostSP>=lo&&hostSP<=hi)throw Error('C stack overlaps host stack pointer');
-        ranges.push(Object.freeze({lo,hi}));
+      for(let slot=0;slot<this.slots;slot++){
+        const lo=api.demuxe_coop_stack_base.call(exports,slot)>>>0;current();const hi=api.demuxe_coop_stack_top.call(exports,slot)>>>0;current();
+        if(lo%16||hi%16||hi-lo<128||hi>bytes)throw Error('Invalid C-stack bounds');if(ranges.some(range=>lo<range.hi&&hi>range.lo))throw Error('Overlapping C stacks');if(hostSP>=lo&&hostSP<=hi)throw Error('C stack overlaps host stack pointer');ranges.push(Object.freeze({lo,hi}));
       }
-      this.cStacks=Object.freeze(ranges);
-      this.e=exports;this.hostSP=hostSP;
-      this.allowedEntries=new Set(Object.values(exports).filter(v=>typeof v==='function'));
-      this.continuations.attach(exports);
-    } catch(error) {
-      // Partial initialization is terminal; do not leave a runnable half-loader
-      // or an open MessageChannel behind after any ABI/layout rejection.
-      this.fail(error);throw error;
+      const entries=new Set(),keys=Object.keys(exports);current();for(const key of keys){const value=exports[key];current();if(typeof value==='function')entries.add(value);}
+      this.cStacks=Object.freeze(ranges);this.e=exports;this.hostSP=hostSP;this.allowedEntries=entries;
+      this.continuations.attach(exports);current();const accepted=finishCoopAttachment(this.machine);this.machine=accepted.state;if(!accepted.accepted)throw Error('Scheduler closed during attachment');
+    }catch(error){
+      this.e=undefined;this.cStacks=undefined;this.hostSP=undefined;this.allowedEntries=undefined;this.fail(error);throw error;
     }
   }
-  onStop(fn) {
-    if(this.stopped){fn();return ()=>{};}
-    this.stopListeners.add(fn);return ()=>this.stopListeners.delete(fn);
-  }
-  restoreHost() {
-    if(!this.unsafeSharedStack)this.e.demuxe_coop_set_sp(this.hostSP);
-    this.contextHooks?.idle?.(this.e);
-  }
+  onStop(fn){if(this.stopped){fn();return()=>{};}this.stopListeners.add(fn);return()=>this.stopListeners.delete(fn);}
+  restoreHost(){if(!this.unsafeSharedStack)this.e.demuxe_coop_set_sp(this.hostSP);if(!this.stopped)this.contextHooks?.idle?.(this.e);}
   readString(ptr) {
     const u=new Uint8Array(this.e.memory.buffer);let end=ptr>>>0;ptr=end;
     while(end<u.length&&u[end]&&end-ptr<4096)end++;
     return new TextDecoder().decode(u.subarray(ptr,end));
   }
-  self() {if(!this.active)throw Error('Wasm entry without a logical owner');return this.active.id;}
-  create(fn,args,root) {
-    if(this.stopped||this.free.length===0||this.tasks.size>=this.maxRetainedTasks||this.nextId>0xffffffff)return null;
-    if(!this.e||typeof fn!=='function'||!this.allowedEntries.has(fn))
-      throw Error('Invalid or unadmitted Wasm entry');
-    const slot=this.free[this.free.length-1],id=this.nextId;
-    const {lo,hi}=this.cStacks[slot];
-    if(lo%16||hi%16||hi-lo<128||hi>this.e.memory.buffer.byteLength)throw Error('Invalid C-stack bounds');
-    new Uint8Array(this.e.memory.buffer,lo,64).fill(0xa5);
-    this.free.pop();this.nextId++;
-    const t={id,slot,lo,hi,sp:hi,status:'new',fn,args,root,joiners:[],detached:false,joined:false};
+  self(){if(!this.active)throw Error('Wasm entry without a logical owner');return this.active.id;}
+  create(fn,args,root){
+    if(!coopCanCreate(this.machine))return null;
+    if(this.machine.attachment!=='attached'||!this.e||typeof fn!=='function'||!this.allowedEntries.has(fn))throw Error('Invalid or unadmitted Wasm entry');
+    const memory=this.e.memory.buffer;if(!coopCanCreate(this.machine))return null;
+    const slot=this.machine.free[this.machine.free.length-1],{lo,hi}=this.cStacks[slot];
+    if(lo%16||hi%16||hi-lo<128||hi>memory.byteLength)throw Error('Invalid C-stack bounds');
+    const decision=createCoopTask(this.machine,root);this.machine=decision.state;if(!decision.task)return null;
+    const id=decision.task.id;new Uint8Array(memory,lo,64).fill(0xa5);
+    const t={id,lo,hi,sp:hi,fn,args};
+    for(const key of ['slot','status','root','joined','detached'])Object.defineProperty(t,key,{get:()=>coopTask(this.machine,id)?.[key]??(key==='status'?'done':null)});
     if(root)t.promise=new Promise((resolve,reject)=>{t.resolve=resolve;t.reject=reject;});
-    this.tasks.set(id,t);this.ready.push(t);this.stats.created++;
-    this.stats.maxLive=Math.max(this.stats.maxLive,[...this.tasks.values()].filter(x=>x.status!=='done').length);
-    this.schedule();return t;
+    this.tasks.set(id,t);this.schedule();return t;
   }
-  run(fn,...args) {
-    if(this.stopped)return Promise.reject(Error(this.failure||'Scheduler closed'));
-    try{const t=this.create(fn,args,true);return t?t.promise:Promise.reject(Error('Coroutine capacity exceeded'));}
-    catch(error){return Promise.reject(error);}
-  }
-  schedule() {
-    if(!this.pendingPump&&!this.stopped){this.pendingPump=true;this.channel.port2.postMessage(0);}
-  }
-  stackCheck(t) {
-    const u=new Uint8Array(this.e.memory.buffer,t.lo,64);
-    if(u.some(x=>x!==0xa5))throw Error(`stack canary corrupted in task ${t.id}`);
-    if(t.sp<t.lo+64||t.sp>t.hi||t.sp%16)throw Error(`stack pointer out of bounds in task ${t.id}: ${t.sp}`);
-    this.stats.stackChecks++;
-  }
-  pump() {
-    if(this.active||this.stopped)return;
-    let t;while((t=this.ready.shift())&&t.status!=='new'&&t.status!=='ready'){}
-    if(!t)return;
-    try {
-      this.active=t;if(!this.unsafeSharedStack)this.stackCheck(t);
-      if(!this.unsafeSharedStack)this.e.demuxe_coop_set_sp(t.sp);
-      this.contextHooks?.enter(t,this.e);
-      if(t.status==='new') {
-        t.status='running';
-        this.continuations.begin(t);
-      } else {
-        t.status='running';this.stats.resumes++;
-        const value=t.resumeAction?t.resumeAction():t.resumeValue;
-        t.resumeAction=null;this.continuations.resume(t,value);
-      }
+  run(fn,...args){if(this.stopped)return Promise.reject(Error(this.failure||'Scheduler closed'));try{const task=this.create(fn,args,true);return task?task.promise:Promise.reject(Error('Coroutine capacity exceeded'));}catch(error){return Promise.reject(error);}}
+  schedule(){const decision=scheduleCoopPump(this.machine);this.machine=decision.state;if(decision.send)try{this.channel.port2.postMessage(0);}catch(error){this.fail(error);}}
+  stackCheck(t){const u=new Uint8Array(this.e.memory.buffer,t.lo,64);if(u.some(x=>x!==0xa5))throw Error(`stack canary corrupted in task ${t.id}`);if(t.sp<t.lo+64||t.sp>t.hi||t.sp%16)throw Error(`stack pointer out of bounds in task ${t.id}: ${t.sp}`);this.machine=checkedCoopStack(this.machine);}
+  pump(){
+    const decision=startCoopTask(this.machine);this.machine=decision.state;if(decision.id===null)return;const t=this.tasks.get(decision.id);
+    try{
+      if(!t)throw Error('Logical task has no continuation owner');
+      if(!this.unsafeSharedStack)this.stackCheck(t);if(this.stopped)return;
+      if(!this.unsafeSharedStack)this.e.demuxe_coop_set_sp(t.sp);if(this.stopped)return;
+      this.contextHooks?.enter(t,this.e);if(this.stopped)return;
+      if(decision.fresh)this.continuations.begin(t);
+      else{const action=t.resumeAction;t.resumeAction=null;const value=action?action():t.resumeValue;if(!this.stopped)this.continuations.resume(t,value);}
     }catch(error){this.fail(error);}
   }
-  finish(t,error,value) {
+  finish(t,error,value){
     if(this.stopped)return;
-    try {
+    try{
       if(this.active!==t)throw Error('Task completion violated single-owner invariant');
-      this.contextHooks?.leave(t,this.e);t.sp=this.e.demuxe_coop_get_sp()>>>0;
-      if(!this.unsafeSharedStack)this.stackCheck(t);
-      this.active=null;this.restoreHost();
-      if(error){this.fail(error);return;}
-      t.status='done';t.value=value;this.stats.completed++;this.free.push(t.slot);t.slot=null;
-      for(const waiter of t.joiners)this.readyWait(waiter,0);
-      t.joiners=[];
-      if(t.root){t.resolve(value);this.tasks.delete(t.id);}else if(t.detached)this.tasks.delete(t.id);
-      this.schedule();
-    }catch(e){this.fail(e);}
+      this.contextHooks?.leave(t,this.e);if(this.stopped)return;t.sp=this.e.demuxe_coop_get_sp()>>>0;
+      if(!this.unsafeSharedStack)this.stackCheck(t);if(this.stopped)return;
+      // Retain the physical owner while restoring the host stack: an idle hook
+      // cannot recursively pump a different C stack before restoration returns.
+      this.restoreHost();if(this.stopped)return;if(error){this.fail(error);return;}
+      const decision=completeCoopTask(this.machine,t.id);this.machine=decision.state;if(!decision.accepted)throw Error('Task completion violated single-owner invariant');
+      t.value=value;const wakes=decision.wake.map(id=>this.waiters.get(id)).filter(Boolean);
+      for(const waiter of wakes){this.waiters.delete(waiter.id);waiter.task.resumeValue=0;}
+      for(const id of decision.remove)this.tasks.delete(id);
+      for(const waiter of wakes){waiter.cleanup();if(this.stopped)return;}
+      t.resolve?.(value);this.schedule();
+    }catch(failure){this.fail(failure);}
   }
-  park(arm) {
+  park(arm){
     const t=this.active;if(!t||this.stopped)throw Error('Suspend without active owner');
-    this.contextHooks?.leave(t,this.e);t.sp=this.e.demuxe_coop_get_sp()>>>0;
+    this.contextHooks?.leave(t,this.e);if(this.stopped)throw Error('Scheduler closed');t.sp=this.e.demuxe_coop_get_sp()>>>0;
     if(!this.unsafeSharedStack)this.stackCheck(t);
-    t.status='waiting';this.stats.suspensions++;
-    const p=this.continuations.park(t);
-    const w={task:t,done:false,cleanup:()=>{}};
-    try{arm(w);}catch(error){this.fail(error);}
-    this.schedule();return p;
+    const decision=parkCoopTask(this.machine);this.machine=decision.state;if(!decision.wait)throw Error('Suspend without active owner');
+    const w={id:decision.wait.id,task:t,cleanup:()=>{}};Object.defineProperty(w,'done',{get:()=>!this.machine.waits.some(wait=>wait.id===w.id)});this.waiters.set(w.id,w);
+    const promise=this.continuations.park(t);
+    if(!this.stopped)try{arm(w);}catch(error){this.fail(error);}
+    this.schedule();return promise;
   }
-  releaseSuspended(t) {
-    if(this.stopped)return;
-    if(this.active!==t)throw Error('Suspension owner changed before export unwound');
-    // park() schedules only AFTER its waiter/cancellation hooks are armed.
-    // Asyncify returns here after unwind; that scheduled message cannot have
-    // executed yet, because the Wasm export still owned this JS turn.
-    this.active=null;this.restoreHost();
+  releaseSuspended(t){
+    if(this.stopped)return;if(this.active!==t)throw Error('Suspension owner changed before export unwound');
+    this.restoreHost();const decision=releaseCoopTask(this.machine,t.id);this.machine=decision.state;if(!decision.accepted&&!this.stopped)throw Error('Suspension owner changed before export unwound');
   }
-  readyWait(w,value) {
-    if(w.done||this.stopped)return false;
-    w.done=true;w.cleanup();const t=w.task;
-    if(t.status!=='waiting')throw Error('Duplicate wake or bad task state');
-    t.resumeValue=value;t.status='ready';this.ready.push(t);this.schedule();return true;
+  readyWait(w,value,kind='ready',now){
+    const decision=settleCoopWait(this.machine,w.id,kind,now);this.machine=decision.state;if(decision.invalid)throw Error('Duplicate wake or bad task state');if(!decision.accepted)return false;
+    this.waiters.delete(w.id);w.task.resumeValue=value;if(decision.remove!==null)this.tasks.delete(decision.remove);
+    try{w.cleanup();}catch(error){this.fail(error);return false;}if(this.stopped)return false;this.schedule();return true;
   }
-  wait(key,ms) {
+  wait(key,ms){
     if(!Number.isFinite(ms))throw Error('Invalid condition timeout');
+    const deadline=ms>=0?performance.now()+ms:null;
     return this.park(w=>{
-      let set=this.waits.get(key);if(!set)this.waits.set(key,set=new Set());set.add(w);
-      let timer=null;
-      w.cleanup=()=>{set.delete(w);if(set.size===0)this.waits.delete(key);
-        if(timer!==null){clearTimeout(timer);this.timers.delete(timer);}};
-      if(ms>=0){
-        const deadline=performance.now()+ms;
-        const tick=()=>{
-          if(timer!==null)this.timers.delete(timer);
-          if(w.done||this.stopped)return;
-          const left=deadline-performance.now();
-          if(left>0){timer=setTimeout(tick,Math.min(Math.max(left,1),2147483647));this.timers.add(timer);return;}
-          this.stats.timerWakes++;this.readyWait(w,this.timeoutCode);
-        };
-        timer=setTimeout(tick,Math.min(Math.max(ms,1),2147483647));this.timers.add(timer);
+      this.machine=bindCoopWait(this.machine,w.id,{key,deadline});let registration=null;
+      w.cleanup=()=>{const current=registration;registration=null;if(current?.handle!==undefined){clearTimeout(current.handle);this.timers.delete(current);}};
+      if(deadline!==null){
+        const arm=()=>{
+          if(w.done||this.stopped)return;const current={handle:undefined};registration=current;
+          const delay=Math.min(Math.max(deadline-performance.now(),1),2147483647);
+          const acquired=setTimeout(()=>{
+            this.timers.delete(current);if(registration!==current)return;registration=null;
+            if(w.done||this.stopped)return;
+            try{const now=performance.now();if(now<deadline){arm();return;}this.readyWait(w,this.timeoutCode,'timeout',now);}catch(error){this.fail(error);}
+          },delay);current.handle=acquired;
+          if(registration===current&&!w.done&&!this.stopped)this.timers.add(current);else try{clearTimeout(acquired);}catch(error){this.timers.add(current);throw error;}
+        };arm();
       }
     });
   }
-  wake(key,all) {
-    const set=this.waits.get(key);if(!set)return;
-    for(const w of [...set]){this.stats.signals++;this.readyWait(w,0);if(!all)break;}
+  wake(key,all){for(const id of coopConditionWaits(this.machine,key,all)){const waiter=this.waiters.get(id);if(waiter)this.readyWait(waiter,0,'signal');}}
+  yield(){return this.park(waiter=>{queueMicrotask(()=>this.readyWait(waiter,0));});}
+  suspend(promise){return this.park(waiter=>{Promise.resolve(promise).then(value=>this.readyWait(waiter,value),error=>this.fail(error));});}
+  join(id){
+    id=id>>>0;const decision=prepareCoopJoin(this.machine,id);this.machine=decision.state;if(decision.remove)this.tasks.delete(id);if(!decision.wait)return decision.code;
+    return this.park(waiter=>{this.machine=bindCoopWait(this.machine,waiter.id,{join:id});});
   }
-  yield() {return this.park(w=>{queueMicrotask(()=>this.readyWait(w,0));});}
-  suspend(promise) {
-    return this.park(w=>{Promise.resolve(promise).then(v=>this.readyWait(w,v),e=>this.fail(e));});
+  detach(id){const decision=detachCoopTask(this.machine,id>>>0);this.machine=decision.state;if(decision.remove)this.tasks.delete(id>>>0);return decision.code;}
+  fail(error){if(this.stopped)return;this.failure=String(error?.stack??error);this.close(error);}
+  close(reason=new Error('Scheduler closed before completion')){
+    if(this.stopped)return;const tasks=[...this.tasks.values()],waiters=[...this.waiters.values()];this.machine=closeCoopState(this.machine);this.tasks.clear();this.waiters.clear();
+    const listeners=[...this.stopListeners];this.stopListeners.clear();for(const fn of listeners)try{fn();}catch{}
+    for(const task of tasks){task.reject?.(reason);task.resume=null;task.resumeAction=null;}
+    const clean=work=>{try{work();}catch(error){this.cleanupFailure??=error;}};
+    for(const waiter of waiters)clean(()=>waiter.cleanup());
+    for(const timer of this.timers)clean(()=>{clearTimeout(timer.handle);this.timers.delete(timer);});
+    clean(()=>{this.channel.port1.onmessage=null;});clean(()=>this.channel.port1.close());clean(()=>this.channel.port2.close());
   }
-  join(id) {
-    id=id>>>0;
-    const t=this.tasks.get(id),me=this.active;
-    if(!t||t.root||t.detached||t.joined)return 1;
-    if(t===me)return 2;
-    t.joined=true;
-    if(t.status==='done'){this.tasks.delete(id);return 0;}
-    return this.park(w=>{t.joiners.push(w);w.cleanup=()=>this.tasks.delete(id);});
-  }
-  detach(id) {
-    id=id>>>0;
-    const t=this.tasks.get(id);if(!t||t.root||t.detached||t.joined)return 1;
-    t.detached=true;if(t.status==='done')this.tasks.delete(id);return 0;
-  }
-  fail(error) {
-    if(this.stopped)return;this.failure=String(error?.stack??error);this.close(error);
-  }
-  close(reason=new Error('Scheduler closed before completion')) {
-    if(this.stopped)return;this.stopped=true;this.pendingPump=false;
-    for(const fn of this.stopListeners){try{fn();}catch{/* shutdown is terminal */}}
-    this.stopListeners.clear();
-    for(const t of this.tasks.values()){
-      if(t.status!=='done')this.stats.abandoned++;
-      if(t.root)t.reject(reason);
-      t.resume=null;t.resumeAction=null;t.joiners=[];
-    }
-    for(const timer of this.timers)clearTimeout(timer);
-    this.timers.clear();this.waits.clear();this.ready=[];this.tasks.clear();this.active=null;
-    // Do not reuse any stack after abandoned continuations. This instance is dead.
-    this.free=[];this.channel.port1.onmessage=null;this.channel.port1.close();this.channel.port2.close();
-  }
-  snapshot() {
-    return {...this.stats,continuations:this.continuations.snapshot(),liveTasks:[...this.tasks.values()].filter(t=>t.status!=='done').length,
-      retainedTasks:this.tasks.size,waitKeys:this.waits.size,timers:this.timers.size,
-      freeSlots:this.free.length,stopped:this.stopped};
-  }
+  snapshot(){return {...snapshotCoopState(this.machine),continuations:this.continuations.snapshot(),timers:this.timers.size};}
 }

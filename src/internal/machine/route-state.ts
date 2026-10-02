@@ -29,7 +29,7 @@ export function transitionRouting(state:RoutingState,input:RoutingInput):Routing
   if(input.type==='routing.capabilities'){const capabilities=transitionCapabilityOwner(state.evidence.capabilities,input.change,input.revision);return capabilities===state.evidence.capabilities?state:Object.freeze({...state,evidence:Object.freeze({...state.evidence,capabilities})});}
   if(input.type==='routing.tiers'){const tiers=transitionTierOwner(state.evidence.tiers,input.change,input.revision);return tiers===state.evidence.tiers?state:Object.freeze({...state,evidence:Object.freeze({...state.evidence,tiers})});}
   if(input.type==='routing.discovery'){const discovery=transitionDiscovery(state.discovery,input.change);return discovery===state.discovery?state:Object.freeze({...state,discovery,...(input.change.kind==='reinspected'?{context:Object.freeze({nativeReason:discovery.current?.nativeReason,automatic:discovery.current?.automatic??state.context.automatic})}:{})});}
-  if(input.type==='routing.inspection')return Object.freeze({...state,inspection:transitionInspection(state.inspection,input.change)});
+  if(input.type==='routing.inspection'){const inspection=transitionInspection(state.inspection,input.change);return inspection===state.inspection?state:Object.freeze({...state,inspection});}
   if(input.type==='routing.plans')return Object.freeze({...state,plans:copyData(input.plans)});
   if(input.type==='routing.context')return Object.freeze({...state,context:copyData(input.context)});
   if(input.type==='routing.attempts')return Object.freeze({...state,attempts:copyData(input.attempts.slice(-32))});

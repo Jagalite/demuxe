@@ -130,3 +130,22 @@ for(const order of permutations(['play','pause','retire']))test(`completion sche
   }
   assert.equal((await one).kind,expected.get(1));assert.equal((await two).kind,expected.get(2));assert.equal(f.runtime.pendingCount,0);
 });
+
+test('controller acquisition retirement settles before the acquired handle returns',async t=>{
+ const f=fixture(t),Original=globalThis.AbortController;let aborted=0;
+ globalThis.AbortController=class extends Original{constructor(){super();f.runtime.dispose();}abort(){aborted++;super.abort();}};
+ let result;try{result=f.runtime.submit(f.effect(1));}finally{globalThis.AbortController=Original;}
+ assert.equal((await result).kind,'retired');assert.equal(aborted,1);assert.equal(f.runtime.pendingCount,0);assert.equal(f.runtime.handles.size,0);assert.deepEqual(f.calls,[]);
+});
+test('controller acquisition failure settles admission and preserves immediate throw',async t=>{
+ const f=fixture(t),Original=globalThis.AbortController,failure=new Error('acquisition');
+ globalThis.AbortController=class{constructor(){throw failure;}};
+ try{assert.equal((await f.runtime.submit(f.effect(1))).kind,'failed');assert.throws(()=>f.runtime.submit(f.effect(2),{rethrowImmediate:true}),error=>error===failure);}finally{globalThis.AbortController=Original;}
+ assert.equal(f.runtime.pendingCount,0);assert.equal(f.runtime.handles.size,0);assert.deepEqual(f.calls,[]);
+});
+test('throwing abort cannot skip settlement or later outcomes',async t=>{
+ const failures=[],f=fixture(t,{onObserverError:error=>failures.push(error)}),Original=globalThis.AbortController;
+ globalThis.AbortController=class extends Original{abort(){throw new Error('abort');}};
+ let one,two;try{one=f.runtime.submit(f.effect(1,'backend.play','scheduled'));two=f.runtime.submit(f.effect(2,'backend.pause','scheduled'));}finally{globalThis.AbortController=Original;}
+ f.runtime.dispose();assert.deepEqual((await Promise.all([one,two])).map(x=>x.kind),['retired','retired']);assert.equal(failures.length,2);assert.equal(f.outcomes.length,2);assert.equal(f.runtime.handles.size,0);
+});

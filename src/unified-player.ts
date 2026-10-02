@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {resourceAvailable} from './internal/machine/resource-ledger.js';
+import {EffectRuntime} from './internal/effects/runtime.js';
+import {playerEffectAuthority} from './internal/machine/transition.js';
 import {ResourceRegistry} from './internal/effects/resources.js';
 import {privatePlaybackRejection,readPrivatePlaybackAssets,type PrivatePlaybackAssets} from './internal/private-playback-admission.js';
 import {providerDeploymentEnabled, qualifiedProviderIdentities} from './internal/provider-build.js';
@@ -62,7 +64,7 @@ class SeekPresentationBoundary extends PlayerError {
 }
 
 import {discoveryPlanPolicy,discoveryOptionalProbe,localDiscoveryRemux,type DiscoveryChange,type DiscoveryFailure} from './internal/machine/route-discovery.js';
-import {fastInspectionAllowed,inspectionSelection,initialInspectionPolicy,optionalInspectionFallback,type InspectionChange} from './internal/machine/route-inspection.js';
+import {selectInitialInspectionEffect,inspectionLeaseCurrent,inspectionFailureRouteCheck,type InspectionLease,type InspectionWorkChange,fastInspectionAllowed,inspectionSelection,type InspectionChange} from './internal/machine/route-inspection.js';
 import {refineRouteAdmission,applyDeploymentRejections,attachRouteDecoding,type RoutePlan} from './internal/machine/route-admission.js';
 import {attachmentAuthority,candidateAttachments,attachmentPreferences,type AttachmentInput,type AttachmentEffect,type AttachmentCommand,type AttachmentFacts} from './internal/machine/attachments.js';
 import {boundaryAuthority} from './internal/machine/playback-boundary.js';
@@ -122,6 +124,30 @@ export class Player extends EventTarget {
   private get publicSelections():ReadonlyMap<TrackType,string>{return new Map(Object.entries(this.candidatePreferences.publicSelections) as [TrackType,string][]);}
   private control=initialPlayerControl();
   private resourceRegistry?:ResourceRegistry;
+  private effectRuntime?:EffectRuntime;
+  private effectErrors=new Map<number,unknown>();
+  private backendSessions=new WeakMap<Backend,Session>();
+  private invokeBackend(backend:Backend,kind:'backend.play'|'backend.pause'){const session=this.backendSessions.get(backend);return session?this.backendEffect(session,kind):kind==='backend.play'?backend.play():backend.pause();}
+  private get executor(){return this.effectRuntime??=new EffectRuntime({
+    resources:this.ownedResources,store:{read:()=>this.control.executor,dispatch:input=>this.dispatchControl({type:'effect.event',input}).execution!},
+    scopeKey:scope=>`scope:${scope.sessionId}`,isCurrent:scope=>playerEffectAuthority(this.control,scope),now:()=>performance.now(),
+    schedule:work=>{let cancelled=false;queueMicrotask(()=>{if(!cancelled)work();});return()=>{cancelled=true;};},
+    waitUntil:(deadline,signal)=>new Promise<void>((resolve,reject)=>{let timer:ReturnType<typeof setTimeout>;const done=()=>{clearTimeout(timer);signal.removeEventListener('abort',cancel);resolve();},cancel=()=>{clearTimeout(timer);signal.removeEventListener('abort',cancel);reject(signal.reason);};timer=setTimeout(done,Math.max(0,deadline-performance.now()));signal.addEventListener('abort',cancel,{once:true});if(signal.aborted)cancel();}),
+    onOutcome:(outcome,error)=>{if(outcome.kind==='failed')this.effectErrors.set(outcome.id,error);},
+  });}
+  private backendEffect(session:Session,kind:'backend.play'|'backend.pause',playId?:number):Promise<void>{
+    const token=this.sessionResources.get(session);
+    // Constructorless adapter fixtures and caller-owned sessions retain their
+    // existing direct invocation. Production create() always registers ownership.
+    if(!token)return kind==='backend.play'?session.backend.play():session.backend.pause();
+    const sessionId=Number(token.scope.slice('scope:'.length)),id=this.control.executor.highWatermark+1;
+    const scope={owner:'player',lifetime:this.operationEpoch,sourceId:this.control.source.serial,sessionId,operationId:playId!==undefined?0:this.control.operations.active??0,...playId!==undefined?{playId}:{}};
+    let result:Promise<import('./internal/machine/protocol.js').EffectOutcome>;
+    try{result=this.executor.submit({id,scope,lane:'immediate',kind,resourceId:token.id},{rethrowImmediate:true});}
+    catch(error){this.effectErrors.delete(id);throw error;}
+    return result.then(outcome=>{if(outcome.kind==='retired')throw new PlayerError('ABORTED','Playback effect retired');if(outcome.kind==='failed')throw this.effectErrors.get(id);}).finally(()=>this.effectErrors.delete(id));
+  }
+
   private sessionResources=new WeakMap<Session,{id:string;scope:string}>();
   private sessionDisposals=new WeakMap<Session,Promise<void>>();
   private sessionCleanups=new WeakMap<Session,Promise<void>>();
@@ -130,7 +156,7 @@ export class Player extends EventTarget {
   private registerSession(session:Session,id:number){
     const token={id:`resource:${id}`,scope:`scope:${id}`};
     const completion=this.ownedResources.register({id:token.id,scopeKey:token.scope,kind:'backend-session',ownership:'owned',value:session.backend,release:()=>this.releaseSession(session)});
-    this.sessionResources.set(session,token);Object.defineProperty(session,'retired',{configurable:true,get:()=>!resourceAvailable(this.control.resources,token.id)});return completion;
+    this.sessionResources.set(session,token);this.backendSessions.set(session.backend,session);Object.defineProperty(session,'retired',{configurable:true,get:()=>!resourceAvailable(this.control.resources,token.id)});return completion;
   }
   private releaseSession(session:Session):Promise<void>{
     const previous=this.sessionDisposals.get(session);if(previous)return previous;
@@ -147,7 +173,7 @@ export class Player extends EventTarget {
   private operationResources=new Map<number,{controller:AbortController;detachCallerAbort:()=>void}>();
   private dispatchControl(input:AttachmentInput):PlayerControlDecision<AttachmentEffect>;
   private dispatchControl(input:Exclude<PlayerControlInput,AttachmentInput>):PlayerControlDecision<SettingEffect>;
-  private dispatchControl(input:PlayerControlInput):PlayerControlDecision{const before=this.control,decision=transitionPlayer(before,input);this.control=decision.state;if(before.attachments!==decision.state.attachments)this.pruneAttachments();if(before.routing.inspection!==decision.state.routing.inspection)this.pruneInspectionResources();this.controlTrace=tracePlayerTransition(this.controlTrace??createTrace(256),input,before,decision,decision.state.revision);return decision;}
+  private dispatchControl(input:PlayerControlInput):PlayerControlDecision{const before=this.control,decision=transitionPlayer(before,input);this.control=decision.state;this.effectRuntime?.deliverOutcomes(decision.executionOutcomes??[]);if(before.attachments!==decision.state.attachments)this.pruneAttachments();if(before.routing.inspection!==decision.state.routing.inspection)this.pruneInspectionResources();this.controlTrace=tracePlayerTransition(this.controlTrace??createTrace(256),input,before,decision,decision.state.revision);return decision;}
   private get operationEpoch(){return this.control.operations.epoch;}
   private get activeOperation(){const entry=activeOperation(this.control.operations),resources=entry&&this.operationResources.get(entry.id);return entry&&resources?{...entry,...resources}:undefined;}
   private get pendingOperation():PendingOperation|null{return pendingOperation(this.control.operations);}
@@ -226,7 +252,12 @@ export class Player extends EventTarget {
   private inspectionSourceKeys=new WeakMap<Source,number>();
   private inspectionSources=new Map<number,Source>();
   private inspectionErrors=new Map<number,PlayerError>();
-  private updateInspection(change:InspectionChange){return this.dispatchControl({type:'routing.inspection',epoch:this.operationEpoch,operation:this.control.operations.active,change}).accepted;}
+  private updateInspection(change:InspectionChange,scope?:InspectionLease){return this.dispatchControl({type:'routing.inspection',epoch:scope?.epoch??this.operationEpoch,operation:scope?scope.operation:this.control.operations.active,change}).accepted;}
+  private assertInspection(scope?:InspectionLease){
+    this.assertOperation();if(!scope)return;
+    const operations=this.control.operations;
+    if(!inspectionLeaseCurrent(this.control.routing.inspection,scope)||operations.terminal||operations.epoch!==scope.epoch||operations.active!==scope.operation||scope.operation!==null&&!operations.entries.some(entry=>entry.id===scope.operation&&entry.epoch===scope.epoch&&!entry.cancelled))throw new PlayerError('ABORTED','Inspection was retired');
+  }
   private inspectionSourceKey(source:Source):number{
     this.inspectionSourceKeys??=new WeakMap();this.inspectionSources??=new Map();
     let id=this.inspectionSourceKeys.get(source);
@@ -234,7 +265,7 @@ export class Player extends EventTarget {
     this.inspectionSources.set(id,source);return id;
   }
   private pruneInspectionResources(){
-    const state=this.control.routing.inspection,retained=new Set([state.probe?.source,state.fastSource,state.lossless?.source]);
+    const state=this.control.routing.inspection,retained=new Set([state.probe?.source,state.fastSource,state.lossless?.source,state.work?.source]);
     for(const id of this.inspectionSources?.keys()??[])if(!retained.has(id))this.inspectionSources.delete(id);
     for(const id of this.inspectionErrors?.keys()??[])if(id!==state.playbackFailure)this.inspectionErrors.delete(id);
   }
@@ -387,7 +418,7 @@ export class Player extends EventTarget {
     const error=fault.reason==='hybrid'?new PlayerError('DECODE_FAILED','Hybrid browser decoder became inactive for four consecutive checks'):new PlayerError('PLAYBACK_STALLED',`Native ${fault.reason==='clock'?'playback clock':'video frame counter'} stopped progressing despite buffered media`,null,null,'session',true);
     this.stopWatchdogs();if(this.current!==session||sessionAuthority(this.control,sessionId)!=='accepted')return;session.error=error;
     if(this.automatic)this.recover(session);
-    else {this.updateSettings({pause:true});void session.backend.pause().catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionId)==='accepted')this.emit('error',error);}
+    else {this.updateSettings({pause:true});void this.backendEffect(session,'backend.pause').catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionId)==='accepted')this.emit('error',error);}
   }
   private stopWatchdogs(){const timer=this.monitor;this.monitor=undefined;this.monitorHandleId=undefined;this.dispatchControl({type:'monitor.stop'});clearInterval(timer);}
 
@@ -770,7 +801,7 @@ export class Player extends EventTarget {
             const inventory=tracks(this.sourceTracks(),this.sourceSerial,this.mode,backendPlan(session.backend));
             if(this.current!==session||sessionAuthority(this.control,sessionEpoch)!=='accepted')return;
             const forbidden=inventory.some(t=>t.selected&&!trackAllowed(t,t.type==='audio'?this.trackPolicy.audio:t.type==='subtitle'?this.trackPolicy.subtitles:undefined));
-            if(forbidden){this.updateSettings({pause:true});void backend.pause().catch(()=>{});this.emit('error',new PlayerError('UNSUPPORTED_FEATURE','Backend selected a track excluded by the host policy'));return;}
+            if(forbidden){this.updateSettings({pause:true});void this.invokeBackend(backend,'backend.pause').catch(()=>{});this.emit('error',new PlayerError('UNSUPPORTED_FEATURE','Backend selected a track excluded by the host policy'));return;}
           }
           if(detail.event==='property-change'&&detail.name==='time-pos')this.dispatchControl({type:'playback.sample',session:sessionEpoch,sequence:++observationSequence,observation:'time',value:Number(detail.data),publishedTime:this.state.currentTime});
           if(detail.event==='property-change'&&detail.name==='pause')this.dispatchControl({type:'playback.sample',session:sessionEpoch,sequence:++observationSequence,observation:'pause',value:detail.data===true});
@@ -968,7 +999,7 @@ export class Player extends EventTarget {
     let resourceMonitor:ReturnType<typeof setInterval>|undefined;
     try {
       if(overlapping&&knownBytes(old!)+reserve>this.backgroundPromotion!.maxKnownBytes)throw new PlayerError('ABORTED','Background candidate exceeds known-allocation budget');
-      if (old && !old.error&&!overlapping) await old.backend.pause();
+      if (old && !old.error&&!overlapping) await this.backendEffect(old,'backend.pause');
       if(overlapping){
         const drops=()=>Number((old!.backend.diagnostics as {dropped?:number}).dropped??0)+Number(old!.backend.properties.get('frame-drop-count')??0)+Number(old!.backend.properties.get('decoder-frame-drop-count')??0);
         const initialDrops=drops();
@@ -1031,7 +1062,7 @@ export class Player extends EventTarget {
       await this.applyTrackPolicy(candidate,source,mode,desired,preserve);advance('source.applied');
       await this.settled(candidate, mode, 0);
       if(overlapping){
-        this.assertOperation();await old!.backend.pause();
+        this.assertOperation();await this.backendEffect(old!,'backend.pause');
         target=Math.max(0,Number(old!.backend.properties.get('time-pos'))||0);
         clearInterval(resourceMonitor);
       }
@@ -1040,7 +1071,7 @@ export class Player extends EventTarget {
       if (candidate.error) throw candidate.error;
       const actual=executionPlan(mode,backendPlan(p),desired.af,desired.gain,!!(p.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay);
       if(!actual||actual.id!==planId||!admitted.some(plan=>plan.id===actual.id&&plan.eligible))throw new PlayerError('UNSUPPORTED_FEATURE','The prepared components do not match an admitted complete playback plan');
-      if (!desired.pause) {if(mode==='native')await this.playNativeVerified(p);else await p.play();}
+      if (!desired.pause) {if(mode==='native')await this.playNativeVerified(p);else await this.invokeBackend(p,'backend.play');}
       this.assertOperation();
       if(overlapping)await p.volume(this.muted?0:desired.volume);
       this.assertOperation();
@@ -1069,7 +1100,7 @@ export class Player extends EventTarget {
       if(candidate)this.updateEvidence(planId,'probing',candidate);
       if (candidate && candidate !== this.current) await this.dispose(candidate).catch(() => {});
       this.candidate = undefined;
-      if (old && !old.error && this.current === old && !wasPaused && !this.destroyed && !this.closing) await old.backend.play().catch(() => {});
+      if (old && !old.error && this.current === old && !wasPaused && !this.destroyed && !this.closing) await this.backendEffect(old,'backend.play').catch(() => {});
       this.emit('modechange', {phase: 'failed', mode, rolledBack: this.current === old, message: String(error)});
       throw error;
     } finally {clearInterval(resourceMonitor);this.dispatchControl({type:'source.finished',attempt});this.publish();}
@@ -1078,219 +1109,220 @@ export class Player extends EventTarget {
     this.dispatchControl({type:'routing.attempt',attempt});
     this.emit('selectionchange',{...attempt});
   }
-  private async inspectForQualifiedWebGPU(source:Source,settings:Settings):Promise<void>{
+  private async inspectForQualifiedWebGPU(source:Source,settings:Settings,scope?:InspectionLease):Promise<void>{
     if(!hasQualifiedWebGPUCodecs()||this.providerRuntime&&!this.canInspectFFmpeg)return;
     if(this.sourceInspection?.source===source){
       const video=this.sourceInspection.probe.tracks.find(track=>track.type==='video'&&!track.attachedPicture);
       if(!video||!webgpuDecoderSupported(video.codec)||video.webCodecsSupported!==undefined)return;
     }
-    const controller=this.inspection=new AbortController();
+    this.assertInspection(scope);const controller=new AbortController();try{this.assertInspection(scope);}catch(error){controller.abort();throw error;}this.inspection=controller;
     try{
-      const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
-      const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();
-      const compiledWasm=await this.interruptible(this.providerRuntime?this.providerRuntime.module(`web/engine-remux${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`):this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
+      const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));this.assertInspection(scope);
+      const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();this.assertInspection(scope);
+      const compiledWasm=await this.interruptible(this.providerRuntime?this.providerRuntime.module(`web/engine-remux${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`):this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));this.assertInspection(scope);
       const probe:Probe=await probeSource(transport,controller.signal,undefined,compiledWasm,this.remuxRuntime);
-      this.assertOperation();
-      this.sourceInspection={source,probe,settings:{aid:settings.aid,sid:settings.sid,subtitles:settings.subtitles}};
+      this.assertInspection(scope);
+      this.updateInspection({kind:'probe',value:{source:this.inspectionSourceKey(source),probe,settings:{aid:settings.aid,sid:settings.sid,subtitles:settings.subtitles}}},scope);
     }catch(error){
       if(this.destroyed||this.activeOperation?.controller.signal.aborted||controller.signal.aborted||terminalSourceFailure(error)||this.providerRuntime&&['ASSET_LOAD_FAILED','DEPLOYMENT_UNAVAILABLE'].includes(playerError(error).code))throw error;
       // Unknown inspection still permits the existing WebCodecs trial.
     }finally{if(this.inspection===controller)this.inspection=undefined;}
   }
-  private async inspectWithFFmpeg(source:Source,controller:AbortController):Promise<Probe>{
-    this.emit('inspectionchange',{phase:'inspecting'});
-    const codecInspector=this.providerRuntime?.codecInspector(this.remuxRuntime);
-    const {probeSource}=await this.interruptible(import(new URL(codecInspector?codecInspector.folder+'source-probe.js':'web/source-probe.js',this.assetBase).href));
-    const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();
+  private async inspectWithFFmpeg(source:Source,controller:AbortController,scope?:InspectionLease):Promise<Probe>{
+    this.assertInspection(scope);this.emit('inspectionchange',{phase:'inspecting'});this.assertInspection(scope);
+    const codecInspector=this.providerRuntime?.codecInspector(this.remuxRuntime);this.assertInspection(scope);
+    const {probeSource}=await this.interruptible(import(new URL(codecInspector?codecInspector.folder+'source-probe.js':'web/source-probe.js',this.assetBase).href));this.assertInspection(scope);
+    const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();this.assertInspection(scope);
     const compiledWasm=await this.interruptible(this.providerRuntime?this.providerRuntime.module(codecInspector?.wasmPath??`web/engine-remux${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`):this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
-    this.assertOperation();
-    const probe:Probe=await probeSource({...transport,...(this.privateRemux?{demuxer:this.privateSourceDemuxer(source)}:{})},controller.signal,codecInspector?'flac24':undefined,compiledWasm,this.remuxRuntime);
-    this.assertOperation();
+    this.assertInspection(scope);
+    const input={...transport,...(this.privateRemux?{demuxer:this.privateSourceDemuxer(source)}:{})};this.assertInspection(scope);
+    const probe:Probe=await probeSource(input,controller.signal,codecInspector?'flac24':undefined,compiledWasm,this.remuxRuntime);
+    this.assertInspection(scope);
     return probe;
   }
-  private async optionalAssetsAvailable(names:string[],controller:AbortController){
-    if(this.providerRuntime)return names.every(name=>this.providerRuntime!.has(name));
-    const assetController=new AbortController();
-    const abort=()=>assetController.abort();controller.signal.addEventListener('abort',abort,{once:true});
-    const deadline=setTimeout(abort,5000);
-    try{const responses=await Promise.all(names.map(name=>fetch(new URL(name,this.assetBase),{method:'HEAD',signal:assetController.signal})));return responses.every(response=>response.ok);}
-    catch(error){if(controller.signal.aborted)throw error;return false;}
-    finally{clearTimeout(deadline);controller.signal.removeEventListener('abort',abort);}
+  private async optionalAssetsAvailable(names:string[],controller:AbortController,scope?:InspectionLease){
+    this.assertInspection(scope);
+    if(this.providerRuntime)return names.every(name=>{this.assertInspection(scope);const available=this.providerRuntime!.has(name);this.assertInspection(scope);return available;});
+    const assetController=new AbortController(),abort=()=>assetController.abort();
+    let deadline:ReturnType<typeof setTimeout>|undefined;
+    try{
+      this.assertInspection(scope);controller.signal.addEventListener('abort',abort,{once:true});if(controller.signal.aborted)abort();
+      this.assertInspection(scope);deadline=setTimeout(abort,5000);this.assertInspection(scope);
+      const responses=await Promise.all(names.map(async name=>{this.assertInspection(scope);return fetch(new URL(name,this.assetBase),{method:'HEAD',signal:assetController.signal});}));
+      this.assertInspection(scope);return responses.every(response=>response.ok);
+    }catch(error){if(controller.signal.aborted)throw error;this.assertInspection(scope);return false;}
+    finally{if(deadline!==undefined)clearTimeout(deadline);controller.signal.removeEventListener('abort',abort);}
   }
-  private async checkInspectedAssets(source:Source,probe:Probe,settings:Settings,sid:string,controller:AbortController){
-    this.updateInspection({kind:'reset',scope:'assets'});
+  private async checkInspectedAssets(source:Source,probe:Probe,settings:Settings,sid:string,controller:AbortController,scope?:InspectionLease){
+    this.assertInspection(scope);this.updateInspection({kind:'reset',scope:'assets'},scope);
     if(this.privateRemux){
-      const available=await this.optionalAssetsAvailable(['manifest.json','player.mjs','player.wasm'].map(name=>`web/engine-mpv-playback-${this.remuxRuntime}/${name}`),controller);this.assertOperation();this.privatePlaybackAssetsAvailable=available;
+      const available=await this.optionalAssetsAvailable(['manifest.json','player.mjs','player.wasm'].map(name=>`web/engine-mpv-playback-${this.remuxRuntime}/${name}`),controller,scope);this.assertInspection(scope);this.updateInspection({kind:'assets',value:{playbackAvailable:available}},scope);
       if(this.privatePlaybackAssetsAvailable){
         const metadataController=new AbortController(),abort=()=>metadataController.abort();
-        controller.signal.addEventListener('abort',abort,{once:true});if(controller.signal.aborted)abort();
-        const deadline=setTimeout(abort,5000);
+        let deadline:ReturnType<typeof setTimeout>|undefined;
         try{
+          this.assertInspection(scope);controller.signal.addEventListener('abort',abort,{once:true});if(controller.signal.aborted)abort();
+          this.assertInspection(scope);deadline=setTimeout(abort,5000);this.assertInspection(scope);
           const manifestPath=`web/engine-mpv-playback-${this.remuxRuntime}/manifest.json`;
-          const response=this.providerRuntime?new Response(await this.providerRuntime.bytes(manifestPath)):await fetch(new URL(manifestPath,this.assetBase),{signal:metadataController.signal});
-          if(!response.ok)throw Error('Manifest HTTP '+response.status);
-          const assets=await readPrivatePlaybackAssets(response,this.remuxRuntime);this.assertOperation();this.privatePlaybackAssets=assets;
+          let response:Response;
+          if(this.providerRuntime){const bytes=await this.providerRuntime.bytes(manifestPath);this.assertInspection(scope);response=new Response(bytes);}
+          else response=await fetch(new URL(manifestPath,this.assetBase),{signal:metadataController.signal});
+          this.assertInspection(scope);if(!response.ok)throw Error('Manifest HTTP '+response.status);
+          const assets=await readPrivatePlaybackAssets(response,this.remuxRuntime);this.assertInspection(scope);this.updateInspection({kind:'assets',value:{playbackAssets:assets}},scope);
           if(!this.privatePlaybackAssets)throw Error('Invalid playback manifest');
         }catch(error){
-          if(controller.signal.aborted)throw error;this.assertOperation();
-          this.privatePlaybackAssetsFailure=new PlayerError('ASSET_LOAD_FAILED','Private playback manifest initialization failed: '+String(error));
+          if(controller.signal.aborted)throw error;this.assertInspection(scope);
+          const failure=new PlayerError('ASSET_LOAD_FAILED','Private playback manifest initialization failed: '+String(error));if(this.updateInspection({kind:'failure',failed:true},scope))this.inspectionErrors.set(this.control.routing.inspection.playbackFailure!,failure);
         }
-        finally{clearTimeout(deadline);controller.signal.removeEventListener('abort',abort);}
+        finally{if(deadline!==undefined)clearTimeout(deadline);controller.signal.removeEventListener('abort',abort);}
       }
     }
     if(this.mpvSubtitles&&this.fileServicesSource(source)&&settings.subtitles&&sid!=='no'&&probe.tracks.some(t=>t.type==='sub')){
-      const available=await this.optionalAssetsAvailable(['mjs','wasm'].map(ext=>`web/engine-${this.privateRemux?'mpv-subtitles-'+this.remuxRuntime:'subtitles'}/service.${ext}`),controller);this.assertOperation();this.mpvSubtitleAssetsAvailable=available;
+      const available=await this.optionalAssetsAvailable(['mjs','wasm'].map(ext=>`web/engine-${this.privateRemux?'mpv-subtitles-'+this.remuxRuntime:'subtitles'}/service.${ext}`),controller,scope);this.assertInspection(scope);this.updateInspection({kind:'assets',value:{subtitleAssets:available}},scope);
     }
-    this.assertOperation();
+    this.assertInspection(scope);
   }
-  private async inspectFallbackAfterFastFailure(source:Source,settings:Settings):Promise<string|undefined>{
-    this.fastInspectedSource=undefined;
-    if(this.sourceInspection?.source===source&&(this.providerRuntime?.codecPreparation(source,this.sourceInspection.probe,this.remuxRuntime,settings.aid)||this.providerRuntime?.audioRepairCandidate(source,this.sourceInspection.probe))){
-      this.record({mode:'probe',outcome:'selected',reason:'Retained bounded local metadata for codec preparation; complete packet validation remains required'});
-      return nativeRejection(this.sourceInspection.probe,{...settings},document.createElement('video'));
+  private async inspectFallbackAfterFastFailure(source:Source,settings:Settings,scope?:InspectionLease):Promise<string|undefined>{
+    this.assertInspection(scope);this.updateInspection({kind:'fast',source:null},scope);
+    const inspected=this.sourceInspection;let repair=false;
+    if(inspected?.source===source){repair=!!this.providerRuntime?.codecPreparation(source,inspected.probe,this.remuxRuntime,settings.aid);this.assertInspection(scope);if(!repair){repair=!!this.providerRuntime?.audioRepairCandidate(source,inspected.probe);this.assertInspection(scope);}}
+    if(repair){
+      this.assertInspection(scope);this.record({mode:'probe',outcome:'selected',reason:'Retained bounded local metadata for codec preparation; complete packet validation remains required'});this.assertInspection(scope);
+      return nativeRejection(inspected!.probe,{...settings},document.createElement('video'));
     }
-    if(!this.canInspectFFmpeg){
-      this.updateInspection({kind:'reset',scope:'fallback'});
+    this.assertInspection(scope);const canInspect=this.canInspectFFmpeg;this.assertInspection(scope);
+    if(!canInspect){
+      this.updateInspection({kind:'reset',scope:'fallback'},scope);
       return 'Wasm inspection requires cross-origin isolation';
     }
-    const controller=this.inspection=new AbortController();
+    const controller=new AbortController();try{this.assertInspection(scope);}catch(error){controller.abort();throw error;}this.inspection=controller;
     try{
-      const probe=await this.inspectWithFFmpeg(source,controller);
-      const inspectedSettings={aid:'auto',sid:'auto',subtitles:settings.subtitles};
-      this.sourceInspection={source,probe,settings:inspectedSettings};
-      await this.checkInspectedAssets(source,probe,settings,'auto',controller);
-      this.record({mode:'probe',outcome:'selected',reason:'FFmpeg reinspection after Fast Inspector Direct startup failure'});
+      const probe=await this.inspectWithFFmpeg(source,controller,scope);
+      this.assertInspection(scope);const inspectedSettings={aid:'auto',sid:'auto',subtitles:settings.subtitles};
+      this.updateInspection({kind:'probe',value:{source:this.inspectionSourceKey(source),probe,settings:inspectedSettings}},scope);
+      await this.checkInspectedAssets(source,probe,settings,'auto',controller,scope);
+      this.assertInspection(scope);this.record({mode:'probe',outcome:'selected',reason:'FFmpeg reinspection after Fast Inspector Direct startup failure'});this.assertInspection(scope);
       return nativeRejection(probe,inspectedSettings);
     }catch(error){
+      this.assertInspection(scope);
       if(this.destroyed||this.activeOperation?.controller.signal.aborted||controller.signal.aborted||terminalSourceFailure(error)||this.providerRuntime&&['ASSET_LOAD_FAILED','DEPLOYMENT_UNAVAILABLE'].includes(playerError(error).code))throw error;
-      this.updateInspection({kind:'reset',scope:'fallback'});
+      this.updateInspection({kind:'reset',scope:'fallback'},scope);
       this.record({mode:'probe',outcome:'failed',reason:`FFmpeg reinspection after Direct failure: ${String(error)}`});
-      return 'Native eligibility could not be established: '+String(error);
+      this.assertInspection(scope);return 'Native eligibility could not be established: '+String(error);
     }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
   }
-  private async select(source: Source, settings: Settings, preserve: boolean, tracks: (TextTrackSource & {attachmentId?:string})[], start=0, target?: number, priorAttempts:SelectionAttempt[]=[],inspectOnly=false,requirements:RouteRequirements={}){
-    if(this.providerRuntime){await this.interruptible(this.providerRuntime.load());this.assertOperation();this.selectDeployedRuntime();}
-    const inspectionPolicy=()=>initialInspectionPolicy({automatic:this.automatic,mode:this.mode,privateRemux:this.privateRemux,provider:!!this.providerRuntime,canInspect:this.canInspectFFmpeg,quality:this.decodeQuality,adaptive:this.adaptiveFrameDrop,inspected:this.sourceInspection?.source===source,start,videoFilters:settings.vf,audioFilters:settings.af,toneMapping:this.candidatePreferences.toneMapping,...(source.kind==='local'?{localDemuxer:source.input?.demuxer}:{remoteDemuxer:source.options.demuxer,remoteFormat:source.options.format})});
-    if(!this.automatic&&this.mode!=='native'){
-      if(inspectionPolicy().privateForced){
-        this.privatePlaybackAssetsFailure=undefined;
-        const controller=this.inspection=new AbortController();
+  private async select(source:Source,settings:Settings,preserve:boolean,tracks:(TextTrackSource&{attachmentId?:string})[],start=0,target?:number,priorAttempts:SelectionAttempt[]=[],inspectOnly=false,requirements:RouteRequirements={}){
+    const original={epoch:this.operationEpoch,operation:this.control.operations.active},sourceKey=this.inspectionSourceKey(source);
+    if(!this.dispatchControl({type:'routing.inspection',...original,change:{kind:'work.begin',...original,source:sourceKey,provider:!!this.providerRuntime,preserve,inspectOnly}}).accepted)throw new PlayerError('ABORTED','Inspection was retired');
+    const lease:InspectionLease={...original,id:this.control.routing.inspection.work!.id};
+    const current=()=>{this.assertInspection(lease);return this.control.routing.inspection.work!;};
+    const advance=(change:Exclude<InspectionWorkChange,{kind:'work.begin'}>)=>{
+      this.assertInspection(lease);if(!this.updateInspection(change,lease))throw new PlayerError('ABORTED','Inspection step was retired');
+      const work=current();if(work.notice){this.record({mode:'probe',...work.notice});this.assertInspection(lease);}return work;
+    };
+    let controller:AbortController|undefined,localFile:File|undefined,failedSignal:AbortSignal|undefined,failure:unknown;
+    const release=()=>{const owned=controller;controller=undefined;if(owned){try{owned.abort();}finally{if(this.inspection===owned)this.inspection=undefined;}}};
+    const acquire=()=>{this.assertInspection(lease);const acquired=new AbortController();try{this.assertInspection(lease);}catch(error){acquired.abort();throw error;}controller=this.inspection=acquired;return acquired;};
+    try{
+      for(;;){
+        const work=current(),effect=selectInitialInspectionEffect(this.control.routing.inspection)!;
+        // Final route calls retain their own errors and transaction boundaries.
+        if(effect.kind==='replace'){release();current();return await this.replace(source,this.mode,settings,preserve,tracks,target);}
+        if(effect.kind==='discover'){release();current();return await this.discover(source,settings,preserve,tracks,target,this.automatic,this.automatic?undefined:this.mode,start,requirements);}
+        if(effect.kind==='return')return;
+        if(effect.kind==='failed')throw failure;
+        if(effect.kind==='webgpu'){await this.inspectForQualifiedWebGPU(source,settings,lease);current();advance({kind:'work.webgpu',id:lease.id});continue;}
+        if(effect.kind==='normal-start')acquire();
         try{
-          const probe=await this.inspectWithFFmpeg(source,controller);
-          if(source.kind==='remote'&&probe.identity)source.options.identity??=probe.identity;
-          this.sourceInspection={source,probe,settings:{aid:settings.aid,sid:settings.sid,subtitles:settings.subtitles}};
-          await this.checkInspectedAssets(source,probe,settings,settings.sid,controller);
-        }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
-      }
-      if(this.mode==='hybrid')await this.inspectForQualifiedWebGPU(source,settings);
-      if(inspectionPolicy().qualityForced){
-        // Explicit Software skips the normal tier probe. Quality admission still
-        // needs codec identity before mpv constructs its decoder.
-        const controller=this.inspection=new AbortController();
-        try{
-          const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));
-          const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();
-          const compiledWasm=await this.interruptible(this.providerRuntime?this.providerRuntime.module(`web/engine-remux${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`):this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));
-          const probe:Probe=await probeSource(transport,controller.signal,undefined,compiledWasm,this.remuxRuntime);
-          this.assertOperation();
-          this.sourceInspection={source,probe,settings:{aid:settings.aid,sid:settings.sid,subtitles:settings.subtitles}};
-        }catch(error){
-          if(this.destroyed||this.activeOperation?.controller.signal.aborted||controller.signal.aborted||terminalSourceFailure(error)||this.providerRuntime&&['ASSET_LOAD_FAILED','DEPLOYMENT_UNAVAILABLE'].includes(playerError(error).code))throw error;
-          // The decoder remains usable when optional codec inspection cannot
-          // classify a file; the unknown-codec policy permits exact only.
-        }finally{if(this.inspection===controller)this.inspection=undefined;}
-      }
-      return this.replace(source,this.mode,settings,preserve,tracks,target);
-    }
-    const componentRepairRetry=this.sourceInspection?.source===source&&!!(this.providerRuntime?.codecPreparation(source,this.sourceInspection.probe,this.remuxRuntime,settings.aid)||this.providerRuntime?.audioRepairCandidate(source,this.sourceInspection.probe));
-    this.attempts=[];
-    for(const attempt of priorAttempts)this.record(attempt);
-    let nativeReason: string | undefined;
-    if(start===0||this.sourceInspection?.source!==source){this.updateInspection({kind:'reset',scope:'initial'});}
-    // A later Direct playback failure can resume discovery beyond Native.
-    // Recovery beyond the initial route can need decoder configuration or track bounds.
-    if(start>0&&this.fastInspectedSource===source)
-      nativeReason=await this.inspectFallbackAfterFastFailure(source,settings);
-    // Cooperative playback still needs inspected codec/resource facts when
-    // filters already rule out Native. This also covers automatic filter changes.
-    if(inspectionPolicy().normal){
-      if(inspectionPolicy().manifest){
-        nativeReason=source.kind==='remote'?nativeManifestRejection(source.options,settings,!!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')):'Explicit demuxer requires FFmpeg';
-      }else{
-        const controller=this.inspection=new AbortController();
-        try{
-          let probe:Probe|undefined, fastProbe=false, fastFacts:string[]=[];
-          // Immutable local bytes permit bounded inspection without an engine download.
-          // Remote identity/permission enforcement continues through the existing inspector.
-          if(source.kind==='local'){
-            const local=source.file instanceof File?source.file:new File([source.file],'media');
-            // The filename only bypasses an optimization: FFmpeg still inspects
-            // these known-unsupported families, whatever their actual bytes are.
-            if(fastInspectionAllowed({local:true,privateDemuxer:!!(this.privateRemux&&this.privateSourceDemuxer(source)),preserve,componentRepairRetry,textTracks:tracks.length,aid:settings.aid,sid:settings.sid,filename:local.name})){
-              try{
-                const {inspectFastSource}=await this.interruptible(import(new URL('web/fast-source-inspector.js',this.assetBase).href));
-                const fast=await inspectFastSource(local,{signal:controller.signal,requirements:routingRequirements,onProgress:(progress:{phase:string})=>{
-                  if(!controller.signal.aborted&&!this.destroyed)this.emit('inspectionchange',progress);
-                }});
-                this.assertOperation();
-                if(fast.status==='satisfied'){
-                  probe=fast.evidence as Probe;fastProbe=true;fastFacts=fast.available;
-                  this.record({mode:'probe',outcome:'selected',reason:`Fast local metadata: ${fast.bytesRead} bytes; routing admission pending`});
-                }else this.record({mode:'probe',outcome:'skipped',reason:`Fast local metadata: ${fast.bytesRead} bytes; ${fast.reason}`});
-              }catch(error){
-                if(controller.signal.aborted||this.activeOperation?.controller.signal.aborted||terminalSourceFailure(error)||this.providerRuntime&&['ASSET_LOAD_FAILED','DEPLOYMENT_UNAVAILABLE'].includes(playerError(error).code))throw error;
-                this.record({mode:'probe',outcome:'skipped',reason:`Fast inspector unavailable: ${String(error)}`});
-              }
+          switch(effect.kind){
+            case 'deployment':{
+              const provider=this.providerRuntime!;await this.interruptible(provider.load());current();this.selectDeployedRuntime();current();advance({kind:'work.deployed',id:lease.id});break;
             }
-          }
-          this.assertOperation();
-          if(!probe&&this.canInspectFFmpeg)probe=await this.inspectWithFFmpeg(source,controller);
-          if(!probe)this.record({mode:'probe',outcome:'skipped',reason:'Wasm inspection requires cross-origin isolation; browser-native routes remain available'});
-          if(probe){
-          for(let inspectionPass=0;inspectionPass<2;inspectionPass++){
-          if(source.kind==='remote'&&probe.identity)source.options.identity??=probe.identity;
-          // Cross-mode track IDs reset to auto in replace(); preflight that same selection.
-          const {aid,sid}=inspectionSelection(probe,{settings,preserve,mode:this.mode,hasSource:!!this.source,textTracks:tracks.length,remuxTracks:usesRemuxTracks(backendPlan(this.current?.backend)),publicAudio:this.publicSelections.get('audio'),publicSubtitle:this.publicSelections.get('sub')});
-          nativeReason=this.privateRemux&&this.privateSourceDemuxer(source)?'Explicit demuxer requires FFmpeg':nativeRejection(probe,{...settings,aid,sid},document.createElement('video'));
-          this.sourceInspection={source,probe,settings:{aid,sid,subtitles:settings.subtitles}};
-          await this.checkInspectedAssets(source,probe,settings,sid,controller);
-          if(fastProbe){
-            const candidates=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,nativeReason,this.automatic,requirements);
-            const first=candidates.find(plan=>plan.eligible)?.id;
-            const missing=missingRoutingFacts(candidates,fastFacts);
-            if(missing.length){
-              this.record({mode:'probe',outcome:'skipped',reason:`Fast metadata missing ${missing.join(', ')} for ${first??'routing'}; FFmpeg inspection required`});
-              fastProbe=false;this.updateInspection({kind:'reset',scope:'fallback'});
-              if(this.canInspectFFmpeg){probe=await this.inspectWithFFmpeg(source,controller);continue;}
-              probe=undefined;nativeReason=undefined;
+            case 'configure':{
+              const facts={automatic:this.automatic,mode:this.mode,privateRemux:this.privateRemux,provider:!!this.providerRuntime,canInspect:this.canInspectFFmpeg,quality:this.decodeQuality,adaptive:this.adaptiveFrameDrop,inspected:this.sourceInspection?.source===source,start,videoFilters:settings.vf,audioFilters:settings.af,toneMapping:this.candidatePreferences.toneMapping,...(source.kind==='local'?{localDemuxer:source.input?.demuxer}:{remoteDemuxer:source.options.demuxer,remoteFormat:source.options.format})};current();advance({kind:'work.configured',id:lease.id,facts});break;
+            }
+            case 'private-probe':{
+              const probe=await this.inspectWithFFmpeg(source,acquire(),lease);current();
+              if(source.kind==='remote'&&probe.identity)source.options.identity??=probe.identity;current();
+              advance({kind:'work.private-probe',id:lease.id,probe,settings:{aid:settings.aid,sid:settings.sid,subtitles:settings.subtitles}});break;
+            }
+            case 'private-assets':{
+              await this.checkInspectedAssets(source,this.sourceInspection!.probe,settings,settings.sid,controller!,lease);current();release();current();advance({kind:'work.private-assets',id:lease.id});break;
+            }
+            case 'quality':{
+              // Explicit Software still uses the original optional inspector,
+              // independently of the normal tier probe and private demuxer path.
+              const owned=acquire();
+              try{
+                const {probeSource}=await this.interruptible(import(new URL('web/source-probe.js',this.assetBase).href));current();
+                const transport=source.kind==='local'?{file:source.file instanceof File?source.file:new File([source.file],'media')}:(()=>{const {refreshAuthorization,...options}=source.options;return {options:{...options,url:new URL(options.url,location.href).href},refreshAuthorization};})();current();
+                const compiledWasm=await this.interruptible(this.providerRuntime?this.providerRuntime.module(`web/engine-remux${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`):this.preparation?.readyModule('engine-remux')??Promise.resolve(undefined));current();
+                const probe:Probe=await probeSource(transport,owned.signal,undefined,compiledWasm,this.remuxRuntime);current();
+                advance({kind:'work.quality',id:lease.id,probe,settings:{aid:settings.aid,sid:settings.sid,subtitles:settings.subtitles}});
+              }catch(error){failedSignal=owned.signal;throw error;}finally{if(this.inspection===owned)this.inspection=undefined;controller=undefined;}
               break;
             }
-            this.fastInspectedSource=source;
-            this.record({mode:'probe',outcome:'selected',reason:`Fast Inspector admitted ${first} without remux inspector Wasm`});
-          }
-          break;
-          }
+            case 'prepare':{
+              const inspected=this.sourceInspection;let componentRepairRetry=false;
+              if(inspected?.source===source){componentRepairRetry=!!this.providerRuntime?.codecPreparation(source,inspected.probe,this.remuxRuntime,settings.aid);current();if(!componentRepairRetry){componentRepairRetry=!!this.providerRuntime?.audioRepairCandidate(source,inspected.probe);current();}}
+              this.attempts=[];for(const attempt of priorAttempts){this.record(attempt);current();}advance({kind:'work.prepared',id:lease.id,componentRepairRetry});break;
+            }
+            case 'fallback':{
+              const nativeReason=await this.inspectFallbackAfterFastFailure(source,settings,lease);current();advance({kind:'work.fallback',id:lease.id,nativeReason});break;
+            }
+            case 'manifest':{
+              const nativeReason=source.kind==='remote'?nativeManifestRejection(source.options,settings,!!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')):'Explicit demuxer requires FFmpeg';current();advance({kind:'work.manifest',id:lease.id,nativeReason});break;
+            }
+            case 'normal-start':{
+              let fastAllowed=false;
+              if(source.kind==='local'){
+                const local=localFile=source.file instanceof File?source.file:new File([source.file],'media');current();
+                fastAllowed=fastInspectionAllowed({local:true,privateDemuxer:!!(this.privateRemux&&this.privateSourceDemuxer(source)),preserve,componentRepairRetry:work.componentRepairRetry,textTracks:tracks.length,aid:settings.aid,sid:settings.sid,filename:local.name});current();
+              }
+              advance({kind:'work.normal-start',id:lease.id,fastAllowed});break;
+            }
+            case 'fast':{
+              if(source.kind!=='local')throw Error('Fast inspection requires a local source');
+              const local=localFile!;current();
+              const {inspectFastSource}=await this.interruptible(import(new URL('web/fast-source-inspector.js',this.assetBase).href));current();
+              const owned=controller!;
+              const fast=await inspectFastSource(local,{signal:owned.signal,requirements:routingRequirements,onProgress:(progress:{phase:string})=>{
+                try{this.assertInspection(lease);}catch{return;}if(!owned.signal.aborted){this.emit('inspectionchange',progress);}
+              }});current();
+              advance({kind:'work.fast',id:lease.id,probe:fast.status==='satisfied'?fast.evidence as Probe:undefined,available:fast.status==='satisfied'?fast.available:[],bytes:fast.bytesRead,reason:fast.reason});break;
+            }
+            case 'unavailable':advance({kind:'work.unavailable',id:lease.id});break;
+            case 'ffmpeg':{
+              const probe=await this.inspectWithFFmpeg(source,controller!,lease);current();advance({kind:'work.ffmpeg',id:lease.id,probe});break;
+            }
+            case 'classify':{
+              const probe=work.candidate!;if(source.kind==='remote'&&probe.identity)source.options.identity??=probe.identity;current();
+              const selected=inspectionSelection(probe,{settings,preserve,mode:this.mode,hasSource:!!this.source,textTracks:tracks.length,remuxTracks:usesRemuxTracks(backendPlan(this.current?.backend)),publicAudio:this.publicSelections.get('audio'),publicSubtitle:this.publicSelections.get('sub')});current();
+              const nativeReason=this.privateRemux&&this.privateSourceDemuxer(source)?'Explicit demuxer requires FFmpeg':nativeRejection(probe,{...settings,...selected},document.createElement('video'));current();
+              advance({kind:'work.classified',id:lease.id,settings:selected,nativeReason});break;
+            }
+            case 'assets':{
+              const inspected=this.sourceInspection!;await this.checkInspectedAssets(source,inspected.probe,settings,inspected.settings.sid,controller!,lease);current();advance({kind:'work.assets',id:lease.id});break;
+            }
+            case 'fast-admission':{
+              const candidates=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,work.nativeReason,this.automatic,requirements);current();
+              advance({kind:'work.fast-admission',id:lease.id,missing:missingRoutingFacts(candidates,work.fastFacts),first:candidates.find(plan=>plan.eligible)?.id});break;
+            }
+            case 'publish':release();current();this.admissionContext={nativeReason:work.nativeReason,automatic:this.automatic};current();advance({kind:'work.published',id:lease.id});break;
           }
         }catch(error){
-          // A new optional private inspector must not remove existing browser-only
-          // playback. Retry only a plain initial URL and these diagnosed failures;
-          // authorization, identity, cancellation and controlled transport stay terminal.
-          const optionalFacts={privateRemux:this.privateRemux,policy:this.remuxSelection.policy,preserve,inspectOnly,remote:source.kind==='remote',identity:source.kind==='remote'&&!!source.options.identity,aid:settings.aid,sid:settings.sid,provider:!!this.providerRuntime,retired:this.destroyed||!!this.activeOperation?.controller.signal.aborted||controller.signal.aborted,assetFailure:playerError(error).code==='ASSET_LOAD_FAILED',terminalSource:terminalSourceFailure(error),rangeReturnedWhole:/^Error: Source transport: Error: Expected HTTP 206; received 200$/.test(String(error)),directAdmitted:true};
-          const optionalInspection=optionalInspectionFallback(optionalFacts)&&optionalInspectionFallback({...optionalFacts,directAdmitted:this.admissible(source,settings,[],tracks,undefined,this.automatic,requirements).some(plan=>plan.id==='native-direct'&&plan.eligible)});
-          if(optionalInspection){
-            nativeReason=undefined;
-            this.record({mode:'probe',outcome:'skipped',reason:'Optional private inspection unavailable; trying browser Direct: '+String(error)});
-          }else{
-            if(this.destroyed||this.activeOperation?.controller.signal.aborted||['AUTOPLAY_BLOCKED','ABORTED','SOURCE_CHANGED','SOURCE_PERMISSION','NETWORK_TIMEOUT','ASSET_LOAD_FAILED'].includes(playerError(error).code)||terminalSourceFailure(error))throw error;
-            nativeReason='Native eligibility could not be established: '+String(error);
-            this.record({mode:'probe',outcome:'failed',reason:String(error)});
-          }
-        }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
+          current();failure=error;
+          const code=playerError(error).code,terminalSource=terminalSourceFailure(error);
+          const optional={privateRemux:this.privateRemux,policy:this.remuxSelection.policy,preserve,inspectOnly,remote:source.kind==='remote',identity:source.kind==='remote'&&!!source.options.identity,aid:settings.aid,sid:settings.sid,provider:!!this.providerRuntime,retired:!!controller?.signal.aborted,assetFailure:code==='ASSET_LOAD_FAILED',terminalSource,rangeReturnedWhole:/^Error: Source transport: Error: Expected HTTP 206; received 200$/.test(String(error)),directAdmitted:true};
+          const failed={code,message:String(error),terminalSource,provider:!!this.providerRuntime,rangeReturnedWhole:optional.rangeReturnedWhole,optional};
+          if(inspectionFailureRouteCheck(this.control.routing.inspection,failed)){optional.directAdmitted=this.admissible(source,settings,[],tracks,undefined,this.automatic,requirements).some(plan=>plan.id==='native-direct'&&plan.eligible);current();}
+          if(controller?.signal.aborted||failedSignal?.aborted)throw error;
+          advance({kind:'work.failed',id:lease.id,failure:failed});
+        }
       }
+    }finally{
+      try{release();}finally{this.dispatchControl({type:'routing.inspection',...lease,change:{kind:'work.finished',...lease}});this.pruneInspectionResources();}
     }
-    this.admissionContext={nativeReason,automatic:this.automatic};
-    if(inspectOnly)return;
-    return this.discover(source,settings,preserve,tracks,target,this.automatic,this.automatic?undefined:this.mode,start,requirements);
   }
   private updateEvidence(planId:string,state:'probing'|'prepared'|'failed',session:Session,reason?:string,failureKind?:'compatibility'|'terminal'){
     const epoch=this.operationEpoch,revision=this.runtimeCapabilities.revision,evidence=this.evidence(session);
@@ -1454,12 +1486,12 @@ export class Player extends EventTarget {
       if(this.control.routing.recovery.pending?.id!==id||this.current!==session)return;
       this.runtimeCapabilities.update(plan.id,'failed',evidence,message,compatible?'compatibility':'terminal',revision);
       if(this.control.routing.recovery.pending?.id!==id||this.current!==session)return;
-      if(!compatible){this.dispatchControl({type:'routing.recovery',change:{kind:'finished',id}});void session.backend.pause().catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionId)==='accepted')this.emit('error',session.error);return;}
+      if(!compatible){this.dispatchControl({type:'routing.recovery',change:{kind:'finished',id}});void this.backendEffect(session,'backend.pause').catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionId)==='accepted')this.emit('error',session.error);return;}
       if(!evidenceInterrupted(session.error))this.tierAttempts.failure(this.source!,this.tierConfiguration(this.settings),plan.id,String(session.error));
       queued=true;
       void this.enqueue(async()=>{
         if(this.control.routing.recovery.pending?.id!==id||this.current!==session||!this.automatic)return;
-        await session.backend.pause().catch(()=>{});this.assertOperation();
+        await this.backendEffect(session,'backend.pause').catch(()=>{});this.assertOperation();
         if(this.control.routing.recovery.pending?.id!==id||this.current!==session)return;
         const streaming=this.failedStreamingPlan(session),route=recoveryRoute({mode:this.mode,backendPlan:backendPlan(session.backend),nativeRemux:this.nativeRemux,streaming,trigger:'runtime'});
         const priorAttempts:SelectionAttempt[]=[...this.attempts.filter(attempt=>attempt.outcome!=='selected'),{mode:this.mode,outcome:'failed',reason:`${plan.id}: Runtime playback failure: ${session.error?.message??'Playback backend became unavailable'}`}];
@@ -1554,8 +1586,8 @@ export class Player extends EventTarget {
       case 'volume':return backend.volume(effect.value);
       case 'rate':return backend.rate(effect.value);
       case 'gain':return backend.gain!(effect.value);
-      case 'pause':return backend.pause();
-      case 'play':return backend.play();
+      case 'pause':return session?this.backendEffect(session,'backend.pause'):backend.pause();
+      case 'play':return session?this.backendEffect(session,'backend.play'):backend.play();
       case 'track':return backend.selectTrack(effect.track,effect.value);
       case 'track.verify':return this.confirmTrackSelection(session!,this.source,this.mode,effect.settings,effect.track,effect.value);
       case 'subtitles':return backend.subtitleVisible(effect.value);
@@ -1594,7 +1626,7 @@ export class Player extends EventTarget {
     if(!accepted.accepted)throw new PlayerError('ABORTED','Setting operation was retired');
     for(const effect of accepted.effects??[]){this.assertOperation();await this.executeSetting(this.current?.backend??backend!,effect,this.current);}
   }
-  private async playNativeVerified(backend:Backend,playing=backend.play(),outputBudgetMs?:number,intent?:AbortSignal) {
+  private async playNativeVerified(backend:Backend,playing=this.invokeBackend(backend,'backend.play'),outputBudgetMs?:number,intent?:AbortSignal) {
     const controller=new AbortController();
     const signals=[intent,this.activeOperation?.controller.signal].filter((signal):signal is AbortSignal=>!!signal);
     const abort=()=>controller.abort();
@@ -1611,7 +1643,7 @@ export class Player extends EventTarget {
     const trialVerified=this.evidence(this.current).outputVerified===true;
     // Initiate resume before yielding the user's activation to the operation queue.
     let immediate:Promise<void>|undefined;
-    try{immediate=!this.destroyed&&this.queued===0&&this.current?this.current.backend.play():undefined;}catch(error){this.dispatchControl({type:'play.settled',id:intentId});this.playRequests.delete(intentId);throw error;}
+    try{immediate=!this.destroyed&&this.queued===0&&this.current?this.backendEffect(this.current,'backend.play',intentId):undefined;}catch(error){this.dispatchControl({type:'play.settled',id:intentId});this.playRequests.delete(intentId);throw error;}
     immediate?.catch(()=>{});
     return this.enqueue(async()=>{if(intent.signal.aborted)return;if(!this.current)throw Error('No source');const session=this.current;this.updateSettings({pause:false});
       // A local original-copy trial can yield to an already-admitted route.
@@ -1620,7 +1652,7 @@ export class Player extends EventTarget {
         ['direct','direct-mpv'].includes(backendPlan(session.backend)??'')&&
         this.planDecisions?.some(plan=>plan.eligible&&!plan.id.startsWith('native-direct'));
       try{
-        const playing=immediate??session.backend.play();
+        const playing=immediate??this.backendEffect(session,'backend.play',intentId);
         if(this.mode==='native')await this.playNativeVerified(session.backend,playing,boundedTrial?1500:undefined,intent.signal);else await playing;
         this.assertOperation();if(this.current===session){const plan=this.diagnostics.plan;if(plan)this.acceptEvidence(plan.id,session);}
       }catch(error){
@@ -1649,7 +1681,7 @@ export class Player extends EventTarget {
             this.assertOperation();if(plan)this.acceptEvidence(plan.id,session);
           }
         }
-        else {const plan=this.diagnostics.plan;if(plan&&evidenceInterrupted(error))this.updateEvidence(plan.id,'prepared',session,String(error));this.updateSettings({pause:true});await session.backend.pause().catch(()=>{});throw error;}
+        else {const plan=this.diagnostics.plan;if(plan&&evidenceInterrupted(error))this.updateEvidence(plan.id,'prepared',session,String(error));this.updateSettings({pause:true});await this.backendEffect(session,'backend.pause').catch(()=>{});throw error;}
       }}).finally(()=>{this.dispatchControl({type:'play.settled',id:intentId});this.playRequests.delete(intentId);});
   }
   pause() {for(const id of this.dispatchControl({type:'play.retire'}).retire)this.playRequests.get(id)?.abort();return this.enqueue(async()=>{await this.applySetting({kind:'pause'});this.dispatchControl({type:'playback.observed',playing:false,waiting:false});if(this.backgroundPromotion)this.schedulePromotion();});}
@@ -1675,7 +1707,7 @@ export class Player extends EventTarget {
           // audio held behind an impossible seek target. A failed restoration
           // means this route is broken and automatic selection may continue.
           if(this.current===accepted&&!this.destroyed&&!this.activeOperation?.controller.signal.aborted){
-            try{await accepted.backend.seek(previous);await this.settled(accepted,this.mode,previous);if(!wasPaused)await accepted.backend.play();}
+            try{await accepted.backend.seek(previous);await this.settled(accepted,this.mode,previous);if(!wasPaused)await this.backendEffect(accepted,'backend.play');}
             catch(restoreError){
               // A route that cannot restore its last presented position has
               // failed; let automatic selection try the next admitted plan.
@@ -1718,7 +1750,7 @@ export class Player extends EventTarget {
       const failed=this.dispatchControl({type:'boundary.failed',id});
       if(!failed.accepted)return;
       // Failed cleanup remains best effort; logical pause is already committed.
-      try{void session.backend.pause().catch(()=>{});}catch{}
+      try{void this.backendEffect(session,'backend.pause').catch(()=>{});}catch{}
       this.publish();
     };
     void this.enqueue(async()=>{

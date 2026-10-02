@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-/** Internal foundation only. No Player state authority is transferred here yet. */
+/** Scalar authority carried by effects; physical resources remain in the shell. */
 export type EffectScope = Readonly<{
     owner: string;
     lifetime: number;
     sourceId: number | null;
     sessionId: number | null;
     operationId: number;
+    playId?: number;
 }>;
 export type EffectLane = 'immediate' | 'scheduled';
 /** IDs increase monotonically within one runtime lifetime, including rejected work. */

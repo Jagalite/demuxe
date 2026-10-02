@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import { effectRuntimeWork, transitionEffectRuntime } from './effect-runtime.js';
+import { resourceScopeRetired } from './resource-ledger.js';
 import { transitionResourceLedger } from './resource-ledger.js';
 import { transitionPlayerReadiness, retirePlayerReadiness } from './player-readiness.js';
 import { transitionPlayerAction, retirePlayerActions } from './player-actions.js';
@@ -14,7 +16,7 @@ import { transitionRouting } from './route-state.js';
 import { clearRecovery, retireRecovery } from './route-recovery.js';
 import { cancelPromotion } from './route-promotion.js';
 import { clearRouteEvidence, retireRouteEvidence } from './route-evidence.js';
-import { transitionInspection } from './route-inspection.js';
+import { transitionInspection, isInspectionWorkChange } from './route-inspection.js';
 /** Publication bookkeeping does not invalidate an otherwise current capture.
  * Every domain change still advances the same composed authority revision. */
 export function transitionPlayer(state, input) {
@@ -31,10 +33,32 @@ export function transitionPlayer(state, input) {
         if (resources !== decision.state.resources)
             decision = Object.freeze({ ...decision, state: Object.freeze({ ...decision.state, resources }) });
     }
-    const bookkeeping = input.type === 'resource.event' || ['publication.schedule', 'publication.scheduled', 'publication.begin', 'publication.prepare', 'publication.commit'].includes(input.type);
+    if (decision.state !== state && input.type !== 'effect.event') {
+        let executor = decision.state.executor;
+        const outcomes = [];
+        for (const { effect } of executor.pending) {
+            const retiredCleanup = effect.kind === 'resource.release' && resourceScopeRetired(decision.state.resources, `scope:${effect.scope.sessionId}`), step = transitionEffectRuntime(executor, { type: 'retire', id: effect.id, current: playerEffectAuthority(decision.state, effect.scope), retiredCleanup });
+            executor = step.state;
+            outcomes.push(...step.outcomes);
+        }
+        if (decision.state.operations.terminal) {
+            const disposed = transitionEffectRuntime(executor, { type: 'dispose' });
+            executor = disposed.state;
+            outcomes.push(...disposed.outcomes);
+        }
+        if (executor !== decision.state.executor)
+            decision = Object.freeze({ ...decision, state: Object.freeze({ ...decision.state, executor }), executionOutcomes: Object.freeze(outcomes) });
+    }
+    const bookkeeping = input.type === 'effect.event' || input.type === 'resource.event' || ['publication.schedule', 'publication.scheduled', 'publication.begin', 'publication.prepare', 'publication.commit'].includes(input.type);
     return decision.state === state || bookkeeping ? decision : Object.freeze({ ...decision, state: Object.freeze({ ...decision.state, captureRevision: state.captureRevision + 1 }) });
 }
 function reducePlayer(state, input) {
+    if (input.type === 'effect.event') {
+        const event = input.input, work = 'id' in event ? effectRuntimeWork(state.executor, event.id) : undefined;
+        const normalized = work && (event.type === 'start' || event.type === 'retire' || event.type === 'physical-result') ? { ...event, current: playerEffectAuthority(state, work.effect.scope), ...event.type !== 'physical-result' ? { retiredCleanup: work.effect.kind === 'resource.release' && resourceScopeRetired(state.resources, `scope:${work.effect.scope.sessionId}`) } : {} } : event;
+        const execution = transitionEffectRuntime(state.executor, normalized);
+        return Object.freeze({ state: execution.state === state.executor ? state : Object.freeze({ ...state, revision: state.revision + 1, executor: execution.state }), accepted: execution.accepted, reason: execution.reason, execution, retire: Object.freeze([]) });
+    }
     if (input.type === 'resource.event') {
         const resource = transitionResourceLedger(state.resources, input.input);
         return Object.freeze({ state: resource.state === state.resources ? state : Object.freeze({ ...state, revision: state.revision + 1, resources: resource.state }), accepted: resource.accepted, reason: resource.reason, resource, retire: Object.freeze([]) });
@@ -54,12 +78,17 @@ function reducePlayer(state, input) {
             return Object.freeze({ state, accepted: false, reason: 'retired', retire: Object.freeze([]) });
         if (input.type === 'routing.discovery' && (state.operations.terminal || input.epoch !== state.operations.epoch || input.operation !== state.operations.active || input.operation !== null && !state.operations.entries.some(entry => entry.id === input.operation && entry.epoch === input.epoch && !entry.cancelled)))
             return Object.freeze({ state, accepted: false, reason: 'retired', retire: Object.freeze([]) });
-        if (input.type === 'routing.inspection' && (state.operations.terminal || input.epoch !== state.operations.epoch || input.operation !== state.operations.active || input.operation !== null && !state.operations.entries.some(entry => entry.id === input.operation && entry.epoch === input.epoch) || input.change.kind !== 'restore' && state.operations.entries.some(entry => entry.id === input.operation && entry.cancelled)))
-            return Object.freeze({ state, accepted: false, reason: 'retired', retire: Object.freeze([]) });
+        if (input.type === 'routing.inspection') {
+            const work = state.routing.inspection.work, change = input.change;
+            const cleanup = change.kind === 'work.finished' && work?.id === change.id && work.epoch === change.epoch && work.operation === change.operation && input.epoch === change.epoch && input.operation === change.operation;
+            const rebound = change.kind === 'work.begin' || change.kind === 'work.finished' ? (change.epoch !== input.epoch || change.operation !== input.operation) : isInspectionWorkChange(change) && (work?.epoch !== input.epoch || work.operation !== input.operation);
+            if (rebound || !cleanup && (state.operations.terminal || input.epoch !== state.operations.epoch || input.operation !== state.operations.active || input.operation !== null && !state.operations.entries.some(entry => entry.id === input.operation && entry.epoch === input.epoch) || change.kind !== 'restore' && state.operations.entries.some(entry => entry.id === input.operation && entry.cancelled)))
+                return Object.freeze({ state, accepted: false, reason: 'retired', retire: Object.freeze([]) });
+        }
         if (input.type === 'routing.decoding' && (state.operations.terminal || input.epoch !== state.operations.epoch || input.session !== state.source.acceptedSession))
             return Object.freeze({ state, accepted: false, reason: 'retired', retire: Object.freeze([]) });
         const routing = transitionRouting(state.routing, input);
-        return Object.freeze({ state: routing === state.routing ? state : Object.freeze({ ...state, revision: state.revision + 1, routing }), accepted: routing !== state.routing || !['routing.discovery', 'routing.capabilities', 'routing.tiers', 'routing.promotion', 'routing.recovery'].includes(input.type), retire: Object.freeze([]) });
+        return Object.freeze({ state: routing === state.routing ? state : Object.freeze({ ...state, revision: state.revision + 1, routing }), accepted: routing !== state.routing || !['routing.inspection', 'routing.discovery', 'routing.capabilities', 'routing.tiers', 'routing.promotion', 'routing.recovery'].includes(input.type), retire: Object.freeze([]) });
     }
     if (isAttachmentInput(input))
         return transitionAttachment(state, input);
@@ -130,4 +159,12 @@ export function sessionAuthority(state, session) {
     if (candidate?.session === session && candidate.operationEpoch === state.operations.epoch && !state.operations.entries.some(entry => entry.id === state.operations.active && entry.cancelled))
         return 'candidate';
     return 'retired';
+}
+/** Current ownership is determined entirely by the composed Player state. */
+export function playerEffectAuthority(state, scope) {
+    if (scope.owner !== 'player' || state.operations.terminal || scope.lifetime !== state.operations.epoch || scope.sessionId === null || sessionAuthority(state, scope.sessionId) === 'retired' || resourceScopeRetired(state.resources, `scope:${scope.sessionId}`))
+        return false;
+    if (scope.operationId !== 0 && (state.operations.active !== scope.operationId || !state.operations.entries.some(entry => entry.id === scope.operationId && !entry.cancelled)))
+        return false;
+    return scope.playId === undefined || state.playback.plays.includes(scope.playId);
 }

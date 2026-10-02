@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-export type BackendRequestProfile = 'software' | 'audio';
+export type BackendRequestProfile = 'software' | 'audio' | 'subtitles';
 export type BackendRequest = Readonly<{
     id: number;
     op: string;

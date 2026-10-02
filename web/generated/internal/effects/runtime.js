@@ -1,25 +1,29 @@
 // SPDX-License-Identifier: Apache-2.0
 import { resourceScopeKey } from '../machine/protocol.js';
 import { createEffectRuntimeState, effectRuntimeWork, transitionEffectRuntime } from '../machine/effect-runtime.js';
-/** Host interpreter for the deliberately small effect vocabulary. Not wired into
- * Player. machine/effect-runtime owns admission, execution and settlement state. */
+/** Host interpreter for typed effects. The enclosing Player can compose the
+ * pure execution owner through the store port; physical handles remain here. */
 export class EffectRuntime {
     options;
-    state;
+    localState;
+    get state() { return this.options.store ? this.options.store.read() : this.localState; }
     handles = new Map();
     constructor(options) {
         this.options = options;
-        this.state = createEffectRuntimeState(options.maxPending);
+        if (!options.store)
+            this.localState = createEffectRuntimeState(options.maxPending);
     }
     get pendingCount() { return this.state.pending.length; }
     transition(input) {
+        if (this.options.store)
+            return this.options.store.dispatch(input);
         const decision = transitionEffectRuntime(this.state, input);
-        this.state = decision.state;
+        this.localState = decision.state;
         return decision;
     }
-    submit(input) {
+    submit(input, options = {}) {
         // Normalize host records before entering the reducer; getters can reenter.
-        const sourceScope = input.scope, scope = { owner: sourceScope.owner, lifetime: sourceScope.lifetime, sourceId: sourceScope.sourceId, sessionId: sourceScope.sessionId, operationId: sourceScope.operationId };
+        const sourceScope = input.scope, scope = { owner: sourceScope.owner, lifetime: sourceScope.lifetime, sourceId: sourceScope.sourceId, sessionId: sourceScope.sessionId, operationId: sourceScope.operationId, ...sourceScope.playId !== undefined ? { playId: sourceScope.playId } : {} };
         const kind = input.kind, identity = { id: input.id, scope, lane: input.lane };
         const observed = kind === 'timer.wait' ? { ...identity, kind, deadlineMs: input.deadlineMs } : { ...identity, kind, resourceId: input.resourceId };
         const admission = this.transition({ type: 'admit', effect: observed });
@@ -28,8 +32,28 @@ export class EffectRuntime {
         const effect = effectRuntimeWork(this.state, observed.id).effect;
         let resolve;
         const result = new Promise(done => { resolve = done; });
-        const handle = { controller: new AbortController(), resolve };
+        const handle = { resolve };
         this.handles.set(effect.id, handle);
+        // Install settlement before host acquisition, which can retire the owner.
+        try {
+            const controller = new AbortController();
+            handle.controller = controller;
+            if (!this.handles.has(effect.id)) {
+                try {
+                    controller.abort();
+                }
+                catch (error) {
+                    this.observerError(error);
+                }
+                return result;
+            }
+        }
+        catch (error) {
+            this.deliver(this.transition({ type: 'schedule-failed', id: effect.id }).outcomes, error);
+            if (effect.lane === 'immediate' && options.rethrowImmediate)
+                throw error;
+            return result;
+        }
         // Transient scheduler observation, not work lifecycle authority. A scheduler
         // may invoke its callback synchronously and then throw after work completed.
         let schedulerInvoked = false;
@@ -45,10 +69,12 @@ export class EffectRuntime {
             try {
                 // Preserve browser user activation by invoking before promise wrapping.
                 const operation = this.execute(decision.execute, handle.controller.signal);
-                Promise.resolve(operation).then(() => this.finish(effect, true), () => this.finish(effect, false));
+                Promise.resolve(operation).then(() => this.finish(effect, true), error => this.finish(effect, false, error));
             }
-            catch {
-                this.finish(effect, false);
+            catch (error) {
+                this.finish(effect, false, error);
+                if (effect.lane === 'immediate' && options.rethrowImmediate)
+                    throw error;
             }
         };
         if (effect.lane === 'immediate')
@@ -80,7 +106,10 @@ export class EffectRuntime {
         this.deliver(this.transition({ type: 'dispose' }).outcomes);
         // The owner retires the registry separately and awaits physical cleanup.
     }
-    retiredCleanup(effect) { return effect.kind === 'resource.release' && this.options.resources.isScopeRetired(resourceScopeKey(effect.scope)); }
+    scopeKey(scope) { return this.options.scopeKey?.(scope) ?? resourceScopeKey(scope); }
+    /** Deliver outcomes already committed by an enclosing composed owner. */
+    deliverOutcomes(outcomes) { this.deliver(outcomes); }
+    retiredCleanup(effect) { return effect.kind === 'resource.release' && this.options.resources.isScopeRetired(this.scopeKey(effect.scope)); }
     current(effect) {
         if (this.state.disposed || !effectRuntimeWork(this.state, effect.id))
             return false;
@@ -93,24 +122,34 @@ export class EffectRuntime {
     }
     execute(effect, signal) {
         switch (effect.kind) {
-            case 'backend.play': return this.options.resources.get(effect.resourceId, resourceScopeKey(effect.scope)).play();
-            case 'backend.pause': return this.options.resources.get(effect.resourceId, resourceScopeKey(effect.scope)).pause();
-            case 'resource.release': return this.options.resources.release(effect.resourceId, resourceScopeKey(effect.scope));
+            case 'backend.play': {
+                const backend = this.options.resources.get(effect.resourceId, this.scopeKey(effect.scope)), call = backend.play;
+                if (!this.current(effect))
+                    throw new Error('Effect retired before invocation');
+                return call.call(backend);
+            }
+            case 'backend.pause': {
+                const backend = this.options.resources.get(effect.resourceId, this.scopeKey(effect.scope)), call = backend.pause;
+                if (!this.current(effect))
+                    throw new Error('Effect retired before invocation');
+                return call.call(backend);
+            }
+            case 'resource.release': return this.options.resources.release(effect.resourceId, this.scopeKey(effect.scope));
             case 'timer.wait':
                 if (!Number.isFinite(effect.deadlineMs))
                     throw new Error('Invalid effect deadline');
                 return effect.deadlineMs <= this.options.now() ? undefined : this.options.waitUntil(effect.deadlineMs, signal);
         }
     }
-    finish(effect, success) {
+    finish(effect, success, error) {
         const current = this.current(effect);
-        this.deliver(this.transition({ type: 'physical-result', id: effect.id, success, current }).outcomes);
+        this.deliver(this.transition({ type: 'physical-result', id: effect.id, success, current }).outcomes, error);
     }
     observerError(error) { try {
         this.options.onObserverError?.(error);
     }
     catch { /* Observer failures cannot change settlement. */ } }
-    deliver(outcomes) {
+    deliver(outcomes, error) {
         // The reducer removed every outcome before abort handlers/observers reenter.
         for (const outcome of outcomes) {
             const handle = this.handles.get(outcome.id);
@@ -124,10 +163,15 @@ export class EffectRuntime {
             }
             catch { /* Settlement must continue. */ }
             if (outcome.kind === 'retired')
-                handle.controller.abort();
+                try {
+                    handle.controller?.abort();
+                }
+                catch (error) {
+                    this.observerError(error);
+                }
             handle.resolve(outcome);
             try {
-                this.options.onOutcome?.(outcome);
+                this.options.onOutcome?.(outcome, error);
             }
             catch (error) {
                 this.observerError(error);

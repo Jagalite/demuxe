@@ -27,8 +27,10 @@ export function transitionRouting(state, input) {
         const discovery = transitionDiscovery(state.discovery, input.change);
         return discovery === state.discovery ? state : Object.freeze({ ...state, discovery, ...(input.change.kind === 'reinspected' ? { context: Object.freeze({ nativeReason: discovery.current?.nativeReason, automatic: discovery.current?.automatic ?? state.context.automatic }) } : {}) });
     }
-    if (input.type === 'routing.inspection')
-        return Object.freeze({ ...state, inspection: transitionInspection(state.inspection, input.change) });
+    if (input.type === 'routing.inspection') {
+        const inspection = transitionInspection(state.inspection, input.change);
+        return inspection === state.inspection ? state : Object.freeze({ ...state, inspection });
+    }
     if (input.type === 'routing.plans')
         return Object.freeze({ ...state, plans: copyData(input.plans) });
     if (input.type === 'routing.context')

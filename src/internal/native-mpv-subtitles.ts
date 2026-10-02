@@ -1,23 +1,25 @@
 // SPDX-License-Identifier: Apache-2.0
+import {initialNativeSubtitleLifetime,acknowledgeNativeSubtitleClose,nativeSubtitleCurrent,startNativeSubtitleInitialization,finishNativeSubtitleInitialization,nativeSubtitleInitializationRemaining,admitNativeSubtitleRequest,settleNativeSubtitleRequest,nativeSubtitleRequestRemaining,closeNativeSubtitleLifetime,nativeSubtitleCloseRemaining,finishNativeSubtitleClose} from './machine/native-subtitle-lifetime.js';
 import {runtimeWorker} from './runtime-worker.js';
 import type {FontAsset, RemoteSource, SubtitleAsset} from '../types.js';
 import {PlayerError} from './errors.js';
 import {BrowserCaptionUnsupported} from './plain-vtt.js';
 /** One mpv owner for embedded and external subtitles on the accepted media timeline. */
 export class NativeMpvSubtitles {
+  private lifetime=initialNativeSubtitleLifetime();
   readonly canvas=document.createElement('canvas');
   private worker:Worker;
   private closed?:()=>void;
   private destruction?:Promise<void>;
-  private pending=new Map<number,{resolve:(value:any)=>void;reject:(e:Error)=>void;timer:ReturnType<typeof setTimeout>}>();
-  private sequence=0;
+  private pending=new Map<number,{epoch:number;resolve:(value:any)=>void;reject:(e:unknown)=>void;timer?:{handle?:ReturnType<typeof setTimeout>};detach:()=>void}>();
   private revision=0;
   private timingEpoch=0;
   private deadlineEpoch=-1;
   private schedulerMode:'deadline'|'animated'|'fallback'='fallback';
   private pumpTimer?:ReturnType<typeof setInterval>;
   private pumpBusy=false;
-  private stopped=false;
+  private get stopped(){return this.lifetime.requests.phase!=='active';}
+  private current(epoch:number){if(!nativeSubtitleCurrent(this.lifetime,epoch))throw Error('Subtitle renderer destroyed');}
   private enabled=false;
   private busy=false;
   private changingTrack=false;
@@ -26,6 +28,7 @@ export class NativeMpvSubtitles {
   private lastRevision=-1;
   private verifiedTrack?:number;
   private loading=new AbortController();
+  private cancelInitialization?:()=>void;
   private observer?:ResizeObserver;
   private handlers:Array<()=>void>=[];
   readonly ready:Promise<void>;
@@ -33,6 +36,7 @@ export class NativeMpvSubtitles {
   service:Record<string,unknown>={};
   readonly stats={position:-1,renders:0,bitmapUpdates:0,bytes:0,peakBytes:0,discarded:0,stateUpdates:0,scheduler:'frame'};
   constructor(private video:HTMLVideoElement,private time:()=>number,base:URL,fonts:FontAsset[],private source:File|RemoteSource,private failed:(e:Error)=>void,private defaultStreamIndex?:number,private runtime:'pthread'|'jspi'|'asyncify'='pthread'){
+    const epoch=this.lifetime.epoch;
     if(this.runtime==='pthread'&&!crossOriginIsolated)throw Error('Native mpv subtitles requires cross-origin isolation');
     this.canvas.className='demuxe-native-ass';this.canvas.style.cssText='position:absolute;pointer-events:none;display:none';
     if(!video.parentElement)throw Error('Missing Native presentation container');
@@ -41,48 +45,61 @@ export class NativeMpvSubtitles {
     this.worker=runtimeWorker(new URL('web/mpv-subtitle-worker.js',base),{type:'module'});
     const parent=video.parentElement,prior={position:parent.style.position,fit:video.style.objectFit,pip:video.disablePictureInPicture,remote:video.disableRemotePlayback};
     try {
-    parent.style.position='relative';parent.append(this.canvas);
-    video.style.objectFit='contain';
-    video.disablePictureInPicture=true;video.disableRemotePlayback=true;
-    this.worker.onmessage=({data})=>{if(data.type==='refresh'){
-      const refresh=this.source instanceof File?undefined:this.source.refreshAuthorization;
-      void Promise.resolve().then(()=>{if(!refresh)throw Error('Authorization refresh unavailable');return refresh(data.resource);}).then(
-        update=>{if(!this.stopped)this.worker.postMessage({type:'refreshed',id:data.id,update});},
-        error=>{if(!this.stopped)this.worker.postMessage({type:'refreshed',id:data.id,error:String(error)});});return;
-    }if(data.type==='closed'){this.service={...this.service,cleanup:data.cleanup,closeError:data.error};this.closed?.();return;}if(data.type==='subtitleTimingChanged'){this.timingEpoch=data.epoch>>>0;if(this.schedulerMode!=='fallback')void this.pump();return;}if(data.type==='subtitleDeadline'){if(this.schedulerMode==='deadline'&&data.epoch===this.deadlineEpoch&&!this.video.paused&&!document.hidden){if(this.time()+.004>=data.target)this.invalidate();else void this.pump();}return;}const p=this.pending.get(data.id);if(!p){data.bitmap?.close();return;}clearTimeout(p.timer);this.pending.delete(data.id);data.error?p.reject(/^Error: Subtitle (?:decoder unavailable|decode failed|packet deadline exceeded|source load failed|selection failed|seek failed)/.test(data.error)?new BrowserCaptionUnsupported(data.error):Error(data.error)):p.resolve(data);};
+    parent.style.position='relative';this.current(epoch);parent.append(this.canvas);this.current(epoch);
+    video.style.objectFit='contain';this.current(epoch);
+    video.disablePictureInPicture=true;this.current(epoch);video.disableRemotePlayback=true;this.current(epoch);
+    this.current(epoch);
+    this.worker.onmessage=({data})=>{
+      if(data.type==='closed'){if(this.lifetime.requests.phase==='closing'){this.lifetime=acknowledgeNativeSubtitleClose(this.lifetime);this.service={...this.service,cleanup:data.cleanup,closeError:data.error};this.closed?.();}return;}
+      if(!nativeSubtitleCurrent(this.lifetime,epoch)){data.bitmap?.close();return;}
+      if(data.type==='refresh'){
+        const source=this.source,refresh=source instanceof File?undefined:source.refreshAuthorization;
+        void Promise.resolve().then(()=>{this.current(epoch);if(!refresh)throw Error('Authorization refresh unavailable');return refresh.call(source,data.resource);}).then(
+          update=>{if(nativeSubtitleCurrent(this.lifetime,epoch))this.worker.postMessage({type:'refreshed',id:data.id,update});},
+          error=>{if(nativeSubtitleCurrent(this.lifetime,epoch))this.worker.postMessage({type:'refreshed',id:data.id,error:String(error)});});return;
+      }
+      if(data.type==='subtitleTimingChanged'){this.timingEpoch=data.epoch>>>0;if(this.schedulerMode!=='fallback')void this.pump();return;}
+      if(data.type==='subtitleDeadline'){if(this.schedulerMode==='deadline'&&data.epoch===this.deadlineEpoch&&!this.video.paused&&!document.hidden){if(this.time()+.004>=data.target)this.invalidate();else void this.pump();}return;}
+      const error=data.error?(/^Error: Subtitle (?:decoder unavailable|decode failed|packet deadline exceeded|source load failed|selection failed|seek failed)/.test(data.error)?new BrowserCaptionUnsupported(data.error):Error(data.error)):undefined;
+      this.completeRequest(data.id,error===undefined,data,error);
+    };
+    this.current(epoch);
     this.worker.onerror=e=>{e.preventDefault();this.fail(Error(e.message||'Subtitle worker failed'));};
+    this.current(epoch);
     this.worker.onmessageerror=()=>this.fail(Error('Subtitle worker message failure'));
-    this.observer=new ResizeObserver(()=>this.invalidate());this.observer.observe(video);
+    this.current(epoch);
+    const observer=new ResizeObserver(()=>this.invalidate());if(!nativeSubtitleCurrent(this.lifetime,epoch)){observer.disconnect();this.current(epoch);}this.observer=observer;observer.observe(video);this.current(epoch);
+    const listen=(target:EventTarget,type:string,listener:()=>void)=>{target.addEventListener(type,listener);if(!nativeSubtitleCurrent(this.lifetime,epoch)){target.removeEventListener(type,listener);this.current(epoch);}this.handlers.push(()=>target.removeEventListener(type,listener));};
     for(const event of ['seeked','seeking','pause','play','ratechange','loadedmetadata','ended']){
-      const listener=()=>{this.syncPump();this.invalidate();};video.addEventListener(event,listener);this.handlers.push(()=>video.removeEventListener(event,listener));
+      const listener=()=>{this.syncPump();this.invalidate();};listen(video,event,listener);
     }
     const visibility=()=>{this.syncPump();this.invalidate();};
-    document.addEventListener('visibilitychange',visibility);this.handlers.push(()=>document.removeEventListener('visibilitychange',visibility));
+    listen(document,'visibilitychange',visibility);
     const fullscreen=()=>{if(document.fullscreenElement===video)this.fail(Error('Native mpv subtitles requires fullscreen on the player container, not the video element'));else this.invalidate();};
-    document.addEventListener('fullscreenchange',fullscreen);this.handlers.push(()=>document.removeEventListener('fullscreenchange',fullscreen));
+    listen(document,'fullscreenchange',fullscreen);
     this.ready=(async()=>{
-      const deadline=setTimeout(()=>this.loading.abort(),25000);
+      const cancelDeadline=this.initializationDeadline(epoch);
       try {
       const directory=this.runtime==='pthread'?'engine-subtitles':`engine-mpv-subtitles-${this.runtime}`;
       for(const name of ['service.mjs','service.wasm']){
-        const asset=await fetch(new URL(`web/${directory}/${name}`,base),{method:'HEAD',signal:this.loading.signal});
+        const asset=await fetch(new URL(`web/${directory}/${name}`,base),{method:'HEAD',signal:this.loading.signal});this.current(epoch);
         if(asset.status===404)throw new BrowserCaptionUnsupported('mpv subtitle runtime is not installed');
         if(!asset.ok)throw new PlayerError(asset.status===401||asset.status===403?'SOURCE_PERMISSION':'ASSET_LOAD_FAILED',`mpv subtitle asset check failed (${asset.status})`);
       }
-      const response=await fetch(new URL('fixtures/DejaVuSans.ttf',base),{signal:this.loading.signal});
+      const response=await fetch(new URL('fixtures/DejaVuSans.ttf',base),{signal:this.loading.signal});this.current(epoch);
       if(!response.ok)throw Error('Subtitle default font unavailable');
-      const bytes=await response.arrayBuffer();if(bytes.byteLength>8*1024*1024)throw Error('Subtitle font budget exceeded');
+      const bytes=await response.arrayBuffer();this.current(epoch);if(bytes.byteLength>8*1024*1024)throw Error('Subtitle font budget exceeded');
       if(this.stopped)throw Error('Subtitle renderer destroyed');
       const source=this.source;
       const transport=source instanceof File?{file:source}:(()=>{const {refreshAuthorization,...options}=source;return {options,canRefresh:!!refreshAuthorization};})();
-      const result=await this.request('init',{...transport,runtime:this.runtime,fonts:[{name:'DejaVuSans.ttf',bytes},...fonts]});this.tracks=result.tracks;
+      const result=await this.request('init',{...transport,runtime:this.runtime,fonts:[{name:'DejaVuSans.ttf',bytes},...fonts]});this.current(epoch);this.tracks=result.tracks;
       if(this.defaultStreamIndex!==undefined&&!this.tracks.some(track=>track['ff-index']===this.defaultStreamIndex))throw new PlayerError('UNSUPPORTED_FEATURE','Inspected subtitle stream was not enumerated by mpv');
       for(const track of this.tracks)track.default=track['ff-index']===this.defaultStreamIndex;
-      } finally {clearTimeout(deadline);}
+      } finally {this.lifetime=finishNativeSubtitleInitialization(this.lifetime,epoch);cancelDeadline();}
     })();
     this.ready.catch(()=>{});
     } catch(error) {
-      this.destroy();parent.style.position=prior.position;video.style.objectFit=prior.fit;
+      void this.destroy().catch(()=>{});parent.style.position=prior.position;video.style.objectFit=prior.fit;
       video.disablePictureInPicture=prior.pip;video.disableRemotePlayback=prior.remote;
       throw error;
     }
@@ -97,25 +114,52 @@ export class NativeMpvSubtitles {
     catch(error){this.tracks.splice(this.tracks.indexOf(track),1);await this.request('remove',{trackId:track.mpvId});throw error;}
     return track.id;
   }
-  private request(type:string,data:Record<string,unknown>={},signal?:AbortSignal) {
+  private initializationDeadline(epoch:number):()=>void{
+    const now=performance.now();this.current(epoch);this.lifetime=startNativeSubtitleInitialization(this.lifetime,now);
+    let timer:{handle?:ReturnType<typeof setTimeout>}|undefined;
+    const cancel=()=>{const pending=timer;timer=undefined;if(pending?.handle!==undefined)clearTimeout(pending.handle);};
+    const arm=(delay:number)=>{
+      const registration:{handle?:ReturnType<typeof setTimeout>}={};timer=registration;
+      const acquired=setTimeout(()=>{if(timer!==registration)return;timer=undefined;try{const remaining=nativeSubtitleInitializationRemaining(this.lifetime,epoch,performance.now());if(remaining===undefined)return;if(remaining>0){arm(remaining);return;}this.loading.abort();}catch(error){try{this.loading.abort();}finally{this.fail(error as Error);}}},delay);
+      registration.handle=acquired;if(timer!==registration||!nativeSubtitleCurrent(this.lifetime,epoch)){clearTimeout(acquired);this.current(epoch);}
+    };
+    this.cancelInitialization=cancel;try{arm(25000);}catch(error){if(this.cancelInitialization===cancel)this.cancelInitialization=undefined;cancel();throw error;}return()=>{if(this.cancelInitialization===cancel)this.cancelInitialization=undefined;cancel();};
+  }
+  private completeRequest(id:number,success:boolean,value?:any,error?:unknown){
+    const p=this.pending.get(id),settled=settleNativeSubtitleRequest(this.lifetime,id);this.lifetime=settled.state;
+    if(!p||!settled.accepted){value?.bitmap?.close();return;}
+    this.pending.delete(id);const timer=p.timer;p.timer=undefined;let cleanup:unknown;
+    for(const release of [()=>{if(timer?.handle!==undefined)clearTimeout(timer.handle);},p.detach])try{release();}catch(failure){cleanup??=failure;}
+    if(success&&(!nativeSubtitleCurrent(this.lifetime,p.epoch)||cleanup!==undefined)){success=false;error=cleanup??Error('Subtitle renderer destroyed');}
+    if(success)p.resolve(value);else{try{value?.bitmap?.close();}finally{p.reject(error);}}
+  }
+  private rejectRequests(ids:readonly number[],error:unknown){
+    for(const id of ids){const p=this.pending.get(id);if(!p)continue;this.pending.delete(id);const timer=p.timer;p.timer=undefined;
+      for(const release of [()=>{if(timer?.handle!==undefined)clearTimeout(timer.handle);},p.detach])try{release();}catch{}p.reject(error);
+    }
+  }
+  private request(type:string,data:Record<string,unknown>={},signal?:AbortSignal){
     if(signal?.aborted)return Promise.reject(signal.reason);
-    if(this.stopped)return Promise.reject(Error('Subtitle renderer destroyed'));
-    const id=++this.sequence;
+    const now=performance.now(),admission=admitNativeSubtitleRequest(this.lifetime,type,now);this.lifetime=admission.state;
+    if(admission.effect.kind==='reject')return Promise.reject(Error('Subtitle renderer destroyed'));
+    const {id,deadline}=admission.effect.request,epoch=this.lifetime.epoch;
     return new Promise<any>((resolve,reject)=>{
-      const cleanup=()=>{clearTimeout(timer);this.pending.delete(id);signal?.removeEventListener('abort',abort);};
-      const abort=()=>{cleanup();reject(signal!.reason);};
-      const timer=setTimeout(()=>this.fail(Error('Subtitle worker deadline exceeded')),25000);
-      this.pending.set(id,{resolve:value=>{cleanup();resolve(value);},reject:error=>{cleanup();reject(error);},timer});
-      signal?.addEventListener('abort',abort,{once:true});
-      try{this.worker.postMessage({id,type,...data});}catch(error){cleanup();reject(error);}
+      const abort=()=>this.completeRequest(id,false,undefined,signal?.reason),p={epoch,resolve,reject,timer:undefined as {handle?:ReturnType<typeof setTimeout>}|undefined,detach:()=>signal?.removeEventListener('abort',abort)};this.pending.set(id,p);
+      const arm=(delay:number)=>{
+        const registration:{handle?:ReturnType<typeof setTimeout>}={};p.timer=registration;
+        const acquired=setTimeout(()=>{if(p.timer!==registration)return;p.timer=undefined;try{const remaining=nativeSubtitleRequestRemaining(this.lifetime,id,performance.now());if(remaining===undefined)return;if(remaining>0){arm(remaining);return;}this.fail(Error('Subtitle worker deadline exceeded'));}catch(error){this.fail(error as Error);}},delay);
+        registration.handle=acquired;if(p.timer!==registration||this.pending.get(id)!==p||!nativeSubtitleCurrent(this.lifetime,epoch)){clearTimeout(acquired);this.current(epoch);}
+      };
+      try{
+        signal?.addEventListener('abort',abort,{once:true});if(this.pending.get(id)!==p||!nativeSubtitleCurrent(this.lifetime,epoch)){p.detach();this.current(epoch);return;}
+        signal?.throwIfAborted();arm(deadline-now);this.current(epoch);if(this.pending.get(id)!==p)return;
+        this.worker.postMessage({id,type,...data});
+      }catch(error){this.completeRequest(id,false,undefined,error);}
     });
   }
   private fail(error:Error){
-    if(this.stopped)return;
-    // Pending operations and session recovery must see the same cause. A
-    // service deadline or worker crash is not proof of codec incompatibility.
-    for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(error);}
-    this.pending.clear();this.destroy();this.failed(error);
+    const now=performance.now(),retired=closeNativeSubtitleLifetime(this.lifetime,now,true);this.lifetime=retired.state;if(!retired.notify)return;
+    this.rejectRequests(retired.reject,error);void this.destroy().catch(()=>{});this.failed(error);
   }
   private applyMode(mode:unknown){
     const next=mode==='deadline'||mode==='animated'?mode:'fallback';
@@ -234,9 +278,17 @@ export class NativeMpvSubtitles {
   }
   destroy():Promise<void>{
     if(this.destruction)return this.destruction;
-    this.destruction=new Promise(resolve=>{const timer=setTimeout(()=>{this.worker.terminate();resolve();},5000);this.closed=()=>{clearTimeout(timer);this.worker.terminate();resolve();};});this.stopped=true;this.revision++;this.loading.abort();cancelAnimationFrame(this.frame);
-    if(this.pumpTimer)clearInterval(this.pumpTimer);this.pumpTimer=undefined;this.observer?.disconnect();this.handlers.forEach(f=>f());this.worker.postMessage({type:'close'});
-    for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(Error('Subtitle renderer destroyed'));}this.pending.clear();
-    this.canvas.remove();return this.destruction;
+    const now=performance.now(),retired=closeNativeSubtitleLifetime(this.lifetime,now);this.lifetime=retired.state;
+    let resolve!:()=>void,reject!:(error:unknown)=>void;const done=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});this.destruction=done;
+    const worker=this.worker,observer=this.observer,cancelInitialization=this.cancelInitialization,handlers=this.handlers.splice(0),frame=this.frame,pump=this.pumpTimer;this.frame=0;this.pumpTimer=undefined;this.observer=undefined;this.cancelInitialization=undefined;this.revision++;
+    let timer:{handle?:ReturnType<typeof setTimeout>}|undefined,finished=false,cleanupComplete=false,finishRequested=this.lifetime.acknowledged;const errors:unknown[]=[];
+    const attempt=(work:()=>void)=>{try{work();}catch(error){errors.push(error);}};
+    const finish=()=>{if(finished)return;finishRequested=true;if(!cleanupComplete)return;finished=true;this.lifetime=finishNativeSubtitleClose(this.lifetime);const pending=timer;timer=undefined;this.closed=undefined;attempt(()=>{if(pending?.handle!==undefined)clearTimeout(pending.handle);});attempt(()=>worker?.terminate());errors.length?reject(errors.length===1?errors[0]:new AggregateError(errors,'Subtitle renderer cleanup failed')):resolve();};
+    const arm=(delay:number)=>{const registration:{handle?:ReturnType<typeof setTimeout>}={};timer=registration;const acquired=setTimeout(()=>{if(timer!==registration)return;timer=undefined;try{const remaining=nativeSubtitleCloseRemaining(this.lifetime,performance.now());if(remaining!==undefined&&remaining>0){arm(remaining);return;}finish();}catch(error){errors.push(error);finish();}},delay);registration.handle=acquired;if(finished||timer!==registration)clearTimeout(acquired);};
+    this.closed=finish;this.rejectRequests(retired.reject,Error('Subtitle renderer destroyed'));
+    for(const release of [()=>cancelInitialization?.(),()=>this.loading.abort(),()=>cancelAnimationFrame(frame),()=>{if(pump)clearInterval(pump);},()=>observer?.disconnect(),...handlers,()=>this.canvas.remove()])attempt(release);
+    cleanupComplete=true;if(finishRequested)finish();
+    try{if(!finished)arm(nativeSubtitleCloseRemaining(this.lifetime,now)??0);if(!finished)worker?.postMessage({type:'close'});}catch(error){errors.push(error);finish();}
+    return done;
   }
 }

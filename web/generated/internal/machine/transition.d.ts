@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type EffectRuntimeInput, type EffectRuntimeDecision } from './effect-runtime.js';
+import type { EffectScope, EffectOutcome } from './protocol.js';
 import { type ResourceLedgerInput, type ResourceLedgerDecision } from './resource-ledger.js';
 import { type PlayerReadinessInput, type PlayerReadinessEffect } from './player-readiness.js';
 import { type PlayerActionInput, type PlayerActionEffect } from './player-actions.js';
@@ -22,12 +24,17 @@ export type SessionObservation = Readonly<{
     publishedTime?: number;
 }>;
 export type PlayerControlInput = Readonly<{
+    type: 'effect.event';
+    input: EffectRuntimeInput;
+}> | Readonly<{
     type: 'resource.event';
     input: ResourceLedgerInput;
 }> | PlayerReadinessInput | PlayerActionInput | PlayerPublicationInput | PlayerMonitorInput | RoutingInput | AttachmentInput | BoundaryInput | OperationInput | PlaybackInput | SettingsInput | SettingTransactionInput | SourceInput | SessionObservation;
 export type PlayerControlDecision<Effect = SettingEffect | BoundaryEffect | AttachmentEffect> = Readonly<{
     state: PlayerControlState;
     accepted: boolean;
+    execution?: EffectRuntimeDecision;
+    executionOutcomes?: readonly EffectOutcome[];
     resource?: ResourceLedgerDecision;
     id?: number;
     reason?: string;
@@ -44,3 +51,5 @@ export declare function transitionPlayer(state: PlayerControlState, input: Playe
 /** A backend listener keeps its allocation identity. Retirement fences every
  * accepted-session effect, including errors/recovery, not just playback flags. */
 export declare function sessionAuthority(state: PlayerControlState, session: number): 'accepted' | 'candidate' | 'retired';
+/** Current ownership is determined entirely by the composed Player state. */
+export declare function playerEffectAuthority(state: PlayerControlState, scope: EffectScope): boolean;

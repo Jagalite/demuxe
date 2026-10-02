@@ -2,6 +2,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {RuntimeCapabilities,compatibilityFailure,nativeMediaError} from '../web/generated/internal/runtime-capability.js';
 import {PlayerError,playerError} from '../web/generated/internal/errors.js';
+import {initialNativeSubtitleLifetime,admitNativeSubtitleRequest} from '../web/generated/internal/machine/native-subtitle-lifetime.js';
 import {NativeMpvSubtitles} from '../web/generated/internal/native-mpv-subtitles.js';
 import {nativeRejection,remuxRejection} from '../web/generated/internal/selection.js';
 test('subtitle service preserves the same failure for operations and session recovery',()=>{
@@ -13,8 +14,9 @@ test('subtitle service preserves the same failure for operations and session rec
   [Error('Subtitle composition failed'),'DECODE_FAILED',true],
  ]){
   const rejected=[],reported=[],service=Object.create(NativeMpvSubtitles.prototype);
-  Object.assign(service,{stopped:false,pending:new Map([[1,{reject:error=>rejected.push(error)}],[2,{reject:error=>rejected.push(error)}]]),
-   destroy(){this.stopped=true;},failed:error=>reported.push(error)});
+  let lifetime=initialNativeSubtitleLifetime();for(let i=0;i<2;i++)lifetime=admitNativeSubtitleRequest(lifetime,'render',0).state;
+  Object.assign(service,{lifetime,pending:new Map([[1,{reject:error=>rejected.push(error),detach(){}}],[2,{reject:error=>rejected.push(error),detach(){}}]]),
+   destroy(){return Promise.resolve();},failed:error=>reported.push(error)});
   service.fail(error);service.fail(Error('Late duplicate failure'));
   assert.deepEqual(rejected,[error,error]);assert.deepEqual(reported,[error]);
   assert.equal(service.pending.size,0);assert.equal(playerError(reported[0]).code,code);

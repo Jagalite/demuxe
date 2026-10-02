@@ -12,7 +12,7 @@ export function admitBackendRequest(state, op, now) {
         if (state.profile === 'software' && state.pending.length >= 128)
             return reject('capacity');
     }
-    const timeout = state.profile === 'software' ? (op === 'init' ? 60000 : op === 'close' ? 2000 : 25000) : (op === 'close' ? 1500 : 15000);
+    const timeout = state.profile === 'subtitles' ? 25000 : state.profile === 'software' ? (op === 'init' ? 60000 : op === 'close' ? 2000 : 25000) : (op === 'close' ? 1500 : 15000);
     const request = Object.freeze({ id: state.nextId, op, deadline: now + timeout });
     return Object.freeze({ state: Object.freeze({ ...state, nextId: state.nextId + 1, pending: Object.freeze([...state.pending, request]) }), effect: Object.freeze({ kind: 'send', request }) });
 }
@@ -20,7 +20,7 @@ export function settleBackendRequest(state, id, event) {
     const request = state.pending.find(request => request.id === id);
     if (!request || event.kind === 'deadline' && event.now < request.deadline)
         return Object.freeze({ state, effect: Object.freeze({ kind: 'ignore' }) });
-    return Object.freeze({ state: Object.freeze({ ...state, pending: Object.freeze(state.pending.filter(request => request.id !== id)) }), effect: Object.freeze({ kind: 'settle', request, fatal: event.kind === 'deadline' && state.profile === 'audio' }) });
+    return Object.freeze({ state: Object.freeze({ ...state, pending: Object.freeze(state.pending.filter(request => request.id !== id)) }), effect: Object.freeze({ kind: 'settle', request, fatal: event.kind === 'deadline' && state.profile !== 'software' }) });
 }
 export function failBackendRequests(state) {
     if (state.failed || state.phase !== 'active')

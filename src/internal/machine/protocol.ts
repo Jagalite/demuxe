@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-/** Internal foundation only. No Player state authority is transferred here yet. */
+/** Scalar authority carried by effects; physical resources remain in the shell. */
 export type EffectScope = Readonly<{
   owner: string;
   lifetime: number;
   sourceId: number | null;
   sessionId: number | null;
   operationId: number;
+  playId?:number;
 }>;
 export type EffectLane = 'immediate' | 'scheduled';
 /** IDs increase monotonically within one runtime lifetime, including rejected work. */
@@ -24,7 +25,7 @@ export type EffectOutcome = Readonly<{id:number; scope:EffectScope}> & (
 /** Structural identity checks never inspect live resources or ambient time. */
 export function sameEffectScope(a:EffectScope,b:EffectScope):boolean {
   return a.owner===b.owner && a.lifetime===b.lifetime && a.sourceId===b.sourceId &&
-    a.sessionId===b.sessionId && a.operationId===b.operationId;
+    a.sessionId===b.sessionId && a.operationId===b.operationId && a.playId===b.playId;
 }
 /** Resource lifetime excludes operation ID: a session outlives the opening command. */
 export function resourceScopeKey(scope:EffectScope):string {

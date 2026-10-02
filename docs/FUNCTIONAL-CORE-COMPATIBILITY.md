@@ -186,6 +186,8 @@ Source: [Player.play](../src/unified-player.ts#L1461), [presentation requests](.
 
 Runtime checks required: same-stack browser-call probes, real user-gesture entry, queued-play denial/retry, permission completion after owner/source replacement, and non-activation calls that correctly reject. Stubbed same-stack checks alone do not establish browser permission behavior.
 
+The composed playback executor retains immediate backend invocation before the public queue, logical retirement of ignored work, original synchronous throws and existing asynchronous PlayerError classification. Its pure pending state is part of Player control; controllers, promises and original physical errors remain in the shell. Controller acquisition and abort cleanup cannot strand settlement. Initial inspection keeps existing route precedence and optional fallback behavior but stops launching helper I/O after callback-driven retirement. Subtitle RPC timeouts and close acknowledgment semantics remain unchanged; cleanup completion must also finish before destroy settles. Cooperative stack restoration keeps its physical owner until host restoration returns, preventing a reentrant idle hook from entering another C stack early.
+
 ## Existing sequence-oracle review
 
 The first implementation slice corrects several oracle assumptions found at `67ef9d3b`. These changes are source-reviewed, not runtime-validated. The broader fixture and schedule limitations remain explicit.

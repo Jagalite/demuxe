@@ -44,6 +44,12 @@ export declare class Player extends EventTarget {
     private get publicSelections();
     private control;
     private resourceRegistry?;
+    private effectRuntime?;
+    private effectErrors;
+    private backendSessions;
+    private invokeBackend;
+    private get executor();
+    private backendEffect;
     private sessionResources;
     private sessionDisposals;
     private sessionCleanups;
@@ -86,6 +92,7 @@ export declare class Player extends EventTarget {
     private inspectionSources;
     private inspectionErrors;
     private updateInspection;
+    private assertInspection;
     private inspectionSourceKey;
     private pruneInspectionResources;
     private captureInspection;
