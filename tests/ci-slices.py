@@ -8,6 +8,9 @@ from pathlib import Path
 import tempfile
 import unittest
 import sys
+import hashlib
+import io
+import tarfile
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +29,53 @@ collector = load('ci_collect_test', 'collect-ci-providers.py')
 
 
 class CatalogTests(unittest.TestCase):
+    def test_ci_dependencies_are_in_independent_source_inventory(self):
+        source = load('provider_source_ci_test', 'package-provider-source.py')
+        paths = source.application_source_paths('audio-flac')
+        required = {'sources.lock.json', 'scripts/ci-slices.py', 'scripts/build-ci-reference.py',
+                    '.github/actions/reference-tools/action.yml', 'licensing/ci-slices.json'}
+        required.update(row['evidence'] for row in ci.catalog())
+        self.assertTrue(required <= paths, sorted(required - paths))
+        self.assertTrue(all((ROOT / name).is_file() for name in required))
+
+    def test_archive_audit_rejects_omitted_ci_inputs_with_valid_inventory(self):
+        auditor = load('provider_ci_archive_auditor', 'audit-provider-package.py')
+        catalog = json.loads(ci.CATALOG.read_text())
+        required = {'sources.lock.json', 'scripts/ci-slices.py', 'scripts/build-ci-reference.py',
+                    '.github/actions/reference-tools/action.yml', 'licensing/ci-slices.json'}
+        required.update(row['evidence'] for row in catalog['include'])
+        engine = {key: {} for key in ['inputs', 'sources', 'sdkSources', 'configurations', 'artifacts']}
+        original = {'application/'+name: (ROOT/name).read_bytes() for name in required}
+        original['engine-build.json'] = json.dumps(engine).encode()
+        omissions = [None, 'sources.lock.json', 'licensing/ci-slices.json', 'scripts/ci-slices.py', 'scripts/build-ci-reference.py',
+                     '.github/actions/reference-tools/action.yml',
+                     'results/media-components/codec-expansion/ac3-fullfile.json']
+        with tempfile.TemporaryDirectory() as tmp:
+            archive = Path(tmp)/'source.tar.gz'
+            for omitted in omissions:
+                with self.subTest(omitted=omitted):
+                    contents = dict(original)
+                    if omitted:
+                        del contents['application/'+omitted]
+                    # Recompute a valid inventory: this must fail for missing
+                    # dependencies, even though every included byte is correct.
+                    manifest = {'files': {name: hashlib.sha256(data).hexdigest() for name, data in contents.items()},
+                                'excludedConfigurations': []}
+                    contents['source-manifest.json'] = json.dumps(manifest).encode()
+                    with tarfile.open(archive, 'w:gz') as packed:
+                        for name, data in contents.items():
+                            member = tarfile.TarInfo(name); member.size = len(data)
+                            packed.addfile(member, io.BytesIO(data))
+                    with patch.object(auditor, 'local_file', return_value=archive):
+                        def verify():
+                            auditor.verify_corresponding_source({'repositoryPath': str(archive)}, engine,
+                                                                {'files': {}}, {'engines': []}, {})
+                        if omitted:
+                            with self.assertRaisesRegex(ValueError, 'Incomplete CI application source|Missing matching CI catalog evidence'):
+                                verify()
+                        else:
+                            verify()
+
     def test_independent_slice_source_closure(self):
         source = load('provider_source_test', 'package-provider-source.py')
         paths = source.application_source_paths('audio-opus-encoder')
