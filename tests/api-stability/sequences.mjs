@@ -60,7 +60,7 @@ for(const seed of Array.from({length:16},(_,i)=>(0x5eed+i*7919)>>>0))test(`model
         if(action==='invalid'){const old=p.state;assert.throws(()=>p.setVolume(-1),{code:'INVALID_ARGUMENT'});assert.equal(p.state,old);}
         if(action==='buffer'){profile=value>.5?'low-latency':'balanced';await p.setBuffering({profile});}
         if(action==='reject-buffer'){
-          backend.setBuffering=async()=>{throw Error('Injected buffering failure');};
+          backend.setBuffering=async policy=>{if(policy.profile==='resilient')throw Error('Injected buffering failure before application');};
           try{await assert.rejects(p.setBuffering({profile:'resilient'}));}finally{backend.setBuffering=async()=>{};}
         }
         if(action==='rebind'){const retired=binding;await retired.dispose();binding=bindPlayer(p);await assert.rejects(retired.play(),{code:'ABORTED'});}

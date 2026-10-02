@@ -48,6 +48,7 @@ export class LocalVideoPreviewProvider implements PreviewProvider {
 // Structural boundary: public preview declarations must not pull concrete
 // native/provider diagnostics and their transitive implementation types into core.
 type RemuxPreviewSession = {
+  readonly properties:{get(name:'time-pos'):unknown};
   open(file:File):Promise<void>;
   seek(seconds:number):Promise<void>;
   verifyStartup(expected:{video:boolean;audio:boolean}):Promise<void>;

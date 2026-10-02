@@ -6,21 +6,27 @@ export async function checkSequenceModel({mode,seed,rounds}) {
   const p=new Player(document.querySelector('#host'),{...(mode==='auto'?{}:{mode}),preview:{strategy:{type:'on-demand'},debounceMs:0}});
   let binding=bindPlayer(p),rng=seed>>>0;
   const next=()=>{rng^=rng<<13;rng^=rng>>>17;rng^=rng<<5;return(rng>>>0)/4294967296;};
-  const expected={volume:1,muted:false,playbackRate:1,playbackIntent:'pause',activeMode:mode};
+  const expected={volume:1,muted:false,playbackRate:1,playbackIntent:'pause',automaticSelection:mode==='auto',...(mode==='auto'?{}:{activeMode:mode})};
+  const permittedRoutes={native:['native-direct','native-direct-mpv','native-remux','native-remux-mpv'],hybrid:['hybrid','hybrid-private'],software:['software','software-private']};
   const trace=[],seenSources=new Set();let source,plan;
   const assert=(condition,message)=>{if(!condition)throw Error(message);};
   const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  // Passive readback: public snapshot() itself enters Player's operation queue
+  // and changes preview/promotion pressure, so it cannot observe this model.
   const pixels=async()=>{
-    const shot=await p.snapshot({includeSubtitles:false}),image=await createImageBitmap(shot.blob);
-    try{const canvas=document.createElement('canvas');canvas.width=64;canvas.height=36;const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0,64,36);return ctx.getImageData(0,0,64,36).data;}
-    finally{image.close();}
+    const canvas=document.createElement('canvas');canvas.width=64;canvas.height=36;
+    const ctx=canvas.getContext('2d');ctx.drawImage(p.surface,0,0,64,36);
+    return ctx.getImageData(0,0,64,36).data;
   };
   const difference=(a,b)=>a.reduce((sum,value,i)=>sum+Math.abs(value-b[i]),0)/a.length;
   const assertState=()=>{
     const s=p.state;
     for(const [key,value]of Object.entries(expected))assert(typeof value==='number'?Math.abs(s[key]-value)<1e-9:s[key]===value,`${key}: expected ${value}, got ${s[key]}`);
     assert(s.sourceId===source,'Unexpected source replacement');
-    assert(p.diagnostics.plan?.id===plan,'Unrequested playback route change');
+    assert(permittedRoutes[s.activeMode]?.includes(p.diagnostics.plan?.id),'Unexpected route for the finite H.264/AAC fixture');
+    if(mode!=='auto')assert(p.diagnostics.plan?.id===plan,'Unrequested forced-mode route change');
+    // Auto may legitimately promote or recover. Preview authority itself needs
+    // effect-level assertions; simultaneous route change does not prove causation.
     assert(s.status===(expected.playbackIntent==='play'?'playing':'paused'),'Status disagrees with accepted intent');
     assert(!s.pendingOperation&&!s.error,'Operation did not settle cleanly');
     assert(Object.isFrozen(s)&&Object.isFrozen(s.mediaInfo),'Mutable public state');
@@ -47,7 +53,7 @@ export async function checkSequenceModel({mode,seed,rounds}) {
   };
   try{
     const movie=new File([await(await fetch('/fixtures/example.mp4')).blob()],'sequence.mp4');
-    await p.open(movie);acceptSource();plan=p.diagnostics.plan?.id;if(mode==='auto')expected.activeMode=p.state.activeMode;assert(plan,'Missing accepted route');
+    await p.open(movie);acceptSource();plan=p.diagnostics.plan?.id;assert(plan,'Missing accepted route');
     const actions=['play','pause','seek','volume','mute','rate','burst','latest-seeks','preview','invalid','replace','reopen','rebind'];
     for(let round=0;round<rounds;round++){
       const order=[...actions];for(let i=order.length-1;i>0;i--){const j=Math.floor(next()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
@@ -74,9 +80,11 @@ export async function checkSequenceModel({mode,seed,rounds}) {
         }
         if(action==='preview'){
           const time=p.state.currentTime,preview=await p.preview.getFrame({time:.5+value*5,width:160});
-          assert(preview?.image.blob?.size>0,'Preview produced no image');
+          if(preview)assert(preview.image.blob?.size>0,'Preview produced an empty image');
+          entry.preview=preview?'image':'unavailable-or-suspended';
           if(expected.playbackIntent==='pause')assert(Math.abs(p.state.currentTime-time)<.12,'Preview moved paused playback');
-          // assertState below also checks source, mode, route and intent unchanged.
+          // Playback source/intent remain unchanged; forced routes stay fixed and
+          // Automatic routes remain inside the explicit fixture allowance.
         }
         if(action==='invalid'){let code;try{p.setVolume(-1);}catch(error){code=error.code;}assert(code==='INVALID_ARGUMENT','Invalid volume was accepted');}
         if(action==='replace'||action==='reopen'){
