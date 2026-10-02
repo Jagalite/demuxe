@@ -33,7 +33,7 @@ export const browsers = {
     {file:'integration-presentation', report:'results/api-integration', minimum:1},
   ],
   preview: ['preview-browser','preview-ui','preview-options-browser','preview-software','preview-shaka-browser'].map(file=>({file})),
-  sequences: [{file:'api-stability/browser', report:'results/api-stability/scenarios', minimum:15}],
+  sequences: [{file:'api-stability/browser', report:'results/api-stability/scenarios', minimum:22}],
   streaming: [{file:'shaka-lifecycle', report:'results/shaka', minimum:2, selection:'roadmap'}],
   // The existing bundle job verifies actual installed components in both deliveries.
   bundles: [{file:'bundle-playback'}],

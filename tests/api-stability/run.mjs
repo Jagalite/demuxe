@@ -48,7 +48,7 @@ try{
       const previous=new Set(suite.report?await results(suite.report):[]),guard=path.join(output,suite.file.replaceAll('/','-')+'-guard.json');
       const started=Date.now(),record={file:suite.file};report.runs.push(record);
       try{
-        record.process=await run(['--import','./tests/api-stability/browser-guard.mjs',`tests/${suite.file}.mjs`],{API_GUARD_REPORT:guard,HEADLESS:'1',...(suite.selection?{ONLY:suite.selection}:{})},process.env.API_EXTENDED==='1'?40*60*1000:20*60*1000,path.join(output,suite.file.replaceAll('/','-')+'.log'));
+        record.process=await run(['--import','./tests/api-stability/browser-guard.mjs',`tests/${suite.file}.mjs`],{API_GUARD_REPORT:guard,HEADLESS:'1',...(suite.selection?{ONLY:suite.selection}:{})},process.env.API_EXTENDED==='1'?70*60*1000:group==='sequences'?40*60*1000:20*60*1000,path.join(output,suite.file.replaceAll('/','-')+'.log'));
         assert.equal(record.process.code,0,JSON.stringify(record.process));
         record.guard=JSON.parse(await readFile(guard));assert.ok(record.guard.pages>0);assert.deepEqual(record.guard.errors,[]);
         if(suite.report){

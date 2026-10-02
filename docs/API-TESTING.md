@@ -21,7 +21,11 @@ An isolated negative-control step removes the advanced lifecycle guards from the
 
 `Provider bundle loader` reuses the fresh source-provider inventory for six API browser shards in Chromium and Firefox. All served package bytes are checked against the bundle manifest before execution. These jobs exercise the assets delivery; the existing bundle jobs exercise both assets and embedded delivery. Source candidate provider admission remains recorded as such and does not become release qualification merely because a test passes.
 
-The weekly provider workflow increases lifecycle repetitions and browser sequence length, with a recorded seed derived from the workflow run number. PRs use a fixed seed. Deterministic contract histories cover four additional fixed seeds. Failure messages preserve the seed and executed action prefix for reproduction.
+The weekly provider workflow increases lifecycle repetitions and browser sequence length, with a recorded seed derived from the workflow run number. PRs use a fixed seed. Deterministic contract histories cover 16 fixed seeds, each with 120 actions. Each round shuffles every action, so coverage does not depend on random selection luck. Failure messages preserve the seed and executed action prefix for reproduction.
+
+The expected-state model updates its expectations from accepted commands, independently of player readback. It checks settings, intent, settled status, source lifetime and rollback after every action. Contract histories include rejected buffering changes and retired bindings. Browser histories run two seeds in each of Automatic, Native, Hybrid and Software: 39 actions per history normally, 130 weekly, plus recorded seeks to avoid EOF. Actions include previews, replacement, close/reopen, borrowed bindings, invalid commands and overlapping play/pause bursts and competing latest-wins seeks.
+
+Every browser step checks source identity and route stability. Playing must advance both the playback clock and video pixels; paused playback must keep both stable. Reports contain the seed, action prefix, expected state, observed state and output measurements. These checks establish video behavior for the synthetic fixture, not audio fidelity or coverage of every possible sequence. New model scenarios require CI validation before being counted as passing evidence.
 
 ## Commands
 

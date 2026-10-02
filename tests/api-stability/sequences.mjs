@@ -37,27 +37,43 @@ function invariant(p,expected) {
   for(const [key,value]of Object.entries(expected))if(typeof value==='number')assert.ok(Math.abs(p.state[key]-value)<1e-10,key);else assert.equal(p.state[key],value,key);
 }
 
-for(const seed of [1,0x5eed,0xc0ffee,0xdeadbeef])test(`seed ${seed}: mixed public settings, rejected commands, binding and close`,{timeout:15000},async t=>{
-  const {p}=fixture(t),next=random(seed),binding=bindPlayer(p),trace=[];
-  const expected={volume:1,muted:false,playbackRate:1,playbackIntent:'pause',sourceId:1};
-  const snapshots=[],stop=p.subscribe(state=>snapshots.push(state));
+// Independent expected state: update it from commands, never copy it from Player.
+// Each shuffled round contains every action; seeds vary order, values and bursts.
+for(const seed of Array.from({length:16},(_,i)=>(0x5eed+i*7919)>>>0))test(`model seed ${seed}: varied settings, intent, rejection and binding histories`,{timeout:15000},async t=>{
+  const {p,backend}=fixture(t),next=random(seed),trace=[];let binding=bindPlayer(p);
+  const expected={volume:1,muted:false,playbackRate:1,playbackIntent:'pause',sourceId:1,activeMode:'native'};
+  let profile='balanced';const snapshots=[],stop=p.subscribe(state=>snapshots.push(state));
+  const actions=['volume','mute','rate','play','pause','burst','invalid','buffer','reject-buffer','rebind'];
   try{
-    for(let step=0;step<80;step++){
-      const action=Math.floor(next()*8),value=Math.round(next()*100)/100;trace.push({step,action,value});
-      if(action===0){await binding.setVolume(value);expected.volume=value;}
-      if(action===1){expected.muted=value>=.5;await binding.setMuted(expected.muted);}
-      if(action===2){expected.playbackRate=value>=.5?1.5:1;await binding.setPlaybackRate(expected.playbackRate);}
-      if(action===3){await binding.play();await binding.pause();expected.playbackIntent='pause';}
-      if(action===4){const old=p.state;assert.throws(()=>p.setVolume(-1),{code:'INVALID_ARGUMENT'});assert.equal(p.state,old);}
-      if(action===5){await p.setBuffering({profile:'low-latency',aheadSeconds:3});assert.equal(p.getBuffering().requested.profile,'low-latency');}
-      if(action===6){await Promise.all([binding.play(),binding.pause(),binding.play(),binding.pause()]);}
-      if(action===7){await p.setBuffering({});assert.equal(p.getBuffering().requested.profile,'balanced');}
-      invariant(p,expected);
+    for(let round=0;round<12;round++){
+      const order=[...actions];for(let i=order.length-1;i>0;i--){const j=Math.floor(next()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+      for(const action of order){
+        const value=Math.round(next()*100)/100,entry={round,action,value};trace.push(entry);
+        if(action==='volume'){await binding.setVolume(value);expected.volume=value;}
+        if(action==='mute'){expected.muted=value>=.5;await binding.setMuted(expected.muted);}
+        if(action==='rate'){expected.playbackRate=value>=.5?1.5:1;await binding.setPlaybackRate(expected.playbackRate);}
+        if(action==='play'||action==='pause'){await binding[action]();expected.playbackIntent=action;}
+        if(action==='burst'){
+          entry.commands=Array.from({length:2+Math.floor(next()*5)},()=>next()>.5?'play':'pause');
+          await Promise.all(entry.commands.map(command=>binding[command]()));expected.playbackIntent=entry.commands.at(-1);
+        }
+        if(action==='invalid'){const old=p.state;assert.throws(()=>p.setVolume(-1),{code:'INVALID_ARGUMENT'});assert.equal(p.state,old);}
+        if(action==='buffer'){profile=value>.5?'low-latency':'balanced';await p.setBuffering({profile});}
+        if(action==='reject-buffer'){
+          backend.setBuffering=async()=>{throw Error('Injected buffering failure');};
+          try{await assert.rejects(p.setBuffering({profile:'resilient'}));}finally{backend.setBuffering=async()=>{};}
+        }
+        if(action==='rebind'){const retired=binding;await retired.dispose();binding=bindPlayer(p);await assert.rejects(retired.play(),{code:'ABORTED'});}
+        entry.expected={...expected,profile};
+        invariant(p,{...expected,status:expected.playbackIntent==='play'?'playing':'paused'});
+        assert.equal(p.getBuffering().requested.profile,profile,'Rejected command changed buffering policy');
+        assert.equal(backend.properties.get('pause'),expected.playbackIntent==='pause','Backend intent diverged');
+        entry.expected={...expected,profile};entry.observed={status:p.state.status,intent:p.state.playbackIntent};
+      }
     }
-    const retained=snapshots.at(-1);stop();stop();const count=snapshots.length;
-    await binding.dispose();await p.close();assert.equal(snapshots.length,count);
-    invariant(p,{...expected,sourceId:null});assert.equal(retained.sourceId,1);
-    assert.equal(p.isDestroyed,false);await assert.rejects(binding.play(),{code:'ABORTED'});
+    const retained=snapshots.at(-1);stop();const count=snapshots.length;
+    await binding.dispose();await p.close();assert.equal(snapshots.length,count);assert.equal(retained.sourceId,1);
+    invariant(p,{volume:expected.volume,muted:expected.muted,playbackRate:expected.playbackRate,sourceId:null,status:'idle'});
     await p.destroy();assert.equal(p.isDestroyed,true);await assert.rejects(p.play(),{code:'ABORTED'});
   }catch(error){error.message+=`\nReplay seed=${seed} trace=${JSON.stringify(trace)}`;throw error;}
   finally{stop();await binding.dispose();}

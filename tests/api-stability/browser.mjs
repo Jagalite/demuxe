@@ -3,6 +3,7 @@ import {chromium,firefox} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdir,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import {checkSequenceModel} from './sequence-model.mjs';
 import {checkRuntimeBuffering} from '../buffering/runtime-policy-browser.mjs';
 
 const family=process.env.BROWSER??'chromium';
@@ -18,7 +19,7 @@ async function check(name,operation,options={}) {
   try {
     await page.route('**/__api_stability__',route=>route.fulfill({contentType:'text/html',body:'<button id="activate">Activate</button><div id="host"></div>'}));
     await page.goto(report.origin+'/__api_stability__');await page.locator('#activate').click();
-    const evidence=await deadline(page.evaluate(operation,options),process.env.API_EXTENDED==='1'?300000:90000,name);
+    const evidence=await deadline(page.evaluate(operation,options),options.timeoutMs??(process.env.API_EXTENDED==='1'?300000:90000),name);
     assert.deepEqual(errors,[]);report.checks.push({name,passed:true,evidence});
   }catch(error){report.checks.push({name,passed:false,error:String(error.stack),errors});process.exitCode=1;await page.screenshot({path:`${directory}/failure-${report.checks.length}.png`}).catch(()=>{});}
   finally{await deadline(context.close(),10000,'context cleanup');await writeFile(directory+'/result.json',JSON.stringify(report,null,2));}
@@ -116,27 +117,12 @@ try {
       return {selected,staleHandle:code};
     }finally{await p.destroy();}
   });
-  await check('seeded browser actions retain public state and produce replay trace',async({seed,steps})=>{
-    const {Player}=await import('/web/generated/index.js');const p=new Player(document.querySelector('#host'),{mode:'native',preview:false});
-    let state=seed>>>0;const next=()=>{state^=state<<13;state^=state>>>17;state^=state<<5;return(state>>>0)/4294967296;};
-    const trace=[];let volume=1,muted=false,rate=1;
-    try{
-      const movie=new File([await(await fetch('/fixtures/example.mp4')).blob()],'movie.mp4');await p.open(movie);
-      for(let i=0;i<steps;i++){
-        const action=Math.floor(next()*6),value=next();trace.push({action,value});
-        if(action===0){volume=Math.round(value*100)/100;await p.setVolume(volume);}
-        if(action===1){muted=value>.5;await p.setMuted(muted);}
-        if(action===2){rate=value>.5?1.5:1;await p.setPlaybackRate(rate);}
-        if(action===3)await Promise.all([p.play(),p.pause(),p.play(),p.pause()]);
-        if(action===4)await p.seek(.5+value*4);
-        if(action===5){await p.close();await p.open(movie);}
-        const s=p.state;if(Math.abs(s.volume-volume)>1e-10||s.muted!==muted||s.playbackRate!==rate||s.playbackIntent!=='pause'||s.pendingOperation||s.error)throw Error('State invariant failed '+JSON.stringify(s));
-      }
-      return {seed,trace};
-    }catch(error){throw Error(String(error)+' seed='+seed+' trace='+JSON.stringify(trace));}
-    finally{await p.destroy();}
-  },{seed:Number(process.env.API_SEED??24301),steps:process.env.API_EXTENDED==='1'?150:24});
-  assert.equal(report.checks.length,15);assert.ok(report.checks.every(c=>c.passed));report.passed=true;
+  for(const mode of ['auto','native','hybrid','software'])for(const offset of [0,7919]){
+    const seed=(Number(process.env.API_SEED??24301)+offset)>>>0;
+    await check(`${mode}: expected-state sequence model, seed ${seed}`,checkSequenceModel,
+      {mode,seed,rounds:process.env.API_EXTENDED==='1'?10:3,timeoutMs:process.env.API_EXTENDED==='1'?600000:180000});
+  }
+  assert.equal(report.checks.length,22);assert.ok(report.checks.every(c=>c.passed));report.passed=true;
 }finally{
   try{if(browser)await deadline(browser.close(),15000,'browser cleanup');}finally{server.kill();await writeFile(directory+'/result.json',JSON.stringify(report,null,2)+'\n');}
 }
