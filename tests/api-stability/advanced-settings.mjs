@@ -3,7 +3,7 @@ import {chromium,firefox} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdir,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-const family=process.env.BROWSER??'chromium',out=`results/api-stability/advanced/${family}-${Date.now()}`;
+const family=process.env.BROWSER??'chromium',out=process.env.API_ADVANCED_OUTPUT??`results/api-stability/advanced/${family}-${Date.now()}`;
 await mkdir(out,{recursive:true});let browser;const report={family,passed:false,checks:[]};
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
 try{
@@ -87,8 +87,8 @@ try{
       assert(f.get('gain').disabled,'Busy controls enabled');f.get('clear-af').click();assert(!f.calls.length,'Duplicate action dispatched');reject(Error('Failed'));await f.drain();assert(!f.get('gain').disabled,'Busy flag leaked');
     });
     await check('late snapshot from a retired source never starts a download',async f=>{
-      let finish;f.p.snapshot=()=>new Promise(resolve=>finish=resolve);let urls=0;const create=URL.createObjectURL;URL.createObjectURL=()=>{urls++;return 'blob:test';};
-      try{f.get('snapshot').click();f.state.sourceId=2;f.ui.update(f.state);finish({blob:new Blob(['image']),mediaTime:2});await f.drain();assert(urls===0,'Stale source image downloaded');}finally{URL.createObjectURL=create;}
+      let finish;f.p.snapshot=()=>new Promise(resolve=>finish=resolve);let urls=0;const create=URL.createObjectURL,click=HTMLAnchorElement.prototype.click;URL.createObjectURL=()=>{urls++;return 'blob:test';};HTMLAnchorElement.prototype.click=()=>{};
+      try{f.get('snapshot').click();f.state.sourceId=2;f.ui.update(f.state);finish({blob:new Blob(['image']),mediaTime:2});await f.drain();assert(urls===0,'Stale source image downloaded');}finally{if(urls)await new Promise(resolve=>setTimeout(resolve,1100));URL.createObjectURL=create;HTMLAnchorElement.prototype.click=click;}
     });
     await check('detached controls cannot dispatch owner operations',async f=>{
       f.host.remove();f.get('clear-vf').click();await f.drain();assert(!f.calls.length,'Detached control mutated owner');

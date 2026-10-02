@@ -51,6 +51,10 @@ jobs:
         env:
           BROWSER: ${{ matrix.browser }}
           API_GUARD_REPORT: results/api-stability/advanced-guard.json
+      - name: Prove lifecycle regressions reject the unguarded implementation
+        run: timeout --kill-after=10s 5m node tests/api-stability/advanced-negative.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:

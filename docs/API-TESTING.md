@@ -17,6 +17,8 @@ API stability requires more than successful imports or playback of one fixture. 
 
 `Public API contracts` runs on pushes and pull requests. It builds TypeScript in CI, executes the contract manifest and consumer typechecks, and independently runs the advanced-control contracts in Chromium and Firefox without building engines.
 
+An isolated negative-control step removes the advanced lifecycle guards from the generated test runtime, requires the four corresponding regressions to fail, and restores the bytes in a `finally` block. Timeouts, page errors, unrelated failures and unexpected passes do not count as successful detection. These intentionally failing reports are stored separately from qualification results.
+
 `Provider bundle loader` reuses the fresh source-provider inventory for six API browser shards in Chromium and Firefox. All served package bytes are checked against the bundle manifest before execution. These jobs exercise the assets delivery; the existing bundle jobs exercise both assets and embedded delivery. Source candidate provider admission remains recorded as such and does not become release qualification merely because a test passes.
 
 The weekly provider workflow increases lifecycle repetitions and browser sequence length, with a recorded seed derived from the workflow run number. PRs use a fixed seed. Deterministic contract histories cover four additional fixed seeds. Failure messages preserve the seed and executed action prefix for reproduction.
