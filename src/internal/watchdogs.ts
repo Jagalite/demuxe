@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import {PlayerError} from './errors.js';
 import type {WatchdogOptions,WatchdogPolicy} from '../types.js';
+import {createNativeProgress,resetNativeProgress,sampleNativeProgress,type NativeProgressSample} from './machine/telemetry.js';
+export type {NativeProgressSample};
 
 export function watchdogPolicy(options:boolean|WatchdogOptions=true):WatchdogPolicy {
   if(typeof options!=='boolean'&&(!options||typeof options!=='object'||Array.isArray(options)))throw new PlayerError('INVALID_ARGUMENT','Invalid watchdog policy');
@@ -17,25 +19,12 @@ export function watchdogPolicy(options:boolean|WatchdogOptions=true):WatchdogPol
   return Object.freeze(policy);
 }
 
-export type NativeProgressSample={eligible:boolean;time:number;rate?:number;frames?:number;frameIntervalMs?:number;videoEnd?:number};
 /** Sampled observations, not per-frame callbacks. Ineligible periods never spend
  * a failure budget; timer suspension and media discontinuities start fresh. */
 export class NativeProgressWatchdog {
-  private previous?:NativeProgressSample;
-  private lastSample?:number;
-  private clockSince=0;
-  private frameSince=0;
-  reset(){this.previous=undefined;this.lastSample=undefined;}
+  private state=createNativeProgress();
+  reset(){this.state=resetNativeProgress(this.state);}
   sample(now:number,value:NativeProgressSample,timeoutMs:number):'clock'|'video'|undefined {
-    const old=this.previous,last=this.lastSample;
-    if(!value.eligible||!Number.isFinite(value.time)){this.reset();return;}
-    this.previous={...value};this.lastSample=now;
-    if(!old||last===undefined||now<last||now-last>2000||value.rate!==old.rate||value.time<old.time||value.time-old.time>Math.max(2,(now-last)/1000*(value.rate??1)*3)){this.clockSince=this.frameSince=now;return;}
-    if(value.time>old.time+.001)this.clockSince=now;
-    const frames=Number.isFinite(value.frames)&&Number.isFinite(old.frames)&&Number.isFinite(value.frameIntervalMs);
-    if(!frames||value.frames!==old.frames||value.frameIntervalMs!==old.frameIntervalMs)this.frameSince=now;
-    if(now-this.clockSince>=timeoutMs)return 'clock';
-    // Sparse video must have several expected frames overdue before rejection.
-    if(frames&&now-this.frameSince>=Math.max(timeoutMs,value.frameIntervalMs!*3))return 'video';
+    const result=sampleNativeProgress(this.state,now,value,timeoutMs);this.state=result.state;return result.stalled;
   }
 }

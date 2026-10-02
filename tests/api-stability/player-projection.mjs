@@ -150,7 +150,7 @@ function legacyFixture(t){
   class Video extends Element{videoWidth=320;videoHeight=180;constructor(){super('VIDEO');}}
   document.createElement=name=>name==='video'?new Video():name==='canvas'?new Canvas():new Element();
   Object.assign(globalThis,{document,HTMLElement:Element,HTMLCanvasElement:Canvas,HTMLVideoElement:Video});
-  // No command/runtime migration is exercised here. Only legacy publication is
+  // No command/runtime migration is exercised here. Only observation wiring is
   // compared; watchdog scheduling and automatic boundary effects stay inactive.
   class TestPlayer extends Player{startWatchdogs(){}stopWatchdogs(){}schedulePromotion(){}enforceBoundary(){}}
   const p=new TestPlayer(new Element(),{mode:'native',nativeRemux:'never',assetBase:'http://localhost/',preview:false,watchdogs:false});
@@ -178,7 +178,7 @@ function captureLegacy(p){
   });
 }
 
-test('test-only shadow projection matches legacy publish over a controlled observation history',async t=>{
+test('production observation wiring matches explicit capture over a controlled history',async t=>{
   const {p,backend,Video,Canvas}=legacyFixture(t),events=[],delivered=[],retained=[];
   for(const name of eventNames)p.addEventListener(name,event=>events.push({name,detail:event.detail}));
   const unsubscribe=p.subscribe(state=>delivered.push(state));t.after(unsubscribe);
@@ -221,4 +221,70 @@ test('test-only shadow projection matches legacy publish over a controlled obser
     retained.push({snapshot:p.state,serialized:JSON.stringify(p.state)});
     for(const old of retained)assert.equal(JSON.stringify(old.snapshot),old.serialized,`${label}: previously published snapshot mutated`);
   }
+});
+
+test('reentrant subscriber publication stops the obsolete notification batch',async t=>{
+  const {p}=legacyFixture(t),events=[],seen=[];
+  for(const name of eventNames)p.addEventListener(name,event=>events.push([name,event.detail.volume]));
+  let nested=false;
+  const unsubscribe=p.subscribe(state=>{
+    if(state.volume===.25&&!nested){nested=true;p.settings.volume=75;p.publish();}
+  });t.after(unsubscribe);
+  const unsubscribeSecond=p.subscribe(state=>seen.push(state.volume));t.after(unsubscribeSecond);seen.length=0;
+  p.settings.volume=25;p.publish();
+  assert.deepEqual(events,[['statechange',.75],['volumechange',.75]]);
+  assert.deepEqual(seen,[.75]);assert.equal(p.state.volume,.75);
+});
+
+test('reentrant statechange carries its own snapshot and retires later obsolete events',async t=>{
+  const {p}=legacyFixture(t),events=[];let nested=false;
+  p.addEventListener('statechange',event=>{
+    events.push(['statechange',event.detail.volume]);
+    if(!nested){nested=true;p.settings.volume=75;p.publish();}
+  });
+  p.addEventListener('volumechange',event=>events.push(['volumechange',event.detail.volume]));
+  p.settings.volume=25;p.publish();
+  assert.deepEqual(events,[['statechange',.25],['statechange',.75],['volumechange',.75]]);
+});
+
+test('close from a subscriber retires the old batch before cleanup settles',async t=>{
+  const {p}=legacyFixture(t),events=[];let closing;
+  p.addEventListener('volumechange',event=>events.push(event.detail.volume));
+  const unsubscribe=p.subscribe(state=>{if(state.volume===.25&&!closing)closing=p.close();});t.after(unsubscribe);
+  p.settings.volume=25;p.publish();
+  assert.deepEqual(events,[]);await closing;assert.equal(p.state.sourceId,null);
+});
+
+test('throwing initial and update subscribers, including their reporter, are isolated',async t=>{
+  const {p}=legacyFixture(t),old=Object.getOwnPropertyDescriptor(globalThis,'reportError'),reports=[],seen=[];
+  globalThis.reportError=error=>{reports.push(error.message);throw new Error('reporter failure');};
+  t.after(()=>{if(old)Object.defineProperty(globalThis,'reportError',old);else delete globalThis.reportError;});
+  const unsubscribe=p.subscribe(()=>{throw new Error('observer failure');});t.after(unsubscribe);
+  const second=p.subscribe(state=>seen.push(state.volume));t.after(second);
+  p.settings.volume=25;p.publish();
+  assert.deepEqual(reports,['observer failure','observer failure']);assert.deepEqual(seen,[1,.25]);
+  unsubscribe();p.settings.volume=75;p.publish();assert.equal(reports.length,2);
+});
+
+test('streaming readback copies backend-owned nested observations before freezing',async t=>{
+  const {p,backend,Video}=legacyFixture(t);
+  const live={isLive:true,seekable:{start:10,end:20},latencySeconds:1,nearLive:true};
+  const observedQuality={observation:'playhead-buffer',position:11,contentType:'video',width:320,height:180,bandwidth:1000,codec:'avc1'};
+  backend.streamingState=()=>({qualities:[],requested:{mode:'auto'},selectedId:null,presentedId:null,observedQuality,transition:'unknown',live});
+  p.current={backend,surface:new Video()};p.sourceSerial=3;
+  const snapshot=p.getStreamingState();assert.equal(Object.isFrozen(live),false);assert.equal(Object.isFrozen(observedQuality),false);
+  live.seekable.end=30;observedQuality.width=640;
+  assert.equal(snapshot.live.seekable.end,20);assert.equal(snapshot.observedQuality.width,320);assert.ok(Object.isFrozen(snapshot.live.seekable));
+});
+
+test('reentrant observation reads cannot overwrite a newer accepted publication',async t=>{
+  const {p,backend,Video}=legacyFixture(t);p.current={backend,surface:new Video()};p.source={kind:'local',file:new Blob()};p.sourceSerial=1;
+  backend.properties.set('duration',20);let replaced=false;
+  const originalGet=backend.properties.get.bind(backend.properties);
+  backend.properties.get=key=>{
+    if(key==='duration'&&!replaced){replaced=true;p.sourceSerial=2;p.settings.volume=75;p.publish();}
+    return originalGet(key);
+  };
+  p.publish();await Promise.resolve();
+  assert.equal(p.state.sourceId,2);assert.equal(p.state.volume,.75);assert.equal(p.state.duration,20);
 });

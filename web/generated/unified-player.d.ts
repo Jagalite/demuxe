@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 import { PlayerPresentation } from './presentation.js';
 import type { WatchdogOptions, WatchdogPolicy } from './types.js';
 import type { BufferingOptions, BufferingState } from './types.js';
@@ -19,6 +18,7 @@ export declare class Player extends EventTarget {
     private stateSnapshot;
     private subscribers;
     private publishQueued;
+    private publicationSerial;
     readonly presentation: PlayerPresentation;
     private outputDeviceId;
     private sourceSerial;
@@ -169,20 +169,22 @@ export declare class Player extends EventTarget {
     private confirmTrackSelection;
     private applyTrackPolicy;
     private previewBuffering;
+    private notifySubscriber;
     private publish;
+    private capabilityFacts;
     private featureCapabilities;
     get mode(): "native" | "hybrid" | "software";
     get automaticSelection(): boolean;
     get surface(): HTMLVideoElement | HTMLCanvasElement | undefined;
     get properties(): ReadonlyMap<string, unknown>;
     get capabilities(): PlayerCapabilities;
-    private get legacyCapabilities();
     /** Replace the buffering policy without reopening the source. Omitted fields use defaults. */
     setBuffering(options: BufferingOptions): Promise<void>;
     getBuffering(): BufferingState;
     private bufferingResolution;
     get diagnostics(): Diagnostics;
     getStreamingState(): import('./types.js').StreamingState | null;
+    private captureStreamingState;
     setQuality(policy: import('./types.js').QualityPolicy): Promise<void>;
     seekToLive(): Promise<void>;
     getAudioOutputDevice(): string;

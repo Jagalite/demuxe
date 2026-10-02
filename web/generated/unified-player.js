@@ -23,7 +23,11 @@ import { runtimeBase } from './internal/assets.js';
 import { selectRemuxRuntime, deployedRemuxRuntime } from './internal/remux-runtime.js';
 import { webgpuDecoderSupported, hasQualifiedWebGPUCodecs } from './internal/webgpu-codecs.js';
 import { PlayerError, playerError, redact } from './internal/errors.js';
-import { freeze, ranges, cachedRanges, tracks, trackKey, usesRemuxTracks, mediaInfo } from './internal/state.js';
+import { freeze, tracks, trackKey, usesRemuxTracks } from './internal/state.js';
+import { capturePlayerObservation } from './internal/effects/observations.js';
+import { projectPlayer } from './internal/machine/selectors.js';
+import { selectCapabilities } from './internal/machine/capabilities.js';
+import { copyData } from './internal/machine/data.js';
 import { PLAYBACK_MODES } from './types.js';
 import { nativeRejection, nativeManifestRejection, losslessAdaptationRejection, audioTranscodeRejection, remuxRejection } from './internal/selection.js';
 import { backendPlan } from './internal/backend.js';
@@ -63,6 +67,7 @@ export class Player extends EventTarget {
     stateSnapshot;
     subscribers = new Set();
     publishQueued = false;
+    publicationSerial = 0;
     presentation = new PlayerPresentation(this, () => this.root);
     outputDeviceId = '';
     sourceSerial = 0;
@@ -430,7 +435,7 @@ export class Player extends EventTarget {
     get mediaInfo() { return this.stateSnapshot.mediaInfo; }
     subscribe(listener) {
         this.subscribers.add(listener);
-        listener(this.stateSnapshot);
+        this.notifySubscriber(listener, this.stateSnapshot);
         return () => { this.subscribers.delete(listener); };
     }
     addEventListener(type, listener, options) { super.addEventListener(type, listener, options); }
@@ -520,100 +525,85 @@ export class Player extends EventTarget {
     previewBuffering() {
         return !this.settings.pause && (this.observedWaiting || this.properties.get('paused-for-cache') === true || this.properties.get('native-waiting') === true);
     }
-    publish() {
-        const previous = this.stateSnapshot, p = this.properties;
-        let raw = this.sourceTracks();
-        if (this.mode === 'native' && this.surface?.videoWidth && !raw.some(t => t.type === 'video'))
-            raw = [...raw, { id: '1', type: 'video', selected: true }];
-        const list = this.current ? tracks(raw, this.sourceSerial, this.mode, backendPlan(this.current.backend)).filter(t => trackAllowed(t, t.type === 'audio' ? this.trackPolicy.audio : t.type === 'subtitle' ? this.trackPolicy.subtitles : undefined)) : [];
-        const d = p.get('duration'), reportedDuration = typeof d === 'number' && Number.isFinite(d) && d >= 0 ? d : null;
-        const observedLive = p.get('native-live');
-        const live = typeof observedLive === 'boolean' ? observedLive : this.source?.kind === 'remote' && this.source.options.streaming?.live === true;
-        const duration = live ? null : reportedDuration;
-        const streamType = !this.source ? 'unknown' : live ? 'live' : duration !== null ? 'vod' : 'unknown';
-        const cache = p.get('demuxer-cache-state');
-        const seekable = !this.current ? null : this.mode === 'native' ? ranges(p.get('native-seekable')) : live ? ranges(cache?.['seekable-ranges']) : p.get('seekable') === false ? [] : p.get('seekable') === true && duration !== null ? [{ start: 0, end: duration }] : null;
-        const caps = this.featureCapabilities(seekable, list.filter(t => t.type === 'audio').length, list.filter(t => t.type === 'subtitle').length);
-        const status = !this.current ? (this.sessionError ? 'error' : 'idle') : this.sessionError ? 'error' : p.get('eof-reached') === true ? 'ended' : this.settings.pause || p.get('pause') === true ? 'paused' : this.observedWaiting || p.get('paused-for-cache') === true || p.get('native-waiting') === true ? 'buffering' : this.observedPlaying ? 'playing' : 'paused';
-        const next = { status, playbackIntent: this.settings.pause ? 'pause' : 'play', pendingOperation: this.pendingOperation, sourceId: this.current ? this.sourceSerial : null,
-            currentTime: Math.max(0, Number(p.get('time-pos')) || 0), duration, streamType, subtitlesVisible: this.settings.subtitles, volume: this.settings.volume / 100, muted: this.muted, playbackRate: this.settings.speed,
-            activeMode: this.current ? this.mode : null, automaticSelection: this.automatic, buffered: this.mode === 'native' && this.current ? ranges(p.get('native-buffered')) : null, seekable,
-            cached: this.current && this.mode !== 'native' ? cachedRanges(cache?.['seekable-ranges']) : null,
-            timing: this.getTimingSettings(), loop: this.getLoop(), playbackRange: this.getPlaybackRange(), streaming: this.getStreamingState(), audioOutputDevice: this.outputDeviceId, trackPolicy: this.trackPolicy, audioTracks: list.filter(t => t.type === 'audio'), subtitleTracks: list.filter(t => t.type === 'subtitle'), mediaInfo: mediaInfo(p, this.mode, this.surface, list, this.current ? this.sourceSerial : null), capabilities: caps, error: this.sessionError };
-        // Priority can change even when the externally visible snapshot is identical.
-        this.#previewController.setPlaybackActive(!this.settings.pause);
-        this.#previewController.setSuspended(this.busy || !!this.activeOperation || this.previewBuffering());
-        this.#previewController.setDuration(this.current && !this.busy && streamType === 'vod' ? duration : null);
-        this.#previewController.setPlaybackPosition(next.currentTime);
-        if (previous && JSON.stringify(previous) === JSON.stringify(next))
-            return;
-        this.statistics.observe(next);
-        this.stateSnapshot = freeze(next);
-        for (const fn of [...this.subscribers]) {
+    notifySubscriber(listener, state) {
+        try {
+            listener(state);
+        }
+        catch (error) {
             try {
-                fn(this.stateSnapshot);
-            }
-            catch (error) {
                 globalThis.reportError?.(error);
             }
+            catch { /* Reporting cannot change playback or stop other observers. */ }
         }
-        this.dispatchEvent(new CustomEvent('statechange', { detail: this.stateSnapshot }));
-        if (!previous)
+    }
+    publish() {
+        const serial = ++this.publicationSerial, previous = this.stateSnapshot, session = this.current, source = this.source;
+        const sourceId = this.sourceSerial, epoch = this.operationEpoch, mode = this.mode, settings = { ...this.settings };
+        const current = () => serial === this.publicationSerial && previous === this.stateSnapshot && session === this.current && source === this.source && sourceId === this.sourceSerial && epoch === this.operationEpoch && mode === this.mode;
+        const controls = {
+            sourceId: session ? sourceId : null, sourcePresent: !!source, requestedLive: source?.kind === 'remote' && source.options.streaming?.live === true,
+            mode, automaticSelection: this.automatic, pause: settings.pause, subtitlesVisible: settings.subtitles, volumePercent: settings.volume, muted: this.muted, playbackRate: settings.speed,
+            pendingOperation: this.pendingOperation, error: this.sessionError, observedPlaying: this.observedPlaying, observedWaiting: this.observedWaiting, busy: this.busy, operationActive: !!this.activeOperation,
+            timing: this.getTimingSettings(), loop: this.getLoop(), playbackRange: this.getPlaybackRange(), audioOutputDevice: this.outputDeviceId, trackPolicy: this.trackPolicy,
+        };
+        let raw = this.sessionTracks(session, source, mode, settings);
+        if (mode === 'native' && session?.surface?.videoWidth && !raw.some(t => t.type === 'video'))
+            raw = [...raw, { id: '1', type: 'video', selected: true }];
+        const list = session ? tracks(raw, sourceId, mode, backendPlan(session.backend)).filter(t => trackAllowed(t, t.type === 'audio' ? controls.trackPolicy.audio : t.type === 'subtitle' ? controls.trackPolicy.subtitles : undefined)) : [];
+        const input = capturePlayerObservation({ ...controls, tracks: list, streaming: this.captureStreamingState(session, sourceId), capabilityFacts: this.capabilityFacts(session, source), properties: session?.backend.properties ?? this.empty, surface: session?.surface });
+        // Host reads can invoke application code. Never install a sample from a
+        // retired tuple, or overwrite a publication made by that application code.
+        if (!current()) {
+            this.schedulePublish();
             return;
-        const changed = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
-        for (const [event, a, b] of [
-            ['sourcechange', previous.sourceId, next.sourceId], ['durationchange', previous.duration, next.duration],
-            ['trackschange', [previous.audioTracks, previous.subtitleTracks], [next.audioTracks, next.subtitleTracks]],
-            ['capabilitieschange', previous.capabilities, next.capabilities], ['volumechange', [previous.volume, previous.muted], [next.volume, next.muted]],
-            ['ratechange', previous.playbackRate, next.playbackRate], ['timeupdate', previous.currentTime, next.currentTime],
-        ])
-            if (changed(a, b))
-                this.dispatchEvent(new CustomEvent(event, { detail: this.stateSnapshot }));
-        if (previous.playbackIntent !== next.playbackIntent && next.playbackIntent === 'play')
-            this.dispatchEvent(new CustomEvent('play', { detail: this.stateSnapshot }));
-        if (previous.status !== next.status) {
-            const event = { playing: 'playing', paused: 'pause', buffering: 'waiting', ended: 'ended' }[next.status];
-            if (event && !(event === 'ended' && this.loopPolicy))
-                this.dispatchEvent(new CustomEvent(event, { detail: this.stateSnapshot }));
         }
-        this.enforceBoundary();
+        const projection = projectPlayer(previous, input), preview = projection.preview;
+        for (const apply of [() => this.#previewController.setPlaybackActive(preview.playbackActive), () => this.#previewController.setSuspended(preview.suspended), () => this.#previewController.setDuration(preview.duration), () => this.#previewController.setPlaybackPosition(preview.position)]) {
+            apply();
+            if (!current()) {
+                this.schedulePublish();
+                return;
+            }
+        }
+        if (!projection.changed)
+            return;
+        const next = projection.state;
+        this.statistics.observe(next);
+        this.stateSnapshot = next;
+        const stillCurrent = () => serial === this.publicationSerial && this.stateSnapshot === next && this.operationEpoch === epoch;
+        // A reentrant publication supersedes the rest of this batch. Every delivered
+        // event carries the exact committed snapshot that selected its event name.
+        for (const listener of [...this.subscribers]) {
+            if (!stillCurrent())
+                return;
+            this.notifySubscriber(listener, next);
+        }
+        for (const event of projection.notifications) {
+            if (!stillCurrent())
+                return;
+            this.dispatchEvent(new CustomEvent(event, { detail: next }));
+        }
+        if (stillCurrent() && projection.enforceBoundary)
+            this.enforceBoundary();
+    }
+    capabilityFacts(session = this.current, source = this.source) {
+        const resolution = this.bufferingResolution();
+        return {
+            backendPlan: backendPlan(session?.backend) ?? null, nativeASS: this.nativeASS, privateRemux: this.privateRemux, privateFull: this.privatePlaybackAssets?.codecProfile === 'playback-full', providerRuntime: !!this.providerRuntime,
+            hybridAudioFilters: this.hybridAudioFilters, nativeRemux: this.nativeRemux, canInspectFFmpeg: this.canInspectFFmpeg, remoteFormat: source?.kind === 'remote' ? source.options.format ?? null : null,
+            backendMpvSubtitles: !!session?.backend.diagnostics?.mpvSubtitles, backendSetQuality: !!session?.backend.setQuality, backendSeekToLive: !!session?.backend.seekToLive,
+            isolated: globalThis.crossOriginIsolated === true, webCodecs: typeof VideoDecoder !== 'undefined', mediaSource: typeof MediaSource !== 'undefined', webAudio: typeof AudioContext !== 'undefined',
+            bufferingBackend: resolution.backend, bufferingControl: resolution.control,
+        };
     }
     featureCapabilities(seekable, audio, sub) {
-        const isolated = globalThis.crossOriginIsolated === true, available = { availability: 'available' };
-        const unavailable = (reason) => ({ availability: 'unavailable', reason });
-        const unknown = { availability: 'unknown', reason: 'Open a source to establish availability' };
-        const nativeOverlay = (this.nativeASS && (isolated || this.privateRemux) || !!this.current?.backend.diagnostics?.mpvSubtitles) && backendPlan(this.current?.backend) !== 'adapted-opus' && !(this.source?.kind === 'remote' && this.source.options.format && this.source.options.format !== 'file');
-        const privateSoftware = ['software-private', 'hybrid-private'].includes(backendPlan(this.current?.backend) ?? '');
-        const privateFull = this.privatePlaybackAssets?.codecProfile === 'playback-full';
-        const route = (mode) => this.privateRemux && !privateFull && !this.providerRuntime ? unavailable('Private runtime has no qualified Hybrid or Software service') : !isolated && !privateFull ? unavailable('This deployment requires cross-origin isolation') : this.mode === mode || (mode === 'hybrid' && this.mode === 'software') ? available : this.automatic ? { availability: 'switch', mode, reason: `This feature requires ${mode} playback` } : unavailable(`Select ${mode} mode first`);
-        const resolution = this.bufferingResolution();
-        return { ...this.legacyCapabilities, buffering: { control: resolution.control, preload: true, profile: resolution.backend !== 'browser', memoryBudget: ['mpv', 'remux'].includes(resolution.backend) }, deployment: { isolated, webCodecs: typeof VideoDecoder !== 'undefined', mediaSource: typeof MediaSource !== 'undefined' }, features: {
-                subtitleDelay: privateSoftware && !privateFull ? unavailable('Private Software subtitles are not qualified') : route('hybrid'), audioDelay: privateSoftware ? available : route('hybrid'), subtitleStyle: privateSoftware && !privateFull ? unavailable('Private Software subtitle styling is not qualified') : route('hybrid'),
-                quality: !this.current ? unknown : this.current.backend.setQuality ? available : unavailable('This route does not expose adaptive qualities'),
-                liveNavigation: !this.current ? unknown : this.current.backend.seekToLive && this.current.backend.properties.get('native-live') === true ? available : unavailable('No controlled live timeline'),
-                loop: seekable?.length && this.stateSnapshot?.duration !== null ? available : unknown, playbackRange: seekable?.length ? available : unknown,
-                frameStep: !this.current ? unknown : this.mode === 'native' ? unavailable('Frame stepping requires mpv video playback') : available,
-                snapshot: !this.current ? unknown : { availability: 'unknown', reason: 'Readback depends on the active renderer and source permissions' },
-                audioOutputDevice: !this.current ? unknown : { availability: 'unknown', reason: 'Output selection depends on browser permission and the active audio sink' },
-                seek: seekable === null ? { availability: 'unknown', reason: 'Seek window has not been established' } : seekable.length ? available : unavailable('The source currently has no seekable time range'),
-                audioTracks: !this.current ? unknown : audio ? available : unavailable('Audio track selection is not exposed by this source/browser'),
-                subtitleTracks: !this.current ? unknown : sub ? available : unavailable('No subtitle tracks are available'),
-                audioGain: privateSoftware ? available : this.mode === 'native' ? (typeof AudioContext === 'undefined' ? unavailable('Web Audio is unavailable') : available) : route('hybrid'),
-                externalSubtitles: privateSoftware && !privateFull ? unavailable('Private Software external subtitles are not qualified') : this.mode === 'native' ? available : route('hybrid'), customFonts: privateSoftware && !privateFull ? unavailable('Private Software custom fonts are not qualified') : this.mode === 'native' && nativeOverlay ? available : route('hybrid'), videoFilters: route('software'), audioFilters: route(this.hybridAudioFilters ? 'hybrid' : 'software')
-            } };
+        return selectCapabilities({ ...this.capabilityFacts(), mode: this.mode, hasSession: !!this.current, automaticSelection: this.automatic, previousDuration: this.stateSnapshot?.duration, backendNativeLive: this.current?.backend.properties.get('native-live') === true }, seekable, audio, sub);
     }
     get mode() { return this.currentMode; }
     get automaticSelection() { return this.automatic; }
     get surface() { return this.current?.surface; }
     get properties() { return this.current?.backend.properties ?? this.empty; }
     get capabilities() { return this.stateSnapshot?.capabilities ?? this.featureCapabilities(null, 0, 0); }
-    get legacyCapabilities() {
-        if (['software-private', 'hybrid-private'].includes(backendPlan(this.current?.backend) ?? '')) {
-            const full = this.privatePlaybackAssets?.codecProfile === 'playback-full';
-            return { videoFilters: full && (this.automatic || this.mode === 'software'), audioFilters: full && (this.automatic || this.mode === 'software' || this.hybridAudioFilters), mpvSubtitles: full, externalTextTracks: false, externalSubtitles: full, customFonts: full, customRequestHeaders: true };
-        }
-        return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native' || ['remux-mpv', 'direct-mpv'].includes(backendPlan(this.current?.backend) ?? ''), externalTextTracks: this.mode === 'native', externalSubtitles: true, customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: backendPlan(this.current?.backend) === 'shaka-mse' || this.mode !== 'native' || (this.nativeRemux !== 'never' && this.canInspectFFmpeg && typeof MediaSource !== 'undefined') };
-    }
     /** Replace the buffering policy without reopening the source. Omitted fields use defaults. */
     setBuffering(options) {
         let next;
@@ -658,12 +648,13 @@ export class Player extends EventTarget {
         const backend = this.current?.backend.diagnostics;
         return redact({ remuxRuntime: this.remuxSelection, watchdogs: this.watchdogConfiguration, preview: this.preview.diagnostics, buffering: this.bufferingResolution(), mode: this.mode, plan: this.current ? executionPlan(this.mode, backend?.plan, this.settings.af, this.settings.gain, !!backend?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, backend });
     }
-    getStreamingState() {
-        const raw = this.current?.backend.streamingState?.();
+    getStreamingState() { return this.captureStreamingState(this.current, this.sourceSerial); }
+    captureStreamingState(session, sourceId) {
+        const raw = session?.backend.streamingState?.();
         if (!raw)
             return null;
-        const prefix = `${this.sourceSerial}:`;
-        return freeze({ ...raw, qualities: raw.qualities.map(q => ({ ...q, id: prefix + q.id })), selectedId: raw.selectedId ? prefix + raw.selectedId : null, presentedId: raw.presentedId ? prefix + raw.presentedId : null, requested: raw.requested.mode === 'manual' ? { ...raw.requested, id: prefix + raw.requested.id } : { ...raw.requested } });
+        const prefix = `${sourceId}:`;
+        return copyData({ ...raw, qualities: raw.qualities.map(q => ({ ...q, id: prefix + q.id })), selectedId: raw.selectedId ? prefix + raw.selectedId : null, presentedId: raw.presentedId ? prefix + raw.presentedId : null, requested: raw.requested.mode === 'manual' ? { ...raw.requested, id: prefix + raw.requested.id } : { ...raw.requested } });
     }
     setQuality(policy) {
         if (!policy || !['auto', 'manual'].includes(policy.mode) || policy.mode === 'manual' && typeof policy.id !== 'string' || policy.mode === 'auto' && [policy.maxHeight, policy.maxBandwidth].some(v => v !== undefined && (!Number.isFinite(v) || v <= 0)))

@@ -1,84 +1,88 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PlayerError } from './internal/errors.js';
-let mediaSessionOwner;
+import { initialPresentationState, transitionPresentation, projectPresentation, presentationLocksSurface, initialMediaSessionLease, allocateMediaSessionOwner, transitionMediaSession, ownsMediaSession, } from './internal/machine/presentation.js';
+const documentLeases = new WeakMap();
 /** Optional browser presentation controls. Calls requiring activation must come from a gesture. */
 export class PlayerPresentation {
     player;
     host;
-    disposed = false;
+    control = initialPresentationState();
     fullscreenTarget;
-    fullscreenPending = false;
-    fullscreenEpoch = 0;
-    containsHost(target) { let node = this.host(); while (node && node !== target)
-        node = node.parentNode ?? (node instanceof ShadowRoot ? node.host : null); return node === target && target.ownerDocument === this.host().ownerDocument; }
-    /** Explicit complete-container target, including shadow-DOM composition. */
-    setFullscreenTarget(target) {
-        this.active();
-        if (this.fullscreenPending || this.host().ownerDocument.fullscreenElement === this.fullscreenHost())
-            throw new PlayerError('UNSUPPORTED_FEATURE', 'Exit fullscreen before changing its target');
-        if (target && !this.containsHost(target))
-            throw new PlayerError('INVALID_ARGUMENT', 'Fullscreen target must contain the presentation host');
-        this.fullscreenTarget = target ?? undefined;
-    }
-    fullscreenHost() { return this.fullscreenTarget ?? this.host(); }
-    pipRequest = false;
-    pipEpoch = 0;
-    pendingVideo;
     pipWindow;
     restore;
-    unsubscribe;
+    subscription;
+    leaseValue;
+    ownerValue;
+    documentValue;
+    // Player constructs this facade in a field initializer, before creating its host.
     constructor(player, host) {
         this.player = player;
         this.host = host;
     }
-    active() { if (this.disposed)
-        throw new PlayerError('ABORTED', 'Presentation controller is destroyed'); }
-    get state() { const host = this.host(); return Object.freeze({ fullscreen: host.ownerDocument.fullscreenElement === this.fullscreenHost(), pictureInPicture: this.pipWindow && !this.pipWindow.closed ? 'document' : document.pictureInPictureElement === this.player.surface ? 'video' : null, mediaSession: mediaSessionOwner === this }); }
-    get locksSurface() { return !!this.pendingVideo || document.pictureInPictureElement === this.player.surface && !!this.player.surface; }
+    get ownerDocument() { return this.documentValue ?? (this.documentValue = this.host().ownerDocument); }
+    get lease() {
+        if (this.leaseValue)
+            return this.leaseValue;
+        let lease = documentLeases.get(this.ownerDocument);
+        if (!lease) {
+            lease = { state: initialMediaSessionLease() };
+            documentLeases.set(this.ownerDocument, lease);
+        }
+        const allocated = allocateMediaSessionOwner(lease.state);
+        lease.state = allocated.state;
+        this.ownerValue = allocated.owner;
+        return this.leaseValue = lease;
+    }
+    get owner() { void this.lease; return this.ownerValue; }
+    transition(command) { const decision = transitionPresentation(this.control, command); this.control = decision.state; return decision; }
+    accept(command) { const decision = this.transition(command); if (decision.error)
+        throw new PlayerError(decision.error.code, decision.error.message); return decision; }
+    containsHost(target) { let node = this.host(); while (node && node !== target)
+        node = node.parentNode ?? (node instanceof ShadowRoot ? node.host : null); return node === target && target.ownerDocument === this.host().ownerDocument; }
+    /** Explicit complete-container target, including shadow-DOM composition. */
+    setFullscreenTarget(target) {
+        this.accept({ type: 'target', override: !!target, fullscreen: this.host().ownerDocument.fullscreenElement === this.fullscreenHost(), containsHost: !target || this.containsHost(target) });
+        this.fullscreenTarget = target ?? undefined;
+    }
+    fullscreenHost() { return this.control.targetOverride ? this.fullscreenTarget : this.host(); }
+    videoPiP() { return !!this.player.surface && this.ownerDocument.pictureInPictureElement === this.player.surface; }
+    get state() { return projectPresentation({ fullscreen: this.host().ownerDocument.fullscreenElement === this.fullscreenHost(), documentPiP: !!this.pipWindow && !this.pipWindow.closed, videoPiP: this.videoPiP(), mediaSession: ownsMediaSession(this.lease.state, this.owner) }); }
+    get locksSurface() { return presentationLocksSurface(this.control, this.videoPiP()); }
     async requestFullscreen() {
-        this.active();
         const host = this.fullscreenHost();
-        if (this.fullscreenPending)
-            throw new PlayerError('UNSUPPORTED_FEATURE', 'Fullscreen entry is already pending');
-        if (!this.containsHost(host))
-            throw new PlayerError('INVALID_ARGUMENT', 'Fullscreen target no longer contains the presentation host');
-        if (!host.requestFullscreen)
-            throw new PlayerError('UNSUPPORTED_FEATURE', 'Fullscreen is unavailable');
-        this.fullscreenPending = true;
-        const epoch = this.fullscreenEpoch;
+        const { requestId: id } = this.accept({ type: 'fullscreen.request', containsHost: this.containsHost(host), supported: typeof host.requestFullscreen === 'function' });
         try {
+            // Invoke on the initiating gesture stack, before awaiting completion.
             await host.requestFullscreen();
-            if (this.disposed || epoch !== this.fullscreenEpoch || !this.containsHost(host)) {
+            const decision = this.transition({ type: 'fullscreen.check', id: id, containsHost: this.containsHost(host) });
+            if (decision.error) {
                 if (host.ownerDocument.fullscreenElement === host)
                     await host.ownerDocument.exitFullscreen();
-                throw new PlayerError('ABORTED', 'Fullscreen request was retired');
+                throw new PlayerError(decision.error.code, decision.error.message);
             }
         }
         finally {
-            this.fullscreenPending = false;
+            this.transition({ type: 'fullscreen.settled', id: id });
         }
     }
-    async exitFullscreen() { this.active(); this.fullscreenEpoch++; const host = this.fullscreenHost(); if (host.ownerDocument.fullscreenElement === host)
+    async exitFullscreen() { this.accept({ type: 'fullscreen.exit' }); const host = this.fullscreenHost(); if (host.ownerDocument.fullscreenElement === host)
         await host.ownerDocument.exitFullscreen(); }
     async requestPictureInPicture(kind = 'video') {
-        this.active();
-        if (!['video', 'document'].includes(kind))
-            throw new PlayerError('INVALID_ARGUMENT', 'Unknown Picture-in-Picture mode');
-        if (this.pipRequest)
-            throw new PlayerError('UNSUPPORTED_FEATURE', 'Picture-in-Picture entry is already pending');
-        this.pipRequest = true;
-        const epoch = this.pipEpoch;
+        // Capture the owning document before document PiP reparents the host.
+        void this.ownerDocument;
+        const api = globalThis.documentPictureInPicture;
+        const surface = this.player.surface;
+        const video = typeof HTMLVideoElement !== 'undefined' && surface instanceof HTMLVideoElement;
+        const { requestId: id } = this.accept({ type: 'pip.request', kind, supported: kind === 'document' ? !!api : video && typeof surface.requestPictureInPicture === 'function', eligible: kind === 'document' || video && !surface.disablePictureInPicture && !(this.player.state.subtitlesVisible && this.player.state.mediaInfo.subtitle), documentOpen: !!this.pipWindow && !this.pipWindow.closed });
+        if (id === undefined)
+            return;
         try {
             if (kind === 'document') {
-                const api = globalThis.documentPictureInPicture;
-                if (!api)
-                    throw new PlayerError('UNSUPPORTED_FEATURE', 'Document Picture-in-Picture is unavailable');
-                if (this.pipWindow && !this.pipWindow.closed)
-                    return;
                 const win = await api.requestWindow({ width: 640, height: 360 });
-                if (this.disposed || epoch !== this.pipEpoch) {
+                const decision = this.transition({ type: 'pip.check', id, sameSurface: true, subtitles: false });
+                if (decision.error) {
                     win.close();
-                    throw new PlayerError('ABORTED', 'Presentation request was retired');
+                    throw new PlayerError(decision.error.code, decision.error.message);
                 }
                 const host = this.host(), marker = host.ownerDocument.createComment('demuxe-presentation');
                 host.before(marker);
@@ -92,83 +96,129 @@ export class PlayerPresentation {
                 win.addEventListener('pagehide', restore, { once: true });
                 return;
             }
-            const surface = this.player.surface;
-            if (!(surface instanceof HTMLVideoElement) || surface.disablePictureInPicture || this.player.state.subtitlesVisible && this.player.state.mediaInfo.subtitle || !surface.requestPictureInPicture)
-                throw new PlayerError('UNSUPPORTED_FEATURE', 'Video Picture-in-Picture requires a Native surface without subtitle composition');
-            this.pendingVideo = surface;
             await surface.requestPictureInPicture();
-            if (this.disposed || epoch !== this.pipEpoch || surface !== this.player.surface || this.player.state.subtitlesVisible && !!this.player.state.mediaInfo.subtitle) {
-                if (document.pictureInPictureElement === surface)
-                    await document.exitPictureInPicture();
-                throw new PlayerError('ABORTED', 'Presentation request was retired');
+            const decision = this.transition({ type: 'pip.check', id, sameSurface: surface === this.player.surface, subtitles: this.player.state.subtitlesVisible && !!this.player.state.mediaInfo.subtitle });
+            if (decision.error) {
+                if (this.ownerDocument.pictureInPictureElement === surface)
+                    await this.ownerDocument.exitPictureInPicture();
+                throw new PlayerError(decision.error.code, decision.error.message);
             }
         }
         finally {
-            this.pendingVideo = undefined;
-            this.pipRequest = false;
+            this.transition({ type: 'pip.settled', id });
         }
     }
     async exitPictureInPicture() {
-        this.active();
-        this.pipEpoch++;
+        this.accept({ type: 'pip.exit' });
         if (this.pipWindow) {
             const win = this.pipWindow;
             this.restore?.();
             win.close();
         }
-        if (document.pictureInPictureElement === this.player.surface && this.player.surface)
-            await document.exitPictureInPicture();
+        if (this.videoPiP())
+            await this.ownerDocument.exitPictureInPicture();
     }
+    mediaSession() { return this.ownerDocument.defaultView?.navigator.mediaSession ?? globalThis.navigator?.mediaSession; }
     setMediaSessionEnabled(enabled) {
-        this.active();
+        if (this.control.disposed)
+            throw new PlayerError('ABORTED', 'Presentation controller is destroyed');
         if (typeof enabled !== 'boolean')
             throw new PlayerError('INVALID_ARGUMENT', 'Expected boolean media-session policy');
-        if (!('mediaSession' in navigator))
+        const media = this.mediaSession();
+        if (!media)
             throw new PlayerError('UNSUPPORTED_FEATURE', 'Media Session is unavailable');
-        if (enabled) {
-            if (mediaSessionOwner && mediaSessionOwner !== this)
-                throw new PlayerError('UNSUPPORTED_FEATURE', 'Another player owns Media Session');
-            if (this.unsubscribe)
-                return;
-            mediaSessionOwner = this;
-            const actions = { play: () => { void this.player.play().catch(() => { }); }, pause: () => { void this.player.pause().catch(() => { }); }, seekto: event => { if (event.seekTime !== undefined)
-                    void this.player.seek(event.seekTime, { policy: 'latest' }).catch(() => { }); } };
-            try {
-                for (const [action, handler] of Object.entries(actions))
-                    navigator.mediaSession.setActionHandler(action, handler);
-                this.unsubscribe = this.player.subscribe(state => { if (mediaSessionOwner !== this)
-                    return; navigator.mediaSession.playbackState = state.sourceId === null ? 'none' : state.playbackIntent === 'play' ? 'playing' : 'paused'; if (state.duration !== null && state.duration > 0 && state.currentTime <= state.duration)
-                    navigator.mediaSession.setPositionState?.({ duration: state.duration, position: state.currentTime, playbackRate: state.playbackRate });
-                else
-                    navigator.mediaSession.setPositionState?.(); });
-            }
-            catch (error) {
-                this.releaseMediaSession();
-                throw new PlayerError('UNSUPPORTED_FEATURE', 'Media Session actions are unavailable');
-            }
-        }
-        else
+        if (!enabled) {
             this.releaseMediaSession();
-    }
-    releaseMediaSession() {
-        this.unsubscribe?.();
-        this.unsubscribe = undefined;
-        if (mediaSessionOwner !== this)
             return;
-        mediaSessionOwner = undefined;
-        for (const action of ['play', 'pause', 'seekto'])
+        }
+        const decision = transitionMediaSession(this.lease.state, { type: 'acquire', owner: this.owner });
+        this.lease.state = decision.state;
+        if (decision.outcome === 'denied')
+            throw new PlayerError('UNSUPPORTED_FEATURE', 'Another player owns Media Session');
+        if (decision.outcome === 'retained')
+            return;
+        const serial = decision.state.serial, current = () => ownsMediaSession(this.lease.state, this.owner, serial) && !this.control.disposed;
+        const actions = { play: () => { if (current())
+                void this.player.play().catch(() => { }); }, pause: () => { if (current())
+                void this.player.pause().catch(() => { }); }, seekto: event => { if (current() && event.seekTime !== undefined)
+                void this.player.seek(event.seekTime, { policy: 'latest' }).catch(() => { }); } };
+        try {
+            for (const [action, handler] of Object.entries(actions)) {
+                if (!current())
+                    return;
+                media.setActionHandler(action, handler);
+            }
+            if (!current())
+                return;
+            const stop = this.player.subscribe(state => {
+                if (!current())
+                    return;
+                media.playbackState = state.sourceId === null ? 'none' : state.playbackIntent === 'play' ? 'playing' : 'paused';
+                if (!current())
+                    return;
+                if (state.duration !== null && state.duration > 0 && state.currentTime <= state.duration)
+                    media.setPositionState?.({ duration: state.duration, position: state.currentTime, playbackRate: state.playbackRate });
+                else
+                    media.setPositionState?.();
+            });
+            if (!current()) {
+                stop();
+                return;
+            }
+            this.subscription = { serial, stop };
+            this.lease.state = transitionMediaSession(this.lease.state, { type: 'activate', owner: this.owner, serial }).state;
+        }
+        catch {
+            this.releaseMediaSession(serial);
+            throw new PlayerError('UNSUPPORTED_FEATURE', 'Media Session actions are unavailable');
+        }
+    }
+    releaseMediaSession(expectedSerial) {
+        const serial = expectedSerial ?? this.lease.state.serial;
+        const decision = transitionMediaSession(this.lease.state, { type: 'release', owner: this.owner, serial });
+        this.lease.state = decision.state;
+        const subscription = this.subscription;
+        if (subscription && subscription.serial === serial) {
+            this.subscription = undefined;
             try {
-                navigator.mediaSession.setActionHandler(action, null);
+                subscription.stop();
             }
             catch { }
-        navigator.mediaSession.playbackState = 'none';
-        try {
-            navigator.mediaSession.setPositionState?.();
         }
-        catch { }
+        if (decision.outcome !== 'released')
+            return;
+        const media = this.mediaSession();
+        if (!media)
+            return;
+        const vacant = () => this.lease.state.owner === null && this.lease.state.serial === serial;
+        for (const action of ['play', 'pause', 'seekto']) {
+            if (!vacant())
+                return;
+            try {
+                media.setActionHandler(action, null);
+            }
+            catch { }
+        }
+        if (!vacant())
+            return;
+        media.playbackState = 'none';
+        if (vacant())
+            try {
+                media.setPositionState?.();
+            }
+            catch { }
     }
-    async destroy() { if (this.disposed)
-        return; this.disposed = true; this.pipEpoch++; this.releaseMediaSession(); const win = this.pipWindow; this.restore?.(); win?.close(); if (document.pictureInPictureElement === this.player.surface && this.player.surface)
-        await document.exitPictureInPicture().catch(() => { }); if (this.host().ownerDocument.fullscreenElement === this.fullscreenHost())
-        await this.host().ownerDocument.exitFullscreen().catch(() => { }); }
+    async destroy() {
+        if (this.control.disposed)
+            return;
+        this.transition({ type: 'destroy' });
+        this.releaseMediaSession();
+        const win = this.pipWindow;
+        this.restore?.();
+        win?.close();
+        if (this.videoPiP())
+            await this.ownerDocument.exitPictureInPicture().catch(() => { });
+        if (this.host().ownerDocument.fullscreenElement === this.fullscreenHost())
+            await this.host().ownerDocument.exitFullscreen().catch(() => { });
+    }
 }

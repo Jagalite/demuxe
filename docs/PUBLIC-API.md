@@ -184,7 +184,10 @@ state is a deeply frozen snapshot. Its identity remains unchanged until a value
 changes. subscribe(listener) calls the listener immediately and returns an
 idempotent unsubscribe. Updates happen before subscribers and high-level events.
 Ordinary backend property bursts are coalesced in a microtask, with no new worker
-polling. Subscribers must not throw; observer failures do not change playback.
+polling. Observer failures, including the initial callback, do not change playback.
+Each event carries the committed snapshot that selected it. If a callback
+publishes a newer state or closes/destroys the player, remaining notifications
+from the superseded publication are stopped.
 
 status describes observed idle/paused/playing/buffering/ended/error state;
 playbackIntent describes requested play/pause independently. pendingOperation has
