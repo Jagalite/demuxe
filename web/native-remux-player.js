@@ -2,6 +2,7 @@
 import {runtimeWorker} from './generated/internal/runtime-worker.js';
 import {initialRemuxLifecycle,transitionRemuxLifecycle,remuxGenerationCurrent,remuxRestartCurrent,remuxRecoveryCurrent,remuxAcceptedGeneration} from './generated/internal/machine/remux-lifecycle.js';
 import {remuxForwardSeconds,remuxStartupCoverage,remuxPlaybackEnded,selectRemuxPumpHead,selectRemuxPump,selectRemuxPumpContinuation,selectRemuxWindowResume,selectRemuxBufferedSeek} from './generated/internal/machine/remux-scheduling.js';
+import {expectedRemuxVideoFrame,matchesRemuxVideoFrame} from './generated/internal/machine/remux-output.js';
 import {WorkerRemuxController,workerMSEAvailable} from './worker-remux-controller.js';
 // The same Native scheduler can own MSE in a window or a dedicated worker.
 // Demux/mux and bounded source reads always remain separate workers.
@@ -16,6 +17,18 @@ export class RemuxPlayer {
   this.video=video;this.timelineBias=1;this.lifecycle=initialRemuxLifecycle();this.transitionLifecycle({type:'buffering',policy:buffering});this.stats={fragments:[],generatedBytes:0,discardedBytes:0,peakQueueDepth:0,bufferedBytesUpperBound:0,peakBufferedBytesUpperBound:0,peakBufferedSeconds:0,seeks:[],sessions:[],errors:[],workers:0,recoveries:[],gapSkips:[]};
   this.bufferResources=new Map();this.updateResources=new Map();this.sourceStats={};this.remuxStats={};this.timer=setInterval(()=>this.pump(),50);
  }
+ get negotiation(){return this.lifecycle.negotiation;}
+ get output(){return this.lifecycle.output;}
+ get frames(){return this.output.frames;}
+ get muxedFrames(){return this.output.muxedFrames;}
+ get duration(){return this.negotiation.duration;}
+ get mime(){return this.negotiation.mime;}
+ get tracks(){return this.negotiation.tracks;}
+ get capability(){return {...this.negotiation.apiHint?{apiHint:this.negotiation.apiHint}:{},...this.negotiation.sourceBufferCreated?{sourceBufferCreated:true}:{}};}
+ get waitingForMedia(){return this.output.waiting;}
+ get primeFrame(){return this.primeResource?.frame??0;}
+ transitionNegotiation(command,generation=this.generation){return this.transitionLifecycle({type:'negotiation',generation,command}).negotiation??{accepted:false};}
+ transitionOutput(command,generation=this.generation){return this.transitionLifecycle({type:'output',generation,command}).output??{accepted:false};}
  get generation(){return this.lifecycle.generation;}
  get bufferState(){return this.lifecycle.buffer;}
  get schedule(){return this.lifecycle.schedule;}
@@ -58,7 +71,7 @@ export class RemuxPlayer {
  transitionLifecycle(command){
   const before=this.lifecycle,result=transitionRemuxLifecycle(before,command);this.lifecycle=result.state;
   // One detached diagnostic snapshot survives logical retirement until resource cleanup.
-  if(command.type!=='buffer'&&before.buffer!==result.state.buffer&&(before.buffer.segments.length||before.buffer.pending||before.buffer.delivery.length))this.retiredBuffer=before.buffer;
+  if(!['buffer','output'].includes(command.type)&&before.buffer!==result.state.buffer&&(before.buffer.segments.length||before.buffer.pending||before.buffer.delivery.length))this.retiredBuffer=before.buffer;
   return result;
  }
  generationCurrent(generation){return remuxGenerationCurrent(this.lifecycle,generation);}
@@ -66,8 +79,9 @@ export class RemuxPlayer {
  setPlaybackIntent(playing){return this.transitionLifecycle({type:'intent',playing:!!playing}).accepted===true;}
  async open(source,target=0){
   if(this.runtime==='pthread'&&!globalThis.crossOriginIsolated)throw Error('Remux requires cross-origin isolation');
-  const opened=this.transitionLifecycle({type:'open'});if(opened.error)throw Error(opened.error);
-  if(this.source&&(this.source.file!==source.file||this.source.options?.url!==source.options?.url)){this.identity=undefined;this.duration=undefined;}
+  const sourceChanged=!!(this.source&&(this.source.file!==source.file||this.source.options?.url!==source.options?.url));
+  const opened=this.transitionLifecycle({type:'open',sourceChanged});if(opened.error)throw Error(opened.error);
+  if(sourceChanged)this.identity=undefined;
   this.source=source;return this.restart(target);
  }
  async restart(target,recoveryId){
@@ -89,33 +103,25 @@ export class RemuxPlayer {
   const oldGeneration=this.generation,decision=this.transitionLifecycle({type:'begin',restartId});
   if(decision.error)throw Error(decision.error);if(decision.aborted)throw new DOMException('Superseded','AbortError');
   const begun=performance.now(),generation=decision.generation;this.stopWorkers(undefined,oldGeneration);this.assertGeneration(generation);
-  this.capability={};
   this.sbs=[];this.bufferResources=new Map();this.updateResources=new Map();
-  this.failureError=undefined;this.stats.errors=[];this.stats.seeks.push({target,started:begun});if(this.stats.seeks.length>64)this.stats.seeks.shift();this.frames=[];this.muxedFrames=false;this.sourceStats={};this.remuxStats={};
+  this.failureError=undefined;this.stats.errors=[];this.stats.seeks.push({target,started:begun});if(this.stats.seeks.length>64)this.stats.seeks.shift();this.sourceStats={};this.remuxStats={};
   this.video.pause();this.assertGeneration(generation);this.video.removeAttribute('src');this.assertGeneration(generation);this.video.load();this.assertGeneration(generation);
   const oldURL=this.objectURL;this.objectURL=null;if(oldURL)URL.revokeObjectURL(oldURL);this.assertGeneration(generation);
   this.media=new MediaSource();if(this.attachMedia)this.attachMedia(this.media);else{this.objectURL=URL.createObjectURL(this.media);this.video.src=this.objectURL;}this.assertGeneration(generation);
-  await new Promise((resolve,reject)=>{
-   const media=this.media;
-   const finish=error=>{clearTimeout(timer);media.removeEventListener('sourceopen',opened);if(this.cancelWait===cancel)this.cancelWait=null;error?reject(error):resolve();};
-   const opened=()=>finish(),cancel=error=>finish(error);
-   const timer=setTimeout(()=>finish(Error('MSE sourceopen timeout')),10000);
-   this.cancelWait=cancel;media.addEventListener('sourceopen',opened,{once:true});
-  });
+  const media=this.media;
+  await this.waitForStartup('sourceopen',generation,finish=>{const opened=()=>finish();media.addEventListener('sourceopen',opened,{once:true});return ()=>media.removeEventListener('sourceopen',opened);});
   this.assertGeneration(generation);
   this.mailbox=this.runtime==='pthread'?new SharedArrayBuffer(64+262144):null;const channel=this.runtime==='pthread'?null:new MessageChannel();this.sourcePort=channel?.port2;this.sourceWorker=runtimeWorker(new URL('./native-remux-source-worker.js',import.meta.url),{type:'module'});this.stats.workers++;
-  const ready=await new Promise((resolve,reject)=>{
-   const timer=setTimeout(()=>finish(Error('Remux source initialization timed out')),10000);
-   let settled=false;
-   const finish=(error,data)=>{if(settled)return;settled=true;clearTimeout(timer);if(this.cancelWait===cancel)this.cancelWait=null;error?reject(error):resolve(data);};
+  const ready=await this.waitForStartup('source-init',generation,finish=>{
    const sourceWorker=this.sourceWorker,sourceDescriptor=this.source;
-   const cancel=error=>finish(error);this.cancelWait=cancel;this.watchWorker(sourceWorker,generation,'source');sourceWorker.onmessage=({data})=>{if(!this.generationCurrent(generation))return;if(data.type==='refresh'){Promise.resolve().then(()=>{this.assertGeneration(generation);if(!sourceDescriptor.refreshAuthorization)throw Error('Authorization refresh unavailable');return sourceDescriptor.refreshAuthorization(data.resource);}).then(update=>{if(this.generationCurrent(generation))sourceWorker.postMessage({type:'refreshed',update});},error=>{if(this.generationCurrent(generation))sourceWorker.postMessage({type:'refreshed',error:String(error)});});}if(data.type==='ready')finish(null,data);if(data.type==='stats')this.sourceStats=data.stats;if(data.type==='error'){const message='Source transport: '+data.message;finish(Error(message));this.fail(message,undefined,generation);}};
+   this.watchWorker(sourceWorker,generation,'source');sourceWorker.onmessage=({data})=>{if(!this.generationCurrent(generation))return;if(data.type==='refresh'){Promise.resolve().then(()=>{this.assertGeneration(generation);if(!sourceDescriptor.refreshAuthorization)throw Error('Authorization refresh unavailable');return sourceDescriptor.refreshAuthorization(data.resource);}).then(update=>{if(this.generationCurrent(generation))sourceWorker.postMessage({type:'refreshed',update});},error=>{if(this.generationCurrent(generation))sourceWorker.postMessage({type:'refreshed',error:String(error)});});}if(data.type==='ready')finish(null,data);if(data.type==='stats')this.sourceStats=data.stats;if(data.type==='error'){const message='Source transport: '+data.message;finish(Error(message));this.fail(message,undefined,generation);}};
    const {refreshAuthorization,...source}=sourceDescriptor;this.assertGeneration(generation);sourceWorker.postMessage({type:'init',mailbox:this.mailbox,port:channel?.port1,...source,identity:this.identity},channel?[channel.port1]:[]);
   });
   this.assertGeneration(generation);
   this.identity??=ready.identity;this.total=ready.size;this.worker=runtimeWorker(new URL('./native-remux-worker.js',import.meta.url),{type:'module'});this.stats.workers++;this.watchWorker(this.worker,generation,'mux');
   this.cancelWait=null;const session={generation,target,sourceSize:ready.size,firstPlayableMs:null,firstPlayableSourceBytes:null};this.stats.sessions.push(session);if(this.stats.sessions.length>64)this.stats.sessions.shift();
-  this.worker.onmessage=({data})=>{
+  const worker=this.worker;
+  worker.onmessage=({data})=>{
    if(!this.generationCurrent(generation)){this.stats.discardedBytes+=byteLength(data.parts??data.buffers??data.buffer);return;}
    if(data.type==='error'){this.fail(data.message,undefined,generation);return;}
    if(Number.isFinite(data.producedAt)){(this.stats.producerDispatchLatencyMs??=[]).push(Math.max(0,performance.timeOrigin+performance.now()-data.producedAt));if(this.stats.producerDispatchLatencyMs.length>256)this.stats.producerDispatchLatencyMs.shift();}
@@ -125,39 +131,11 @@ export class RemuxPlayer {
    if(data.type==='log'){(this.logs??=[]).push(data.message);if(this.logs.length>32)this.logs.shift();return;}
    if(data.type==='fragment'&&!this.acceptFragment(data,generation))return;
    if(data.type==='ready'){const header=this.transitionBuffer({type:'header'},generation);if(!header.accepted){if(header.error)this.fail(header.error,undefined,generation);return;}}
-   if(data.presentationFrames){this.muxedFrames=true;this.frames.push(...data.presentationFrames.map(([pts,duration])=>[pts-this.timelineBias,duration]));}else if(data.frames)this.frames.push(...data.frames);if(this.frames.length>4096)this.frames.splice(0,this.frames.length-4096);
+   this.transitionOutput({type:'frames',presentation:data.presentationFrames,frames:data.frames,timelineBias:this.timelineBias},generation);
    if(data.stats)this.remuxStats=data.stats;this.stats.generatedBytes+=byteLength(data.buffers??data.buffer);
-   if(data.type==='negotiate'){
-    if(data.windowed&&!windowedBrowserSupported()){this.fail('Long unequal-track Native adaptation is unsupported in this browser; use Hybrid','UNSUPPORTED_TIMELINE',generation);return;}
-    session.packaging=[];
-    for(const candidate of data.candidates){
-     const attempt={...candidate};session.packaging.push(attempt);
-     if(rejected.has(candidate.mime)){attempt.rejected='Initialization append failed';continue;}
-     this.capability.apiHint=`MediaSource.isTypeSupported(${candidate.mime})=${MediaSource.isTypeSupported(candidate.mime)}`;
-     if(!MediaSource.isTypeSupported(candidate.mime)){attempt.rejected='MSE type unsupported';continue;}
-     try{
-      const mimes=data.windowed?data.lanes:[candidate.mime];
-      if(!mimes?.length||mimes.some(m=>!MediaSource.isTypeSupported(m)))throw Error('Unsupported selected track packaging');
-      this.sbs=[];for(const mime of mimes)this.sbs.push(this.media.addSourceBuffer(mime));this.sb=this.sbs[0];
-      this.transitionSchedule({type:'configure',windowed:!!data.windowed,trackBounds:data.trackBounds},generation);
-     }catch(error){for(const sb of this.sbs)this.media.removeSourceBuffer(sb);this.sbs=[];attempt.rejected=String(error);continue;}
-     this.capability.sourceBufferCreated=true;
-     attempt.selected=true;this.mime=candidate.mime;
-     this.worker.postMessage({type:'select-container',container:candidate.container});return;
-    }
-    this.fail('Unsupported MSE packaging for selected codecs',undefined,generation);return;
-   }
+   if(data.type==='negotiate'){this.negotiate(data,generation,media,worker,session,rejected);return;}
    if(data.type==='ready'){
-    try{
-     if(target<0||target>=data.duration)throw Error('Seek target out of range');
-     if(!MediaSource.isTypeSupported(data.mime))throw Error(`Unsupported MSE ${data.mime}`);
-     this.duration=data.duration;this.tracks=data.tracks;this.mime=data.mime;this.media.duration=data.duration+this.timelineBias;
-     for(const sb of this.sbs){
-      sb.mode='segments';sb.timestampOffset=0;
-      sb.addEventListener('error',()=>{if(this.generationCurrent(generation)){this.transitionLifecycle({type:'packaging-failure',generation,failed:true});this.fail('MSE SourceBuffer error',undefined,generation);}});
-     }
-     try{this.append(data.buffers??[data.buffer],true);}catch(error){this.transitionLifecycle({type:'packaging-failure',generation,failed:error.name!=='QuotaExceededError'});throw error;}
-    }catch(e){this.fail(String(e),undefined,generation);}
+    this.initialize(data,generation,media,target);
    }else if(data.type==='fragment'){
 
     this.transitionSchedule({type:'raps',values:data.raps},generation);
@@ -165,22 +143,99 @@ export class RemuxPlayer {
    }
   };
   this.worker.postMessage({type:'init',compiledWasm:this.compiledWasm,runtime:this.runtime,port:this.sourcePort,fragmentDelivery:this.fragmentDelivery,mailbox:this.mailbox,size:ready.size,target,audioAdaptation:this.audioAdaptation,videoTrack:this.source.videoTrack,audioTrack:this.source.videoOnly?-2:this.source.audioTrack},this.sourcePort?[this.sourcePort]:[]);this.sourcePort=null;
-  await new Promise((resolve,reject)=>{
-   const deadline=performance.now()+20000;const check=()=>{
-    if(generation===this.generation&&this.stats.errors.length){reject(this.failureError??Error(this.stats.errors.at(-1)));return;}
-    if(!this.generationCurrent(generation)){reject(new DOMException('Superseded','AbortError'));return;}
+  await this.waitForStartup('target',generation,finish=>{
+   let timer;const check=()=>{
+    if(generation===this.generation&&this.stats.errors.length){finish(this.failureError??Error(this.stats.errors.at(-1)));return;}
+    if(!this.generationCurrent(generation)){finish(new DOMException('Superseded','AbortError'));return;}
     // Initial decoder preroll can leave a short leading gap in the playable range.
     if(!this.primeVideo&&(!this.windowed||!this.busy&&!this.pulling&&!this.pending)&&this.hasStartupCoverage()){
-     if(!this.transitionLifecycle({type:'accept',generation}).accepted){reject(new DOMException('Superseded','AbortError'));return;}this.video.currentTime=target+this.timelineBias;
-     if(!this.generationCurrent(generation)){reject(new DOMException('Superseded','AbortError'));return;}
+     if(!this.transitionLifecycle({type:'accept',generation}).accepted){finish(new DOMException('Superseded','AbortError'));return;}this.video.currentTime=target+this.timelineBias;
+     if(!this.generationCurrent(generation)){finish(new DOMException('Superseded','AbortError'));return;}
      session.firstPlayableMs=performance.now()-begun;session.firstPlayableSourceBytes=this.sourceStats.fetchedBytes;
      session.generatedBytes=this.remuxStats.generatedBytes;session.fetchedBytesAtLeastSourceSize=(this.sourceStats.fetchedBytes>=ready.size);
-     resolve();return;
+     finish();return;
     }
-    if(performance.now()>deadline){reject(Error('Remux target buffer timeout'));return;}setTimeout(check,20);
-   };check();
+    if(!this.generationCurrent(generation)){finish(new DOMException('Superseded','AbortError'));return;}
+    timer=setTimeout(check,20);
+   };check();return ()=>clearTimeout(timer);
   });
   return session;
+ }
+ waitForStartup(stage,generation,subscribe){
+  const request=this.transitionNegotiation({type:'wait',stage,now:performance.now()},generation);
+  if(!request.accepted)return Promise.reject(new DOMException('Superseded','AbortError'));
+  return new Promise((resolve,reject)=>{
+   let settled=false,timer,cleanup;
+   const current=()=>this.generationCurrent(generation)&&this.negotiation.wait?.id===request.id;
+   const finish=(error,data)=>{
+    if(settled)return;settled=true;
+    if(!error&&!current())error=new DOMException('Superseded','AbortError');
+    this.transitionNegotiation({type:'wait-check',id:request.id,now:performance.now(),complete:true},generation);
+    clearTimeout(timer);if(this.cancelWait===finish)this.cancelWait=null;
+    try{cleanup?.();}catch(failure){error??=failure;}
+    error?reject(error):resolve(data);
+   };
+   const expired=()=>{try{
+    const result=this.transitionNegotiation({type:'wait-check',id:request.id,now:performance.now(),complete:false},generation);
+    if(!result.accepted){finish(new DOMException('Superseded','AbortError'));return;}
+    if(result.error){finish(Error(result.error));return;}
+    const acquired=setTimeout(expired,Math.max(1,result.remaining));if(settled||!current())clearTimeout(acquired);else timer=acquired;
+   }catch(error){finish(error);}};
+   this.cancelWait=finish;
+   try{
+    const acquired=subscribe(finish);if(settled||!current()){acquired?.();if(!settled)finish(new DOMException('Superseded','AbortError'));}else cleanup=acquired;
+    if(!settled)expired();
+   }catch(error){finish(error);}
+  });
+ }
+ negotiate(data,generation,media,worker,session,rejected){
+  const started=this.transitionNegotiation({type:'start',candidates:data.candidates,windowed:!!data.windowed,lanes:data.lanes,browserSupported:windowedBrowserSupported()},generation);
+  if(!started.accepted){if(started.error)this.fail(started.error,started.code,generation);return;}
+  const id=started.id,current=()=>this.generationCurrent(generation)&&this.negotiation.id===id&&this.media===media&&this.worker===worker;
+  const assertCurrent=()=>{if(!current())throw new DOMException('Superseded','AbortError');};
+  const publish=()=>{if(current())session.packaging=this.negotiation.attempts.map(attempt=>({...attempt}));};
+  publish();
+  for(;;){
+   let attempt=this.transitionNegotiation({type:'candidate',id,rejected:[...rejected]},generation);publish();
+   if(!attempt.accepted){if(attempt.error)this.fail(attempt.error,undefined,generation);return;}
+   if(attempt.action==='skip')continue;
+   const acquired=[];
+   try{
+    assertCurrent();const hint=MediaSource.isTypeSupported(attempt.candidate.mime);assertCurrent();
+    const type=MediaSource.isTypeSupported(attempt.candidate.mime);assertCurrent();
+    const lanes=type&&attempt.mimes.length>0&&attempt.mimes.every(mime=>{const supported=MediaSource.isTypeSupported(mime);assertCurrent();return supported;});
+    attempt=this.transitionNegotiation({type:'candidate',id,rejected:[...rejected],support:{hint,type,lanes}},generation);publish();
+    if(!attempt.accepted)return;if(attempt.action==='skip')continue;
+    for(const mime of attempt.mimes){const sb=media.addSourceBuffer(mime);acquired.push(sb);assertCurrent();}
+    if(!this.transitionNegotiation({type:'acquired',id},generation).accepted)throw new DOMException('Superseded','AbortError');
+    this.sbs=acquired;this.sb=acquired[0];this.transitionSchedule({type:'configure',windowed:!!data.windowed,trackBounds:data.trackBounds},generation);publish();
+    assertCurrent();worker.postMessage({type:'select-container',container:attempt.candidate.container});return;
+   }catch(error){
+    for(const sb of acquired)try{media.removeSourceBuffer(sb);}catch{this.stats.cleanupFailures=(this.stats.cleanupFailures??0)+1;}
+    if(!current())return;
+    if(this.negotiation.selected){this.fail(String(error),undefined,generation);return;}
+    this.sbs=[];this.sb=null;this.transitionNegotiation({type:'rejected',id,message:String(error)},generation);publish();
+   }
+  }
+ }
+ initialize(data,generation,media,target){
+  const buffers=[...this.sbs];
+  const assertCurrent=()=>{this.assertGeneration(generation);if(this.media!==media)throw new DOMException('Superseded','AbortError');};
+  try{
+   const ready={type:'ready',target,duration:data.duration,mime:data.mime,tracks:data.tracks};
+   const checked=this.transitionNegotiation(ready,generation);if(!checked.accepted){if(checked.error)throw Error(checked.error);return;}
+   assertCurrent();const supported=MediaSource.isTypeSupported(data.mime);assertCurrent();
+   const decision=this.transitionNegotiation({...ready,supported},generation);
+   if(!decision.accepted){if(decision.error)throw Error(decision.error);return;}
+   media.duration=data.duration+this.timelineBias;assertCurrent();
+   for(const sb of buffers){
+    sb.mode='segments';assertCurrent();sb.timestampOffset=0;assertCurrent();
+    const handler=()=>{if(this.generationCurrent(generation)){this.transitionLifecycle({type:'packaging-failure',generation,failed:true});this.fail('MSE SourceBuffer error',undefined,generation);}};
+    const handles=this.sourceBufferListeners??=new Set(),handle={sb,handler};handles.add(handle);sb.addEventListener('error',handler);
+    if(!this.generationCurrent(generation)||this.sourceBufferListeners!==handles){handles.delete(handle);sb.removeEventListener('error',handler);assertCurrent();}
+   }
+   try{this.append(data.buffers??[data.buffer],true,generation);}catch(error){this.transitionLifecycle({type:'packaging-failure',generation,failed:error.name!=='QuotaExceededError'});throw error;}
+  }catch(error){this.fail(String(error),undefined,generation);}
  }
  hasStartupCoverage(){return remuxStartupCoverage(this.target,this.duration,this.ranges());}
  contains(t){t+=this.timelineBias;const b=this.sb?.buffered;if(!b)return false;for(let i=0;i<b.length;i++)if(t>=b.start(i)&&t<b.end(i))return true;return false;}
@@ -209,8 +264,8 @@ export class RemuxPlayer {
   if(!this.generationCurrent(generation))return;
   this.resumeWindow();if(this.generationCurrent(generation))this.pump();
  }
- append(buffers,initialization=false){
-  const generation=this.generation,entries=buffers.map((buffer,lane)=>({lane,bytes:byteLength(buffer)}));
+ append(buffers,initialization=false,generation=this.generation){
+  this.assertGeneration(generation);const entries=buffers.map((buffer,lane)=>({lane,bytes:byteLength(buffer)}));
   for(const entry of entries)if(entry.bytes&&!this.sbs[entry.lane])throw Error('Unexpected fragment lane');
   const result=this.transitionBuffer({type:'append',entries,initialization,now:performance.now()},generation);
   if(!result.accepted){if(result.error)throw Error(result.error);this.assertGeneration(generation);return;}
@@ -227,36 +282,43 @@ export class RemuxPlayer {
   if(!result.accepted){if(result.error)throw Error(result.error);return;}
   this.watchUpdate(sb,result.updates[0],generation);this.assertGeneration(generation);sb.remove(0,cut+this.timelineBias-.00001);
  }
- expectedVideoFrame(target){return this.frames?.filter(([pts])=>pts<=target+.000001).sort((a,b)=>a[0]-b[0]).at(-1)?.[0];}
- matchesVideoFrame(target,mediaTime){
-  if(!this.muxedFrames)return undefined;
-  const epsilon=.000001;
-  return this.frames.some(([pts,duration])=>target>=pts-epsilon&&target<pts+duration+epsilon&&mediaTime>=pts+this.timelineBias-epsilon&&mediaTime<=target+this.timelineBias+epsilon);
- }
+ expectedVideoFrame(target){return expectedRemuxVideoFrame(this.output,target);}
+ matchesVideoFrame(target,mediaTime){return matchesRemuxVideoFrame(this.output,target,mediaTime,this.timelineBias);}
  primeLastVideo(generation){
-  if(this.primeFrame||!this.primeVideo||this.sbs.some(s=>s.updating))return;
-  const b=this.sb.buffered;
-  if(!b.length||b.end(b.length-1)-this.timelineBias<this.trackBounds.videoEnd-.002)return;
-  const target=b.end(b.length-1)-.001,expected=this.expectedVideoFrame(this.trackBounds.videoEnd);
-  if(expected===undefined)return;
-  const a=this.sbs[1].buffered;if(!Array.from({length:a.length},(_,i)=>[a.start(i),a.end(i)]).some(([start,end])=>target>=start&&target<end))return;
-  this.setBusy(true,generation);if(this.media.readyState==='open')this.media.endOfStream();
-  let presented,primeTimeout,primeFrame=0;
-  const clean=()=>{clearTimeout(primeTimeout);try{this.video.removeEventListener('seeked',complete);}finally{try{if(primeFrame){const frame=primeFrame;primeFrame=0;this.video.cancelVideoFrameCallback(frame);}}finally{if(this.cancelPrime===clean){this.primeFrame=0;this.primeTimeout=0;this.cancelPrime=null;}}}};
-  const complete=()=>{
-   if(!this.generationCurrent(generation)||!presented||this.video.seeking||Math.abs(this.video.currentTime-target)>.002)return;
-   clean();if(!this.transitionSchedule({type:'prime-finished'},generation).accepted)return;
-   (this.stats.tailPrimes??=[]).push({generation,frame:presented.mediaTime-this.timelineBias,target:this.target});if(this.stats.tailPrimes.length>64)this.stats.tailPrimes.shift();
-   this.setBusy(false,generation);this.pump();
+  const buffers=this.sbs,video=this.video,media=this.media,b=this.sb.buffered,a=buffers[1]?.buffered;
+  const request=this.transitionOutput({type:'prime',enabled:this.primeVideo,updating:buffers.some(sb=>sb.updating),videoEnd:this.trackBounds?.videoEnd,bufferEnd:b.length?b.end(b.length-1):undefined,audioRanges:a?Array.from({length:a.length},(_,i)=>[a.start(i),a.end(i)]):[],timelineBias:this.timelineBias,now:performance.now()},generation);
+  if(!request.accepted)return;
+  const resource={id:request.id,frame:0,timer:null,cleaned:false};this.primeResource=resource;
+  const current=()=>this.generationCurrent(generation)&&this.output.prime?.id===request.id&&this.primeResource===resource;
+  const clean=()=>{
+   if(resource.cleaned)return;resource.cleaned=true;const {frame,timer}=resource;resource.frame=0;resource.timer=null;
+   if(this.primeResource===resource)this.primeResource=null;if(this.cancelPrime===clean)this.cancelPrime=null;
+   clearTimeout(timer);let failure;try{video.removeEventListener('seeked',complete);}catch(error){failure=error;}
+   try{if(frame)video.cancelVideoFrameCallback(frame);}catch(error){failure??=error;}if(failure)throw failure;
   };
-  const check=(_,metadata)=>{
-   if(!this.generationCurrent(generation))return;
-   if(metadata.mediaTime>=expected+this.timelineBias-.001&&metadata.mediaTime<=target+.001&&Math.abs(this.video.currentTime-target)<.002)presented=metadata;
-   complete();if(this.generationCurrent(generation)&&this.primeVideo)this.primeFrame=primeFrame=this.video.requestVideoFrameCallback(check);
+  const complete=mediaTime=>{
+   const result=this.transitionOutput({type:'presented',id:request.id,...typeof mediaTime==='number'?{mediaTime}:{},position:video.currentTime,seeking:!!video.seeking,timelineBias:this.timelineBias},generation);
+   if(!result.completed)return;
+   clean();if(!this.generationCurrent(generation))return;
+   (this.stats.tailPrimes??=[]).push({generation,frame:result.presented-this.timelineBias,target:this.target});if(this.stats.tailPrimes.length>64)this.stats.tailPrimes.shift();this.pump();
   };
-  this.cancelPrime=clean;this.video.addEventListener('seeked',complete);
-  this.primeTimeout=primeTimeout=setTimeout(()=>{if(this.generationCurrent(generation))this.fail('Completed video preroll did not present a frame',undefined,generation);},10000);
-  this.primeFrame=primeFrame=this.video.requestVideoFrameCallback(check);this.video.currentTime=target;
+  const armFrame=()=>{
+   if(!current())return;
+   const frame=video.requestVideoFrameCallback((_,metadata)=>{resource.frame=0;if(!current())return;complete(metadata.mediaTime);if(current())armFrame();});
+   if(!current())video.cancelVideoFrameCallback(frame);else resource.frame=frame;
+  };
+  const expired=()=>{try{
+   const result=this.transitionOutput({type:'prime-deadline',id:request.id,now:performance.now()},generation);
+   if(!result.accepted)return;
+   if(result.error){this.fail(result.error,undefined,generation);return;}
+   const timer=setTimeout(expired,result.remaining);if(!current())clearTimeout(timer);else resource.timer=timer;
+  }catch(error){this.fail(String(error),undefined,generation);}};
+  this.cancelPrime=clean;
+  try{
+   if(media.readyState==='open')media.endOfStream();if(!current()){clean();return;}
+   video.addEventListener('seeked',complete);if(!current()){video.removeEventListener('seeked',complete);clean();return;}
+   expired();if(!current())return;armFrame();if(!current())return;video.currentTime=request.target;
+  }catch(error){clean();this.fail(String(error),undefined,generation);}
  }
  resumeWindow(){
   const generation=this.generation,b=this.video.buffered,position=this.video.currentTime;
@@ -273,13 +335,9 @@ export class RemuxPlayer {
  // edge without dispatching waiting. Observe real clock starvation only while
  // the producer is outstanding near that edge; downloading alone is not waiting.
  observeStarvation(now=performance.now()){
-  const position=this.video.currentTime,active=!this.stopped&&!this.starting&&this.targetReady&&!this.video.seeking&&!this.playbackPaused&&!this.playbackEnded;
-  if(!active||position!==this.progressPosition||this.progressGeneration!==this.generation){this.progressPosition=position;this.progressGeneration=this.generation;this.progressAt=now;}
-  const sourceTime=position-this.timelineBias;
-  const range=active?this.ranges().find(([a,b])=>a<=sourceTime+.05&&b>=sourceTime):undefined;
-  const ahead=range?range[1]-sourceTime:0;
-  const waiting=!!(active&&this.pulling&&now-(this.progressAt??now)>=750&&ahead<=Math.max(1,this.video.playbackRate||1));
-  if(waiting!==!!this.waitingForMedia){this.waitingForMedia=waiting;this.onBufferingChange?.();}
+  const generation=this.generation,position=this.video.currentTime,active=!this.stopped&&!this.starting&&this.targetReady&&!this.video.seeking&&!this.playbackPaused&&!this.playbackEnded;
+  const result=this.transitionOutput({type:'starvation',active,position,sourceTime:position-this.timelineBias,pulling:this.pulling,ranges:active?this.ranges():[],rate:this.video.playbackRate,now},generation);
+  if(result.changed)this.onBufferingChange?.();
  }
  pumpFacts(){
   const physical={position:this.video.currentTime-this.timelineBias,paused:this.video.paused,readyState:this.video.readyState,playbackRate:this.video.playbackRate,ranges:this.ranges(),laneStarts:(this.sbs??[]).map(sb=>sb.buffered?.length?sb.buffered.start(0)-this.timelineBias:null),audioAdaptation:!!this.audioAdaptation,adaptationEnd:this.remuxStats?.adaptation?.sourceEnd,duration:this.duration};
@@ -308,7 +366,7 @@ export class RemuxPlayer {
    const next=continuationFacts?selectRemuxPumpContinuation(this.schedule,this.bufferState,continuationFacts,action.continuation):action.next;
    if(next.kind==='fail'){this.fail(next.error,undefined,generation);return;}
    if(next.kind==='eof'){
-    if(next.duration!==undefined){this.duration=next.duration;if(!this.windowed)this.media.duration=this.duration+this.timelineBias;}
+    if(next.duration!==undefined){this.transitionNegotiation({type:'duration',duration:next.duration},generation);if(!this.windowed)this.media.duration=this.duration+this.timelineBias;}
     if(this.generationCurrent(generation)&&this.media.readyState==='open')this.media.endOfStream();return;
    }
    if(next.kind==='pull'){const pull=this.transitionBuffer({type:'pull'},generation);if(pull.accepted)this.worker.postMessage({type:'next',id:pull.pullId});}
@@ -341,14 +399,15 @@ export class RemuxPlayer {
   const retiredBuffer=this.retiredBuffer??this.bufferState;this.retiredBuffer=null;
   // Detach the retired generation before invoking callbacks or host cleanup.
   // Reentrant opens then install independent resources which this cleanup cannot touch.
-  const {worker,sourceWorker,sourcePort,mailbox,cancelWait,cancelPrime,primeTimeout,primeFrame,bufferResources,updateResources}=this;
-  this.bufferResources=new Map();this.updateResources=new Map();
-  this.worker=this.sourceWorker=this.sourcePort=this.mailbox=this.cancelWait=this.cancelPrime=null;this.primeTimeout=this.primeFrame=0;
+  const {worker,sourceWorker,sourcePort,mailbox,cancelWait,cancelPrime,primeResource,bufferResources,updateResources,sourceBufferListeners}=this;
+  this.bufferResources=new Map();this.updateResources=new Map();this.sourceBufferListeners=new Set();this.primeResource=null;
+  this.worker=this.sourceWorker=this.sourcePort=this.mailbox=this.cancelWait=this.cancelPrime=null;
   if(worker){(this.stats.cancellations??=[]).push({adaptation:this.remuxStats.adaptation?{...this.remuxStats.adaptation}:undefined,generatedBytes:this.remuxStats.generatedBytes||0,pendingBytes:(retiredBuffer.pending??[]).reduce((n,part)=>n+part.bytes,0),retainedCompressedBytesUpperBound:retiredBuffer.segments.reduce((n,segment)=>n+segment.bytes,0),sourceFetchedBytes:this.sourceStats.fetchedBytes||0,inFlightOutputUpperBound:(this.windowed?16:8)*1024*1024});if(this.stats.cancellations.length>64)this.stats.cancellations.shift();}
   this.stats.discardedBytes+=byteLength([...(bufferResources?.values()??[])]);bufferResources?.clear();this.stats.workers=0;this.sb=null;this.sbs=[];
   const cleanup=action=>{try{action();}catch{this.stats.cleanupFailures=(this.stats.cleanupFailures??0)+1;}};
   for(const {sb,handler} of updateResources?.values()??[])cleanup(()=>sb.removeEventListener('updateend',handler));updateResources?.clear();
-  if(cancelPrime)cleanup(cancelPrime);else{clearTimeout(primeTimeout);if(primeFrame)cleanup(()=>this.video.cancelVideoFrameCallback(primeFrame));}
+  for(const {sb,handler} of sourceBufferListeners??[])cleanup(()=>sb.removeEventListener('error',handler));sourceBufferListeners?.clear();
+  if(cancelPrime)cleanup(cancelPrime);else if(primeResource){clearTimeout(primeResource.timer);if(primeResource.frame)cleanup(()=>this.video.cancelVideoFrameCallback(primeResource.frame));}
   cleanup(()=>cancelWait?.(error));
   if(mailbox)cleanup(()=>{const h=new Int32Array(mailbox,0,16);Atomics.store(h,4,1);Atomics.store(h,0,3);Atomics.notify(h,0);});
   cleanup(()=>sourcePort?.close());cleanup(()=>worker?.postMessage({type:'close'}));

@@ -103,10 +103,13 @@ export function playerError(error, id = null, operation = null, scope = 'operati
                 : /cross.origin isolat|secure.*isolated/i.test(semantic) ? 'ISOLATION_REQUIRED'
                     : /representation changed|changed length|Source changed/i.test(semantic) ? 'SOURCE_CHANGED'
                         : /\b(?:401|403)\b|permission|origin.*not allowed|authorization/i.test(semantic) ? 'SOURCE_PERMISSION'
-                            : /timed? ?out|deadline/i.test(semantic) ? 'NETWORK_TIMEOUT'
-                                : /fetch.*module|load.*font|\.wasm|initialization|worker.*failed|import.*module|Aborted\(.*fetch|wasm.*failed|WebAssembly.*(?:compile|instantiate)/i.test(semantic) ? 'ASSET_LOAD_FAILED'
-                                    : /Invalid|Expected|must be|limited to|queue.*full|No source/i.test(semantic) ? 'INVALID_ARGUMENT'
-                                        : /preserve.*track|unknown.*track|require.*mode|unsupported.*feature|not supported.*source|filters require|cannot.*discard|external.*require/i.test(semantic) ? 'UNSUPPORTED_FEATURE'
-                                            : /unsupported|no playback route|no browser bridge/i.test(semantic) ? 'UNSUPPORTED_MEDIA' : 'DECODE_FAILED';
+                            // This deadline belongs to retained decoder ownership, not source I/O.
+                            // Keep generic native command/output and transport deadlines unchanged.
+                            : /^(?:Error:\s*)?(?:Retained decoder:\s*(?:Error:\s*)?)?Retained decoder request deadline exceeded\s*$/im.test(semantic) ? 'DECODE_FAILED'
+                                : /timed? ?out|deadline/i.test(semantic) ? 'NETWORK_TIMEOUT'
+                                    : /fetch.*module|load.*font|\.wasm|initialization|worker.*failed|import.*module|Aborted\(.*fetch|wasm.*failed|WebAssembly.*(?:compile|instantiate)/i.test(semantic) ? 'ASSET_LOAD_FAILED'
+                                        : /Invalid|Expected|must be|limited to|queue.*full|No source/i.test(semantic) ? 'INVALID_ARGUMENT'
+                                            : /preserve.*track|unknown.*track|require.*mode|unsupported.*feature|not supported.*source|filters require|cannot.*discard|external.*require/i.test(semantic) ? 'UNSUPPORTED_FEATURE'
+                                                : /unsupported|no playback route|no browser bridge/i.test(semantic) ? 'UNSUPPORTED_MEDIA' : 'DECODE_FAILED';
     return new PlayerError(code, message, id, operation, scope, ['NETWORK_TIMEOUT', 'ASSET_LOAD_FAILED', 'AUTOPLAY_BLOCKED'].includes(code));
 }

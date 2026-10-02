@@ -1,18 +1,25 @@
 // SPDX-License-Identifier: Apache-2.0
 import { type CapabilityEvidence, type CapabilityRecord } from './machine/routing.js';
 export type { CapabilityEvidence, CapabilityRecord } from './machine/routing.js';
-/** Player-local object identities are shell resources; retained evidence and
- * admission transitions belong to the immutable routing authority. */
+import { type CapabilityOwner, type CapabilityChange } from './machine/route-evidence.js';
+export type CapabilityStore = {
+    read(): CapabilityOwner;
+    change(change: CapabilityChange, revision: number): boolean;
+};
+/** A Player supplies its composed store. Standalone utility users retain a
+ * local pure owner; physical object identity never enters either state. */
 export declare class RuntimeCapabilities {
+    private readonly store;
     private identities;
-    private serial;
-    private state;
+    private identityEpoch;
+    constructor(store?: CapabilityStore);
     begin(source: object, plans: ReadonlyArray<{
         id: string;
         eligible: boolean;
         reason?: string;
     }>): void;
-    update(planId: string, state: CapabilityRecord['state'], evidence?: CapabilityEvidence, reason?: string, failureKind?: CapabilityRecord['failureKind']): void;
+    get revision(): number;
+    update(planId: string, state: CapabilityRecord['state'], evidence?: CapabilityEvidence, reason?: string, failureKind?: CapabilityRecord['failureKind'], revision?: number): void;
     admission(plans: ReadonlyArray<{
         id: string;
         eligible: boolean;

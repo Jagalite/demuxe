@@ -72,7 +72,7 @@ test('retired resume finally cannot clear a replacement request and buffering su
 function shell(t){
  const requests=[],video={currentTime:1,paused:true,ended:false,seeking:false,readyState:4,playbackRate:1,buffered:{length:1,start:()=>1,end:()=>20},pause(){},removeAttribute(){},load(){},play(){return Promise.resolve();}},p=new RemuxPlayer(video,{mseOwner:'window',runtime:'jspi'});clearInterval(p.timer);t.after(()=>p.destroy());
  const begin=()=>{p.transitionLifecycle({type:'open'});const restart=p.transitionLifecycle({type:'restart',target:0,duration:40});p.transitionLifecycle({type:'begin',restartId:restart.restartId});p.transitionLifecycle({type:'settle',restartId:restart.restartId});p.setBusy(false);};begin();
- p.sbs=[{updating:false,buffered:video.buffered,addEventListener(){},removeEventListener(){}}];p.sb=p.sbs[0];p.media={readyState:'open',endOfStream(){requests.push('eof');}};p.duration=40;p.ranges=()=>[[0,1]];p.worker={postMessage:message=>requests.push(message),terminate(){}};
+ p.sbs=[{updating:false,buffered:video.buffered,addEventListener(){},removeEventListener(){}}];p.sb=p.sbs[0];p.media={readyState:'open',endOfStream(){requests.push('eof');}};p.transitionNegotiation({type:'duration',duration:40});p.ranges=()=>[[0,1]];p.worker={postMessage:message=>requests.push(message),terminate(){}};
  return {p,video,requests,begin};
 }
 test('actual window play stays in the calling stack and old completion preserves a replacement resume',async t=>{

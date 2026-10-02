@@ -32,6 +32,24 @@ test('known semantic timeout, transport, asset and argument classifications are 
   ])assert.equal(playerError(new Error(message+'\n    at Timeout.worker (decoder.wasm:403:1)')).code,code,message);
 });
 
+test('retained decoder request deadlines preserve decoder ownership without reclassifying transport or output watchdogs',()=>{
+  for(const message of [
+    'Retained decoder request deadline exceeded',
+    'Retained decoder: Retained decoder request deadline exceeded',
+    'Error: Retained decoder: Error: Retained decoder request deadline exceeded\ncheckDecoder@http://127.0.0.1:61861/web/private-mpv/playback-host.js:90:67\nsetTimeout handler*pump@http://127.0.0.1:61861/web/private-mpv/playback-worker.js:98:11',
+  ]){
+    const error=playerError(new Error(message),7,'seek','session');
+    assert.equal(error.code,'DECODE_FAILED',message);assert.equal(error.retryable,false);
+    assert.equal(error.message,message);assert.equal(error.operationId,7);assert.equal(error.scope,'session');
+  }
+  assert.equal(playerError(new Error('Worker failed',{cause:Error('Retained decoder request deadline exceeded')})).code,'DECODE_FAILED');
+  for(const message of ['Native command deadline','Private Software output deadline','Native output deadline','Source transport: Read deadline exceeded','Retained decoder: Source transport read deadline exceeded']){
+    const error=playerError(new Error(message));assert.equal(error.code,'NETWORK_TIMEOUT',message);assert.equal(error.retryable,true);
+  }
+  const sourceTimeout=new PlayerError('NETWORK_TIMEOUT','Source read deadline');
+  assert.equal(playerError(new Error('Retained decoder request deadline exceeded',{cause:sourceTimeout})).code,'NETWORK_TIMEOUT');
+});
+
 test('structured causes contribute actual messages and typed semantics without stack heuristics',()=>{
   assert.equal(playerError(new Error('Source transport',{cause:Error('Read timed out')})).code,'NETWORK_TIMEOUT');
   assert.equal(playerError(new Error('Source transport',{cause:Error('HTTP 403 forbidden')})).code,'SOURCE_PERMISSION');

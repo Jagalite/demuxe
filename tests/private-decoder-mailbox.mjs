@@ -42,7 +42,7 @@ test('decoder deadline releases the task and rejects late frame ownership',async
     h.mailbox.request(h.ptr,4);await new Promise(r=>setTimeout(r,25));
     assert.equal(h.wait.ready,true);assert.equal(h.wait.task.resumeAction(),-73);
     resolve({result:1,frame});await turn();assert.equal(frame.closed,1);
-    assert.equal(h.mailbox.snapshot().timeouts,1);assert.equal(h.mailbox.snapshot().timers,0);
+    assert.equal(h.mailbox.snapshot().timeouts,1);assert.equal(h.mailbox.snapshot().timers,0);assert.match(h.mailbox.snapshot().error,/decoder request deadline/);
   } finally {h.mailbox.close();}
 });
 test('scheduler shutdown abandons pending callbacks and closes late results',async()=>{

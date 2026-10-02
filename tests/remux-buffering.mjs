@@ -8,12 +8,12 @@ function setSchedule(player,patch){player.lifecycle=Object.freeze({...player.lif
 function setBuffer(player,patch){player.lifecycle=Object.freeze({...player.lifecycle,buffer:Object.freeze({...player.bufferState,...patch})});}
 function setPending(player,buffers){const pending=buffers.map((buffer,index)=>({id:player.bufferState.resourceSerial+index+1,lane:index,bytes:buffer.byteLength}));for(let i=0;i<pending.length;i++)player.bufferResources.set(pending[i].id,buffers[i]);setBuffer(player,{pending,resourceSerial:player.bufferState.resourceSerial+pending.length});}
 function fixture(values){
- const {generation=0,stopped=false,starting=false,targetReady=false,recoveryPlaying=false,target=0,windowed=false,presentationFloor=0,trackBounds=null,raps=[],lastEviction=-Infinity,lastEvictions=[],buffering=undefined,primeVideo=false,busy=false,pulling=false,pending=null,eof=false,segments=[],pendingUpdates=new Set(),receipts:unused,...resources}=values;
+ const {duration=undefined,generation=0,stopped=false,starting=false,targetReady=false,recoveryPlaying=false,target=0,windowed=false,presentationFloor=0,trackBounds=null,raps=[],lastEviction=-Infinity,lastEvictions=[],buffering=undefined,primeVideo=false,busy=false,pulling=false,pending=null,eof=false,segments=[],pendingUpdates=new Set(),receipts:unused,...resources}=values;
  resources.sbs??=resources.sb?[resources.sb]:[];for(const sb of resources.sbs){sb.addEventListener??=()=>{};sb.removeEventListener??=()=>{};}
  const initial=initialRemuxLifecycle(),updates=[...pendingUpdates].map((sb,index)=>({id:index+1,lane:resources.sbs.indexOf(sb),kind:'remove',bytes:0,initialization:false,started:0}));
  const buffer=Object.freeze({...initial.buffer,busy,pull:pulling?1:null,pullSerial:pulling?1:0,eof,segments:Object.freeze(segments.map((segment,index)=>Object.freeze({id:index+1,lane:0,kind:'append',initialization:false,started:0,...segment}))),updates,updateSerial:updates.length});
  const schedule=Object.freeze({...initial.schedule,target,windowed,presentationFloor,trackBounds,raps:Object.freeze([...raps]),lastEviction,lastEvictions,buffering,primeVideo});
- const lifecycle=Object.freeze({...initial,buffer,schedule,generation,stopped,starting,targetReady,playing:recoveryPlaying,active:!stopped});
+ const lifecycle=Object.freeze({...initial,negotiation:Object.freeze({...initial.negotiation,duration}),buffer,schedule,generation,stopped,starting,targetReady,playing:recoveryPlaying,active:!stopped});
  const player=Object.assign(Object.create(RemuxPlayer.prototype),{lifecycle,bufferResources:new Map(),updateResources:new Map()},resources);if(pending)setPending(player,pending);return player;
 }
 
@@ -110,7 +110,7 @@ test('remux starvation observes stopped playback near an outstanding producer, n
  for(const property of ['paused','seeking']){p.video[property]=true;p.observeStarvation(2000);assert.equal(p.waitingForMedia,false);p.video[property]=false;}
  p.observeStarvation(2100);setBuffer(p,{pull:null});p.observeStarvation(3000);assert.equal(p.waitingForMedia,false);
  setBuffer(p,{pull:1});p.ranges=()=>[[0,20]];p.observeStarvation(4000);assert.equal(p.waitingForMedia,false);
- p.ranges=()=>[[0,4.6]];p.lifecycle=Object.freeze({...p.lifecycle,generation:p.generation+1});p.observeStarvation(5000);assert.equal(p.waitingForMedia,false);
+ p.ranges=()=>[[0,4.6]];p.lifecycle=Object.freeze({...p.lifecycle,generation:p.generation+1,output:initialRemuxLifecycle().output});p.observeStarvation(5000);assert.equal(p.waitingForMedia,false);
  p.video.currentTime=5.2;p.observeStarvation(6000);assert.equal(p.waitingForMedia,false);
 });
 

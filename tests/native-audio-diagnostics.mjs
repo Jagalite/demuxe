@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {initialRemuxLifecycle} from '../web/generated/internal/machine/remux-lifecycle.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {NativeMpvAudio} from '../web/generated/internal/native-mpv-audio.js';
@@ -68,7 +69,7 @@ test('native control-plane reads do not collect audio or video diagnostics',()=>
 
 for(const ownership of ['window','worker','worker-fallback'])test(`${ownership} buffering reads avoid remux diagnostic collection`,()=>{
   const video={playbackRate:1,paused:false,currentTime:1,preload:'auto',getVideoPlaybackQuality(){throw Error('video quality read');}};
-  const remux=Object.assign(Object.create(RemuxPlayer.prototype),{video,forwardTargetSeconds:()=>30,waitingForMedia:true,
+  const remux=Object.assign(Object.create(RemuxPlayer.prototype),{video,forwardTargetSeconds:()=>30,lifecycle:Object.freeze({...initialRemuxLifecycle(),output:Object.freeze({...initialRemuxLifecycle().output,waiting:true})}),
     ranges(){throw Error('ranges collected');}});
   Object.defineProperty(remux,'stats',{get(){throw Error('statistics cloned');}});
   const expected={effectiveForwardSeconds:30,playbackRate:1,paused:false,waitingForMedia:true};
@@ -77,7 +78,7 @@ for(const ownership of ['window','worker','worker-fallback'])test(`${ownership} 
   assert.equal(player.bufferingDiagnostics.backend,'remux');
   assert.deepEqual(player.bufferingDiagnostics.settings,expected);
   if(ownership!=='worker'){
-    video.playbackRate=2;video.paused=true;remux.waitingForMedia=false;
+    video.playbackRate=2;video.paused=true;remux.lifecycle=Object.freeze({...remux.lifecycle,output:Object.freeze({...remux.output,waiting:false})});
     assert.deepEqual(player.bufferingDiagnostics.settings,{...expected,playbackRate:2,paused:true,waitingForMedia:false});
   }else{
     worker.accept({snapshot:{buffering:{...expected,playbackRate:2}}},owner);

@@ -35,8 +35,10 @@ test('successful cached evidence never bypasses startup, and source identities a
  assert.equal(cache.snapshot()[0].state,'untested');assert.equal(cache.snapshot()[0].previouslyVerified,true);
  cache.begin(b,plans);assert.notEqual(cache.snapshot()[0].sourceIdentity,id);assert.equal(cache.snapshot()[0].previouslyVerified,false);
  cache.update('software','verified');assert.equal(cache.snapshot()[1].state,'untested');
- for(let i=0;i<40;i++){cache.begin({},plans);cache.update('native-direct','verified');}assert.equal(cache.state.verified.length,32);
- cache.clear();assert.deepEqual(cache.snapshot(),[]);assert.equal(cache.state.verified.length,0);
+ const sources=Array.from({length:40},()=>({}));
+ for(const source of sources){cache.begin(source,plans);cache.update('native-direct','verified');}
+ const remembered=sources.map(source=>{cache.begin(source,plans);return cache.snapshot()[0].previouslyVerified;});assert.deepEqual(remembered,[...Array(8).fill(false),...Array(32).fill(true)]);
+ cache.clear();assert.deepEqual(cache.snapshot(),[]);for(const source of sources){cache.begin(source,plans);assert.equal(cache.snapshot()[0].previouslyVerified,false);}
 });
 test('transport, source identity, assets, permission, timeout, unknown and cancellation never become codec fallback',()=>{
  for(const error of [new Error('Source transport: HTTP 403'),new Error('representation changed'),new Error('integrity mismatch'),new Error('Source identity mismatch'),new Error('Native loadeddata timed out'),new Error('Unknown unexpected failure'),new Error('fetch module failed'),new DOMException('No','NotAllowedError'),new DOMException('Cancel','AbortError'),new PlayerError('SOURCE_CHANGED','Decoder failed')])assert.equal(compatibilityFailure(error),false,String(error));

@@ -67,11 +67,11 @@ export declare class Player extends EventTarget {
     private runtimeCapabilities;
     private tierAttempts;
     private promotionTimer?;
-    private promotionEpoch;
-    private promotionRunning;
+    private get promotionRunning();
     private promotionController?;
     private backgroundPromotion?;
     private tierConfiguration;
+    private promotionFacts;
     private cancelPromotion;
     private schedulePromotion;
     private readonly mediaCapabilityQueries;
@@ -96,12 +96,10 @@ export declare class Player extends EventTarget {
     private get selectiveAudioAssetsChecked();
     private set selectiveAudioAssetsChecked(value);
     private inspection?;
-    private recovering;
+    private get recovering();
     private lifetime;
     private preparation?;
     private preparationTask;
-    private recoveredSessions;
-    private failedStreamingPlans;
     private audioAdaptation?;
     private automaticLossless;
     private audioPlayback;
@@ -261,6 +259,7 @@ export declare class Player extends EventTarget {
     private checkInspectedAssets;
     private inspectFallbackAfterFastFailure;
     private select;
+    private updateEvidence;
     private acceptEvidence;
     private evidence;
     private localRemuxRetry;

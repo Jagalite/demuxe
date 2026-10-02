@@ -1,10 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
-/** Object identity and clock reads stay here; negative-evidence policy is pure. */
+import { type TierOwner, type TierChange } from './machine/route-evidence.js';
+export type TierStore = {
+    read(): TierOwner;
+    change(change: TierChange, revision: number): boolean;
+};
+/** Object identity and clock reads stay here; Player evidence shares its one
+ * composed authority, while standalone utility instances have a local owner. */
 export declare class TierAttempts {
+    private readonly store;
     private sources;
-    private serial;
-    private state;
-    key(source: object, configuration: string, plan: string): string;
+    private identityEpoch;
+    constructor(store?: TierStore);
+    key(source: object, configuration: string, plan: string): string | undefined;
     failure(source: object, configuration: string, plan: string, reason: string, now?: number): void;
     reason(source: object, configuration: string, plan: string, now?: number): string | undefined;
     clear(): void;

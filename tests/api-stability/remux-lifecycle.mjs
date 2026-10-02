@@ -84,7 +84,7 @@ test('actual prime cleanup cancels its frame once and worker release continues i
  for(const throws of [false,true]){
   const {player:p,video}=shell(t);await p.open({file:{}});const cancelled=[];let terminated=0;
   video.addEventListener=()=>{};video.removeEventListener=()=>{if(throws)throw Error('listener cleanup failed');};video.requestVideoFrameCallback=()=>41;video.cancelVideoFrameCallback=id=>cancelled.push(id);
-  p.lifecycle=Object.freeze({...p.lifecycle,schedule:Object.freeze({...p.schedule,primeVideo:true,trackBounds:{videoEnd:1,audioEnd:2}})});p.sb={updating:false,buffered:{length:1,start:()=>1,end:()=>2}};p.sbs=[p.sb,{updating:false,buffered:{length:1,start:()=>1,end:()=>3}}];p.expectedVideoFrame=()=>.98;p.media={readyState:'ended'};p.worker={postMessage(){},terminate(){terminated++;}};
+  p.lifecycle=Object.freeze({...p.lifecycle,schedule:Object.freeze({...p.schedule,primeVideo:true,trackBounds:{videoEnd:1,audioEnd:2}})});p.sb={updating:false,buffered:{length:1,start:()=>1,end:()=>2}};p.sbs=[p.sb,{updating:false,buffered:{length:1,start:()=>1,end:()=>3}}];p.transitionOutput({type:'frames',frames:[[.98,.02]],timelineBias:1});p.media={readyState:'ended'};p.worker={postMessage(){},terminate(){terminated++;}};
   p.primeLastVideo(p.generation);assert.equal(p.primeFrame,41);p.stopWorkers();p.stopWorkers();assert.deepEqual(cancelled,[41]);assert.equal(terminated,1);assert.equal(p.stats.cleanupFailures??0,throws?1:0);
  }
 });

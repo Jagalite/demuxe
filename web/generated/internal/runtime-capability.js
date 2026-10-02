@@ -1,32 +1,51 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PlayerError, playerError, isPlayerError } from './errors.js';
-import { createCapabilities, transitionCapabilities, selectCapabilities, capabilityUpdateEligible } from './machine/routing.js';
-/** Player-local object identities are shell resources; retained evidence and
- * admission transitions belong to the immutable routing authority. */
+import { selectCapabilities, capabilityUpdateEligible } from './machine/routing.js';
+import { initialCapabilityOwner, transitionCapabilityOwner } from './machine/route-evidence.js';
+function localCapabilityStore() {
+    let state = initialCapabilityOwner();
+    return { read: () => state, change(change, revision) { const next = transitionCapabilityOwner(state, change, revision), accepted = next !== state; state = next; return accepted; } };
+}
+/** A Player supplies its composed store. Standalone utility users retain a
+ * local pure owner; physical object identity never enters either state. */
 export class RuntimeCapabilities {
+    store;
     identities = new WeakMap();
-    serial = 0;
-    state = createCapabilities();
+    identityEpoch = -1;
+    constructor(store = localCapabilityStore()) {
+        this.store = store;
+    }
     begin(source, plans) {
+        let owner = this.store.read();
+        if (this.identityEpoch !== owner.identityEpoch) {
+            this.identities = new WeakMap();
+            this.identityEpoch = owner.identityEpoch;
+        }
         let id = this.identities.get(source);
         if (!id) {
-            id = `source-${++this.serial}`;
+            if (!this.store.change({ kind: 'identity' }, owner.revision))
+                return;
+            owner = this.store.read();
+            id = `source-${owner.serial}`;
             this.identities.set(source, id);
         }
-        this.state = transitionCapabilities(this.state, { kind: 'begin', sourceIdentity: id, plans: plans.map(plan => ({ id: plan.id, eligible: plan.eligible, reason: plan.reason })) });
+        const captured = plans.map(plan => ({ id: plan.id, eligible: plan.eligible, reason: plan.reason }));
+        this.store.change({ kind: 'event', event: { kind: 'begin', sourceIdentity: id, plans: captured } }, owner.revision);
     }
-    update(planId, state, evidence, reason, failureKind) {
-        const previous = this.state;
-        if (!capabilityUpdateEligible(previous, planId))
+    get revision() { return this.store.read().revision; }
+    update(planId, state, evidence, reason, failureKind, revision = this.store.read().revision) {
+        const previous = this.store.read();
+        if (previous.revision !== revision || !capabilityUpdateEligible(previous.value, planId))
             return;
         const captured = evidence ? captureEvidence(evidence) : undefined;
-        if (this.state !== previous)
-            return;
-        this.state = transitionCapabilities(previous, { kind: 'update', planId, state, evidence: captured, reason, failureKind });
+        this.store.change({ kind: 'event', event: { kind: 'update', planId, state, evidence: captured, reason, failureKind } }, previous.revision);
     }
-    admission(plans) { this.state = transitionCapabilities(this.state, { kind: 'admission', plans: plans.map(plan => ({ id: plan.id, eligible: plan.eligible, reason: plan.reason })) }); }
-    clear() { this.state = createCapabilities(); this.identities = new WeakMap(); }
-    snapshot() { return selectCapabilities(this.state); }
+    admission(plans) {
+        const previous = this.store.read(), captured = plans.map(plan => ({ id: plan.id, eligible: plan.eligible, reason: plan.reason }));
+        this.store.change({ kind: 'event', event: { kind: 'admission', plans: captured } }, previous.revision);
+    }
+    clear() { this.store.change({ kind: 'event', event: { kind: 'clear' } }, this.store.read().revision); }
+    snapshot() { return selectCapabilities(this.store.read().value); }
 }
 /** The supported evidence schema contains only scalar observations and two
  * scalar maps. Normalize the boundary so custom backends cannot retain handles

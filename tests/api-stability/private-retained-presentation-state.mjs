@@ -88,23 +88,24 @@ class Decoder {
 const turn=()=>new Promise(resolve=>setImmediate(resolve));
 function pipeline(){
  let wait,wakes=0;const memory=new WebAssembly.Memory({initial:130}),ptr=128,header=new Int32Array(memory.buffer,ptr,16);header[4]=0;
- const presentation=new PrivateRetainedPresentation({now:()=>0,onCapacity:()=>service.wakeup()});
+ const presentation=new PrivateRetainedPresentation({now:()=>0,onCapacity:()=>service.capacityChanged()});
  const service=new PrivateRetainedDecoder({Decoder,Chunk:class{},wakeup:()=>wakes++,canReceive:(frame,generation)=>presentation.canReceive(frame,generation)});
  const scheduler={wrapImport:(_name,fn)=>fn,onStop:()=>()=>{},park(arm){wait={task:{},ready:false};arm(wait);return 'parked';},readyWait(current){current.ready=true;}};
  const mailbox=new CooperativeDecoderMailbox(scheduler,service,{onFrame:(frame,generation)=>presentation.enqueue(frame,generation)});mailbox.attach(memory);
  const input={operation:1,fields:[0,0,0,0,3,320,180,1,8,0,0,0,0,3,0,0],bytes:new Uint8Array([1,2,3]),timestamp:0,duration:33333};
- return{presentation,service,mailbox,get wakes(){return wakes;},get wait(){return wait;},async init(){await service.execute(input,new AbortController().signal);},async receive(){assert.equal(mailbox.request(ptr,4),'parked');await turn();assert.equal(wait.ready,true,'backpressure must release the parked native task');return wait.task.resumeAction();},output(timestamp){const output=frame(timestamp);output.duration=33333;output.colorSpace={};Decoder.current.callbacks.output(output);return output;},close(){mailbox.close();presentation.clear();}};
+ return{presentation,service,mailbox,get wakes(){return wakes;},get wait(){return wait;},async init(){await service.execute(input,new AbortController().signal);},beginReceive(){assert.equal(mailbox.request(ptr,4),'parked');},async finishReceive(){await turn();assert.equal(wait.ready,true,'an admissible result must release the parked native task');return wait.task.resumeAction();},async receive(){this.beginReceive();return this.finishReceive();},output(timestamp){const output=frame(timestamp);output.duration=33333;output.colorSpace={};Decoder.current.callbacks.output(output);return output;},close(){mailbox.close();presentation.clear();}};
 }
-test('actual decoder backpressure releases native receive, preserves the17th frame and wakes when selection frees capacity',async()=>{
+test('actual decoder backpressure parks native receive, preserves the17th frame and wakes when selection frees capacity',async()=>{
  const p=pipeline();await p.init();const outputs=[];
  try{
   for(let i=0;i<16;i++){outputs.push(p.output(i*100000));assert.equal(await p.receive(),1);}
-  const blocked=p.output(1600000);outputs.push(blocked);const before=p.wakes;
-  for(let retry=0;retry<3;retry++)assert.equal(await p.receive(),0);assert.equal(p.service.snapshot().blockedReceives,3);assert.equal(p.service.snapshot().maxConsecutiveBlockedReceives,3);assert.equal(p.mailbox.snapshot().pending,0);assert.equal(p.mailbox.snapshot().timers,0);assert.equal(p.presentation.snapshot().queued,16);assert.equal(p.service.snapshot().queued,1);assert.equal(blocked.closed,0);assert.equal(p.mailbox.snapshot().errors,0);
+  const blocked=p.output(1600000);outputs.push(blocked);p.beginReceive();await turn();
+  for(let retry=0;retry<3;retry++){p.service.capacityChanged();await turn();assert.equal(p.wait.ready,false);}
+  assert.equal(p.service.snapshot().blockedReceives,1);assert.equal(p.service.snapshot().maxConsecutiveBlockedReceives,1);assert.equal(p.mailbox.snapshot().pending,1);assert.equal(p.mailbox.snapshot().timers,1);assert.equal(p.presentation.snapshot().queued,16);assert.equal(p.service.snapshot().queued,1);assert.equal(blocked.closed,0);assert.equal(p.mailbox.snapshot().errors,0);
   // A selected native timestamp already delivered to the native filter frees
   // ownership independently of the blocked receive, so no new frame is needed.
-  await p.presentation.select(oracle(.1),{});assert.ok(p.wakes>before);assert.equal(p.presentation.held,outputs[1]);assert.equal(outputs[0].closed,1);
-  assert.equal(await p.receive(),1);assert.equal(p.service.snapshot().queued,0);assert.equal(p.service.snapshot().capacityResumes,1);assert.equal(p.presentation.snapshot().peakFrames,16);assert.equal(p.presentation.frames.get(1600000),blocked);assert.equal(p.mailbox.snapshot().errors,0);
+  await p.presentation.select(oracle(.1),{});assert.equal(p.presentation.held,outputs[1]);assert.equal(outputs[0].closed,1);
+  assert.equal(await p.finishReceive(),1);assert.equal(p.service.snapshot().queued,0);assert.equal(p.service.snapshot().capacityResumes,1);assert.equal(p.presentation.snapshot().peakFrames,16);assert.equal(p.presentation.frames.get(1600000),blocked);assert.equal(p.mailbox.snapshot().errors,0);
  }finally{p.close();}assert.ok(outputs.every(output=>output.closed===1));
 });
 test('actual full presenter still consumes retired seek preroll without deadlocking its capacity',async()=>{
@@ -119,10 +120,10 @@ test('actual pressure followed by decoder reset retires queued frames and ignore
  const p=pipeline();await p.init();const outputs=[];let late;
  try{
   for(let i=0;i<16;i++){outputs.push(p.output(i*100000));assert.equal(await p.receive(),1);}
-  const blocked=p.output(2000000);outputs.push(blocked);assert.equal(await p.receive(),0);const old=Decoder.current;
-  p.presentation.clear(3,p.service.generation);await p.service.execute({operation:6},new AbortController().signal);assert.equal(blocked.closed,1);
+  const blocked=p.output(2000000);outputs.push(blocked);p.beginReceive();await turn();assert.equal(p.wait.ready,false);const old=Decoder.current;
+  p.mailbox.cancel();assert.equal(await p.finishReceive(),-29);p.presentation.clear(3,p.service.generation);await p.service.execute({operation:6},new AbortController().signal);assert.equal(blocked.closed,1);
   late=frame(3000000);old.callbacks.output(late);assert.equal(late.closed,1);
-  const current=p.output(3000000);outputs.push(current);assert.equal(await p.receive(),1);await p.presentation.select(oracle(3),{});assert.equal(p.presentation.held,current);assert.equal(p.mailbox.snapshot().errors,0);
+  const current=p.output(3000000);outputs.push(current);assert.equal(await p.receive(),1);await p.presentation.select(oracle(3),{});assert.equal(p.presentation.held,current);
  }finally{p.close();}assert.ok(outputs.every(output=>output.closed===1));assert.equal(late.closed,1);
 });
 test('pure pressure admission retains bounded capacity while allowing discardable or invalid input to settle',()=>{

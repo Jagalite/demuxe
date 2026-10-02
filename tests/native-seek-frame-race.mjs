@@ -101,8 +101,9 @@ test('recovery never moves a changed playhead or seeks evicted buffered media',a
 });
 
 import {RemuxPlayer} from '../web/native-remux-player.js';
+import {initialRemuxLifecycle} from '../web/generated/internal/machine/remux-lifecycle.js';
 test('muxed B-frame overlap accepts either covering frame, not an older frame',()=>{
- const p=Object.assign(Object.create(RemuxPlayer.prototype),{muxedFrames:true,timelineBias:1,frames:[[6.233,.034],[6.267,.034],[6.3,.033],[6.333,.034]]});
+ const p=Object.assign(Object.create(RemuxPlayer.prototype),{timelineBias:1,lifecycle:Object.freeze({...initialRemuxLifecycle(),output:Object.freeze({...initialRemuxLifecycle().output,muxedFrames:true,frames:[[6.233,.034],[6.267,.034],[6.3,.033],[6.333,.034]]})})});
  assert.equal(p.matchesVideoFrame(6.300974,7.267),true);
  assert.equal(p.matchesVideoFrame(6.300974,7.3),true);
  assert.equal(p.matchesVideoFrame(6.300974,7.233),false);

@@ -1,29 +1,41 @@
 // SPDX-License-Identifier: Apache-2.0
 import {PlayerError, playerError,isPlayerError} from './errors.js';
 
-import {createCapabilities,transitionCapabilities,selectCapabilities,capabilityUpdateEligible,type CapabilityEvidence,type CapabilityRecord} from './machine/routing.js';
+import {selectCapabilities,capabilityUpdateEligible,type CapabilityEvidence,type CapabilityRecord} from './machine/routing.js';
 export type {CapabilityEvidence,CapabilityRecord} from './machine/routing.js';
 
-/** Player-local object identities are shell resources; retained evidence and
- * admission transitions belong to the immutable routing authority. */
+import {initialCapabilityOwner,transitionCapabilityOwner,type CapabilityOwner,type CapabilityChange} from './machine/route-evidence.js';
+export type CapabilityStore={read():CapabilityOwner;change(change:CapabilityChange,revision:number):boolean};
+function localCapabilityStore():CapabilityStore{
+  let state=initialCapabilityOwner();
+  return {read:()=>state,change(change,revision){const next=transitionCapabilityOwner(state,change,revision),accepted=next!==state;state=next;return accepted;}};
+}
+/** A Player supplies its composed store. Standalone utility users retain a
+ * local pure owner; physical object identity never enters either state. */
 export class RuntimeCapabilities {
   private identities=new WeakMap<object,string>();
-  private serial=0;
-  private state=createCapabilities();
+  private identityEpoch=-1;
+  constructor(private readonly store:CapabilityStore=localCapabilityStore()){}
   begin(source:object,plans:ReadonlyArray<{id:string;eligible:boolean;reason?:string}>){
+    let owner=this.store.read();
+    if(this.identityEpoch!==owner.identityEpoch){this.identities=new WeakMap();this.identityEpoch=owner.identityEpoch;}
     let id=this.identities.get(source);
-    if(!id){id=`source-${++this.serial}`;this.identities.set(source,id);}
-    this.state=transitionCapabilities(this.state,{kind:'begin',sourceIdentity:id,plans:plans.map(plan=>({id:plan.id,eligible:plan.eligible,reason:plan.reason}))});
+    if(!id){if(!this.store.change({kind:'identity'},owner.revision))return;owner=this.store.read();id=`source-${owner.serial}`;this.identities.set(source,id);}
+    const captured=plans.map(plan=>({id:plan.id,eligible:plan.eligible,reason:plan.reason}));
+    this.store.change({kind:'event',event:{kind:'begin',sourceIdentity:id,plans:captured}},owner.revision);
   }
-  update(planId:string,state:CapabilityRecord['state'],evidence?:CapabilityEvidence,reason?:string,failureKind?:CapabilityRecord['failureKind']){
-    const previous=this.state;if(!capabilityUpdateEligible(previous,planId))return;
+  get revision(){return this.store.read().revision;}
+  update(planId:string,state:CapabilityRecord['state'],evidence?:CapabilityEvidence,reason?:string,failureKind?:CapabilityRecord['failureKind'],revision=this.store.read().revision){
+    const previous=this.store.read();if(previous.revision!==revision||!capabilityUpdateEligible(previous.value,planId))return;
     const captured=evidence?captureEvidence(evidence):undefined;
-    if(this.state!==previous)return;
-    this.state=transitionCapabilities(previous,{kind:'update',planId,state,evidence:captured,reason,failureKind});
+    this.store.change({kind:'event',event:{kind:'update',planId,state,evidence:captured,reason,failureKind}},previous.revision);
   }
-  admission(plans:ReadonlyArray<{id:string;eligible:boolean;reason?:string}>){this.state=transitionCapabilities(this.state,{kind:'admission',plans:plans.map(plan=>({id:plan.id,eligible:plan.eligible,reason:plan.reason}))});}
-  clear(){this.state=createCapabilities();this.identities=new WeakMap();}
-  snapshot():CapabilityRecord[]{return selectCapabilities(this.state);}
+  admission(plans:ReadonlyArray<{id:string;eligible:boolean;reason?:string}>){
+    const previous=this.store.read(),captured=plans.map(plan=>({id:plan.id,eligible:plan.eligible,reason:plan.reason}));
+    this.store.change({kind:'event',event:{kind:'admission',plans:captured}},previous.revision);
+  }
+  clear(){this.store.change({kind:'event',event:{kind:'clear'}},this.store.read().revision);}
+  snapshot():CapabilityRecord[]{return selectCapabilities(this.store.read().value);}
 }
 
 /** The supported evidence schema contains only scalar observations and two

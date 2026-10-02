@@ -9,6 +9,7 @@ import {createHash} from 'node:crypto';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const config=JSON.parse(fs.readFileSync(path.join(root,'licensing/provider-packages.json'),'utf8'));
 const allowed=new Set(config.playerCoreSources);
+for(const source of allowed)if(source.startsWith('web/generated/'))throw Error('Cached generated output is not a core source: '+source);
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const relative=file=>path.relative(root,file).split(path.sep).join('/');
 const raw=ts.readConfigFile(path.join(root,'tsconfig.json'),ts.sys.readFile);

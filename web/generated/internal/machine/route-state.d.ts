@@ -1,10 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type RecoveryState, type RecoveryChange } from './route-recovery.js';
+import { type PromotionState, type PromotionChange } from './route-promotion.js';
+import { type RouteEvidence, type CapabilityChange, type TierChange } from './route-evidence.js';
 import { type DiscoveryState, type DiscoveryChange } from './route-discovery.js';
 import { type InspectionState, type InspectionChange } from './route-inspection.js';
 import type { SelectionAttempt } from './source-policy.js';
 import type { RoutePlan } from './route-admission.js';
 import type { DecodingEvidence } from './media-facts.js';
 export type RoutingState = Readonly<{
+    recovery: RecoveryState;
+    promotion: PromotionState;
+    evidence: RouteEvidence;
     discovery: DiscoveryState;
     inspection: InspectionState;
     plans: readonly RoutePlan[];
@@ -16,6 +22,20 @@ export type RoutingState = Readonly<{
 }>;
 export declare function initialRouting(): RoutingState;
 export type RoutingInput = Readonly<{
+    type: 'routing.recovery';
+    change: RecoveryChange;
+}> | Readonly<{
+    type: 'routing.promotion';
+    change: PromotionChange;
+}> | Readonly<{
+    type: 'routing.capabilities';
+    revision: number;
+    change: CapabilityChange;
+}> | Readonly<{
+    type: 'routing.tiers';
+    revision: number;
+    change: TierChange;
+}> | Readonly<{
     type: 'routing.discovery';
     epoch: number;
     operation: number | null;

@@ -2,6 +2,8 @@
 import type { RemuxBufferState, RemuxBufferCommand, RemuxBufferDecision } from './remux-buffer.js';
 import { transitionRemuxSchedule } from './remux-scheduling.js';
 import type { RemuxSchedule, RemuxScheduleCommand, RemuxBuffering } from './remux-scheduling.js';
+import type { RemuxNegotiation, RemuxNegotiationCommand, RemuxNegotiationDecision } from './remux-negotiation.js';
+import type { RemuxOutput, RemuxOutputCommand, RemuxOutputDecision } from './remux-output.js';
 type Recovery = Readonly<{
     id: number;
     sourceId: number;
@@ -10,6 +12,8 @@ type Recovery = Readonly<{
 export type RemuxLifecycle = Readonly<{
     buffer: RemuxBufferState;
     schedule: RemuxSchedule;
+    negotiation: RemuxNegotiation;
+    output: RemuxOutput;
     sourceId: number;
     restartId: number;
     generation: number;
@@ -39,7 +43,16 @@ export type RemuxLifecycleCommand = Readonly<{
     type: 'buffering';
     policy: RemuxBuffering | undefined;
 }> | Readonly<{
+    type: 'negotiation';
+    generation: number;
+    command: RemuxNegotiationCommand;
+}> | Readonly<{
+    type: 'output';
+    generation: number;
+    command: RemuxOutputCommand;
+}> | Readonly<{
     type: 'open';
+    sourceChanged?: boolean;
 }> | Readonly<{
     type: 'restart';
     target: number;
@@ -89,6 +102,8 @@ export type RemuxLifecycleDecision = Readonly<{
     retry?: boolean;
     recoveryId?: number;
     report?: boolean;
+    negotiation?: RemuxNegotiationDecision;
+    output?: RemuxOutputDecision;
     buffer?: RemuxBufferDecision;
     schedule?: ReturnType<typeof transitionRemuxSchedule>;
 }>;
