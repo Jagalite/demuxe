@@ -1,0 +1,1 @@
+| H.264 video-only / MP4 | 🟢 (Pass) · 11.5% CPU | 🟢 (Pass) · 11.9% CPU | 🟢 (Pass) · 13.9% CPU · forced-remux ref | 🟢 (Pass) · 14.6% CPU · forced-remux ref | 🟢 (Pass) · 30.4% CPU | 🟢 (Pass) · 32.1% CPU | 🟢 (Pass) · 25.5% CPU | 🟡 Screened · 31.8% CPU | 🟢 (Pass) · 18.9% CPU |
