@@ -1,0 +1,1 @@
+| HEVC + AC-3 + PGS / MKV | 🔴 (Fail) | 🟢 (Pass) · 21.7% CPU | 🟢 (Pass) · 22.6% CPU · forced-remux ref | 🟢 (Pass) · CPU withheld · forced-remux ref | 🟢 (Pass) · 37.8% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
