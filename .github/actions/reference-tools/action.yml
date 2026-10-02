@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Pinned media reference tools
+description: Build host FFmpeg and ffprobe from the locked reference source
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y make gcc g++ pkg-config libx264-dev libopus-dev libvorbis-dev libvpx-dev libmp3lame-dev libdav1d-dev
+    - shell: bash
+      run: python3 scripts/build-ci-reference.py --output "$RUNNER_TEMP/demuxe-reference-tools"

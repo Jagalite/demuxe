@@ -67,10 +67,17 @@ export async function prepareContainerFixture(outputDirectory, {signal} = {}) {
   await mkdir(outputDirectory, {recursive: true});
   const input = join(outputDirectory, 'avc-aac.mkv');
   const source = join(outputDirectory, 'avc-aac-source.mp4');
+  const audio = join(outputDirectory, 'avc-aac-packets.aac');
   await native('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'testsrc2=size=96x64:rate=25', '-f', 'lavfi', '-i', 'sine=frequency=997:sample_rate=48000', '-t', '0.6', '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'libx264', '-threads', '1', '-bf', '0', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-ar', '48000', '-ac', '1', source], signal);
-  // Copy through MP4 so this bounded profile has no AAC CodecDelay metadata.
-  // Recent FFmpeg writes CodecDelay when directly encoding AAC into Matroska.
-  await native('ffmpeg', ['-v', 'error', '-y', '-i', source, '-map', '0:v:0', '-map', '0:a:0', '-c', 'copy', '-avoid_negative_ts', 'make_zero', input], signal);
+  // This fixture tests whole coded AAC packets, not gapless edit/trim metadata.
+  // MP4-to-Matroska copy is insufficient: newer muxers preserve its encoder
+  // priming and tail. ADTS explicitly supplies complete packets without edits.
+  await native('ffmpeg', ['-v', 'error', '-y', '-i', source, '-map', '0:a:0', '-c:a', 'copy', '-f', 'adts', audio], signal);
+  await native('ffmpeg', ['-v', 'error', '-y', '-i', source, '-i', audio, '-map', '0:v:0', '-map', '1:a:0', '-c', 'copy', '-avoid_negative_ts', 'make_zero', input], signal);
+  const reference = await probe(input, signal);
+  assert.ok(reference.packets.every(packet => !(packet.side_data_list ?? []).some(side =>
+    side.side_data_type === 'Skip Samples' && (Number(side.skip_samples) || Number(side.discard_padding)))),
+  'Whole-packet fixture must not carry priming or tail trimming');
   return input;
 }
 export const prepareMuxFixture = prepareContainerFixture;
@@ -249,7 +256,8 @@ export async function runMuxChecks({openReader, createWriter, input, outputDirec
   }
   for (const format of ['rawvideo', 'f32le']) {
     const args = file => ['-v', 'error', '-i', file, '-map', format === 'rawvideo' ? '0:v:0' : '0:a:0', '-f', format, '-'];
-    assert.deepEqual(await native('ffmpeg', args(output), signal), await native('ffmpeg', args(input), signal), `Mux decoded ${format} differs`);
+    const actual = await native('ffmpeg', args(output), signal), expected = await native('ffmpeg', args(input), signal);
+    assert.ok(actual.equals(expected), `Mux decoded ${format} differs: ${actual.length}/${expected.length} bytes, SHA256 ${sha256(actual)}/${sha256(expected)}`);
   }
   const video = tracks.find(track => track.codec === 'avc1');
   const firstVideo = packets.find(packet => packet.track === video.id);

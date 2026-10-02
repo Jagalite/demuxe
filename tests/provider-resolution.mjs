@@ -121,6 +121,16 @@ test('undeployed/cyclic assets and traversal are rejected before loading',()=>{
   const unsafe=deployment();unsafe.assets[0].path='../other.wasm';
   assert.throws(()=>parseProviderDeployment(unsafe,new URL('https://example.invalid/')),/path/);
 });
+test('complete slice deployments fit within the bounded asset inventory',()=>{
+  const input=deployment();
+  for(let i=input.assets.length;i<512;i++) input.assets.push({id:'asset-'+i,path:'slices/asset-'+i+'.wasm',sha256:'c'.repeat(64),bytes:1});
+  const parsed=parseProviderDeployment(input,new URL('https://example.invalid/media/'));
+  assert.equal(parsed.assets.length,512);
+  assert.deepEqual(parsed.providerAssets.ffmpeg,['wasm','loader']);
+  assert.equal(parsed.catalog.providers[0].availability.state,'configured-unverified');
+  input.assets.push({id:'overflow',path:'overflow.wasm',sha256:'d'.repeat(64),bytes:1});
+  assert.throws(()=>parseProviderDeployment(input,new URL('https://example.invalid/media/')),/Invalid deployment list/);
+});
 
 test('deployment stage preserves admitted order and never assumes mpv exists',()=>{
   const plans=[{id:'native-direct',eligible:true},{id:'software',eligible:true}];

@@ -1,0 +1,142 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Build tested providers from source
+on:
+  workflow_call:
+    outputs:
+      inventory_sha256:
+        description: SHA256 of this run's complete browser input inventory
+        value: ${{ jobs.collect.outputs.inventory_sha256 }}
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  catalog:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.catalog.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: catalog
+        run: echo "matrix=$(python3 scripts/ci-slices.py matrix)" >> "$GITHUB_OUTPUT"
+  slices:
+    needs: catalog
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix: ${{ fromJSON(needs.catalog.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - name: Install pinned SDK
+        if: matrix.kind != 'container'
+        run: python3 scripts/ci-slices.py install-sdk
+      - name: Build and audit exact slice and corresponding source
+        env:
+          SLICE_TARGET: ${{ matrix.target }}
+        run: python3 scripts/ci-slices.py build --target "$SLICE_TARGET"
+      - name: Check the installed native ABI
+        if: matrix.kind == 'audio'
+        env:
+          SLICE_TARGET: ${{ matrix.target }}
+        run: node tests/ci-slice-native.mjs "$SLICE_TARGET"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-provider-${{ matrix.target }}
+          path: build/ci-slices/${{ matrix.target }}/delivery/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: source-provider-log-${{ matrix.target }}
+          path: |
+            build/ci-slices/${{ matrix.target }}/native/**/*.log
+            build/ci-slices/${{ matrix.target }}/native/**/build-record.json
+            build/ci-slices/${{ matrix.target }}/native/**/build-result.json
+            build/ci-slices/${{ matrix.target }}/native/**/commands.json
+            build/ci-slices/${{ matrix.target }}/native-check.json
+  broad:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      DEMUXE_SDK: ${{ github.workspace }}/build/emsdk-4.0.14
+      DEMUXE_JOBS: '4'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build pkg-config make gcc g++ patch ffmpeg
+          python3 -m venv build/venv
+          build/venv/bin/python -m pip install meson==1.7.2 Jinja2==3.1.6 MarkupSafe==3.0.2
+          npm ci --ignore-scripts
+      - run: python3 scripts/ci-slices.py install-sdk
+      - name: Build clean standard and private engines
+        run: |
+          set -o pipefail
+          bash scripts/build-beta-engines.sh --clean 2>&1 | tee build/clean-build.log
+      - name: Build unified mpv and audit all broad packages and sources
+        run: python3 scripts/ci-native-providers.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-provider-broad
+          path: build/ci-slices/*/delivery/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: source-provider-native-logs
+          path: |
+            build/clean-build.log
+            build/beta-build.json
+            build/ci-native/unified/build-record.json
+  collect:
+    needs: [slices, broad]
+    runs-on: ubuntu-24.04
+    outputs:
+      inventory_sha256: ${{ steps.inventory.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: source-provider-*
+          path: build/ci-provider-inputs
+      - name: Verify complete provider set and prepare current core
+        run: python3 scripts/collect-ci-providers.py --inputs build/ci-provider-inputs --output build/bundle-ci-inputs
+      - id: inventory
+        run: echo "sha256=$(sha256sum build/bundle-ci-inputs/bundle-ci-inventory.json | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-provider-browser-inputs
+          path: build/bundle-ci-inputs/
+          if-no-files-found: error
