@@ -1,50 +1,54 @@
 // SPDX-License-Identifier: Apache-2.0
 import { resourceScopeKey } from '../machine/protocol.js';
-/** Shell interpreter for the first, deliberately small effect vocabulary.
- * Not wired into Player. No routing/selection decisions belong in this class.
- */
+import { createEffectRuntimeState, effectRuntimeWork, transitionEffectRuntime } from '../machine/effect-runtime.js';
+/** Host interpreter for the deliberately small effect vocabulary. Not wired into
+ * Player. machine/effect-runtime owns admission, execution and settlement state. */
 export class EffectRuntime {
     options;
-    highWatermark = 0;
-    pending = new Map();
-    disposed = false;
-    limit;
+    state;
+    handles = new Map();
     constructor(options) {
         this.options = options;
-        this.limit = options.maxPending ?? 32;
-        if (!Number.isSafeInteger(this.limit) || this.limit < 1)
-            throw new Error('Invalid pending effect limit');
+        this.state = createEffectRuntimeState(options.maxPending);
     }
-    get pendingCount() { return this.pending.size; }
+    get pendingCount() { return this.state.pending.length; }
+    transition(input) {
+        const decision = transitionEffectRuntime(this.state, input);
+        this.state = decision.state;
+        return decision;
+    }
     submit(input) {
-        // Copy caller-owned records; callers cannot retarget scheduled effects.
-        const effect = Object.freeze({ ...input, scope: Object.freeze({ ...input.scope }) });
-        if (!Number.isSafeInteger(effect.id) || effect.id <= this.highWatermark)
-            throw new Error('Effect ID must increase');
-        this.highWatermark = effect.id;
-        if (this.disposed)
-            throw new Error('Effect runtime is disposed');
-        if (this.pending.size >= this.limit)
-            throw new Error('Effect queue is full');
+        // Normalize host records before entering the reducer; getters can reenter.
+        const sourceScope = input.scope, scope = { owner: sourceScope.owner, lifetime: sourceScope.lifetime, sourceId: sourceScope.sourceId, sessionId: sourceScope.sessionId, operationId: sourceScope.operationId };
+        const kind = input.kind, identity = { id: input.id, scope, lane: input.lane };
+        const observed = kind === 'timer.wait' ? { ...identity, kind, deadlineMs: input.deadlineMs } : { ...identity, kind, resourceId: input.resourceId };
+        const admission = this.transition({ type: 'admit', effect: observed });
+        if (!admission.accepted)
+            throw new Error(admission.reason === 'identity' ? 'Effect ID must increase' : admission.reason === 'disposed' ? 'Effect runtime is disposed' : 'Effect queue is full');
+        const effect = effectRuntimeWork(this.state, observed.id).effect;
         let resolve;
         const result = new Promise(done => { resolve = done; });
-        const work = { effect, controller: new AbortController(), resolve, settled: false, started: false };
-        this.pending.set(effect.id, work);
+        const handle = { controller: new AbortController(), resolve };
+        this.handles.set(effect.id, handle);
+        // Transient scheduler observation, not work lifecycle authority. A scheduler
+        // may invoke its callback synchronously and then throw after work completed.
+        let schedulerInvoked = false;
         const start = () => {
-            if (work.settled || work.started)
+            const current = this.current(effect), retiredCleanup = this.retiredCleanup(effect);
+            const decision = this.transition({ type: 'start', id: effect.id, current, retiredCleanup });
+            if (!decision.accepted)
                 return;
-            work.started = true;
-            if (!this.current(work) && !this.retiredCleanup(work)) {
-                this.finish(work, { kind: 'retired' });
+            schedulerInvoked = true;
+            this.deliver(decision.outcomes);
+            if (!decision.execute)
                 return;
-            }
             try {
-                // Execute before wrapping in a promise to preserve browser user activation.
-                const operation = this.execute(effect, work.controller.signal);
-                Promise.resolve(operation).then(() => this.finish(work, this.current(work) ? { kind: 'completed' } : { kind: 'retired' }), () => this.finish(work, this.current(work) ? { kind: 'failed', error: { code: 'EFFECT_FAILED', message: 'Effect execution failed' } } : { kind: 'retired' }));
+                // Preserve browser user activation by invoking before promise wrapping.
+                const operation = this.execute(decision.execute, handle.controller.signal);
+                Promise.resolve(operation).then(() => this.finish(effect, true), () => this.finish(effect, false));
             }
             catch {
-                this.finish(work, this.current(work) ? { kind: 'failed', error: { code: 'EFFECT_FAILED', message: 'Effect execution failed' } } : { kind: 'retired' });
+                this.finish(effect, false);
             }
         };
         if (effect.lane === 'immediate')
@@ -52,45 +56,36 @@ export class EffectRuntime {
         else
             try {
                 const cancel = this.options.schedule(start);
-                if (work.settled)
+                if (!effectRuntimeWork(this.state, effect.id))
                     cancel();
                 else
-                    work.unschedule = cancel;
+                    handle.unschedule = cancel;
             }
             catch (error) {
-                if (work.started) {
-                    try {
-                        this.options.onObserverError?.(error);
-                    }
-                    catch { }
-                }
+                if (schedulerInvoked)
+                    this.observerError(error);
                 else
-                    this.finish(work, { kind: 'failed', error: { code: 'EFFECT_FAILED', message: 'Effect scheduling failed' } });
+                    this.deliver(this.transition({ type: 'schedule-failed', id: effect.id }).outcomes);
             }
         return result;
     }
     /** Logical retirement settles callers even if an external operation ignores abort. */
     retireStale() {
-        for (const work of [...this.pending.values()])
-            if (!this.retiredCleanup(work) && !this.current(work))
-                this.finish(work, { kind: 'retired' });
+        for (const { effect } of this.state.pending) {
+            const retiredCleanup = this.retiredCleanup(effect), current = this.current(effect);
+            this.deliver(this.transition({ type: 'retire', id: effect.id, current, retiredCleanup }).outcomes);
+        }
     }
     dispose() {
-        if (this.disposed)
-            return;
-        this.disposed = true;
-        for (const work of [...this.pending.values()])
-            this.finish(work, { kind: 'retired' });
-        // The owning shell retires the registry separately and awaits physical cleanup.
+        this.deliver(this.transition({ type: 'dispose' }).outcomes);
+        // The owner retires the registry separately and awaits physical cleanup.
     }
-    retiredCleanup(work) {
-        return work.effect.kind === 'resource.release' && this.options.resources.isScopeRetired(resourceScopeKey(work.effect.scope));
-    }
-    current(work) {
-        if (this.disposed || work.settled)
+    retiredCleanup(effect) { return effect.kind === 'resource.release' && this.options.resources.isScopeRetired(resourceScopeKey(effect.scope)); }
+    current(effect) {
+        if (this.state.disposed || !effectRuntimeWork(this.state, effect.id))
             return false;
         try {
-            return this.options.isCurrent(work.effect.scope);
+            return this.options.isCurrent(effect.scope);
         }
         catch {
             return false;
@@ -107,30 +102,36 @@ export class EffectRuntime {
                 return effect.deadlineMs <= this.options.now() ? undefined : this.options.waitUntil(effect.deadlineMs, signal);
         }
     }
-    finish(work, result) {
-        if (work.settled)
-            return;
-        work.settled = true;
-        this.pending.delete(work.effect.id);
-        const detail = result.kind === 'failed' ? { ...result, error: Object.freeze({ ...result.error }) } : result;
-        const outcome = Object.freeze({ id: work.effect.id, scope: work.effect.scope, ...detail });
-        try {
-            work.unschedule?.();
-        }
-        catch { /* Logical retirement still must settle. */ }
-        work.unschedule = undefined;
-        // Retirement is committed before abort handlers or observers can reenter.
-        if (result.kind === 'retired')
-            work.controller.abort();
-        work.resolve(outcome);
-        try {
-            this.options.onOutcome?.(outcome);
-        }
-        catch (error) {
+    finish(effect, success) {
+        const current = this.current(effect);
+        this.deliver(this.transition({ type: 'physical-result', id: effect.id, success, current }).outcomes);
+    }
+    observerError(error) { try {
+        this.options.onObserverError?.(error);
+    }
+    catch { /* Observer failures cannot change settlement. */ } }
+    deliver(outcomes) {
+        // The reducer removed every outcome before abort handlers/observers reenter.
+        for (const outcome of outcomes) {
+            const handle = this.handles.get(outcome.id);
+            if (!handle)
+                continue;
+            this.handles.delete(outcome.id);
+            const cancel = handle.unschedule;
+            handle.unschedule = undefined;
             try {
-                this.options.onObserverError?.(error);
+                cancel?.();
             }
-            catch { /* An observer cannot break settlement. */ }
+            catch { /* Settlement must continue. */ }
+            if (outcome.kind === 'retired')
+                handle.controller.abort();
+            handle.resolve(outcome);
+            try {
+                this.options.onOutcome?.(outcome);
+            }
+            catch (error) {
+                this.observerError(error);
+            }
         }
     }
 }

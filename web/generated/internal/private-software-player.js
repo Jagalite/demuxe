@@ -2,6 +2,7 @@
 import { bufferingPolicy, mpvBufferingOptions, resolveBuffering } from './buffering.js';
 import { runtimeWorker } from './runtime-worker.js';
 import { PlayerError, playerError } from './errors.js';
+import { createBackendRequests, admitBackendRequest, settleBackendRequest, failBackendRequests, beginBackendClose, finishBackendClose } from './machine/backend-requests.js';
 /** Experimental finite Software Backend. Public admission has its own gates. */
 export class PrivateSoftwarePlayer extends EventTarget {
     options;
@@ -16,11 +17,12 @@ export class PrivateSoftwarePlayer extends EventTarget {
     analyser;
     loading = new AbortController();
     pending = new Map();
-    nextId = 1;
+    requests = createBackendRequests('software');
     generation = 0;
-    closing = false;
+    get closing() { return this.requests.phase !== 'active'; }
     destruction;
-    failed;
+    failure;
+    get failed() { return this.requests.failed ? this.failure : undefined; }
     refresh;
     userPaused = true;
     gainValue = 1;
@@ -112,23 +114,37 @@ export class PrivateSoftwarePlayer extends EventTarget {
     }
     latency() { return Math.round((this.context.baseLatency + (this.context.outputLatency || 0)) * 1e6); }
     request(op, data = {}, transfer = []) {
-        if (this.closing && op !== 'close')
-            return Promise.reject(new PlayerError('ABORTED', 'Private Software closed'));
-        if (this.failed && op !== 'close')
-            return Promise.reject(this.failed);
-        if (this.pending.size >= 128 && op !== 'close')
-            return Promise.reject(new PlayerError('ABORTED', 'Private Software command queue limit'));
-        const id = this.nextId++;
+        const admission = admitBackendRequest(this.requests, op, performance.now());
+        this.requests = admission.state;
+        if (admission.effect.kind === 'reject')
+            return Promise.reject(admission.effect.reason === 'failed' ? this.failure : new PlayerError('ABORTED', admission.effect.reason === 'capacity' ? 'Private Software command queue limit' : 'Private Software closed'));
+        const { id, deadline } = admission.effect.request;
         return new Promise((resolve, reject) => {
-            const timer = setTimeout(() => { this.pending.delete(id); reject(new Error('Private Software ' + op + ' deadline')); }, op === 'init' ? 60000 : op === 'close' ? 2000 : 25000);
-            this.pending.set(id, { resolve, reject, timer });
+            const pending = { resolve, reject };
+            this.pending.set(id, pending);
+            const expire = () => {
+                const settled = settleBackendRequest(this.requests, id, { kind: 'deadline', now: performance.now() });
+                this.requests = settled.state;
+                if (settled.effect.kind === 'ignore') {
+                    if (this.pending.get(id) === pending)
+                        pending.timer = setTimeout(expire, Math.max(0, deadline - performance.now()));
+                    return;
+                }
+                this.pending.delete(id);
+                reject(new Error('Private Software ' + op + ' deadline'));
+            };
             try {
+                pending.timer = setTimeout(expire, Math.max(0, deadline - performance.now()));
                 this.worker.postMessage({ id, op, ...data }, transfer);
             }
             catch (error) {
-                clearTimeout(timer);
-                this.pending.delete(id);
-                reject(playerError(error));
+                const settled = settleBackendRequest(this.requests, id, { kind: 'transport-error' });
+                this.requests = settled.state;
+                if (settled.effect.kind === 'settle') {
+                    clearTimeout(pending.timer);
+                    this.pending.delete(id);
+                    reject(playerError(error));
+                }
             }
         });
     }
@@ -156,8 +172,10 @@ export class PrivateSoftwarePlayer extends EventTarget {
             return;
         }
         if (data.id !== undefined) {
+            const settled = settleBackendRequest(this.requests, data.id, { kind: 'reply' });
+            this.requests = settled.state;
             const pending = this.pending.get(data.id);
-            if (pending) {
+            if (settled.effect.kind === 'settle' && pending) {
                 clearTimeout(pending.timer);
                 this.pending.delete(data.id);
                 data.error ? pending.reject(data.code === 'ASSET_LOAD_FAILED' ? new PlayerError('ASSET_LOAD_FAILED', data.error) : playerError(new Error(data.error))) : pending.resolve(data.result);
@@ -206,14 +224,19 @@ export class PrivateSoftwarePlayer extends EventTarget {
         }
     }
     fail(error) {
-        if (this.failed || this.closing)
+        const failed = failBackendRequests(this.requests);
+        this.requests = failed.state;
+        if (!failed.notify)
             return;
-        this.failed = error;
-        for (const pending of this.pending.values()) {
-            clearTimeout(pending.timer);
-            pending.reject(error);
+        this.failure = error;
+        for (const id of failed.reject) {
+            const pending = this.pending.get(id);
+            if (pending) {
+                clearTimeout(pending.timer);
+                this.pending.delete(id);
+                pending.reject(error);
+            }
         }
-        this.pending.clear();
         this.emit('error', error);
         void this.destroy().catch(() => { });
     }
@@ -345,20 +368,28 @@ export class PrivateSoftwarePlayer extends EventTarget {
     destroy() {
         if (this.destruction)
             return this.destruction;
-        this.closing = true;
+        this.requests = beginBackendClose(this.requests);
+        // Publish the shared completion before abort listeners or transport callbacks.
+        let resolve, reject;
+        this.destruction = new Promise((yes, no) => { resolve = yes; reject = no; });
         this.loading.abort();
-        return this.destruction = (async () => {
+        void (async () => {
             try {
                 const cleanup = await this.request('close');
                 this.diagnostics = { ...this.diagnostics, cleanup };
             }
             finally {
-                this.worker.terminate();
-                for (const pending of this.pending.values()) {
-                    clearTimeout(pending.timer);
-                    pending.reject(new PlayerError('ABORTED', 'Private Software closed'));
+                const closed = finishBackendClose(this.requests);
+                this.requests = closed.state;
+                for (const id of closed.reject) {
+                    const pending = this.pending.get(id);
+                    if (pending) {
+                        clearTimeout(pending.timer);
+                        this.pending.delete(id);
+                        pending.reject(new PlayerError('ABORTED', 'Private Software closed'));
+                    }
                 }
-                this.pending.clear();
+                this.worker.terminate();
                 this.node?.disconnect();
                 this.node?.port.close();
                 this.gainNode?.disconnect();
@@ -367,6 +398,7 @@ export class PrivateSoftwarePlayer extends EventTarget {
                 if (this.context.state !== 'closed')
                     await this.context.close();
             }
-        })();
+        })().then(resolve, reject);
+        return this.destruction;
     }
 }

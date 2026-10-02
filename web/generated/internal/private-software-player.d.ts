@@ -17,11 +17,12 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     private analyser?;
     private loading;
     private pending;
-    private nextId;
+    private requests;
     private generation;
-    private closing;
+    private get closing();
     private destruction?;
-    private failed?;
+    private failure?;
+    private get failed();
     private refresh?;
     private userPaused;
     private gainValue;

@@ -151,3 +151,39 @@ test('production transition trace is bounded and omits private setting payloads'
   const original=JSON.stringify(retained);for(let n=0;n<70;n++)await p.volume(n);
   const trace=p.transitionTrace;assert.equal(trace.entries.length,256);assert.ok(trace.dropped>0);assert.equal(trace.exactExternalReplay,false);assert.equal(JSON.stringify(retained),original);assert.equal(p.settings.volume,69);
 });
+test('filter requirements choose the same initial mode only when their settings are accepted',()=>{
+  for(const [command,hybridAudioFilters,expected] of [[{kind:'filters',key:'vf',value:'hflip'},false,'software'],[{kind:'filters',key:'af',value:'volume=0.5'},false,'software'],[{kind:'filters',key:'af',value:'volume=0.5'},true,'hybrid'],[{kind:'filters',key:'af',value:'aresample=48000'},true,'software'],[{kind:'toneMapping',value:'hdr-to-sdr'},false,'software']]){
+    const r=core();r.start();r.send({type:'source.configure',automatic:true});
+    const before=r.state,begin=r.send({type:'setting.begin',command,hasBackend:false,hasSource:false,hybridAudioFilters});
+    assert.equal(r.state.source.mode,'native');assert.deepEqual(begin.effects,[]);assert.equal(before.preferences.toneMapping,'off');
+    r.send({type:'setting.accept',id:begin.id});assert.equal(r.state.source.mode,expected);assert.equal(r.state.settingsTransactions.pending,null);
+  }
+});
+test('forced unsupported filters reject before pending work or backend effects',()=>{
+  const r=core();r.start();r.send({type:'source.configure',automatic:false,mode:'native'});const before=r.state;
+  const rejected=r.send({type:'setting.begin',command:{kind:'filters',key:'vf',value:'hflip'},hasBackend:true,hasSource:true});
+  assert.equal(rejected.accepted,false);assert.equal(rejected.reason,'unsupported');assert.deepEqual(rejected.effects,[]);assert.equal(r.state,before);
+});
+test('clearing filters requests promotion only after acceptance, while failure requests exact restoration',()=>{
+  for(const accept of [false,true]){
+    const r=core();r.start();r.send({type:'source.configure',automatic:true,mode:'software'});r.send({type:'settings.change',value:{vf:'hflip'}});
+    const begin=r.send({type:'setting.begin',command:{kind:'filters',key:'vf',value:''},hasBackend:true,hasSource:true});
+    assert.deepEqual(begin.effects,[{kind:'filter',key:'vf',value:''}]);assert.equal(r.state.settings.vf,'hflip');
+    if(accept){assert.deepEqual(r.send({type:'setting.accept',id:begin.id}).effects,[{kind:'promotion'}]);assert.equal(r.state.settings.vf,'');}
+    else {assert.deepEqual(r.send({type:'setting.failed',id:begin.id}).effects,[{kind:'filter',key:'vf',value:'hflip'}]);r.send({type:'setting.restored',id:begin.id});assert.equal(r.state.settings.vf,'hflip');}
+  }
+});
+test('actual filter partial failure restores the accepted backend filter before rejection',async t=>{
+  const {p,backend,calls}=adapter(t);p.automatic=true;p.currentMode='software';p.updateSettings({vf:'hflip'});let filter='hflip',promotions=0;p.schedulePromotion=()=>promotions++;
+  backend.command=async(command,key,value)=>{filter=value;calls.push(value);if(!value)throw Error('clear partially failed');};
+  await assert.rejects(p.setVideoFilters(''),/clear partially failed/);assert.deepEqual(calls,['','hflip']);assert.equal(filter,'hflip');assert.equal(p.settings.vf,'hflip');assert.equal(promotions,0);
+});
+test('tone-mapping compensation restores the combined tone and user filter pipeline',async t=>{
+  const {p,backend,calls}=adapter(t);p.automatic=true;p.currentMode='software';p.updateSettings({vf:'hflip'});p.toneMapping='hdr-to-sdr';
+  backend.command=async(command,key,value)=>{calls.push(value);if(value==='hflip')throw Error('tone removal partially failed');};
+  await assert.rejects(p.setToneMapping('off'),/tone removal partially failed/);assert.equal(calls.length,2);assert.equal(calls[0],'hflip');assert.ok(calls[1].startsWith('lavfi=[zscale=transfer=linear'));assert.ok(calls[1].endsWith(',hflip'));assert.equal(p.toneMapping,'hdr-to-sdr');
+});
+test('routed tone mapping remains a private requirement when candidate preparation fails',async t=>{
+  const {p}=adapter(t);p.select=async()=>{assert.equal(p.toneMapping,'off');assert.equal(p.candidatePreferences.toneMapping,'hdr-to-sdr');throw Error('candidate unavailable');};
+  await assert.rejects(p.setToneMapping('hdr-to-sdr'),/candidate unavailable/);assert.equal(p.toneMapping,'off');assert.equal(p.control.settingsTransactions.pending,null);
+});

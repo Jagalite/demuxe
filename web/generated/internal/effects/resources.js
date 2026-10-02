@@ -1,277 +1,167 @@
 // SPDX-License-Identifier: Apache-2.0
+import { createResourceLedger, transitionResourceLedger, resourceMetadata, resourceAvailable, resourceScopeRetired, resourceLedgerDiagnostics } from '../machine/resource-ledger.js';
 function deferred() {
-    let resolve;
-    let reject;
+    let resolve, reject;
     const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
-    // Cleanup remains observable through the returned promise and diagnostics even
-    // when a caller observes a later retirement promise instead of this operation.
     void promise.catch(() => { });
     return { promise, resolve, reject };
 }
-function identifier(value, label) {
-    if (typeof value !== 'string' || value.length === 0 || value.length > 256) {
-        throw new TypeError(`${label} must be a nonempty string of at most 256 characters`);
+function rejected(reason) {
+    switch (reason) {
+        case 'invalid-id': return new TypeError('Resource ID must be a nonempty string of at most 256 characters');
+        case 'invalid-scope': return new TypeError('Scope key must be a nonempty string of at most 256 characters');
+        case 'invalid-kind': return new TypeError('Resource kind must be a nonempty string of at most 256 characters');
+        case 'invalid-ownership': return new TypeError('Invalid resource ownership');
+        case 'duplicate': return new Error('Resource ID was already registered');
+        case 'resource-capacity': return new RangeError('Resource registry lifetime resource capacity exceeded');
+        case 'scope-capacity': return new RangeError('Resource registry lifetime scope capacity exceeded');
+        default: return new Error('Resource is missing or belongs to another scope');
     }
 }
-/** Shell-only resource ownership. Pure transitions carry these opaque IDs.
- *
- * Use one registry per owner lifetime. Resource IDs and scope keys cannot be
- * reused; bounded tombstones prevent late completions from reviving retired
- * scopes. Admission failure leaves the value caller-owned, including duplicate
- * registration. Configure lifetime capacity before accepting work. Never rotate
- * a registry while the former owner can still produce completions.
- *
+/** Host handle interpreter. Pure resource-ledger owns admission, lifetime
+ * retirement, cleanup phases, bounded tombstones and diagnostic accounting.
+ * IDs and scopes cannot be reused within one owner lifetime. Rejected admission
+ * leaves values caller-owned. Retirement covers resources present when it starts;
+ * later registrations release immediately through their own completion promise.
  * Release callbacks must not await their own release or enclosing retirement.
- * Retirement waits for resources present when it begins; subsequent registration
- * is immediately released and reports its cleanup through register's promise.
- */
+ * A deadline detaches logical waiting; only a physical result proves release. */
 export class ResourceRegistry {
-    resources = new Map();
+    ledger;
+    handles = new Map();
+    completions = new Map();
     scopes = new Map();
-    failures = [];
-    maxResources;
-    maxScopes;
-    failureLimit;
-    cleanupTimeoutMs;
-    scheduleCleanupTimeout;
-    failureCount = 0;
-    timeoutCount = 0;
-    lateReleased = 0;
-    lateFailed = 0;
-    disposed = false;
     disposal;
+    scheduleCleanupTimeout;
     constructor(options = {}) {
-        this.maxResources = options.maxResources ?? 1024;
-        this.maxScopes = options.maxScopes ?? 256;
-        this.failureLimit = options.failureLimit ?? 32;
-        this.cleanupTimeoutMs = options.cleanupTimeoutMs ?? 5000;
-        if (!Number.isFinite(this.cleanupTimeoutMs) || this.cleanupTimeoutMs < 1 || this.cleanupTimeoutMs > 60000)
-            throw new RangeError('Invalid resource registry cleanup deadline');
-        this.scheduleCleanupTimeout = options.scheduleCleanupTimeout ?? ((work, delayMs) => {
-            const timer = setTimeout(work, delayMs);
-            return () => clearTimeout(timer);
-        });
-        for (const [name, value] of Object.entries({ maxResources: this.maxResources, maxScopes: this.maxScopes, failureLimit: this.failureLimit })) {
-            if (!Number.isSafeInteger(value) || value < (name === 'failureLimit' ? 0 : 1))
-                throw new RangeError(`Invalid resource registry ${name}`);
-        }
+        this.ledger = createResourceLedger({ maxResources: options.maxResources, maxScopes: options.maxScopes, failureLimit: options.failureLimit, cleanupTimeoutMs: options.cleanupTimeoutMs });
+        this.scheduleCleanupTimeout = options.scheduleCleanupTimeout ?? ((work, delayMs) => { const timer = setTimeout(work, delayMs); return () => clearTimeout(timer); });
     }
-    /** Acceptance is synchronous; only cleanup of a late registration is async.
-     * A thrown validation/admission error has not transferred ownership. */
+    transition(input) { const result = transitionResourceLedger(this.ledger, input); if (result.accepted)
+        this.ledger = result.state; return result; }
     register(registration) {
-        identifier(registration.id, 'Resource ID');
-        identifier(registration.scopeKey, 'Scope key');
-        identifier(registration.kind, 'Resource kind');
-        if (registration.ownership !== 'owned' && registration.ownership !== 'borrowed')
-            throw new TypeError('Invalid resource ownership');
-        if (registration.ownership === 'owned' && typeof registration.release !== 'function')
+        // Read each host field before admission so reentrant getters cannot overwrite
+        // a newer metadata state. Host resources themselves never enter the reducer.
+        const { id, scopeKey, kind, ownership, value } = registration, release = registration.release;
+        const input = { type: 'register', id, scopeKey, kind, ownership };
+        const checked = transitionResourceLedger(this.ledger, input);
+        if (!checked.accepted)
+            throw rejected(checked.reason);
+        if (ownership === 'owned' && typeof release !== 'function')
             throw new TypeError('Owned resources require a release callback');
-        if (registration.ownership === 'borrowed' && registration.release !== undefined)
+        if (ownership === 'borrowed' && release !== undefined)
             throw new TypeError('Borrowed resources cannot have a release callback');
-        if (this.resources.has(registration.id))
-            throw new Error('Resource ID was already registered');
-        if (this.resources.size >= this.maxResources)
-            throw new RangeError('Resource registry lifetime resource capacity exceeded');
-        const scope = this.scope(registration.scopeKey);
-        const entry = {
-            id: registration.id, scopeKey: registration.scopeKey, kind: registration.kind,
-            ownership: registration.ownership, state: 'active', value: registration.value,
-            release: registration.ownership === 'owned' ? registration.release : undefined,
-        };
-        this.resources.set(entry.id, entry);
-        return scope.retired || this.disposed ? this.release(entry.id) : Promise.resolve();
+        this.ledger = checked.state;
+        this.handles.set(id, { value, release: release });
+        return resourceScopeRetired(this.ledger, scopeKey) ? this.release(id) : Promise.resolve();
     }
-    /** Lookups fail closed; an optional scope check prevents cross-owner access. */
     get(id, expectedScopeKey) {
-        const entry = this.resources.get(id);
+        const entry = resourceMetadata(this.ledger, id);
         if (!entry || expectedScopeKey !== undefined && entry.scopeKey !== expectedScopeKey)
-            throw new Error('Resource is missing or belongs to another scope');
-        if (entry.state !== 'active' || this.disposed || this.scopes.get(entry.scopeKey)?.retired)
+            throw rejected('missing');
+        if (!resourceAvailable(this.ledger, id))
             throw new Error('Resource is retired or released');
-        return entry.value;
+        return this.handles.get(id).value;
     }
-    /** Observational only: querying an unknown scope never reserves capacity. */
-    isScopeRetired(scopeKey) {
-        return this.disposed || this.scopes.get(scopeKey)?.retired === true;
-    }
-    /** Releases owned values once; borrowed values are only forgotten. */
+    isScopeRetired(scopeKey) { return resourceScopeRetired(this.ledger, scopeKey); }
     release(id, expectedScopeKey) {
-        const entry = this.resources.get(id);
-        if (!entry || expectedScopeKey !== undefined && entry.scopeKey !== expectedScopeKey)
-            return Promise.reject(new Error('Resource is missing or belongs to another scope'));
-        if (entry.completion)
-            return entry.completion;
+        const result = this.transition({ type: 'release', id, expectedScopeKey });
+        if (!result.accepted)
+            return Promise.reject(rejected(result.reason));
+        if (!result.start)
+            return this.completions.get(id);
         const completion = deferred();
-        entry.completion = completion.promise;
-        entry.state = 'releasing';
-        const value = entry.value, release = entry.release;
-        delete entry.value;
-        delete entry.release;
-        if (entry.ownership === 'borrowed') {
-            entry.state = 'released';
+        this.completions.set(id, completion.promise);
+        const metadata = resourceMetadata(this.ledger, id), handle = this.handles.get(id);
+        this.handles.delete(id);
+        if (metadata.ownership === 'borrowed') {
+            this.transition({ type: 'physical-result', id, success: true });
             completion.resolve();
+            return completion.promise;
         }
-        else {
-            let settled = false, physicalSettled = false, cancelDeadline;
-            const cancel = () => { try {
-                cancelDeadline?.();
-            }
-            catch { /* Cancellation cannot change retirement. */ } cancelDeadline = undefined; };
-            const detach = () => {
-                if (settled)
-                    return;
-                settled = true;
-                entry.state = 'detached';
-                this.timeoutCount++;
-                cancel();
-                this.recordFailure(entry, true);
-                const error = new Error('Resource cleanup exceeded its deadline');
-                error.name = 'CleanupTimeoutError';
+        let cancelDeadline;
+        const cancel = () => { const callback = cancelDeadline; cancelDeadline = undefined; try {
+            callback?.();
+        }
+        catch { /* Cancellation cannot change the committed phase. */ } };
+        const detach = (reason) => {
+            const result = this.transition({ type: 'deadline', id, reason });
+            if (!result.start)
+                return;
+            cancel();
+            const error = new Error(reason === 'timeout' ? 'Resource cleanup exceeded its deadline' : 'Resource cleanup deadline could not be scheduled');
+            error.name = reason === 'timeout' ? 'CleanupTimeoutError' : 'CleanupSchedulerError';
+            completion.reject(error);
+        };
+        const finish = (success, error) => {
+            const result = this.transition({ type: 'physical-result', id, success });
+            cancel();
+            if (!result.start || result.late)
+                return;
+            if (success)
+                completion.resolve();
+            else
                 completion.reject(error);
-            };
-            const finish = (success, error) => {
-                if (physicalSettled)
-                    return;
-                physicalSettled = true;
+        };
+        try {
+            const cancellation = this.scheduleCleanupTimeout(() => detach('timeout'), this.ledger.limits.cleanupTimeoutMs);
+            if (typeof cancellation !== 'function')
+                throw new Error('Invalid cleanup scheduler');
+            cancelDeadline = cancellation;
+            if (resourceMetadata(this.ledger, id)?.state !== 'releasing')
                 cancel();
-                if (settled) {
-                    // A late physical result is observed, but cannot replace the timeout
-                    // promise or cause the release callback to execute a second time.
-                    if (success) {
-                        entry.state = 'released';
-                        this.lateReleased++;
-                    }
-                    else {
-                        entry.state = 'failed';
-                        this.lateFailed++;
-                    }
-                    return;
-                }
-                settled = true;
-                entry.state = success ? 'released' : 'failed';
-                if (success)
-                    completion.resolve();
-                else {
-                    this.recordFailure(entry);
-                    completion.reject(error);
-                }
-            };
-            try {
-                const cancellation = this.scheduleCleanupTimeout(detach, this.cleanupTimeoutMs);
-                if (typeof cancellation !== 'function')
-                    throw new Error('Invalid cleanup scheduler');
-                cancelDeadline = cancellation;
-                if (settled)
-                    cancel();
-            }
-            catch {
-                detach();
-            }
-            try {
-                Promise.resolve(release(value)).then(() => finish(true), error => finish(false, error));
-            }
-            catch (error) {
-                finish(false, error);
-            }
+        }
+        catch {
+            detach('scheduler');
+        }
+        const release = handle.release, value = handle.value;
+        try {
+            Promise.resolve(release(value)).then(() => finish(true), error => finish(false, error));
+        }
+        catch (error) {
+            finish(false, error);
         }
         return completion.promise;
     }
-    /** Invalidate the entire scope before the first callback, then unwind in
-     * reverse acquisition order. One failure does not skip remaining cleanup. */
     retireScope(scopeKey) {
-        identifier(scopeKey, 'Scope key');
-        const scope = this.scope(scopeKey);
-        if (scope.completion)
-            return scope.completion;
-        scope.retired = true;
+        const previous = this.scopes.get(scopeKey);
+        if (previous)
+            return previous;
+        const result = this.transition({ type: 'retire-scope', scopeKey });
+        if (!result.accepted)
+            throw rejected(result.reason);
         const completion = deferred();
-        scope.completion = completion.promise;
-        const entries = [...this.resources.values()].filter(entry => entry.scopeKey === scopeKey).reverse();
-        void this.releaseEntries(entries).then(completion.resolve, completion.reject);
+        this.scopes.set(scopeKey, completion.promise);
+        void this.releaseEntries(result.ids).then(completion.resolve, completion.reject);
         return completion.promise;
     }
-    /** Retire all scopes synchronously before starting teardown. Later accepted
-     * registrations still release immediately, within the lifetime capacity. */
     dispose() {
         if (this.disposal)
             return this.disposal;
-        this.disposed = true;
-        for (const scope of this.scopes.values())
-            scope.retired = true;
-        const completion = deferred();
+        const result = this.transition({ type: 'dispose' }), completion = deferred();
         this.disposal = completion.promise;
-        const scopes = [...this.scopes.keys()].reverse();
-        void (async () => {
-            const failures = [];
-            for (const scope of scopes) {
-                try {
-                    await this.retireScope(scope);
-                }
-                catch (error) {
-                    failures.push(error);
-                }
-            }
-            if (failures.length)
-                throw new AggregateError(failures, 'Resource registry cleanup failed');
-        })().then(completion.resolve, completion.reject);
-        return completion.promise;
-    }
-    /** Metadata only: no values, callback functions or original error objects. */
-    get diagnostics() {
-        const entries = [...this.resources.values()].map(({ id, scopeKey, kind, ownership, state }) => Object.freeze({ id, scopeKey, kind, ownership, state }));
-        return Object.freeze({
-            disposed: this.disposed,
-            registered: entries.length,
-            active: entries.filter(entry => entry.state === 'active' && !this.disposed && !this.scopes.get(entry.scopeKey)?.retired).length,
-            retiring: entries.filter(entry => entry.state === 'active' && (this.disposed || this.scopes.get(entry.scopeKey)?.retired)).length,
-            releasing: entries.filter(entry => entry.state === 'releasing').length,
-            released: entries.filter(entry => entry.state === 'released').length,
-            detached: entries.filter(entry => entry.state === 'detached').length,
-            timedOut: this.timeoutCount,
-            lateReleased: this.lateReleased,
-            lateFailed: this.lateFailed,
-            failed: this.failureCount,
-            scopes: this.scopes.size,
-            retiredScopes: [...this.scopes.values()].filter(scope => scope.retired).length,
-            limits: Object.freeze({ maxResources: this.maxResources, maxScopes: this.maxScopes, failureLimit: this.failureLimit, cleanupTimeoutMs: this.cleanupTimeoutMs }),
-            resources: Object.freeze(entries),
-            failures: Object.freeze([...this.failures]),
-        });
-    }
-    scope(key) {
-        const existing = this.scopes.get(key);
-        if (existing)
-            return existing;
-        if (this.scopes.size >= this.maxScopes)
-            throw new RangeError('Resource registry lifetime scope capacity exceeded');
-        const scope = { retired: this.disposed };
-        this.scopes.set(key, scope);
-        return scope;
-    }
-    async releaseEntries(entries) {
-        const failures = [];
-        for (const entry of entries) {
+        void (async () => { const errors = []; for (const key of result.scopeKeys) {
             try {
-                await this.release(entry.id);
+                await this.retireScope(key);
             }
             catch (error) {
-                failures.push(error);
+                errors.push(error);
+            }
+        } if (errors.length)
+            throw new AggregateError(errors, 'Resource registry cleanup failed'); })().then(completion.resolve, completion.reject);
+        return completion.promise;
+    }
+    get diagnostics() { return resourceLedgerDiagnostics(this.ledger); }
+    async releaseEntries(ids) {
+        const errors = [];
+        for (const id of ids) {
+            try {
+                await this.release(id);
+            }
+            catch (error) {
+                errors.push(error);
             }
         }
-        if (failures.length)
-            throw new AggregateError(failures, 'Resource scope cleanup failed');
-    }
-    recordFailure(entry, timedOut = false) {
-        this.failureCount++;
-        if (!this.failureLimit)
-            return;
-        // Host errors can contain credentials, private URLs or throwing accessors.
-        // Preserve raw failures only in the rejected cleanup promise, never here.
-        this.failures.push(Object.freeze({
-            id: entry.id, scopeKey: entry.scopeKey, kind: entry.kind,
-            name: timedOut ? 'CleanupTimeoutError' : 'CleanupError', message: timedOut ? 'Resource cleanup exceeded its deadline' : 'Resource cleanup failed',
-        }));
-        if (this.failures.length > this.failureLimit)
-            this.failures.shift();
+        if (errors.length)
+            throw new AggregateError(errors, 'Resource scope cleanup failed');
     }
 }

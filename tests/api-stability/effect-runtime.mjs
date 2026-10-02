@@ -104,6 +104,17 @@ test('outcome observers may synchronously submit subsequent effects',async t=>{
   let f,next;f=fixture(t,{onOutcome(event){if(event.id===1)next=f.runtime.submit(f.effect(2,'backend.pause'));}});
   await f.runtime.submit(f.effect(1));assert.equal((await next).kind,'completed');assert.deepEqual(f.calls,['play','pause']);
 });
+test('reentrant current-scope sampling cannot start work after disposal',async t=>{
+  let f;f=fixture(t,{isCurrent(){f.runtime.dispose();return true;}});
+  const result=f.runtime.submit(f.effect(1));assert.equal((await result).kind,'retired');
+  assert.deepEqual(f.calls,[]);assert.equal(f.outcomes.length,1);assert.equal(f.runtime.pendingCount,0);
+});
+test('disposal commits the entire pending batch before the first observer reenters',async t=>{
+  let f;const counts=[];f=fixture(t,{onOutcome(){counts.push(f.runtime.pendingCount);f.runtime.retireStale();f.runtime.dispose();}});
+  const one=f.runtime.submit(f.effect(1,'backend.play','scheduled')),two=f.runtime.submit(f.effect(2,'backend.pause','scheduled'));
+  f.runtime.dispose();assert.deepEqual(counts,[0,0]);assert.deepEqual((await Promise.all([one,two])).map(value=>value.kind),['retired','retired']);
+  f.clock.flush();assert.deepEqual(f.calls,[]);assert.equal(f.clock.scheduled.length,0);
+});
 // Exercise every causal ordering of two completions and source retirement.
 function permutations(values){return values.length?values.flatMap((value,i)=>permutations(values.filter((_,j)=>i!==j)).map(tail=>[value,...tail])):[[]];}
 for(const order of permutations(['play','pause','retire']))test(`completion schedule ${order.join(' -> ')}`,async t=>{

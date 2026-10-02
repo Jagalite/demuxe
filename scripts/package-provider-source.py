@@ -68,9 +68,19 @@ def assemble(record_path, recovered_path, build_root, output, profile_name=None)
         paths[name] = (path, actual)
     for name, digest in record['inputs'].items(): add('demuxe/'+name, recovered[name], digest)
     for name, digest in record['configurations'].items():
-        if name not in excluded: add('build-materials/'+name, recovered['build-materials/'+name] if record.get('nativeGroups') else build_root/name, digest)
-    for name, digest in record['sources'].items(): add('demuxe/build/downloads/'+name+'.tar.gz',recovered['build/downloads/'+name+'.tar.gz'] if record.get('nativeGroups') else build_root/'build/downloads'/(name+'.tar.gz'),digest)
-    for name, digest in record['sdkSources'].items(): add('toolchain/emscripten/'+name,recovered['toolchain/emscripten/'+name] if record.get('nativeGroups') else Path(record['sdk'])/'upstream/emscripten'/name,digest)
+        if name not in excluded:
+            key='build-materials/'+name
+            add(key,recovered[key] if key in recovered or record.get('nativeGroups') else build_root/name,digest)
+    # CI absolute paths are provenance, not a requirement to recreate that host.
+    # Explicit recovered locations retain the original names and hash checks for
+    # both single native builds and composite records; absent entries keep the
+    # original single-build fallback and composite strictness.
+    for name, digest in record['sources'].items():
+        key='build/downloads/'+name+'.tar.gz'
+        add('demuxe/'+key,recovered[key] if key in recovered or record.get('nativeGroups') else build_root/key,digest)
+    for name, digest in record['sdkSources'].items():
+        key='toolchain/emscripten/'+name
+        add(key,recovered[key] if key in recovered or record.get('nativeGroups') else Path(record['sdk'])/'upstream/emscripten'/name,digest)
     # Current application/provider integration source, separately named so it
     # never overwrites the original native-build inputs.
     current=application_source_paths(profile_name)

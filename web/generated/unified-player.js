@@ -43,7 +43,8 @@ import { NativePlayer as PreviewNativePlayer } from './internal/native-player.js
 class SeekPresentationBoundary extends PlayerError {
     constructor(target, boundary) { super('INVALID_ARGUMENT', `Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`); }
 }
-import { settingAuthority } from './internal/machine/settings.js';
+import { boundaryAuthority } from './internal/machine/playback-boundary.js';
+import { settingAuthority, effectiveVideoFilters } from './internal/machine/settings.js';
 import { createTrace, tracePlayerTransition, selectTrace } from './internal/machine/trace.js';
 const filterChain = (value) => {
     if (typeof value !== 'string' || value.length > 4096 || value.includes('\0'))
@@ -85,7 +86,6 @@ export class Player extends EventTarget {
     set playbackRange(value) { this.updatePreferences({ playbackRange: value }); }
     get loopPolicy() { return this.control.preferences.loopPolicy; }
     set loopPolicy(value) { this.updatePreferences({ loopPolicy: value }); }
-    boundaryPending = false;
     get qualityPolicy() { return this.control.preferences.qualityPolicy; }
     set qualityPolicy(value) { this.updatePreferences({ qualityPolicy: value }); }
     attachmentSerial = 0;
@@ -125,7 +125,7 @@ export class Player extends EventTarget {
     promotionRunning = false;
     promotionController;
     backgroundPromotion;
-    tierConfiguration(settings = this.settings) { return JSON.stringify([settings.aid, settings.sid, settings.subtitles, settings.vf, settings.af, settings.gain, this.toneMapping, this.audioOutput, this.audioPlayback, this.nativeRemux, this.remuxRuntime, this.mpvSubtitles, this.nativeASS, this.fonts.length, this.subtitleAssets.length, [...this.publicSelections]]); }
+    tierConfiguration(settings = this.settings) { return JSON.stringify([settings.aid, settings.sid, settings.subtitles, settings.vf, settings.af, settings.gain, this.candidatePreferences.toneMapping, this.audioOutput, this.audioPlayback, this.nativeRemux, this.remuxRuntime, this.mpvSubtitles, this.nativeASS, this.fonts.length, this.subtitleAssets.length, [...this.publicSelections]]); }
     cancelPromotion() { clearTimeout(this.promotionTimer); this.promotionEpoch++; this.promotionController?.abort(); if (this.promotionRunning) {
         this.activeOperation?.controller.abort();
         this.inspection?.abort();
@@ -249,7 +249,8 @@ export class Player extends EventTarget {
     get trackPolicy() { return this.source?.trackPolicy ?? this.configuredTrackPolicy; }
     audioOutput;
     audioFallback;
-    toneMapping;
+    get toneMapping() { return this.control.preferences.toneMapping; }
+    set toneMapping(value) { this.updatePreferences({ toneMapping: value }); }
     resourceLimits;
     fonts = [];
     subtitleAssets = [];
@@ -726,7 +727,7 @@ export class Player extends EventTarget {
     assertOperation() { if (this.destroyed || this.activeOperation?.controller.signal.aborted)
         throw new PlayerError('ABORTED', this.destroyed ? 'Player is destroyed' : 'Operation aborted'); }
     validateFilters(mode, settings) {
-        const reason = featureRejection(mode, { ...settings, toneMapping: this.toneMapping, hybridAudioFilters: this.hybridAudioFilters });
+        const reason = featureRejection(mode, { ...settings, toneMapping: this.candidatePreferences.toneMapping, hybridAudioFilters: this.hybridAudioFilters });
         if (reason)
             throw new PlayerError('UNSUPPORTED_FEATURE', reason);
     }
@@ -988,9 +989,9 @@ export class Player extends EventTarget {
                                 undefined;
         const decisions = planAdmission({ automatic, ...settings,
             privatePlaybackFull: this.privatePlaybackAssets?.codecProfile === 'playback-full', privatePlaybackAssetsAvailable: this.privatePlaybackAssetsAvailable, offscreenCanvas: typeof OffscreenCanvas !== 'undefined',
-            privatePlaybackSourceRejection: privatePlaybackRejection(inspected?.probe, { finite: this.privateFiniteSource(source), bytes: source.kind === 'local' ? source.file instanceof File ? source.file.size : source.file.byteLength : Number(source.options.identity?.size) }, { ...settings, toneMapping: this.toneMapping, audioOutput: this.audioOutput, externalSubtitles: !!attachments.length || !!textTracks.length, customFonts: !!this.fonts.length, subtitleStyle: !!Object.keys(this.candidatePreferences.subtitleStyle).length }, this.privatePlaybackAssets),
+            privatePlaybackSourceRejection: privatePlaybackRejection(inspected?.probe, { finite: this.privateFiniteSource(source), bytes: source.kind === 'local' ? source.file instanceof File ? source.file.size : source.file.byteLength : Number(source.options.identity?.size) }, { ...settings, toneMapping: this.candidatePreferences.toneMapping, audioOutput: this.audioOutput, externalSubtitles: !!attachments.length || !!textTracks.length, customFonts: !!this.fonts.length, subtitleStyle: !!Object.keys(this.candidatePreferences.subtitleStyle).length }, this.privatePlaybackAssets),
             privateHybridAssetsAvailable: !!this.privatePlaybackAssets?.retainedDecoder,
-            privateHybridSourceRejection: privatePlaybackRejection(inspected?.probe, { finite: this.privateFiniteSource(source), bytes: source.kind === 'local' ? source.file instanceof File ? source.file.size : source.file.byteLength : Number(source.options.identity?.size) }, { ...settings, toneMapping: this.toneMapping, audioOutput: this.audioOutput, externalSubtitles: !!attachments.length || !!textTracks.length, customFonts: !!this.fonts.length, subtitleStyle: !!Object.keys(this.candidatePreferences.subtitleStyle).length }, this.privatePlaybackAssets, 'hybrid'),
+            privateHybridSourceRejection: privatePlaybackRejection(inspected?.probe, { finite: this.privateFiniteSource(source), bytes: source.kind === 'local' ? source.file instanceof File ? source.file.size : source.file.byteLength : Number(source.options.identity?.size) }, { ...settings, toneMapping: this.candidatePreferences.toneMapping, audioOutput: this.audioOutput, externalSubtitles: !!attachments.length || !!textTracks.length, customFonts: !!this.fonts.length, subtitleStyle: !!Object.keys(this.candidatePreferences.subtitleStyle).length }, this.privatePlaybackAssets, 'hybrid'),
             audioPlayback: this.audioPlayback, transcodeAssetsAvailable: this.transcodeAssetsAvailable || !!this.providerRuntime?.codecPreparation(source, inspected?.probe, this.remuxRuntime, inspectedSettings?.aid) || !!this.providerRuntime?.audioRepairCandidate(source, inspected?.probe),
             transcodeSourceRejection: !this.fileServicesSource(source) || !inspected ? 'Audio transcoding requires an inspected random-access file' : audioTranscodeRejection(inspected.probe, inspectedSettings),
             selectiveAudioQualified: !selectiveAudioReason, selectiveAudioReason,
@@ -1000,7 +1001,7 @@ export class Player extends EventTarget {
             shakaSourceRejection: remote?.demuxer ? 'Explicit demuxer hints require FFmpeg' : undefined,
             streamingFallbackRejection: remote?.streaming?.maxBandwidth !== undefined || remote?.streaming?.representation !== undefined ? 'FFmpeg fallback cannot preserve an explicit adaptive quality constraint' : undefined,
             remuxSourceRejection: inspected ? remuxRejection(inspected.probe, inspectedSettings) : undefined,
-            hybridSourceRejection: video && !['h264', 'hevc', 'vp8', 'vp9', 'av1'].includes(video.codec) && !webgpuDecoderSupported(video.codec) ? `Demuxe has no external decoder contract for ${video.codec}` : undefined, webGPUCodecQualified: webgpuDecoderSupported(video?.codec ?? ''), toneMapping: this.toneMapping, hybridAudioFilters: this.hybridAudioFilters,
+            hybridSourceRejection: video && !['h264', 'hevc', 'vp8', 'vp9', 'av1'].includes(video.codec) && !webgpuDecoderSupported(video.codec) ? `Demuxe has no external decoder contract for ${video.codec}` : undefined, webGPUCodecQualified: webgpuDecoderSupported(video?.codec ?? ''), toneMapping: this.candidatePreferences.toneMapping, hybridAudioFilters: this.hybridAudioFilters,
             adaptation: this.audioAdaptation, allowLossy: this.allowLossy, nativeASS: this.nativeASS, externalFormats: attachments.map(a => plainVTT(a) ? 'browser-vtt' : a.format), browserTextTracks: !!textTracks.length,
             automaticLossless: this.automaticLossless, adaptationSourceRejection: source.kind !== 'local' ? 'Automatic FLAC is qualified only for local files' : this.losslessInspection?.source === source ? this.losslessInspection.reason : 'Automatic FLAC source has not been qualified',
             adaptationSourceQualified: source.kind === 'local' && this.losslessInspection?.source === source && !this.losslessInspection.reason,
@@ -1204,8 +1205,7 @@ export class Player extends EventTarget {
             const p = candidate.backend;
             await this.interruptible(p.ready);
             this.assertOperation();
-            const tone = this.toneMapping === 'hdr-to-sdr' ? 'zscale=transfer=linear:npl=100,format=gbrpf32le,zscale=primaries=bt709,tonemap=tonemap=mobius:desat=0,zscale=transfer=bt709:matrix=bt709:range=limited,format=yuv420p' : '';
-            const vf = [tone ? `lavfi=[${tone}]` : '', desired.vf].filter(Boolean).join(',');
+            const vf = effectiveVideoFilters(desired, this.candidatePreferences);
             if (vf)
                 await p.command('set', 'vf', vf);
             if (mode !== 'native' && desired.af)
@@ -1617,7 +1617,7 @@ export class Player extends EventTarget {
             nativeReason = await this.inspectFallbackAfterFastFailure(source, settings);
         // Cooperative playback still needs inspected codec/resource facts when
         // filters already rule out Native. This also covers automatic filter changes.
-        if (start === 0 && (this.privateRemux || !(settings.vf || settings.af || this.toneMapping !== 'off'))) {
+        if (start === 0 && (this.privateRemux || !(settings.vf || settings.af || this.candidatePreferences.toneMapping !== 'off'))) {
             if (!this.privateRemux && (source.kind === 'local' && source.input?.demuxer || source.kind === 'remote' && source.options.demuxer) || source.kind === 'remote' && source.options.format && source.options.format !== 'file') {
                 nativeReason = source.kind === 'remote' ? nativeManifestRejection(source.options, settings, !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')) : 'Explicit demuxer requires FFmpeg';
             }
@@ -2094,26 +2094,7 @@ export class Player extends EventTarget {
     }
     filters(key, value) {
         const chain = filterChain(value);
-        return this.enqueue(async () => {
-            if (!this.automatic)
-                this.validateFilters(this.mode, { ...this.settings, [key]: chain });
-            if (chain === this.settings[key])
-                return;
-            const settings = { ...this.settings, [key]: chain };
-            if (!chain && this.automatic && this.current && this.mode !== 'native' && this.toneMapping === 'off') {
-                await this.current.backend.command('set', key, '');
-                this.settings = settings;
-                this.schedulePromotion();
-                return;
-            }
-            if (this.source)
-                await this.select(this.source, settings, true, this.nativeTracks);
-            else {
-                this.settings = settings;
-                if (this.automatic && (settings.vf || settings.af))
-                    this.currentMode = featureRejection('hybrid', { ...settings, toneMapping: this.toneMapping, hybridAudioFilters: this.hybridAudioFilters }) ? 'software' : 'hybrid';
-            }
-        }, 'switching');
+        return this.enqueue(() => this.applySetting({ kind: 'filters', key, value: chain }), 'switching');
     }
     setVideoFilters(value) { return this.filters('vf', value); }
     setAudioFilters(value) { return this.filters('af', value); }
@@ -2147,6 +2128,8 @@ export class Player extends EventTarget {
     }
     async executeSetting(backend, effect, session) {
         switch (effect.kind) {
+            case 'seek': return backend.seek(effect.value);
+            case 'seek.verify': return this.settled(session, this.mode, effect.value);
             case 'volume': return backend.volume(effect.value);
             case 'rate': return backend.rate(effect.value);
             case 'gain': return backend.gain(effect.value);
@@ -2158,15 +2141,19 @@ export class Player extends EventTarget {
             case 'buffering': return backend.setBuffering(effect.value);
             case 'output': return backend.setAudioOutputDevice(effect.value);
             case 'quality': return backend.setQuality(effect.value);
+            case 'filter': return backend.command('set', effect.key, effect.value);
+            case 'promotion':
+                this.schedulePromotion();
+                return;
             case 'source.reconfigure': return this.select(this.source, effect.settings, true, this.nativeTracks);
         }
     }
     /** All decisions and accepted values live in the composed transition. This
      * adapter invokes typed effects and reports their outcome with the original ID. */
     async applySetting(command) {
-        const session = this.current, backend = session?.backend, begin = this.dispatchControl({ type: 'setting.begin', command, hasBackend: !!backend, hasSource: !!this.source });
+        const session = this.current, backend = session?.backend, begin = this.dispatchControl({ type: 'setting.begin', command, hasBackend: !!backend, hasSource: !!this.source, hybridAudioFilters: this.hybridAudioFilters });
         if (!begin.accepted || !begin.effects)
-            throw new PlayerError('ABORTED', 'Setting operation was retired');
+            throw new PlayerError(begin.reason === 'unsupported' ? 'UNSUPPORTED_FEATURE' : begin.reason === 'invalid' ? 'INVALID_ARGUMENT' : 'ABORTED', begin.message ?? 'Setting operation was retired');
         const id = begin.id;
         const execute = async (effects) => { for (const effect of effects) {
             if (!settingAuthority(this.control, id))
@@ -2199,8 +2186,13 @@ export class Player extends EventTarget {
                 throw new PlayerError('ABORTED', 'Setting operation was retired');
             throw error;
         }
-        if (!this.dispatchControl({ type: 'setting.accept', id }).accepted)
+        const accepted = this.dispatchControl({ type: 'setting.accept', id });
+        if (!accepted.accepted)
             throw new PlayerError('ABORTED', 'Setting operation was retired');
+        for (const effect of accepted.effects ?? []) {
+            this.assertOperation();
+            await this.executeSetting(this.current?.backend ?? backend, effect, this.current);
+        }
     }
     async playNativeVerified(backend, playing = backend.play(), outputBudgetMs, intent) {
         const controller = new AbortController();
@@ -2394,87 +2386,58 @@ export class Player extends EventTarget {
             }
         }, 'seeking', controller.signal).finally(() => { options.signal?.removeEventListener('abort', abort); this.dispatchControl({ type: 'seek.settled', id: seekId }); this.seekRequests.delete(seekId); });
     }
-    validateRange(range) {
-        if (!range || !Number.isFinite(range.start) || !Number.isFinite(range.end) || range.start < 0 || range.end <= range.start)
-            throw new PlayerError('INVALID_ARGUMENT', 'Invalid playback range');
-        if (!this.current || !this.state.seekable?.some(w => range.start >= w.start && range.end <= w.end))
-            throw new PlayerError('UNSUPPORTED_FEATURE', 'Range must fit in an observed seekable interval');
-    }
     seekChapter(id) { const chapter = this.state.mediaInfo.chapters?.find(c => c.id === id); if (!chapter)
         return Promise.reject(new PlayerError('INVALID_ARGUMENT', 'Unknown source chapter')); return this.seekForSource(chapter.start, {}, this.state.sourceId); }
     getPlaybackRange() { return this.playbackRange ? freeze({ ...this.playbackRange }) : null; }
     getLoop() { return typeof this.loopPolicy === 'object' ? freeze({ ...this.loopPolicy }) : this.loopPolicy; }
+    rangeFacts() { return { hasBackend: !!this.current, time: this.state.currentTime, duration: this.state.duration, seekable: (this.state.seekable ?? []).map(window => ({ ...window })) }; }
     setPlaybackRange(range) {
         const copy = range ? { ...range } : null;
-        return this.enqueue(async () => {
-            if (copy)
-                this.validateRange(copy);
-            if (copy && typeof this.loopPolicy === 'object' && (this.loopPolicy.start < copy.start || this.loopPolicy.end > copy.end))
-                throw new PlayerError('INVALID_ARGUMENT', 'Loop must fit in the playback range');
-            if (copy && (this.state.currentTime < copy.start || this.state.currentTime >= copy.end)) {
-                await this.current.backend.seek(copy.start);
-                await this.settled(this.current, this.mode, copy.start);
-            }
-            this.playbackRange = copy;
-        }, 'seeking');
+        return this.enqueue(() => this.applySetting({ kind: 'range', value: copy, facts: this.rangeFacts() }), 'seeking');
     }
     setLoop(policy) {
         const copy = typeof policy === 'object' && policy ? { ...policy } : policy;
-        return this.enqueue(async () => {
-            if (typeof copy === 'object') {
-                this.validateRange(copy);
-                if (this.playbackRange && (copy.start < this.playbackRange.start || copy.end > this.playbackRange.end))
-                    throw new PlayerError('INVALID_ARGUMENT', 'Loop must fit in playback range');
-            }
-            else if (typeof copy !== 'boolean')
-                throw new PlayerError('INVALID_ARGUMENT', 'Invalid loop policy');
-            if (copy === true && !this.playbackRange) {
-                const duration = this.state.duration;
-                if (duration === null)
-                    throw new PlayerError('UNSUPPORTED_FEATURE', 'Whole-source looping requires finite duration');
-                this.validateRange({ start: 0, end: duration });
-            }
-            if (typeof copy === 'object' && copy && (this.state.currentTime < copy.start || this.state.currentTime >= copy.end)) {
-                await this.current.backend.seek(copy.start);
-                await this.settled(this.current, this.mode, copy.start);
-            }
-            this.loopPolicy = copy;
-        }, typeof copy === 'object' ? 'seeking' : null);
+        return this.enqueue(() => this.applySetting({ kind: 'loop', value: copy, facts: this.rangeFacts() }), typeof copy === 'object' ? 'seeking' : null);
     }
     enforceBoundary() {
-        if (this.boundaryPending || !this.current || this.activeOperation || this.settings.pause || (!this.loopPolicy && !this.playbackRange))
+        if (!this.current)
             return;
-        const boundary = () => typeof this.loopPolicy === 'object' ? this.loopPolicy : this.playbackRange ?? { start: 0, end: this.state.duration ?? Infinity };
-        if (this.state.status !== 'ended' && this.state.currentTime < boundary().end)
+        const sample = () => ({ time: this.state.currentTime, duration: this.state.duration, ended: this.state.status === 'ended' });
+        const admitted = this.dispatchControl({ type: 'boundary.sample', ...sample() });
+        if (!admitted.accepted)
             return;
-        const source = this.source, session = this.current;
-        this.boundaryPending = true;
-        void this.enqueue(async () => {
-            // A preceding queued control may replace the source, move the clock, or
-            // change/remove the range before this automatic operation starts.
-            if (this.source !== source || this.current !== session || this.settings.pause || (!this.loopPolicy && !this.playbackRange))
+        const id = admitted.id, session = this.current;
+        const fail = () => {
+            const failed = this.dispatchControl({ type: 'boundary.failed', id });
+            if (!failed.accepted)
                 return;
-            const range = boundary();
-            if (this.state.status !== 'ended' && this.state.currentTime < range.end)
-                return;
-            await session.backend.pause();
-            if (this.loopPolicy) {
-                await session.backend.seek(range.start);
-                await this.settled(session, this.mode, range.start);
-                await session.backend.play();
+            // Failed cleanup remains best effort; logical pause is already committed.
+            try {
+                void session.backend.pause().catch(() => { });
             }
-            else {
-                this.updateSettings({ pause: true });
-                await session.backend.seek(range.end);
-                await this.settled(session, this.mode, range.end);
-            }
-        }, 'seeking').catch(() => {
-            if (this.current !== session || this.source !== source || this.destroyed || this.closing)
-                return;
-            this.updateSettings({ pause: true });
-            void session.backend.pause().catch(() => { });
+            catch { }
             this.publish();
-        }).finally(() => { this.boundaryPending = false; });
+        };
+        void this.enqueue(async () => {
+            try {
+                let decision = this.dispatchControl({ type: 'boundary.start', id, ...sample() });
+                while (decision.accepted && decision.effects?.length) {
+                    const phase = this.control.boundary.pending?.phase;
+                    if (!phase || !boundaryAuthority(this.control, id))
+                        return;
+                    for (const effect of decision.effects) {
+                        if (!boundaryAuthority(this.control, id))
+                            return;
+                        await this.interruptible(this.executeSetting(session.backend, effect, session));
+                    }
+                    decision = this.dispatchControl({ type: 'boundary.complete', id, phase });
+                }
+            }
+            catch (error) {
+                fail();
+                throw error;
+            }
+        }, 'seeking').catch(fail).finally(() => { this.dispatchControl({ type: 'boundary.settled', id }); });
     }
     stepFrame(direction = 1) {
         if (direction !== 1 && direction !== -1)
@@ -2771,24 +2734,7 @@ export class Player extends EventTarget {
     setToneMapping(value) {
         if (!['off', 'hdr-to-sdr'].includes(value))
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid tone mapping policy');
-        return this.enqueue(async () => { const old = this.toneMapping; if (old === value)
-            return; this.toneMapping = value; try {
-            if (value === 'off' && this.automatic && this.current && this.mode === 'software') {
-                await this.current.backend.command('set', 'vf', this.settings.vf);
-                this.schedulePromotion();
-                return;
-            }
-            if (this.source)
-                await this.select(this.source, this.settings, true, this.nativeTracks);
-            else if (this.automatic && value !== 'off')
-                this.currentMode = 'software';
-            else
-                this.validateFilters(this.mode, this.settings);
-        }
-        catch (error) {
-            this.toneMapping = old;
-            throw error;
-        } });
+        return this.enqueue(() => this.applySetting({ kind: 'toneMapping', value }));
     }
     addTextTrack(track) { return this.attachTextTrack(track).then(() => { }); }
     attachTextTrack(track) {

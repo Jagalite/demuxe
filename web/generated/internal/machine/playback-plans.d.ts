@@ -1,0 +1,1323 @@
+// SPDX-License-Identifier: Apache-2.0
+import type { PlaybackMode } from '../../types.js';
+/** Finite execution plans; qualification is local to a feature, not a browser claim. */
+export declare const PLAYBACK_PLANS: readonly Readonly<{
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct-mpv";
+    mode: "native";
+    video: "browser";
+    audio: "original";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct";
+    mode: "native";
+    video: "browser";
+    audio: "original";
+    qualification: "existing";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux-mpv";
+    mode: "native";
+    video: "packet-copy";
+    audio: "packet-copy";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux";
+    mode: "native";
+    video: "packet-copy";
+    audio: "packet-copy";
+    qualification: "existing";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct-gain";
+    mode: "native";
+    video: "browser";
+    audio: "web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "shaka-mse";
+    mode: "native";
+    video: "browser-mse";
+    audio: "browser-mse";
+    qualification: "runtime-verified";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "shaka-mse-gain";
+    mode: "native";
+    video: "browser-mse";
+    audio: "browser-mse+web-audio-gain";
+    qualification: "runtime-verified";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-flac";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac-lossless";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-flac-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac-lossless+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct-ass";
+    mode: "native";
+    video: "browser";
+    audio: "original";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct-ass-gain";
+    mode: "native";
+    video: "browser";
+    audio: "original+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux-ass";
+    mode: "native";
+    video: "packet-copy";
+    audio: "packet-copy";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux-ass-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "packet-copy+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-flac-ass";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac-lossless";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-flac-ass-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac-lossless+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-opus";
+    mode: "native";
+    video: "packet-copy";
+    audio: "opus-lossy";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-opus-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "opus-lossy+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-transcode-mpv";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac24";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-transcode-ass";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac24";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-transcode";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac24";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-video-mpv-audio";
+    mode: "native";
+    video: "packet-copy";
+    audio: "mpv-pcm-worklet";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-video-mpv-audio-subtitles";
+    mode: "native";
+    video: "packet-copy";
+    audio: "mpv-pcm-worklet";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv";
+    qualification: "existing";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-audio-filter";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv-filter";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-gain";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-audio-filter-gain";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv-filter+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-private-gain";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv+web-audio-gain";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-private";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software-private-gain";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv+web-audio-gain";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software-private";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software-gain";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv";
+    qualification: "existing";
+}>[];
+export declare function qualifiedAudioFilter(chain: string): boolean;
+export declare function featureRejection(mode: PlaybackMode, features: {
+    vf: string;
+    af: string;
+    toneMapping: string;
+    hybridAudioFilters?: boolean;
+}): string | undefined;
+export declare function executionPlan(mode: PlaybackMode, packaging: unknown, audioFilter: string, gain?: number, nativeASS?: boolean): Readonly<{
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct-mpv";
+    mode: "native";
+    video: "browser";
+    audio: "original";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct";
+    mode: "native";
+    video: "browser";
+    audio: "original";
+    qualification: "existing";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux-mpv";
+    mode: "native";
+    video: "packet-copy";
+    audio: "packet-copy";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux";
+    mode: "native";
+    video: "packet-copy";
+    audio: "packet-copy";
+    qualification: "existing";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct-gain";
+    mode: "native";
+    video: "browser";
+    audio: "web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "shaka-mse";
+    mode: "native";
+    video: "browser-mse";
+    audio: "browser-mse";
+    qualification: "runtime-verified";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "shaka-mse-gain";
+    mode: "native";
+    video: "browser-mse";
+    audio: "browser-mse+web-audio-gain";
+    qualification: "runtime-verified";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-flac";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac-lossless";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-flac-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac-lossless+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct-ass";
+    mode: "native";
+    video: "browser";
+    audio: "original";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-direct-ass-gain";
+    mode: "native";
+    video: "browser";
+    audio: "original+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux-ass";
+    mode: "native";
+    video: "packet-copy";
+    audio: "packet-copy";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-remux-ass-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "packet-copy+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-flac-ass";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac-lossless";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-flac-ass-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac-lossless+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-opus";
+    mode: "native";
+    video: "packet-copy";
+    audio: "opus-lossy";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-opus-gain";
+    mode: "native";
+    video: "packet-copy";
+    audio: "opus-lossy+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-transcode-mpv";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac24";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-transcode-ass";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac24";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-transcode";
+    mode: "native";
+    video: "packet-copy";
+    audio: "flac24";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-video-mpv-audio";
+    mode: "native";
+    video: "packet-copy";
+    audio: "mpv-pcm-worklet";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "native-video-mpv-audio-subtitles";
+    mode: "native";
+    video: "packet-copy";
+    audio: "mpv-pcm-worklet";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv";
+    qualification: "existing";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-audio-filter";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv-filter";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-gain";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-audio-filter-gain";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv-filter+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-private-gain";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv+web-audio-gain";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "hybrid-private";
+    mode: "hybrid";
+    video: "webcodecs";
+    audio: "mpv";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software-private-gain";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv+web-audio-gain";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software-private";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv";
+    qualification: "bounded";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software-gain";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv+web-audio-gain";
+    qualification: "experimental";
+} | {
+    owners: Readonly<{
+        video: "ffmpeg" | "browser-media-element" | "browser-webcodecs";
+        audio: "mpv-pcm-worklet" | "browser-media-element";
+        subtitle: "none" | "mpv" | "mpv-subtitle-service" | "shaka-text" | "browser-text-track";
+        demux: string;
+        presentation: "browser-media-element" | "mpv-rgb-canvas" | "demuxe-retained-frame";
+    }>;
+    source: string;
+    prerequisites: string;
+    subtitles: "mpv/libass when admitted by the installed full playback profile" | "not admitted" | "qualified embedded tracks and external attachments via mpv; container presentation only" | "Shaka manifest text selection and rendering" | "external subtitles via mpv; container presentation only" | "browser text tracks" | "mpv/libass";
+    fidelity: "Selected audio decoded and encoded as FLAC24; higher precision PCM rounded; no sample-rate conversion or channel remix; video copied" | "Selected audio is decoded by mpv to requested stereo PCM; multichannel input may be downmixed; video packets are copied without re-encoding" | "Explicitly permitted lossy audio; no resampling/downmix; video copied" | "Selected integer audio encoded losslessly as FLAC; video copied; no downmix/resample" | "No audio encoding, downmix or resampling added by route selection; existing backend output contracts apply";
+    resources: string;
+    fallback: "terminal" | "existing diagnosed-path fallback with source and user intent preserved";
+    id: "software";
+    mode: "software";
+    video: "ffmpeg";
+    audio: "mpv";
+    qualification: "existing";
+}>;
+export type PlanRejectionCode = 'FEATURE_UNSUPPORTED' | 'POLICY_PROHIBITS_TRANSFORM' | 'QUALIFICATION_REQUIRED' | 'SOURCE_UNSUPPORTED' | 'DEPLOYMENT_UNAVAILABLE' | 'PLAN_NOT_REQUESTED' | 'ISOLATION_REQUIRED';
+export type PlanFacts = {
+    privatePlaybackFull?: boolean;
+    privateHybridSourceRejection?: string;
+    privateHybridAssetsAvailable?: boolean;
+    privatePlaybackSourceRejection?: string;
+    privatePlaybackAssetsAvailable?: boolean;
+    offscreenCanvas?: boolean;
+    audioPlayback?: 'auto' | 'worklet';
+    transcodeSourceRejection?: string;
+    transcodeAssetsAvailable?: boolean;
+    selectiveAudioQualified?: boolean;
+    selectiveAudioReason?: string;
+    mpvSubtitles?: boolean;
+    mpvSubtitleSourceQualified?: boolean;
+    mpvSubtitleAVRejection?: string;
+    selectedEmbeddedSubtitle?: boolean;
+    automatic: boolean;
+    vf: string;
+    af: string;
+    gain: number;
+    toneMapping: string;
+    hybridAudioFilters: boolean;
+    adaptation?: 'flac' | 'opus';
+    allowLossy: boolean;
+    nativeASS: boolean;
+    externalFormats: string[];
+    browserTextTracks: boolean;
+    audioOutput: string;
+    nativeRemux: 'auto' | 'never' | 'always';
+    manifest: boolean;
+    requiresRemux: boolean;
+    isolated: boolean;
+    privateRemux?: boolean;
+    atomicMpvProviders?: boolean;
+    mse: boolean;
+    webCodecs: boolean;
+    webAudio: boolean;
+    nativeSourceRejection?: string;
+    remuxSourceRejection?: string;
+    hybridSourceRejection?: string;
+    webGPUCodecQualified?: boolean;
+    shakaSourceRejection?: string;
+    streamingFallbackRejection?: string;
+    automaticLossless?: boolean;
+    adaptationSourceQualified?: boolean;
+    adaptationSourceRejection?: string;
+};
+/** Admission is executable and deliberately finite. Runtime output verification
+ * still owns acceptance; browser capability signals cannot prove presentation. */
+export declare function planAdmission(f: PlanFacts): {
+    code?: PlanRejectionCode | undefined;
+    reason?: string | undefined;
+    id: "hybrid" | "software" | "native-direct-mpv" | "native-direct" | "native-remux-mpv" | "native-remux" | "native-direct-gain" | "shaka-mse" | "shaka-mse-gain" | "native-remux-gain" | "native-flac" | "native-flac-gain" | "native-direct-ass" | "native-direct-ass-gain" | "native-remux-ass" | "native-remux-ass-gain" | "native-flac-ass" | "native-flac-ass-gain" | "native-opus" | "native-opus-gain" | "native-transcode-mpv" | "native-transcode-ass" | "native-transcode" | "native-video-mpv-audio" | "native-video-mpv-audio-subtitles" | "hybrid-audio-filter" | "hybrid-gain" | "hybrid-audio-filter-gain" | "hybrid-private-gain" | "hybrid-private" | "software-private-gain" | "software-private" | "software-gain";
+    mode: "native" | "hybrid" | "software";
+    eligible: boolean;
+}[];

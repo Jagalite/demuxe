@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type BoundaryInput, type BoundaryEffect } from './playback-boundary.js';
 import { type OperationInput } from './operations.js';
 import { type PlaybackInput } from './playback.js';
 import { type SettingsInput, type SettingTransactionInput, type SettingEffect } from './settings.js';
@@ -12,14 +13,15 @@ export type SessionObservation = Readonly<{
     value?: number | boolean;
     publishedTime?: number;
 }>;
-export type PlayerControlInput = OperationInput | PlaybackInput | SettingsInput | SettingTransactionInput | SourceInput | SessionObservation;
+export type PlayerControlInput = BoundaryInput | OperationInput | PlaybackInput | SettingsInput | SettingTransactionInput | SourceInput | SessionObservation;
 export type PlayerControlDecision = Readonly<{
     state: PlayerControlState;
     accepted: boolean;
     id?: number;
     reason?: string;
+    message?: string;
     retire: readonly number[];
-    effects?: readonly SettingEffect[];
+    effects?: readonly (SettingEffect | BoundaryEffect)[];
 }>;
 export declare function transitionPlayer(state: PlayerControlState, input: PlayerControlInput): PlayerControlDecision;
 /** A backend listener keeps its allocation identity. Retirement fences every

@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
+import {transitionBoundary,type BoundaryInput,type BoundaryEffect} from './playback-boundary.js';
 import {transitionOperations,type OperationInput} from './operations.js';
 import {transitionPlayback,type PlaybackInput} from './playback.js';
 import {transitionSettings,transitionSettingTransaction,changePreferences,clearSourcePreferences,type SettingsInput,type SettingTransactionInput,type SettingEffect} from './settings.js';
 import {transitionSource,type SourceInput} from './source.js';
 import type {PlayerControlState} from './state.js';
 export type SessionObservation=Readonly<{type:'playback.sample';session:number;sequence:number;observation:'waiting'|'playing'|'time'|'pause';value?:number|boolean;publishedTime?:number}>;
-export type PlayerControlInput=OperationInput|PlaybackInput|SettingsInput|SettingTransactionInput|SourceInput|SessionObservation;
-export type PlayerControlDecision=Readonly<{state:PlayerControlState;accepted:boolean;id?:number;reason?:string;retire:readonly number[];effects?:readonly SettingEffect[]}>;
+export type PlayerControlInput=BoundaryInput|OperationInput|PlaybackInput|SettingsInput|SettingTransactionInput|SourceInput|SessionObservation;
+export type PlayerControlDecision=Readonly<{state:PlayerControlState;accepted:boolean;id?:number;reason?:string;message?:string;retire:readonly number[];effects?:readonly (SettingEffect|BoundaryEffect)[]}>;
 export function transitionPlayer(state:PlayerControlState,input:PlayerControlInput):PlayerControlDecision{
+  if(isBoundaryInput(input))return transitionBoundary(state,input);
   if(isSettingTransaction(input))return transitionSettingTransaction(state,input);
   if(input.type==='playback.sample'){
     const previous=state.playback;
@@ -29,7 +31,7 @@ export function transitionPlayer(state:PlayerControlState,input:PlayerControlInp
     const acceptedSetting=input.type==='source.accept'&&decision.accepted&&pending?.reconfigure&&pending.phase==='applying'&&pending.operation===state.operations.active&&pending.epoch===state.operations.epoch;
     const desiredPreferences=acceptedSetting?changePreferences(state.preferences,pending.preferencesPatch):state.preferences,preferences=reset?clearSourcePreferences(desiredPreferences):desiredPreferences;
     const settingsTransactions=input.type==='source.clear'||input.type==='source.accept'&&decision.accepted?Object.freeze({...state.settingsTransactions,pending:acceptedSetting?Object.freeze({...pending,phase:'accepted' as const,session:decision.state.acceptedSession,settings,preferences}):null,degraded:null}):state.settingsTransactions;
-    return Object.freeze({...decision,state:decision.state===state.source?state:Object.freeze({...state,revision:state.revision+1,source:decision.state,settings,playback,preferences,settingsTransactions}),id:decision.attempt,retire:Object.freeze([]) as readonly number[]});
+    return Object.freeze({...decision,state:decision.state===state.source?state:Object.freeze({...state,revision:state.revision+1,source:decision.state,settings,playback,preferences,settingsTransactions,boundary:input.type==='source.clear'||input.type==='source.accept'&&decision.accepted?Object.freeze({...state.boundary,pending:null}):state.boundary}),id:decision.attempt,retire:Object.freeze([]) as readonly number[]});
   }
   if(input.type==='settings.accept'||input.type==='settings.change')return Object.freeze({state:Object.freeze({...state,revision:state.revision+1,settings:transitionSettings(state.settings,input)}),accepted:true,id:undefined,reason:undefined,retire:Object.freeze([]) as readonly number[]});
   if(input.type==='play.request'||input.type==='play.retire'||input.type==='play.settled'||input.type==='seek.request'||input.type==='seek.settled'||input.type==='playback.observed'){
@@ -40,9 +42,10 @@ export function transitionPlayer(state:PlayerControlState,input:PlayerControlInp
   const pending=state.settingsTransactions.pending;
   const retired=input.type==='operation.retire'||(input.type==='operation.cancel'||input.type==='operation.finish'||input.type==='operation.release')&&input.id===pending?.operation;
   const settingsTransactions=retired&&pending?Object.freeze({...state.settingsTransactions,pending:null}):state.settingsTransactions;
-  return Object.freeze({...decision,state:decision.state===state.operations?state:Object.freeze({...state,revision:state.revision+1,operations:decision.state,settingsTransactions}),retire:Object.freeze([]) as readonly number[]});
+  return Object.freeze({...decision,state:decision.state===state.operations?state:Object.freeze({...state,revision:state.revision+1,operations:decision.state,settingsTransactions,boundary:input.type==='operation.retire'?Object.freeze({...state.boundary,pending:null}):state.boundary}),retire:Object.freeze([]) as readonly number[]});
 }
 
+function isBoundaryInput(input:PlayerControlInput):input is BoundaryInput{return input.type.startsWith('boundary.');}
 function isSourceInput(input:PlayerControlInput):input is SourceInput{return input.type.startsWith('source.');}
 function isSettingTransaction(input:PlayerControlInput):input is SettingTransactionInput{return input.type.startsWith('setting.')||input.type==='preferences.change';}
 

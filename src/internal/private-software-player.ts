@@ -6,6 +6,7 @@ import type {DecodeQuality} from './decode-policy.js';
 import {bufferingPolicy,mpvBufferingOptions,resolveBuffering} from './buffering.js';
 import {runtimeWorker} from './runtime-worker.js';
 import {PlayerError, playerError} from './errors.js';
+import {createBackendRequests,admitBackendRequest,settleBackendRequest,failBackendRequests,beginBackendClose,finishBackendClose} from './machine/backend-requests.js';
 
 /** Experimental finite Software Backend. Public admission has its own gates. */
 export class PrivateSoftwarePlayer extends EventTarget implements Backend {
@@ -19,12 +20,13 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   private gainNode?:GainNode;
   private analyser?:AnalyserNode;
   private loading = new AbortController();
-  private pending = new Map<number,{resolve:(value:any)=>void;reject:(error:Error)=>void;timer:ReturnType<typeof setTimeout>}>();
-  private nextId = 1;
+  private pending = new Map<number,{resolve:(value:any)=>void;reject:(error:Error)=>void;timer?:ReturnType<typeof setTimeout>}>();
+  private requests=createBackendRequests('software');
   private generation = 0;
-  private closing = false;
+  private get closing(){return this.requests.phase!=='active';}
   private destruction?:Promise<void>;
-  private failed?:Error;
+  private failure?:Error;
+  private get failed(){return this.requests.failed?this.failure:undefined;}
   private refresh?:RemoteSource['refreshAuthorization'];
   private userPaused = true;
   private gainValue = 1;
@@ -87,15 +89,18 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   }
   private latency(){return Math.round((this.context.baseLatency+(this.context.outputLatency||0))*1e6);}
   private request(op:string,data:Record<string,unknown>={},transfer:Transferable[]=[]):Promise<any>{
-    if(this.closing&&op!=='close')return Promise.reject(new PlayerError('ABORTED','Private Software closed'));
-    if(this.failed&&op!=='close')return Promise.reject(this.failed);
-    if(this.pending.size>=128&&op!=='close')return Promise.reject(new PlayerError('ABORTED','Private Software command queue limit'));
-    const id = this.nextId++;
+    const admission=admitBackendRequest(this.requests,op,performance.now());this.requests=admission.state;
+    if(admission.effect.kind==='reject')return Promise.reject(admission.effect.reason==='failed'?this.failure!:new PlayerError('ABORTED',admission.effect.reason==='capacity'?'Private Software command queue limit':'Private Software closed'));
+    const {id,deadline}=admission.effect.request;
     return new Promise((resolve,reject)=>{
-      const timer=setTimeout(()=>{this.pending.delete(id);reject(new Error('Private Software '+op+' deadline'));},op==='init'?60000:op==='close'?2000:25000);
-      this.pending.set(id,{resolve,reject,timer});
-      try {this.worker.postMessage({id,op,...data},transfer);}
-      catch(error){clearTimeout(timer);this.pending.delete(id);reject(playerError(error));}
+      const pending:{resolve:(value:any)=>void;reject:(error:Error)=>void;timer?:ReturnType<typeof setTimeout>}={resolve,reject};this.pending.set(id,pending);
+      const expire=()=>{
+        const settled=settleBackendRequest(this.requests,id,{kind:'deadline',now:performance.now()});this.requests=settled.state;
+        if(settled.effect.kind==='ignore'){if(this.pending.get(id)===pending)pending.timer=setTimeout(expire,Math.max(0,deadline-performance.now()));return;}
+        this.pending.delete(id);reject(new Error('Private Software '+op+' deadline'));
+      };
+      try{pending.timer=setTimeout(expire,Math.max(0,deadline-performance.now()));this.worker.postMessage({id,op,...data},transfer);}
+      catch(error){const settled=settleBackendRequest(this.requests,id,{kind:'transport-error'});this.requests=settled.state;if(settled.effect.kind==='settle'){clearTimeout(pending.timer);this.pending.delete(id);reject(playerError(error));}}
     });
   }
   private receive(data:any){
@@ -110,7 +115,7 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
       finally{data.bitmap.close();if(!this.closing)this.worker.postMessage({op:'picture-presented',pictureId:data.pictureId});}
       return;
     }
-    if(data.id!==undefined){const pending=this.pending.get(data.id);if(pending){clearTimeout(pending.timer);this.pending.delete(data.id);data.error?pending.reject(data.code==='ASSET_LOAD_FAILED'?new PlayerError('ASSET_LOAD_FAILED',data.error):playerError(new Error(data.error))):pending.resolve(data.result);}return;}
+    if(data.id!==undefined){const settled=settleBackendRequest(this.requests,data.id,{kind:'reply'});this.requests=settled.state;const pending=this.pending.get(data.id);if(settled.effect.kind==='settle'&&pending){clearTimeout(pending.timer);this.pending.delete(data.id);data.error?pending.reject(data.code==='ASSET_LOAD_FAILED'?new PlayerError('ASSET_LOAD_FAILED',data.error):playerError(new Error(data.error))):pending.resolve(data.result);}return;}
     if(data.type==='fatal'){this.diagnostics={...this.diagnostics,cleanup:data.cleanup,cleanupError:data.cleanupError};this.fail(playerError(new Error(data.error)));return;}
     if(data.type==='refresh'){
       if(data.generation!==this.generation){this.worker.postMessage({op:'refreshed',refreshId:data.refreshId,error:'Authorization source replaced'});return;}
@@ -133,8 +138,8 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     }
   }
   private fail(error:Error){
-    if(this.failed||this.closing)return;this.failed=error;
-    for(const pending of this.pending.values()){clearTimeout(pending.timer);pending.reject(error);}this.pending.clear();
+    const failed=failBackendRequests(this.requests);this.requests=failed.state;if(!failed.notify)return;this.failure=error;
+    for(const id of failed.reject){const pending=this.pending.get(id);if(pending){clearTimeout(pending.timer);this.pending.delete(id);pending.reject(error);}}
     this.emit('error',error);void this.destroy().catch(()=>{});
   }
   private async waitUntil(predicate:()=>boolean,signal?:AbortSignal){
@@ -223,13 +228,20 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   async setAudioOutputDevice(id:string){await this.ready;const context=this.context as AudioContext&{setSinkId?:(id:string)=>Promise<void>};if(!context.setSinkId)throw new PlayerError('UNSUPPORTED_FEATURE','AudioContext output selection unavailable');await context.setSinkId(id==='default'?'':id);}
   audioDiagnostics(){const samples=new Float32Array(this.analyser?.fftSize??2048);this.analyser?.getFloatTimeDomainData(samples);return {state:this.context.state,sampleRate:this.context.sampleRate,requestedOutput:this.requestedOutput,outputChannels:this.outputChannels,deviceChannels:this.deviceChannels,channelLayout:this.outputChannels===8?'7.1':this.outputChannels===6?'5.1':'stereo',gain:this.gainValue,rms:Math.sqrt(samples.reduce((sum,value)=>sum+value*value,0)/samples.length),mediaFrames:this.diagnostics?.audio?.header?.[1]??0,transport:this.diagnostics?.audio,outputVerified:this.outputVerified};}
   destroy():Promise<void>{
-    if(this.destruction)return this.destruction;this.closing=true;this.loading.abort();
-    return this.destruction=(async()=>{
+    if(this.destruction)return this.destruction;
+    this.requests=beginBackendClose(this.requests);
+    // Publish the shared completion before abort listeners or transport callbacks.
+    let resolve!:()=>void,reject!:(error:unknown)=>void;
+    this.destruction=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});
+    this.loading.abort();
+    void (async()=>{
       try {const cleanup=await this.request('close');this.diagnostics={...this.diagnostics,cleanup};}
       finally {
-        this.worker.terminate();for(const pending of this.pending.values()){clearTimeout(pending.timer);pending.reject(new PlayerError('ABORTED','Private Software closed'));}this.pending.clear();
-        this.node?.disconnect();this.node?.port.close();this.gainNode?.disconnect();this.analyser?.disconnect();this.context.onstatechange=null;if(this.context.state!=='closed')await this.context.close();
+        const closed=finishBackendClose(this.requests);this.requests=closed.state;
+        for(const id of closed.reject){const pending=this.pending.get(id);if(pending){clearTimeout(pending.timer);this.pending.delete(id);pending.reject(new PlayerError('ABORTED','Private Software closed'));}}
+        this.worker.terminate();this.node?.disconnect();this.node?.port.close();this.gainNode?.disconnect();this.analyser?.disconnect();this.context.onstatechange=null;if(this.context.state!=='closed')await this.context.close();
       }
-    })();
+    })().then(resolve,reject);
+    return this.destruction;
   }
 }

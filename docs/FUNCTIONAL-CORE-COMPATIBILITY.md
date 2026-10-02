@@ -95,11 +95,19 @@ Source: [projection](../src/unified-player.ts#L416), [new-source acceptance](../
 | Player-scoped fonts | Survive close/open and same-source handoff, bounded by existing budgets; explicit removal and terminal destruction release ownership. |
 | Destroy | Terminal immediately and idempotent as a cleanup request; awaits resources/queue, clears accepted media, publishes idle, clears subscribers and removes owned DOM. Some inert settings fields are not reset; do not invent new public reset guarantees for a terminal instance. |
 
-Private `qualityPolicy` currently survives close until the next accepted new source resets it; no streaming state is exposed while there is no backend. Record the distinction between inaccessible retained implementation data and a promised source-scoped API value. Reset/source-scope changes need deliberate tests rather than a blanket “clear all state” action.
+The settings cutover clears the private `qualityPolicy` on close together with other source preferences. The original implementation retained it invisibly until the next accepted new source; no streaming state was exposed while there was no backend. This is an internal source-scope correction, without a new public reset guarantee.
 
 `getStats()` samples elapsed rebuffer time at getter invocation; extracting it must supply an explicit clock observation while preserving the getter's units/meaning. Diagnostics and capability getters include current backend facts. A frozen public snapshot does not make those physical facts constant.
 
 The projection extraction records additional source quirks for explicit compatibility decisions: loop availability reads the **previous** snapshot's duration, with initial `undefined` differing from `null`; positive infinity can survive `currentTime` normalization; malformed `ranges([null])` throws while packet-cache normalization returns unknown. These are preserved in the integrated projection, not newly promised API behavior. The candidate copies normalized graphs before freezing so it cannot freeze caller-owned tracks, policies or streaming records. Host reads remain in the shell; returned streaming graphs are now detached before freezing.
+
+## Settings and automatic boundary cutover
+
+The composed settings transaction accepts only the fields owned by the command. A delayed volume completion cannot overwrite an independently accepted emergency pause. Desired filters, tone mapping and timing/style remain private during candidate preparation and commit with source acceptance. An error during cleanup after acceptance cannot undo the accepted source or reapply a captured settings snapshot.
+
+Direct filter/tone changes now attempt to restore the exact previous filter pipeline after partial application. Range and explicit-loop positioning likewise verifies the requested position before accepting the policy, and attempts to restore the previous position on failure. These are intentional compensation improvements. If restoration fails, the retained public preference is not evidence of physical restoration: the session reports `DECODE_FAILED` and the core retains degraded transaction metadata.
+
+Automatic range/loop work owns a session, operation and generation through pause, seek, verification and optional play. Each completion must retain that authority before issuing the next effect. Its pending lease survives final queue publication; stale clock/EOF observations in that publication cannot enqueue a duplicate loop. A superseding source, close or destroy retires the lease atomically. Physical cleanup remains in the adapter.
 
 ## Gesture-sensitive effects
 

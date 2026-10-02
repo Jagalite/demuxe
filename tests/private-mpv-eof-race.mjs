@@ -14,7 +14,7 @@ function fixture(t){
  const audio=new NativePrivateMpvAudio(video,()=>0,new URL('http://localhost/'),'jspi',error=>errors.push(error));
  let suspended=0,epoch=2;const calls=[];
  audio.context={state:'running',suspend:async()=>{suspended++;},close:async()=>{},removeEventListener(){}};
- audio.running=true;audio.play=async()=>{audio.running=true;video.paused=false;};
+ audio.audio=Object.freeze({...audio.audio,running:true});audio.play=async()=>{audio.audio=Object.freeze({...audio.audio,running:true});video.paused=false;};
  audio.rpc=async(op)=>{calls.push(op);if(op==='seek')epoch+=2;return op==='status'?{eof:true,epoch,ack:true,header:[0,0,0,epoch,0,0,0,epoch]}:{};};
  return {audio,video,errors,calls,suspended:()=>suspended};
 }
@@ -49,7 +49,7 @@ test('clock sampling noise does not repeatedly change browser playback rate',asy
  assert.deepEqual(f.errors,[]);await f.audio.destroy();
 });
 test('video waits for the consumed audio presentation clock after a seek or rate reset',async t=>{
- const f=fixture(t);f.audio.running=false;f.audio.time=()=>2;f.audio.context.resume=async()=>{};
+ const f=fixture(t);f.audio.audio=Object.freeze({...f.audio.audio,running:false});f.audio.time=()=>2;f.audio.context.resume=async()=>{};
  let release,startVideo=false;
  f.audio.waitFor=predicate=>{
   assert.equal(predicate({time:1.92,header:[8192,512],eof:0}),false,'consumption alone is insufficient');
@@ -63,7 +63,7 @@ test('video waits for the consumed audio presentation clock after a seek or rate
  assert.equal(startVideo,true);assert.equal(f.audio.running,true);await f.audio.destroy();
 });
 test('a fully drained audio tail does not hold the remaining video',async t=>{
- const f=fixture(t);f.audio.running=false;f.audio.time=()=>12;f.audio.context.resume=async()=>{};
+ const f=fixture(t);f.audio.audio=Object.freeze({...f.audio.audio,running:false});f.audio.time=()=>12;f.audio.context.resume=async()=>{};
  f.audio.waitFor=async predicate=>{
   assert.equal(predicate({time:11.96,header:[1024,512],eof:1}),false);
   assert.equal(predicate({time:11.96,header:[1024,1024],eof:1}),true);

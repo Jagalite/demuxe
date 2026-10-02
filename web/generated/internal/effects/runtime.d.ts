@@ -11,17 +11,15 @@ export type EffectRuntimeOptions = {
     onObserverError?: (error: unknown) => void;
     maxPending?: number;
 };
-/** Shell interpreter for the first, deliberately small effect vocabulary.
- * Not wired into Player. No routing/selection decisions belong in this class.
- */
+/** Host interpreter for the deliberately small effect vocabulary. Not wired into
+ * Player. machine/effect-runtime owns admission, execution and settlement state. */
 export declare class EffectRuntime {
     private readonly options;
-    private highWatermark;
-    private pending;
-    private disposed;
-    private readonly limit;
+    private state;
+    private readonly handles;
     constructor(options: EffectRuntimeOptions);
     get pendingCount(): number;
+    private transition;
     submit(input: Effect): Promise<EffectOutcome>;
     /** Logical retirement settles callers even if an external operation ignores abort. */
     retireStale(): void;
@@ -30,4 +28,6 @@ export declare class EffectRuntime {
     private current;
     private execute;
     private finish;
+    private observerError;
+    private deliver;
 }

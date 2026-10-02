@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import {runtimeWorker} from './runtime-worker.js';
 import {PlayerError,playerError} from './errors.js';
+import {createBackendRequests,admitBackendRequest,settleBackendRequest,failBackendRequests,beginBackendClose,finishBackendClose} from './machine/backend-requests.js';
 import type {RemoteSource,WatchdogPolicy} from '../types.js';
+import {createPrivateAudio,selectPrivateAudioStream,privateAudioSettings,beginAudioControl,audioControlCurrent,finishAudioPlay,observeAudioContext,acknowledgeAudioContext,beginAudioPoll,finishAudioPoll,observeAudioClock,privateAudioObservesClock,resetAudioClock,beginAudioEOF,audioEOFCurrent,finishAudioEOF,retirePrivateAudio,privateAudioReady,privateAudioDeadline,privateAudioDeadlineOpen} from './machine/private-audio.js';
 
 /** Restricted stereo PCM service: private memory, acknowledged consumption and lifecycle. */
 export class NativePrivateMpvAudio extends EventTarget {
@@ -9,33 +11,24 @@ export class NativePrivateMpvAudio extends EventTarget {
   private context?:AudioContext;
   private node?:AudioWorkletNode;
   private gain?:GainNode;
-  private sequence=0;
-  private pending=new Map<number,{resolve:(value:any)=>void;reject:(e:Error)=>void;timer:ReturnType<typeof setTimeout>}>();
+  private requests=createBackendRequests('audio');
+  private pending=new Map<number,{resolve:(value:any)=>void;reject:(e:Error)=>void;timer?:ReturnType<typeof setTimeout>}>();
   private source?:File|RemoteSource;
-  private stopped=false;
-  private failed=false;
-  private running=false;
-  private polling=false;
+  private get stopped(){return this.requests.phase!=='active';}
+  private get failed(){return this.requests.failed;}
+  private audio=createPrivateAudio();
+  private get running(){return this.audio.running;}
   private timer?:ReturnType<typeof setInterval>;
   private destroyPromise?:Promise<void>;
-  private rateValue=1;
-  private volumeValue=100;
-  private gainValueStored=1;
-  private streamIndex?:number;
+  private get rateValue(){return this.audio.rate;}
+  private get volumeValue(){return this.audio.volume;}
+  private get gainValueStored(){return this.audio.gain;}
+  private get streamIndex(){return this.audio.streamIndex??undefined;}
   private status:any;
   private facts:any;
-  private errors:number[]=[];
   private contextTransition=Promise.resolve();
-  private resumeAfterContext=false;
-  private eof=false;
   private eofController?:AbortController;
   private lastCleanup:any;
-  private watchAudio=true;
-  private badClock=0;
-  private clockOutside=0;
-  private clockInside=0;
-  private clockTrim=false;
-  private clockRateWrites=0;
   constructor(private video:HTMLVideoElement,private time:()=>number,private base:URL,private runtime:'jspi'|'asyncify',private onFailure:(error:Error)=>void){
     super();this.worker=runtimeWorker(new URL('web/private-mpv/audio-worker.js',base),{type:'module'});
     this.worker.onmessage=({data:d})=>{
@@ -44,7 +37,7 @@ export class NativePrivateMpvAudio extends EventTarget {
         void Promise.resolve().then(()=>{if(!refresh)throw Error('Authorization refresh unavailable');return refresh(d.resource);}).then(update=>{if(!this.stopped)this.worker.postMessage({op:'refreshed',refreshId:d.refreshId,update});},error=>{if(!this.stopped)this.worker.postMessage({op:'refreshed',refreshId:d.refreshId,error:String(error)});});return;
       }
       if(d.type==='transportError'){this.fail(Error(d.error));return;}
-      const p=this.pending.get(d.id);if(!p)return;this.pending.delete(d.id);clearTimeout(p.timer);d.error?p.reject(Error(d.error)):p.resolve(d.result);
+      const settled=settleBackendRequest(this.requests,d.id,{kind:'reply'});this.requests=settled.state;const p=this.pending.get(d.id);if(settled.effect.kind!=='settle'||!p)return;this.pending.delete(d.id);clearTimeout(p.timer);d.error?p.reject(Error(d.error)):p.resolve(d.result);
     };
     this.worker.onerror=e=>{e.preventDefault();this.fail(Error(e.message||'Private mpv worker failed'));};
     this.worker.onmessageerror=()=>this.fail(Error('Private mpv message failure'));
@@ -52,25 +45,41 @@ export class NativePrivateMpvAudio extends EventTarget {
   }
   get selectedStreamIndex(){return this.streamIndex;}
   get selectedTrackId(){return this.streamIndex===undefined?undefined:String(this.streamIndex+1);}
-  setWatchdogs(policy:WatchdogPolicy){this.watchAudio=policy.selectiveAudio;this.badClock=0;}
-  private fail(error:unknown){if(this.failed||this.stopped)return;this.failed=true;for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(playerError(error));}this.pending.clear();this.onFailure(playerError(error));void this.destroy();}
+  setWatchdogs(policy:WatchdogPolicy){this.audio=privateAudioSettings(this.audio,{watchAudio:policy.selectiveAudio});}
+  private fail(error:unknown){
+    const failed=failBackendRequests(this.requests);this.requests=failed.state;if(!failed.notify)return;
+    for(const id of failed.reject){const pending=this.pending.get(id);if(pending){clearTimeout(pending.timer);this.pending.delete(id);pending.reject(playerError(error));}}
+    this.onFailure(playerError(error));void this.destroy();
+  }
   private rpc(op:string,data:Record<string,unknown>={},transfer:Transferable[]=[]):Promise<any>{
-    if((this.stopped||this.failed)&&op!=='close')return Promise.reject(Error('Private mpv audio closed'));
-    const id=++this.sequence;
+    const admission=admitBackendRequest(this.requests,op,performance.now());this.requests=admission.state;
+    if(admission.effect.kind==='reject')return Promise.reject(Error('Private mpv audio closed'));
+    const {id,deadline}=admission.effect.request;
     return new Promise((resolve,reject)=>{
-      const timer=setTimeout(()=>{this.pending.delete(id);const error=Error('Private mpv audio deadline: '+op);reject(error);this.fail(error);},op==='close'?1500:15000);
-      this.pending.set(id,{resolve,reject,timer});try{this.worker.postMessage({id,op,...data},transfer);}catch(e){clearTimeout(timer);this.pending.delete(id);reject(playerError(e));}
+      const pending:{resolve:(value:any)=>void;reject:(error:Error)=>void;timer?:ReturnType<typeof setTimeout>}={resolve,reject};this.pending.set(id,pending);
+      const expire=()=>{
+        const settled=settleBackendRequest(this.requests,id,{kind:'deadline',now:performance.now()});this.requests=settled.state;
+        if(settled.effect.kind==='ignore'){if(this.pending.get(id)===pending)pending.timer=setTimeout(expire,Math.max(0,deadline-performance.now()));return;}
+        this.pending.delete(id);const error=Error('Private mpv audio deadline: '+op);reject(error);if(settled.effect.fatal)this.fail(error);
+      };
+      try{pending.timer=setTimeout(expire,Math.max(0,deadline-performance.now()));this.worker.postMessage({id,op,...data},transfer);}
+      catch(error){const settled=settleBackendRequest(this.requests,id,{kind:'transport-error'});this.requests=settled.state;if(settled.effect.kind==='settle'){clearTimeout(pending.timer);this.pending.delete(id);reject(playerError(error));}}
     });
   }
   private latency(){const context=this.context!;const stamp=context.getOutputTimestamp?.();return Math.round(Math.max(0,stamp?.contextTime?context.currentTime-stamp.contextTime:context.baseLatency+(context.outputLatency||0))*1e6);}
   private contextChanged=()=>{
-    const active=this.context!.state==='running';
-    if(!active&&this.running&&!this.video.paused){this.resumeAfterContext=true;this.video.pause();}
-    this.contextTransition=this.contextTransition.then(async()=>{if(this.stopped)return;await this.rpc('context',{value:active});if(active&&this.resumeAfterContext&&this.running){this.resumeAfterContext=false;await this.video.play();}}).catch(e=>this.fail(e));
+    const active=this.context!.state==='running',observation=observeAudioContext(this.audio,active,this.video.paused);this.audio=observation.state;
+    if(observation.pauseVideo)this.video.pause();
+    this.contextTransition=this.contextTransition.then(async()=>{if(this.stopped)return;await this.rpc('context',{value:active});
+      const completion=acknowledgeAudioContext(this.audio,observation.id);this.audio=completion.state;if(completion.playVideo&&!this.stopped)await this.video.play();}).catch(e=>this.fail(e));
   };
+  private assertControl(id:number){if(this.stopped||!audioControlCurrent(this.audio,id))throw new PlayerError('ABORTED','Private mpv audio operation superseded');}
+  private readiness(status:any,wait:Parameters<typeof privateAudioReady>[1]){
+    return privateAudioReady({time:status.time,eof:!!status.eof,produced:status.header[0],consumed:status.header[1],epoch:status.epoch,ack:!!status.ack,nativeEpoch:status.header[3],ackEpoch:status.header[7],feedbackCount:status.feedbackCount,chains:status.chains},wait);
+  }
   async open(source:File|RemoteSource,audioStream?:number){
-    if(audioStream===undefined)throw Error('Private mpv selected source stream is missing');
-    this.source=source;this.streamIndex=audioStream;
+    const selection=selectPrivateAudioStream(this.audio,audioStream);this.audio=selection.state;if(!selection.accepted)throw Error('Private mpv selected source stream is missing');
+    this.source=source;
     const context=this.context=new AudioContext({sampleRate:48000});
     if(context.sampleRate!==48000)throw new PlayerError('UNSUPPORTED_FEATURE','Private mpv audio requires 48 kHz output');
     await context.audioWorklet.addModule(new URL('web/private-mpv/audio-worklet.js',this.base));
@@ -87,84 +96,83 @@ export class NativePrivateMpvAudio extends EventTarget {
     this.timer=setInterval(()=>{void this.observe();},100);
   }
   private async observe(){
-    if(this.polling||this.stopped)return;this.polling=true;
+    const admission=beginAudioPoll(this.audio,!this.stopped);this.audio=admission.state;if(!admission.accepted)return;
     try{
       this.status=await this.rpc('status');
-      if(this.running&&this.context?.state==='running'&&!this.video.paused&&!this.video.seeking){
-        const error=(this.status.time-this.time())*1000;
-        if(this.watchAudio&&!document.hidden&&(!Number.isFinite(error)||Math.abs(error)>250)){if(++this.badClock>=8)throw new PlayerError('PLAYBACK_STALLED','Private mpv audio presentation clock did not converge');}else this.badClock=0;
-        if(Number.isFinite(error)){this.errors.push(Math.abs(error));if(this.errors.length>1200)this.errors.shift();
-          // Keep browser presentation on the consumed PCM clock; never advance mpv from an element event.
-          this.clockOutside=Math.abs(error)>50?this.clockOutside+1:0;
-          this.clockInside=Math.abs(error)<30?this.clockInside+1:0;
-          if(this.clockOutside>=3)this.clockTrim=true;
-          if(this.clockInside>=3)this.clockTrim=false;
-          const target=this.rateValue*(1+(this.clockTrim?Math.max(-.005,Math.min(.005,error/1000*.1)):0));
-          // A media-element rate assignment resets its presentation scheduling.
-          // Ignore clock-sample noise and change rate only for sustained drift.
-          if(Math.abs(target-this.video.playbackRate)>.001||!this.clockTrim&&this.video.playbackRate!==this.rateValue){this.video.playbackRate=target;this.clockRateWrites++;}
-        }
-        await this.rpc('latency',{value:this.latency()});
-      }
-    }catch(e){this.fail(e);}finally{this.polling=false;}
+      const activity={active:!this.stopped,contextRunning:this.context?.state==='running',videoPaused:this.video.paused,videoSeeking:this.video.seeking};
+      if(!privateAudioObservesClock(this.audio,activity))return;
+      const sample=observeAudioClock(this.audio,{...activity,hidden:this.audio.watchAudio?document.hidden:false,audioTime:this.status.time,videoTime:this.time(),videoRate:this.video.playbackRate});this.audio=sample.state;
+      if(sample.failure)throw new PlayerError('PLAYBACK_STALLED','Private mpv audio presentation clock did not converge');
+      if(sample.rate!==null)this.video.playbackRate=sample.rate;
+      if(sample.latency)await this.rpc('latency',{value:this.latency()});
+    }catch(e){this.fail(e);}finally{this.audio=finishAudioPoll(this.audio);}
   }
   private async waitFor(predicate:(status:any)=>boolean,timeout=5000,signal?:AbortSignal){
-    const until=performance.now()+timeout;
-    while(performance.now()<until){signal?.throwIfAborted();const s=this.status=await this.rpc('status');signal?.throwIfAborted();if(predicate(s))return s;await new Promise(r=>setTimeout(r,10));}
+    const deadline=privateAudioDeadline(performance.now(),timeout);
+    while(privateAudioDeadlineOpen(deadline,performance.now())){signal?.throwIfAborted();const s=this.status=await this.rpc('status');signal?.throwIfAborted();if(predicate(s))return s;await new Promise(r=>setTimeout(r,10));}
     throw Error('Private mpv PCM convergence timed out');
   }
   async play(startVideo:()=>Promise<void>){
-    if(this.running)return;
-    await this.context!.resume();await this.contextTransition;await this.rpc('context',{value:true});
-    await this.rpc('pause',{value:false});
-    // Consuming one worklet block does not mean that audio at the selected
-    // video position has reached presentation. After a seek/rate reset mpv's
-    // clock still includes the output delay; at 2x this can leave video ahead.
-    // Start video when the consumed-PCM clock reaches its held position, or
-    // when the audio tail is fully drained and only video remains.
-    const target=this.time();
-    await this.waitFor(s=>s.eof&&s.header[0]===s.header[1]||s.header[1]>0&&Number.isFinite(s.time)&&s.time>=target);
-    try{await startVideo();this.running=true;}catch(e){await this.rpc('pause',{value:true});throw e;}
+    const admission=beginAudioControl(this.audio,'play');this.audio=admission.state;if(admission.id===null)return;
+    const id=admission.id;this.assertControl(id);
+    // Resume remains a direct call in the caller's activation stack.
+    await this.context!.resume();this.assertControl(id);await this.contextTransition;this.assertControl(id);await this.rpc('context',{value:true});this.assertControl(id);
+    await this.rpc('pause',{value:false});this.assertControl(id);
+    const target=this.time();await this.waitFor(status=>this.readiness(status,{kind:'play',target}));this.assertControl(id);
+    try{await startVideo();this.assertControl(id);this.audio=finishAudioPlay(this.audio,id).state;}
+    catch(error){if(!this.stopped&&audioControlCurrent(this.audio,id))await this.rpc('pause',{value:true});throw error;}
   }
-  private resetClock(){this.clockOutside=this.clockInside=0;this.clockTrim=false;if(this.video.playbackRate!==this.rateValue)this.video.playbackRate=this.rateValue;}
-  async pause(stopVideo:()=>void){this.resumeAfterContext=false;this.running=false;await this.rpc('pause',{value:true});stopVideo();this.resetClock();}
+  private resetClock(){const reset=resetAudioClock(this.audio,this.video.playbackRate);this.audio=reset.state;if(reset.rate!==null)this.video.playbackRate=reset.rate;}
+  private async pauseControl(stopVideo:()=>void,id:number){
+    await this.rpc('pause',{value:true});this.assertControl(id);stopVideo();this.assertControl(id);this.resetClock();
+  }
+  async pause(stopVideo:()=>void){const admission=beginAudioControl(this.audio,'pause');this.audio=admission.state;await this.pauseControl(stopVideo,admission.id!);}
   async seek(seconds:number,seekVideo:()=>Promise<void>){
-    this.eofController?.abort();this.eofController=undefined;
-    const playing=this.running;this.running=false;this.eof=false;this.video.pause();this.resetClock();await this.rpc('pause',{value:true});
-    const before=await this.rpc('status');
-    await Promise.all([seekVideo(),this.rpc('seek',{value:seconds})]);
-    await this.waitFor(s=>s.epoch!==before.epoch&&s.ack&&s.header[3]===s.header[7]);
-    if(playing)await this.play(()=>this.video.play());
+    const admission=beginAudioControl(this.audio,'seek');this.audio=admission.state;const id=admission.id!;
+    const controller=this.eofController;this.eofController=undefined;controller?.abort();this.assertControl(id);
+    this.video.pause();this.assertControl(id);this.resetClock();this.assertControl(id);await this.rpc('pause',{value:true});this.assertControl(id);
+    const before=await this.rpc('status');this.assertControl(id);
+    const video=seekVideo();void video.catch(()=>{});this.assertControl(id);await Promise.all([video,this.rpc('seek',{value:seconds})]);this.assertControl(id);
+    await this.waitFor(status=>this.readiness(status,{kind:'epoch',previous:before.epoch}));this.assertControl(id);
+    if(admission.wasRunning)await this.play(()=>this.video.play());
   }
   async rate(value:number){
     if(!Number.isFinite(value)||value<.5||value>2)throw Error('Playback rate must be 0.5 to 2');
     if(value===this.rateValue)return;
-    const playing=this.running,at=this.time();if(this.context){await this.pause(()=>this.video.pause());const before=await this.rpc('status');await this.rpc('speed',{value});await this.rpc('seek',{value:at});await this.waitFor(s=>s.epoch!==before.epoch&&s.ack&&s.header[3]===s.header[7]);}
-    this.rateValue=value;this.video.defaultPlaybackRate=value;this.video.playbackRate=value;
-    if(playing)await this.play(()=>this.video.play());
+    const at=this.time(),admission=beginAudioControl(this.audio,'pause');this.audio=admission.state;const id=admission.id!;
+    if(this.context){await this.pauseControl(()=>this.video.pause(),id);const before=await this.rpc('status');this.assertControl(id);
+      await this.rpc('speed',{value});this.assertControl(id);await this.rpc('seek',{value:at});this.assertControl(id);await this.waitFor(status=>this.readiness(status,{kind:'epoch',previous:before.epoch}));this.assertControl(id);}
+    this.audio=privateAudioSettings(this.audio,{rate:value});this.video.defaultPlaybackRate=value;this.assertControl(id);this.video.playbackRate=value;
+    if(admission.wasRunning)await this.play(()=>this.video.play());
   }
-  async volume(value:number){this.volumeValue=value;if(this.gain)this.gain.gain.value=value/100*this.gainValueStored;}
-  async gainValue(value:number){this.gainValueStored=value;if(this.gain)this.gain.gain.value=this.volumeValue/100*value;}
+  async volume(value:number){this.audio=privateAudioSettings(this.audio,{volume:value});if(this.gain)this.gain.gain.value=value/100*this.gainValueStored;}
+  async gainValue(value:number){this.audio=privateAudioSettings(this.audio,{gain:value});if(this.gain)this.gain.gain.value=this.volumeValue/100*value;}
   async setAudioOutputDevice(id:string){const context=this.context as AudioContext&{setSinkId?:(id:string)=>Promise<void>};if(!context?.setSinkId)throw new PlayerError('UNSUPPORTED_FEATURE','Audio output selection unavailable');await context.setSinkId(id);}
-  async verifyOutput(signal?:AbortSignal){await this.waitFor(s=>s.header[1]>0&&s.feedbackCount>0&&s.chains===1,10000,signal);}
+  async verifyOutput(signal?:AbortSignal){await this.waitFor(status=>this.readiness(status,{kind:'verify'}),10000,signal);}
   private onEnded=()=>{
-    if(this.eof||this.stopped)return;this.eof=true;
+    const admission=beginAudioEOF(this.audio,!this.stopped);this.audio=admission.state;if(admission.id===null)return;const id=admission.id;
     const controller=this.eofController=new AbortController();
+    const current=()=>{controller.signal.throwIfAborted();if(this.stopped||!audioEOFCurrent(this.audio,id))throw new PlayerError('ABORTED','Private mpv EOF superseded');};
     void (async()=>{
-      await this.waitFor(s=>s.eof&&s.header[0]===s.header[1],2500,controller.signal);
-      controller.signal.throwIfAborted();await this.pause(()=>{});
-      controller.signal.throwIfAborted();await this.context!.suspend();
-    })().catch(e=>{if(!controller.signal.aborted)this.fail(e);}).finally(()=>{if(this.eofController===controller)this.eofController=undefined;});
+      await this.waitFor(status=>this.readiness(status,{kind:'drain'}),2500,controller.signal);
+      current();await this.pause(()=>{});current();await this.context!.suspend();
+    })().catch(error=>{if(!controller.signal.aborted&&audioEOFCurrent(this.audio,id))this.fail(error);}).finally(()=>{this.audio=finishAudioEOF(this.audio,id);if(this.eofController===controller)this.eofController=undefined;});
   };
-  get diagnostics(){const sorted=[...this.errors].sort((a,b)=>a-b);return {plan:'native-video-mpv-audio',cleanup:this.lastCleanup,privateRuntime:this.status?.runtime??this.facts,clockRateWrites:this.clockRateWrites,contextState:this.context?.state,requestedRate:this.rateValue,effectiveRate:this.video.playbackRate,estimatedAudioPresentationTime:this.status?.time,errorMs:this.status?(this.status.time-this.time())*1000:null,absErrorP95Ms:sorted[Math.floor((sorted.length-1)*.95)]??null,maxAbsErrorMs:sorted.at(-1)??null,queuedFrames:this.status?this.status.header[0]-this.status.header[1]:0,nativeEpoch:this.status?.epoch,ackEpoch:this.status?.header[7],feedbackCount:this.status?.feedbackCount,mpvVideoTracks:this.status?this.status.chains>>1:null,worker:this.status};}
+  get diagnostics(){const sorted=[...this.audio.errors].sort((a,b)=>a-b);return {plan:'native-video-mpv-audio',cleanup:this.lastCleanup,privateRuntime:this.status?.runtime??this.facts,clockRateWrites:this.audio.rateWrites,contextState:this.context?.state,requestedRate:this.rateValue,effectiveRate:this.video.playbackRate,estimatedAudioPresentationTime:this.status?.time,errorMs:this.status?(this.status.time-this.time())*1000:null,absErrorP95Ms:sorted[Math.floor((sorted.length-1)*.95)]??null,maxAbsErrorMs:sorted.at(-1)??null,queuedFrames:this.status?this.status.header[0]-this.status.header[1]:0,nativeEpoch:this.status?.epoch,ackEpoch:this.status?.header[7],feedbackCount:this.status?.feedbackCount,mpvVideoTracks:this.status?this.status.chains>>1:null,worker:this.status};}
   destroy(){
     if(this.destroyPromise)return this.destroyPromise;
-    this.eofController?.abort();this.eofController=undefined;
-    this.stopped=true;this.running=false;clearInterval(this.timer);this.video.removeEventListener('ended',this.onEnded);this.context?.removeEventListener('statechange',this.contextChanged);
-    return this.destroyPromise=(async()=>{
+    this.requests=beginBackendClose(this.requests);
+    let resolve!:()=>void,reject!:(error:unknown)=>void;
+    this.destroyPromise=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});
+    this.audio=retirePrivateAudio(this.audio);const eof=this.eofController;this.eofController=undefined;eof?.abort();
+    clearInterval(this.timer);this.video.removeEventListener('ended',this.onEnded);this.context?.removeEventListener('statechange',this.contextChanged);
+    void (async()=>{
       try{this.lastCleanup=await this.rpc('close');}catch(error){this.lastCleanup={error:String(error)};}finally{
-        this.worker.terminate();for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(Error('Private mpv audio destroyed'));}this.pending.clear();this.node?.disconnect();this.node?.port.close();this.gain?.disconnect();if(this.context?.state!=='closed')await this.context?.close();
+        const closed=finishBackendClose(this.requests);this.requests=closed.state;
+        for(const id of closed.reject){const pending=this.pending.get(id);if(pending){clearTimeout(pending.timer);this.pending.delete(id);pending.reject(Error('Private mpv audio destroyed'));}}
+        this.worker.terminate();this.node?.disconnect();this.node?.port.close();this.gain?.disconnect();if(this.context?.state!=='closed')await this.context?.close();
       }
-    })();
+    })().then(resolve,reject);
+    return this.destroyPromise;
   }
 }

@@ -3,15 +3,20 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {RangeReader} from '../web/range-reader.js';
 const options={url:'https://media.test/video',immutable:true,blockBytes:1024,cacheBytes:1024,identity:{size:'8192',etag:'"v1"'}};
+function resident(reader,offset,bytes){
+ const {request}=reader.transition({type:'begin',offset,capacity:bytes.length});
+ reader.transition({type:'cache',id:request.id,length:bytes.length,owned:bytes.buffer.byteLength});
+ reader.cache.set(String(offset),bytes);reader.transition({type:'finish',id:request.id});
+}
 test('preview copies resident bytes without LRU, epoch, counters or cache mutation',async()=>{
- const reader=new RangeReader(options);reader.cache.set('0',new Uint8Array([1,2,3,4]));reader.stats.cacheBytes=4;
+ const reader=new RangeReader(options);resident(reader,0n,new Uint8Array([1,2,3,4]));
  const before=JSON.stringify(reader.stats),keys=[...reader.cache.keys()];const result=await reader.readPreview(1n,2);result.bytes[0]=99;
  assert.deepEqual([...reader.cache.get('0')],[1,2,3,4]);assert.deepEqual([...reader.cache.keys()],keys);assert.equal(JSON.stringify(reader.stats),before);assert.equal(reader.epoch,0);assert.equal(await reader.readPreview(100n,2),null);reader.close();
 });
 test('preview fetch is low priority, bounded, isolated and preempted by playback reads',async()=>{
  const original=globalThis.fetch;let started,aborted=false;const start=new Promise(resolve=>started=resolve);
  globalThis.fetch=(_url,init)=>{assert.equal(init.priority,'low');started();return new Promise((_resolve,reject)=>init.signal.addEventListener('abort',()=>{aborted=true;reject(new DOMException('aborted','AbortError'));}));};
- const reader=new RangeReader(options);reader.cache.set('0',new Uint8Array([7]));
+ const reader=new RangeReader(options);resident(reader,0n,new Uint8Array([7]));
  try{const preview=reader.readPreview(2048n,10,{allowFetch:true});const reject=assert.rejects(preview);await start;assert.equal(await reader.readPreview(3000n,10,{allowFetch:true}),null);
  assert.equal((await reader.read(0n,1))[0],7);await reject;assert.equal(aborted,true);assert.equal(reader.epoch,0);assert.equal(reader.cache.size,1);assert.equal(reader.stats.fetchedBytes,0);
  }finally{reader.close();globalThis.fetch=original;}

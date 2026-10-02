@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-import type { BufferingPolicy, LoopPolicy, PlaybackRange, QualityPolicy, SubtitleStyle } from '../../types.js';
+import type { BufferingPolicy, LoopPolicy, PlaybackRange, QualityPolicy, SubtitleStyle, ToneMapping, PlaybackMode } from '../../types.js';
 import type { PlayerControlState } from './state.js';
+import { type RangeFacts } from './playback-boundary.js';
 /** Accepted values only. Desired transaction values remain detached until the
  * source/settings acceptance transition commits them together. */
 export type PlaybackSettings = {
@@ -27,6 +28,7 @@ export type PlayerPreferences = Readonly<{
     muted: boolean;
     outputDeviceId: string;
     buffering: BufferingPolicy;
+    toneMapping: ToneMapping;
     subtitleDelay: number;
     audioDelay: number;
     subtitleStyle: Readonly<SubtitleStyle>;
@@ -35,6 +37,7 @@ export type PlayerPreferences = Readonly<{
     qualityPolicy: QualityPolicy | null;
 }>;
 export declare function initialPreferences(): PlayerPreferences;
+export declare function effectiveVideoFilters(settings: Readonly<PlaybackSettings>, preferences: PlayerPreferences): string;
 export declare function changePreferences(state: PlayerPreferences, value: Partial<PlayerPreferences>): PlayerPreferences;
 export declare function clearSourcePreferences(state: PlayerPreferences): PlayerPreferences;
 export type SettingCommand = Readonly<{
@@ -66,6 +69,21 @@ export type SettingCommand = Readonly<{
 }> | Readonly<{
     kind: 'subtitleStyle';
     value: SubtitleStyle;
+}> | Readonly<{
+    kind: 'filters';
+    key: 'vf' | 'af';
+    value: string;
+}> | Readonly<{
+    kind: 'toneMapping';
+    value: ToneMapping;
+}> | Readonly<{
+    kind: 'range';
+    value: PlaybackRange | null;
+    facts: RangeFacts;
+}> | Readonly<{
+    kind: 'loop';
+    value: LoopPolicy;
+    facts: RangeFacts;
 }>;
 export type SettingEffect = Readonly<{
     kind: 'volume' | 'rate' | 'gain';
@@ -94,6 +112,15 @@ export type SettingEffect = Readonly<{
     kind: 'quality';
     value: QualityPolicy;
 }> | Readonly<{
+    kind: 'filter';
+    key: 'vf' | 'af';
+    value: string;
+}> | Readonly<{
+    kind: 'promotion';
+}> | Readonly<{
+    kind: 'seek' | 'seek.verify';
+    value: number;
+}> | Readonly<{
     kind: 'source.reconfigure';
     settings: Readonly<PlaybackSettings>;
 }>;
@@ -104,6 +131,8 @@ export type SettingTransaction = Readonly<{
     session: number | null;
     phase: 'applying' | 'compensating' | 'accepted';
     reconfigure: boolean;
+    promote: boolean;
+    mode?: PlaybackMode;
     settings: Readonly<PlaybackSettings>;
     preferences: PlayerPreferences;
     settingsPatch: Readonly<Partial<PlaybackSettings>>;
@@ -128,6 +157,7 @@ export type SettingTransactionInput = Readonly<{
     command: SettingCommand;
     hasBackend: boolean;
     hasSource?: boolean;
+    hybridAudioFilters?: boolean;
 }> | Readonly<{
     type: 'setting.accept' | 'setting.failed' | 'setting.restored' | 'setting.degraded';
     id: number;
@@ -136,6 +166,7 @@ export declare function settingAuthority(state: PlayerControlState, id: number):
 export declare function transitionSettingTransaction(state: PlayerControlState, input: SettingTransactionInput): Readonly<{
     state: Readonly<{
         revision: number;
+        boundary: import("./playback-boundary.js").BoundaryState;
         operations: import("./operations.js").OperationState;
         playback: import("./playback.js").PlaybackControl;
         settings: Readonly<PlaybackSettings>;
@@ -146,6 +177,7 @@ export declare function transitionSettingTransaction(state: PlayerControlState, 
     accepted: boolean;
     id: number | undefined;
     effects: readonly SettingEffect[];
-    reason: "retired" | undefined;
+    message: string | undefined;
+    reason: "unsupported" | "retired" | "invalid" | undefined;
     retire: readonly number[];
 }>;

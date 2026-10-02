@@ -267,10 +267,22 @@ test('a broken cleanup scheduler cannot skip physical cleanup or strand later re
   await registry.register(owned('two','s',{},()=>{calls.push('two');}));
   await assert.rejects(registry.dispose(),AggregateError);await settle();
   assert.deepEqual(calls,['two','one']);assert.equal(registry.diagnostics.lateReleased,2);
-  assert.equal(registry.diagnostics.detached,0);assert.equal(registry.diagnostics.timedOut,2);
+  assert.equal(registry.diagnostics.detached,0);assert.equal(registry.diagnostics.timedOut,0);
+  assert.equal(registry.diagnostics.deadlineErrors,2);assert.equal(registry.diagnostics.failures[0].name,'CleanupSchedulerError');
   assert.equal(JSON.stringify(registry.diagnostics).includes('secret'),false);
 });
 
 test('cleanup timeout limits are finite and bounded',()=>{
   for(const cleanupTimeoutMs of [0,-1,Infinity,NaN,60001])assert.throws(()=>new ResourceRegistry({cleanupTimeoutMs}),RangeError);
+});
+
+test('registration getters cannot overwrite a reentrant admission or revive disposal',async()=>{
+  const registry=new ResourceRegistry(),calls=[],inner={};
+  const input=owned('same','s',{},()=>calls.push('outer'));
+  Object.defineProperty(input,'release',{get(){registry.register(owned('same','s',inner,()=>calls.push('inner')));return()=>calls.push('outer');}});
+  assert.throws(()=>registry.register(input),/already registered/);assert.equal(registry.get('same'),inner);
+  const late=owned('late','s',{},()=>calls.push('late'));
+  Object.defineProperty(late,'value',{get(){void registry.dispose();return {};}});
+  await registry.register(late);await registry.dispose();assert.deepEqual(calls,['inner','late']);
+  assert.equal(registry.diagnostics.registered,2);assert.equal(registry.diagnostics.released,2);
 });

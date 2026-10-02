@@ -2,10 +2,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {PrivateSoftwarePlayer} from '../web/generated/internal/private-software-player.js';
+import {createBackendRequests,admitBackendRequest} from '../web/generated/internal/machine/backend-requests.js';
 const tick=()=>new Promise(resolve=>setTimeout(resolve,30));
 function control(){
  const player=Object.create(PrivateSoftwarePlayer.prototype),messages=[];
- Object.assign(player,{ready:Promise.resolve(),generation:0,presentedDraws:0,properties:new Map(),closing:false,options:{},worker:{postMessage:data=>messages.push(data)},request:async()=>({})});
+ Object.assign(player,{ready:Promise.resolve(),generation:0,presentedDraws:0,properties:new Map(),requests:createBackendRequests('software'),options:{},worker:{postMessage:data=>messages.push(data)},request:async()=>({})});
  return {player,messages};
 }
 test('authorization requests from a replaced source cannot invoke the current callback',async()=>{
@@ -63,6 +64,7 @@ test('unsupported strict output layout closes its context before allocating a wo
 
 test('initialization asset identity errors remain terminal asset failures',async()=>{
  const {player}=control();let reject;const pending=new Promise((_,no)=>reject=no);
+ player.requests=admitBackendRequest({...player.requests,nextId:19},'init',0).state;
  player.pending=new Map([[19,{reject,resolve:()=>{},timer:setTimeout(()=>{},1000)}]]);
  player.receive({id:19,error:'Private mpv backend mismatch',code:'ASSET_LOAD_FAILED'});
  await assert.rejects(pending,error=>error.code==='ASSET_LOAD_FAILED');assert.equal(player.pending.size,0);

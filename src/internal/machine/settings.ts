@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
-import type {BufferingPolicy,LoopPolicy,PlaybackRange,QualityPolicy,SubtitleStyle} from '../../types.js';
+import type {BufferingPolicy,LoopPolicy,PlaybackRange,QualityPolicy,SubtitleStyle,ToneMapping,PlaybackMode} from '../../types.js';
 import type {PlayerControlState} from './state.js';
 import {copyData} from './data.js';
+import {rangeRequirement,type RangeFacts} from './playback-boundary.js';
+import {featureRejection} from './playback-plans.js';
 /** Accepted values only. Desired transaction values remain detached until the
  * source/settings acceptance transition commits them together. */
 export type PlaybackSettings={pause:boolean;volume:number;speed:number;aid:string;sid:string;subtitles:boolean;vf:string;af:string;gain:number};
@@ -10,11 +12,15 @@ export function initialSettings():Readonly<PlaybackSettings>{return Object.freez
 export function transitionSettings(state:Readonly<PlaybackSettings>,input:SettingsInput):Readonly<PlaybackSettings>{return Object.freeze(input.type==='settings.accept'?{...input.value}:{...state,...input.value});}
 
 export type PlayerPreferences=Readonly<{
-  muted:boolean;outputDeviceId:string;buffering:BufferingPolicy;
+  muted:boolean;outputDeviceId:string;buffering:BufferingPolicy;toneMapping:ToneMapping;
   subtitleDelay:number;audioDelay:number;subtitleStyle:Readonly<SubtitleStyle>;
   playbackRange:Readonly<PlaybackRange>|null;loopPolicy:LoopPolicy;qualityPolicy:QualityPolicy|null;
 }>;
-export function initialPreferences():PlayerPreferences{return Object.freeze({muted:false,outputDeviceId:'',buffering:Object.freeze({preload:'auto',profile:'balanced'}),subtitleDelay:0,audioDelay:0,subtitleStyle:Object.freeze({}),playbackRange:null,loopPolicy:false,qualityPolicy:null});}
+export function initialPreferences():PlayerPreferences{return Object.freeze({muted:false,outputDeviceId:'',buffering:Object.freeze({preload:'auto',profile:'balanced'}),toneMapping:'off',subtitleDelay:0,audioDelay:0,subtitleStyle:Object.freeze({}),playbackRange:null,loopPolicy:false,qualityPolicy:null});}
+export function effectiveVideoFilters(settings:Readonly<PlaybackSettings>,preferences:PlayerPreferences):string{
+  const tone=preferences.toneMapping==='hdr-to-sdr'?'zscale=transfer=linear:npl=100,format=gbrpf32le,zscale=primaries=bt709,tonemap=tonemap=mobius:desat=0,zscale=transfer=bt709:matrix=bt709:range=limited,format=yuv420p':'';
+  return [tone?`lavfi=[${tone}]`:'',settings.vf].filter(Boolean).join(',');
+}
 export function changePreferences(state:PlayerPreferences,value:Partial<PlayerPreferences>):PlayerPreferences{return copyData({...state,...value});}
 export function clearSourcePreferences(state:PlayerPreferences):PlayerPreferences{return Object.freeze({...state,playbackRange:null,loopPolicy:false,qualityPolicy:null});}
 export type SettingCommand=
@@ -26,7 +32,11 @@ export type SettingCommand=
   | Readonly<{kind:'output';value:string}>
   | Readonly<{kind:'quality';value:QualityPolicy;previous:QualityPolicy}>
   | Readonly<{kind:'subtitleDelay'|'audioDelay';value:number}>
-  | Readonly<{kind:'subtitleStyle';value:SubtitleStyle}>;
+  | Readonly<{kind:'subtitleStyle';value:SubtitleStyle}>
+  | Readonly<{kind:'filters';key:'vf'|'af';value:string}>
+  | Readonly<{kind:'toneMapping';value:ToneMapping}>
+  | Readonly<{kind:'range';value:PlaybackRange|null;facts:RangeFacts}>
+  | Readonly<{kind:'loop';value:LoopPolicy;facts:RangeFacts}>;
 export type SettingEffect=
   | Readonly<{kind:'volume'|'rate'|'gain';value:number}>
   | Readonly<{kind:'subtitles';value:boolean}>
@@ -36,13 +46,16 @@ export type SettingEffect=
   | Readonly<{kind:'buffering';value:BufferingPolicy}>
   | Readonly<{kind:'output';value:string}>
   | Readonly<{kind:'quality';value:QualityPolicy}>
+  | Readonly<{kind:'filter';key:'vf'|'af';value:string}>
+  | Readonly<{kind:'promotion'}>
+  | Readonly<{kind:'seek'|'seek.verify';value:number}>
   | Readonly<{kind:'source.reconfigure';settings:Readonly<PlaybackSettings>}>;
-export type SettingTransaction=Readonly<{id:number;operation:number;epoch:number;session:number|null;phase:'applying'|'compensating'|'accepted';reconfigure:boolean;settings:Readonly<PlaybackSettings>;preferences:PlayerPreferences;settingsPatch:Readonly<Partial<PlaybackSettings>>;preferencesPatch:Readonly<Partial<PlayerPreferences>>;rollback:readonly SettingEffect[]}>;
+export type SettingTransaction=Readonly<{id:number;operation:number;epoch:number;session:number|null;phase:'applying'|'compensating'|'accepted';reconfigure:boolean;promote:boolean;mode?:PlaybackMode;settings:Readonly<PlaybackSettings>;preferences:PlayerPreferences;settingsPatch:Readonly<Partial<PlaybackSettings>>;preferencesPatch:Readonly<Partial<PlayerPreferences>>;rollback:readonly SettingEffect[]}>;
 export type SettingsTransactions=Readonly<{serial:number;pending:SettingTransaction|null;degraded:Readonly<{id:number;operation:number;session:number|null}>|null}>;
 export function initialSettingsTransactions():SettingsTransactions{return Object.freeze({serial:0,pending:null,degraded:null});}
 export type SettingTransactionInput=
   | Readonly<{type:'preferences.change';value:Partial<PlayerPreferences>}>
-  | Readonly<{type:'setting.begin';command:SettingCommand;hasBackend:boolean;hasSource?:boolean}>
+  | Readonly<{type:'setting.begin';command:SettingCommand;hasBackend:boolean;hasSource?:boolean;hybridAudioFilters?:boolean}>
   | Readonly<{type:'setting.accept'|'setting.failed'|'setting.restored'|'setting.degraded';id:number}>;
 export function settingAuthority(state:PlayerControlState,id:number):boolean{
   const pending=state.settingsTransactions.pending,operation=state.operations.entries.find(entry=>entry.id===state.operations.active);
@@ -50,14 +63,20 @@ export function settingAuthority(state:PlayerControlState,id:number):boolean{
 }
 export function transitionSettingTransaction(state:PlayerControlState,input:SettingTransactionInput){
   const empty=Object.freeze([]) as readonly SettingEffect[];
-  const result=(next:PlayerControlState,accepted:boolean,id?:number,effects:readonly SettingEffect[]=empty)=>Object.freeze({state:next===state?state:Object.freeze({...next,revision:state.revision+1}),accepted,id,effects,reason:accepted?undefined:'retired' as const,retire:Object.freeze([]) as readonly number[]});
+  const result=(next:PlayerControlState,accepted:boolean,id?:number,effects:readonly SettingEffect[]=empty,message?:string,rejection:'invalid'|'unsupported'='unsupported')=>Object.freeze({state:next===state?state:Object.freeze({...next,revision:state.revision+1}),accepted,id,effects,message,reason:accepted?undefined:message?rejection:'retired' as const,retire:Object.freeze([]) as readonly number[]});
   if(input.type==='preferences.change')return result({...state,preferences:changePreferences(state.preferences,input.value)},true);
   if(input.type==='setting.begin'){
     const operation=state.operations.entries.find(entry=>entry.id===state.operations.active);
     if(state.operations.terminal||!operation||operation.cancelled||operation.epoch!==state.operations.epoch||state.settingsTransactions.pending)return result(state,false);
-    let settings=state.settings,preferences=state.preferences,effect:SettingEffect,rollback:SettingEffect,reconfigure=false;
+    let settings=state.settings,preferences=state.preferences,effect:SettingEffect,rollback:SettingEffect,reconfigure=false,promote=false,noop=false,mode:PlaybackMode|undefined;
     const command=input.command;
     switch(command.kind){
+      case 'range':case 'loop':{
+        const requirement=rangeRequirement(command.kind,command.value,preferences.playbackRange,preferences.loopPolicy,command.facts);
+        if(requirement.rejection)return result(state,false,undefined,empty,requirement.rejection.message,requirement.rejection.reason);
+        preferences=changePreferences(preferences,command.kind==='range'?{playbackRange:command.value as PlaybackRange|null}:{loopPolicy:command.value as LoopPolicy});
+        noop=requirement.seek===undefined;effect={kind:'seek',value:requirement.seek??command.facts.time};rollback={kind:'seek',value:command.facts.time};break;
+      }
       case 'volume':settings=Object.freeze({...settings,volume:command.value});effect={kind:'volume',value:preferences.muted?0:command.value};rollback={kind:'volume',value:preferences.muted?0:state.settings.volume};break;
       case 'mute':preferences=changePreferences(preferences,{muted:command.value});effect={kind:'volume',value:command.value?0:settings.volume};rollback={kind:'volume',value:state.preferences.muted?0:settings.volume};break;
       case 'rate':settings=Object.freeze({...settings,speed:command.value});effect=command;rollback={kind:'rate',value:state.settings.speed};break;
@@ -69,13 +88,37 @@ export function transitionSettingTransaction(state:PlayerControlState,input:Sett
       case 'output':preferences=changePreferences(preferences,{outputDeviceId:command.value});effect=command;rollback={kind:'output',value:state.preferences.outputDeviceId};break;
       case 'quality':preferences=changePreferences(preferences,{qualityPolicy:command.value});effect={kind:'quality',value:preferences.qualityPolicy!};rollback={kind:'quality',value:copyData(command.previous)};break;
       case 'subtitleDelay':case 'audioDelay':case 'subtitleStyle':preferences=changePreferences(preferences,{[command.kind]:command.value});effect={kind:'source.reconfigure',settings};rollback=effect;reconfigure=true;break;
+      case 'filters':{
+        settings=Object.freeze({...settings,[command.key]:command.value});
+        const rejection=!state.source.automatic&&featureRejection(state.source.mode,{...settings,toneMapping:preferences.toneMapping,hybridAudioFilters:input.hybridAudioFilters});
+        if(rejection)return result(state,false,undefined,empty,rejection);
+        noop=command.value===state.settings[command.key];
+        const direct=!command.value&&state.source.automatic&&input.hasBackend&&state.source.mode!=='native'&&preferences.toneMapping==='off';
+        reconfigure=!direct;promote=!!direct&&!noop;
+        effect=direct?{kind:'filter',key:command.key,value:''}:{kind:'source.reconfigure',settings};
+        rollback={kind:'filter',key:command.key,value:command.key==='vf'?effectiveVideoFilters(state.settings,state.preferences):state.settings.af};
+        if(!noop&&!input.hasSource&&state.source.automatic&&(settings.vf||settings.af))mode=featureRejection('hybrid',{...settings,toneMapping:preferences.toneMapping,hybridAudioFilters:input.hybridAudioFilters})?'software':'hybrid';
+        break;
+      }
+      case 'toneMapping':{
+        preferences=changePreferences(preferences,{toneMapping:command.value});noop=command.value===state.preferences.toneMapping;
+        const direct=command.value==='off'&&state.source.automatic&&input.hasBackend&&state.source.mode==='software';
+        reconfigure=!direct;promote=!!direct&&!noop;
+        effect=direct?{kind:'filter',key:'vf',value:settings.vf}:{kind:'source.reconfigure',settings};rollback={kind:'filter',key:'vf',value:effectiveVideoFilters(state.settings,state.preferences)};
+        if(!noop&&!input.hasSource){
+          if(state.source.automatic&&command.value!=='off')mode='software';
+          else {const rejection=featureRejection(state.source.mode,{...settings,toneMapping:command.value,hybridAudioFilters:input.hybridAudioFilters});if(rejection)return result(state,false,undefined,empty,rejection);}
+        }
+        break;
+      }
     }
-    const effects:SettingEffect[]=(reconfigure?input.hasSource:input.hasBackend)?[copyData(effect)]:[],restore:SettingEffect[]=input.hasBackend&&!reconfigure?[copyData(rollback)]:[];
+    const effects:SettingEffect[]=!noop&&(reconfigure?input.hasSource:input.hasBackend)?[copyData(effect)]:[],restore:SettingEffect[]=!noop&&input.hasBackend&&!reconfigure?[copyData(rollback)]:[];
+    if(!noop&&(command.kind==='range'||command.kind==='loop')&&input.hasBackend&&effect.kind==='seek'){effects.push(Object.freeze({kind:'seek.verify',value:effect.value}));restore.push(Object.freeze({kind:'seek.verify',value:command.facts.time}));}
     if(input.hasBackend&&command.kind==='track'&&command.verify){effects.push(Object.freeze({kind:'track.verify',track:command.track,value:command.value,settings}));restore.push(Object.freeze({kind:'track.verify',track:command.track,value:state.settings[command.track==='audio'?'aid':'sid'],settings:state.settings}));}
-    const settingKey:keyof PlaybackSettings|undefined=command.kind==='volume'?'volume':command.kind==='rate'?'speed':command.kind==='gain'?'gain':command.kind==='pause'?'pause':command.kind==='subtitles'?'subtitles':command.kind==='track'?(command.track==='audio'?'aid':'sid'):undefined;
-    const preferenceKey:keyof PlayerPreferences|undefined=command.kind==='mute'?'muted':command.kind==='buffering'?'buffering':command.kind==='output'?'outputDeviceId':command.kind==='quality'?'qualityPolicy':command.kind==='subtitleDelay'||command.kind==='audioDelay'||command.kind==='subtitleStyle'?command.kind:undefined;
+    const settingKey:keyof PlaybackSettings|undefined=command.kind==='volume'?'volume':command.kind==='rate'?'speed':command.kind==='gain'?'gain':command.kind==='pause'?'pause':command.kind==='subtitles'?'subtitles':command.kind==='track'?(command.track==='audio'?'aid':'sid'):command.kind==='filters'?command.key:undefined;
+    const preferenceKey:keyof PlayerPreferences|undefined=command.kind==='mute'?'muted':command.kind==='buffering'?'buffering':command.kind==='output'?'outputDeviceId':command.kind==='quality'?'qualityPolicy':command.kind==='range'?'playbackRange':command.kind==='loop'?'loopPolicy':command.kind==='subtitleDelay'||command.kind==='audioDelay'||command.kind==='subtitleStyle'||command.kind==='toneMapping'?command.kind:undefined;
     const settingsPatch=Object.freeze(settingKey?{[settingKey]:settings[settingKey]}:{}),preferencesPatch=copyData(preferenceKey?{[preferenceKey]:preferences[preferenceKey]}:{});
-    const id=state.settingsTransactions.serial+1,transaction:SettingTransaction=Object.freeze({id,operation:operation.id,epoch:operation.epoch,session:state.source.acceptedSession,phase:'applying',reconfigure,settings,preferences,settingsPatch,preferencesPatch,rollback:Object.freeze(restore)});
+    const id=state.settingsTransactions.serial+1,transaction:SettingTransaction=Object.freeze({id,operation:operation.id,epoch:operation.epoch,session:state.source.acceptedSession,phase:'applying',reconfigure,promote,mode,settings,preferences,settingsPatch,preferencesPatch,rollback:Object.freeze(restore)});
     return result({...state,settingsTransactions:Object.freeze({...state.settingsTransactions,serial:id,pending:transaction})},true,id,Object.freeze(effects));
   }
   if(!settingAuthority(state,input.id))return result(state,false,input.id);
@@ -89,5 +132,5 @@ export function transitionSettingTransaction(state:PlayerControlState,input:Sett
   // Apply only the fields this command owns. Independent accepted observations
   // (for example an emergency pause) may arrive while its I/O is pending.
   const commit=input.type==='setting.accept'&&pending.phase!=='accepted';
-  return result({...state,settings:commit?Object.freeze({...state.settings,...pending.settingsPatch}):state.settings,preferences:commit?changePreferences(state.preferences,pending.preferencesPatch):state.preferences,settingsTransactions:Object.freeze({...state.settingsTransactions,pending:null,degraded})},true,input.id);
+  return result({...state,source:commit&&pending.mode?Object.freeze({...state.source,mode:pending.mode}):state.source,settings:commit?Object.freeze({...state.settings,...pending.settingsPatch}):state.settings,preferences:commit?changePreferences(state.preferences,pending.preferencesPatch):state.preferences,settingsTransactions:Object.freeze({...state.settingsTransactions,pending:null,degraded})},true,input.id,input.type==='setting.accept'&&pending.promote?Object.freeze([{kind:'promotion'}]):empty);
 }

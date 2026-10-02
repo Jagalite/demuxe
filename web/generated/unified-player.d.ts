@@ -31,7 +31,6 @@ export declare class Player extends EventTarget {
     private set playbackRange(value);
     private get loopPolicy();
     private set loopPolicy(value);
-    private boundaryPending;
     private get qualityPolicy();
     private set qualityPolicy(value);
     private attachmentSerial;
@@ -122,7 +121,8 @@ export declare class Player extends EventTarget {
     get trackPolicy(): TrackPolicy;
     private audioOutput;
     private audioFallback;
-    private toneMapping;
+    private get toneMapping();
+    private set toneMapping(value);
     private resourceLimits;
     private fonts;
     private subtitleAssets;
@@ -260,13 +260,13 @@ export declare class Player extends EventTarget {
     pause(): Promise<void>;
     seek(seconds: number, options?: import('./types.js').SeekOptions): Promise<void>;
     private seekForSource;
-    private validateRange;
     seekChapter(id: string): Promise<void>;
     getPlaybackRange(): {
         start: number;
         end: number;
     } | null;
     getLoop(): import('./types.js').LoopPolicy;
+    private rangeFacts;
     setPlaybackRange(range: import('./types.js').PlaybackRange | null): Promise<void>;
     setLoop(policy: import('./types.js').LoopPolicy): Promise<void>;
     private enforceBoundary;

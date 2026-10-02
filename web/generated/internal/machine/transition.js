@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
+import { transitionBoundary } from './playback-boundary.js';
 import { transitionOperations } from './operations.js';
 import { transitionPlayback } from './playback.js';
 import { transitionSettings, transitionSettingTransaction, changePreferences, clearSourcePreferences } from './settings.js';
 import { transitionSource } from './source.js';
 export function transitionPlayer(state, input) {
+    if (isBoundaryInput(input))
+        return transitionBoundary(state, input);
     if (isSettingTransaction(input))
         return transitionSettingTransaction(state, input);
     if (input.type === 'playback.sample') {
@@ -28,7 +31,7 @@ export function transitionPlayer(state, input) {
         const acceptedSetting = input.type === 'source.accept' && decision.accepted && pending?.reconfigure && pending.phase === 'applying' && pending.operation === state.operations.active && pending.epoch === state.operations.epoch;
         const desiredPreferences = acceptedSetting ? changePreferences(state.preferences, pending.preferencesPatch) : state.preferences, preferences = reset ? clearSourcePreferences(desiredPreferences) : desiredPreferences;
         const settingsTransactions = input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? Object.freeze({ ...state.settingsTransactions, pending: acceptedSetting ? Object.freeze({ ...pending, phase: 'accepted', session: decision.state.acceptedSession, settings, preferences }) : null, degraded: null }) : state.settingsTransactions;
-        return Object.freeze({ ...decision, state: decision.state === state.source ? state : Object.freeze({ ...state, revision: state.revision + 1, source: decision.state, settings, playback, preferences, settingsTransactions }), id: decision.attempt, retire: Object.freeze([]) });
+        return Object.freeze({ ...decision, state: decision.state === state.source ? state : Object.freeze({ ...state, revision: state.revision + 1, source: decision.state, settings, playback, preferences, settingsTransactions, boundary: input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? Object.freeze({ ...state.boundary, pending: null }) : state.boundary }), id: decision.attempt, retire: Object.freeze([]) });
     }
     if (input.type === 'settings.accept' || input.type === 'settings.change')
         return Object.freeze({ state: Object.freeze({ ...state, revision: state.revision + 1, settings: transitionSettings(state.settings, input) }), accepted: true, id: undefined, reason: undefined, retire: Object.freeze([]) });
@@ -40,8 +43,9 @@ export function transitionPlayer(state, input) {
     const pending = state.settingsTransactions.pending;
     const retired = input.type === 'operation.retire' || (input.type === 'operation.cancel' || input.type === 'operation.finish' || input.type === 'operation.release') && input.id === pending?.operation;
     const settingsTransactions = retired && pending ? Object.freeze({ ...state.settingsTransactions, pending: null }) : state.settingsTransactions;
-    return Object.freeze({ ...decision, state: decision.state === state.operations ? state : Object.freeze({ ...state, revision: state.revision + 1, operations: decision.state, settingsTransactions }), retire: Object.freeze([]) });
+    return Object.freeze({ ...decision, state: decision.state === state.operations ? state : Object.freeze({ ...state, revision: state.revision + 1, operations: decision.state, settingsTransactions, boundary: input.type === 'operation.retire' ? Object.freeze({ ...state.boundary, pending: null }) : state.boundary }), retire: Object.freeze([]) });
 }
+function isBoundaryInput(input) { return input.type.startsWith('boundary.'); }
 function isSourceInput(input) { return input.type.startsWith('source.'); }
 function isSettingTransaction(input) { return input.type.startsWith('setting.') || input.type === 'preferences.change'; }
 /** A backend listener keeps its allocation identity. Retirement fences every

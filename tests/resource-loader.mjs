@@ -67,8 +67,8 @@ test('epoch cancellation discards a response even if transport ignores abort',as
   loader.beginEpoch();respond(new Response('late'));await assert.rejects(request,{name:'AbortError'});assert.equal(loader.stats.handles,0);loader.close();
 });
 test('live sessions keep per-open budgets without a finite lifetime request cap',async()=>{
- mock(async()=>new Response('part'));const live=new ResourceLoader({...options,streaming:{live:true}});live.stats.opens=10000;const info=await live.open('part.ts');assert.equal(info.length,4);live.close();
- const vod=new ResourceLoader(options);vod.stats.opens=10000;await assert.rejects(vod.open('part.ts'),/count limit/);vod.close();
+ mock(async()=>new Response('part'));const live=new ResourceLoader({...options,streaming:{live:true}});live.control=Object.freeze({...live.control,stats:Object.freeze({...live.control.stats,opens:10000})});const info=await live.open('part.ts');assert.equal(info.length,4);live.close();
+ const vod=new ResourceLoader(options);vod.control=Object.freeze({...vod.control,stats:Object.freeze({...vod.control.stats,opens:10000})});await assert.rejects(vod.open('part.ts'),/count limit/);vod.close();
 });
 
 test('HLS and DASH reach FFmpeg byte-for-byte without selecting variants',async()=>{
