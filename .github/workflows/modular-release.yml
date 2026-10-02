@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-name: Stage qualified modular codec packages
+name: Build and stage modular codec packages
 on:
+  push:
+    tags: ['modular-*']
   workflow_dispatch:
     inputs:
       tag:
@@ -10,10 +12,16 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: modular-release-${{ inputs.tag }}
+  group: modular-release-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 jobs:
+  providers:
+    uses: ./.github/workflows/ci-providers.yml
+    with:
+      source_ref: refs/tags/${{ inputs.tag || github.ref_name }}
   stage:
+    if: github.event_name == 'workflow_dispatch'
+    needs: providers
     runs-on: ubuntu-24.04
     environment: npm
     permissions:

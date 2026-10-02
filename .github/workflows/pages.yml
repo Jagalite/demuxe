@@ -21,6 +21,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  providers:
+    if: github.event_name == 'workflow_dispatch' || github.event.created == true
+    uses: ./.github/workflows/ci-providers.yml
+    with:
+      source_ref: refs/tags/${{ inputs.tag || github.ref_name }}
+
   build:
     if: github.event_name == 'workflow_dispatch' || github.event.created == true
     runs-on: ubuntu-24.04
@@ -160,7 +166,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   release:
-    needs: build
+    needs: [build, providers]
     if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     timeout-minutes: 30

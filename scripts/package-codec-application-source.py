@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Retain current application/glue source alongside the native source companions."""
-import argparse,gzip,hashlib,io,json,tarfile,subprocess
+import argparse,gzip,hashlib,io,json,tarfile,subprocess,importlib.util
 from pathlib import Path
 from license_policy import ROOT,Policy
 p=argparse.ArgumentParser(description=__doc__);p.add_argument('--qualification',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
@@ -9,16 +9,17 @@ def sha(b):return hashlib.sha256(b).hexdigest()
 qualification=json.loads(a.qualification.read_bytes());assert qualification['passed']
 config=json.loads((ROOT/'licensing/provider-packages.json').read_bytes());policy=Policy()
 names={config['targets']['core']['template']};names.update(config['playerCoreSources']);names.update(subprocess.check_output(['rg','--files','src','-g','*.ts'],cwd=ROOT,text=True).splitlines())
-for target in ['container','audio-truehd-mlp','audio-dts-hd','audio-flac','ffmpeg-truehd-mlp-asyncify','ffmpeg-truehd-mlp-jspi','ffmpeg-dts-hd-asyncify','ffmpeg-dts-hd-jspi']:
- profile=config['profiles'][target];names.update(profile.get('sources',[]));names.update(profile.get('files',[]))
- names.update([config['targets'][target]['template'],f'packages/provider-{target}/index.js',f'packages/provider-{target}/index.d.ts'])
 names.update(['README.md','package.json','package-lock.json','tsconfig.json','licensing/provider-packages.json','licensing/provider-runtime-qualification.json','licensing/boundaries.json','docs/CODEC-SPLIT-PRODUCTION.md','docs/PROVIDER-RELINK.md','scripts/compile-player-package.mjs','scripts/package-player-core.py','scripts/compile-provider-sources.mjs','scripts/compile-component-providers.mjs','scripts/prepare-provider-package.py','scripts/qualify-codec-providers.py','scripts/verify-codec-source-gates.py','scripts/package-codec-application-source.py','scripts/build-codec-preparation.py','scripts/record-codec-preparation-build.py','scripts/build-audio-providers.py','scripts/record-audio-provider-build.py','scripts/setup-codec-preparation-consumer.mjs','scripts/setup-lossless-component-consumer.mjs','scripts/deploy-providers.py','scripts/audit-provider-package.py','scripts/license_policy.py','scripts/package-provider.py'])
 for path in (ROOT/'LICENSES').iterdir():
  if path.is_file():names.add(str(path.relative_to(ROOT)))
 names.update(item['path'] for item in json.loads((ROOT/'licensing/provider-runtime-qualification.json').read_bytes())['evidence'])
 names.update(['scripts/check-licenses.py','scripts/check-core-boundary.mjs','scripts/shaka_source.py'])
 names.add('scripts/verify-codec-application-source.py')
-names.update(['scripts/modular-release.py','scripts/publish-github-release.py','.github/workflows/modular-release.yml','.github/workflows/pages.yml','.github/workflows/licensing.yml','tests/modular-release.py'])
+names.update(['licensing/ci-slices.json','scripts/modular-release.py','scripts/publish-github-release.py','.github/workflows/modular-release.yml','.github/workflows/pages.yml','.github/workflows/licensing.yml','tests/modular-release.py'])
+# Retain the catalog-driven native build entry points and their evidence inputs.
+spec=importlib.util.spec_from_file_location('provider_source',ROOT/'scripts/package-provider-source.py');source_module=importlib.util.module_from_spec(spec);spec.loader.exec_module(source_module)
+for package in qualification['packages']:
+ names.update(source_module.application_source_paths(package['target']))
 files={name:(ROOT/name).read_bytes()for name in sorted(names)}
 # Compiler programs use the core source set and target profile source lists.
 # Include generated helper preferred input descriptions as build records.
