@@ -20,6 +20,8 @@ export class LocalVideoPreviewProvider {
     maxDecodePixels;
     id = 'local-browser';
     priority = 40;
+    requiresDecoder = true;
+    allowDuringPlayback = true;
     constructor(source, document, maxDecodePixels = 8294400) {
         this.source = source;
         this.document = document;

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PlayerPresentation } from './presentation.js';
 import type { WatchdogOptions, WatchdogPolicy } from './types.js';
+import type { BufferingOptions, BufferingState } from './types.js';
 import type { TrackPolicy } from './types.js';
 import type { PlayerState, PlayerEventMap, PlayerCapabilities, OpenOptions, MediaSourceInput } from './types.js';
 import type { PreparationOptions, PreparationReport } from './types.js';
@@ -22,6 +23,7 @@ export declare class Player extends EventTarget {
     private outputDeviceId;
     private sourceSerial;
     private latestSeek?;
+    private playRequests;
     private playbackRange;
     private loopPolicy;
     private boundaryPending;
@@ -175,6 +177,9 @@ export declare class Player extends EventTarget {
     get properties(): ReadonlyMap<string, unknown>;
     get capabilities(): PlayerCapabilities;
     private get legacyCapabilities();
+    /** Replace the buffering policy without reopening the source. Omitted fields use defaults. */
+    setBuffering(options: BufferingOptions): Promise<void>;
+    getBuffering(): BufferingState;
     private bufferingResolution;
     get diagnostics(): Diagnostics;
     getStreamingState(): import('./types.js').StreamingState | null;

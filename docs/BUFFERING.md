@@ -79,3 +79,58 @@ See [BUFFERING-VALIDATION.md](BUFFERING-VALIDATION.md) for fresh production-cand
 runs, failed trials, fixes, limitations and reproduction commands. The prior
 [cache experiment](../research/items/mpv-cache-browser-stream/REPORT.md) remains
 immutable supporting evidence; its 24/16 rewind trial is not the balanced default.
+
+## Runtime policy and unified reporting
+
+The same `BufferingOptions` apply at construction and at runtime:
+
+```js
+await player.setBuffering({
+  profile: 'resilient', // low-latency | balanced | resilient
+  preload: 'auto',     // none | metadata | auto
+  aheadSeconds: 30,
+  behindSeconds: 10,
+  memoryBudget: 32 * 1024 * 1024,
+});
+const {requested, effective, capabilities, buffered, cached} = player.getBuffering();
+```
+
+`setBuffering` replaces the policy: omitted fields reset to defaults. It is serialized
+with other player operations and does not reopen the source, seek, change playback
+intent, or initiate a mode switch. The policy persists across subsequent sources and
+backend changes. An invalid policy rejects before applying; a backend failure triggers
+an attempt to restore the previous policy. If restoration also fails, the operation
+rejects with an explicit partial-application error. Older externally deployed remux
+providers without the runtime setter reject with `UNSUPPORTED_FEATURE`; consult
+`capabilities.runtimeUpdate` before offering a live control.
+
+| Control | Native browser | Remux | mpv | Shaka |
+|---|---|---|---|---|
+| Preload | Browser hint | Limits paused speculative work | Limits preparation readahead | Limits preparation goal |
+| Profile | Hint only | Time/byte targets | Packet byte budgets | Buffering goals |
+| Ahead/behind seconds | Not applied | Applied as targets | Not applied | Applied as targets |
+| Memory budget | Not enforceable | Coded-data ceiling | Packet budget ceiling | Not enforceable |
+| Manual video ranges | Not exposed | Not exposed | Not exposed | Not exposed |
+
+Ahead time must be greater than zero and at most 120 seconds; behind time is 0–120
+seconds. The existing 8–64 MiB memory-budget range remains. Targets are subject to
+fragment/keyframe granularity and backend limits: Remux caps its coded-data ceiling
+at 12 MiB and scales forward time above 1x playback; non-auto preload uses a smaller
+paused/preparation target. These are not total browser/decoder-memory caps. At the coded-data ceiling, Remux may shorten requested history to preserve forward
+progress, evicting at safe GOP boundaries and waiting for SourceBuffer completion.
+Reducing limits does not promise immediate release of all resident data. If the
+protected decode interval itself exhausts the budget and playback runs out of forward
+coverage, Remux reports a budget failure rather than removing required reference
+frames or waiting indefinitely.
+
+`getBuffering()` returns a detached, frozen snapshot. `requested` retains user intent,
+including unsupported controls; `effective` describes the active adapter's policy and
+settings. Capability flags identify supported controls, not strict timing or memory
+guarantees. `buffered` reports playable ranges and `cached` reports packet-cache ranges;
+`null` means unknown, while `[]` means known empty. Before opening a source, `active`
+is false and the reported resolution is provisional.
+
+Video policies and thumbnail strategies have independent scheduling and budgets.
+This API unifies existing controls; profiles do not dynamically predict network health.
+Adaptive tuning, explicit range fetch/release, and full-file/offline downloads are not
+implemented by this API and must not be advertised as supported strategies.

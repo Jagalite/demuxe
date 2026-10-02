@@ -103,3 +103,50 @@ test('playback pressure cancels generation, retains cached images, and resumes c
  assert.equal((await c.getFrame({time:0})).cache,'hit');assert.equal(await c.getFrame({time:2}),null);assert.equal(calls,2);
  c.setSuspended(false);assert.equal((await c.getFrame({time:0,width:9})).cache,'miss');await c.destroy();
 });
+
+test('playing skips decoder providers but keeps cached and authored thumbnails',async()=>{
+ let decodes=0;
+ const decoder={...provider(async r=>{decodes++;return frame(r.time);}),requiresDecoder:true};
+ const authored={id:'authored-playing',priority:1,canHandle:r=>r.time===3,getFrame:async r=>({...frame(r.time),path:'authored-playing'})};
+ const c=new PreviewController([authored,decoder],{debounceMs:0});
+ try{
+  await c.getFrame({time:0});c.setPlaybackActive(true);
+  assert.equal((await c.getFrame({time:0})).cache,'hit');
+  assert.equal(await c.getFrame({time:1}),null);assert.equal(decodes,1);
+  assert.equal((await c.getFrame({time:3})).path,'authored-playing');
+  c.setPlaybackActive(false);assert.equal((await c.getFrame({time:1})).cache,'miss');assert.equal(decodes,2);
+ }finally{await c.destroy();}
+});
+test('Play cancels an in-flight decoder without cancelling authored work',async()=>{
+ let started;const ready=new Promise(resolve=>{started=resolve;});
+ const c=new PreviewController([{...provider(r=>{started();return new Promise((resolve,reject)=>r.signal.addEventListener('abort',()=>reject(r.signal.reason),{once:true}));}),requiresDecoder:true}],{debounceMs:0});
+ try{
+  const pending=aborted(c.getFrame({time:1}));await ready;c.setPlaybackActive(true);await pending;
+  assert.equal(c.diagnostics.cacheEntries,0);
+  c.setProviders([provider(async r=>{c.setPlaybackActive(true);return frame(r.time);})]);
+  assert.equal((await c.getFrame({time:2})).cache,'miss');
+ }finally{await c.destroy();}
+});
+test('Play during asynchronous decoder admission never starts decoding',async()=>{
+ let admit,started,calls=0;const ready=new Promise(resolve=>{started=resolve;});
+ const c=new PreviewController([{id:'slow-admission',priority:1,requiresDecoder:true,canHandle:()=>{started();return new Promise(resolve=>{admit=resolve;});},getFrame:async r=>{calls++;return frame(r.time);}}],{debounceMs:0});
+ try{const pending=aborted(c.getFrame({time:1}));await ready;c.setPlaybackActive(true);admit(true);await pending;await delay(0);assert.equal(calls,0);}
+ finally{await c.destroy();}
+});
+
+test('cache-only nearby lookup bypasses an active decode without cancelling it',async()=>{
+ let release,started;const ready=new Promise(resolve=>{started=resolve;});
+ const c=new PreviewController([provider(async r=>{if(r.time===20){started();await new Promise(resolve=>{release=resolve;});assert.equal(r.signal.aborted,false);}return frame(r.time);})],{debounceMs:0});
+ try{
+  await c.getFrame({time:5});const pending=c.getFrame({time:20});await ready;
+  const hit=await c.getFrame({time:7,maxDistance:3,cacheOnly:true});
+  assert.equal(hit.cache,'hit');assert.equal(hit.time,5);assert.equal(hit.requestedTime,7);assert.equal(hit.bucketTime,5);assert.equal(hit.temporalAccuracy,'approximate');
+  assert.equal(await c.getFrame({time:7,maxDistance:1,cacheOnly:true}),null);
+  assert.equal(await c.getFrame({time:7,maxDistance:3,cacheOnly:true,exact:true}),null);
+  release();assert.equal((await pending).time,20);
+ }finally{release?.();await c.destroy();}
+});
+test('independent native previews can decode while playing but yield to buffering',async()=>{
+ const c=new PreviewController([{...provider(async r=>frame(r.time)),requiresDecoder:true,allowDuringPlayback:true}],{debounceMs:0});
+ try{c.setPlaybackActive(true);assert.ok(await c.getFrame({time:2}));c.setSuspended(true);assert.equal(await c.getFrame({time:3}),null);assert.equal((await c.getFrame({time:2})).cache,'hit');}finally{await c.destroy();}
+});

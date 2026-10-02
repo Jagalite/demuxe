@@ -16,6 +16,13 @@ export declare const defaultLabels: Readonly<{
     demuxeTheme: "Demuxe";
     lightTheme: "Light";
     previews: "Timeline thumbnails";
+    previewStrategy: "Thumbnail strategy";
+    previewAdaptive: "Adaptive · nearby every 5s";
+    previewUniform: "Evenly spaced · 48 samples";
+    previewInterval: "Whole video · every 5s";
+    previewOnDemand: "On hover only";
+    previewCustom: "Custom";
+    previewHelp: "Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.";
     diagnostics: "Session diagnostics";
     moreOptions: "More options";
     back: "Seek backward 10 seconds";
@@ -174,8 +181,10 @@ export declare class DemuxePlayerElement extends Base {
     get audioPlayback(): "auto" | "worklet";
     set audioPlayback(value: 'auto' | 'worklet');
     private previewConfiguration?;
+    private syncPreviewStrategy;
     get previewOptions(): PreviewOptions | false | undefined;
     set previewOptions(value: PreviewOptions | false | undefined);
+    private syncPreviewEnabled;
     get previewThumbnails(): boolean;
     set previewThumbnails(value: boolean);
     get controls(): boolean;

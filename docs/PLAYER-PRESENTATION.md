@@ -108,3 +108,71 @@ The existing `node tests/preview-ui.mjs` suite passed. TypeScript and the standa
 Modern controls retain keyboard focusability while visually hidden, including when the timeline is disabled (for example, a live source without a seek window). At widths of 380px and below, utility actions occupy their own row; longer time labels can wrap without pushing controls outside the player. Fullscreen removes the modern embedded stage minimum height, so short landscape windows remain contained. Regression coverage includes 320/360/400px embeds, unavailable seeking with Tab navigation, and 600×280 fullscreen.
 
 Review validation: **20/20** checks passed in [Chrome](../results/player-presentation/chrome-2026-09-27T17-31-41.212Z/result.json) and [Firefox](../results/player-presentation/firefox-2026-09-27T17-32-20.236Z/result.json). The narrow-layout and compact-fullscreen failures were reproduced before their fixes. Narrow-layout and fullscreen screenshots were inspected. TypeScript passed; the original 50-check classic baseline above remains the prior implementation result.
+
+### Playback priority for timeline thumbnails
+
+The element defaults to the Adaptive strategy: 24 samples distributed across the finite timeline first, followed by five-second samples within 30 seconds of playback or the latest hover position. Its cache remains bounded to 16 MiB / 96 entries. It does not eagerly generate every five-second position in a long movie. Explicit `previewOptions` retain their own configuration. The thumbnail toggle and initial `no-preview` attribute stop generation as well as hiding the image; enabling the toggle cannot override `previewOptions: false` or `enabled: false`. Software samples deferred by active playback remain queued for pause. Hover requests check the cache without waiting for an active decode and use strategy-specific proximity and preserve the approximate represented timestamp. Adaptive hover can show a broad sample immediately, then request a closer frame. Exact API requests do not use nearby samples. The first uncached request still requires decoding; the UI shows the requested time while waiting.
+
+Independent local browser previews may run during playback. Software decoding yields to playback; generation suspends during operations and buffering.
+
+### Thumbnail strategies
+
+The player settings menu offers Adaptive, Evenly spaced (48 samples), Whole video (every 5 seconds), and On hover only. Selecting a strategy changes preview scheduling without reopening, pausing, seeking, or replacing playback. Custom configurations appear as Custom in this menu.
+
+| API strategy | Background work |
+| --- | --- |
+| `{type: 'adaptive', samples: 24, every: 5, radius: 30}` | Broad coverage first, then a bounded neighborhood around playback or hover; interval/radius are seconds |
+| `{type: 'uniform', samples: 48}` | A fixed count spread across the whole duration; 2–256 samples |
+| `{type: 'interval', every: 5, unit: 'seconds'}` | Sequential positions at 0, 5, 10… until the end; optional `count` caps work without redistributing positions |
+| `{type: 'on-demand'}` | No background generation; hover/API requests still work |
+| `{type: 'timestamps', timestamps: [0, 60, 120]}` | Host-selected positions in seconds; optional `count` |
+
+```js
+const player = new Player(container, {
+  preview: {
+    strategy: { type: 'adaptive', samples: 24, every: 5, radius: 30 },
+    maxEntries: 96,
+    maxCacheBytes: 16 * 1024 * 1024,
+  },
+});
+
+// Can change during a session; useful cached images remain available.
+player.preview.setStrategy({ type: 'interval', every: 10 });
+player.preview.setStrategy({ type: 'on-demand' });
+console.log(player.preview.strategy);
+```
+
+For the element, assign `element.previewOptions` before connecting it to the document; use `element.player.preview.setStrategy(...)` after initialization. Core `new Player(...)` retains its on-demand default unless configured. Existing `pregenerate` configurations remain supported; specify either `strategy` or `pregenerate`, not both. Legacy `pregenerate` configuration reports `preview.strategy === null` (Custom).
+
+Adaptive background work follows the latest hover for 1.5 seconds before playback updates regain priority. Explicit foreground requests still preempt background work. Source replacement resets coverage and focus. All strategies retain the existing buffering, cancellation, and software-playback restrictions. Cache limits remain independent of generation targets, so fixed intervals across a long video can evict earlier images. Adaptive scheduling retains at most 512 visited positions and enumerates only the local window; it never allocates an array proportional to the movie duration. Radius is limited to 3,600 seconds and at most 128 interval steps in either direction. These strategies select timestamps, not scene boundaries or semantic keyframes.
+
+### Application-managed thumbnail cache
+
+Use `on-demand` to stop automatic generation while retaining cached images. Request
+frames as needed, unload ranges, and adjust memory/count budgets without reopening
+playback:
+
+```js
+const previews = player.preview;
+previews.setStrategy({type: 'on-demand'});
+previews.setCacheLimits({maxEntries: 200, maxCacheBytes: 32 * 1024 * 1024});
+const frame = await previews.getFrame({time: 120, width: 240, height: 135});
+await previews.prefetch({time: 125, width: 240, height: 135});
+previews.unload({start: 0, end: 60}); // [0, 60), across all cached sizes
+previews.clear(); // Cancel outstanding requests and remove all cached frames
+```
+
+`getFrame` loads one frame, with an optional `AbortSignal`; newer foreground requests
+supersede older ones. Request batches sequentially. `prefetch` is best-effort: it
+declines when the lane is busy and yields to hover. Neither bypasses playback pressure.
+`unload` returns the number of removed cache entries and cancels matching outstanding
+work, preventing late results from repopulating that range. Ranges match requested
+bucket timestamps (not a provider's approximate represented time).
+
+`cacheLimits` is an immutable snapshot. Lowering limits immediately evicts entries,
+preferentially background entries; zero disables retention but still allows requests.
+Automatic strategies may regenerate unloaded images; select `on-demand` for manual
+ownership. `clear()` restarts an active automatic strategy. Cache eviction releases
+Demuxe's references, not frame objects or Blob URLs retained by the application;
+applications must release their own references and revoke their own object URLs.
+These limits cover thumbnail cache accounting, not all decoder or browser memory.

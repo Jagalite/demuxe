@@ -182,6 +182,13 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     await this.request('context',{value:this.context.state==='running',latencyUs:this.latency()});
     if(this.context.state!=='running'&&!this.userPaused)this.emit('activity','waiting');
   }
+  async setBuffering(policy:BufferingPolicy){
+    await this.ready;
+    const settings={...mpvBufferingOptions(policy,this.userPaused),'cache-secs':policy.preload==='auto'||!this.userPaused?'3600000':'1'};
+    for(const [key,value] of Object.entries(settings))await this.command('set',key,value);
+    this.options.buffering=policy;
+  }
+  get bufferingDiagnostics(){return resolveBuffering(this.options.buffering??bufferingPolicy(),'mpv');}
   private async configureBuffering(preparing:boolean){for(const [key,value] of Object.entries(mpvBufferingOptions(this.options.buffering??bufferingPolicy(),preparing)))await this.command('set',key,value);}
   async play(){await this.ready;if(this.options.buffering?.preload&&this.options.buffering.preload!=='auto')await this.configureBuffering(false);this.userPaused=false;await this.context.resume();await this.syncContext();await this.request('pause',{value:false});this.emit('activity','play');}
   async pause(){await this.ready;this.userPaused=true;await this.request('pause',{value:true});this.emit('activity','pause');}

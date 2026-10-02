@@ -11,6 +11,7 @@ export class SoftwarePreviewProvider {
     limits;
     id = 'software';
     priority = 50;
+    requiresDecoder = true;
     constructor(source, document, assetBase, limits = {}) {
         this.source = source;
         this.document = document;

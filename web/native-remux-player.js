@@ -206,6 +206,7 @@ export class RemuxPlayer {
   const generation=this.generation;this.resumingWindow=true;
   void this.video.play().catch(error=>{if(generation===this.generation&&this.recoveryPlaying&&!this.stopped)this.fail(String(error));}).finally(()=>{if(generation===this.generation)this.resumingWindow=false;});
  }
+ setBuffering(policy){if(this.stopped)throw new DOMException('Destroyed','AbortError');this.buffering={...policy};}
  forwardTargetSeconds(){return (this.video.paused&&this.buffering?.preload!=='auto'&&this.buffering?1:(this.buffering?.forwardSeconds??5))*(this.video.paused?1:Math.max(1,this.video.playbackRate||1));}
  // Some MSE implementations retain HAVE_FUTURE_DATA at an exhausted audio
  // edge without dispatching waiting. Observe real clock starvation only while
@@ -229,22 +230,31 @@ export class RemuxPlayer {
    this.resumeWindow();
    const now=this.targetReady?Math.max(this.video.currentTime-this.timelineBias,this.target):this.target,ranges=this.ranges();
    const seconds=ranges.reduce((s,[a,b])=>s+b-a,0);this.stats.peakBufferedSeconds=Math.max(this.stats.peakBufferedSeconds,seconds);
-   // Evict old complete intervals. Retain three seconds behind playback; browser
-   // codec dependencies may keep internal resources beyond the coded ranges.
+   const bufferedBytes=this.segments.reduce((s,v)=>s+v.bytes,0),byteLimit=this.buffering?.forwardLimitBytes??12*1024*1024;
+   this.stats.bufferedBytesUpperBound=bufferedBytes;this.stats.peakBufferedBytesUpperBound=Math.max(this.stats.peakBufferedBytesUpperBound,bufferedBytes);
+   // History is a target, not a reservation: at the byte ceiling, reclaim old
+   // intervals so retained history cannot prevent fetching forward data.
+   const pressured=bufferedBytes>=byteLimit;
+   const historyLimit=now-(pressured?0:(this.buffering?.backwardSeconds??3));
+   const retainedRap=this.raps.filter(t=>t<=historyLimit).at(-1);
+   // Evict old complete intervals. Browser codec dependencies may keep internal
+   // resources beyond the coded ranges.
    // MSE removal can extend through dependent frames to the next RAP. Never
    // remove through the GOP currently decoding; evict at known source RAPs.
    if(this.windowed&&this.targetReady){
     for(let lane=0;lane<this.sbs.length;lane++){
      const sb=this.sbs[lane],end=lane?this.trackBounds.audioEnd:this.trackBounds.videoEnd;
-     const limit=Math.min(now-(this.buffering?.backwardSeconds??3),end-.5),cut=lane?limit:this.raps.filter(t=>t<=limit).at(-1);
+     // Keep audio aligned with the retained video GOP under pressure. If
+     // no RAP is available, leave a small audio safety margin at the playhead.
+     const laneLimit=lane&&pressured?(retainedRap??now-.5):historyLimit;
+     const limit=Math.min(laneLimit,end-.5),cut=lane?limit:this.raps.filter(t=>t<=limit).at(-1);
      if(cut!==undefined&&sb.buffered.length&&sb.buffered.start(0)-this.timelineBias<cut-.001&&cut>(this.lastEvictions[lane]??-Infinity)){
       this.busy=true;this.lastEvictions[lane]=cut;this.pendingUpdates.add(sb);sb.remove(0,cut+this.timelineBias-.00001);this.segments=this.segments.filter(s=>s.lane!==lane||s.end>cut);return;
      }
     }
    }
-   const cut=this.windowed?undefined:this.raps.filter(t=>t<=now-(this.buffering?.backwardSeconds??3)).at(-1);
+   const cut=this.windowed?undefined:retainedRap;
    if(this.targetReady&&cut!==undefined&&ranges.length&&ranges[0][0]<cut-.001&&cut>this.lastEviction){this.busy=true;this.lastEviction=cut;this.pendingUpdates?.add(this.sb);this.sb.remove(0,cut+this.timelineBias-.00001);this.segments=this.segments.filter(s=>s.end>cut);return;}
-   const bufferedBytes=this.segments.reduce((s,v)=>s+v.bytes,0);this.stats.bufferedBytesUpperBound=bufferedBytes;this.stats.peakBufferedBytesUpperBound=Math.max(this.stats.peakBufferedBytesUpperBound,bufferedBytes);
    if(this.pending){
     const buffers=this.pending;this.pending=null;
     if(byteLength(buffers)){this.append(buffers);return;}
@@ -267,8 +277,11 @@ export class RemuxPlayer {
    // longer track merely to make a shorter track's buffered range advance.
    if(!this.eof&&preparedAhead>=5&&ahead<.25&&!this.video.paused){this.fail('Adapted track timelines cannot progress within the preparation budget; use Hybrid');return;}
    if(this.windowed&&!this.targetReady&&!this.primeVideo&&this.hasStartupCoverage())return;
+   // A single protected decode interval can itself exceed the budget. Never
+   // discard its reference frames or wait forever at an exhausted buffer.
+   if(!this.eof&&this.targetReady&&pressured&&ahead<=0&&(this.windowed?this.recoveryPlaying:!this.video.paused)){this.fail('Remux cannot refill within the coded-data budget while preserving the current GOP');return;}
    const forward=this.forwardTargetSeconds();
-   if(!this.eof&&ahead<forward&&preparedAhead<forward&&bufferedBytes<(this.buffering?.forwardLimitBytes??12*1024*1024)){this.busy=true;this.pulling=true;this.worker.postMessage({type:'next',id:this.pullId=(this.pullId??0)+1});}
+   if(!this.eof&&ahead<forward&&preparedAhead<forward&&bufferedBytes<byteLimit){this.busy=true;this.pulling=true;this.worker.postMessage({type:'next',id:this.pullId=(this.pullId??0)+1});}
   }catch(e){this.fail(String(e));}
  }
  watchWorker(worker,generation,label){

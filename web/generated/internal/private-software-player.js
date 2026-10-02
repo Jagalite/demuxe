@@ -284,6 +284,14 @@ export class PrivateSoftwarePlayer extends EventTarget {
         if (this.context.state !== 'running' && !this.userPaused)
             this.emit('activity', 'waiting');
     }
+    async setBuffering(policy) {
+        await this.ready;
+        const settings = { ...mpvBufferingOptions(policy, this.userPaused), 'cache-secs': policy.preload === 'auto' || !this.userPaused ? '3600000' : '1' };
+        for (const [key, value] of Object.entries(settings))
+            await this.command('set', key, value);
+        this.options.buffering = policy;
+    }
+    get bufferingDiagnostics() { return resolveBuffering(this.options.buffering ?? bufferingPolicy(), 'mpv'); }
     async configureBuffering(preparing) { for (const [key, value] of Object.entries(mpvBufferingOptions(this.options.buffering ?? bufferingPolicy(), preparing)))
         await this.command('set', key, value); }
     async play() { await this.ready; if (this.options.buffering?.preload && this.options.buffering.preload !== 'auto')

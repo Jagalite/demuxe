@@ -80,6 +80,7 @@ export class ShakaBackend extends EventTarget implements Backend {
   private selectedSub='auto';
   private audioDisabled=false;
   private source?:RemoteSource;
+  private bufferingDefaults:Record<string,number>={};
   constructor(private video:HTMLVideoElement,private assetBase=new URL('../../../',import.meta.url),private buffering:BufferingPolicy=bufferingPolicy()) {
     super();this.native=new NativePlayer(video,'never',assetBase);
     for(const type of ['mpv','activity','error','log']) {
@@ -172,6 +173,7 @@ export class ShakaBackend extends EventTarget implements Backend {
       const observed=(event:Event)=>{const e=event as Event&{mediaQuality?:Record<string,unknown>;position?:number};if(e.mediaQuality&&Number.isFinite(e.position)){const q=e.mediaQuality,number=(v:unknown)=>typeof v==='number'&&Number.isFinite(v)?v:null;this.observedQuality={observation:'playhead-buffer',position:e.position!,contentType:String(q.contentType??'unknown'),width:number(q.width),height:number(q.height),bandwidth:number(q.bandwidth),codec:typeof q.codecs==='string'?q.codecs:null};changed();}};
       player.addEventListener('mediaqualitychanged',observed);this.listeners.push(()=>player.removeEventListener('mediaqualitychanged',observed));
       player.configure({streaming:{observeQualityChanges:true,preferNativeHls:false,preferNativeDash:false,useNativeHlsForFairPlay:false},abr:{enabled:!source.streaming?.representation},restrictions:{maxBandwidth:source.streaming?.maxBandwidth??Infinity}});
+      const defaults=player.getConfiguration().streaming;this.bufferingDefaults={bufferingGoal:defaults.bufferingGoal,bufferBehind:defaults.bufferBehind};
       player.configure({streaming:shakaBufferingOptions(this.buffering)});
       await player.attach(this.video);this.active();
       await player.load(source.url,undefined,source.format==='hls'?'application/x-mpegurl':'application/dash+xml');this.active();
@@ -246,7 +248,13 @@ export class ShakaBackend extends EventTarget implements Backend {
     }catch(error){player.configure({abr:old.abr,restrictions:old.restrictions});throw error;}
   }
   async seekToLive(){const player=this.loaded();if(!player.isDynamic())throw new PlayerError('UNSUPPORTED_FEATURE','The source is not live');player.goToLive();await this.native.seek(this.video.currentTime);this.refresh();}
-  async play(){this.active();if(this.buffering.preload!=='auto')this.player?.configure({streaming:{bufferingGoal:10,...shakaBufferingOptions(this.buffering,false)}});await this.native.play();}
+  async setBuffering(policy:BufferingPolicy){
+    this.active();
+    if(this.player?.configure({streaming:{...this.bufferingDefaults,...shakaBufferingOptions(policy,this.video.paused)}})===false)throw new PlayerError('INVALID_ARGUMENT','Shaka rejected buffering settings');
+    this.video.preload=policy.preload;this.buffering=policy;
+  }
+  get bufferingDiagnostics(){return {...resolveBuffering(this.buffering,'shaka'),settings:this.player?{bufferingGoal:this.player.getConfiguration().streaming.bufferingGoal,rebufferingGoal:this.player.getConfiguration().streaming.rebufferingGoal,bufferBehind:this.player.getConfiguration().streaming.bufferBehind}:{...this.bufferingDefaults,...shakaBufferingOptions(this.buffering,this.video.paused)}};}
+  async play(){this.active();if(this.buffering.preload!=='auto')this.player?.configure({streaming:{...this.bufferingDefaults,...shakaBufferingOptions(this.buffering,false)}});await this.native.play();}
   async pause(){this.active();await this.native.pause();}
   async seek(seconds:number){const range=this.loaded().seekRange();if(!Number.isFinite(seconds)||seconds<range.start-.01||seconds>range.end+.01)throw new PlayerError('INVALID_ARGUMENT','Seek target is outside the streaming seekable window');await this.native.seek(Math.max(range.start,Math.min(range.end,seconds)));}
   async rate(value:number){this.active();await this.native.rate(value);}

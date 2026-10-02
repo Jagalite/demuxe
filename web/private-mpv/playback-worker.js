@@ -209,7 +209,7 @@ onmessage = ({data}) => {
       host.audio.header()[6] = +contextRunning;
       host.audio.header()[5] = data.latencyUs ?? 0;host.audio.pump();result = true;
     } else if (data.op === 'seek') {
-      retained?.clear(data.seconds);
+      retained?.clear(data.seconds,engine.decoder?.service.generation);
       target = data.seconds;restarted = false;opening = false;targetDrawBaseline = host.draws;result = await submit([], data.seconds);
     } else if (data.op === 'resize') {
       if (!Number.isInteger(data.width) || !Number.isInteger(data.height) || data.width < 1 || data.height < 1 || data.width > 1920 || data.height > 1080) throw Error('Invalid dimensions');

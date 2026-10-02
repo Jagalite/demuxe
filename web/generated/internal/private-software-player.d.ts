@@ -63,6 +63,8 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     openRemote(source: RemoteSource): Promise<void>;
     private load;
     private syncContext;
+    setBuffering(policy: BufferingPolicy): Promise<void>;
+    get bufferingDiagnostics(): import("../types.js").BufferingResolution;
     private configureBuffering;
     play(): Promise<void>;
     pause(): Promise<void>;

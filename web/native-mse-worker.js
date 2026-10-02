@@ -38,6 +38,7 @@ self.onmessage=async({data})=>{
    if(refresh)source.refreshAuthorization=resource=>new Promise((resolve,reject)=>{const id=++refreshSequence,timer=setTimeout(()=>{refreshes.delete(id);reject(Error('Authorization refresh timed out'));},5000);refreshes.set(id,{resolve,reject,timer});postMessage({type:'refresh',id,resource});});
    value=await owner.open(source,target);
   }else if(data.method==='seek')value=await owner.seek(data.value);
+  else if(data.method==='setBuffering')value=await owner.setBuffering(data.value);
   else throw Error('Unknown MSE owner operation');
   postMessage({type:'reply',id:data.id,value,state:state()});
  }catch(error){postMessage({type:'reply',id:data.id,error:String(error),state:owner?state():undefined});}

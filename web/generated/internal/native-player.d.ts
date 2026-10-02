@@ -82,8 +82,12 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private textTrackId;
     private refresh;
     get planId(): string | undefined;
+    get bufferingUpdateSupported(): boolean;
+    setBuffering(policy: BufferingPolicy): Promise<void>;
     get bufferingDiagnostics(): {
         settings: Record<string, unknown>;
+        requestedAheadSeconds?: number;
+        requestedBehindSeconds?: number;
         requestedMemoryBudget?: number;
         requestedProfile: import("../types.js").BufferingProfile;
         preload: import("../types.js").PreloadPolicy;
@@ -99,6 +103,8 @@ export declare class NativePlayer extends EventTarget implements Backend {
     get diagnostics(): {
         buffering: {
             settings: Record<string, unknown>;
+            requestedAheadSeconds?: number;
+            requestedBehindSeconds?: number;
             requestedMemoryBudget?: number;
             requestedProfile: import("../types.js").BufferingProfile;
             preload: import("../types.js").PreloadPolicy;

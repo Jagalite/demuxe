@@ -9,7 +9,7 @@ try{
  const page=await browser.newPage({viewport:{width:1280,height:1000}});await page.goto(origin+'/examples/player-element.html');
  await page.evaluate(async()=>{window.element=document.querySelector('demuxe-player');const p=await element.ready;await p.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'preview.mp4'));await p.seek(1);});
  const timeline=page.locator('demuxe-player').first().locator('#timeline'),panel=page.locator('demuxe-player').first().locator('#thumbnail-preview');
- const box=await timeline.boundingBox();await page.mouse.move(box.x+box.width*.4,box.y+box.height/2);await panel.waitFor({state:'visible'});
+ const box=await timeline.boundingBox();await page.mouse.move(box.x+box.width*.4,box.y+box.height/2);await panel.waitFor({state:'visible'});await panel.locator('img').waitFor({state:'visible'});
  if(process.env.SCREENSHOT)await page.screenshot({path:process.env.SCREENSHOT});
  assert.match(await panel.innerText(),/≈/);assert.equal(await page.evaluate(()=>element.player.surface.currentTime),1);
  const cachedURL=await panel.locator('img').getAttribute('src');
@@ -31,17 +31,18 @@ try{
    for(let i=0;i<60;i++){
     timeline.dispatchEvent(new PointerEvent('pointermove',{pointerType:'mouse',clientX:rect.left+rect.width*(.1+i*.005),clientY:rect.top+rect.height/2}));
     await new Promise(resolve=>setTimeout(resolve,16));
-    if(!panel.hidden)shown++;else if(shown)blankAfterShown++;
+    if(!panel.hidden&&!panel.querySelector('img').hidden&&panel.querySelector('img').naturalWidth>0)shown++;else if(shown)blankAfterShown++;
    }
    const completedDuringMotion=completed,deadline=performance.now()+2000;
    // Provider idleness can precede image.decode() and the next queued UI sample.
-   while(performance.now()<deadline&&!/23:4[12]/.test(root.querySelector('#thumbnail-time').textContent))await new Promise(resolve=>setTimeout(resolve,10));
+   while(performance.now()<deadline&&(element.player.preview.diagnostics.active||element.player.preview.diagnostics.pending))await new Promise(resolve=>setTimeout(resolve,10));
    return {shown,blankAfterShown,completedDuringMotion,started,completed,cancelled,label:root.querySelector('#thumbnail-time').textContent};
   }finally{timeline.dispatchEvent(new PointerEvent('pointerleave',{pointerType:'mouse'}));remove();timeline.max=max;}
  });
  assert.ok(motion.shown>0,JSON.stringify(motion));assert.ok(motion.completedDuringMotion>=2,JSON.stringify(motion));
  assert.equal(motion.blankAfterShown,0);assert.equal(motion.cancelled,0);assert.ok(motion.started<30,JSON.stringify(motion));
- assert.match(motion.label,/23:4[12]/); // The latest pointer position represents about 1422 seconds.
+ const represented=/(\d+):(\d+)/.exec(motion.label);assert.ok(represented,JSON.stringify(motion));
+ assert.ok(Math.abs(Number(represented[1])*60+Number(represented[2])-1422)<=39,JSON.stringify(motion)); // Half a storyboard interval plus bucketing tolerance.
  // A stalled authored image must not block a subsequent resident preview. The
  // provider has already finished, so its request timeout cannot release the UI.
  await page.route('**/preview-hung.png',()=>{});
@@ -67,15 +68,15 @@ try{
  const sameImage=await page.evaluate(async()=>{
   const api=element.player.preview,root=element.shadowRoot;let shown=0;
   const remove=api.addProvider({id:'slow-image',priority:0,canHandle:()=>true,getFrame:async r=>({time:r.time,actualTime:r.time,width:1,height:1,path:'slow-image',image:{uris:[location.origin+'/preview-slow.png'],crop:{x:0,y:0,width:1,height:1}}})});
-  try{for(let i=0;i<30;i++){movePreview(2+i*.001);await new Promise(r=>setTimeout(r,16));if(!root.querySelector('#thumbnail-preview').hidden)shown++;}return shown;}
+  try{for(let i=0;i<30;i++){movePreview(2+i*.001);await new Promise(r=>setTimeout(r,16));if(!root.querySelector('#thumbnail-preview').hidden&&!root.querySelector('#thumbnail-preview img').hidden&&root.querySelector('#thumbnail-preview img').naturalWidth>0)shown++;}return shown;}
   finally{root.querySelector('#timeline').dispatchEvent(new PointerEvent('pointerleave'));remove();}
  });
  assert.ok(sameImage>0,'A resident image should become visible during motion within its bucket');assert.equal(imageLoads,1);
  await page.unroute('**/preview-slow.png');
  // A late authored provider cannot make a departed hover visible.
- await page.evaluate(()=>{window.lateCalls=0;window.remove=element.player.preview.addProvider({id:'late',priority:0,canHandle:()=>true,getFrame:r=>new Promise(resolve=>{lateCalls++;window.finishPreview=()=>resolve({time:0,actualTime:0,width:1,height:1,image:{blob:new Blob()},path:'late'});})});});
+ await page.evaluate(()=>{window.lateCalls=0;window.remove=element.player.preview.addProvider({id:'late',priority:0,canHandle:()=>true,getFrame:r=>new Promise(resolve=>{lateCalls++;window.lateSignal=r.signal;window.finishPreview=()=>resolve({time:0,actualTime:0,width:1,height:1,image:{blob:new Blob()},path:'late'});})});});
  await page.mouse.move(box.x+box.width*.7,box.y+box.height/2);await page.waitForFunction(()=>window.finishPreview);
- await page.mouse.move(box.x+box.width*.9,box.y+box.height/2);await page.mouse.move(box.x,box.y-150);await page.evaluate(()=>finishPreview());
+ await page.mouse.move(box.x+box.width*.9,box.y+box.height/2);await page.mouse.move(box.x,box.y-150);assert.equal(await page.evaluate(()=>lateSignal.aborted),true);await page.evaluate(()=>finishPreview());
  await page.waitForFunction(()=>!element.player.preview.diagnostics.active&&!element.player.preview.diagnostics.pending);assert.equal(await page.evaluate(()=>lateCalls),1);
  await page.evaluate(()=>remove());await panel.waitFor({state:'hidden'});
  // Source replacement and destruction release visible preview URLs.

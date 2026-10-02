@@ -10,7 +10,7 @@ export class AuthoredPreviewProvider implements PreviewProvider {
 /** Uses a separate muted media element and the browser's existing demux/decoder.
  * Local Blob inputs only: no uncontrolled second remote buffering stack. */
 export class LocalVideoPreviewProvider implements PreviewProvider {
-  readonly id='local-browser';readonly priority=40;
+  readonly id='local-browser';readonly priority=40;readonly requiresDecoder=true;readonly allowDuringPlayback=true;
   constructor(private source:()=>Blob|undefined,private document:Document,private maxDecodePixels=8294400){}
   canHandle(){return !!this.source();}
   async getFrame(request:PreviewContext):Promise<PreviewResult|null>{

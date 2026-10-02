@@ -66,8 +66,10 @@ export type BufferingOptions = {
     preload?: PreloadPolicy;
     profile?: BufferingProfile;
     memoryBudget?: number;
+    aheadSeconds?: number;
+    behindSeconds?: number;
 };
-export type BufferingPolicy = Readonly<Required<Pick<BufferingOptions, 'preload' | 'profile'>> & Pick<BufferingOptions, 'memoryBudget'>>;
+export type BufferingPolicy = Readonly<Required<Pick<BufferingOptions, 'preload' | 'profile'>> & Pick<BufferingOptions, 'memoryBudget' | 'aheadSeconds' | 'behindSeconds'>>;
 /** Playback-health heuristics only; operation, network and cleanup deadlines remain bounded. */
 export type WatchdogOptions = {
     nativeProgress?: boolean;
@@ -84,6 +86,8 @@ export type BufferingCapabilities = Readonly<{
     memoryBudget: boolean;
 }>;
 export type BufferingResolution = {
+    requestedAheadSeconds?: number;
+    requestedBehindSeconds?: number;
     requestedMemoryBudget?: number;
     requestedProfile: BufferingProfile;
     preload: PreloadPolicy;
@@ -105,12 +109,41 @@ export type PreviewPregeneration = readonly number[] | ({
     timestamps: readonly number[];
     every?: never;
     unit?: never;
+    samples?: never;
 } | {
     every: number;
     unit?: 'seconds' | 'minutes';
     timestamps?: never;
+    samples?: never;
+} | {
+    samples: number;
+    timestamps?: never;
+    every?: never;
+    unit?: never;
 }));
+/** Background scheduling; foreground hover requests remain available in every strategy. */
+export type PreviewStrategy = {
+    type: 'on-demand';
+} | {
+    type: 'uniform';
+    samples?: number;
+} | {
+    type: 'interval';
+    every?: number;
+    unit?: 'seconds' | 'minutes';
+    count?: number | null;
+} | {
+    type: 'adaptive';
+    samples?: number;
+    every?: number;
+    radius?: number;
+} | {
+    type: 'timestamps';
+    timestamps: readonly number[];
+    count?: number | null;
+};
 export type PreviewOptions = {
+    strategy?: PreviewStrategy;
     pregenerate?: PreviewPregeneration;
     enabled?: boolean;
     bucketSeconds?: number;
@@ -603,4 +636,24 @@ export type VideoSnapshot = Readonly<{
     mediaTime: number;
     actualTime: null;
     includesSubtitles: boolean;
+}>;
+/** Requested policy and backend-specific application, without collecting decoder diagnostics. */
+export type BufferingState = Readonly<{
+    active: boolean;
+    requested: BufferingPolicy;
+    effective: BufferingResolution;
+    capabilities: Readonly<{
+        runtimeUpdate: boolean;
+        timeTargets: boolean;
+        memoryBudget: boolean;
+        manualRanges: false;
+    }>;
+    buffered: readonly Readonly<{
+        start: number;
+        end: number;
+    }>[] | null;
+    cached: readonly Readonly<{
+        start: number;
+        end: number;
+    }>[] | null;
 }>;

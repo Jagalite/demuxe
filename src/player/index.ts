@@ -6,7 +6,7 @@ import {normalizeTrackPolicy} from '../internal/track-policy.js';
 import {watchdogPolicy} from '../internal/watchdogs.js';
 import type {WatchdogOptions,WatchdogPolicy} from '../types.js';
 import type {TrackPolicy,TrackTypePolicy} from '../types.js';
-import type {PreviewOptions, MediaSourceInput, OpenOptions, PlayerState, MediaTrack, SessionError, SubtitleOptions} from '../types.js';
+import type {PreviewOptions, PreviewStrategy, MediaSourceInput, OpenOptions, PlayerState, MediaTrack, SessionError, SubtitleOptions} from '../types.js';
 import {PlayerError, playerError} from '../internal/errors.js';
 import {formatTime, outputDimensions, shortcut} from './interaction.js';
 import {ScrubberPreview} from './preview.js';
@@ -17,7 +17,7 @@ import {playerShell} from './components.js';
 import {applyLayout, type PlayerLayout, type PlayerTheme, presentationStyles} from './presentation.js';
 export type {PlayerLayout, PlayerTheme} from './presentation.js';
 const Base = (typeof HTMLElement==='undefined'?class {}:HTMLElement) as typeof HTMLElement;
-export const defaultLabels = Object.freeze({appearance:'Appearance',layout:'Layout',theme:'Theme',classic:'Classic',modern:'Modern',playground:'Playground',demuxeTheme:'Demuxe',lightTheme:'Light',previews:'Timeline thumbnails',diagnostics:'Session diagnostics',moreOptions:'More options',back:'Seek backward 10 seconds',forward:'Seek forward 10 seconds',play:'Play',pause:'Pause',mute:'Mute',unmute:'Unmute',seek:'Playback position',volume:'Volume',settings:'Playback settings',closeSettings:'Close settings',speed:'Playback speed',audio:'Audio',subtitles:'Subtitles',automatic:'Automatic',off:'Off',fullscreen:'Fullscreen',exitFullscreen:'Exit fullscreen',open:'Open media',addSubtitle:'Add subtitles',empty:'Something good to watch?',drop:'Open a video or audio file from your device.',loading:'Opening media…',reading:'Reading media…',inspecting:'Inspecting media…',switching:'Updating playback…',seeking:'Seeking…',buffering:'Buffering…',live:'LIVE',unknown:'Unknown duration',retry:'Retry',resume:'Press Play to continue',shortcuts:'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen',noFullscreen:'Fullscreen is unavailable here. Open this page in a browser tab.',noWindow:'Live playback · seek window unavailable',openURL:'Open URL',closeMedia:'Close media',url:'Media URL',format:'Source format',streamLive:'Live stream',addFiles:'Add files',queue:'Queue',clearQueue:'Clear queue',previous:'Previous file',next:'Next file',remove:'Remove',unnamed:'Unnamed media',mediaFile:'Media file',noMedia:'No media loaded',loadedMedia:'Media loaded',subtitleFile:'Subtitle file'});
+export const defaultLabels = Object.freeze({appearance:'Appearance',layout:'Layout',theme:'Theme',classic:'Classic',modern:'Modern',playground:'Playground',demuxeTheme:'Demuxe',lightTheme:'Light',previews:'Timeline thumbnails',previewStrategy:'Thumbnail strategy',previewAdaptive:'Adaptive · nearby every 5s',previewUniform:'Evenly spaced · 48 samples',previewInterval:'Whole video · every 5s',previewOnDemand:'On hover only',previewCustom:'Custom',previewHelp:'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.',diagnostics:'Session diagnostics',moreOptions:'More options',back:'Seek backward 10 seconds',forward:'Seek forward 10 seconds',play:'Play',pause:'Pause',mute:'Mute',unmute:'Unmute',seek:'Playback position',volume:'Volume',settings:'Playback settings',closeSettings:'Close settings',speed:'Playback speed',audio:'Audio',subtitles:'Subtitles',automatic:'Automatic',off:'Off',fullscreen:'Fullscreen',exitFullscreen:'Exit fullscreen',open:'Open media',addSubtitle:'Add subtitles',empty:'Something good to watch?',drop:'Open a video or audio file from your device.',loading:'Opening media…',reading:'Reading media…',inspecting:'Inspecting media…',switching:'Updating playback…',seeking:'Seeking…',buffering:'Buffering…',live:'LIVE',unknown:'Unknown duration',retry:'Retry',resume:'Press Play to continue',shortcuts:'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen',noFullscreen:'Fullscreen is unavailable here. Open this page in a browser tab.',noWindow:'Live playback · seek window unavailable',openURL:'Open URL',closeMedia:'Close media',url:'Media URL',format:'Source format',streamLive:'Live stream',addFiles:'Add files',queue:'Queue',clearQueue:'Clear queue',previous:'Previous file',next:'Next file',remove:'Remove',unnamed:'Unnamed media',mediaFile:'Media file',noMedia:'No media loaded',loadedMedia:'Media loaded',subtitleFile:'Subtitle file'});
 export type PlayerLabels = Partial<Record<keyof typeof defaultLabels,string>>;
 export type PlayerTitleMode = 'auto' | 'custom' | 'source' | 'none';
 
@@ -279,8 +279,18 @@ export class DemuxePlayerElement extends Base {
     this.audioPlaybackConfiguration=value;
   }
   private previewConfiguration?:PreviewOptions|false;
+  private syncPreviewStrategy(){
+    const select=this.$('preview-strategy') as HTMLSelectElement,strategy=this.core?.preview.strategy;
+    let value='custom';
+    if(strategy?.type==='on-demand')value='on-demand';
+    else if(strategy?.type==='adaptive'&&strategy.samples===24&&strategy.every===5&&strategy.radius===30)value='adaptive';
+    else if(strategy?.type==='uniform'&&strategy.samples===48)value='uniform';
+    else if(strategy?.type==='interval'&&strategy.every===5&&strategy.unit==='seconds'&&strategy.count==null)value='interval';
+    select.value=value;select.disabled=!this.core?.preview.enabled;
+  }
   get previewOptions(){return this.previewConfiguration;}
   set previewOptions(value:PreviewOptions|false|undefined){if(this.core)throw new PlayerError('INVALID_ARGUMENT','previewOptions is fixed after initialization');this.previewConfiguration=value;}
+  private syncPreviewEnabled(){if(this.core)this.core.preview.enabled=this.previewThumbnails&&this.previewConfiguration!==false&&this.previewConfiguration?.enabled!==false;}
   get previewThumbnails(){return !this.hasAttribute('no-preview');}
   set previewThumbnails(value:boolean){this.toggleAttribute('no-preview',!value);}
   get controls(){return this.hasAttribute('controls');} set controls(value:boolean){this.toggleAttribute('controls',!!value);}
@@ -296,7 +306,7 @@ export class DemuxePlayerElement extends Base {
     for(const name of ['layout','theme','watchdogs','trackPolicy','previewOptions','previewThumbnails','assetBase','labels','controls','poster','autoplay','muted','title','titleMode','showSourceControls','showDiagnostics','allowFileDrop','seekStep','controlsAutoHideDelay','src'])if(Object.prototype.hasOwnProperty.call(this,name)){const value=(this as any)[name];delete (this as any)[name];(this as any)[name]=value;}
     if(this.core)return;
     this.connecting=(async()=>{await this.cleanup;if(!this.isConnected||token!==this.connection||this.terminal)return;
-      try {this.configuredAsset=this.getAttribute('asset-base');const core=this.core=new Player(this.$('surface'),{assetBase:this.assetBase,watchdogs:this.watchdogConfiguration,audioPlayback:this.audioPlaybackConfiguration,preview:this.previewConfiguration,prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});core.presentation.setFullscreenTarget(this);this.dimensions='';this.trackSignature='';
+      try {this.configuredAsset=this.getAttribute('asset-base');const core=this.core=new Player(this.$('surface'),{assetBase:this.assetBase,watchdogs:this.watchdogConfiguration,audioPlayback:this.audioPlaybackConfiguration,preview:this.previewConfiguration??{strategy:{type:'adaptive'},maxEntries:96,maxCacheBytes:16*1024*1024},prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});this.syncPreviewEnabled();core.presentation.setFullscreenTarget(this);this.dimensions='';this.trackSignature='';
         for(const type of [...PLAYER_EVENTS,'preparationchange','inspectionchange','mpv','log','source','output'])core.addEventListener(type,event=>{
           if(this.core!==core||this.terminal)return;const detail=(event as CustomEvent).detail;
           if(type==='inspectionchange'&&core.state.pendingOperation?.kind==='opening'){this.openingStage=detail.phase==='reading'?this.labels.reading:this.labels.inspecting;this.update(core.state);}
@@ -323,7 +333,7 @@ export class DemuxePlayerElement extends Base {
     if(old===value||this.reflected||this.terminal)return;
     if(name==='layout'){this.updatePresentation();return;}
     if(name==='theme'){this.$('shell').dataset.theme=this.theme;this.syncAppearance();return;}
-    if(name==='no-preview'){this.input('preview-toggle').checked=this.previewThumbnails;if(!this.previewThumbnails)this.hoverPreview.hide();}
+    if(name==='no-preview'){this.syncPreviewEnabled();this.input('preview-toggle').checked=this.previewThumbnails;if(!this.previewThumbnails)this.hoverPreview.hide();}
     if(name==='title'||name==='title-mode')this.updateTitle();
     if(name==='asset-base'&&this.core){this.reflected=true;if(this.configuredAsset===null)this.removeAttribute(name);else this.setAttribute(name,this.configuredAsset);this.reflected=false;this.componentError(new PlayerError('INVALID_ARGUMENT','asset-base is fixed after initialization'));return;}
     if(name==='controls'&&!this.controls){const focused=this.shadowRoot?.activeElement;const moveFocus=!!focused&&['topbar','controls','transport','settings','diagnostics-overlay'].some(id=>this.$(id).contains(focused));this.settings(false,false);this.setDiagnostics(false);if(moveFocus)this.$('stage').focus({preventScroll:true});}
@@ -376,8 +386,9 @@ export class DemuxePlayerElement extends Base {
   private announce(text:string,visual=true){this.$('status').classList.toggle('sr',!visual);if(text===this.lastAnnouncement)return;this.lastAnnouncement=text;this.$('status').textContent=text;}
   private geometry(state:PlayerState){const ratio=state.mediaInfo.aspectRatio;if(!ratio){this.$('stage').style.removeProperty('--media-aspect');return;}this.$('stage').style.setProperty('--media-aspect',String(ratio));if(state.pendingOperation)return;const {width,height}=outputDimensions(ratio),key=`${width}x${height}`;if(this.dimensions!==key){this.dimensions=key;this.core?.resize(width,height);}}
   private update(state:PlayerState){
+    this.syncPreviewStrategy();
     applyLayout(this.shadowRoot!,this.layout,!!state.sourceId);
-    const identity=`${state.sourceId}:${state.activeMode}`;if(identity!==this.previewIdentity||state.pendingOperation||!this.controls){this.hoverPreview.hide();this.previewIdentity=identity;}
+    const identity=`${state.sourceId}:${state.activeMode}`;if(identity!==this.previewIdentity||state.pendingOperation||!this.controls||!state.seekable?.length){this.dragging=false;this.hoverPreview.hide();this.previewIdentity=identity;}
     // A host using the core directly owns its source list; release ours on replacement.
     if(!this.queueOperation&&this.queueSourceId!==null&&this.queueSourceId!==state.sourceId)this.resetQueue();
     this.renderQueue();
@@ -411,6 +422,11 @@ export class DemuxePlayerElement extends Base {
     const activity=state.pendingOperation?.kind==='opening'?(phase?preparationText:this.openingStage||labels.loading):state.pendingOperation?.kind==='switching'?labels.switching:state.pendingOperation?.kind==='seeking'?labels.seeking:state.status==='buffering'?labels.buffering:'';
     const pill=activity||(!state.sourceId?preparationText:'');
     this.$('busy').hidden=!pill||seeking||buffering;this.$('busy').textContent=pill;
+    // Preparation status shares the toolbar's alignment and responsive padding.
+    // Keep playback activity in the stage, including when controls are hidden.
+    const busy=this.$('busy'),inToolbar=!state.sourceId&&this.controls;
+    if(inToolbar&&busy.parentElement!==this.$('topbar'))this.$('title').after(busy);
+    else if(!inToolbar&&busy.parentElement!==this.$('stage'))this.$('stage').append(busy);
     this.$('busy').dataset.complete=String(!activity&&!phase);
     this.$('busy').setAttribute('aria-label',preparation.length&&!activity?preparation.map(a=>`${names[a.name]}: ${a.status}`).join('; '):pill);
     if(!this.lastFailure)this.announce(activity||(!state.sourceId?preparationText:'')||(state.streamType==='live'&&!window?.length?labels.noWindow:''),!pill);
@@ -452,10 +468,13 @@ export class DemuxePlayerElement extends Base {
     if(!list.some(t=>t.selected)&&policy?.allowOff!==false)select.value='';
     select.disabled=!!policy?.locked||!list.length;select.title=select.selectedOptions[0]?.textContent??'';
   }
-  private settings(open:boolean,restoreFocus=true,trigger:'open-menu'|'settings-toggle'='settings-toggle'){if(open&&trigger==='open-menu'&&!this.showSourceControls)return;if(open)this.menuTrigger=trigger;this.revealControls();this.$('settings').hidden=!open;this.$('shell').classList.toggle('menu-open',open);if(open){const source=this.menuTrigger==='open-menu';this.$('source-options').hidden=!source;this.$('playback-options').hidden=source;this.$('settings-title').textContent=source?this.labels.open:this.labels.settings;this.$('settings').classList.toggle('source-menu',source);this.$('settings').scrollTop=0;}this.$('open-menu').setAttribute('aria-expanded',String(open&&this.menuTrigger==='open-menu'));this.iconButton('open-menu',open&&this.menuTrigger==='open-menu'?'folderOpen':'folder',this.labels.open);this.$('settings-toggle').setAttribute('aria-expanded',String(open&&this.menuTrigger==='settings-toggle'));if(open)this.$('settings-close').focus();else if(restoreFocus)this.$(this.menuTrigger).focus();}
+  private settings(open:boolean,restoreFocus=true,trigger:'open-menu'|'settings-toggle'='settings-toggle'){if(open&&trigger==='open-menu'&&!this.showSourceControls)return;if(open)this.menuTrigger=trigger;this.revealControls();this.$('settings').hidden=!open;this.$('shell').classList.toggle('menu-open',open);if(open){const source=this.menuTrigger==='open-menu';this.$('source-options').hidden=!source;this.$('playback-options').hidden=source;this.$('settings-title').textContent=source?this.labels.open:this.labels.settings;this.$('settings').classList.toggle('source-menu',source);this.$('settings').scrollTop=0;}this.$('open-menu').setAttribute('aria-expanded',String(open&&this.menuTrigger==='open-menu'));this.iconButton('open-menu',open&&this.menuTrigger==='open-menu'?'folderOpen':'folder',this.labels.open);this.$('settings-toggle').setAttribute('aria-expanded',String(open&&this.menuTrigger==='settings-toggle'));if(open){this.syncPreviewStrategy();this.$('settings-close').focus();}else if(restoreFocus)this.$(this.menuTrigger).focus();}
   private fullscreen(){const active=document.fullscreenElement===this;const request=active?this.core?.presentation.exitFullscreen():this.core?.presentation.requestFullscreen();if(!request){this.announce(this.labels.noFullscreen);return;}void request.then(()=>{this.fullscreenChanged();},()=>this.announce(this.labels.noFullscreen));}
   private iconButton(id:string,icon:keyof typeof icons,label:string){const button=this.$(id);if(button.dataset.icon!==icon){button.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${icons[icon]}</svg>`;button.dataset.icon=icon;}if(icon==='back'||icon==='forward')button.querySelector('text')!.textContent=String(this.seekStep);button.classList.add('icon-button');button.setAttribute('aria-label',label);button.setAttribute('title',label);}
   private labelControls(){
+    this.$('preview-help').textContent=this.labels.previewHelp;
+    this.$('preview-strategy-label').textContent=this.labels.previewStrategy;
+    for(const [value,key] of [['adaptive','previewAdaptive'],['uniform','previewUniform'],['interval','previewInterval'],['on-demand','previewOnDemand'],['custom','previewCustom']] as const)this.$('preview-strategy').querySelector<HTMLOptionElement>(`option[value="${value}"]`)!.textContent=this.labels[key];
     for(const key of ['appearance','layout','theme'] as const)this.$(key+'-label').textContent=this.labels[key];
     for(const [id,keys] of [['layout-select',['classic','modern','playground']],['theme-select',['demuxeTheme','lightTheme']]] as const)
       Array.from((this.$(id) as HTMLSelectElement).options).forEach((option,index)=>option.textContent=this.labels[keys[index]]);
@@ -480,7 +499,8 @@ export class DemuxePlayerElement extends Base {
     this.$('settings-toggle').onclick=()=>this.settings(this.$('settings').hidden||this.menuTrigger!=='settings-toggle',true,'settings-toggle');this.$('settings-close').onclick=()=>this.settings(false);
     this.$('layout-select').onchange=()=>{this.layout=(this.$('layout-select') as HTMLSelectElement).value as PlayerLayout;};
     this.$('theme-select').onchange=()=>{this.theme=(this.$('theme-select') as HTMLSelectElement).value as PlayerTheme;};
-    this.input('preview-toggle').onchange=()=>{this.previewThumbnails=this.input('preview-toggle').checked;};
+    this.input('preview-toggle').onchange=()=>{this.previewThumbnails=this.input('preview-toggle').checked;this.syncPreviewStrategy();};
+    (this.$('preview-strategy') as HTMLSelectElement).onchange=()=>{const type=(this.$('preview-strategy') as HTMLSelectElement).value;if(this.core&&['adaptive','uniform','interval','on-demand'].includes(type))this.core.preview.setStrategy({type} as PreviewStrategy);this.syncPreviewStrategy();};
     this.$('speed').onchange=()=>this.run(this.setPlaybackRate(Number((this.$('speed') as HTMLSelectElement).value)));
     this.$('audio').onchange=()=>this.run(this.selectAudioTrack((this.$('audio') as HTMLSelectElement).value||null));
     this.$('subtitles').onchange=()=>this.run(this.selectSubtitleTrack((this.$('subtitles') as HTMLSelectElement).value||null));

@@ -35,3 +35,50 @@ test('non-auto preload preserves synchronous audio resume for a user gesture',as
  const playing=p.play();assert.equal(calls[0],'resume','resume must be invoked in the caller activation task');
  await Promise.resolve();release();await playing;assert.deepEqual(calls,['resume','configure',['pause',false]]);
 });
+
+test('custom time targets apply only to adapters that own time scheduling',()=>{
+ const p=bufferingPolicy({aheadSeconds:30,behindSeconds:10});
+ assert.equal(resolveBuffering(p,'remux').forwardSeconds,30);
+ assert.equal(resolveBuffering(p,'remux').backwardSeconds,10);
+ assert.deepEqual(shakaBufferingOptions(p,false),{bufferingGoal:30,bufferBehind:10});
+ for(const backend of ['browser','mpv']){
+  const r=resolveBuffering(p,backend);assert.equal(r.requestedAheadSeconds,30);assert.equal(r.forwardSeconds,undefined);
+ }
+ for(const input of [{strategy:'manual'},{aheadSeconds:0},{aheadSeconds:Infinity},{behindSeconds:-1},{behindSeconds:121}])assert.throws(()=>bufferingPolicy(input),e=>e.code==='INVALID_ARGUMENT');
+});
+
+test('public buffering updates replace policy, serialize and roll back without source replacement',async()=>{
+ const {unitPlayer}=await import('./helpers/unit-player.mjs');const p=unitPlayer(),calls=[];
+ const backend={setBuffering:async policy=>{calls.push(policy.profile);if(policy.profile==='resilient')throw Error('rejected');},get bufferingDiagnostics(){return resolveBuffering(p.buffering,'browser');}};
+ p.current={backend};p.settings.pause=true;
+ await p.setBuffering({profile:'low-latency',aheadSeconds:20});
+ assert.equal(p.getBuffering().requested.aheadSeconds,20);assert.equal(p.getBuffering().capabilities.timeTargets,false);
+ assert.equal(p.current.backend,backend);assert.equal(p.pendingOperation,null);assert.equal(p.settings.pause,true);
+ await assert.rejects(p.setBuffering({profile:'resilient'}),/rejected/);
+ assert.deepEqual(calls,['low-latency','resilient','low-latency']);assert.equal(p.getBuffering().requested.profile,'low-latency');
+ const snapshot=p.getBuffering();assert.ok(Object.isFrozen(snapshot.requested));assert.ok(Object.isFrozen(snapshot.effective.notes));
+ await p.setBuffering({});assert.deepEqual(p.getBuffering().requested,{preload:'auto',profile:'balanced'});
+ backend.bufferingUpdateSupported=false;assert.equal(p.getBuffering().capabilities.runtimeUpdate,false);
+ await assert.rejects(p.setBuffering({profile:'resilient'}),e=>e.code==='UNSUPPORTED_FEATURE');
+ assert.equal(p.buffering.profile,'balanced');
+});
+
+test('mpv runtime updates reset preload throttling when returning to auto',async()=>{
+ const {WasmPlayer}=await import('../web/generated/internal/wasm-player.js');
+ const {PrivateSoftwarePlayer}=await import('../web/generated/internal/private-software-player.js');
+ for(const [Class,extra] of [[WasmPlayer,{properties:new Map([['pause',true]]),bufferingSettings:{}}],[PrivateSoftwarePlayer,{ready:Promise.resolve(),options:{},userPaused:true}]]){
+  const calls=[];const p=Object.assign(Object.create(Class.prototype),extra,{command:async(...args)=>calls.push(args)});
+  await p.setBuffering(bufferingPolicy({preload:'metadata'}));assert.deepEqual(calls.at(-1),['set','cache-secs','1']);
+  await p.setBuffering(bufferingPolicy());assert.deepEqual(calls.at(-1),['set','cache-secs','3600000']);
+  assert.equal(p.bufferingDiagnostics.preload,'auto');
+ }
+});
+
+test('native runtime updates change hints and reject providers without update support',async()=>{
+ const {NativePlayer}=await import('../web/generated/internal/native-player.js');
+ const video={preload:'auto'},p=Object.assign(Object.create(NativePlayer.prototype),{video,buffering:bufferingPolicy()});
+ await p.setBuffering(bufferingPolicy({preload:'metadata'}));assert.equal(video.preload,'metadata');
+ p.remux={};assert.equal(p.bufferingUpdateSupported,false);
+ await assert.rejects(p.setBuffering(bufferingPolicy()),e=>e.code==='UNSUPPORTED_FEATURE');assert.equal(video.preload,'metadata');
+ let received;p.remux={setBuffering:async value=>received=value};await p.setBuffering(bufferingPolicy({aheadSeconds:25}));assert.equal(received.forwardSeconds,25);
+});

@@ -2,12 +2,14 @@
 import {drawRetainedVideo} from '../retained-video.js';
 import {SubtitleOverlay} from '../subtitle-overlay.js';
 export class PrivateRetainedPresentation {
-  constructor(){this.frames=new Map();this.overlay=new SubtitleOverlay();this.generation=-1;this.serial=-1;this.awaiting=true;
+  constructor(){this.frames=new Map();this.overlay=new SubtitleOverlay();this.generation=-1;this.serial=-1;this.awaiting=true;this.epoch=0;
     this.stats={received:0,presented:0,closed:0,dropped:0,peakFrames:0};}
   closeFrame(frame){frame.close();this.stats.closed++;}
   enqueue(frame,generation){
     this.stats.received++;
-    if(generation<this.generation){this.closeFrame(frame);return;}
+    // Seek invalidates the decoder epoch, including frames delivered after
+    // clear but before the native decoder reset has completed.
+    if(generation<this.generation||this.seekGeneration!==undefined&&generation<=this.seekGeneration){this.closeFrame(frame);this.stats.dropped++;return;}
     if(generation>this.generation){this.clear(this.seekTarget);this.generation=generation;}
     const pts=frame.timestamp;
     if(!Number.isSafeInteger(pts))throw Error('Invalid retained frame timestamp');
@@ -20,7 +22,10 @@ export class PrivateRetainedPresentation {
     this.frames.set(pts,frame);this.stats.peakFrames=Math.max(this.stats.peakFrames,this.frames.size+(this.held?1:0));
   }
   async select(engine,properties){
+    const epoch=this.epoch;
     const ptr=await engine.call('web_selected_snapshot');
+    // A suspended snapshot cannot claim frames installed by a later clear.
+    if(epoch!==this.epoch)return;
     const memory=engine.raw.memory.buffer,view=new DataView(memory,ptr,32);
     const pts=view.getFloat64(0,true),delay=view.getFloat64(8,true),serial=view.getInt32(16,true),subtitle=view.getUint32(24,true),composites=view.getInt32(28,true);
     if(!Number.isFinite(pts)||pts<0)return;
@@ -49,7 +54,8 @@ export class PrivateRetainedPresentation {
     drawRetainedVideo(context,pending.frame,canvas,pending.track);this.overlay.draw(context,pending.overlay);
     this.pending=null;this.stats.presented++;return true;
   }
-  clear(seekTarget){
+  clear(seekTarget,seekGeneration=this.generation){
+    this.epoch++;this.seekGeneration=seekTarget===undefined?undefined:seekGeneration;
     for(const frame of this.frames.values())this.closeFrame(frame);this.frames.clear();
     if(this.held)this.closeFrame(this.held);this.held=null;this.pending=null;this.serial=-1;this.awaiting=true;this.seekTarget=seekTarget;this.overlay.clear();
   }

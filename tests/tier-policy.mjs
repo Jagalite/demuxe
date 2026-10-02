@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {TierAttempts,preferredPlans} from '../web/generated/internal/tier-policy.js';
 import {planAdmission,executionPlan} from '../web/generated/internal/playback-plans.js';
-import {Player} from '../web/generated/unified-player.js';
+import {unitPlayer} from './helpers/unit-player.mjs';
 import {PlayerError} from '../web/generated/internal/errors.js';
 test('negative evidence is isolated by source, settings and plan, expires and stays bounded',()=>{
  const history=new TierAttempts(),a={},b={};history.failure(a,'captions','native','unsupported',0);
@@ -19,7 +19,7 @@ test('promotion never retries the accepted or lower ranked plans',()=>{
  assert.deepEqual(preferredPlans(plans,'hybrid'),[]);assert.deepEqual(preferredPlans(plans,'absent'),[]);
 });
 test('playback decode failure retires only the failed native plan before retrying other native plans',async()=>{
- const p=Object.create(Player.prototype),source={},failures=new TierAttempts(),selected=[];
+ const p=unitPlayer(),source={},failures=new TierAttempts(),selected=[];
  Object.assign(p,{source,automatic:true,currentMode:'native',destroyed:false,queued:0,
   current:{backend:{properties:new Map(),diagnostics:{plan:'direct'},play:async()=>{throw new PlayerError('DECODE_FAILED','Missing selected audio');},verifyOutput:async()=>{},pause:async()=>{}}},
   settings:{pause:true},nativeRemux:'never',nativeTracks:[],tierAttempts:failures,

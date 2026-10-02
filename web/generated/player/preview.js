@@ -13,6 +13,7 @@ export class ScrubberPreview {
     presentingImage;
     pending;
     displayedImage;
+    hoverSerial = 0;
     serial = 0;
     url;
     move = (event) => {
@@ -32,8 +33,12 @@ export class ScrubberPreview {
         this.panel.style.left = `${Math.max(half, Math.min(parent.width - half, event.clientX - parent.left))}px`;
         // Sample continuous motion without repeatedly cancelling the decoder before
         // it can produce an image. Only the latest waiting position is retained.
-        this.pending = { api, time };
-        void this.next();
+        if (this.panel.hidden) {
+            this.image.hidden = true;
+            this.label.textContent = `${formatTime(time)} · …`;
+            this.panel.hidden = false;
+        }
+        void this.sample(api, time, ++this.hoverSerial);
     };
     constructor(timeline, panel, image, label, api) {
         this.timeline = timeline;
@@ -45,6 +50,44 @@ export class ScrubberPreview {
         timeline.addEventListener('pointerleave', this.hide);
         timeline.addEventListener('pointercancel', this.hide);
     }
+    get maxDistance() {
+        const strategy = this.api()?.strategy, span = Number(this.timeline.max) - Number(this.timeline.min);
+        if (strategy?.type === 'interval')
+            return (strategy.every ?? 5) * (strategy.unit === 'minutes' ? 60 : 1) / 2 + 1;
+        if (strategy?.type === 'adaptive' || strategy?.type === 'uniform')
+            return span / (2 * (strategy.samples ?? (strategy.type === 'adaptive' ? 24 : 48))) + 1;
+        if (strategy)
+            return 1;
+        return span / 96 + 1;
+    }
+    distanceForGeneration(api) { return api.strategy?.type === 'adaptive' ? (api.strategy.every ?? 5) / 2 + 1 : this.maxDistance; }
+    async sample(api, time, serial) {
+        // Cache lookup bypasses an unrelated slow decode without cancelling it on
+        // every mouse movement. A hit can be painted as soon as the image is ready.
+        try {
+            const frame = await api.getFrame({ time, width: 240, height: 135, maxDistance: this.maxDistance, cacheOnly: true });
+            if (serial !== this.hoverSerial)
+                return;
+            if (frame) {
+                this.serial++;
+                this.pending = undefined;
+                void this.show(frame);
+                // Show broad coverage immediately, then refine an adaptive hover to
+                // the five-second neighborhood instead of leaving a distant sample.
+                if (api.strategy?.type === 'adaptive' && Math.abs(frame.time - time) > this.distanceForGeneration(api)) {
+                    this.pending = { api, time };
+                    void this.next();
+                }
+                return;
+            }
+        }
+        catch {
+            if (serial !== this.hoverSerial)
+                return;
+        }
+        this.pending = { api, time };
+        void this.next();
+    }
     async next() {
         if (this.controller || !this.pending)
             return;
@@ -52,7 +95,7 @@ export class ScrubberPreview {
         this.pending = undefined;
         const controller = this.controller = new AbortController(), serial = ++this.serial;
         try {
-            const frame = await api.getFrame({ time, width: 240, height: 135, signal: controller.signal });
+            const frame = await api.getFrame({ time, width: 240, height: 135, signal: controller.signal, maxDistance: this.distanceForGeneration(api) });
             if (controller.signal.aborted || serial !== this.serial)
                 return;
             // Image downloads must not hold the generation lane: the next result can
@@ -80,6 +123,11 @@ export class ScrubberPreview {
         this.presentation?.abort();
         const controller = this.presentation = new AbortController();
         this.presentingImage = frame.image;
+        // Provider completion does not bound the separate image download/decode.
+        const deadline = setTimeout(() => { if (this.presentation === controller)
+            this.clearImage(); }, 5000);
+        const cancelDeadline = () => clearTimeout(deadline);
+        controller.signal.addEventListener('abort', cancelDeadline, { once: true });
         try {
             if (frame.image !== this.displayedImage) {
                 const blob = await previewImageBlob(frame.image, controller.signal);
@@ -97,6 +145,7 @@ export class ScrubberPreview {
                     const previous = this.url;
                     this.url = url;
                     this.image.src = url;
+                    this.image.hidden = false;
                     this.displayedImage = frame.image;
                     if (previous)
                         URL.revokeObjectURL(previous);
@@ -118,6 +167,8 @@ export class ScrubberPreview {
                 this.clearImage();
         }
         finally {
+            clearTimeout(deadline);
+            controller.signal.removeEventListener('abort', cancelDeadline);
             if (this.presentation === controller) {
                 this.presentation = undefined;
                 this.presentingImage = undefined;
@@ -126,6 +177,6 @@ export class ScrubberPreview {
     }
     clearImage() { this.presentation?.abort(); this.presentation = undefined; this.presentingImage = undefined; this.panel.hidden = true; this.image.removeAttribute('src'); if (this.url)
         URL.revokeObjectURL(this.url); this.url = undefined; this.displayedImage = undefined; }
-    hide = () => { this.serial++; this.pending = undefined; this.controller?.abort(); this.controller = undefined; this.clearImage(); };
+    hide = () => { this.hoverSerial++; this.serial++; this.pending = undefined; this.controller?.abort(); this.controller = undefined; this.clearImage(); };
     destroy() { this.hide(); this.timeline.removeEventListener('pointermove', this.move); this.timeline.removeEventListener('pointerleave', this.hide); this.timeline.removeEventListener('pointercancel', this.hide); }
 }

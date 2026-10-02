@@ -58,6 +58,7 @@ export class WorkerRemuxController {
    }
   }finally{this.starting=false;}
  }
+ async setBuffering(policy){if(this.local)await this.local.setBuffering(policy);else await this.call('setBuffering',policy);this.options.buffering={...policy};}
  async seek(target){if(this.local)return this.local.seek(target);this.starting=true;try{return await this.call('seek',target);}finally{this.starting=false;}}
  get generation(){return this.local?.generation??this.state.generation??0;}
  get waitingForMedia(){return this.local?.waitingForMedia??this.state.waitingForMedia;}

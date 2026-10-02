@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { RemoteSource, TextTrackSource, TrackType, SubtitleAsset, MediaInputOptions } from '../types.js';
 export interface Backend extends EventTarget {
+    readonly bufferingUpdateSupported?: boolean;
+    setBuffering?(policy: import('../types.js').BufferingPolicy): Promise<void>;
     setWatchdogs?(policy: import('../types.js').WatchdogPolicy): void;
     nativeProgressSample?(): import('./watchdogs.js').NativeProgressSample;
     previewFrame?(request: import('../preview/controller.js').PreviewContext): Promise<import('../preview/controller.js').PreviewResult | null>;

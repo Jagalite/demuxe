@@ -66,6 +66,7 @@ export class Player extends EventTarget {
     outputDeviceId = '';
     sourceSerial = 0;
     latestSeek;
+    playRequests = new Set();
     playbackRange = null;
     loopPolicy = false;
     boundaryPending = false;
@@ -147,7 +148,9 @@ export class Player extends EventTarget {
                 finally {
                     this.promotionRunning = false;
                 }
-            }, 'switching', controller.signal, true).catch(() => { }).finally(() => { if (this.promotionController === controller)
+                // Inspection and a no-op preference check keep the accepted session paused.
+                // replace() publishes switching only when an actual handoff begins.
+            }, null, controller.signal, true).catch(() => { }).finally(() => { if (this.promotionController === controller)
                 this.promotionController = undefined; });
         }, 200);
     }
@@ -161,7 +164,8 @@ export class Player extends EventTarget {
             if (plan.browserCapability)
                 plan.browserCapability.decodingInfo = this.mediaCapabilityQueries.cached(plan.browserCapability, inspected.probe);
         this.schedulePublish();
-        this.schedulePromotion();
+        if (!this.settings.pause || this.backgroundPromotion)
+            this.schedulePromotion();
     });
     sourceInspection;
     fastInspectedSource;
@@ -531,8 +535,10 @@ export class Player extends EventTarget {
             cached: this.current && this.mode !== 'native' ? cachedRanges(cache?.['seekable-ranges']) : null,
             timing: this.getTimingSettings(), loop: this.getLoop(), playbackRange: this.getPlaybackRange(), streaming: this.getStreamingState(), audioOutputDevice: this.outputDeviceId, trackPolicy: this.trackPolicy, audioTracks: list.filter(t => t.type === 'audio'), subtitleTracks: list.filter(t => t.type === 'subtitle'), mediaInfo: mediaInfo(p, this.mode, this.surface, list, this.current ? this.sourceSerial : null), capabilities: caps, error: this.sessionError };
         // Priority can change even when the externally visible snapshot is identical.
+        this.#previewController.setPlaybackActive(!this.settings.pause);
         this.#previewController.setSuspended(this.busy || !!this.activeOperation || this.previewBuffering());
         this.#previewController.setDuration(this.current && !this.busy && streamType === 'vod' ? duration : null);
+        this.#previewController.setPlaybackPosition(next.currentTime);
         if (previous && JSON.stringify(previous) === JSON.stringify(next))
             return;
         this.statistics.observe(next);
@@ -602,6 +608,39 @@ export class Player extends EventTarget {
         }
         return { videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native' || ['remux-mpv', 'direct-mpv'].includes(backendPlan(this.current?.backend) ?? ''), externalTextTracks: this.mode === 'native', externalSubtitles: true, customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: backendPlan(this.current?.backend) === 'shaka-mse' || this.mode !== 'native' || (this.nativeRemux !== 'never' && this.canInspectFFmpeg && typeof MediaSource !== 'undefined') };
     }
+    /** Replace the buffering policy without reopening the source. Omitted fields use defaults. */
+    setBuffering(options) {
+        let next;
+        try {
+            next = bufferingPolicy(options);
+        }
+        catch (error) {
+            return Promise.reject(error);
+        }
+        return this.enqueue(async () => {
+            const backend = this.current?.backend, previous = this.buffering;
+            if (backend && (!backend.setBuffering || backend.bufferingUpdateSupported === false))
+                throw new PlayerError('UNSUPPORTED_FEATURE', 'This backend cannot update buffering at runtime');
+            if (backend)
+                try {
+                    await backend.setBuffering(next);
+                }
+                catch (error) {
+                    try {
+                        await backend.setBuffering(previous);
+                    }
+                    catch {
+                        throw new PlayerError('DECODE_FAILED', 'Buffering update and rollback failed; backend settings may be partially applied');
+                    }
+                    throw error;
+                }
+            this.buffering = next;
+        });
+    }
+    getBuffering() {
+        const effective = this.bufferingResolution(), backend = effective.backend;
+        return freeze({ active: !!this.current, requested: { ...this.buffering }, effective: structuredClone(effective), capabilities: { runtimeUpdate: !this.current || (!!this.current.backend.setBuffering && this.current.backend.bufferingUpdateSupported !== false), timeTargets: backend === 'remux' || backend === 'shaka', memoryBudget: backend === 'remux' || backend === 'mpv', manualRanges: false }, buffered: this.stateSnapshot?.buffered?.map(range => ({ ...range })) ?? null, cached: this.stateSnapshot?.cached?.map(range => ({ ...range })) ?? null });
+    }
     bufferingResolution() {
         const cheap = this.current?.backend.bufferingDiagnostics;
         if (cheap)
@@ -611,7 +650,7 @@ export class Player extends EventTarget {
     }
     get diagnostics() {
         const backend = this.current?.backend.diagnostics;
-        return redact({ remuxRuntime: this.remuxSelection, watchdogs: this.watchdogConfiguration, preview: this.preview.diagnostics, buffering: backend?.buffering ?? this.bufferingResolution(), mode: this.mode, plan: this.current ? executionPlan(this.mode, backend?.plan, this.settings.af, this.settings.gain, !!backend?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, backend });
+        return redact({ remuxRuntime: this.remuxSelection, watchdogs: this.watchdogConfiguration, preview: this.preview.diagnostics, buffering: this.bufferingResolution(), mode: this.mode, plan: this.current ? executionPlan(this.mode, backend?.plan, this.settings.af, this.settings.gain, !!backend?.subtitleOverlay) : undefined, planAdmission: this.planDecisions, runtimeCapabilities: this.runtimeCapabilities.snapshot(), selection: { automatic: this.automatic, attempts: this.attempts.map(a => ({ ...a })) }, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain: this.settings.gain, toneMapping: this.toneMapping, resourceLimits: { ...this.resourceLimits }, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, backend });
     }
     getStreamingState() {
         const raw = this.current?.backend.streamingState?.();
@@ -2083,18 +2122,31 @@ export class Player extends EventTarget {
         return this.enqueue(async () => { if (this.current)
             await action(this.current.backend); update(); });
     }
-    async playNativeVerified(backend, playing = backend.play(), outputBudgetMs) {
+    async playNativeVerified(backend, playing = backend.play(), outputBudgetMs, intent) {
         const controller = new AbortController();
-        const verification = backend.verifyOutput(controller.signal, outputBudgetMs);
+        const signals = [intent, this.activeOperation?.controller.signal].filter((signal) => !!signal);
+        const abort = () => controller.abort();
+        for (const signal of signals) {
+            signal.addEventListener('abort', abort, { once: true });
+            if (signal.aborted)
+                abort();
+        }
+        let verification;
         try {
+            verification = backend.verifyOutput(controller.signal, outputBudgetMs);
             await Promise.all([playing, verification]);
         }
         finally {
+            for (const signal of signals)
+                signal.removeEventListener('abort', abort);
             controller.abort();
-            await verification.catch(() => { });
+            await verification?.catch(() => { });
         }
     }
     play() {
+        this.#previewController.setPlaybackActive(true);
+        const intent = new AbortController();
+        this.playRequests.add(intent);
         // An unverified trial must not consume the user's requested playback position.
         const trialSession = this.current, trialPosition = Math.max(0, Number(this.current?.backend.properties.get('time-pos')) || 0);
         const trialVerified = this.evidence(this.current).outputVerified === true;
@@ -2102,6 +2154,8 @@ export class Player extends EventTarget {
         const immediate = !this.destroyed && this.queued === 0 && this.current ? this.current.backend.play() : undefined;
         immediate?.catch(() => { });
         return this.enqueue(async () => {
+            if (intent.signal.aborted)
+                return;
             if (!this.current)
                 throw Error('No source');
             const session = this.current;
@@ -2114,7 +2168,7 @@ export class Player extends EventTarget {
             try {
                 const playing = immediate ?? session.backend.play();
                 if (this.mode === 'native')
-                    await this.playNativeVerified(session.backend, playing, boundedTrial ? 1500 : undefined);
+                    await this.playNativeVerified(session.backend, playing, boundedTrial ? 1500 : undefined, intent.signal);
                 else
                     await playing;
                 this.assertOperation();
@@ -2125,6 +2179,10 @@ export class Player extends EventTarget {
                 }
             }
             catch (error) {
+                // A newer Pause supersedes this Play without rejecting the accepted
+                // codec or starting fallback. Its queued pause command applies next.
+                if (intent.signal.aborted)
+                    return;
                 const inconclusiveOutput = this.source?.kind === 'local' && error instanceof StartupEvidenceTimeout && error.stage === 'output';
                 if (this.automatic && (compatibilityFailure(error) || inconclusiveOutput) && this.source) {
                     const streaming = this.failedStreamingPlan(session);
@@ -2150,7 +2208,14 @@ export class Player extends EventTarget {
                             await session.backend.seek(trialPosition);
                             this.assertOperation();
                         }
-                        await this.playNativeVerified(session.backend);
+                        try {
+                            await this.playNativeVerified(session.backend, undefined, undefined, intent.signal);
+                        }
+                        catch (error) {
+                            if (intent.signal.aborted)
+                                return;
+                            throw error;
+                        }
                         this.assertOperation();
                         if (plan)
                             this.acceptEvidence(plan.id, session);
@@ -2168,9 +2233,11 @@ export class Player extends EventTarget {
                     throw error;
                 }
             }
-        });
+        }).finally(() => this.playRequests.delete(intent));
     }
-    pause() { return this.setting(p => p.pause(), () => { this.settings.pause = true; this.observedPlaying = false; this.observedWaiting = false; this.schedulePromotion(); }); }
+    pause() { for (const intent of this.playRequests)
+        intent.abort(); return this.setting(p => p.pause(), () => { this.settings.pause = true; this.observedPlaying = false; this.observedWaiting = false; if (this.backgroundPromotion)
+        this.schedulePromotion(); }); }
     seek(seconds, options = {}) { return this.seekForSource(seconds, options); }
     seekForSource(seconds, options, sourceId) {
         if (!Number.isFinite(seconds) || seconds < 0)

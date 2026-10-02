@@ -2,6 +2,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {PrivatePlaybackHost} from '../web/private-mpv/playback-host.js';
+for(const stage of ['before','web_event','web_render'])test('decoder mailbox failure at '+stage+' fails before presenting stale output',async()=>{
+ const decoder={error:stage==='before'?'frame budget':undefined};let presented=false;
+ const engine={decoder,source:{drainFailures:()=>[]},call:async name=>{if(name===stage)decoder.error='frame budget';return 0;}};
+ const host=new PrivatePlaybackHost(engine,{getContext:()=>({})},320,180,{retained:{present(){presented=true;}}});
+ await assert.rejects(host.pump(),/Retained decoder: frame budget/);assert.equal(presented,false);
+});
 test('RGB presentation reuses owned pixels, reacquires grown memory, and resizes', async () => {
   let allocations=0;const previous=globalThis.ImageData;
   globalThis.ImageData=class {constructor(width,height){this.width=width;this.height=height;this.data=new Uint8ClampedArray(width*height*4);allocations++;}};

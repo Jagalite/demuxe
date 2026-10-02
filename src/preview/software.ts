@@ -8,7 +8,7 @@ import type {PreviewContext,PreviewProvider,PreviewResult} from './controller.js
 export type SoftwarePreviewSource={file:Blob;input?:MediaInputOptions}|{remote:RemoteSource};
 /** Disposable, paused software engine. Never receives the playback backend. */
 export class SoftwarePreviewProvider implements PreviewProvider {
-  readonly id='software';readonly priority=50;
+  readonly id='software';readonly priority=50;readonly requiresDecoder=true;
   constructor(private source:()=>SoftwarePreviewSource|undefined,private document:Document,private assetBase:URL,private limits:ResourceLimits={}){}
   canHandle(){return globalThis.crossOriginIsolated&&!!this.source();}
   async getFrame(request:PreviewContext):Promise<PreviewResult|null>{

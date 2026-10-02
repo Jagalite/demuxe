@@ -12,10 +12,14 @@ export declare class ScrubberPreview {
     private presentingImage?;
     private pending?;
     private displayedImage?;
+    private hoverSerial;
     private serial;
     private url?;
     private readonly move;
     constructor(timeline: HTMLInputElement, panel: HTMLElement, image: HTMLImageElement, label: HTMLElement, api: () => PlayerPreview | undefined);
+    private get maxDistance();
+    private distanceForGeneration;
+    private sample;
     private next;
     private show;
     private clearImage;

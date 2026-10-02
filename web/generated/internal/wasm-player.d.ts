@@ -160,6 +160,27 @@ export declare class WasmPlayer extends EventTarget {
         gain: GainNode;
     };
     private setPause;
+    setBuffering(policy: BufferingPolicy): Promise<void>;
+    get bufferingDiagnostics(): {
+        settings: {
+            'demuxer-cache-state': unknown;
+            'paused-for-cache': unknown;
+            'cache-buffering-state': unknown;
+        };
+        requestedAheadSeconds?: number;
+        requestedBehindSeconds?: number;
+        requestedMemoryBudget?: number;
+        requestedProfile: import("../types.js").BufferingProfile;
+        preload: import("../types.js").PreloadPolicy;
+        backend: "browser" | "shaka" | "remux" | "mpv";
+        control: "hint" | "profile";
+        cache?: boolean;
+        forwardLimitBytes?: number;
+        backwardLimitBytes?: number;
+        forwardSeconds?: number;
+        backwardSeconds?: number;
+        notes: string[];
+    };
     private configureBuffering;
     play(): Promise<void>;
     pause(): Promise<void>;

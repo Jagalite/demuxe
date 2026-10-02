@@ -99,6 +99,17 @@ await check('file drop opt-out preserves browser defaults and is independent of 
    finally {a.addFiles=add;a.showSourceControls=true;a.allowFileDrop=true;}
  });assert.deepEqual(data,{disabled:[false,false,0],enabled:[true,true,1]});
 });
+await check('source replacement and operations release an interrupted scrub',async()=>{
+ const data=await page.evaluate(async()=>{
+  await a.open(location.origin+'/fixtures/example.mp4');const p=a.player,t=a.shadowRoot.getElementById('timeline');
+  t.value='8';t.dispatchEvent(new Event('input'));await p.close();await p.open(location.origin+'/fixtures/example.mp4');
+  const replacement={dragging:a.dragging,slider:Number(t.value),position:p.state.currentTime};
+  t.value='8';t.dispatchEvent(new Event('input'));await p.seek(2);
+  return {replacement,operation:{dragging:a.dragging,slider:Number(t.value),position:p.state.currentTime}};
+ });
+ assert.equal(data.replacement.dragging,false);assert.ok(Math.abs(data.replacement.slider-data.replacement.position)<.1);
+ assert.equal(data.operation.dragging,false);assert.ok(Math.abs(data.operation.slider-2)<.1);
+});
 await check('custom seek step changes actual seeking, labels and numerals',async()=>{
  await page.evaluate(async()=>{await a.open(location.origin+'/fixtures/example.mp4');a.seekStep=2.5;});
  const v=page.locator('demuxe-player').first();

@@ -10,7 +10,7 @@ import {isCustomSource,materializeSource} from './sources.js';
 import {PlaybackStatistics} from './internal/playback-statistics.js';
 import {watchdogPolicy,NativeProgressWatchdog} from './internal/watchdogs.js';
 import type {WatchdogOptions,WatchdogPolicy} from './types.js';
-import type {BufferingPolicy, BufferingResolution} from './types.js';
+import type {BufferingOptions, BufferingPolicy, BufferingResolution, BufferingState} from './types.js';
 import {normalizeTrackPolicy,trackAllowed,defaultTrack,assertTrackSelection} from './internal/track-policy.js';
 import type {TrackPolicy} from './types.js';
 import {plainVTT, BrowserCaptionUnsupported} from './internal/plain-vtt.js';
@@ -78,6 +78,7 @@ export class Player extends EventTarget {
   private outputDeviceId='';
   private sourceSerial = 0;
   private latestSeek?:AbortController;
+  private playRequests=new Set<AbortController>();
   private playbackRange:import('./types.js').PlaybackRange|null=null;
   private loopPolicy:import('./types.js').LoopPolicy=false;
   private boundaryPending=false;
@@ -135,14 +136,16 @@ export class Player extends EventTarget {
           try{await this.replace(source,plan.mode,settings,true,this.nativeTracks,undefined,true,plan.id);return;}
           catch(error){if(compatibilityFailure(error))this.tierAttempts.failure(source,this.tierConfiguration(settings),plan.id,String(error));else return;}
         }}finally{this.promotionRunning=false;}
-      },'switching',controller.signal,true).catch(()=>{}).finally(()=>{if(this.promotionController===controller)this.promotionController=undefined;});
+      // Inspection and a no-op preference check keep the accepted session paused.
+      // replace() publishes switching only when an actual handoff begins.
+      },null,controller.signal,true).catch(()=>{}).finally(()=>{if(this.promotionController===controller)this.promotionController=undefined;});
     },200);
   }
   private readonly mediaCapabilityQueries=new MediaCapabilityQueries(typeof navigator==='undefined'||!navigator.mediaCapabilities?.decodingInfo?undefined:config=>navigator.mediaCapabilities.decodingInfo(config),150,()=>{
     if(this.destroyed)return;
     const inspected=this.sourceInspection;if(!inspected||inspected.source!==this.source)return;
     for(const plan of this.planDecisions)if(plan.browserCapability)plan.browserCapability.decodingInfo=this.mediaCapabilityQueries.cached(plan.browserCapability,inspected.probe);
-    this.schedulePublish();this.schedulePromotion();
+    this.schedulePublish();if(!this.settings.pause||this.backgroundPromotion)this.schedulePromotion();
   });
   private sourceInspection?:{source:Source;probe:Probe;settings:{aid:string;sid:string;subtitles:boolean}};
   private fastInspectedSource?:Source;
@@ -425,8 +428,10 @@ export class Player extends EventTarget {
       cached:this.current&&this.mode!=='native'?cachedRanges(cache?.['seekable-ranges']):null,
       timing:this.getTimingSettings(),loop:this.getLoop(),playbackRange:this.getPlaybackRange(),streaming:this.getStreamingState(),audioOutputDevice:this.outputDeviceId,trackPolicy:this.trackPolicy,audioTracks:list.filter(t=>t.type==='audio'),subtitleTracks:list.filter(t=>t.type==='subtitle'),mediaInfo:mediaInfo(p,this.mode,this.surface,list,this.current?this.sourceSerial:null),capabilities:caps,error:this.sessionError};
     // Priority can change even when the externally visible snapshot is identical.
+    this.#previewController.setPlaybackActive(!this.settings.pause);
     this.#previewController.setSuspended(this.busy||!!this.activeOperation||this.previewBuffering());
     this.#previewController.setDuration(this.current&&!this.busy&&streamType==='vod'?duration:null);
+    this.#previewController.setPlaybackPosition(next.currentTime);
     if(previous&&JSON.stringify(previous)===JSON.stringify(next))return;
     this.statistics.observe(next);
     this.stateSnapshot=freeze(next);
@@ -479,6 +484,23 @@ export class Player extends EventTarget {
     }
     return {videoFilters: this.automatic || this.mode === 'software', audioFilters: this.automatic || this.mode === 'software' || (this.mode === 'hybrid' && this.hybridAudioFilters), mpvSubtitles: this.mode !== 'native'||['remux-mpv','direct-mpv'].includes(backendPlan(this.current?.backend)??''), externalTextTracks: this.mode === 'native', externalSubtitles: true, customFonts: this.nativeASS || this.automatic || this.mode !== 'native', customRequestHeaders: backendPlan(this.current?.backend)==='shaka-mse' || this.mode !== 'native' || (this.nativeRemux !== 'never' && this.canInspectFFmpeg && typeof MediaSource !== 'undefined')};
   }
+  /** Replace the buffering policy without reopening the source. Omitted fields use defaults. */
+  setBuffering(options:BufferingOptions):Promise<void>{
+    let next:BufferingPolicy;try{next=bufferingPolicy(options);}catch(error){return Promise.reject(error);}
+    return this.enqueue(async()=>{
+      const backend=this.current?.backend,previous=this.buffering;
+      if(backend&&(!backend.setBuffering||backend.bufferingUpdateSupported===false))throw new PlayerError('UNSUPPORTED_FEATURE','This backend cannot update buffering at runtime');
+      if(backend)try{await backend.setBuffering!(next);}catch(error){
+        try{await backend.setBuffering!(previous);}catch{throw new PlayerError('DECODE_FAILED','Buffering update and rollback failed; backend settings may be partially applied');}
+        throw error;
+      }
+      this.buffering=next;
+    });
+  }
+  getBuffering():BufferingState{
+    const effective=this.bufferingResolution(),backend=effective.backend;
+    return freeze({active:!!this.current,requested:{...this.buffering},effective:structuredClone(effective),capabilities:{runtimeUpdate:!this.current||(!!this.current.backend.setBuffering&&this.current.backend.bufferingUpdateSupported!==false),timeTargets:backend==='remux'||backend==='shaka',memoryBudget:backend==='remux'||backend==='mpv',manualRanges:false},buffered:this.stateSnapshot?.buffered?.map(range=>({...range}))??null,cached:this.stateSnapshot?.cached?.map(range=>({...range}))??null});
+  }
   private bufferingResolution():BufferingResolution {
     const cheap=this.current?.backend.bufferingDiagnostics;
     if(cheap)return cheap;
@@ -487,7 +509,7 @@ export class Player extends EventTarget {
   }
   get diagnostics(): Diagnostics {
     const backend=this.current?.backend.diagnostics as Record<string,unknown>|undefined;
-    return redact({remuxRuntime:this.remuxSelection,watchdogs:this.watchdogConfiguration,preview:this.preview.diagnostics,buffering:(backend?.buffering as BufferingResolution|undefined)??this.bufferingResolution(),mode: this.mode, plan:this.current?executionPlan(this.mode,backend?.plan as string|undefined,this.settings.af,this.settings.gain,!!backend?.subtitleOverlay):undefined, planAdmission:this.planDecisions,runtimeCapabilities:this.runtimeCapabilities.snapshot(),selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain:this.settings.gain, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop, backend});
+    return redact({remuxRuntime:this.remuxSelection,watchdogs:this.watchdogConfiguration,preview:this.preview.diagnostics,buffering:this.bufferingResolution(),mode: this.mode, plan:this.current?executionPlan(this.mode,backend?.plan as string|undefined,this.settings.af,this.settings.gain,!!backend?.subtitleOverlay):undefined, planAdmission:this.planDecisions,runtimeCapabilities:this.runtimeCapabilities.snapshot(),selection:{automatic:this.automatic,attempts:this.attempts.map(a=>({...a}))}, switching: this.busy, videoFilters: this.settings.vf, audioFilters: this.settings.af, audioGain:this.settings.gain, toneMapping:this.toneMapping, resourceLimits:{...this.resourceLimits}, decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop, backend});
   }
   getStreamingState():import('./types.js').StreamingState|null{
     const raw=this.current?.backend.streamingState?.();if(!raw)return null;
@@ -1415,20 +1437,25 @@ export class Player extends EventTarget {
   private setting(action: (p: Backend) => Promise<void>, update: () => void) {
     return this.enqueue(async () => {if (this.current) await action(this.current.backend);update();});
   }
-  private async playNativeVerified(backend:Backend,playing=backend.play(),outputBudgetMs?:number) {
+  private async playNativeVerified(backend:Backend,playing=backend.play(),outputBudgetMs?:number,intent?:AbortSignal) {
     const controller=new AbortController();
-    const verification=(backend as Backend & {verifyOutput(signal?:AbortSignal,outputBudgetMs?:number):Promise<void>}).verifyOutput(controller.signal,outputBudgetMs);
-    try{await Promise.all([playing,verification]);}
-    finally{controller.abort();await verification.catch(()=>{});}
+    const signals=[intent,this.activeOperation?.controller.signal].filter((signal):signal is AbortSignal=>!!signal);
+    const abort=()=>controller.abort();
+    for(const signal of signals){signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();}
+    let verification:Promise<void>|undefined;
+    try{verification=(backend as Backend & {verifyOutput(signal?:AbortSignal,outputBudgetMs?:number):Promise<void>}).verifyOutput(controller.signal,outputBudgetMs);await Promise.all([playing,verification]);}
+    finally{for(const signal of signals)signal.removeEventListener('abort',abort);controller.abort();await verification?.catch(()=>{});}
   }
   play() {
+    this.#previewController.setPlaybackActive(true);
+    const intent=new AbortController();this.playRequests.add(intent);
     // An unverified trial must not consume the user's requested playback position.
     const trialSession=this.current,trialPosition=Math.max(0,Number(this.current?.backend.properties.get('time-pos'))||0);
     const trialVerified=this.evidence(this.current).outputVerified===true;
     // Initiate resume before yielding the user's activation to the operation queue.
     const immediate=!this.destroyed&&this.queued===0&&this.current?this.current.backend.play():undefined;
     immediate?.catch(()=>{});
-    return this.enqueue(async()=>{if(!this.current)throw Error('No source');const session=this.current;this.settings.pause=false;
+    return this.enqueue(async()=>{if(intent.signal.aborted)return;if(!this.current)throw Error('No source');const session=this.current;this.settings.pause=false;
       // A local original-copy trial can yield to an already-admitted route.
       // This is a scheduling budget, not a codec rejection or a new route.
       const boundedTrial=this.automatic&&this.source?.kind==='local'&&this.nativeRemux!=='never'&&!trialVerified&&
@@ -1436,9 +1463,12 @@ export class Player extends EventTarget {
         this.planDecisions?.some(plan=>plan.eligible&&!plan.id.startsWith('native-direct'));
       try{
         const playing=immediate??session.backend.play();
-        if(this.mode==='native')await this.playNativeVerified(session.backend,playing,boundedTrial?1500:undefined);else await playing;
+        if(this.mode==='native')await this.playNativeVerified(session.backend,playing,boundedTrial?1500:undefined,intent.signal);else await playing;
         this.assertOperation();if(this.current===session){const plan=this.diagnostics.plan;if(plan)this.acceptEvidence(plan.id,session);}
       }catch(error){
+        // A newer Pause supersedes this Play without rejecting the accepted
+        // codec or starting fallback. Its queued pause command applies next.
+        if(intent.signal.aborted)return;
         const inconclusiveOutput=this.source?.kind==='local'&&error instanceof StartupEvidenceTimeout&&error.stage==='output';
         if(this.automatic&&(compatibilityFailure(error)||inconclusiveOutput)&&this.source){
           const streaming=this.failedStreamingPlan(session);
@@ -1456,14 +1486,15 @@ export class Player extends EventTarget {
             // retain the accepted source and give it the ordinary full deadline.
             if(!boundedTrial||!inconclusiveOutput||this.current!==session||!(compatibilityFailure(fallbackError)||['ASSET_LOAD_FAILED','NETWORK_TIMEOUT','ISOLATION_REQUIRED'].includes(playerError(fallbackError).code)))throw fallbackError;
             if(session===trialSession&&!trialVerified){await session.backend.seek(trialPosition);this.assertOperation();}
-            await this.playNativeVerified(session.backend);
+            try{await this.playNativeVerified(session.backend,undefined,undefined,intent.signal);}
+            catch(error){if(intent.signal.aborted)return;throw error;}
             this.assertOperation();if(plan)this.acceptEvidence(plan.id,session);
           }finally{this.nativeRemux=policy;}
         }
         else {const plan=this.diagnostics.plan;if(plan&&evidenceInterrupted(error))this.runtimeCapabilities.update(plan.id,'prepared',this.evidence(session),String(error));this.settings.pause=true;await session.backend.pause().catch(()=>{});throw error;}
-      }});
+      }}).finally(()=>this.playRequests.delete(intent));
   }
-  pause() {return this.setting(p => p.pause(), () => {this.settings.pause = true;this.observedPlaying=false;this.observedWaiting=false;this.schedulePromotion();});}
+  pause() {for(const intent of this.playRequests)intent.abort();return this.setting(p => p.pause(), () => {this.settings.pause = true;this.observedPlaying=false;this.observedWaiting=false;if(this.backgroundPromotion)this.schedulePromotion();});}
   seek(seconds: number, options:import('./types.js').SeekOptions={}) {return this.seekForSource(seconds,options);}
   private seekForSource(seconds:number,options:import('./types.js').SeekOptions,sourceId?:number|null) {
     if (!Number.isFinite(seconds) || seconds < 0) throw new PlayerError('INVALID_ARGUMENT','Invalid seek time');

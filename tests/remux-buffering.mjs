@@ -99,3 +99,70 @@ test('remux starvation observes stopped playback near an outstanding producer, n
  p.ranges=()=>[[0,4.6]];p.generation++;p.observeStarvation(5000);assert.equal(p.waitingForMedia,false);
  p.video.currentTime=5.2;p.observeStarvation(6000);assert.equal(p.waitingForMedia,false);
 });
+
+test('runtime policy changes update remux scheduling without restarting its generation',()=>{
+ const p=Object.assign(Object.create(RemuxPlayer.prototype),{generation:9,video:{paused:false,playbackRate:1},buffering:{forwardSeconds:5}});
+ p.setBuffering({forwardSeconds:30,backwardSeconds:10,preload:'auto'});
+ assert.equal(p.forwardTargetSeconds(),30);assert.equal(p.generation,9);
+ p.setBuffering({forwardSeconds:30,preload:'metadata'});p.video.paused=true;assert.equal(p.forwardTargetSeconds(),1);
+});
+
+test('worker remux forwards runtime policies and commits only acknowledged updates',async()=>{
+ const {WorkerRemuxController}=await import('../web/worker-remux-controller.js');
+ const calls=[],p=Object.assign(Object.create(WorkerRemuxController.prototype),{options:{},call:async(...args)=>calls.push(args)});
+ const policy={forwardSeconds:15,backwardSeconds:2};await p.setBuffering(policy);
+ assert.deepEqual(calls,[['setBuffering',policy]]);assert.deepEqual(p.options.buffering,policy);
+ p.call=async()=>{throw Error('worker rejected');};await assert.rejects(p.setBuffering({forwardSeconds:30}),/worker rejected/);assert.deepEqual(p.options.buffering,policy);
+ p.local={setBuffering:async value=>calls.push(['local',value])};await p.setBuffering({forwardSeconds:7});assert.equal(calls.at(-1)[0],'local');
+});
+
+function pressureFixture(windowed=false){
+ const removals=[],sent=[],errors=[],MiB=1024*1024;
+ const buffers=Array.from({length:windowed?2:1},(_,lane)=>{
+  let start=1;
+  return {updating:false,buffered:{length:1,start:()=>start,end:()=>13},remove(a,b){removals.push({lane,start:a,end:b});start=b;this.updating=true;}};
+ });
+ const p=Object.assign(Object.create(RemuxPlayer.prototype),{
+  generation:1,stopped:false,windowed,recoveryPlaying:true,targetReady:true,target:0,timelineBias:1,
+  video:{currentTime:11.25,paused:false,playbackRate:1,readyState:4},
+  sb:buffers[0],sbs:buffers,media:{readyState:'open',endOfStream(){}},
+  ranges:()=>[[Math.max(...buffers.map(b=>b.buffered.start(0)))-1,12]],
+  raps:[0,2,4,6,8,10,12],lastEviction:-Infinity,lastEvictions:[],trackBounds:{videoEnd:100,audioEnd:100},
+  segments:buffers.flatMap((_,lane)=>[2,4,6,8,10,12].map(end=>({lane,end,bytes:2*MiB/buffers.length}))),
+  pendingUpdates:new Set(),receipts:new Map(),busy:false,pending:null,eof:false,
+  stats:{peakBufferedSeconds:0,peakBufferedBytesUpperBound:0,gapSkips:[]},
+  worker:{postMessage:value=>sent.push(value)},fail:value=>errors.push(value),
+ });
+ const finish=()=>{for(let i=0;i<5&&p.pendingUpdates.size;i++){const sb=[...p.pendingUpdates][0];sb.updating=false;p.updateFinished(sb,1);}};
+ return {p,removals,sent,errors,finish,MiB};
+}
+for(const windowed of [false,true]){
+ test(`byte pressure shortens long history and resumes fetching (${windowed?'separate lanes':'muxed'})`,()=>{
+  const {p,removals,sent,errors,finish,MiB}=pressureFixture(windowed);
+  if(windowed)for(const segment of p.segments)segment.bytes*=2; // Pressure remains until both lanes release history.
+  p.setBuffering({preload:'auto',forwardSeconds:30,backwardSeconds:60,forwardLimitBytes:12*MiB});
+  p.pump();assert.equal(sent.length,0,'wait for eviction completion');
+  finish();assert.equal(sent.length,1);assert.deepEqual(errors,[]);
+  assert.equal(removals.length,windowed?2:1);
+  for(const removal of removals)assert.ok(removal.end<=11&&removal.end>10.99,'preserve current GOP beginning at source time 10');
+  assert.ok(p.segments.every(s=>s.end===12));assert.ok(p.stats.bufferedBytesUpperBound<12*MiB);
+ });
+ test(`reducing runtime budget reclaims history without changing playback (${windowed?'separate lanes':'muxed'})`,()=>{
+  const {p,removals,sent,errors,finish,MiB}=pressureFixture(windowed);
+  p.setBuffering({preload:'auto',forwardSeconds:1,backwardSeconds:60,forwardLimitBytes:16*MiB});p.pump();
+  assert.equal(removals.length,0);assert.equal(sent.length,0);
+  p.setBuffering({preload:'auto',forwardSeconds:30,backwardSeconds:60,forwardLimitBytes:8*MiB});p.pump();finish();
+  assert.equal(sent.length,1);assert.deepEqual(errors,[]);assert.equal(p.video.currentTime,11.25);assert.equal(p.generation,1);
+ });
+}
+test('pressure does not remove the current GOP when no older RAP can be evicted',()=>{
+ const {p,removals,MiB}=pressureFixture();p.raps=[0,12];
+ p.setBuffering({preload:'auto',backwardSeconds:60,forwardLimitBytes:8*MiB});p.pump();
+ assert.equal(removals.length,0);assert.equal(p.segments.length,6);
+});
+
+test('an exhausted protected GOP reports budget failure instead of silently stalling',()=>{
+ const {p,removals,sent,errors,MiB}=pressureFixture();p.raps=[0];p.ranges=()=>[[0,10.25]];
+ p.setBuffering({preload:'auto',backwardSeconds:60,forwardLimitBytes:8*MiB});p.pump();
+ assert.equal(removals.length,0);assert.equal(sent.length,0);assert.match(errors[0],/coded-data budget.*current GOP/);
+});

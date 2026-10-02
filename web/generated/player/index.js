@@ -13,7 +13,7 @@ import { playerShell } from './components.js';
 import { applyLayout, presentationStyles } from './presentation.js';
 const Base = (typeof HTMLElement === 'undefined' ? class {
 } : HTMLElement);
-export const defaultLabels = Object.freeze({ appearance: 'Appearance', layout: 'Layout', theme: 'Theme', classic: 'Classic', modern: 'Modern', playground: 'Playground', demuxeTheme: 'Demuxe', lightTheme: 'Light', previews: 'Timeline thumbnails', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', reading: 'Reading media…', inspecting: 'Inspecting media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
+export const defaultLabels = Object.freeze({ appearance: 'Appearance', layout: 'Layout', theme: 'Theme', classic: 'Classic', modern: 'Modern', playground: 'Playground', demuxeTheme: 'Demuxe', lightTheme: 'Light', previews: 'Timeline thumbnails', previewStrategy: 'Thumbnail strategy', previewAdaptive: 'Adaptive · nearby every 5s', previewUniform: 'Evenly spaced · 48 samples', previewInterval: 'Whole video · every 5s', previewOnDemand: 'On hover only', previewCustom: 'Custom', previewHelp: 'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', reading: 'Reading media…', inspecting: 'Inspecting media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
 // Never display opaque URL payloads, origins, credentials, queries or fragments.
 function sourceTitle(source) {
     if (typeof File !== 'undefined' && source instanceof File)
@@ -370,9 +370,25 @@ export class DemuxePlayerElement extends Base {
         this.audioPlaybackConfiguration = value;
     }
     previewConfiguration;
+    syncPreviewStrategy() {
+        const select = this.$('preview-strategy'), strategy = this.core?.preview.strategy;
+        let value = 'custom';
+        if (strategy?.type === 'on-demand')
+            value = 'on-demand';
+        else if (strategy?.type === 'adaptive' && strategy.samples === 24 && strategy.every === 5 && strategy.radius === 30)
+            value = 'adaptive';
+        else if (strategy?.type === 'uniform' && strategy.samples === 48)
+            value = 'uniform';
+        else if (strategy?.type === 'interval' && strategy.every === 5 && strategy.unit === 'seconds' && strategy.count == null)
+            value = 'interval';
+        select.value = value;
+        select.disabled = !this.core?.preview.enabled;
+    }
     get previewOptions() { return this.previewConfiguration; }
     set previewOptions(value) { if (this.core)
         throw new PlayerError('INVALID_ARGUMENT', 'previewOptions is fixed after initialization'); this.previewConfiguration = value; }
+    syncPreviewEnabled() { if (this.core)
+        this.core.preview.enabled = this.previewThumbnails && this.previewConfiguration !== false && this.previewConfiguration?.enabled !== false; }
     get previewThumbnails() { return !this.hasAttribute('no-preview'); }
     set previewThumbnails(value) { this.toggleAttribute('no-preview', !value); }
     get controls() { return this.hasAttribute('controls'); }
@@ -421,7 +437,8 @@ export class DemuxePlayerElement extends Base {
                 return;
             try {
                 this.configuredAsset = this.getAttribute('asset-base');
-                const core = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, watchdogs: this.watchdogConfiguration, audioPlayback: this.audioPlaybackConfiguration, preview: this.previewConfiguration, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
+                const core = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, watchdogs: this.watchdogConfiguration, audioPlayback: this.audioPlaybackConfiguration, preview: this.previewConfiguration ?? { strategy: { type: 'adaptive' }, maxEntries: 96, maxCacheBytes: 16 * 1024 * 1024 }, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
+                this.syncPreviewEnabled();
                 core.presentation.setFullscreenTarget(this);
                 this.dimensions = '';
                 this.trackSignature = '';
@@ -506,6 +523,7 @@ export class DemuxePlayerElement extends Base {
             return;
         }
         if (name === 'no-preview') {
+            this.syncPreviewEnabled();
             this.input('preview-toggle').checked = this.previewThumbnails;
             if (!this.previewThumbnails)
                 this.hoverPreview.hide();
@@ -648,9 +666,11 @@ export class DemuxePlayerElement extends Base {
         this.core?.resize(width, height);
     } }
     update(state) {
+        this.syncPreviewStrategy();
         applyLayout(this.shadowRoot, this.layout, !!state.sourceId);
         const identity = `${state.sourceId}:${state.activeMode}`;
-        if (identity !== this.previewIdentity || state.pendingOperation || !this.controls) {
+        if (identity !== this.previewIdentity || state.pendingOperation || !this.controls || !state.seekable?.length) {
+            this.dragging = false;
             this.hoverPreview.hide();
             this.previewIdentity = identity;
         }
@@ -744,6 +764,13 @@ export class DemuxePlayerElement extends Base {
         const pill = activity || (!state.sourceId ? preparationText : '');
         this.$('busy').hidden = !pill || seeking || buffering;
         this.$('busy').textContent = pill;
+        // Preparation status shares the toolbar's alignment and responsive padding.
+        // Keep playback activity in the stage, including when controls are hidden.
+        const busy = this.$('busy'), inToolbar = !state.sourceId && this.controls;
+        if (inToolbar && busy.parentElement !== this.$('topbar'))
+            this.$('title').after(busy);
+        else if (!inToolbar && busy.parentElement !== this.$('stage'))
+            this.$('stage').append(busy);
         this.$('busy').dataset.complete = String(!activity && !phase);
         this.$('busy').setAttribute('aria-label', preparation.length && !activity ? preparation.map(a => `${names[a.name]}: ${a.status}`).join('; ') : pill);
         if (!this.lastFailure)
@@ -818,8 +845,10 @@ export class DemuxePlayerElement extends Base {
         this.$('settings-title').textContent = source ? this.labels.open : this.labels.settings;
         this.$('settings').classList.toggle('source-menu', source);
         this.$('settings').scrollTop = 0;
-    } this.$('open-menu').setAttribute('aria-expanded', String(open && this.menuTrigger === 'open-menu')); this.iconButton('open-menu', open && this.menuTrigger === 'open-menu' ? 'folderOpen' : 'folder', this.labels.open); this.$('settings-toggle').setAttribute('aria-expanded', String(open && this.menuTrigger === 'settings-toggle')); if (open)
+    } this.$('open-menu').setAttribute('aria-expanded', String(open && this.menuTrigger === 'open-menu')); this.iconButton('open-menu', open && this.menuTrigger === 'open-menu' ? 'folderOpen' : 'folder', this.labels.open); this.$('settings-toggle').setAttribute('aria-expanded', String(open && this.menuTrigger === 'settings-toggle')); if (open) {
+        this.syncPreviewStrategy();
         this.$('settings-close').focus();
+    }
     else if (restoreFocus)
         this.$(this.menuTrigger).focus(); }
     fullscreen() { const active = document.fullscreenElement === this; const request = active ? this.core?.presentation.exitFullscreen() : this.core?.presentation.requestFullscreen(); if (!request) {
@@ -832,6 +861,10 @@ export class DemuxePlayerElement extends Base {
     } if (icon === 'back' || icon === 'forward')
         button.querySelector('text').textContent = String(this.seekStep); button.classList.add('icon-button'); button.setAttribute('aria-label', label); button.setAttribute('title', label); }
     labelControls() {
+        this.$('preview-help').textContent = this.labels.previewHelp;
+        this.$('preview-strategy-label').textContent = this.labels.previewStrategy;
+        for (const [value, key] of [['adaptive', 'previewAdaptive'], ['uniform', 'previewUniform'], ['interval', 'previewInterval'], ['on-demand', 'previewOnDemand'], ['custom', 'previewCustom']])
+            this.$('preview-strategy').querySelector(`option[value="${value}"]`).textContent = this.labels[key];
         for (const key of ['appearance', 'layout', 'theme'])
             this.$(key + '-label').textContent = this.labels[key];
         for (const [id, keys] of [['layout-select', ['classic', 'modern', 'playground']], ['theme-select', ['demuxeTheme', 'lightTheme']]])
@@ -915,7 +948,9 @@ export class DemuxePlayerElement extends Base {
         this.$('settings-close').onclick = () => this.settings(false);
         this.$('layout-select').onchange = () => { this.layout = this.$('layout-select').value; };
         this.$('theme-select').onchange = () => { this.theme = this.$('theme-select').value; };
-        this.input('preview-toggle').onchange = () => { this.previewThumbnails = this.input('preview-toggle').checked; };
+        this.input('preview-toggle').onchange = () => { this.previewThumbnails = this.input('preview-toggle').checked; this.syncPreviewStrategy(); };
+        this.$('preview-strategy').onchange = () => { const type = this.$('preview-strategy').value; if (this.core && ['adaptive', 'uniform', 'interval', 'on-demand'].includes(type))
+            this.core.preview.setStrategy({ type }); this.syncPreviewStrategy(); };
         this.$('speed').onchange = () => this.run(this.setPlaybackRate(Number(this.$('speed').value)));
         this.$('audio').onchange = () => this.run(this.selectAudioTrack(this.$('audio').value || null));
         this.$('subtitles').onchange = () => this.run(this.selectSubtitleTrack(this.$('subtitles').value || null));

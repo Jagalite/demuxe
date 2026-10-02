@@ -195,3 +195,16 @@ test('ignored manual selection rejects without publishing the requested policy',
   assert.equal(backend.streamingState().requested.mode,'auto');assert.equal(backend.streamingState().selectedId,'variant:4');assert.equal(backend.player.getConfiguration().abr.enabled,true);
  }finally{await backend.destroy();variantOverride=undefined;}
 });
+
+test('runtime buffering updates restore captured defaults and report rejected configuration',async()=>{
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));
+ try{
+  await backend.openRemote(source);backend.bufferingDefaults={bufferingGoal:10,bufferBehind:30};
+  await backend.setBuffering({preload:'auto',profile:'balanced',aheadSeconds:25,behindSeconds:8});
+  assert.equal(backend.bufferingDiagnostics.settings.bufferingGoal,25);
+  await backend.setBuffering({preload:'auto',profile:'balanced'});
+  assert.equal(backend.bufferingDiagnostics.settings.bufferingGoal,10);assert.equal(backend.bufferingDiagnostics.settings.bufferBehind,30);
+  backend.player.configure=()=>false;await assert.rejects(backend.setBuffering({preload:'auto',profile:'resilient'}),e=>e.code==='INVALID_ARGUMENT');
+  assert.equal(backend.buffering.profile,'balanced');
+ }finally{await backend.destroy();}
+});

@@ -3,7 +3,7 @@ import type {PreviewController} from './controller.js';
 
 /** Consumer operations on the preview lane owned by Player. */
 export type PlayerPreview = Readonly<Pick<PreviewController,
-  'getFrame'|'request'|'prefetch'|'addProvider'|'setProviders'|'clear'>> & {
+  'getFrame'|'request'|'prefetch'|'addProvider'|'setProviders'|'clear'|'setStrategy'|'strategy'|'unload'|'setCacheLimits'|'cacheLimits'>> & {
   enabled:boolean;
   readonly diagnostics:Readonly<Omit<PreviewController['diagnostics'],'lastFailure'> & {
     lastFailure?:Readonly<{provider:string;kind:string}>;
@@ -19,6 +19,11 @@ export function createPlayerPreview(controller:PreviewController):PlayerPreview 
     addProvider:controller.addProvider.bind(controller),
     setProviders:controller.setProviders.bind(controller),
     clear:controller.clear.bind(controller),
+    unload:controller.unload.bind(controller),
+    setCacheLimits:controller.setCacheLimits.bind(controller),
+    get cacheLimits(){return controller.cacheLimits;},
+    setStrategy:controller.setStrategy.bind(controller),
+    get strategy(){return controller.strategy;},
     get enabled(){return controller.enabled;},
     set enabled(value:boolean){controller.enabled=value;},
     get diagnostics(){

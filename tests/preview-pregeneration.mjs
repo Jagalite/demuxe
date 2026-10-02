@@ -59,3 +59,43 @@ test('fractional timestamp pregeneration matches foreground buckets without redu
   assert.deepEqual(seen,[4.3]);
  }finally{await c.destroy();}
 });
+
+test('storyboard samples cover interval centers including the tail with bounded work',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const seen=[];
+ const p=new PreviewPregenerator({samples:48},1,async r=>{seen.push(r.time);return 'next';});
+ p.setDuration(480);for(let i=0;i<52;i++)await advance(t);
+ assert.equal(seen.length,48);assert.equal(new Set(seen).size,48);
+ assert.deepEqual([...seen].sort((a,b)=>a-b),Array.from({length:48},(_,i)=>i*10+5));
+ assert.ok(Math.max(...seen.slice(0,4))-Math.min(...seen.slice(0,4))>=240);p.stop();
+ for(const config of [{samples:1},{samples:257},{samples:2.5},{samples:48,every:1}])assert.throws(()=>new PreviewPregenerator(config,1,async()=> 'next'));
+});
+
+test('playback-deferred software samples resume after pause instead of consuming the queue',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const seen=[];
+ const c=new PreviewController([{id:'software',priority:1,requiresDecoder:true,canHandle:()=>true,getFrame:async r=>{seen.push(r.time);return result(r.time);}}],{debounceMs:0,pregenerate:{samples:4}});
+ try{
+  c.setPlaybackActive(true);c.setDuration(40);for(let i=0;i<12;i++)await advance(t);
+  assert.deepEqual(seen,[]);assert.equal(c.diagnostics.cacheEntries,0);
+  c.setPlaybackActive(false);for(let i=0;i<12;i++)await advance(t);
+  assert.deepEqual([...seen].sort((a,b)=>a-b),[5,15,25,35]);assert.equal(c.diagnostics.cacheEntries,4);
+ }finally{await c.destroy();}
+});
+test('permanent provider decline does not retry a sample indefinitely',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});let calls=0;
+ const c=new PreviewController([{id:'unsupported',priority:1,canHandle:()=>{calls++;return false;},getFrame:async()=>null}],{debounceMs:0,pregenerate:{samples:2}});
+ try{c.setDuration(40);for(let i=0;i<12;i++)await advance(t);assert.equal(calls,2);}finally{await c.destroy();}
+});
+
+test('Play interrupting background software decode retains that sample for pause',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const seen=[];
+ const c=new PreviewController([{id:'software',priority:1,requiresDecoder:true,canHandle:()=>true,getFrame:r=>{
+  seen.push(r.time);if(seen.length===1)return new Promise((resolve,reject)=>r.signal.addEventListener('abort',()=>reject(r.signal.reason),{once:true}));
+  return Promise.resolve(result(r.time));
+ }}],{debounceMs:0,pregenerate:{samples:2}});
+ try{
+  c.setDuration(20);await advance(t);await advance(t);assert.deepEqual(seen,[5]);
+  c.setPlaybackActive(true);for(let i=0;i<4;i++)await advance(t);assert.deepEqual(seen,[5]);
+  c.setPlaybackActive(false);for(let i=0;i<8;i++)await advance(t);
+  assert.deepEqual(seen,[5,5,15]);assert.equal(c.diagnostics.cacheEntries,2);
+ }finally{await c.destroy();}
+});

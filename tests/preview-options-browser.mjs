@@ -13,25 +13,44 @@ try{
   element.previewOptions={pregenerate:{timestamps:[1,3,5],count:1}};document.body.append(element);
   window.p=await element.ready;window.file=new File([await(await fetch('/fixtures/example.mp4')).blob()],'preview.mp4');await p.open(file);
  });
- await page.waitForFunction(()=>p.preview.diagnostics.cacheEntries===1);
- const warm=await page.evaluate(async()=>({frame:(await p.preview.getFrame({time:1,width:240,height:135}))?.cache,hidden:element.shadowRoot.querySelector('#thumbnail-preview').hidden,checked:element.shadowRoot.querySelector('#preview-toggle').checked,time:p.state.currentTime}));
- assert.deepEqual(warm,{frame:'hit',hidden:true,checked:false,time:0});
- await page.waitForTimeout(1200);assert.equal(await page.evaluate(()=>p.preview.diagnostics.cacheEntries),1);
+ await page.waitForTimeout(1200);
+ assert.deepEqual(await page.evaluate(()=>({enabled:p.preview.enabled,entries:p.preview.diagnostics.cacheEntries,requests:p.preview.diagnostics.requests})),{enabled:false,entries:0,requests:0});
  await page.evaluate(()=>{element.shadowRoot.querySelector('#settings-toggle').click();});
  const root=page.locator('demuxe-player').last();await root.locator('#preview-toggle').check();await root.locator('#settings-close').click();
+ await page.waitForFunction(()=>p.preview.diagnostics.cacheEntries===1);
+ assert.equal(await page.evaluate(async()=>(await p.preview.getFrame({time:1,width:240,height:135}))?.cache),'hit');
  await root.locator('#timeline').scrollIntoViewIfNeeded();
  const box=await root.locator('#timeline').boundingBox();await page.mouse.move(box.x+box.width/6,box.y+box.height/2);await root.locator('#thumbnail-preview').waitFor({state:'visible'});
  await page.evaluate(()=>{element.previewThumbnails=false;});await root.locator('#thumbnail-preview').waitFor({state:'hidden'});
- assert.equal(await page.evaluate(()=>p.preview.enabled),true);
+ assert.equal(await page.evaluate(()=>p.preview.enabled),false);
  const disabled=await page.evaluate(async()=>{
   p.preview.enabled=false;await p.open(file);
   const off=await p.preview.getFrame({time:1});const count=p.preview.diagnostics.cacheEntries;p.preview.enabled=true;
   return {off,count};
  });assert.deepEqual(disabled,{off:null,count:0});
  await page.waitForFunction(()=>p.preview.diagnostics.cacheEntries===1);
- await page.evaluate(async()=>{await element.destroy();window.element=document.createElement('demuxe-player');element.previewOptions=false;document.body.append(element);window.p=await element.ready;await p.open(file);});
+ await page.evaluate(async()=>{await element.destroy();window.element=document.createElement('demuxe-player');element.previewOptions=false;document.body.append(element);window.p=await element.ready;await p.open(file);element.previewThumbnails=false;element.previewThumbnails=true;});
  assert.deepEqual(await page.evaluate(async()=>({enabled:p.preview.enabled,frame:await p.preview.getFrame({time:1})})),{enabled:false,frame:null});
  await page.evaluate(()=>element.destroy());
+ // Presets switch live without reopening or replacing playback.
+ await page.evaluate(async()=>{window.element=document.createElement('demuxe-player');document.body.append(element);window.p=await element.ready;await p.open(file);});
+ assert.deepEqual(await page.evaluate(()=>p.preview.strategy),{type:'adaptive',samples:24,every:5,radius:30});
+ const strategies=await page.evaluate(async()=>{
+  const r=element.shadowRoot,s=r.querySelector('#preview-strategy'),source=p.state.sourceId,mode=p.state.activeMode,checks=[];
+  r.querySelector('#settings-toggle').click();
+  for(const playing of [false,true]){
+   if(playing)await p.play();
+   for(const type of ['uniform','interval','on-demand','adaptive']){
+    s.value=type;s.dispatchEvent(new Event('change',{bubbles:true}));
+    checks.push(p.preview.strategy.type===type&&p.state.sourceId===source&&p.state.activeMode===mode&&!p.state.pendingOperation);
+   }
+  }
+  await p.pause();p.preview.setStrategy({type:'interval',every:2});
+  r.querySelector('#settings-toggle').click();r.querySelector('#settings-toggle').click();checks.push(s.value==='custom');
+  r.querySelector('#preview-toggle').click();checks.push(s.disabled&&!p.preview.enabled);
+  r.querySelector('#preview-toggle').click();checks.push(!s.disabled&&p.preview.strategy.every===2);
+  await element.destroy();return checks;
+ });assert.equal(strategies.length,11);assert.ok(strategies.every(Boolean));
  // Constructor interval mode warms every half minute, truncated by finite duration.
  const interval=await page.evaluate(async()=>{
   const {Player}=await import('/web/generated/index.js');const host=document.createElement('div');document.body.append(host);

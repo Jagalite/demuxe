@@ -26,6 +26,7 @@ type RemuxController = {
   canSeekBuffered?(target:number): boolean; expectedVideoFrame?(target:number):number|undefined;
   muxedFrames?:boolean; matchesVideoFrame?(target:number,mediaTime:number):boolean|undefined;
   seek(target: number): Promise<unknown>; play(): Promise<void>; pause(): void;
+  setBuffering?(policy:import('../types.js').BufferingResolution):Promise<void>|void;
   readonly bufferingDiagnostics?:Record<string,unknown>;
   destroy(): Promise<void>; snapshot(): Record<string, unknown>;
 };
@@ -186,6 +187,14 @@ export class NativePlayer extends EventTarget implements Backend {
     }
   }
   get planId(){return this.mpvSubtitlePlan&&this.mpvSubs&&this.adapted&&this.audioAdaptation==='flac24'?'native-transcode-mpv':this.mpvAudio?this.requestedPlan:this.mpvSubtitlePlan&&this.mpvSubs?(this.remux?'remux-mpv':'direct-mpv'):this.projection?(this.adapted?'adapted-flac24':'remux'):this.remux?(this.adapted?`adapted-${this.audioAdaptation}`:'remux'):'direct';}
+  get bufferingUpdateSupported(){return !this.remux||!!this.remux.setBuffering;}
+  async setBuffering(policy:BufferingPolicy){
+    if(this.remux){
+      if(!this.remux.setBuffering)throw new PlayerError('UNSUPPORTED_FEATURE','This remux provider cannot update buffering at runtime');
+      await this.remux.setBuffering(resolveBuffering(policy,'remux'));
+    }
+    this.video.preload=policy.preload;this.buffering=policy;
+  }
   get bufferingDiagnostics(){
     return {...resolveBuffering(this.buffering,this.remux?'remux':'browser'),settings:this.remux?.bufferingDiagnostics??{elementPreload:this.video.preload}};
   }

@@ -18,6 +18,8 @@ export declare class LocalVideoPreviewProvider implements PreviewProvider {
     private maxDecodePixels;
     readonly id = "local-browser";
     readonly priority = 40;
+    readonly requiresDecoder = true;
+    readonly allowDuringPlayback = true;
     constructor(source: () => Blob | undefined, document: Document, maxDecodePixels?: number);
     canHandle(): boolean;
     getFrame(request: PreviewContext): Promise<PreviewResult | null>;

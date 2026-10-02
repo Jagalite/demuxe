@@ -16,7 +16,7 @@ test('facade exposes consumer controls, immutable diagnostics and bound methods'
  const api=createPlayerPreview(controller);
  try{
   assert.ok(Object.isFrozen(api));
-  for(const name of ['setSourceIdentity','setDuration','setSuspended','drain','destroy'])assert.equal(name in api,false);
+  for(const name of ['setPlaybackPosition','setSourceIdentity','setDuration','setSuspended','drain','destroy'])assert.equal(name in api,false);
   assert.throws(()=>{api.getFrame=()=>{};},TypeError);
   const {getFrame}=api;
   assert.equal((await getFrame({time:1})).path,'custom');
@@ -63,6 +63,10 @@ player.addEventListener('selectionchange',event=>console.log(event.detail.outcom
 // @ts-expect-error candidate phases are not state snapshots
 player.addEventListener('modechange',event=>console.log(event.detail.currentTime));
 player.open(new Blob(),{startTime:1});player.setSubtitleDelay(.2);player.setAudioDelay(.1);player.setSubtitleStyle({fontSize:30});
+player.setBuffering({profile:'balanced',aheadSeconds:30,behindSeconds:10});
+const buffering=player.getBuffering();
+// @ts-expect-error requested policy is read-only
+buffering.requested.profile='resilient';
 player.setQuality({mode:'auto',maxHeight:720});player.seekToLive();player.setLoop({start:1,end:2});player.setPlaybackRange(null);player.snapshot();player.stepFrame();
 player.getPlaybackExplanation().admission.forEach(decision=>console.log(decision.code));
 const legacySubtitle:Promise<void>=player.addSubtitle(new File([],'a.srt'));
@@ -71,6 +75,16 @@ player.presentation.requestFullscreen();
 
 const preview:PlayerPreview=player.preview;
 preview.enabled=false;
+preview.setStrategy({type:'adaptive',every:5});
+preview.unload({start:0,end:60});preview.setCacheLimits({maxEntries:100});
+const limits=preview.cacheLimits;
+// @ts-expect-error cache limits are read-only
+limits.maxEntries=3;
+const strategy=preview.strategy;
+// @ts-expect-error owner control
+preview.setPlaybackPosition(1);
+// @ts-expect-error strategy is read-only
+preview.strategy={type:'on-demand'};
 preview.getFrame({time:1,signal:new AbortController().signal});
 preview.request({time:1,onUpdate:frame=>console.log(frame.sourceId)});
 preview.prefetch({time:1});preview.clear();preview.setProviders([]);
@@ -99,4 +113,30 @@ const independent=new PreviewController();independent.setSourceIdentity('owned')
 `);
   execFileSync(process.execPath,['node_modules/typescript/lib/tsc.js','--noEmit','--strict','--target','ES2022','--module','ES2022','--moduleResolution','bundler',file],{stdio:'pipe'});
  }finally{await rm(directory,{recursive:true,force:true});}
+});
+
+test('selective unload preserves other buckets and live budget changes evict immediately',async()=>{
+ const c=new PreviewController([provider],{debounceMs:0});const api=createPlayerPreview(c);
+ try{
+  for(const time of [1,2,3])await api.getFrame({time});
+  assert.equal(api.unload({start:1,end:3}),2);
+  assert.equal(await api.getFrame({time:2,cacheOnly:true}),null);
+  assert.equal((await api.getFrame({time:3,cacheOnly:true})).cache,'hit');
+  await api.getFrame({time:4});api.setCacheLimits({maxEntries:1});
+  assert.equal(api.diagnostics.cacheEntries,1);assert.equal(await api.getFrame({time:3,cacheOnly:true}),null);
+  assert.throws(()=>api.setCacheLimits({maxEntries:-1,maxCacheBytes:0}),RangeError);
+  assert.equal(api.cacheLimits.maxEntries,1);assert.ok(api.cacheLimits.maxCacheBytes>0);
+  assert.throws(()=>api.unload({start:3,end:2}),RangeError);
+  api.setCacheLimits({maxCacheBytes:0});assert.equal(api.diagnostics.cacheEntries,0);assert.equal(api.diagnostics.cacheBytes,0);
+  api.setCacheLimits({maxCacheBytes:4096});await api.getFrame({time:5});assert.equal(api.diagnostics.cacheEntries,1);
+ }finally{await c.destroy();}
+});
+test('unloading cancels matching work and rejects late cache publication',async()=>{
+ let finish,started;const ready=new Promise(r=>started=r);
+ const c=new PreviewController([{...provider,getFrame:request=>new Promise(resolve=>{finish=()=>{request.publish(frame(request.time));resolve(frame(request.time));};started();})}],{debounceMs:0});
+ try{
+  const pending=assert.rejects(c.getFrame({time:10}),{name:'AbortError'});await ready;
+  assert.equal(c.unload({start:10,end:11}),0);await pending;finish();await new Promise(r=>setImmediate(r));
+  assert.equal(c.diagnostics.cacheEntries,0);assert.equal(c.diagnostics.active,false);
+ }finally{await c.destroy();}
 });

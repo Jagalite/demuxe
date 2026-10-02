@@ -5,8 +5,15 @@ export type PregenerationRequest = {
     width: number;
     height: number;
 };
+export type AdaptivePregeneration = {
+    strategy: 'adaptive';
+    samples: number;
+    every: number;
+    radius: number;
+};
 /** One lazy candidate at a time; never allocates a duration-sized work queue. */
 export declare class PreviewPregenerator {
+    private bucket;
     private run;
     private timer?;
     private epoch;
@@ -15,17 +22,24 @@ export declare class PreviewPregenerator {
     private enabled;
     private finished;
     private running;
+    private readonly samples?;
+    private readonly sampleOrder?;
     private readonly times?;
     private readonly step;
     private readonly limit;
     private readonly width;
     private readonly height;
-    constructor(config: PreviewPregeneration, bucket: number, run: (request: PregenerationRequest) => Promise<'next' | 'wait' | 'stop'>);
+    private adaptive?;
+    private focus;
+    private visited;
+    constructor(config: PreviewPregeneration | AdaptivePregeneration, bucket: number, run: (request: PregenerationRequest) => Promise<'next' | 'wait' | 'stop'>);
     setDuration(duration: number | null): void;
     setEnabled(value: boolean): void;
+    setFocus(time: number): void;
     reset(): void;
     stop(): void;
     private cancelTimer;
     private schedule;
     private tick;
+    private key;
 }

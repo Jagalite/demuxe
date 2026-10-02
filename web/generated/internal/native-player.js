@@ -232,6 +232,16 @@ export class NativePlayer extends EventTarget {
         }
     }
     get planId() { return this.mpvSubtitlePlan && this.mpvSubs && this.adapted && this.audioAdaptation === 'flac24' ? 'native-transcode-mpv' : this.mpvAudio ? this.requestedPlan : this.mpvSubtitlePlan && this.mpvSubs ? (this.remux ? 'remux-mpv' : 'direct-mpv') : this.projection ? (this.adapted ? 'adapted-flac24' : 'remux') : this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct'; }
+    get bufferingUpdateSupported() { return !this.remux || !!this.remux.setBuffering; }
+    async setBuffering(policy) {
+        if (this.remux) {
+            if (!this.remux.setBuffering)
+                throw new PlayerError('UNSUPPORTED_FEATURE', 'This remux provider cannot update buffering at runtime');
+            await this.remux.setBuffering(resolveBuffering(policy, 'remux'));
+        }
+        this.video.preload = policy.preload;
+        this.buffering = policy;
+    }
     get bufferingDiagnostics() {
         return { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: this.remux?.bufferingDiagnostics ?? { elementPreload: this.video.preload } };
     }

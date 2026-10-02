@@ -15,6 +15,7 @@ export declare class SoftwarePreviewProvider implements PreviewProvider {
     private limits;
     readonly id = "software";
     readonly priority = 50;
+    readonly requiresDecoder = true;
     constructor(source: () => SoftwarePreviewSource | undefined, document: Document, assetBase: URL, limits?: ResourceLimits);
     canHandle(): boolean;
     getFrame(request: PreviewContext): Promise<PreviewResult | null>;

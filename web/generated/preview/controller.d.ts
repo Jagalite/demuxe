@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
+import type { PreviewStrategy } from '../types.js';
 import type { PreviewOptions } from '../types.js';
 export type { PreviewOptions } from '../types.js';
+/** maxDistance permits nearby cached samples; cacheOnly never starts or cancels decoder work. */
 export type PreviewRequest = {
     time: number;
     width?: number;
     height?: number;
     signal?: AbortSignal;
     exact?: boolean;
+    maxDistance?: number;
+    cacheOnly?: boolean;
 };
 export type PreviewImage = {
     blob: Blob;
@@ -73,6 +77,10 @@ export type PreviewContext = {
 export interface PreviewProvider {
     readonly id: string;
     readonly priority: number;
+    /** Creates or seeks an independent decoder; yield this work to playback. */
+    readonly requiresDecoder?: boolean;
+    /** Bounded independent native decoding may run alongside playback. */
+    readonly allowDuringPlayback?: boolean;
     canHandle(request: PreviewContext): boolean | Promise<boolean>;
     getFrame(request: PreviewContext): Promise<PreviewResult | null>;
 }
@@ -83,8 +91,13 @@ export declare class PreviewController {
     private cleanups;
     private destruction?;
     private suspended;
+    private playbackActive;
     private allowed;
     private pregenerator?;
+    private strategyValue;
+    private duration;
+    private hoverUntil;
+    private playbackPosition;
     private lastForeground;
     private cache;
     private bytes;
@@ -98,6 +111,10 @@ export declare class PreviewController {
     private lastFailure?;
     private readonly options;
     constructor(providers?: readonly PreviewProvider[], options?: PreviewOptions);
+    private generator;
+    get strategy(): PreviewStrategy | null;
+    /** Switch scheduling without changing playback or discarding useful cached images. */
+    setStrategy(value: PreviewStrategy): void;
     get enabled(): boolean;
     set enabled(value: boolean);
     get diagnostics(): {
@@ -118,6 +135,7 @@ export declare class PreviewController {
     setSourceIdentity(id: string): void;
     /** Finite VOD duration admits configured source-scoped background generation. */
     setDuration(duration: number | null): void;
+    setPlaybackPosition(time: number): void;
     setProviders(providers: readonly PreviewProvider[]): void;
     addProvider(provider: PreviewProvider): () => void;
     private cancelJob;
@@ -125,9 +143,27 @@ export declare class PreviewController {
     private cancelWork;
     /** Playback pressure cancels generation, but resident thumbnails remain usable. */
     setSuspended(value: boolean): void;
+    /** Suppress expensive decoder providers while allowing independent native previews. */
+    setPlaybackActive(value: boolean): void;
     private trackCleanup;
     /** Await registered resource teardown, not arbitrary provider result promises. */
     drain(): Promise<void>;
+    /** Current cache budgets; changing these never starts decoder work. */
+    get cacheLimits(): Readonly<{
+        maxEntries: number;
+        maxCacheBytes: number;
+    }>;
+    setCacheLimits(limits: {
+        maxEntries?: number;
+        maxCacheBytes?: number;
+    }): void;
+    /** Remove a half-open range of requested buckets, across sizes and exactness.
+     * Cancels matching in-flight work so late results cannot refill that range.
+     * Automatic strategies may request it again; use on-demand for manual ownership. */
+    unload(range: {
+        start: number;
+        end: number;
+    }): number;
     clear(): void;
     destroy(): Promise<void>;
     /** Explicit optional prefetch. Busy lanes decline; a hover always supersedes it. */

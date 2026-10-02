@@ -85,6 +85,8 @@ leave silent stalls undetected; it does not grant codec or route compatibility.
 
 ## Automatic buffering
 
+Runtime updates use `await player.setBuffering(options)`; `player.getBuffering()` reports requested policy, effective settings, capabilities, and ranges. See [runtime buffering controls](BUFFERING.md#runtime-policy-and-unified-reporting).
+
 Demuxe buffering is enabled automatically. `balanced` is the default. Each
 playback backend uses its own buffering implementation, configured by Demuxe
 according to portable application intent. No buffer scheduler is shared between engines.

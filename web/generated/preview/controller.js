@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PreviewPregenerator } from './pregeneration.js';
+import { resolvePreviewStrategy } from './strategies.js';
+class PreviewDeferred extends Error {
+}
 const aborted = () => new DOMException('Preview superseded or cancelled', 'AbortError');
 const now = () => performance.now();
 const emptyMetrics = () => ({ providerSelectionMs: 0, cacheLookupMs: 0, totalMs: 0, indexLookupMs: null, byteAcquisitionMs: null, decoderInitializationMs: null, frameDecodeMs: null, resizeConversionMs: null, decodedFrames: null, bytesRead: null, bytesFetched: null });
@@ -10,8 +13,13 @@ export class PreviewController {
     cleanups = new Set();
     destruction;
     suspended = false;
+    playbackActive = false;
     allowed = true;
     pregenerator;
+    strategyValue = null;
+    duration = null;
+    hoverUntil = 0;
+    playbackPosition = 0;
     lastForeground = -Infinity;
     cache = new Map();
     bytes = 0;
@@ -25,7 +33,9 @@ export class PreviewController {
     lastFailure;
     options;
     constructor(providers = [], options = {}) {
-        const { pregenerate, ...settings } = options;
+        const { pregenerate, strategy, ...settings } = options;
+        if (pregenerate !== undefined && strategy !== undefined)
+            throw new TypeError('Choose preview strategy or pregenerate, not both');
         this.options = { enabled: true, bucketSeconds: 1, debounceMs: 50, width: 160, maxCacheBytes: 4 * 1024 * 1024, maxEntries: 48, timeoutMs: 10000, ...settings };
         for (const [key, value] of Object.entries(this.options))
             if (key !== 'enabled' && (!Number.isFinite(value) || Number(value) < 0))
@@ -36,24 +46,50 @@ export class PreviewController {
             throw new TypeError('Invalid preview enabled option');
         this.allowed = this.options.enabled;
         this.setProviders(providers);
-        if (pregenerate !== undefined) {
-            this.pregenerator = new PreviewPregenerator(pregenerate, this.options.bucketSeconds, async (request) => {
-                if (this.disposed)
-                    return 'stop';
-                if (!this.allowed || this.suspended || this.active || this.pending || this.caller || now() - this.lastForeground < 500)
-                    return 'wait';
-                if (!this.options.maxCacheBytes || !this.options.maxEntries)
-                    return 'stop';
-                try {
-                    await this.requestWork(request, true);
-                    return 'next';
-                }
-                catch {
-                    return this.suspended || now() - this.lastForeground < 500 ? 'wait' : 'next';
-                }
-            });
+        if (strategy !== undefined)
+            this.setStrategy(strategy);
+        else if (pregenerate !== undefined) {
+            this.pregenerator = this.generator(pregenerate);
             this.pregenerator.setEnabled(this.allowed);
         }
+        else
+            this.strategyValue = Object.freeze({ type: 'on-demand' });
+    }
+    generator(config) {
+        return new PreviewPregenerator(config, this.options.bucketSeconds, async (request) => {
+            if (this.disposed)
+                return 'stop';
+            if (!this.allowed || this.suspended || this.active || this.pending || this.caller || now() - this.lastForeground < 500)
+                return 'wait';
+            if (!this.options.maxCacheBytes || !this.options.maxEntries)
+                return 'stop';
+            try {
+                await this.requestWork(request, true);
+                return 'next';
+            }
+            catch (error) {
+                return error instanceof PreviewDeferred || this.suspended || now() - this.lastForeground < 500 ? 'wait' : 'next';
+            }
+        });
+    }
+    get strategy() { return this.strategyValue; }
+    /** Switch scheduling without changing playback or discarding useful cached images. */
+    setStrategy(value) {
+        if (this.disposed)
+            throw aborted();
+        const resolved = resolvePreviewStrategy(value), next = resolved.generation ? this.generator(resolved.generation) : undefined;
+        this.pregenerator?.stop();
+        for (const job of [this.active, this.pending])
+            if (job?.background) {
+                if (this.caller?.job === job)
+                    this.settle(aborted());
+                this.cancelJob(job);
+            }
+        this.strategyValue = resolved.strategy;
+        this.pregenerator = next;
+        next?.setEnabled(this.allowed);
+        next?.setFocus(this.playbackPosition);
+        next?.setDuration(this.duration);
     }
     get enabled() { return this.allowed; }
     set enabled(value) {
@@ -65,9 +101,12 @@ export class PreviewController {
             this.clear();
     }
     get diagnostics() { return { ...this.counters, sourceId: this.sourceId, cacheBytes: this.bytes, cacheEntries: this.cache.size, active: !!this.active, pending: !!this.pending, lastFailure: this.lastFailure ? { ...this.lastFailure } : undefined }; }
-    setSourceIdentity(id) { this.clear(); this.sourceId = id; this.pregenerator?.setDuration(null); }
+    setSourceIdentity(id) { this.clear(); this.sourceId = id; this.hoverUntil = 0; this.playbackPosition = 0; this.setDuration(null); }
     /** Finite VOD duration admits configured source-scoped background generation. */
-    setDuration(duration) { this.pregenerator?.setDuration(duration); }
+    setDuration(duration) { this.duration = duration !== null && Number.isFinite(duration) && duration > 0 ? duration : null; this.pregenerator?.setDuration(this.duration); }
+    setPlaybackPosition(time) { if (!Number.isFinite(time) || time < 0)
+        return; this.playbackPosition = time; if (now() >= this.hoverUntil)
+        this.pregenerator?.setFocus(time); }
     setProviders(providers) { this.clear(); this.revision++; this.providers = [...providers].sort((a, b) => a.priority - b.priority); }
     addProvider(provider) { this.setProviders([...this.providers, provider]); let removed = false; return () => { if (!removed) {
         removed = true;
@@ -88,6 +127,15 @@ export class PreviewController {
     /** Playback pressure cancels generation, but resident thumbnails remain usable. */
     setSuspended(value) { this.suspended = value; if (value)
         this.cancelWork(); }
+    /** Suppress expensive decoder providers while allowing independent native previews. */
+    setPlaybackActive(value) {
+        this.playbackActive = value;
+        if (value && this.active?.requiresDecoder) {
+            if (this.caller?.job === this.active)
+                this.settle(this.active.background ? new PreviewDeferred() : aborted());
+            this.cancelJob(this.active);
+        }
+    }
     trackCleanup(completion) {
         const settled = completion.catch(() => { });
         this.cleanups.add(settled);
@@ -95,6 +143,50 @@ export class PreviewController {
     }
     /** Await registered resource teardown, not arbitrary provider result promises. */
     async drain() { await Promise.all([...this.cleanups]); }
+    /** Current cache budgets; changing these never starts decoder work. */
+    get cacheLimits() { return Object.freeze({ maxEntries: this.options.maxEntries, maxCacheBytes: this.options.maxCacheBytes }); }
+    setCacheLimits(limits) {
+        if (this.disposed)
+            throw aborted();
+        const maxEntries = limits.maxEntries ?? this.options.maxEntries, maxCacheBytes = limits.maxCacheBytes ?? this.options.maxCacheBytes;
+        if (!Number.isSafeInteger(maxEntries) || maxEntries < 0 || !Number.isFinite(maxCacheBytes) || maxCacheBytes < 0)
+            throw new RangeError('Invalid preview cache limits');
+        const wasDisabled = !this.options.maxEntries || !this.options.maxCacheBytes;
+        this.options.maxEntries = maxEntries;
+        this.options.maxCacheBytes = maxCacheBytes;
+        while (this.cache.size && (this.cache.size > maxEntries || this.bytes > maxCacheBytes)) {
+            const key = [...this.cache].find(([, entry]) => entry.background)?.[0] ?? this.cache.keys().next().value;
+            this.bytes -= this.cache.get(key).bytes;
+            this.cache.delete(key);
+        }
+        // A scheduler stopped by a zero budget can resume with the new budget.
+        if (wasDisabled && maxEntries && maxCacheBytes)
+            this.pregenerator?.reset();
+    }
+    /** Remove a half-open range of requested buckets, across sizes and exactness.
+     * Cancels matching in-flight work so late results cannot refill that range.
+     * Automatic strategies may request it again; use on-demand for manual ownership. */
+    unload(range) {
+        if (this.disposed)
+            throw aborted();
+        if (!Number.isFinite(range.start) || !Number.isFinite(range.end) || range.start < 0 || range.end <= range.start)
+            throw new RangeError('Invalid preview unload range');
+        const contains = (time) => time >= range.start && time < range.end;
+        for (const job of [this.active, this.pending])
+            if (job && contains(job.context.time)) {
+                if (this.caller?.job === job)
+                    this.settle(aborted());
+                this.cancelJob(job);
+            }
+        let removed = 0;
+        for (const [key, entry] of this.cache)
+            if (contains(JSON.parse(key)[2])) {
+                this.bytes -= entry.bytes;
+                this.cache.delete(key);
+                removed++;
+            }
+        return removed;
+    }
     clear() { this.cancelWork(); this.cache.clear(); this.bytes = 0; this.pregenerator?.reset(); }
     destroy() {
         if (this.destruction)
@@ -113,13 +205,23 @@ export class PreviewController {
     catch { } }
     getFrame(request) { return this.request(request); }
     /** Optional refinement delivery; getFrame remains a single-final-result API. */
-    request(request) { this.lastForeground = now(); return this.requestWork(request); }
+    request(request) {
+        if (!request.cacheOnly)
+            this.lastForeground = now();
+        if (!request.signal?.aborted && Number.isFinite(request.time) && request.time >= 0) {
+            this.hoverUntil = now() + 1500;
+            this.pregenerator?.setFocus(request.time);
+        }
+        return this.requestWork(request);
+    }
     requestWork(request, background = false) {
         if (this.disposed || request.signal?.aborted)
             return Promise.reject(aborted());
         if (!this.allowed)
             return Promise.resolve(null);
         const width = request.width ?? this.options.width, height = request.height;
+        if (request.maxDistance !== undefined && (!Number.isFinite(request.maxDistance) || request.maxDistance < 0))
+            return Promise.reject(new RangeError('Invalid preview distance'));
         if (!Number.isFinite(request.time) || request.time < 0 || !Number.isInteger(width) || width < 1 || width > 2048 || (height !== undefined && (!Number.isInteger(height) || height < 1 || height > 2048)))
             return Promise.reject(new RangeError('Invalid preview request'));
         const start = now(), bucket = request.exact ? 0 : this.options.bucketSeconds;
@@ -128,26 +230,47 @@ export class PreviewController {
             return Promise.reject(new RangeError('Invalid preview bucket'));
         const key = JSON.stringify([this.sourceId, this.revision, time, width, height ?? null, !!request.exact]);
         this.counters.requests++;
-        this.settle(aborted());
+        if (!request.cacheOnly)
+            this.settle(aborted());
         let job = this.pending?.key === key ? this.pending : this.active?.key === key && !this.active.controller.signal.aborted ? this.active : undefined;
-        if (job && !background)
-            job.background = false;
-        if (this.pending && this.pending !== job)
-            this.cancelJob(this.pending);
-        if (this.active && this.active !== job)
-            this.cancelJob(this.active);
-        const lookup = now(), cached = this.cache.get(key), cacheMs = now() - lookup;
+        if (!request.cacheOnly) {
+            if (job && !background)
+                job.background = false;
+            if (this.pending && this.pending !== job)
+                this.cancelJob(this.pending);
+            if (this.active && this.active !== job)
+                this.cancelJob(this.active);
+        }
+        const lookup = now();
+        let cacheKey = key, cached = this.cache.get(key);
+        // A caller must explicitly permit approximate storyboard samples. Exact
+        // requests retain their original cache semantics and represented timestamps.
+        if (!cached && !request.exact && request.maxDistance) {
+            let distance = request.maxDistance;
+            for (const [candidate, entry] of this.cache) {
+                const identity = JSON.parse(candidate);
+                if (identity[0] !== this.sourceId || identity[1] !== this.revision || identity[3] !== width || identity[4] !== (height ?? null))
+                    continue;
+                const delta = Math.abs(entry.result.time - request.time);
+                if (delta <= distance) {
+                    distance = delta;
+                    cached = entry;
+                    cacheKey = candidate;
+                }
+            }
+        }
+        const cacheMs = now() - lookup;
         if (cached) {
             if (!background)
                 cached.background = false;
             this.counters.hits++;
-            this.cache.delete(key);
-            this.cache.set(key, cached);
-            const frame = this.frame(cached.result, request, time, 'hit', start, cacheMs, 0);
+            this.cache.delete(cacheKey);
+            this.cache.set(cacheKey, cached);
+            const frame = this.frame(cached.result, request, JSON.parse(cacheKey)[2], 'hit', start, cacheMs, 0);
             this.notify(request.onUpdate, frame);
             return Promise.resolve(frame);
         }
-        if (this.suspended)
+        if (request.cacheOnly || this.suspended)
             return Promise.resolve(null);
         if (!job) {
             const controller = new AbortController();
@@ -177,12 +300,18 @@ export class PreviewController {
             this.active = undefined; this.pump(); });
     }
     async run(job) {
+        let deferred = false;
         try {
             const scheduler = globalThis.scheduler;
             if (scheduler)
                 await scheduler.postTask(() => { }, { priority: 'background', signal: job.controller.signal });
             for (const provider of this.providers) {
                 job.context.signal.throwIfAborted();
+                if (this.playbackActive && provider.requiresDecoder && !provider.allowDuringPlayback) {
+                    deferred = true;
+                    continue;
+                }
+                job.requiresDecoder = provider.requiresDecoder && !provider.allowDuringPlayback;
                 try {
                     const start = now();
                     let supported;
@@ -195,6 +324,10 @@ export class PreviewController {
                     job.context.signal.throwIfAborted();
                     if (!supported)
                         continue;
+                    if (this.playbackActive && provider.requiresDecoder && !provider.allowDuringPlayback) {
+                        deferred = true;
+                        continue;
+                    }
                     const raw = await provider.getFrame(job.context);
                     job.context.signal.throwIfAborted();
                     const result = this.validate(raw);
@@ -216,7 +349,7 @@ export class PreviewController {
                 }
             }
             if (this.caller?.job === job)
-                this.settle();
+                this.settle(job.background && deferred ? new PreviewDeferred() : undefined);
         }
         catch {
             if (this.caller?.job === job)

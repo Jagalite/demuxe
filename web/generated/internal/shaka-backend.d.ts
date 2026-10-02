@@ -40,6 +40,7 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     private selectedSub;
     private audioDisabled;
     private source?;
+    private bufferingDefaults;
     constructor(video: HTMLVideoElement, assetBase?: URL, buffering?: BufferingPolicy);
     /** Shaka owns image-track indexing. Return its authored reference without
      * downloading a sprite through playback's network/error/ABR machinery. */
@@ -92,6 +93,32 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     streamingState(): import('../types.js').StreamingState;
     setQuality(policy: import('../types.js').QualityPolicy): Promise<void>;
     seekToLive(): Promise<void>;
+    setBuffering(policy: BufferingPolicy): Promise<void>;
+    get bufferingDiagnostics(): {
+        settings: {
+            bufferingGoal: number;
+            rebufferingGoal: number;
+            bufferBehind: number;
+        } | {
+            [x: string]: number;
+            bufferingGoal?: undefined;
+            rebufferingGoal?: undefined;
+            bufferBehind?: undefined;
+        };
+        requestedAheadSeconds?: number;
+        requestedBehindSeconds?: number;
+        requestedMemoryBudget?: number;
+        requestedProfile: import("../types.js").BufferingProfile;
+        preload: import("../types.js").PreloadPolicy;
+        backend: "browser" | "shaka" | "remux" | "mpv";
+        control: "hint" | "profile";
+        cache?: boolean;
+        forwardLimitBytes?: number;
+        backwardLimitBytes?: number;
+        forwardSeconds?: number;
+        backwardSeconds?: number;
+        notes: string[];
+    };
     play(): Promise<void>;
     pause(): Promise<void>;
     seek(seconds: number): Promise<void>;

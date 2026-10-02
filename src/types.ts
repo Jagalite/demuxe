@@ -28,15 +28,22 @@ export type PreloadPolicy = 'none' | 'metadata' | 'auto';
 export type BufferingProfile = 'low-latency' | 'balanced' | 'resilient';
 /** memoryBudget is a coded-data budget ceiling in bytes (8–64 MiB), not total player memory.
  * Browser and Shaka cannot enforce it; consult diagnostics. */
-export type BufferingOptions = {preload?:PreloadPolicy; profile?:BufferingProfile; memoryBudget?:number};
-export type BufferingPolicy = Readonly<Required<Pick<BufferingOptions,'preload'|'profile'>> & Pick<BufferingOptions,'memoryBudget'>>;
+export type BufferingOptions = {preload?:PreloadPolicy; profile?:BufferingProfile; memoryBudget?:number; aheadSeconds?:number; behindSeconds?:number};
+export type BufferingPolicy = Readonly<Required<Pick<BufferingOptions,'preload'|'profile'>> & Pick<BufferingOptions,'memoryBudget'|'aheadSeconds'|'behindSeconds'>>;
 /** Playback-health heuristics only; operation, network and cleanup deadlines remain bounded. */
 export type WatchdogOptions = {nativeProgress?:boolean;hybridDecoder?:boolean;decoderOutput?:boolean;selectiveAudio?:boolean;nativeProgressTimeoutMs?:number};
 export type WatchdogPolicy = Readonly<Required<WatchdogOptions>>;
 export type BufferingCapabilities = Readonly<{control:'hint'|'profile'; preload:boolean; profile:boolean; memoryBudget:boolean}>;
-export type BufferingResolution = {requestedMemoryBudget?:number; requestedProfile:BufferingProfile; preload:PreloadPolicy; backend:'browser'|'shaka'|'remux'|'mpv'; control:'hint'|'profile'; cache?:boolean; forwardLimitBytes?:number; backwardLimitBytes?:number; forwardSeconds?:number; backwardSeconds?:number; notes:string[]; settings?:Record<string,unknown>};
-export type PreviewPregeneration = readonly number[] | ({width?:number;height?:number;count?:number|null} & ({timestamps:readonly number[];every?:never;unit?:never}|{every:number;unit?:'seconds'|'minutes';timestamps?:never}));
-export type PreviewOptions = {pregenerate?:PreviewPregeneration;enabled?:boolean;bucketSeconds?:number;debounceMs?:number;width?:number;maxCacheBytes?:number;maxEntries?:number;timeoutMs?:number};
+export type BufferingResolution = {requestedAheadSeconds?:number; requestedBehindSeconds?:number; requestedMemoryBudget?:number; requestedProfile:BufferingProfile; preload:PreloadPolicy; backend:'browser'|'shaka'|'remux'|'mpv'; control:'hint'|'profile'; cache?:boolean; forwardLimitBytes?:number; backwardLimitBytes?:number; forwardSeconds?:number; backwardSeconds?:number; notes:string[]; settings?:Record<string,unknown>};
+export type PreviewPregeneration = readonly number[] | ({width?:number;height?:number;count?:number|null} & ({timestamps:readonly number[];every?:never;unit?:never;samples?:never}|{every:number;unit?:'seconds'|'minutes';timestamps?:never;samples?:never}|{samples:number;timestamps?:never;every?:never;unit?:never}));
+/** Background scheduling; foreground hover requests remain available in every strategy. */
+export type PreviewStrategy =
+  | {type:'on-demand'}
+  | {type:'uniform';samples?:number}
+  | {type:'interval';every?:number;unit?:'seconds'|'minutes';count?:number|null}
+  | {type:'adaptive';samples?:number;every?:number;radius?:number}
+  | {type:'timestamps';timestamps:readonly number[];count?:number|null};
+export type PreviewOptions = {strategy?:PreviewStrategy;pregenerate?:PreviewPregeneration;enabled?:boolean;bucketSeconds?:number;debounceMs?:number;width?:number;maxCacheBytes?:number;maxEntries?:number;timeoutMs?:number};
 export type PreparationComponent = 'inspector' | 'hybrid' | 'software';
 export type PreparationOptions = 'all' | readonly PreparationComponent[];
 export type PreparationAsset = {name:PreparationComponent|'font';status:'ready'|'failed'|'aborted';bytes:number;milliseconds:number;error?:string};
@@ -218,3 +225,13 @@ export type PlaybackRange = Readonly<{start:number;end:number}>;
 export type LoopPolicy = false|true|PlaybackRange;
 export type SnapshotOptions = Readonly<{width?:number;height?:number;includeSubtitles?:boolean}>;
 export type VideoSnapshot = Readonly<{blob:Blob;width:number;height:number;mediaTime:number;actualTime:null;includesSubtitles:boolean}>;
+
+/** Requested policy and backend-specific application, without collecting decoder diagnostics. */
+export type BufferingState = Readonly<{
+ active:boolean;
+ requested:BufferingPolicy;
+ effective:BufferingResolution;
+ capabilities:Readonly<{runtimeUpdate:boolean;timeTargets:boolean;memoryBudget:boolean;manualRanges:false}>;
+ buffered:readonly Readonly<{start:number;end:number}>[]|null;
+ cached:readonly Readonly<{start:number;end:number}>[]|null;
+}>;

@@ -8,6 +8,11 @@ export function createPlayerPreview(controller) {
         addProvider: controller.addProvider.bind(controller),
         setProviders: controller.setProviders.bind(controller),
         clear: controller.clear.bind(controller),
+        unload: controller.unload.bind(controller),
+        setCacheLimits: controller.setCacheLimits.bind(controller),
+        get cacheLimits() { return controller.cacheLimits; },
+        setStrategy: controller.setStrategy.bind(controller),
+        get strategy() { return controller.strategy; },
         get enabled() { return controller.enabled; },
         set enabled(value) { controller.enabled = value; },
         get diagnostics() {

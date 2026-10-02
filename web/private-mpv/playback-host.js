@@ -87,6 +87,8 @@ export class PrivatePlaybackHost {
   pump(force = false) {
     return this.serial(async () => {
       if (this.closed) return [];
+      const checkDecoder=()=>{if(this.engine.decoder?.error)throw Error('Retained decoder: '+this.engine.decoder.error);};
+      checkDecoder();
       if (this.audio?.error) throw Error(this.audio.error);
       if (this.sourceFailure) throw this.sourceFailure;
       const failures = this.engine.source.drainFailures().filter(failure => failure.generation === undefined || failure.generation === this.engine.source.generation);
@@ -98,6 +100,7 @@ export class PrivatePlaybackHost {
       const events = [];
       for (let i = 0; i < 64; i++) {
         const ptr = await this.engine.call('web_event');
+        checkDecoder();
         if (!ptr) break;
         let event;
         try { event = JSON.parse(this.engine.module.UTF8ToString(ptr)); }
@@ -112,8 +115,10 @@ export class PrivatePlaybackHost {
       force=force||this.renderWidth!==this.width||this.renderHeight!==this.height;
       this.renderWidth=this.width;this.renderHeight=this.height;
       const ptr = await this.engine.call('web_render', this.width, this.height, +force);
+      checkDecoder();
       if(this.retained){
         if(ptr)await this.retained.select(this.engine,this.properties);
+        checkDecoder();
         if(this.retained.present(this.context,this.canvas)){await this.engine.call('web_presented');this.draws++;}
       }else if (ptr) {
         if (!this.imageData || this.imageData.width !== this.width || this.imageData.height !== this.height)

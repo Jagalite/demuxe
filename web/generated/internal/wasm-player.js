@@ -389,6 +389,15 @@ export class WasmPlayer extends EventTarget {
         }
         await Promise.all([this.waitForEvent(e => e.event === 'property-change' && e.name === 'pause' && e.data === paused), this.command('set', 'pause', paused ? 'yes' : 'no')]);
     }
+    async setBuffering(policy) {
+        const settings = { ...mpvBufferingOptions(policy, this.properties.get('pause') !== false), 'cache-secs': policy.preload === 'auto' || this.properties.get('pause') === false ? '3600000' : '1' };
+        for (const [key, value] of Object.entries(settings)) {
+            await this.command('set', key, value);
+            this.bufferingSettings[key] = value;
+        }
+        this.buffering = policy;
+    }
+    get bufferingDiagnostics() { return { ...resolveBuffering(this.buffering, 'mpv'), settings: { ...this.bufferingSettings, 'demuxer-cache-state': this.properties.get('demuxer-cache-state'), 'paused-for-cache': this.properties.get('paused-for-cache'), 'cache-buffering-state': this.properties.get('cache-buffering-state') } }; }
     async configureBuffering(preparing) {
         for (const [key, value] of Object.entries(mpvBufferingOptions(this.buffering, preparing))) {
             await this.command('set', key, value);
