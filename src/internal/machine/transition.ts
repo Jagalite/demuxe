@@ -5,11 +5,16 @@ import {transitionPlayback,type PlaybackInput} from './playback.js';
 import {transitionSettings,transitionSettingTransaction,changePreferences,clearSourcePreferences,type SettingsInput,type SettingTransactionInput,type SettingEffect} from './settings.js';
 import {transitionSource,type SourceInput} from './source.js';
 import {transitionAttachment,attachmentAuthority,attachmentPreferences,type AttachmentInput,type AttachmentEffect} from './attachments.js';
+import {transitionRouting,type RoutingInput} from './route-state.js';
 import type {PlayerControlState} from './state.js';
 export type SessionObservation=Readonly<{type:'playback.sample';session:number;sequence:number;observation:'waiting'|'playing'|'time'|'pause';value?:number|boolean;publishedTime?:number}>;
-export type PlayerControlInput=AttachmentInput|BoundaryInput|OperationInput|PlaybackInput|SettingsInput|SettingTransactionInput|SourceInput|SessionObservation;
+export type PlayerControlInput=RoutingInput|AttachmentInput|BoundaryInput|OperationInput|PlaybackInput|SettingsInput|SettingTransactionInput|SourceInput|SessionObservation;
 export type PlayerControlDecision<Effect=SettingEffect|BoundaryEffect|AttachmentEffect>=Readonly<{state:PlayerControlState;accepted:boolean;id?:number;reason?:string;message?:string;retire:readonly number[];effects?:readonly Effect[]}>;
 export function transitionPlayer(state:PlayerControlState,input:PlayerControlInput):PlayerControlDecision{
+  if(isRoutingInput(input)){
+    if(input.type==='routing.decoding'&&(state.operations.terminal||input.epoch!==state.operations.epoch||input.session!==state.source.acceptedSession))return Object.freeze({state,accepted:false,reason:'retired',retire:Object.freeze([])});
+    return Object.freeze({state:Object.freeze({...state,revision:state.revision+1,routing:transitionRouting(state.routing,input)}),accepted:true,retire:Object.freeze([])});
+  }
   if(isAttachmentInput(input))return transitionAttachment(state,input);
   if(isBoundaryInput(input))return transitionBoundary(state,input);
   if(isSettingTransaction(input))return transitionSettingTransaction(state,input);
@@ -53,6 +58,7 @@ export function transitionPlayer(state:PlayerControlState,input:PlayerControlInp
 }
 
 function isAttachmentInput(input:PlayerControlInput):input is AttachmentInput{return input.type.startsWith('attachment.');}
+function isRoutingInput(input:PlayerControlInput):input is RoutingInput{return input.type.startsWith('routing.');}
 function isBoundaryInput(input:PlayerControlInput):input is BoundaryInput{return input.type.startsWith('boundary.');}
 function isSourceInput(input:PlayerControlInput):input is SourceInput{return input.type.startsWith('source.');}
 function isSettingTransaction(input:PlayerControlInput):input is SettingTransactionInput{return input.type.startsWith('setting.')||input.type==='preferences.change';}

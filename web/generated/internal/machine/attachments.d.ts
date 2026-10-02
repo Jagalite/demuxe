@@ -102,6 +102,7 @@ export declare function transitionAttachment(state: PlayerControlState, input: A
     state: Readonly<{
         revision: number;
         attachments: AttachmentState;
+        routing: import("./route-state.js").RoutingState;
         boundary: import("./playback-boundary.js").BoundaryState;
         operations: import("./operations.js").OperationState;
         playback: import("./playback.js").PlaybackControl;

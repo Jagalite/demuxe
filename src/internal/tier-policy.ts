@@ -15,6 +15,6 @@ export class TierAttempts {
   clear(){this.state=createTierAttempts();this.sources=new WeakMap();}
 }
 /** Optional promotion only tries plans ahead of the currently accepted plan. */
-export function preferredPlans<T extends {id:string;eligible:boolean}>(plans:T[],current:string){
+export function preferredPlans<T extends {id:string;eligible:boolean}>(plans:readonly T[],current:string){
   return preferredPlanIndices(plans.map(plan=>({id:plan.id,eligible:plan.eligible})),current).map(index=>plans[index]);
 }

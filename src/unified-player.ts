@@ -56,6 +56,7 @@ class SeekPresentationBoundary extends PlayerError {
   constructor(target:number,boundary:number){super('INVALID_ARGUMENT',`Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`);}
 }
 
+import {refineRouteAdmission,applyDeploymentRejections,attachRouteDecoding,type RoutePlan} from './internal/machine/route-admission.js';
 import {attachmentAuthority,candidateAttachments,attachmentPreferences,type AttachmentInput,type AttachmentEffect,type AttachmentCommand,type AttachmentFacts} from './internal/machine/attachments.js';
 import {boundaryAuthority} from './internal/machine/playback-boundary.js';
 import {settingAuthority,effectiveVideoFilters,type SettingCommand,type SettingEffect,type PlayerPreferences} from './internal/machine/settings.js';
@@ -132,7 +133,8 @@ export class Player extends EventTarget {
   private set currentMode(mode:PlaybackMode){this.dispatchControl({type:'source.configure',mode});}
   private get automatic(){return this.control.source.automatic;}
   private set automatic(automatic:boolean){this.dispatchControl({type:'source.configure',automatic});}
-  private attempts: SelectionAttempt[] = [];
+  private get attempts(){return this.control.routing.attempts;}
+  private set attempts(attempts:readonly SelectionAttempt[]){this.dispatchControl({type:'routing.attempts',attempts});}
   private runtimeCapabilities=new RuntimeCapabilities();
   private tierAttempts=new TierAttempts();
   private promotionTimer?:ReturnType<typeof setTimeout>;
@@ -174,7 +176,8 @@ export class Player extends EventTarget {
   private readonly mediaCapabilityQueries=new MediaCapabilityQueries(typeof navigator==='undefined'||!navigator.mediaCapabilities?.decodingInfo?undefined:config=>navigator.mediaCapabilities.decodingInfo(config),150,()=>{
     if(this.destroyed)return;
     const inspected=this.sourceInspection;if(!inspected||inspected.source!==this.source)return;
-    for(const plan of this.planDecisions)if(plan.browserCapability)plan.browserCapability.decodingInfo=this.mediaCapabilityQueries.cached(plan.browserCapability,inspected.probe);
+    const epoch=this.operationEpoch,session=this.control.source.acceptedSession,answers=this.planDecisions.flatMap(plan=>plan.browserCapability?[{id:plan.id,evidence:this.mediaCapabilityQueries.cached(plan.browserCapability,inspected.probe)}]:[]);
+    if(!this.dispatchControl({type:'routing.decoding',epoch,session,answers}).accepted)return;
     this.schedulePublish();if(!this.settings.pause||this.backgroundPromotion)this.schedulePromotion();
   });
   private sourceInspection?:{source:Source;probe:Probe;settings:{aid:string;sid:string;subtitles:boolean}};
@@ -203,8 +206,11 @@ export class Player extends EventTarget {
   private nativeASS:boolean;
   private mpvSubtitles:boolean;
   private allowLossy=false;
-  private planDecisions:Array<ReturnType<typeof planAdmission>[number]&{browserCapability?:BrowserMediaCapability}>=[];
-  private admissionContext:{nativeReason?:string;automatic:boolean}={automatic:false};
+  private get planDecisions():readonly RoutePlan[]{return this.control.routing.plans;}
+  private set planDecisions(plans:readonly RoutePlan[]){this.dispatchControl({type:'routing.plans',plans});}
+  private get admissionContext(){return this.control.routing.context;}
+  private set admissionContext(context:{nativeReason?:string;automatic:boolean}){this.dispatchControl({type:'routing.context',context});}
+  private rejectPlan(id:string,reason:string){this.dispatchControl({type:'routing.reject',id,code:'FEATURE_UNSUPPORTED',reason});return this.planDecisions.find(plan=>plan.id===id)!;}
   private nativeRemux: 'auto' | 'never' | 'always';
   private remuxSelection: ReturnType<typeof selectRemuxRuntime>;
   private remuxRuntime: 'pthread' | 'jspi' | 'asyncify';
@@ -741,7 +747,7 @@ export class Player extends EventTarget {
       this.privateRemux&&(audioTracks.length!==1||selectiveAudio.codec!=='pcm_s16le'||selectiveAudio.channels!==2||selectiveAudio.sampleRate!==48000)?'Private mpv audio requires one 48 kHz stereo PCM16 stream':
       !this.selectiveAudioAssetsAvailable?'Selective audio engine or worklet assets are unavailable':
       undefined;
-    const decisions:typeof this.planDecisions=planAdmission({automatic,...settings,
+    const basePlans=planAdmission({automatic,...settings,
       privatePlaybackFull:this.privatePlaybackAssets?.codecProfile==='playback-full',privatePlaybackAssetsAvailable:this.privatePlaybackAssetsAvailable,offscreenCanvas:typeof OffscreenCanvas!=='undefined',
       privatePlaybackSourceRejection:privatePlaybackRejection(inspected?.probe,{finite:this.privateFiniteSource(source),bytes:source.kind==='local'?source.file instanceof File?source.file.size:source.file.byteLength:Number(source.options.identity?.size)},
         {...settings,toneMapping:this.candidatePreferences.toneMapping,audioOutput:this.audioOutput,externalSubtitles:!!attachments.length||!!textTracks.length,customFonts:!!this.fonts.length,subtitleStyle:!!Object.keys(this.candidatePreferences.subtitleStyle).length},this.privatePlaybackAssets),
@@ -765,38 +771,19 @@ export class Player extends EventTarget {
       requiresRemux:!!(remote&&(remote.headers||remote.refreshAuthorization||remote.allowedOrigins||remote.immutable!==undefined||remote.credentials==='omit'||!!(settings.subtitles&&selectiveSubtitle))),
       privateRemux:this.privateRemux,atomicMpvProviders:!!this.providerRuntime,isolated:globalThis.crossOriginIsolated===true,mse:typeof MediaSource!=='undefined',webCodecs:typeof VideoDecoder!=='undefined',webAudio:typeof AudioContext!=='undefined',
       nativeSourceRejection:remote?.format&&remote.format!=='file'?nativeManifestRejection(remote,settings,!!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')):nativeSourceRejection});
-    if(inspected){
-      const element=document.createElement('video');
-      const capabilities=nativeBrowserCapabilities(inspected.probe,inspectedSettings!.aid,{canPlayType:mime=>element.canPlayType(mime),isTypeSupported:typeof MediaSource==='undefined'?undefined:mime=>MediaSource.isTypeSupported(mime)});
-      for(const plan of decisions){
-        if(plan.mode==='hybrid'&&plan.eligible&&inspected.probe.hybridRejection){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason=inspected.probe.hybridRejection;}
-        if(!plan.id.startsWith('native-'))continue;
-        const capability=plan.browserCapability=plan.id.startsWith('native-video-mpv-audio')?selectiveVideoCapability!:capabilities[plan.id.startsWith('native-direct')?'direct':(plan.id.startsWith('native-flac')||plan.id.startsWith('native-transcode'))?'flac':plan.id.startsWith('native-opus')?'opus':'remux'];
-        // A browser may silently skip an unsupported default audio stream and
-        // decode another one. Decoded-byte progress cannot prove its identity.
-        // Inconclusive multi-audio Direct trials need selected-stream packaging.
-        if(plan.eligible&&plan.id.startsWith('native-direct')&&audioTracks.length>1&&inspectedSettings!.aid!=='no'&&capability.status!=='supported'){
-          plan.eligible=false;plan.code='SOURCE_UNSUPPORTED';plan.reason='Multiple audio streams require controlled selection when browser support is inconclusive';
-        }
-        capability.decodingInfo=this.mediaCapabilityQueries.cached(capability,inspected.probe);
-        if(plan.eligible&&capability.status==='unsupported'){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason=capability.reason;}
-      }
-    }else{
-      for(const plan of decisions)if(plan.id.startsWith('native-'))plan.browserCapability={status:'unknown',api:plan.id.startsWith('native-direct')?'canPlayType':'isTypeSupported',tracks:[],queries:[],reason:'Source track inspection is unavailable; codec support has not been established'};
-    }
-    if(selected?.startsWith('audio:stream:')){
-      const audio=inspected?.probe.tracks.filter(t=>t.type==='audio')??[];
-      const defaultTrack=audio.find(t=>t.default)??audio[0];
-      if(!defaultTrack||selected!==`audio:stream:${defaultTrack.index}`)for(const plan of decisions)if(plan.id.startsWith('native-direct')&&plan.eligible){plan.eligible=false;plan.code='SOURCE_UNSUPPORTED';plan.reason='Original Native has no proven source-stream identity selection contract for the requested alternate audio';}
-    }
-    for(const plan of decisions)if(plan.eligible&&this.failedStreamingPlans.get(source)?.has(plan.id)){
-      plan.eligible=false;plan.code='QUALIFICATION_REQUIRED';plan.reason='This execution plan already failed for the current streaming source';
-    }
-    if(this.candidatePreferences.subtitleDelay!==0||this.candidatePreferences.audioDelay!==0||Object.keys(this.candidatePreferences.subtitleStyle).length)for(const plan of decisions)if(plan.mode==='native'){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason='Requested timing/style controls require the mpv playback clock';}
-    if(this.outputDeviceId&&(typeof AudioContext==='undefined'||!('setSinkId' in AudioContext.prototype)))for(const plan of decisions)if(plan.eligible&&(plan.mode!=='native'||plan.id.startsWith('native-video-mpv-audio')||plan.id.endsWith('-gain'))){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason='The requested output device requires AudioContext sink selection on this route';}
-    if(this.providerRuntime)for(const plan of decisions)if(plan.eligible){
-      const reason=this.providerRuntime.rejection(plan.id,source,JSON.stringify([this.tierConfiguration(settings),this.remuxRuntime,this.softwarePresenter,inspected?.probe.tracks]),this.remuxRuntime,inspected?.probe,inspectedSettings?.aid);
-      if(reason){plan.eligible=false;plan.code='DEPLOYMENT_UNAVAILABLE';plan.reason=reason;}
+    const element=inspected?document.createElement('video'):undefined;
+    const capabilities=inspected?nativeBrowserCapabilities(inspected.probe,inspectedSettings!.aid,{canPlayType:mime=>element!.canPlayType(mime),isTypeSupported:typeof MediaSource==='undefined'?undefined:mime=>MediaSource.isTypeSupported(mime)}):undefined;
+    const withEvidence=(capability:BrowserMediaCapability)=>({...capability,decodingInfo:this.mediaCapabilityQueries.cached(capability,inspected!.probe)});
+    const defaultAudio=audioTracks.find(track=>track.default)??audioTracks[0];
+    let decisions=refineRouteAdmission(basePlans,{inspected:!!inspected,hybridRejection:inspected?.probe.hybridRejection,
+      capabilities:capabilities?{direct:withEvidence(capabilities.direct),remux:withEvidence(capabilities.remux),flac:withEvidence(capabilities.flac),opus:withEvidence(capabilities.opus),selective:withEvidence(selectiveVideoCapability!)}:undefined,
+      audioTrackCount:audioTracks.length,audioOff:inspectedSettings?.aid==='no',selectedAudioKey:selected,defaultAudioKey:defaultAudio?`audio:stream:${defaultAudio.index}`:undefined,
+      failedPlans:[...(this.failedStreamingPlans.get(source)??[])],timingControls:this.candidatePreferences.subtitleDelay!==0||this.candidatePreferences.audioDelay!==0||!!Object.keys(this.candidatePreferences.subtitleStyle).length,
+      audioContextSinkUnavailable:!!this.outputDeviceId&&(typeof AudioContext==='undefined'||!('setSinkId' in AudioContext.prototype))});
+    if(this.providerRuntime){
+      const rejections:Record<string,string|undefined>={};
+      for(const plan of decisions)if(plan.eligible)rejections[plan.id]=this.providerRuntime.rejection(plan.id,source,JSON.stringify([this.tierConfiguration(settings),this.remuxRuntime,this.softwarePresenter,inspected?.probe.tracks]),this.remuxRuntime,inspected?.probe,inspectedSettings?.aid);
+      decisions=applyDeploymentRejections(decisions,rejections);
     }
     return decisions;
   }
@@ -812,7 +799,7 @@ export class Player extends EventTarget {
     if(this.sourceInspection?.source!==source)this.sourceInspection=undefined;
     this.validateFilters(mode, settings);
     const attachments=preserve?this.subtitleAssets:[];
-    const admitted=this.admissible(source,settings,attachments,nativeTracks,automaticAdmission?this.admissionContext.nativeReason:undefined,automaticAdmission);
+    let admitted=this.admissible(source,settings,attachments,nativeTracks,automaticAdmission?this.admissionContext.nativeReason:undefined,automaticAdmission);
     if(!automaticAdmission)this.admissionContext={automatic:false};
     if(!admitted.some(p=>p.id===planId&&p.eligible)){
       const candidates=admitted.filter(p=>p.mode===mode);
@@ -821,8 +808,8 @@ export class Player extends EventTarget {
       if(rejection?.code!=='ISOLATION_REQUIRED'&&deployment)throw deployment;
       throw new PlayerError(rejection?.code==='ISOLATION_REQUIRED'?'ISOLATION_REQUIRED':'UNSUPPORTED_FEATURE',rejection?.reason??'No qualified complete playback plan');
     }
-    const queried=admitted.find(p=>p.id===planId)?.browserCapability;
-    if(queried&&this.sourceInspection?.source===source){queried.decodingInfo=await this.mediaCapabilityQueries.inspect(queried,this.sourceInspection.probe);this.assertOperation();}
+    let queried=admitted.find(p=>p.id===planId)?.browserCapability;
+    if(queried&&this.sourceInspection?.source===source){const decodingInfo=await this.mediaCapabilityQueries.inspect(queried,this.sourceInspection.probe);this.assertOperation();queried={...queried,decodingInfo};admitted=attachRouteDecoding(admitted,planId,queried.decodingInfo);}
     if(mode==='native'&&attachments.length&&!attachments.every(a=>!!plainVTT(a))&&(!this.nativeASS||attachments.some(a=>!['ass','ssa','srt','vtt'].includes(a.format))))throw Error('External mpv subtitles require Hybrid or Software');
     if(mode==='native'&&this.audioOutput!=='stereo')throw Error('Explicit PCM output layout requires Hybrid or Software');
     if (source.kind === 'local' && source.file instanceof ArrayBuffer && source.file.byteLength > 32 * 1024 * 1024) throw new Error('ArrayBuffer sources are limited to 32 MiB');
@@ -953,7 +940,7 @@ export class Player extends EventTarget {
       this.activeOperation?.detachCallerAbort();
       this.statistics.accept(this.sourceSerial,preserve,performance.now()-this.operationStarted);
       this.sessionError=null;
-      if(queried&&this.sourceInspection?.source===source)queried.decodingInfo=this.mediaCapabilityQueries.cached(queried,this.sourceInspection.probe);
+      if(queried&&this.sourceInspection?.source===source){queried={...queried,decodingInfo:this.mediaCapabilityQueries.cached(queried,this.sourceInspection.probe)};admitted=attachRouteDecoding(admitted,planId,queried.decodingInfo);}
       this.planDecisions=admitted;this.runtimeCapabilities.admission(admitted);
       this.acceptEvidence(planId,candidate);
       this.#previewController.setSourceIdentity(`${this.sourceSerial}:${mode}`);
@@ -977,7 +964,7 @@ export class Player extends EventTarget {
     } finally {clearInterval(resourceMonitor);this.dispatchControl({type:'source.finished',attempt});this.publish();}
   }
   private record(attempt: SelectionAttempt){
-    this.attempts.push(attempt);if(this.attempts.length>32)this.attempts.shift();
+    this.dispatchControl({type:'routing.attempt',attempt});
     this.emit('selectionchange',{...attempt});
   }
   private async inspectForQualifiedWebGPU(source:Source,settings:Settings):Promise<void>{
@@ -1256,12 +1243,12 @@ export class Player extends EventTarget {
       let plan=this.planDecisions[index];
       if(pinnedMode?plan.mode!==pinnedMode:PLAYBACK_MODES.indexOf(plan.mode)<start)continue;
       if(automatic&&plan.eligible&&plan.mode==='hybrid'&&this.sourceInspection?.source===source&&this.sourceInspection.probe.hybridRejection){
-        plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason=this.sourceInspection.probe.hybridRejection;
+        plan=this.rejectPlan(plan.id,this.sourceInspection.probe.hybridRejection);
         this.runtimeCapabilities.admission(this.planDecisions);
       }
       // Repackaging A/V cannot repair a failed browser caption renderer.
       if(captionFailure&&plan.mode==='native'){
-        if(plan.eligible){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason=captionFailure;this.runtimeCapabilities.admission(this.planDecisions);this.record({mode:plan.mode,outcome:'skipped',reason:`${plan.id}: ${captionFailure}`});}
+        if(plan.eligible){plan=this.rejectPlan(plan.id,captionFailure);this.runtimeCapabilities.admission(this.planDecisions);this.record({mode:plan.mode,outcome:'skipped',reason:`${plan.id}: ${captionFailure}`});}
         continue;
       }
       // Optional inspection and preparation are strictly after original-copy attempts.

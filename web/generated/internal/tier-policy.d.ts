@@ -13,4 +13,4 @@ export declare class TierAttempts {
 export declare function preferredPlans<T extends {
     id: string;
     eligible: boolean;
-}>(plans: T[], current: string): T[];
+}>(plans: readonly T[], current: string): T[];

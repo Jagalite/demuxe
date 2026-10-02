@@ -1,24 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { Probe } from './selection.js';
 import type { BrowserMediaCapability } from './browser-media-capability.js';
-export type DecodingQuery = {
-    track: number;
-    configuration: MediaDecodingConfiguration;
-    container?: string;
-    status: 'answered' | 'unavailable' | 'timeout' | 'error';
-    supported?: boolean;
-    smooth?: boolean;
-    powerEfficient?: boolean;
-    reason?: string;
-    late?: boolean;
-};
-export type DecodingEvidence = {
-    api: 'decodingInfo';
-    queries: DecodingQuery[];
-    unqueriedTracks: number[];
-    scope: 'advisory';
-    reason?: string;
-};
+import type { DecodingEvidence } from './machine/media-facts.js';
+export type { DecodingQuery, DecodingEvidence } from './machine/media-facts.js';
 type Decode = (configuration: MediaDecodingConfiguration) => Promise<Pick<MediaCapabilitiesInfo, 'supported' | 'smooth' | 'powerEfficient'>>;
 /** Per-player, bounded cache of exact API inputs. No source outcomes are cached.
  * Predictions never prove output, change fidelity, or veto a working file route. */
@@ -36,4 +20,3 @@ export declare class MediaCapabilityQueries {
     inspect(capability: BrowserMediaCapability, probe: Probe): Promise<DecodingEvidence>;
     private query;
 }
-export {};

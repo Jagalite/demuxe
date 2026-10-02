@@ -40,3 +40,11 @@ test('subtitle allocation failure releases earlier native strings',async()=>{
  await assert.rejects(host.addSubtitle(1,'/subtitles/0','Example','en',true),/allocation failed/);
  assert.deepEqual(freed,[256]);
 });
+
+test('paused presentation gate drains native replies while holding the snapshot canvas',async()=>{
+ const calls=[],events=[JSON.stringify({event:'command-reply',id:7,result:true})];let frames=0;
+ const engine={raw:{memory:{buffer:new ArrayBuffer(32)}},source:{drainFailures:()=>[]},module:{UTF8ToString:()=>events.shift()},call:async name=>{calls.push(name);if(name==='web_event')return events.length?1:0;if(name==='web_render')frames++;return 0;}};
+ const host=new PrivatePlaybackHost(engine,{getContext:()=>({})},4,4);
+ const result=await host.pump(false,false);assert.equal(result[0].id,7);assert.equal(calls.includes('web_render'),false);assert.equal(frames,0);assert.equal(host.draws,0);
+ await host.pump(false,true);assert.equal(frames,1);
+});

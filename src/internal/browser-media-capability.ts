@@ -2,15 +2,8 @@
 import {queryAdapter} from './browser-evidence-adapters.js';
 import type {Probe, ProbeTrack} from './selection.js';
 
-export type BrowserMediaCapability = {
-  status:'supported'|'unsupported'|'unknown';
-  api:'canPlayType'|'isTypeSupported';
-  tracks:Array<{index:number;type:string;codec:string;codecString?:string;serializationComplete:boolean;adapted?:boolean}>;
-  queries:Array<{mime:string;result:string|boolean;adapter:string;negativeDecisive:boolean;reason?:string}>;
-  decodingInfo?:import('./media-capabilities.js').DecodingEvidence;
-  unqueriedAudio?:boolean;
-  reason?:string;
-};
+import type {BrowserMediaCapability} from './machine/media-facts.js';
+export type {BrowserMediaCapability} from './machine/media-facts.js';
 type BrowserQueries = {canPlayType:(mime:string)=>string;isTypeSupported?:(mime:string)=>boolean};
 
 // Serialize inspected codec metadata into browser query vocabulary. This is

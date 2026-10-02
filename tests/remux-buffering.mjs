@@ -116,9 +116,9 @@ test('runtime policy changes update remux scheduling without restarting its gene
 
 test('worker remux forwards runtime policies and commits only acknowledged updates',async()=>{
  const {WorkerRemuxController}=await import('../web/worker-remux-controller.js');
- const calls=[],p=Object.assign(Object.create(WorkerRemuxController.prototype),{options:{},call:async(...args)=>calls.push(args)});
+ const calls=[],p=new WorkerRemuxController({}, {},()=>undefined);const owner=p.transition({type:'boot'}).owner;p.transition({type:'booted',owner});p.call=async(...args)=>calls.push(args);
  const policy={forwardSeconds:15,backwardSeconds:2};await p.setBuffering(policy);
- assert.deepEqual(calls,[['setBuffering',policy]]);assert.deepEqual(p.options.buffering,policy);
+ assert.deepEqual(calls,[['setBuffering',policy,owner]]);assert.deepEqual(p.options.buffering,policy);
  p.call=async()=>{throw Error('worker rejected');};await assert.rejects(p.setBuffering({forwardSeconds:30}),/worker rejected/);assert.deepEqual(p.options.buffering,policy);
  p.local={setBuffering:async value=>calls.push(['local',value])};await p.setBuffering({forwardSeconds:7});assert.equal(calls.at(-1)[0],'local');
 });

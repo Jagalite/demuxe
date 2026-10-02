@@ -125,6 +125,14 @@ Attachment effects recheck operation/session authority after reads and backend c
 
 Private audio-worker state now owns initialization, replacement flush/load stages with existing poll bounds, context/pause ordering, close authority and source-scoped authorization requests. Native MSE-worker state owns boot/shutdown, source/operation epochs, sampled element facts, play/authorization requests and deadlines. Physical engine calls, message ports, timers and media resources remain in adapters. Shutdown retires requests before waiting on physical cleanup, and old authorization replies cannot update a replacement source.
 
+## Route and controller cutover
+
+The five source-policy functions retain their existing decisions. Immutable route overlays preserve rejection precedence, shared capability-family answers, finite plan order and bounded attempt history; late decoding answers require the accepted epoch/session. Probe/asset/discovery policy is still being migrated.
+
+Private playback pause now waits for native acknowledgement and the final in-flight picture to be acknowledged by the UI before resolving, with a bounded 15-second presentation deadline. This intentionally corrects an ordering defect reproduced both before the migration and in the frozen candidate. The worker continues servicing native events and command replies while the paused render surface is held. Explicit play, seek, frame stepping, resize and visual changes may resume presentation; volume, rate and cache settings do not. A rejected timer cannot leave an unowned native command running, and close/replacement rejects late subtitle-inventory acceptance. Paused stability is separate from exact frame timestamp/fidelity qualification.
+
+Remux-controller state retires requests and acquisition identity before cleanup callbacks. Reentrant iframe/worker/local acquisition cannot install a returned resource after destruction; late resources are cleaned up. Stale boot/fallback/error/authorization callbacks cannot mutate the new owner. The same-stack media play call remains in the adapter.
+
 ## Gesture-sensitive effects
 
 Source: [Player.play](../src/unified-player.ts#L1461), [presentation requests](../src/presentation.ts#L31), [output picker](../src/player/advanced-settings.ts#L146).

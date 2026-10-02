@@ -2,114 +2,109 @@
 // Experimental Backend transport. Qualification and admission are separate.
 import {privateMpv, privateMpvSource} from '../private-mpv.js';
 import {PrivatePlaybackHost} from './playback-host.js';
-import {resolveDecodePolicy,mpvDecoderOptions,nextAdaptiveState,supportsEmergencyFrameDrop,adaptiveDecodeSignal} from '../generated/internal/decode-policy.js';
+import {mpvDecoderOptions} from '../generated/internal/decode-policy.js';
+import {createPrivatePlaybackWorker,playbackWorkerAccepts,admitPlaybackWorkerInit,playbackWorkerInitCurrent,finishPlaybackWorkerInit,receivePlaybackWorkerLoad,playbackWorkerLoadCurrent,beginPlaybackWorkerLoad,advancePlaybackWorkerLoad,retirePlaybackWorker,beginPlaybackWorkerClose,finishPlaybackWorkerClose,admitPlaybackWorkerCommand,admitPlaybackWorkerRefresh,settlePlaybackWorkerRequest,playbackWorkerSetting,beginPlaybackWorkerControl,openPlaybackWorkerPresentation,preparePlaybackWorkerCommand,beginPlaybackWorkerSeek,acceptPlaybackWorkerSubtitle,playbackWorkerSubtitleFits,beginPlaybackWorkerPump,playbackWorkerPumpCurrent,finishPlaybackWorkerPump,observePlaybackWorkerRestart,observePlaybackWorkerOutput,beginPlaybackWorkerCapture,finishPlaybackWorkerCapture,acknowledgePlaybackWorkerPicture,pausePlaybackWorkerPresentation,expirePlaybackWorkerPresentation,publishPlaybackWorkerOutput,publishPlaybackWorkerDiagnostics,configurePlaybackWorkerDecode,samplePlaybackWorkerAdaptive,settlePlaybackWorkerAdaptive} from '../generated/internal/machine/private-playback-worker.js';
 import {PrivateRetainedPresentation} from './retained-presentation.js';
-let engine, host, source, timer, closing = false, closed = false, initialized = false, userPaused = true, contextRunning = false;
-let chain = Promise.resolve(), nextCommand = 1, generation = 0, target, restarted = false, lastDraws = 0, lastDiagnostics = 0;
-let replacing = false, loadRequest = 0;
-let pumping = false, closePromise;
-let targetDrawBaseline = 0, opening = false, subtitleBytes = 0, subtitleCount = 0;
-let pictureId=0,pendingPicture=0,sentDraws=0;
-let retained,decodeInput,decodePolicy,adaptiveFrameDrop=false,adaptiveSwitching=false;
-let adaptivePrevious,adaptiveStreak=0,adaptiveDirection='',adaptiveCooldown=0,adaptiveReason='disabled';
-const privateDecodePolicy=state=>({...resolveDecodePolicy({...decodeInput,adaptiveState:state}),threads:1});
-function resetAdaptive(){adaptivePrevious=undefined;adaptiveStreak=0;adaptiveDirection='';adaptiveCooldown=0;}
+let engine,host,source,timer,retained,closePromise;
+let chain=Promise.resolve(),lifecycle=createPrivatePlaybackWorker();
+const loading=new AbortController(),commands=new Map(),refreshes=new Map(),presentations=new Map();
+const describe=error=>String(error)+(error?.stack?'\n'+error.stack:'');
+const post=value=>postMessage(value);
+const replaced=()=>Object.assign(Error('Source replaced'),{code:'SOURCE_REPLACED'});
+function rejectPending(error){
+ for(const pending of [...commands.values(),...refreshes.values(),...presentations.values()]){clearTimeout(pending.timer);pending.reject(error);}
+ commands.clear();refreshes.clear();presentations.clear();
+}
+function assertInit(){if(!playbackWorkerInitCurrent(lifecycle))throw Error('Playback host closing');}
+function assertLoad(id){if(!playbackWorkerLoadCurrent(lifecycle,id))throw replaced();}
+function advanceLoad(id,input){const result=advancePlaybackWorkerLoad(lifecycle,id,input);lifecycle=result.state;if(!result.accepted)throw replaced();}
+function retire(){const result=retirePlaybackWorker(lifecycle);lifecycle=result.state;if(!result.revoke)return;clearTimeout(timer);rejectPending(Error('Playback host closed'));loading.abort();source?.close();engine?.source.cancelSource();}
+function pendingRequest(kind,request,send){
+ const map=kind==='command'?commands:refreshes,{id,deadline}=request;
+ return new Promise((resolve,reject)=>{
+  const pending={resolve,reject,timer:undefined};map.set(id,pending);
+  const fail=(input,error)=>{const result=settlePlaybackWorkerRequest(lifecycle,kind,id,input);lifecycle=result.state;if(!result.accepted)return false;map.delete(id);clearTimeout(pending.timer);reject(error);return true;};
+  const expire=()=>{if(map.get(id)!==pending)return;try{if(!fail({kind:'deadline',now:performance.now()},Error(kind==='command'?'Native command deadline':'Authorization refresh deadline')))pending.timer=setTimeout(expire,Math.max(0,deadline-performance.now()));}catch(error){fail({kind:'send-error'},error);}};
+  try{pending.timer=setTimeout(expire,Math.max(0,deadline-performance.now()));if(map.get(id)===pending)send();}catch(error){fail({kind:'send-error'},error);}
+ });
+}
+async function submit(args,seek,subtitle){
+ const admission=admitPlaybackWorkerCommand(lifecycle,seek!==undefined,performance.now());lifecycle=admission.state;
+ if(admission.error)throw admission.error==='Source replaced'?replaced():Error(admission.error);
+ const {id,request}=admission,reply=pendingRequest('command',request,()=>{});void reply.catch(()=>{});
+ if(!commands.has(request.id))return reply;
+ // The pump settles native replies independently of the serialized RPC queue.
+ try{if(subtitle)await host.addSubtitle(id,...subtitle);else if(seek===undefined)await host.command(id,...args);else await host.seek(id,seek);}
+ catch(error){const result=settlePlaybackWorkerRequest(lifecycle,'command',request.id,{kind:'send-error'});lifecycle=result.state;const pending=commands.get(request.id);if(result.accepted&&pending){commands.delete(request.id);clearTimeout(pending.timer);pending.reject(error);}}
+ return reply;
+}
+function requestRefresh(load,sourceGeneration,resource){
+ const admission=admitPlaybackWorkerRefresh(lifecycle,load,performance.now());lifecycle=admission.state;if(!admission.request)return Promise.reject(replaced());
+ return pendingRequest('refresh',admission.request,()=>post({type:'refresh',generation:sourceGeneration,refreshId:String(admission.request.id),resource}));
+}
+// Native pause acknowledgment precedes asynchronous capture and UI draw. Fence
+// the last picture by identity, then hold unsolicited output until another
+// explicit visual operation. Paused seeks and visual commands reopen delivery.
+function pausePresentation(){
+ const admission=pausePlaybackWorkerPresentation(lifecycle,host.draws,performance.now());lifecycle=admission.state;if(admission.error)return Promise.reject(Error(admission.error));if(!admission.fence)return Promise.resolve();
+ const {id,deadline}=admission.fence;
+ return new Promise((resolve,reject)=>{
+  const pending={resolve,reject,timer:undefined};presentations.set(id,pending);
+  const fail=(failed,error)=>{const result=expirePlaybackWorkerPresentation(lifecycle,id,performance.now(),failed);lifecycle=result.state;if(!result.accepted)return false;presentations.delete(id);clearTimeout(pending.timer);reject(error);return true;};
+  const expire=()=>{if(presentations.get(id)!==pending)return;try{if(!fail(false,Error('Picture presentation deadline')))pending.timer=setTimeout(expire,Math.max(0,deadline-performance.now()));}catch(error){fail(true,error);}};
+  try{pending.timer=setTimeout(expire,Math.max(0,deadline-performance.now()));}catch(error){fail(true,error);}
+ });
+}
 async function considerAdaptive(now){
-  if(!adaptiveFrameDrop||retained||adaptiveSwitching||replacing||closing||!decodePolicy||now<adaptiveCooldown)return;
-  if(adaptivePrevious&&now-adaptivePrevious.wall<2000)return;
-  const current={wall:now,position:Number(host.properties['time-pos'])||0,decoderDrops:Number(host.properties['decoder-frame-drop-count'])||0,presentationDrops:Number(host.properties['frame-drop-count'])||0};
-  const previous=adaptivePrevious;adaptivePrevious=current;
-  if(!previous||userPaused||!contextRunning||target!==undefined||host.properties['paused-for-cache']){adaptiveStreak=0;return;}
-  if(!supportsEmergencyFrameDrop(decodePolicy.codec)){adaptiveReason='Codec has no qualified emergency frame skip';return;}
-  const {pressure,recovered}=adaptiveDecodeSignal({elapsedSeconds:(now-previous.wall)/1000,playbackSpeed:Number(host.properties.speed)||1,advance:current.position-previous.position,decoderDrops:Math.max(0,current.decoderDrops-previous.decoderDrops),presentationDrops:Math.max(0,current.presentationDrops-previous.presentationDrops),avsync:Number(host.properties.avsync)||0});
-  const direction=pressure?'pressure':recovered?'recovery':'';
-  adaptiveStreak=direction&&direction===adaptiveDirection?adaptiveStreak+1:direction?1:0;adaptiveDirection=direction;
-  let next=nextAdaptiveState(decodePolicy.adaptiveState,decodePolicy.codec,pressure,recovered,adaptiveStreak);
-  if(pressure&&next==='reduced-reconstruction'&&decodePolicy.skipLoopFilter==='noref')next='drop-non-reference';
-  if(next===decodePolicy.adaptiveState)return;
-  const candidate=privateDecodePolicy(next),epoch=generation;
-  if(mpvDecoderOptions(candidate)===mpvDecoderOptions(decodePolicy)){decodePolicy=candidate;adaptiveStreak=0;return;}
-  adaptiveSwitching=true;adaptiveStreak=0;adaptiveCooldown=now+10000;
-  try{
-    await submit(['set','vd-lavc-o',mpvDecoderOptions(candidate)]);
-    if(epoch===generation&&!replacing&&!closing){decodePolicy=candidate;adaptiveReason=pressure?'Sustained decoder pressure':'Sustained recovery with synchronized playback';}
-  }catch(error){if(epoch===generation&&!replacing&&!closing)await fail(error);}
-  finally{adaptiveSwitching=false;}
+ const admission=samplePlaybackWorkerAdaptive(lifecycle,{now,position:Number(host.properties['time-pos'])||0,decoderDrops:Number(host.properties['decoder-frame-drop-count'])||0,presentationDrops:Number(host.properties['frame-drop-count'])||0,speed:Number(host.properties.speed)||1,avsync:Number(host.properties.avsync)||0,pausedForCache:!!host.properties['paused-for-cache']});lifecycle=admission.state;
+ if(!admission.request)return;const {id,options}=admission.request;
+ try{await submit(['set','vd-lavc-o',options]);const result=settlePlaybackWorkerAdaptive(lifecycle,id,true);lifecycle=result.state;}
+ catch(error){const result=settlePlaybackWorkerAdaptive(lifecycle,id,false);lifecycle=result.state;if(result.accepted)await fail(error);}
 }
-const loading = new AbortController(), commands = new Map(), refreshes = new Map(), settings = new Map();
-const describe = error => String(error) + (error?.stack ? '\n' + error.stack : '');
-const post = value => postMessage(value);
-function rejectPending(error) {
-  for (const pending of commands.values()) {clearTimeout(pending.timer);pending.reject(error);}commands.clear();
-  for (const pending of refreshes.values()) {clearTimeout(pending.timer);pending.reject(error);}refreshes.clear();
+async function diagnostics(force=false){
+ if(!host)return;const decision=publishPlaybackWorkerDiagnostics(lifecycle,performance.now(),force);lifecycle=decision.state;if(!decision.accepted)return;
+ const audio=host.audio?.snapshot?.();
+ post({type:'diagnostics',generation:lifecycle.generation,data:{path:'wasm',decoder:retained?'webcodecs':'software',decoderBackend:retained?'webcodecs':'ffmpeg',runtime:engine.runtime,
+  plan:retained?'hybrid-private':'software-private',decodePolicy:retained?undefined:lifecycle.decodePolicy,adaptiveFrameDrop:lifecycle.adaptiveFrameDrop,adaptiveReason:lifecycle.adaptiveReason,adaptiveSwitching:!!lifecycle.adaptiveRequest,presentation:retained?{position:host.properties['time-pos']}:undefined,retained:retained?.snapshot(),browserDecoder:engine.decoder?.service.snapshot(),decoderMailbox:engine.decoder?.snapshot(),rendered:host.draws,presentedPosition:host.properties['time-pos'],seeking:lifecycle.target!==null,
+  heapBytes:engine.raw.memory.buffer.byteLength,audio,scheduler:engine.scheduler.snapshot(),io:engine.source.snapshot()}});
 }
-async function submit(args, seek, subtitle) {
-  if (closing) throw Error('Playback host closing');
-  if (nextCommand >= 0x3fffffff) throw Error('Command identity limit');
-  const id = nextCommand++, replyId = seek === undefined ? id : id + 0x40000000;
-  const reply = new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {commands.delete(replyId);reject(Error('Native command deadline'));}, 15000);
-    commands.set(replyId, {resolve, reject, timer});
-  });
-  void reply.catch(() => {});
-  // The pump resolves replies independently of the serialized RPC queue.
-  try {if(subtitle)await host.addSubtitle(id,...subtitle);else if (seek === undefined) await host.command(id, ...args);else await host.seek(id, seek);}
-  catch (error) {const pending = commands.get(replyId);if (pending) {clearTimeout(pending.timer);commands.delete(replyId);pending.reject(error);}}
-  return reply;
+async function pump(){
+ if(!host)return;const admission=beginPlaybackWorkerPump(lifecycle);lifecycle=admission.state;if(admission.id===null)return;const id=admission.id;
+ try{
+  const events=await host.pump(false,!lifecycle.picturePaused&&lifecycle.fences.length===0);if(!playbackWorkerPumpCurrent(lifecycle,id))return;
+  for(const event of events){
+   if(!playbackWorkerPumpCurrent(lifecycle,id))return;
+   if(event.event==='command-reply'){
+    const settled=settlePlaybackWorkerRequest(lifecycle,'command',event.id,{kind:'reply'});lifecycle=settled.state;const pending=commands.get(event.id);
+    if(settled.accepted&&pending){commands.delete(event.id);clearTimeout(pending.timer);event.error&&event.error!=='success'?pending.reject(Error('Command rejected: '+event.error)):pending.resolve(event.result);}
+   }
+   if(event.event==='playback-restart')lifecycle=observePlaybackWorkerRestart(lifecycle);
+   if(event.event==='property-change'&&event.name==='pause'&&!lifecycle.contextRunning)event.data=lifecycle.userPaused;
+   if(event.event==='property-change'&&event.name==='track-list'&&Array.isArray(event.data))event.data=event.data.map(track=>({...track,id:String(track.id)}));
+   post({type:'event',generation:lifecycle.generation,event});
+   if(event.event==='end-file'&&event.reason==='error')throw Error('Private Software decode failed: '+(event.error??'end-file error'));
+  }
+  if(!playbackWorkerPumpCurrent(lifecycle,id))return;
+  const hasVideo=!!host.properties['track-list']?.some(track=>track.type==='video'&&track.selected),audioReady=!hasVideo&&!!host.properties['track-list']?.some(track=>track.type==='audio'&&track.selected)&&!!host.properties['audio-codec-name'];
+  lifecycle=observePlaybackWorkerOutput(lifecycle,{hasVideo,audioReady,position:Number(host.properties['time-pos']),draws:host.draws});
+  const capture=beginPlaybackWorkerCapture(lifecycle,host.draws);lifecycle=capture.state;
+  if(capture.picture){
+   const bitmap=await host.serial(()=>createImageBitmap(host.canvas));const completion=finishPlaybackWorkerCapture(lifecycle,capture.picture.id);lifecycle=completion.state;
+   if(!completion.picture){bitmap.close();return;}const {generation,id:pictureId,rendered}=completion.picture;try{postMessage({type:'picture',generation,pictureId,rendered,bitmap},[bitmap]);}catch(error){bitmap.close();throw error;}
+  }
+  if(!playbackWorkerPumpCurrent(lifecycle,id))return;
+  const output=publishPlaybackWorkerOutput(lifecycle,host.draws);lifecycle=output.state;if(output.accepted)post({type:'output',generation:lifecycle.generation,position:host.properties['time-pos'],rendered:host.draws,seeking:lifecycle.target!==null});
+  await diagnostics();if(playbackWorkerPumpCurrent(lifecycle,id))void considerAdaptive(performance.now());
+ }catch(error){if(playbackWorkerPumpCurrent(lifecycle,id))await fail(error);return;}
+ finally{const completion=finishPlaybackWorkerPump(lifecycle,id);lifecycle=completion.state;if(completion.schedule){try{timer=setTimeout(pump,8);}catch(error){void fail(error);}}}
 }
-async function diagnostics(force = false) {
-  if (!host || performance.now() - lastDiagnostics < 100 && !force) return;
-  lastDiagnostics = performance.now();
-  const audio = host.audio?.snapshot();
-  post({type: 'diagnostics', generation, data: {path: 'wasm', decoder: retained?'webcodecs':'software', decoderBackend: retained?'webcodecs':'ffmpeg', runtime: engine.runtime,
-    plan: retained?'hybrid-private':'software-private',decodePolicy:retained?undefined:decodePolicy,adaptiveFrameDrop,adaptiveReason,adaptiveSwitching,presentation:retained?{position:host.properties['time-pos']}:undefined,retained:retained?.snapshot(),browserDecoder:engine.decoder?.service.snapshot(),decoderMailbox:engine.decoder?.snapshot(),rendered: host.draws, presentedPosition: host.properties['time-pos'], seeking: target !== undefined,
-    heapBytes: engine.raw.memory.buffer.byteLength, audio, scheduler: engine.scheduler.snapshot(), io: engine.source.snapshot()}});
+function close(){
+ if(closePromise)return closePromise;lifecycle=beginPlaybackWorkerClose(lifecycle);
+ let resolve,reject;closePromise=new Promise((yes,no)=>{resolve=yes;reject=no;});
+ // Shared completion and logical retirement precede abort/source callbacks.
+ void(async()=>{retire();try{return host?await host.destroy():undefined;}finally{engine?.dispose();lifecycle=finishPlaybackWorkerClose(lifecycle);}})().then(resolve,reject);return closePromise;
 }
-async function pump() {
-  if (closing || replacing || pumping || !host) return;
-  pumping = true;
-  try {
-    const events = await host.pump();
-    if (replacing) return;
-    for (const event of events) {
-      if (event.event === 'command-reply') {
-        const pending = commands.get(event.id);
-        if (pending) {clearTimeout(pending.timer);commands.delete(event.id);event.error && event.error !== 'success' ? pending.reject(Error('Command rejected: ' + event.error)) : pending.resolve(event.result);}
-      }
-      if (event.event === 'playback-restart') restarted = true;
-      if (event.event === 'property-change' && event.name === 'pause' && !contextRunning) event.data = userPaused;
-      if (event.event === 'property-change' && event.name === 'track-list' && Array.isArray(event.data)) event.data = event.data.map(track => ({...track, id: String(track.id)}));
-      post({type: 'event', generation, event});
-      if (event.event === 'end-file' && event.reason === 'error') throw Error('Private Software decode failed: ' + (event.error ?? 'end-file error'));
-    }
-    const hasVideo=host.properties['track-list']?.some(track=>track.type==='video'&&track.selected);
-    const audioReady=!hasVideo&&host.properties['track-list']?.some(track=>track.type==='audio'&&track.selected)&&!!host.properties['audio-codec-name'];
-    if (target !== undefined && restarted && (opening || Math.abs(Number(host.properties['time-pos']) - target) < 0.15) && (hasVideo?host.draws > targetDrawBaseline:audioReady)) {target = undefined;opening = false;}
-    if(host.draws>sentDraws&&!pendingPicture){
-      const epoch=generation,rendered=host.draws,bitmap=await host.serial(()=>createImageBitmap(host.canvas));
-      if(replacing||closing||epoch!==generation){bitmap.close();return;}
-      pendingPicture=++pictureId;sentDraws=rendered;
-      postMessage({type:'picture',generation,pictureId:pendingPicture,rendered,bitmap},[bitmap]);
-    }
-    if (host.draws > lastDraws) {lastDraws = host.draws;post({type: 'output', generation, position: host.properties['time-pos'], rendered: host.draws, seeking: target !== undefined});}
-    await diagnostics();void considerAdaptive(performance.now());
-  } catch (error) {if (!replacing && !closing) await fail(error);return;}
-  finally {pumping = false;}
-  timer = setTimeout(pump, 8);
-}
-function close() {
-  if (closePromise) return closePromise;
-  return closePromise = (async () => {
-  closing = true;clearTimeout(timer);loading.abort();source?.close();engine?.source.cancelSource();rejectPending(Error('Playback host closed'));
-  try {return host ? await host.destroy() : undefined;}
-  finally {engine?.dispose();closed = true;}
-  })();
-}
-async function fail(error) {
-  let cleanup, cleanupError;
-  try {cleanup = await close();} catch (cause) {cleanupError = describe(cause);}
-  post({type: 'fatal', error: describe(error), cleanup, cleanupError});
-}
+async function fail(error){let cleanup,cleanupError;try{cleanup=await close();}catch(cause){cleanupError=describe(cause);}post({type:'fatal',error:describe(error),cleanup,cleanupError});}
 function validateCommand(args) {
   if (!Array.isArray(args) || !args.length || args.length > 4 || args.some(arg => typeof arg !== 'string' || arg.includes('\0'))) throw Error('Invalid playback command');
   if (args[0] === 'set') {
@@ -118,22 +113,23 @@ function validateCommand(args) {
   } else if (!['expand-text', 'frame-step', 'frame-back-step', 'stop'].includes(args[0])) throw Error('Unsupported private playback command');
 }
 onmessage = ({data}) => {
-  if(data.op==='picture-presented'){if(data.pictureId===pendingPicture)pendingPicture=0;return;}
-  if (data.op === 'refreshed') {
-    const pending = refreshes.get(data.refreshId);if (pending) {clearTimeout(pending.timer);refreshes.delete(data.refreshId);data.error ? pending.reject(Error(data.error)) : pending.resolve(data.update);}return;
+  if(data.op==='picture-presented'){const result=acknowledgePlaybackWorkerPicture(lifecycle,data.pictureId);lifecycle=result.state;for(const id of result.resolved){const pending=presentations.get(id);if(pending){presentations.delete(id);clearTimeout(pending.timer);pending.resolve();}}return;}
+  if(data.op==='refreshed'){
+    const id=Number(data.refreshId),result=settlePlaybackWorkerRequest(lifecycle,'refresh',id,{kind:'reply'});lifecycle=result.state;const pending=refreshes.get(id);
+    if(result.accepted&&pending){refreshes.delete(id);clearTimeout(pending.timer);data.error?pending.reject(Error(data.error)):pending.resolve(data.update);}return;
   }
-  const loadToken = data.op === 'load' ? ++loadRequest : loadRequest;
-  if (data.op === 'load') {replacing = true;clearTimeout(timer);rejectPending(Object.assign(Error('Source replaced'),{code:'SOURCE_REPLACED'}));}
-  if (data.op === 'close' || data.op === 'load') {source?.close();engine?.source.cancelSource();}
-  if (data.op === 'close') {closing = true;clearTimeout(timer);loading.abort();rejectPending(Error('Playback host closed'));}
+  let loadToken=lifecycle.loadSerial;
+  if(data.op==='load'){const result=receivePlaybackWorkerLoad(lifecycle);lifecycle=result.state;loadToken=result.id;if(result.revoke){clearTimeout(timer);rejectPending(replaced());source?.close();engine?.source.cancelSource();}}
+  if(data.op==='close')retire();
   chain = chain.then(async () => {
-    if ((closed || closing) && data.op !== 'close') throw Error('Playback host closed');
+    if (!playbackWorkerAccepts(lifecycle,data.op)) throw Error('Playback host closed');
     let result;
     if (data.op === 'init') {
-      if (initialized) throw Error('Playback host already initialized');initialized = true;
+      const admission=admitPlaybackWorkerInit(lifecycle);lifecycle=admission.state;if(admission.error)throw Error(admission.error);
       if(data.mode!==undefined&&!['software','hybrid'].includes(data.mode))throw Error('Invalid private playback mode');
       if(data.mode==='hybrid')retained=new PrivateRetainedPresentation();
-      engine = await privateMpv(data.runtime, 'playback', {signal: loading.signal,assets:data.playbackAssets,maxDecodePixels:data.maxDecodePixels,onFrame:(frame,epoch)=>retained?retained.enqueue(frame,epoch):frame.close()});
+      const acquired = await privateMpv(data.runtime, 'playback', {signal: loading.signal,assets:data.playbackAssets,maxDecodePixels:data.maxDecodePixels,onFrame:(frame,epoch)=>retained?retained.enqueue(frame,epoch):frame.close()});
+      if(!playbackWorkerInitCurrent(lifecycle)){acquired.dispose();throw Error('Playback host closing');}engine=acquired;
       if(retained&&(!engine.decoder||!engine.raw.web_selected_snapshot))throw Error('Private Hybrid engine assets required');
       if (data.font) {engine.module.FS.mkdirTree('/fonts');engine.module.FS.writeFile('/fonts/DejaVuSans.ttf', new Uint8Array(data.font));}
       let fontBytes=0;
@@ -144,78 +140,74 @@ onmessage = ({data}) => {
         engine.module.FS.mkdirTree('/fonts');engine.module.FS.writeFile('/fonts/'+font.name,new Uint8Array(font.bytes));
       }
       const configured = await engine.call('web_configure', data.maxDecodePixels ?? 8294400, data.maxAllocationBytes ?? 128 * 1024 * 1024);
+      assertInit();
       if (configured < 0) throw Error('Invalid private decode limits');
       host = new PrivatePlaybackHost(engine, data.canvas, data.width, data.height, {fatalCommandErrors: false,retained,channels:data.channels??2});
       await host.create(new Blob([]), data.port, data.latencyUs);
+      assertInit();
       if(!['exact','balanced','performance'].includes(data.decodeQuality??'exact')||data.adaptiveFrameDrop!==undefined&&typeof data.adaptiveFrameDrop!=='boolean')throw Error('Invalid private decode policy');
-      decodeInput={codec:data.videoTrack?.codec,decodeQuality:data.decodeQuality??'exact',maxDecodePixels:data.maxDecodePixels??8294400};
-      decodePolicy=privateDecodePolicy('normal');adaptiveFrameDrop=!!data.adaptiveFrameDrop&&!retained;
-      adaptiveReason=adaptiveFrameDrop?'Waiting for sustained decoder pressure':'disabled';
-      contextRunning = data.contextRunning;host.audio.header()[6] = +contextRunning;
-      void pump();result = engine.facts();
+      lifecycle=configurePlaybackWorkerDecode(lifecycle,{codec:data.videoTrack?.codec,decodeQuality:data.decodeQuality??'exact',maxDecodePixels:data.maxDecodePixels??8294400},!!retained,!!data.adaptiveFrameDrop);
+      const completion=finishPlaybackWorkerInit(lifecycle,!!data.contextRunning);lifecycle=completion.state;if(!completion.accepted)throw Error('Playback host closing');host.audio.header()[6]=+lifecycle.contextRunning;
+      void pump();result=engine.facts();
     } else if (data.op === 'load') {
       if(typeof (data.demuxer??'')!=='string'||data.demuxer&&!/^[a-z0-9_]{1,64}$/.test(data.demuxer))throw Error('Invalid demuxer hint');
-      if (loadToken !== loadRequest) throw Error('Source load superseded');
-      generation = data.generation;resetAdaptive();decodePolicy=privateDecodePolicy('normal');target = 0;restarted = false;opening = true;targetDrawBaseline = 0;
-      if (source) {
-        await host.serial(() => engine.call('web_destroy'));host.created = false;
-        source.close();source = undefined;
+      const previousSubtitles=lifecycle.subtitleCount,admission=beginPlaybackWorkerLoad(lifecycle,loadToken,data.generation,!!source);lifecycle=admission.state;if(!admission.accepted)throw replaced();
+      if(source){
+        await host.serial(()=>engine.call('web_destroy'));assertLoad(loadToken);host.created=false;
+        const old=source;source=undefined;old.close();assertLoad(loadToken);advanceLoad(loadToken,'destroyed');
       }
-      for(let i=0;i<subtitleCount;i++){try{engine.module.FS.unlink('/subtitles/'+i);}catch{}}subtitleCount=0;subtitleBytes=0;
-      host.properties = {};host.events = [];host.draws = 0;lastDraws = 0;sentDraws=0;retained?.clear(0);host.sourceFailure = undefined;
-      const sourceGeneration = generation;
-      const refresh = data.canRefresh ? resource => new Promise((resolve, reject) => {
-        const refreshId = crypto.randomUUID(), timer = setTimeout(() => {refreshes.delete(refreshId);reject(Error('Authorization refresh deadline'));}, 5000);
-        refreshes.set(refreshId, {resolve, reject, timer});post({type: 'refresh', generation: sourceGeneration, refreshId, resource});
-      }) : undefined;
+      for(let i=0;i<previousSubtitles;i++){try{engine.module.FS.unlink('/subtitles/'+i);}catch{}}
+      host.properties={};host.events=[];host.draws=0;retained?.clear(0);host.sourceFailure=undefined;assertLoad(loadToken);
+      const sourceGeneration=lifecycle.generation,refresh=data.canRefresh?resource=>requestRefresh(loadToken,sourceGeneration,resource):undefined;
       source = privateMpvSource(data, refresh);await source.open(engine);
-      if (loadToken !== loadRequest) throw Error('Source load superseded');
+      assertLoad(loadToken);advanceLoad(loadToken,'opened');
       if (!host.created) await host.create(engine.source.source.reader);
       else host.sourceFailure = undefined;
-      host.audio.header()[6] = +contextRunning;
+      assertLoad(loadToken);advanceLoad(loadToken,'created');host.audio.header()[6] = +lifecycle.contextRunning;
       engine.source.drainFailures();
       host.seekPreroll = Number.isFinite(data.duration)&&data.duration>0?Math.min(60,data.duration):2;
-      replacing = false;void pump();
-      if(!retained)await submit(['set','vd-lavc-o',mpvDecoderOptions(decodePolicy)]);
-      for (const [name, value] of settings) await submit(['set', name, name === 'pause' && !contextRunning ? 'yes' : value]);
+      void pump();
+      if(!retained)await submit(['set','vd-lavc-o',mpvDecoderOptions(lifecycle.decodePolicy)]);
+      for (const [name,value] of lifecycle.settings){assertLoad(loadToken);await submit(['set',name,name==='pause'&&!lifecycle.contextRunning?'yes':value]);}
       await submit(['set','demuxer-lavf-format',data.demuxer??'']);
-      await submit(['loadfile', 'brange://source']);result = {generation};
+      await submit(['loadfile','brange://source']);advanceLoad(loadToken,'loaded');result={generation:lifecycle.generation};
     } else if (data.op === 'command') {
       validateCommand(data.args);
-      if (data.args[0] === 'set') settings.set(data.args[1], data.args[2]);
+      lifecycle=preparePlaybackWorkerCommand(lifecycle,data.args);
       result = await submit(data.args);
     } else if(data.op==='snapshot'){
       result=await host.serial(async()=>({blob:await host.canvas.convertToBlob({type:'image/png'}),time:Number(host.properties['time-pos'])||0,width:host.width,height:host.height}));
     } else if(data.op==='subtitle'){
       const sub=data.subtitle;
-      if(!sub||!['ass','ssa','srt','vtt'].includes(sub.format)||!(sub.bytes instanceof ArrayBuffer)||!sub.bytes.byteLength||sub.bytes.byteLength>16*1024*1024||subtitleBytes+sub.bytes.byteLength>16*1024*1024||subtitleCount>=32)throw Error('Invalid subtitle asset or byte budget');
+      if(!sub||!['ass','ssa','srt','vtt'].includes(sub.format)||!(sub.bytes instanceof ArrayBuffer)||!playbackWorkerSubtitleFits(lifecycle,sub.bytes.byteLength))throw Error('Invalid subtitle asset or byte budget');
       if(typeof sub.label!=='string'||sub.label.includes('\0')||sub.label.length>4096||sub.language!==undefined&&(typeof sub.language!=='string'||sub.language.includes('\0')||sub.language.length>256))throw Error('Invalid subtitle metadata');
-      const path='/subtitles/'+subtitleCount;
+      lifecycle=openPlaybackWorkerPresentation(lifecycle);
+      const path='/subtitles/'+lifecycle.subtitleCount;
       await host.serial(()=>{engine.module.FS.mkdirTree('/subtitles');engine.module.FS.writeFile(path,new Uint8Array(sub.bytes));});
-      try{result=await submit([],undefined,[path,sub.label,sub.language??'',!!sub.select]);subtitleCount++;subtitleBytes+=sub.bytes.byteLength;}
+      try{result=await submit([],undefined,[path,sub.label,sub.language??'',!!sub.select]);lifecycle=acceptPlaybackWorkerSubtitle(lifecycle,sub.bytes.byteLength);}
       catch(error){engine.module.FS.unlink(path);throw error;}
     } else if (data.op === 'pause') {
-      userPaused = !!data.value;settings.set('pause', userPaused ? 'yes' : 'no');
-      result = await submit(['set', 'pause', userPaused || !contextRunning ? 'yes' : 'no']);
-    } else if (data.op === 'context') {
-      contextRunning = !!data.value;
-      if(contextRunning)host.audio.header()[6] = 1;
-      try {await submit(['set', 'pause', userPaused || !contextRunning ? 'yes' : 'no']);}
-      catch(error){
-        // Context state belongs to the player. Replacement may revoke this
-        // old core's pause command; the load restores it on the new core.
-        if(error.code!=='SOURCE_REPLACED')throw error;
-      }
-      host.audio.header()[6] = +contextRunning;
-      host.audio.header()[5] = data.latencyUs ?? 0;host.audio.pump();result = true;
+      const control=beginPlaybackWorkerControl(lifecycle,'pause',!!data.value);lifecycle=control.state;
+      result=await submit(['set','pause',control.paused?'yes':'no']);if(lifecycle.userPaused)await pausePresentation();
+    } else if(data.op==='context'){
+      const control=beginPlaybackWorkerControl(lifecycle,'context',!!data.value);lifecycle=control.state;
+      if(control.deviceFirst)host.audio.header()[6]=1;
+      try{await submit(['set','pause',control.paused?'yes':'no']);}catch(error){if(error.code!=='SOURCE_REPLACED')throw error;}
+      if(!playbackWorkerAccepts(lifecycle,data.op))throw Error('Playback host closed');host.audio.header()[6]=+lifecycle.contextRunning;
+      host.audio.header()[5]=data.latencyUs??0;host.audio.pump();result=true;
     } else if (data.op === 'seek') {
+      lifecycle=openPlaybackWorkerPresentation(lifecycle);
       retained?.clear(data.seconds,engine.decoder?.service.generation);
-      target = data.seconds;restarted = false;opening = false;targetDrawBaseline = host.draws;result = await submit([], data.seconds);
+      lifecycle=beginPlaybackWorkerSeek(lifecycle,data.seconds,host.draws);result=await submit([],data.seconds);
     } else if (data.op === 'resize') {
       if (!Number.isInteger(data.width) || !Number.isInteger(data.height) || data.width < 1 || data.height < 1 || data.width > 1920 || data.height > 1080) throw Error('Invalid dimensions');
+      lifecycle=openPlaybackWorkerPresentation(lifecycle);
       await host.serial(() => {host.width = host.canvas.width = data.width;host.height = host.canvas.height = data.height;});result = true;
     } else if (data.op === 'close') result = await close();
     else throw Error('Unknown private playback operation');
-    post({id: data.id, result});
-  }).catch(error => {post({id: data.id, error: describe(error),code:data.op==='init'?'ASSET_LOAD_FAILED':undefined});if (data.op === 'init' || data.op === 'load' && loadToken === loadRequest) void fail(error);});
+    if(!playbackWorkerAccepts(lifecycle,data.op))throw Error('Playback host closed');
+    if(!['init','close','context'].includes(data.op)&&loadToken!==lifecycle.loadSerial)throw replaced();
+    if(data.op==='load'&&!playbackWorkerLoadCurrent(lifecycle,loadToken))throw replaced();
+    post({id:data.id,result});
+  }).catch(error => {post({id: data.id, error: describe(error),code:data.op==='init'?'ASSET_LOAD_FAILED':undefined});if (data.op === 'init' || data.op === 'load' && loadToken===lifecycle.loadSerial&&playbackWorkerAccepts(lifecycle,'load')) void fail(error);});
 };

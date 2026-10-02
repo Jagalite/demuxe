@@ -72,7 +72,7 @@ for(const ownership of ['window','worker','worker-fallback'])test(`${ownership} 
     ranges(){throw Error('ranges collected');}});
   Object.defineProperty(remux,'stats',{get(){throw Error('statistics cloned');}});
   const expected={effectiveForwardSeconds:30,playbackRate:1,paused:false,waitingForMedia:true};
-  const worker=Object.assign(Object.create(WorkerRemuxController.prototype),{local:ownership==='worker-fallback'?remux:undefined,state:{snapshot:{buffering:expected}}});
+  const worker=new WorkerRemuxController(video,{},()=>undefined),owner=worker.transition({type:'boot'}).owner;worker.accept({snapshot:{buffering:expected}},owner);worker.local=ownership==='worker-fallback'?remux:undefined;
   const player=Object.assign(Object.create(NativePlayer.prototype),{video,buffering:bufferingPolicy(),remux:ownership==='window'?remux:worker});
   assert.equal(player.bufferingDiagnostics.backend,'remux');
   assert.deepEqual(player.bufferingDiagnostics.settings,expected);
@@ -80,7 +80,7 @@ for(const ownership of ['window','worker','worker-fallback'])test(`${ownership} 
     video.playbackRate=2;video.paused=true;remux.waitingForMedia=false;
     assert.deepEqual(player.bufferingDiagnostics.settings,{...expected,playbackRate:2,paused:true,waitingForMedia:false});
   }else{
-    worker.state.snapshot.buffering={...expected,playbackRate:2};
+    worker.accept({snapshot:{buffering:{...expected,playbackRate:2}}},owner);
     assert.equal(player.bufferingDiagnostics.settings.playbackRate,2);
   }
 });

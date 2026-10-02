@@ -1,27 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { Probe } from './selection.js';
-export type BrowserMediaCapability = {
-    status: 'supported' | 'unsupported' | 'unknown';
-    api: 'canPlayType' | 'isTypeSupported';
-    tracks: Array<{
-        index: number;
-        type: string;
-        codec: string;
-        codecString?: string;
-        serializationComplete: boolean;
-        adapted?: boolean;
-    }>;
-    queries: Array<{
-        mime: string;
-        result: string | boolean;
-        adapter: string;
-        negativeDecisive: boolean;
-        reason?: string;
-    }>;
-    decodingInfo?: import('./media-capabilities.js').DecodingEvidence;
-    unqueriedAudio?: boolean;
-    reason?: string;
-};
+import type { BrowserMediaCapability } from './machine/media-facts.js';
+export type { BrowserMediaCapability } from './machine/media-facts.js';
 type BrowserQueries = {
     canPlayType: (mime: string) => string;
     isTypeSupported?: (mime: string) => boolean;
@@ -35,4 +15,3 @@ export declare function nativeBrowserCapabilities(probe: Probe, aid: string, bro
     flac: BrowserMediaCapability;
     opus: BrowserMediaCapability;
 };
-export {};

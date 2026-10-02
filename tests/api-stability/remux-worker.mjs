@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import * as machine from '../../web/generated/internal/machine/remux-worker.js';
+import * as controllerMachine from '../../web/generated/internal/machine/remux-controller.js';
 function model(){let state=machine.initialRemuxWorker();return{get state(){return state;},send(command){const before=structuredClone(state),old=state,result=machine.transitionRemuxWorker(state,command);assert.deepEqual(old,before);state=result.state;assert.ok(Object.isFrozen(state));return result;},ready(){this.send({type:'call',id:1,method:'boot'});this.send({type:'finish',id:1,success:true});}};}
 test('MSE boot, call and shutdown admission retire authority before shell cleanup',()=>{
  const m=model();assert.match(m.send({type:'call',id:1,method:'open'}).error,/not ready/);const boot=m.send({type:'call',id:1,method:'boot'});assert.equal(machine.remuxWorkerOperationCurrent(m.state,boot.operation),true);assert.match(m.send({type:'call',id:1,method:'boot'}).error,/Duplicate/);assert.match(m.send({type:'call',id:2,method:'boot'}).error,/already initialized/);
@@ -87,7 +88,7 @@ test('actual controller refreshes only the requesting source and discards late a
   terminate(){}
  }
  const worker=new Worker(),video={currentTime:0,paused:true,buffered:{length:0},getVideoPlaybackQuality:()=>({totalVideoFrames:0,droppedVideoFrames:0}),pause(){},removeAttribute(){},load(){}};
- const context=vm.createContext({runtimeWorker:()=>worker,URL,DOMException,Map,Promise,setTimeout,clearTimeout,setInterval:()=>1,clearInterval(){},document:{createElement:()=>({setAttribute(){},remove(){},contentWindow:{Worker}}),body:{append(){}}}});
+ const context=vm.createContext({...controllerMachine,runtimeWorker:()=>worker,URL,DOMException,Map,Promise,performance,setTimeout,clearTimeout,setInterval:()=>1,clearInterval(){},document:{createElement:()=>({setAttribute(){},remove(){},contentWindow:{Worker}}),body:{append(){}}}});
  vm.runInContext(controllerSource,context);const Controller=vm.runInContext('WorkerRemuxController',context),controller=new Controller(video,{},()=>{throw Error('unexpected fallback');});t.after(()=>controller.destroy());
  await controller.open({file:{},refreshAuthorization:()=>{calls.push('a');return new Promise(resolve=>{releaseAuthorization=resolve;});}});const sourceA=messages.filter(message=>message.method==='open').at(-1).value.sourceKey;
  worker.emit({type:'refresh',id:11,sourceKey:sourceA,resource:'first'});await Promise.resolve();assert.deepEqual(calls,['a']);

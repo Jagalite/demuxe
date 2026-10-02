@@ -5,7 +5,13 @@ import { transitionPlayback } from './playback.js';
 import { transitionSettings, transitionSettingTransaction, changePreferences, clearSourcePreferences } from './settings.js';
 import { transitionSource } from './source.js';
 import { transitionAttachment, attachmentAuthority, attachmentPreferences } from './attachments.js';
+import { transitionRouting } from './route-state.js';
 export function transitionPlayer(state, input) {
+    if (isRoutingInput(input)) {
+        if (input.type === 'routing.decoding' && (state.operations.terminal || input.epoch !== state.operations.epoch || input.session !== state.source.acceptedSession))
+            return Object.freeze({ state, accepted: false, reason: 'retired', retire: Object.freeze([]) });
+        return Object.freeze({ state: Object.freeze({ ...state, revision: state.revision + 1, routing: transitionRouting(state.routing, input) }), accepted: true, retire: Object.freeze([]) });
+    }
     if (isAttachmentInput(input))
         return transitionAttachment(state, input);
     if (isBoundaryInput(input))
@@ -54,6 +60,7 @@ export function transitionPlayer(state, input) {
     return Object.freeze({ ...decision, state: decision.state === state.operations ? state : Object.freeze({ ...state, revision: state.revision + 1, operations: decision.state, attachments, settingsTransactions, boundary: input.type === 'operation.retire' ? Object.freeze({ ...state.boundary, pending: null }) : state.boundary }), retire: Object.freeze([]) });
 }
 function isAttachmentInput(input) { return input.type.startsWith('attachment.'); }
+function isRoutingInput(input) { return input.type.startsWith('routing.'); }
 function isBoundaryInput(input) { return input.type.startsWith('boundary.'); }
 function isSourceInput(input) { return input.type.startsWith('source.'); }
 function isSettingTransaction(input) { return input.type.startsWith('setting.') || input.type === 'preferences.change'; }

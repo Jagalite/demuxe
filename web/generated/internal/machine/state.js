@@ -5,4 +5,5 @@ import { initialSettings, initialPreferences, initialSettingsTransactions } from
 import { initialBoundary } from './playback-boundary.js';
 import { initialSource } from './source.js';
 import { initialAttachments } from './attachments.js';
-export function initialPlayerControl() { return Object.freeze({ revision: 0, attachments: initialAttachments(), boundary: initialBoundary(), operations: initialOperations(), playback: initialPlayback(), settings: initialSettings(), preferences: initialPreferences(), settingsTransactions: initialSettingsTransactions(), source: initialSource() }); }
+import { initialRouting } from './route-state.js';
+export function initialPlayerControl() { return Object.freeze({ revision: 0, attachments: initialAttachments(), routing: initialRouting(), boundary: initialBoundary(), operations: initialOperations(), playback: initialPlayback(), settings: initialSettings(), preferences: initialPreferences(), settingsTransactions: initialSettingsTransactions(), source: initialSource() }); }

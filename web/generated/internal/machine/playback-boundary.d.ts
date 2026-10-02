@@ -66,6 +66,7 @@ export declare function transitionBoundary(state: PlayerControlState, input: Bou
     state: Readonly<{
         revision: number;
         attachments: import("./attachments.js").AttachmentState;
+        routing: import("./route-state.js").RoutingState;
         boundary: BoundaryState;
         operations: import("./operations.js").OperationState;
         playback: import("./playback.js").PlaybackControl;

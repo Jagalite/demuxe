@@ -62,7 +62,8 @@ export declare class Player extends EventTarget {
     private set currentMode(value);
     private get automatic();
     private set automatic(value);
-    private attempts;
+    private get attempts();
+    private set attempts(value);
     private runtimeCapabilities;
     private tierAttempts;
     private promotionTimer?;
@@ -100,8 +101,11 @@ export declare class Player extends EventTarget {
     private nativeASS;
     private mpvSubtitles;
     private allowLossy;
-    private planDecisions;
-    private admissionContext;
+    private get planDecisions();
+    private set planDecisions(value);
+    private get admissionContext();
+    private set admissionContext(value);
+    private rejectPlan;
     private nativeRemux;
     private remuxSelection;
     private remuxRuntime;

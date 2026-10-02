@@ -5,11 +5,13 @@ import { type PlaybackSettings, type PlayerPreferences, type SettingsTransaction
 import { type BoundaryState } from './playback-boundary.js';
 import { type SourceControl } from './source.js';
 import { type AttachmentState } from './attachments.js';
+import { type RoutingState } from './route-state.js';
 /** One authoritative composed state reference per Player. Domain reducers have
  * no stores or scheduling of their own. Additional domains join this boundary. */
 export type PlayerControlState = Readonly<{
     revision: number;
     attachments: AttachmentState;
+    routing: RoutingState;
     boundary: BoundaryState;
     operations: OperationState;
     playback: PlaybackControl;

@@ -3,16 +3,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {resolveDecodePolicy,mpvDecoderOptions,nextAdaptiveState,supportsEmergencyFrameDrop,adaptiveDecodeSignal} from '../web/generated/internal/decode-policy.js';
 import {readFile} from 'node:fs/promises';
-const source=await readFile(new URL('../web/private-mpv/playback-worker.js',import.meta.url),'utf8');
-const pump=source.slice(source.indexOf('async function pump()'),source.indexOf('function close()'));
+import * as policy from '../web/generated/internal/machine/private-playback-worker.js';
+import vm from 'node:vm';
+const source=(await readFile(new URL('../web/private-mpv/playback-worker.js',import.meta.url),'utf8')).replace(/^import .*;$/gm,'');
 function session(host,opening,target,baseline){
- const make=new Function('host','post','diagnostics','fail','setTimeout','createImageBitmap','postMessage',`
- let closing=false,replacing=false,pumping=false,restarted=false,contextRunning=true,userPaused=true,generation=1,timer;
- let target=${target},opening=${opening},lastDraws=${baseline},targetDrawBaseline=${baseline};
- const considerAdaptive=async()=>{};const commands=new Map();let pictureId=0,pendingPicture=0,sentDraws=lastDraws;
- ${pump}
- return {pump,target:()=>target};`);
- host.serial??=async operation=>operation();return make(host,()=>{},async()=>{},async error=>{throw error;},()=>0,async()=>({close(){}}),()=>{});
+ host.serial??=async operation=>operation();
+ const context=vm.createContext({...policy,mpvDecoderOptions,AbortController,performance,Map,setTimeout:()=>0,clearTimeout(){},createImageBitmap:async()=>({close(){}}),postMessage(){},testHost:host});
+ vm.runInContext(source,context);
+ vm.runInContext(`host=testHost;lifecycle=admitPlaybackWorkerInit(lifecycle).state;lifecycle=finishPlaybackWorkerInit(lifecycle,true).state;
+ lifecycle=beginPlaybackWorkerSeek(lifecycle,${target},${baseline});lifecycle=Object.freeze({...lifecycle,opening:${opening},lastDraws:${baseline},sentDraws:${baseline}});
+ diagnostics=async()=>{};considerAdaptive=async()=>{};fail=async error=>{throw error;};`,context);
+ return {pump:()=>vm.runInContext('pump()',context),target:()=>vm.runInContext('lifecycle.target===null?undefined:lifecycle.target',context)};
 }
 for(const opening of [true,false])test('frame preceding playback-restart satisfies '+(opening?'file':'seek')+' output readiness',async()=>{
  let step=0;const host={draws:4,properties:{'track-list':[{type:'video',selected:true}],'time-pos':2.5},async pump(){step++;this.draws=5;return step===2?[{event:'playback-restart'}]:[];}};
@@ -33,18 +34,13 @@ test('ordinary EOF remains a playback event',async()=>{
  await session(host,false,4,4).pump();
 });
 
-const adaptive=source.slice(source.indexOf('const privateDecodePolicy='),source.indexOf('const loading ='));
+
 for(const replacement of [false,true])test('adaptive policy waits for native acknowledgement'+(replacement?' and discards a replaced source result':''),async()=>{
  let acknowledge;const requests=[];
  const submit=args=>{requests.push(args);return new Promise(resolve=>acknowledge=resolve);};
- const make=new Function('resolveDecodePolicy','mpvDecoderOptions','nextAdaptiveState','supportsEmergencyFrameDrop','adaptiveDecodeSignal','submit',`
- let decodeInput={codec:'h264',decodeQuality:'exact',maxDecodePixels:8294400},decodePolicy,adaptiveFrameDrop=true,retained=false,adaptiveSwitching=false,replacing=false,closing=false,userPaused=false,contextRunning=true,target,generation=1;
- let adaptivePrevious,adaptiveStreak=0,adaptiveDirection='',adaptiveCooldown=0,adaptiveReason='disabled';
- const host={properties:{'time-pos':0,avsync:.3,speed:1}};const fail=async error=>{throw error;};
- ${adaptive}
- decodePolicy=privateDecodePolicy('normal');
- return {sample:async wall=>{host.properties['time-pos']=wall/4000;return considerAdaptive(wall);},policy:()=>decodePolicy,replace:()=>{generation++;replacing=true;}};`);
- const state=make(resolveDecodePolicy,mpvDecoderOptions,nextAdaptiveState,supportsEmergencyFrameDrop,adaptiveDecodeSignal,submit);
+ const context=vm.createContext({...policy,mpvDecoderOptions,AbortController,performance,Map,setTimeout:()=>0,clearTimeout(){},postMessage(){},testSubmit:submit});vm.runInContext(source,context);
+ vm.runInContext("host={properties:{'time-pos':0,avsync:.3,speed:1}};lifecycle=admitPlaybackWorkerInit(lifecycle).state;lifecycle=finishPlaybackWorkerInit(lifecycle,true).state;lifecycle=beginPlaybackWorkerControl(lifecycle,'pause',false).state;lifecycle=configurePlaybackWorkerDecode(lifecycle,{codec:'h264',decodeQuality:'exact',maxDecodePixels:8294400},false,true);submit=testSubmit;fail=async error=>{throw error;};",context);
+ const state={sample:wall=>{context.wall=wall;return vm.runInContext("host.properties['time-pos']=wall/4000;considerAdaptive(wall)",context);},policy:()=>vm.runInContext('lifecycle.decodePolicy',context),replace:()=>vm.runInContext('lifecycle=receivePlaybackWorkerLoad(lifecycle).state',context)};
  for(const wall of [100,2100,4100])await state.sample(wall);
  const pending=state.sample(6100);assert.equal(requests.length,1);assert.match(requests[0][2],/max_pixels=8294400/);assert.match(requests[0][2],/skip_loop_filter=noref/);
  assert.equal(state.policy().effective,'exact');if(replacement)state.replace();acknowledge();await pending;

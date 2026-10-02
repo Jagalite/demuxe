@@ -84,7 +84,7 @@ export class PrivatePlaybackHost {
     await this.command(id, 'set', 'hr-seek-demuxer-offset', String(preroll));
     return this.command(id + 0x40000000, 'seek', String(position), 'absolute+exact');
   }
-  pump(force = false) {
+  pump(force = false, render = true) {
     return this.serial(async () => {
       if (this.closed) return [];
       const checkDecoder=()=>{if(this.engine.decoder?.error)throw Error('Retained decoder: '+this.engine.decoder.error);};
@@ -112,6 +112,9 @@ export class PrivatePlaybackHost {
         this.events.push(event);
         if (this.events.length > 256) this.events.shift();
       }
+      // A settled user pause holds the canvas used by both display and snapshots.
+      // Native events and command replies still drain until a visual operation.
+      if(!render)return events;
       force=force||this.renderWidth!==this.width||this.renderHeight!==this.height;
       this.renderWidth=this.width;this.renderHeight=this.height;
       const ptr = await this.engine.call('web_render', this.width, this.height, +force);

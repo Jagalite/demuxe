@@ -188,6 +188,7 @@ export declare function transitionSettingTransaction(state: PlayerControlState, 
     state: Readonly<{
         revision: number;
         attachments: import("./attachments.js").AttachmentState;
+        routing: import("./route-state.js").RoutingState;
         boundary: import("./playback-boundary.js").BoundaryState;
         operations: import("./operations.js").OperationState;
         playback: import("./playback.js").PlaybackControl;

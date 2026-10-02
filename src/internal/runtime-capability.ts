@@ -10,7 +10,7 @@ export class RuntimeCapabilities {
   private identities=new WeakMap<object,string>();
   private serial=0;
   private state=createCapabilities();
-  begin(source:object,plans:Array<{id:string;eligible:boolean;reason?:string}>){
+  begin(source:object,plans:ReadonlyArray<{id:string;eligible:boolean;reason?:string}>){
     let id=this.identities.get(source);
     if(!id){id=`source-${++this.serial}`;this.identities.set(source,id);}
     this.state=transitionCapabilities(this.state,{kind:'begin',sourceIdentity:id,plans:plans.map(plan=>({id:plan.id,eligible:plan.eligible,reason:plan.reason}))});
@@ -21,7 +21,7 @@ export class RuntimeCapabilities {
     if(this.state!==previous)return;
     this.state=transitionCapabilities(previous,{kind:'update',planId,state,evidence:captured,reason,failureKind});
   }
-  admission(plans:Array<{id:string;eligible:boolean;reason?:string}>){this.state=transitionCapabilities(this.state,{kind:'admission',plans:plans.map(plan=>({id:plan.id,eligible:plan.eligible,reason:plan.reason}))});}
+  admission(plans:ReadonlyArray<{id:string;eligible:boolean;reason?:string}>){this.state=transitionCapabilities(this.state,{kind:'admission',plans:plans.map(plan=>({id:plan.id,eligible:plan.eligible,reason:plan.reason}))});}
   clear(){this.state=createCapabilities();this.identities=new WeakMap();}
   snapshot():CapabilityRecord[]{return selectCapabilities(this.state);}
 }

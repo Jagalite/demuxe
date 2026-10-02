@@ -7,13 +7,13 @@ export declare class RuntimeCapabilities {
     private identities;
     private serial;
     private state;
-    begin(source: object, plans: Array<{
+    begin(source: object, plans: ReadonlyArray<{
         id: string;
         eligible: boolean;
         reason?: string;
     }>): void;
     update(planId: string, state: CapabilityRecord['state'], evidence?: CapabilityEvidence, reason?: string, failureKind?: CapabilityRecord['failureKind']): void;
-    admission(plans: Array<{
+    admission(plans: ReadonlyArray<{
         id: string;
         eligible: boolean;
         reason?: string;
