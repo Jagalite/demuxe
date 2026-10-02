@@ -88,3 +88,26 @@ test('modular deployments keep atomic pthread playback when only their inspector
  assert.deepEqual(paths,['web/engine-remux-asyncify/remux.wasm','web/engine-hybrid/player.wasm','web/engine-software-full/player.wasm','fixtures/DejaVuSans.ttf']);
  assert.ok((await assets.readyEngine('engine-hybrid')).module instanceof WebAssembly.Module);assets.destroy();
 });
+
+test('progress callbacks can synchronously warm the same roles without duplicate fetches',async t=>{
+ const requests=[];t.mock.method(globalThis,'fetch',async url=>{requests.push(String(url));return new Response(wasm);});
+ let nested,entered=false;const assets=new EnginePreparation(base,undefined,()=>{if(!entered){entered=true;nested=assets.warm(['software','hybrid']);}});
+ const first=await assets.warm(['software','hybrid']);const second=await nested;assert.ok(first.assets.every(asset=>asset.status==='ready'));assert.ok(second.assets.every(asset=>asset.status==='ready'));
+ assert.equal(requests.length,3);assets.destroy();
+});
+test('destroyed preparation rejects new physical work with aborted reports',async t=>{
+ let calls=0;t.mock.method(globalThis,'fetch',async()=>{calls++;return new Response(wasm);});const assets=new EnginePreparation(base);assets.destroy();
+ assert.ok((await assets.warm('all')).assets.every(asset=>asset.status==='aborted'));assert.equal(calls,0);
+});
+
+test('destroy from ready notification retires its report and clears published assets',async t=>{
+ t.mock.method(globalThis,'fetch',async()=>new Response(wasm));const assets=new EnginePreparation(base,undefined,()=>{if(assets.progress.some(item=>item.status==='ready'))assets.destroy();});
+ const report=await assets.warm(['inspector']);assert.equal(report.assets[0].status,'aborted');assert.equal(assets.module('engine-remux'),undefined);
+});
+
+test('readyEngine after destroy does not wait for retired physical fetch cleanup',async t=>{
+ let release;const gate=new Promise(resolve=>release=resolve);t.mock.method(globalThis,'fetch',async()=>{await gate;return new Response(wasm);});
+ const assets=new EnginePreparation(base),warming=assets.warm(['software']);assets.destroy();let ready=false;
+ const reading=assets.readyEngine('engine-software-full').then(value=>{ready=true;assert.deepEqual(value,{module:undefined,font:undefined});});
+ await new Promise(resolve=>setImmediate(resolve));assert.equal(ready,true);release();await reading;await warming;
+});

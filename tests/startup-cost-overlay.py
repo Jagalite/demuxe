@@ -43,6 +43,9 @@ p=dest/'web/native-mse-worker.js';p.unlink();p.write_text(helper+s)
 
 s=(root/'web/file-reader.js').read_text()+"""
 const originalRead=LocalFileReader.prototype.read;
-LocalFileReader.prototype.read=async function(...args){const start=performance.now();try{return await originalRead.apply(this,args);}finally{const ms=performance.now()-start;this.stats.readElapsedMs=(this.stats.readElapsedMs||0)+ms;this.stats.maxReadMs=Math.max(this.stats.maxReadMs||0,ms);}};
+const originalStats=Object.getOwnPropertyDescriptor(LocalFileReader.prototype,'stats').get;
+const readTimings=new WeakMap();
+Object.defineProperty(LocalFileReader.prototype,'stats',{get(){return {...originalStats.call(this),...readTimings.get(this)};}});
+LocalFileReader.prototype.read=async function(...args){const start=performance.now();try{return await originalRead.apply(this,args);}finally{const ms=performance.now()-start,previous=readTimings.get(this);readTimings.set(this,{readElapsedMs:(previous?.readElapsedMs??0)+ms,maxReadMs:Math.max(previous?.maxReadMs??0,ms)});}};
 """
 p=dest/'web/file-reader.js';p.unlink();p.write_text(s)

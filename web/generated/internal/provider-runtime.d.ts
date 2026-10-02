@@ -30,8 +30,9 @@ export interface ProviderRuntimeAssets {
  * packaging metadata cannot add compositions or confer build qualification. */
 export declare class ProviderRuntime implements ProviderRuntimeAssets {
     private base;
-    private qualified;
     private controller;
+    private state;
+    private destruction?;
     private deployment?;
     private loading?;
     private assets?;
@@ -39,16 +40,15 @@ export declare class ProviderRuntime implements ProviderRuntimeAssets {
     private acquiredBytes;
     private readonly sources;
     private nextSource;
-    private codecHints;
-    private codecProbes;
+    private codecSources;
+    private profileAvailability;
     codecInspector(runtime: 'pthread' | 'jspi' | 'asyncify'): CodecPreparation | undefined;
     codecPreparation(source: object, probe: Probe | undefined, runtime: 'pthread' | 'jspi' | 'asyncify', aid?: string): CodecPreparation | undefined;
     preparation(file: File, runtime: 'pthread' | 'jspi' | 'asyncify', audioTrack?: number): CodecPreparation | undefined;
-    private manifestIdentities;
     constructor(base: URL, qualified: Readonly<Record<string, string>>);
     load(): Promise<void>;
-    /** Legacy role names can share the single mpv engine. Prefer an explicitly
-     * deployed legacy artifact when both layouts are present. */
+    private loadDeployment;
+    /** Explicit legacy artifacts take precedence over the shared mpv artifact. */
     private assetPath;
     has(path: string): boolean;
     hasOffer(providerId: string, profile: string): boolean;

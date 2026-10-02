@@ -4,6 +4,7 @@ export class VirtualEffects {
   time=0;scheduled=[];timers=new Map();serial=0;
   now=()=>this.time;
   schedule=work=>{this.scheduled.push(work);return()=>{const index=this.scheduled.indexOf(work);if(index>=0)this.scheduled.splice(index,1);};};
+  scheduleDeadline=(work,delayMs)=>{const id=++this.serial;this.timers.set(id,{deadline:this.time+delayMs,finish:work});return()=>this.timers.delete(id);};
   flush(){let count=0;while(this.scheduled.length){if(++count>10000)throw Error('Scheduled work did not quiesce');this.scheduled.shift()();}}
   waitUntil=(deadline,signal)=>new Promise((resolve,reject)=>{
     if(signal.aborted){reject(signal.reason);return;}

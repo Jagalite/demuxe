@@ -56,6 +56,8 @@ class SeekPresentationBoundary extends PlayerError {
   constructor(target:number,boundary:number){super('INVALID_ARGUMENT',`Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`);}
 }
 
+import {settingAuthority,type SettingCommand,type SettingEffect,type PlayerPreferences} from './internal/machine/settings.js';
+import {createTrace,tracePlayerTransition,selectTrace} from './internal/machine/trace.js';
 type Settings = import('./internal/machine/settings.js').PlaybackSettings;
 const filterChain = (value: string) => {
   if (typeof value !== 'string' || value.length > 4096 || value.includes('\0')) throw new PlayerError('INVALID_ARGUMENT','Invalid filter chain');
@@ -79,38 +81,49 @@ export class Player extends EventTarget {
   readonly ready = Promise.resolve();
   private assetBase: URL;
   private providerRuntime?: ProviderRuntime;
-  private buffering: BufferingPolicy;
+  private get buffering(){return this.control.preferences.buffering;}
+  private set buffering(value:BufferingPolicy){this.updatePreferences({buffering:value});}
   private stateSnapshot!: PlayerState;
   private subscribers = new Set<(state:PlayerState)=>void>();
   private publishQueued = false;
   private publicationSerial = 0;
   readonly presentation=new PlayerPresentation(this,()=>this.root);
-  private outputDeviceId='';
+  private get outputDeviceId(){return this.control.preferences.outputDeviceId;}
+  private set outputDeviceId(value:string){this.updatePreferences({outputDeviceId:value});}
   private get sourceSerial(){return this.control.source.serial;}
   private seekRequests=new Map<number,AbortController>();
   private playRequests=new Map<number,AbortController>();
-  private playbackRange:import('./types.js').PlaybackRange|null=null;
-  private loopPolicy:import('./types.js').LoopPolicy=false;
+  private get playbackRange(){return this.control.preferences.playbackRange;}
+  private set playbackRange(value:import('./types.js').PlaybackRange|null){this.updatePreferences({playbackRange:value});}
+  private get loopPolicy(){return this.control.preferences.loopPolicy;}
+  private set loopPolicy(value:import('./types.js').LoopPolicy){this.updatePreferences({loopPolicy:value});}
   private boundaryPending=false;
-  private qualityPolicy:import('./types.js').QualityPolicy|null=null;
+  private get qualityPolicy(){return this.control.preferences.qualityPolicy;}
+  private set qualityPolicy(value:import('./types.js').QualityPolicy|null){this.updatePreferences({qualityPolicy:value});}
   private attachmentSerial=0;
   private attachmentHandles=new WeakSet<import('./types.js').AttachmentHandle>();
-  private subtitleDelay=0;
-  private audioDelay=0;
-  private subtitleStyle:import('./types.js').SubtitleStyle={};
+  private get subtitleDelay(){return this.control.preferences.subtitleDelay;}
+  private set subtitleDelay(value:number){this.updatePreferences({subtitleDelay:value});}
+  private get audioDelay(){return this.control.preferences.audioDelay;}
+  private set audioDelay(value:number){this.updatePreferences({audioDelay:value});}
+  private get subtitleStyle(){return this.control.preferences.subtitleStyle;}
+  private set subtitleStyle(value:import('./types.js').SubtitleStyle){this.updatePreferences({subtitleStyle:value});}
   private readonly statistics=new PlaybackStatistics();
   private operationStarted=0;
   private publicSelections=new Map<TrackType,string>();
   private control=initialPlayerControl();
+  private controlTrace=createTrace(256);
+  private get transitionTrace(){return selectTrace(this.controlTrace);}
   private operationResources=new Map<number,{controller:AbortController;detachCallerAbort:()=>void}>();
-  private dispatchControl(input:PlayerControlInput){const decision=transitionPlayer(this.control,input);this.control=decision.state;return decision;}
+  private dispatchControl(input:PlayerControlInput){const before=this.control,decision=transitionPlayer(before,input);this.control=decision.state;this.controlTrace=tracePlayerTransition(this.controlTrace??createTrace(256),input,before,decision,decision.state.revision);return decision;}
   private get operationEpoch(){return this.control.operations.epoch;}
   private get activeOperation(){const entry=activeOperation(this.control.operations),resources=entry&&this.operationResources.get(entry.id);return entry&&resources?{...entry,...resources}:undefined;}
   private get pendingOperation():PendingOperation|null{return pendingOperation(this.control.operations);}
   private sessionError: SessionError|null = null;
   private get observedPlaying(){return this.control.playback.observedPlaying;}
   private get observedWaiting(){return this.control.playback.observedWaiting;}
-  private muted = false;
+  private get muted(){return this.control.preferences.muted;}
+  private set muted(value:boolean){this.updatePreferences({muted:value});}
   private closing?: Promise<void>;
   private get currentMode(){return this.control.source.mode;}
   private set currentMode(mode:PlaybackMode){this.dispatchControl({type:'source.configure',mode});}
@@ -209,6 +222,8 @@ export class Player extends EventTarget {
   private get settings(){return this.control.settings;}
   private set settings(value:Readonly<Settings>){this.dispatchControl({type:'settings.accept',value});}
   private updateSettings(value:Partial<Settings>){this.dispatchControl({type:'settings.change',value});}
+  private updatePreferences(value:Partial<PlayerPreferences>){this.dispatchControl({type:'preferences.change',value});}
+  private get candidatePreferences(){const pending=this.control.settingsTransactions.pending;return pending?.reconfigure&&pending.phase==='applying'?pending.preferences:this.control.preferences;}
   private configuredTrackPolicy:TrackPolicy;
   get trackPolicy():TrackPolicy{return this.source?.trackPolicy??this.configuredTrackPolicy;}
   private audioOutput: AudioOutput;
@@ -484,13 +499,9 @@ export class Player extends EventTarget {
   setBuffering(options:BufferingOptions):Promise<void>{
     let next:BufferingPolicy;try{next=bufferingPolicy(options);}catch(error){return Promise.reject(error);}
     return this.enqueue(async()=>{
-      const backend=this.current?.backend,previous=this.buffering;
+      const backend=this.current?.backend;
       if(backend&&(!backend.setBuffering||backend.bufferingUpdateSupported===false))throw new PlayerError('UNSUPPORTED_FEATURE','This backend cannot update buffering at runtime');
-      if(backend)try{await backend.setBuffering!(next);}catch(error){
-        try{await backend.setBuffering!(previous);}catch{throw new PlayerError('DECODE_FAILED','Buffering update and rollback failed; backend settings may be partially applied');}
-        throw error;
-      }
-      this.buffering=next;
+      await this.applySetting({kind:'buffering',value:next});
     });
   }
   getBuffering():BufferingState{
@@ -521,7 +532,7 @@ export class Player extends EventTarget {
       const prefix=`${this.sourceSerial}:`;
       if(requested.mode==='manual'&&!requested.id.startsWith(prefix))throw new PlayerError('INVALID_ARGUMENT','Quality belongs to a different source');
       const raw=requested.mode==='manual'?{...requested,id:requested.id.slice(prefix.length)}:requested;
-      await backend.setQuality(raw);this.qualityPolicy=raw;
+      await this.applySetting({kind:'quality',value:raw,previous:backend.streamingState?.().requested??{mode:'auto'}});
     });
   }
   seekToLive():Promise<void>{return this.enqueue(async()=>{if(!this.current?.backend.seekToLive)throw new PlayerError('UNSUPPORTED_FEATURE','This route has no live navigation');await this.current.backend.seekToLive();},'seeking');}
@@ -530,7 +541,7 @@ export class Player extends EventTarget {
     if(typeof id!=='string'||id.length>1024)throw new PlayerError('INVALID_ARGUMENT','Invalid output device ID');
     return this.enqueue(async()=>{
       if(!this.current?.backend.setAudioOutputDevice)throw new PlayerError('UNSUPPORTED_FEATURE','Open a source with output-device support first');
-      try{await this.current.backend.setAudioOutputDevice(id);this.outputDeviceId=id;}
+      try{await this.applySetting({kind:'output',value:id});}
       catch(error){if((error as Error).name==='NotAllowedError')throw new PlayerError('SOURCE_PERMISSION','Audio output permission denied');throw error;}
     });
   }
@@ -579,10 +590,13 @@ export class Player extends EventTarget {
     this.queue=result.catch(()=>{}).finally(()=>{this.dispatchControl({type:'operation.release',id});this.operationResources.delete(id);});return result;
   }
   private async interruptible<T>(work: Promise<T>): Promise<T> {
+    // An effect's synchronous prefix may retire this operation before returning
+    // a rejecting promise. Always observe physical completion before admission.
+    const observed=Promise.resolve(work);void observed.catch(()=>{});
     const signal=this.activeOperation?.controller.signal??this.lifetime.signal;
     this.assertOperation();
     let cancel!: () => void;
-    try{return await Promise.race([work,new Promise<never>((_,reject)=>{
+    try{return await Promise.race([observed,new Promise<never>((_,reject)=>{
       cancel=()=>reject(new PlayerError('ABORTED',this.destroyed?'Player is destroyed':'Operation aborted'));signal.addEventListener('abort',cancel,{once:true});
     })]);}finally{signal.removeEventListener('abort',cancel);}
   }
@@ -729,10 +743,10 @@ export class Player extends EventTarget {
     const decisions:typeof this.planDecisions=planAdmission({automatic,...settings,
       privatePlaybackFull:this.privatePlaybackAssets?.codecProfile==='playback-full',privatePlaybackAssetsAvailable:this.privatePlaybackAssetsAvailable,offscreenCanvas:typeof OffscreenCanvas!=='undefined',
       privatePlaybackSourceRejection:privatePlaybackRejection(inspected?.probe,{finite:this.privateFiniteSource(source),bytes:source.kind==='local'?source.file instanceof File?source.file.size:source.file.byteLength:Number(source.options.identity?.size)},
-        {...settings,toneMapping:this.toneMapping,audioOutput:this.audioOutput,externalSubtitles:!!attachments.length||!!textTracks.length,customFonts:!!this.fonts.length,subtitleStyle:!!Object.keys(this.subtitleStyle).length},this.privatePlaybackAssets),
+        {...settings,toneMapping:this.toneMapping,audioOutput:this.audioOutput,externalSubtitles:!!attachments.length||!!textTracks.length,customFonts:!!this.fonts.length,subtitleStyle:!!Object.keys(this.candidatePreferences.subtitleStyle).length},this.privatePlaybackAssets),
       privateHybridAssetsAvailable:!!this.privatePlaybackAssets?.retainedDecoder,
       privateHybridSourceRejection:privatePlaybackRejection(inspected?.probe,{finite:this.privateFiniteSource(source),bytes:source.kind==='local'?source.file instanceof File?source.file.size:source.file.byteLength:Number(source.options.identity?.size)},
-        {...settings,toneMapping:this.toneMapping,audioOutput:this.audioOutput,externalSubtitles:!!attachments.length||!!textTracks.length,customFonts:!!this.fonts.length,subtitleStyle:!!Object.keys(this.subtitleStyle).length},this.privatePlaybackAssets,'hybrid'),
+        {...settings,toneMapping:this.toneMapping,audioOutput:this.audioOutput,externalSubtitles:!!attachments.length||!!textTracks.length,customFonts:!!this.fonts.length,subtitleStyle:!!Object.keys(this.candidatePreferences.subtitleStyle).length},this.privatePlaybackAssets,'hybrid'),
       audioPlayback:this.audioPlayback,transcodeAssetsAvailable:this.transcodeAssetsAvailable||!!this.providerRuntime?.codecPreparation(source,inspected?.probe,this.remuxRuntime,inspectedSettings?.aid)||!!this.providerRuntime?.audioRepairCandidate(source,inspected?.probe),
       transcodeSourceRejection:!this.fileServicesSource(source)||!inspected?'Audio transcoding requires an inspected random-access file':audioTranscodeRejection(inspected.probe,inspectedSettings!),
       selectiveAudioQualified:!selectiveAudioReason,selectiveAudioReason,
@@ -777,7 +791,7 @@ export class Player extends EventTarget {
     for(const plan of decisions)if(plan.eligible&&this.failedStreamingPlans.get(source)?.has(plan.id)){
       plan.eligible=false;plan.code='QUALIFICATION_REQUIRED';plan.reason='This execution plan already failed for the current streaming source';
     }
-    if(this.subtitleDelay!==0||this.audioDelay!==0||Object.keys(this.subtitleStyle).length)for(const plan of decisions)if(plan.mode==='native'){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason='Requested timing/style controls require the mpv playback clock';}
+    if(this.candidatePreferences.subtitleDelay!==0||this.candidatePreferences.audioDelay!==0||Object.keys(this.candidatePreferences.subtitleStyle).length)for(const plan of decisions)if(plan.mode==='native'){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason='Requested timing/style controls require the mpv playback clock';}
     if(this.outputDeviceId&&(typeof AudioContext==='undefined'||!('setSinkId' in AudioContext.prototype)))for(const plan of decisions)if(plan.eligible&&(plan.mode!=='native'||plan.id.startsWith('native-video-mpv-audio')||plan.id.endsWith('-gain'))){plan.eligible=false;plan.code='FEATURE_UNSUPPORTED';plan.reason='The requested output device requires AudioContext sink selection on this route';}
     if(this.providerRuntime)for(const plan of decisions)if(plan.eligible){
       const reason=this.providerRuntime.rejection(plan.id,source,JSON.stringify([this.tierConfiguration(settings),this.remuxRuntime,this.softwarePresenter,inspected?.probe.tracks]),this.remuxRuntime,inspected?.probe,inspectedSettings?.aid);
@@ -873,8 +887,8 @@ export class Player extends EventTarget {
       if(vf)await p.command!('set','vf',vf);
       if(mode!=='native'&&desired.af)await p.command!('set','af',desired.af);
       if(mode!=='native'){
-        await p.command!('set','sub-delay',String(this.subtitleDelay));await p.command!('set','audio-delay',String(this.audioDelay));
-        for(const [key,value] of Object.entries(this.subtitleStyle))await p.command!('set',({fontSize:'sub-font-size',color:'sub-color',borderSize:'sub-border-size',fontFamily:'sub-font'} as Record<string,string>)[key],String(value));
+        await p.command!('set','sub-delay',String(this.candidatePreferences.subtitleDelay));await p.command!('set','audio-delay',String(this.candidatePreferences.audioDelay));
+        for(const [key,value] of Object.entries(this.candidatePreferences.subtitleStyle))await p.command!('set',({fontSize:'sub-font-size',color:'sub-color',borderSize:'sub-border-size',fontFamily:'sub-font'} as Record<string,string>)[key],String(value));
       }
       await p.gain!(desired.gain);
       await p.volume(overlapping||this.muted?0:desired.volume);await p.rate(desired.speed);
@@ -1435,7 +1449,7 @@ export class Player extends EventTarget {
       const desired={...this.settings,gain:value};
       if(this.source&&backendPlan(this.current?.backend)==='remux-mpv'&&value!==1){await this.select(this.source,desired,true,this.nativeTracks);return;}
       if(this.current?.backend.gain){
-        await this.current.backend.gain(value);this.assertOperation();this.settings=desired;
+        await this.applySetting({kind:'gain',value});
         if(this.source){
           this.planDecisions=this.admissible(this.source,desired,this.subtitleAssets,this.nativeTracks,this.admissionContext.nativeReason,this.admissionContext.automatic);
           // The same accepted backend now executes a different complete plan.
@@ -1448,8 +1462,45 @@ export class Player extends EventTarget {
       else this.settings=desired;
     });
   }
-  private setting(action: (p: Backend) => Promise<void>, update: () => void) {
-    return this.enqueue(async () => {if (this.current) await action(this.current.backend);update();});
+  private async executeSetting(backend:Backend,effect:SettingEffect,session?:Session):Promise<void>{
+    switch(effect.kind){
+      case 'volume':return backend.volume(effect.value);
+      case 'rate':return backend.rate(effect.value);
+      case 'gain':return backend.gain!(effect.value);
+      case 'pause':return backend.pause();
+      case 'play':return backend.play();
+      case 'track':return backend.selectTrack(effect.track,effect.value);
+      case 'track.verify':return this.confirmTrackSelection(session!,this.source,this.mode,effect.settings,effect.track,effect.value);
+      case 'subtitles':return backend.subtitleVisible(effect.value);
+      case 'buffering':return backend.setBuffering!(effect.value);
+      case 'output':return backend.setAudioOutputDevice!(effect.value);
+      case 'quality':return backend.setQuality!(effect.value);
+      case 'source.reconfigure':return this.select(this.source!,effect.settings,true,this.nativeTracks);
+    }
+  }
+  /** All decisions and accepted values live in the composed transition. This
+   * adapter invokes typed effects and reports their outcome with the original ID. */
+  private async applySetting(command:SettingCommand){
+    const session=this.current,backend=session?.backend,begin=this.dispatchControl({type:'setting.begin',command,hasBackend:!!backend,hasSource:!!this.source});
+    if(!begin.accepted||!begin.effects)throw new PlayerError('ABORTED','Setting operation was retired');
+    const id=begin.id!;
+    const execute=async(effects:readonly SettingEffect[])=>{for(const effect of effects){if(!settingAuthority(this.control,id))throw new PlayerError('ABORTED','Setting operation was retired');await this.interruptible(this.executeSetting(backend!,effect,session));}};
+    try{await execute(begin.effects);}
+    catch(error){
+      if(this.control.settingsTransactions.pending?.id===id&&this.control.settingsTransactions.pending.phase==='accepted'){this.dispatchControl({type:'setting.accept',id});throw error;}
+      const failure=this.dispatchControl({type:'setting.failed',id});
+      if(!failure.accepted||!failure.effects)throw new PlayerError('ABORTED','Setting operation was retired');
+      try{await execute(failure.effects);}
+      catch(restoreError){
+        const degraded=this.dispatchControl({type:'setting.degraded',id});
+        if(!degraded.accepted)throw new PlayerError('ABORTED','Setting operation was retired');
+        const failure=new PlayerError('DECODE_FAILED',`Setting update and rollback failed; backend settings may be partially applied (${playerError(restoreError).message})`);
+        this.emit('error',failure);throw failure;
+      }
+      if(!this.dispatchControl({type:'setting.restored',id}).accepted)throw new PlayerError('ABORTED','Setting operation was retired');
+      throw error;
+    }
+    if(!this.dispatchControl({type:'setting.accept',id}).accepted)throw new PlayerError('ABORTED','Setting operation was retired');
   }
   private async playNativeVerified(backend:Backend,playing=backend.play(),outputBudgetMs?:number,intent?:AbortSignal) {
     const controller=new AbortController();
@@ -1509,7 +1560,7 @@ export class Player extends EventTarget {
         else {const plan=this.diagnostics.plan;if(plan&&evidenceInterrupted(error))this.runtimeCapabilities.update(plan.id,'prepared',this.evidence(session),String(error));this.updateSettings({pause:true});await session.backend.pause().catch(()=>{});throw error;}
       }}).finally(()=>{this.dispatchControl({type:'play.settled',id:intentId});this.playRequests.delete(intentId);});
   }
-  pause() {for(const id of this.dispatchControl({type:'play.retire'}).retire)this.playRequests.get(id)?.abort();return this.setting(p => p.pause(), () => {this.updateSettings({pause:true});this.dispatchControl({type:'playback.observed',playing:false,waiting:false});if(this.backgroundPromotion)this.schedulePromotion();});}
+  pause() {for(const id of this.dispatchControl({type:'play.retire'}).retire)this.playRequests.get(id)?.abort();return this.enqueue(async()=>{await this.applySetting({kind:'pause'});this.dispatchControl({type:'playback.observed',playing:false,waiting:false});if(this.backgroundPromotion)this.schedulePromotion();});}
   seek(seconds: number, options:import('./types.js').SeekOptions={}) {return this.seekForSource(seconds,options);}
   private seekForSource(seconds:number,options:import('./types.js').SeekOptions,sourceId?:number|null) {
     if (!Number.isFinite(seconds) || seconds < 0) throw new PlayerError('INVALID_ARGUMENT','Invalid seek time');
@@ -1633,10 +1684,10 @@ export class Player extends EventTarget {
   }
   volume(value: number) {
     if (!Number.isFinite(value) || value < 0 || value > 100) throw new PlayerError('INVALID_ARGUMENT','Invalid volume');
-    return this.setting(p => p.volume(this.muted?0:value), () => {this.updateSettings({volume:value});});
+    return this.enqueue(()=>this.applySetting({kind:'volume',value}));
   }
   setVolume(value:number) {if(!Number.isFinite(value)||value<0||value>1)throw new PlayerError('INVALID_ARGUMENT','Volume must be 0 to 1');return this.volume(value*100);}
-  setMuted(value:boolean) {if(typeof value!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Expected boolean mute state');return this.setting(p=>p.volume(value?0:this.settings.volume),()=>{this.muted=value;});}
+  setMuted(value:boolean) {if(typeof value!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Expected boolean mute state');return this.enqueue(()=>this.applySetting({kind:'mute',value}));}
   setPlaybackRate(value:number) {return this.rate(value);}
   selectAudioTrack(id:string|null) {return this.selectPublicTrack('audio',id);}
   selectSubtitleTrack(id:string|null) {return this.selectPublicTrack('sub',id);}
@@ -1672,15 +1723,14 @@ export class Player extends EventTarget {
         catch(error){if(previous)this.publicSelections.set(type,previous);else this.publicSelections.delete(type);throw error;}
         return;
       }
-      await this.current.backend.selectTrack(type,backendId);this.updateSettings({[type==='audio'?'aid':'sid']:backendId});
-      await this.confirmTrackSelection(this.current,this.source,this.mode,this.settings,type,backendId);
+      await this.applySetting({kind:'track',track:type,value:backendId,verify:true});
       if(track)this.publicSelections.set(type,trackKey(track,this.mode,plan));else this.publicSelections.delete(type);
       this.schedulePromotion();
     },'switching');
   }
   rate(value: number) {
     if (!Number.isFinite(value) || value < .5 || value > 2) throw new PlayerError('INVALID_ARGUMENT','Playback rate must be 0.5 to 2');
-    return this.setting(p => p.rate(value), () => {this.updateSettings({speed:value});});
+    return this.enqueue(()=>this.applySetting({kind:'rate',value}));
   }
   selectTrack(type: TrackType, id: string) {
     if(['audio','sub'].includes(type)&&backendPlan(this.current?.backend)==='shaka-mse'){
@@ -1696,7 +1746,7 @@ export class Player extends EventTarget {
       return this.selectPublicTrack(type,id==='no'?null:id==='auto'?'auto':track?`${this.sourceSerial}:${trackKey(track,this.mode,plan)}`:'missing');
     }
     assertTrackSelection(type==='audio'?this.trackPolicy.audio:this.trackPolicy.subtitles,id==='no'?null:id);
-    return this.setting(p => p.selectTrack(type, id), () => {this.updateSettings({[type==='audio'?'aid':'sid']:id});this.publicSelections.delete(type);this.schedulePromotion();});
+    return this.enqueue(async()=>{await this.applySetting({kind:'track',track:type,value:id});this.publicSelections.delete(type);this.schedulePromotion();});
   }
   subtitleVisible(visible: boolean) {
     if(typeof visible!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Expected boolean subtitle visibility');
@@ -1706,15 +1756,12 @@ export class Player extends EventTarget {
       if(visible&&this.settings.sid!=='no'&&this.sourceTracks().some(t=>t.type==='sub')&&this.presentation.locksSurface)throw new PlayerError('UNSUPPORTED_FEATURE','Exit video Picture-in-Picture before enabling subtitles');
       const settings={...this.settings,subtitles:visible};
       if(this.automatic&&this.source&&this.mode==='native'&&!['shaka-mse','remux-mpv','direct-mpv'].includes(backendPlan(this.current?.backend)??'')&&visible&&!this.settings.subtitles)await this.select(this.source,settings,true,this.nativeTracks);
-      else {if(this.current)await this.current.backend.subtitleVisible(visible);this.settings=settings;if(!visible)this.schedulePromotion();}
+      else {await this.applySetting({kind:'subtitles',value:visible});if(!visible)this.schedulePromotion();}
     });
   }
   getTimingSettings():import('./types.js').TimingSettings{return freeze({subtitleDelay:this.subtitleDelay,audioDelay:this.audioDelay,effectiveSubtitleDelay:this.current?this.subtitleDelay:null,effectiveAudioDelay:this.current?this.audioDelay:null,subtitleStyle:{...this.subtitleStyle},styleScope:'plain-text'});}
   private timingChange(key:'subtitleDelay'|'audioDelay'|'subtitleStyle',value:number|import('./types.js').SubtitleStyle){
-    return this.enqueue(async()=>{const old=this[key];(this as any)[key]=value;
-      try{if(this.source)await this.select(this.source,this.settings,true,this.nativeTracks);}
-      catch(error){(this as any)[key]=old;throw error;}
-    },'switching');
+    return this.enqueue(()=>this.applySetting(key==='subtitleStyle'?{kind:key,value:value as import('./types.js').SubtitleStyle}:{kind:key,value:value as number}),'switching');
   }
   setSubtitleDelay(seconds:number){if(!Number.isFinite(seconds)||Math.abs(seconds)>60)throw new PlayerError('INVALID_ARGUMENT','Subtitle delay must be within -60 to 60 seconds');return this.timingChange('subtitleDelay',seconds);}
   setAudioDelay(seconds:number){if(!Number.isFinite(seconds)||Math.abs(seconds)>60)throw new PlayerError('INVALID_ARGUMENT','Audio delay must be within -60 to 60 seconds');return this.timingChange('audioDelay',seconds);}

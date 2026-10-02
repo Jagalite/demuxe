@@ -155,6 +155,10 @@ export declare class DemuxePlayerElement extends Base {
     private core?;
     private advanced?;
     private hoverPreview;
+    private configuration;
+    private configure;
+    private viewState;
+    private view;
     private controlState;
     private control;
     private get menuTrigger();
@@ -167,8 +171,6 @@ export declare class DemuxePlayerElement extends Base {
     private get queueIndex();
     private get queueOperation();
     private get queueRevision();
-    private queueSignature;
-    private queueRenderSignature;
     private queueItem;
     private queueResource;
     private appendQueue;
@@ -179,13 +181,6 @@ export declare class DemuxePlayerElement extends Base {
     private removeQueueItem;
     private advanceQueue;
     private renderQueue;
-    private sourceName;
-    private sourceNameId;
-    private sourceControls;
-    private diagnosticsControl;
-    private fileDrop;
-    private seekSeconds;
-    private autoHideDelay;
     get titleMode(): PlayerTitleMode;
     set titleMode(value: PlayerTitleMode);
     get showSourceControls(): boolean;
@@ -198,6 +193,7 @@ export declare class DemuxePlayerElement extends Base {
     set seekStep(value: number);
     get controlsAutoHideDelay(): number;
     set controlsAutoHideDelay(value: number);
+    private titleProjection;
     private updateTitle;
     private updateSourceLabel;
     private updateUtilities;
@@ -209,8 +205,6 @@ export declare class DemuxePlayerElement extends Base {
     private sourceAbort?;
     private lastSource?;
     private lastOptions?;
-    private trackConfiguration;
-    private watchdogConfiguration;
     get watchdogs(): WatchdogPolicy;
     set watchdogs(value: boolean | WatchdogOptions);
     get trackPolicy(): TrackPolicy;
@@ -218,7 +212,6 @@ export declare class DemuxePlayerElement extends Base {
     private resolveReady;
     private rejectReady;
     private readiness;
-    private overrides;
     private seekPreviewTimer?;
     private hideTimer?;
     private controlFacts;
@@ -228,10 +221,6 @@ export declare class DemuxePlayerElement extends Base {
     private hideControls;
     private dismissMenu;
     private isScreenPress;
-    private dimensions;
-    private trackSignature;
-    private reflected;
-    private configuredAsset;
     private resizeObserver?;
     private fullscreenChanged;
     constructor();
@@ -240,11 +229,9 @@ export declare class DemuxePlayerElement extends Base {
     get player(): Player | undefined;
     get src(): string;
     set src(value: string);
-    private audioPlaybackConfiguration;
     /** Set before connecting the element. Native-playable audio stays unchanged. */
     get audioPlayback(): "auto" | "worklet";
     set audioPlayback(value: 'auto' | 'worklet');
-    private previewConfiguration?;
     private syncPreviewStrategy;
     get previewOptions(): PreviewOptions | false | undefined;
     set previewOptions(value: PreviewOptions | false | undefined);

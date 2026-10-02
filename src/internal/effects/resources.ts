@@ -15,9 +15,13 @@ export type ResourceRegistryOptions = Readonly<{
   maxScopes?: number;
   /** Recent cleanup summaries retained in addition to the total failure count. */
   failureLimit?: number;
+  /** Logical cleanup containment; expiration never proves physical release. */
+  cleanupTimeoutMs?: number;
+  /** Injectable for deterministic tests. Must return a cancellation function. */
+  scheduleCleanupTimeout?: (work: () => void, delayMs: number) => () => void;
 }>;
 
-type ResourceState = 'active' | 'releasing' | 'released' | 'failed';
+type ResourceState = 'active' | 'releasing' | 'released' | 'failed' | 'detached';
 type ResourceRecord = {
   id: string;
   scopeKey: string;
@@ -72,7 +76,12 @@ export class ResourceRegistry {
   private readonly maxResources: number;
   private readonly maxScopes: number;
   private readonly failureLimit: number;
+  private readonly cleanupTimeoutMs: number;
+  private readonly scheduleCleanupTimeout: (work: () => void, delayMs: number) => () => void;
   private failureCount = 0;
+  private timeoutCount = 0;
+  private lateReleased = 0;
+  private lateFailed = 0;
   private disposed = false;
   private disposal?: Promise<void>;
 
@@ -80,6 +89,11 @@ export class ResourceRegistry {
     this.maxResources = options.maxResources ?? 1024;
     this.maxScopes = options.maxScopes ?? 256;
     this.failureLimit = options.failureLimit ?? 32;
+    this.cleanupTimeoutMs = options.cleanupTimeoutMs ?? 5000;
+    if (!Number.isFinite(this.cleanupTimeoutMs) || this.cleanupTimeoutMs < 1 || this.cleanupTimeoutMs > 60000) throw new RangeError('Invalid resource registry cleanup deadline');
+    this.scheduleCleanupTimeout = options.scheduleCleanupTimeout ?? ((work, delayMs) => {
+      const timer = setTimeout(work, delayMs); return () => clearTimeout(timer);
+    });
     for (const [name, value] of Object.entries({maxResources: this.maxResources, maxScopes: this.maxScopes, failureLimit: this.failureLimit})) {
       if (!Number.isSafeInteger(value) || value < (name === 'failureLimit' ? 0 : 1)) throw new RangeError(`Invalid resource registry ${name}`);
     }
@@ -130,16 +144,37 @@ export class ResourceRegistry {
     const value = entry.value, release = entry.release;
     delete entry.value;
     delete entry.release;
-    const succeed = () => {entry.state = 'released'; completion.resolve();};
-    const fail = (error: unknown) => {
-      entry.state = 'failed';
-      this.recordFailure(entry);
-      completion.reject(error);
-    };
-    if (entry.ownership === 'borrowed') succeed();
+    if (entry.ownership === 'borrowed') {entry.state = 'released'; completion.resolve();}
     else {
-      try {Promise.resolve(release!(value)).then(succeed, fail);}
-      catch (error) {fail(error);}
+      let settled = false, physicalSettled = false, cancelDeadline: (() => void) | undefined;
+      const cancel = () => {try {cancelDeadline?.();} catch {/* Cancellation cannot change retirement. */} cancelDeadline = undefined;};
+      const detach = () => {
+        if (settled) return;
+        settled = true; entry.state = 'detached'; this.timeoutCount++;
+        cancel(); this.recordFailure(entry, true);
+        const error = new Error('Resource cleanup exceeded its deadline'); error.name = 'CleanupTimeoutError';
+        completion.reject(error);
+      };
+      const finish = (success: boolean, error?: unknown) => {
+        if (physicalSettled) return; physicalSettled = true; cancel();
+        if (settled) {
+          // A late physical result is observed, but cannot replace the timeout
+          // promise or cause the release callback to execute a second time.
+          if (success) {entry.state = 'released'; this.lateReleased++;}
+          else {entry.state = 'failed'; this.lateFailed++;}
+          return;
+        }
+        settled = true; entry.state = success ? 'released' : 'failed';
+        if (success) completion.resolve();
+        else {this.recordFailure(entry); completion.reject(error);}
+      };
+      try {
+        const cancellation = this.scheduleCleanupTimeout(detach, this.cleanupTimeoutMs);
+        if (typeof cancellation !== 'function') throw new Error('Invalid cleanup scheduler');
+        cancelDeadline = cancellation; if (settled) cancel();
+      } catch {detach();}
+      try {Promise.resolve(release!(value)).then(() => finish(true), error => finish(false, error));}
+      catch (error) {finish(false, error);}
     }
     return completion.promise;
   }
@@ -188,10 +223,14 @@ export class ResourceRegistry {
       retiring: entries.filter(entry => entry.state === 'active' && (this.disposed || this.scopes.get(entry.scopeKey)?.retired)).length,
       releasing: entries.filter(entry => entry.state === 'releasing').length,
       released: entries.filter(entry => entry.state === 'released').length,
+      detached: entries.filter(entry => entry.state === 'detached').length,
+      timedOut: this.timeoutCount,
+      lateReleased: this.lateReleased,
+      lateFailed: this.lateFailed,
       failed: this.failureCount,
       scopes: this.scopes.size,
       retiredScopes: [...this.scopes.values()].filter(scope => scope.retired).length,
-      limits: Object.freeze({maxResources: this.maxResources, maxScopes: this.maxScopes, failureLimit: this.failureLimit}),
+      limits: Object.freeze({maxResources: this.maxResources, maxScopes: this.maxScopes, failureLimit: this.failureLimit, cleanupTimeoutMs: this.cleanupTimeoutMs}),
       resources: Object.freeze(entries),
       failures: Object.freeze([...this.failures]),
     });
@@ -215,14 +254,14 @@ export class ResourceRegistry {
     if (failures.length) throw new AggregateError(failures, 'Resource scope cleanup failed');
   }
 
-  private recordFailure(entry: ResourceRecord) {
+  private recordFailure(entry: ResourceRecord, timedOut = false) {
     this.failureCount++;
     if (!this.failureLimit) return;
     // Host errors can contain credentials, private URLs or throwing accessors.
     // Preserve raw failures only in the rejected cleanup promise, never here.
     this.failures.push(Object.freeze({
       id: entry.id, scopeKey: entry.scopeKey, kind: entry.kind,
-      name: 'CleanupError', message: 'Resource cleanup failed',
+      name: timedOut ? 'CleanupTimeoutError' : 'CleanupError', message: timedOut ? 'Resource cleanup exceeded its deadline' : 'Resource cleanup failed',
     }));
     if (this.failures.length > this.failureLimit) this.failures.shift();
   }

@@ -10,14 +10,12 @@ export declare class EnginePreparation {
     private remuxRuntime;
     private providerAssets?;
     private controller;
+    private state;
     private pending;
     private modules;
     private font?;
-    private phases;
     constructor(base: URL, software?: string, changed?: () => void, remuxRuntime?: 'pthread' | 'jspi' | 'asyncify', providerAssets?: ProviderRuntimeAssets | undefined);
-    private get inspectorEngine();
-    private get cooperativePlayback();
-    private get softwareEngine();
+    private environment;
     get progress(): PreparationProgress[];
     private phase;
     module(name: string): WebAssembly.Module | undefined;

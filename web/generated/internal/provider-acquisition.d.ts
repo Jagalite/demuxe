@@ -33,15 +33,15 @@ export type ProviderAcquisitionOptions = Readonly<{
  */
 export declare class ProviderAcquisition {
     private readonly deployment;
-    private catalogValue;
+    private state;
+    private catalogCache?;
+    private readonly failures;
     private readonly controller;
     private readonly owners;
     private readonly assets;
     private readonly bytes;
     private readonly preparations;
     private readonly releases;
-    private reservedBytes;
-    private scopeKey?;
     private readonly resolutions;
     private closePromise?;
     private readonly request;
@@ -49,6 +49,7 @@ export declare class ProviderAcquisition {
     private readonly maxResidentBytes;
     constructor(deployment: ParsedProviderDeployment, owners: readonly ProviderOwner[], options?: ProviderAcquisitionOptions);
     get catalog(): ProviderCatalog;
+    private reject;
     /** Read immutable bytes for explicit inspection/preparation without claiming
      * that an execution composition is qualified or marking an owner ready. */
     readAsset(providerId: string, implementationIdentity: string, assetId: string): Promise<ArrayBuffer>;
@@ -56,7 +57,6 @@ export declare class ProviderAcquisition {
     /** Resolution must be produced against this exact catalog snapshot. Accept
      * one explicitly selected binding; never guess order among alternatives. */
     acquire(resolution: RecipeResolution, bindingId: string): Promise<void>;
-    private observe;
     private prepare;
     private load;
     private fetchAsset;

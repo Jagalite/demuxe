@@ -17,8 +17,12 @@ export type ResourceRegistryOptions = Readonly<{
     maxScopes?: number;
     /** Recent cleanup summaries retained in addition to the total failure count. */
     failureLimit?: number;
+    /** Logical cleanup containment; expiration never proves physical release. */
+    cleanupTimeoutMs?: number;
+    /** Injectable for deterministic tests. Must return a cancellation function. */
+    scheduleCleanupTimeout?: (work: () => void, delayMs: number) => () => void;
 }>;
-type ResourceState = 'active' | 'releasing' | 'released' | 'failed';
+type ResourceState = 'active' | 'releasing' | 'released' | 'failed' | 'detached';
 /** Shell-only resource ownership. Pure transitions carry these opaque IDs.
  *
  * Use one registry per owner lifetime. Resource IDs and scope keys cannot be
@@ -38,7 +42,12 @@ export declare class ResourceRegistry {
     private readonly maxResources;
     private readonly maxScopes;
     private readonly failureLimit;
+    private readonly cleanupTimeoutMs;
+    private readonly scheduleCleanupTimeout;
     private failureCount;
+    private timeoutCount;
+    private lateReleased;
+    private lateFailed;
     private disposed;
     private disposal?;
     constructor(options?: ResourceRegistryOptions);
@@ -65,6 +74,10 @@ export declare class ResourceRegistry {
         retiring: number;
         releasing: number;
         released: number;
+        detached: number;
+        timedOut: number;
+        lateReleased: number;
+        lateFailed: number;
         failed: number;
         scopes: number;
         retiredScopes: number;
@@ -72,6 +85,7 @@ export declare class ResourceRegistry {
             maxResources: number;
             maxScopes: number;
             failureLimit: number;
+            cleanupTimeoutMs: number;
         }>;
         resources: readonly Readonly<{
             id: string;

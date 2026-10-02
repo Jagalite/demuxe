@@ -43,6 +43,8 @@ import { NativePlayer as PreviewNativePlayer } from './internal/native-player.js
 class SeekPresentationBoundary extends PlayerError {
     constructor(target, boundary) { super('INVALID_ARGUMENT', `Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`); }
 }
+import { settingAuthority } from './internal/machine/settings.js';
+import { createTrace, tracePlayerTransition, selectTrace } from './internal/machine/trace.js';
 const filterChain = (value) => {
     if (typeof value !== 'string' || value.length > 4096 || value.includes('\0'))
         throw new PlayerError('INVALID_ARGUMENT', 'Invalid filter chain');
@@ -67,38 +69,49 @@ export class Player extends EventTarget {
     ready = Promise.resolve();
     assetBase;
     providerRuntime;
-    buffering;
+    get buffering() { return this.control.preferences.buffering; }
+    set buffering(value) { this.updatePreferences({ buffering: value }); }
     stateSnapshot;
     subscribers = new Set();
     publishQueued = false;
     publicationSerial = 0;
     presentation = new PlayerPresentation(this, () => this.root);
-    outputDeviceId = '';
+    get outputDeviceId() { return this.control.preferences.outputDeviceId; }
+    set outputDeviceId(value) { this.updatePreferences({ outputDeviceId: value }); }
     get sourceSerial() { return this.control.source.serial; }
     seekRequests = new Map();
     playRequests = new Map();
-    playbackRange = null;
-    loopPolicy = false;
+    get playbackRange() { return this.control.preferences.playbackRange; }
+    set playbackRange(value) { this.updatePreferences({ playbackRange: value }); }
+    get loopPolicy() { return this.control.preferences.loopPolicy; }
+    set loopPolicy(value) { this.updatePreferences({ loopPolicy: value }); }
     boundaryPending = false;
-    qualityPolicy = null;
+    get qualityPolicy() { return this.control.preferences.qualityPolicy; }
+    set qualityPolicy(value) { this.updatePreferences({ qualityPolicy: value }); }
     attachmentSerial = 0;
     attachmentHandles = new WeakSet();
-    subtitleDelay = 0;
-    audioDelay = 0;
-    subtitleStyle = {};
+    get subtitleDelay() { return this.control.preferences.subtitleDelay; }
+    set subtitleDelay(value) { this.updatePreferences({ subtitleDelay: value }); }
+    get audioDelay() { return this.control.preferences.audioDelay; }
+    set audioDelay(value) { this.updatePreferences({ audioDelay: value }); }
+    get subtitleStyle() { return this.control.preferences.subtitleStyle; }
+    set subtitleStyle(value) { this.updatePreferences({ subtitleStyle: value }); }
     statistics = new PlaybackStatistics();
     operationStarted = 0;
     publicSelections = new Map();
     control = initialPlayerControl();
+    controlTrace = createTrace(256);
+    get transitionTrace() { return selectTrace(this.controlTrace); }
     operationResources = new Map();
-    dispatchControl(input) { const decision = transitionPlayer(this.control, input); this.control = decision.state; return decision; }
+    dispatchControl(input) { const before = this.control, decision = transitionPlayer(before, input); this.control = decision.state; this.controlTrace = tracePlayerTransition(this.controlTrace ?? createTrace(256), input, before, decision, decision.state.revision); return decision; }
     get operationEpoch() { return this.control.operations.epoch; }
     get activeOperation() { const entry = activeOperation(this.control.operations), resources = entry && this.operationResources.get(entry.id); return entry && resources ? { ...entry, ...resources } : undefined; }
     get pendingOperation() { return pendingOperation(this.control.operations); }
     sessionError = null;
     get observedPlaying() { return this.control.playback.observedPlaying; }
     get observedWaiting() { return this.control.playback.observedWaiting; }
-    muted = false;
+    get muted() { return this.control.preferences.muted; }
+    set muted(value) { this.updatePreferences({ muted: value }); }
     closing;
     get currentMode() { return this.control.source.mode; }
     set currentMode(mode) { this.dispatchControl({ type: 'source.configure', mode }); }
@@ -230,6 +243,8 @@ export class Player extends EventTarget {
     get settings() { return this.control.settings; }
     set settings(value) { this.dispatchControl({ type: 'settings.accept', value }); }
     updateSettings(value) { this.dispatchControl({ type: 'settings.change', value }); }
+    updatePreferences(value) { this.dispatchControl({ type: 'preferences.change', value }); }
+    get candidatePreferences() { const pending = this.control.settingsTransactions.pending; return pending?.reconfigure && pending.phase === 'applying' ? pending.preferences : this.control.preferences; }
     configuredTrackPolicy;
     get trackPolicy() { return this.source?.trackPolicy ?? this.configuredTrackPolicy; }
     audioOutput;
@@ -624,23 +639,10 @@ export class Player extends EventTarget {
             return Promise.reject(error);
         }
         return this.enqueue(async () => {
-            const backend = this.current?.backend, previous = this.buffering;
+            const backend = this.current?.backend;
             if (backend && (!backend.setBuffering || backend.bufferingUpdateSupported === false))
                 throw new PlayerError('UNSUPPORTED_FEATURE', 'This backend cannot update buffering at runtime');
-            if (backend)
-                try {
-                    await backend.setBuffering(next);
-                }
-                catch (error) {
-                    try {
-                        await backend.setBuffering(previous);
-                    }
-                    catch {
-                        throw new PlayerError('DECODE_FAILED', 'Buffering update and rollback failed; backend settings may be partially applied');
-                    }
-                    throw error;
-                }
-            this.buffering = next;
+            await this.applySetting({ kind: 'buffering', value: next });
         });
     }
     getBuffering() {
@@ -678,8 +680,7 @@ export class Player extends EventTarget {
             if (requested.mode === 'manual' && !requested.id.startsWith(prefix))
                 throw new PlayerError('INVALID_ARGUMENT', 'Quality belongs to a different source');
             const raw = requested.mode === 'manual' ? { ...requested, id: requested.id.slice(prefix.length) } : requested;
-            await backend.setQuality(raw);
-            this.qualityPolicy = raw;
+            await this.applySetting({ kind: 'quality', value: raw, previous: backend.streamingState?.().requested ?? { mode: 'auto' } });
         });
     }
     seekToLive() { return this.enqueue(async () => { if (!this.current?.backend.seekToLive)
@@ -692,8 +693,7 @@ export class Player extends EventTarget {
             if (!this.current?.backend.setAudioOutputDevice)
                 throw new PlayerError('UNSUPPORTED_FEATURE', 'Open a source with output-device support first');
             try {
-                await this.current.backend.setAudioOutputDevice(id);
-                this.outputDeviceId = id;
+                await this.applySetting({ kind: 'output', value: id });
             }
             catch (error) {
                 if (error.name === 'NotAllowedError')
@@ -781,11 +781,15 @@ export class Player extends EventTarget {
         return result;
     }
     async interruptible(work) {
+        // An effect's synchronous prefix may retire this operation before returning
+        // a rejecting promise. Always observe physical completion before admission.
+        const observed = Promise.resolve(work);
+        void observed.catch(() => { });
         const signal = this.activeOperation?.controller.signal ?? this.lifetime.signal;
         this.assertOperation();
         let cancel;
         try {
-            return await Promise.race([work, new Promise((_, reject) => {
+            return await Promise.race([observed, new Promise((_, reject) => {
                     cancel = () => reject(new PlayerError('ABORTED', this.destroyed ? 'Player is destroyed' : 'Operation aborted'));
                     signal.addEventListener('abort', cancel, { once: true });
                 })]);
@@ -984,9 +988,9 @@ export class Player extends EventTarget {
                                 undefined;
         const decisions = planAdmission({ automatic, ...settings,
             privatePlaybackFull: this.privatePlaybackAssets?.codecProfile === 'playback-full', privatePlaybackAssetsAvailable: this.privatePlaybackAssetsAvailable, offscreenCanvas: typeof OffscreenCanvas !== 'undefined',
-            privatePlaybackSourceRejection: privatePlaybackRejection(inspected?.probe, { finite: this.privateFiniteSource(source), bytes: source.kind === 'local' ? source.file instanceof File ? source.file.size : source.file.byteLength : Number(source.options.identity?.size) }, { ...settings, toneMapping: this.toneMapping, audioOutput: this.audioOutput, externalSubtitles: !!attachments.length || !!textTracks.length, customFonts: !!this.fonts.length, subtitleStyle: !!Object.keys(this.subtitleStyle).length }, this.privatePlaybackAssets),
+            privatePlaybackSourceRejection: privatePlaybackRejection(inspected?.probe, { finite: this.privateFiniteSource(source), bytes: source.kind === 'local' ? source.file instanceof File ? source.file.size : source.file.byteLength : Number(source.options.identity?.size) }, { ...settings, toneMapping: this.toneMapping, audioOutput: this.audioOutput, externalSubtitles: !!attachments.length || !!textTracks.length, customFonts: !!this.fonts.length, subtitleStyle: !!Object.keys(this.candidatePreferences.subtitleStyle).length }, this.privatePlaybackAssets),
             privateHybridAssetsAvailable: !!this.privatePlaybackAssets?.retainedDecoder,
-            privateHybridSourceRejection: privatePlaybackRejection(inspected?.probe, { finite: this.privateFiniteSource(source), bytes: source.kind === 'local' ? source.file instanceof File ? source.file.size : source.file.byteLength : Number(source.options.identity?.size) }, { ...settings, toneMapping: this.toneMapping, audioOutput: this.audioOutput, externalSubtitles: !!attachments.length || !!textTracks.length, customFonts: !!this.fonts.length, subtitleStyle: !!Object.keys(this.subtitleStyle).length }, this.privatePlaybackAssets, 'hybrid'),
+            privateHybridSourceRejection: privatePlaybackRejection(inspected?.probe, { finite: this.privateFiniteSource(source), bytes: source.kind === 'local' ? source.file instanceof File ? source.file.size : source.file.byteLength : Number(source.options.identity?.size) }, { ...settings, toneMapping: this.toneMapping, audioOutput: this.audioOutput, externalSubtitles: !!attachments.length || !!textTracks.length, customFonts: !!this.fonts.length, subtitleStyle: !!Object.keys(this.candidatePreferences.subtitleStyle).length }, this.privatePlaybackAssets, 'hybrid'),
             audioPlayback: this.audioPlayback, transcodeAssetsAvailable: this.transcodeAssetsAvailable || !!this.providerRuntime?.codecPreparation(source, inspected?.probe, this.remuxRuntime, inspectedSettings?.aid) || !!this.providerRuntime?.audioRepairCandidate(source, inspected?.probe),
             transcodeSourceRejection: !this.fileServicesSource(source) || !inspected ? 'Audio transcoding requires an inspected random-access file' : audioTranscodeRejection(inspected.probe, inspectedSettings),
             selectiveAudioQualified: !selectiveAudioReason, selectiveAudioReason,
@@ -1054,7 +1058,7 @@ export class Player extends EventTarget {
                 plan.code = 'QUALIFICATION_REQUIRED';
                 plan.reason = 'This execution plan already failed for the current streaming source';
             }
-        if (this.subtitleDelay !== 0 || this.audioDelay !== 0 || Object.keys(this.subtitleStyle).length)
+        if (this.candidatePreferences.subtitleDelay !== 0 || this.candidatePreferences.audioDelay !== 0 || Object.keys(this.candidatePreferences.subtitleStyle).length)
             for (const plan of decisions)
                 if (plan.mode === 'native') {
                     plan.eligible = false;
@@ -1207,9 +1211,9 @@ export class Player extends EventTarget {
             if (mode !== 'native' && desired.af)
                 await p.command('set', 'af', desired.af);
             if (mode !== 'native') {
-                await p.command('set', 'sub-delay', String(this.subtitleDelay));
-                await p.command('set', 'audio-delay', String(this.audioDelay));
-                for (const [key, value] of Object.entries(this.subtitleStyle))
+                await p.command('set', 'sub-delay', String(this.candidatePreferences.subtitleDelay));
+                await p.command('set', 'audio-delay', String(this.candidatePreferences.audioDelay));
+                for (const [key, value] of Object.entries(this.candidatePreferences.subtitleStyle))
                     await p.command('set', { fontSize: 'sub-font-size', color: 'sub-color', borderSize: 'sub-border-size', fontFamily: 'sub-font' }[key], String(value));
             }
             await p.gain(desired.gain);
@@ -2125,9 +2129,7 @@ export class Player extends EventTarget {
                 return;
             }
             if (this.current?.backend.gain) {
-                await this.current.backend.gain(value);
-                this.assertOperation();
-                this.settings = desired;
+                await this.applySetting({ kind: 'gain', value });
                 if (this.source) {
                     this.planDecisions = this.admissible(this.source, desired, this.subtitleAssets, this.nativeTracks, this.admissionContext.nativeReason, this.admissionContext.automatic);
                     // The same accepted backend now executes a different complete plan.
@@ -2143,9 +2145,62 @@ export class Player extends EventTarget {
                 this.settings = desired;
         });
     }
-    setting(action, update) {
-        return this.enqueue(async () => { if (this.current)
-            await action(this.current.backend); update(); });
+    async executeSetting(backend, effect, session) {
+        switch (effect.kind) {
+            case 'volume': return backend.volume(effect.value);
+            case 'rate': return backend.rate(effect.value);
+            case 'gain': return backend.gain(effect.value);
+            case 'pause': return backend.pause();
+            case 'play': return backend.play();
+            case 'track': return backend.selectTrack(effect.track, effect.value);
+            case 'track.verify': return this.confirmTrackSelection(session, this.source, this.mode, effect.settings, effect.track, effect.value);
+            case 'subtitles': return backend.subtitleVisible(effect.value);
+            case 'buffering': return backend.setBuffering(effect.value);
+            case 'output': return backend.setAudioOutputDevice(effect.value);
+            case 'quality': return backend.setQuality(effect.value);
+            case 'source.reconfigure': return this.select(this.source, effect.settings, true, this.nativeTracks);
+        }
+    }
+    /** All decisions and accepted values live in the composed transition. This
+     * adapter invokes typed effects and reports their outcome with the original ID. */
+    async applySetting(command) {
+        const session = this.current, backend = session?.backend, begin = this.dispatchControl({ type: 'setting.begin', command, hasBackend: !!backend, hasSource: !!this.source });
+        if (!begin.accepted || !begin.effects)
+            throw new PlayerError('ABORTED', 'Setting operation was retired');
+        const id = begin.id;
+        const execute = async (effects) => { for (const effect of effects) {
+            if (!settingAuthority(this.control, id))
+                throw new PlayerError('ABORTED', 'Setting operation was retired');
+            await this.interruptible(this.executeSetting(backend, effect, session));
+        } };
+        try {
+            await execute(begin.effects);
+        }
+        catch (error) {
+            if (this.control.settingsTransactions.pending?.id === id && this.control.settingsTransactions.pending.phase === 'accepted') {
+                this.dispatchControl({ type: 'setting.accept', id });
+                throw error;
+            }
+            const failure = this.dispatchControl({ type: 'setting.failed', id });
+            if (!failure.accepted || !failure.effects)
+                throw new PlayerError('ABORTED', 'Setting operation was retired');
+            try {
+                await execute(failure.effects);
+            }
+            catch (restoreError) {
+                const degraded = this.dispatchControl({ type: 'setting.degraded', id });
+                if (!degraded.accepted)
+                    throw new PlayerError('ABORTED', 'Setting operation was retired');
+                const failure = new PlayerError('DECODE_FAILED', `Setting update and rollback failed; backend settings may be partially applied (${playerError(restoreError).message})`);
+                this.emit('error', failure);
+                throw failure;
+            }
+            if (!this.dispatchControl({ type: 'setting.restored', id }).accepted)
+                throw new PlayerError('ABORTED', 'Setting operation was retired');
+            throw error;
+        }
+        if (!this.dispatchControl({ type: 'setting.accept', id }).accepted)
+            throw new PlayerError('ABORTED', 'Setting operation was retired');
     }
     async playNativeVerified(backend, playing = backend.play(), outputBudgetMs, intent) {
         const controller = new AbortController();
@@ -2269,7 +2324,7 @@ export class Player extends EventTarget {
         }).finally(() => { this.dispatchControl({ type: 'play.settled', id: intentId }); this.playRequests.delete(intentId); });
     }
     pause() { for (const id of this.dispatchControl({ type: 'play.retire' }).retire)
-        this.playRequests.get(id)?.abort(); return this.setting(p => p.pause(), () => { this.updateSettings({ pause: true }); this.dispatchControl({ type: 'playback.observed', playing: false, waiting: false }); if (this.backgroundPromotion)
+        this.playRequests.get(id)?.abort(); return this.enqueue(async () => { await this.applySetting({ kind: 'pause' }); this.dispatchControl({ type: 'playback.observed', playing: false, waiting: false }); if (this.backgroundPromotion)
         this.schedulePromotion(); }); }
     seek(seconds, options = {}) { return this.seekForSource(seconds, options); }
     seekForSource(seconds, options, sourceId) {
@@ -2486,12 +2541,12 @@ export class Player extends EventTarget {
     volume(value) {
         if (!Number.isFinite(value) || value < 0 || value > 100)
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid volume');
-        return this.setting(p => p.volume(this.muted ? 0 : value), () => { this.updateSettings({ volume: value }); });
+        return this.enqueue(() => this.applySetting({ kind: 'volume', value }));
     }
     setVolume(value) { if (!Number.isFinite(value) || value < 0 || value > 1)
         throw new PlayerError('INVALID_ARGUMENT', 'Volume must be 0 to 1'); return this.volume(value * 100); }
     setMuted(value) { if (typeof value !== 'boolean')
-        throw new PlayerError('INVALID_ARGUMENT', 'Expected boolean mute state'); return this.setting(p => p.volume(value ? 0 : this.settings.volume), () => { this.muted = value; }); }
+        throw new PlayerError('INVALID_ARGUMENT', 'Expected boolean mute state'); return this.enqueue(() => this.applySetting({ kind: 'mute', value })); }
     setPlaybackRate(value) { return this.rate(value); }
     selectAudioTrack(id) { return this.selectPublicTrack('audio', id); }
     selectSubtitleTrack(id) { return this.selectPublicTrack('sub', id); }
@@ -2558,9 +2613,7 @@ export class Player extends EventTarget {
                 }
                 return;
             }
-            await this.current.backend.selectTrack(type, backendId);
-            this.updateSettings({ [type === 'audio' ? 'aid' : 'sid']: backendId });
-            await this.confirmTrackSelection(this.current, this.source, this.mode, this.settings, type, backendId);
+            await this.applySetting({ kind: 'track', track: type, value: backendId, verify: true });
             if (track)
                 this.publicSelections.set(type, trackKey(track, this.mode, plan));
             else
@@ -2571,7 +2624,7 @@ export class Player extends EventTarget {
     rate(value) {
         if (!Number.isFinite(value) || value < .5 || value > 2)
             throw new PlayerError('INVALID_ARGUMENT', 'Playback rate must be 0.5 to 2');
-        return this.setting(p => p.rate(value), () => { this.updateSettings({ speed: value }); });
+        return this.enqueue(() => this.applySetting({ kind: 'rate', value }));
     }
     selectTrack(type, id) {
         if (['audio', 'sub'].includes(type) && backendPlan(this.current?.backend) === 'shaka-mse') {
@@ -2589,7 +2642,7 @@ export class Player extends EventTarget {
             return this.selectPublicTrack(type, id === 'no' ? null : id === 'auto' ? 'auto' : track ? `${this.sourceSerial}:${trackKey(track, this.mode, plan)}` : 'missing');
         }
         assertTrackSelection(type === 'audio' ? this.trackPolicy.audio : this.trackPolicy.subtitles, id === 'no' ? null : id);
-        return this.setting(p => p.selectTrack(type, id), () => { this.updateSettings({ [type === 'audio' ? 'aid' : 'sid']: id }); this.publicSelections.delete(type); this.schedulePromotion(); });
+        return this.enqueue(async () => { await this.applySetting({ kind: 'track', track: type, value: id }); this.publicSelections.delete(type); this.schedulePromotion(); });
     }
     subtitleVisible(visible) {
         if (typeof visible !== 'boolean')
@@ -2608,9 +2661,7 @@ export class Player extends EventTarget {
             if (this.automatic && this.source && this.mode === 'native' && !['shaka-mse', 'remux-mpv', 'direct-mpv'].includes(backendPlan(this.current?.backend) ?? '') && visible && !this.settings.subtitles)
                 await this.select(this.source, settings, true, this.nativeTracks);
             else {
-                if (this.current)
-                    await this.current.backend.subtitleVisible(visible);
-                this.settings = settings;
+                await this.applySetting({ kind: 'subtitles', value: visible });
                 if (!visible)
                     this.schedulePromotion();
             }
@@ -2618,18 +2669,7 @@ export class Player extends EventTarget {
     }
     getTimingSettings() { return freeze({ subtitleDelay: this.subtitleDelay, audioDelay: this.audioDelay, effectiveSubtitleDelay: this.current ? this.subtitleDelay : null, effectiveAudioDelay: this.current ? this.audioDelay : null, subtitleStyle: { ...this.subtitleStyle }, styleScope: 'plain-text' }); }
     timingChange(key, value) {
-        return this.enqueue(async () => {
-            const old = this[key];
-            this[key] = value;
-            try {
-                if (this.source)
-                    await this.select(this.source, this.settings, true, this.nativeTracks);
-            }
-            catch (error) {
-                this[key] = old;
-                throw error;
-            }
-        }, 'switching');
+        return this.enqueue(() => this.applySetting(key === 'subtitleStyle' ? { kind: key, value: value } : { kind: key, value: value }), 'switching');
     }
     setSubtitleDelay(seconds) { if (!Number.isFinite(seconds) || Math.abs(seconds) > 60)
         throw new PlayerError('INVALID_ARGUMENT', 'Subtitle delay must be within -60 to 60 seconds'); return this.timingChange('subtitleDelay', seconds); }

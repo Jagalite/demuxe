@@ -96,3 +96,34 @@ test('legacy mpv artifacts take precedence when both layouts are deployed',async
  const requests=[];t.mock.method(globalThis,'fetch',async url=>{requests.push(String(url));return String(url).endsWith('.json')?Response.json(data):new Response(wasm);});
  const runtime=new ProviderRuntime(new URL('https://example.test/'),{'mpv-hybrid':id});await runtime.module(legacy);assert.equal(requests.at(-1),'https://example.test/'+legacy);await runtime.module('web/engine-selective/player.wasm');assert.equal(requests.at(-1),'https://example.test/'+shared);await runtime.destroy();
 });
+
+test('synchronous manifest-fetch reentry shares the already reserved load promise',async t=>{
+ let nested,calls=0;const runtime=new ProviderRuntime(new URL('https://example.test/'),{'ffmpeg-file-preparation':identity});
+ t.mock.method(globalThis,'fetch',()=>{calls++;nested=runtime.load();return Promise.resolve(Response.json(manifest()));});
+ const first=runtime.load();assert.equal(nested,first);await first;assert.equal(calls,1);await runtime.destroy();
+});
+test('retirement during an uncooperative manifest response never publishes deployment',async t=>{
+ let release;const gate=new Promise(resolve=>release=resolve);t.mock.method(globalThis,'fetch',async()=>{await gate;return Response.json(manifest());});
+ const runtime=new ProviderRuntime(new URL('https://example.test/'),{'ffmpeg-file-preparation':identity});const loading=assert.rejects(runtime.load(),{name:'AbortError'});
+ const closing=runtime.destroy();assert.equal(runtime.destroy(),closing);release();await closing;await loading;assert.equal(runtime.has(path),false);assert.equal(runtime.hasOffer('ffmpeg-file-preparation','packet-copy'),false);
+});
+test('late compilation after destroy rejects without restoring module ownership',async t=>{
+ const compiled=await WebAssembly.compile(wasm);let release,started;const gate=new Promise(resolve=>release=resolve),entered=new Promise(resolve=>started=resolve);
+ t.mock.method(globalThis,'fetch',async url=>String(url).endsWith('.json')?Response.json(manifest()):new Response(wasm));
+ t.mock.method(WebAssembly,'compile',async()=>{started();await gate;return compiled;});
+ const runtime=new ProviderRuntime(new URL('https://example.test/'),{'ffmpeg-file-preparation':identity}),pending=assert.rejects(runtime.module(path),{name:'AbortError'});
+ await entered;await runtime.destroy();release();await pending;assert.equal(runtime.has(path),false);await assert.rejects(runtime.module(path),{name:'AbortError'});
+});
+test('reviewed registry and remembered probe records are isolated from caller mutation',async t=>{
+ const registry={'ffmpeg-file-preparation':identity};t.mock.method(globalThis,'fetch',async()=>Response.json(manifest()));
+ const runtime=new ProviderRuntime(new URL('https://example.test/'),registry);registry['ffmpeg-file-preparation']='changed';await runtime.load();assert.equal(runtime.has(path),true);
+ t.mock.method(runtime,'has',()=>true);t.mock.method(runtime,'hasOffer',()=>true);
+ const file=new File([new Uint8Array(8)],'movie.mkv'),probe={format:'matroska',duration:1,tracks:[{id:'1',index:0,type:'video',codec:'h264'},{id:'2',index:1,type:'audio',codec:'truehd',sampleRate:48000,channels:2},{id:'3',index:2,type:'audio',codec:'truehd',sampleRate:48000,channels:6}]};
+ runtime.codecPreparation({kind:'local',file},probe,'asyncify');probe.tracks[2].codec='aac';assert.equal(runtime.preparation(file,'asyncify',2).audioIndex,2);await runtime.destroy();
+});
+
+test('load preserves its retained promise identity after retirement',async t=>{
+ t.mock.method(globalThis,'fetch',async()=>Response.json(manifest()));const runtime=new ProviderRuntime(new URL('https://example.test/'),{'ffmpeg-file-preparation':identity});
+ const loading=runtime.load();await loading;await runtime.destroy();const retired=runtime.load();void retired.catch(()=>{});assert.equal(retired,loading);
+ const neverLoaded=new ProviderRuntime(new URL('https://example.test/'),{});await neverLoaded.destroy();const cancelled=neverLoaded.load(),repeated=neverLoaded.load();void repeated.catch(()=>{});const rejected=assert.rejects(cancelled,{name:'AbortError'});assert.equal(repeated,cancelled);await rejected;
+});

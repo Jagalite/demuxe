@@ -157,3 +157,12 @@ test('dispose waits for a pending inspection read to observe cancellation',async
  const a=new ProviderAcquisition(deployment(),[],{fetch:async(_,options)=>{started();return new Promise((_,reject)=>options.signal.addEventListener('abort',()=>{setTimeout(()=>{retired=true;reject(options.signal.reason);},10);},{once:true}));}});
  const reading=assert.rejects(a.readAsset('copy','copy@1','common'),e=>e.name==='AbortError');await ready;await a.dispose();assert.equal(retired,true);await reading;
 });
+
+test('owner synchronous reentry shares its already reserved preparation',async()=>{
+ let nested,prepares=0,ticket;const a=new ProviderAcquisition(deployment(),[owner('copy',async()=>{prepares++;nested=a.acquire(ticket,'binding');return {state:'ready',dispose(){}};})]);
+ ticket=resolution(a);await a.acquire(ticket,'binding');await nested;assert.equal(prepares,1);await a.dispose();
+});
+test('fetch synchronous reentry shares its already reserved content and memory budget',async()=>{
+ let nested,calls=0;const a=new ProviderAcquisition(deployment(),[],{maxResidentBytes:4,fetch:()=>{calls++;nested=a.readAsset('audio','audio@1','common');return Promise.resolve(new Response(data));}});
+ const first=await a.readAsset('copy','copy@1','common');assert.deepEqual(new Uint8Array(await nested),new Uint8Array(first));assert.equal(calls,1);await a.dispose();
+});

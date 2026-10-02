@@ -1,0 +1,104 @@
+// SPDX-License-Identifier: Apache-2.0
+export type RuntimeProvider=Readonly<{id:string;implementationIdentity:string;manifestMatches:boolean;assets:readonly string[];profiles:readonly string[]}>;
+export type RuntimeAsset=Readonly<{id:string;path:string;url:string}>;
+export type RuntimeRequest=Readonly<{kind:'bytes'|'module';path:string;status:'pending'|'ready'|'failed'}>;
+export type ProviderRuntimeState=Readonly<{
+  phase:'idle'|'loading'|'ready'|'failed'|'retiring'|'closed';loadStarted:boolean;cancelled:boolean;deadline:number;manifestBytes:number;
+  qualified:Readonly<Record<string,string>>;providers:readonly RuntimeProvider[];assets:readonly RuntimeAsset[];requests:readonly RuntimeRequest[];
+}>;
+export function createProviderRuntime(qualified:Readonly<Record<string,string>>):ProviderRuntimeState{
+  return Object.freeze({phase:'idle',loadStarted:false,cancelled:false,deadline:0,manifestBytes:0,qualified:Object.freeze({...qualified}),providers:Object.freeze([]),assets:Object.freeze([]),requests:Object.freeze([])});
+}
+export function admitRuntimeLoad(state:ProviderRuntimeState,now:number):Readonly<{state:ProviderRuntimeState;effect:'start'|'join'|'retired'}>{
+  if(state.loadStarted)return Object.freeze({state,effect:'join'});
+  if(state.cancelled||state.phase==='retiring'||state.phase==='closed')return Object.freeze({state:Object.freeze({...state,loadStarted:true}),effect:'retired'});
+  return Object.freeze({state:Object.freeze({...state,phase:'loading',loadStarted:true,deadline:now+15000}),effect:'start'});
+}
+export function observeRuntimeManifest(state:ProviderRuntimeState,event:Readonly<{kind:'bytes';bytes:number}|{kind:'deadline';now:number}|{kind:'failed'}>):Readonly<{state:ProviderRuntimeState;effect:'accepted'|'overflow'|'abort'|'ignore'}>{
+  if(state.phase!=='loading')return Object.freeze({state,effect:'ignore'});
+  if(event.kind==='failed')return Object.freeze({state:Object.freeze({...state,phase:'failed'}),effect:'accepted'});
+  if(state.cancelled)return Object.freeze({state,effect:'ignore'});
+  if(event.kind==='deadline')return event.now<state.deadline?Object.freeze({state,effect:'ignore'}):Object.freeze({state:Object.freeze({...state,cancelled:true}),effect:'abort'});
+  const bytes=state.manifestBytes+event.bytes;
+  return Object.freeze({state:Object.freeze({...state,manifestBytes:bytes}),effect:bytes>1024*1024?'overflow':'accepted'});
+}
+export function acceptRuntimeDeployment(state:ProviderRuntimeState,providers:readonly RuntimeProvider[],assets:readonly RuntimeAsset[]):Readonly<{state:ProviderRuntimeState;accepted:boolean}>{
+  if(state.phase!=='loading'||state.cancelled)return Object.freeze({state,accepted:false});
+  return Object.freeze({state:Object.freeze({...state,phase:'ready',providers:Object.freeze(providers.map(provider=>Object.freeze({...provider,assets:Object.freeze([...provider.assets]),profiles:Object.freeze([...provider.profiles])}))),assets:Object.freeze(assets.map(asset=>Object.freeze({...asset})))}),accepted:true});
+}
+function qualifiedProvider(state:ProviderRuntimeState,provider:RuntimeProvider):boolean{return provider.manifestMatches&&state.qualified[provider.id]===provider.implementationIdentity;}
+export function runtimeAssetPath(state:ProviderRuntimeState,path:string,url:string):string{
+  if(state.assets.some(asset=>asset.url===url))return path;
+  return /^web\/engine-(hybrid|selective|software-full|software-yuv)\/player\.wasm$/.test(path)&&state.assets.some(asset=>asset.path==='web/engine-mpv/player.wasm')?'web/engine-mpv/player.wasm':path;
+}
+export function runtimeAssetOwner(state:ProviderRuntimeState,url:string):Readonly<{kind:'ready';providerId:string;implementationIdentity:string;assetId:string}|{kind:'absent'|'unqualified'}>{
+  const asset=state.assets.find(asset=>asset.url===url);if(!asset)return Object.freeze({kind:'absent'});
+  const provider=state.phase==='ready'&&!state.cancelled?state.providers.find(provider=>provider.assets.includes(asset.id)&&qualifiedProvider(state,provider)):undefined;
+  return provider?Object.freeze({kind:'ready',providerId:provider.id,implementationIdentity:provider.implementationIdentity,assetId:asset.id}):Object.freeze({kind:'unqualified'});
+}
+export function runtimeHasOffer(state:ProviderRuntimeState,providerId:string,profile:string):boolean{
+  return state.phase==='ready'&&!state.cancelled&&state.providers.some(provider=>provider.id===providerId&&qualifiedProvider(state,provider)&&provider.profiles.includes(profile));
+}
+export function admitRuntimeRequest(state:ProviderRuntimeState,kind:RuntimeRequest['kind'],path:string):Readonly<{state:ProviderRuntimeState;effect:'start'|'join'|'retired'}>{
+  if(state.phase!=='ready'||state.cancelled)return Object.freeze({state,effect:'retired'});
+  if(state.requests.some(request=>request.kind===kind&&request.path===path))return Object.freeze({state,effect:'join'});
+  return Object.freeze({state:Object.freeze({...state,requests:Object.freeze([...state.requests,Object.freeze({kind,path,status:'pending' as const})])}),effect:'start'});
+}
+export function completeRuntimeRequest(state:ProviderRuntimeState,kind:RuntimeRequest['kind'],path:string,ok:boolean):ProviderRuntimeState{
+  if(state.phase!=='ready'||state.cancelled)return state;
+  return Object.freeze({...state,requests:Object.freeze(state.requests.map(request=>request.kind===kind&&request.path===path&&request.status==='pending'?Object.freeze({...request,status:ok?'ready' as const:'failed' as const}):request))});
+}
+export function retireProviderRuntime(state:ProviderRuntimeState):ProviderRuntimeState{return state.phase==='closed'||state.phase==='retiring'?state:Object.freeze({...state,phase:'retiring',cancelled:true});}
+export function closeProviderRuntime(state:ProviderRuntimeState):ProviderRuntimeState{return Object.freeze({...state,phase:'closed',cancelled:true,providers:Object.freeze([]),assets:Object.freeze([]),requests:Object.freeze([])});}
+export function runtimeCompositionEvidence(state:ProviderRuntimeState,recipe:Readonly<{id:string;bindings:readonly Readonly<{id:string;providerIds:readonly string[]}>[]}>,scopeKey:string):Array<{recipeId:string;bindingId:string;scopeKey:string;implementationIdentities:Record<string,string>}>{
+  return recipe.bindings.filter(binding=>binding.providerIds.every(id=>Object.prototype.hasOwnProperty.call(state.qualified,id))).map(binding=>({recipeId:recipe.id,bindingId:binding.id,scopeKey,implementationIdentities:Object.fromEntries(binding.providerIds.map(id=>[id,state.qualified[id]]))}));
+}
+export function requiredRuntimeAssets(input:Readonly<{runtime:'pthread'|'jspi'|'asyncify';prepared:boolean;adaptation:boolean;selectedAudio:boolean;backend:string;hybrid:boolean}>):readonly string[]{
+  const required:string[]=[];
+  if(input.prepared)required.push(`web/engine-${input.adaptation?'adaptation':'remux'}${input.runtime==='pthread'?'':'-'+input.runtime}/remux.wasm`);
+  if(input.selectedAudio)required.push(input.runtime==='pthread'?'web/engine-selective/player.wasm':`web/engine-mpv-audio-${input.runtime}/service.wasm`);
+  if(input.backend==='WasmPlayer')required.push(...(input.hybrid?['web/engine-hybrid/player.wasm']:['web/engine-software-full/player.wasm','web/engine-software-yuv/player.wasm']),'fixtures/DejaVuSans.ttf');
+  if(input.backend==='PrivateSoftwarePlayer')required.push(`web/engine-mpv-playback-${input.runtime}/player.wasm`,`web/engine-mpv-playback-${input.runtime}/manifest.json`,`web/engine-mpv-playback-${input.runtime}/player.mjs`,'fixtures/DejaVuSans.ttf');
+  return Object.freeze(required);
+}
+
+export type CodecRuntime='pthread'|'jspi'|'asyncify';
+export type RuntimeCodecPreparation=Readonly<{providerId:string;folder:string;wasmPath:string;runtime:'jspi'|'asyncify';audioIndex?:number;videoIndex?:number}>;
+export type RuntimeProbeTrack=Readonly<{id:string;index:number;type:string;codec:string;attachedPicture?:boolean;default?:boolean;sampleRate?:number;channels?:number}>;
+export type RuntimeProbe=Readonly<{format?:string;tracks:readonly RuntimeProbeTrack[]}>;
+export type CodecProfileAvailability=Readonly<{profile:string;offered:boolean;deployed:boolean}>;
+export function captureRuntimeProbe(probe:RuntimeProbe):RuntimeProbe{return Object.freeze({format:probe.format,tracks:Object.freeze(probe.tracks.map(track=>Object.freeze({id:track.id,index:track.index,type:track.type,codec:track.codec,attachedPicture:track.attachedPicture,default:track.default,sampleRate:track.sampleRate,channels:track.channels})))});}
+export function codecProfile(profile:string,runtime:'jspi'|'asyncify'):RuntimeCodecPreparation{
+  const folder='web/providers/preparation/'+profile+'-'+runtime+'/';return Object.freeze({providerId:'ffmpeg-'+profile+'-'+runtime,folder,wasmPath:folder+'engine-adaptation-'+runtime+'/remux.wasm',runtime});
+}
+export function selectCodecInspector(runtime:CodecRuntime,availability:readonly CodecProfileAvailability[]):RuntimeCodecPreparation|undefined{
+  if(runtime==='pthread')return;const available=availability.find(item=>item.offered&&item.deployed);return available?codecProfile(available.profile,runtime):undefined;
+}
+export function selectCodecPreparation(input:Readonly<{local:boolean;file:boolean;runtime:CodecRuntime;probe:RuntimeProbe|undefined;aid:string}>,availability:readonly CodecProfileAvailability[]):RuntimeCodecPreparation|undefined{
+  const {probe,runtime}=input;
+  if(runtime==='pthread'||!input.local||!input.file||!probe?.format?.split(',').includes('matroska'))return;
+  const videos=probe.tracks.filter(track=>track.type==='video'&&!track.attachedPicture),audios=probe.tracks.filter(track=>track.type==='audio');
+  if(videos.length!==1||!audios.length||!['h264','hevc'].includes(videos[0].codec))return;
+  const audio=input.aid==='no'?undefined:input.aid==='auto'?(audios.find(track=>track.default)??audios[0]):audios.find(track=>track.id===input.aid);
+  if(!audio||audio.sampleRate!==48000||![2,6,8].includes(audio.channels??0))return;
+  const profile=audio.codec==='truehd'||audio.codec==='mlp'&&audio.channels!==8?'truehd-mlp':audio.codec==='dts'&&audio.channels===8?'dts-hd':['ac3','eac3'].includes(audio.codec)&&[2,6].includes(audio.channels??0)?'ac3-eac3':undefined;
+  if(!profile||!availability.some(item=>item.profile===profile&&item.offered&&item.deployed))return;
+  return Object.freeze({...codecProfile(profile,runtime),audioIndex:audio.index,videoIndex:videos[0].index});
+}
+export type CodecSourceState=Readonly<{hint:RuntimeCodecPreparation|null;probe:RuntimeProbe|null}>;
+/** The shell keeps this detached per-source value in a WeakMap, never a global
+ * strong index of media objects. Failed reselection clears only the hint. */
+export function updateCodecSource(previous:CodecSourceState|undefined,input:Readonly<{local:boolean;file:boolean;runtime:CodecRuntime;probe:RuntimeProbe|undefined;aid:string}>,availability:readonly CodecProfileAvailability[]):CodecSourceState{
+  const hint=selectCodecPreparation(input,availability);
+  return Object.freeze({hint:hint??null,probe:hint?captureRuntimeProbe(input.probe!):previous?.probe??null});
+}
+export function storedCodecPreparation(state:CodecSourceState|undefined,runtime:CodecRuntime,deployed:boolean):RuntimeCodecPreparation|undefined{return state?.hint?.runtime===runtime&&deployed?state.hint:undefined;}
+export type RepairCandidate=Readonly<{codec:'truehd'|'mlp'|'dts-hd';channels:2|6|8}>;
+export function selectAudioRepair(input:Readonly<{local:boolean;blob:boolean;size:number;probe:RuntimeProbe|undefined;container:boolean;truehd:boolean;dts:boolean;flac:boolean}>):RepairCandidate|undefined{
+  const {probe}=input;if(!input.local||!input.blob||input.size>64*1024*1024||!probe?.format?.split(',').includes('matroska')||probe.tracks.length!==2)return;
+  const video=probe.tracks.find(track=>track.type==='video'),audio=probe.tracks.find(track=>track.type==='audio');
+  if(video?.codec!=='h264'||!audio||audio.sampleRate!==48000||![2,6,8].includes(audio.channels??0))return;
+  const codec=audio.codec==='truehd'?'truehd':audio.codec==='mlp'?'mlp':audio.codec==='dts'&&audio.channels===8?'dts-hd':undefined;
+  if(!codec||codec==='mlp'&&audio.channels===8||!input.container||!input.flac||!(codec==='dts-hd'?input.dts:input.truehd))return;
+  return Object.freeze({codec,channels:audio.channels as 2|6|8});
+}

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PlayerError, isPlayerError } from './errors.js';
+import { createAcquisition, admitAcquisition, admitAcquisitionOwner, finishAcquisitionOwner, admitAcquisitionAsset, observeAcquisitionAsset, retireAcquisition, acquisitionReleases, closeAcquisition } from './machine/provider-acquisition.js';
 import { withProviderAvailability } from './provider-catalog.js';
 import { resolveProviderRecipe } from './provider-resolution.js';
 /** One acquisition scope per attempted execution. Not a global engine cache.
@@ -10,15 +11,15 @@ import { resolveProviderRecipe } from './provider-resolution.js';
  */
 export class ProviderAcquisition {
     deployment;
-    catalogValue;
+    state;
+    catalogCache;
+    failures = new Map();
     controller = new AbortController();
     owners = new Map();
     assets = new Map();
     bytes = new Map();
     preparations = new Map();
-    releases = [];
-    reservedBytes = 0;
-    scopeKey;
+    releases = new Map();
     resolutions = new WeakMap();
     closePromise;
     request;
@@ -26,7 +27,6 @@ export class ProviderAcquisition {
     maxResidentBytes;
     constructor(deployment, owners, options = {}) {
         this.deployment = deployment;
-        this.catalogValue = deployment.catalog;
         this.request = options.fetch ?? globalThis.fetch.bind(globalThis);
         this.timeoutMs = options.timeoutMs ?? 30_000;
         this.maxResidentBytes = options.maxResidentBytes ?? 256 * 1024 * 1024;
@@ -45,10 +45,39 @@ export class ProviderAcquisition {
             this.assets.set(asset.id, asset);
         // An installed package without its configured owner cannot execute. This is
         // deployment absence, unlike a failed fetch of a declared deployed asset.
-        this.catalogValue = withProviderAvailability(this.catalogValue, this.catalogValue.revision, deployment.catalog.providers.filter(p => !this.owners.has(p.id)).map(p => ({ ...p,
-            availability: { state: 'absent', reason: 'No configured implementation owner' } })));
+        this.state = createAcquisition({ timeoutMs: this.timeoutMs, maxResidentBytes: this.maxResidentBytes, owners: deployment.catalog.providers.map(provider => {
+                if (provider.availability.state === 'failed')
+                    this.failures.set(provider.id, provider.availability.error);
+                const availability = !this.owners.has(provider.id) ? { state: 'absent', reason: 'No configured implementation owner' } : provider.availability.state === 'failed' ? { state: 'failed', failureId: provider.id } : provider.availability;
+                return { id: provider.id, availability };
+            }) });
     }
-    get catalog() { return this.catalogValue; }
+    get catalog() {
+        if (this.catalogCache?.epoch === this.state.catalogEpoch)
+            return this.catalogCache.value;
+        const value = withProviderAvailability(this.deployment.catalog, this.deployment.catalog.revision, this.state.owners.map(owner => ({
+            id: owner.id, implementationIdentity: this.deployment.catalog.providers.find(provider => provider.id === owner.id).implementationIdentity,
+            availability: owner.availability.state === 'failed' ? { state: 'failed', error: this.failures.get(owner.availability.failureId) } : owner.availability
+        })));
+        this.catalogCache = { epoch: this.state.catalogEpoch, value };
+        return value;
+    }
+    reject(effect, id = '') {
+        if (effect.kind !== 'reject')
+            return;
+        if (effect.reason === 'retired')
+            throw this.controller.signal.reason ?? new DOMException('Provider acquisition disposed', 'AbortError');
+        if (effect.reason === 'failed')
+            throw this.failures.get(effect.failureId);
+        if (effect.reason === 'stale')
+            throw Error('Stale provider acquisition scope');
+        if (effect.reason === 'unresolved')
+            throw Error('Cannot acquire an unresolved provider binding');
+        if (effect.reason === 'absent')
+            throw new PlayerError('DEPLOYMENT_UNAVAILABLE', `No configured provider owner: ${id}`);
+        const message = { budget: 'Provider acquisition byte budget exceeded', overflow: 'Provider asset exceeds declared size', size: 'Provider asset size mismatch', integrity: 'Provider asset integrity mismatch' }[effect.reason];
+        throw new PlayerError('ASSET_LOAD_FAILED', message);
+    }
     /** Read immutable bytes for explicit inspection/preparation without claiming
      * that an execution composition is qualified or marking an owner ready. */
     readAsset(providerId, implementationIdentity, assetId) {
@@ -60,7 +89,7 @@ export class ProviderAcquisition {
     }
     resolve(recipe, evidence, scopeKey) {
         this.controller.signal.throwIfAborted();
-        const resolution = resolveProviderRecipe(recipe, this.catalogValue, evidence, scopeKey);
+        const resolution = resolveProviderRecipe(recipe, this.catalog, evidence, scopeKey);
         for (const binding of resolution.bindings) {
             if (binding.state === 'pending' || binding.state === 'available')
                 Object.freeze(binding.providerIds);
@@ -68,40 +97,36 @@ export class ProviderAcquisition {
         }
         Object.freeze(resolution.bindings);
         Object.freeze(resolution);
-        this.resolutions.set(resolution, this.catalogValue);
+        this.resolutions.set(resolution, this.state.catalogEpoch);
         return resolution;
     }
     /** Resolution must be produced against this exact catalog snapshot. Accept
      * one explicitly selected binding; never guess order among alternatives. */
     async acquire(resolution, bindingId) {
         this.controller.signal.throwIfAborted();
-        if (this.resolutions.get(resolution) !== this.catalogValue || resolution.deploymentRevision !== this.catalogValue.revision || !resolution.scopeKey
-            || (this.scopeKey !== undefined && this.scopeKey !== resolution.scopeKey))
-            throw Error('Stale provider acquisition scope');
         const binding = resolution.bindings.find(b => b.bindingId === bindingId);
-        if (resolution.state === 'failed' || !binding || (binding.state !== 'available' && binding.state !== 'pending'))
-            throw Error('Cannot acquire an unresolved provider binding');
-        this.scopeKey = resolution.scopeKey;
+        const admitted = admitAcquisition(this.state, { ticketEpoch: this.resolutions.get(resolution) ?? null, revisionMatches: resolution.deploymentRevision === this.catalog.revision,
+            scopeKey: resolution.scopeKey, resolved: resolution.state !== 'failed' && !!binding && (binding.state === 'available' || binding.state === 'pending') });
+        this.state = admitted.state;
+        this.reject(admitted.effect);
+        if (!binding || (binding.state !== 'available' && binding.state !== 'pending'))
+            return;
         for (const id of binding.providerIds) {
-            this.controller.signal.throwIfAborted();
-            const fact = this.catalogValue.providers.find(p => p.id === id);
-            if (!fact || fact.availability.state === 'absent')
-                throw new PlayerError('DEPLOYMENT_UNAVAILABLE', `No configured provider owner: ${id}`);
-            if (fact.availability.state === 'failed')
-                throw fact.availability.error;
+            const admission = admitAcquisitionOwner(this.state, id);
+            this.state = admission.state;
+            this.reject(admission.effect, id);
             let pending = this.preparations.get(id);
-            if (!pending) {
-                pending = this.prepare(fact);
+            if (admission.effect.kind === 'start') {
+                // Publish both reservation and shared completion before invoking owner code.
+                let resolve, reject;
+                pending = new Promise((yes, no) => { resolve = yes; reject = no; });
                 this.preparations.set(id, pending);
+                void this.prepare(this.catalog.providers.find(provider => provider.id === id)).then(resolve, reject);
             }
             await pending;
-            // Runtime-unavailable owners update the catalog for ordered re-resolution.
-            if (this.catalogValue.providers.find(p => p.id === id)?.availability.state === 'absent')
+            if (this.state.owners.find(owner => owner.id === id)?.availability.state === 'absent')
                 return;
         }
-    }
-    observe(provider, availability) {
-        this.catalogValue = withProviderAvailability(this.catalogValue, this.catalogValue.revision, [{ id: provider.id, implementationIdentity: provider.implementationIdentity, availability }]);
     }
     async prepare(provider) {
         try {
@@ -113,42 +138,57 @@ export class ProviderAcquisition {
                         throw new PlayerError('ASSET_LOAD_FAILED', `Provider ${provider.id} requested an undeclared asset`);
                     return this.load(this.assets.get(id));
                 } });
+            const completion = finishAcquisitionOwner(this.state, provider.id, result.state === 'ready' ? { kind: 'ready' } : { kind: 'unavailable', reason: result.reason });
+            this.state = completion.state;
             if (result.state === 'ready') {
-                if (this.controller.signal.aborted)
+                if (completion.effect.kind === 'release')
                     await result.dispose();
-                else
-                    this.releases.push(() => result.dispose());
+                else if (completion.effect.kind === 'published')
+                    this.releases.set(provider.id, () => result.dispose());
             }
             this.controller.signal.throwIfAborted();
-            this.observe(provider, result.state === 'ready' ? { state: 'available' } : { state: 'absent', reason: result.reason });
         }
         catch (error) {
-            if (this.controller.signal.aborted)
+            if (this.controller.signal.aborted) {
+                this.state = finishAcquisitionOwner(this.state, provider.id, { kind: 'failed' }).state;
                 throw this.controller.signal.reason;
+            }
             const failure = error instanceof Error ? error : new PlayerError('ASSET_LOAD_FAILED', 'Provider initialization failed');
-            this.observe(provider, { state: 'failed', error: failure });
+            this.failures.set(provider.id, failure);
+            this.state = finishAcquisitionOwner(this.state, provider.id, { kind: 'failed' }).state;
             throw failure;
         }
     }
     async load(asset) {
         const identity = JSON.stringify([asset.url, asset.sha256, asset.bytes]);
+        const admission = admitAcquisitionAsset(this.state, identity, asset.bytes, performance.now());
+        this.state = admission.state;
+        this.reject(admission.effect);
         let pending = this.bytes.get(identity);
-        if (!pending) {
-            if (this.reservedBytes + asset.bytes > this.maxResidentBytes)
-                throw new PlayerError('ASSET_LOAD_FAILED', 'Provider acquisition byte budget exceeded');
-            this.reservedBytes += asset.bytes;
-            pending = this.fetchAsset(asset);
+        if (admission.effect.kind === 'start') {
+            let resolve, reject;
+            pending = new Promise((yes, no) => { resolve = yes; reject = no; });
             this.bytes.set(identity, pending);
+            void this.fetchAsset(asset, identity).then(resolve, reject);
         }
-        // An owner may transfer/detach or mutate its copy without poisoning another
-        // role sharing a bundle. Cached bytes never leave the acquisition scope.
+        // Cached ownership never escapes; callers can transfer or mutate their copy.
         return (await pending).slice(0);
     }
-    async fetchAsset(asset) {
+    async fetchAsset(asset, identity) {
         const deadline = new AbortController();
         const abort = () => deadline.abort(this.controller.signal.reason);
         this.controller.signal.addEventListener('abort', abort, { once: true });
-        const timer = setTimeout(() => deadline.abort(new PlayerError('ASSET_LOAD_FAILED', 'Provider asset deadline exceeded')), this.timeoutMs);
+        const due = this.state.assets.find(asset => asset.identity === identity).deadline;
+        let timer;
+        const expire = () => {
+            const result = observeAcquisitionAsset(this.state, identity, { kind: 'deadline', now: performance.now() });
+            this.state = result.state;
+            if (result.effect.kind === 'accepted')
+                deadline.abort(new PlayerError('ASSET_LOAD_FAILED', 'Provider asset deadline exceeded'));
+            else if (!deadline.signal.aborted)
+                timer = setTimeout(expire, Math.max(0, due - performance.now()));
+        };
+        timer = setTimeout(expire, Math.max(0, due - performance.now()));
         let reader;
         try {
             const response = await this.request(asset.url, { signal: deadline.signal, credentials: 'same-origin', redirect: 'error' });
@@ -162,20 +202,26 @@ export class ProviderAcquisition {
                 const { done, value } = await reader.read();
                 if (done)
                     break;
-                if (offset + value.byteLength > result.byteLength)
-                    throw new PlayerError('ASSET_LOAD_FAILED', 'Provider asset exceeds declared size');
+                deadline.signal.throwIfAborted();
+                const chunk = observeAcquisitionAsset(this.state, identity, { kind: 'chunk', bytes: value.byteLength });
+                this.state = chunk.state;
+                this.reject(chunk.effect);
                 result.set(value, offset);
                 offset += value.byteLength;
             }
-            if (offset !== asset.bytes)
-                throw new PlayerError('ASSET_LOAD_FAILED', 'Provider asset size mismatch');
+            deadline.signal.throwIfAborted();
+            const body = observeAcquisitionAsset(this.state, identity, { kind: 'body' });
+            this.state = body.state;
+            this.reject(body.effect);
             const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', result)), n => n.toString(16).padStart(2, '0')).join('');
             deadline.signal.throwIfAborted();
-            if (digest !== asset.sha256)
-                throw new PlayerError('ASSET_LOAD_FAILED', 'Provider asset integrity mismatch');
+            const verified = observeAcquisitionAsset(this.state, identity, { kind: 'digest', matches: digest === asset.sha256 });
+            this.state = verified.state;
+            this.reject(verified.effect);
             return result.buffer;
         }
         catch (error) {
+            this.state = observeAcquisitionAsset(this.state, identity, { kind: 'failed' }).state;
             if (deadline.signal.aborted)
                 throw deadline.signal.reason;
             if (isPlayerError(error))
@@ -202,21 +248,22 @@ export class ProviderAcquisition {
                 await Promise.allSettled(this.preparations.values());
                 await Promise.allSettled(this.bytes.values());
                 const errors = [];
-                for (const release of this.releases.reverse()) {
+                for (const id of acquisitionReleases(this.state)) {
                     try {
-                        await release();
+                        await this.releases.get(id)?.();
                     }
                     catch (error) {
                         errors.push(error);
                     }
                 }
-                this.releases.length = 0;
+                this.releases.clear();
                 this.bytes.clear();
-                this.reservedBytes = 0;
+                this.state = closeAcquisition(this.state);
                 if (errors.length)
                     throw new AggregateError(errors, 'Provider cleanup failed');
             });
             // Publish completion before dispatching synchronous abort listeners.
+            this.state = retireAcquisition(this.state).state;
             this.controller.abort(new DOMException('Provider acquisition disposed', 'AbortError'));
         }
         return this.closePromise;

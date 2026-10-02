@@ -2,12 +2,13 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {ResourceRegistry} from '../../web/generated/internal/effects/resources.js';
+import {VirtualEffects,settle} from './virtual-effects.mjs';
 
 const owned = (id, scopeKey, value, release) => ({id, scopeKey, kind: 'fixture', ownership: 'owned', value, release});
 function deferred() {
-  let resolve;
-  const promise = new Promise(yes => {resolve = yes;});
-  return {promise, resolve};
+  let resolve, reject;
+  const promise = new Promise((yes,no) => {resolve = yes; reject = no;});
+  return {promise, resolve, reject};
 }
 
 test('owned release is immediate, idempotent and inaccessible while pending; borrowed handles are not released', async () => {
@@ -206,4 +207,70 @@ test('invalid ownership and limits do not invoke host callbacks or accept record
   assert.throws(() => registry.register({id: 'r', scopeKey: 's', kind: 'k', value: {}, ownership: 'borrowed', release() {throw Error('Called');}}), /Borrowed/);
   assert.throws(() => registry.register({id: 'r', scopeKey: 's', kind: 'k', value: {}, ownership: 'owned'}), /release callback/);
   assert.equal(registry.diagnostics.registered, 0);
+});
+
+test('a hung release becomes detached at its deadline and remaining resources still unwind',async()=>{
+  const clock=new VirtualEffects(),registry=new ResourceRegistry({cleanupTimeoutMs:5,scheduleCleanupTimeout:clock.scheduleDeadline}),calls=[];
+  await registry.register(owned('first','scope',{},()=>{calls.push('first');}));
+  await registry.register(owned('hung','scope',{},()=>{calls.push('hung');return new Promise(()=>{});}));
+  const retirement=registry.retireScope('scope');
+  assert.deepEqual(calls,['hung']);assert.equal(registry.diagnostics.detached,0);
+  clock.advanceTo(4);await settle();assert.deepEqual(calls,['hung']);
+  clock.advanceTo(5);await assert.rejects(retirement,error=>error instanceof AggregateError&&error.errors[0].name==='CleanupTimeoutError');
+  assert.deepEqual(calls,['hung','first']);assert.equal(registry.diagnostics.detached,1);
+  assert.equal(registry.diagnostics.released,1);assert.equal(registry.diagnostics.timedOut,1);
+  assert.equal(registry.diagnostics.active,0);assert.equal(clock.timers.size,0);
+  assert.throws(()=>registry.get('hung'),/retired or released/);
+});
+
+test('cleanup containment crosses scopes and late successful release never repeats the callback',async()=>{
+  const clock=new VirtualEffects(),registry=new ResourceRegistry({cleanupTimeoutMs:5,scheduleCleanupTimeout:clock.scheduleDeadline}),late=deferred(),calls=[];
+  await registry.register(owned('first','one',{},()=>{calls.push('first');}));
+  await registry.register(owned('late','two',{},()=>{calls.push('late');return late.promise;}));
+  const release=registry.release('late'),disposal=registry.dispose();clock.advanceTo(5);
+  await assert.rejects(disposal,AggregateError);await assert.rejects(release,{name:'CleanupTimeoutError'});
+  const detached=registry.diagnostics;assert.equal(detached.detached,1);assert.equal(detached.released,1);
+  assert.equal(registry.release('late'),release);late.resolve();await settle();
+  assert.equal(registry.diagnostics.detached,0);assert.equal(registry.diagnostics.released,2);
+  assert.equal(registry.diagnostics.lateReleased,1);assert.equal(registry.diagnostics.timedOut,1);
+  assert.equal(detached.detached,1,'Old diagnostic snapshot remains detached');
+  await assert.rejects(registry.release('late'),{name:'CleanupTimeoutError'});
+  assert.deepEqual(calls,['late','first']);assert.equal(registry.dispose(),disposal);
+});
+
+test('late physical rejection remains failed without leaking host errors or counting a second cleanup invocation',async()=>{
+  const clock=new VirtualEffects(),registry=new ResourceRegistry({cleanupTimeoutMs:3,scheduleCleanupTimeout:clock.scheduleDeadline}),late=deferred();let calls=0;
+  await registry.register(owned('r','s',{},()=>{calls++;return late.promise;}));
+  const pending=registry.release('r');clock.advanceTo(3);await assert.rejects(pending,{name:'CleanupTimeoutError'});
+  late.reject(Error('https://private.invalid/?token=secret'));await settle();
+  assert.equal(registry.diagnostics.resources[0].state,'failed');assert.equal(registry.diagnostics.detached,0);
+  assert.equal(registry.diagnostics.released,0);assert.equal(registry.diagnostics.lateFailed,1);
+  assert.equal(registry.diagnostics.failed,1);assert.equal(registry.diagnostics.timedOut,1);assert.equal(calls,1);
+  assert.equal(JSON.stringify(registry.diagnostics).includes('secret'),false);
+  await assert.rejects(registry.dispose(),AggregateError);
+});
+
+test('successful cleanup cancels deadlines, including reentrant scheduler callbacks',async()=>{
+  const clock=new VirtualEffects(),registry=new ResourceRegistry({cleanupTimeoutMs:3,scheduleCleanupTimeout:clock.scheduleDeadline});
+  await registry.register(owned('r','s',{},()=>{}));await registry.release('r');
+  assert.equal(clock.timers.size,0);clock.advanceTo(30);assert.equal(registry.diagnostics.timedOut,0);
+  let callbacks=0,cancellations=0;
+  const immediate=new ResourceRegistry({scheduleCleanupTimeout(work){work();return()=>{cancellations++;};}});
+  await immediate.register(owned('r','s',{},()=>{callbacks++;}));
+  await assert.rejects(immediate.release('r'),{name:'CleanupTimeoutError'});await settle();
+  assert.equal(callbacks,1);assert.equal(cancellations,1);assert.equal(immediate.diagnostics.lateReleased,1);
+});
+
+test('a broken cleanup scheduler cannot skip physical cleanup or strand later releases',async()=>{
+  const calls=[],registry=new ResourceRegistry({scheduleCleanupTimeout(){throw Error('secret scheduler failure');}});
+  await registry.register(owned('one','s',{},()=>{calls.push('one');}));
+  await registry.register(owned('two','s',{},()=>{calls.push('two');}));
+  await assert.rejects(registry.dispose(),AggregateError);await settle();
+  assert.deepEqual(calls,['two','one']);assert.equal(registry.diagnostics.lateReleased,2);
+  assert.equal(registry.diagnostics.detached,0);assert.equal(registry.diagnostics.timedOut,2);
+  assert.equal(JSON.stringify(registry.diagnostics).includes('secret'),false);
+});
+
+test('cleanup timeout limits are finite and bounded',()=>{
+  for(const cleanupTimeoutMs of [0,-1,Infinity,NaN,60001])assert.throws(()=>new ResourceRegistry({cleanupTimeoutMs}),RangeError);
 });

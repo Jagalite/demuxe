@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PlayerError } from './errors.js';
+import { createPreparation, admitPreparation, preparationEngine, stepPreparation, completePreparation, retirePreparation, preparationProgress, preparationAsset } from './machine/engine-preparation.js';
 export function preparationComponents(value) {
     if (value === 'all')
         return ['inspector', 'hybrid', 'software'];
@@ -15,10 +16,10 @@ export class EnginePreparation {
     remuxRuntime;
     providerAssets;
     controller = new AbortController();
+    state = createPreparation();
     pending = new Map();
     modules = new Map();
     font;
-    phases = new Map();
     constructor(base, software = 'engine-software-full', changed = () => { }, remuxRuntime = 'pthread', providerAssets) {
         this.base = base;
         this.software = software;
@@ -26,64 +27,80 @@ export class EnginePreparation {
         this.remuxRuntime = remuxRuntime;
         this.providerAssets = providerAssets;
     }
-    get inspectorEngine() { return 'engine-remux' + (this.remuxRuntime === 'pthread' ? '' : '-' + this.remuxRuntime); }
-    get cooperativePlayback() { return this.remuxRuntime !== 'pthread' && (!this.providerAssets || this.providerAssets.has?.(`web/engine-mpv-playback-${this.remuxRuntime}/player.wasm`) === true); }
-    get softwareEngine() { return this.cooperativePlayback ? 'engine-mpv-playback-' + this.remuxRuntime : this.software; }
-    get progress() { return [...this.phases].map(([name, status]) => ({ name, status })); }
-    phase(name, status) { if (this.controller.signal.aborted)
-        return; this.phases.set(name, status); this.changed(); }
+    environment() {
+        return { software: this.software, runtime: this.remuxRuntime, isolated: !!globalThis.crossOriginIsolated, providerAssets: !!this.providerAssets,
+            privatePlayback: this.remuxRuntime !== 'pthread' && this.providerAssets?.has?.(`web/engine-mpv-playback-${this.remuxRuntime}/player.wasm`) === true };
+    }
+    get progress() { return preparationProgress(this.state); }
+    phase(name, phase) {
+        const step = stepPreparation(this.state, name, { kind: 'phase', phase });
+        this.state = step.state;
+        if (step.effect === 'notify')
+            this.changed();
+    }
     module(name) { return this.modules.get(name); }
     fontCopy() { return this.font?.slice(0); }
     async readyModule(name) {
         await this.pending.get(name === 'engine-remux' ? 'inspector' : name === 'engine-hybrid' ? 'hybrid' : 'software');
-        return this.module(name === 'engine-remux' ? this.inspectorEngine : name === 'engine-hybrid' && this.cooperativePlayback ? this.softwareEngine : name === 'engine-software-full' || name === 'engine-software-yuv' ? this.softwareEngine : name);
+        return this.module(preparationEngine(name, this.environment()));
     }
     async readyEngine(name) {
         const [module] = await Promise.all([this.readyModule(name), this.pending.get('font')]);
         return { module, font: this.fontCopy() };
     }
     async warm(value) {
-        const names = preparationComponents(value), start = performance.now();
-        if (names.some(name => name === 'hybrid' || name === 'software'))
-            names.push('font');
-        for (const name of names)
-            if (!this.phases.has(name))
-                this.phases.set(name, 'queued');
-        const assets = await Promise.all(names.map(name => {
-            let pending = this.pending.get(name);
-            if (!pending) {
-                pending = this.load(name);
-                this.pending.set(name, pending);
-            }
-            return pending;
-        }));
+        const components = preparationComponents(value), start = performance.now();
+        const admission = admitPreparation(this.state, components, this.environment(), start);
+        this.state = admission.state;
+        if (admission.aborted)
+            return { milliseconds: performance.now() - start, assets: admission.aborted.map(asset => ({ ...asset })) };
+        const jobs = admission.start.map(name => {
+            let resolve, reject;
+            const pending = new Promise((yes, no) => { resolve = yes; reject = no; });
+            this.pending.set(name, pending);
+            return { name, resolve, reject };
+        });
+        // All shared completions exist before loading publishes a synchronous update.
+        const waiting = admission.names.map(name => this.pending.get(name));
+        for (const job of jobs)
+            void this.load(job.name).then(job.resolve, job.reject);
+        const assets = await Promise.all(waiting);
         return { milliseconds: performance.now() - start, assets };
     }
     async load(name) {
-        const start = performance.now(), controller = new AbortController(), parent = this.controller.signal;
+        const job = this.state.jobs.find(job => job.name === name), controller = new AbortController(), parent = this.controller.signal;
         const abort = () => controller.abort();
         parent.addEventListener('abort', abort, { once: true });
         if (parent.aborted)
             abort();
-        const timer = setTimeout(abort, 15000);
-        let bytes = 0;
+        let timer;
+        const expire = () => {
+            const step = stepPreparation(this.state, name, { kind: 'deadline', now: performance.now() });
+            this.state = step.state;
+            if (step.effect === 'abort')
+                abort();
+            else if (!controller.signal.aborted)
+                timer = setTimeout(expire, Math.max(0, job.deadline - performance.now()));
+        };
+        timer = setTimeout(expire, Math.max(0, job.deadline - performance.now()));
+        let error, module, data;
         try {
-            if (!globalThis.crossOriginIsolated && !(name === 'inspector' ? this.remuxRuntime !== 'pthread' : this.cooperativePlayback))
+            if (this.state.retired)
+                throw new DOMException('Preparation destroyed', 'AbortError');
+            if (!job.isolated)
                 throw Error('Wasm preparation requires cross-origin isolation');
             this.phase(name, 'loading');
-            const engine = name === 'inspector' ? this.inspectorEngine : name === 'hybrid' && !this.cooperativePlayback ? 'engine-hybrid' : this.softwareEngine;
-            const path = name === 'font' ? 'fixtures/DejaVuSans.ttf' : `web/${engine}/${name === 'inspector' ? 'remux' : 'player'}.wasm`;
-            let data;
             if (this.providerAssets) {
-                data = new Uint8Array(await this.providerAssets.bytes(path));
-                bytes = data.byteLength;
+                data = new Uint8Array(await this.providerAssets.bytes(job.path));
+                this.state = stepPreparation(this.state, name, { kind: 'bytes', bytes: data.byteLength }).state;
             }
             else {
-                const response = await fetch(new URL(path, this.base), { signal: controller.signal, priority: 'low' });
+                const response = await fetch(new URL(job.path, this.base), { signal: controller.signal, priority: 'low' });
                 if (!response.ok)
-                    throw Error(`Preparation asset unavailable: ${path} (${response.status})`);
-                const limit = (name === 'font' ? 8 : 32) * 1024 * 1024;
-                if (Number(response.headers.get('content-length')) > limit) {
+                    throw Error(`Preparation asset unavailable: ${job.path} (${response.status})`);
+                const declared = stepPreparation(this.state, name, { kind: 'bytes', bytes: Number(response.headers.get('content-length')), declared: true });
+                this.state = declared.state;
+                if (declared.effect === 'overflow') {
                     await response.body?.cancel();
                     throw Error('Preparation asset byte budget exceeded');
                 }
@@ -95,8 +112,9 @@ export class EnginePreparation {
                         const { value, done } = await reader.read();
                         if (done)
                             break;
-                        bytes += value.byteLength;
-                        if (bytes > limit) {
+                        const chunk = stepPreparation(this.state, name, { kind: 'bytes', bytes: value.byteLength });
+                        this.state = chunk.state;
+                        if (chunk.effect === 'overflow') {
                             await reader.cancel();
                             throw Error('Preparation asset byte budget exceeded');
                         }
@@ -106,34 +124,36 @@ export class EnginePreparation {
                 finally {
                     reader.releaseLock();
                 }
-                data = new Uint8Array(bytes);
+                data = new Uint8Array(this.state.jobs.find(job => job.name === name).bytes);
                 let offset = 0;
                 for (const chunk of chunks) {
                     data.set(chunk, offset);
                     offset += chunk.byteLength;
                 }
             }
-            if (name === 'font') {
-                if (!controller.signal.aborted)
-                    this.font = data.buffer;
-            }
-            else {
+            if (name !== 'font') {
                 this.phase(name, 'compiling');
-                const module = await WebAssembly.compile(data);
-                if (!controller.signal.aborted)
-                    this.modules.set(engine, module);
+                module = await WebAssembly.compile(data);
             }
-            this.phase(name, controller.signal.aborted ? 'aborted' : 'ready');
-            return { name, status: controller.signal.aborted ? 'aborted' : 'ready', bytes, milliseconds: performance.now() - start };
         }
-        catch (error) {
-            this.phase(name, controller.signal.aborted ? 'aborted' : 'failed');
-            return { name, status: controller.signal.aborted ? 'aborted' : 'failed', bytes, milliseconds: performance.now() - start, error: String(error) };
+        catch (cause) {
+            error = String(cause);
         }
         finally {
             clearTimeout(timer);
             parent.removeEventListener('abort', abort);
         }
+        const completion = completePreparation(this.state, name, performance.now(), error);
+        this.state = completion.state;
+        if (completion.publish) {
+            if (name === 'font')
+                this.font = data.buffer;
+            else
+                this.modules.set(job.engine, module);
+        }
+        if (completion.notify)
+            this.changed();
+        return { ...preparationAsset(this.state, name) };
     }
-    destroy() { this.controller.abort(); this.modules.clear(); this.font = undefined; this.pending.clear(); }
+    destroy() { this.state = retirePreparation(this.state); this.controller.abort(); this.modules.clear(); this.font = undefined; this.pending.clear(); }
 }
