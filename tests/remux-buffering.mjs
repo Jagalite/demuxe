@@ -2,10 +2,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {RemuxPlayer,windowedBrowserSupported} from '../web/native-remux-player.js';
+import {initialRemuxLifecycle} from '../web/generated/internal/machine/remux-lifecycle.js';
+
+function fixture(values){
+ const {generation=0,stopped=false,starting=false,targetReady=false,recoveryPlaying=false,...resources}=values;
+ const lifecycle=Object.freeze({...initialRemuxLifecycle(),generation,stopped,starting,targetReady,playing:recoveryPlaying,active:!stopped});
+ return Object.assign(Object.create(RemuxPlayer.prototype),{lifecycle},resources);
+}
 
 function pump(ranges,extra={}){
  const sent=[],errors=[];
- const p=Object.assign(Object.create(RemuxPlayer.prototype),{
+ const p=fixture({
   stopped:false,sb:{updating:false},busy:false,media:{readyState:'open'},
   video:{currentTime:1},timelineBias:1,target:0,targetReady:false,
   ranges:()=>ranges,raps:[],segments:[],pending:null,eof:false,
@@ -33,7 +40,7 @@ test('small MSE holes advance only a playing stalled output',()=>{
 
 test('both completed SourceBuffers release one append transaction exactly once',()=>{
  const a={updating:false},b={updating:false};let pulls=0;
- const player=Object.assign(Object.create(RemuxPlayer.prototype),{generation:4,pendingUpdates:new Set([a,b]),receipts:new Map(),sbs:[a,b],busy:true,windowed:false,pump:()=>pulls++});
+ const player=fixture({generation:4,pendingUpdates:new Set([a,b]),receipts:new Map(),sbs:[a,b],busy:true,windowed:false,pump:()=>pulls++});
  player.updateFinished(a,3);assert.equal(pulls,0);assert.equal(player.pendingUpdates.size,2);
  player.updateFinished(a,4);assert.equal(pulls,0);assert.equal(player.busy,true);
  player.updateFinished(b,4);assert.equal(pulls,1);assert.equal(player.busy,false);
@@ -55,22 +62,22 @@ test('windowed Native admission excludes the reproduced Firefox seek limitation'
 
 test('seek preroll never expands the accepted source coverage across skipped media',()=>{
  const buffered={length:1,start:()=>1,end:()=>27};
- const player=Object.assign(Object.create(RemuxPlayer.prototype),{windowed:true,video:{buffered},timelineBias:1,presentationFloor:23.5});
+ const player=fixture({windowed:true,video:{buffered},timelineBias:1,presentationFloor:23.5});
  assert.deepEqual(player.ranges(),[[23.5,26]]);
 });
 
 test('an internal window end is not source EOF even after final work was generated',()=>{
- const p=Object.assign(Object.create(RemuxPlayer.prototype),{windowed:true,eof:true,pending:null,busy:false,duration:30,timelineBias:1,video:{ended:true,currentTime:29}});
+ const p=fixture({windowed:true,eof:true,pending:null,busy:false,duration:30,timelineBias:1,video:{ended:true,currentTime:29}});
  assert.equal(p.playbackEnded,false);p.video.currentTime=31;assert.equal(p.playbackEnded,true);p.pending=[new ArrayBuffer(1)];assert.equal(p.playbackEnded,false);
 });
 
 test('a seek within the final 20 milliseconds accepts real remaining coverage',()=>{
- const p=Object.assign(Object.create(RemuxPlayer.prototype),{windowed:true,target:29.995,duration:30,ranges:()=>[[29.9,30]]});
+ const p=fixture({windowed:true,target:29.995,duration:30,ranges:()=>[[29.9,30]]});
  assert.equal(p.hasStartupCoverage(),true);p.target=30;assert.equal(p.hasStartupCoverage(),false);
 });
 test('window recovery preserves play intent when the browser paused at an internal end',async()=>{
  for(const intent of [true,false]){
-  let plays=0;const p=Object.assign(Object.create(RemuxPlayer.prototype),{windowed:true,recoveryPlaying:intent,generation:1,stats:{errors:[],recoveries:[]},video:{currentTime:5,paused:true,play:async()=>{plays++;}},timelineBias:1,stopWorkers:()=>{},restart:async()=>{}});
+  let plays=0;const p=fixture({windowed:true,recoveryPlaying:intent,generation:1,stats:{errors:[],recoveries:[]},video:{currentTime:5,paused:true,play:async()=>{plays++;}},timelineBias:1,stopWorkers:()=>{},start:async()=>{}});
   p.fail('Remux mux worker failed');await new Promise(r=>setTimeout(r,0));assert.equal(p.recoveryPlaying,intent);assert.equal(plays,intent?1:0);
  }
 });
@@ -89,19 +96,19 @@ test('remux history eviction stays before the retained GOP',()=>{
 
 test('remux starvation observes stopped playback near an outstanding producer, not downloading',()=>{
  let changes=0;
- const p=Object.assign(Object.create(RemuxPlayer.prototype),{generation:1,targetReady:true,timelineBias:1,pulling:true,video:{currentTime:5,paused:false,playbackRate:2},ranges:()=>[[0,4.6]],onBufferingChange:()=>changes++});
+ const p=fixture({generation:1,targetReady:true,timelineBias:1,pulling:true,video:{currentTime:5,paused:false,playbackRate:2},ranges:()=>[[0,4.6]],onBufferingChange:()=>changes++});
  p.observeStarvation(0);p.observeStarvation(749);assert.equal(!!p.waitingForMedia,false);
  p.observeStarvation(750);assert.equal(p.waitingForMedia,true);
  p.video.currentTime=5.1;p.observeStarvation(800);assert.equal(p.waitingForMedia,false);assert.equal(changes,2);
  for(const property of ['paused','seeking']){p.video[property]=true;p.observeStarvation(2000);assert.equal(p.waitingForMedia,false);p.video[property]=false;}
  p.observeStarvation(2100);p.pulling=false;p.observeStarvation(3000);assert.equal(p.waitingForMedia,false);
  p.pulling=true;p.ranges=()=>[[0,20]];p.observeStarvation(4000);assert.equal(p.waitingForMedia,false);
- p.ranges=()=>[[0,4.6]];p.generation++;p.observeStarvation(5000);assert.equal(p.waitingForMedia,false);
+ p.ranges=()=>[[0,4.6]];p.lifecycle=Object.freeze({...p.lifecycle,generation:p.generation+1});p.observeStarvation(5000);assert.equal(p.waitingForMedia,false);
  p.video.currentTime=5.2;p.observeStarvation(6000);assert.equal(p.waitingForMedia,false);
 });
 
 test('runtime policy changes update remux scheduling without restarting its generation',()=>{
- const p=Object.assign(Object.create(RemuxPlayer.prototype),{generation:9,video:{paused:false,playbackRate:1},buffering:{forwardSeconds:5}});
+ const p=fixture({generation:9,video:{paused:false,playbackRate:1},buffering:{forwardSeconds:5}});
  p.setBuffering({forwardSeconds:30,backwardSeconds:10,preload:'auto'});
  assert.equal(p.forwardTargetSeconds(),30);assert.equal(p.generation,9);
  p.setBuffering({forwardSeconds:30,preload:'metadata'});p.video.paused=true;assert.equal(p.forwardTargetSeconds(),1);
@@ -122,7 +129,7 @@ function pressureFixture(windowed=false){
   let start=1;
   return {updating:false,buffered:{length:1,start:()=>start,end:()=>13},remove(a,b){removals.push({lane,start:a,end:b});start=b;this.updating=true;}};
  });
- const p=Object.assign(Object.create(RemuxPlayer.prototype),{
+ const p=fixture({
   generation:1,stopped:false,windowed,recoveryPlaying:true,targetReady:true,target:0,timelineBias:1,
   video:{currentTime:11.25,paused:false,playbackRate:1,readyState:4},
   sb:buffers[0],sbs:buffers,media:{readyState:'open',endOfStream(){}},

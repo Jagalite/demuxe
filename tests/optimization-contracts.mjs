@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {featureRejection, qualifiedAudioFilter, executionPlan} from '../web/generated/internal/playback-plans.js';
 import {RemuxPlayer} from '../web/native-remux-player.js';
+import {initialRemuxLifecycle} from '../web/generated/internal/machine/remux-lifecycle.js';
 
 test('Hybrid scalar filtering is explicit and never admits unrelated effects',()=>{
  for(const af of ['volume=0','volume=0.5','lavfi=[volume=0.5]']){
@@ -17,15 +18,15 @@ test('Hybrid scalar filtering is explicit and never admits unrelated effects',()
 });
 function player(){
  const source={file:{}}, video={currentTime:3,buffered:{length:1,start:()=>1,end:()=>11}};
- return Object.assign(Object.create(RemuxPlayer.prototype),{video,source,bufferedSeeks:true,acceptedSource:source,generation:4,acceptedGeneration:4,targetReady:true,stopped:false,starting:false,failedGeneration:undefined,media:{readyState:'open'},sb:{updating:false},timelineBias:1,raps:[0,2,4,6,8],ranges:()=>[[0,10]],target:8,stats:{bufferedSeeks:0}});
+ return Object.assign(Object.create(RemuxPlayer.prototype),{video,source,bufferedSeeks:true,lifecycle:Object.freeze({...initialRemuxLifecycle(),sourceId:1,acceptedSourceId:1,generation:4,acceptedGeneration:4,targetReady:true,active:true}),media:{readyState:'open'},sb:{updating:false},timelineBias:1,raps:[0,2,4,6,8],ranges:()=>[[0,10]],target:8,stats:{bufferedSeeks:0}});
 }
 test('buffered admission requires live media coverage, retained RAP and current authority',()=>{
  const p=player();assert.equal(p.canSeekBuffered(5),true);
  p.video.buffered={length:2,start:i=>i?7:1,end:i=>i?11:4};assert.equal(p.canSeekBuffered(5),false);
  p.video.buffered={length:1,start:()=>6,end:()=>11};assert.equal(p.canSeekBuffered(5.1),false);
  p.raps=[6,8];assert.equal(p.canSeekBuffered(5.1),false);
- p.raps=[4,6,8];p.video.buffered={length:1,start:()=>1,end:()=>11};p.acceptedGeneration=3;assert.equal(p.canSeekBuffered(5),false);
- p.acceptedGeneration=4;p.source={file:{}};assert.equal(p.canSeekBuffered(5),false);
+ p.raps=[4,6,8];p.video.buffered={length:1,start:()=>1,end:()=>11};p.lifecycle=Object.freeze({...p.lifecycle,acceptedGeneration:3});assert.equal(p.canSeekBuffered(5),false);
+ p.lifecycle=Object.freeze({...p.lifecycle,acceptedGeneration:4});p.transitionLifecycle({type:'open'});p.source={file:{}};assert.equal(p.canSeekBuffered(5),false);
 });
 test('buffered seek keeps producer generation and resets the consumption target',async()=>{
  const p=player();let restarts=0;p.restart=async()=>restarts++;
@@ -38,7 +39,7 @@ test('destroy and supersession cancel outstanding MSE open before worker allocat
  class Media extends EventTarget {listeners=0;addEventListener(...args){this.listeners++;super.addEventListener(...args)}removeEventListener(...args){this.listeners--;super.removeEventListener(...args)}}
  globalThis.MediaSource=Media;globalThis.Worker=class {constructor(){allocations++}};URL.createObjectURL=()=> 'blob:test';URL.revokeObjectURL=()=>revocations++;
  t.after(()=>{globalThis.MediaSource=original.MediaSource;globalThis.Worker=original.Worker;URL.createObjectURL=original.create;URL.revokeObjectURL=original.revoke});
- const p=new RemuxPlayer({pause(){},removeAttribute(){},load(){}});
+ const p=new RemuxPlayer({pause(){},removeAttribute(){},load(){}},{mseOwner:'window',runtime:'jspi'});t.after(()=>p.destroy());
  const first=p.open({file:{}});const firstRejected=assert.rejects(first,/Superseded/);const old=p.media;
  assert.equal(old.listeners,1); // Barrier: the first open is awaiting sourceopen.
  const second=p.open({file:{}});const secondRejected=assert.rejects(second,/Superseded/);const current=p.media;

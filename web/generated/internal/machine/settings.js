@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 import { copyData } from './data.js';
+import { decideTrackSelection, decideSubtitleVisibility } from './track-selection.js';
 import { rangeRequirement } from './playback-boundary.js';
 import { featureRejection } from './playback-plans.js';
 export function initialSettings() { return Object.freeze({ pause: true, volume: 100, speed: 1, aid: 'auto', sid: 'auto', subtitles: true, vf: '', af: '', gain: 1 }); }
 export function transitionSettings(state, input) { return Object.freeze(input.type === 'settings.accept' ? { ...input.value } : { ...state, ...input.value }); }
-export function initialPreferences() { return Object.freeze({ muted: false, outputDeviceId: '', buffering: Object.freeze({ preload: 'auto', profile: 'balanced' }), toneMapping: 'off', subtitleDelay: 0, audioDelay: 0, subtitleStyle: Object.freeze({}), playbackRange: null, loopPolicy: false, qualityPolicy: null }); }
+export function initialPreferences() { return Object.freeze({ publicSelections: Object.freeze({}), muted: false, outputDeviceId: '', buffering: Object.freeze({ preload: 'auto', profile: 'balanced' }), toneMapping: 'off', subtitleDelay: 0, audioDelay: 0, subtitleStyle: Object.freeze({}), playbackRange: null, loopPolicy: false, qualityPolicy: null }); }
 export function effectiveVideoFilters(settings, preferences) {
     const tone = preferences.toneMapping === 'hdr-to-sdr' ? 'zscale=transfer=linear:npl=100,format=gbrpf32le,zscale=primaries=bt709,tonemap=tonemap=mobius:desat=0,zscale=transfer=bt709:matrix=bt709:range=limited,format=yuv420p' : '';
     return [tone ? `lavfi=[${tone}]` : '', settings.vf].filter(Boolean).join(',');
 }
 export function changePreferences(state, value) { return copyData({ ...state, ...value }); }
-export function clearSourcePreferences(state) { return Object.freeze({ ...state, playbackRange: null, loopPolicy: false, qualityPolicy: null }); }
+export function clearSourcePreferences(state) { return Object.freeze({ ...state, publicSelections: Object.freeze({}), playbackRange: null, loopPolicy: false, qualityPolicy: null }); }
 export function initialSettingsTransactions() { return Object.freeze({ serial: 0, pending: null, degraded: null }); }
 export function settingAuthority(state, id) {
     const pending = state.settingsTransactions.pending, operation = state.operations.entries.find(entry => entry.id === state.operations.active);
@@ -25,9 +26,45 @@ export function transitionSettingTransaction(state, input) {
         const operation = state.operations.entries.find(entry => entry.id === state.operations.active);
         if (state.operations.terminal || !operation || operation.cancelled || operation.epoch !== state.operations.epoch || state.settingsTransactions.pending)
             return result(state, false);
-        let settings = state.settings, preferences = state.preferences, effect, rollback, reconfigure = false, promote = false, noop = false, mode;
+        let settings = state.settings, preferences = state.preferences, effect, rollback, reconfigure = false, promote = false, noop = false, mode, selection, verifyTrack;
         const command = input.command;
+        const context = { sourceId: state.source.serial, session: state.source.acceptedSession, mode: state.source.mode, automatic: state.source.automatic, hasSource: !!input.hasSource, hasBackend: input.hasBackend };
         switch (command.kind) {
+            case 'publicTrack': {
+                selection = decideTrackSelection(settings, context, command.track, command.id, command.facts);
+                if (selection.rejection)
+                    return result(state, false, undefined, empty, selection.rejection.message, selection.rejection.reason);
+                noop = selection.action === 'none' || selection.action === 'remember';
+                if (selection.action !== 'none') {
+                    const publicSelections = { ...preferences.publicSelections };
+                    if (selection.key === null)
+                        delete publicSelections[command.track];
+                    else
+                        publicSelections[command.track] = selection.key;
+                    preferences = changePreferences(preferences, { publicSelections });
+                }
+                if (!noop)
+                    settings = Object.freeze({ ...settings, [command.track === 'audio' ? 'aid' : 'sid']: selection.value });
+                reconfigure = selection.action === 'select' || selection.action === 'replace';
+                promote = selection.action === 'direct';
+                effect = selection.action === 'select' ? { kind: 'source.reconfigure', settings } : selection.action === 'replace' ? { kind: 'source.replace', settings, mode: state.source.mode } : { kind: 'track', track: command.track, value: selection.value };
+                rollback = { kind: 'track', track: command.track, value: state.settings[command.track === 'audio' ? 'aid' : 'sid'] };
+                if (selection.action === 'direct')
+                    verifyTrack = command.track;
+                break;
+            }
+            case 'visibility': {
+                const visibility = decideSubtitleVisibility(settings, context, command.value, command.facts);
+                if (visibility.rejection)
+                    return result(state, false, undefined, empty, visibility.rejection);
+                noop = visibility.action === 'none';
+                reconfigure = visibility.action === 'select';
+                promote = visibility.promote;
+                settings = Object.freeze({ ...settings, subtitles: command.value });
+                effect = reconfigure ? { kind: 'source.reconfigure', settings } : { kind: 'subtitles', value: command.value };
+                rollback = { kind: 'subtitles', value: state.settings.subtitles };
+                break;
+            }
             case 'range':
             case 'loop': {
                 const requirement = rangeRequirement(command.kind, command.value, preferences.playbackRange, preferences.loopPolicy, command.facts);
@@ -65,6 +102,14 @@ export function transitionSettingTransaction(state, input) {
                 rollback = { kind: state.settings.pause ? 'pause' : 'play' };
                 break;
             case 'track':
+                if (command.clearPublicSelection) {
+                    const publicSelections = { ...preferences.publicSelections };
+                    delete publicSelections[command.track];
+                    preferences = changePreferences(preferences, { publicSelections });
+                    promote = true;
+                }
+                if (command.verify)
+                    verifyTrack = command.track;
                 settings = Object.freeze({ ...settings, [command.track === 'audio' ? 'aid' : 'sid']: command.value });
                 effect = command;
                 rollback = { kind: 'track', track: command.track, value: state.settings[command.track === 'audio' ? 'aid' : 'sid'] };
@@ -137,12 +182,12 @@ export function transitionSettingTransaction(state, input) {
             effects.push(Object.freeze({ kind: 'seek.verify', value: effect.value }));
             restore.push(Object.freeze({ kind: 'seek.verify', value: command.facts.time }));
         }
-        if (input.hasBackend && command.kind === 'track' && command.verify) {
-            effects.push(Object.freeze({ kind: 'track.verify', track: command.track, value: command.value, settings }));
-            restore.push(Object.freeze({ kind: 'track.verify', track: command.track, value: state.settings[command.track === 'audio' ? 'aid' : 'sid'], settings: state.settings }));
+        if (input.hasBackend && verifyTrack) {
+            effects.push(Object.freeze({ kind: 'track.verify', track: verifyTrack, value: settings[verifyTrack === 'audio' ? 'aid' : 'sid'], settings }));
+            restore.push(Object.freeze({ kind: 'track.verify', track: verifyTrack, value: state.settings[verifyTrack === 'audio' ? 'aid' : 'sid'], settings: state.settings }));
         }
-        const settingKey = command.kind === 'volume' ? 'volume' : command.kind === 'rate' ? 'speed' : command.kind === 'gain' ? 'gain' : command.kind === 'pause' ? 'pause' : command.kind === 'subtitles' ? 'subtitles' : command.kind === 'track' ? (command.track === 'audio' ? 'aid' : 'sid') : command.kind === 'filters' ? command.key : undefined;
-        const preferenceKey = command.kind === 'mute' ? 'muted' : command.kind === 'buffering' ? 'buffering' : command.kind === 'output' ? 'outputDeviceId' : command.kind === 'quality' ? 'qualityPolicy' : command.kind === 'range' ? 'playbackRange' : command.kind === 'loop' ? 'loopPolicy' : command.kind === 'subtitleDelay' || command.kind === 'audioDelay' || command.kind === 'subtitleStyle' || command.kind === 'toneMapping' ? command.kind : undefined;
+        const settingKey = command.kind === 'volume' ? 'volume' : command.kind === 'rate' ? 'speed' : command.kind === 'gain' ? 'gain' : command.kind === 'pause' ? 'pause' : command.kind === 'subtitles' || command.kind === 'visibility' ? 'subtitles' : command.kind === 'track' || command.kind === 'publicTrack' && !noop ? (command.track === 'audio' ? 'aid' : 'sid') : command.kind === 'filters' ? command.key : undefined;
+        const preferenceKey = command.kind === 'publicTrack' && selection?.action !== 'none' || command.kind === 'track' && command.clearPublicSelection ? 'publicSelections' : command.kind === 'mute' ? 'muted' : command.kind === 'buffering' ? 'buffering' : command.kind === 'output' ? 'outputDeviceId' : command.kind === 'quality' ? 'qualityPolicy' : command.kind === 'range' ? 'playbackRange' : command.kind === 'loop' ? 'loopPolicy' : command.kind === 'subtitleDelay' || command.kind === 'audioDelay' || command.kind === 'subtitleStyle' || command.kind === 'toneMapping' ? command.kind : undefined;
         const settingsPatch = Object.freeze(settingKey ? { [settingKey]: settings[settingKey] } : {}), preferencesPatch = copyData(preferenceKey ? { [preferenceKey]: preferences[preferenceKey] } : {});
         const id = state.settingsTransactions.serial + 1, transaction = Object.freeze({ id, operation: operation.id, epoch: operation.epoch, session: state.source.acceptedSession, phase: 'applying', reconfigure, promote, mode, settings, preferences, settingsPatch, preferencesPatch, rollback: Object.freeze(restore) });
         return result({ ...state, settingsTransactions: Object.freeze({ ...state.settingsTransactions, serial: id, pending: transaction }) }, true, id, Object.freeze(effects));

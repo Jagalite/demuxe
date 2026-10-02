@@ -109,6 +109,14 @@ Direct filter/tone changes now attempt to restore the exact previous filter pipe
 
 Automatic range/loop work owns a session, operation and generation through pause, seek, verification and optional play. Each completion must retain that authority before issuing the next effect. Its pending lease survives final queue publication; stale clock/EOF observations in that publication cannot enqueue a duplicate loop. A superseding source, close or destroy retires the lease atomically. Physical cleanup remains in the adapter.
 
+## Track, PCM and remux lifecycle cutover
+
+Stable public selections now belong to the composed Player preferences. Routed selection keeps desired identity private until source acceptance, where it commits together with the actual backend track IDs. An unchanged selection remains a no-op; remembering an already selected native track retains the raw backend setting. Subtitle visibility retains host-policy validation, presentation locks and promotion timing. A pre-acceptance failure discards desired identity; old-backend cleanup failure after acceptance cannot restore it.
+
+The PCM reducer owns reset epochs, reset acknowledgments, posted/consumed bounds and stop completion identity. Native ring reads, copies, message ports and timers remain in the adapter. Playback PCM and standalone audio retain their distinct startup/running order. Stop completion is installed before reentrant callbacks; duplicate acknowledgments and stale/early deadlines cannot settle twice.
+
+The remux lifecycle reducer owns explicit source/restart identity, worker generation, startup target, intent, and admission for one packaging retry and one recovery per explicit open. Worker callbacks and recovery continuations carry those identities. Retirement detaches physical handles before callbacks, so old cleanup cannot destroy replacement resources. Frame-prime cleanup cancels its callback once and continues even if listener removal throws. MSE append and buffered-output readiness remain separate pending ownership work.
+
 ## Gesture-sensitive effects
 
 Source: [Player.play](../src/unified-player.ts#L1461), [presentation requests](../src/presentation.ts#L31), [output picker](../src/player/advanced-settings.ts#L146).

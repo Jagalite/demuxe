@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type {MediaTrack,TrackMatch,TrackPolicy,TrackTypePolicy} from '../types.js';
+import {matchesPolicyTrack,policyTrackAllowed,preferredTrackIndex,trackSelectionRejection,type PolicyTrack} from './machine/track-policy.js';
 import {PlayerError} from './errors.js';
 import {freeze} from './state.js';
 const invalid=(message:string):never=>{throw new PlayerError('INVALID_ARGUMENT',`Track policy: ${message}`);};
@@ -33,25 +34,23 @@ const names=new Intl.DisplayNames(['en'],{type:'language'});
 function language(value:string):string {
   try{return (names.of(new Intl.Locale(value.replaceAll('_','-')).language)??value).toLowerCase();}catch{return value.toLowerCase();}
 }
-export function matchesTrack(track:MediaTrack,match:TrackMatch):boolean {
-  return (match.language===undefined||!!track.language&&language(track.language)===language(match.language))&&
-    (match.title===undefined||track.title?.toLowerCase()===match.title.trim().toLowerCase())&&
-    (match.codec===undefined||track.codec?.toLowerCase()===match.codec.trim().toLowerCase())&&
-    (match.streamIndex===undefined||track.streamIndex===match.streamIndex);
+/** Host language canonicalization is observation capture; matching and policy
+ * choices are deterministic over the resulting detached scalar records. */
+export function capturePolicyTrack(track:MediaTrack):PolicyTrack{return {id:track.id,language:track.language?language(track.language):null,title:track.title??null,codec:track.codec??null,streamIndex:track.streamIndex??null,default:!!track.default,selected:!!track.selected};}
+function captureMatch(match:TrackMatch):TrackMatch{return {...match,...(match.language!==undefined?{language:language(match.language)}:{})};}
+export function captureTrackPolicy(policy:TrackTypePolicy|undefined):TrackTypePolicy|undefined{
+  if(!policy)return;
+  const preference=policy.default;
+  return {...policy,...(policy.allowed?{allowed:policy.allowed.map(captureMatch)}:{}),...(preference&&preference!=='file'&&preference!=='off'?{default:Array.isArray(preference)?preference.map(captureMatch):captureMatch(preference as TrackMatch)}:{})};
 }
-export function trackAllowed(track:MediaTrack,policy?:TrackTypePolicy):boolean {return policy?.allowed===undefined||policy.allowed.some(m=>matchesTrack(track,m));}
+export function matchesTrack(track:MediaTrack,match:TrackMatch):boolean{return matchesPolicyTrack(capturePolicyTrack(track),captureMatch(match));}
+export function trackAllowed(track:MediaTrack,policy?:TrackTypePolicy):boolean{return policyTrackAllowed(capturePolicyTrack(track),captureTrackPolicy(policy));}
 export function defaultTrack(list:readonly MediaTrack[],policy?:TrackTypePolicy):MediaTrack|null {
-  if(policy?.default==='off')return null;
-  const allowed=list.filter(t=>trackAllowed(t,policy));
-  const d=policy?.default;
-  if(d&&d!=='file')for(const match of Array.isArray(d)?d:[d]){const found=allowed.find(t=>matchesTrack(t,match as TrackMatch));if(found)return found;}
-  const found=allowed.find(t=>t.default)??allowed.find(t=>t.selected)??allowed[0];
-  if(!found&&policy?.allowOff===false)throw new PlayerError('UNSUPPORTED_FEATURE','Track policy requires a matching track, but none is available');
-  return found??null;
+  const decision=preferredTrackIndex(list.map(capturePolicyTrack),captureTrackPolicy(policy));
+  if(decision.rejection)throw new PlayerError('UNSUPPORTED_FEATURE',decision.rejection);
+  return list[decision.index]??null;
 }
 export function assertTrackSelection(policy:TrackTypePolicy|undefined,id:string|null,track?:MediaTrack):void {
-  if(policy?.locked)throw new PlayerError('UNSUPPORTED_FEATURE','Track selection is locked by the host');
-  if(id===null&&policy?.allowOff===false)throw new PlayerError('UNSUPPORTED_FEATURE','Turning this track off is not allowed');
-  if(id==='auto'&&policy?.allowAuto===false)throw new PlayerError('UNSUPPORTED_FEATURE','Automatic track selection is not allowed');
-  if(track&&!trackAllowed(track,policy))throw new PlayerError('UNSUPPORTED_FEATURE','This track is not allowed by the host');
+  const rejection=trackSelectionRejection(captureTrackPolicy(policy),id,track?capturePolicyTrack(track):undefined);
+  if(rejection)throw new PlayerError('UNSUPPORTED_FEATURE',rejection);
 }

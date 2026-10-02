@@ -47,7 +47,7 @@ for(const channels of [6,8])test(`Native ring transport copies ${channels} chann
  const memory=new WebAssembly.Memory({initial:5}),messages=[];
  const port={start(){},postMessage:value=>messages.push(value)},transport=new PrivatePCMTransport({raw:{memory}},0,port,0,8192,channels);clearInterval(transport.timer);
  const header=transport.header();header[3]=2;header[2]=1;transport.pump();transport.feedback({type:'resetAck',epoch:2});
- assert.equal(messages[0].channels,channels);transport.posted=header[1]=8190;header[0]=8194;
+ assert.equal(messages[0].channels,channels);transport.machine=Object.freeze({...transport.machine,posted:8190});header[1]=8190;header[0]=8194;
  const ring=new Float32Array(memory.buffer,32,8192*channels),expected=new Float32Array(4*channels);
  for(let frame=0;frame<4;frame++)for(let channel=0;channel<channels;channel++){const value=(channel+1)/16+frame/128;ring[((8190+frame)%8192)*channels+channel]=value;expected[frame*channels+channel]=value;}
  transport.pump();const pcm=messages.find(message=>message.type==='pcm');ring.fill(0);assert.deepEqual(new Float32Array(pcm.buffer),expected);

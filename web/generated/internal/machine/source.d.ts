@@ -40,6 +40,7 @@ export type SourceInput = Readonly<{
     operationEpoch: number;
     settings: Readonly<PlaybackSettings>;
     planMatches: boolean;
+    publicSelections?: Readonly<Partial<Record<'audio' | 'sub', string>>>;
 }> | Readonly<{
     type: 'source.clear';
 }>;

@@ -1,68 +1,73 @@
 // SPDX-License-Identifier: MIT
 import {privateMpv,privateMpvSource} from '../private-mpv.js';
+import {createPrivatePCM,beginPrivatePCMPump,finishPrivatePCMPump,nextPrivatePCMStep,privatePCMFeedback,failPrivatePCM,beginPrivatePCMStop,settlePrivatePCMStop} from '../generated/internal/machine/private-pcm.js';
 let source;const loading=new AbortController(),refreshes=new Map();
-let engine,port,ptr,epoch=-1,posted=0,ack=false,timer,error,contextRunning=false,userPaused=true,lastRunning;
-let maxOutstanding=0,feedbackCount=0,staleFeedback=0,pumping=false;
+let engine,port,ptr,timer,contextRunning=false,userPaused=true;
+let transport=createPrivatePCM('audio');
 let initialized=false,closing=false,closed=false,configuredRate,stopPromise,stopAck;
 function stopTransport(){
  if(stopPromise)return stopPromise;
  if(!port)return Promise.resolve();
- stopPromise=new Promise((resolve,reject)=>{
-  const timeout=setTimeout(()=>{stopAck=null;reject(Error('Worklet stop deadline'));},1000);
-  stopAck=()=>{clearTimeout(timeout);stopAck=null;resolve();};
-  port.postMessage({type:'stop',id:'worker-close'});
- }).finally(()=>port.close());
+ const admission=beginPrivatePCMStop(transport,performance.now());transport=admission.state;
+ let resolve,reject,timeout;
+ const completion=new Promise((yes,no)=>{resolve=yes;reject=no;});
+ // Publish before timers, port callbacks or close observers can reenter.
+ stopPromise=completion.finally(()=>port.close());
+ const settle=(input,error)=>{
+  const result=settlePrivatePCMStop(transport,input);transport=result.state;if(result.outcome==='ignore')return false;
+  clearTimeout(timeout);stopAck=undefined;result.outcome==='resolve'?resolve():reject(error);return true;
+ };
+ const expire=()=>{if(transport.phase!=='stopping')return;try{if(!settle({kind:'deadline',now:performance.now()},Error('Worklet stop deadline')))timeout=setTimeout(expire,Math.max(0,admission.deadline-performance.now()));}catch(error){settle({kind:'send-error'},error);}};
+ stopAck=id=>settle({kind:'ack',id});
+ try{timeout=setTimeout(expire,Math.max(0,admission.deadline-performance.now()));port.postMessage({type:'stop',id:admission.id});}
+ catch(error){settle({kind:'send-error'},error);}
  return stopPromise;
 }
 // Firefox stacks omit the message; preserve it for public error classification.
 const describeError=cause=>String(cause)+(cause?.stack?'\n'+cause.stack:'');
 function fail(cause){
- if(error)return;
- loading.abort();source?.close();
- error=describeError(cause);clearInterval(timer);userPaused=true;
+ const failure=failPrivatePCM(transport,describeError(cause));transport=failure.state;if(!failure.accepted)return;
+ // Retire logical publication before revoking reads: abort listeners may reenter.
+ loading.abort();source?.close();clearInterval(timer);userPaused=true;
  engine?.source.cancelSource();engine?.dispose();
  void stopTransport().catch(()=>{});
- postMessage({type:'transportError',error,cleanup:{scheduler:engine?.scheduler.snapshot(),source:engine?.source.snapshot()}});
+ postMessage({type:'transportError',error:transport.error,cleanup:{scheduler:engine?.scheduler.snapshot(),source:engine?.source.snapshot()}});
 }
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const header=()=>new Uint32Array(engine.raw.memory.buffer,ptr,8);
 function pump(){
- if(!engine||!port||error||closing||pumping)return;pumping=true;
+ if(!engine||!port||closing)return;
+ const admission=beginPrivatePCMPump(transport);transport=admission.state;if(!admission.accepted)return;
  try{
-  const h=header(),current=h[3];
-  if(current&1)return;
-  if(current!==epoch){epoch=current;posted=0;ack=false;lastRunning=undefined;port.postMessage({type:'reset',epoch});return;}
-  if(!ack)return;
-  const running=!!h[2]&&contextRunning&&!userPaused;
-  if(lastRunning!==running){lastRunning=running;port.postMessage({type:'state',epoch,running});}
-  if(h[0]<posted||posted<h[1]||h[0]-h[1]>8192)throw Error('Invalid producer/consumer counters');
-  while(posted<h[0]){
-   const n=Math.min(1024,h[0]-posted),pcm=new Float32Array(n*2),ring=new Float32Array(engine.raw.memory.buffer,ptr+32,8192*8);
-   for(let i=0;i<n;i++){const at=((posted+i)%8192)*2;pcm[i*2]=ring[at];pcm[i*2+1]=ring[at+1];}
-   port.postMessage({type:'pcm',epoch,start:posted,buffer:pcm.buffer},[pcm.buffer]);posted+=n;
-   maxOutstanding=Math.max(maxOutstanding,posted-h[1]);
+  for(;;){
+   const h=header(),step=nextPrivatePCMStep(transport,{produced:h[0],consumed:h[1],epoch:h[3],nativeRunning:!!h[2],contextRunning,userPaused});transport=step.state;
+   const effect=step.effect;if(effect.kind==='idle')return;if(effect.kind==='error')throw Error(effect.message);
+   if(effect.kind==='reset'){port.postMessage({type:'reset',epoch:effect.epoch});return;}
+   if(effect.kind==='state'){port.postMessage({type:'state',epoch:effect.epoch,running:effect.running});continue;}
+   const pcm=new Float32Array(effect.frames*2),ring=new Float32Array(engine.raw.memory.buffer,ptr+32,8192*8);
+   for(let i=0;i<effect.frames;i++){const at=((effect.start+i)%8192)*2;pcm[i*2]=ring[at];pcm[i*2+1]=ring[at+1];}
+   port.postMessage({type:'pcm',epoch:effect.epoch,start:effect.start,buffer:pcm.buffer},[pcm.buffer]);
   }
- }catch(e){fail(e);}finally{pumping=false;}
+ }catch(error){fail(error);}finally{transport=finishPrivatePCMPump(transport);}
 }
-function feedback(d){
- if(d.type==='stopped'&&d.id==='worker-close'){stopAck?.();return;}
- if(error||closed||!engine)return;
- if(d.type==='error'){fail(d.error);return;}
- const h=header();if(d.epoch!==epoch||d.epoch!==h[3]){staleFeedback++;return;}
- if(d.type==='resetAck'){if(ack)return;ack=true;h[7]=epoch;h[1]=0;pump();}
- if(d.type==='consumed'){
-  if(!Number.isInteger(d.frames)||d.frames<h[1]||d.frames>posted){fail('Invalid consumption feedback');return;}
-  h[7]=epoch;h[1]=d.frames;feedbackCount++;pump();
- }
+function feedback(data){
+ if(data.type==='stopped'&&data.id==='worker-close'){stopAck?.(data.id);return;}
+ if(transport.error!==null||closed||!engine)return;
+ if(data.type==='error'){fail(data.error);return;}
+ const h=header(),input=data.type==='resetAck'?{kind:'resetAck',epoch:data.epoch}:data.type==='consumed'?{kind:'consumed',epoch:data.epoch,frames:data.frames}:{kind:'other',epoch:data.epoch};
+ const decision=privatePCMFeedback(transport,input,h[3],h[1]);transport=decision.state;
+ if(decision.error){fail(decision.error);return;}
+ if(decision.write){h[7]=decision.write.epoch;h[1]=decision.write.consumed;}
+ if(decision.pump)pump();
 }
-async function invoke(name,...args){if(error)throw Error(error);return engine.call('private_audio_'+name,...args);}
+async function invoke(name,...args){if(transport.error!==null)throw Error(transport.error);return engine.call('private_audio_'+name,...args);}
 async function checked(name,...args){const r=await invoke(name,...args);if(r<0){const failures=engine.source.drainFailures();throw Error(failures.length?'Source transport: '+failures.map(f=>String(f.cause??f.kind)).join('; '):name+' returned '+r);}return r;}
 let chain=Promise.resolve();
 onmessage=({data:d})=>{
  if(d.op==='refreshed'){const p=refreshes.get(d.refreshId);if(p){refreshes.delete(d.refreshId);clearTimeout(p.timer);d.error?p.reject(Error('Authorization refresh failed')):p.resolve(d.update);}return;}
  // A pending source read may hold the current RPC. Close must revoke it now,
  // before its own serialized native teardown can run.
- if(d.op==='close'&&!closed){loading.abort();source?.close();for(const p of refreshes.values()){clearTimeout(p.timer);p.reject(Error('Source closed'));}refreshes.clear();closing=true;clearInterval(timer);engine?.source.cancelSource();void stopTransport().catch(()=>{});}
+ if(d.op==='close'&&!closed){closing=true;loading.abort();source?.close();for(const p of refreshes.values()){clearTimeout(p.timer);p.reject(Error('Source closed'));}refreshes.clear();clearInterval(timer);engine?.source.cancelSource();void stopTransport().catch(()=>{});}
  chain=chain.then(async()=>{
  if(d.op==='init'&&initialized){d.port?.close();postMessage({id:d.id,error:'Audio host already initialized'});return;}
  if(closed||(closing&&d.op!=='close')){d.port?.close();postMessage({id:d.id,error:'Audio host closed'});return;}
@@ -79,8 +84,8 @@ onmessage=({data:d})=>{
   }else if(d.op==='load'){
    if(d.replace){
     userPaused=true;pump();await invoke('close');pump();
-    for(let i=0;i<200&&!ack;i++)await delay(5);
-    if(!ack)throw Error('Replacement flush deadline');
+    for(let i=0;i<200&&!transport.ack;i++)await delay(5);
+    if(!transport.ack)throw Error('Replacement flush deadline');
     if(await engine.call('demuxe_source_live'))throw Error('Old source handle retained');
     await checked('create',configuredRate);
    }
@@ -105,11 +110,11 @@ onmessage=({data:d})=>{
   }
   else if(d.op==='latency'){header()[5]=Math.max(0,Math.min(1000000,Math.round(d.value)));result=true;}
   else if(d.op==='status'){
-   result={runtime:engine.facts(),time:await invoke('time'),eof:await invoke('eof'),chains:await invoke('chains'),header:Array.from(header()),epoch,posted,ack,userPaused,maxOutstanding,feedbackCount,staleFeedback,error};
+   result={runtime:engine.facts(),time:await invoke('time'),eof:await invoke('eof'),chains:await invoke('chains'),header:Array.from(header()),epoch:transport.epoch,posted:transport.posted,ack:transport.ack,userPaused,maxOutstanding:transport.maxOutstanding,feedbackCount:transport.feedbackCount,staleFeedback:transport.staleFeedback,error:transport.error??undefined};
   }else if(d.op==='close'){
    clearInterval(timer);await stopTransport();await invoke('close');
    const live=await engine.call('demuxe_source_live');
-   result={live,scheduler:engine.scheduler.snapshot(),source:engine.source.snapshot(),maxOutstanding,feedbackCount,error};
+   result={live,scheduler:engine.scheduler.snapshot(),source:engine.source.snapshot(),maxOutstanding:transport.maxOutstanding,feedbackCount:transport.feedbackCount,error:transport.error??undefined};
    closed=true;engine.dispose();engine=null;
   }else throw Error('Unknown audio operation');
   postMessage({id:d.id,result});

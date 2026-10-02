@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { matchesPolicyTrack, policyTrackAllowed, preferredTrackIndex, trackSelectionRejection } from './machine/track-policy.js';
 import { PlayerError } from './errors.js';
 import { freeze } from './state.js';
 const invalid = (message) => { throw new PlayerError('INVALID_ARGUMENT', `Track policy: ${message}`); };
@@ -63,36 +64,26 @@ function language(value) {
         return value.toLowerCase();
     }
 }
-export function matchesTrack(track, match) {
-    return (match.language === undefined || !!track.language && language(track.language) === language(match.language)) &&
-        (match.title === undefined || track.title?.toLowerCase() === match.title.trim().toLowerCase()) &&
-        (match.codec === undefined || track.codec?.toLowerCase() === match.codec.trim().toLowerCase()) &&
-        (match.streamIndex === undefined || track.streamIndex === match.streamIndex);
+/** Host language canonicalization is observation capture; matching and policy
+ * choices are deterministic over the resulting detached scalar records. */
+export function capturePolicyTrack(track) { return { id: track.id, language: track.language ? language(track.language) : null, title: track.title ?? null, codec: track.codec ?? null, streamIndex: track.streamIndex ?? null, default: !!track.default, selected: !!track.selected }; }
+function captureMatch(match) { return { ...match, ...(match.language !== undefined ? { language: language(match.language) } : {}) }; }
+export function captureTrackPolicy(policy) {
+    if (!policy)
+        return;
+    const preference = policy.default;
+    return { ...policy, ...(policy.allowed ? { allowed: policy.allowed.map(captureMatch) } : {}), ...(preference && preference !== 'file' && preference !== 'off' ? { default: Array.isArray(preference) ? preference.map(captureMatch) : captureMatch(preference) } : {}) };
 }
-export function trackAllowed(track, policy) { return policy?.allowed === undefined || policy.allowed.some(m => matchesTrack(track, m)); }
+export function matchesTrack(track, match) { return matchesPolicyTrack(capturePolicyTrack(track), captureMatch(match)); }
+export function trackAllowed(track, policy) { return policyTrackAllowed(capturePolicyTrack(track), captureTrackPolicy(policy)); }
 export function defaultTrack(list, policy) {
-    if (policy?.default === 'off')
-        return null;
-    const allowed = list.filter(t => trackAllowed(t, policy));
-    const d = policy?.default;
-    if (d && d !== 'file')
-        for (const match of Array.isArray(d) ? d : [d]) {
-            const found = allowed.find(t => matchesTrack(t, match));
-            if (found)
-                return found;
-        }
-    const found = allowed.find(t => t.default) ?? allowed.find(t => t.selected) ?? allowed[0];
-    if (!found && policy?.allowOff === false)
-        throw new PlayerError('UNSUPPORTED_FEATURE', 'Track policy requires a matching track, but none is available');
-    return found ?? null;
+    const decision = preferredTrackIndex(list.map(capturePolicyTrack), captureTrackPolicy(policy));
+    if (decision.rejection)
+        throw new PlayerError('UNSUPPORTED_FEATURE', decision.rejection);
+    return list[decision.index] ?? null;
 }
 export function assertTrackSelection(policy, id, track) {
-    if (policy?.locked)
-        throw new PlayerError('UNSUPPORTED_FEATURE', 'Track selection is locked by the host');
-    if (id === null && policy?.allowOff === false)
-        throw new PlayerError('UNSUPPORTED_FEATURE', 'Turning this track off is not allowed');
-    if (id === 'auto' && policy?.allowAuto === false)
-        throw new PlayerError('UNSUPPORTED_FEATURE', 'Automatic track selection is not allowed');
-    if (track && !trackAllowed(track, policy))
-        throw new PlayerError('UNSUPPORTED_FEATURE', 'This track is not allowed by the host');
+    const rejection = trackSelectionRejection(captureTrackPolicy(policy), id, track ? capturePolicyTrack(track) : undefined);
+    if (rejection)
+        throw new PlayerError('UNSUPPORTED_FEATURE', rejection);
 }

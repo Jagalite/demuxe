@@ -43,7 +43,8 @@ export declare class Player extends EventTarget {
     private set subtitleStyle(value);
     private readonly statistics;
     private operationStarted;
-    private publicSelections;
+    private get publicSelections();
+    private setPublicSelection;
     private control;
     private controlTrace;
     private get transitionTrace();

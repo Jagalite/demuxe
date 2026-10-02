@@ -9,7 +9,7 @@ export type SourceInput=
   |Readonly<{type:'source.configure';mode?:PlaybackMode;automatic?:boolean}>
   |Readonly<{type:'source.begin';operationEpoch:number;mode:PlaybackMode;preserve:boolean;planId:string}>
   |Readonly<{type:'source.created'|'source.configured'|'source.opened'|'source.applied'|'source.positioned'|'source.finished';attempt:number}>
-  |Readonly<{type:'source.accept';attempt:number;operationEpoch:number;settings:Readonly<PlaybackSettings>;planMatches:boolean}>
+  |Readonly<{type:'source.accept';attempt:number;operationEpoch:number;settings:Readonly<PlaybackSettings>;planMatches:boolean;publicSelections?:Readonly<Partial<Record<'audio'|'sub',string>>>}>
   |Readonly<{type:'source.clear'}>;
 export type SourceDecision=Readonly<{state:SourceControl;accepted:boolean;attempt?:number;settings?:Readonly<PlaybackSettings>;newSource?:boolean;reason?:'busy'|'retired'|'phase'|'plan'}>;
 export function initialSource():SourceControl{return Object.freeze({serial:0,attemptSerial:0,sessionSerial:0,acceptedSession:null,acceptedEpoch:null,mode:'native',automatic:true,candidate:null});}

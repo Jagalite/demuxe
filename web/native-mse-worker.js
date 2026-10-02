@@ -20,7 +20,7 @@ const video=new ElementState();
 const state=()=>({duration:owner?.duration,tracks:owner?.tracks,generation:owner?.generation,eof:owner?.eof,muxedFrames:owner?.muxedFrames,frames:owner?.muxedFrames?owner.frames:undefined,waitingForMedia:owner?.waitingForMedia,snapshot:owner?.snapshot()});
 self.onmessage=async({data})=>{
  if(data.type==='shutdown'){await owner?.destroy();for(const p of elementRequests.values()){clearTimeout(p.timer);p.reject(new DOMException('Destroyed','AbortError'));}elementRequests.clear();for(const p of refreshes.values()){clearTimeout(p.timer);p.reject(new DOMException('Destroyed','AbortError'));}refreshes.clear();postMessage({type:'closed'});close();return;}
- if(data.type==='playback-intent'){if(owner)owner.recoveryPlaying=data.playing;return;}
+ if(data.type==='playback-intent'){if(owner)owner.setPlaybackIntent(data.playing);return;}
  if(data.type==='element-result'){const p=elementRequests.get(data.id);if(p){elementRequests.delete(data.id);clearTimeout(p.timer);data.error?p.reject(Error(data.error)):p.resolve();}return;}
  if(data.type==='element-state'){video.update(data.state);return;}
  if(data.type==='refreshed'){const p=refreshes.get(data.id);if(p){refreshes.delete(data.id);clearTimeout(p.timer);data.error?p.reject(Error(data.error)):p.resolve(data.update);}return;}

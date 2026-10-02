@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-import type { BufferingPolicy, LoopPolicy, PlaybackRange, QualityPolicy, SubtitleStyle, ToneMapping, PlaybackMode } from '../../types.js';
+import type { BufferingPolicy, LoopPolicy, PlaybackRange, QualityPolicy, SubtitleStyle, ToneMapping, PlaybackMode, TrackTypePolicy } from '../../types.js';
 import type { PlayerControlState } from './state.js';
+import { type TrackSelectionFacts } from './track-selection.js';
 import { type RangeFacts } from './playback-boundary.js';
 /** Accepted values only. Desired transaction values remain detached until the
  * source/settings acceptance transition commits them together. */
@@ -25,6 +26,7 @@ export type SettingsInput = Readonly<{
 export declare function initialSettings(): Readonly<PlaybackSettings>;
 export declare function transitionSettings(state: Readonly<PlaybackSettings>, input: SettingsInput): Readonly<PlaybackSettings>;
 export type PlayerPreferences = Readonly<{
+    publicSelections: Readonly<Partial<Record<'audio' | 'sub', string>>>;
     muted: boolean;
     outputDeviceId: string;
     buffering: BufferingPolicy;
@@ -53,6 +55,21 @@ export type SettingCommand = Readonly<{
     track: 'audio' | 'sub';
     value: string;
     verify?: boolean;
+    clearPublicSelection?: boolean;
+}> | Readonly<{
+    kind: 'publicTrack';
+    track: 'audio' | 'sub';
+    id: string | null;
+    facts: TrackSelectionFacts;
+}> | Readonly<{
+    kind: 'visibility';
+    value: boolean;
+    facts: Readonly<{
+        policy: TrackTypePolicy | undefined;
+        hasTracks: boolean;
+        surfaceLocked: boolean;
+        plan: string | undefined;
+    }>;
 }> | Readonly<{
     kind: 'buffering';
     value: BufferingPolicy;
@@ -123,6 +140,10 @@ export type SettingEffect = Readonly<{
 }> | Readonly<{
     kind: 'source.reconfigure';
     settings: Readonly<PlaybackSettings>;
+}> | Readonly<{
+    kind: 'source.replace';
+    settings: Readonly<PlaybackSettings>;
+    mode: PlaybackMode;
 }>;
 export type SettingTransaction = Readonly<{
     id: number;

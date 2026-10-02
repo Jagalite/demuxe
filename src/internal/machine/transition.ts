@@ -29,7 +29,8 @@ export function transitionPlayer(state:PlayerControlState,input:PlayerControlInp
     const reset=input.type==='source.clear'||input.type==='source.accept'&&decision.accepted&&!state.source.candidate?.preserve;
     const pending=state.settingsTransactions.pending;
     const acceptedSetting=input.type==='source.accept'&&decision.accepted&&pending?.reconfigure&&pending.phase==='applying'&&pending.operation===state.operations.active&&pending.epoch===state.operations.epoch;
-    const desiredPreferences=acceptedSetting?changePreferences(state.preferences,pending.preferencesPatch):state.preferences,preferences=reset?clearSourcePreferences(desiredPreferences):desiredPreferences;
+    const desiredPreferences=acceptedSetting?changePreferences(state.preferences,pending.preferencesPatch):state.preferences,resetPreferences=reset?clearSourcePreferences(desiredPreferences):desiredPreferences;
+    const preferences=reset&&input.type==='source.accept'&&input.publicSelections?changePreferences(resetPreferences,{publicSelections:input.publicSelections}):resetPreferences;
     const settingsTransactions=input.type==='source.clear'||input.type==='source.accept'&&decision.accepted?Object.freeze({...state.settingsTransactions,pending:acceptedSetting?Object.freeze({...pending,phase:'accepted' as const,session:decision.state.acceptedSession,settings,preferences}):null,degraded:null}):state.settingsTransactions;
     return Object.freeze({...decision,state:decision.state===state.source?state:Object.freeze({...state,revision:state.revision+1,source:decision.state,settings,playback,preferences,settingsTransactions,boundary:input.type==='source.clear'||input.type==='source.accept'&&decision.accepted?Object.freeze({...state.boundary,pending:null}):state.boundary}),id:decision.attempt,retire:Object.freeze([]) as readonly number[]});
   }

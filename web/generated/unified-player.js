@@ -9,7 +9,7 @@ import { PlayerPresentation } from './presentation.js';
 import { isCustomSource, materializeSource } from './sources.js';
 import { PlaybackStatistics } from './internal/playback-statistics.js';
 import { watchdogPolicy, NativeProgressWatchdog } from './internal/watchdogs.js';
-import { normalizeTrackPolicy, trackAllowed, defaultTrack, assertTrackSelection } from './internal/track-policy.js';
+import { normalizeTrackPolicy, trackAllowed, defaultTrack, assertTrackSelection, capturePolicyTrack, captureTrackPolicy } from './internal/track-policy.js';
 import { plainVTT, BrowserCaptionUnsupported } from './internal/plain-vtt.js';
 import { RuntimeCapabilities, compatibilityFailure, evidenceInterrupted, NativeLoadTimeout, StartupEvidenceTimeout } from './internal/runtime-capability.js';
 import { MediaCapabilityQueries } from './internal/media-capabilities.js';
@@ -98,7 +98,11 @@ export class Player extends EventTarget {
     set subtitleStyle(value) { this.updatePreferences({ subtitleStyle: value }); }
     statistics = new PlaybackStatistics();
     operationStarted = 0;
-    publicSelections = new Map();
+    get publicSelections() { return new Map(Object.entries(this.candidatePreferences.publicSelections)); }
+    setPublicSelection(type, key) { const selections = { ...this.control.preferences.publicSelections }; if (key === undefined)
+        delete selections[type];
+    else
+        selections[type] = key; this.updatePreferences({ publicSelections: selections }); }
     control = initialPlayerControl();
     controlTrace = createTrace(256);
     get transitionTrace() { return selectTrace(this.controlTrace); }
@@ -1324,7 +1328,7 @@ export class Player extends EventTarget {
             if (overlapping)
                 await p.volume(this.muted ? 0 : desired.volume);
             this.assertOperation();
-            const acceptance = this.dispatchControl({ type: 'source.accept', attempt, operationEpoch: this.operationEpoch, settings: desired, planMatches: !!actual && actual.id === planId && admitted.some(plan => plan.id === actual.id && plan.eligible) });
+            const acceptance = this.dispatchControl({ type: 'source.accept', attempt, operationEpoch: this.operationEpoch, settings: desired, planMatches: !!actual && actual.id === planId && admitted.some(plan => plan.id === actual.id && plan.eligible), ...(!preserve ? { publicSelections: { ...(initialAudio ? { audio: `audio:stream:${initialAudio.index}` } : {}), ...(initialSubtitle ? { sub: `sub:stream:${initialSubtitle.index}` } : {}) } } : {}) });
             if (!acceptance.accepted)
                 throw new PlayerError('ABORTED', 'Source acceptance was retired');
             this.current = candidate;
@@ -1332,16 +1336,6 @@ export class Player extends EventTarget {
             this.source = source;
             this.nativeTracks = nativeTracks;
             this.activeOperation?.detachCallerAbort();
-            if (!preserve) {
-                this.playbackRange = null;
-                this.loopPolicy = false;
-                this.qualityPolicy = null;
-                this.publicSelections.clear();
-                if (initialAudio)
-                    this.publicSelections.set('audio', `audio:stream:${initialAudio.index}`);
-                if (initialSubtitle)
-                    this.publicSelections.set('sub', `sub:stream:${initialSubtitle.index}`);
-            }
             this.statistics.accept(this.sourceSerial, preserve, performance.now() - this.operationStarted);
             this.sessionError = null;
             if (queried && this.sourceInspection?.source === source)
@@ -2145,6 +2139,7 @@ export class Player extends EventTarget {
             case 'promotion':
                 this.schedulePromotion();
                 return;
+            case 'source.replace': return this.replace(this.source, effect.mode, effect.settings, true, this.nativeTracks, undefined, false);
             case 'source.reconfigure': return this.select(this.source, effect.settings, true, this.nativeTracks);
         }
     }
@@ -2517,71 +2512,13 @@ export class Player extends EventTarget {
         return this.enqueue(async () => {
             if (!this.current)
                 throw Error('No source');
-            const raw = this.sourceTracks();
-            const plan = backendPlan(this.current.backend);
-            let track = raw.find(t => t.type === type && `${this.sourceSerial}:${trackKey(t, this.mode, plan)}` === id);
-            if (id !== null && id !== 'auto' && !track)
-                throw new PlayerError('INVALID_ARGUMENT', 'Unknown or stale public track ID');
-            const rule = type === 'audio' ? this.trackPolicy.audio : this.trackPolicy.subtitles;
-            const inventory = tracks(raw, this.sourceSerial, this.mode, plan).filter(t => t.type === (type === 'audio' ? 'audio' : 'subtitle'));
-            assertTrackSelection(rule, id, inventory.find(t => t.id === id));
-            if (id === 'auto' && rule) {
-                const chosen = defaultTrack(inventory, rule);
-                id = chosen?.id ?? null;
-                track = chosen ? raw.find(t => `${this.sourceSerial}:${trackKey(t, this.mode, plan)}` === chosen.id) : undefined;
-            }
-            const backendId = id === null ? 'no' : id === 'auto' ? 'auto' : String(track.id);
-            if (type === 'sub' && backendId !== 'no' && inventory.length && this.settings.subtitles && this.presentation.locksSurface)
-                throw new PlayerError('UNSUPPORTED_FEATURE', 'Exit video Picture-in-Picture before enabling subtitles');
-            if (this.settings[type === 'audio' ? 'aid' : 'sid'] === backendId && (!track || track.selected))
-                return;
-            if (type === 'sub' && this.mode === 'native' && this.automatic && this.source && this.settings.subtitles && backendId !== 'no' && !['shaka-mse', 'remux-mpv', 'direct-mpv'].includes(plan ?? '')) {
-                const previous = this.publicSelections.get(type);
-                if (track)
-                    this.publicSelections.set(type, trackKey(track, this.mode, plan));
-                else
-                    this.publicSelections.delete(type);
-                try {
-                    await this.select(this.source, { ...this.settings, sid: backendId }, true, this.nativeTracks);
-                }
-                catch (error) {
-                    if (previous)
-                        this.publicSelections.set(type, previous);
-                    else
-                        this.publicSelections.delete(type);
-                    throw error;
-                }
-                return;
-            }
-            if (type === 'audio' && plan !== 'shaka-mse' && this.source && (this.automaticLossless || this.mode === 'native') && track) {
-                const previous = this.publicSelections.get(type);
-                if (track)
-                    this.publicSelections.set(type, trackKey(track, this.mode, plan));
-                else
-                    this.publicSelections.delete(type);
-                try {
-                    if (track.selected)
-                        return;
-                    if (this.automatic)
-                        await this.select(this.source, { ...this.settings, aid: backendId }, true, this.nativeTracks);
-                    else
-                        await this.replace(this.source, this.mode, { ...this.settings, aid: backendId }, true, this.nativeTracks, undefined, false);
-                }
-                catch (error) {
-                    if (previous)
-                        this.publicSelections.set(type, previous);
-                    else
-                        this.publicSelections.delete(type);
-                    throw error;
-                }
-                return;
-            }
-            await this.applySetting({ kind: 'track', track: type, value: backendId, verify: true });
-            if (track)
-                this.publicSelections.set(type, trackKey(track, this.mode, plan));
-            else
-                this.publicSelections.delete(type);
-            this.schedulePromotion();
+            const identity = this.control.source, raw = this.sourceTracks(), plan = backendPlan(this.current?.backend);
+            const projected = tracks(raw, this.sourceSerial, this.mode, plan).filter(track => track.type === (type === 'audio' ? 'audio' : 'subtitle'));
+            const inventory = projected.map(track => {
+                const original = raw.find(item => item.type === type && `${this.sourceSerial}:${trackKey(item, this.mode, plan)}` === track.id);
+                return { ...capturePolicyTrack(track), backendId: String(original.id), key: trackKey(original, this.mode, plan) };
+            });
+            await this.applySetting({ kind: 'publicTrack', track: type, id, facts: { sourceId: identity.serial, session: identity.acceptedSession, inventory, policy: captureTrackPolicy(type === 'audio' ? this.trackPolicy.audio : this.trackPolicy.subtitles), plan, surfaceLocked: this.presentation.locksSurface, automaticLossless: this.automaticLossless } });
         }, 'switching');
     }
     rate(value) {
@@ -2605,30 +2542,12 @@ export class Player extends EventTarget {
             return this.selectPublicTrack(type, id === 'no' ? null : id === 'auto' ? 'auto' : track ? `${this.sourceSerial}:${trackKey(track, this.mode, plan)}` : 'missing');
         }
         assertTrackSelection(type === 'audio' ? this.trackPolicy.audio : this.trackPolicy.subtitles, id === 'no' ? null : id);
-        return this.enqueue(async () => { await this.applySetting({ kind: 'track', track: type, value: id }); this.publicSelections.delete(type); this.schedulePromotion(); });
+        return this.enqueue(() => this.applySetting({ kind: 'track', track: type, value: id, clearPublicSelection: true }));
     }
     subtitleVisible(visible) {
         if (typeof visible !== 'boolean')
             throw new PlayerError('INVALID_ARGUMENT', 'Expected boolean subtitle visibility');
-        return this.enqueue(async () => {
-            if (visible !== this.settings.subtitles)
-                assertTrackSelection(this.trackPolicy.subtitles, visible ? 'visible' : null);
-            if (visible === this.settings.subtitles) {
-                if (!visible)
-                    this.schedulePromotion();
-                return;
-            }
-            if (visible && this.settings.sid !== 'no' && this.sourceTracks().some(t => t.type === 'sub') && this.presentation.locksSurface)
-                throw new PlayerError('UNSUPPORTED_FEATURE', 'Exit video Picture-in-Picture before enabling subtitles');
-            const settings = { ...this.settings, subtitles: visible };
-            if (this.automatic && this.source && this.mode === 'native' && !['shaka-mse', 'remux-mpv', 'direct-mpv'].includes(backendPlan(this.current?.backend) ?? '') && visible && !this.settings.subtitles)
-                await this.select(this.source, settings, true, this.nativeTracks);
-            else {
-                await this.applySetting({ kind: 'subtitles', value: visible });
-                if (!visible)
-                    this.schedulePromotion();
-            }
-        });
+        return this.enqueue(() => this.applySetting({ kind: 'visibility', value: visible, facts: { policy: captureTrackPolicy(this.trackPolicy.subtitles), hasTracks: this.sourceTracks().some(track => track.type === 'sub'), surfaceLocked: this.presentation.locksSurface, plan: backendPlan(this.current?.backend) } }));
     }
     getTimingSettings() { return freeze({ subtitleDelay: this.subtitleDelay, audioDelay: this.audioDelay, effectiveSubtitleDelay: this.current ? this.subtitleDelay : null, effectiveAudioDelay: this.current ? this.audioDelay : null, subtitleStyle: { ...this.subtitleStyle }, styleScope: 'plain-text' }); }
     timingChange(key, value) {
@@ -2662,7 +2581,7 @@ export class Player extends EventTarget {
             const bytes = await this.interruptible(file.arrayBuffer());
             const old = this.subtitleAssets, previousSelection = this.publicSelections.get('sub');
             if (options.select !== false)
-                this.publicSelections.delete('sub');
+                this.setPublicSelection('sub');
             this.subtitleAssets = [...old, { attachmentId, bytes, format: format, label: options.label ?? file.name, language: options.language, select: options.select ?? true }];
             try {
                 plainVTT(this.subtitleAssets.at(-1));
@@ -2671,7 +2590,7 @@ export class Player extends EventTarget {
             catch (error) {
                 this.subtitleAssets = old;
                 if (previousSelection !== undefined)
-                    this.publicSelections.set('sub', previousSelection);
+                    this.setPublicSelection('sub', previousSelection);
                 throw error;
             }
         }).then(() => { const handle = freeze({ id: attachmentId, kind: 'subtitle', sourceId }); this.attachmentHandles.add(handle); return handle; });
@@ -2710,7 +2629,7 @@ export class Player extends EventTarget {
                 this.subtitleAssets = oldSubs.filter(a => a.attachmentId !== handle.id);
                 this.nativeTracks = oldTracks.filter(a => a.attachmentId !== handle.id);
                 if (selected)
-                    this.publicSelections.delete('sub');
+                    this.setPublicSelection('sub');
             }
             else {
                 if (handle.sourceId !== null || !oldFonts.some(a => a.attachmentId === handle.id))
@@ -2725,7 +2644,7 @@ export class Player extends EventTarget {
                 this.subtitleAssets = oldSubs;
                 this.nativeTracks = oldTracks;
                 this.fonts = oldFonts;
-                this.publicSelections = oldSelections;
+                this.updatePreferences({ publicSelections: Object.fromEntries(oldSelections) });
                 throw error;
             }
             this.attachmentHandles.delete(handle);
@@ -2774,7 +2693,7 @@ export class Player extends EventTarget {
         this.inspection?.abort();
         this.stopWatchdogs();
         const cleanup = Promise.all([this.#previewController.drain(), ...[this.candidate, this.current].map(s => s?.backend.destroy().catch(() => { }))]);
-        this.closing = this.enqueue(async () => { await cleanup; await this.dispose(this.current); this.playbackRange = null; this.loopPolicy = false; this.statistics.clear(); this.current = undefined; this.candidate = undefined; this.source = undefined; this.dispatchControl({ type: 'source.clear' }); this.sourceInspection = undefined; this.losslessInspection = undefined; this.runtimeCapabilities.clear(); this.tierAttempts.clear(); this.nativeTracks = []; this.subtitleAssets = []; this.publicSelections.clear(); this.sessionError = null; }, 'closing').finally(() => { this.closing = undefined; });
+        this.closing = this.enqueue(async () => { await cleanup; await this.dispose(this.current); this.playbackRange = null; this.loopPolicy = false; this.statistics.clear(); this.current = undefined; this.candidate = undefined; this.source = undefined; this.dispatchControl({ type: 'source.clear' }); this.sourceInspection = undefined; this.losslessInspection = undefined; this.runtimeCapabilities.clear(); this.tierAttempts.clear(); this.nativeTracks = []; this.subtitleAssets = []; this.sessionError = null; }, 'closing').finally(() => { this.closing = undefined; });
         return this.closing;
     }
     destroy() {
