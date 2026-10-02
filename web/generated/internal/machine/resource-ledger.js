@@ -9,10 +9,10 @@ export function createResourceLedger(options = {}) {
             throw new RangeError('Invalid resource registry capacity');
     if (!Number.isFinite(limits.cleanupTimeoutMs) || limits.cleanupTimeoutMs < 1 || limits.cleanupTimeoutMs > 60000)
         throw new RangeError('Invalid resource registry cleanup deadline');
-    return Object.freeze({ limits, disposed: false, resources: Object.freeze([]), scopes: Object.freeze([]), failures: Object.freeze([]), failureCount: 0, timedOut: 0, deadlineErrors: 0, lateReleased: 0, lateFailed: 0 });
+    return Object.freeze({ limits, monotonic: options.monotonic === true, resourceWatermark: 0, scopeWatermark: 0, registeredTotal: 0, releasedTotal: 0, disposed: false, resources: Object.freeze([]), scopes: Object.freeze([]), failures: Object.freeze([]), failureCount: 0, timedOut: 0, deadlineErrors: 0, lateReleased: 0, lateFailed: 0 });
 }
 export function resourceMetadata(state, id) { return state.resources.find(entry => entry.id === id); }
-export function resourceScopeRetired(state, key) { return state.disposed || state.scopes.some(scope => scope.key === key && scope.retired); }
+export function resourceScopeRetired(state, key) { const scope = state.scopes.find(scope => scope.key === key); return state.disposed || !!scope?.retired || state.monotonic && !scope && sequence(key, 'scope') > 0 && sequence(key, 'scope') <= state.scopeWatermark; }
 export function resourceAvailable(state, id) { const entry = resourceMetadata(state, id); return !!entry && entry.state === 'active' && !resourceScopeRetired(state, entry.scopeKey); }
 function replace(state, entry, phase) {
     const next = Object.freeze({ ...entry, state: phase });
@@ -24,35 +24,49 @@ function failure(state, entry, reason) {
     const summary = Object.freeze({ id: entry.id, scopeKey: entry.scopeKey, kind: entry.kind, name, message });
     return Object.freeze({ ...state, failureCount: state.failureCount + 1, failures: state.limits.failureLimit ? Object.freeze([...state.failures, summary].slice(-state.limits.failureLimit)) : state.failures });
 }
+function sequence(value, prefix) { const token = new RegExp(`^${prefix}:([1-9][0-9]*)$`).exec(value); const id = token ? Number(token[1]) : 0; return Number.isSafeInteger(id) ? id : 0; }
+/** Monotonic mode bounds live metadata, retaining non-reusable identities as
+ * watermarks. Detached physical releases remain accounted until they settle. */
+function compactLedger(state) {
+    if (!state.monotonic)
+        return state;
+    const resources = state.resources.filter(entry => entry.state !== 'released' && entry.state !== 'failed');
+    const scopes = state.scopes.filter(scope => !scope.retired || resources.some(entry => entry.scopeKey === scope.key));
+    return resources.length === state.resources.length && scopes.length === state.scopes.length ? state : Object.freeze({ ...state, resources: Object.freeze(resources), scopes: Object.freeze(scopes) });
+}
 export function transitionResourceLedger(state, input) {
+    const decision = reduceResourceLedger(state, input), next = compactLedger(decision.state);
+    return next === decision.state ? decision : Object.freeze({ ...decision, state: next });
+}
+function reduceResourceLedger(state, input) {
     if (input.type === 'register') {
-        if (!valid(input.id))
+        if (!valid(input.id) || state.monotonic && !sequence(input.id, 'resource'))
             return no(state, 'invalid-id');
-        if (!valid(input.scopeKey))
+        if (!valid(input.scopeKey) || state.monotonic && !sequence(input.scopeKey, 'scope'))
             return no(state, 'invalid-scope');
         if (!valid(input.kind))
             return no(state, 'invalid-kind');
         if (input.ownership !== 'owned' && input.ownership !== 'borrowed')
             return no(state, 'invalid-ownership');
-        if (resourceMetadata(state, input.id))
+        if (resourceMetadata(state, input.id) || state.monotonic && sequence(input.id, 'resource') <= state.resourceWatermark)
             return no(state, 'duplicate');
         if (state.resources.length >= state.limits.maxResources)
             return no(state, 'resource-capacity');
-        const existing = state.scopes.some(scope => scope.key === input.scopeKey);
-        if (!existing && state.scopes.length >= state.limits.maxScopes)
+        const existing = state.scopes.some(scope => scope.key === input.scopeKey), oldScope = state.monotonic && sequence(input.scopeKey, 'scope') <= state.scopeWatermark;
+        if (!existing && !oldScope && state.scopes.length >= state.limits.maxScopes)
             return no(state, 'scope-capacity');
         const entry = Object.freeze({ id: input.id, scopeKey: input.scopeKey, kind: input.kind, ownership: input.ownership, state: 'active' });
-        const scopes = existing ? state.scopes : Object.freeze([...state.scopes, Object.freeze({ key: input.scopeKey, retired: state.disposed })]);
-        return ok(Object.freeze({ ...state, scopes, resources: Object.freeze([...state.resources, entry]) }));
+        const scopes = existing || oldScope ? state.scopes : Object.freeze([...state.scopes, Object.freeze({ key: input.scopeKey, retired: state.disposed })]);
+        return ok(Object.freeze({ ...state, scopes, registeredTotal: state.registeredTotal + 1, resourceWatermark: state.monotonic ? sequence(input.id, 'resource') : state.resourceWatermark, scopeWatermark: state.monotonic ? Math.max(state.scopeWatermark, sequence(input.scopeKey, 'scope')) : state.scopeWatermark, resources: Object.freeze([...state.resources, entry]) }));
     }
     if (input.type === 'retire-scope') {
-        if (!valid(input.scopeKey))
+        if (!valid(input.scopeKey) || state.monotonic && !sequence(input.scopeKey, 'scope'))
             return no(state, 'invalid-scope');
         const previous = state.scopes.find(scope => scope.key === input.scopeKey);
-        if (!previous && state.scopes.length >= state.limits.maxScopes)
+        if (!previous && !state.monotonic && state.scopes.length >= state.limits.maxScopes)
             return no(state, 'scope-capacity');
         const scopes = previous ? previous.retired ? state.scopes : Object.freeze(state.scopes.map(scope => scope.key === input.scopeKey ? Object.freeze({ ...scope, retired: true }) : scope)) : Object.freeze([...state.scopes, Object.freeze({ key: input.scopeKey, retired: true })]);
-        return ok(scopes === state.scopes ? state : Object.freeze({ ...state, scopes }), { ids: Object.freeze(state.resources.filter(entry => entry.scopeKey === input.scopeKey).map(entry => entry.id).reverse()) });
+        return ok(scopes === state.scopes ? state : Object.freeze({ ...state, scopes, scopeWatermark: state.monotonic ? Math.max(state.scopeWatermark, sequence(input.scopeKey, 'scope')) : state.scopeWatermark }), { ids: Object.freeze(state.resources.filter(entry => entry.scopeKey === input.scopeKey).map(entry => entry.id).reverse()) });
     }
     if (input.type === 'dispose')
         return ok(state.disposed ? state : Object.freeze({ ...state, disposed: true, scopes: Object.freeze(state.scopes.map(scope => scope.retired ? scope : Object.freeze({ ...scope, retired: true }))) }), { scopeKeys: Object.freeze(state.scopes.map(scope => scope.key).reverse()) });
@@ -74,6 +88,8 @@ export function transitionResourceLedger(state, input) {
         return ok(state, { start: false });
     const late = entry.state === 'detached';
     let next = replace(state, entry, input.success ? 'released' : 'failed');
+    if (input.success)
+        next = Object.freeze({ ...next, releasedTotal: next.releasedTotal + 1 });
     if (late)
         next = Object.freeze({ ...next, lateReleased: next.lateReleased + (input.success ? 1 : 0), lateFailed: next.lateFailed + (input.success ? 0 : 1) });
     else if (!input.success)
@@ -81,10 +97,10 @@ export function transitionResourceLedger(state, input) {
     return ok(next, { start: true, late });
 }
 export function resourceLedgerDiagnostics(state) {
-    return Object.freeze({ disposed: state.disposed, registered: state.resources.length,
+    return Object.freeze({ disposed: state.disposed, registered: state.registeredTotal,
         active: state.resources.filter(entry => resourceAvailable(state, entry.id)).length,
         retiring: state.resources.filter(entry => entry.state === 'active' && resourceScopeRetired(state, entry.scopeKey)).length,
-        releasing: state.resources.filter(entry => entry.state === 'releasing').length, released: state.resources.filter(entry => entry.state === 'released').length,
+        releasing: state.resources.filter(entry => entry.state === 'releasing').length, released: state.releasedTotal,
         detached: state.resources.filter(entry => entry.state === 'detached').length, failed: state.failureCount, timedOut: state.timedOut, deadlineErrors: state.deadlineErrors, lateReleased: state.lateReleased, lateFailed: state.lateFailed,
         scopes: state.scopes.length, retiredScopes: state.scopes.filter(scope => scope.retired).length, limits: state.limits, resources: state.resources, failures: state.failures });
 }

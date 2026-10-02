@@ -26,18 +26,22 @@ function rejected(reason) {
  * Release callbacks must not await their own release or enclosing retirement.
  * A deadline detaches logical waiting; only a physical result proves release. */
 export class ResourceRegistry {
-    ledger;
+    localLedger;
+    store;
+    get ledger() { return this.store ? this.store.read() : this.localLedger; }
     handles = new Map();
     completions = new Map();
     scopes = new Map();
     disposal;
     scheduleCleanupTimeout;
     constructor(options = {}) {
-        this.ledger = createResourceLedger({ maxResources: options.maxResources, maxScopes: options.maxScopes, failureLimit: options.failureLimit, cleanupTimeoutMs: options.cleanupTimeoutMs });
+        this.store = options.store;
+        if (!this.store)
+            this.localLedger = createResourceLedger({ monotonic: options.monotonic, maxResources: options.maxResources, maxScopes: options.maxScopes, failureLimit: options.failureLimit, cleanupTimeoutMs: options.cleanupTimeoutMs });
         this.scheduleCleanupTimeout = options.scheduleCleanupTimeout ?? ((work, delayMs) => { const timer = setTimeout(work, delayMs); return () => clearTimeout(timer); });
     }
-    transition(input) { const result = transitionResourceLedger(this.ledger, input); if (result.accepted)
-        this.ledger = result.state; return result; }
+    transition(input) { if (this.store)
+        return this.store.dispatch(input); const result = transitionResourceLedger(this.ledger, input); this.localLedger = result.state; return result; }
     register(registration) {
         // Read each host field before admission so reentrant getters cannot overwrite
         // a newer metadata state. Host resources themselves never enter the reducer.
@@ -50,7 +54,9 @@ export class ResourceRegistry {
             throw new TypeError('Owned resources require a release callback');
         if (ownership === 'borrowed' && release !== undefined)
             throw new TypeError('Borrowed resources cannot have a release callback');
-        this.ledger = checked.state;
+        const committed = this.transition(input);
+        if (!committed.accepted)
+            throw rejected(committed.reason);
         this.handles.set(id, { value, release: release });
         return resourceScopeRetired(this.ledger, scopeKey) ? this.release(id) : Promise.resolve();
     }
@@ -75,6 +81,8 @@ export class ResourceRegistry {
         this.handles.delete(id);
         if (metadata.ownership === 'borrowed') {
             this.transition({ type: 'physical-result', id, success: true });
+            if (this.ledger.monotonic)
+                this.completions.delete(id);
             completion.resolve();
             return completion.promise;
         }
@@ -95,6 +103,8 @@ export class ResourceRegistry {
         const finish = (success, error) => {
             const result = this.transition({ type: 'physical-result', id, success });
             cancel();
+            if (this.ledger.monotonic && !resourceMetadata(this.ledger, id))
+                this.completions.delete(id);
             if (!result.start || result.late)
                 return;
             if (success)
@@ -131,7 +141,8 @@ export class ResourceRegistry {
             throw rejected(result.reason);
         const completion = deferred();
         this.scopes.set(scopeKey, completion.promise);
-        void this.releaseEntries(result.ids).then(completion.resolve, completion.reject);
+        void this.releaseEntries(result.ids).then(completion.resolve, completion.reject).finally(() => { if (this.ledger.monotonic)
+            this.scopes.delete(scopeKey); });
         return completion.promise;
     }
     dispose() {

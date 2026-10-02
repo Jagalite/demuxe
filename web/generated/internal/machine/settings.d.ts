@@ -193,6 +193,7 @@ export declare function transitionSettingTransaction(state: PlayerControlState, 
     state: Readonly<{
         revision: number;
         captureRevision: number;
+        resources: import("./resource-ledger.js").ResourceLedgerState;
         readiness: import("./player-readiness.js").PlayerReadinessState;
         actions: import("./player-actions.js").PlayerActionState;
         publication: import("./player-publication.js").PlayerPublicationState;

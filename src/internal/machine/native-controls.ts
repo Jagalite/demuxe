@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type {BufferingPolicy} from '../../types.js';
-export type NativeControlDomain='playback'|'gain'|'volume'|'rate'|'output'|'buffering';
+export type NativeControlDomain='playback'|'gain'|'volume'|'rate'|'output'|'buffering'|'subtitles'|'subtitle-visibility';
 export type NativeControlRequest=Readonly<{id:number;epoch:number;kind:'control';domain:NativeControlDomain}>;
 export type NativeControls=Readonly<{pending:Readonly<Partial<Record<NativeControlDomain,NativeControlRequest>>>;activation:Readonly<Partial<Record<NativeControlDomain,Readonly<{id:number;deadline:number}>>>>;sink:Readonly<{active:NativeControlRequest|null;queued:readonly NativeControlRequest[]}>;paused:boolean;playbackSerial:number;gain:number;volume:number;rate:number;outputDevice:string;buffering:BufferingPolicy}>;
 export type NativeControlValue=Readonly<{type:'gain'|'volume'|'rate';value:number}>|Readonly<{type:'output';value:string}>|Readonly<{type:'buffering';value:BufferingPolicy}>;

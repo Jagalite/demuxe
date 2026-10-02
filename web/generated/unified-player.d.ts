@@ -43,6 +43,14 @@ export declare class Player extends EventTarget {
     private get operationStarted();
     private get publicSelections();
     private control;
+    private resourceRegistry?;
+    private sessionResources;
+    private sessionDisposals;
+    private sessionCleanups;
+    private sessionListeners;
+    private get ownedResources();
+    private registerSession;
+    private releaseSession;
     private controlTrace;
     private get transitionTrace();
     private operationResources;

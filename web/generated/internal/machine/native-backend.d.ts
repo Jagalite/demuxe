@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type NativeCaptionEffect, type NativeCaptions, type NativeCaptionRequest, type NativeCaptionKind } from './native-captions.js';
+import { type NativeEventRequest, type NativeEventWait } from './native-wait.js';
 import type { BufferingPolicy } from '../../types.js';
 import { type NativeControls, type NativeControlDomain, type NativeControlRequest, type NativeControlValue } from './native-controls.js';
 import type { CapabilityEvidenceData } from './routing.js';
@@ -11,7 +13,7 @@ export type NativeRequest = Readonly<{
     id: number;
     epoch: number;
     kind: 'verification' | 'seek' | 'load';
-}> | NativeControlRequest;
+}> | NativeControlRequest | NativeCaptionRequest | NativeEventRequest;
 type Verification = Readonly<{
     request: NativeRequest;
     output: boolean;
@@ -52,6 +54,8 @@ export type NativeBackendState = Readonly<{
     load: NativeLoadState;
     controls: NativeControls;
     loadPlaybackSerial: number;
+    waits: readonly NativeEventWait[];
+    captions: NativeCaptions;
 }>;
 export declare function initialNativeBackend(buffering?: BufferingPolicy): NativeBackendState;
 export declare function nativeRequestCurrent(state: NativeBackendState, request: NativeRequest): boolean;
@@ -86,6 +90,43 @@ export type NativeBackendCommand = Readonly<{
     type: 'source';
 }> | Readonly<{
     type: 'stop';
+}> | Readonly<{
+    type: 'event.begin';
+    event: string;
+    now: number;
+    loadBudget: number;
+}> | Readonly<{
+    type: 'event.deadline';
+    request: NativeEventRequest;
+    now: number;
+}> | Readonly<{
+    type: 'event.finish';
+    request: NativeEventRequest;
+}> | Readonly<{
+    type: 'caption.effect.begin' | 'caption.effect.finished';
+    request: NativeCaptionEffect;
+}> | Readonly<{
+    type: 'caption.begin';
+    kind: NativeCaptionKind;
+    attachmentId?: string;
+    now: number;
+}> | Readonly<{
+    type: 'caption.accept';
+    request: NativeCaptionRequest;
+    publicId: string | null;
+    select: boolean;
+}> | Readonly<{
+    type: 'caption.finish' | 'caption.remove';
+    request: NativeCaptionRequest;
+}> | Readonly<{
+    type: 'caption.deadline';
+    request: NativeCaptionRequest;
+    now: number;
+}> | Readonly<{
+    type: 'caption.selection';
+    request: NativeControlRequest;
+    selected?: string;
+    visible?: boolean;
 }> | Readonly<{
     type: 'control.begin';
     domain: NativeControlDomain;
@@ -209,12 +250,18 @@ export type NativeBackendDecision = Readonly<{
     armFrame?: boolean;
     retry?: boolean;
     remaining?: number;
+    eventTimeout?: Readonly<{
+        event: string;
+        loading: boolean;
+        budget: number;
+    }>;
+    captionStart?: NativeCaptionEffect;
     sinkStart?: NativeControlRequest;
     fallback?: boolean;
     rollback?: boolean;
     resume?: boolean;
     position?: number;
-    failure?: 'missing-audio' | 'missing-output' | 'verification-timeout' | 'seek-timeout' | 'activation-timeout';
+    failure?: 'missing-audio' | 'missing-output' | 'verification-timeout' | 'seek-timeout' | 'activation-timeout' | 'caption-timeout';
 }>;
 export declare function transitionNativeBackend(state: NativeBackendState, command: NativeBackendCommand): NativeBackendDecision;
 export {};

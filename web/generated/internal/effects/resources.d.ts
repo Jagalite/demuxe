@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type ResourceLedgerState, type ResourceLedgerInput, type ResourceLedgerDecision } from '../machine/resource-ledger.js';
 export type ResourceRegistration<T> = Readonly<{
     id: string;
     scopeKey: string;
@@ -12,6 +13,11 @@ export type ResourceRegistration<T> = Readonly<{
     release?: never;
 }>);
 export type ResourceRegistryOptions = Readonly<{
+    store?: Readonly<{
+        read: () => ResourceLedgerState;
+        dispatch: (input: ResourceLedgerInput) => ResourceLedgerDecision;
+    }>;
+    monotonic?: boolean;
     maxResources?: number;
     maxScopes?: number;
     failureLimit?: number;
@@ -26,7 +32,9 @@ export type ResourceRegistryOptions = Readonly<{
  * Release callbacks must not await their own release or enclosing retirement.
  * A deadline detaches logical waiting; only a physical result proves release. */
 export declare class ResourceRegistry {
-    private ledger;
+    private localLedger?;
+    private readonly store;
+    private get ledger();
     private readonly handles;
     private readonly completions;
     private readonly scopes;

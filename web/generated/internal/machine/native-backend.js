@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
+import { initialNativeCaptions, queueNativeCaptionEffect, finishNativeCaptionEffect, beginNativeCaptionSelection, nativeCaptionCurrent, beginNativeCaption, acceptNativeCaption, finishNativeCaption, removeNativeCaption, retireNativeCaptions, updateNativeCaptionSelection, nativeCaptionRemaining } from './native-captions.js';
+import { beginNativeEventWait, nativeEventWaitCurrent, nativeEventWaitDeadline } from './native-wait.js';
 import { initialNativeControls, queueNativeSink, finishNativeSink, nativeControlCurrent, beginNativeActivation, nativeActivationRemaining, beginNativeControl, retireNativeControls, finishNativeControl, acceptNativeControl } from './native-controls.js';
 import { initialNativeLoad, beginNativeLoad, retireNativeLoad, transitionNativeLoad } from './native-load.js';
-export function initialNativeBackend(buffering) { return Object.freeze({ epoch: 0, serial: 0, stopped: false, expected: undefined, capability: Object.freeze({}), verification: null, seek: null, seekPresentationRetries: 0, load: initialNativeLoad(), controls: initialNativeControls(buffering), loadPlaybackSerial: 0 }); }
-export function nativeRequestCurrent(state, request) { return !state.stopped && state.epoch === request.epoch && (request.kind === 'control' ? nativeControlCurrent(state.controls, request) : (request.kind === 'verification' ? state.verification : request.kind === 'seek' ? state.seek : state.load.work)?.request.id === request.id); }
+export function initialNativeBackend(buffering) { return Object.freeze({ epoch: 0, serial: 0, stopped: false, expected: undefined, capability: Object.freeze({}), verification: null, seek: null, seekPresentationRetries: 0, load: initialNativeLoad(), controls: initialNativeControls(buffering), loadPlaybackSerial: 0, waits: Object.freeze([]), captions: initialNativeCaptions() }); }
+export function nativeRequestCurrent(state, request) { return !state.stopped && state.epoch === request.epoch && (request.kind === 'event' ? nativeEventWaitCurrent(state.waits, request) : request.kind === 'caption' ? nativeCaptionCurrent(state.captions, request) : request.kind === 'control' ? nativeControlCurrent(state.controls, request) : (request.kind === 'verification' ? state.verification : request.kind === 'seek' ? state.seek : state.load.work)?.request.id === request.id); }
 export function nativeAudioEvidence(facts, advancing) {
     if (typeof facts.decodedBytes === 'number')
         return Object.freeze({ adapter: 'decoded-byte-counter', ready: facts.decodedBytes > 0, strength: facts.decodedBytes > 0 ? 'decoded' : 'unknown' });
@@ -13,25 +15,37 @@ export function nativeAudioEvidence(facts, advancing) {
 function evidence(value) { return Object.freeze({ ...value, ...value.timing ? { timing: Object.freeze({ ...value.timing }) } : {}, ...value.audioObservation ? { audioObservation: Object.freeze({ ...value.audioObservation }) } : {} }); }
 export function transitionNativeBackend(state, command) {
     const result = (next, extra = {}, accepted = true) => Object.freeze({ state: next === state ? state : Object.freeze({ ...next }), accepted, ...extra });
+    if (command.type === 'caption.effect.finished') {
+        const ids = state.captions.queued.filter(request => nativeRequestCurrent(state, request)).map(request => request.id), effect = finishNativeCaptionEffect(state.captions, command.request, ids);
+        return effect.state === state.captions ? result(state, {}, false) : result({ ...state, captions: effect.state }, { captionStart: effect.start });
+    }
     if (command.type === 'control.sink.finished') {
         const sink = finishNativeSink(state.controls, command.request);
         return sink.accepted ? result({ ...state, controls: sink.state }, { sinkStart: sink.start }) : result(state, {}, false);
     }
     if (command.type === 'stop')
-        return state.stopped ? result(state, {}, false) : result({ ...state, epoch: state.epoch + 1, stopped: true, verification: null, seek: null, load: retireNativeLoad(state.load), controls: retireNativeControls(state.controls) });
+        return state.stopped ? result(state, {}, false) : result({ ...state, epoch: state.epoch + 1, stopped: true, verification: null, seek: null, load: retireNativeLoad(state.load), controls: retireNativeControls(state.controls), captions: retireNativeCaptions(state.captions), waits: Object.freeze([]) });
     if (state.stopped)
         return result(state, {}, false);
     if (command.type === 'source')
-        return result({ ...state, epoch: state.epoch + 1, expected: undefined, capability: Object.freeze({}), verification: null, seek: null, load: retireNativeLoad(state.load), controls: retireNativeControls(state.controls) });
+        return result({ ...state, epoch: state.epoch + 1, expected: undefined, capability: Object.freeze({}), verification: null, seek: null, load: retireNativeLoad(state.load), controls: retireNativeControls(state.controls), captions: retireNativeCaptions(state.captions), waits: Object.freeze([]) });
     if (command.type === 'metadata' || command.type === 'api-hint')
         return command.epoch !== state.epoch ? result(state, {}, false) : result({ ...state, capability: evidence({ ...state.capability, ...command.type === 'metadata' ? { metadata: true } : { apiHint: command.value } }) });
+    if (command.type === 'event.begin') {
+        const request = Object.freeze({ id: state.serial + 1, epoch: state.epoch, kind: 'event' });
+        return result({ ...state, serial: request.id, waits: Object.freeze([...state.waits, beginNativeEventWait(request, command.event, command.now, command.loadBudget)]) }, { request });
+    }
+    if (command.type === 'caption.begin') {
+        const request = Object.freeze({ id: state.serial + 1, epoch: state.epoch, kind: 'caption' });
+        return result({ ...state, serial: request.id, captions: beginNativeCaption(state.captions, request, command.kind, command.attachmentId, command.now) }, { request });
+    }
     if (command.type === 'control.begin') {
         const request = Object.freeze({ id: state.serial + 1, epoch: state.epoch, kind: 'control', domain: command.domain });
-        return result({ ...state, serial: request.id, controls: beginNativeControl(state.controls, request, command.paused) }, { request });
+        return result({ ...state, serial: request.id, controls: beginNativeControl(state.controls, request, command.paused), captions: command.domain === 'subtitles' ? beginNativeCaptionSelection(state.captions, request.id) : state.captions }, { request });
     }
     if (command.type === 'load.begin') {
         const source = command.kind === 'source', epoch = state.epoch + (source ? 1 : 0), request = Object.freeze({ id: state.serial + 1, epoch, kind: 'load' });
-        return result({ ...state, serial: request.id, epoch, ...source ? { expected: undefined, capability: Object.freeze({}) } : {}, verification: null, seek: null, load: beginNativeLoad(state.load, request, command.kind, command.policy, command.position, command.paused), loadPlaybackSerial: state.controls.playbackSerial, controls: source ? retireNativeControls(state.controls) : state.controls }, { request, retired: state.load.work?.request });
+        return result({ ...state, serial: request.id, epoch, ...source ? { expected: undefined, capability: Object.freeze({}) } : {}, verification: null, seek: null, load: beginNativeLoad(state.load, request, command.kind, command.policy, command.position, command.paused), loadPlaybackSerial: state.controls.playbackSerial, controls: source ? retireNativeControls(state.controls) : state.controls, captions: source ? retireNativeCaptions(state.captions) : state.captions, waits: source ? Object.freeze([]) : state.waits }, { request, retired: state.load.work?.request });
     }
     if (command.type === 'verify.begin') {
         const request = Object.freeze({ id: state.serial + 1, epoch: state.epoch, kind: 'verification' });
@@ -45,6 +59,31 @@ export function transitionNativeBackend(state, command) {
     }
     if (!nativeRequestCurrent(state, command.request) || (command.type.startsWith('verify.') && command.request.kind !== 'verification') || (command.type.startsWith('seek.') && command.request.kind !== 'seek'))
         return result(state, {}, false);
+    if (command.type === 'event.finish')
+        return result({ ...state, waits: Object.freeze(state.waits.filter(wait => wait.request.id !== command.request.id)) });
+    if (command.type === 'event.deadline') {
+        const wait = nativeEventWaitDeadline(state.waits, command.request, command.now);
+        return !wait ? result(state, {}, false) : result(state, wait.remaining !== undefined ? { remaining: wait.remaining } : { eventTimeout: { event: wait.event, loading: wait.loading, budget: wait.budget } });
+    }
+    if (command.type === 'caption.effect.begin') {
+        if (command.request.kind === 'control' && command.request.domain !== 'subtitles')
+            return result(state, {}, false);
+        const ids = state.captions.queued.filter(request => nativeRequestCurrent(state, request)).map(request => request.id), effect = queueNativeCaptionEffect(state.captions, command.request, ids);
+        return effect.state === state.captions ? result(state, {}, false) : result({ ...state, captions: effect.state }, { captionStart: effect.start });
+    }
+    if (command.type === 'caption.selection') {
+        if (command.request.domain !== 'subtitles' && command.request.domain !== 'subtitle-visibility')
+            return result(state, {}, false);
+        return result({ ...state, captions: updateNativeCaptionSelection(state.captions, { selected: command.selected, visible: command.visible }) });
+    }
+    if (command.type === 'caption.deadline') {
+        const remaining = nativeCaptionRemaining(state.captions, command.request, command.now);
+        return remaining === undefined ? result(state, {}, false) : result(state, remaining > 0 ? { remaining } : { failure: 'caption-timeout' });
+    }
+    if (command.type === 'caption.accept' || command.type === 'caption.finish' || command.type === 'caption.remove') {
+        const captions = command.type === 'caption.accept' ? acceptNativeCaption(state.captions, command.request, command.publicId, command.select) : command.type === 'caption.remove' ? removeNativeCaption(state.captions, command.request) : finishNativeCaption(state.captions, command.request);
+        return captions === state.captions ? result(state, {}, false) : result({ ...state, captions });
+    }
     if (command.type === 'control.sink.begin') {
         const sink = queueNativeSink(state.controls, command.request);
         return sink.accepted ? result({ ...state, controls: sink.state }, { sinkStart: sink.start }) : result(state, {}, false);

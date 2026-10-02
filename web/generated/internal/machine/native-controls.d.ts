@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { BufferingPolicy } from '../../types.js';
-export type NativeControlDomain = 'playback' | 'gain' | 'volume' | 'rate' | 'output' | 'buffering';
+export type NativeControlDomain = 'playback' | 'gain' | 'volume' | 'rate' | 'output' | 'buffering' | 'subtitles' | 'subtitle-visibility';
 export type NativeControlRequest = Readonly<{
     id: number;
     epoch: number;

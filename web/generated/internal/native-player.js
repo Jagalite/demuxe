@@ -4,6 +4,7 @@ import { executionRecipe } from './execution-recipes.js';
 import { bufferingPolicy, resolveBuffering } from './buffering.js';
 import { plainVTT, BrowserCaptionUnsupported } from './plain-vtt.js';
 import { nativeLoadOpening, selectNativeLoadRoute, selectNativePreparation } from './machine/native-load.js';
+import { nativeCaptionAttachment, nativeCaptionMaySelect, selectNativeCaptionPresentation, nativeOverlayAdmission, nativeCaptionFidelity } from './machine/native-captions.js';
 import { selectNativeGain, nativeGainOutputWait } from './machine/native-controls.js';
 import { initialNativeBackend, nativeRequestCurrent, transitionNativeBackend } from './machine/native-backend.js';
 import { nativeMediaError, compatibilityFailure, StartupEvidenceTimeout, NativeLoadTimeout } from './runtime-capability.js';
@@ -38,7 +39,11 @@ export class NativePlayer extends EventTarget {
         throw new Error(this.stopped ? 'Player is destroyed' : 'Native operation was retired'); }
     retireNativeSource() {
         this.changeNative({ type: 'source' });
-        const verification = this.verificationCancel, seek = this.seekCancel, controls = [...this.controlWait.values()];
+        const verification = this.verificationCancel, seek = this.seekCancel, controls = [...this.controlWait.values()], captions = [...this.captionWait.values()], events = [...this.eventWaits.values()];
+        for (const event of events)
+            event(new Error('Native source was retired'));
+        for (const caption of captions)
+            caption.cancel(new Error('Native source was retired'));
         for (const control of controls)
             control.cancel(new Error('Native source was retired'));
         verification?.cancel(new Error('Native verification was retired'));
@@ -53,6 +58,7 @@ export class NativePlayer extends EventTarget {
     subtitleSource;
     textAttachmentIds = new WeakMap();
     captionAssets = new Map();
+    browserTracks = new Map();
     captionURLs = new Set();
     get outputDevice() { return this.native.controls.outputDevice; }
     get buffering() { return this.native.controls.buffering; }
@@ -277,8 +283,8 @@ export class NativePlayer extends EventTarget {
     objectURL;
     ownedObjectURLs = new Map();
     sourceCleanup = Promise.resolve();
-    selectedSub = 'auto';
-    subsVisible = true;
+    get selectedSub() { return this.native.captions.selected; }
+    get subsVisible() { return this.native.captions.visible; }
     cancelers = new Set();
     listeners = [];
     watchdogs = watchdogPolicy();
@@ -355,19 +361,25 @@ export class NativePlayer extends EventTarget {
     emit(type, detail) { this.dispatchEvent(new CustomEvent(type, { detail })); }
     assertActive() { if (this.stopped)
         throw new Error('Player is destroyed'); }
+    eventWaits = new Map();
     wait(event, start, signal) {
         this.assertActive();
         signal?.throwIfAborted();
+        const now = performance.now();
+        this.assertActive();
+        const request = this.changeNative({ type: 'event.begin', event, now, loadBudget: this.loadTimeoutMs }).request, video = this.video;
         return new Promise((resolve, reject) => {
             let settled = false, timer;
             const finish = (error) => {
                 if (settled)
                     return;
                 settled = true;
-                const timeout = timer;
+                this.changeNative({ type: 'event.finish', request });
+                const pending = timer;
                 timer = undefined;
                 this.cancelers.delete(cancel);
-                for (const clean of [() => clearTimeout(timeout), () => this.video.removeEventListener(event, done), () => this.video.removeEventListener('error', failed), () => signal?.removeEventListener('abort', aborted)])
+                this.eventWaits.delete(request.id);
+                for (const clean of [() => clearTimeout(pending?.handle), () => video.removeEventListener(event, done), () => video.removeEventListener('error', failed), () => signal?.removeEventListener('abort', aborted)])
                     try {
                         clean();
                     }
@@ -376,23 +388,70 @@ export class NativePlayer extends EventTarget {
                     }
                 error !== undefined ? reject(error) : resolve();
             };
-            const done = () => finish(), failed = () => finish(nativeMediaError(this.video.error)), cancel = (error) => finish(error), aborted = () => finish(signal?.reason ?? new DOMException('Native wait cancelled', 'AbortError'));
-            this.cancelers.add(cancel);
-            signal?.addEventListener('abort', aborted, { once: true });
-            try {
-                const loading = event === 'loadeddata' || event === 'loadedmetadata', acquired = setTimeout(() => finish(loading ? new NativeLoadTimeout(event, this.loadTimeoutMs) : new Error(`Native ${event} timed out`)), loading ? this.loadTimeoutMs : 25000);
-                if (settled) {
+            const done = () => { try {
+                this.assertNative(request);
+                finish();
+            }
+            catch (error) {
+                finish(error);
+            } }, failed = () => { try {
+                this.assertNative(request);
+                const error = nativeMediaError(video.error);
+                this.assertNative(request);
+                finish(error);
+            }
+            catch (error) {
+                finish(error);
+            } }, cancel = (error) => finish(error), aborted = () => finish(signal?.reason ?? new DOMException('Native wait cancelled', 'AbortError'));
+            const arm = (delay) => {
+                const registration = {};
+                timer = registration;
+                const acquired = setTimeout(() => { if (timer !== registration)
+                    return; timer = undefined; try {
+                    const now = performance.now(), decision = this.changeNative({ type: 'event.deadline', request, now });
+                    if (!decision.accepted) {
+                        finish(new Error('Native wait was retired'));
+                        return;
+                    }
+                    if (decision.remaining !== undefined) {
+                        arm(decision.remaining);
+                        return;
+                    }
+                    const timeout = decision.eventTimeout;
+                    finish((timeout.event === 'loadeddata' || timeout.event === 'loadedmetadata') ? new NativeLoadTimeout(timeout.event, timeout.budget) : new Error(`Native ${timeout.event} timed out`));
+                }
+                catch (error) {
+                    finish(error);
+                } }, delay);
+                registration.handle = acquired;
+                if (settled || timer !== registration || !nativeRequestCurrent(this.native, request)) {
                     clearTimeout(acquired);
+                    this.assertNative(request);
+                }
+            };
+            this.cancelers.add(cancel);
+            this.eventWaits.set(request.id, cancel);
+            try {
+                signal?.addEventListener('abort', aborted, { once: true });
+                if (settled || !nativeRequestCurrent(this.native, request)) {
+                    signal?.removeEventListener('abort', aborted);
+                    this.assertNative(request);
                     return;
                 }
-                timer = acquired;
-                this.video.addEventListener(event, done, { once: true });
+                const deadline = this.changeNative({ type: 'event.deadline', request, now });
+                arm(deadline.remaining ?? 0);
                 if (settled)
                     return;
-                this.video.addEventListener('error', failed, { once: true });
-                if (settled)
-                    return;
+                for (const [name, listener] of [[event, done], ['error', failed]]) {
+                    video.addEventListener(name, listener, { once: true });
+                    if (settled || !nativeRequestCurrent(this.native, request)) {
+                        video.removeEventListener(name, listener);
+                        this.assertNative(request);
+                        return;
+                    }
+                }
                 signal?.throwIfAborted();
+                this.assertNative(request);
                 start();
             }
             catch (error) {
@@ -404,13 +463,13 @@ export class NativePlayer extends EventTarget {
     // IDs of URL-backed browser tracks when a session replays both kinds.
     textTrackId(track) {
         const caption = this.captionAssets.get(track);
-        return caption ? String(200000 + caption.index) : String(Array.from(this.video.textTracks).filter(t => !this.captionAssets.has(t)).indexOf(track) + 1);
+        return caption ? (nativeCaptionAttachment(this.native.captions, caption.request.id)?.publicId ?? '') : String(Array.from(this.video.textTracks).filter(t => !this.captionAssets.has(t)).indexOf(track) + 1);
     }
     refresh(request) {
         const epoch = this.native.epoch, current = () => !this.stopped && epoch === this.native.epoch && (!request || nativeRequestCurrent(this.native, request));
         if (!current())
             return;
-        const tracks = Array.from(this.video.textTracks, t => ({ id: this.textTrackId(t), type: 'sub', title: t.label, lang: t.language, selected: t.mode === 'showing', ...(this.textAttachmentIds.has(t) ? { external: true, 'attachment-id': this.textAttachmentIds.get(t) } : {}), ...(this.captionAssets.has(t) ? { external: true, 'attachment-id': this.captionAssets.get(t).asset.attachmentId, 'external-index': this.captionAssets.get(t).index, codec: 'webvtt' } : {}) }));
+        const tracks = Array.from(this.video.textTracks, t => ({ id: this.textTrackId(t), type: 'sub', title: t.label, lang: t.language, selected: t.mode === 'showing', ...(this.textAttachmentIds.has(t) ? { external: true, 'attachment-id': nativeCaptionAttachment(this.native.captions, this.textAttachmentIds.get(t).id)?.attachmentId } : {}), ...(this.captionAssets.has(t) ? { external: true, 'attachment-id': this.captionAssets.get(t).asset.attachmentId, 'external-index': nativeCaptionAttachment(this.native.captions, this.captionAssets.get(t).request.id)?.index, codec: 'webvtt' } : {}) }));
         if (this.mpvSubs)
             tracks.push(...this.mpvSubs.tracks);
         const audio = this.video.audioTracks;
@@ -764,9 +823,9 @@ export class NativePlayer extends EventTarget {
             }
         }
     }
-    async cleanupSourceHandles(remux, audio, subtitles, urls) {
+    async cleanupSourceHandles(remux, audio, subtitles, urls, tracks = []) {
         const errors = [];
-        for (const clean of [() => audio?.destroy(), () => subtitles?.destroy(), () => remux?.destroy(), ...urls.map(url => () => URL.revokeObjectURL(url))])
+        for (const clean of [() => audio?.destroy(), () => subtitles?.destroy(), () => remux?.destroy(), ...tracks, ...urls.map(url => () => URL.revokeObjectURL(url))])
             try {
                 await clean();
             }
@@ -789,7 +848,7 @@ export class NativePlayer extends EventTarget {
     }
     async retireSourceResources(request) {
         this.assertLoad(request);
-        const remux = this.remux, audio = this.mpvAudio, subtitles = this.mpvSubs, urls = [...this.ownedObjectURLs.keys(), ...this.captionURLs];
+        const remux = this.remux, audio = this.mpvAudio, subtitles = this.mpvSubs, urls = [...this.ownedObjectURLs.keys(), ...this.captionURLs], tracks = [...this.browserTracks.values()];
         this.remux = undefined;
         this.remuxEnginePath = undefined;
         this.mpvAudio = undefined;
@@ -802,10 +861,11 @@ export class NativePlayer extends EventTarget {
         this.ownedObjectURLs.clear();
         this.captionURLs.clear();
         this.captionAssets.clear();
+        this.browserTracks.clear();
         this.textAttachmentIds = new WeakMap();
         this.shiftedCues = new WeakSet();
-        if (remux || audio || subtitles || urls.length)
-            this.queueSourceCleanup(() => this.cleanupSourceHandles(remux, audio, subtitles, urls));
+        if (remux || audio || subtitles || urls.length || tracks.length)
+            this.queueSourceCleanup(() => this.cleanupSourceHandles(remux, audio, subtitles, urls, tracks.map(track => track.release)));
         await this.awaitSourceCleanup(request);
     }
     acquireObjectURL(file, request) {
@@ -1522,28 +1582,49 @@ export class NativePlayer extends EventTarget {
             Array.from(audio).forEach((t, i) => { t.enabled = i === Number(id) - 1; });
         }
         else {
-            if (this.mpvSubs && (id === 'no' || id === 'auto' || this.mpvSubs.tracks.some(t => t.id === id))) {
-                await this.mpvSubs.select(id);
-                this.selectedSub = id;
+            await this.withControl('subtitles', async (request) => {
+                const subtitles = this.mpvSubs, tracks = subtitles?.tracks;
+                this.assertControl(request);
+                if (subtitles && (id === 'no' || id === 'auto' || tracks.some(track => track.id === id))) {
+                    const select = subtitles.select;
+                    this.assertControl(request);
+                    await this.captionEffect(request, () => { this.assertControl(request); return select.call(subtitles, id); });
+                }
+                else {
+                    const browser = Array.from(this.video.textTracks);
+                    this.assertControl(request);
+                    if (!['auto', 'no'].includes(id) && !browser.some(track => this.textTrackId(track) === id))
+                        throw new Error('Unknown native subtitle track');
+                    if (subtitles) {
+                        const select = subtitles.select;
+                        this.assertControl(request);
+                        await this.captionEffect(request, () => { this.assertControl(request); return select.call(subtitles, 'no'); });
+                    }
+                }
+                this.assertControl(request);
+                this.changeNative({ type: 'caption.selection', request, selected: id });
                 this.applySubtitles();
+                this.assertControl(request);
                 this.refresh();
-                return;
-            }
-            if (!['auto', 'no'].includes(id) && !Array.from(this.video.textTracks).some(t => this.textTrackId(t) === id))
-                throw new Error('Unknown native subtitle track');
-            if (this.mpvSubs)
-                await this.mpvSubs.select('no');
-            this.selectedSub = id;
-            this.applySubtitles();
+            });
+            return;
         }
         this.refresh();
     }
     applySubtitles() {
-        const overlaySelected = !!this.mpvSubs?.tracks.some(t => t.selected);
-        this.mpvSubs?.visible(this.subsVisible && this.selectedSub !== 'no' && overlaySelected);
-        const preferred = this.video.querySelector('track[default]')?.track;
-        const autoIndex = preferred ? Array.from(this.video.textTracks).indexOf(preferred) : Array.from(this.video.textTracks).findIndex(t => !this.captionAssets.has(t));
-        Array.from(this.video.textTracks).forEach((t, i) => { t.mode = this.subsVisible && !overlaySelected && this.selectedSub !== 'no' && (this.selectedSub === 'auto' ? i === autoIndex : this.textTrackId(t) === this.selectedSub) ? 'showing' : 'disabled'; });
+        const epoch = this.native.epoch, revision = this.native.captions.revision, subtitles = this.mpvSubs, current = () => !this.stopped && this.native.epoch === epoch && this.native.captions.revision === revision && this.mpvSubs === subtitles;
+        const overlaySelected = !!subtitles?.tracks.some(t => t.selected), preferred = this.video.querySelector('track[default]')?.track, tracks = Array.from(this.video.textTracks);
+        const plan = selectNativeCaptionPresentation(this.native.captions, { overlaySelected, preferredIndex: preferred ? tracks.indexOf(preferred) : null, tracks: tracks.map(track => ({ id: this.textTrackId(track), caption: this.captionAssets.has(track) })) });
+        if (!current())
+            return;
+        subtitles?.visible(plan.overlay);
+        if (!current())
+            return;
+        for (let index = 0; index < tracks.length; index++) {
+            tracks[index].mode = plan.modes[index];
+            if (!current())
+                return;
+        }
     }
     sinkWait = new Map();
     startSink(request) {
@@ -1588,114 +1669,306 @@ export class NativePlayer extends EventTarget {
         return this.awaitControl(request, pending);
     }
     async setAudioOutputDevice(id) { return this.withControl('output', async (request) => { await this.applyAudioOutput(id, request); this.changeControl(request, { type: 'output', value: id }); }); }
-    async subtitleVisible(visible) { this.assertActive(); this.subsVisible = visible; this.applySubtitles(); this.refresh(); }
+    async subtitleVisible(visible) { return this.withControl('subtitle-visibility', request => { this.changeNative({ type: 'caption.selection', request, visible }); this.applySubtitles(); this.assertControl(request); this.refresh(); }); }
+    captionEffects = new Map();
+    startCaptionEffect(request) {
+        const entry = this.captionEffects.get(request.id);
+        if (!entry)
+            return;
+        const finish = (success, value) => { const decision = this.changeNative({ type: 'caption.effect.finished', request }); this.captionEffects.delete(request.id); const owner = request.kind === 'caption' ? this.captionWait.get(request.id) : this.controlWait.get(request.domain); owner?.cleanups.delete(entry.cancel); success ? entry.resolve(value) : entry.reject(value); if (decision.captionStart)
+            this.startCaptionEffect(decision.captionStart); };
+        try {
+            this.assertNative(request);
+            Promise.resolve(entry.run()).then(value => finish(true, value), error => finish(false, error));
+        }
+        catch (error) {
+            finish(false, error);
+        }
+    }
+    captionEffect(request, run) {
+        this.assertNative(request);
+        const decision = this.changeNative({ type: 'caption.effect.begin', request });
+        if (!decision.accepted)
+            return Promise.reject(new Error('Native caption effect was retired'));
+        const owner = request.kind === 'caption' ? this.captionWait.get(request.id) : this.controlWait.get(request.domain);
+        const work = new Promise((resolve, reject) => { const cancel = (error) => { reject(error); if (this.native.captions.effect?.id !== request.id)
+            this.captionEffects.delete(request.id); owner.cleanups.delete(cancel); }; this.captionEffects.set(request.id, { request, run, resolve: value => resolve(value), reject, cancel }); owner.cleanups.add(cancel); if (decision.captionStart)
+            this.startCaptionEffect(decision.captionStart); });
+        return request.kind === 'caption' ? this.awaitCaption(request, work) : this.awaitControl(request, work);
+    }
+    captionWait = new Map();
+    assertCaption(request) { this.assertNative(request); }
+    async awaitCaption(request, value) {
+        const observed = Promise.resolve(value);
+        void observed.catch(() => { });
+        this.assertCaption(request);
+        const pending = this.captionWait.get(request.id);
+        if (!pending)
+            throw new Error('Native caption was retired');
+        const result = await Promise.race([observed, pending.interrupted]);
+        this.assertCaption(request);
+        return result;
+    }
+    withCaption(kind, attachmentId, work) {
+        this.assertActive();
+        const now = performance.now();
+        this.assertActive();
+        const request = this.changeNative({ type: 'caption.begin', kind, attachmentId, now }).request;
+        let reject, cancelled = false;
+        const interrupted = new Promise((_, no) => { reject = no; });
+        void interrupted.catch(() => { });
+        const cleanups = new Set();
+        const cancel = (error) => { if (cancelled)
+            return; cancelled = true; reject(error); for (const cleanup of [...cleanups])
+            cleanup(error); }, entry = { request, interrupted, cancel, cleanups };
+        this.captionWait.set(request.id, entry);
+        this.cancelers.add(cancel);
+        const finish = () => { this.changeNative({ type: 'caption.finish', request }); this.captionWait.delete(request.id); this.cancelers.delete(cancel); };
+        try {
+            return this.awaitCaption(request, work(request)).catch(error => { this.changeNative({ type: 'caption.remove', request }); throw error; }).finally(finish);
+        }
+        catch (error) {
+            this.changeNative({ type: 'caption.remove', request });
+            finish();
+            return Promise.reject(error);
+        }
+    }
+    releaseBrowserTrack(request) { const owned = this.browserTracks.get(request.id); if (!owned)
+        return; this.browserTracks.delete(request.id); this.captionAssets.delete(owned.element.track); this.textAttachmentIds.delete(owned.element.track); owned.release(); }
+    async captionCleanup(request) { for (;;) {
+        const cleanup = this.sourceCleanup;
+        await this.awaitCaption(request, cleanup);
+        if (this.sourceCleanup === cleanup)
+            return;
+    } }
     async addSubtitle(asset) {
         this.assertActive();
         const cues = plainVTT(asset);
-        if (cues) {
-            const url = URL.createObjectURL(new Blob([asset.bytes], { type: 'text/vtt' }));
-            this.captionURLs.add(url);
+        if (cues)
+            return this.withCaption('browser-file', asset.attachmentId, async (request) => {
+                let url;
+                try {
+                    url = URL.createObjectURL(new Blob([asset.bytes], { type: 'text/vtt' }));
+                    if (!nativeRequestCurrent(this.native, request)) {
+                        URL.revokeObjectURL(url);
+                        url = undefined;
+                        this.assertCaption(request);
+                    }
+                    this.captionURLs.add(url);
+                    const track = await this.loadTextTrack({ src: url, label: asset.label, language: asset.language, default: false }, request, true);
+                    track.track.mode = 'hidden';
+                    this.assertCaption(request);
+                    const loaded = Array.from(track.track.cues ?? []), bias = this.remux?.timelineBias ?? 0, facts = loaded.map(cue => ({ start: cue.startTime, end: cue.endTime, text: cue.text }));
+                    this.assertCaption(request);
+                    if (!nativeCaptionFidelity(cues, facts, bias))
+                        throw new BrowserCaptionUnsupported('Browser WebVTT cue fidelity verification failed');
+                    this.changeNative({ type: 'caption.accept', request, publicId: null, select: !!asset.select });
+                    this.captionAssets.set(track.track, { asset, request });
+                    if (asset.select && nativeCaptionMaySelect(this.native.captions, request)) {
+                        const old = Array.from(this.video.querySelectorAll('track'));
+                        this.assertCaption(request);
+                        for (const value of old) {
+                            value.default = false;
+                            this.assertCaption(request);
+                        }
+                        track.default = true;
+                        this.assertCaption(request);
+                    }
+                    this.applySubtitles();
+                    this.assertCaption(request);
+                    this.refresh();
+                }
+                catch (error) {
+                    this.changeNative({ type: 'caption.remove', request });
+                    try {
+                        this.releaseBrowserTrack(request);
+                    }
+                    finally {
+                        if (url && this.captionURLs.delete(url))
+                            URL.revokeObjectURL(url);
+                    }
+                    throw error;
+                }
+            });
+        const rejection = nativeOverlayAdmission({ adapted: this.adapted, adaptation: this.audioAdaptation, enabled: this.nativeASS, format: asset.format });
+        if (rejection)
+            throw new Error(rejection);
+        return this.withCaption('overlay', asset.attachmentId, request => this.captionEffect(request, async () => {
+            await this.captionCleanup(request);
+            let subtitles = this.mpvSubs, created = false;
+            if (!subtitles) {
+                const source = this.subtitleSource;
+                if (!source)
+                    throw new Error('Missing subtitle media source');
+                const { NativeMpvSubtitles } = await this.awaitCaption(request, loadProviderModule('mpv-subtitles', this.assetBase));
+                let acquired;
+                acquired = new NativeMpvSubtitles(this.video, () => this.sourceTime(), this.assetBase, this.fonts, source, error => { if (!this.stopped && this.native.epoch === request.epoch && this.mpvSubs === acquired)
+                    this.emit('error', error); }, undefined, this.remuxRuntime);
+                if (!nativeRequestCurrent(this.native, request)) {
+                    await this.queueSourceCleanup(() => this.cleanupSourceHandles(undefined, undefined, acquired, []));
+                    this.assertCaption(request);
+                }
+                this.mpvSubs = subtitles = acquired;
+                created = true;
+            }
+            const selected = subtitles;
             try {
-                const track = await this.loadTextTrack({ src: url, label: asset.label, language: asset.language, default: false }, true);
-                // Disabled tracks hide their cue list; inspect before restoring selection.
-                track.track.mode = 'hidden';
-                const loaded = Array.from(track.track.cues ?? []), bias = this.remux?.timelineBias ?? 0;
-                if (loaded.length !== cues.length || loaded.some((c, i) => Math.abs(c.startTime - bias - cues[i].start) > 1e-6 || Math.abs(c.endTime - bias - cues[i].end) > 1e-6 || c.text !== cues[i].text)) {
-                    track.remove();
-                    throw new BrowserCaptionUnsupported('Browser WebVTT cue fidelity verification failed');
-                }
-                this.captionAssets.set(track.track, { asset, index: this.captionAssets.size + 1 });
-                if (asset.select) {
-                    for (const old of Array.from(this.video.querySelectorAll('track')))
-                        old.default = false;
-                    track.default = true;
-                }
+                await this.awaitCaption(request, selected.ready);
+                if (created)
+                    selected.tracks = [];
+                this.assertCaption(request);
+                const id = await selected.add({ ...asset, select: !!asset.select && nativeCaptionMaySelect(this.native.captions, request) });
+                this.assertCaption(request);
+                this.changeNative({ type: 'caption.accept', request, publicId: id, select: !!asset.select });
                 this.applySubtitles();
+                this.assertCaption(request);
                 this.refresh();
-                return;
             }
             catch (error) {
-                URL.revokeObjectURL(url);
-                this.captionURLs.delete(url);
+                if (created && this.mpvSubs === selected) {
+                    this.mpvSubs = undefined;
+                    await this.queueSourceCleanup(() => this.cleanupSourceHandles(undefined, undefined, selected, []));
+                }
                 throw error;
             }
-        }
-        if (this.adapted && this.audioAdaptation === 'opus')
-            throw Error('Native Opus plus external subtitles is not qualified');
-        if (!this.nativeASS || !['ass', 'ssa', 'srt', 'vtt'].includes(asset.format))
-            throw Error('Native external subtitles require explicit experimental admission');
-        const created = !this.mpvSubs;
-        if (created) {
-            if (!this.subtitleSource)
-                throw Error('Missing subtitle media source');
-            const { NativeMpvSubtitles } = await loadProviderModule('mpv-subtitles', this.assetBase);
-            this.assertActive();
-            this.mpvSubs = new NativeMpvSubtitles(this.video, () => this.sourceTime(), this.assetBase, this.fonts, this.subtitleSource, error => { if (!this.stopped)
-                this.emit('error', error); }, undefined, this.remuxRuntime);
-        }
-        try {
-            await this.mpvSubs.ready;
-            this.assertActive();
-            if (created)
-                this.mpvSubs.tracks = [];
-            const id = await this.mpvSubs.add(asset);
-            this.assertActive();
-            if (asset.select)
-                this.selectedSub = id;
-        }
-        catch (error) {
-            if (created) {
-                await this.mpvSubs?.destroy();
-                this.mpvSubs = undefined;
-            }
-            throw error;
-        }
+        }));
+    }
+    async addTextTrack(source, attachmentId) { return this.withCaption('browser-url', attachmentId, async (request) => { try {
+        const track = await this.loadTextTrack(source, request, false);
+        this.assertCaption(request);
+        this.changeNative({ type: 'caption.accept', request, publicId: this.textTrackId(track.track), select: false });
         this.applySubtitles();
+        this.assertCaption(request);
         this.refresh();
     }
-    async addTextTrack(source, attachmentId) { await this.loadTextTrack(source, false, attachmentId); }
-    async loadTextTrack(source, ownedCaption = false, attachmentId) {
-        this.assertActive();
+    catch (error) {
+        this.changeNative({ type: 'caption.remove', request });
+        this.releaseBrowserTrack(request);
+        throw error;
+    } }); }
+    async loadTextTrack(source, request, ownedCaption) {
+        this.assertCaption(request);
         const url = new URL(source.src, location.href);
         if (!['http:', 'https:', 'blob:'].includes(url.protocol))
             throw new Error('Text tracks require HTTP, HTTPS or a blob URL');
         const track = document.createElement('track');
+        if (!nativeRequestCurrent(this.native, request)) {
+            track.remove();
+            this.assertCaption(request);
+        }
+        const shift = () => { if (nativeRequestCurrent(this.native, request))
+            this.shiftTextTrack(track, request); };
+        let released = false;
+        const release = () => { if (released)
+            return; released = true; let error; try {
+            track.removeEventListener('load', shift);
+        }
+        catch (failure) {
+            error = failure;
+        } try {
+            track.remove();
+        }
+        catch (failure) {
+            error ??= failure;
+        } if (error !== undefined)
+            throw error; };
+        this.browserTracks.set(request.id, { element: track, release });
+        const textTrack = track.track;
+        this.assertCaption(request);
+        if (nativeCaptionAttachment(this.native.captions, request.id)?.attachmentId)
+            this.textAttachmentIds.set(textTrack, request);
         track.kind = 'subtitles';
+        this.assertCaption(request);
         track.label = source.label;
+        this.assertCaption(request);
         track.srclang = source.language || '';
+        this.assertCaption(request);
         track.default = !!source.default;
+        this.assertCaption(request);
         track.src = url.href;
-        if (attachmentId)
-            this.textAttachmentIds.set(track.track, attachmentId);
-        await new Promise((resolve, reject) => {
-            const finish = (error) => { clearTimeout(timer); track.removeEventListener('load', loaded); track.removeEventListener('error', failed); this.cancelers.delete(cancel); if (error) {
-                track.remove();
-                reject(error);
+        this.assertCaption(request);
+        await this.awaitCaption(request, new Promise((resolve, reject) => {
+            let settled = false, timer;
+            const owner = this.captionWait.get(request.id);
+            const finish = (error) => { if (settled)
+                return; settled = true; const timeout = timer; timer = undefined; owner.cleanups.delete(cancel); for (const cleanup of [() => clearTimeout(timeout?.handle), () => track.removeEventListener('load', loaded), () => track.removeEventListener('error', failed)])
+                try {
+                    cleanup();
+                }
+                catch (failure) {
+                    error ??= failure;
+                } error === undefined ? resolve() : reject(error); };
+            const loaded = () => { try {
+                this.assertCaption(request);
+                shift();
+                this.assertCaption(request);
+                finish();
             }
-            else
-                resolve(); };
-            const loaded = () => { this.shiftTextTrack(track); finish(); };
-            const failed = () => finish(ownedCaption ? new BrowserCaptionUnsupported('Browser cannot load the owned WebVTT caption') : new Error('Native text track failed to load'));
-            const cancel = (error) => finish(error);
-            const timer = setTimeout(() => finish(new Error('Native text track load timed out')), 15000);
-            this.cancelers.add(cancel);
-            track.addEventListener('load', loaded);
-            track.addEventListener('error', failed);
-            this.video.append(track);
-            track.addEventListener('load', () => this.shiftTextTrack(track));
-            track.track.mode = 'hidden';
-        });
-        this.applySubtitles();
-        this.refresh();
+            catch (error) {
+                finish(error);
+            } }, failed = () => finish(ownedCaption ? new BrowserCaptionUnsupported('Browser cannot load the owned WebVTT caption') : new Error('Native text track failed to load')), cancel = (error) => finish(error);
+            const arm = (delay) => { const registration = {}; timer = registration; const acquired = setTimeout(() => { if (timer !== registration)
+                return; timer = undefined; expired(); }, delay); registration.handle = acquired; if (settled || timer !== registration || !nativeRequestCurrent(this.native, request)) {
+                clearTimeout(acquired);
+                this.assertCaption(request);
+            } };
+            const expired = () => { try {
+                const decision = this.changeNative({ type: 'caption.deadline', request, now: performance.now() });
+                if (!decision.accepted) {
+                    finish(new Error('Native caption was retired'));
+                    return;
+                }
+                if (decision.remaining !== undefined) {
+                    arm(decision.remaining);
+                    return;
+                }
+                finish(new Error('Native text track load timed out'));
+            }
+            catch (error) {
+                finish(error);
+            } };
+            owner.cleanups.add(cancel);
+            try {
+                const now = performance.now();
+                this.assertCaption(request);
+                const deadline = this.changeNative({ type: 'caption.deadline', request, now });
+                arm(deadline.remaining ?? 0);
+                this.assertCaption(request);
+                if (settled)
+                    return;
+                for (const [name, listener] of [['load', loaded], ['error', failed], ['load', shift]]) {
+                    track.addEventListener(name, listener);
+                    if (settled || !nativeRequestCurrent(this.native, request)) {
+                        track.removeEventListener(name, listener);
+                        this.assertCaption(request);
+                        return;
+                    }
+                }
+                this.video.append(track);
+                this.assertCaption(request);
+                track.track.mode = 'hidden';
+                this.assertCaption(request);
+            }
+            catch (error) {
+                finish(error);
+            }
+        }));
+        this.assertCaption(request);
         return track;
     }
-    shiftTextTrack(track) {
-        if (!this.remux)
+    shiftTextTrack(track, request) {
+        this.assertCaption(request);
+        const remux = this.remux;
+        if (!remux)
             return;
-        for (const cue of Array.from(track.track.cues ?? []))
+        const bias = remux.timelineBias, cues = Array.from(track.track.cues ?? []);
+        this.assertCaption(request);
+        for (const cue of cues)
             if (!this.shiftedCues.has(cue)) {
-                cue.startTime += this.remux.timelineBias;
-                cue.endTime += this.remux.timelineBias;
+                cue.startTime += bias;
+                this.assertCaption(request);
+                cue.endTime += bias;
+                this.assertCaption(request);
                 this.shiftedCues.add(cue);
             }
     }
@@ -1712,7 +1985,7 @@ export class NativePlayer extends EventTarget {
     }
     async dispose() {
         this.changeNative({ type: 'stop' });
-        const remux = this.remux, audio = this.mpvAudio, subtitles = this.mpvSubs, urls = [...new Set([...this.ownedObjectURLs.keys(), ...this.captionURLs])];
+        const remux = this.remux, audio = this.mpvAudio, subtitles = this.mpvSubs, urls = [...new Set([...this.ownedObjectURLs.keys(), ...this.captionURLs])], tracks = [...this.browserTracks.values()];
         const gainSource = this.gainSource, gainNode = this.gainNode, gainContext = this.gainContext, listeners = this.listeners;
         const load = this.loadWait, verification = this.verificationCancel, seek = this.seekCancel, cancelers = [...this.cancelers];
         this.remux = undefined;
@@ -1734,6 +2007,7 @@ export class NativePlayer extends EventTarget {
         this.ownedObjectURLs.clear();
         this.captionURLs.clear();
         this.captionAssets.clear();
+        this.browserTracks.clear();
         this.cancelers.clear();
         const errors = [], destroyed = new Error('Player is destroyed');
         for (const cancel of [() => load?.cancel(destroyed), () => verification?.cancel(destroyed), () => seek?.cancel(destroyed), ...cancelers.map(cancel => () => cancel(destroyed))])
@@ -1743,7 +2017,7 @@ export class NativePlayer extends EventTarget {
             catch (error) {
                 errors.push(error);
             }
-        this.queueSourceCleanup(() => this.cleanupSourceHandles(remux, audio, subtitles, urls));
+        this.queueSourceCleanup(() => this.cleanupSourceHandles(remux, audio, subtitles, urls, tracks.map(track => track.release)));
         for (const clean of [() => this.drainSourceCleanup(), () => gainSource?.disconnect(), () => gainNode?.disconnect(), () => gainContext?.close(), ...listeners, () => this.video.pause(), () => this.video.removeAttribute('src'), () => this.video.replaceChildren(), () => this.video.load()])
             try {
                 await clean();

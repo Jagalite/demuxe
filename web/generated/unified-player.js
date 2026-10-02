@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import { resourceAvailable } from './internal/machine/resource-ledger.js';
+import { ResourceRegistry } from './internal/effects/resources.js';
 import { privatePlaybackRejection, readPrivatePlaybackAssets } from './internal/private-playback-admission.js';
 import { providerDeploymentEnabled, qualifiedProviderIdentities } from './internal/provider-build.js';
 import { ProviderRuntime } from './internal/provider-runtime.js';
@@ -106,6 +108,63 @@ export class Player extends EventTarget {
     get operationStarted() { return this.control.publication.operationStart?.now ?? 0; }
     get publicSelections() { return new Map(Object.entries(this.candidatePreferences.publicSelections)); }
     control = initialPlayerControl();
+    resourceRegistry;
+    sessionResources = new WeakMap();
+    sessionDisposals = new WeakMap();
+    sessionCleanups = new WeakMap();
+    sessionListeners = new WeakMap();
+    get ownedResources() { return this.resourceRegistry ??= new ResourceRegistry({ store: { read: () => this.control.resources, dispatch: input => this.dispatchControl({ type: 'resource.event', input }).resource } }); }
+    registerSession(session, id) {
+        const token = { id: `resource:${id}`, scope: `scope:${id}` };
+        const completion = this.ownedResources.register({ id: token.id, scopeKey: token.scope, kind: 'backend-session', ownership: 'owned', value: session.backend, release: () => this.releaseSession(session) });
+        this.sessionResources.set(session, token);
+        Object.defineProperty(session, 'retired', { configurable: true, get: () => !resourceAvailable(this.control.resources, token.id) });
+        return completion;
+    }
+    releaseSession(session) {
+        const previous = this.sessionDisposals.get(session);
+        if (previous)
+            return previous;
+        let resolve, reject;
+        const done = new Promise((yes, no) => { resolve = yes; reject = no; });
+        this.sessionDisposals.set(session, done);
+        if (!this.sessionResources.has(session))
+            session.retired = true;
+        void (async () => {
+            let failed = false, failure;
+            for (const remove of this.sessionListeners.get(session)?.splice(0) ?? [])
+                try {
+                    remove();
+                }
+                catch (error) {
+                    if (!failed) {
+                        failed = true;
+                        failure = error;
+                    }
+                }
+            try {
+                await session.backend.destroy();
+            }
+            catch (error) {
+                if (!failed) {
+                    failed = true;
+                    failure = error;
+                }
+            }
+            try {
+                session.surface.remove();
+            }
+            catch (error) {
+                if (!failed) {
+                    failed = true;
+                    failure = error;
+                }
+            }
+            if (failed)
+                throw failure;
+        })().then(resolve, reject);
+        return done;
+    }
     controlTrace = createTrace(256);
     get transitionTrace() { return selectTrace(this.controlTrace); }
     operationResources = new Map();
@@ -146,7 +205,7 @@ export class Player extends EventTarget {
         if (running) {
             operation?.abort();
             inspection?.abort();
-            void candidate?.backend.destroy().catch(() => { });
+            void this.dispose(candidate).catch(() => { });
         }
     }
     schedulePromotion() {
@@ -856,7 +915,7 @@ export class Player extends EventTarget {
         controller.signal.addEventListener('abort', () => { this.dispatchControl({ type: 'operation.cancel', id }); }, { once: true });
         const cancel = () => { controller.abort(); if (this.activeOperation?.id === id) {
             this.inspection?.abort();
-            void this.candidate?.backend.destroy().catch(() => { });
+            void this.dispose(this.candidate).catch(() => { });
         } };
         this.operationResources.set(id, { controller, detachCallerAbort: () => signal?.removeEventListener('abort', cancel) });
         signal?.addEventListener('abort', cancel, { once: true });
@@ -914,16 +973,25 @@ export class Player extends EventTarget {
             signal.removeEventListener('abort', cancel);
         }
     }
-    async dispose(session) {
+    dispose(session) {
         if (!session)
-            return;
-        session.retired = true;
+            return Promise.resolve();
+        const previous = this.sessionCleanups.get(session);
+        if (previous)
+            return previous;
+        let resolve, reject;
+        const completion = new Promise((yes, no) => { resolve = yes; reject = no; });
+        this.sessionCleanups.set(session, completion);
+        const failed = (error) => reject(error instanceof AggregateError && error.errors.length === 1 ? error.errors[0] : error);
         try {
-            await session.backend.destroy();
+            const token = this.sessionResources.get(session);
+            const work = token ? this.ownedResources.retireScope(token.scope) : this.releaseSession(session);
+            void work.then(resolve, failed);
         }
-        finally {
-            session.surface.remove();
+        catch (error) {
+            failed(error);
         }
+        return completion;
     }
     /** Prepare immutable engine code and fonts without opening media or audio devices. */
     get preparationReady() { return this.preparationTask; }
@@ -948,6 +1016,9 @@ export class Player extends EventTarget {
         return this.preparationTask = this.providerRuntime ? this.providerRuntime.load().then(warm, warm) : warm();
     }
     async create(mode, aid = 'auto', adaptation, forcePreparation = false, planId, loadTimeoutMs) {
+        const sessionId = this.control.source.candidate?.session;
+        if (sessionId === undefined)
+            throw new PlayerError('ABORTED', 'Source allocation retired');
         let backend;
         const recipe = executionRecipe(planId);
         const backendKind = recipe?.backend ?? (mode === 'native' ? 'NativePlayer' : 'WasmPlayer');
@@ -960,7 +1031,14 @@ export class Player extends EventTarget {
         const engine = mode === 'hybrid' ? 'engine-hybrid' : this.softwarePresenter === 'rgb' ? 'engine-software-full' : 'engine-software-yuv';
         const prepared = mode === 'native' || backendKind === 'PrivateSoftwarePlayer' ? undefined : await this.interruptible(this.providerRuntime ? Promise.all([mode === 'software' ? Promise.resolve(undefined) : this.providerRuntime.module(`web/${engine}/player.wasm`), this.providerRuntime.bytes('fixtures/DejaVuSans.ttf')]).then(([module, font]) => ({ module, font })) : this.preparation?.readyEngine(engine) ?? Promise.resolve(undefined));
         this.assertOperation();
-        this.root.append(surface);
+        try {
+            this.root.append(surface);
+            this.assertOperation();
+        }
+        catch (error) {
+            surface.remove();
+            throw error;
+        }
         try {
             const subtitleTracks = this.sourceInspection?.probe.tracks.filter(t => t.type === 'sub') ?? [];
             const defaultSubtitleStreamIndex = (subtitleTracks.find(t => t.default) ?? subtitleTracks[0])?.index;
@@ -970,16 +1048,30 @@ export class Player extends EventTarget {
             surface.remove();
             throw error;
         }
-        backend.setWatchdogs?.(this.watchdogConfiguration);
         const session = { backend, surface };
-        this.observeBackend(session, this.control.source.candidate.session);
-        return session;
+        try {
+            await this.registerSession(session, sessionId);
+            this.assertOperation();
+            if (sessionAuthority(this.control, sessionId) === 'retired')
+                throw new PlayerError('ABORTED', 'Source allocation retired');
+            backend.setWatchdogs?.(this.watchdogConfiguration);
+            this.assertOperation();
+            this.observeBackend(session, sessionId);
+            this.assertOperation();
+            return session;
+        }
+        catch (error) {
+            await this.dispose(session).catch(() => { });
+            throw error;
+        }
     }
     observeBackend(session, sessionEpoch) {
         const backend = session.backend;
         let observationSequence = 0;
-        for (const type of ['mpv', 'error', 'log', 'output', 'source', 'activity'])
-            backend.addEventListener(type, event => {
+        const listeners = [];
+        this.sessionListeners.set(session, listeners);
+        for (const type of ['mpv', 'error', 'log', 'output', 'source', 'activity']) {
+            const listener = (event) => {
                 if (session.retired || sessionAuthority(this.control, sessionEpoch) === 'retired')
                     return;
                 const detail = event.detail;
@@ -1034,7 +1126,14 @@ export class Player extends EventTarget {
                     if (this.current === session && sessionAuthority(this.control, sessionEpoch) === 'accepted')
                         this.emit(type, detail);
                 }
-            });
+            };
+            backend.addEventListener(type, listener);
+            if (session.retired || sessionAuthority(this.control, sessionEpoch) === 'retired') {
+                backend.removeEventListener(type, listener);
+                throw new PlayerError('ABORTED', 'Session listener allocation retired');
+            }
+            listeners.push(() => backend.removeEventListener(type, listener));
+        }
     }
     async settled(session, mode, target) {
         const probe = this.sourceInspection?.probe, sessionId = session === this.candidate ? this.control.source.candidate?.session : session === this.current ? this.control.source.acceptedSession : null;
@@ -2804,7 +2903,7 @@ export class Player extends EventTarget {
         this.activeOperation?.controller.abort();
         this.inspection?.abort();
         this.stopWatchdogs();
-        const cleanup = Promise.all([this.#previewController.drain(), ...[this.candidate, this.current].map(s => s?.backend.destroy().catch(() => { }))]);
+        const cleanup = Promise.all([this.#previewController.drain(), ...[this.candidate, this.current].map(s => this.dispose(s).catch(() => { }))]);
         this.closing = this.enqueue(async () => { await cleanup; await this.dispose(this.current); this.playbackRange = null; this.loopPolicy = false; this.current = undefined; this.candidate = undefined; this.source = undefined; this.dispatchControl({ type: 'source.clear' }); this.sourceInspection = undefined; this.losslessInspection = undefined; this.sessionError = null; }, 'closing').finally(() => { this.closing = undefined; });
         return this.closing;
     }
@@ -2823,7 +2922,7 @@ export class Player extends EventTarget {
         this.inspection?.abort();
         this.stopWatchdogs();
         this.destruction = (async () => {
-            await Promise.all([providerCleanup, presentationCleanup, previewCleanup, ...[this.candidate, this.current].map(session => session?.backend.destroy().catch(() => { }))]);
+            await Promise.all([providerCleanup, presentationCleanup, previewCleanup, ...[this.candidate, this.current].map(session => this.dispose(session).catch(() => { }))]);
             await this.queue;
             try {
                 await this.dispose(this.current);

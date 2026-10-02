@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {transitionResourceLedger,type ResourceLedgerInput,type ResourceLedgerDecision} from './resource-ledger.js';
 import {transitionPlayerReadiness,retirePlayerReadiness,type PlayerReadinessInput,type PlayerReadinessEffect} from './player-readiness.js';
 import {transitionPlayerAction,retirePlayerActions,type PlayerActionInput,type PlayerActionEffect} from './player-actions.js';
 import {transitionPlayerPublication,acceptPlayerPublication,clearPlayerPublication,retirePlayerPublication,type PlayerPublicationInput} from './player-publication.js';
@@ -17,16 +18,27 @@ import {clearRouteEvidence,retireRouteEvidence} from './route-evidence.js';
 import {transitionInspection} from './route-inspection.js';
 import type {PlayerControlState} from './state.js';
 export type SessionObservation=Readonly<{type:'playback.sample';session:number;sequence:number;observation:'waiting'|'playing'|'time'|'pause';value?:number|boolean;publishedTime?:number}>;
-export type PlayerControlInput=PlayerReadinessInput|PlayerActionInput|PlayerPublicationInput|PlayerMonitorInput|RoutingInput|AttachmentInput|BoundaryInput|OperationInput|PlaybackInput|SettingsInput|SettingTransactionInput|SourceInput|SessionObservation;
-export type PlayerControlDecision<Effect=SettingEffect|BoundaryEffect|AttachmentEffect>=Readonly<{state:PlayerControlState;accepted:boolean;id?:number;reason?:string;message?:string;retire:readonly number[];effects?:readonly Effect[];publication?:PlayerProjection;actionEffects?:readonly PlayerActionEffect[];readinessEffects?:readonly PlayerReadinessEffect[]}>;
+export type PlayerControlInput=Readonly<{type:'resource.event';input:ResourceLedgerInput}>|PlayerReadinessInput|PlayerActionInput|PlayerPublicationInput|PlayerMonitorInput|RoutingInput|AttachmentInput|BoundaryInput|OperationInput|PlaybackInput|SettingsInput|SettingTransactionInput|SourceInput|SessionObservation;
+export type PlayerControlDecision<Effect=SettingEffect|BoundaryEffect|AttachmentEffect>=Readonly<{state:PlayerControlState;accepted:boolean;resource?:ResourceLedgerDecision;id?:number;reason?:string;message?:string;retire:readonly number[];effects?:readonly Effect[];publication?:PlayerProjection;actionEffects?:readonly PlayerActionEffect[];readinessEffects?:readonly PlayerReadinessEffect[]}>;
 /** Publication bookkeeping does not invalidate an otherwise current capture.
  * Every domain change still advances the same composed authority revision. */
 export function transitionPlayer(state:PlayerControlState,input:PlayerControlInput):PlayerControlDecision{
-  const decision=reducePlayer(state,input);
-  const bookkeeping=['publication.schedule','publication.scheduled','publication.begin','publication.prepare','publication.commit'].includes(input.type);
+  let decision=reducePlayer(state,input);
+  if(decision.state!==state&&input.type!=='resource.event'){
+    let resources=decision.state.resources;
+    const candidates=[state.source.acceptedSession,state.source.candidate?.session];
+    const cancelled=(input.type==='operation.cancel'||input.type==='operation.finish'||input.type==='operation.release')&&input.id===state.operations.active;
+    for(const session of new Set(candidates))if(session!==null&&session!==undefined&&(sessionAuthority(decision.state,session)==='retired'||cancelled&&session===state.source.candidate?.session&&session!==decision.state.source.acceptedSession))resources=transitionResourceLedger(resources,{type:'retire-scope',scopeKey:`scope:${session}`}).state;
+    if(input.type==='operation.retire'&&input.terminal)resources=transitionResourceLedger(resources,{type:'dispose'}).state;
+    if(resources!==decision.state.resources)decision=Object.freeze({...decision,state:Object.freeze({...decision.state,resources})});
+  }
+  const bookkeeping=input.type==='resource.event'||['publication.schedule','publication.scheduled','publication.begin','publication.prepare','publication.commit'].includes(input.type);
   return decision.state===state||bookkeeping?decision:Object.freeze({...decision,state:Object.freeze({...decision.state,captureRevision:state.captureRevision+1})});
 }
 function reducePlayer(state:PlayerControlState,input:PlayerControlInput):PlayerControlDecision{
+  if(input.type==='resource.event'){
+    const resource=transitionResourceLedger(state.resources,input.input);return Object.freeze({state:resource.state===state.resources?state:Object.freeze({...state,revision:state.revision+1,resources:resource.state}),accepted:resource.accepted,reason:resource.reason,resource,retire:Object.freeze([])});
+  }
   if(isReadinessInput(input))return transitionPlayerReadiness(state,input);
   if(isActionInput(input))return transitionPlayerAction(state,input);
   if(isPublicationInput(input))return transitionPlayerPublication(state,input);

@@ -173,6 +173,8 @@ Shaka backend lifecycle, accepted buffering/quality/text intent and external cap
 
 Native control domains share the existing backend epoch and serial. Playback still invokes media play on the calling stack when eligible, while the pure output slot serializes gain setup and output-device changes. Accepted device state is checked against physical sink completion, including supersession and rejection. Wasm buffering, gain, volume, watchdog and timing acknowledgments now compose within its existing lifecycle; buffers and graph handles stay in the adapter.
 
+Production backend/session cleanup now uses a pure resource ledger inside the Player boundary. Retirement makes resources unavailable before physical cleanup, listener acquisition after retirement is undone, and repeated session disposal joins one cached promise. The five-second cleanup deadline records detachment without claiming physical release; a late backend completion updates that accounting. Monotonic resource/scope identities let completed records be discarded without resurrection. This opt-in raw registry no longer resolves repeated release of a compacted ID; Player session disposal retains its original promise and rejection, while standalone opaque registries keep their original semantics.
+
 ## Gesture-sensitive effects
 
 Source: [Player.play](../src/unified-player.ts#L1461), [presentation requests](../src/presentation.ts#L31), [output picker](../src/player/advanced-settings.ts#L146).

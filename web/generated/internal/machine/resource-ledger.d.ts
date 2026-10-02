@@ -23,6 +23,11 @@ export type ResourceCleanupFailure = Readonly<{
 }>;
 export type ResourceLedgerState = Readonly<{
     limits: ResourceLedgerLimits;
+    monotonic: boolean;
+    resourceWatermark: number;
+    scopeWatermark: number;
+    registeredTotal: number;
+    releasedTotal: number;
     disposed: boolean;
     resources: readonly ResourceMetadata[];
     scopes: readonly Readonly<{
@@ -70,7 +75,9 @@ export type ResourceLedgerDecision = Readonly<{
     ids?: readonly string[];
     scopeKeys?: readonly string[];
 }>;
-export declare function createResourceLedger(options?: Partial<ResourceLedgerLimits>): ResourceLedgerState;
+export declare function createResourceLedger(options?: Partial<ResourceLedgerLimits> & {
+    monotonic?: boolean;
+}): ResourceLedgerState;
 export declare function resourceMetadata(state: ResourceLedgerState, id: string): ResourceMetadata | undefined;
 export declare function resourceScopeRetired(state: ResourceLedgerState, key: string): boolean;
 export declare function resourceAvailable(state: ResourceLedgerState, id: string): boolean;

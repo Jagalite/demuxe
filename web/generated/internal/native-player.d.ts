@@ -40,6 +40,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private subtitleSource?;
     private textAttachmentIds;
     private captionAssets;
+    private browserTracks;
     private captionURLs;
     private get outputDevice();
     private get buffering();
@@ -71,8 +72,8 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private objectURL?;
     private ownedObjectURLs;
     private sourceCleanup;
-    private selectedSub;
-    private subsVisible;
+    private get selectedSub();
+    private get subsVisible();
     private cancelers;
     private listeners;
     private watchdogs;
@@ -93,6 +94,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | "flac24" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined, buffering?: BufferingPolicy, loadTimeoutMs?: number, defaultSubtitleStreamIndex?: number | undefined, remuxRuntime?: 'pthread' | 'jspi' | 'asyncify', providerRuntime?: ProviderRuntimeAssets | undefined);
     private emit;
     private assertActive;
+    private eventWaits;
     private wait;
     private textTrackId;
     private refresh;
@@ -314,6 +316,15 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private applyAudioOutput;
     setAudioOutputDevice(id: string): Promise<void>;
     subtitleVisible(visible: boolean): Promise<void>;
+    private captionEffects;
+    private startCaptionEffect;
+    private captionEffect;
+    private captionWait;
+    private assertCaption;
+    private awaitCaption;
+    private withCaption;
+    private releaseBrowserTrack;
+    private captionCleanup;
     addSubtitle(asset: SubtitleAsset): Promise<void>;
     addTextTrack(source: TextTrackSource, attachmentId?: string): Promise<void>;
     private loadTextTrack;

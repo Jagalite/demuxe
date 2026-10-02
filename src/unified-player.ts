@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import {resourceAvailable} from './internal/machine/resource-ledger.js';
+import {ResourceRegistry} from './internal/effects/resources.js';
 import {privatePlaybackRejection,readPrivatePlaybackAssets,type PrivatePlaybackAssets} from './internal/private-playback-admission.js';
 import {providerDeploymentEnabled, qualifiedProviderIdentities} from './internal/provider-build.js';
 import {ProviderRuntime} from './internal/provider-runtime.js';
@@ -119,6 +121,27 @@ export class Player extends EventTarget {
   private get operationStarted(){return this.control.publication.operationStart?.now??0;}
   private get publicSelections():ReadonlyMap<TrackType,string>{return new Map(Object.entries(this.candidatePreferences.publicSelections) as [TrackType,string][]);}
   private control=initialPlayerControl();
+  private resourceRegistry?:ResourceRegistry;
+  private sessionResources=new WeakMap<Session,{id:string;scope:string}>();
+  private sessionDisposals=new WeakMap<Session,Promise<void>>();
+  private sessionCleanups=new WeakMap<Session,Promise<void>>();
+  private sessionListeners=new WeakMap<Session,Array<()=>void>>();
+  private get ownedResources(){return this.resourceRegistry??=new ResourceRegistry({store:{read:()=>this.control.resources,dispatch:input=>this.dispatchControl({type:'resource.event',input}).resource!}});}
+  private registerSession(session:Session,id:number){
+    const token={id:`resource:${id}`,scope:`scope:${id}`};
+    const completion=this.ownedResources.register({id:token.id,scopeKey:token.scope,kind:'backend-session',ownership:'owned',value:session.backend,release:()=>this.releaseSession(session)});
+    this.sessionResources.set(session,token);Object.defineProperty(session,'retired',{configurable:true,get:()=>!resourceAvailable(this.control.resources,token.id)});return completion;
+  }
+  private releaseSession(session:Session):Promise<void>{
+    const previous=this.sessionDisposals.get(session);if(previous)return previous;
+    let resolve!:()=>void,reject!:(error:unknown)=>void;const done=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});this.sessionDisposals.set(session,done);if(!this.sessionResources.has(session))session.retired=true;
+    void(async()=>{let failed=false,failure:unknown;for(const remove of this.sessionListeners.get(session)?.splice(0)??[])try{remove();}catch(error){if(!failed){failed=true;failure=error;}}
+      try{await session.backend.destroy();}catch(error){if(!failed){failed=true;failure=error;}}
+      try{session.surface.remove();}catch(error){if(!failed){failed=true;failure=error;}}
+      if(failed)throw failure;
+    })().then(resolve,reject);return done;
+  }
+
   private controlTrace=createTrace(256);
   private get transitionTrace(){return selectTrace(this.controlTrace);}
   private operationResources=new Map<number,{controller:AbortController;detachCallerAbort:()=>void}>();
@@ -153,7 +176,7 @@ export class Player extends EventTarget {
     const running=this.promotionRunning,controller=this.promotionController,operation=this.activeOperation?.controller,inspection=this.inspection,candidate=this.candidate;
     this.dispatchControl({type:'routing.promotion',change:{kind:'cancel'}});
     clearTimeout(this.promotionTimer);this.promotionTimer=undefined;this.promotionController=undefined;
-    controller?.abort();if(running){operation?.abort();inspection?.abort();void candidate?.backend.destroy().catch(()=>{});}
+    controller?.abort();if(running){operation?.abort();inspection?.abort();void this.dispose(candidate).catch(()=>{});}
   }
   private schedulePromotion(){
     clearTimeout(this.promotionTimer);this.promotionTimer=undefined;
@@ -646,7 +669,7 @@ export class Player extends EventTarget {
     if(!admission.accepted)return Promise.reject(new PlayerError(admission.reason==='full'?'INVALID_ARGUMENT':'ABORTED',admission.reason==='full'?'Player operation queue is full':'Player is destroyed',id,kind));
     const controller=new AbortController();
     controller.signal.addEventListener('abort',()=>{this.dispatchControl({type:'operation.cancel',id});},{once:true});
-    const cancel=()=>{controller.abort();if(this.activeOperation?.id===id){this.inspection?.abort();void this.candidate?.backend.destroy().catch(()=>{});}};
+    const cancel=()=>{controller.abort();if(this.activeOperation?.id===id){this.inspection?.abort();void this.dispose(this.candidate).catch(()=>{});}};
     this.operationResources.set(id,{controller,detachCallerAbort:()=>signal?.removeEventListener('abort',cancel)});
     signal?.addEventListener('abort',cancel,{once:true});if(signal?.aborted)cancel();
     const result=this.queue.then(async()=>{
@@ -674,10 +697,11 @@ export class Player extends EventTarget {
       cancel=()=>reject(new PlayerError('ABORTED',this.destroyed?'Player is destroyed':'Operation aborted'));signal.addEventListener('abort',cancel,{once:true});
     })]);}finally{signal.removeEventListener('abort',cancel);}
   }
-  private async dispose(session?: Session) {
-    if (!session) return;
-    session.retired=true;
-    try {await session.backend.destroy();} finally {session.surface.remove();}
+  private dispose(session?:Session):Promise<void>{
+    if(!session)return Promise.resolve();const previous=this.sessionCleanups.get(session);if(previous)return previous;
+    let resolve!:()=>void,reject!:(error:unknown)=>void;const completion=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});this.sessionCleanups.set(session,completion);
+    const failed=(error:unknown)=>reject(error instanceof AggregateError&&error.errors.length===1?error.errors[0]:error);
+    try{const token=this.sessionResources.get(session);const work=token?this.ownedResources.retireScope(token.scope):this.releaseSession(session);void work.then(resolve,failed);}catch(error){failed(error);}return completion;
   }
   /** Prepare immutable engine code and fonts without opening media or audio devices. */
   get preparationReady():Promise<PreparationReport>{return this.preparationTask;}
@@ -698,6 +722,7 @@ export class Player extends EventTarget {
     return this.preparationTask=this.providerRuntime?this.providerRuntime.load().then(warm,warm):warm();
   }
   private async create(mode: PlaybackMode, aid='auto', adaptation?:'flac'|'opus'|'flac24', forcePreparation=false, planId?:string, loadTimeoutMs?:number): Promise<Session> {
+    const sessionId=this.control.source.candidate?.session;if(sessionId===undefined)throw new PlayerError('ABORTED','Source allocation retired');
     let backend: Backend;
     const recipe=executionRecipe(planId);
     const backendKind=recipe?.backend??(mode==='native'?'NativePlayer':'WasmPlayer');
@@ -709,19 +734,20 @@ export class Player extends EventTarget {
     const engine=mode==='hybrid'?'engine-hybrid':this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv';
     const prepared=mode==='native'||backendKind==='PrivateSoftwarePlayer'?undefined:await this.interruptible(this.providerRuntime?Promise.all([mode==='software'?Promise.resolve(undefined):this.providerRuntime.module(`web/${engine}/player.wasm`),this.providerRuntime.bytes('fixtures/DejaVuSans.ttf')]).then(([module,font])=>({module,font})):this.preparation?.readyEngine(engine)??Promise.resolve(undefined));
     this.assertOperation();
-    this.root.append(surface);
+    try{this.root.append(surface);this.assertOperation();}catch(error){surface.remove();throw error;}
     try {
       const subtitleTracks=this.sourceInspection?.probe.tracks.filter(t=>t.type==='sub')??[];
       const defaultSubtitleStreamIndex=(subtitleTracks.find(t=>t.default)??subtitleTracks[0])?.index;
       backend = 'PrivateSoftwarePlayer' in module ? new module.PrivateSoftwarePlayer(surface as HTMLCanvasElement,{providerAssets:this.providerRuntime,mode:mode as 'software'|'hybrid',decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop,videoTrack:this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture),buffering:this.buffering,audioOutput:this.audioOutput,audioFallback:this.audioFallback,runtime:this.remuxRuntime as 'jspi'|'asyncify',assetBase:this.assetBase,duration:this.sourceInspection?.probe.duration,resourceLimits:this.resourceLimits,fonts:this.fonts}) : 'ShakaBackend' in module ? new module.ShakaBackend(surface as HTMLVideoElement,this.assetBase,this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, forcePreparation?'always':this.nativeRemux,this.assetBase,this.bufferedNativeSeeks,adaptation,['auto','no'].includes(aid)?(this.privateRemux&&recipe?.native?.selectedAudio?this.sourceInspection?.probe.tracks.find(t=>t.type==='audio')?.index:undefined):Number(aid)-1,this.nativeASS,this.fonts,planId,this.buffering,loadTimeoutMs,defaultSubtitleStreamIndex,this.remuxRuntime,this.providerRuntime) : new module.WasmPlayer(surface as HTMLCanvasElement, {buffering:this.buffering,mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase,prepared,providerAssets:this.providerRuntime,decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop,videoTrack:this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture)});
     } catch (error) {surface.remove();throw error;}
-    backend.setWatchdogs?.(this.watchdogConfiguration);
     const session:Session={backend,surface};
-    this.observeBackend(session,this.control.source.candidate!.session);return session;
+    try{await this.registerSession(session,sessionId);this.assertOperation();if(sessionAuthority(this.control,sessionId)==='retired')throw new PlayerError('ABORTED','Source allocation retired');
+      backend.setWatchdogs?.(this.watchdogConfiguration);this.assertOperation();this.observeBackend(session,sessionId);this.assertOperation();return session;
+    }catch(error){await this.dispose(session).catch(()=>{});throw error;}
   }
   private observeBackend(session:Session,sessionEpoch:number){
-    const backend=session.backend;let observationSequence=0;
-    for (const type of ['mpv', 'error', 'log', 'output', 'source', 'activity']) backend.addEventListener(type, event => {
+    const backend=session.backend;let observationSequence=0;const listeners:Array<()=>void>=[];this.sessionListeners.set(session,listeners);
+    for (const type of ['mpv', 'error', 'log', 'output', 'source', 'activity']) {const listener=(event:Event) => {
       if(session.retired||sessionAuthority(this.control,sessionEpoch)==='retired')return;
       const detail = (event as CustomEvent).detail;
       if(this.current===session&&type==='activity'&&['seeking','seeked','play','pause','ratechange','waiting','playing','ended'].includes(detail))this.dispatchControl({type:'monitor.activity'});
@@ -752,8 +778,13 @@ export class Player extends EventTarget {
         }
         if(this.current===session&&sessionAuthority(this.control,sessionEpoch)==='accepted')this.emit(type,detail);
       }
-    });
+     };
+      backend.addEventListener(type,listener);
+      if(session.retired||sessionAuthority(this.control,sessionEpoch)==='retired'){backend.removeEventListener(type,listener);throw new PlayerError('ABORTED','Session listener allocation retired');}
+      listeners.push(()=>backend.removeEventListener(type,listener));
+    }
   }
+
   private async settled(session: Session, mode: PlaybackMode, target: number) {
     const probe=this.sourceInspection?.probe,sessionId=session===this.candidate?this.control.source.candidate?.session:session===this.current?this.control.source.acceptedSession:null;
     const expected=probe?{video:probe.tracks.some(t=>t.type==='video'&&!t.attachedPicture),audio:this.sourceInspection!.settings.aid!=='no'&&probe.tracks.some(t=>t.type==='audio')}:undefined;
@@ -1897,7 +1928,7 @@ export class Player extends EventTarget {
     if(this.closing)return this.closing;
     this.#previewController.setSourceIdentity(`closed:${this.sourceSerial}`);this.previewSource=undefined;
     this.dispatchControl({type:'operation.retire',terminal:false});this.activeOperation?.controller.abort();this.inspection?.abort();this.stopWatchdogs();
-    const cleanup=Promise.all([this.#previewController.drain(),...[this.candidate,this.current].map(s=>s?.backend.destroy().catch(()=>{}))]);
+    const cleanup=Promise.all([this.#previewController.drain(),...[this.candidate,this.current].map(s=>this.dispose(s).catch(()=>{}))]);
     this.closing=this.enqueue(async()=>{await cleanup;await this.dispose(this.current);this.playbackRange=null;this.loopPolicy=false;this.current=undefined;this.candidate=undefined;this.source=undefined;this.dispatchControl({type:'source.clear'});this.sourceInspection=undefined;this.losslessInspection=undefined;this.sessionError=null;},'closing').finally(()=>{this.closing=undefined;});
     return this.closing;
   }
@@ -1910,7 +1941,7 @@ export class Player extends EventTarget {
     const previewCleanup=this.#previewController.destroy();this.previewSource=undefined;
     this.dispatchControl({type:'operation.retire',terminal:true});this.activeOperation?.controller.abort();this.lifetime.abort();this.inspection?.abort();this.stopWatchdogs();
     this.destruction = (async () => {
-      await Promise.all([providerCleanup,presentationCleanup,previewCleanup,...[this.candidate, this.current].map(session => session?.backend.destroy().catch(() => {}))]);
+      await Promise.all([providerCleanup,presentationCleanup,previewCleanup,...[this.candidate, this.current].map(session => this.dispose(session).catch(() => {}))]);
       await this.queue;
       try {await this.dispose(this.current);} finally {this.current = undefined;this.source = undefined;this.dispatchControl({type:'source.clear'});this.sourceInspection=undefined;this.losslessInspection=undefined;this.sessionError=null;this.publish();this.subscribers.clear();this.root.remove();}
     })();return this.destruction;

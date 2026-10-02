@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-import {createResourceLedger,transitionResourceLedger,resourceMetadata,resourceAvailable,resourceScopeRetired,resourceLedgerDiagnostics,type ResourceLedgerState,type ResourceLedgerInput,type ResourceLedgerRejection} from '../machine/resource-ledger.js';
+import {createResourceLedger,transitionResourceLedger,resourceMetadata,resourceAvailable,resourceScopeRetired,resourceLedgerDiagnostics,type ResourceLedgerState,type ResourceLedgerInput,type ResourceLedgerRejection,type ResourceLedgerDecision} from '../machine/resource-ledger.js';
 export type ResourceRegistration<T> = Readonly<{id:string;scopeKey:string;kind:string;value:T}> & (
   | Readonly<{ownership:'owned';release:(value:T)=>void|Promise<void>}>
   | Readonly<{ownership:'borrowed';release?:never}>
 );
 export type ResourceRegistryOptions=Readonly<{
-  maxResources?:number;maxScopes?:number;failureLimit?:number;cleanupTimeoutMs?:number;
+  store?:Readonly<{read:()=>ResourceLedgerState;dispatch:(input:ResourceLedgerInput)=>ResourceLedgerDecision}>;
+  monotonic?:boolean;maxResources?:number;maxScopes?:number;failureLimit?:number;cleanupTimeoutMs?:number;
   scheduleCleanupTimeout?:(work:()=>void,delayMs:number)=>()=>void;
 }>;
 type Handle={value:unknown;release?: (value:unknown)=>void|Promise<void>};
@@ -34,17 +35,20 @@ function rejected(reason:ResourceLedgerRejection|undefined):Error {
  * Release callbacks must not await their own release or enclosing retirement.
  * A deadline detaches logical waiting; only a physical result proves release. */
 export class ResourceRegistry {
-  private ledger:ResourceLedgerState;
+  private localLedger?:ResourceLedgerState;
+  private readonly store:ResourceRegistryOptions['store'];
+  private get ledger(){return this.store?this.store.read():this.localLedger!;}
   private readonly handles=new Map<string,Handle>();
   private readonly completions=new Map<string,Promise<void>>();
   private readonly scopes=new Map<string,Promise<void>>();
   private disposal?:Promise<void>;
   private readonly scheduleCleanupTimeout:(work:()=>void,delayMs:number)=>()=>void;
   constructor(options:ResourceRegistryOptions={}){
-    this.ledger=createResourceLedger({maxResources:options.maxResources,maxScopes:options.maxScopes,failureLimit:options.failureLimit,cleanupTimeoutMs:options.cleanupTimeoutMs});
+    this.store=options.store;
+    if(!this.store)this.localLedger=createResourceLedger({monotonic:options.monotonic,maxResources:options.maxResources,maxScopes:options.maxScopes,failureLimit:options.failureLimit,cleanupTimeoutMs:options.cleanupTimeoutMs});
     this.scheduleCleanupTimeout=options.scheduleCleanupTimeout??((work,delayMs)=>{const timer=setTimeout(work,delayMs);return()=>clearTimeout(timer);});
   }
-  private transition(input:ResourceLedgerInput){const result=transitionResourceLedger(this.ledger,input);if(result.accepted)this.ledger=result.state;return result;}
+  private transition(input:ResourceLedgerInput){if(this.store)return this.store.dispatch(input);const result=transitionResourceLedger(this.ledger,input);this.localLedger=result.state;return result;}
   register<T>(registration:ResourceRegistration<T>):Promise<void>{
     // Read each host field before admission so reentrant getters cannot overwrite
     // a newer metadata state. Host resources themselves never enter the reducer.
@@ -53,7 +57,7 @@ export class ResourceRegistry {
     const checked=transitionResourceLedger(this.ledger,input);if(!checked.accepted)throw rejected(checked.reason);
     if(ownership==='owned'&&typeof release!=='function')throw new TypeError('Owned resources require a release callback');
     if(ownership==='borrowed'&&release!==undefined)throw new TypeError('Borrowed resources cannot have a release callback');
-    this.ledger=checked.state;
+    const committed=this.transition(input);if(!committed.accepted)throw rejected(committed.reason);
     this.handles.set(id,{value,release:release as ((value:unknown)=>void|Promise<void>)|undefined});
     return resourceScopeRetired(this.ledger,scopeKey)?this.release(id):Promise.resolve();
   }
@@ -71,7 +75,7 @@ export class ResourceRegistry {
     const completion=deferred();this.completions.set(id,completion.promise);
     const metadata=resourceMetadata(this.ledger,id)!,handle=this.handles.get(id)!;this.handles.delete(id);
     if(metadata.ownership==='borrowed'){
-      this.transition({type:'physical-result',id,success:true});completion.resolve();return completion.promise;
+      this.transition({type:'physical-result',id,success:true});if(this.ledger.monotonic)this.completions.delete(id);completion.resolve();return completion.promise;
     }
     let cancelDeadline:(()=>void)|undefined;
     const cancel=()=>{const callback=cancelDeadline;cancelDeadline=undefined;try{callback?.();}catch{/* Cancellation cannot change the committed phase. */}};
@@ -81,7 +85,7 @@ export class ResourceRegistry {
       error.name=reason==='timeout'?'CleanupTimeoutError':'CleanupSchedulerError';completion.reject(error);
     };
     const finish=(success:boolean,error?:unknown)=>{
-      const result=this.transition({type:'physical-result',id,success});cancel();if(!result.start||result.late)return;
+      const result=this.transition({type:'physical-result',id,success});cancel();if(this.ledger.monotonic&&!resourceMetadata(this.ledger,id))this.completions.delete(id);if(!result.start||result.late)return;
       if(success)completion.resolve();else completion.reject(error);
     };
     try{
@@ -98,7 +102,7 @@ export class ResourceRegistry {
     const previous=this.scopes.get(scopeKey);if(previous)return previous;
     const result=this.transition({type:'retire-scope',scopeKey});if(!result.accepted)throw rejected(result.reason);
     const completion=deferred();this.scopes.set(scopeKey,completion.promise);
-    void this.releaseEntries(result.ids!).then(completion.resolve,completion.reject);return completion.promise;
+    void this.releaseEntries(result.ids!).then(completion.resolve,completion.reject).finally(()=>{if(this.ledger.monotonic)this.scopes.delete(scopeKey);});return completion.promise;
   }
   dispose():Promise<void>{
     if(this.disposal)return this.disposal;

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type ResourceLedgerInput, type ResourceLedgerDecision } from './resource-ledger.js';
 import { type PlayerReadinessInput, type PlayerReadinessEffect } from './player-readiness.js';
 import { type PlayerActionInput, type PlayerActionEffect } from './player-actions.js';
 import { type PlayerPublicationInput } from './player-publication.js';
@@ -20,10 +21,14 @@ export type SessionObservation = Readonly<{
     value?: number | boolean;
     publishedTime?: number;
 }>;
-export type PlayerControlInput = PlayerReadinessInput | PlayerActionInput | PlayerPublicationInput | PlayerMonitorInput | RoutingInput | AttachmentInput | BoundaryInput | OperationInput | PlaybackInput | SettingsInput | SettingTransactionInput | SourceInput | SessionObservation;
+export type PlayerControlInput = Readonly<{
+    type: 'resource.event';
+    input: ResourceLedgerInput;
+}> | PlayerReadinessInput | PlayerActionInput | PlayerPublicationInput | PlayerMonitorInput | RoutingInput | AttachmentInput | BoundaryInput | OperationInput | PlaybackInput | SettingsInput | SettingTransactionInput | SourceInput | SessionObservation;
 export type PlayerControlDecision<Effect = SettingEffect | BoundaryEffect | AttachmentEffect> = Readonly<{
     state: PlayerControlState;
     accepted: boolean;
+    resource?: ResourceLedgerDecision;
     id?: number;
     reason?: string;
     message?: string;
