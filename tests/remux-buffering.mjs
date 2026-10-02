@@ -4,10 +4,17 @@ import assert from 'node:assert/strict';
 import {RemuxPlayer,windowedBrowserSupported} from '../web/native-remux-player.js';
 import {initialRemuxLifecycle} from '../web/generated/internal/machine/remux-lifecycle.js';
 
+function setSchedule(player,patch){player.lifecycle=Object.freeze({...player.lifecycle,schedule:Object.freeze({...player.schedule,...patch})});}
+function setBuffer(player,patch){player.lifecycle=Object.freeze({...player.lifecycle,buffer:Object.freeze({...player.bufferState,...patch})});}
+function setPending(player,buffers){const pending=buffers.map((buffer,index)=>({id:player.bufferState.resourceSerial+index+1,lane:index,bytes:buffer.byteLength}));for(let i=0;i<pending.length;i++)player.bufferResources.set(pending[i].id,buffers[i]);setBuffer(player,{pending,resourceSerial:player.bufferState.resourceSerial+pending.length});}
 function fixture(values){
- const {generation=0,stopped=false,starting=false,targetReady=false,recoveryPlaying=false,...resources}=values;
- const lifecycle=Object.freeze({...initialRemuxLifecycle(),generation,stopped,starting,targetReady,playing:recoveryPlaying,active:!stopped});
- return Object.assign(Object.create(RemuxPlayer.prototype),{lifecycle},resources);
+ const {generation=0,stopped=false,starting=false,targetReady=false,recoveryPlaying=false,target=0,windowed=false,presentationFloor=0,trackBounds=null,raps=[],lastEviction=-Infinity,lastEvictions=[],buffering=undefined,primeVideo=false,busy=false,pulling=false,pending=null,eof=false,segments=[],pendingUpdates=new Set(),receipts:unused,...resources}=values;
+ resources.sbs??=resources.sb?[resources.sb]:[];for(const sb of resources.sbs){sb.addEventListener??=()=>{};sb.removeEventListener??=()=>{};}
+ const initial=initialRemuxLifecycle(),updates=[...pendingUpdates].map((sb,index)=>({id:index+1,lane:resources.sbs.indexOf(sb),kind:'remove',bytes:0,initialization:false,started:0}));
+ const buffer=Object.freeze({...initial.buffer,busy,pull:pulling?1:null,pullSerial:pulling?1:0,eof,segments:Object.freeze(segments.map((segment,index)=>Object.freeze({id:index+1,lane:0,kind:'append',initialization:false,started:0,...segment}))),updates,updateSerial:updates.length});
+ const schedule=Object.freeze({...initial.schedule,target,windowed,presentationFloor,trackBounds,raps:Object.freeze([...raps]),lastEviction,lastEvictions,buffering,primeVideo});
+ const lifecycle=Object.freeze({...initial,buffer,schedule,generation,stopped,starting,targetReady,playing:recoveryPlaying,active:!stopped});
+ const player=Object.assign(Object.create(RemuxPlayer.prototype),{lifecycle,bufferResources:new Map(),updateResources:new Map()},resources);if(pending)setPending(player,pending);return player;
 }
 
 function pump(ranges,extra={}){
@@ -40,11 +47,11 @@ test('small MSE holes advance only a playing stalled output',()=>{
 
 test('both completed SourceBuffers release one append transaction exactly once',()=>{
  const a={updating:false},b={updating:false};let pulls=0;
- const player=fixture({generation:4,pendingUpdates:new Set([a,b]),receipts:new Map(),sbs:[a,b],busy:true,windowed:false,pump:()=>pulls++});
- player.updateFinished(a,3);assert.equal(pulls,0);assert.equal(player.pendingUpdates.size,2);
- player.updateFinished(a,4);assert.equal(pulls,0);assert.equal(player.busy,true);
- player.updateFinished(b,4);assert.equal(pulls,1);assert.equal(player.busy,false);
- player.updateFinished(a,4);player.updateFinished(b,4);assert.equal(pulls,1);
+ const player=fixture({generation:4,pendingUpdates:new Set([a,b]),receipts:new Map(),sbs:[a,b],busy:true,windowed:false,video:{paused:true},pump:()=>pulls++});
+ player.updateFinished(a,3,1);assert.equal(pulls,0);assert.equal(player.bufferState.updates.length,2);
+ player.updateFinished(a,4,1);assert.equal(pulls,0);assert.equal(player.busy,true);
+ player.updateFinished(b,4,2);assert.equal(pulls,1);assert.equal(player.busy,false);
+ player.updateFinished(a,4,1);player.updateFinished(b,4,2);assert.equal(pulls,1);
 });
 test('a pending conversion cannot be duplicated by a timer or update event',()=>{
  const result=pump([[0,1]],{pulling:true});assert.deepEqual(result,{sent:[],errors:[]});
@@ -68,12 +75,12 @@ test('seek preroll never expands the accepted source coverage across skipped med
 
 test('an internal window end is not source EOF even after final work was generated',()=>{
  const p=fixture({windowed:true,eof:true,pending:null,busy:false,duration:30,timelineBias:1,video:{ended:true,currentTime:29}});
- assert.equal(p.playbackEnded,false);p.video.currentTime=31;assert.equal(p.playbackEnded,true);p.pending=[new ArrayBuffer(1)];assert.equal(p.playbackEnded,false);
+ assert.equal(p.playbackEnded,false);p.video.currentTime=31;assert.equal(p.playbackEnded,true);setPending(p,[new ArrayBuffer(1)]);assert.equal(p.playbackEnded,false);
 });
 
 test('a seek within the final 20 milliseconds accepts real remaining coverage',()=>{
  const p=fixture({windowed:true,target:29.995,duration:30,ranges:()=>[[29.9,30]]});
- assert.equal(p.hasStartupCoverage(),true);p.target=30;assert.equal(p.hasStartupCoverage(),false);
+ assert.equal(p.hasStartupCoverage(),true);setSchedule(p,{target:30});assert.equal(p.hasStartupCoverage(),false);
 });
 test('window recovery preserves play intent when the browser paused at an internal end',async()=>{
  for(const intent of [true,false]){
@@ -101,8 +108,8 @@ test('remux starvation observes stopped playback near an outstanding producer, n
  p.observeStarvation(750);assert.equal(p.waitingForMedia,true);
  p.video.currentTime=5.1;p.observeStarvation(800);assert.equal(p.waitingForMedia,false);assert.equal(changes,2);
  for(const property of ['paused','seeking']){p.video[property]=true;p.observeStarvation(2000);assert.equal(p.waitingForMedia,false);p.video[property]=false;}
- p.observeStarvation(2100);p.pulling=false;p.observeStarvation(3000);assert.equal(p.waitingForMedia,false);
- p.pulling=true;p.ranges=()=>[[0,20]];p.observeStarvation(4000);assert.equal(p.waitingForMedia,false);
+ p.observeStarvation(2100);setBuffer(p,{pull:null});p.observeStarvation(3000);assert.equal(p.waitingForMedia,false);
+ setBuffer(p,{pull:1});p.ranges=()=>[[0,20]];p.observeStarvation(4000);assert.equal(p.waitingForMedia,false);
  p.ranges=()=>[[0,4.6]];p.lifecycle=Object.freeze({...p.lifecycle,generation:p.generation+1});p.observeStarvation(5000);assert.equal(p.waitingForMedia,false);
  p.video.currentTime=5.2;p.observeStarvation(6000);assert.equal(p.waitingForMedia,false);
 });
@@ -140,13 +147,13 @@ function pressureFixture(windowed=false){
   stats:{peakBufferedSeconds:0,peakBufferedBytesUpperBound:0,gapSkips:[]},
   worker:{postMessage:value=>sent.push(value)},fail:value=>errors.push(value),
  });
- const finish=()=>{for(let i=0;i<5&&p.pendingUpdates.size;i++){const sb=[...p.pendingUpdates][0];sb.updating=false;p.updateFinished(sb,1);}};
+ const finish=()=>{for(let i=0;i<5&&p.bufferState.updates.length;i++){const update=p.bufferState.updates[0],sb=p.sbs[update.lane];sb.updating=false;p.updateFinished(sb,1,update.id);}};
  return {p,removals,sent,errors,finish,MiB};
 }
 for(const windowed of [false,true]){
  test(`byte pressure shortens long history and resumes fetching (${windowed?'separate lanes':'muxed'})`,()=>{
   const {p,removals,sent,errors,finish,MiB}=pressureFixture(windowed);
-  if(windowed)for(const segment of p.segments)segment.bytes*=2; // Pressure remains until both lanes release history.
+  if(windowed)setBuffer(p,{segments:p.segments.map(segment=>({...segment,bytes:segment.bytes*2}))}); // Pressure remains until both lanes release history.
   p.setBuffering({preload:'auto',forwardSeconds:30,backwardSeconds:60,forwardLimitBytes:12*MiB});
   p.pump();assert.equal(sent.length,0,'wait for eviction completion');
   finish();assert.equal(sent.length,1);assert.deepEqual(errors,[]);
@@ -163,13 +170,13 @@ for(const windowed of [false,true]){
  });
 }
 test('pressure does not remove the current GOP when no older RAP can be evicted',()=>{
- const {p,removals,MiB}=pressureFixture();p.raps=[0,12];
+ const {p,removals,MiB}=pressureFixture();setSchedule(p,{raps:[0,12]});
  p.setBuffering({preload:'auto',backwardSeconds:60,forwardLimitBytes:8*MiB});p.pump();
  assert.equal(removals.length,0);assert.equal(p.segments.length,6);
 });
 
 test('an exhausted protected GOP reports budget failure instead of silently stalling',()=>{
- const {p,removals,sent,errors,MiB}=pressureFixture();p.raps=[0];p.ranges=()=>[[0,10.25]];
+ const {p,removals,sent,errors,MiB}=pressureFixture();setSchedule(p,{raps:[0]});p.ranges=()=>[[0,10.25]];
  p.setBuffering({preload:'auto',backwardSeconds:60,forwardLimitBytes:8*MiB});p.pump();
  assert.equal(removals.length,0);assert.equal(sent.length,0);assert.match(errors[0],/coded-data budget.*current GOP/);
 });

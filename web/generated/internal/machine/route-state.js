@@ -1,7 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 import { copyData } from './data.js';
-export function initialRouting() { return Object.freeze({ plans: Object.freeze([]), attempts: Object.freeze([]), context: Object.freeze({ automatic: false }) }); }
+import { initialDiscovery, transitionDiscovery } from './route-discovery.js';
+import { initialInspection, transitionInspection } from './route-inspection.js';
+export function initialRouting() { return Object.freeze({ discovery: initialDiscovery(), inspection: initialInspection(), plans: Object.freeze([]), attempts: Object.freeze([]), context: Object.freeze({ automatic: false }) }); }
 export function transitionRouting(state, input) {
+    if (input.type === 'routing.discovery') {
+        const discovery = transitionDiscovery(state.discovery, input.change);
+        return discovery === state.discovery ? state : Object.freeze({ ...state, discovery, ...(input.change.kind === 'reinspected' ? { context: Object.freeze({ nativeReason: discovery.current?.nativeReason, automatic: discovery.current?.automatic ?? state.context.automatic }) } : {}) });
+    }
+    if (input.type === 'routing.inspection')
+        return Object.freeze({ ...state, inspection: transitionInspection(state.inspection, input.change) });
     if (input.type === 'routing.plans')
         return Object.freeze({ ...state, plans: copyData(input.plans) });
     if (input.type === 'routing.context')

@@ -55,14 +55,14 @@ function shell(t){
 }
 test('actual recovery continuation never plays or reports errors after explicit replacement',async t=>{
  for(const outcome of ['resolve','reject']){
-  const {player:p,calls}=shell(t);await p.open({file:{}});p.windowed=true;p.setPlaybackIntent(true);const original=p.start,hold=deferred();let held=true;p.start=async function(...args){const result=await original.apply(this,args);if(held)await hold.promise;return result;};
+  const {player:p,calls}=shell(t);await p.open({file:{}});p.transitionSchedule({type:'configure',windowed:true});p.setPlaybackIntent(true);const original=p.start,hold=deferred();let held=true;p.start=async function(...args){const result=await original.apply(this,args);if(held)await hold.promise;return result;};
   const errors=[];p.onError=error=>errors.push(error);p.fail('Remux mux worker failed');await Promise.resolve();held=false;await p.open({file:{}});const generation=p.generation;
   outcome==='resolve'?hold.resolve():hold.reject(Error('retired failure'));await new Promise(resolve=>setImmediate(resolve));
   assert.equal(p.generation,generation);assert.deepEqual(calls,[]);assert.deepEqual(errors,[]);assert.equal(p.stats.recoveries[0].restored,false);
  }
 });
 test('pause during a delayed recovery prevents its late play effect',async t=>{
- const {player:p,calls}=shell(t);await p.open({file:{}});p.windowed=true;p.setPlaybackIntent(true);const original=p.start,hold=deferred();p.start=async function(...args){const result=await original.apply(this,args);await hold.promise;return result;};
+ const {player:p,calls}=shell(t);await p.open({file:{}});p.transitionSchedule({type:'configure',windowed:true});p.setPlaybackIntent(true);const original=p.start,hold=deferred();p.start=async function(...args){const result=await original.apply(this,args);await hold.promise;return result;};
  p.fail('MSE SourceBuffer error');p.pause();hold.resolve();await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(calls,['pause']);assert.equal(p.stats.recoveries[0].restored,true);assert.equal(p.recoveryPlaying,false);
 });
 test('retired worker callbacks cannot fail a new generation or repeat a failure',async t=>{
@@ -78,13 +78,13 @@ test('worker cleanup detaches retired handles before reentrant replacement and a
  p.worker=null;
 });
 test('repeated cleanup counts discarded pending bytes and releases each handle once',async t=>{
- const {player:p}=shell(t);await p.open({file:{}});let releases=0;p.worker={postMessage(){},terminate(){releases++;}};p.pending=[new ArrayBuffer(5)];p.delivery=[new ArrayBuffer(7)];p.stopWorkers();p.stopWorkers();assert.equal(releases,1);assert.equal(p.stats.discardedBytes,12);
+ const {player:p}=shell(t);await p.open({file:{}});let releases=0;p.worker={postMessage(){},terminate(){releases++;}};p.sbs=[];p.setBusy(false);const pull=p.transitionBuffer({type:'pull'});p.acceptFragment({type:'fragment',id:pull.pullId,buffers:[new ArrayBuffer(5)],parts:[new ArrayBuffer(7)],more:true});p.stopWorkers();p.stopWorkers();assert.equal(releases,1);assert.equal(p.stats.discardedBytes,12);
 });
 test('actual prime cleanup cancels its frame once and worker release continues if listener cleanup throws',async t=>{
  for(const throws of [false,true]){
   const {player:p,video}=shell(t);await p.open({file:{}});const cancelled=[];let terminated=0;
   video.addEventListener=()=>{};video.removeEventListener=()=>{if(throws)throw Error('listener cleanup failed');};video.requestVideoFrameCallback=()=>41;video.cancelVideoFrameCallback=id=>cancelled.push(id);
-  p.primeVideo=true;p.sb={updating:false,buffered:{length:1,start:()=>1,end:()=>2}};p.sbs=[p.sb,{updating:false,buffered:{length:1,start:()=>1,end:()=>3}}];p.trackBounds={videoEnd:1,audioEnd:2};p.expectedVideoFrame=()=>.98;p.media={readyState:'ended'};p.worker={postMessage(){},terminate(){terminated++;}};
+  p.lifecycle=Object.freeze({...p.lifecycle,schedule:Object.freeze({...p.schedule,primeVideo:true,trackBounds:{videoEnd:1,audioEnd:2}})});p.sb={updating:false,buffered:{length:1,start:()=>1,end:()=>2}};p.sbs=[p.sb,{updating:false,buffered:{length:1,start:()=>1,end:()=>3}}];p.expectedVideoFrame=()=>.98;p.media={readyState:'ended'};p.worker={postMessage(){},terminate(){terminated++;}};
   p.primeLastVideo(p.generation);assert.equal(p.primeFrame,41);p.stopWorkers();p.stopWorkers();assert.deepEqual(cancelled,[41]);assert.equal(terminated,1);assert.equal(p.stats.cleanupFailures??0,throws?1:0);
  }
 });

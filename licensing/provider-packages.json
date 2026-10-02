@@ -1257,7 +1257,9 @@
         "web/hybrid-preflight.js",
         "web/generated/internal/machine/remux-lifecycle.js",
         "web/generated/internal/machine/remux-worker.js",
-        "web/generated/internal/machine/remux-controller.js"
+        "web/generated/internal/machine/remux-controller.js",
+        "web/generated/internal/machine/remux-buffer.js",
+        "web/generated/internal/machine/remux-scheduling.js"
       ]
     },
     {
@@ -1441,7 +1443,12 @@
         "src/internal/machine/route-state.ts",
         "src/internal/machine/private-playback-worker.ts",
         "src/internal/machine/decode-policy.ts",
-        "src/internal/machine/remux-controller.ts"
+        "src/internal/machine/remux-controller.ts",
+        "src/internal/machine/route-inspection.ts",
+        "src/internal/machine/private-retained-presentation.ts",
+        "src/internal/machine/remux-buffer.ts",
+        "src/internal/machine/route-discovery.ts",
+        "src/internal/machine/remux-scheduling.ts"
       ]
     },
     {
@@ -1662,7 +1669,12 @@
     "src/internal/machine/route-state.ts",
     "src/internal/machine/private-playback-worker.ts",
     "src/internal/machine/decode-policy.ts",
-    "src/internal/machine/remux-controller.ts"
+    "src/internal/machine/remux-controller.ts",
+    "src/internal/machine/route-inspection.ts",
+    "src/internal/machine/private-retained-presentation.ts",
+    "src/internal/machine/remux-buffer.ts",
+    "src/internal/machine/route-discovery.ts",
+    "src/internal/machine/remux-scheduling.ts"
   ],
   "playerCoreComputedImports": {
     "src/unified-player.ts": [
@@ -1699,10 +1711,7 @@
         "web/progressive-mp4.js",
         "web/split-mp4.js",
         "web/remux-packaging.js",
-        "web/hybrid-preflight.js",
-        "web/generated/internal/machine/remux-lifecycle.js",
-        "web/generated/internal/machine/remux-worker.js",
-        "web/generated/internal/machine/remux-controller.js"
+        "web/hybrid-preflight.js"
       ],
       "engines": [
         "web/engine-remux/remux.mjs",
@@ -1711,7 +1720,13 @@
       "providers": [
         "ffmpeg-file-preparation"
       ],
-      "generated": [],
+      "generated": [
+        "web/generated/internal/machine/remux-lifecycle.js",
+        "web/generated/internal/machine/remux-worker.js",
+        "web/generated/internal/machine/remux-controller.js",
+        "web/generated/internal/machine/remux-buffer.js",
+        "web/generated/internal/machine/remux-scheduling.js"
+      ],
       "excludedSourceConfigurations": [
         "build/subtitle-service/link-command.json",
         "build/subtitle-service/manifest.json",
@@ -1761,11 +1776,7 @@
         "web/webgpu/mailbox-service.js",
         "web/webgpu/presenter.js",
         "web/webgpu/runtime.js",
-        "web/yuv-presenter.js",
-        "web/generated/internal/machine/range-reader.js",
-        "web/generated/internal/machine/private-pcm.js",
-        "web/generated/internal/machine/private-playback-worker.js",
-        "web/generated/internal/machine/decode-policy.js"
+        "web/yuv-presenter.js"
       ],
       "engines": [
         "web/engine-mpv/player.mjs",
@@ -1799,7 +1810,11 @@
         "web/generated/internal/machine/local-reader.js",
         "web/generated/internal/machine/resource-loader.js",
         "web/generated/internal/machine/backend-requests.js",
-        "web/generated/internal/machine/decode-policy.js"
+        "web/generated/internal/machine/decode-policy.js",
+        "web/generated/internal/machine/range-reader.js",
+        "web/generated/internal/machine/private-pcm.js",
+        "web/generated/internal/machine/private-playback-worker.js",
+        "web/generated/internal/machine/private-retained-presentation.js"
       ],
       "excludedSourceConfigurations": [
         "build/subtitle-service/link-command.json",
@@ -2148,12 +2163,15 @@
         "web/private-ffmpeg/single-owner.js",
         "web/private-ffmpeg/LICENSE.txt",
         "web/engine-remux-jspi/manifest.json",
-        "web/engine-adaptation-jspi/manifest.json",
+        "web/engine-adaptation-jspi/manifest.json"
+      ],
+      "generated": [
         "web/generated/internal/machine/remux-lifecycle.js",
         "web/generated/internal/machine/remux-worker.js",
-        "web/generated/internal/machine/remux-controller.js"
+        "web/generated/internal/machine/remux-controller.js",
+        "web/generated/internal/machine/remux-buffer.js",
+        "web/generated/internal/machine/remux-scheduling.js"
       ],
-      "generated": [],
       "engines": [
         "web/engine-remux-jspi/remux.mjs",
         "web/engine-remux-jspi/remux.wasm",
@@ -2183,12 +2201,15 @@
         "web/private-ffmpeg/single-owner.js",
         "web/private-ffmpeg/LICENSE.txt",
         "web/engine-remux-asyncify/manifest.json",
-        "web/engine-adaptation-asyncify/manifest.json",
+        "web/engine-adaptation-asyncify/manifest.json"
+      ],
+      "generated": [
         "web/generated/internal/machine/remux-lifecycle.js",
         "web/generated/internal/machine/remux-worker.js",
-        "web/generated/internal/machine/remux-controller.js"
+        "web/generated/internal/machine/remux-controller.js",
+        "web/generated/internal/machine/remux-buffer.js",
+        "web/generated/internal/machine/remux-scheduling.js"
       ],
-      "generated": [],
       "engines": [
         "web/engine-remux-asyncify/remux.mjs",
         "web/engine-remux-asyncify/remux.wasm",
@@ -2299,16 +2320,18 @@
         "web/file-reader.js",
         "web/range-reader.js",
         "web/prepared-engine.js",
-        "web/video-codec-config.js",
-        "web/generated/internal/machine/range-reader.js",
-        "web/generated/internal/machine/remux-lifecycle.js",
-        "web/generated/internal/machine/remux-worker.js",
-        "web/generated/internal/machine/remux-controller.js"
+        "web/video-codec-config.js"
       ],
       "generated": [
         "web/generated/internal/runtime-worker.js",
         "web/generated/internal/webgpu-codecs.js",
-        "web/generated/internal/machine/local-reader.js"
+        "web/generated/internal/machine/local-reader.js",
+        "web/generated/internal/machine/range-reader.js",
+        "web/generated/internal/machine/remux-lifecycle.js",
+        "web/generated/internal/machine/remux-worker.js",
+        "web/generated/internal/machine/remux-controller.js",
+        "web/generated/internal/machine/remux-buffer.js",
+        "web/generated/internal/machine/remux-scheduling.js"
       ],
       "engines": [
         "web/providers/preparation/truehd-mlp-jspi/engine-adaptation-jspi/remux.mjs",
@@ -2360,16 +2383,18 @@
         "web/file-reader.js",
         "web/range-reader.js",
         "web/prepared-engine.js",
-        "web/video-codec-config.js",
-        "web/generated/internal/machine/range-reader.js",
-        "web/generated/internal/machine/remux-lifecycle.js",
-        "web/generated/internal/machine/remux-worker.js",
-        "web/generated/internal/machine/remux-controller.js"
+        "web/video-codec-config.js"
       ],
       "generated": [
         "web/generated/internal/runtime-worker.js",
         "web/generated/internal/webgpu-codecs.js",
-        "web/generated/internal/machine/local-reader.js"
+        "web/generated/internal/machine/local-reader.js",
+        "web/generated/internal/machine/range-reader.js",
+        "web/generated/internal/machine/remux-lifecycle.js",
+        "web/generated/internal/machine/remux-worker.js",
+        "web/generated/internal/machine/remux-controller.js",
+        "web/generated/internal/machine/remux-buffer.js",
+        "web/generated/internal/machine/remux-scheduling.js"
       ],
       "engines": [
         "web/providers/preparation/truehd-mlp-asyncify/engine-adaptation-asyncify/remux.mjs",
@@ -2421,16 +2446,18 @@
         "web/file-reader.js",
         "web/range-reader.js",
         "web/prepared-engine.js",
-        "web/video-codec-config.js",
-        "web/generated/internal/machine/range-reader.js",
-        "web/generated/internal/machine/remux-lifecycle.js",
-        "web/generated/internal/machine/remux-worker.js",
-        "web/generated/internal/machine/remux-controller.js"
+        "web/video-codec-config.js"
       ],
       "generated": [
         "web/generated/internal/runtime-worker.js",
         "web/generated/internal/webgpu-codecs.js",
-        "web/generated/internal/machine/local-reader.js"
+        "web/generated/internal/machine/local-reader.js",
+        "web/generated/internal/machine/range-reader.js",
+        "web/generated/internal/machine/remux-lifecycle.js",
+        "web/generated/internal/machine/remux-worker.js",
+        "web/generated/internal/machine/remux-controller.js",
+        "web/generated/internal/machine/remux-buffer.js",
+        "web/generated/internal/machine/remux-scheduling.js"
       ],
       "engines": [
         "web/providers/preparation/dts-hd-jspi/engine-adaptation-jspi/remux.mjs",
@@ -2482,16 +2509,18 @@
         "web/file-reader.js",
         "web/range-reader.js",
         "web/prepared-engine.js",
-        "web/video-codec-config.js",
-        "web/generated/internal/machine/range-reader.js",
-        "web/generated/internal/machine/remux-lifecycle.js",
-        "web/generated/internal/machine/remux-worker.js",
-        "web/generated/internal/machine/remux-controller.js"
+        "web/video-codec-config.js"
       ],
       "generated": [
         "web/generated/internal/runtime-worker.js",
         "web/generated/internal/webgpu-codecs.js",
-        "web/generated/internal/machine/local-reader.js"
+        "web/generated/internal/machine/local-reader.js",
+        "web/generated/internal/machine/range-reader.js",
+        "web/generated/internal/machine/remux-lifecycle.js",
+        "web/generated/internal/machine/remux-worker.js",
+        "web/generated/internal/machine/remux-controller.js",
+        "web/generated/internal/machine/remux-buffer.js",
+        "web/generated/internal/machine/remux-scheduling.js"
       ],
       "engines": [
         "web/providers/preparation/dts-hd-asyncify/engine-adaptation-asyncify/remux.mjs",
@@ -2795,16 +2824,18 @@
         "web/file-reader.js",
         "web/range-reader.js",
         "web/prepared-engine.js",
-        "web/video-codec-config.js",
-        "web/generated/internal/machine/range-reader.js",
-        "web/generated/internal/machine/remux-lifecycle.js",
-        "web/generated/internal/machine/remux-worker.js",
-        "web/generated/internal/machine/remux-controller.js"
+        "web/video-codec-config.js"
       ],
       "generated": [
         "web/generated/internal/runtime-worker.js",
         "web/generated/internal/webgpu-codecs.js",
-        "web/generated/internal/machine/local-reader.js"
+        "web/generated/internal/machine/local-reader.js",
+        "web/generated/internal/machine/range-reader.js",
+        "web/generated/internal/machine/remux-lifecycle.js",
+        "web/generated/internal/machine/remux-worker.js",
+        "web/generated/internal/machine/remux-controller.js",
+        "web/generated/internal/machine/remux-buffer.js",
+        "web/generated/internal/machine/remux-scheduling.js"
       ],
       "engines": [
         "web/providers/preparation/ac3-eac3-jspi/engine-adaptation-jspi/remux.mjs",
@@ -2856,16 +2887,18 @@
         "web/file-reader.js",
         "web/range-reader.js",
         "web/prepared-engine.js",
-        "web/video-codec-config.js",
-        "web/generated/internal/machine/range-reader.js",
-        "web/generated/internal/machine/remux-lifecycle.js",
-        "web/generated/internal/machine/remux-worker.js",
-        "web/generated/internal/machine/remux-controller.js"
+        "web/video-codec-config.js"
       ],
       "generated": [
         "web/generated/internal/runtime-worker.js",
         "web/generated/internal/webgpu-codecs.js",
-        "web/generated/internal/machine/local-reader.js"
+        "web/generated/internal/machine/local-reader.js",
+        "web/generated/internal/machine/range-reader.js",
+        "web/generated/internal/machine/remux-lifecycle.js",
+        "web/generated/internal/machine/remux-worker.js",
+        "web/generated/internal/machine/remux-controller.js",
+        "web/generated/internal/machine/remux-buffer.js",
+        "web/generated/internal/machine/remux-scheduling.js"
       ],
       "engines": [
         "web/providers/preparation/ac3-eac3-asyncify/engine-adaptation-asyncify/remux.mjs",

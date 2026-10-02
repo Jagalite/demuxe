@@ -10,12 +10,12 @@ function oracle(pts,delay=0){
 }
 const frame=timestamp=>({timestamp,visibleRect:{x:0,y:0,width:320,height:180},closed:0,close(){this.closed++;}});
 test('native selected PTS and deadline govern the actual retained frame',async()=>{
- const presentation=new PrivateRetainedPresentation(),early=frame(0),selected=frame(500000),later=frame(1000000),drawn=[];
+ let now=0;const presentation=new PrivateRetainedPresentation({now:()=>now}),early=frame(0),selected=frame(500000),later=frame(1000000),drawn=[];
  const context={save(){},restore(){},fillRect(){},translate(){},rotate(){},drawImage:f=>drawn.push(f)};
  presentation.enqueue(early,1);presentation.enqueue(selected,1);presentation.enqueue(later,1);
  await presentation.select(oracle(.5,1000),{});assert.equal(early.closed,1);
  assert.equal(presentation.present(context,{width:320,height:180}),false);assert.equal(drawn.length,0);
- presentation.pending.due=0;assert.equal(presentation.present(context,{width:320,height:180}),true);assert.deepEqual(drawn,[selected]);
+ now=1000;assert.equal(presentation.present(context,{width:320,height:180}),true);assert.deepEqual(drawn,[selected]);
  assert.equal(selected.closed,0);assert.equal(later.closed,0);presentation.clear();assert.equal(selected.closed,1);assert.equal(later.closed,1);
 });
 test('new decoder generation retires old frame ownership and ignores stale callbacks',()=>{

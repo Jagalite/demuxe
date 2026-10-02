@@ -133,6 +133,14 @@ Private playback pause now waits for native acknowledgement and the final in-fli
 
 Remux-controller state retires requests and acquisition identity before cleanup callbacks. Reentrant iframe/worker/local acquisition cannot install a returned resource after destruction; late resources are cleaned up. Stale boot/fallback/error/authorization callbacks cannot mutate the new owner. The same-stack media play call remains in the adapter.
 
+## Inspection, discovery and buffering cutover
+
+Inspection results and asset flags are detached immutable metadata keyed by opaque source identity. The shell retains file/error objects only while that metadata owns them. Pre-acceptance candidate failure restores prior inspection and asset evidence together. Same-epoch caller cancellation permits that rollback; retirement by close/destroy rejects it. Fast inspection still excludes explicit private demuxers, non-auto tracks, attached text and the existing filename families, with the preserved component-repair exception. Missing preserved public stream IDs remain `missing`. Optional private-inspector fallback uses the identity observed after probing, preserving transport/permission constraints.
+
+Discovery retains registry order, explicit mode/start exclusions, lazy adaptation probes, caption-renderer exclusions and existing terminal-versus-compatibility behavior. Each physical attempt has a unique completion lease. A short local Direct timeout may try only its already-admitted matching remux plan, then restore the original once with its 25-second budget when the existing fallback conditions allow. Fast metadata may trigger one full-inspection restart. Stale attempt/probe completions cannot advance a successor cursor. Discovery error text retains the latest 128 entries; the prior local array was unbounded. The finite registry and one reinspection keep ordinary histories below that limit.
+
+MSE buffer and schedule domains share the remux lifecycle generation. Retirement invalidates pulls, queued payload IDs and append/remove receipts together; completed append evidence remains visible until a new MSE generation starts. The shell owns SourceBuffers, payload bytes and listener handles. Pure scheduling retains GOP-safe byte eviction, half-second gap admission, startup-coverage versus output distinction, and paused/playing window semantics. Retained-frame ingress keeps caller ownership when prior cleanup throws, avoiding double-close of an input that was not accepted.
+
 ## Gesture-sensitive effects
 
 Source: [Player.play](../src/unified-player.ts#L1461), [presentation requests](../src/presentation.ts#L31), [output picker](../src/player/advanced-settings.ts#L146).

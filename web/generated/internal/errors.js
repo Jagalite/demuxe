@@ -55,22 +55,58 @@ export function isPlayerError(error) {
         && error[playerErrorBrand] === true
         && 'code' in error && typeof error.code === 'string' && Object.hasOwn(errorCodes, error.code);
 }
+// Worker transports may append a browser stack to the message. Stack function
+// names and asset URLs are diagnostic text, not evidence of a timeout or asset
+// failure. Inspect semantic message lines and explicit causes instead.
+function classificationFacts(error) {
+    const messages = [], names = [], seen = new Set();
+    let current = error, typed, timeline = false;
+    for (let depth = 0; depth < 8; depth++) {
+        if (current instanceof Error) {
+            if (seen.has(current))
+                break;
+            seen.add(current);
+        }
+        const text = current instanceof Error ? current.message : String(current);
+        const lines = text.split(/\r?\n/), semantic = [];
+        for (const line of lines) {
+            if (/^\s*at\s+/.test(line) || /^[^\n]*@(?:[a-z][a-z0-9+.-]*:|debugger eval code:)/i.test(line))
+                break;
+            semantic.push(line);
+        }
+        messages.push(semantic.join('\n'));
+        if (!(current instanceof Error))
+            break;
+        names.push(current.name);
+        if (isPlayerError(current))
+            typed ??= current;
+        if ('code' in current && current.code === 'UNSUPPORTED_TIMELINE')
+            timeline = true;
+        if (!('cause' in current) || current.cause === undefined)
+            break;
+        current = current.cause;
+    }
+    return { message: messages.join('\n'), names, typed, timeline };
+}
 export function playerError(error, id = null, operation = null, scope = 'operation') {
     if (isPlayerError(error))
         return new PlayerError(error.code, error.message, id ?? error.operationId, operation ?? error.operation, scope, error.retryable);
     if (error instanceof Error && 'code' in error && error.code === 'UNSUPPORTED_TIMELINE')
         return new PlayerError('UNSUPPORTED_TIMELINE', error.message, id, operation, scope);
     const message = error instanceof Error ? error.message : String(error);
-    const name = error instanceof Error ? error.name : '';
-    const code = name === 'AbortError' || /^(?:Operation aborted|Open aborted|Player (?:element )?(?:is )?destroyed|Player element disconnected)|cancelled/i.test(message) ? 'ABORTED'
-        : name === 'NotAllowedError' || /autoplay|user gesture|audio context.*suspended/i.test(message) ? 'AUTOPLAY_BLOCKED'
-            : /cross.origin isolat|secure.*isolated/i.test(message) ? 'ISOLATION_REQUIRED'
-                : /representation changed|changed length|Source changed/i.test(message) ? 'SOURCE_CHANGED'
-                    : /\b(?:401|403)\b|permission|origin.*not allowed|authorization/i.test(message) ? 'SOURCE_PERMISSION'
-                        : /timed? ?out|deadline/i.test(message) ? 'NETWORK_TIMEOUT'
-                            : /fetch.*module|load.*font|\.wasm|initialization|worker.*failed|import.*module|Aborted\(.*fetch|wasm.*failed|WebAssembly.*(?:compile|instantiate)/i.test(message) ? 'ASSET_LOAD_FAILED'
-                                : /Invalid|Expected|must be|limited to|queue.*full|No source/i.test(message) ? 'INVALID_ARGUMENT'
-                                    : /preserve.*track|unknown.*track|require.*mode|unsupported.*feature|not supported.*source|filters require|cannot.*discard|external.*require/i.test(message) ? 'UNSUPPORTED_FEATURE'
-                                        : /unsupported|no playback route|no browser bridge/i.test(message) ? 'UNSUPPORTED_MEDIA' : 'DECODE_FAILED';
+    const facts = classificationFacts(error), semantic = facts.message;
+    if (facts.typed)
+        return new PlayerError(facts.typed.code, message, id ?? facts.typed.operationId, operation ?? facts.typed.operation, scope, facts.typed.retryable);
+    const code = facts.timeline ? 'UNSUPPORTED_TIMELINE'
+        : facts.names.includes('AbortError') || /^(?:Operation aborted|Open aborted|Player (?:element )?(?:is )?destroyed|Player element disconnected)|cancelled/im.test(semantic) ? 'ABORTED'
+            : facts.names.includes('NotAllowedError') || /autoplay|user gesture|audio context.*suspended/i.test(semantic) ? 'AUTOPLAY_BLOCKED'
+                : /cross.origin isolat|secure.*isolated/i.test(semantic) ? 'ISOLATION_REQUIRED'
+                    : /representation changed|changed length|Source changed/i.test(semantic) ? 'SOURCE_CHANGED'
+                        : /\b(?:401|403)\b|permission|origin.*not allowed|authorization/i.test(semantic) ? 'SOURCE_PERMISSION'
+                            : /timed? ?out|deadline/i.test(semantic) ? 'NETWORK_TIMEOUT'
+                                : /fetch.*module|load.*font|\.wasm|initialization|worker.*failed|import.*module|Aborted\(.*fetch|wasm.*failed|WebAssembly.*(?:compile|instantiate)/i.test(semantic) ? 'ASSET_LOAD_FAILED'
+                                    : /Invalid|Expected|must be|limited to|queue.*full|No source/i.test(semantic) ? 'INVALID_ARGUMENT'
+                                        : /preserve.*track|unknown.*track|require.*mode|unsupported.*feature|not supported.*source|filters require|cannot.*discard|external.*require/i.test(semantic) ? 'UNSUPPORTED_FEATURE'
+                                            : /unsupported|no playback route|no browser bridge/i.test(semantic) ? 'UNSUPPORTED_MEDIA' : 'DECODE_FAILED';
     return new PlayerError(code, message, id, operation, scope, ['NETWORK_TIMEOUT', 'ASSET_LOAD_FAILED', 'AUTOPLAY_BLOCKED'].includes(code));
 }

@@ -1,10 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
+import type { RemuxBufferState, RemuxBufferCommand, RemuxBufferDecision } from './remux-buffer.js';
+import { transitionRemuxSchedule } from './remux-scheduling.js';
+import type { RemuxSchedule, RemuxScheduleCommand, RemuxBuffering } from './remux-scheduling.js';
 type Recovery = Readonly<{
     id: number;
     sourceId: number;
     restartId: number;
 }>;
 export type RemuxLifecycle = Readonly<{
+    buffer: RemuxBufferState;
+    schedule: RemuxSchedule;
     sourceId: number;
     restartId: number;
     generation: number;
@@ -23,6 +28,17 @@ export type RemuxLifecycle = Readonly<{
     playing: boolean;
 }>;
 export type RemuxLifecycleCommand = Readonly<{
+    type: 'buffer';
+    generation: number;
+    command: RemuxBufferCommand;
+}> | Readonly<{
+    type: 'schedule';
+    generation: number;
+    command: RemuxScheduleCommand;
+}> | Readonly<{
+    type: 'buffering';
+    policy: RemuxBuffering | undefined;
+}> | Readonly<{
     type: 'open';
 }> | Readonly<{
     type: 'restart';
@@ -73,6 +89,8 @@ export type RemuxLifecycleDecision = Readonly<{
     retry?: boolean;
     recoveryId?: number;
     report?: boolean;
+    buffer?: RemuxBufferDecision;
+    schedule?: ReturnType<typeof transitionRemuxSchedule>;
 }>;
 export declare function initialRemuxLifecycle(): RemuxLifecycle;
 export declare function remuxGenerationCurrent(state: RemuxLifecycle, generation: number): boolean;

@@ -1,63 +1,55 @@
 // SPDX-License-Identifier: MIT
 import {drawRetainedVideo} from '../retained-video.js';
 import {SubtitleOverlay} from '../subtitle-overlay.js';
+import {createPrivateRetainedPresentation,clearRetainedPresentation,admitRetainedFrame,canReceiveRetainedFrame,returnRetainedFrame,retainedFrameCurrent,selectRetainedFrame,armRetainedDraw,beginRetainedDraw,finishRetainedDraw} from '../generated/internal/machine/private-retained-presentation.js';
 export class PrivateRetainedPresentation {
-  constructor(){this.frames=new Map();this.overlay=new SubtitleOverlay();this.generation=-1;this.serial=-1;this.awaiting=true;this.epoch=0;
-    this.stats={received:0,presented:0,closed:0,dropped:0,peakFrames:0};}
-  closeFrame(frame){frame.close();this.stats.closed++;}
+  constructor({now=()=>performance.now(),onCapacity=()=>{}}={}){this.machine=createPrivateRetainedPresentation();this.owned=new Map();this.overlay=new SubtitleOverlay();this.now=now;this.onCapacity=onCapacity;this.selected=null;}
+  get generation(){return this.machine.generation;}get serial(){return this.machine.serial;}get awaiting(){return this.machine.awaiting;}get epoch(){return this.machine.epoch;}
+  get seekTarget(){return this.machine.seekTarget??undefined;}get seekGeneration(){return this.machine.seekGeneration??undefined;}
+  get held(){return this.machine.held?this.owned.get(this.machine.held.id):null;}
+  get frames(){return new Map(this.machine.frames.map(frame=>[frame.timestamp,this.owned.get(frame.id)]));}
+  get pending(){return this.machine.pending?{...this.machine.pending,frame:this.owned.get(this.machine.pending.frame),overlay:this.selected?.overlay,track:this.selected?.track}:this.machine.epoch===0?undefined:null;}
+  release(ids){const errors=[];for(const id of ids){const frame=this.owned.get(id);this.owned.delete(id);try{frame?.close();}catch(error){errors.push(error);}}if(ids.length)this.onCapacity();if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Retained frame cleanup failed');}
+  canReceive(frame,generation){return canReceiveRetainedFrame(this.machine,frame.timestamp,generation);}
   enqueue(frame,generation){
-    this.stats.received++;
-    // Seek invalidates the decoder epoch, including frames delivered after
-    // clear but before the native decoder reset has completed.
-    if(generation<this.generation||this.seekGeneration!==undefined&&generation<=this.seekGeneration){this.closeFrame(frame);this.stats.dropped++;return;}
-    if(generation>this.generation){this.clear(this.seekTarget);this.generation=generation;}
-    const pts=frame.timestamp;
-    if(!Number.isSafeInteger(pts))throw Error('Invalid retained frame timestamp');
-    // Match the maintained retained Hybrid seek window. Native still receives
-    // timing placeholders for decoder preroll; these browser surfaces will not
-    // be selected for the requested exact seek and need no retained ownership.
-    if(this.seekTarget!==undefined&&pts/1e6<this.seekTarget-.15){this.closeFrame(frame);this.stats.dropped++;return;}
-    if(this.frames.has(pts)||this.held?.timestamp===pts)throw Error('Retained timestamp collision');
-    if(this.frames.size+(this.held?1:0)>=16)throw Error('Retained presentation frame budget');
-    this.frames.set(pts,frame);this.stats.peakFrames=Math.max(this.stats.peakFrames,this.frames.size+(this.held?1:0));
+    const admission=admitRetainedFrame(this.machine,frame.timestamp,generation);this.machine=admission.state;
+    // Metadata reserves the identity before cleanup callbacks. Physical input
+    // ownership transfers only once prior-generation retirement succeeds: on a
+    // thrown enqueue the decoder mailbox still owns and closes the input.
+    try{
+      if(admission.clearOverlay){this.selected=null;this.overlay.clear();}
+      this.release(admission.close);
+    }catch(error){if(admission.id!==null)this.machine=returnRetainedFrame(this.machine,admission.id);throw error;}
+    if(admission.id!==null){
+      if(retainedFrameCurrent(this.machine,admission.id))this.owned.set(admission.id,frame);
+      else frame.close(); // A cleanup callback already retired the reservation.
+    }
+    if(admission.closeInput)frame.close();
+    if(admission.error)throw Error(admission.error);
   }
   async select(engine,properties){
-    const epoch=this.epoch;
-    const ptr=await engine.call('web_selected_snapshot');
-    // A suspended snapshot cannot claim frames installed by a later clear.
-    if(epoch!==this.epoch)return;
+    const epoch=this.machine.epoch,ptr=await engine.call('web_selected_snapshot');if(epoch!==this.machine.epoch)return;
     const memory=engine.raw.memory.buffer,view=new DataView(memory,ptr,32);
     const pts=view.getFloat64(0,true),delay=view.getFloat64(8,true),serial=view.getInt32(16,true),subtitle=view.getUint32(24,true),composites=view.getInt32(28,true);
-    if(!Number.isFinite(pts)||pts<0)return;
-    if(!Number.isFinite(delay))throw Error('Invalid retained presentation deadline');
-    const stamp=Math.round(pts*1e6);
-    let frame=this.held?.timestamp===stamp?this.held:this.frames.get(stamp);
-    if(!frame){
-      // FFmpeg rational timestamps can round differently by one microsecond.
-      frame=this.frames.get(stamp-1)??this.frames.get(stamp+1);
-    }
-    if(!frame){if(this.awaiting)return;throw Error('Selected retained frame is unavailable: '+stamp);}
-    this.awaiting=false;
-    this.seekTarget=undefined;
-    if(frame!==this.held){
-      this.frames.delete(frame.timestamp);if(this.held)this.closeFrame(this.held);this.held=frame;
-    }
-    for(const [timestamp,old] of this.frames)if(timestamp<stamp-1){this.frames.delete(timestamp);this.closeFrame(old);this.stats.dropped++;}
-    const overlay=this.overlay.read({_web_subtitle_overlay_version:()=>2,_web_subtitle_ptr:()=>subtitle,
-      _web_subtitle_composite_count:()=>composites,HEAPU8:new Uint8Array(memory)});
-    if(this.pending&&this.pending.serial!==serial)this.stats.dropped++;
-    this.pending={serial,frame,overlay,track:properties['video-params'],due:performance.now()+Math.max(0,delay)};
-    this.serial=serial;
+    const selection=selectRetainedFrame(this.machine,{epoch,pts,delay,serial});this.machine=selection.state;const selectionId=selection.state.preparing?.id;this.release(selection.close);
+    if(selection.error)throw Error(selection.error);if(selection.frame===null||this.machine.epoch!==epoch)return;
+    const overlay=this.overlay.read({_web_subtitle_overlay_version:()=>2,_web_subtitle_ptr:()=>subtitle,_web_subtitle_composite_count:()=>composites,HEAPU8:new Uint8Array(memory)});
+    if(this.machine.epoch!==epoch)return;
+    const armed=armRetainedDraw(this.machine,selectionId,this.now());this.machine=armed.state;if(!armed.accepted)return;
+    this.selected={epoch,frame:selection.frame,serial,overlay,track:properties['video-params']};
   }
   present(context,canvas){
-    const pending=this.pending;if(!pending||performance.now()<pending.due)return false;
-    drawRetainedVideo(context,pending.frame,canvas,pending.track);this.overlay.draw(context,pending.overlay);
-    this.pending=null;this.stats.presented++;return true;
+    const selected=this.selected,epoch=this.machine.epoch,decision=beginRetainedDraw(this.machine,this.now());this.machine=decision.state;
+    if(!decision.pending)return false;
+    const frame=this.owned.get(decision.pending.frame);
+    if(!frame||!selected||selected.epoch!==epoch||selected.frame!==decision.pending.frame||selected.serial!==decision.pending.serial)throw Error('Retained presentation ownership mismatch');
+    drawRetainedVideo(context,frame,canvas,selected.track);
+    if(this.machine.epoch!==epoch)return false;
+    this.overlay.draw(context,selected.overlay);if(this.machine.epoch!==epoch)return false;
+    this.machine=finishRetainedDraw(this.machine,epoch);return true;
   }
-  clear(seekTarget,seekGeneration=this.generation){
-    this.epoch++;this.seekGeneration=seekTarget===undefined?undefined:seekGeneration;
-    for(const frame of this.frames.values())this.closeFrame(frame);this.frames.clear();
-    if(this.held)this.closeFrame(this.held);this.held=null;this.pending=null;this.serial=-1;this.awaiting=true;this.seekTarget=seekTarget;this.overlay.clear();
+  clear(seekTarget,seekGeneration=this.machine.generation){
+    const decision=clearRetainedPresentation(this.machine,seekTarget??null,seekGeneration);this.machine=decision.state;this.selected=null;this.overlay.clear();this.release(decision.close);
   }
-  snapshot(){return {...this.stats,queued:this.frames.size,held:+!!this.held,pending:+!!this.pending,generation:this.generation};}
+  snapshot(){const s=this.machine;return {received:s.received,presented:s.presented,closed:s.closed,dropped:s.dropped,peakFrames:s.peakFrames,queued:s.frames.length,held:+!!s.held,pending:+!!s.pending,generation:s.generation};}
 }

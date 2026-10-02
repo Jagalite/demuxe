@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
+import { initialRemuxBuffer, resetRemuxBuffer, transitionRemuxBuffer } from './remux-buffer.js';
+import { initialRemuxSchedule, resetRemuxSchedule, remuxBuffering, transitionRemuxSchedule } from './remux-scheduling.js';
 export function initialRemuxLifecycle() {
-    return Object.freeze({ sourceId: 0, restartId: 0, generation: 0, active: false, stopped: false, starting: false, rejected: Object.freeze([]), packagingFailure: false, failedGeneration: undefined, acceptedGeneration: undefined, acceptedSourceId: undefined, targetReady: false, recoveryAttempts: 0, recoverySerial: 0, recovery: null, playing: false });
+    return Object.freeze({ buffer: initialRemuxBuffer(), schedule: initialRemuxSchedule(), sourceId: 0, restartId: 0, generation: 0, active: false, stopped: false, starting: false, rejected: Object.freeze([]), packagingFailure: false, failedGeneration: undefined, acceptedGeneration: undefined, acceptedSourceId: undefined, targetReady: false, recoveryAttempts: 0, recoverySerial: 0, recovery: null, playing: false });
 }
 export function remuxGenerationCurrent(state, generation) {
     return !state.stopped && state.active && state.generation === generation && state.failedGeneration !== generation;
@@ -16,13 +18,16 @@ export function remuxAcceptedGeneration(state) {
     return remuxGenerationCurrent(state, state.generation) && state.targetReady && state.acceptedGeneration === state.generation && state.acceptedSourceId === state.sourceId;
 }
 export function transitionRemuxLifecycle(state, command) {
+    const retiredSchedule = () => Object.freeze({ ...state.schedule, resume: null });
     const result = (next, extra = {}) => Object.freeze({ state: next === state ? state : Object.freeze({ ...next }), ...extra });
     if (command.type === 'destroy')
-        return state.stopped ? result(state) : result({ ...state, stopped: true, active: false, starting: false, targetReady: false, generation: state.generation + 1, recovery: null }, { accepted: true });
+        return state.stopped ? result(state) : result({ ...state, buffer: resetRemuxBuffer(state.buffer), schedule: retiredSchedule(), stopped: true, active: false, starting: false, targetReady: false, generation: state.generation + 1, recovery: null }, { accepted: true });
     if (state.stopped)
         return result(state, { error: 'Remux player is destroyed' });
     if (command.type === 'open')
-        return result({ ...state, sourceId: state.sourceId + 1, restartId: state.restartId + 1, active: false, starting: false, targetReady: false, recoveryAttempts: 0, recovery: null }, { accepted: true });
+        return result({ ...state, buffer: resetRemuxBuffer(state.buffer), schedule: retiredSchedule(), sourceId: state.sourceId + 1, restartId: state.restartId + 1, active: false, starting: false, targetReady: false, recoveryAttempts: 0, recovery: null }, { accepted: true });
+    if (command.type === 'buffering')
+        return result({ ...state, schedule: remuxBuffering(state.schedule, command.policy) }, { accepted: true });
     if (command.type === 'intent')
         return result({ ...state, playing: command.playing }, { accepted: true });
     if (command.type === 'restart') {
@@ -31,13 +36,13 @@ export function transitionRemuxLifecycle(state, command) {
         if (command.recoveryId !== undefined && !remuxRecoveryCurrent(state, command.recoveryId))
             return result(state, { aborted: true });
         const restartId = state.restartId + 1, recovery = command.recoveryId === undefined ? null : Object.freeze({ ...state.recovery, restartId });
-        return result({ ...state, restartId, starting: true, active: false, targetReady: false, rejected: Object.freeze([]), packagingFailure: false, recovery }, { accepted: true, restartId });
+        return result({ ...state, buffer: resetRemuxBuffer(state.buffer), schedule: Object.freeze({ ...retiredSchedule(), target: command.target }), restartId, starting: true, active: false, targetReady: false, rejected: Object.freeze([]), packagingFailure: false, recovery }, { accepted: true, restartId });
     }
     if (command.type === 'begin') {
         if (!state.starting || !remuxRestartCurrent(state, command.restartId))
             return result(state, { aborted: true });
         const generation = state.generation + 1;
-        return result({ ...state, generation, active: true, targetReady: false, packagingFailure: false, failedGeneration: undefined }, { accepted: true, generation });
+        return result({ ...state, buffer: resetRemuxBuffer(state.buffer, true, true), schedule: resetRemuxSchedule(state.schedule), generation, active: true, targetReady: false, packagingFailure: false, failedGeneration: undefined }, { accepted: true, generation });
     }
     if (command.type === 'settle')
         return remuxRestartCurrent(state, command.restartId) ? result({ ...state, starting: false }, { accepted: true }) : result(state, { aborted: true });
@@ -51,14 +56,23 @@ export function transitionRemuxLifecycle(state, command) {
     if (command.type === 'recovered')
         return remuxRecoveryCurrent(state, command.recoveryId) ? result({ ...state, recovery: null }, { accepted: true }) : result(state, { aborted: true });
     if (command.type === 'retire')
-        return command.generation === state.generation ? result({ ...state, active: false, targetReady: false }, { accepted: true }) : result(state, { aborted: true });
+        return command.generation === state.generation ? result({ ...state, buffer: resetRemuxBuffer(state.buffer), schedule: retiredSchedule(), active: false, targetReady: false }, { accepted: true }) : result(state, { aborted: true });
     if (!remuxGenerationCurrent(state, command.generation))
         return result(state, { aborted: true });
+    if (command.type === 'schedule') {
+        const schedule = transitionRemuxSchedule(state.schedule, command.command);
+        return result(schedule.state === state.schedule ? state : { ...state, schedule: schedule.state }, { accepted: schedule.accepted, schedule });
+    }
+    if (command.type === 'buffer') {
+        const buffer = transitionRemuxBuffer(state.buffer, command.command);
+        const schedule = buffer.accepted && command.command.type === 'remove' ? transitionRemuxSchedule(state.schedule, { ...command.command, type: 'evict' }).state : state.schedule;
+        return result(buffer.state === state.buffer && schedule === state.schedule ? state : { ...state, buffer: buffer.state, schedule }, { accepted: buffer.accepted, buffer });
+    }
     if (command.type === 'packaging-failure')
         return result({ ...state, packagingFailure: command.failed }, { accepted: true });
     if (command.type === 'accept')
         return result({ ...state, targetReady: true, acceptedGeneration: state.generation, acceptedSourceId: state.sourceId }, { accepted: true });
-    const failed = { ...state, active: false, targetReady: false, failedGeneration: state.generation };
+    const failed = { ...state, buffer: resetRemuxBuffer(state.buffer), schedule: retiredSchedule(), active: false, targetReady: false, failedGeneration: state.generation };
     if (state.starting)
         return result(failed, { accepted: true });
     if (state.recoveryAttempts < 1 && /worker failed|MSE SourceBuffer error|QuotaExceededError/.test(command.message)) {

@@ -11,6 +11,16 @@ export async function checkSequenceModel({mode,seed,rounds}) {
   const trace=[],seenSources=new Set();let source,plan;
   const assert=(condition,message)=>{if(!condition)throw Error(message);};
   const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  const diagnosticText=value=>String(value??'').replace(/(?:https?:\/\/|file:\/\/|blob:)[^\s<>"']+/gi,'[URL]')
+    .replace(/\b(authorization|proxy-authorization|cookie|set-cookie|x-api-key)\s*[:=]\s*[^\r\n]+/gi,'$1: [redacted]')
+    .replace(/\b(Bearer|Basic)\s+[^\s,;]+/gi,'$1 [redacted]').slice(0,768);
+  const diagnosticState=()=>{
+    const s=p.state,error=s.error,pending=s.pendingOperation;
+    return {status:s.status,playbackIntent:s.playbackIntent,sourceId:s.sourceId,currentTime:s.currentTime,duration:s.duration,
+      activeMode:s.activeMode,plan:diagnosticText(p.diagnostics.plan?.id),volume:s.volume,muted:s.muted,playbackRate:s.playbackRate,
+      pendingOperation:pending?{id:pending.id,kind:pending.kind}:null,
+      error:error?{code:error.code,message:diagnosticText(error.message),scope:error.scope,retryable:error.retryable}:null};
+  };
   // Passive readback: public snapshot() itself enters Player's operation queue
   // and changes preview/promotion pressure, so it cannot observe this model.
   const pixels=async()=>{
@@ -42,12 +52,13 @@ export async function checkSequenceModel({mode,seed,rounds}) {
     if(expected.playbackIntent==='play'){
       const until=performance.now()+6000;let movement=0;
       do{await delay(120);movement=difference(before,await pixels());}while((p.state.currentTime<time+.12||movement<.5)&&performance.now()<until);
-      assert(p.state.currentTime>=time+.12&&movement>=.5,'Playing intent without advancing video output');
       entry.output={clockDelta:p.state.currentTime-time,pixelChange:movement};
+      assert(p.state.currentTime>=time+.12&&movement>=.5,'Playing intent without advancing video output');
     }else{
       await delay(150);const movement=difference(before,await pixels());
+      entry.output={clockDelta:p.state.currentTime-time,pixelChange:movement};
       assert(Math.abs(p.state.currentTime-time)<.12,'Paused clock kept moving');
-      assert(movement<2,'Paused video kept changing');entry.output={clockDelta:p.state.currentTime-time,pixelChange:movement};
+      assert(movement<2,'Paused video kept changing');
     }
     assertState();entry.expected={...expected,source,plan};entry.observed={status:p.state.status,currentTime:p.state.currentTime,mode:p.state.activeMode,plan:p.diagnostics.plan?.id};
   };
@@ -96,6 +107,13 @@ export async function checkSequenceModel({mode,seed,rounds}) {
       }
     }
     return {mode,seed,trace,scope:'Public state, playback clock and video readback; not audio fidelity'};
-  }catch(error){throw Error(String(error)+' mode='+mode+' seed='+seed+' trace='+JSON.stringify(trace));}
+  }catch(error){
+    // Capture the failing public state before disposal erases the accepted session.
+    // Keep diagnostics bounded and omit private URLs and authentication values.
+    const failure={message:diagnosticText(error),state:null};
+    try{failure.state=diagnosticState();}catch(diagnosticError){failure.diagnosticError=diagnosticText(diagnosticError);}
+    if(trace.length)trace.at(-1).failure=failure;else trace.push({action:'initialization',failure});
+    throw Error(failure.message+' mode='+mode+' seed='+seed+' trace='+JSON.stringify(trace.slice(-128)));
+  }
   finally{await binding.dispose();await p.destroy();}
 }

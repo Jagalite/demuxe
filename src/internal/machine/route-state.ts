@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 import {copyData} from './data.js';
+import {initialDiscovery,transitionDiscovery,type DiscoveryState,type DiscoveryChange} from './route-discovery.js';
+import {initialInspection,transitionInspection,type InspectionState,type InspectionChange} from './route-inspection.js';
 import type {SelectionAttempt} from './source-policy.js';
 import type {RoutePlan} from './route-admission.js';
 import type {DecodingEvidence} from './media-facts.js';
-export type RoutingState=Readonly<{plans:readonly RoutePlan[];attempts:readonly SelectionAttempt[];context:Readonly<{nativeReason?:string;automatic:boolean}>}>;
-export function initialRouting():RoutingState{return Object.freeze({plans:Object.freeze([]),attempts:Object.freeze([]),context:Object.freeze({automatic:false})});}
+export type RoutingState=Readonly<{discovery:DiscoveryState;inspection:InspectionState;plans:readonly RoutePlan[];attempts:readonly SelectionAttempt[];context:Readonly<{nativeReason?:string;automatic:boolean}>}>;
+export function initialRouting():RoutingState{return Object.freeze({discovery:initialDiscovery(),inspection:initialInspection(),plans:Object.freeze([]),attempts:Object.freeze([]),context:Object.freeze({automatic:false})});}
 export type RoutingInput=
+  |Readonly<{type:'routing.discovery';epoch:number;operation:number|null;change:DiscoveryChange}>
+  |Readonly<{type:'routing.inspection';epoch:number;operation:number|null;change:InspectionChange}>
   |Readonly<{type:'routing.plans';plans:readonly RoutePlan[]}>
   |Readonly<{type:'routing.context';context:RoutingState['context']}>
   |Readonly<{type:'routing.attempts';attempts:readonly SelectionAttempt[]}>
@@ -13,6 +17,8 @@ export type RoutingInput=
   |Readonly<{type:'routing.reject';id:string;code:NonNullable<RoutePlan['code']>;reason:string}>
   |Readonly<{type:'routing.decoding';epoch:number;session:number|null;answers:readonly Readonly<{id:string;evidence:DecodingEvidence|undefined}>[]}>;
 export function transitionRouting(state:RoutingState,input:RoutingInput):RoutingState{
+  if(input.type==='routing.discovery'){const discovery=transitionDiscovery(state.discovery,input.change);return discovery===state.discovery?state:Object.freeze({...state,discovery,...(input.change.kind==='reinspected'?{context:Object.freeze({nativeReason:discovery.current?.nativeReason,automatic:discovery.current?.automatic??state.context.automatic})}:{})});}
+  if(input.type==='routing.inspection')return Object.freeze({...state,inspection:transitionInspection(state.inspection,input.change)});
   if(input.type==='routing.plans')return Object.freeze({...state,plans:copyData(input.plans)});
   if(input.type==='routing.context')return Object.freeze({...state,context:copyData(input.context)});
   if(input.type==='routing.attempts')return Object.freeze({...state,attempts:copyData(input.attempts.slice(-32))});

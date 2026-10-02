@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type DiscoveryState, type DiscoveryChange } from './route-discovery.js';
+import { type InspectionState, type InspectionChange } from './route-inspection.js';
 import type { SelectionAttempt } from './source-policy.js';
 import type { RoutePlan } from './route-admission.js';
 import type { DecodingEvidence } from './media-facts.js';
 export type RoutingState = Readonly<{
+    discovery: DiscoveryState;
+    inspection: InspectionState;
     plans: readonly RoutePlan[];
     attempts: readonly SelectionAttempt[];
     context: Readonly<{
@@ -12,6 +16,16 @@ export type RoutingState = Readonly<{
 }>;
 export declare function initialRouting(): RoutingState;
 export type RoutingInput = Readonly<{
+    type: 'routing.discovery';
+    epoch: number;
+    operation: number | null;
+    change: DiscoveryChange;
+}> | Readonly<{
+    type: 'routing.inspection';
+    epoch: number;
+    operation: number | null;
+    change: InspectionChange;
+}> | Readonly<{
     type: 'routing.plans';
     plans: readonly RoutePlan[];
 }> | Readonly<{

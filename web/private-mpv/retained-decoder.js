@@ -6,17 +6,17 @@ const color={bt709:1,bt470bg:5,smpte170m:6,bt2020:9,'bt2020-ncl':9,smpte2084:16,
 // The cooperative mailbox transfers frame ownership on its native task's
 // resume. Decode callbacks only touch this bounded JS queue.
 export class PrivateRetainedDecoder {
-  constructor({Decoder=globalThis.VideoDecoder,Chunk=globalThis.EncodedVideoChunk,wakeup=()=>{},maxPixels=3840*2160}={}) {
+  constructor({Decoder=globalThis.VideoDecoder,Chunk=globalThis.EncodedVideoChunk,wakeup=()=>{},canReceive=()=>true,maxPixels=3840*2160}={}) {
     if(!Number.isInteger(maxPixels)||maxPixels<1||maxPixels>3840*2160)throw Error('Invalid retained decode pixel limit');
     this.Decoder=Decoder;this.Chunk=Chunk;this.wakeup=wakeup;this.queue=[];this.generation=0;
-    this.maxPixels=maxPixels;
-    this.stats={submitted:0,received:0,delivered:0,closed:0,peakFrames:0,resets:0};
+    this.maxPixels=maxPixels;this.canReceive=canReceive;this.blockedReceiveStreak=0;
+    this.stats={submitted:0,received:0,delivered:0,closed:0,peakFrames:0,resets:0,blockedReceives:0,maxConsecutiveBlockedReceives:0,capacityResumes:0};
   }
   closeFrame(frame){frame.close();this.stats.closed++;}
   cancel(){
     this.generation++;this.decoder?.destroy();this.decoder=null;
     for(const frame of this.queue)this.closeFrame(frame);this.queue=[];
-    this.draining=false;this.flushed=false;this.failure=null;
+    this.draining=false;this.flushed=false;this.failure=null;this.blockedReceiveStreak=0;
   }
   configure(){
     const epoch=this.generation;
@@ -73,13 +73,18 @@ export class PrivateRetainedDecoder {
       return {result:0};
     }
     if(operation===4){
-      const frame=this.queue.shift();
+      // Keep the actual frame and its native timing placeholder together while
+      // presentation is full. Returning the existing wait result leaves the
+      // native filter runnable by a later capacity wakeup; it does not park the
+      // worker or discard exact output.
+      if(this.queue.length&&!this.canReceive(this.queue[0],this.generation)){this.stats.blockedReceives++;this.blockedReceiveStreak++;this.stats.maxConsecutiveBlockedReceives=Math.max(this.stats.maxConsecutiveBlockedReceives,this.blockedReceiveStreak);return {result:0};}
+      const resumed=this.blockedReceiveStreak>0;this.blockedReceiveStreak=0;const frame=this.queue.shift();
       if(!frame)return {result:this.draining?(this.flushed?EOF:0):this.decoder.queuedPackets>=8?0:AGAIN};
       try{
         const {width,height}=frame.visibleRect;
         if(width<1||height<1||width>8192||height>8192||width*height>this.maxPixels||!Number.isSafeInteger(frame.timestamp)||!Number.isSafeInteger(frame.duration??0)||(frame.duration??0)<0)throw Error('Invalid retained output frame');
         const space=frame.colorSpace;
-        this.stats.delivered++;
+        this.stats.delivered++;if(resumed)this.stats.capacityResumes++;
         return {result:1,frame,generation:this.generation,fields:[2,2,0,color[space.primaries]??2,color[space.transfer]??2,color[space.matrix]??2,+!!space.fullRange,0],
           timestamp:frame.timestamp,duration:frame.duration??0,pixels:new Uint8Array([16,16,16,16,128,128])};
       }catch(error){this.closeFrame(frame);throw error;}

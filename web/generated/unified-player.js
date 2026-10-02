@@ -43,6 +43,8 @@ import { NativePlayer as PreviewNativePlayer } from './internal/native-player.js
 class SeekPresentationBoundary extends PlayerError {
     constructor(target, boundary) { super('INVALID_ARGUMENT', `Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`); }
 }
+import { discoveryPlanPolicy, discoveryOptionalProbe, localDiscoveryRemux } from './internal/machine/route-discovery.js';
+import { fastInspectionAllowed, inspectionSelection, initialInspectionPolicy, optionalInspectionFallback } from './internal/machine/route-inspection.js';
 import { refineRouteAdmission, applyDeploymentRejections, attachRouteDecoding } from './internal/machine/route-admission.js';
 import { attachmentAuthority, candidateAttachments, attachmentPreferences } from './internal/machine/attachments.js';
 import { boundaryAuthority } from './internal/machine/playback-boundary.js';
@@ -106,7 +108,8 @@ export class Player extends EventTarget {
     get transitionTrace() { return selectTrace(this.controlTrace); }
     operationResources = new Map();
     dispatchControl(input) { const before = this.control, decision = transitionPlayer(before, input); this.control = decision.state; if (before.attachments !== decision.state.attachments)
-        this.pruneAttachments(); this.controlTrace = tracePlayerTransition(this.controlTrace ?? createTrace(256), input, before, decision, decision.state.revision); return decision; }
+        this.pruneAttachments(); if (before.routing.inspection !== decision.state.routing.inspection)
+        this.pruneInspectionResources(); this.controlTrace = tracePlayerTransition(this.controlTrace ?? createTrace(256), input, before, decision, decision.state.revision); return decision; }
     get operationEpoch() { return this.control.operations.epoch; }
     get activeOperation() { const entry = activeOperation(this.control.operations), resources = entry && this.operationResources.get(entry.id); return entry && resources ? { ...entry, ...resources } : undefined; }
     get pendingOperation() { return pendingOperation(this.control.operations); }
@@ -198,11 +201,54 @@ export class Player extends EventTarget {
         if (!this.settings.pause || this.backgroundPromotion)
             this.schedulePromotion();
     });
-    sourceInspection;
-    fastInspectedSource;
-    mpvSubtitleAssetsAvailable = false;
-    selectiveAudioAssetsAvailable = false;
-    selectiveAudioAssetsChecked = false;
+    // Physical sources/errors stay outside the composed inspection metadata.
+    inspectionSourceKeys = new WeakMap();
+    inspectionSources = new Map();
+    inspectionErrors = new Map();
+    updateInspection(change) { return this.dispatchControl({ type: 'routing.inspection', epoch: this.operationEpoch, operation: this.control.operations.active, change }).accepted; }
+    inspectionSourceKey(source) {
+        this.inspectionSourceKeys ??= new WeakMap();
+        this.inspectionSources ??= new Map();
+        let id = this.inspectionSourceKeys.get(source);
+        if (id === undefined) {
+            if (!this.updateInspection({ kind: 'source.allocate' }))
+                throw new PlayerError('ABORTED', 'Inspection was retired');
+            id = this.control.routing.inspection.sourceSerial;
+            this.inspectionSourceKeys.set(source, id);
+        }
+        this.inspectionSources.set(id, source);
+        return id;
+    }
+    pruneInspectionResources() {
+        const state = this.control.routing.inspection, retained = new Set([state.probe?.source, state.fastSource, state.lossless?.source]);
+        for (const id of this.inspectionSources?.keys() ?? [])
+            if (!retained.has(id))
+                this.inspectionSources.delete(id);
+        for (const id of this.inspectionErrors?.keys() ?? [])
+            if (id !== state.playbackFailure)
+                this.inspectionErrors.delete(id);
+    }
+    captureInspection() { return { scope: { epoch: this.operationEpoch, operation: this.control.operations.active }, state: this.control.routing.inspection, sources: new Map(this.inspectionSources), errors: new Map(this.inspectionErrors) }; }
+    restoreInspection(snapshot) {
+        for (const [id, source] of snapshot.sources)
+            (this.inspectionSources ??= new Map()).set(id, source);
+        for (const [id, error] of snapshot.errors)
+            (this.inspectionErrors ??= new Map()).set(id, error);
+        this.dispatchControl({ type: 'routing.inspection', ...snapshot.scope, change: { kind: 'restore', value: snapshot.state } });
+        this.pruneInspectionResources();
+    }
+    get sourceInspection() { const value = this.control.routing.inspection.probe, source = value && this.inspectionSources?.get(value.source); return value && source ? { source, probe: value.probe, settings: value.settings } : undefined; }
+    set sourceInspection(value) { const source = value ? this.inspectionSourceKey(value.source) : undefined; this.updateInspection({ kind: 'probe', value: value ? { source: source, probe: value.probe, settings: value.settings } : null }); this.pruneInspectionResources(); }
+    get fastInspectedSource() { const id = this.control.routing.inspection.fastSource; return id === null ? undefined : this.inspectionSources?.get(id); }
+    set fastInspectedSource(source) { this.updateInspection({ kind: 'fast', source: source ? this.inspectionSourceKey(source) : null }); this.pruneInspectionResources(); }
+    get losslessInspection() { const value = this.control.routing.inspection.lossless, source = value && this.inspectionSources?.get(value.source); return value && source ? { source, reason: value.reason } : undefined; }
+    set losslessInspection(value) { this.updateInspection({ kind: 'lossless', value: value ? { source: this.inspectionSourceKey(value.source), reason: value.reason } : null }); this.pruneInspectionResources(); }
+    get mpvSubtitleAssetsAvailable() { return this.control.routing.inspection.subtitleAssets; }
+    set mpvSubtitleAssetsAvailable(value) { this.updateInspection({ kind: 'assets', value: { subtitleAssets: value } }); }
+    get selectiveAudioAssetsAvailable() { return this.control.routing.inspection.selectiveAssets; }
+    set selectiveAudioAssetsAvailable(value) { this.updateInspection({ kind: 'assets', value: { selectiveAssets: value } }); }
+    get selectiveAudioAssetsChecked() { return this.control.routing.inspection.selectiveChecked; }
+    set selectiveAudioAssetsChecked(value) { this.updateInspection({ kind: 'assets', value: { selectiveChecked: value } }); }
     inspection;
     recovering = false;
     lifetime = new AbortController();
@@ -213,12 +259,17 @@ export class Player extends EventTarget {
     audioAdaptation;
     automaticLossless = false;
     audioPlayback;
-    privatePlaybackAssetsAvailable = false;
-    privatePlaybackAssets;
-    privatePlaybackAssetsFailure;
-    transcodeAssetsAvailable = false;
-    transcodeAssetsChecked = false;
-    losslessInspection;
+    get privatePlaybackAssetsAvailable() { return this.control.routing.inspection.playbackAvailable; }
+    set privatePlaybackAssetsAvailable(value) { this.updateInspection({ kind: 'assets', value: { playbackAvailable: value } }); }
+    get privatePlaybackAssets() { return this.control.routing.inspection.playbackAssets; }
+    set privatePlaybackAssets(value) { this.updateInspection({ kind: 'assets', value: { playbackAssets: value } }); }
+    get privatePlaybackAssetsFailure() { const id = this.control.routing.inspection.playbackFailure; return id === null ? undefined : this.inspectionErrors?.get(id); }
+    set privatePlaybackAssetsFailure(error) { if (this.updateInspection({ kind: 'failure', failed: !!error }) && error)
+        (this.inspectionErrors ??= new Map()).set(this.control.routing.inspection.playbackFailure, error); }
+    get transcodeAssetsAvailable() { return this.control.routing.inspection.transcodeAssets; }
+    set transcodeAssetsAvailable(value) { this.updateInspection({ kind: 'assets', value: { transcodeAssets: value } }); }
+    get transcodeAssetsChecked() { return this.control.routing.inspection.transcodeChecked; }
+    set transcodeAssetsChecked(value) { this.updateInspection({ kind: 'assets', value: { transcodeChecked: value } }); }
     bufferedNativeSeeks;
     hybridAudioFilters;
     nativeASS;
@@ -1401,16 +1452,11 @@ export class Player extends EventTarget {
         }
     }
     async checkInspectedAssets(source, probe, settings, sid, controller) {
-        this.selectiveAudioAssetsAvailable = false;
-        this.selectiveAudioAssetsChecked = false;
-        this.transcodeAssetsAvailable = false;
-        this.transcodeAssetsChecked = false;
-        this.mpvSubtitleAssetsAvailable = false;
-        this.privatePlaybackAssetsAvailable = false;
-        this.privatePlaybackAssets = undefined;
-        this.privatePlaybackAssetsFailure = undefined;
+        this.updateInspection({ kind: 'reset', scope: 'assets' });
         if (this.privateRemux) {
-            this.privatePlaybackAssetsAvailable = await this.optionalAssetsAvailable(['manifest.json', 'player.mjs', 'player.wasm'].map(name => `web/engine-mpv-playback-${this.remuxRuntime}/${name}`), controller);
+            const available = await this.optionalAssetsAvailable(['manifest.json', 'player.mjs', 'player.wasm'].map(name => `web/engine-mpv-playback-${this.remuxRuntime}/${name}`), controller);
+            this.assertOperation();
+            this.privatePlaybackAssetsAvailable = available;
             if (this.privatePlaybackAssetsAvailable) {
                 const metadataController = new AbortController(), abort = () => metadataController.abort();
                 controller.signal.addEventListener('abort', abort, { once: true });
@@ -1422,13 +1468,16 @@ export class Player extends EventTarget {
                     const response = this.providerRuntime ? new Response(await this.providerRuntime.bytes(manifestPath)) : await fetch(new URL(manifestPath, this.assetBase), { signal: metadataController.signal });
                     if (!response.ok)
                         throw Error('Manifest HTTP ' + response.status);
-                    this.privatePlaybackAssets = await readPrivatePlaybackAssets(response, this.remuxRuntime);
+                    const assets = await readPrivatePlaybackAssets(response, this.remuxRuntime);
+                    this.assertOperation();
+                    this.privatePlaybackAssets = assets;
                     if (!this.privatePlaybackAssets)
                         throw Error('Invalid playback manifest');
                 }
                 catch (error) {
                     if (controller.signal.aborted)
                         throw error;
+                    this.assertOperation();
                     this.privatePlaybackAssetsFailure = new PlayerError('ASSET_LOAD_FAILED', 'Private playback manifest initialization failed: ' + String(error));
                 }
                 finally {
@@ -1437,8 +1486,11 @@ export class Player extends EventTarget {
                 }
             }
         }
-        if (this.mpvSubtitles && this.fileServicesSource(source) && settings.subtitles && sid !== 'no' && probe.tracks.some(t => t.type === 'sub'))
-            this.mpvSubtitleAssetsAvailable = await this.optionalAssetsAvailable(['mjs', 'wasm'].map(ext => `web/engine-${this.privateRemux ? 'mpv-subtitles-' + this.remuxRuntime : 'subtitles'}/service.${ext}`), controller);
+        if (this.mpvSubtitles && this.fileServicesSource(source) && settings.subtitles && sid !== 'no' && probe.tracks.some(t => t.type === 'sub')) {
+            const available = await this.optionalAssetsAvailable(['mjs', 'wasm'].map(ext => `web/engine-${this.privateRemux ? 'mpv-subtitles-' + this.remuxRuntime : 'subtitles'}/service.${ext}`), controller);
+            this.assertOperation();
+            this.mpvSubtitleAssetsAvailable = available;
+        }
         this.assertOperation();
     }
     async inspectFallbackAfterFastFailure(source, settings) {
@@ -1448,12 +1500,7 @@ export class Player extends EventTarget {
             return nativeRejection(this.sourceInspection.probe, { ...settings }, document.createElement('video'));
         }
         if (!this.canInspectFFmpeg) {
-            this.sourceInspection = undefined;
-            this.mpvSubtitleAssetsAvailable = false;
-            this.selectiveAudioAssetsAvailable = false;
-            this.selectiveAudioAssetsChecked = false;
-            this.transcodeAssetsAvailable = false;
-            this.transcodeAssetsChecked = false;
+            this.updateInspection({ kind: 'reset', scope: 'fallback' });
             return 'Wasm inspection requires cross-origin isolation';
         }
         const controller = this.inspection = new AbortController();
@@ -1468,12 +1515,7 @@ export class Player extends EventTarget {
         catch (error) {
             if (this.destroyed || this.activeOperation?.controller.signal.aborted || controller.signal.aborted || terminalSourceFailure(error) || this.providerRuntime && ['ASSET_LOAD_FAILED', 'DEPLOYMENT_UNAVAILABLE'].includes(playerError(error).code))
                 throw error;
-            this.sourceInspection = undefined;
-            this.mpvSubtitleAssetsAvailable = false;
-            this.selectiveAudioAssetsAvailable = false;
-            this.selectiveAudioAssetsChecked = false;
-            this.transcodeAssetsAvailable = false;
-            this.transcodeAssetsChecked = false;
+            this.updateInspection({ kind: 'reset', scope: 'fallback' });
             this.record({ mode: 'probe', outcome: 'failed', reason: `FFmpeg reinspection after Direct failure: ${String(error)}` });
             return 'Native eligibility could not be established: ' + String(error);
         }
@@ -1489,8 +1531,9 @@ export class Player extends EventTarget {
             this.assertOperation();
             this.selectDeployedRuntime();
         }
+        const inspectionPolicy = () => initialInspectionPolicy({ automatic: this.automatic, mode: this.mode, privateRemux: this.privateRemux, provider: !!this.providerRuntime, canInspect: this.canInspectFFmpeg, quality: this.decodeQuality, adaptive: this.adaptiveFrameDrop, inspected: this.sourceInspection?.source === source, start, videoFilters: settings.vf, audioFilters: settings.af, toneMapping: this.candidatePreferences.toneMapping, ...(source.kind === 'local' ? { localDemuxer: source.input?.demuxer } : { remoteDemuxer: source.options.demuxer, remoteFormat: source.options.format }) });
         if (!this.automatic && this.mode !== 'native') {
-            if (this.privateRemux && (!this.providerRuntime || this.canInspectFFmpeg) && (this.mode === 'software' || this.mode === 'hybrid')) {
+            if (inspectionPolicy().privateForced) {
                 this.privatePlaybackAssetsFailure = undefined;
                 const controller = this.inspection = new AbortController();
                 try {
@@ -1508,7 +1551,7 @@ export class Player extends EventTarget {
             }
             if (this.mode === 'hybrid')
                 await this.inspectForQualifiedWebGPU(source, settings);
-            if ((!this.providerRuntime || this.canInspectFFmpeg) && this.mode === 'software' && (this.decodeQuality !== 'exact' || this.adaptiveFrameDrop) && this.sourceInspection?.source !== source) {
+            if (inspectionPolicy().qualityForced) {
                 // Explicit Software skips the normal tier probe. Quality admission still
                 // needs codec identity before mpv constructs its decoder.
                 const controller = this.inspection = new AbortController();
@@ -1539,15 +1582,7 @@ export class Player extends EventTarget {
             this.record(attempt);
         let nativeReason;
         if (start === 0 || this.sourceInspection?.source !== source) {
-            this.privatePlaybackAssetsFailure = undefined;
-            this.losslessInspection = undefined;
-            this.sourceInspection = undefined;
-            this.fastInspectedSource = undefined;
-            this.mpvSubtitleAssetsAvailable = false;
-            this.selectiveAudioAssetsAvailable = false;
-            this.selectiveAudioAssetsChecked = false;
-            this.transcodeAssetsAvailable = false;
-            this.transcodeAssetsChecked = false;
+            this.updateInspection({ kind: 'reset', scope: 'initial' });
         }
         // A later Direct playback failure can resume discovery beyond Native.
         // Recovery beyond the initial route can need decoder configuration or track bounds.
@@ -1555,8 +1590,8 @@ export class Player extends EventTarget {
             nativeReason = await this.inspectFallbackAfterFastFailure(source, settings);
         // Cooperative playback still needs inspected codec/resource facts when
         // filters already rule out Native. This also covers automatic filter changes.
-        if (start === 0 && (this.privateRemux || !(settings.vf || settings.af || this.candidatePreferences.toneMapping !== 'off'))) {
-            if (!this.privateRemux && (source.kind === 'local' && source.input?.demuxer || source.kind === 'remote' && source.options.demuxer) || source.kind === 'remote' && source.options.format && source.options.format !== 'file') {
+        if (inspectionPolicy().normal) {
+            if (inspectionPolicy().manifest) {
                 nativeReason = source.kind === 'remote' ? nativeManifestRejection(source.options, settings, !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')) : 'Explicit demuxer requires FFmpeg';
             }
             else {
@@ -1569,7 +1604,7 @@ export class Player extends EventTarget {
                         const local = source.file instanceof File ? source.file : new File([source.file], 'media');
                         // The filename only bypasses an optimization: FFmpeg still inspects
                         // these known-unsupported families, whatever their actual bytes are.
-                        if (!(this.privateRemux && this.privateSourceDemuxer(source)) && (!preserve || componentRepairRetry) && !tracks.length && settings.aid === 'auto' && settings.sid === 'auto' && !/\.(?:ogg|oga|opus|ts|m2ts)$/i.test(local.name)) {
+                        if (fastInspectionAllowed({ local: true, privateDemuxer: !!(this.privateRemux && this.privateSourceDemuxer(source)), preserve, componentRepairRetry, textTracks: tracks.length, aid: settings.aid, sid: settings.sid, filename: local.name })) {
                             try {
                                 const { inspectFastSource } = await this.interruptible(import(new URL('web/fast-source-inspector.js', this.assetBase).href));
                                 const fast = await inspectFastSource(local, { signal: controller.signal, requirements: routingRequirements, onProgress: (progress) => {
@@ -1603,16 +1638,7 @@ export class Player extends EventTarget {
                             if (source.kind === 'remote' && probe.identity)
                                 source.options.identity ??= probe.identity;
                             // Cross-mode track IDs reset to auto in replace(); preflight that same selection.
-                            let aid = preserve && (this.mode === 'native' || settings.aid === 'no') ? settings.aid : !this.source ? settings.aid : 'auto';
-                            let sid = tracks.length ? 'no' : preserve && (this.mode === 'native' || settings.sid === 'no') ? settings.sid : 'auto';
-                            if (preserve && this.mode === 'native' && usesRemuxTracks(backendPlan(this.current?.backend)) && !['auto', 'no'].includes(aid))
-                                aid = probe.tracks.find(t => t.type === 'audio' && t.index === Number(aid) - 1)?.id ?? aid;
-                            const publicAudio = preserve ? /^audio:stream:(\d+)$/.exec(this.publicSelections.get('audio') ?? '') : null;
-                            const publicSub = preserve ? /^sub:stream:(\d+)$/.exec(this.publicSelections.get('sub') ?? '') : null;
-                            if (publicSub)
-                                sid = probe.tracks.find(t => t.type === 'sub' && t.index === Number(publicSub[1]))?.id ?? 'missing';
-                            if (publicAudio)
-                                aid = probe.tracks.find(t => t.type === 'audio' && t.index === Number(publicAudio[1]))?.id ?? 'missing';
+                            const { aid, sid } = inspectionSelection(probe, { settings, preserve, mode: this.mode, hasSource: !!this.source, textTracks: tracks.length, remuxTracks: usesRemuxTracks(backendPlan(this.current?.backend)), publicAudio: this.publicSelections.get('audio'), publicSubtitle: this.publicSelections.get('sub') });
                             nativeReason = this.privateRemux && this.privateSourceDemuxer(source) ? 'Explicit demuxer requires FFmpeg' : nativeRejection(probe, { ...settings, aid, sid }, document.createElement('video'));
                             this.sourceInspection = { source, probe, settings: { aid, sid, subtitles: settings.subtitles } };
                             await this.checkInspectedAssets(source, probe, settings, sid, controller);
@@ -1623,12 +1649,7 @@ export class Player extends EventTarget {
                                 if (missing.length) {
                                     this.record({ mode: 'probe', outcome: 'skipped', reason: `Fast metadata missing ${missing.join(', ')} for ${first ?? 'routing'}; FFmpeg inspection required` });
                                     fastProbe = false;
-                                    this.sourceInspection = undefined;
-                                    this.mpvSubtitleAssetsAvailable = false;
-                                    this.selectiveAudioAssetsAvailable = false;
-                                    this.selectiveAudioAssetsChecked = false;
-                                    this.transcodeAssetsAvailable = false;
-                                    this.transcodeAssetsChecked = false;
+                                    this.updateInspection({ kind: 'reset', scope: 'fallback' });
                                     if (this.canInspectFFmpeg) {
                                         probe = await this.inspectWithFFmpeg(source, controller);
                                         continue;
@@ -1648,11 +1669,8 @@ export class Player extends EventTarget {
                     // A new optional private inspector must not remove existing browser-only
                     // playback. Retry only a plain initial URL and these diagnosed failures;
                     // authorization, identity, cancellation and controlled transport stay terminal.
-                    const optionalInspection = this.privateRemux && this.remuxSelection.policy === 'auto' && !preserve && !inspectOnly &&
-                        source.kind === 'remote' && !source.options.identity && settings.aid === 'auto' && settings.sid === 'auto' &&
-                        !this.providerRuntime && !this.destroyed && !this.activeOperation?.controller.signal.aborted && !controller.signal.aborted &&
-                        ((playerError(error).code === 'ASSET_LOAD_FAILED' && !terminalSourceFailure(error)) || /^Error: Source transport: Error: Expected HTTP 206; received 200$/.test(String(error))) &&
-                        this.admissible(source, settings, [], tracks).some(plan => plan.id === 'native-direct' && plan.eligible);
+                    const optionalFacts = { privateRemux: this.privateRemux, policy: this.remuxSelection.policy, preserve, inspectOnly, remote: source.kind === 'remote', identity: source.kind === 'remote' && !!source.options.identity, aid: settings.aid, sid: settings.sid, provider: !!this.providerRuntime, retired: this.destroyed || !!this.activeOperation?.controller.signal.aborted || controller.signal.aborted, assetFailure: playerError(error).code === 'ASSET_LOAD_FAILED', terminalSource: terminalSourceFailure(error), rangeReturnedWhole: /^Error: Source transport: Error: Expected HTTP 206; received 200$/.test(String(error)), directAdmitted: true };
+                    const optionalInspection = optionalInspectionFallback(optionalFacts) && optionalInspectionFallback({ ...optionalFacts, directAdmitted: this.admissible(source, settings, [], tracks).some(plan => plan.id === 'native-direct' && plan.eligible) });
                     if (optionalInspection) {
                         nativeReason = undefined;
                         this.record({ mode: 'probe', outcome: 'skipped', reason: 'Optional private inspection unavailable; trying browser Direct: ' + String(error) });
@@ -1690,15 +1708,10 @@ export class Player extends EventTarget {
             ...(d?.decoderStats?.supportCheck ? { apiHint: JSON.stringify(d.decoderStats.supportCheck) } : {}) };
     }
     localRemuxRetry(source, planId, settings) {
-        // Match complete, existing plans: preserve gain and subtitle ownership.
-        let remux = { 'native-direct': 'native-remux', 'native-direct-mpv': 'native-remux-mpv', 'native-direct-gain': 'native-remux-gain', 'native-direct-ass': 'native-remux-ass', 'native-direct-ass-gain': 'native-remux-ass-gain' }[planId];
-        // A diagnosed Direct readiness timeout may also try the already-admitted
-        // codec preparation plan. Preserve the full-budget original retry below.
-        if (planId === 'native-direct' && this.sourceInspection?.source === source && !this.planDecisions.some(p => p.eligible && p.id === remux) &&
-            (this.providerRuntime?.codecPreparation(source, this.sourceInspection.probe, this.remuxRuntime, settings.aid) || this.providerRuntime?.audioRepairCandidate(source, this.sourceInspection.probe)))
-            remux = 'native-transcode';
-        if (source.kind === 'local' && this.sourceInspection?.source === source && remux && this.planDecisions.some(p => p.eligible && p.id === remux) && !this.tierAttempts.reason(source, this.tierConfiguration(settings), remux))
-            return remux;
+        const inspected = this.sourceInspection?.source === source, eligible = this.planDecisions.filter(plan => plan.eligible).map(plan => plan.id);
+        const codecRepair = planId === 'native-direct' && inspected && !eligible.includes('native-remux') && !!(this.providerRuntime?.codecPreparation(source, this.sourceInspection.probe, this.remuxRuntime, settings.aid) || this.providerRuntime?.audioRepairCandidate(source, this.sourceInspection.probe));
+        const facts = { local: source.kind === 'local', inspected, codecRepair, eligible, rejected: [] }, retry = localDiscoveryRemux(planId, facts);
+        return localDiscoveryRemux(planId, { ...facts, rejected: retry && this.tierAttempts.reason(source, this.tierConfiguration(settings), retry) ? [retry] : [] });
     }
     async discover(source, settings, preserve, tracks, target, automatic, pinnedMode, start = 0) {
         if (this.providerRuntime) {
@@ -1706,8 +1719,8 @@ export class Player extends EventTarget {
             this.assertOperation();
             this.selectDeployedRuntime();
         }
-        let nativeReason = automatic ? this.admissionContext.nativeReason : undefined;
-        this.planDecisions = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, nativeReason, automatic);
+        const initialNativeReason = automatic ? this.admissionContext.nativeReason : undefined;
+        this.planDecisions = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, initialNativeReason, automatic);
         this.runtimeCapabilities.begin(source, this.planDecisions);
         if (pinnedMode && pinnedMode !== 'native' && this.privateRemux && this.privatePlaybackAssetsFailure)
             throw this.privatePlaybackAssetsFailure;
@@ -1719,176 +1732,182 @@ export class Player extends EventTarget {
                 throw deployment;
             throw new PlayerError(rejection?.code === 'ISOLATION_REQUIRED' ? 'ISOLATION_REQUIRED' : 'UNSUPPORTED_FEATURE', rejection?.reason ?? 'No qualified complete playback plan');
         }
-        const errors = [];
-        let captionFailure;
-        let interruptedDirect;
-        const attempt = async (plan, budget) => {
-            if (plan.mode === 'hybrid')
-                await this.inspectForQualifiedWebGPU(source, settings);
-            // Only discovery owns the replacement and full-budget restoration below.
-            // Other callers of replace retain the ordinary direct readiness deadline.
-            const loadBudget = budget ?? (this.localRemuxRetry(source, plan.id, settings) && this.sourceInspection?.probe.format?.split(',').includes('matroska') ? 1500 : undefined);
-            this.runtimeCapabilities.update(plan.id, 'probing');
-            await this.replace(source, plan.mode, settings, preserve, tracks, target, automatic, plan.id, loadBudget);
-            this.acceptEvidence(plan.id);
-            this.record({ mode: plan.mode, outcome: 'selected', reason: `${plan.id}: Playback requirements and actual startup accepted` });
-            if (this.current?.error && !this.recovering)
-                this.recover(this.current);
-        };
-        // The finite registry supplies a deterministic order. No speculative engines.
-        for (let index = 0; index < this.planDecisions.length; index++) {
-            this.assertOperation();
-            let plan = this.planDecisions[index];
-            if (pinnedMode ? plan.mode !== pinnedMode : PLAYBACK_MODES.indexOf(plan.mode) < start)
-                continue;
-            if (automatic && plan.eligible && plan.mode === 'hybrid' && this.sourceInspection?.source === source && this.sourceInspection.probe.hybridRejection) {
-                plan = this.rejectPlan(plan.id, this.sourceInspection.probe.hybridRejection);
-                this.runtimeCapabilities.admission(this.planDecisions);
-            }
-            // Repackaging A/V cannot repair a failed browser caption renderer.
-            if (captionFailure && plan.mode === 'native') {
-                if (plan.eligible) {
-                    plan = this.rejectPlan(plan.id, captionFailure);
-                    this.runtimeCapabilities.admission(this.planDecisions);
-                    this.record({ mode: plan.mode, outcome: 'skipped', reason: `${plan.id}: ${captionFailure}` });
+        const scope = { epoch: this.operationEpoch, operation: this.control.operations.active };
+        if (!this.dispatchControl({ type: 'routing.discovery', ...scope, change: { kind: 'begin', automatic, pinnedMode, start, nativeReason: initialNativeReason } }).accepted)
+            throw new PlayerError('ABORTED', 'Discovery was retired');
+        const id = this.control.routing.discovery.current.id;
+        const current = () => { const value = this.control.routing.discovery.current; if (!value || value.id !== id)
+            throw new PlayerError('ABORTED', 'Discovery was retired'); return value; };
+        const change = (input) => { if (!this.dispatchControl({ type: 'routing.discovery', ...scope, change: input }).accepted)
+            throw new PlayerError('ABORTED', 'Discovery was retired'); return current(); };
+        const advance = () => change({ kind: 'advance', id });
+        try {
+            const attempt = async (plan, budget) => {
+                if (plan.mode === 'hybrid')
+                    await this.inspectForQualifiedWebGPU(source, settings);
+                // Only discovery owns the replacement and full-budget restoration below.
+                // Other callers of replace retain the ordinary direct readiness deadline.
+                const loadBudget = budget ?? (this.localRemuxRetry(source, plan.id, settings) && this.sourceInspection?.probe.format?.split(',').includes('matroska') ? 1500 : undefined);
+                this.runtimeCapabilities.update(plan.id, 'probing');
+                await this.replace(source, plan.mode, settings, preserve, tracks, target, automatic, plan.id, loadBudget);
+                this.assertOperation();
+                current();
+                this.acceptEvidence(plan.id);
+                this.record({ mode: plan.mode, outcome: 'selected', reason: `${plan.id}: Playback requirements and actual startup accepted` });
+                if (this.current?.error && !this.recovering)
+                    this.recover(this.current);
+            };
+            // The finite registry supplies a deterministic order. No speculative engines.
+            while (current().cursor < this.planDecisions.length) {
+                this.assertOperation();
+                const index = current().cursor;
+                let plan = this.planDecisions[index];
+                const policy = discoveryPlanPolicy(current(), plan, this.sourceInspection?.source === source ? this.sourceInspection.probe.hybridRejection : undefined);
+                if (!policy.included) {
+                    advance();
+                    continue;
                 }
-                continue;
-            }
-            // Optional inspection and preparation are strictly after original-copy attempts.
-            // Never let adaptation bypass subtitle/transport/filter semantic rejection.
-            if ((!this.providerRuntime || this.providerRuntime.hasOffer(this.preparationProviderId, 'flac-lossless')) && automatic && plan.id.startsWith('native-flac') && this.audioPlayback !== 'worklet' && this.automaticLossless && !nativeReason && this.sourceInspection?.source === source && this.sourceInspection.probe.tracks.some(t => t.type === 'audio' && ['pcm_s16le', 'pcm_s24le'].includes(t.codec)) && !this.losslessInspection && source.kind === 'local') {
-                const inspected = this.sourceInspection;
-                const permitted = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, nativeReason, automatic).find(p => p.id === plan.id);
-                if (permitted?.code === 'SOURCE_UNSUPPORTED') {
+                if (policy.hybridRejection) {
+                    plan = this.rejectPlan(plan.id, policy.hybridRejection);
+                    this.runtimeCapabilities.admission(this.planDecisions);
+                }
+                // Repackaging A/V cannot repair a failed browser caption renderer.
+                if (policy.captionFailure) {
+                    if (plan.eligible) {
+                        plan = this.rejectPlan(plan.id, policy.captionFailure);
+                        this.runtimeCapabilities.admission(this.planDecisions);
+                        this.record({ mode: plan.mode, outcome: 'skipped', reason: `${plan.id}: ${policy.captionFailure}` });
+                    }
+                    advance();
+                    continue;
+                }
+                const optionalProbe = discoveryOptionalProbe(current(), plan, { flacOffer: !this.providerRuntime || this.providerRuntime.hasOffer(this.preparationProviderId, 'flac-lossless'), audioPlayback: this.audioPlayback, automaticLossless: this.automaticLossless, inspected: this.sourceInspection?.source === source, pcm: !!this.sourceInspection?.probe.tracks.some(track => track.type === 'audio' && ['pcm_s16le', 'pcm_s24le'].includes(track.codec)), losslessInspected: !!this.losslessInspection, local: source.kind === 'local', transcodeChecked: this.transcodeAssetsChecked, audioAdaptation: !!this.audioAdaptation, selectiveChecked: this.selectiveAudioAssetsChecked, fileServices: this.fileServicesSource(source), audioOutput: this.audioOutput, gain: settings.gain });
+                // Optional inspection and preparation are strictly after original-copy attempts.
+                // Never let adaptation bypass subtitle/transport/filter semantic rejection.
+                if (optionalProbe === 'lossless' && source.kind === 'local') {
+                    const inspected = this.sourceInspection;
+                    const permitted = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, current().nativeReason, automatic).find(p => p.id === plan.id);
+                    if (permitted?.code === 'SOURCE_UNSUPPORTED') {
+                        const controller = this.inspection = new AbortController();
+                        try {
+                            const { probeSource } = await this.interruptible(import(new URL('web/source-probe.js', this.assetBase).href));
+                            const compiledWasm = this.providerRuntime ? await this.interruptible(this.providerRuntime.module(`web/engine-adaptation${this.privateRemux ? '-' + this.remuxRuntime : ''}/remux.wasm`)) : undefined;
+                            const probe = await probeSource({ file: source.file instanceof File ? source.file : new File([source.file], 'media') }, controller.signal, 'flac', compiledWasm, this.remuxRuntime);
+                            this.assertOperation();
+                            this.losslessInspection = { source, reason: losslessAdaptationRejection(probe, inspected.settings) };
+                        }
+                        finally {
+                            controller.abort();
+                            if (this.inspection === controller)
+                                this.inspection = undefined;
+                        }
+                        this.planDecisions = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, current().nativeReason, automatic);
+                        plan = this.planDecisions[index];
+                        this.runtimeCapabilities.admission(this.planDecisions);
+                    }
+                }
+                if (optionalProbe === 'transcode') {
                     const controller = this.inspection = new AbortController();
                     try {
-                        const { probeSource } = await this.interruptible(import(new URL('web/source-probe.js', this.assetBase).href));
-                        const compiledWasm = this.providerRuntime ? await this.interruptible(this.providerRuntime.module(`web/engine-adaptation${this.privateRemux ? '-' + this.remuxRuntime : ''}/remux.wasm`)) : undefined;
-                        const probe = await probeSource({ file: source.file instanceof File ? source.file : new File([source.file], 'media') }, controller.signal, 'flac', compiledWasm, this.remuxRuntime);
+                        const available = await this.optionalAssetsAvailable(['mjs', 'wasm'].map(ext => `web/engine-adaptation${this.privateRemux ? '-' + this.remuxRuntime : ''}/remux.${ext}`), controller);
                         this.assertOperation();
-                        this.losslessInspection = { source, reason: losslessAdaptationRejection(probe, inspected.settings) };
+                        this.updateInspection({ kind: 'assets', value: { transcodeAssets: available, transcodeChecked: true } });
                     }
                     finally {
                         controller.abort();
                         if (this.inspection === controller)
                             this.inspection = undefined;
                     }
-                    this.planDecisions = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, nativeReason, automatic);
+                    this.planDecisions = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, current().nativeReason, automatic);
                     plan = this.planDecisions[index];
                     this.runtimeCapabilities.admission(this.planDecisions);
                 }
-            }
-            if (automatic && plan.id.startsWith('native-transcode') && !this.transcodeAssetsChecked && this.audioPlayback === 'auto' && !this.audioAdaptation && !this.automaticLossless && plan.code === 'DEPLOYMENT_UNAVAILABLE' && plan.reason === 'FLAC24 preparation assets are unavailable') {
-                const controller = this.inspection = new AbortController();
-                try {
-                    this.transcodeAssetsAvailable = await this.optionalAssetsAvailable(['mjs', 'wasm'].map(ext => `web/engine-adaptation${this.privateRemux ? '-' + this.remuxRuntime : ''}/remux.${ext}`), controller);
-                    this.assertOperation();
-                    this.transcodeAssetsChecked = true;
-                }
-                finally {
-                    controller.abort();
-                    if (this.inspection === controller)
-                        this.inspection = undefined;
-                }
-                this.planDecisions = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, nativeReason, automatic);
-                plan = this.planDecisions[index];
-                this.runtimeCapabilities.admission(this.planDecisions);
-            }
-            // The common native A/V path never pays for optional mpv-audio asset
-            // probes. Check once only when discovery actually reaches a split plan.
-            if (automatic && plan.id.startsWith('native-video-mpv-audio') && !this.selectiveAudioAssetsChecked && this.fileServicesSource(source) && this.sourceInspection?.source === source && this.audioOutput === 'stereo' && settings.gain === 1 && plan.browserCapability?.status !== 'unsupported') {
-                const controller = this.inspection = new AbortController();
-                try {
-                    this.selectiveAudioAssetsAvailable = await this.optionalAssetsAvailable(this.privateRemux ? [`web/engine-mpv-audio-${this.remuxRuntime}/service.mjs`, `web/engine-mpv-audio-${this.remuxRuntime}/service.wasm`, 'web/private-mpv/audio-worklet.js'] : ['web/engine-selective/player.mjs', 'web/engine-selective/player.wasm', 'web/selective-sync-worklet.js'], controller);
-                    this.assertOperation();
-                    this.selectiveAudioAssetsChecked = true;
-                }
-                finally {
-                    controller.abort();
-                    if (this.inspection === controller)
-                        this.inspection = undefined;
-                }
-                this.planDecisions = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, nativeReason, automatic);
-                plan = this.planDecisions[index];
-                this.runtimeCapabilities.admission(this.planDecisions);
-            }
-            if (this.privateRemux && this.privatePlaybackAssetsFailure && (plan.id.startsWith('software-private') || plan.id.startsWith('hybrid-private')))
-                throw this.privatePlaybackAssetsFailure;
-            if (!plan.eligible) {
-                if (plan.code !== 'PLAN_NOT_REQUESTED')
-                    this.record({ mode: plan.mode, outcome: 'skipped', reason: `${plan.id}: ${plan.reason}` });
-                continue;
-            }
-            const prior = automatic ? this.tierAttempts.reason(source, this.tierConfiguration(settings), plan.id) : undefined;
-            if (prior) {
-                this.runtimeCapabilities.update(plan.id, 'failed', undefined, `Cached compatibility rejection: ${prior}`, 'compatibility');
-                this.record({ mode: plan.mode, outcome: 'skipped', reason: `${plan.id}: cached compatibility rejection: ${prior}` });
-                continue;
-            }
-            try {
-                await attempt(plan);
-                return;
-            }
-            catch (error) {
-                const compatible = compatibilityFailure(error);
-                // An inspected local File has no remote transport to retry or bypass.
-                // A direct parser readiness deadline may try the already-admitted remux
-                // route once, without caching a codec failure or broadening admission.
-                const retryLocalLoad = error instanceof NativeLoadTimeout ? this.localRemuxRetry(source, plan.id, settings) : undefined;
-                const inconclusiveOutput = automatic && source.kind === 'local' && error instanceof StartupEvidenceTimeout && error.stage === 'output';
-                if (retryLocalLoad && error instanceof NativeLoadTimeout && error.budgetMs < 25000)
-                    interruptedDirect = { id: plan.id, remux: retryLocalLoad };
-                if (compatible && !evidenceInterrupted(error))
-                    this.tierAttempts.failure(source, this.tierConfiguration(settings), plan.id, String(error));
-                this.runtimeCapabilities.update(plan.id, evidenceInterrupted(error) ? 'untested' : 'failed', undefined, String(error), retryLocalLoad || inconclusiveOutput ? undefined : compatible ? 'compatibility' : 'terminal');
-                this.record({ mode: plan.mode, outcome: 'failed', reason: `${plan.id}: ${String(error)}` });
-                // Admission does not prove remux will work. A short scheduling trial
-                // must not discard a playable original when its replacement is missing
-                // or fails. Restore the original once with its full readiness budget.
-                // Cancellation, source permissions/identity and autoplay stay terminal.
-                if (interruptedDirect?.remux === plan.id && !(error instanceof BrowserCaptionUnsupported) && (compatible || ['ASSET_LOAD_FAILED', 'NETWORK_TIMEOUT', 'ISOLATION_REQUIRED'].includes(playerError(error).code))) {
-                    const direct = interruptedDirect;
-                    interruptedDirect = undefined;
-                    this.assertOperation();
+                // The common native A/V path never pays for optional mpv-audio asset
+                // probes. Check once only when discovery actually reaches a split plan.
+                if (optionalProbe === 'selective') {
+                    const controller = this.inspection = new AbortController();
                     try {
-                        await attempt({ id: direct.id, mode: 'native' }, 25000);
-                        return;
-                    }
-                    catch (originalError) {
-                        const originalCompatible = compatibilityFailure(originalError);
-                        if (originalCompatible && !evidenceInterrupted(originalError))
-                            this.tierAttempts.failure(source, this.tierConfiguration(settings), direct.id, String(originalError));
-                        this.runtimeCapabilities.update(direct.id, evidenceInterrupted(originalError) ? 'untested' : 'failed', undefined, String(originalError), originalCompatible ? 'compatibility' : 'terminal');
-                        this.record({ mode: 'native', outcome: 'failed', reason: `${direct.id}: full-budget retry: ${String(originalError)}` });
+                        const available = await this.optionalAssetsAvailable(this.privateRemux ? [`web/engine-mpv-audio-${this.remuxRuntime}/service.mjs`, `web/engine-mpv-audio-${this.remuxRuntime}/service.wasm`, 'web/private-mpv/audio-worklet.js'] : ['web/engine-selective/player.mjs', 'web/engine-selective/player.wasm', 'web/selective-sync-worklet.js'], controller);
                         this.assertOperation();
-                        if (!originalCompatible)
-                            throw originalError;
-                        errors.push(`${direct.id}: ${String(originalError)}`);
+                        this.updateInspection({ kind: 'assets', value: { selectiveAssets: available, selectiveChecked: true } });
                     }
-                }
-                // Explicit plans keep a precise timeline rejection. Automatic
-                // selection may still try Hybrid when this Native path cannot play it.
-                if (this.destroyed || this.activeOperation?.controller.signal.aborted || (!automatic && playerError(error).code === 'UNSUPPORTED_TIMELINE') || (!compatible && !retryLocalLoad && !inconclusiveOutput))
-                    throw error;
-                // Direct and remux share the subtitle renderer; repackaging cannot fix it.
-                if (error instanceof BrowserCaptionUnsupported) {
-                    captionFailure = error.message;
-                    interruptedDirect = undefined;
-                }
-                errors.push(`${plan.id}: ${String(error)}`);
-                if (this.fastInspectedSource === source && !retryLocalLoad) {
-                    nativeReason = await this.inspectFallbackAfterFastFailure(source, settings);
-                    this.admissionContext = { nativeReason, automatic };
-                    this.planDecisions = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, nativeReason, automatic);
+                    finally {
+                        controller.abort();
+                        if (this.inspection === controller)
+                            this.inspection = undefined;
+                    }
+                    this.planDecisions = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, current().nativeReason, automatic);
+                    plan = this.planDecisions[index];
                     this.runtimeCapabilities.admission(this.planDecisions);
-                    index = -1;
+                }
+                if (this.privateRemux && this.privatePlaybackAssetsFailure && (plan.id.startsWith('software-private') || plan.id.startsWith('hybrid-private')))
+                    throw this.privatePlaybackAssetsFailure;
+                if (!plan.eligible) {
+                    if (plan.code !== 'PLAN_NOT_REQUESTED')
+                        this.record({ mode: plan.mode, outcome: 'skipped', reason: `${plan.id}: ${plan.reason}` });
+                    advance();
+                    continue;
+                }
+                const prior = automatic ? this.tierAttempts.reason(source, this.tierConfiguration(settings), plan.id) : undefined;
+                if (prior) {
+                    this.runtimeCapabilities.update(plan.id, 'failed', undefined, `Cached compatibility rejection: ${prior}`, 'compatibility');
+                    this.record({ mode: plan.mode, outcome: 'skipped', reason: `${plan.id}: cached compatibility rejection: ${prior}` });
+                    advance();
+                    continue;
+                }
+                const lease = change({ kind: 'attempt', id, planId: plan.id }).pendingAttempt.id;
+                try {
+                    await attempt(plan);
+                    return;
+                }
+                catch (error) {
+                    const compatible = compatibilityFailure(error), retryLocalLoad = error instanceof NativeLoadTimeout ? this.localRemuxRetry(source, plan.id, settings) : undefined;
+                    const inconclusiveOutput = automatic && source.kind === 'local' && error instanceof StartupEvidenceTimeout && error.stage === 'output';
+                    const failure = { id: plan.id, message: String(error), code: playerError(error).code, compatible, interrupted: evidenceInterrupted(error), nativeTimeout: error instanceof NativeLoadTimeout, budget: error instanceof NativeLoadTimeout ? error.budgetMs : 0, retryRemux: retryLocalLoad, inconclusiveOutput, caption: error instanceof BrowserCaptionUnsupported ? error.message : undefined, fast: this.fastInspectedSource === source };
+                    let decision = change({ kind: 'failed', id, attempt: lease, failure });
+                    if (compatible && !failure.interrupted)
+                        this.tierAttempts.failure(source, this.tierConfiguration(settings), plan.id, String(error));
+                    this.runtimeCapabilities.update(plan.id, failure.interrupted ? 'untested' : 'failed', undefined, String(error), retryLocalLoad || inconclusiveOutput ? undefined : compatible ? 'compatibility' : 'terminal');
+                    this.record({ mode: plan.mode, outcome: 'failed', reason: `${plan.id}: ${String(error)}` });
+                    this.assertOperation();
+                    current();
+                    if (decision.phase === 'restore') {
+                        const direct = decision.restoreId, restoreLease = decision.pendingAttempt.id;
+                        try {
+                            await attempt({ id: direct, mode: 'native' }, 25000);
+                            return;
+                        }
+                        catch (originalError) {
+                            const originalCompatible = compatibilityFailure(originalError), originalInterrupted = evidenceInterrupted(originalError);
+                            decision = change({ kind: 'restore.failed', id, attempt: restoreLease, failure: { ...failure, id: direct, message: String(originalError), code: playerError(originalError).code, compatible: originalCompatible, interrupted: originalInterrupted } });
+                            if (originalCompatible && !originalInterrupted)
+                                this.tierAttempts.failure(source, this.tierConfiguration(settings), direct, String(originalError));
+                            this.runtimeCapabilities.update(direct, originalInterrupted ? 'untested' : 'failed', undefined, String(originalError), originalCompatible ? 'compatibility' : 'terminal');
+                            this.record({ mode: 'native', outcome: 'failed', reason: `${direct}: full-budget retry: ${String(originalError)}` });
+                            this.assertOperation();
+                            current();
+                            if (decision.phase === 'failed' && decision.failure?.id === direct)
+                                throw originalError;
+                        }
+                    }
+                    if (decision.phase === 'failed')
+                        throw error;
+                    if (decision.phase === 'inspect') {
+                        const nativeReason = await this.inspectFallbackAfterFastFailure(source, settings);
+                        change({ kind: 'reinspected', id, nativeReason });
+                        this.planDecisions = this.admissible(source, settings, preserve ? this.subtitleAssets : [], tracks, current().nativeReason, automatic);
+                        this.runtimeCapabilities.admission(this.planDecisions);
+                    }
                 }
             }
+            const deployment = deploymentRejectionError(this.planDecisions.filter(plan => discoveryPlanPolicy(current(), plan).included));
+            if (deployment)
+                throw deployment;
+            throw Error('No playback route satisfied the source: ' + (current().errors.join('; ') || this.planDecisions.map(p => p.reason).filter(Boolean).join('; ')));
         }
-        const deployment = deploymentRejectionError(this.planDecisions.filter(p => pinnedMode ? p.mode === pinnedMode : PLAYBACK_MODES.indexOf(p.mode) >= start));
-        if (deployment)
-            throw deployment;
-        throw Error('No playback route satisfied the source: ' + (errors.join('; ') || this.planDecisions.map(p => p.reason).filter(Boolean).join('; ')));
+        finally {
+            this.dispatchControl({ type: 'routing.discovery', ...scope, change: { kind: 'finished', id } });
+        }
     }
     recover(session) {
         if (this.recovering || this.recoveredSessions.has(session) || this.destroyed || !this.automatic || !this.source || this.mode === 'software')
@@ -1945,14 +1964,12 @@ export class Player extends EventTarget {
             return Promise.reject(new PlayerError('INVALID_ARGUMENT', 'startTime must be finite nonnegative seconds'));
         if (isCustomSource(input)) {
             const provider = input;
-            return this.enqueue(async () => { const file = await materializeSource(provider, this.activeOperation.controller.signal); const source = { kind: 'local', file, input: { demuxer: options.demuxer }, trackPolicy: normalizeTrackPolicy({ ...this.configuredTrackPolicy, ...normalizeTrackPolicy(options.trackPolicy) }) }; const inspection = this.sourceInspection, lossless = this.losslessInspection, fast = this.fastInspectedSource; try {
+            return this.enqueue(async () => { const file = await materializeSource(provider, this.activeOperation.controller.signal); const source = { kind: 'local', file, input: { demuxer: options.demuxer }, trackPolicy: normalizeTrackPolicy({ ...this.configuredTrackPolicy, ...normalizeTrackPolicy(options.trackPolicy) }) }; const inspection = this.captureInspection(); try {
                 await this.select(source, this.settings, false, [], 0, options.startTime);
             }
             catch (error) {
                 if (this.source !== source) {
-                    this.sourceInspection = inspection;
-                    this.losslessInspection = lossless;
-                    this.fastInspectedSource = fast;
+                    this.restoreInspection(inspection);
                 }
                 throw error;
             } }, 'opening', options.signal);
@@ -1994,15 +2011,13 @@ export class Player extends EventTarget {
             return Promise.reject(playerError(error));
         }
         return this.enqueue(async () => {
-            const inspection = this.sourceInspection, lossless = this.losslessInspection, fastInspectedSource = this.fastInspectedSource;
+            const inspection = this.captureInspection();
             try {
                 await this.select(source, this.settings, false, [], 0, options.startTime);
             }
             catch (error) {
                 if (this.source !== source) {
-                    this.sourceInspection = inspection;
-                    this.losslessInspection = lossless;
-                    this.fastInspectedSource = fastInspectedSource;
+                    this.restoreInspection(inspection);
                 }
                 throw error;
             }

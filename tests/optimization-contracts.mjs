@@ -18,14 +18,14 @@ test('Hybrid scalar filtering is explicit and never admits unrelated effects',()
 });
 function player(){
  const source={file:{}}, video={currentTime:3,buffered:{length:1,start:()=>1,end:()=>11}};
- return Object.assign(Object.create(RemuxPlayer.prototype),{video,source,bufferedSeeks:true,lifecycle:Object.freeze({...initialRemuxLifecycle(),sourceId:1,acceptedSourceId:1,generation:4,acceptedGeneration:4,targetReady:true,active:true}),media:{readyState:'open'},sb:{updating:false},timelineBias:1,raps:[0,2,4,6,8],ranges:()=>[[0,10]],target:8,stats:{bufferedSeeks:0}});
+ return Object.assign(Object.create(RemuxPlayer.prototype),{video,source,bufferedSeeks:true,lifecycle:Object.freeze({...initialRemuxLifecycle(),schedule:Object.freeze({...initialRemuxLifecycle().schedule,raps:[0,2,4,6,8],target:8}),sourceId:1,acceptedSourceId:1,generation:4,acceptedGeneration:4,targetReady:true,active:true}),media:{readyState:'open'},sb:{updating:false},timelineBias:1,ranges:()=>[[0,10]],stats:{bufferedSeeks:0}});
 }
 test('buffered admission requires live media coverage, retained RAP and current authority',()=>{
  const p=player();assert.equal(p.canSeekBuffered(5),true);
  p.video.buffered={length:2,start:i=>i?7:1,end:i=>i?11:4};assert.equal(p.canSeekBuffered(5),false);
  p.video.buffered={length:1,start:()=>6,end:()=>11};assert.equal(p.canSeekBuffered(5.1),false);
- p.raps=[6,8];assert.equal(p.canSeekBuffered(5.1),false);
- p.raps=[4,6,8];p.video.buffered={length:1,start:()=>1,end:()=>11};p.lifecycle=Object.freeze({...p.lifecycle,acceptedGeneration:3});assert.equal(p.canSeekBuffered(5),false);
+ p.lifecycle=Object.freeze({...p.lifecycle,schedule:Object.freeze({...p.schedule,raps:[6,8]})});assert.equal(p.canSeekBuffered(5.1),false);
+ p.lifecycle=Object.freeze({...p.lifecycle,schedule:Object.freeze({...p.schedule,raps:[4,6,8]})});p.video.buffered={length:1,start:()=>1,end:()=>11};p.lifecycle=Object.freeze({...p.lifecycle,acceptedGeneration:3});assert.equal(p.canSeekBuffered(5),false);
  p.lifecycle=Object.freeze({...p.lifecycle,acceptedGeneration:4});p.transitionLifecycle({type:'open'});p.source={file:{}};assert.equal(p.canSeekBuffered(5),false);
 });
 test('buffered seek keeps producer generation and resets the consumption target',async()=>{

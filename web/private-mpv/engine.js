@@ -25,7 +25,7 @@ export async function createCooperativeEngine(createModule,wasmBytes,backend,opt
      void scheduler.run(raw.web_decoder_wakeup).catch(error=>scheduler.fail(error)).finally(()=>{wakePending=false;});
     });
    };
-   const service=decoderOptions.service??new PrivateRetainedDecoder({wakeup,maxPixels:decoderOptions.maxDecodePixels});
+   const service=decoderOptions.service??new PrivateRetainedDecoder({wakeup,maxPixels:decoderOptions.maxDecodePixels,canReceive:decoderOptions.canReceiveFrame});
    decoder=new CooperativeDecoderMailbox(scheduler,service,{onFrame:decoderOptions.onFrame});
   }
   let rejectInstantiation;
