@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import {chromium} from 'playwright';
+import {chromium,firefox} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdir,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -8,7 +8,7 @@ let server,browser;const checks=[];
 try{
  server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
  const origin=await new Promise(resolve=>server.stdout.on('data',data=>{const match=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(match)resolve(match[0]);}));
- browser=await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});const page=await browser.newPage();
+ browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']})});const page=await browser.newPage();
  await page.goto(origin+'/examples/player-element.html');await page.evaluate(async()=>{window.a=document.querySelectorAll('demuxe-player')[0];window.b=document.querySelectorAll('demuxe-player')[1];await Promise.all([a.ready,b.ready]);await a.open('/fixtures/example.mp4');window.stable=a.player.host;window.identity=a.player.state.sourceId;});
  await page.locator('demuxe-player').first().getByRole('button',{name:'Fullscreen',exact:true}).click();
  assert.equal(await page.evaluate(()=>a.player.presentation.state.fullscreen&&document.fullscreenElement===a),true);

@@ -20,7 +20,7 @@ export function livePlaylist(original,elapsedMs) {
   return '#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:2\n#EXT-X-MEDIA-SEQUENCE:'+first+'\n'+segments.slice(first,first+3).map(s=>'#EXTINF:'+s[1]+'\n'+s[2]+'\n').join('');
 }
 
-export async function serve(assets, harness, log) {
+export async function serve(assets, harness, log, {runtimeRoot} = {}) {
   const hashes = new Map(), liveStarts = new Map();
   const requests = fs.createWriteStream(log, {flags: 'wx'});
   const types = {'.html':'text/html', '.js':'text/javascript', '.mjs':'text/javascript', '.wasm':'application/wasm',
@@ -36,7 +36,8 @@ export async function serve(assets, harness, log) {
       if (!['GET','HEAD'].includes(req.method)) {res.writeHead(405).end(); return;}
       const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
       const isHarness = pathname.startsWith('/harness/');
-      const base = fs.realpathSync(isHarness ? harness : assets);
+      const packaged = runtimeRoot && (pathname.startsWith('/web/') || pathname.startsWith('/dist/') || pathname === '/demuxe-providers.json');
+      const base = fs.realpathSync(isHarness ? harness : packaged ? runtimeRoot : assets);
       const name = isHarness ? pathname.slice('/harness/'.length) : pathname.slice(1);
       const file = fs.realpathSync(path.resolve(base, name));
       if (!file.startsWith(base + path.sep)) {res.writeHead(403).end(); return;}

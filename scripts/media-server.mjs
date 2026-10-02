@@ -61,5 +61,5 @@ function server(port){return http.createServer(async(req,res)=>{
     }
     completed=sent===length;res.end();
   }catch(error){if(!res.headersSent)res.writeHead(500);res.end();console.error(error.message);}
-}).listen(port,'127.0.0.1',()=>console.log(`Media origin: http://127.0.0.1:${port}`));}
-server(4180);server(4181);
+}).listen(port,'127.0.0.1',function(){console.log(`Media origin: http://127.0.0.1:${this.address().port}`);});}
+server(Number(process.env.MEDIA_PORT??4180));server(Number(process.env.MEDIA_REDIRECT_PORT??4181));

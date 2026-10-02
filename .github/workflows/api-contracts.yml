@@ -1,0 +1,64 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Public API contracts
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: npm run build:components
+      - run: node tests/api-stability/run.mjs unit
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-api-contracts
+          path: results/api-stability/gate-*/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-api-generated
+          path: |
+            web/generated/player/*.js
+            web/generated/player/*.d.ts
+  advanced-controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: mkdir -p results/api-stability
+      - run: timeout --kill-after=10s 5m node --import ./tests/api-stability/browser-guard.mjs tests/api-stability/advanced-settings.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
+          API_GUARD_REPORT: results/api-stability/advanced-guard.json
+      - name: Prove lifecycle regressions reject the unguarded implementation
+        run: timeout --kill-after=10s 5m node tests/api-stability/advanced-negative.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: advanced-controls-${{ matrix.browser }}
+          path: results/api-stability/

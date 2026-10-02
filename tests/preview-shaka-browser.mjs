@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import {chromium} from 'playwright';
+import {chromium,firefox} from 'playwright';
 import {spawn,execFileSync} from 'node:child_process';
 import {mkdtemp,readFile,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -12,7 +12,7 @@ await writeFile(fixture+'/main.mpd',mpd.replace('</Period>',`<AdaptationSet id="
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});let browser;
 try{
  const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',data=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(m)resolve(m[0]);});});
- browser=await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});const page=await browser.newPage();await page.route('**/fixtures/preview-test/**',async route=>{const name=basename(new URL(route.request().url()).pathname);await route.fulfill({body:await readFile(fixture+'/'+name),contentType:name.endsWith('.mpd')?'application/dash+xml':name.endsWith('.jpg')?'image/jpeg':'video/mp4'});});await page.goto(origin+'/examples/custom-controls.html');await page.waitForFunction(()=>window.player);
+ browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']})});const page=await browser.newPage();await page.route('**/fixtures/preview-test/**',async route=>{const name=basename(new URL(route.request().url()).pathname);await route.fulfill({body:await readFile(fixture+'/'+name),contentType:name.endsWith('.mpd')?'application/dash+xml':name.endsWith('.jpg')?'image/jpeg':'video/mp4'});});await page.goto(origin+'/examples/custom-controls.html');await page.waitForFunction(()=>window.player);
  const result=await page.evaluate(async path=>{
   await window.player.destroy();const {ShakaBackend}=await import('/web/generated/internal/shaka-backend.js');const {PreviewController}=await import('/web/generated/preview/controller.js');
   const v=document.createElement('video');document.body.append(v);const backend=new ShakaBackend(v,new URL('/',location.href));

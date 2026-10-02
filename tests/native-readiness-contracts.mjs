@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
-import test from 'node:test';import assert from 'node:assert/strict';
+import test from 'node:test';
+import {unitPlayer} from './helpers/unit-player.mjs';
+import {Player} from '../web/generated/unified-player.js';
+import assert from 'node:assert/strict';
 import {NativePlayer} from '../web/generated/internal/native-player.js';
 import {bufferingPolicy} from '../web/generated/internal/buffering.js';
 import {PlayerError,playerError} from '../web/generated/internal/errors.js';
@@ -52,9 +55,8 @@ test('video and clock advancement alone cannot verify audio',async()=>{
 });
 
 test('bounded local output trials preserve position without caching unknown as incompatibility',async()=>{
- const {Player}=await import('../web/generated/unified-player.js');
  for(const [kind,error,allowed] of [['local',new StartupEvidenceTimeout('output'),true],['remote',new StartupEvidenceTimeout('output'),false],['local',new PlayerError('SOURCE_PERMISSION','denied'),false],['local',new DOMException('activation required','NotAllowedError'),false]]){
-  const p=Object.create(Player.prototype),properties=new Map([['time-pos',2]]);let selected,cached=0;
+  const p=unitPlayer(),properties=new Map([['time-pos',2]]);let selected,cached=0;
   const backend={properties,diagnostics:{plan:'direct'},play:()=>{properties.set('time-pos',9);return Promise.resolve();},pause:async()=>{},verifyOutput:async()=>{throw error;}};
   Object.assign(p,{current:{backend},source:{kind},queued:0,destroyed:false,automatic:true,settings:{pause:true},nativeRemux:'auto',nativeTracks:[],enqueue:f=>f(),evidence:()=>({prepared:true}),failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;}});
   Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct'}}}});
@@ -73,7 +75,6 @@ test('disabled browser audio tracks cannot qualify output',async()=>{
  try{const p=candidate({paused:false,audioTracks:[{enabled:false}]});const verified=p.verifyStartup({video:true,audio:true},true);setTimeout(()=>{p.video.currentTime=.1;p.video.getVideoPlaybackQuality=()=>({totalVideoFrames:1});},30);await assert.rejects(verified,StartupEvidenceTimeout);}finally{globalThis.setTimeout=original;}
 });
 test('failed play cancels and settles its verifier before allowing a retry',async()=>{
- const {Player}=await import('../web/generated/unified-player.js');
  const p=candidate();await p.verifyStartup({video:true,audio:true});
  const error=new DOMException('activation required','NotAllowedError');
  await assert.rejects(()=>Player.prototype.playNativeVerified.call({},p,new Promise((_,reject)=>setTimeout(()=>reject(error),40))),e=>e===error);
@@ -92,7 +93,6 @@ test('audio adapters prefer decoding evidence without upgrading presence to deco
 });
 
 test('play rejection cancels subtitle sampling and restoration RPCs without waiting for the worker',async()=>{
- const {Player}=await import('../web/generated/unified-player.js');
  const {NativeMpvSubtitles}=await import('../web/generated/internal/native-mpv-subtitles.js');
  for(const phase of ['sample','restore']){
   const service=Object.create(NativeMpvSubtitles.prototype);const sent=[];
@@ -114,9 +114,8 @@ test('short output trials remain inconclusive even with a zero audio counter',as
 });
 
 test('only automatic unverified local direct output with an admitted alternative gets a short trial',async()=>{
- const {Player}=await import('../web/generated/unified-player.js');
  for(const change of [{},{automatic:false},{source:{kind:'remote'}},{nativeRemux:'never'},{verified:true},{planDecisions:[]}]){
-  const p=Object.create(Player.prototype),budgets=[];
+  const p=unitPlayer(),budgets=[];
   const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},verifyOutput:async(_signal,budget)=>{budgets.push(budget);}};
   Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',queued:0,destroyed:false,settings:{pause:true},planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({outputVerified:!!change.verified}),assertOperation(){},acceptEvidence(){},...change});
   Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
@@ -125,8 +124,7 @@ test('only automatic unverified local direct output with an admitted alternative
 });
 
 test('inconclusive local direct-mpv output preserves position and restores full verification if fallback assets fail',async()=>{
- const {Player}=await import('../web/generated/unified-player.js');
- const p=Object.create(Player.prototype),budgets=[],seeks=[];let selected,cached=0;
+ const p=unitPlayer(),budgets=[],seeks=[];let selected,cached=0;
  const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},seek:async time=>{seeks.push(time);},verifyOutput:async(_signal,budget)=>{budgets.push(budget);if(budgets.length===1)throw new StartupEvidenceTimeout('output');}};
  Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',queued:0,destroyed:false,settings:{pause:true},nativeTracks:[],planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({prepared:true}),assertOperation(){},acceptEvidence(){},failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;assert.equal(p.nativeRemux,'always');throw new PlayerError('ASSET_LOAD_FAILED','missing fallback');}});
  Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
@@ -134,9 +132,8 @@ test('inconclusive local direct-mpv output preserves position and restores full 
 });
 
 test('a short trial never retries the original route after terminal fallback errors',async()=>{
- const {Player}=await import('../web/generated/unified-player.js');
  for(const error of [new PlayerError('SOURCE_PERMISSION','denied'),new DOMException('cancelled','AbortError'),new DOMException('activation required','NotAllowedError')]){
-  const p=Object.create(Player.prototype);let verifications=0;
+  const p=unitPlayer();let verifications=0;
   const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},verifyOutput:async()=>{verifications++;throw new StartupEvidenceTimeout('output');}};
   Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',queued:0,destroyed:false,settings:{pause:true},nativeTracks:[],planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({prepared:true}),assertOperation(){},failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){assert.fail('Unknown output must not poison admission');}},select:async()=>{throw error;}});
   Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
