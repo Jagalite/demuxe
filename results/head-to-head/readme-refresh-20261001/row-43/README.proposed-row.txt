@@ -1,0 +1,1 @@
+| H.264 + AAC + external WebVTT / MP4 | 🟢 (Pass) · 13.7% CPU | 🟢 (Pass) · 15.0% CPU | 🟢 (Pass) · 17.0% CPU · forced-remux ref | 🟢 (Pass) · 17.0% CPU · forced-remux ref | 🟢 (Pass) · 35.8% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🟢 (Pass) · 11.1% CPU |
