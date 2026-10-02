@@ -23,7 +23,29 @@ export function providerAssetGraph(files,computedImports=[]){
   for(const target of dependencies[name])assert(available.has(target),'Missing compiled provider import: '+target);
   assert(dependencies[name].length<=64,'Too many provider dependencies');
  }
- const roots=names.filter(name=>!name.endsWith('.d.ts'));
+ // Deployment rejects cycles, so reject them here rather than emitting a
+ // package whose acquisition closure cannot be resolved.
+ const visited=new Set(),visiting=new Set();
+ const visit=name=>{
+  if(visited.has(name))return;
+  assert(!visiting.has(name),'Cyclic provider asset dependency: '+name);
+  visiting.add(name);for(const target of dependencies[name])visit(target);
+  visiting.delete(name);visited.add(name);
+ };
+ for(const name of names)visit(name);
+ const executable=names.filter(name=>!name.endsWith('.d.ts'));
+ let roots=executable;
+ if(roots.length>64){
+  // Retain existing manifests when they fit. Larger compiled wrappers need
+  // only graph entries: imported modules remain in the verified closure.
+  // Standalone workers, engines and reviewed computed imports stay roots.
+  const referenced=new Set(Object.values(dependencies).flat());
+  roots=executable.filter(name=>!referenced.has(name));
+  const reachable=new Set();
+  const collect=name=>{if(reachable.has(name))return;reachable.add(name);for(const target of dependencies[name])collect(target);};
+  for(const name of roots)collect(name);
+  assert(executable.every(name=>reachable.has(name)),'Incomplete executable provider closure');
+ }
  assert(roots.length>0&&roots.length<=64,'Provider needs bounded executable root assets');
  return {dependencies,roots};
 }
