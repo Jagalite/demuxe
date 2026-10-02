@@ -151,8 +151,9 @@ export class AdvancedSettings {
         submit('quality-form', p => p.setQuality({ mode: 'auto', maxHeight: this.value('max-height') ? this.numeric('max-height') : undefined, maxBandwidth: this.value('max-bandwidth') ? this.numeric('max-bandwidth') : undefined }), ['max-height', 'max-bandwidth']);
         click('live', p => p.seekToLive());
         click('snapshot', async (p) => {
+            const source = p.state.sourceId;
             const result = await p.snapshot({ includeSubtitles: this.checked('snapshot-subs') });
-            if (this.getPlayer() !== p || !this.root.host.isConnected)
+            if (this.getPlayer() !== p || p.isDestroyed || p.state.sourceId !== source || !this.root.host.isConnected)
                 return;
             const url = URL.createObjectURL(result.blob), link = this.root.ownerDocument.createElement('a');
             link.href = url;
@@ -174,7 +175,7 @@ export class AdvancedSettings {
             if (!media?.selectAudioOutput)
                 throw new Error(this.labels.outputUnavailable);
             const source = p.state.sourceId, device = await media.selectAudioOutput();
-            if (this.getPlayer() === p && p.state.sourceId === source)
+            if (this.getPlayer() === p && !p.isDestroyed && p.state.sourceId === source && this.root.host.isConnected)
                 await p.setAudioOutputDevice(device.deviceId);
         });
         click('output-default', p => p.setAudioOutputDevice(''));
@@ -188,7 +189,7 @@ export class AdvancedSettings {
     range() { return { start: this.numeric('start'), end: this.numeric('end') }; }
     act(action) {
         const player = this.getPlayer();
-        if (!player || this.busy || player.state.pendingOperation)
+        if (!player || player.isDestroyed || !this.root.host.isConnected || this.busy || player.state.pendingOperation)
             return;
         const focused = this.root.activeElement;
         this.busy = true;
@@ -223,7 +224,7 @@ export class AdvancedSettings {
             this.dirty.clear();
             this.signatures.clear();
         }
-        const blocked = this.busy || !!state.pendingOperation || state.sourceId === null;
+        const blocked = player.isDestroyed || this.busy || !!state.pendingOperation || state.sourceId === null;
         for (const node of Array.from(this.el('advanced-settings').querySelectorAll('input,select,button')))
             node.disabled = blocked;
         for (const group of Array.from(this.el('advanced-settings').querySelectorAll('[data-feature]'))) {

@@ -97,7 +97,40 @@ try{
       f.set('vf','hflip');f.ui.label({...advancedLabels,videoSettings:'<img src=x> Video'});f.ui.update(f.state);
       assert(!f.root.querySelector('img')&&f.get('vf').value==='hflip','Label injection or draft lost');
     });
+    await check('font attachment forwards the file and clears the chooser on failure',async f=>{
+      const transfer=new DataTransfer(),font=new File(['font'],'example.ttf');transfer.items.add(font);f.get('font-file').files=transfer.files;
+      f.p.addFont=async file=>{assert(file.name==='example.ttf','Wrong font');throw Error('Rejected font');};
+      f.get('font-file').dispatchEvent(new Event('change',{bubbles:true}));await f.drain();
+      assert(f.failures.length===1&&f.get('font-file').value==='','Failed font cannot be selected again');
+    });
+    await check('manual quality, chapter and live actions forward source-scoped IDs',async f=>{
+      f.state.streaming={qualities:[{id:'1:quality',height:720}],requested:{mode:'auto'}};f.state.mediaInfo.chapters=[{id:'1:chapter',start:1,title:'Chapter'}];f.ui.update(f.state);
+      f.set('quality','1:quality','change');await f.drain();f.set('chapter','1:chapter','change');await f.drain();await f.click('live');
+      assert(JSON.stringify(f.calls)==='[["setQuality",{"mode":"manual","id":"1:quality"}],["seekChapter","1:chapter"],["seekToLive"]]','Source IDs lost');
+    });
+    await check('presentation actions preserve immediate gesture forwarding',async f=>{
+      let invoked=false;f.p.presentation.requestPictureInPicture=async()=>{invoked=true;};f.get('pip').disabled=false;f.get('pip').click();assert(invoked,'Gesture was deferred');await f.drain();
+      f.p.presentation.exitPictureInPicture=async()=>f.calls.push(['exitPiP']);f.get('pip-exit').disabled=false;await f.click('pip-exit');
+      f.p.presentation.setMediaSessionEnabled=value=>f.calls.push(['mediaSession',value]);f.get('media-session').disabled=false;f.set('media-session',true,'change');await f.drain();
+      assert(JSON.stringify(f.calls)==='[["exitPiP"],["mediaSession",true]]','Presentation command lost');
+    });
+    await check('pending output permission cannot modify a detached or replaced source',async f=>{
+      const devices=navigator.mediaDevices,previous=Object.getOwnPropertyDescriptor(devices,'selectAudioOutput');let finish;
+      Object.defineProperty(devices,'selectAudioOutput',{configurable:true,value:()=>new Promise(resolve=>finish=resolve)});
+      try{
+        f.ui.update(f.state);f.get('output').click();f.state.sourceId=2;finish({deviceId:'retired'});await f.drain();assert(!f.calls.length,'Retired source output changed');
+        f.get('output').click();f.host.remove();finish({deviceId:'detached'});await f.drain();assert(!f.calls.length,'Detached owner output changed');
+        document.body.append(f.host);f.ui.update(f.state);await f.click('output-default');assert(JSON.stringify(f.calls)==='[["setAudioOutputDevice",""]]','Default output not restored');
+      }finally{if(previous)Object.defineProperty(devices,'selectAudioOutput',previous);else delete devices.selectAudioOutput;}
+    });
+    await check('accepted snapshot downloads once and releases its object URL',async f=>{
+      const create=URL.createObjectURL,revoke=URL.revokeObjectURL,click=HTMLAnchorElement.prototype.click;let made=0,retired=0,downloads=0;
+      URL.createObjectURL=blob=>{assert(blob.size>0,'Empty image');made++;return 'blob:api-test';};URL.revokeObjectURL=()=>retired++;HTMLAnchorElement.prototype.click=function(){downloads++;};
+      f.p.snapshot=async options=>{assert(options.includeSubtitles===false,'Snapshot checkbox not honored');return {blob:new Blob(['image']),mediaTime:2};};
+      try{await f.click('snapshot');assert(made===1&&downloads===1&&!f.root.querySelector('a'),'Download lifecycle failed');await new Promise(resolve=>setTimeout(resolve,1100));assert(retired===1,'Download URL leaked');}
+      finally{URL.createObjectURL=create;URL.revokeObjectURL=revoke;HTMLAnchorElement.prototype.click=click;}
+    });
     return checks;
   });
-  report.pageErrors=errors;assert.deepEqual(errors,[]);assert.equal(report.checks.length,14);assert.ok(report.checks.every(c=>c.passed),JSON.stringify(report.checks.filter(c=>!c.passed)));report.passed=true;
+  report.pageErrors=errors;assert.deepEqual(errors,[]);assert.equal(report.checks.length,19);assert.ok(report.checks.every(c=>c.passed),JSON.stringify(report.checks.filter(c=>!c.passed)));report.passed=true;
 }finally{await browser?.close();server.kill();await writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');}
