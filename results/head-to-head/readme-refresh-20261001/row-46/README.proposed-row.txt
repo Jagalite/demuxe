@@ -1,0 +1,1 @@
+| H.264 + AC-3 stereo + ASS / MKV | 🔴 (Fail) | 🟢 (Pass) · 19.6% CPU | 🟢 (Pass) · 20.5% CPU · forced-remux ref | 🟢 (Pass) · 20.0% CPU · forced-remux ref | 🟢 (Pass) · 35.6% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
