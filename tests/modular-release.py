@@ -22,9 +22,10 @@ class HandoffTests(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.files = {}
         self.packages = []
-        targets = ['audio-ac3', 'audio-dts', 'audio-common', 'audio-flac', 'audio-truehd-mlp',
-                   'audio-dts-hd', 'container', 'ffmpeg-truehd-mlp-asyncify',
-                   'ffmpeg-truehd-mlp-jspi', 'ffmpeg-dts-hd-asyncify', 'ffmpeg-dts-hd-jspi']
+        catalog = json.loads(release.SLICE_CATALOG.read_text())
+        targets = [row['target'] for row in catalog['include']]
+        self.expected_packages = len(targets) + 1
+        self.put('release-slices.json', release.SLICE_CATALOG.read_bytes())
         assemblies = []
         for target in ['core', *targets]:
             name = 'demuxe' if target == 'core' else '@demuxe/provider-' + target
@@ -51,7 +52,7 @@ class HandoffTests(unittest.TestCase):
         self.put('qualification.json', json.dumps(qualification).encode())
         self.record = {'schema': 1, 'passed': True, 'sourceTag': 'modular-v1', 'sourceCommit': 'abc',
             'cleanTaggedSource': True, 'version': '1.0.0-beta.1', 'core': 'core.tgz',
-            'qualification': 'qualification.json', 'packages': self.packages,
+            'qualification': 'qualification.json', 'sliceCatalog': 'release-slices.json', 'packages': self.packages,
             'files': self.files, 'evidenceFiles': {'gate-' + str(i): 'gate.json' for i in range(29)}}
         self.save()
 
@@ -63,7 +64,29 @@ class HandoffTests(unittest.TestCase):
         (self.root / 'modular-verification.json').write_text(json.dumps(self.record))
 
     def test_complete_handoff(self):
-        self.assertEqual(len(release.validate(self.root, 'modular-v1', 'abc')['packages']), 12)
+        self.assertEqual(len(release.validate(self.root, 'modular-v1', 'abc')['packages']), self.expected_packages)
+
+    def test_missing_new_slice_rejected_even_with_matching_package_list(self):
+        q = json.loads((self.root / 'qualification.json').read_text())
+        q['packages'] = [p for p in q['packages'] if p['target'] != 'audio-aac']
+        self.record['packages'] = [p for p in self.record['packages'] if p['name'] != '@demuxe/provider-audio-aac']
+        self.put('qualification.json', json.dumps(q).encode()); self.save()
+        with self.assertRaisesRegex(ValueError, 'every release slice exactly once'):
+            release.validate(self.root, 'modular-v1', 'abc')
+
+    def test_duplicate_qualified_slice_rejected(self):
+        q = json.loads((self.root / 'qualification.json').read_text())
+        q['packages'].append(q['packages'][0])
+        self.put('qualification.json', json.dumps(q).encode()); self.save()
+        with self.assertRaisesRegex(ValueError, 'every release slice exactly once'):
+            release.validate(self.root, 'modular-v1', 'abc')
+
+    def test_rehashed_smaller_catalog_rejected(self):
+        catalog = json.loads((self.root / 'release-slices.json').read_text())
+        catalog['include'].pop()
+        self.put('release-slices.json', json.dumps(catalog).encode()); self.save()
+        with self.assertRaisesRegex(ValueError, 'catalog differs from source'):
+            release.validate(self.root, 'modular-v1', 'abc')
 
     def test_wrong_revision_rejected(self):
         with self.assertRaisesRegex(ValueError, 'tag and commit'):
@@ -103,7 +126,7 @@ class HandoffTests(unittest.TestCase):
         with patch.object(release.urllib.request, 'urlopen', side_effect=absent), \
                 patch.object(release.subprocess, 'run') as run:
             release.stage(self.root, 'modular-v1', 'abc')
-        self.assertEqual(run.call_count, 12)
+        self.assertEqual(run.call_count, self.expected_packages)
         for call in run.call_args_list:
             self.assertEqual(call.args[0][:3], ['npm', 'stage', 'publish'])
             self.assertIn('--provenance', call.args[0])

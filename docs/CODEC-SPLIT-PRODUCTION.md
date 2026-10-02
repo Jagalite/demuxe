@@ -154,7 +154,8 @@ complete recipes, installed output and lifecycle contracts are qualified.
 are qualified. The final application source archive includes the core package
 template; an extracted-source core rebuild must match the qualified archive.
 
-Prepare a local handoff containing the core, all 11 providers, all native and
+Prepare a handoff containing the core, every provider in
+`licensing/ci-slices.json` (currently 30 slices), all native and
 application source companions, and the sealed evidence:
 
 ```sh
@@ -168,11 +169,22 @@ repeat with `--tag modular-<version>` into a fresh directory. The tagged command
 compares release inputs to the tag and rejects dirty or untracked source inputs.
 The handoff can be published with `scripts/publish-github-release.py --modular`
 using its existing `--assets`, `--tag`, `--commit`, and `--repo` arguments.
-The **Stage qualified modular codec packages** workflow then downloads that
+The **Build and stage modular codec packages** workflow then downloads that
 public release, validates every package/evidence/source hash and tag identity,
-and stages all 12 npm packages for maintainer approval. Configure npm trusted
+and stages the core and all catalog slices for maintainer approval. Configure npm trusted
 publishing for each package and that workflow before invoking it. Published
 versions with different bytes are rejected; matching existing versions are skipped.
+
+Both tag release workflows call the shared source build for all 30 catalog
+slices and four broad providers at the selected tag. Each package and its
+corresponding source are retained in `source-provider-*` Actions artifacts; the
+collector rejects missing, duplicate or wrong-revision providers. The monolithic
+GitHub release waits for this build, and modular npm staging also requires it.
+The modular handoff retains the exact catalog and rejects omissions, duplicates
+and a catalog differing from the tagged source. Fresh build artifacts are
+candidates: they do not replace the exact-byte qualification and source-rebuild
+evidence required to publish. The original 11-provider qualification report
+therefore cannot publish the expanded catalog.
 
 Modular tags are excluded from the monolithic tag release workflow. Preparing
 or verifying a local handoff does not commit, tag, upload or stage packages.

@@ -15,6 +15,7 @@ import urllib.parse
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
+SLICE_CATALOG = ROOT / 'licensing/ci-slices.json'
 
 
 def digest(path):
@@ -32,6 +33,13 @@ def metadata(path):
         return json.load(tar.extractfile('package/package.json'))
 
 
+def slice_targets(catalog):
+    require(catalog.get('schema') == 1, 'Invalid release slice catalog')
+    targets = [row['target'] for row in catalog['include']]
+    require(targets and len(targets) == len(set(targets)), 'Empty or duplicate release slices')
+    return set(targets)
+
+
 def validate(directory, tag=None, commit=None):
     record = json.loads((directory / 'modular-verification.json').read_text())
     require(record['schema'] == 1 and record['passed'], 'Unqualified modular release')
@@ -47,9 +55,15 @@ def validate(directory, tag=None, commit=None):
     require(qualification['passed'] and qualification['ordinaryQualifiedAssembly']
             and qualification['finalCoreMatchesInstalledTests'], 'Missing ordinary qualified core')
     require(len(qualification['gates']) >= 29
-            and len({g['path'] for g in qualification['gates']}) == len(qualification['gates'])
-            and len(qualification['packages']) == 11,
+            and len({g['path'] for g in qualification['gates']}) == len(qualification['gates']),
             'Incomplete modular qualification')
+    catalog_name = record.get('sliceCatalog')
+    require(catalog_name in record['files'], 'Missing release slice catalog')
+    require(record['files'][catalog_name] == digest(SLICE_CATALOG), 'Release slice catalog differs from source')
+    expected_targets = slice_targets(json.loads((directory / catalog_name).read_text()))
+    targets = [package['target'] for package in qualification['packages']]
+    require(len(targets) == len(set(targets)) and set(targets) == expected_targets,
+            'Qualification must include every release slice exactly once')
     require(digest(directory / record['core']) == qualification['coreArchiveSHA256'], 'Core hash mismatch')
     for gate in qualification['gates']:
         evidence = directory / record['evidenceFiles'][gate['path']]
@@ -98,6 +112,7 @@ def prepare(report, output, tag=None):
         files[name] = digest(output / name)
         return name
 
+    catalog_name = retain(SLICE_CATALOG, 'release-slices.json')
     core = qualification['finalCore']
     if isinstance(core, str):
         core = json.loads(Path(core).read_text())
@@ -139,7 +154,8 @@ def prepare(report, output, tag=None):
             require(hashlib.sha256(data).hexdigest() == expected, 'Release input differs from tag: ' + name)
     record = {'schema': 1, 'passed': True, 'sourceTag': tag, 'sourceCommit': commit,
               'cleanTaggedSource': bool(tag), 'version': packages[0]['version'], 'core': core_name,
-              'qualification': qname, 'packages': packages, 'files': files, 'evidenceFiles': evidence}
+              'qualification': qname, 'sliceCatalog': catalog_name,
+              'packages': packages, 'files': files, 'evidenceFiles': evidence}
     (output / 'modular-verification.json').write_text(json.dumps(record, indent=2) + '\n')
     validate(output, tag, commit) if tag else validate(output)
     print(json.dumps({'passed': True, 'packages': len(packages), 'assets': len(files) + 1,
