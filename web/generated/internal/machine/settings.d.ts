@@ -187,6 +187,7 @@ export declare function settingAuthority(state: PlayerControlState, id: number):
 export declare function transitionSettingTransaction(state: PlayerControlState, input: SettingTransactionInput): Readonly<{
     state: Readonly<{
         revision: number;
+        attachments: import("./attachments.js").AttachmentState;
         boundary: import("./playback-boundary.js").BoundaryState;
         operations: import("./operations.js").OperationState;
         playback: import("./playback.js").PlaybackControl;

@@ -4,11 +4,13 @@ import {transitionOperations,type OperationInput} from './operations.js';
 import {transitionPlayback,type PlaybackInput} from './playback.js';
 import {transitionSettings,transitionSettingTransaction,changePreferences,clearSourcePreferences,type SettingsInput,type SettingTransactionInput,type SettingEffect} from './settings.js';
 import {transitionSource,type SourceInput} from './source.js';
+import {transitionAttachment,attachmentAuthority,attachmentPreferences,type AttachmentInput,type AttachmentEffect} from './attachments.js';
 import type {PlayerControlState} from './state.js';
 export type SessionObservation=Readonly<{type:'playback.sample';session:number;sequence:number;observation:'waiting'|'playing'|'time'|'pause';value?:number|boolean;publishedTime?:number}>;
-export type PlayerControlInput=BoundaryInput|OperationInput|PlaybackInput|SettingsInput|SettingTransactionInput|SourceInput|SessionObservation;
-export type PlayerControlDecision=Readonly<{state:PlayerControlState;accepted:boolean;id?:number;reason?:string;message?:string;retire:readonly number[];effects?:readonly (SettingEffect|BoundaryEffect)[]}>;
+export type PlayerControlInput=AttachmentInput|BoundaryInput|OperationInput|PlaybackInput|SettingsInput|SettingTransactionInput|SourceInput|SessionObservation;
+export type PlayerControlDecision<Effect=SettingEffect|BoundaryEffect|AttachmentEffect>=Readonly<{state:PlayerControlState;accepted:boolean;id?:number;reason?:string;message?:string;retire:readonly number[];effects?:readonly Effect[]}>;
 export function transitionPlayer(state:PlayerControlState,input:PlayerControlInput):PlayerControlDecision{
+  if(isAttachmentInput(input))return transitionAttachment(state,input);
   if(isBoundaryInput(input))return transitionBoundary(state,input);
   if(isSettingTransaction(input))return transitionSettingTransaction(state,input);
   if(input.type==='playback.sample'){
@@ -29,10 +31,12 @@ export function transitionPlayer(state:PlayerControlState,input:PlayerControlInp
     const reset=input.type==='source.clear'||input.type==='source.accept'&&decision.accepted&&!state.source.candidate?.preserve;
     const pending=state.settingsTransactions.pending;
     const acceptedSetting=input.type==='source.accept'&&decision.accepted&&pending?.reconfigure&&pending.phase==='applying'&&pending.operation===state.operations.active&&pending.epoch===state.operations.epoch;
-    const desiredPreferences=acceptedSetting?changePreferences(state.preferences,pending.preferencesPatch):state.preferences,resetPreferences=reset?clearSourcePreferences(desiredPreferences):desiredPreferences;
+    const attachment=state.attachments.pending,acceptedAttachment=input.type==='source.accept'&&decision.accepted&&!reset&&attachment?.phase==='applying'&&attachmentAuthority(state,attachment.id);
+    const attachments=reset?Object.freeze({...state.attachments,entries:Object.freeze(state.operations.terminal?[]:state.attachments.entries.filter(entry=>entry.kind==='font')),pending:null}):acceptedAttachment?Object.freeze({...state.attachments,entries:attachment.entries,pending:Object.freeze({...attachment,phase:'accepted' as const,session:decision.state.acceptedSession})}):state.attachments;
+    const desiredPreferences=acceptedSetting?changePreferences(state.preferences,pending.preferencesPatch):acceptedAttachment?attachmentPreferences(state):state.preferences,resetPreferences=reset?clearSourcePreferences(desiredPreferences):desiredPreferences;
     const preferences=reset&&input.type==='source.accept'&&input.publicSelections?changePreferences(resetPreferences,{publicSelections:input.publicSelections}):resetPreferences;
     const settingsTransactions=input.type==='source.clear'||input.type==='source.accept'&&decision.accepted?Object.freeze({...state.settingsTransactions,pending:acceptedSetting?Object.freeze({...pending,phase:'accepted' as const,session:decision.state.acceptedSession,settings,preferences}):null,degraded:null}):state.settingsTransactions;
-    return Object.freeze({...decision,state:decision.state===state.source?state:Object.freeze({...state,revision:state.revision+1,source:decision.state,settings,playback,preferences,settingsTransactions,boundary:input.type==='source.clear'||input.type==='source.accept'&&decision.accepted?Object.freeze({...state.boundary,pending:null}):state.boundary}),id:decision.attempt,retire:Object.freeze([]) as readonly number[]});
+    return Object.freeze({...decision,state:decision.state===state.source?state:Object.freeze({...state,revision:state.revision+1,source:decision.state,attachments,settings,playback,preferences,settingsTransactions,boundary:input.type==='source.clear'||input.type==='source.accept'&&decision.accepted?Object.freeze({...state.boundary,pending:null}):state.boundary}),id:decision.attempt,retire:Object.freeze([]) as readonly number[]});
   }
   if(input.type==='settings.accept'||input.type==='settings.change')return Object.freeze({state:Object.freeze({...state,revision:state.revision+1,settings:transitionSettings(state.settings,input)}),accepted:true,id:undefined,reason:undefined,retire:Object.freeze([]) as readonly number[]});
   if(input.type==='play.request'||input.type==='play.retire'||input.type==='play.settled'||input.type==='seek.request'||input.type==='seek.settled'||input.type==='playback.observed'){
@@ -43,9 +47,12 @@ export function transitionPlayer(state:PlayerControlState,input:PlayerControlInp
   const pending=state.settingsTransactions.pending;
   const retired=input.type==='operation.retire'||(input.type==='operation.cancel'||input.type==='operation.finish'||input.type==='operation.release')&&input.id===pending?.operation;
   const settingsTransactions=retired&&pending?Object.freeze({...state.settingsTransactions,pending:null}):state.settingsTransactions;
-  return Object.freeze({...decision,state:decision.state===state.operations?state:Object.freeze({...state,revision:state.revision+1,operations:decision.state,settingsTransactions,boundary:input.type==='operation.retire'?Object.freeze({...state.boundary,pending:null}):state.boundary}),retire:Object.freeze([]) as readonly number[]});
+  const attachment=state.attachments.pending,retireAttachment=input.type==='operation.retire'||(input.type==='operation.cancel'||input.type==='operation.finish'||input.type==='operation.release')&&input.id===attachment?.operation;
+  const attachments=retireAttachment&&attachment?Object.freeze({...state.attachments,pending:null}):state.attachments;
+  return Object.freeze({...decision,state:decision.state===state.operations?state:Object.freeze({...state,revision:state.revision+1,operations:decision.state,attachments,settingsTransactions,boundary:input.type==='operation.retire'?Object.freeze({...state.boundary,pending:null}):state.boundary}),retire:Object.freeze([]) as readonly number[]});
 }
 
+function isAttachmentInput(input:PlayerControlInput):input is AttachmentInput{return input.type.startsWith('attachment.');}
 function isBoundaryInput(input:PlayerControlInput):input is BoundaryInput{return input.type.startsWith('boundary.');}
 function isSourceInput(input:PlayerControlInput):input is SourceInput{return input.type.startsWith('source.');}
 function isSettingTransaction(input:PlayerControlInput):input is SettingTransactionInput{return input.type.startsWith('setting.')||input.type==='preferences.change';}

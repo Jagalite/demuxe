@@ -117,6 +117,14 @@ The PCM reducer owns reset epochs, reset acknowledgments, posted/consumed bounds
 
 The remux lifecycle reducer owns explicit source/restart identity, worker generation, startup target, intent, and admission for one packaging retry and one recovery per explicit open. Worker callbacks and recovery continuations carry those identities. Retirement detaches physical handles before callbacks, so old cleanup cannot destroy replacement resources. Frame-prime cleanup cancels its callback once and continues even if listener removal throws. MSE append and buffered-output readiness remain separate pending ownership work.
 
+## Attachment and worker request cutover
+
+Attachment serial allocation still occurs before validation, and validation keeps its existing rejected-promise channel. The composed Player core now owns byte/count budgets and accepted versus pending attachment membership. A hidden replacement can read desired membership and stable-selection changes, while accepted membership remains unchanged until source acceptance. Removal and stable selection commit at the same boundary. Failures after that boundary retain the accepted change. Physical byte buffers, caller-owned URLs and branded handles remain in the shell registry, which prunes resources only after core ownership retires. Close/new source expires subtitles and text; fonts survive until explicit removal or destruction.
+
+Attachment effects recheck operation/session authority after reads and backend completions. A read or text-track completion after close cannot populate a replacement source. Synchronous retirement that returns a rejected read promise remains observed. Exact byte/count boundaries, mismatched/forged/expired handles, deferred acceptance and 12 seeded mixed ownership histories are covered.
+
+Private audio-worker state now owns initialization, replacement flush/load stages with existing poll bounds, context/pause ordering, close authority and source-scoped authorization requests. Native MSE-worker state owns boot/shutdown, source/operation epochs, sampled element facts, play/authorization requests and deadlines. Physical engine calls, message ports, timers and media resources remain in adapters. Shutdown retires requests before waiting on physical cleanup, and old authorization replies cannot update a replacement source.
+
 ## Gesture-sensitive effects
 
 Source: [Player.play](../src/unified-player.ts#L1461), [presentation requests](../src/presentation.ts#L31), [output picker](../src/player/advanced-settings.ts#L146).

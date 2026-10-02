@@ -22,7 +22,7 @@ test('playback decode failure retires only the failed native plan before retryin
  const p=unitPlayer(),source={},failures=new TierAttempts(),selected=[];
  Object.assign(p,{source,automatic:true,currentMode:'native',
   current:{backend:{properties:new Map(),diagnostics:{plan:'direct'},play:async()=>{throw new PlayerError('DECODE_FAILED','Missing selected audio');},verifyOutput:async()=>{},pause:async()=>{}}},
-  settings:{pause:true},nativeRemux:'never',nativeTracks:[],tierAttempts:failures,
+  settings:{pause:true},nativeRemux:'never',tierAttempts:failures,
   runtimeCapabilities:{update(){}},evidence:()=>({}),failedStreamingPlan:()=>false,
   tierConfiguration:()=> 'same-settings',enqueue:async action=>action(),select:async(...args)=>selected.push(args)});
  Object.defineProperty(p,'diagnostics',{value:{plan:{id:'native-direct'}}});

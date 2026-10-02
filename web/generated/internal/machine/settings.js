@@ -24,7 +24,7 @@ export function transitionSettingTransaction(state, input) {
         return result({ ...state, preferences: changePreferences(state.preferences, input.value) }, true);
     if (input.type === 'setting.begin') {
         const operation = state.operations.entries.find(entry => entry.id === state.operations.active);
-        if (state.operations.terminal || !operation || operation.cancelled || operation.epoch !== state.operations.epoch || state.settingsTransactions.pending)
+        if (state.operations.terminal || !operation || operation.cancelled || operation.epoch !== state.operations.epoch || state.settingsTransactions.pending || state.attachments.pending)
             return result(state, false);
         let settings = state.settings, preferences = state.preferences, effect, rollback, reconfigure = false, promote = false, noop = false, mode, selection, verifyTrack;
         const command = input.command;

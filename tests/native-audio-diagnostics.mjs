@@ -7,11 +7,12 @@ import {WorkerRemuxController} from '../web/worker-remux-controller.js';
 import {NativePlayer} from '../web/generated/internal/native-player.js';
 import {backendPlan} from '../web/generated/internal/backend.js';
 import {bufferingPolicy} from '../web/generated/internal/buffering.js';
+import {watchdogPolicy} from '../web/generated/internal/watchdogs.js';
 
 function audio(){
   return Object.assign(Object.create(NativeMpvAudio.prototype),{
     points:[],generation:1,running:true,errors:[],header:new Int32Array(16),
-    video:{playbackRate:1},context:{state:'running'},engine:{properties:new Map()},
+    video:{playbackRate:1,paused:false,seeking:false,ended:false,readyState:4,ownerDocument:{hidden:false}},context:{state:'running'},engine:{properties:new Map()},watchdogs:watchdogPolicy(),
     time:()=>10,requestedRate:1,effectiveRate:1,maxAbsError:0,sustained:0,release:0,
   });
 }
@@ -59,7 +60,8 @@ test('native control-plane reads do not collect audio or video diagnostics',()=>
   assert.equal(player.bufferingDiagnostics.backend,'remux');
   player.mpvSubs=undefined;assert.equal(backendPlan(player),'remux');
   player.adapted=true;player.audioAdaptation='flac';assert.equal(backendPlan(player),'adapted-flac');
-  player.projection={};assert.equal(backendPlan(player),'remux');
+  player.projection={};assert.equal(backendPlan(player),'adapted-flac24');
+  player.adapted=false;assert.equal(backendPlan(player),'remux');
   assert.equal(backendPlan({diagnostics:{plan:'shaka-mse'}}),'shaka-mse');
   assert.equal(backendPlan(undefined),undefined);
 });

@@ -71,7 +71,7 @@ export function transitionSettingTransaction(state:PlayerControlState,input:Sett
   if(input.type==='preferences.change')return result({...state,preferences:changePreferences(state.preferences,input.value)},true);
   if(input.type==='setting.begin'){
     const operation=state.operations.entries.find(entry=>entry.id===state.operations.active);
-    if(state.operations.terminal||!operation||operation.cancelled||operation.epoch!==state.operations.epoch||state.settingsTransactions.pending)return result(state,false);
+    if(state.operations.terminal||!operation||operation.cancelled||operation.epoch!==state.operations.epoch||state.settingsTransactions.pending||state.attachments.pending)return result(state,false);
     let settings=state.settings,preferences=state.preferences,effect:SettingEffect,rollback:SettingEffect,reconfigure=false,promote=false,noop=false,mode:PlaybackMode|undefined,selection:TrackSelectionDecision|undefined,verifyTrack:'audio'|'sub'|undefined;
     const command=input.command;
     const context={sourceId:state.source.serial,session:state.source.acceptedSession,mode:state.source.mode,automatic:state.source.automatic,hasSource:!!input.hasSource,hasBackend:input.hasBackend};

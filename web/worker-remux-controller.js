@@ -27,7 +27,7 @@ export class WorkerRemuxController {
     try{if(data.operation==='attach')this.video.srcObject=data.handle;else if(data.operation==='reset'){this.video.pause();this.video.srcObject=null;this.video.removeAttribute('src');this.video.load();}else if(data.operation==='seek')this.video.currentTime=data.value;else if(data.operation==='pause')this.video.pause();else if(data.operation==='play'){if(this.playIntent===false){worker.postMessage({type:'element-result',id:data.id});return;}this.video.play().then(()=>{if(this.worker===worker){this.sync();worker.postMessage({type:'element-result',id:data.id});}},error=>{if(this.worker===worker)worker.postMessage({type:'element-result',id:data.id,error:this.playIntent===false?undefined:String(error)});});}}
     catch(error){this.abort(error);}
    }else if(data.type==='error'){this.onError?.(data.message);}
-   else if(data.type==='refresh')Promise.resolve().then(()=>this.refreshAuthorization(data.resource)).then(update=>{if(this.worker===worker)worker.postMessage({type:'refreshed',id:data.id,update});},error=>{if(this.worker===worker)worker.postMessage({type:'refreshed',id:data.id,error:String(error)});});
+   else if(data.type==='refresh'){const source=this.refreshSource;Promise.resolve().then(()=>{if(this.worker!==worker||!source||this.refreshSource!==source||source.key!==data.sourceKey)throw new DOMException('Superseded','AbortError');return source.refreshAuthorization(data.resource);}).then(update=>{if(this.worker===worker&&this.refreshSource===source)worker.postMessage({type:'refreshed',id:data.id,update});},error=>{if(this.worker===worker)worker.postMessage({type:'refreshed',id:data.id,error:String(error)});});}
   };
   worker.onerror=event=>{event.preventDefault();this.abort(Error('MSE worker failed: '+event.message));};
   worker.onmessageerror=()=>this.abort(Error('MSE worker message failed'));
@@ -48,8 +48,8 @@ export class WorkerRemuxController {
    // failures after admission must retain their original compatibility meaning.
    if(!this.local)try{await (this.bootPromise??=this.boot());}catch(error){await this.release(error);if(this.stopped)throw error;this.video.srcObject=null;this.local=this.fallback();this.fallbackReason=String(error);}
    if(this.local){this.local.onError=m=>this.onError?.(m);this.local.onBufferingChange=()=>this.onBufferingChange?.();const result=await this.local.open(source,target);this.tracks=this.local.tracks;this.duration=this.local.duration;return result;}
-   const {refreshAuthorization,...transport}=source;this.refreshAuthorization=refreshAuthorization;
-   try{return await this.call('open',{source:transport,target,refresh:!!refreshAuthorization});}
+   const {refreshAuthorization,...transport}=source,sourceKey=String(this.sourceSequence=(this.sourceSequence??0)+1);this.refreshSource={key:sourceKey,refreshAuthorization};
+   try{return await this.call('open',{source:transport,target,refresh:!!refreshAuthorization,sourceKey});}
    catch(error){
     if(this.stopped||this.state.snapshot?.capability?.sourceBufferCreated||!/Unsupported MSE|MSE sourceopen/.test(String(error)))throw error;
     await this.release(error);if(this.stopped)throw error;
@@ -78,7 +78,7 @@ export class WorkerRemuxController {
  get bufferingDiagnostics(){return this.local?.bufferingDiagnostics??this.state.snapshot?.buffering;}
  snapshot(){const snapshot=this.local?.snapshot()??this.state.snapshot??{};return {...snapshot,mseOwner:this.local?'window':'worker',ownerFallback:this.fallbackReason,fragmentTransport:this.local?'window':'producer-to-mse-worker'};}
  release(error=new DOMException('Superseded','AbortError')){
-  clearInterval(this.timer);const worker=this.worker,owner=this.workerOwner;this.worker=null;this.workerOwner=null;
+  clearInterval(this.timer);const worker=this.worker,owner=this.workerOwner;this.worker=null;this.workerOwner=null;this.refreshSource=undefined;
   for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(error);}this.pending.clear();
   // An error callback may already have started the same shutdown.
   if(!worker)return this.releasing??Promise.resolve();

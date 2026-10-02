@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import * as pcm from '../../web/generated/internal/machine/private-pcm.js';
+import * as audioWorker from '../../web/generated/internal/machine/private-audio-worker.js';
 import {PrivatePCMTransport} from '../../web/private-mpv/playback-pcm.js';
 const header=extra=>({produced:0,consumed:0,epoch:2,nativeRunning:true,contextRunning:true,userPaused:false,...extra});
 function model(profile='playback',capacity=8192,channels=2){
@@ -73,8 +74,8 @@ function adapter(profile){
   const owner=new PrivatePCMTransport(engine,0,port,0);clearInterval(owner.timer);
   return{messages,publications,header:owner.header(),get state(){return owner.machine;},pump:()=>owner.pump(),feedback:data=>owner.feedback(data),stop:()=>owner.stop(),set reenter(value){reenter=value;},get closes(){return closes;},get disposals(){return disposals;}};
  }
- const context=vm.createContext({...pcm,performance,AbortController,Map,Uint32Array,Float32Array,setTimeout,clearTimeout,setInterval,clearInterval,postMessage:value=>publications.push(value),testEngine:engine,testPort:port});
- vm.runInContext(audioSource,context);vm.runInContext('engine=testEngine;port=testPort;ptr=0;contextRunning=true;userPaused=false;',context);
+ const context=vm.createContext({...pcm,...audioWorker,performance,AbortController,Map,Uint32Array,Float32Array,setTimeout,clearTimeout,setInterval,clearInterval,postMessage:value=>publications.push(value),testEngine:engine,testPort:port});
+ vm.runInContext(audioSource,context);vm.runInContext("engine=testEngine;port=testPort;ptr=0;lifecycle=Object.freeze({...lifecycle,phase:'ready',initialized:true,contextRunning:true,userPaused:false});",context);
  return{messages,publications,header:new Uint32Array(memory.buffer,0,8),get state(){return vm.runInContext('transport',context);},pump:()=>vm.runInContext('pump()',context),feedback:data=>{context.data=data;vm.runInContext('feedback(data)',context);},stop:()=>vm.runInContext('stopTransport()',context),set reenter(value){reenter=value;},get closes(){return closes;},get disposals(){return disposals;},context};
 }
 for(const profile of ['playback','audio'])test(`${profile} actual adapter transfers owned PCM and ignores stale epoch feedback`,()=>{

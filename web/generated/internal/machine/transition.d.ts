@@ -4,6 +4,7 @@ import { type OperationInput } from './operations.js';
 import { type PlaybackInput } from './playback.js';
 import { type SettingsInput, type SettingTransactionInput, type SettingEffect } from './settings.js';
 import { type SourceInput } from './source.js';
+import { type AttachmentInput, type AttachmentEffect } from './attachments.js';
 import type { PlayerControlState } from './state.js';
 export type SessionObservation = Readonly<{
     type: 'playback.sample';
@@ -13,15 +14,15 @@ export type SessionObservation = Readonly<{
     value?: number | boolean;
     publishedTime?: number;
 }>;
-export type PlayerControlInput = BoundaryInput | OperationInput | PlaybackInput | SettingsInput | SettingTransactionInput | SourceInput | SessionObservation;
-export type PlayerControlDecision = Readonly<{
+export type PlayerControlInput = AttachmentInput | BoundaryInput | OperationInput | PlaybackInput | SettingsInput | SettingTransactionInput | SourceInput | SessionObservation;
+export type PlayerControlDecision<Effect = SettingEffect | BoundaryEffect | AttachmentEffect> = Readonly<{
     state: PlayerControlState;
     accepted: boolean;
     id?: number;
     reason?: string;
     message?: string;
     retire: readonly number[];
-    effects?: readonly (SettingEffect | BoundaryEffect)[];
+    effects?: readonly Effect[];
 }>;
 export declare function transitionPlayer(state: PlayerControlState, input: PlayerControlInput): PlayerControlDecision;
 /** A backend listener keeps its allocation identity. Retirement fences every

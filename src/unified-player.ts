@@ -34,7 +34,7 @@ import {projectPlayer} from './internal/machine/selectors.js';
 import {selectCapabilities,type CapabilityFacts} from './internal/machine/capabilities.js';
 import {copyData} from './internal/machine/data.js';
 import {initialPlayerControl} from './internal/machine/state.js';
-import {transitionPlayer,sessionAuthority,type PlayerControlInput} from './internal/machine/transition.js';
+import {transitionPlayer,sessionAuthority,type PlayerControlInput,type PlayerControlDecision} from './internal/machine/transition.js';
 import {activeOperation,pendingOperation} from './internal/machine/operations.js';
 import {sourceDesiredSettings} from './internal/machine/source.js';
 import type {RawTrack} from './internal/state.js';
@@ -56,6 +56,7 @@ class SeekPresentationBoundary extends PlayerError {
   constructor(target:number,boundary:number){super('INVALID_ARGUMENT',`Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`);}
 }
 
+import {attachmentAuthority,candidateAttachments,attachmentPreferences,type AttachmentInput,type AttachmentEffect,type AttachmentCommand,type AttachmentFacts} from './internal/machine/attachments.js';
 import {boundaryAuthority} from './internal/machine/playback-boundary.js';
 import {settingAuthority,effectiveVideoFilters,type SettingCommand,type SettingEffect,type PlayerPreferences} from './internal/machine/settings.js';
 import {createTrace,tracePlayerTransition,selectTrace} from './internal/machine/trace.js';
@@ -100,7 +101,7 @@ export class Player extends EventTarget {
   private set loopPolicy(value:import('./types.js').LoopPolicy){this.updatePreferences({loopPolicy:value});}
   private get qualityPolicy(){return this.control.preferences.qualityPolicy;}
   private set qualityPolicy(value:import('./types.js').QualityPolicy|null){this.updatePreferences({qualityPolicy:value});}
-  private attachmentSerial=0;
+  private attachmentResources=new Map<string,{kind:'font';asset:FontAsset}|{kind:'subtitle';asset:SubtitleAsset}|{kind:'text';asset:TextTrackSource&{attachmentId:string}}>();
   private attachmentHandles=new WeakSet<import('./types.js').AttachmentHandle>();
   private get subtitleDelay(){return this.control.preferences.subtitleDelay;}
   private set subtitleDelay(value:number){this.updatePreferences({subtitleDelay:value});}
@@ -111,12 +112,13 @@ export class Player extends EventTarget {
   private readonly statistics=new PlaybackStatistics();
   private operationStarted=0;
   private get publicSelections():ReadonlyMap<TrackType,string>{return new Map(Object.entries(this.candidatePreferences.publicSelections) as [TrackType,string][]);}
-  private setPublicSelection(type:TrackType,key?:string){const selections={...this.control.preferences.publicSelections};if(key===undefined)delete selections[type];else selections[type]=key;this.updatePreferences({publicSelections:selections});}
   private control=initialPlayerControl();
   private controlTrace=createTrace(256);
   private get transitionTrace(){return selectTrace(this.controlTrace);}
   private operationResources=new Map<number,{controller:AbortController;detachCallerAbort:()=>void}>();
-  private dispatchControl(input:PlayerControlInput){const before=this.control,decision=transitionPlayer(before,input);this.control=decision.state;this.controlTrace=tracePlayerTransition(this.controlTrace??createTrace(256),input,before,decision,decision.state.revision);return decision;}
+  private dispatchControl(input:AttachmentInput):PlayerControlDecision<AttachmentEffect>;
+  private dispatchControl(input:Exclude<PlayerControlInput,AttachmentInput>):PlayerControlDecision<SettingEffect>;
+  private dispatchControl(input:PlayerControlInput):PlayerControlDecision{const before=this.control,decision=transitionPlayer(before,input);this.control=decision.state;if(before.attachments!==decision.state.attachments)this.pruneAttachments();this.controlTrace=tracePlayerTransition(this.controlTrace??createTrace(256),input,before,decision,decision.state.revision);return decision;}
   private get operationEpoch(){return this.control.operations.epoch;}
   private get activeOperation(){const entry=activeOperation(this.control.operations),resources=entry&&this.operationResources.get(entry.id);return entry&&resources?{...entry,...resources}:undefined;}
   private get pendingOperation():PendingOperation|null{return pendingOperation(this.control.operations);}
@@ -224,7 +226,7 @@ export class Player extends EventTarget {
   private set settings(value:Readonly<Settings>){this.dispatchControl({type:'settings.accept',value});}
   private updateSettings(value:Partial<Settings>){this.dispatchControl({type:'settings.change',value});}
   private updatePreferences(value:Partial<PlayerPreferences>){this.dispatchControl({type:'preferences.change',value});}
-  private get candidatePreferences(){const pending=this.control.settingsTransactions.pending;return pending?.reconfigure&&pending.phase==='applying'?pending.preferences:this.control.preferences;}
+  private get candidatePreferences(){const pending=this.control.settingsTransactions.pending;return pending?.reconfigure&&pending.phase==='applying'?pending.preferences:attachmentPreferences(this.control);}
   private configuredTrackPolicy:TrackPolicy;
   get trackPolicy():TrackPolicy{return this.source?.trackPolicy??this.configuredTrackPolicy;}
   private audioOutput: AudioOutput;
@@ -232,15 +234,16 @@ export class Player extends EventTarget {
   private get toneMapping(){return this.control.preferences.toneMapping;}
   private set toneMapping(value:ToneMapping){this.updatePreferences({toneMapping:value});}
   private resourceLimits: ResourceLimits;
-  private fonts: FontAsset[] = [];
-  private subtitleAssets: SubtitleAsset[] = [];
+  private get fonts():FontAsset[]{return candidateAttachments(this.control).flatMap(entry=>{const resource=this.attachmentResources?.get(entry.id);return resource?.kind==='font'?[resource.asset]:[];});}
+  private get subtitleAssets():SubtitleAsset[]{return candidateAttachments(this.control).flatMap(entry=>{const resource=this.attachmentResources?.get(entry.id);return resource?.kind==='subtitle'?[resource.asset]:[];});}
   private root: HTMLDivElement;
   private width: number;
   private height: number;
   private current?: Session;
   private candidate?: Session;
   private source?: Source;
-  private nativeTracks: (TextTrackSource & {attachmentId?:string})[] = [];
+  private get nativeTracks():(TextTrackSource&{attachmentId:string})[]{return candidateAttachments(this.control).flatMap(entry=>{const resource=this.attachmentResources?.get(entry.id);return resource?.kind==='text'?[resource.asset]:[];});}
+  private pruneAttachments(){if(!this.attachmentResources)return;const state=this.control.attachments,retained=new Set([...state.entries,...(state.pending?.entries??[])].map(entry=>entry.id));for(const id of this.attachmentResources.keys())if(!retained.has(id))this.attachmentResources.delete(id);}
   private queue: Promise<void> = Promise.resolve();
   private get queued(){return this.control.operations.entries.length;}
   private get destroyed(){return this.control.operations.terminal;}
@@ -409,10 +412,6 @@ export class Player extends EventTarget {
     return [...raw.filter(t=>t.type!=='audio'),...audio.map(t=>({...t,id:t.id,'ff-index':t.index,selected:settings.aid!=='no'&&t===fallback}))];
   }
   private sourceTracks():RawTrack[]{return this.sessionTracks();}
-  private assertSubtitleAddition(title:string,language:string|undefined,codec:string){
-    const track=tracks([{id:'external',type:'sub',title,lang:language,codec,external:true}],this.sourceSerial,this.mode)[0];
-    assertTrackSelection(this.trackPolicy.subtitles,track.id,track);
-  }
   private confirmTrackSelection(session:Session,source:Source|undefined,mode:PlaybackMode,settings:Settings,type:TrackType,id:string):Promise<void>{
     const matches=()=>{const raw=this.sessionTracks(session,source,mode,settings).filter(t=>t.type===type);return id==='no'?!raw.some(t=>t.selected):id==='auto'||raw.some(t=>String(t.id)===id&&t.selected);};
     if(matches())return Promise.resolve();
@@ -950,7 +949,7 @@ export class Player extends EventTarget {
       this.assertOperation();
       const acceptance=this.dispatchControl({type:'source.accept',attempt,operationEpoch:this.operationEpoch,settings:desired,planMatches:!!actual&&actual.id===planId&&admitted.some(plan=>plan.id===actual.id&&plan.eligible),...(!preserve?{publicSelections:{...(initialAudio?{audio:`audio:stream:${initialAudio.index}`} :{}),...(initialSubtitle?{sub:`sub:stream:${initialSubtitle.index}`}:{})}}:{})});
       if(!acceptance.accepted)throw new PlayerError('ABORTED','Source acceptance was retired');
-      this.current=candidate;this.candidate=undefined;this.source=source;this.nativeTracks=nativeTracks;
+      this.current=candidate;this.candidate=undefined;this.source=source;
       this.activeOperation?.detachCallerAbort();
       this.statistics.accept(this.sourceSerial,preserve,performance.now()-this.operationStarted);
       this.sessionError=null;
@@ -959,7 +958,6 @@ export class Player extends EventTarget {
       this.acceptEvidence(planId,candidate);
       this.#previewController.setSourceIdentity(`${this.sourceSerial}:${mode}`);
       this.previewSource=source.kind==='local'?(source.file instanceof Blob?source.file:new Blob([source.file])):undefined;
-      if(!preserve)this.subtitleAssets=[];
       // Physical handles and composed control state are accepted before observers.
       this.publish();
       const stillAccepted=()=>this.current===candidate&&sessionAuthority(this.control,attemptSession)==='accepted';
@@ -1731,53 +1729,58 @@ export class Player extends EventTarget {
     if(!style||typeof style!=='object'||Object.keys(style).some(key=>!['fontSize','color','borderSize','fontFamily'].includes(key))||style.fontSize!==undefined&&(!Number.isFinite(style.fontSize)||style.fontSize<8||style.fontSize>150)||style.borderSize!==undefined&&(!Number.isFinite(style.borderSize)||style.borderSize<0||style.borderSize>10)||style.color!==undefined&&!/^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(style.color)||style.fontFamily!==undefined&&(typeof style.fontFamily!=='string'||style.fontFamily.length>128||/[\x00-\x1f]/.test(style.fontFamily)))throw new PlayerError('INVALID_ARGUMENT','Invalid plain-text subtitle style');
     return this.timingChange('subtitleStyle',{...style});
   }
+  private attachmentFacts(title?:string,language?:string,codec?:string):AttachmentFacts {
+    const identity=this.control.source,track=title===undefined?undefined:tracks([{id:'external',type:'sub',title,lang:language,codec,external:true}],identity.serial,this.mode)[0];
+    return {sourceId:identity.acceptedSession===null?null:identity.serial,session:identity.acceptedSession,hasSource:!!this.source,hasBackend:!!this.current,surfaceLocked:this.presentation.locksSurface,nativeASS:this.nativeASS,plan:backendPlan(this.current?.backend),policy:captureTrackPolicy(this.trackPolicy.subtitles),track:track?capturePolicyTrack(track):undefined};
+  }
+  private attachmentRejection(decision:PlayerControlDecision):never {if(decision.reason==='failed')throw Error(decision.message);throw new PlayerError(decision.reason==='invalid'?'INVALID_ARGUMENT':decision.reason==='unsupported'?'UNSUPPORTED_FEATURE':'ABORTED',decision.message??'Attachment operation was retired');}
+  private async applyAttachment(command:AttachmentCommand,facts:AttachmentFacts,read?:()=>Promise<ArrayBuffer>,install?:(bytes:ArrayBuffer)=>void){
+    let decision=this.dispatchControl({type:'attachment.begin',command,facts});if(!decision.accepted)this.attachmentRejection(decision);
+    const id=decision.id!;
+    try{
+      while(decision.effects?.length){
+        for(const effect of decision.effects){
+          if(!attachmentAuthority(this.control,id))throw new PlayerError('ABORTED','Attachment operation was retired');
+          if(effect.kind==='attachment.read'){
+            const bytes=await this.interruptible(read!());
+            if(!attachmentAuthority(this.control,id))throw new PlayerError('ABORTED','Attachment operation was retired');
+            decision=this.dispatchControl({type:'attachment.ready',id,bytes:bytes.byteLength});if(!decision.accepted)this.attachmentRejection(decision);
+            install!(bytes);
+          }else{
+            if(effect.kind==='attachment.text'){
+              const resource=this.attachmentResources.get(effect.attachmentId);if(resource?.kind!=='text')throw Error('Missing browser text attachment resource');
+              await this.interruptible(this.current!.backend.addTextTrack!(resource.asset,effect.attachmentId));
+            }else if(effect.kind==='attachment.select')await this.interruptible(this.select(this.source!,effect.settings,true,this.nativeTracks));
+            else if(effect.kind==='attachment.replace')await this.interruptible(this.replace(this.source!,effect.mode,effect.settings,true,this.nativeTracks));
+            decision={...decision,effects:[]};
+          }
+        }
+      }
+      const accepted=this.dispatchControl({type:'attachment.complete',id});if(!accepted.accepted)this.attachmentRejection(accepted);
+    }catch(error){this.dispatchControl({type:'attachment.failed',id});throw error;}
+    finally{this.pruneAttachments();}
+  }
   addSubtitle(file:File, options:SubtitleOptions={}) {return this.attachSubtitle(file,options).then(()=>{});}
   attachSubtitle(file:File, options:SubtitleOptions={}):Promise<import('./types.js').AttachmentHandle> {
-    const attachmentId=`subtitle-${++this.attachmentSerial}`;let sourceId:number|null=null;
-    if(!(file instanceof File))return Promise.reject(new PlayerError('INVALID_ARGUMENT','Expected a subtitle File'));
-    const format=file.name.split('.').at(-1)?.toLowerCase();
-    if(!['ass','ssa','srt','vtt'].includes(format??'')||file.size>8*1024*1024) return Promise.reject(new PlayerError('INVALID_ARGUMENT','Expected an SRT, ASS, SSA or WebVTT file up to 8 MiB'));
+    const valid=file instanceof File,format=valid?file.name.split('.').at(-1)?.toLowerCase()??'':'',allocation=this.dispatchControl({type:'attachment.allocate',kind:'subtitle',file:{valid,format,size:valid?file.size:0}}),attachmentId=`subtitle-${allocation.id}`;let sourceId:number|null=null;
+    if(!allocation.accepted)return Promise.reject(new PlayerError('INVALID_ARGUMENT',allocation.message!));
     return this.enqueue(async()=>{
-      if(!this.source)throw Error('Open a movie before adding subtitles');
-      sourceId=this.state.sourceId;
-      this.assertSubtitleAddition(options.label??file.name,options.language,format!);
-      if(this.subtitleAssets.length>=16||this.subtitleAssets.reduce((n,a)=>n+a.bytes.byteLength,0)+file.size>16*1024*1024)throw Error('Subtitle budget exceeded');
-      const bytes=await this.interruptible(file.arrayBuffer());
-      const old=this.subtitleAssets,previousSelection=this.publicSelections.get('sub');
-      if(options.select!==false)this.setPublicSelection('sub');
-      this.subtitleAssets=[...old,{attachmentId,bytes,format:format as SubtitleAsset['format'],label:options.label??file.name,language:options.language,select:options.select??true}];
-      try {plainVTT(this.subtitleAssets.at(-1)!);await this.select(this.source,{...this.settings,sid:options.select===false?this.settings.sid:'auto'},true,this.nativeTracks);}
-      catch(error){this.subtitleAssets=old;if(previousSelection!==undefined)this.setPublicSelection('sub',previousSelection);throw error;}
+      const facts=this.attachmentFacts(options.label??file.name,options.language,format);sourceId=facts.sourceId;
+      await this.applyAttachment({kind:'add',entry:{id:attachmentId,kind:'subtitle',sourceId,bytes:file.size},select:options.select!==false},facts,()=>file.arrayBuffer(),bytes=>{
+        const asset={attachmentId,bytes,format:format as SubtitleAsset['format'],label:options.label??file.name,language:options.language,select:options.select??true};plainVTT(asset);this.attachmentResources.set(attachmentId,{kind:'subtitle',asset});
+      });
     }).then(()=>{const handle=freeze({id:attachmentId,kind:'subtitle' as const,sourceId});this.attachmentHandles.add(handle);return handle;});
   }
   addFont(file:File) {return this.attachFont(file).then(()=>{});}
   attachFont(file:File):Promise<import('./types.js').AttachmentHandle> {
-    const attachmentId=`font-${++this.attachmentSerial}`;
-    if(!(file instanceof File)||! /\.(ttf|otf)$/i.test(file.name)||file.size>8*1024*1024)return Promise.reject(new PlayerError('INVALID_ARGUMENT','Expected a TTF/OTF font up to 8 MiB'));
-    return this.enqueue(async()=>{
-      if(this.fonts.length>=16||this.fonts.reduce((n,a)=>n+a.bytes.byteLength,0)+file.size>32*1024*1024)throw Error('Font budget exceeded');
-      const bytes=await this.interruptible(file.arrayBuffer()),old=this.fonts;
-      this.fonts=[...old,{attachmentId,name:attachmentId+'.'+file.name.split('.').at(-1)!.toLowerCase(),bytes}];
-      try {if(this.source&&(this.mode!=='native'||(this.nativeASS&&this.subtitleAssets.length)||backendPlan(this.current?.backend)==='remux-mpv'))await this.replace(this.source,this.mode,this.settings,true,this.nativeTracks);}
-      catch(error){this.fonts=old;throw error;}
-    }).then(()=>{const handle=freeze({id:attachmentId,kind:'font' as const,sourceId:null});this.attachmentHandles.add(handle);return handle;});
+    const valid=file instanceof File,format=valid&&file.name.includes('.')?file.name.split('.').at(-1)?.toLowerCase()??'':'',allocation=this.dispatchControl({type:'attachment.allocate',kind:'font',file:{valid,format,size:valid?file.size:0}}),attachmentId=`font-${allocation.id}`;
+    if(!allocation.accepted)return Promise.reject(new PlayerError('INVALID_ARGUMENT',allocation.message!));
+    return this.enqueue(()=>this.applyAttachment({kind:'add',entry:{id:attachmentId,kind:'font',sourceId:null,bytes:file.size},select:false},this.attachmentFacts(),()=>file.arrayBuffer(),bytes=>{this.attachmentResources.set(attachmentId,{kind:'font',asset:{attachmentId,name:attachmentId+'.'+format,bytes}});})).then(()=>{const handle=freeze({id:attachmentId,kind:'font' as const,sourceId:null});this.attachmentHandles.add(handle);return handle;});
   }
   removeAttachment(handle:import('./types.js').AttachmentHandle):Promise<void>{
     return this.enqueue(async()=>{
-      if(!handle||!this.attachmentHandles.has(handle)||!['subtitle','font'].includes(handle.kind))throw new PlayerError('INVALID_ARGUMENT','Invalid attachment handle');
-      const oldSubs=this.subtitleAssets,oldFonts=this.fonts,oldTracks=this.nativeTracks,oldSelections=new Map(this.publicSelections);
-      const selected=this.state.mediaInfo.subtitle?.id===`${this.sourceSerial}:sub:attachment:${handle.id}`;
-      if(handle.kind==='subtitle'){
-        if(handle.sourceId!==this.state.sourceId||!oldSubs.some(a=>a.attachmentId===handle.id)&&!oldTracks.some(a=>a.attachmentId===handle.id))throw new PlayerError('INVALID_ARGUMENT','Expired subtitle handle');
-        if(selected&&(this.trackPolicy.subtitles?.locked||this.trackPolicy.subtitles?.allowOff===false))throw new PlayerError('UNSUPPORTED_FEATURE','Track policy prevents removing the selected subtitle');
-        this.subtitleAssets=oldSubs.filter(a=>a.attachmentId!==handle.id);this.nativeTracks=oldTracks.filter(a=>a.attachmentId!==handle.id);
-        if(selected)this.setPublicSelection('sub');
-      }else{
-        if(handle.sourceId!==null||!oldFonts.some(a=>a.attachmentId===handle.id))throw new PlayerError('INVALID_ARGUMENT','Expired font handle');
-        this.fonts=oldFonts.filter(a=>a.attachmentId!==handle.id);
-      }
-      try{if(this.source)await this.select(this.source,selected?{...this.settings,sid:'no',subtitles:false}:this.settings,true,this.nativeTracks);}
-      catch(error){this.subtitleAssets=oldSubs;this.nativeTracks=oldTracks;this.fonts=oldFonts;this.updatePreferences({publicSelections:Object.fromEntries(oldSelections)});throw error;}
+      const authentic=!!handle&&this.attachmentHandles.has(handle),selected=authentic&&this.state.mediaInfo.subtitle?.id===`${this.sourceSerial}:sub:attachment:${handle.id}`;
+      await this.applyAttachment({kind:'remove',id:authentic?handle.id:'',handleKind:authentic?handle.kind:'',sourceId:authentic?handle.sourceId:null,authentic,selected},this.attachmentFacts());
       this.attachmentHandles.delete(handle);
     },'switching');
   }
@@ -1787,13 +1790,14 @@ export class Player extends EventTarget {
   }
   addTextTrack(track: TextTrackSource):Promise<void> {return this.attachTextTrack(track).then(()=>{});}
   attachTextTrack(track:TextTrackSource):Promise<import('./types.js').AttachmentHandle> {
-    const attachmentId=`text-${++this.attachmentSerial}`,source={...track,attachmentId};let sourceId:number|null=null;
+    const allocation=this.dispatchControl({type:'attachment.allocate',kind:'text'}),attachmentId=`text-${allocation.id}`,source={...track,attachmentId};let sourceId:number|null=null;
     return this.enqueue(async()=>{
-      if(this.mode!=='native'||!this.current)throw new PlayerError('UNSUPPORTED_FEATURE','External browser text tracks require an open native player');
-      if(this.presentation.locksSurface)throw new PlayerError('UNSUPPORTED_FEATURE','Exit video Picture-in-Picture before attaching subtitles');
-      if(this.nativeTracks.length>=16)throw new PlayerError('INVALID_ARGUMENT','At most 16 browser text attachments are supported');
-      this.assertSubtitleAddition(source.label,source.language,'webvtt');
-      await this.current.backend.addTextTrack!(source,attachmentId);this.nativeTracks.push(source);sourceId=this.state.sourceId;
+      const facts=this.attachmentFacts(source.label,source.language,'webvtt');sourceId=facts.sourceId;
+      // The physical URL record is staged before logical admission and pruned
+      // on rejection before another adapter effect. Caller-owned URLs are never revoked by the Player.
+      const command:AttachmentCommand={kind:'add',entry:{id:attachmentId,kind:'text',sourceId,bytes:0},select:false};
+      this.attachmentResources.set(attachmentId,{kind:'text',asset:source});
+      try{await this.applyAttachment(command,facts);}finally{this.pruneAttachments();}
     }).then(()=>{const handle=freeze({id:attachmentId,kind:'subtitle' as const,sourceId});this.attachmentHandles.add(handle);return handle;});
   }
   resize(width: number, height: number) {
@@ -1807,7 +1811,7 @@ export class Player extends EventTarget {
     this.#previewController.setSourceIdentity(`closed:${this.sourceSerial}`);this.previewSource=undefined;
     this.dispatchControl({type:'operation.retire',terminal:false});this.activeOperation?.controller.abort();this.inspection?.abort();this.stopWatchdogs();
     const cleanup=Promise.all([this.#previewController.drain(),...[this.candidate,this.current].map(s=>s?.backend.destroy().catch(()=>{}))]);
-    this.closing=this.enqueue(async()=>{await cleanup;await this.dispose(this.current);this.playbackRange=null;this.loopPolicy=false;this.statistics.clear();this.current=undefined;this.candidate=undefined;this.source=undefined;this.dispatchControl({type:'source.clear'});this.sourceInspection=undefined;this.losslessInspection=undefined;this.runtimeCapabilities.clear();this.tierAttempts.clear();this.nativeTracks=[];this.subtitleAssets=[];this.sessionError=null;},'closing').finally(()=>{this.closing=undefined;});
+    this.closing=this.enqueue(async()=>{await cleanup;await this.dispose(this.current);this.playbackRange=null;this.loopPolicy=false;this.statistics.clear();this.current=undefined;this.candidate=undefined;this.source=undefined;this.dispatchControl({type:'source.clear'});this.sourceInspection=undefined;this.losslessInspection=undefined;this.runtimeCapabilities.clear();this.tierAttempts.clear();this.sessionError=null;},'closing').finally(()=>{this.closing=undefined;});
     return this.closing;
   }
   destroy(): Promise<void> {
@@ -1821,7 +1825,7 @@ export class Player extends EventTarget {
     this.destruction = (async () => {
       await Promise.all([providerCleanup,presentationCleanup,previewCleanup,...[this.candidate, this.current].map(session => session?.backend.destroy().catch(() => {}))]);
       await this.queue;
-      try {await this.dispose(this.current);} finally {this.statistics.clear();this.current = undefined;this.source = undefined;this.dispatchControl({type:'source.clear'});this.sourceInspection=undefined;this.losslessInspection=undefined;this.runtimeCapabilities.clear();this.tierAttempts.clear();this.nativeTracks = [];this.subtitleAssets=[];this.fonts=[];this.sessionError=null;this.publish();this.subscribers.clear();this.root.remove();}
+      try {await this.dispose(this.current);} finally {this.statistics.clear();this.current = undefined;this.source = undefined;this.dispatchControl({type:'source.clear'});this.sourceInspection=undefined;this.losslessInspection=undefined;this.runtimeCapabilities.clear();this.tierAttempts.clear();this.sessionError=null;this.publish();this.subscribers.clear();this.root.remove();}
     })();return this.destruction;
   }
 }

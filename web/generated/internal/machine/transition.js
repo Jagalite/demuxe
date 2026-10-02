@@ -4,7 +4,10 @@ import { transitionOperations } from './operations.js';
 import { transitionPlayback } from './playback.js';
 import { transitionSettings, transitionSettingTransaction, changePreferences, clearSourcePreferences } from './settings.js';
 import { transitionSource } from './source.js';
+import { transitionAttachment, attachmentAuthority, attachmentPreferences } from './attachments.js';
 export function transitionPlayer(state, input) {
+    if (isAttachmentInput(input))
+        return transitionAttachment(state, input);
     if (isBoundaryInput(input))
         return transitionBoundary(state, input);
     if (isSettingTransaction(input))
@@ -29,10 +32,12 @@ export function transitionPlayer(state, input) {
         const reset = input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted && !state.source.candidate?.preserve;
         const pending = state.settingsTransactions.pending;
         const acceptedSetting = input.type === 'source.accept' && decision.accepted && pending?.reconfigure && pending.phase === 'applying' && pending.operation === state.operations.active && pending.epoch === state.operations.epoch;
-        const desiredPreferences = acceptedSetting ? changePreferences(state.preferences, pending.preferencesPatch) : state.preferences, resetPreferences = reset ? clearSourcePreferences(desiredPreferences) : desiredPreferences;
+        const attachment = state.attachments.pending, acceptedAttachment = input.type === 'source.accept' && decision.accepted && !reset && attachment?.phase === 'applying' && attachmentAuthority(state, attachment.id);
+        const attachments = reset ? Object.freeze({ ...state.attachments, entries: Object.freeze(state.operations.terminal ? [] : state.attachments.entries.filter(entry => entry.kind === 'font')), pending: null }) : acceptedAttachment ? Object.freeze({ ...state.attachments, entries: attachment.entries, pending: Object.freeze({ ...attachment, phase: 'accepted', session: decision.state.acceptedSession }) }) : state.attachments;
+        const desiredPreferences = acceptedSetting ? changePreferences(state.preferences, pending.preferencesPatch) : acceptedAttachment ? attachmentPreferences(state) : state.preferences, resetPreferences = reset ? clearSourcePreferences(desiredPreferences) : desiredPreferences;
         const preferences = reset && input.type === 'source.accept' && input.publicSelections ? changePreferences(resetPreferences, { publicSelections: input.publicSelections }) : resetPreferences;
         const settingsTransactions = input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? Object.freeze({ ...state.settingsTransactions, pending: acceptedSetting ? Object.freeze({ ...pending, phase: 'accepted', session: decision.state.acceptedSession, settings, preferences }) : null, degraded: null }) : state.settingsTransactions;
-        return Object.freeze({ ...decision, state: decision.state === state.source ? state : Object.freeze({ ...state, revision: state.revision + 1, source: decision.state, settings, playback, preferences, settingsTransactions, boundary: input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? Object.freeze({ ...state.boundary, pending: null }) : state.boundary }), id: decision.attempt, retire: Object.freeze([]) });
+        return Object.freeze({ ...decision, state: decision.state === state.source ? state : Object.freeze({ ...state, revision: state.revision + 1, source: decision.state, attachments, settings, playback, preferences, settingsTransactions, boundary: input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? Object.freeze({ ...state.boundary, pending: null }) : state.boundary }), id: decision.attempt, retire: Object.freeze([]) });
     }
     if (input.type === 'settings.accept' || input.type === 'settings.change')
         return Object.freeze({ state: Object.freeze({ ...state, revision: state.revision + 1, settings: transitionSettings(state.settings, input) }), accepted: true, id: undefined, reason: undefined, retire: Object.freeze([]) });
@@ -44,8 +49,11 @@ export function transitionPlayer(state, input) {
     const pending = state.settingsTransactions.pending;
     const retired = input.type === 'operation.retire' || (input.type === 'operation.cancel' || input.type === 'operation.finish' || input.type === 'operation.release') && input.id === pending?.operation;
     const settingsTransactions = retired && pending ? Object.freeze({ ...state.settingsTransactions, pending: null }) : state.settingsTransactions;
-    return Object.freeze({ ...decision, state: decision.state === state.operations ? state : Object.freeze({ ...state, revision: state.revision + 1, operations: decision.state, settingsTransactions, boundary: input.type === 'operation.retire' ? Object.freeze({ ...state.boundary, pending: null }) : state.boundary }), retire: Object.freeze([]) });
+    const attachment = state.attachments.pending, retireAttachment = input.type === 'operation.retire' || (input.type === 'operation.cancel' || input.type === 'operation.finish' || input.type === 'operation.release') && input.id === attachment?.operation;
+    const attachments = retireAttachment && attachment ? Object.freeze({ ...state.attachments, pending: null }) : state.attachments;
+    return Object.freeze({ ...decision, state: decision.state === state.operations ? state : Object.freeze({ ...state, revision: state.revision + 1, operations: decision.state, attachments, settingsTransactions, boundary: input.type === 'operation.retire' ? Object.freeze({ ...state.boundary, pending: null }) : state.boundary }), retire: Object.freeze([]) });
 }
+function isAttachmentInput(input) { return input.type.startsWith('attachment.'); }
 function isBoundaryInput(input) { return input.type.startsWith('boundary.'); }
 function isSourceInput(input) { return input.type.startsWith('source.'); }
 function isSettingTransaction(input) { return input.type.startsWith('setting.') || input.type === 'preferences.change'; }

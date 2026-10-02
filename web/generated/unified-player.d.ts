@@ -33,7 +33,7 @@ export declare class Player extends EventTarget {
     private set loopPolicy(value);
     private get qualityPolicy();
     private set qualityPolicy(value);
-    private attachmentSerial;
+    private attachmentResources;
     private attachmentHandles;
     private get subtitleDelay();
     private set subtitleDelay(value);
@@ -44,7 +44,6 @@ export declare class Player extends EventTarget {
     private readonly statistics;
     private operationStarted;
     private get publicSelections();
-    private setPublicSelection;
     private control;
     private controlTrace;
     private get transitionTrace();
@@ -125,15 +124,16 @@ export declare class Player extends EventTarget {
     private get toneMapping();
     private set toneMapping(value);
     private resourceLimits;
-    private fonts;
-    private subtitleAssets;
+    private get fonts();
+    private get subtitleAssets();
     private root;
     private width;
     private height;
     private current?;
     private candidate?;
     private source?;
-    private nativeTracks;
+    private get nativeTracks();
+    private pruneAttachments;
     private queue;
     private get queued();
     private get destroyed();
@@ -186,7 +186,6 @@ export declare class Player extends EventTarget {
     private schedulePublish;
     private sessionTracks;
     private sourceTracks;
-    private assertSubtitleAddition;
     private confirmTrackSelection;
     private applyTrackPolicy;
     private previewBuffering;
@@ -288,6 +287,9 @@ export declare class Player extends EventTarget {
     setSubtitleDelay(seconds: number): Promise<void>;
     setAudioDelay(seconds: number): Promise<void>;
     setSubtitleStyle(style: import('./types.js').SubtitleStyle): Promise<void>;
+    private attachmentFacts;
+    private attachmentRejection;
+    private applyAttachment;
     addSubtitle(file: File, options?: SubtitleOptions): Promise<void>;
     attachSubtitle(file: File, options?: SubtitleOptions): Promise<import('./types.js').AttachmentHandle>;
     addFont(file: File): Promise<void>;

@@ -8,7 +8,7 @@ function pausedPlayer() {
  const p=Object.create(Player.prototype), source={kind:'local'};
  Object.assign(p,{control:initialPlayerControl(),operationResources:new Map(),automatic:true,source,current:{backend:{}},settings:{pause:true,aid:'auto',sid:'auto',subtitles:false},
   promotionEpoch:0,queue:Promise.resolve(),
-  nativeTracks:[],subtitleAssets:[],publish(){},startWatchdogs(){},
+  publish(){},startWatchdogs(){},
   admissible:()=>[{id:'native-direct',eligible:true}]});
  Object.defineProperty(p,'diagnostics',{value:{plan:{id:'native-direct'}}});
  return p;
