@@ -328,7 +328,7 @@ export class DemuxePlayerElement extends Base {
   disconnectedCallback(){const token=++this.connection;queueMicrotask(()=>{
     if(this.isConnected||token!==this.connection||this.terminal)return;
     this.hoverPreview.hide();clearTimeout(this.hideTimer);clearTimeout(this.seekPreviewTimer);this.sourceVersion++;this.sourceAbort?.abort();this.resetQueue();this.lastSource=undefined;this.lastOptions=undefined;this.sourceName='';this.sourceNameId=null;this.updateTitle();this.unsubscribe?.();this.resizeObserver?.disconnect();document.removeEventListener('fullscreenchange',this.fullscreenChanged);document.removeEventListener('pointerdown',this.dismissMenu,true);
-    const old=this.core;this.core=undefined;this.rejectReady(new PlayerError('ABORTED','Player element disconnected'));this.newReady();
+    const old=this.core;this.core=undefined;this.advanced?.reconcile();this.rejectReady(new PlayerError('ABORTED','Player element disconnected'));this.newReady();
     this.cleanup=Promise.all([this.connecting,old?.destroy()]).then(()=>{});
   });}
   attributeChangedCallback(name:string,old:string|null,value:string|null){
@@ -383,12 +383,13 @@ export class DemuxePlayerElement extends Base {
   }
   private run(work:Promise<unknown>){void work.catch(error=>{if(!this.terminal&&playerError(error).code!=='ABORTED')this.showError(playerError(error).toJSON());});}
   private runSettings(work:Promise<unknown>){
-    const failure=this.lastFailure,owner=this.core;
-    this.run(work.then(()=>{
+    const failure=this.lastFailure,owner=this.core,source=owner?.state.sourceId;
+    const current=()=>this.core===owner&&owner?.state.sourceId===source&&this.isConnected&&!this.terminal;
+    void work.then(()=>{
       // A successful correction retires the previous operation error, but must
       // not hide a newer failure or an active session error from another action.
-      if(this.core===owner&&this.lastFailure===failure&&!owner?.state.error)this.clearError();
-    }));
+      if(current()&&this.lastFailure===failure&&!owner?.state.error)this.clearError();
+    },error=>{if(current()&&playerError(error).code!=='ABORTED')this.showError(playerError(error).toJSON());});
   }
   private componentError(error:unknown){const detail=playerError(error).toJSON();this.showError(detail);this.dispatchEvent(new CustomEvent('error',{detail}));}
   private showError(error:SessionError){if(error.code==='ABORTED')return;this.lastFailure=error;this.$('error').hidden=false;this.$('error-text').textContent=error.message;this.$('retry').hidden=!error.retryable;this.$('retry').textContent=error.code==='AUTOPLAY_BLOCKED'?this.labels.play:this.labels.retry;this.announce(error.message,false);}
@@ -396,6 +397,7 @@ export class DemuxePlayerElement extends Base {
   private announce(text:string,visual=true){this.$('status').classList.toggle('sr',!visual);if(text===this.lastAnnouncement)return;this.lastAnnouncement=text;this.$('status').textContent=text;}
   private geometry(state:PlayerState){const ratio=state.mediaInfo.aspectRatio;if(!ratio){this.$('stage').style.removeProperty('--media-aspect');return;}this.$('stage').style.setProperty('--media-aspect',String(ratio));if(state.pendingOperation)return;const {width,height}=outputDimensions(ratio),key=`${width}x${height}`;if(this.dimensions!==key){this.dimensions=key;this.core?.resize(width,height);}}
   private update(state:PlayerState){
+    this.advanced?.reconcile();
     if(!this.$('settings').hidden)this.advanced?.update(state);
     this.syncPreviewStrategy();
     applyLayout(this.shadowRoot!,this.layout,!!state.sourceId);

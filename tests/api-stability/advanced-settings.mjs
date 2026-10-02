@@ -23,11 +23,11 @@ try{
       const calls=[],failures=[],tasks=[];
       const p={state,isDestroyed:false,surface:document.createElement('video'),diagnostics:{videoFilters:'',audioFilters:'',toneMapping:'off',audioGain:1},presentation:{state:{pictureInPicture:null,mediaSession:false}}};
       for(const name of ['setVideoFilters','setAudioFilters','setAudioGain','setAudioDelay','setSubtitleDelay','setSubtitleStyle','subtitleVisible','setLoop','setPlaybackRange','setQuality','seekToLive','setMode','setAutomaticSelection','addFont','seekChapter','stepFrame','setAudioOutputDevice'])p[name]=async(...args)=>{calls.push([name,...args]);};
-      const ui=new AdvancedSettings(root,()=>p,task=>tasks.push(task.catch(error=>failures.push(String(error)))));ui.label(advancedLabels);ui.update(state);
+      let owner=p;const ui=new AdvancedSettings(root,()=>owner,task=>tasks.push(task.catch(error=>failures.push(String(error)))));ui.label(advancedLabels);ui.update(state);
       const get=id=>root.getElementById('advanced-'+id);
       const set=(id,value,event='input')=>{const node=get(id);if(typeof value==='boolean')node.checked=value;else node.value=String(value);node.dispatchEvent(new Event(event,{bubbles:true}));};
       const drain=async()=>{while(tasks.length)await tasks.shift();};
-      return {host,root,p,state,ui,calls,failures,get,set,drain,submit:async id=>{get(id).dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));await drain();},click:async id=>{get(id).click();await drain();}};
+      return {host,root,get p(){return owner;},replaceOwner(value){owner=value;},state,ui,calls,failures,tasks,get,set,drain,submit:async id=>{get(id).dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));await drain();},click:async id=>{get(id).click();await drain();}};
     };
     const check=async(name,fn)=>{const f=setup();try{await fn(f);checks.push({name,passed:true});}catch(error){checks.push({name,passed:false,error:String(error.stack)});}finally{f.host.remove();}};
     await check('idle, terminal, feature availability and accessible labels',async f=>{
@@ -86,6 +86,30 @@ try{
       let reject;f.p.setVideoFilters=()=>new Promise((_,r)=>reject=r);f.set('vf','hflip');f.get('video-form').dispatchEvent(new Event('submit',{cancelable:true}));
       assert(f.get('gain').disabled,'Busy controls enabled');f.get('clear-af').click();assert(!f.calls.length,'Duplicate action dispatched');reject(Error('Failed'));await f.drain();assert(!f.get('gain').disabled,'Busy flag leaked');
     });
+    for(const replacement of ['source','owner'])await check(`pending picker retires on ${replacement} replacement without releasing newer work`,async f=>{
+      const devices=navigator.mediaDevices,previous=Object.getOwnPropertyDescriptor(devices,'selectAudioOutput');let finish,finishNew;
+      Object.defineProperty(devices,'selectAudioOutput',{configurable:true,value:()=>new Promise(resolve=>finish=resolve)});
+      try{
+        f.ui.update(f.state);f.get('output').click();const old=f.tasks.shift();
+        assert(f.get('gain').disabled,'Picker did not hold controls');
+        if(replacement==='source')f.state.sourceId=2;
+        else f.replaceOwner({...f.p,state:structuredClone(f.state)});
+        f.ui.update(f.p.state);assert(!f.get('gain').disabled,'Retired picker holds replacement controls');
+        f.p.setVideoFilters=()=>new Promise(resolve=>finishNew=resolve);
+        f.set('vf','new draft');f.get('video-form').dispatchEvent(new Event('submit',{cancelable:true}));
+        finish({deviceId:'retired'});await old;
+        assert(!f.calls.some(c=>c[0]==='setAudioOutputDevice'),'Retired picker changed output');
+        assert(f.get('gain').disabled,'Old completion released newer operation');
+        finishNew();await f.drain();assert(!f.get('gain').disabled,'New operation did not release controls');
+      }finally{if(previous)Object.defineProperty(devices,'selectAudioOutput',previous);else delete devices.selectAudioOutput;}
+    });
+    await check('retired filter completion preserves replacement drafts',async f=>{
+      let finish;f.p.setVideoFilters=()=>new Promise(resolve=>finish=resolve);
+      f.set('vf','old draft');f.get('video-form').dispatchEvent(new Event('submit',{cancelable:true}));
+      f.state.sourceId=2;f.ui.update(f.state);f.set('vf','replacement draft');
+      finish();await f.drain();f.ui.update(f.state);
+      assert(f.get('vf').value==='replacement draft','Retired completion cleared replacement draft');
+    });
     await check('late snapshot from a retired source never starts a download',async f=>{
       let finish;f.p.snapshot=()=>new Promise(resolve=>finish=resolve);let urls=0;const create=URL.createObjectURL,click=HTMLAnchorElement.prototype.click;URL.createObjectURL=()=>{urls++;return 'blob:test';};HTMLAnchorElement.prototype.click=()=>{};
       try{f.get('snapshot').click();f.state.sourceId=2;f.ui.update(f.state);finish({blob:new Blob(['image']),mediaTime:2});await f.drain();assert(urls===0,'Stale source image downloaded');}finally{if(urls)await new Promise(resolve=>setTimeout(resolve,1100));URL.createObjectURL=create;HTMLAnchorElement.prototype.click=click;}
@@ -142,7 +166,24 @@ try{
         assert(!element.shadowRoot.getElementById('error').hidden&&element.shadowRoot.getElementById('error-text').textContent==='Newer failure','Correction hid a newer failure');
       }finally{await element.destroy();element.remove();}
     });
+    await check('late settings rejection cannot overwrite a replacement source or owner error',async()=>{
+      const {definePlayerElement}=await import('/web/generated/player/index.js');definePlayerElement();
+      const element=document.createElement('demuxe-player');document.body.append(element);await element.ready;
+      const original=element.core;
+      try{
+        for(const replacement of ['source','owner']){
+          let reject;const work=new Promise((_,r)=>reject=r);
+          const owner={state:{sourceId:1,error:null}};element.core=owner;element.runSettings(work);
+          if(replacement==='source')owner.state={sourceId:2,error:null};else element.core={state:{sourceId:1,error:null}};
+          element.showError({code:'UNSUPPORTED_FEATURE',message:'Current failure',retryable:false,scope:'operation'});
+          reject(Error('Retired picker failure'));await work.catch(()=>{});await Promise.resolve();
+          assert(element.shadowRoot.getElementById('error-text').textContent==='Current failure','Retired rejection replaced current error');
+        }
+        element.core=original;const work=Promise.reject(Error('Current picker failure'));element.runSettings(work);await work.catch(()=>{});await Promise.resolve();
+        assert(element.shadowRoot.getElementById('error-text').textContent==='Current picker failure','Current rejection was suppressed');
+      }finally{element.core=original;await element.destroy();element.remove();}
+    });
     return checks;
   });
-  report.pageErrors=errors;assert.deepEqual(errors,[]);assert.equal(report.checks.length,20);assert.ok(report.checks.every(c=>c.passed),JSON.stringify(report.checks.filter(c=>!c.passed)));report.passed=true;
+  report.pageErrors=errors;assert.deepEqual(errors,[]);assert.equal(report.checks.length,24);assert.ok(report.checks.every(c=>c.passed),JSON.stringify(report.checks.filter(c=>!c.passed)));report.passed=true;
 }finally{await browser?.close();server.kill();await writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');}

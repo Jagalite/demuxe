@@ -30,7 +30,7 @@ try{
   const report=JSON.parse(await readFile(out+'/result.json','utf8'));
   const guard=JSON.parse(await readFile(out+'/guard.json','utf8'));
   assert.ok(guard.pages>0);assert.deepEqual(guard.errors,[]);
-  assert.equal(report.checks.length,20);assert.deepEqual(report.pageErrors,[]);
+  assert.equal(report.checks.length,24);assert.deepEqual(report.pageErrors,[]);
   const failed=report.checks.filter(c=>!c.passed).map(c=>c.name).sort();
   assert.deepEqual(failed,[
     'idle, terminal, feature availability and accessible labels',

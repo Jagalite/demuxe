@@ -45,11 +45,19 @@ export class LocalVideoPreviewProvider implements PreviewProvider {
   }
 }
 
+// Structural boundary: public preview declarations must not pull concrete
+// native/provider diagnostics and their transitive implementation types into core.
+type RemuxPreviewSession = {
+  open(file:File):Promise<void>;
+  seek(seconds:number):Promise<void>;
+  verifyStartup(expected:{video:boolean;audio:boolean}):Promise<void>;
+  destroy():Promise<void>;
+};
 /** Reuse the accepted packet-copy route for a local container the browser cannot
  * open directly. This is an independent, muted session, never the main player. */
 export class LocalRemuxPreviewProvider implements PreviewProvider {
   readonly id='local-remux';readonly priority=35;readonly requiresDecoder=true;readonly allowDuringPlayback=true;
-  constructor(private source:()=>Blob|undefined,private document:Document,private create:(video:HTMLVideoElement)=>import('../internal/native-player.js').NativePlayer,private maxDecodePixels=8294400){}
+  constructor(private source:()=>Blob|undefined,private document:Document,private create:(video:HTMLVideoElement)=>RemuxPreviewSession,private maxDecodePixels=8294400){}
   canHandle(){return !!this.source();}
   async getFrame(request:PreviewContext):Promise<PreviewResult|null>{
     const source=this.source();if(!source)return null;request.signal.throwIfAborted();

@@ -10,12 +10,12 @@ API stability requires more than successful imports or playback of one fixture. 
 | Preview controller and owned facade | Ownership, cancellation, cache limits, unload, strategies, pregeneration, range reads and scrubber scheduling | Hover during playback; seek/replacement; local/software/authored previews; optional preview failure |
 | Presentation | Existing roadmap ownership/race contracts | Fullscreen, PiP capability behavior, host preservation, layout and disposal |
 | Player element | Public declaration inventory and preview interaction contracts | Keyboard, source picker, URL form, queue, titles, labels, accessibility semantics, layouts, remount and independent instances |
-| Advanced settings and filters | Twenty browser DOM contract scenarios using a controlled public API boundary | Actual filter application and mirrored pixels, rejected-filter rollback, gain during playback, ranges, loops and source replacement |
+| Advanced settings and filters | Twenty-four browser DOM contract scenarios using a controlled public API boundary | Actual filter application and mirrored pixels, rejected-filter rollback, gain during playback, ranges, loops and source replacement |
 | Playback contracts and integration bindings | Consumer typechecking, selector behavior, borrowed/owned disposal and observer isolation | Binding → media element → seek → replacement sequences; Media Chrome and Video.js controls |
 | Streaming controls | Shaka policy/backend/network contracts | Portable HLS roadmap scenarios for quality, audio/attachment identity and live navigation; DASH preview images |
 | Components and deployment | Recipes, provider selection/acquisition/ownership, resource loading and asset deployment | Existing installed-provider bundle tests, both assets and embedded deliveries |
 
-`Public API contracts` runs on pushes and pull requests. It builds TypeScript in CI, executes the contract manifest and consumer typechecks, and independently runs the advanced-control contracts in Chromium and Firefox without building engines.
+`Public API contracts` runs on pushes and pull requests. It builds TypeScript in CI, checks the core package declaration boundary, executes the contract manifest and consumer typechecks, and independently runs the advanced-control contracts in Chromium and Firefox without building engines.
 
 An isolated negative-control step removes the advanced lifecycle guards from the generated test runtime, requires the four corresponding regressions to fail, and restores the bytes in a `finally` block. Timeouts, page errors, unrelated failures and unexpected passes do not count as successful detection. These intentionally failing reports are stored separately from qualification results.
 
