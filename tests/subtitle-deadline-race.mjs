@@ -7,9 +7,9 @@ import vm from 'node:vm';
 // Run the production worker RPC handlers with a static cue oracle and controlled
 // timers. Demux delay sleeps are stubbed separately from deadline timers. Keep the decoded timing epoch constant: crossing a cue is not decoding.
 const source=await readFile(new URL('../web/mpv-subtitle-worker.js',import.meta.url),'utf8');
-function worker({ass=false}={}){
+function worker({ass=false,packetWaits=0}={}){
  let timingEpoch=7,now=0,eof=false,complete=false;
- const calls={seeks:0,completionChecks:0,updates:0};
+ const calls={seeks:0,completionChecks:0,updates:0,renders:0};
  const messages=[],timers=new Map();let id=0;
  const heap=new Uint8Array(64),view=new DataView(heap.buffer);
  const engine={HEAPU8:heap,HEAP32:new Int32Array(heap.buffer),
@@ -17,8 +17,8 @@ function worker({ass=false}={}){
   _subtitle_service_ass_scan_needed(){return ass&&!complete;},
   _subtitle_service_ass_scan_complete(){calls.completionChecks++;if(eof)complete=true;return complete;},
   _subtitle_service_ass_scan_begin(){throw Error('Unexpected speculative scan');},
-  _subtitle_service_block(){},_subtitle_service_update(){calls.updates++;return 1;},
-  _subtitle_service_render(){return 1;},_subtitle_service_av_chains(){return 0;},
+  _subtitle_service_block(){},_subtitle_service_update(){calls.updates++;return calls.updates>packetWaits?1:0;},
+  _subtitle_service_render(){calls.renders++;return 1;},_subtitle_service_av_chains(){return 0;},
   _subtitle_service_text(){return 0;},_web_subtitle_ptr(){return 16;},
   _subtitle_service_select(){return 0;},_subtitle_service_seek(){calls.seeks++;eof=false;return 0;},
   _subtitle_service_bitmap_recovery_point(){return -1;}};
@@ -99,4 +99,10 @@ test('EOF after a partial seek or track switch cannot qualify a complete ASS tim
  assert.equal((await w.rpc('profile')).mode,'fallback');
  await w.rpc('seek',0);w.setEOF();
  assert.equal((await w.rpc('render',0)).mode,'deadline');
+});
+
+
+test('packet waits update the decoder without repeatedly rendering subtitle pixels',async()=>{
+ const w=worker({packetWaits:8});await w.rpc('render',0);
+ assert.equal(w.calls.updates,9);assert.equal(w.calls.renders,1);
 });

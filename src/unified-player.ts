@@ -1298,7 +1298,7 @@ export class Player extends EventTarget {
         // must not discard a playable original when its replacement is missing
         // or fails. Restore the original once with its full readiness budget.
         // Cancellation, source permissions/identity and autoplay stay terminal.
-        if(interruptedDirect?.remux===plan.id&&(compatible||['ASSET_LOAD_FAILED','NETWORK_TIMEOUT','ISOLATION_REQUIRED'].includes(playerError(error).code))){
+        if(interruptedDirect?.remux===plan.id&&!(error instanceof BrowserCaptionUnsupported)&&(compatible||['ASSET_LOAD_FAILED','NETWORK_TIMEOUT','ISOLATION_REQUIRED'].includes(playerError(error).code))){
           const direct=interruptedDirect;interruptedDirect=undefined;this.assertOperation();
           try{await attempt({id:direct.id,mode:'native'},25000);return;}
           catch(originalError){
@@ -1313,7 +1313,8 @@ export class Player extends EventTarget {
         // Explicit plans keep a precise timeline rejection. Automatic
         // selection may still try Hybrid when this Native path cannot play it.
         if(this.destroyed||this.activeOperation?.controller.signal.aborted||(!automatic&&playerError(error).code==='UNSUPPORTED_TIMELINE')||(!compatible&&!retryLocalLoad&&!inconclusiveOutput))throw error;
-        if(error instanceof BrowserCaptionUnsupported)captionFailure=error.message;
+        // Direct and remux share the subtitle renderer; repackaging cannot fix it.
+        if(error instanceof BrowserCaptionUnsupported){captionFailure=error.message;interruptedDirect=undefined;}
         errors.push(`${plan.id}: ${String(error)}`);
         if(this.fastInspectedSource===source&&!retryLocalLoad){
           nativeReason=await this.inspectFallbackAfterFastFailure(source,settings);

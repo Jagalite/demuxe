@@ -6,6 +6,8 @@ import {tmpdir} from 'node:os';
 import {resolve} from 'node:path';
 import assert from 'node:assert/strict';
 import {serve} from '../experiments/pipeline-qualification/server.mjs';
+const emptyTimes=process.env.SUBTITLE_EMPTY_TIMES?JSON.parse(process.env.SUBTITLE_EMPTY_TIMES):[process.env.SOURCE?950:39];
+assert.ok(Array.isArray(emptyTimes)&&emptyTimes.every(Number.isFinite),'SUBTITLE_EMPTY_TIMES must be a JSON array of seconds');
 const server=await serve(),profile=await mkdtemp(tmpdir()+'/demuxe-subtitle-firefox-');
 await writeFile(profile+'/user.js','user_pref("media.autoplay.default", 0);\n');
 const child=spawn('/Applications/Firefox.app/Contents/MacOS/firefox',['--no-remote','--profile',profile,'--remote-debugging-port','0','about:blank'],{stdio:['ignore','pipe','pipe']});
@@ -31,7 +33,7 @@ try{
   }
   const plan=player.diagnostics.plan.id;await player.destroy();return JSON.stringify({plan,frames,trials,canvases:document.querySelectorAll('.demuxe-native-ass').length});
  })()`);
- const data=JSON.parse(result.value);assert.equal(data.plan,'native-remux-mpv');assert.ok(data.frames>=20);assert.equal(data.canvases,0);
- for(const t of data.trials){assert.equal(t.alpha>0,t.time!==(process.env.SOURCE?950:39));assert.equal(t.diagnostics.avChains,0);}
+ const data=JSON.parse(result.value);if(process.env.REPORT)await writeFile(process.env.REPORT,JSON.stringify({browserVersion:session.capabilities.browserVersion,source:process.env.SOURCE,emptyTimes,...data},null,2));assert.equal(data.plan,'native-remux-mpv');assert.ok(data.frames>=20);assert.equal(data.canvases,0);
+ for(const t of data.trials){assert.equal(t.alpha>0,!emptyTimes.includes(t.time));assert.equal(t.diagnostics.avChains,0);}
  console.log('PASS',JSON.stringify(data));await call('session.end',{});
 }finally{socket?.close();if(child.exitCode===null){child.kill('SIGTERM');await new Promise(resolve=>{const timer=setTimeout(resolve,5000);child.once('exit',()=>{clearTimeout(timer);resolve();});});}await server.close();}

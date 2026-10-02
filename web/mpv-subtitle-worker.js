@@ -201,7 +201,10 @@ onmessage=({data:d})=>{
     }
     lastTime=d.seconds;(await invoke('subtitle_service_block',0));let ready=0;
     for(let i=0;i<400&&!ready;i++){
-     check();ready=(await invoke('subtitle_service_render',d.seconds,d.width,d.height));
+     // Packet acquisition can take many turns. Do not run libass and rebuild
+     // the bitmap on every poll while the subtitle decoder is still waiting.
+     check();ready=(await invoke('subtitle_service_update',d.seconds));scheduler.nativeUpdateCalls++;
+     if(ready>0)ready=(await invoke('subtitle_service_render',d.seconds,d.width,d.height));
      if(ready<0){ready=0;await delay(5);continue;}if(!ready)await delay(5);
     }
     (await invoke('subtitle_service_block',1));if(!ready)throw Error('Subtitle packet deadline exceeded');

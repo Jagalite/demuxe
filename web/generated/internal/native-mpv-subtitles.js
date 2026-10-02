@@ -96,7 +96,7 @@ export class NativeMpvSubtitles {
                 }
                 clearTimeout(p.timer);
                 this.pending.delete(data.id);
-                data.error ? p.reject(/^Error: Subtitle (?:decoder unavailable|decode failed|packet deadline exceeded|source load failed|selection failed|seek failed)/.test(data.error) ? new PlayerError('UNSUPPORTED_FEATURE', data.error) : Error(data.error)) : p.resolve(data);
+                data.error ? p.reject(/^Error: Subtitle (?:decoder unavailable|decode failed|packet deadline exceeded|source load failed|selection failed|seek failed)/.test(data.error) ? new BrowserCaptionUnsupported(data.error) : Error(data.error)) : p.resolve(data);
             };
             this.worker.onerror = e => { e.preventDefault(); this.fail(Error(e.message || 'Subtitle worker failed')); };
             this.worker.onmessageerror = () => this.fail(Error('Subtitle worker message failure'));
