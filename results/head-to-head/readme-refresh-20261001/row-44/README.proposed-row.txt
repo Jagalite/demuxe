@@ -1,0 +1,1 @@
+| H.264 + AAC + embedded mov_text / MP4 | 🔴 (Fail) | 🟢 (Pass) · 19.0% CPU | 🟢 (Pass) · 19.2% CPU · forced-remux ref | 🟢 (Pass) · 19.1% CPU · forced-remux ref | 🟢 (Pass) · 35.8% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
