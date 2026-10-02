@@ -8,9 +8,11 @@ let server,browser;const checks=[];
 try{
  server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
  const origin=await new Promise(resolve=>server.stdout.on('data',data=>{const match=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(match)resolve(match[0]);}));
- browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']})});const page=await browser.newPage();
+ browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{...(process.env.BROWSER==='chromium'?{}:{channel:'chrome'}),args:['--autoplay-policy=no-user-gesture-required']})});const page=await browser.newPage();
  await page.goto(origin+'/examples/player-element.html');await page.evaluate(async()=>{window.a=document.querySelectorAll('demuxe-player')[0];window.b=document.querySelectorAll('demuxe-player')[1];await Promise.all([a.ready,b.ready]);await a.open('/fixtures/example.mp4');window.stable=a.player.host;window.identity=a.player.state.sourceId;});
  await page.locator('demuxe-player').first().getByRole('button',{name:'Fullscreen',exact:true}).click();
+ // A completed click does not await the browser's asynchronous fullscreen entry.
+ await page.waitForFunction(()=>a.player.presentation.state.fullscreen&&document.fullscreenElement===a,undefined,{timeout:5000});
  assert.equal(await page.evaluate(()=>a.player.presentation.state.fullscreen&&document.fullscreenElement===a),true);
  await page.evaluate(()=>{b.player.presentation.setFullscreenTarget(b);return a.player.presentation.exitFullscreen();});
  const result=await page.evaluate(async()=>{

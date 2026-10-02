@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';
+import {acceptSourceIdentity} from '../helpers/player-control.mjs';
 import assert from 'node:assert/strict';
 import {projectPlayer,publicationEvents} from '../../web/generated/internal/machine/selectors.js';
 import {capturePlayerObservation} from '../../web/generated/internal/effects/observations.js';
@@ -182,28 +183,30 @@ test('production observation wiring matches explicit capture over a controlled h
   const {p,backend,Video,Canvas}=legacyFixture(t),events=[],delivered=[],retained=[];
   for(const name of eventNames)p.addEventListener(name,event=>events.push({name,detail:event.detail}));
   const unsubscribe=p.subscribe(state=>delivered.push(state));t.after(unsubscribe);
-  const properties=backend.properties;
+  const properties=backend.properties;let activeId;
+  const begin=kind=>{activeId=p.dispatchControl({type:'operation.admit',kind}).id;p.operationResources.set(activeId,{controller:new AbortController(),detachCallerAbort(){}});p.dispatchControl({type:'operation.start',id:activeId});};
+  const finish=()=>{p.dispatchControl({type:'operation.finish',id:activeId});p.dispatchControl({type:'operation.release',id:activeId});p.operationResources.delete(activeId);};
   const actions=[
     ['idle',()=>{}],
-    ['accepted Native source',()=>{p.current={backend,surface:new Video()};p.source={kind:'local',file:new Blob()};p.sourceSerial=1;for(const [key,value]of [['time-pos',0],['duration',20],['pause',true],['native-seekable',[{start:0,end:20}]],['native-buffered',[]],['track-list',[{id:'1',type:'audio','ff-index':1,selected:true,codec:'aac'}]]])properties.set(key,value);}],
+    ['accepted Native source',()=>{p.current={backend,surface:new Video()};p.source={kind:'local',file:new Blob()};acceptSourceIdentity(p,1);for(const [key,value]of [['time-pos',0],['duration',20],['pause',true],['native-seekable',[{start:0,end:20}]],['native-buffered',[]],['track-list',[{id:'1',type:'audio','ff-index':1,selected:true,codec:'aac'}]]])properties.set(key,value);}],
     ['previous duration establishes loop capability',()=>{}],
     ['identical observation retains identity',()=>{}],
-    ['accepted play intent before output',()=>{p.settings.pause=false;properties.set('pause',false);}],
-    ['observed playing',()=>{p.observedPlaying=true;}],
+    ['accepted play intent before output',()=>{p.updateSettings({pause:false});properties.set('pause',false);}],
+    ['observed playing',()=>{p.dispatchControl({type:'playback.observed',playing:true});}],
     ['time advancement',()=>{properties.set('time-pos',2);}],
-    ['waiting while playing',()=>{p.observedWaiting=true;}],
-    ['pending seek does not replace accepted source',()=>{p.pendingOperation={id:10,kind:'seeking'};p.activeOperation={id:10,kind:'seeking',controller:new AbortController()};}],
-    ['seek settles and playing resumes',()=>{p.pendingOperation=null;p.activeOperation=undefined;p.observedWaiting=false;properties.set('time-pos',5);}],
-    ['failed replacement keeps accepted tuple',()=>{p.pendingOperation={id:11,kind:'opening'};p.busy=true;p.candidate={backend:{properties:new Map([['duration',99]]),destroy:async()=>{}},surface:new Video()};}],
-    ['replacement failure retires candidate',()=>{p.pendingOperation=null;p.busy=false;p.candidate=undefined;}],
+    ['waiting while playing',()=>{p.dispatchControl({type:'playback.observed',waiting:true});}],
+    ['pending seek does not replace accepted source',()=>{begin('seeking');}],
+    ['seek settles and playing resumes',()=>{finish();p.dispatchControl({type:'playback.observed',waiting:false});properties.set('time-pos',5);}],
+    ['failed replacement keeps accepted tuple',()=>{begin('opening');p.dispatchControl({type:'source.begin',operationEpoch:p.operationEpoch,mode:p.mode,preserve:false,planId:'fixture'});p.candidate={backend:{properties:new Map([['duration',99]]),destroy:async()=>{}},surface:new Video()};}],
+    ['replacement failure retires candidate',()=>{finish();p.dispatchControl({type:'source.finished',attempt:p.control.source.candidate.id});p.candidate=undefined;}],
     ['same source changes to Hybrid',()=>{p.currentMode='hybrid';p.current={backend,surface:new Canvas()};backend.diagnostics={plan:'hybrid'};properties.set('seekable',true);properties.set('demuxer-cache-state',{'seekable-ranges':[{start:-1,end:8}]});}],
     ['loop reaches EOF without external ended',()=>{p.loopPolicy=true;properties.set('eof-reached',true);}],
     ['loop resumes',()=>{properties.set('eof-reached',false);properties.set('time-pos',0);}],
     ['session error dominates output',()=>{p.sessionError=sessionError();}],
-    ['new accepted remote live tuple',()=>{p.sessionError=null;p.sourceSerial=2;p.source={kind:'remote',options:{url:'https://example.invalid/live',streaming:{live:true}}};p.loopPolicy=false;properties.set('demuxer-cache-state',{'seekable-ranges':[{start:40,end:60}]});properties.set('time-pos',42);}],
+    ['new accepted remote live tuple',()=>{p.sessionError=null;acceptSourceIdentity(p,2);p.source={kind:'remote',options:{url:'https://example.invalid/live',streaming:{live:true}}};p.loopPolicy=false;properties.set('demuxer-cache-state',{'seekable-ranges':[{start:40,end:60}]});properties.set('time-pos',42);}],
     ['backend live false overrides requested hint',()=>{properties.set('native-live',false);}],
-    ['new accepted Native tuple resets source data',()=>{p.sourceSerial=3;p.source={kind:'local',file:new Blob()};p.currentMode='native';p.current={backend,surface:new Video()};backend.diagnostics={plan:'direct'};p.settings={...p.settings,pause:true,volume:25,speed:1.5};p.observedPlaying=false;properties.clear();properties.set('duration',9);properties.set('time-pos',1);properties.set('native-seekable',[{start:0,end:9}]);properties.set('track-list',[{id:'3',type:'audio','ff-index':2,selected:true,codec:'opus'}]);}],
-    ['closed accepted session',()=>{p.current=undefined;p.source=undefined;p.settings.pause=true;p.observedPlaying=false;p.observedWaiting=false;}],
+    ['new accepted Native tuple resets source data',()=>{acceptSourceIdentity(p,3);p.source={kind:'local',file:new Blob()};p.currentMode='native';p.current={backend,surface:new Video()};backend.diagnostics={plan:'direct'};p.settings={...p.settings,pause:true,volume:25,speed:1.5};p.dispatchControl({type:'playback.observed',playing:false});properties.clear();properties.set('duration',9);properties.set('time-pos',1);properties.set('native-seekable',[{start:0,end:9}]);properties.set('track-list',[{id:'3',type:'audio','ff-index':2,selected:true,codec:'opus'}]);}],
+    ['closed accepted session',()=>{p.current=undefined;p.source=undefined;p.updateSettings({pause:true});p.dispatchControl({type:'playback.observed',playing:false});p.dispatchControl({type:'playback.observed',waiting:false});}],
     ['idle unchanged',()=>{}],
   ];
   for(const [label,mutate]of actions){
@@ -228,10 +231,10 @@ test('reentrant subscriber publication stops the obsolete notification batch',as
   for(const name of eventNames)p.addEventListener(name,event=>events.push([name,event.detail.volume]));
   let nested=false;
   const unsubscribe=p.subscribe(state=>{
-    if(state.volume===.25&&!nested){nested=true;p.settings.volume=75;p.publish();}
+    if(state.volume===.25&&!nested){nested=true;p.updateSettings({volume:75});p.publish();}
   });t.after(unsubscribe);
   const unsubscribeSecond=p.subscribe(state=>seen.push(state.volume));t.after(unsubscribeSecond);seen.length=0;
-  p.settings.volume=25;p.publish();
+  p.updateSettings({volume:25});p.publish();
   assert.deepEqual(events,[['statechange',.75],['volumechange',.75]]);
   assert.deepEqual(seen,[.75]);assert.equal(p.state.volume,.75);
 });
@@ -240,10 +243,10 @@ test('reentrant statechange carries its own snapshot and retires later obsolete 
   const {p}=legacyFixture(t),events=[];let nested=false;
   p.addEventListener('statechange',event=>{
     events.push(['statechange',event.detail.volume]);
-    if(!nested){nested=true;p.settings.volume=75;p.publish();}
+    if(!nested){nested=true;p.updateSettings({volume:75});p.publish();}
   });
   p.addEventListener('volumechange',event=>events.push(['volumechange',event.detail.volume]));
-  p.settings.volume=25;p.publish();
+  p.updateSettings({volume:25});p.publish();
   assert.deepEqual(events,[['statechange',.25],['statechange',.75],['volumechange',.75]]);
 });
 
@@ -251,7 +254,7 @@ test('close from a subscriber retires the old batch before cleanup settles',asyn
   const {p}=legacyFixture(t),events=[];let closing;
   p.addEventListener('volumechange',event=>events.push(event.detail.volume));
   const unsubscribe=p.subscribe(state=>{if(state.volume===.25&&!closing)closing=p.close();});t.after(unsubscribe);
-  p.settings.volume=25;p.publish();
+  p.updateSettings({volume:25});p.publish();
   assert.deepEqual(events,[]);await closing;assert.equal(p.state.sourceId,null);
 });
 
@@ -261,9 +264,9 @@ test('throwing initial and update subscribers, including their reporter, are iso
   t.after(()=>{if(old)Object.defineProperty(globalThis,'reportError',old);else delete globalThis.reportError;});
   const unsubscribe=p.subscribe(()=>{throw new Error('observer failure');});t.after(unsubscribe);
   const second=p.subscribe(state=>seen.push(state.volume));t.after(second);
-  p.settings.volume=25;p.publish();
+  p.updateSettings({volume:25});p.publish();
   assert.deepEqual(reports,['observer failure','observer failure']);assert.deepEqual(seen,[1,.25]);
-  unsubscribe();p.settings.volume=75;p.publish();assert.equal(reports.length,2);
+  unsubscribe();p.updateSettings({volume:75});p.publish();assert.equal(reports.length,2);
 });
 
 test('streaming readback copies backend-owned nested observations before freezing',async t=>{
@@ -271,18 +274,18 @@ test('streaming readback copies backend-owned nested observations before freezin
   const live={isLive:true,seekable:{start:10,end:20},latencySeconds:1,nearLive:true};
   const observedQuality={observation:'playhead-buffer',position:11,contentType:'video',width:320,height:180,bandwidth:1000,codec:'avc1'};
   backend.streamingState=()=>({qualities:[],requested:{mode:'auto'},selectedId:null,presentedId:null,observedQuality,transition:'unknown',live});
-  p.current={backend,surface:new Video()};p.sourceSerial=3;
+  p.current={backend,surface:new Video()};acceptSourceIdentity(p,3);
   const snapshot=p.getStreamingState();assert.equal(Object.isFrozen(live),false);assert.equal(Object.isFrozen(observedQuality),false);
   live.seekable.end=30;observedQuality.width=640;
   assert.equal(snapshot.live.seekable.end,20);assert.equal(snapshot.observedQuality.width,320);assert.ok(Object.isFrozen(snapshot.live.seekable));
 });
 
 test('reentrant observation reads cannot overwrite a newer accepted publication',async t=>{
-  const {p,backend,Video}=legacyFixture(t);p.current={backend,surface:new Video()};p.source={kind:'local',file:new Blob()};p.sourceSerial=1;
+  const {p,backend,Video}=legacyFixture(t);p.current={backend,surface:new Video()};p.source={kind:'local',file:new Blob()};acceptSourceIdentity(p,1);
   backend.properties.set('duration',20);let replaced=false;
   const originalGet=backend.properties.get.bind(backend.properties);
   backend.properties.get=key=>{
-    if(key==='duration'&&!replaced){replaced=true;p.sourceSerial=2;p.settings.volume=75;p.publish();}
+    if(key==='duration'&&!replaced){replaced=true;acceptSourceIdentity(p,2);p.updateSettings({volume:75});p.publish();}
     return originalGet(key);
   };
   p.publish();await Promise.resolve();

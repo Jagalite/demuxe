@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';
+import {initialPlayerControl} from '../web/generated/internal/machine/state.js';
 import assert from 'node:assert/strict';
 import {PlaybackStatistics} from '../web/generated/internal/playback-statistics.js';
 import {materializeSource,CUSTOM_SOURCE_PLAYBACK_LIMIT} from '../web/generated/sources.js';
@@ -52,7 +53,7 @@ test('queued boundary work honors the latest range and cannot pause a replacemen
  const {Player}=await import('../web/generated/unified-player.js');
  const player=Object.create(Player.prototype);let run,reject,pauses=0;
  const source={},session={backend:{pause:async()=>{pauses++;},seek:async()=>{},play:async()=>{}}};
- Object.assign(player,{source,current:session,settings:{pause:false},playbackRange:{start:1,end:2},loopPolicy:false,stateSnapshot:{currentTime:3,status:'playing',duration:10},publish(){},settled:async()=>{},enqueue(work){run=work;return new Promise((_,no)=>{reject=no;});}});
+ Object.assign(player,{control:initialPlayerControl(),operationResources:new Map(),source,current:session,settings:{pause:false},playbackRange:{start:1,end:2},loopPolicy:false,stateSnapshot:{currentTime:3,status:'playing',duration:10},publish(){},settled:async()=>{},enqueue(work){run=work;return new Promise((_,no)=>{reject=no;});}});
  player.enforceBoundary();player.playbackRange=null;await run();assert.equal(pauses,0,'removed range cannot issue a stale pause/seek');
  player.current={backend:session.backend};player.source={};reject(Error('retired boundary'));await new Promise(resolve=>setImmediate(resolve));assert.equal(player.settings.pause,false,'old failure cannot change replacement intent');
 });

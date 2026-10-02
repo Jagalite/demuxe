@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});let browser;
 try{
  const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',data=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(m)resolve(m[0]);});});
- browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{channel:'chrome'})});
+ browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(['firefox','chromium'].includes(process.env.BROWSER)?{}:{channel:'chrome'})});
  const page=await browser.newPage();await page.goto(origin+'/examples/player-element.html');
  await page.evaluate(async()=>{
   await document.querySelector('demuxe-player').destroy();

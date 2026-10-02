@@ -28,6 +28,10 @@ import { capturePlayerObservation } from './internal/effects/observations.js';
 import { projectPlayer } from './internal/machine/selectors.js';
 import { selectCapabilities } from './internal/machine/capabilities.js';
 import { copyData } from './internal/machine/data.js';
+import { initialPlayerControl } from './internal/machine/state.js';
+import { transitionPlayer, sessionAuthority } from './internal/machine/transition.js';
+import { activeOperation, pendingOperation } from './internal/machine/operations.js';
+import { sourceDesiredSettings } from './internal/machine/source.js';
 import { PLAYBACK_MODES } from './types.js';
 import { nativeRejection, nativeManifestRejection, losslessAdaptationRejection, audioTranscodeRejection, remuxRejection } from './internal/selection.js';
 import { backendPlan } from './internal/backend.js';
@@ -70,9 +74,9 @@ export class Player extends EventTarget {
     publicationSerial = 0;
     presentation = new PlayerPresentation(this, () => this.root);
     outputDeviceId = '';
-    sourceSerial = 0;
-    latestSeek;
-    playRequests = new Set();
+    get sourceSerial() { return this.control.source.serial; }
+    seekRequests = new Map();
+    playRequests = new Map();
     playbackRange = null;
     loopPolicy = false;
     boundaryPending = false;
@@ -85,17 +89,21 @@ export class Player extends EventTarget {
     statistics = new PlaybackStatistics();
     operationStarted = 0;
     publicSelections = new Map();
-    operationSerial = 0;
-    operationEpoch = 0;
-    activeOperation;
-    pendingOperation = null;
+    control = initialPlayerControl();
+    operationResources = new Map();
+    dispatchControl(input) { const decision = transitionPlayer(this.control, input); this.control = decision.state; return decision; }
+    get operationEpoch() { return this.control.operations.epoch; }
+    get activeOperation() { const entry = activeOperation(this.control.operations), resources = entry && this.operationResources.get(entry.id); return entry && resources ? { ...entry, ...resources } : undefined; }
+    get pendingOperation() { return pendingOperation(this.control.operations); }
     sessionError = null;
-    observedPlaying = false;
-    observedWaiting = false;
+    get observedPlaying() { return this.control.playback.observedPlaying; }
+    get observedWaiting() { return this.control.playback.observedWaiting; }
     muted = false;
     closing;
-    currentMode;
-    automatic;
+    get currentMode() { return this.control.source.mode; }
+    set currentMode(mode) { this.dispatchControl({ type: 'source.configure', mode }); }
+    get automatic() { return this.control.source.automatic; }
+    set automatic(automatic) { this.dispatchControl({ type: 'source.configure', automatic }); }
     attempts = [];
     runtimeCapabilities = new RuntimeCapabilities();
     tierAttempts = new TierAttempts();
@@ -219,7 +227,9 @@ export class Player extends EventTarget {
     softwarePresenter;
     decodeQuality;
     adaptiveFrameDrop;
-    settings;
+    get settings() { return this.control.settings; }
+    set settings(value) { this.dispatchControl({ type: 'settings.accept', value }); }
+    updateSettings(value) { this.dispatchControl({ type: 'settings.change', value }); }
     configuredTrackPolicy;
     get trackPolicy() { return this.source?.trackPolicy ?? this.configuredTrackPolicy; }
     audioOutput;
@@ -236,10 +246,10 @@ export class Player extends EventTarget {
     source;
     nativeTracks = [];
     queue = Promise.resolve();
-    queued = 0;
-    destroyed = false;
+    get queued() { return this.control.operations.entries.length; }
+    get destroyed() { return this.control.operations.terminal; }
     destruction;
-    busy = false;
+    get busy() { return this.control.source.candidate !== null; }
     empty = new Map();
     monitor;
     monitorSession;
@@ -316,7 +326,7 @@ export class Player extends EventTarget {
             if (this.automatic)
                 this.recover(session);
             else {
-                this.settings.pause = true;
+                this.updateSettings({ pause: true });
                 void session.backend.pause().catch(() => { });
                 this.emit('error', error);
             }
@@ -537,9 +547,9 @@ export class Player extends EventTarget {
         }
     }
     publish() {
-        const serial = ++this.publicationSerial, previous = this.stateSnapshot, session = this.current, source = this.source;
+        const serial = ++this.publicationSerial, previous = this.stateSnapshot, session = this.current, source = this.source, acceptedControl = this.control;
         const sourceId = this.sourceSerial, epoch = this.operationEpoch, mode = this.mode, settings = { ...this.settings };
-        const current = () => serial === this.publicationSerial && previous === this.stateSnapshot && session === this.current && source === this.source && sourceId === this.sourceSerial && epoch === this.operationEpoch && mode === this.mode;
+        const current = () => acceptedControl === this.control && serial === this.publicationSerial && previous === this.stateSnapshot && session === this.current && source === this.source && sourceId === this.sourceSerial && epoch === this.operationEpoch && mode === this.mode;
         const controls = {
             sourceId: session ? sourceId : null, sourcePresent: !!source, requestedLive: source?.kind === 'remote' && source.options.streaming?.live === true,
             mode, automaticSelection: this.automatic, pause: settings.pause, subtitlesVisible: settings.subtitles, volumePercent: settings.volume, muted: this.muted, playbackRate: settings.speed,
@@ -723,26 +733,23 @@ export class Player extends EventTarget {
     enqueue(operation, kind = null, signal, optimization = false) {
         if (!optimization)
             this.cancelPromotion();
-        const id = ++this.operationSerial, epoch = this.operationEpoch;
-        if (this.destroyed)
-            return Promise.reject(new PlayerError('ABORTED', 'Player is destroyed', id, kind));
-        if (this.queued >= 32 && kind !== 'closing')
-            return Promise.reject(new PlayerError('INVALID_ARGUMENT', 'Player operation queue is full', id, kind));
-        this.queued++;
+        const admission = this.dispatchControl({ type: 'operation.admit', kind }), id = admission.id;
+        if (!admission.accepted)
+            return Promise.reject(new PlayerError(admission.reason === 'full' ? 'INVALID_ARGUMENT' : 'ABORTED', admission.reason === 'full' ? 'Player operation queue is full' : 'Player is destroyed', id, kind));
         const controller = new AbortController();
+        controller.signal.addEventListener('abort', () => { this.dispatchControl({ type: 'operation.cancel', id }); }, { once: true });
         const cancel = () => { controller.abort(); if (this.activeOperation?.id === id) {
             this.inspection?.abort();
             void this.candidate?.backend.destroy().catch(() => { });
         } };
+        this.operationResources.set(id, { controller, detachCallerAbort: () => signal?.removeEventListener('abort', cancel) });
         signal?.addEventListener('abort', cancel, { once: true });
         if (signal?.aborted)
             cancel();
         const result = this.queue.then(async () => {
-            if (epoch !== this.operationEpoch || this.destroyed || controller.signal.aborted)
+            if (!this.dispatchControl({ type: 'operation.start', id }).accepted)
                 throw new PlayerError('ABORTED', this.destroyed ? 'Player is destroyed' : 'Operation aborted', id, kind);
             this.operationStarted = performance.now();
-            this.activeOperation = { id, kind, controller, detachCallerAbort: () => signal?.removeEventListener('abort', cancel) };
-            this.pendingOperation = kind ? { id, kind } : null;
             this.publish();
             if (kind === 'seeking')
                 this.dispatchEvent(new CustomEvent('seeking', { detail: this.state }));
@@ -763,15 +770,14 @@ export class Player extends EventTarget {
                 throw structured;
             }
             finally {
-                this.activeOperation = undefined;
-                this.pendingOperation = null;
+                this.dispatchControl({ type: 'operation.finish', id });
                 this.startWatchdogs();
                 this.publish();
             }
             if (kind === 'seeking')
                 this.dispatchEvent(new CustomEvent('seeked', { detail: this.state }));
         }).finally(() => signal?.removeEventListener('abort', cancel));
-        this.queue = result.catch(() => { }).finally(() => { this.queued--; });
+        this.queue = result.catch(() => { }).finally(() => { this.dispatchControl({ type: 'operation.release', id }); this.operationResources.delete(id); });
         return result;
     }
     async interruptible(work) {
@@ -846,61 +852,69 @@ export class Player extends EventTarget {
         }
         backend.setWatchdogs?.(this.watchdogConfiguration);
         const session = { backend, surface };
+        this.observeBackend(session, this.control.source.candidate.session);
+        return session;
+    }
+    observeBackend(session, sessionEpoch) {
+        const backend = session.backend;
+        let observationSequence = 0;
         for (const type of ['mpv', 'error', 'log', 'output', 'source', 'activity'])
             backend.addEventListener(type, event => {
-                if (session.retired)
+                if (session.retired || sessionAuthority(this.control, sessionEpoch) === 'retired')
                     return;
                 const detail = event.detail;
                 if (this.current === session && type === 'activity' && ['seeking', 'seeked', 'play', 'pause', 'ratechange', 'waiting', 'playing', 'ended'].includes(detail))
                     this.watchdogEpoch++;
                 if (this.current === session && this.promotionRunning && ((type === 'activity' && detail === 'waiting') || (type === 'mpv' && detail.event === 'property-change' && detail.name === 'paused-for-cache' && detail.data === true)))
                     this.cancelPromotion();
+                if (sessionAuthority(this.control, sessionEpoch) === 'retired')
+                    return;
                 if (type === 'error')
                     session.error = detail instanceof Error ? detail : new Error(String(detail));
                 if (type === 'mpv' && detail.event === 'end-file' && detail.reason === 'error')
                     session.error = new Error(String(detail.file_error));
                 if (this.current === session && (session.error || type === 'activity' && ['play', 'pause', 'playing', 'ended'].includes(detail) || type === 'mpv' && detail.event === 'property-change' && ['pause', 'eof-reached'].includes(detail.name)))
                     this.startWatchdogs();
-                if (this.current === session && !this.busy && !this.destroyed) {
+                if (this.current === session && sessionAuthority(this.control, sessionEpoch) === 'accepted' && !this.busy && !this.destroyed) {
                     if (session.error && (type === 'error' || (type === 'mpv' && detail.event === 'end-file')) && this.automatic && this.mode !== 'software') {
                         this.recover(session);
                         return;
                     }
                     if (type === 'mpv' && detail.event === 'end-file' && detail.reason === 'error')
                         this.emit('error', session.error);
+                    if (this.current !== session || sessionAuthority(this.control, sessionEpoch) !== 'accepted')
+                        return;
                     if (type === 'activity') {
                         if (detail === 'waiting')
-                            this.observedWaiting = true;
-                        if (detail === 'playing') {
-                            this.observedPlaying = true;
-                            this.observedWaiting = false;
-                        }
+                            this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'waiting' });
+                        if (detail === 'playing')
+                            this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'playing' });
                         this.schedulePublish();
                         return;
                     }
                     if (type === 'mpv') {
                         if (detail.event === 'property-change' && detail.name === 'track-list' && !this.sessionError) {
                             const inventory = tracks(this.sourceTracks(), this.sourceSerial, this.mode, backendPlan(session.backend));
+                            if (this.current !== session || sessionAuthority(this.control, sessionEpoch) !== 'accepted')
+                                return;
                             const forbidden = inventory.some(t => t.selected && !trackAllowed(t, t.type === 'audio' ? this.trackPolicy.audio : t.type === 'subtitle' ? this.trackPolicy.subtitles : undefined));
                             if (forbidden) {
-                                this.settings.pause = true;
+                                this.updateSettings({ pause: true });
                                 void backend.pause().catch(() => { });
                                 this.emit('error', new PlayerError('UNSUPPORTED_FEATURE', 'Backend selected a track excluded by the host policy'));
                                 return;
                             }
                         }
-                        if (detail.event === 'property-change' && detail.name === 'time-pos' && !this.settings.pause && Number(detail.data) > this.state.currentTime) {
-                            this.observedPlaying = true;
-                            this.observedWaiting = false;
-                        }
-                        if (detail.event === 'property-change' && detail.name === 'pause' && detail.data === true && !this.activeOperation)
-                            this.settings.pause = true;
+                        if (detail.event === 'property-change' && detail.name === 'time-pos')
+                            this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'time', value: Number(detail.data), publishedTime: this.state.currentTime });
+                        if (detail.event === 'property-change' && detail.name === 'pause')
+                            this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'pause', value: detail.data === true });
                         this.schedulePublish();
                     }
-                    this.emit(type, detail);
+                    if (this.current === session && sessionAuthority(this.control, sessionEpoch) === 'accepted')
+                        this.emit(type, detail);
                 }
             });
-        return session;
     }
     async settled(session, mode, target) {
         if (mode === 'native') {
@@ -1108,12 +1122,8 @@ export class Player extends EventTarget {
             throw new Error('ArrayBuffer sources are limited to 32 MiB');
         const old = this.current;
         const wasPaused = this.settings.pause;
-        const desired = { ...settings, pause: preserve ? !!wasPaused : true };
+        const desired = { ...sourceDesiredSettings(settings, { preserve, previousPause: !!wasPaused, previousSession: !!old, previousMode: this.mode, mode }) };
         let target = requestedTarget ?? (preserve ? Math.max(0, Number(old?.backend.properties.get('time-pos')) || 0) : 0);
-        if ((!preserve && old) || (preserve && (mode === 'native') !== (this.mode === 'native'))) {
-            desired.aid = preserve && settings.aid === 'no' ? 'no' : 'auto';
-            desired.sid = preserve && settings.sid === 'no' ? 'no' : 'auto';
-        }
         // Public stream identities are known before Native preparation starts.
         // Select that stream at open rather than adapting the default track first.
         const publicAudio = preserve && mode === 'native' ? /^audio:stream:(\d+)$/.exec(this.publicSelections.get('audio') ?? '') : null;
@@ -1152,11 +1162,14 @@ export class Player extends EventTarget {
         }
         if (preserve && this.publicSelections.has('sub') && desired.sid !== 'no')
             desired.sid = 'auto';
-        if (this.activeOperation && !this.pendingOperation) {
-            this.activeOperation.kind = 'switching';
-            this.pendingOperation = { id: this.activeOperation.id, kind: 'switching' };
-        }
-        this.busy = true;
+        if (this.activeOperation && !this.pendingOperation)
+            this.dispatchControl({ type: 'operation.name', id: this.activeOperation.id, kind: 'switching' });
+        const beginning = this.dispatchControl({ type: 'source.begin', operationEpoch: this.operationEpoch, mode, preserve, planId });
+        if (!beginning.accepted)
+            throw new PlayerError('ABORTED', 'Source transaction is already active');
+        const attempt = beginning.id, attemptSession = this.control.source.candidate.session;
+        const advance = (type) => { if (!this.dispatchControl({ type, attempt }).accepted)
+            throw new PlayerError('ABORTED', 'Source transaction was retired'); };
         this.publish();
         this.emit('modechange', { phase: 'loading', mode });
         let candidate;
@@ -1183,6 +1196,7 @@ export class Player extends EventTarget {
             const adaptation = recipe?.native?.adaptation;
             candidate = this.candidate = await this.create(mode, desired.aid, adaptation, recipe?.native?.transport !== 'original', planId, directLoadBudget);
             this.assertOperation();
+            advance('source.created');
             const p = candidate.backend;
             await this.interruptible(p.ready);
             this.assertOperation();
@@ -1207,10 +1221,12 @@ export class Player extends EventTarget {
                 await p.selectTrack('sub', desired.sid);
                 await p.subtitleVisible(desired.subtitles);
             }
+            advance('source.configured');
             if (source.kind === 'local')
                 await this.interruptible(p.open(source.file, source.input));
             else
                 await this.interruptible(p.openRemote(source.options));
+            advance('source.opened');
             if (!preserve && requestedTarget !== undefined) {
                 const duration = p.properties.get('duration');
                 if (p.properties.get('native-live') === true || !Number.isFinite(duration) || Number(duration) <= 0 || requestedTarget >= Number(duration))
@@ -1276,6 +1292,7 @@ export class Player extends EventTarget {
                     desired[type === 'audio' ? 'aid' : 'sid'] = id;
                 }
             await this.applyTrackPolicy(candidate, source, mode, desired, preserve);
+            advance('source.applied');
             await this.settled(candidate, mode, 0);
             if (overlapping) {
                 this.assertOperation();
@@ -1287,6 +1304,7 @@ export class Player extends EventTarget {
                 await p.seek(target);
                 await this.settled(candidate, mode, target);
             }
+            advance('source.positioned');
             if (candidate.error)
                 throw candidate.error;
             const actual = executionPlan(mode, backendPlan(p), desired.af, desired.gain, !!p.diagnostics?.subtitleOverlay);
@@ -1301,11 +1319,19 @@ export class Player extends EventTarget {
             this.assertOperation();
             if (overlapping)
                 await p.volume(this.muted ? 0 : desired.volume);
+            this.assertOperation();
+            const acceptance = this.dispatchControl({ type: 'source.accept', attempt, operationEpoch: this.operationEpoch, settings: desired, planMatches: !!actual && actual.id === planId && admitted.some(plan => plan.id === actual.id && plan.eligible) });
+            if (!acceptance.accepted)
+                throw new PlayerError('ABORTED', 'Source acceptance was retired');
+            this.current = candidate;
+            this.candidate = undefined;
+            this.source = source;
+            this.nativeTracks = nativeTracks;
+            this.activeOperation?.detachCallerAbort();
             if (!preserve) {
                 this.playbackRange = null;
                 this.loopPolicy = false;
                 this.qualityPolicy = null;
-                this.sourceSerial++;
                 this.publicSelections.clear();
                 if (initialAudio)
                     this.publicSelections.set('audio', `audio:stream:${initialAudio.index}`);
@@ -1314,8 +1340,6 @@ export class Player extends EventTarget {
             }
             this.statistics.accept(this.sourceSerial, preserve, performance.now() - this.operationStarted);
             this.sessionError = null;
-            this.observedPlaying = false;
-            this.observedWaiting = false;
             if (queried && this.sourceInspection?.source === source)
                 queried.decodingInfo = this.mediaCapabilityQueries.cached(queried, this.sourceInspection.probe);
             this.planDecisions = admitted;
@@ -1323,22 +1347,17 @@ export class Player extends EventTarget {
             this.acceptEvidence(planId, candidate);
             this.#previewController.setSourceIdentity(`${this.sourceSerial}:${mode}`);
             this.previewSource = source.kind === 'local' ? (source.file instanceof Blob ? source.file : new Blob([source.file])) : undefined;
-            this.current = candidate;
-            this.candidate = undefined;
-            this.source = source;
-            this.currentMode = mode;
-            this.settings = desired;
-            this.nativeTracks = nativeTracks;
             if (!preserve)
                 this.subtitleAssets = [];
-            // Acceptance is the cancellation boundary, including synchronous observers.
-            // close/destroy still abort the internal controller during old-session cleanup.
-            this.activeOperation?.detachCallerAbort();
+            // Physical handles and composed control state are accepted before observers.
             this.publish();
-            candidate.surface.style.display = 'block';
-            if (old)
-                old.surface.style.display = 'none';
-            this.startWatchdogs();
+            const stillAccepted = () => this.current === candidate && sessionAuthority(this.control, attemptSession) === 'accepted';
+            if (stillAccepted()) {
+                candidate.surface.style.display = 'block';
+                if (old)
+                    old.surface.style.display = 'none';
+                this.startWatchdogs();
+            }
             // The new session is committed. Cleanup failures must not pretend to roll it back.
             try {
                 await this.dispose(old);
@@ -1346,10 +1365,16 @@ export class Player extends EventTarget {
             catch (error) {
                 this.dispatchEvent(new CustomEvent('error', { detail: freeze(playerError(error, this.activeOperation?.id ?? null, this.activeOperation?.kind ?? null, 'operation').toJSON()) }));
             }
-            for (const [name, data] of p.properties)
+            for (const [name, data] of p.properties) {
+                if (!stillAccepted())
+                    return;
                 this.emit('mpv', { event: 'property-change', name, data });
+            }
+            if (!stillAccepted())
+                return;
             this.emit('mpv', { event: 'file-loaded' });
-            this.emit('modechange', { phase: 'ready', mode, position: target });
+            if (stillAccepted())
+                this.emit('modechange', { phase: 'ready', mode, position: target });
         }
         catch (error) {
             if (candidate)
@@ -1364,7 +1389,7 @@ export class Player extends EventTarget {
         }
         finally {
             clearInterval(resourceMonitor);
-            this.busy = false;
+            this.dispatchControl({ type: 'source.finished', attempt });
             this.publish();
         }
     }
@@ -2145,13 +2170,21 @@ export class Player extends EventTarget {
     }
     play() {
         this.#previewController.setPlaybackActive(true);
-        const intent = new AbortController();
-        this.playRequests.add(intent);
+        const intent = new AbortController(), intentId = this.dispatchControl({ type: 'play.request' }).id;
+        this.playRequests.set(intentId, intent);
         // An unverified trial must not consume the user's requested playback position.
         const trialSession = this.current, trialPosition = Math.max(0, Number(this.current?.backend.properties.get('time-pos')) || 0);
         const trialVerified = this.evidence(this.current).outputVerified === true;
         // Initiate resume before yielding the user's activation to the operation queue.
-        const immediate = !this.destroyed && this.queued === 0 && this.current ? this.current.backend.play() : undefined;
+        let immediate;
+        try {
+            immediate = !this.destroyed && this.queued === 0 && this.current ? this.current.backend.play() : undefined;
+        }
+        catch (error) {
+            this.dispatchControl({ type: 'play.settled', id: intentId });
+            this.playRequests.delete(intentId);
+            throw error;
+        }
         immediate?.catch(() => { });
         return this.enqueue(async () => {
             if (intent.signal.aborted)
@@ -2159,7 +2192,7 @@ export class Player extends EventTarget {
             if (!this.current)
                 throw Error('No source');
             const session = this.current;
-            this.settings.pause = false;
+            this.updateSettings({ pause: false });
             // A local original-copy trial can yield to an already-admitted route.
             // This is a scheduling budget, not a codec rejection or a new route.
             const boundedTrial = this.automatic && this.source?.kind === 'local' && this.nativeRemux !== 'never' && !trialVerified &&
@@ -2228,15 +2261,15 @@ export class Player extends EventTarget {
                     const plan = this.diagnostics.plan;
                     if (plan && evidenceInterrupted(error))
                         this.runtimeCapabilities.update(plan.id, 'prepared', this.evidence(session), String(error));
-                    this.settings.pause = true;
+                    this.updateSettings({ pause: true });
                     await session.backend.pause().catch(() => { });
                     throw error;
                 }
             }
-        }).finally(() => this.playRequests.delete(intent));
+        }).finally(() => { this.dispatchControl({ type: 'play.settled', id: intentId }); this.playRequests.delete(intentId); });
     }
-    pause() { for (const intent of this.playRequests)
-        intent.abort(); return this.setting(p => p.pause(), () => { this.settings.pause = true; this.observedPlaying = false; this.observedWaiting = false; if (this.backgroundPromotion)
+    pause() { for (const id of this.dispatchControl({ type: 'play.retire' }).retire)
+        this.playRequests.get(id)?.abort(); return this.setting(p => p.pause(), () => { this.updateSettings({ pause: true }); this.dispatchControl({ type: 'playback.observed', playing: false, waiting: false }); if (this.backgroundPromotion)
         this.schedulePromotion(); }); }
     seek(seconds, options = {}) { return this.seekForSource(seconds, options); }
     seekForSource(seconds, options, sourceId) {
@@ -2248,10 +2281,10 @@ export class Player extends EventTarget {
         options.signal?.addEventListener('abort', abort, { once: true });
         if (options.signal?.aborted)
             abort();
-        if (options.policy === 'latest') {
-            this.latestSeek?.abort();
-            this.latestSeek = controller;
-        }
+        const request = this.dispatchControl({ type: 'seek.request', latest: options.policy === 'latest' }), seekId = request.id;
+        this.seekRequests.set(seekId, controller);
+        for (const id of request.retire)
+            this.seekRequests.get(id)?.abort();
         return this.enqueue(async () => {
             if (sourceId !== undefined && sourceId !== this.state.sourceId)
                 throw new PlayerError('INVALID_ARGUMENT', 'Chapter belongs to a retired source');
@@ -2304,8 +2337,7 @@ export class Player extends EventTarget {
                     this.tierAttempts.failure(this.source, this.tierConfiguration(this.settings), failedPlan.id, String(error));
                 await this.select(this.source, this.settings, true, this.nativeTracks, streaming || this.mode === 'native' ? 0 : PLAYBACK_MODES.indexOf(this.mode) + 1, seconds, priorAttempts);
             }
-        }, 'seeking', controller.signal).finally(() => { options.signal?.removeEventListener('abort', abort); if (this.latestSeek === controller)
-            this.latestSeek = undefined; });
+        }, 'seeking', controller.signal).finally(() => { options.signal?.removeEventListener('abort', abort); this.dispatchControl({ type: 'seek.settled', id: seekId }); this.seekRequests.delete(seekId); });
     }
     validateRange(range) {
         if (!range || !Number.isFinite(range.start) || !Number.isFinite(range.end) || range.start < 0 || range.end <= range.start)
@@ -2377,14 +2409,14 @@ export class Player extends EventTarget {
                 await session.backend.play();
             }
             else {
-                this.settings.pause = true;
+                this.updateSettings({ pause: true });
                 await session.backend.seek(range.end);
                 await this.settled(session, this.mode, range.end);
             }
         }, 'seeking').catch(() => {
             if (this.current !== session || this.source !== source || this.destroyed || this.closing)
                 return;
-            this.settings.pause = true;
+            this.updateSettings({ pause: true });
             void session.backend.pause().catch(() => { });
             this.publish();
         }).finally(() => { this.boundaryPending = false; });
@@ -2399,7 +2431,7 @@ export class Player extends EventTarget {
             if (direction < 0 && initial <= 0)
                 throw new PlayerError('INVALID_ARGUMENT', 'No previous frame at the start of the source');
             await backend.pause();
-            this.settings.pause = true;
+            this.updateSettings({ pause: true });
             await backend.command(direction === 1 ? 'frame-step' : 'frame-back-step');
             const deadline = performance.now() + 25000;
             while (performance.now() < deadline) {
@@ -2454,7 +2486,7 @@ export class Player extends EventTarget {
     volume(value) {
         if (!Number.isFinite(value) || value < 0 || value > 100)
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid volume');
-        return this.setting(p => p.volume(this.muted ? 0 : value), () => { this.settings.volume = value; });
+        return this.setting(p => p.volume(this.muted ? 0 : value), () => { this.updateSettings({ volume: value }); });
     }
     setVolume(value) { if (!Number.isFinite(value) || value < 0 || value > 1)
         throw new PlayerError('INVALID_ARGUMENT', 'Volume must be 0 to 1'); return this.volume(value * 100); }
@@ -2527,7 +2559,7 @@ export class Player extends EventTarget {
                 return;
             }
             await this.current.backend.selectTrack(type, backendId);
-            this.settings[type === 'audio' ? 'aid' : 'sid'] = backendId;
+            this.updateSettings({ [type === 'audio' ? 'aid' : 'sid']: backendId });
             await this.confirmTrackSelection(this.current, this.source, this.mode, this.settings, type, backendId);
             if (track)
                 this.publicSelections.set(type, trackKey(track, this.mode, plan));
@@ -2539,7 +2571,7 @@ export class Player extends EventTarget {
     rate(value) {
         if (!Number.isFinite(value) || value < .5 || value > 2)
             throw new PlayerError('INVALID_ARGUMENT', 'Playback rate must be 0.5 to 2');
-        return this.setting(p => p.rate(value), () => { this.settings.speed = value; });
+        return this.setting(p => p.rate(value), () => { this.updateSettings({ speed: value }); });
     }
     selectTrack(type, id) {
         if (['audio', 'sub'].includes(type) && backendPlan(this.current?.backend) === 'shaka-mse') {
@@ -2557,7 +2589,7 @@ export class Player extends EventTarget {
             return this.selectPublicTrack(type, id === 'no' ? null : id === 'auto' ? 'auto' : track ? `${this.sourceSerial}:${trackKey(track, this.mode, plan)}` : 'missing');
         }
         assertTrackSelection(type === 'audio' ? this.trackPolicy.audio : this.trackPolicy.subtitles, id === 'no' ? null : id);
-        return this.setting(p => p.selectTrack(type, id), () => { this.settings[type === 'audio' ? 'aid' : 'sid'] = id; this.publicSelections.delete(type); this.schedulePromotion(); });
+        return this.setting(p => p.selectTrack(type, id), () => { this.updateSettings({ [type === 'audio' ? 'aid' : 'sid']: id }); this.publicSelections.delete(type); this.schedulePromotion(); });
     }
     subtitleVisible(visible) {
         if (typeof visible !== 'boolean')
@@ -2751,12 +2783,12 @@ export class Player extends EventTarget {
             return this.closing;
         this.#previewController.setSourceIdentity(`closed:${this.sourceSerial}`);
         this.previewSource = undefined;
-        this.operationEpoch++;
+        this.dispatchControl({ type: 'operation.retire', terminal: false });
         this.activeOperation?.controller.abort();
         this.inspection?.abort();
         this.stopWatchdogs();
         const cleanup = Promise.all([this.#previewController.drain(), ...[this.candidate, this.current].map(s => s?.backend.destroy().catch(() => { }))]);
-        this.closing = this.enqueue(async () => { await cleanup; await this.dispose(this.current); this.playbackRange = null; this.loopPolicy = false; this.statistics.clear(); this.current = undefined; this.candidate = undefined; this.source = undefined; this.sourceInspection = undefined; this.losslessInspection = undefined; this.runtimeCapabilities.clear(); this.tierAttempts.clear(); this.nativeTracks = []; this.subtitleAssets = []; this.publicSelections.clear(); this.settings = { ...this.settings, pause: true, aid: 'auto', sid: 'auto' }; this.sessionError = null; this.observedPlaying = false; this.observedWaiting = false; }, 'closing').finally(() => { this.closing = undefined; });
+        this.closing = this.enqueue(async () => { await cleanup; await this.dispose(this.current); this.playbackRange = null; this.loopPolicy = false; this.statistics.clear(); this.current = undefined; this.candidate = undefined; this.source = undefined; this.dispatchControl({ type: 'source.clear' }); this.sourceInspection = undefined; this.losslessInspection = undefined; this.runtimeCapabilities.clear(); this.tierAttempts.clear(); this.nativeTracks = []; this.subtitleAssets = []; this.publicSelections.clear(); this.sessionError = null; }, 'closing').finally(() => { this.closing = undefined; });
         return this.closing;
     }
     destroy() {
@@ -2768,8 +2800,7 @@ export class Player extends EventTarget {
         const presentationCleanup = this.presentation.destroy();
         const previewCleanup = this.#previewController.destroy();
         this.previewSource = undefined;
-        this.destroyed = true;
-        this.operationEpoch++;
+        this.dispatchControl({ type: 'operation.retire', terminal: true });
         this.activeOperation?.controller.abort();
         this.lifetime.abort();
         this.inspection?.abort();
@@ -2784,6 +2815,7 @@ export class Player extends EventTarget {
                 this.statistics.clear();
                 this.current = undefined;
                 this.source = undefined;
+                this.dispatchControl({ type: 'source.clear' });
                 this.sourceInspection = undefined;
                 this.losslessInspection = undefined;
                 this.runtimeCapabilities.clear();
@@ -2791,7 +2823,6 @@ export class Player extends EventTarget {
                 this.nativeTracks = [];
                 this.subtitleAssets = [];
                 this.fonts = [];
-                this.settings.pause = true;
                 this.sessionError = null;
                 this.publish();
                 this.subscribers.clear();

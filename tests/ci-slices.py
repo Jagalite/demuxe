@@ -34,7 +34,7 @@ class CatalogTests(unittest.TestCase):
         paths = source.application_source_paths('audio-flac')
         required = {'sources.lock.json', 'scripts/ci-slices.py', 'scripts/build-ci-reference.py',
                     '.github/actions/reference-tools/action.yml', 'licensing/ci-slices.json'}
-        required.update(row['evidence'] for row in ci.catalog())
+        required.update(row['pin'] if row['kind'] == 'web' else row['evidence'] for row in ci.catalog())
         self.assertTrue(required <= paths, sorted(required - paths))
         self.assertTrue(all((ROOT / name).is_file() for name in required))
 
@@ -43,7 +43,7 @@ class CatalogTests(unittest.TestCase):
         catalog = json.loads(ci.CATALOG.read_text())
         required = {'sources.lock.json', 'scripts/ci-slices.py', 'scripts/build-ci-reference.py',
                     '.github/actions/reference-tools/action.yml', 'licensing/ci-slices.json'}
-        required.update(row['evidence'] for row in catalog['include'])
+        required.update(row['pin'] if row['kind'] == 'web' else row['evidence'] for row in catalog['include'])
         engine = {key: {} for key in ['inputs', 'sources', 'sdkSources', 'configurations', 'artifacts']}
         original = {'application/'+name: (ROOT/name).read_bytes() for name in required}
         original['engine-build.json'] = json.dumps(engine).encode()
@@ -89,6 +89,7 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual({row['target'] for row in rows}, set(profiles) - {'ffmpeg', 'ffmpeg-jspi', 'ffmpeg-asyncify', 'mpv'})
         self.assertEqual(sum(row['kind'] == 'audio' for row in rows), 23)
         self.assertEqual(sum(row['kind'] == 'preparation' for row in rows), 6)
+        self.assertEqual([row['target'] for row in rows if row['kind'] == 'web'], ['shaka'])
 
     def reject_catalog(self, mutate):
         data = json.loads(ci.CATALOG.read_text())
@@ -98,6 +99,9 @@ class CatalogTests(unittest.TestCase):
             candidate.write_text(json.dumps(data))
             with patch.object(ci, 'CATALOG', candidate), self.assertRaises(ValueError):
                 ci.catalog()
+
+    def test_pinned_web_runtime_drift(self):
+        self.reject_catalog(lambda data: next(row for row in data['include'] if row['kind'] == 'web').update(pinSHA256='0' * 64))
 
     def test_duplicate_target(self):
         self.reject_catalog(lambda data: data['include'].append(copy.deepcopy(data['include'][0])))

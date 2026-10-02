@@ -20,7 +20,7 @@ test('promotion never retries the accepted or lower ranked plans',()=>{
 });
 test('playback decode failure retires only the failed native plan before retrying other native plans',async()=>{
  const p=unitPlayer(),source={},failures=new TierAttempts(),selected=[];
- Object.assign(p,{source,automatic:true,currentMode:'native',destroyed:false,queued:0,
+ Object.assign(p,{source,automatic:true,currentMode:'native',
   current:{backend:{properties:new Map(),diagnostics:{plan:'direct'},play:async()=>{throw new PlayerError('DECODE_FAILED','Missing selected audio');},verifyOutput:async()=>{},pause:async()=>{}}},
   settings:{pause:true},nativeRemux:'never',nativeTracks:[],tierAttempts:failures,
   runtimeCapabilities:{update(){}},evidence:()=>({}),failedStreamingPlan:()=>false,

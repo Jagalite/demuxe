@@ -28,7 +28,7 @@ test('adaptive deferral and source reset cannot consume the wrong source candida
  p.stop();finish('next');await new Promise(setImmediate);await advance(t);assert.equal(seen.length,3);
 });
 test('on-demand never pregenerates but accepts hover requests; strategies can change live',async t=>{
- t.mock.timers.enable({apis:['setTimeout']});const seen=[];
+ t.mock.timers.enable({apis:['setTimeout']});const seen=[];let clock=0;t.mock.method(performance,'now',()=>clock);
  const c=new PreviewController([provider(async r=>{seen.push(r.time);return frame(r.time);})],{strategy:{type:'on-demand'},debounceMs:0});
  const api=createPlayerPreview(c);c.setDuration(12);
  try{
@@ -37,7 +37,7 @@ test('on-demand never pregenerates but accepts hover requests; strategies can ch
   api.setStrategy({type:'interval',every:5});assert.equal(api.strategy.every,5);assert.ok(Object.isFrozen(api.strategy));
   for(let i=0;i<8;i++)await advance(t);
   // Foreground cooldown uses wall time; release it deterministically here.
-  c.lastForeground=-Infinity;for(let i=0;i<8;i++)await advance(t);
+  clock=501;for(let i=0;i<8;i++)await advance(t);
   assert.deepEqual(seen,[3,0,5,10]);assert.equal((await api.getFrame({time:3,cacheOnly:true})).cache,'hit');
  }finally{await c.destroy();}
 });
@@ -85,10 +85,10 @@ test('adaptive hover focus temporarily outranks playback and source replacement 
  t.mock.timers.enable({apis:['setTimeout']});let clock=0;t.mock.method(performance,'now',()=>clock);
  const c=new PreviewController([],{strategy:{type:'adaptive'}});
  try{
-  c.setPlaybackPosition(100);assert.equal(c.pregenerator.focus,100);
-  await c.getFrame({time:500,cacheOnly:true});c.setPlaybackPosition(101);assert.equal(c.pregenerator.focus,500);
-  clock=1501;c.setPlaybackPosition(102);assert.equal(c.pregenerator.focus,102);
-  c.setSourceIdentity('next');assert.equal(c.pregenerator.focus,0);assert.equal(c.pregenerator.visited.size,0);
+  c.setPlaybackPosition(100);assert.equal(c.pregenerator.state.focus,100);
+  await c.getFrame({time:500,cacheOnly:true});c.setPlaybackPosition(101);assert.equal(c.pregenerator.state.focus,500);
+  clock=1501;c.setPlaybackPosition(102);assert.equal(c.pregenerator.state.focus,102);
+  c.setSourceIdentity('next');assert.equal(c.pregenerator.state.focus,0);assert.equal(c.pregenerator.state.visited.length,0);
  }finally{await c.destroy();}
 });
 test('adaptive generation stays within the cache budget',async t=>{

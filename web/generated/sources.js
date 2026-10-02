@@ -2,6 +2,7 @@
 import { PlayerError, playerError, redact } from './internal/errors.js';
 import { runtimeBase } from './internal/assets.js';
 import { tracks, freeze } from './internal/state.js';
+import { createByteReader, validateByteRange, beginByteRead, completeByteRead, failByteRead, retireByteReader, closeByteReader } from './internal/machine/byte-reader.js';
 export const CUSTOM_SOURCE_PLAYBACK_LIMIT = 32 * 1024 * 1024;
 export function isCustomSource(value) { return !!value && typeof value === 'object' && value.kind === 'bytes'; }
 function validate(source) { if (source.transport !== 'application-managed' || typeof source.id !== 'string' || !source.id || source.id.length > 256 || !Number.isSafeInteger(source.size) || source.size <= 0 || typeof source.read !== 'function' || source.close !== undefined && typeof source.close !== 'function' || source.ownership !== undefined && !['owned', 'borrowed'].includes(source.ownership))
@@ -22,70 +23,79 @@ function deadline(work, signal, ms) {
 /** Serialize provider calls, reject late results, and never retain provider buffers. */
 class ByteReader {
     source;
-    maxReads;
-    maxBytes;
-    failure;
-    reads = 0;
-    bytes = 0;
+    model;
+    failureError;
     queue = Promise.resolve();
     controller = new AbortController();
     removeAbort;
     original;
+    get failure() { return this.model.failure ? this.failureError : undefined; }
+    get reads() { return this.model.reads; }
+    get bytes() { return this.model.bytes; }
     constructor(source, signal, maxReads, maxBytes) {
         this.source = source;
-        this.maxReads = maxReads;
-        this.maxBytes = maxBytes;
         validate(source);
         this.original = source;
         this.source = { ...source, read: source.read.bind(source), close: source.close?.bind(source) };
-        const abort = () => this.controller.abort();
+        this.model = createByteReader({ id: this.source.id, size: this.source.size, maxReads, maxBytes, ownedClose: this.source.ownership === 'owned' && !!this.source.close });
+        const abort = () => { this.model = retireByteReader(this.model); this.controller.abort(); };
         signal?.addEventListener('abort', abort, { once: true });
         if (signal?.aborted)
             abort();
         this.removeAbort = () => signal?.removeEventListener('abort', abort);
     }
-    fail(error) { this.failure ??= playerError(error); this.controller.abort(); throw this.failure; }
+    identity() {
+        const id = this.original.id, size = id === this.source.id ? this.original.size : null;
+        return { id: typeof id === 'string' ? id : null, size: typeof size === 'number' ? size : null };
+    }
+    adopt(result, error) {
+        const effect = result.effect;
+        if (effect.kind === 'reject' && effect.abort && !this.model.failure)
+            this.failureError = error ?? new PlayerError(effect.fault.code, effect.fault.message);
+        this.model = result.state;
+        if (effect.kind === 'reject' && effect.abort)
+            this.controller.abort();
+        return effect;
+    }
+    rejected(effect) {
+        throw effect.abort ? this.failureError : new PlayerError(effect.fault.code, effect.fault.message);
+    }
     read(offset, length) {
-        if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(length) || offset < 0 || length < 0 || offset + length > this.source.size || length > 1024 * 1024)
-            return Promise.reject(new PlayerError('INVALID_ARGUMENT', 'Invalid byte range'));
+        const invalid = validateByteRange(this.model, offset, length);
+        if (invalid)
+            return Promise.reject(new PlayerError(invalid.code, invalid.message));
         const work = this.queue.then(async () => {
-            const signal = this.controller.signal;
-            if (signal.aborted)
-                throw new PlayerError('ABORTED', 'Source closed');
-            if (this.original.id !== this.source.id || this.original.size !== this.source.size)
-                this.fail(new PlayerError('SOURCE_CHANGED', 'Source identity or size changed'));
-            if (this.bytes + length > this.maxBytes)
-                throw new PlayerError('INVALID_ARGUMENT', 'Inspection byte budget exceeded');
-            const result = new Uint8Array(length);
-            let at = 0;
-            while (at < length) {
-                if (this.reads >= this.maxReads)
-                    throw new PlayerError('INVALID_ARGUMENT', 'Source read budget exceeded');
-                const size = Math.min(length - at, 262144);
-                this.reads++;
+            let effect = this.adopt(beginByteRead(this.model, this.model.retired ? { id: null, size: null } : this.identity(), offset, length));
+            if (effect.kind === 'reject')
+                this.rejected(effect);
+            const result = new Uint8Array(length), signal = this.controller.signal;
+            while (effect.kind === 'read') {
+                const request = effect;
                 let bytes;
                 try {
-                    bytes = await deadline(Promise.resolve().then(() => this.source.read(offset + at, size, signal)), signal, 3000);
+                    bytes = await deadline(Promise.resolve().then(() => this.source.read(request.offset, request.length, signal)), signal, 3000);
                 }
                 catch (error) {
-                    this.fail(error);
+                    const normalized = playerError(error);
+                    effect = this.adopt(failByteRead(this.model, request.request, request.chunk, { code: normalized.code, message: normalized.message }), normalized);
+                    break;
                 }
-                if (signal.aborted)
-                    throw new PlayerError('ABORTED', 'Source closed');
-                if (this.original.id !== this.source.id || this.original.size !== this.source.size)
-                    this.fail(new PlayerError('SOURCE_CHANGED', 'Source identity or size changed'));
-                if (!(bytes instanceof Uint8Array) || !bytes.length || bytes.length > size)
-                    this.fail(new PlayerError('SOURCE_CHANGED', 'Invalid short read or premature EOF'));
-                result.set(bytes, at);
-                at += bytes.length;
-                this.bytes += bytes.length;
+                const identity = this.model.retired ? { id: null, size: null } : this.identity();
+                const next = completeByteRead(this.model, { request: request.request, chunk: request.chunk, identity, validBuffer: bytes instanceof Uint8Array, length: bytes instanceof Uint8Array ? bytes.length : 0 });
+                if (next.copyAt !== null)
+                    result.set(bytes, next.copyAt);
+                effect = this.adopt(next);
             }
+            if (effect.kind === 'reject')
+                this.rejected(effect);
+            if (effect.kind === 'ignore')
+                throw new PlayerError('ABORTED', 'Source closed');
             return result.buffer;
         });
         this.queue = work.then(() => { }, () => { });
         return work;
     }
-    async close() { this.controller.abort(); this.removeAbort(); if (this.source.ownership === 'owned' && this.source.close)
+    async close() { const next = closeByteReader(this.model); this.model = next.state; this.controller.abort(); this.removeAbort(); if (next.closeProvider)
         await deadline(Promise.resolve().then(() => this.source.close()), new AbortController().signal, 3000); }
 }
 export async function materializeSource(source, signal) {

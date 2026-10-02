@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import {bindPlayer,type PlaybackBinding} from './index.js';
 import type {PlaybackRuntime} from '../contracts.js';
-import type {PlayerState,TimeRange} from '../types.js';
+import type {TimeRange} from '../types.js';
+import {initialMediaViewState,transitionMediaView,initialMediaViewEvents} from '../internal/machine/bindings.js';
 /** Unknown coverage remains null on state; native-shaped ranges are a lossy view. */
 export function timeRanges(ranges:readonly TimeRange[]|null):TimeRanges {
   const copy=ranges?.map(r=>({...r}))??[];
@@ -12,21 +13,15 @@ export const MEDIA_VIEW_EVENTS=['play','playing','pause','waiting','ended','time
 /** One snapshot projection, no surface listeners, timers, source requests or readiness guesses. */
 export class MediaView extends EventTarget {
   readonly binding:PlaybackBinding;
-  private previous?:PlayerState;
+  private control=initialMediaViewState();
   private stops:(()=>void)[]=[];
   constructor(private runtime:PlaybackRuntime){
     super();this.binding=bindPlayer(runtime,{onOperationError:error=>this.emit('operationerror',error)});
     this.stops.push(this.binding.subscribe(state=>{
-      const before=this.previous;this.previous=state;if(!before)return;
+      const decision=transitionMediaView(this.control,state);this.control=decision.state;
       // Event handlers may synchronously replace state or dispose this view.
       const emit=(type:string,detail?:unknown)=>{if(this.runtime.state===state)this.emit(type,detail);};
-      const duration=(s:PlayerState)=>s.streamType==='live'?Infinity:s.duration??NaN;
-      const changed=before.sourceId!==state.sourceId;
-      if(changed)emit(state.sourceId===null?'emptied':'loadedmetadata');
-      for(const [event,a,b] of [['durationchange',duration(before),duration(state)],['timeupdate',before.currentTime,state.currentTime],['volumechange',`${before.volume}:${before.muted}`,`${state.volume}:${state.muted}`],['ratechange',before.playbackRate,state.playbackRate]] as const)if(!Object.is(a,b))emit(event);
-      if(before.playbackIntent!==state.playbackIntent)emit(state.playbackIntent==='play'?'play':'pause');
-      if(before.status!==state.status&&['playing','buffering','ended'].includes(state.status)&&!(state.status==='ended'&&state.loop))emit(state.status==='buffering'?'waiting':state.status);
-      if(state.error?.scope==='session'&&before.error!==state.error)emit('error',state.error);
+      for(const event of decision.events)emit(event.type,event.detail);
     }));
     // Only the core knows whether a seek actually settled; no timeupdate-based completion.
     for(const name of ['seeking','seeked']){const listener=()=>{if(!this.binding.disposed)this.emit(name);};runtime.addEventListener(name,listener);this.stops.push(()=>runtime.removeEventListener(name,listener));}
@@ -34,7 +29,7 @@ export class MediaView extends EventTarget {
   /** Initialize an existing control consumer from an already accepted snapshot. */
   synchronize(){
     const state=this.state;
-    const events=[state.sourceId===null?'emptied':'loadedmetadata','durationchange','timeupdate','volumechange','ratechange',this.paused?'pause':'play'];
+    const events=initialMediaViewEvents(state);
     for(const event of events){if(this.state!==state||this.binding.disposed)return;this.emit(event,{initial:true,sourceId:state.sourceId});}
   }
   private emit(type:string,detail?:unknown){if(!this.binding?.disposed)this.dispatchEvent(new CustomEvent(type,{detail}));}

@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Player} from '../web/generated/unified-player.js';
+import {initialPlayerControl} from '../web/generated/internal/machine/state.js';
 import {BrowserCaptionUnsupported} from '../web/generated/internal/plain-vtt.js';
 import {NativeLoadTimeout} from '../web/generated/internal/runtime-capability.js';
 import {PlayerError} from '../web/generated/internal/errors.js';
@@ -10,7 +11,7 @@ function discovery(remuxFailure){
  const player=Object.create(Player.prototype),source={kind:'local',file:new File(['fixture'],'sample.mkv')};
  const settings={aid:'auto',sid:'auto',subtitles:true,vf:'',af:'',gain:1};
  const attempts=[],plans=[{id:'native-direct-mpv',mode:'native',eligible:true},{id:'native-remux-mpv',mode:'native',eligible:true},{id:'hybrid',mode:'hybrid',eligible:true}];
- Object.assign(player,{admissionContext:{},sourceInspection:{source,probe:{format:'matroska',tracks:[]}},publicSelections:new Map(),fonts:[],subtitleAssets:[],
+ Object.assign(player,{control:initialPlayerControl(),operationResources:new Map(),admissionContext:{},sourceInspection:{source,probe:{format:'matroska',tracks:[]}},publicSelections:new Map(),fonts:[],subtitleAssets:[],
   runtimeCapabilities:{begin(){},admission(){},update(){}},tierAttempts:{reason(){},failure(){}},
   assertOperation(){},admissible(){return plans;},record(){},acceptEvidence(){},inspectForQualifiedWebGPU:async()=>{},
   replace:async(_source,_mode,_settings,_preserve,_tracks,_target,_automatic,id,budget)=>{

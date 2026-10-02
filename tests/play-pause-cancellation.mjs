@@ -66,3 +66,12 @@ test('late capability answers cannot restart promotion after default Pause; expl
  p.backgroundPromotion={maxKnownBytes:256*1024*1024};await p.pause();assert.equal(promotions,1);
  p.mediaCapabilityQueries.onLateAnswer();assert.equal(promotions,2);
 });
+
+test('synchronous immediate play failure retires its logical intent and controller',async()=>{
+ const {p,backend}=fixture(),failure=new Error('synchronous backend failure');
+ backend.play=()=>{throw failure;};
+ assert.throws(()=>p.play(),error=>error===failure);
+ assert.equal(p.playRequests.size,0);assert.deepEqual(p.control.playback.plays,[]);assert.equal(p.queued,0);
+ backend.play=async()=>{};await p.play();await p.queue;
+ assert.equal(p.settings.pause,false);assert.equal(p.playRequests.size,0);
+});

@@ -118,7 +118,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
             notes: string[];
         };
         capability: {
-            audioEvidenceStrength?: import("./browser-evidence-adapters.js").AudioEvidenceStrength;
+            audioEvidenceStrength?: "unknown" | "presence" | "decoded" | "consumed";
             audioObservation?: {
                 initialBytes?: number;
                 decodedBytes?: number;

@@ -10,7 +10,7 @@ execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','lavfi','-i'
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});let browser;
 try{
  const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',data=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(m)resolve(m[0]);});});
- browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']})});
+ browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{...(process.env.BROWSER==='chromium'?{}:{channel:'chrome'}),args:['--autoplay-policy=no-user-gesture-required']})});
  const page=await browser.newPage();await page.goto(origin+'/examples/custom-controls.html');await page.waitForFunction(()=>window.player);
  const result=await page.evaluate(async ({fixture,codec})=>{
   await window.player.destroy();const {Player,SoftwarePreviewProvider}=await import('/web/generated/index.js');
@@ -32,12 +32,13 @@ try{
   await p.play();const start=p.state.currentTime;await p.preview.getFrame({time:1});await new Promise(r=>setTimeout(r,200));const advanced=p.state.currentTime>start;await p.pause();
   // Drive the exact mpv property notification used for software rebuffering.
   const buffering=value=>{const backend=p.current.backend;backend.properties.set('paused-for-cache',value);backend.dispatchEvent(new CustomEvent('mpv',{detail:{event:'property-change',name:'paused-for-cache',data:value}}));};
-  await p.play();
+  // Software decoder previews are admitted only while paused. Start real work,
+  // then verify playback preempts it before testing buffering cache behavior.
   const pressureRequest=p.preview.getFrame({time:0}).catch(e=>e.name);
   const deadline=performance.now()+5000;
   while(document.querySelectorAll('iframe').length===owners&&performance.now()<deadline)await new Promise(r=>setTimeout(r,1));
   if(document.querySelectorAll('iframe').length===owners)throw Error('Preview worker did not start: '+JSON.stringify({preview:p.preview.diagnostics,state:p.state,result:await pressureRequest}));
-  buffering(true);const preempted=await pressureRequest;
+  await p.play();buffering(true);const preempted=await pressureRequest;
   const cleanupDeadline=performance.now()+5000;
   while(document.querySelectorAll('iframe').length>owners&&performance.now()<cleanupDeadline)await new Promise(r=>setTimeout(r,10));
   const blocked=await p.preview.getFrame({time:5}),cachedDuringBuffering=await p.preview.getFrame({time:2,width:160});
@@ -67,6 +68,8 @@ try{
  await page.evaluate(async fixture=>{window.element=document.querySelector('demuxe-player');const p=await element.ready;await p.open(new File([await(await fetch('/'+fixture)).blob()],'hover.mkv'));},fixture);
  const timeline=page.locator('demuxe-player').first().locator('#timeline'),panel=page.locator('demuxe-player').first().locator('#thumbnail-preview');
  const box=await timeline.boundingBox();await page.mouse.move(box.x+box.width*.4,box.y+box.height/2);await panel.waitFor({state:'visible'});
+ // Pointer movement shows a placeholder before the software image is decoded.
+ await page.waitForFunction(()=>{const root=element.shadowRoot,image=root.querySelector('#thumbnail-preview img');return !image.hidden&&image.complete&&image.naturalWidth>0&&/≈/.test(root.querySelector('#thumbnail-time').textContent);});
  assert.match(await panel.innerText(),/≈/);assert.equal(await panel.locator('img').evaluate(img=>img.naturalWidth>0),true);
  await page.mouse.move(box.x,box.y-150);await panel.waitFor({state:'hidden'});await page.evaluate(()=>element.destroy());
  console.log(JSON.stringify({browser:browser.version(),codec,hoverVisible:true,...result},null,2));

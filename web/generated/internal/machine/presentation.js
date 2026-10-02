@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 export function initialPresentationState() {
     return Object.freeze({ disposed: false, nextRequest: 1, targetOverride: false, fullscreen: null, pip: null });
 }

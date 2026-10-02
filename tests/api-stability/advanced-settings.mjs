@@ -139,11 +139,12 @@ try{
       assert(JSON.stringify(f.calls)==='[["exitPiP"],["mediaSession",true]]','Presentation command lost');
     });
     await check('pending output permission cannot modify a detached or replaced source',async f=>{
-      const devices=navigator.mediaDevices,previous=Object.getOwnPropertyDescriptor(devices,'selectAudioOutput');let finish;
-      Object.defineProperty(devices,'selectAudioOutput',{configurable:true,value:()=>new Promise(resolve=>finish=resolve)});
+      const devices=navigator.mediaDevices,previous=Object.getOwnPropertyDescriptor(devices,'selectAudioOutput');let finish,pickers=0;
+      Object.defineProperty(devices,'selectAudioOutput',{configurable:true,value:()=>{pickers++;return new Promise(resolve=>finish=resolve);}});
       try{
         f.ui.update(f.state);f.get('output').click();f.state.sourceId=2;finish({deviceId:'retired'});await f.drain();assert(!f.calls.length,'Retired source output changed');
-        f.get('output').click();f.host.remove();finish({deviceId:'detached'});await f.drain();assert(!f.calls.length,'Detached owner output changed');
+        assert(!f.get('output').disabled,'Source replacement left output picker disabled');
+        f.get('output').click();assert(pickers===2,'Second output picker did not start');f.host.remove();finish({deviceId:'detached'});await f.drain();assert(!f.calls.length,'Detached owner output changed');
         document.body.append(f.host);f.ui.update(f.state);await f.click('output-default');assert(JSON.stringify(f.calls)==='[["setAudioOutputDevice",""]]','Default output not restored');
       }finally{if(previous)Object.defineProperty(devices,'selectAudioOutput',previous);else delete devices.selectAudioOutput;}
     });

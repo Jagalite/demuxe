@@ -5,11 +5,12 @@ import assert from 'node:assert/strict';
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});let browser;
 try{
  const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',data=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(m)resolve(m[0]);});});
- browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']})});
+ browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{...(process.env.BROWSER==='chromium'?{}:{channel:'chrome'}),args:['--autoplay-policy=no-user-gesture-required']})});
  const page=await browser.newPage({viewport:{width:1280,height:1000}});await page.goto(origin+'/examples/player-element.html');
  await page.evaluate(async()=>{window.element=document.querySelector('demuxe-player');const p=await element.ready;await p.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'preview.mp4'));await p.seek(1);});
  const timeline=page.locator('demuxe-player').first().locator('#timeline'),panel=page.locator('demuxe-player').first().locator('#thumbnail-preview');
- const box=await timeline.boundingBox();await page.mouse.move(box.x+box.width*.4,box.y+box.height/2);await panel.waitFor({state:'visible'});await panel.locator('img').waitFor({state:'visible'});
+ const box=await timeline.boundingBox();await page.mouse.move(box.x+box.width*.4,box.y+box.height/2);await panel.waitFor({state:'visible'});
+ await page.waitForFunction(()=>{const root=element.shadowRoot,image=root.querySelector('#thumbnail-preview img');return !image.hidden&&image.complete&&image.naturalWidth>0&&/≈/.test(root.querySelector('#thumbnail-time').textContent);});
  if(process.env.SCREENSHOT)await page.screenshot({path:process.env.SCREENSHOT});
  assert.match(await panel.innerText(),/≈/);assert.equal(await page.evaluate(()=>element.player.surface.currentTime),1);
  const cachedURL=await panel.locator('img').getAttribute('src');
@@ -35,12 +36,15 @@ try{
    }
    const completedDuringMotion=completed,deadline=performance.now()+2000;
    // Provider idleness can precede image.decode() and the next queued UI sample.
-   while(performance.now()<deadline&&(element.player.preview.diagnostics.active||element.player.preview.diagnostics.pending))await new Promise(resolve=>setTimeout(resolve,10));
-   return {shown,blankAfterShown,completedDuringMotion,started,completed,cancelled,label:root.querySelector('#thumbnail-time').textContent};
+   // Await the final presented image and represented time within the same bound.
+   const presented=()=>{const image=panel.querySelector('img'),label=root.querySelector('#thumbnail-time').textContent,match=/(\d+):(\d+)/.exec(label);return !panel.hidden&&!image.hidden&&image.complete&&image.naturalWidth>0&&match&&Math.abs(Number(match[1])*60+Number(match[2])-1422)<=39;};
+   while(performance.now()<deadline&&(!presented()||element.player.preview.diagnostics.active||element.player.preview.diagnostics.pending))await new Promise(resolve=>setTimeout(resolve,10));
+   return {shown,blankAfterShown,completedDuringMotion,started,completed,cancelled,presented:!!presented(),label:root.querySelector('#thumbnail-time').textContent};
   }finally{timeline.dispatchEvent(new PointerEvent('pointerleave',{pointerType:'mouse'}));remove();timeline.max=max;}
  });
  assert.ok(motion.shown>0,JSON.stringify(motion));assert.ok(motion.completedDuringMotion>=2,JSON.stringify(motion));
  assert.equal(motion.blankAfterShown,0);assert.equal(motion.cancelled,0);assert.ok(motion.started<30,JSON.stringify(motion));
+ assert.equal(motion.presented,true,JSON.stringify(motion));
  const represented=/(\d+):(\d+)/.exec(motion.label);assert.ok(represented,JSON.stringify(motion));
  assert.ok(Math.abs(Number(represented[1])*60+Number(represented[2])-1422)<=39,JSON.stringify(motion)); // Half a storyboard interval plus bucketing tolerance.
  // A stalled authored image must not block a subsequent resident preview. The

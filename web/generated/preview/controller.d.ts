@@ -84,33 +84,25 @@ export interface PreviewProvider {
     canHandle(request: PreviewContext): boolean | Promise<boolean>;
     getFrame(request: PreviewContext): Promise<PreviewResult | null>;
 }
-/** One active provider, one pending job and one caller. Cancelled requests attach
- * no retained promise reactions to an uncooperative provider. */
+/** Owns provider resources, timers and caller callbacks. The immutable preview
+ * authority contains only data and cannot issue playback or source effects. */
 export declare class PreviewController {
     private providers;
     private cleanups;
     private destruction?;
-    private suspended;
-    private playbackActive;
-    private allowed;
     private pregenerator?;
-    private strategyValue;
-    private duration;
-    private hoverUntil;
-    private playbackPosition;
-    private lastForeground;
-    private cache;
-    private bytes;
-    private sourceId;
-    private revision;
-    private active?;
-    private pending?;
-    private caller?;
-    private disposed;
-    private counters;
-    private lastFailure?;
-    private readonly options;
+    private images;
+    private jobs;
+    private callers;
+    private state;
     constructor(providers?: readonly PreviewProvider[], options?: PreviewOptions);
+    private dispatch;
+    private get active();
+    private get pending();
+    private get caller();
+    private get options();
+    private get sourceId();
+    private metadata;
     private generator;
     get strategy(): PreviewStrategy | null;
     /** Switch scheduling without changing playback or discarding useful cached images. */
@@ -157,13 +149,12 @@ export declare class PreviewController {
         maxEntries?: number;
         maxCacheBytes?: number;
     }): void;
-    /** Remove a half-open range of requested buckets, across sizes and exactness.
-     * Cancels matching in-flight work so late results cannot refill that range.
-     * Automatic strategies may request it again; use on-demand for manual ownership. */
+    /** Remove a half-open range of requested buckets, across sizes and exactness. */
     unload(range: {
         start: number;
         end: number;
     }): number;
+    private releaseEvictedImages;
     clear(): void;
     destroy(): Promise<void>;
     /** Explicit optional prefetch. Busy lanes decline; a hover always supersedes it. */

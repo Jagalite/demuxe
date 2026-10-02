@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { Player } from './unified-player.js';
 /** Optional browser presentation controls. Calls requiring activation must come from a gesture. */
 export declare class PlayerPresentation {

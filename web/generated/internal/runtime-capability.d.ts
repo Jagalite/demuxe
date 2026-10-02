@@ -1,48 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-export type CapabilityEvidence = {
-    audioEvidenceStrength?: import('./browser-evidence-adapters.js').AudioEvidenceStrength;
-    audioObservation?: {
-        initialBytes?: number;
-        decodedBytes?: number;
-        delta?: number;
-        present?: boolean;
-        enabledTrack?: boolean;
-        clockAdvanced: boolean;
-    };
-    apiHint?: string;
-    prepared?: boolean;
-    completedAtEOF?: boolean;
-    outputVerified?: boolean;
-    audioEvidence?: string;
-    timing?: Record<string, number>;
-    metadata?: boolean;
-    sourceBufferCreated?: boolean;
-    initAccepted?: boolean;
-    mediaAccepted?: boolean;
-    decoderOutput?: boolean;
-    videoPresented?: boolean;
-    audioProgress?: boolean;
-    audioDecoded?: boolean;
-    audioDecoderConfigured?: boolean;
-    playbackReady?: boolean;
-};
-export type CapabilityRecord = {
-    planId: string;
-    sourceIdentity: string;
-    eligible: boolean;
-    state: 'untested' | 'probing' | 'prepared' | 'verified' | 'failed';
-    reason?: string;
-    failureKind?: 'compatibility' | 'terminal';
-    evidence?: CapabilityEvidence;
-    previouslyVerified?: boolean;
-};
-/** Player-local, bounded evidence. No URL/credentials, persistent fingerprint or
- * cross-source acceptance shortcut. Every candidate must validate startup again. */
+import { type CapabilityEvidence, type CapabilityRecord } from './machine/routing.js';
+export type { CapabilityEvidence, CapabilityRecord } from './machine/routing.js';
+/** Player-local object identities are shell resources; retained evidence and
+ * admission transitions belong to the immutable routing authority. */
 export declare class RuntimeCapabilities {
     private identities;
     private serial;
-    private records;
-    private verified;
+    private state;
     begin(source: object, plans: Array<{
         id: string;
         eligible: boolean;

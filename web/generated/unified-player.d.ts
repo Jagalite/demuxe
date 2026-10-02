@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { PlayerPresentation } from './presentation.js';
 import type { WatchdogOptions, WatchdogPolicy } from './types.js';
 import type { BufferingOptions, BufferingState } from './types.js';
@@ -21,8 +22,8 @@ export declare class Player extends EventTarget {
     private publicationSerial;
     readonly presentation: PlayerPresentation;
     private outputDeviceId;
-    private sourceSerial;
-    private latestSeek?;
+    private get sourceSerial();
+    private seekRequests;
     private playRequests;
     private playbackRange;
     private loopPolicy;
@@ -36,17 +37,21 @@ export declare class Player extends EventTarget {
     private readonly statistics;
     private operationStarted;
     private publicSelections;
-    private operationSerial;
-    private operationEpoch;
-    private activeOperation?;
-    private pendingOperation;
+    private control;
+    private operationResources;
+    private dispatchControl;
+    private get operationEpoch();
+    private get activeOperation();
+    private get pendingOperation();
     private sessionError;
-    private observedPlaying;
-    private observedWaiting;
+    private get observedPlaying();
+    private get observedWaiting();
     private muted;
     private closing?;
-    private currentMode;
-    private automatic;
+    private get currentMode();
+    private set currentMode(value);
+    private get automatic();
+    private set automatic(value);
     private attempts;
     private runtimeCapabilities;
     private tierAttempts;
@@ -97,7 +102,9 @@ export declare class Player extends EventTarget {
     private softwarePresenter;
     private decodeQuality;
     private adaptiveFrameDrop;
-    private settings;
+    private get settings();
+    private set settings(value);
+    private updateSettings;
     private configuredTrackPolicy;
     get trackPolicy(): TrackPolicy;
     private audioOutput;
@@ -114,10 +121,10 @@ export declare class Player extends EventTarget {
     private source?;
     private nativeTracks;
     private queue;
-    private queued;
-    private destroyed;
+    private get queued();
+    private get destroyed();
     private destruction?;
-    private busy;
+    private get busy();
     private empty;
     private monitor?;
     private monitorSession?;
@@ -203,6 +210,7 @@ export declare class Player extends EventTarget {
     get preparationProgress(): import("./types.js").PreparationProgress[];
     prepare(components?: PreparationOptions): Promise<PreparationReport>;
     private create;
+    private observeBackend;
     private settled;
     private fileServicesSource;
     private privateSourceDemuxer;

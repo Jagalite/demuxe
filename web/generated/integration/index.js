@@ -1,24 +1,28 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Player } from '../unified-player.js';
 import { PlayerError, playerError } from '../internal/errors.js';
+import { initialBindingState, transitionBinding, bindingSubscriptionActive, bindingDiagnostics, initialSelectorState, transitionSelector } from '../internal/machine/bindings.js';
 /** Initial delivery and Object.is equality by default. Observer failures are isolated. */
 export function subscribeSelector(source, select, listener, equal = Object.is) {
-    let active = true, initialized = false, value;
+    let control = initialSelectorState(), value;
     const unsubscribe = source.subscribe(state => {
-        if (!active)
+        if (!control.active)
             return;
         try {
             const next = select(state);
-            if (initialized && equal(value, next))
+            if (!control.active)
+                return;
+            const matches = control.initialized && equal(value, next), decision = transitionSelector(control, { type: 'observe', equal: matches });
+            control = decision.state;
+            if (!decision.deliver)
                 return;
             value = next;
-            initialized = true;
             listener(next);
         }
         catch { /* Observers never affect playback. */ }
     });
-    return () => { if (!active)
-        return; active = false; unsubscribe(); };
+    return () => { if (!control.active)
+        return; control = transitionSelector(control, { type: 'stop' }).state; unsubscribe(); };
 }
 /** Application owns sources. Disposal never cancels accepted or unrelated core work. */
 export class PlaybackBinding {
@@ -26,51 +30,55 @@ export class PlaybackBinding {
     ownership;
     options;
     sourceAuthority = 'application';
-    active = true;
+    control;
     cleanup;
-    listeners = new Set();
-    notifications = 0;
+    listeners = new Map();
     constructor(runtime, ownership, options = {}) {
         this.runtime = runtime;
         this.ownership = ownership;
         this.options = options;
+        this.control = initialBindingState(ownership);
         if (runtime.isDestroyed)
             throw new PlayerError('ABORTED', 'Cannot bind a destroyed runtime');
     }
     get state() { return this.runtime.state; }
-    get disposed() { return !this.active; }
-    get diagnostics() { return Object.freeze({ origin: 'integration', subscriptions: this.listeners.size, notifications: this.notifications }); }
+    get disposed() { return this.control.disposed; }
+    get diagnostics() { return bindingDiagnostics(this.control); }
+    transition(command) { const decision = transitionBinding(this.control, command); this.control = decision.state; if (decision.error)
+        throw new PlayerError(decision.error.code, decision.error.message); return decision; }
+    release(id) { const stop = this.listeners.get(id); this.listeners.delete(id); stop?.(); }
     subscribe(listener) {
-        this.assertActive();
-        let live = true;
-        const release = this.runtime.subscribe(state => { if (this.active && live) {
-            this.notifications++;
-            try {
-                listener(state);
-            }
-            catch { }
-        } });
-        const stop = () => { if (!live)
-            return; live = false; release(); this.listeners.delete(stop); };
-        this.listeners.add(stop);
-        if (!this.active)
-            stop();
-        return stop;
+        const id = this.transition({ type: 'subscribe', runtimeDestroyed: this.runtime.isDestroyed }).subscriptionId;
+        try {
+            const release = this.runtime.subscribe(state => { if (this.transition({ type: 'notify', id }).deliver)
+                try {
+                    listener(state);
+                }
+                catch { } });
+            if (bindingSubscriptionActive(this.control, id))
+                this.listeners.set(id, release);
+            else
+                release();
+        }
+        catch (error) {
+            this.transition({ type: 'unsubscribe', id });
+            throw error;
+        }
+        return () => { for (const release of this.transition({ type: 'unsubscribe', id }).release ?? [])
+            this.release(release); };
     }
-    assertActive() { if (!this.active || this.runtime.isDestroyed)
-        throw new PlayerError('ABORTED', 'Binding is disposed or runtime is destroyed'); }
     /** Invoke immediately, preserving browser activation. Retain canonical completion. */
     run(operation) {
         const sourceId = this.runtime.state.sourceId;
         try {
-            this.assertActive();
+            this.transition({ type: 'run', runtimeDestroyed: this.runtime.isDestroyed });
             return Promise.resolve(operation()).catch(error => { throw this.report(error, sourceId); });
         }
         catch (error) {
             return Promise.reject(this.report(error, sourceId));
         }
     }
-    report(error, sourceId) { const safe = playerError(error); if (this.active)
+    report(error, sourceId) { const safe = playerError(error); if (!this.control.disposed)
         try {
             this.options.onOperationError?.(Object.freeze({ origin: 'integration', sourceId, error: Object.freeze(safe.toJSON()) }));
         }
@@ -84,19 +92,29 @@ export class PlaybackBinding {
     dispose() {
         if (this.cleanup)
             return this.cleanup;
-        this.active = false;
-        for (const stop of [...this.listeners])
-            stop();
         let resolve, reject;
         this.cleanup = new Promise((yes, no) => { resolve = yes; reject = no; });
+        const decision = this.transition({ type: 'dispose' }), errors = [];
+        for (const id of decision.release ?? [])
+            try {
+                this.release(id);
+            }
+            catch (error) {
+                errors.push(error);
+            }
+        const finish = () => { if (errors.length)
+            reject(errors.length === 1 ? errors[0] : new AggregateError(errors, 'Binding cleanup failed'));
+        else
+            resolve(); };
         try {
-            if (this.ownership === 'owned')
-                Promise.resolve(this.runtime.destroy()).then(resolve, reject);
+            if (decision.destroyRuntime)
+                Promise.resolve(this.runtime.destroy()).then(finish, error => { errors.push(error); finish(); });
             else
-                resolve();
+                finish();
         }
         catch (error) {
-            reject(error);
+            errors.push(error);
+            finish();
         }
         return this.cleanup;
     }

@@ -1,0 +1,29 @@
+{
+  "name": "@demuxe/provider-shaka",
+  "version": "0.3.0-beta.4",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0 AND MIT",
+  "description": "Optional pinned Shaka adaptive streaming runtime for Demuxe.",
+  "files": [
+    "dist/",
+    "runtime/",
+    "LICENSE",
+    "THIRD_PARTY/",
+    "license-map.json",
+    "provider-manifest.json"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./manifest": "./provider-manifest.json"
+  },
+  "peerDependencies": {
+    "demuxe": "0.3.0-beta.4"
+  },
+  "scripts": {
+    "prepack": "node -e \"throw Error('Provider distribution is not release-qualified; assemble and audit exact artifacts first')\""
+  }
+}

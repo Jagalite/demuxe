@@ -4,6 +4,9 @@ import { PLAYER_EVENTS } from '../types.js';
 import { normalizeTrackPolicy } from '../internal/track-policy.js';
 import { watchdogPolicy } from '../internal/watchdogs.js';
 import { PlayerError, playerError } from '../internal/errors.js';
+import { initialElementControls, transitionElementControls } from '../internal/machine/element-controls.js';
+import { initialElementLifecycle, transitionElementLifecycle, elementSourceCurrent } from '../internal/machine/element-lifecycle.js';
+import { initialElementQueue, transitionElementQueue, queueSelectionAllowed, queueClosesRollback } from '../internal/machine/element-queue.js';
 import { formatTime, outputDimensions, shortcut } from './interaction.js';
 import { ScrubberPreview } from './preview.js';
 import { styles } from './styles.js';
@@ -66,15 +69,19 @@ export class DemuxePlayerElement extends Base {
     core;
     advanced;
     hoverPreview;
-    previewIdentity = '';
-    queueItems = [];
-    queueIndex = -1;
-    queueOperation;
-    queuePlayIntent;
-    queueSourceId = null;
-    queueEndedId = null;
+    controlState = initialElementControls();
+    control(command) { const decision = transitionElementControls(this.controlState, command); this.controlState = decision.state; return decision; }
+    get menuTrigger() { return this.controlState.menuTrigger; }
+    get dragging() { return this.controlState.dragging; }
+    get openingStage() { return this.controlState.openingStage; }
+    get lastFailure() { return this.controlState.failure; }
+    queueState = initialElementQueue();
+    queueResources = new Map();
+    get queueItems() { return this.queueState.items; }
+    get queueIndex() { return this.queueState.index; }
+    get queueOperation() { return this.queueState.operation; }
+    get queueRevision() { return this.queueState.revision; }
     queueSignature = '';
-    queueRevision = 0;
     queueRenderSignature = '';
     queueItem(source, options = {}) {
         let name = '';
@@ -84,87 +91,87 @@ export class DemuxePlayerElement extends Base {
         catch { }
         return { source, options: { ...options, signal: undefined }, name };
     }
+    queueResource(index) { const item = this.queueItems[index]; return item ? this.queueResources.get(item.id) : undefined; }
+    appendQueue(items) {
+        const result = transitionElementQueue(this.queueState, { type: 'append', names: items.map(item => item.name), terminal: this.terminal });
+        this.queueState = result.state;
+        result.added?.forEach((item, index) => this.queueResources.set(item.id, items[index]));
+        return result;
+    }
     resetQueue() {
-        this.queueRevision++;
-        this.queueItems = [];
-        this.queueIndex = -1;
-        this.queueOperation = undefined;
-        this.queueSourceId = null;
-        this.queueEndedId = null;
+        this.queueState = transitionElementQueue(this.queueState, { type: 'reset' }).state;
+        this.queueResources.clear();
         this.renderQueue();
     }
     async activateQueue(index, playAfter = this.core?.state.playbackIntent === 'play' || this.core?.state.status === 'ended', options, closePreviousOnFailure = false) {
-        if (this.terminal)
+        const start = transitionElementQueue(this.queueState, { type: 'start', index, terminal: this.terminal });
+        this.queueState = start.state;
+        if (start.error === 'destroyed')
             throw new PlayerError('ABORTED', 'Player element is destroyed');
-        const item = this.queueItems[index];
-        if (!item)
+        if (!start.accepted)
             return;
-        const operation = this.queueOperation = Symbol();
-        this.queuePlayIntent = undefined;
-        this.queueIndex = index;
-        this.queueSourceId = null;
-        this.queueEndedId = null;
+        const operation = start.operation, item = this.queueResources.get(start.itemId);
         this.renderQueue();
         try {
             await this.openSource(item.source, options ?? item.options);
-            if (this.queueOperation !== operation)
+            if (this.queueState.operation !== operation)
                 throw new PlayerError('ABORTED', 'Queue selection superseded');
-            this.queueSourceId = this.core?.state.sourceId ?? null;
-            if (this.queuePlayIntent ?? (typeof playAfter === 'function' ? playAfter() : playAfter))
+            const defaultPlay = this.queueState.playIntent ?? (typeof playAfter === 'function' ? playAfter() : playAfter);
+            const opened = transitionElementQueue(this.queueState, { type: 'opened', operation, sourceId: this.core?.state.sourceId ?? null, defaultPlay });
+            this.queueState = opened.state;
+            if (!opened.accepted)
+                throw new PlayerError('ABORTED', 'Queue selection superseded');
+            if (opened.play)
                 await this.core?.play();
         }
         catch (error) {
             // A removed item must not survive as the core's rollback source.
-            if (closePreviousOnFailure && this.queueOperation === operation && this.queueSourceId === null)
+            if (queueClosesRollback(this.queueState, operation, closePreviousOnFailure))
                 await this.core?.close();
             throw error;
         }
         finally {
-            if (this.queueOperation === operation) {
-                this.queueOperation = undefined;
+            const settled = transitionElementQueue(this.queueState, { type: 'settled', operation });
+            this.queueState = settled.state;
+            if (settled.accepted) {
                 this.renderQueue();
                 queueMicrotask(() => this.advanceQueue());
             }
         }
     }
     addFiles(files) {
-        if (this.terminal || !files.length)
+        const appended = this.appendQueue(files.map(file => this.queueItem(file)));
+        if (!appended.accepted)
             return;
-        const start = this.queueItems.length;
-        this.queueRevision++;
-        for (const file of files)
-            this.queueItems.push(this.queueItem(file));
         this.settings(false, false);
         this.$('stage').focus({ preventScroll: true });
         this.renderQueue();
-        if (start === 0)
-            this.run(this.activateQueue(0, () => this.autoplay));
+        if (appended.activate !== undefined)
+            this.run(this.activateQueue(appended.activate, () => this.autoplay));
     }
     selectQueue(index) {
-        if (this.terminal || this.queueOperation || this.core?.state.pendingOperation)
+        if (!queueSelectionAllowed(this.queueState, { terminal: this.terminal, pending: !!this.core?.state.pendingOperation }))
             return;
         this.settings(false, false);
         this.$('stage').focus({ preventScroll: true });
         this.run(this.activateQueue(index));
     }
     removeQueueItem(index) {
-        if (!this.showSourceControls || this.queueOperation || this.core?.state.pendingOperation || index < 0 || index >= this.queueItems.length)
+        const removed = transitionElementQueue(this.queueState, { type: 'remove', index, sourceControls: this.showSourceControls, pending: !!this.core?.state.pendingOperation });
+        this.queueState = removed.state;
+        if (!removed.accepted)
             return;
-        const wasCurrent = index === this.queueIndex;
-        this.queueRevision++;
-        this.queueItems.splice(index, 1);
-        if (!this.queueItems.length) {
+        this.queueResources.delete(removed.removedId);
+        if (removed.close) {
             this.settings(false, false);
             this.$('stage').focus({ preventScroll: true });
             this.run(this.close());
             return;
         }
-        if (index < this.queueIndex)
-            this.queueIndex--;
-        if (wasCurrent) {
+        if (removed.activate !== undefined) {
             this.settings(false, false);
             this.$('stage').focus({ preventScroll: true });
-            this.run(this.activateQueue(Math.min(index, this.queueItems.length - 1), undefined, undefined, true));
+            this.run(this.activateQueue(removed.activate, undefined, undefined, true));
             return;
         }
         this.renderQueue();
@@ -172,10 +179,12 @@ export class DemuxePlayerElement extends Base {
     }
     advanceQueue() {
         const state = this.core?.state;
-        if (!state || this.terminal || this.queueOperation || state.pendingOperation || state.status !== 'ended' || state.sourceId !== this.queueSourceId || this.queueEndedId === state.sourceId || this.queueIndex >= this.queueItems.length - 1)
+        if (!state)
             return;
-        this.queueEndedId = state.sourceId;
-        this.run(this.activateQueue(this.queueIndex + 1, true));
+        const next = transitionElementQueue(this.queueState, { type: 'advance', terminal: this.terminal, pending: !!state.pendingOperation, status: state.status, sourceId: state.sourceId });
+        this.queueState = next.state;
+        if (next.activate !== undefined)
+            this.run(this.activateQueue(next.activate, true));
     }
     renderQueue() {
         if (!this.shadowRoot?.getElementById('queue-list'))
@@ -279,7 +288,7 @@ export class DemuxePlayerElement extends Base {
         if (this.terminal)
             return;
         const focused = this.shadowRoot?.activeElement;
-        const sourceFocused = !!focused && (this.$('source-options').contains(focused) || this.$('open-menu') === focused || this.$('open') === focused || (!this.$('settings').hidden && this.menuTrigger === 'open-menu' && this.$('settings').contains(focused)));
+        const sourceFocused = !!focused && (this.$('source-options').contains(focused) || this.$('open-menu') === focused || this.$('open') === focused || (this.controlState.menuOpen && this.menuTrigger === 'open-menu' && this.$('settings').contains(focused)));
         const diagnosticsFocused = focused === this.$('diagnostics-toggle') || focused === this.$('diagnostics-overlay');
         if (!this.showSourceControls && this.menuTrigger === 'open-menu')
             this.settings(false, false);
@@ -299,13 +308,12 @@ export class DemuxePlayerElement extends Base {
         if ((!this.showSourceControls && sourceFocused) || (!this.showDiagnostics && diagnosticsFocused))
             this.$('stage').focus({ preventScroll: true });
     }
-    terminal = false;
+    lifecycle = initialElementLifecycle();
+    get terminal() { return this.lifecycle.terminal; }
     cleanup = Promise.resolve();
     connecting;
-    connection = 0;
     unsubscribe;
     sourceAbort;
-    sourceVersion = 0;
     lastSource;
     lastOptions;
     trackConfiguration = {};
@@ -324,33 +332,25 @@ export class DemuxePlayerElement extends Base {
     rejectReady;
     readiness;
     overrides = {};
-    menuTrigger = 'settings-toggle';
     seekPreviewTimer;
     hideTimer;
-    revealControls = () => { this.$('shell').classList.remove('idle', 'seek-preview'); clearTimeout(this.seekPreviewTimer); clearTimeout(this.hideTimer); if (this.core?.state.status === 'playing' && this.controlsAutoHideDelay > 0)
-        this.hideTimer = setTimeout(() => { if (this.core?.state.status === 'playing' && !this.core.state.pendingOperation && this.$('settings').hidden && !this.dragging && !this.shadowRoot?.activeElement?.matches(':focus-visible') && this.isConnected)
-            this.hideControls(); }, this.controlsAutoHideDelay); };
-    async playFromControls() { const core = this.core; await this.play(); if (core === this.core && core?.state.playbackIntent === 'play' && this.$('settings').hidden)
+    controlFacts() { return { playing: this.core?.state.status === 'playing', pending: !!this.core?.state.pendingOperation, connected: this.isConnected, focusVisible: !!this.shadowRoot?.activeElement?.matches(':focus-visible') }; }
+    renderVisibility() { this.$('shell').classList.toggle('idle', this.controlState.idle); this.$('shell').classList.toggle('seek-preview', this.controlState.seekPreview); }
+    revealControls = () => { const result = this.control({ type: 'reveal', playing: this.core?.state.status === 'playing', delay: this.controlsAutoHideDelay }); this.renderVisibility(); clearTimeout(this.seekPreviewTimer); clearTimeout(this.hideTimer); if (result.hideAfter !== undefined)
+        this.hideTimer = setTimeout(() => { if (this.control({ type: 'hide-elapsed', ...this.controlFacts() }).accepted)
+            this.hideControls(); }, result.hideAfter); };
+    async playFromControls() { const core = this.core; await this.play(); if (core === this.core && core?.state.playbackIntent === 'play' && !this.controlState.menuOpen)
         this.hideControls(true); }
     hideControls(focusStage = false) { if (focusStage || this.shadowRoot?.activeElement)
-        this.$('stage').focus({ preventScroll: true }); clearTimeout(this.hideTimer); clearTimeout(this.seekPreviewTimer); this.$('shell').classList.remove('seek-preview'); this.$('shell').classList.add('idle'); }
-    dismissMenu = (event) => { const path = event.composedPath(); if (!this.$('settings').hidden && !['settings', 'settings-toggle', 'open-menu'].some(id => path.includes(this.$(id))))
+        this.$('stage').focus({ preventScroll: true }); clearTimeout(this.hideTimer); clearTimeout(this.seekPreviewTimer); this.control({ type: 'hide' }); this.renderVisibility(); }
+    dismissMenu = (event) => { const path = event.composedPath(); if (this.controlState.menuOpen && !['settings', 'settings-toggle', 'open-menu'].some(id => path.includes(this.$(id))))
         this.settings(false, false); };
-    stageWasIdle = false;
     isScreenPress(event) { return !event.composedPath().some(node => node instanceof Element && node.matches('button,input,select,textarea,a,summary,[contenteditable],[role="button"],#settings,#error,#diagnostics-overlay')); }
-    wasSeeking = false;
-    openingStage = '';
-    openingOperation = null;
-    diagnosticsUpdated = 0;
-    dragging = false;
     dimensions = '';
     trackSignature = '';
     reflected = false;
-    attributeScheduled = false;
     configuredAsset = null;
     resizeObserver;
-    lastAnnouncement = '';
-    lastFailure;
     fullscreenChanged = () => { const active = document.fullscreenElement === this; this.$('fullscreen').setAttribute('aria-pressed', String(active)); this.iconButton('fullscreen', active ? 'collapse' : 'expand', active ? this.labels.exitFullscreen : this.labels.fullscreen); };
     constructor() { super(); this.newReady(); this.attachShadow({ mode: 'open' }); this.renderShell(); this.hoverPreview = new ScrubberPreview(this.input('timeline'), this.$('thumbnail-preview'), this.$('thumbnail-image'), this.$('thumbnail-time'), () => this.previewThumbnails ? this.core?.preview : undefined); }
     newReady() { this.readiness = new Promise((resolve, reject) => { this.resolveReady = resolve; this.rejectReady = reject; }); void this.readiness.catch(() => { }); }
@@ -422,8 +422,10 @@ export class DemuxePlayerElement extends Base {
     $(id) { return this.shadowRoot.getElementById(id); }
     input(id) { return this.$(id); }
     connectedCallback() {
-        const token = ++this.connection;
-        if (this.terminal)
+        const connection = transitionElementLifecycle(this.lifecycle, { type: 'connect' });
+        this.lifecycle = connection.state;
+        const token = connection.connection;
+        if (!connection.accepted)
             return;
         for (const name of ['layout', 'theme', 'watchdogs', 'trackPolicy', 'previewOptions', 'previewThumbnails', 'assetBase', 'labels', 'controls', 'poster', 'autoplay', 'muted', 'title', 'titleMode', 'showSourceControls', 'showDiagnostics', 'allowFileDrop', 'seekStep', 'controlsAutoHideDelay', 'src'])
             if (Object.prototype.hasOwnProperty.call(this, name)) {
@@ -435,11 +437,12 @@ export class DemuxePlayerElement extends Base {
             return;
         this.connecting = (async () => {
             await this.cleanup;
-            if (!this.isConnected || token !== this.connection || this.terminal)
+            if (!transitionElementLifecycle(this.lifecycle, { type: 'connect-ready', connection: token, connected: this.isConnected }).accepted)
                 return;
+            let initializing;
             try {
                 this.configuredAsset = this.getAttribute('asset-base');
-                const core = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, watchdogs: this.watchdogConfiguration, audioPlayback: this.audioPlaybackConfiguration, preview: this.previewConfiguration ?? { strategy: { type: 'adaptive' }, maxEntries: 96, maxCacheBytes: 16 * 1024 * 1024 }, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
+                const core = initializing = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, watchdogs: this.watchdogConfiguration, audioPlayback: this.audioPlaybackConfiguration, preview: this.previewConfiguration ?? { strategy: { type: 'adaptive' }, maxEntries: 96, maxCacheBytes: 16 * 1024 * 1024 }, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
                 this.syncPreviewEnabled();
                 core.presentation.setFullscreenTarget(this);
                 this.dimensions = '';
@@ -450,13 +453,13 @@ export class DemuxePlayerElement extends Base {
                             return;
                         const detail = event.detail;
                         if (type === 'inspectionchange' && core.state.pendingOperation?.kind === 'opening') {
-                            this.openingStage = detail.phase === 'reading' ? this.labels.reading : this.labels.inspecting;
+                            this.control({ type: 'opening-stage', stage: detail.phase === 'reading' ? this.labels.reading : this.labels.inspecting });
                             this.update(core.state);
                         }
                         if (type === 'preparationchange')
                             this.update(core.state);
                         if (type === 'modechange' && detail.phase === 'loading' && core.state.pendingOperation?.kind === 'opening') {
-                            this.openingStage = `Starting ${{ native: 'Native', hybrid: 'Hybrid', software: 'Software' }[detail.mode]} playback…`;
+                            this.control({ type: 'opening-stage', stage: `Starting ${{ native: 'Native', hybrid: 'Hybrid', software: 'Software' }[detail.mode]} playback…` });
                             this.update(core.state);
                         }
                         if (type === 'error')
@@ -470,6 +473,8 @@ export class DemuxePlayerElement extends Base {
                 this.unsubscribe = core.subscribe(state => this.update(state));
                 if (initiallyMuted)
                     await core.setMuted(true);
+                if (!transitionElementLifecycle(this.lifecycle, { type: 'owner-ready', connected: this.isConnected, sameOwner: this.core === core }).accepted)
+                    return;
                 this.resizeObserver = new ResizeObserver(() => { if (this.core)
                     this.geometry(this.core.state); });
                 this.resizeObserver.observe(this.$('stage'));
@@ -480,20 +485,26 @@ export class DemuxePlayerElement extends Base {
                     this.scheduleSource();
             }
             catch (error) {
+                const current = initializing ? transitionElementLifecycle(this.lifecycle, { type: 'owner-ready', connected: this.isConnected, sameOwner: this.core === initializing }) : transitionElementLifecycle(this.lifecycle, { type: 'connect-ready', connection: token, connected: this.isConnected });
+                if (!current.accepted)
+                    return;
                 this.rejectReady(playerError(error));
                 this.componentError(error);
             }
         })();
     }
     disconnectedCallback() {
-        const token = ++this.connection;
+        const connection = transitionElementLifecycle(this.lifecycle, { type: 'disconnect' });
+        this.lifecycle = connection.state;
+        const token = connection.connection;
         queueMicrotask(() => {
-            if (this.isConnected || token !== this.connection || this.terminal)
+            const retired = transitionElementLifecycle(this.lifecycle, { type: 'disconnect-ready', connection: token, connected: this.isConnected });
+            this.lifecycle = retired.state;
+            if (!retired.accepted)
                 return;
             this.hoverPreview.hide();
             clearTimeout(this.hideTimer);
             clearTimeout(this.seekPreviewTimer);
-            this.sourceVersion++;
             this.sourceAbort?.abort();
             this.resetQueue();
             this.lastSource = undefined;
@@ -570,9 +581,9 @@ export class DemuxePlayerElement extends Base {
         }
     }
     openFromControls(source) { this.settings(false, false); this.$('stage').focus({ preventScroll: true }); this.run(this.open(source)); }
-    scheduleSource() { if (this.attributeScheduled)
-        return; this.attributeScheduled = true; queueMicrotask(() => { this.attributeScheduled = false; if (!this.core || this.terminal)
-        return; this.run(this.src ? this.open(this.src) : this.close()); }); }
+    scheduleSource() { const scheduled = transitionElementLifecycle(this.lifecycle, { type: 'schedule-attribute' }); this.lifecycle = scheduled.state; if (!scheduled.accepted)
+        return; queueMicrotask(() => { const flushed = transitionElementLifecycle(this.lifecycle, { type: 'flush-attribute', hasOwner: !!this.core }); this.lifecycle = flushed.state; if (flushed.accepted)
+        this.run(this.src ? this.open(this.src) : this.close()); }); }
     waitReady(signal) {
         if (signal.aborted)
             return Promise.reject(new PlayerError('ABORTED', 'Open aborted'));
@@ -582,14 +593,15 @@ export class DemuxePlayerElement extends Base {
         if (this.terminal)
             throw new PlayerError('ABORTED', 'Player element is destroyed');
         this.resetQueue();
-        this.queueRevision++;
-        this.queueItems = [this.queueItem(source, options)];
+        this.appendQueue([this.queueItem(source, options)]);
         return this.activateQueue(0, () => this.autoplay, options);
     }
     async openSource(source, options = {}) {
-        if (this.terminal)
+        const started = transitionElementLifecycle(this.lifecycle, { type: 'source-start' });
+        this.lifecycle = started.state;
+        if (!started.accepted)
             throw new PlayerError('ABORTED', 'Player element is destroyed');
-        const version = ++this.sourceVersion;
+        const version = started.source;
         this.sourceAbort?.abort();
         const controller = this.sourceAbort = new AbortController();
         const abort = () => controller.abort();
@@ -598,13 +610,13 @@ export class DemuxePlayerElement extends Base {
             abort();
         try {
             const core = this.core ?? await this.waitReady(controller.signal);
-            if (this.terminal || version !== this.sourceVersion || controller.signal.aborted)
+            if (!elementSourceCurrent(this.lifecycle, version, { aborted: controller.signal.aborted, sameOwner: true }))
                 throw new PlayerError('ABORTED', 'Open aborted');
             this.lastSource = source;
             this.lastOptions = { ...options, signal: undefined };
             this.clearError();
             await core.open(source, { ...options, trackPolicy: { ...this.trackConfiguration, ...normalizeTrackPolicy(options.trackPolicy) }, signal: controller.signal });
-            if (version === this.sourceVersion && !controller.signal.aborted && this.core === core) {
+            if (elementSourceCurrent(this.lifecycle, version, { aborted: controller.signal.aborted, sameOwner: this.core === core })) {
                 this.sourceName = sourceTitle(source);
                 this.sourceNameId = core.state.sourceId;
                 this.updateTitle();
@@ -614,11 +626,9 @@ export class DemuxePlayerElement extends Base {
             options.signal?.removeEventListener('abort', abort);
         }
     }
-    close() { this.hoverPreview.hide(); this.sourceVersion++; this.sourceAbort?.abort(); this.resetQueue(); this.lastSource = undefined; this.lastOptions = undefined; this.clearError(); return this.core ? this.core.close() : this.terminal ? Promise.reject(new PlayerError('ABORTED', 'Player element is destroyed')) : Promise.resolve(); }
-    play() { if (this.queueOperation)
-        this.queuePlayIntent = true; return this.core ? this.core.play() : this.ready.then(p => p.play()); }
-    pause() { if (this.queueOperation)
-        this.queuePlayIntent = false; return this.core ? this.core.pause() : this.ready.then(p => p.pause()); }
+    close() { this.hoverPreview.hide(); this.lifecycle = transitionElementLifecycle(this.lifecycle, { type: 'source-retire' }).state; this.sourceAbort?.abort(); this.resetQueue(); this.lastSource = undefined; this.lastOptions = undefined; this.clearError(); return this.core ? this.core.close() : this.terminal ? Promise.reject(new PlayerError('ABORTED', 'Player element is destroyed')) : Promise.resolve(); }
+    play() { this.queueState = transitionElementQueue(this.queueState, { type: 'intent', play: true }).state; return this.core ? this.core.play() : this.ready.then(p => p.play()); }
+    pause() { this.queueState = transitionElementQueue(this.queueState, { type: 'intent', play: false }).state; return this.core ? this.core.pause() : this.ready.then(p => p.pause()); }
     seek(seconds) { return this.ready.then(p => p.seek(seconds)); }
     setVolume(value) { return this.ready.then(p => p.setVolume(value)); }
     setMuted(value) { return this.ready.then(p => p.setMuted(value)); }
@@ -628,13 +638,12 @@ export class DemuxePlayerElement extends Base {
     addSubtitle(file, options) { return this.ready.then(p => p.addSubtitle(file, options)); }
     destroy() {
         this.hoverPreview.destroy();
-        if (this.terminal)
+        const destroyed = transitionElementLifecycle(this.lifecycle, { type: 'destroy' });
+        this.lifecycle = destroyed.state;
+        if (!destroyed.accepted)
             return this.cleanup;
         clearTimeout(this.hideTimer);
         clearTimeout(this.seekPreviewTimer);
-        this.terminal = true;
-        this.connection++;
-        this.sourceVersion++;
         this.sourceAbort?.abort();
         this.resetQueue();
         this.lastSource = undefined;
@@ -666,11 +675,11 @@ export class DemuxePlayerElement extends Base {
             this.showError(playerError(error).toJSON()); });
     }
     componentError(error) { const detail = playerError(error).toJSON(); this.showError(detail); this.dispatchEvent(new CustomEvent('error', { detail })); }
-    showError(error) { if (error.code === 'ABORTED')
-        return; this.lastFailure = error; this.$('error').hidden = false; this.$('error-text').textContent = error.message; this.$('retry').hidden = !error.retryable; this.$('retry').textContent = error.code === 'AUTOPLAY_BLOCKED' ? this.labels.play : this.labels.retry; this.announce(error.message, false); }
-    clearError() { this.lastFailure = undefined; this.$('error').hidden = true; }
-    announce(text, visual = true) { this.$('status').classList.toggle('sr', !visual); if (text === this.lastAnnouncement)
-        return; this.lastAnnouncement = text; this.$('status').textContent = text; }
+    showError(error) { if (!this.control({ type: 'error', error }).accepted)
+        return; this.$('error').hidden = false; this.$('error-text').textContent = error.message; this.$('retry').hidden = !error.retryable; this.$('retry').textContent = error.code === 'AUTOPLAY_BLOCKED' ? this.labels.play : this.labels.retry; this.announce(error.message, false); }
+    clearError() { this.control({ type: 'clear-error' }); this.$('error').hidden = true; }
+    announce(text, visual = true) { this.$('status').classList.toggle('sr', !visual); if (!this.control({ type: 'announce', text }).changed)
+        return; this.$('status').textContent = text; }
     geometry(state) { const ratio = state.mediaInfo.aspectRatio; if (!ratio) {
         this.$('stage').style.removeProperty('--media-aspect');
         return;
@@ -681,19 +690,20 @@ export class DemuxePlayerElement extends Base {
     } }
     update(state) {
         this.advanced?.reconcile();
-        if (!this.$('settings').hidden)
+        if (this.controlState.menuOpen)
             this.advanced?.update(state);
         this.syncPreviewStrategy();
         applyLayout(this.shadowRoot, this.layout, !!state.sourceId);
         const identity = `${state.sourceId}:${state.activeMode}`;
-        if (identity !== this.previewIdentity || state.pendingOperation || !this.controls || !state.seekable?.length) {
-            this.dragging = false;
+        if (this.control({ type: 'preview', identity, pending: !!state.pendingOperation, controls: this.controls, seekable: !!state.seekable?.length }).resetPreview)
             this.hoverPreview.hide();
-            this.previewIdentity = identity;
-        }
         // A host using the core directly owns its source list; release ours on replacement.
-        if (!this.queueOperation && this.queueSourceId !== null && this.queueSourceId !== state.sourceId)
-            this.resetQueue();
+        const observedQueue = transitionElementQueue(this.queueState, { type: 'observe-source', sourceId: state.sourceId });
+        this.queueState = observedQueue.state;
+        if (observedQueue.reset) {
+            this.queueResources.clear();
+            this.renderQueue();
+        }
         this.renderQueue();
         this.updateSourceLabel();
         if (this.sourceNameId !== state.sourceId) {
@@ -703,22 +713,19 @@ export class DemuxePlayerElement extends Base {
         }
         const labels = this.labels, pending = state.pendingOperation !== null;
         this.$('topbar').hidden = !this.controls;
-        const seeking = state.pendingOperation?.kind === 'seeking';
-        if (seeking !== this.wasSeeking) {
-            this.wasSeeking = seeking;
+        const seeking = state.pendingOperation?.kind === 'seeking', seekChange = this.control({ type: 'seeking', seeking });
+        if (seekChange.changed) {
             clearTimeout(this.seekPreviewTimer);
-            if (this.$('shell').classList.contains('idle')) {
-                this.$('shell').classList.add('seek-preview');
-                if (!seeking)
-                    this.seekPreviewTimer = setTimeout(() => this.$('shell').classList.remove('seek-preview'), 800);
-            }
-            else
+            this.renderVisibility();
+            if (seekChange.seekPreviewAfter !== undefined)
+                this.seekPreviewTimer = setTimeout(() => { this.control({ type: 'seek-preview-expired' }); this.renderVisibility(); }, seekChange.seekPreviewAfter);
+            if (seekChange.reveal)
                 this.revealControls();
         }
-        const playing = state.status === 'playing';
-        if (this.$('shell').classList.contains('playing') !== playing) {
+        const playing = state.status === 'playing', playChange = this.control({ type: 'playing', playing, intent: state.playbackIntent, status: state.status });
+        if (playChange.changed) {
             this.$('shell').classList.toggle('playing', playing);
-            if (!this.$('shell').classList.contains('idle') || state.playbackIntent === 'pause' || ['ended', 'error', 'idle'].includes(state.status))
+            if (playChange.reveal)
                 this.revealControls();
         }
         this.$('controls').hidden = !this.controls || !state.sourceId;
@@ -763,14 +770,7 @@ export class DemuxePlayerElement extends Base {
         this.$('shell').classList.toggle('buffering', buffering);
         this.bufferedProgress(state);
         const opening = state.pendingOperation?.kind === 'opening';
-        if (opening && this.openingOperation !== state.pendingOperation.id) {
-            this.openingOperation = state.pendingOperation.id;
-            this.openingStage = this.labels.inspecting;
-        }
-        if (!opening) {
-            this.openingOperation = null;
-            this.openingStage = '';
-        }
+        this.control({ type: 'opening', operation: opening ? state.pendingOperation.id : null, initialStage: this.labels.inspecting });
         const preparation = this.core?.preparationProgress ?? [];
         const preparing = preparation.filter(a => ['queued', 'loading', 'compiling'].includes(a.status));
         const ready = preparation.filter(a => a.status === 'ready').length;
@@ -795,15 +795,11 @@ export class DemuxePlayerElement extends Base {
         this.geometry(state);
         this.updateDiagnostics();
     }
-    setDiagnostics(show) { show = show && this.showDiagnostics && this.controls; this.$('diagnostics-overlay').hidden = !show; this.$('diagnostics-toggle').setAttribute('aria-pressed', String(show)); this.iconButton('diagnostics-toggle', show ? 'eyeOff' : 'eye', this.labels.diagnostics); if (show)
+    setDiagnostics(show) { this.control({ type: 'diagnostics', show, enabled: this.showDiagnostics, controls: this.controls }); show = this.controlState.diagnostics; this.$('diagnostics-overlay').hidden = !show; this.$('diagnostics-toggle').setAttribute('aria-pressed', String(show)); this.iconButton('diagnostics-toggle', show ? 'eyeOff' : 'eye', this.labels.diagnostics); if (show)
         this.updateDiagnostics(true); }
     updateDiagnostics(force = false) {
-        if (this.$('diagnostics-overlay').hidden || !this.core)
+        if (!this.control({ type: 'diagnostics-sample', now: performance.now(), force, hasOwner: !!this.core }).accepted || !this.core)
             return;
-        const now = performance.now();
-        if (!force && now - this.diagnosticsUpdated < 500)
-            return;
-        this.diagnosticsUpdated = now;
         const s = this.core.state, d = this.core.diagnostics, m = s.mediaInfo;
         const lines = [this.labels.diagnostics, `Engine  ${s.activeMode ?? '—'} · ${s.automaticSelection ? 'automatic' : 'manual'}`, `State   ${s.status}${s.pendingOperation ? ' · ' + s.pendingOperation.kind : ''}`, `Time    ${formatTime(s.currentTime)} / ${s.streamType === 'live' ? this.labels.live : s.duration === null ? '—' : formatTime(s.duration)} · ${s.playbackRate}×`, `Video   ${m.video?.codec ?? '—'} · ${m.displayWidth ?? '—'} × ${m.displayHeight ?? '—'}`, `Audio   ${m.audio?.codec ?? '—'} · ${s.muted ? 'muted' : Math.round(s.volume * 100) + '%'}`];
         if (s.activeMode && !['opening', 'switching', 'closing'].includes(s.pendingOperation?.kind ?? '')) {
@@ -853,9 +849,8 @@ export class DemuxePlayerElement extends Base {
         select.disabled = !!policy?.locked || !list.length;
         select.title = select.selectedOptions[0]?.textContent ?? '';
     }
-    settings(open, restoreFocus = true, trigger = 'settings-toggle') { if (open && trigger === 'open-menu' && !this.showSourceControls)
-        return; if (open)
-        this.menuTrigger = trigger; this.revealControls(); this.$('settings').hidden = !open; this.$('shell').classList.toggle('menu-open', open); if (open) {
+    settings(open, restoreFocus = true, trigger = 'settings-toggle') { if (!this.control({ type: 'menu', open, trigger, sourceControls: this.showSourceControls }).accepted)
+        return; this.revealControls(); this.$('settings').hidden = !open; this.$('shell').classList.toggle('menu-open', open); if (open) {
         const source = this.menuTrigger === 'open-menu';
         this.$('source-options').hidden = !source;
         this.$('playback-options').hidden = source;
@@ -927,21 +922,21 @@ export class DemuxePlayerElement extends Base {
         this.addEventListener('pointermove', event => { if (event.pointerType !== 'touch')
             this.revealControls(); });
         this.addEventListener('pointerdown', event => { if (this.isScreenPress(event))
-            this.stageWasIdle = this.$('shell').classList.contains('idle');
+            this.control({ type: 'screen-press' });
         else
             this.revealControls(); });
         this.addEventListener('focusin', this.revealControls);
-        this.addEventListener('focusout', () => { if (!this.$('shell').classList.contains('idle'))
+        this.addEventListener('focusout', () => { if (!this.controlState.idle)
             this.revealControls(); });
-        this.addEventListener('pointerleave', event => { if (event.pointerType !== 'mouse' || this.terminal || !this.controls || this.core?.state.status !== 'playing' || !this.core.state.sourceId || this.core.state.pendingOperation || this.dragging || !this.$('settings').hidden || this.shadowRoot?.activeElement?.matches(':focus-visible'))
+        this.addEventListener('pointerleave', event => { if (!this.control({ type: 'pointer-leave', mouse: event.pointerType === 'mouse', terminal: this.terminal, controls: this.controls, hasSource: !!this.core?.state.sourceId, ...this.controlFacts() }).accepted)
             return; this.hideControls(); });
         this.$('source-actions').addEventListener('click', event => { if (this.showSourceControls && event.composedPath().some(node => node instanceof HTMLButtonElement)) {
             this.settings(false, false);
             this.$('stage').focus({ preventScroll: true });
         } });
-        this.$('open-menu').onclick = () => this.settings(this.$('settings').hidden || this.menuTrigger !== 'open-menu', true, 'open-menu');
+        this.$('open-menu').onclick = () => this.settings(!this.controlState.menuOpen || this.menuTrigger !== 'open-menu', true, 'open-menu');
         this.$('shell').onclick = event => { if (!this.isScreenPress(event) || !this.core?.state.sourceId || !this.controls)
-            return; if (this.stageWasIdle) {
+            return; if (this.controlState.stageWasIdle) {
             this.$('stage').focus({ preventScroll: true });
             this.revealControls();
         }
@@ -961,11 +956,11 @@ export class DemuxePlayerElement extends Base {
             this.run(this.setMuted(!this.core.state.muted)); };
         this.input('volume').oninput = () => this.$('volume').style.setProperty('--volume-progress', `${Number(this.input('volume').value) * 100}%`);
         this.input('volume').onchange = () => this.run(this.setVolume(Number(this.input('volume').value)));
-        this.input('timeline').oninput = () => { this.dragging = true; const text = formatTime(Number(this.input('timeline').value)); this.$('time').textContent = text; this.timelineProgress(); this.input('timeline').setAttribute('aria-valuetext', text); };
-        this.input('timeline').onchange = () => { const value = Number(this.input('timeline').value); this.dragging = false; this.run(this.seek(value)); };
-        this.input('timeline').onpointercancel = () => { this.dragging = false; if (this.core)
+        this.input('timeline').oninput = () => { this.control({ type: 'drag', active: true }); const text = formatTime(Number(this.input('timeline').value)); this.$('time').textContent = text; this.timelineProgress(); this.input('timeline').setAttribute('aria-valuetext', text); };
+        this.input('timeline').onchange = () => { const value = Number(this.input('timeline').value); this.control({ type: 'drag', active: false }); this.run(this.seek(value)); };
+        this.input('timeline').onpointercancel = () => { this.control({ type: 'drag', active: false }); if (this.core)
             this.update(this.core.state); };
-        this.$('settings-toggle').onclick = () => this.settings(this.$('settings').hidden || this.menuTrigger !== 'settings-toggle', true, 'settings-toggle');
+        this.$('settings-toggle').onclick = () => this.settings(!this.controlState.menuOpen || this.menuTrigger !== 'settings-toggle', true, 'settings-toggle');
         this.$('settings-close').onclick = () => this.settings(false);
         this.$('layout-select').onchange = () => { this.layout = this.$('layout-select').value; };
         this.$('theme-select').onchange = () => { this.theme = this.$('theme-select').value; };
@@ -996,7 +991,7 @@ export class DemuxePlayerElement extends Base {
         this.$('retry').onclick = () => { const error = this.lastFailure; this.clearError(); if (error?.code === 'AUTOPLAY_BLOCKED')
             this.run(this.play());
         else if (this.lastSource)
-            this.run(this.queueItems[this.queueIndex]?.source === this.lastSource ? this.activateQueue(this.queueIndex, () => this.autoplay) : this.open(this.lastSource, this.lastOptions)); };
+            this.run(this.queueResource(this.queueIndex)?.source === this.lastSource ? this.activateQueue(this.queueIndex, () => this.autoplay) : this.open(this.lastSource, this.lastOptions)); };
         this.addEventListener('keydown', event => {
             if (event.composedPath().includes(this.$('diagnostics-overlay'))) {
                 if (event.key === 'Escape') {
@@ -1009,18 +1004,18 @@ export class DemuxePlayerElement extends Base {
             const topbar = event.composedPath().includes(this.$('utility-actions')), key = shortcut(event, topbar);
             if (topbar && key === ' ')
                 event.preventDefault();
-            if (event.repeat && this.$('settings').hidden && [' ', 'k', 'm', 'f'].includes(key ?? '')) {
+            if (event.repeat && !this.controlState.menuOpen && [' ', 'k', 'm', 'f'].includes(key ?? '')) {
                 event.preventDefault();
                 return;
             }
-            if (!['arrowleft', 'arrowright', 'j', 'l', 'home', 'end', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(key ?? '') || !this.$('shell').classList.contains('idle'))
+            if (!['arrowleft', 'arrowright', 'j', 'l', 'home', 'end', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(key ?? '') || !this.controlState.idle)
                 this.revealControls();
-            if (event.key === 'Escape' && !this.$('settings').hidden) {
+            if (event.key === 'Escape' && this.controlState.menuOpen) {
                 event.preventDefault();
                 this.settings(false);
                 return;
             }
-            if (!this.$('settings').hidden)
+            if (this.controlState.menuOpen)
                 return;
             const p = this.core;
             if (!key || !p)

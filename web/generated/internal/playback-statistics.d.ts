@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { PlaybackStats, PlayerState } from '../types.js';
 /** Bounded, source-scoped observations; no backend counter inference. */
 export declare class PlaybackStatistics {

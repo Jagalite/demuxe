@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
-/** Configuration-scoped negative evidence. Never caches transport or deadlines. */
+/** Object identity and clock reads stay here; negative-evidence policy is pure. */
 export declare class TierAttempts {
     private sources;
     private serial;
-    private failures;
+    private state;
     key(source: object, configuration: string, plan: string): string;
     failure(source: object, configuration: string, plan: string, reason: string, now?: number): void;
     reason(source: object, configuration: string, plan: string, now?: number): string | undefined;

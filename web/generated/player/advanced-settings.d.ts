@@ -77,13 +77,14 @@ export declare class AdvancedSettings {
     private root;
     private getPlayer;
     private run;
+    private controlState;
+    private owners;
+    private get operation();
+    private get labels();
+    private transition;
+    private ownerId;
     private dirty;
-    private busy;
-    private operation;
-    private owner?;
-    private sourceId;
-    private signatures;
-    private labels;
+    private clean;
     constructor(root: ShadowRoot, getPlayer: () => PlayerAPI | undefined, run: (work: Promise<unknown>) => void);
     private el;
     private control;
@@ -91,6 +92,7 @@ export declare class AdvancedSettings {
     private checked;
     private numeric;
     private range;
+    private reconcileOwner;
     reconcile(): void;
     private act;
     label(labels: Labels): void;

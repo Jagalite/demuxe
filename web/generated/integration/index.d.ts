@@ -19,10 +19,9 @@ export declare class PlaybackBinding {
     readonly ownership: 'owned' | 'borrowed';
     private options;
     readonly sourceAuthority: "application";
-    private active;
+    private control;
     private cleanup?;
     private listeners;
-    private notifications;
     constructor(runtime: PlaybackRuntime, ownership: 'owned' | 'borrowed', options?: BindingOptions);
     get state(): Readonly<{
         status: "idle" | "paused" | "playing" | "buffering" | "ended" | "error";
@@ -59,8 +58,9 @@ export declare class PlaybackBinding {
         subscriptions: number;
         notifications: number;
     }>;
+    private transition;
+    private release;
     subscribe(listener: (state: PlayerState) => void): () => void;
-    private assertActive;
     /** Invoke immediately, preserving browser activation. Retain canonical completion. */
     run<T>(operation: () => Promise<T>): Promise<T>;
     private report;

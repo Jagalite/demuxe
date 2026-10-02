@@ -2,6 +2,7 @@
 import type {PlayerAPI} from '../contracts.js';
 import type {FeatureName, PlayerState, PlaybackMode, SubtitleStyle} from '../types.js';
 import {formatTime} from './interaction.js';
+import {initialAdvancedControls,transitionAdvancedControls,advancedControlsBlocked,advancedFeatureDisabled,advancedShouldSync,advancedControlValue,type AdvancedControlsCommand} from '../internal/machine/advanced-controls.js';
 
 export const advancedLabels = Object.freeze({
   videoSettings:'Video and filters', audioSettings:'Audio adjustments', subtitleSettings:'Subtitle adjustments',
@@ -75,33 +76,35 @@ export const advancedSettingsStyles = `
 
 /** Persistent controls use the same public API as an embedding application. */
 export class AdvancedSettings {
-  private dirty = new Set<string>();
-  private busy = false;
-  private operation = 0;
-  private owner?:PlayerAPI;
-  private sourceId: number|null = null;
-  private signatures = new Map<string,string>();
-  private labels:Labels = {...advancedLabels};
+  private controlState=initialAdvancedControls(advancedLabels);
+  private owners=new WeakMap<PlayerAPI,number>();
+  private get operation(){return this.controlState.operation;}
+  private get labels(){return this.controlState.labels;}
+  private transition(command:AdvancedControlsCommand){const decision=transitionAdvancedControls(this.controlState,command);this.controlState=decision.state;return decision;}
+  private ownerId(player:PlayerAPI|undefined){if(!player)return null;let id=this.owners.get(player);if(id===undefined){id=this.transition({type:'allocate-owner'}).ownerId!;this.owners.set(player,id);}return id;}
+  private dirty(field:string){const control=this.root.getElementById(field) as HTMLInputElement|null;this.transition({type:'dirty',field,value:control?.value??''});}
+  private clean(fields:readonly string[],operation:number){this.reconcile();this.transition({type:'clean',fields:fields.map(field=>`advanced-${field}`),operation});}
   constructor(private root:ShadowRoot, private getPlayer:()=>PlayerAPI|undefined, private run:(work:Promise<unknown>)=>void) {
     for(const node of Array.from(this.el('advanced-settings').querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLButtonElement>('input,select,button')))node.disabled=true;
     this.el('advanced-settings').addEventListener('input',event=>{
       const target=event.target as HTMLInputElement;
-      if(target.id)this.dirty.add(target.id);
+      if(target.id)this.dirty(target.id);
     });
+    this.el('advanced-settings').addEventListener('change',event=>{const target=event.target as HTMLInputElement;if(target.id)this.dirty(target.id);},true);
     const change=(id:string,action:(p:PlayerAPI)=>unknown)=>this.control(id).addEventListener('change',()=>this.act(action));
     const click=(id:string,action:(p:PlayerAPI)=>unknown)=>this.control(id).addEventListener('click',()=>this.act(action));
     const submit=(id:string,action:(p:PlayerAPI)=>unknown,fields:string[])=>{
-      this.el(`advanced-${id}`).addEventListener('submit',event=>{event.preventDefault();this.act(async p=>{const operation=this.operation;await action(p);if(operation!==this.operation)return;for(const field of fields)this.dirty.delete(`advanced-${field}`);});});
+      this.el(`advanced-${id}`).addEventListener('submit',event=>{event.preventDefault();this.act(async p=>{const operation=this.operation;await action(p);this.clean(fields,operation);});});
     };
     this.control('preset').addEventListener('change',()=>{
       if(this.value('preset')==='custom')return;
-      this.control('vf').value=this.value('preset');this.dirty.add('advanced-vf');
+      this.control('vf').value=this.value('preset');this.dirty('advanced-vf');
     });
     this.control('vf').addEventListener('input',()=>{this.control('preset').value='custom';});
     submit('video-form',p=>p.setVideoFilters(this.value('vf')),['vf','preset']);
     submit('audio-form',p=>p.setAudioFilters(this.value('af')),['af']);
     for(const [id,key] of [['clear-vf','vf'],['clear-af','af']] as const)click(id,async p=>{
-      const operation=this.operation;await (key==='vf'?p.setVideoFilters(''):p.setAudioFilters(''));if(operation!==this.operation)return;this.dirty.delete(`advanced-${key}`);this.dirty.delete('advanced-preset');
+      const operation=this.operation;await (key==='vf'?p.setVideoFilters(''):p.setAudioFilters(''));this.clean([key,'preset'],operation);
     });
     change('tone',p=>p.setToneMapping(this.checked('tone')?'hdr-to-sdr':'off'));
     change('mode',p=>this.value('mode')==='auto'?p.setAutomaticSelection(true):p.setMode(this.value('mode') as PlaybackMode));
@@ -118,12 +121,12 @@ export class AdvancedSettings {
       if(this.value('sub-font'))style.fontFamily=this.value('sub-font');
       return p.setSubtitleStyle(style);
     },styleFields);
-    click('style-reset',async p=>{const operation=this.operation;await p.setSubtitleStyle({});if(operation!==this.operation)return;for(const id of styleFields)this.dirty.delete(`advanced-${id}`);});
+    click('style-reset',async p=>{const operation=this.operation;await p.setSubtitleStyle({});this.clean(styleFields,operation);});
     change('font-file',async p=>{const input=this.control('font-file') as HTMLInputElement;const file=input.files?.[0],operation=this.operation;try{if(file)await p.addFont(file);}finally{if(operation===this.operation)input.value='';}});
     change('chapter',p=>this.value('chapter')?p.seekChapter(this.value('chapter')):undefined);
     change('loop',p=>this.value('loop')==='range'?p.setLoop(this.range()):p.setLoop(this.value('loop')==='all'));
     for(const [id,field] of [['mark-start','start'],['mark-end','end']] as const)click(id,p=>{
-      this.control(field).value=String(Math.round(p.state.currentTime*1000)/1000);this.dirty.add(`advanced-${field}`);
+      this.control(field).value=String(Math.round(p.state.currentTime*1000)/1000);this.dirty(`advanced-${field}`);
     });
     click('loop-range',p=>p.setLoop(this.range()));
     click('range',p=>p.setPlaybackRange(this.range()));
@@ -153,63 +156,66 @@ export class AdvancedSettings {
   }
   private el(id:string){return this.root.getElementById(id)!;}
   private control(id:string){return this.el(`advanced-${id}`) as HTMLInputElement|HTMLSelectElement|HTMLButtonElement;}
-  private value(id:string){return this.control(id).value.trim();}
+  private value(id:string){const control=this.control(id);return advancedControlValue(this.controlState,control.id,control.value).trim();}
   private checked(id:string){return (this.control(id) as HTMLInputElement).checked;}
   private numeric(id:string){const input=this.control(id) as HTMLInputElement;if(!input.value||!input.checkValidity())throw new Error(`Invalid value: ${input.closest('label')?.textContent?.trim()??id}`);return input.valueAsNumber;}
   private range(){return {start:this.numeric('start'),end:this.numeric('end')};}
-  reconcile(){
+  private reconcileOwner(){
     const owner=this.getPlayer(),source=owner?.state.sourceId??null;
-    if(owner!==this.owner||source!==this.sourceId){
-      this.owner=owner;this.sourceId=source;this.operation++;this.busy=false;
-      this.dirty.clear();this.signatures.clear();
-    }
+    return this.transition({type:'reconcile',ownerId:this.ownerId(owner),sourceId:source});
   }
+  reconcile(){this.reconcileOwner();}
   private act(action:(p:PlayerAPI)=>unknown){
     this.reconcile();
-    const player=this.getPlayer();if(!player||player.isDestroyed||!this.root.host.isConnected||this.busy||player.state.pendingOperation)return;
+    const player=this.getPlayer(),decision=this.transition({type:'start',ownerId:this.ownerId(player),sourceId:player?.state.sourceId??null,destroyed:!!player?.isDestroyed,connected:this.root.host.isConnected,pending:!!player?.state.pendingOperation});
+    if(!player||!decision.accepted)return;
     const focused=this.root.activeElement as HTMLElement|null;
-    const operation=++this.operation;this.busy=true;
+    const operation=decision.operation!;
     // Invoke immediately to preserve browser user activation for PiP/output pickers.
     this.run((async()=>{
       try{await action(player);}
       finally{
-        if(operation===this.operation){
-          this.busy=false;
+        const reconciled=this.reconcileOwner();
+        if(this.transition({type:'settled',operation}).accepted){
           if(this.getPlayer()===player){
             this.update(player.state,true);
             if(focused?.isConnected&&!focused.matches(':disabled')&&!this.el('settings').hidden&&!this.root.activeElement&&this.root.ownerDocument.hasFocus()&&[this.root.host,this.root.ownerDocument.body,null].includes(this.root.ownerDocument.activeElement))focused.focus({preventScroll:true});
           }
+        }else if(reconciled.changed&&!this.controlState.busy){
+          // Completion may be the first observation of source replacement.
+          // Refresh its controls without restoring the retired owner's focus.
+          const current=this.getPlayer();if(current)this.update(current.state);
         }
       }
     })());
     this.update(player.state);
   }
   label(labels:Labels){
-    this.labels=labels;this.signatures.clear();
+    this.transition({type:'labels',labels});
     for(const node of Array.from(this.el('advanced-settings').querySelectorAll<HTMLElement>('[data-advanced-label]')))node.textContent=labels[node.dataset.advancedLabel as keyof Labels];
   }
   update(state:PlayerState,force=false){
     const player=this.getPlayer();if(!player)return;
     this.reconcile();
-    const blocked=player.isDestroyed||this.busy||!!state.pendingOperation||state.sourceId===null;
+    const blocked=advancedControlsBlocked(this.controlState,{destroyed:player.isDestroyed,pending:!!state.pendingOperation,sourceId:state.sourceId});
     for(const node of Array.from(this.el('advanced-settings').querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLButtonElement>('input,select,button')))node.disabled=blocked;
     for(const group of Array.from(this.el('advanced-settings').querySelectorAll<HTMLElement>('[data-feature]'))){
       const name=group.dataset.feature as FeatureName,cap=state.capabilities.features[name];
       // Unknown readback/output permissions can only be resolved by attempting the action.
-      const disabled=blocked||cap.availability==='unavailable'||cap.availability==='unknown'&&!['snapshot','audioOutputDevice'].includes(name);
+      const disabled=advancedFeatureDisabled(blocked,name,cap);
       const hint=state.sourceId===null?this.labels.openForSettings:cap.availability==='available'?'':cap.reason;
       const help=group.querySelector<HTMLElement>('[data-feature-hint]')!;help.textContent=hint;
       if(!help.id)help.id=`advanced-help-${name}-${Array.from(group.parentElement!.children).indexOf(group)}`;
       for(const control of Array.from(group.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLButtonElement>('input,select,button'))){control.disabled=disabled;control.setAttribute('aria-describedby',help.id);}
     }
     const sync=(id:string,value:string|number|boolean,draft=false)=>{
-      const control=this.control(id);if(draft&&this.dirty.has(control.id)||!force&&this.root.activeElement===control)return;
+      const control=this.control(id);if(!advancedShouldSync(this.controlState,control.id,draft,this.root.activeElement===control,force))return;
       if(typeof value==='boolean')(control as HTMLInputElement).checked=value;else control.value=String(value);
     };
     const d=player.diagnostics;
     sync('mode',state.automaticSelection?'auto':state.activeMode??'auto');
     sync('vf',d.videoFilters,true);sync('af',d.audioFilters,true);
-    if(!this.dirty.has('advanced-vf')&&!this.dirty.has('advanced-preset'))sync('preset',['','hflip','vflip','lavfi=[format=gray]','negate'].includes(d.videoFilters)?d.videoFilters:'custom');
+    if(!this.controlState.dirty.includes('advanced-vf')&&!this.controlState.dirty.includes('advanced-preset'))sync('preset',['','hflip','vflip','lavfi=[format=gray]','negate'].includes(d.videoFilters)?d.videoFilters:'custom');
     sync('tone',d.toneMapping==='hdr-to-sdr');sync('gain',d.audioGain??1);
     sync('audio-delay',state.timing.audioDelay);sync('sub-delay',state.timing.subtitleDelay);sync('sub-visible',state.subtitlesVisible);
     const style=state.timing.subtitleStyle;
@@ -242,7 +248,7 @@ export class AdvancedSettings {
     this.control('media-session').disabled||=!('mediaSession' in navigator);sync('media-session',player.presentation.state.mediaSession);
   }
   private options(id:string,values:[string,string][]){
-    const signature=JSON.stringify(values);if(this.signatures.get(id)===signature)return;this.signatures.set(id,signature);
+    const signature=JSON.stringify(values);if(!this.transition({type:'signature',field:id,value:signature}).changed)return;
     const select=this.control(id) as HTMLSelectElement;select.replaceChildren();
     for(const [value,label] of values){const option=this.root.ownerDocument.createElement('option');option.value=value;option.textContent=label;select.append(option);}
   }

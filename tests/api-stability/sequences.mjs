@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';
+import {acceptSourceIdentity} from '../helpers/player-control.mjs';
 import assert from 'node:assert/strict';
 import {Player} from '../../web/generated/unified-player.js';
 import {bindPlayer} from '../../web/generated/integration/index.js';
@@ -20,13 +21,13 @@ function fixture(t) {
   Object.assign(backend,{
     properties:new Map([['time-pos',1],['duration',20],['pause',true],['native-seekable',[{start:0,end:20}]]]),
     diagnostics:{plan:'direct'},
-    play:async()=>{calls.push('play');backend.properties.set('pause',false);p.observedPlaying=true;},
+    play:async()=>{calls.push('play');backend.properties.set('pause',false);p.dispatchControl({type:'playback.observed',playing:true});},
     pause:async()=>{calls.push('pause');backend.properties.set('pause',true);},
     volume:async value=>{calls.push(['volume',value]);},
     rate:async value=>{calls.push(['rate',value]);},
     setBuffering:async()=>{},verifyOutput:async()=>{},destroy:async()=>{},
   });
-  Object.assign(p,{source:{kind:'local',file:new Blob()},current:{backend,surface:new Element()},sourceSerial:1});
+  Object.assign(p,{source:{kind:'local',file:new Blob()},current:{backend,surface:new Element()}});acceptSourceIdentity(p,1);
   p.publish();
   return {p,backend,calls};
 }

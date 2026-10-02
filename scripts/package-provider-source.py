@@ -18,12 +18,17 @@ def application_source_paths(profile_name=None):
     current=set(config['playerCoreSources'])
     current.update(['scripts/ci-slices.py', 'scripts/ci-native-providers.py',
                     'scripts/collect-ci-providers.py', 'licensing/ci-slices.json',
+                    'scripts/compile-shaka-provider.mjs', 'scripts/copy-shaka-assets.mjs', 'third_party/shaka-player.json',
+                    'tests/shaka-provider-package.py',
                     '.github/workflows/ci-providers.yml', 'tests/ci-slices.py', 'tests/ci-slice-native.mjs',
                     'sources.lock.json', 'scripts/build-ci-reference.py',
                     '.github/actions/reference-tools/action.yml'])
     # catalog() validates every entry, even for a single selected slice. Retain
     # the complete catalog evidence set independently of core qualification.
-    current.update(row['evidence'] for row in json.loads((ROOT/'licensing/ci-slices.json').read_bytes())['include'])
+    current.update(row['pin'] if row['kind'] == 'web' else row['evidence'] for row in json.loads((ROOT/'licensing/ci-slices.json').read_bytes())['include'])
+    for row in json.loads((ROOT/'licensing/ci-slices.json').read_bytes())['include']:
+        if row['kind'] == 'web':
+            current.update(notice['noticePath'] for notice in json.loads((ROOT/row['pin']).read_bytes())['notices'])
     profiles = [config['profiles'][profile_name]] if profile_name else config['profiles'].values()
     for profile in profiles:
         current.update(profile.get('sources', []))

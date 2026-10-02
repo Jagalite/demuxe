@@ -4,20 +4,25 @@
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
-const file='web/generated/player/advanced-settings.js',original=await readFile(file,'utf8');
+const mutations=[
+  {file:'web/generated/player/advanced-settings.js',replacements:[
+    ['this.getPlayer() !== p || p.isDestroyed || p.state.sourceId !== source || !this.root.host.isConnected','this.getPlayer() !== p || !this.root.host.isConnected'],
+    ['this.getPlayer() === p && !p.isDestroyed && p.state.sourceId === source && this.root.host.isConnected','this.getPlayer() === p && p.state.sourceId === source'],
+  ]},
+  {file:'web/generated/internal/machine/advanced-controls.js',replacements:[
+    ['current.ownerId === null || command.destroyed || !command.connected || command.pending || current.busy','current.ownerId === null || command.pending || current.busy'],
+    ['facts.destroyed || state.busy || facts.pending','state.busy || facts.pending'],
+  ]},
+];
+const originals=new Map(await Promise.all(mutations.map(async({file})=>[file,await readFile(file,'utf8')])));
 const out=`results/api-stability/advanced-negative/${process.env.BROWSER??'chromium'}`;await mkdir(out,{recursive:true});
-let mutant=original;
-for(const [before,after]of [
-  ['this.getPlayer() !== p || p.isDestroyed || p.state.sourceId !== source || !this.root.host.isConnected','this.getPlayer() !== p || !this.root.host.isConnected'],
-  ['this.getPlayer() === p && !p.isDestroyed && p.state.sourceId === source && this.root.host.isConnected','this.getPlayer() === p && p.state.sourceId === source'],
-  ['!player || player.isDestroyed || !this.root.host.isConnected || this.busy || player.state.pendingOperation','!player || this.busy || player.state.pendingOperation'],
-  ['player.isDestroyed || this.busy || !!state.pendingOperation','this.busy || !!state.pendingOperation'],
-]){
-  assert.equal(mutant.split(before).length,2,'Mutation anchor changed; review the negative control');
-  mutant=mutant.replace(before,after);
-}
+const mutants=mutations.map(({file,replacements})=>{
+  let mutant=originals.get(file);
+  for(const [before,after]of replacements){assert.equal(mutant.split(before).length,2,'Mutation anchor changed; review the negative control');mutant=mutant.replace(before,after);}
+  return [file,mutant];
+});
 try{
-  await writeFile(file,mutant);
+  await Promise.all(mutants.map(([file,mutant])=>writeFile(file,mutant)));
   const result=await new Promise((resolve,reject)=>{
     const child=spawn(process.execPath,['--import','./tests/api-stability/browser-guard.mjs','tests/api-stability/advanced-settings.mjs'],{detached:true,stdio:'inherit',env:{...process.env,API_ADVANCED_OUTPUT:out,API_GUARD_REPORT:out+'/guard.json'}});
     let timedOut=false;
@@ -39,4 +44,4 @@ try{
     'pending output permission cannot modify a detached or replaced source',
   ].sort());
   await writeFile(out+'/negative-control.json',JSON.stringify({passed:true,detected:failed},null,2)+'\n');
-}finally{await writeFile(file,original);}
+}finally{await Promise.all([...originals].map(([file,original])=>writeFile(file,original)));}

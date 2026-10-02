@@ -50,7 +50,7 @@ test('custom time targets apply only to adapters that own time scheduling',()=>{
 test('public buffering updates replace policy, serialize and roll back without source replacement',async()=>{
  const {unitPlayer}=await import('./helpers/unit-player.mjs');const p=unitPlayer(),calls=[];
  const backend={setBuffering:async policy=>{calls.push(policy.profile);if(policy.profile==='resilient')throw Error('rejected');},get bufferingDiagnostics(){return resolveBuffering(p.buffering,'browser');}};
- p.current={backend};p.settings.pause=true;
+ p.current={backend};p.updateSettings({pause:true});
  await p.setBuffering({profile:'low-latency',aheadSeconds:20});
  assert.equal(p.getBuffering().requested.aheadSeconds,20);assert.equal(p.getBuffering().capabilities.timeTargets,false);
  assert.equal(p.current.backend,backend);assert.equal(p.pendingOperation,null);assert.equal(p.settings.pause,true);

@@ -1,47 +1,49 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PlayerError, playerError, isPlayerError } from './errors.js';
-/** Player-local, bounded evidence. No URL/credentials, persistent fingerprint or
- * cross-source acceptance shortcut. Every candidate must validate startup again. */
+import { createCapabilities, transitionCapabilities, selectCapabilities, capabilityUpdateEligible } from './machine/routing.js';
+/** Player-local object identities are shell resources; retained evidence and
+ * admission transitions belong to the immutable routing authority. */
 export class RuntimeCapabilities {
     identities = new WeakMap();
     serial = 0;
-    records = [];
-    verified = new Map();
+    state = createCapabilities();
     begin(source, plans) {
         let id = this.identities.get(source);
         if (!id) {
             id = `source-${++this.serial}`;
             this.identities.set(source, id);
         }
-        this.records = plans.map(p => ({ planId: p.id, sourceIdentity: id, eligible: p.eligible, state: 'untested', reason: p.reason,
-            previouslyVerified: this.verified.has(`${id}:${p.id}`) }));
+        this.state = transitionCapabilities(this.state, { kind: 'begin', sourceIdentity: id, plans: plans.map(plan => ({ id: plan.id, eligible: plan.eligible, reason: plan.reason })) });
     }
     update(planId, state, evidence, reason, failureKind) {
-        const record = this.records.find(r => r.planId === planId);
-        if (!record?.eligible)
+        const previous = this.state;
+        if (!capabilityUpdateEligible(previous, planId))
             return;
-        Object.assign(record, { state, evidence: evidence ? { ...evidence } : record.evidence, reason, failureKind });
-        const key = `${record.sourceIdentity}:${planId}`;
-        if (state === 'verified') {
-            this.verified.delete(key);
-            this.verified.set(key, { ...evidence });
-            if (this.verified.size > 32)
-                this.verified.delete(this.verified.keys().next().value);
-        }
-        else if (state === 'failed')
-            this.verified.delete(key);
+        const captured = evidence ? captureEvidence(evidence) : undefined;
+        if (this.state !== previous)
+            return;
+        this.state = transitionCapabilities(previous, { kind: 'update', planId, state, evidence: captured, reason, failureKind });
     }
-    admission(plans) {
-        for (const plan of plans) {
-            const r = this.records.find(r => r.planId === plan.id);
-            if (r && r.state === 'untested') {
-                r.eligible = plan.eligible;
-                r.reason = plan.reason;
-            }
-        }
+    admission(plans) { this.state = transitionCapabilities(this.state, { kind: 'admission', plans: plans.map(plan => ({ id: plan.id, eligible: plan.eligible, reason: plan.reason })) }); }
+    clear() { this.state = createCapabilities(); this.identities = new WeakMap(); }
+    snapshot() { return selectCapabilities(this.state); }
+}
+/** The supported evidence schema contains only scalar observations and two
+ * scalar maps. Normalize the boundary so custom backends cannot retain handles
+ * or callbacks in routing state through undeclared diagnostic properties. */
+function captureEvidence(value) {
+    const strings = new Set(['audioEvidenceStrength', 'apiHint', 'audioEvidence']);
+    const booleans = new Set(['prepared', 'completedAtEOF', 'outputVerified', 'metadata', 'sourceBufferCreated', 'initAccepted', 'mediaAccepted', 'decoderOutput', 'videoPresented', 'audioProgress', 'audioDecoded', 'audioDecoderConfigured', 'playbackReady']);
+    const result = {};
+    for (const [key, item] of Object.entries(value)) {
+        if ((strings.has(key) && (typeof item === 'string' || item === undefined)) || (booleans.has(key) && (typeof item === 'boolean' || item === undefined)))
+            result[key] = item;
+        else if (key === 'timing')
+            result[key] = item && typeof item === 'object' ? Object.fromEntries(Object.entries(item).filter(([, number]) => typeof number === 'number')) : undefined;
+        else if (key === 'audioObservation')
+            result[key] = item && typeof item === 'object' ? Object.fromEntries(Object.entries(item).filter(([name, datum]) => ['initialBytes', 'decodedBytes', 'delta'].includes(name) ? typeof datum === 'number' || datum === undefined : ['present', 'enabledTrack', 'clockAdvanced'].includes(name) && (typeof datum === 'boolean' || datum === undefined))) : undefined;
     }
-    clear() { this.records = []; this.verified.clear(); this.identities = new WeakMap(); }
-    snapshot() { return this.records.map(r => ({ ...r, evidence: r.evidence ? { ...r.evidence } : undefined })); }
+    return result;
 }
 /** Only positive compatibility failures permit another pipeline. Unknown errors,
  * missing assets, authorization, identity, network and cancellation stay terminal. */

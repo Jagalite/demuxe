@@ -39,12 +39,18 @@ def catalog():
         raise ValueError('Invalid slice catalog')
     for row in rows:
         target = row['target']
-        if target not in profiles or row['kind'] not in ['audio', 'preparation', 'container']:
+        if target not in profiles or row['kind'] not in ['audio', 'preparation', 'container', 'web']:
             raise ValueError('Unknown slice: ' + target)
         expected = ('audio-' + row['profile'] if row['kind'] == 'audio' else
-                    'ffmpeg-' + row['profile'] + '-' + row['runtime'] if row['kind'] == 'preparation' else 'container')
+                    'ffmpeg-' + row['profile'] + '-' + row['runtime'] if row['kind'] == 'preparation' else target if row['kind'] == 'web' else 'container')
         if target != expected:
             raise ValueError('Slice recipe/target mismatch: ' + target)
+        if row['kind'] == 'web':
+            pin = ROOT / row['pin']
+            if (profiles[target].get('runtimePin') != row['pin'] or
+                    not pin.resolve().is_relative_to(ROOT) or sha(pin) != row['pinSHA256']):
+                raise ValueError('Pinned web runtime changed: ' + target)
+            continue
         evidence = ROOT / row['evidence']
         if not evidence.resolve().is_relative_to(ROOT) or sha(evidence) != row['evidenceSHA256']:
             raise ValueError('Slice eligibility evidence changed: ' + target)
@@ -122,7 +128,7 @@ def build(target, sdk):
     output = ROOT / 'build/ci-slices' / target
     output.mkdir(parents=True, exist_ok=False)
     provenance = output / 'provenance'
-    if row['kind'] != 'container':
+    if row['kind'] in ['audio', 'preparation']:
         recorded_sdk = sdk_record(sdk, output / 'sdk.json')
         if row['kind'] == 'audio':
             profile = row['profile']
@@ -154,7 +160,7 @@ def build(target, sdk):
                         shutil.copyfile(path, retained)
             run('python3', 'scripts/record-codec-preparation-build.py', '--builds', builds,
                 '--profiles', profile, '--runtimes', runtime, '--sdk-record', recorded_sdk, '--output', provenance)
-    assembly = package(target, output, provenance if row['kind'] != 'container' else None)
+    assembly = package(target, output, provenance if row['kind'] in ['audio', 'preparation'] else None)
     receipt(target, output, assembly)
 
 

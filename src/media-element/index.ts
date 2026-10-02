@@ -2,16 +2,20 @@
 import {MediaView,MEDIA_VIEW_EVENTS,timeRanges} from '../integration/media-view.js';
 import type {PlaybackRuntime} from '../contracts.js';
 import {PlayerError} from '../internal/errors.js';
+import {initialMediaElementBinding,transitionMediaElementBinding,mediaElementBindingCurrent} from '../internal/machine/element-lifecycle.js';
 const Base=(typeof HTMLElement==='undefined'?class {}:HTMLElement) as typeof HTMLElement;
 /** Explicitly borrowed, application-owned sources. No automatic registration or playback. */
 export class DemuxeMediaElement extends Base {
+  private bindingState=initialMediaElementBinding();
   private view?:MediaView;
   private cleanup=Promise.resolve();
   private stops:(()=>void)[]=[];
   bind(player:PlaybackRuntime){
-    if(this.view)throw new PlayerError('INVALID_ARGUMENT','Dispose the previous binding before rebinding');
-    const view=this.view=new MediaView(player);
-    for(const name of MEDIA_VIEW_EVENTS){const listener=(event:Event)=>{if(this.view===view)this.dispatchEvent(new CustomEvent(name,{detail:(event as CustomEvent).detail}));};view.addEventListener(name,listener);this.stops.push(()=>view.removeEventListener(name,listener));}
+    const bound=transitionMediaElementBinding(this.bindingState,{type:'bind'});this.bindingState=bound.state;
+    if(!bound.accepted)throw new PlayerError('INVALID_ARGUMENT','Dispose the previous binding before rebinding');
+    const generation=bound.state.generation;let view:MediaView;
+    try {view=this.view=new MediaView(player);}catch(error){this.bindingState=transitionMediaElementBinding(this.bindingState,{type:'dispose'}).state;throw error;}
+    for(const name of MEDIA_VIEW_EVENTS){const listener=(event:Event)=>{if(mediaElementBindingCurrent(this.bindingState,generation))this.dispatchEvent(new CustomEvent(name,{detail:(event as CustomEvent).detail}));};view.addEventListener(name,listener);this.stops.push(()=>view.removeEventListener(name,listener));}
     view.synchronize();
     return this;
   }
@@ -37,9 +41,9 @@ export class DemuxeMediaElement extends Base {
   set src(_value:string){throw new PlayerError('UNSUPPORTED_FEATURE','Sources are application-owned; call Player.open');}
   play(){try{return this.requireView().play();}catch(error){return Promise.reject(error);}}
   pause(){this.requireView().pause();}
-  private requireView(){if(!this.view)throw new PlayerError('ABORTED','Media element is not bound');return this.view;}
-  dispose(){const view=this.view;this.view=undefined;for(const stop of this.stops.splice(0))stop();if(view)this.cleanup=view.dispose();return this.cleanup;}
-  disconnectedCallback(){queueMicrotask(()=>{if(!this.isConnected)void this.dispose();});}
+  private requireView(){if(!this.bindingState.bound||!this.view)throw new PlayerError('ABORTED','Media element is not bound');return this.view;}
+  dispose(){this.bindingState=transitionMediaElementBinding(this.bindingState,{type:'dispose'}).state;const view=this.view;this.view=undefined;for(const stop of this.stops.splice(0))stop();if(view)this.cleanup=view.dispose();return this.cleanup;}
+  disconnectedCallback(){this.bindingState=transitionMediaElementBinding(this.bindingState,{type:'disconnect'}).state;const connection=this.bindingState.connection;queueMicrotask(()=>{if(transitionMediaElementBinding(this.bindingState,{type:'disconnect-ready',connection,connected:this.isConnected}).accepted)void this.dispose();});}
 }
 export function registerMediaElement(name='demuxe-media'){
   if(typeof customElements==='undefined')throw new PlayerError('INVALID_ARGUMENT','Registration requires a browser');

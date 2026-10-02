@@ -3,6 +3,7 @@ import type { PlaybackRuntime } from '../contracts.js';
 declare const Base: typeof HTMLElement;
 /** Explicitly borrowed, application-owned sources. No automatic registration or playback. */
 export declare class DemuxeMediaElement extends Base {
+    private bindingState;
     private view?;
     private cleanup;
     private stops;

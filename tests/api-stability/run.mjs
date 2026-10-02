@@ -42,7 +42,9 @@ try{
       const content=await readFile(path.join(report.runtimeRoot,'..',file));
       assert.equal(content.length,expected.bytes,file);assert.equal(sha(content),expected.sha256,file);
     }
-    report.inventorySHA256=sha(await readFile('build/bundle-ci-inputs/bundle-ci-inventory.json'));
+    report.inventoryPath=path.resolve(process.env.API_BUNDLE_INVENTORY??'build/bundle-ci-inputs/bundle-ci-inventory.json');
+    const inventoryBytes=await readFile(report.inventoryPath),inventory=JSON.parse(inventoryBytes);report.inventorySHA256=sha(inventoryBytes);
+    report.runtimeSourceCommit=inventory.commit;report.runtimeQualification=inventory.qualification;
     report.fixtureSHA256=sha(await readFile('fixtures/example.mp4'));
     for(const suite of browsers[group]){
       const previous=new Set(suite.report?await results(suite.report):[]),guard=path.join(output,suite.file.replaceAll('/','-')+'-guard.json');

@@ -61,7 +61,7 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     verifyOutput(): Promise<void>;
     startupEvidence(): {
         sourceBufferCreated: boolean;
-        audioEvidenceStrength?: import("./browser-evidence-adapters.js").AudioEvidenceStrength;
+        audioEvidenceStrength?: "unknown" | "presence" | "decoded" | "consumed";
         audioObservation?: {
             initialBytes?: number;
             decodedBytes?: number;

@@ -61,7 +61,7 @@ export async function collectPackages({core, providers = [], providerDirectory})
     }
     // Keep each package's license declarations and notices even when runtime
     // paths overlap. Corresponding native source publication remains a release gate.
-    for (const name of ['LICENSE', 'license-map.json', 'provider-manifest.json']) files.set('third_party/providers/' + pkg.name.replace('@demuxe/', '') + '/' + name, await file(root, name));
+    for (const name of ['LICENSE', 'license-map.json', 'provider-manifest.json', ...Object.keys(providerLicenses).filter(name => name.startsWith('THIRD_PARTY/'))]) files.set('third_party/providers/' + pkg.name.replace('@demuxe/', '') + '/' + name, await file(root, name));
     records.push({name:pkg.name, version:pkg.version, implementationIdentity:identity});
   }
   const body = {providers:facts, assets:[...assets.values()]};

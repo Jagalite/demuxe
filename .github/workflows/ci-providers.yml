@@ -50,12 +50,15 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run build
       - name: Install pinned SDK
-        if: matrix.kind != 'container'
+        if: matrix.kind == 'audio' || matrix.kind == 'preparation'
         run: python3 scripts/ci-slices.py install-sdk
       - name: Build and audit exact slice and corresponding source
         env:
           SLICE_TARGET: ${{ matrix.target }}
         run: python3 scripts/ci-slices.py build --target "$SLICE_TARGET"
+      - name: Verify pinned web runtime package boundaries
+        if: matrix.kind == 'web'
+        run: python3 tests/shaka-provider-package.py
       - name: Check the installed native ABI
         if: matrix.kind == 'audio'
         env:

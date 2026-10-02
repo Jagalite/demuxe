@@ -133,8 +133,9 @@ def verify_corresponding_source(companion, engine, record, profile, files):
             if 'application/'+name not in observed:
                 raise ValueError('Incomplete CI application source: '+name)
         for row in ci_catalog['include']:
-            name=safe_path(row['evidence'])
-            if observed.get('application/'+name)!=row['evidenceSHA256']:
+            web = row['kind'] == 'web'
+            name=safe_path(row['pin'] if web else row['evidence'])
+            if observed.get('application/'+name)!=(row['pinSHA256'] if web else row['evidenceSHA256']):
                 raise ValueError('Missing matching CI catalog evidence: '+name)
     excluded=set(profile.get('excludedSourceConfigurations', []))
     if set(source_manifest.get('excludedConfigurations',[]))!=excluded:
@@ -246,6 +247,23 @@ def audit(target, files, record):
         if name.endswith(('.js', '.mjs', '.wasm')) and item.get('kind') != 'code':
             raise ValueError('Executable artifact mislabeled as metadata/notice: ' + name)
     if target != 'core':
+        profile = config['profiles'][target]
+        if profile.get('runtimePin'):
+            pin_path = profile['runtimePin']
+            pin_bytes = local_bytes(pin_path)
+            pin_digest = sha(pin_bytes)
+            if record.get('runtimePin') != {'path': pin_path, 'sha256': pin_digest} or record['sources'].get(pin_path) != {'sha256': pin_digest}:
+                raise ValueError('Pinned runtime source record differs')
+            pin = json.loads(pin_bytes)
+            if set(profile['files']) != set(pin['files']):
+                raise ValueError('Pinned runtime file set differs')
+            for name, expected in pin['files'].items():
+                data = files.get('runtime/' + name, b'')
+                if len(data) != expected['bytes'] or sha(data) != expected['sha256']:
+                    raise ValueError('Pinned runtime asset differs: ' + name)
+            for notice in pin['notices']:
+                if sha(files.get('THIRD_PARTY/' + pin['package'] + '/' + notice['sourcePath'], b'')) != notice['sha256']:
+                    raise ValueError('Pinned runtime notice differs: ' + notice['sourcePath'])
         manifest = json.loads(files['provider-manifest.json'])
         if spec.get('native', True):
             engine = json.loads(files['engine-build.json'])

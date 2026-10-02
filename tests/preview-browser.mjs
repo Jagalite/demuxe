@@ -6,7 +6,7 @@ const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,P
 let browser;
 try{
  const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',data=>{const match=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(match)resolve(match[0]);});});
- browser=await (process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']})});
+ browser=await (process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{...(process.env.BROWSER==='chromium'?{}:{channel:'chrome'}),args:['--autoplay-policy=no-user-gesture-required']})});
  const page=await browser.newPage();await page.goto(origin+'/examples/custom-controls.html');await page.waitForFunction(()=>window.player);
  const result=await page.evaluate(async()=>{
   await window.player.destroy();const {Player,LocalVideoPreviewProvider}=await import('/web/generated/index.js');

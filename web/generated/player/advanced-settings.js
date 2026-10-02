@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { formatTime } from './interaction.js';
+import { initialAdvancedControls, transitionAdvancedControls, advancedControlsBlocked, advancedFeatureDisabled, advancedShouldSync, advancedControlValue } from '../internal/machine/advanced-controls.js';
 export const advancedLabels = Object.freeze({
     videoSettings: 'Video and filters', audioSettings: 'Audio adjustments', subtitleSettings: 'Subtitle adjustments',
     navigationSettings: 'Navigation and repeat', streamingSettings: 'Streaming', presentationSettings: 'Playback and display',
@@ -70,13 +71,18 @@ export class AdvancedSettings {
     root;
     getPlayer;
     run;
-    dirty = new Set();
-    busy = false;
-    operation = 0;
-    owner;
-    sourceId = null;
-    signatures = new Map();
-    labels = { ...advancedLabels };
+    controlState = initialAdvancedControls(advancedLabels);
+    owners = new WeakMap();
+    get operation() { return this.controlState.operation; }
+    get labels() { return this.controlState.labels; }
+    transition(command) { const decision = transitionAdvancedControls(this.controlState, command); this.controlState = decision.state; return decision; }
+    ownerId(player) { if (!player)
+        return null; let id = this.owners.get(player); if (id === undefined) {
+        id = this.transition({ type: 'allocate-owner' }).ownerId;
+        this.owners.set(player, id);
+    } return id; }
+    dirty(field) { const control = this.root.getElementById(field); this.transition({ type: 'dirty', field, value: control?.value ?? '' }); }
+    clean(fields, operation) { this.reconcile(); this.transition({ type: 'clean', fields: fields.map(field => `advanced-${field}`), operation }); }
     constructor(root, getPlayer, run) {
         this.root = root;
         this.getPlayer = getPlayer;
@@ -86,20 +92,20 @@ export class AdvancedSettings {
         this.el('advanced-settings').addEventListener('input', event => {
             const target = event.target;
             if (target.id)
-                this.dirty.add(target.id);
+                this.dirty(target.id);
         });
+        this.el('advanced-settings').addEventListener('change', event => { const target = event.target; if (target.id)
+            this.dirty(target.id); }, true);
         const change = (id, action) => this.control(id).addEventListener('change', () => this.act(action));
         const click = (id, action) => this.control(id).addEventListener('click', () => this.act(action));
         const submit = (id, action, fields) => {
-            this.el(`advanced-${id}`).addEventListener('submit', event => { event.preventDefault(); this.act(async (p) => { const operation = this.operation; await action(p); if (operation !== this.operation)
-                return; for (const field of fields)
-                this.dirty.delete(`advanced-${field}`); }); });
+            this.el(`advanced-${id}`).addEventListener('submit', event => { event.preventDefault(); this.act(async (p) => { const operation = this.operation; await action(p); this.clean(fields, operation); }); });
         };
         this.control('preset').addEventListener('change', () => {
             if (this.value('preset') === 'custom')
                 return;
             this.control('vf').value = this.value('preset');
-            this.dirty.add('advanced-vf');
+            this.dirty('advanced-vf');
         });
         this.control('vf').addEventListener('input', () => { this.control('preset').value = 'custom'; });
         submit('video-form', p => p.setVideoFilters(this.value('vf')), ['vf', 'preset']);
@@ -108,10 +114,7 @@ export class AdvancedSettings {
             click(id, async (p) => {
                 const operation = this.operation;
                 await (key === 'vf' ? p.setVideoFilters('') : p.setAudioFilters(''));
-                if (operation !== this.operation)
-                    return;
-                this.dirty.delete(`advanced-${key}`);
-                this.dirty.delete('advanced-preset');
+                this.clean([key, 'preset'], operation);
             });
         change('tone', p => p.setToneMapping(this.checked('tone') ? 'hdr-to-sdr' : 'off'));
         change('mode', p => this.value('mode') === 'auto' ? p.setAutomaticSelection(true) : p.setMode(this.value('mode')));
@@ -132,9 +135,7 @@ export class AdvancedSettings {
                 style.fontFamily = this.value('sub-font');
             return p.setSubtitleStyle(style);
         }, styleFields);
-        click('style-reset', async (p) => { const operation = this.operation; await p.setSubtitleStyle({}); if (operation !== this.operation)
-            return; for (const id of styleFields)
-            this.dirty.delete(`advanced-${id}`); });
+        click('style-reset', async (p) => { const operation = this.operation; await p.setSubtitleStyle({}); this.clean(styleFields, operation); });
         change('font-file', async (p) => { const input = this.control('font-file'); const file = input.files?.[0], operation = this.operation; try {
             if (file)
                 await p.addFont(file);
@@ -148,7 +149,7 @@ export class AdvancedSettings {
         for (const [id, field] of [['mark-start', 'start'], ['mark-end', 'end']])
             click(id, p => {
                 this.control(field).value = String(Math.round(p.state.currentTime * 1000) / 1000);
-                this.dirty.add(`advanced-${field}`);
+                this.dirty(`advanced-${field}`);
             });
         click('loop-range', p => p.setLoop(this.range()));
         click('range', p => p.setPlaybackRange(this.range()));
@@ -190,51 +191,50 @@ export class AdvancedSettings {
     }
     el(id) { return this.root.getElementById(id); }
     control(id) { return this.el(`advanced-${id}`); }
-    value(id) { return this.control(id).value.trim(); }
+    value(id) { const control = this.control(id); return advancedControlValue(this.controlState, control.id, control.value).trim(); }
     checked(id) { return this.control(id).checked; }
     numeric(id) { const input = this.control(id); if (!input.value || !input.checkValidity())
         throw new Error(`Invalid value: ${input.closest('label')?.textContent?.trim() ?? id}`); return input.valueAsNumber; }
     range() { return { start: this.numeric('start'), end: this.numeric('end') }; }
-    reconcile() {
+    reconcileOwner() {
         const owner = this.getPlayer(), source = owner?.state.sourceId ?? null;
-        if (owner !== this.owner || source !== this.sourceId) {
-            this.owner = owner;
-            this.sourceId = source;
-            this.operation++;
-            this.busy = false;
-            this.dirty.clear();
-            this.signatures.clear();
-        }
+        return this.transition({ type: 'reconcile', ownerId: this.ownerId(owner), sourceId: source });
     }
+    reconcile() { this.reconcileOwner(); }
     act(action) {
         this.reconcile();
-        const player = this.getPlayer();
-        if (!player || player.isDestroyed || !this.root.host.isConnected || this.busy || player.state.pendingOperation)
+        const player = this.getPlayer(), decision = this.transition({ type: 'start', ownerId: this.ownerId(player), sourceId: player?.state.sourceId ?? null, destroyed: !!player?.isDestroyed, connected: this.root.host.isConnected, pending: !!player?.state.pendingOperation });
+        if (!player || !decision.accepted)
             return;
         const focused = this.root.activeElement;
-        const operation = ++this.operation;
-        this.busy = true;
+        const operation = decision.operation;
         // Invoke immediately to preserve browser user activation for PiP/output pickers.
         this.run((async () => {
             try {
                 await action(player);
             }
             finally {
-                if (operation === this.operation) {
-                    this.busy = false;
+                const reconciled = this.reconcileOwner();
+                if (this.transition({ type: 'settled', operation }).accepted) {
                     if (this.getPlayer() === player) {
                         this.update(player.state, true);
                         if (focused?.isConnected && !focused.matches(':disabled') && !this.el('settings').hidden && !this.root.activeElement && this.root.ownerDocument.hasFocus() && [this.root.host, this.root.ownerDocument.body, null].includes(this.root.ownerDocument.activeElement))
                             focused.focus({ preventScroll: true });
                     }
                 }
+                else if (reconciled.changed && !this.controlState.busy) {
+                    // Completion may be the first observation of source replacement.
+                    // Refresh its controls without restoring the retired owner's focus.
+                    const current = this.getPlayer();
+                    if (current)
+                        this.update(current.state);
+                }
             }
         })());
         this.update(player.state);
     }
     label(labels) {
-        this.labels = labels;
-        this.signatures.clear();
+        this.transition({ type: 'labels', labels });
         for (const node of Array.from(this.el('advanced-settings').querySelectorAll('[data-advanced-label]')))
             node.textContent = labels[node.dataset.advancedLabel];
     }
@@ -243,13 +243,13 @@ export class AdvancedSettings {
         if (!player)
             return;
         this.reconcile();
-        const blocked = player.isDestroyed || this.busy || !!state.pendingOperation || state.sourceId === null;
+        const blocked = advancedControlsBlocked(this.controlState, { destroyed: player.isDestroyed, pending: !!state.pendingOperation, sourceId: state.sourceId });
         for (const node of Array.from(this.el('advanced-settings').querySelectorAll('input,select,button')))
             node.disabled = blocked;
         for (const group of Array.from(this.el('advanced-settings').querySelectorAll('[data-feature]'))) {
             const name = group.dataset.feature, cap = state.capabilities.features[name];
             // Unknown readback/output permissions can only be resolved by attempting the action.
-            const disabled = blocked || cap.availability === 'unavailable' || cap.availability === 'unknown' && !['snapshot', 'audioOutputDevice'].includes(name);
+            const disabled = advancedFeatureDisabled(blocked, name, cap);
             const hint = state.sourceId === null ? this.labels.openForSettings : cap.availability === 'available' ? '' : cap.reason;
             const help = group.querySelector('[data-feature-hint]');
             help.textContent = hint;
@@ -262,7 +262,7 @@ export class AdvancedSettings {
         }
         const sync = (id, value, draft = false) => {
             const control = this.control(id);
-            if (draft && this.dirty.has(control.id) || !force && this.root.activeElement === control)
+            if (!advancedShouldSync(this.controlState, control.id, draft, this.root.activeElement === control, force))
                 return;
             if (typeof value === 'boolean')
                 control.checked = value;
@@ -273,7 +273,7 @@ export class AdvancedSettings {
         sync('mode', state.automaticSelection ? 'auto' : state.activeMode ?? 'auto');
         sync('vf', d.videoFilters, true);
         sync('af', d.audioFilters, true);
-        if (!this.dirty.has('advanced-vf') && !this.dirty.has('advanced-preset'))
+        if (!this.controlState.dirty.includes('advanced-vf') && !this.controlState.dirty.includes('advanced-preset'))
             sync('preset', ['', 'hflip', 'vflip', 'lavfi=[format=gray]', 'negate'].includes(d.videoFilters) ? d.videoFilters : 'custom');
         sync('tone', d.toneMapping === 'hdr-to-sdr');
         sync('gain', d.audioGain ?? 1);
@@ -321,9 +321,8 @@ export class AdvancedSettings {
     }
     options(id, values) {
         const signature = JSON.stringify(values);
-        if (this.signatures.get(id) === signature)
+        if (!this.transition({ type: 'signature', field: id, value: signature }).changed)
             return;
-        this.signatures.set(id, signature);
         const select = this.control(id);
         select.replaceChildren();
         for (const [value, label] of values) {

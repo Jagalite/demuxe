@@ -1,46 +1,44 @@
 // SPDX-License-Identifier: Apache-2.0
 import {PlayerError, playerError,isPlayerError} from './errors.js';
 
-export type CapabilityEvidence = {
-  audioEvidenceStrength?:import('./browser-evidence-adapters.js').AudioEvidenceStrength; audioObservation?:{initialBytes?:number;decodedBytes?:number;delta?:number;present?:boolean;enabledTrack?:boolean;clockAdvanced:boolean}; apiHint?: string; prepared?:boolean; completedAtEOF?:boolean; outputVerified?:boolean; audioEvidence?:string; timing?:Record<string,number>; metadata?: boolean; sourceBufferCreated?: boolean;
-  initAccepted?: boolean; mediaAccepted?: boolean; decoderOutput?: boolean;
-  videoPresented?: boolean; audioProgress?: boolean; audioDecoded?:boolean; audioDecoderConfigured?:boolean; playbackReady?: boolean;
-};
-export type CapabilityRecord = {
-  planId: string; sourceIdentity: string; eligible: boolean;
-  state: 'untested' | 'probing' | 'prepared' | 'verified' | 'failed'; reason?: string;
-  failureKind?: 'compatibility' | 'terminal'; evidence?: CapabilityEvidence;
-  previouslyVerified?: boolean;
-};
+import {createCapabilities,transitionCapabilities,selectCapabilities,capabilityUpdateEligible,type CapabilityEvidence,type CapabilityRecord} from './machine/routing.js';
+export type {CapabilityEvidence,CapabilityRecord} from './machine/routing.js';
 
-/** Player-local, bounded evidence. No URL/credentials, persistent fingerprint or
- * cross-source acceptance shortcut. Every candidate must validate startup again. */
+/** Player-local object identities are shell resources; retained evidence and
+ * admission transitions belong to the immutable routing authority. */
 export class RuntimeCapabilities {
-  private identities = new WeakMap<object,string>();
-  private serial = 0;
-  private records: CapabilityRecord[] = [];
-  private verified = new Map<string,CapabilityEvidence>();
-  begin(source: object, plans: Array<{id:string;eligible:boolean;reason?:string}>) {
+  private identities=new WeakMap<object,string>();
+  private serial=0;
+  private state=createCapabilities();
+  begin(source:object,plans:Array<{id:string;eligible:boolean;reason?:string}>){
     let id=this.identities.get(source);
     if(!id){id=`source-${++this.serial}`;this.identities.set(source,id);}
-    this.records=plans.map(p=>({planId:p.id,sourceIdentity:id!,eligible:p.eligible,state:'untested',reason:p.reason,
-      previouslyVerified:this.verified.has(`${id}:${p.id}`)}));
+    this.state=transitionCapabilities(this.state,{kind:'begin',sourceIdentity:id,plans:plans.map(plan=>({id:plan.id,eligible:plan.eligible,reason:plan.reason}))});
   }
-  update(planId:string, state:CapabilityRecord['state'], evidence?:CapabilityEvidence, reason?:string, failureKind?:CapabilityRecord['failureKind']) {
-    const record=this.records.find(r=>r.planId===planId);
-    if(!record?.eligible)return;
-    Object.assign(record,{state,evidence:evidence?{...evidence}:record.evidence,reason,failureKind});
-    const key=`${record.sourceIdentity}:${planId}`;
-    if(state==='verified'){
-      this.verified.delete(key);this.verified.set(key,{...evidence});
-      if(this.verified.size>32)this.verified.delete(this.verified.keys().next().value!);
-    }else if(state==='failed')this.verified.delete(key);
+  update(planId:string,state:CapabilityRecord['state'],evidence?:CapabilityEvidence,reason?:string,failureKind?:CapabilityRecord['failureKind']){
+    const previous=this.state;if(!capabilityUpdateEligible(previous,planId))return;
+    const captured=evidence?captureEvidence(evidence):undefined;
+    if(this.state!==previous)return;
+    this.state=transitionCapabilities(previous,{kind:'update',planId,state,evidence:captured,reason,failureKind});
   }
-  admission(plans:Array<{id:string;eligible:boolean;reason?:string}>) {
-    for(const plan of plans){const r=this.records.find(r=>r.planId===plan.id);if(r&&r.state==='untested'){r.eligible=plan.eligible;r.reason=plan.reason;}}
+  admission(plans:Array<{id:string;eligible:boolean;reason?:string}>){this.state=transitionCapabilities(this.state,{kind:'admission',plans:plans.map(plan=>({id:plan.id,eligible:plan.eligible,reason:plan.reason}))});}
+  clear(){this.state=createCapabilities();this.identities=new WeakMap();}
+  snapshot():CapabilityRecord[]{return selectCapabilities(this.state);}
+}
+
+/** The supported evidence schema contains only scalar observations and two
+ * scalar maps. Normalize the boundary so custom backends cannot retain handles
+ * or callbacks in routing state through undeclared diagnostic properties. */
+function captureEvidence(value:CapabilityEvidence):CapabilityEvidence {
+  const strings=new Set(['audioEvidenceStrength','apiHint','audioEvidence']);
+  const booleans=new Set(['prepared','completedAtEOF','outputVerified','metadata','sourceBufferCreated','initAccepted','mediaAccepted','decoderOutput','videoPresented','audioProgress','audioDecoded','audioDecoderConfigured','playbackReady']);
+  const result:Record<string,unknown>={};
+  for(const [key,item] of Object.entries(value)){
+    if((strings.has(key)&&(typeof item==='string'||item===undefined))||(booleans.has(key)&&(typeof item==='boolean'||item===undefined)))result[key]=item;
+    else if(key==='timing')result[key]=item&&typeof item==='object'?Object.fromEntries(Object.entries(item).filter(([,number])=>typeof number==='number')):undefined;
+    else if(key==='audioObservation')result[key]=item&&typeof item==='object'?Object.fromEntries(Object.entries(item).filter(([name,datum])=>['initialBytes','decodedBytes','delta'].includes(name)?typeof datum==='number'||datum===undefined:['present','enabledTrack','clockAdvanced'].includes(name)&&(typeof datum==='boolean'||datum===undefined))):undefined;
   }
-  clear(){this.records=[];this.verified.clear();this.identities=new WeakMap();}
-  snapshot():CapabilityRecord[] {return this.records.map(r=>({...r,evidence:r.evidence?{...r.evidence}:undefined}));}
+  return result as CapabilityEvidence;
 }
 
 /** Only positive compatibility failures permit another pipeline. Unknown errors,

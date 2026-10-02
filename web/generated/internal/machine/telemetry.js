@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 function emptyStatistics() {
     return Object.freeze({ sourceId: null, sessionEpoch: 0, acceptedAtMs: null, openToAcceptanceMs: null, firstPlayingMs: null, lastSeekMs: null, seekCount: 0, rebufferCount: 0, rebufferMs: 0, decodedFrames: null, presentedFrames: null, droppedFrames: null, throughputBitsPerSecond: null });
 }

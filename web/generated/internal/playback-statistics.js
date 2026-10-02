@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { createPlaybackStatistics, playbackStatisticsClockReads, selectPlaybackStatistics, transitionPlaybackStatistics } from './machine/telemetry.js';
 /** Bounded, source-scoped observations; no backend counter inference. */
 export class PlaybackStatistics {

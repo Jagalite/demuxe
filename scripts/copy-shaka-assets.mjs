@@ -6,7 +6,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 
-export async function copyShakaAssets(root = fileURLToPath(new URL('../', import.meta.url))) {
+export async function verifyShakaAssets(root = fileURLToPath(new URL('../', import.meta.url))) {
   const readJSON = async name => JSON.parse(await readFile(path.join(root, name), 'utf8'));
   const [pin, project, lock, installed] = await Promise.all([
     'third_party/shaka-player.json', 'package.json', 'package-lock.json',
@@ -36,6 +36,11 @@ export async function copyShakaAssets(root = fileURLToPath(new URL('../', import
       throw new Error('Shaka upstream notice mismatch: ' + notice.sourcePath);
     }
   }
+  return {pin, assets};
+}
+
+export async function copyShakaAssets(root = fileURLToPath(new URL('../', import.meta.url))) {
+  const {pin, assets} = await verifyShakaAssets(root);
   for (const [target, bytes] of assets) {
     const destination = path.join(root, target);
     await mkdir(path.dirname(destination), {recursive: true});

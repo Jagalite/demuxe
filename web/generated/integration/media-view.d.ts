@@ -9,7 +9,7 @@ export declare const MEDIA_VIEW_EVENTS: readonly ["play", "playing", "pause", "w
 export declare class MediaView extends EventTarget {
     private runtime;
     readonly binding: PlaybackBinding;
-    private previous?;
+    private control;
     private stops;
     constructor(runtime: PlaybackRuntime);
     /** Initialize an existing control consumer from an already accepted snapshot. */

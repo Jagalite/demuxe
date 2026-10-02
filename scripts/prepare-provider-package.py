@@ -22,6 +22,10 @@ def assemble(target,engine_path,companion_path,output):
     if native:verify_audio_engine_source(target,engine)
     outputs=json.loads(subprocess.check_output(['node','scripts/'+profile.get('compiler','compile-provider-sources.mjs'),target],cwd=ROOT))
     files={};record={'schema':1,'target':target,'files':{},'sources':{},'engineBuildRecord':engine,'sourceCompanion':companion}
+    if profile.get('runtimePin'):
+        pin=profile['runtimePin'];digest=sha((ROOT/pin).read_bytes())
+        record['runtimePin']={'path':pin,'sha256':digest}
+        record['sources'][pin]={'sha256':digest}
     def add(name,data,inputs,kind='code',licenses=None):
         licenses=licenses or sorted(set(policy.classify(p) for p in inputs));files[name]=data
         record['files'][name]={'sha256':sha(data),'inputs':inputs,'kind':kind,'licenses':licenses}

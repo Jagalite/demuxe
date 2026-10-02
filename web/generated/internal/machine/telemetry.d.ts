@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { PlaybackStats, PlayerState } from '../../types.js';
 export type PlaybackStatisticsState = Readonly<{
     data: PlaybackStats;

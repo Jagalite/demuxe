@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { PlayerErrorCode } from '../../types.js';
 type Request = Readonly<{
     id: number;

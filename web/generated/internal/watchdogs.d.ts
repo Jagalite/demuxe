@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { WatchdogOptions, WatchdogPolicy } from '../types.js';
 import { type NativeProgressSample } from './machine/telemetry.js';
 export type { NativeProgressSample };

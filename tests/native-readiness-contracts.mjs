@@ -58,7 +58,7 @@ test('bounded local output trials preserve position without caching unknown as i
  for(const [kind,error,allowed] of [['local',new StartupEvidenceTimeout('output'),true],['remote',new StartupEvidenceTimeout('output'),false],['local',new PlayerError('SOURCE_PERMISSION','denied'),false],['local',new DOMException('activation required','NotAllowedError'),false]]){
   const p=unitPlayer(),properties=new Map([['time-pos',2]]);let selected,cached=0;
   const backend={properties,diagnostics:{plan:'direct'},play:()=>{properties.set('time-pos',9);return Promise.resolve();},pause:async()=>{},verifyOutput:async()=>{throw error;}};
-  Object.assign(p,{current:{backend},source:{kind},queued:0,destroyed:false,automatic:true,settings:{pause:true},nativeRemux:'auto',nativeTracks:[],enqueue:f=>f(),evidence:()=>({prepared:true}),failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;}});
+  Object.assign(p,{current:{backend},source:{kind},automatic:true,settings:{pause:true},nativeRemux:'auto',nativeTracks:[],enqueue:f=>f(),evidence:()=>({prepared:true}),failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;}});
   Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct'}}}});
   if(allowed){await p.play();assert.equal(selected[5],2);assert.equal(cached,0);assert.equal(p.nativeRemux,'auto');}
   else{await assert.rejects(()=>p.play(),e=>e===error);assert.equal(selected,undefined);assert.equal(cached,0);}
@@ -117,7 +117,7 @@ test('only automatic unverified local direct output with an admitted alternative
  for(const change of [{},{automatic:false},{source:{kind:'remote'}},{nativeRemux:'never'},{verified:true},{planDecisions:[]}]){
   const p=unitPlayer(),budgets=[];
   const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},verifyOutput:async(_signal,budget)=>{budgets.push(budget);}};
-  Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',queued:0,destroyed:false,settings:{pause:true},planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({outputVerified:!!change.verified}),assertOperation(){},acceptEvidence(){},...change});
+  Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',settings:{pause:true},planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({outputVerified:!!change.verified}),assertOperation(){},acceptEvidence(){},...change});
   Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
   await p.play();assert.deepEqual(budgets,[Object.keys(change).length?undefined:1500]);
  }
@@ -126,7 +126,7 @@ test('only automatic unverified local direct output with an admitted alternative
 test('inconclusive local direct-mpv output preserves position and restores full verification if fallback assets fail',async()=>{
  const p=unitPlayer(),budgets=[],seeks=[];let selected,cached=0;
  const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},seek:async time=>{seeks.push(time);},verifyOutput:async(_signal,budget)=>{budgets.push(budget);if(budgets.length===1)throw new StartupEvidenceTimeout('output');}};
- Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',queued:0,destroyed:false,settings:{pause:true},nativeTracks:[],planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({prepared:true}),assertOperation(){},acceptEvidence(){},failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;assert.equal(p.nativeRemux,'always');throw new PlayerError('ASSET_LOAD_FAILED','missing fallback');}});
+ Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',settings:{pause:true},nativeTracks:[],planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({prepared:true}),assertOperation(){},acceptEvidence(){},failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;assert.equal(p.nativeRemux,'always');throw new PlayerError('ASSET_LOAD_FAILED','missing fallback');}});
  Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
  await p.play();assert.deepEqual(seeks,[2]);assert.deepEqual(budgets,[1500,undefined]);assert.equal(selected[5],2);assert.equal(cached,0);assert.equal(p.nativeRemux,'auto');assert.equal(p.settings.pause,false);
 });
@@ -135,7 +135,7 @@ test('a short trial never retries the original route after terminal fallback err
  for(const error of [new PlayerError('SOURCE_PERMISSION','denied'),new DOMException('cancelled','AbortError'),new DOMException('activation required','NotAllowedError')]){
   const p=unitPlayer();let verifications=0;
   const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},verifyOutput:async()=>{verifications++;throw new StartupEvidenceTimeout('output');}};
-  Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',queued:0,destroyed:false,settings:{pause:true},nativeTracks:[],planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({prepared:true}),assertOperation(){},failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){assert.fail('Unknown output must not poison admission');}},select:async()=>{throw error;}});
+  Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',settings:{pause:true},nativeTracks:[],planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({prepared:true}),assertOperation(){},failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){assert.fail('Unknown output must not poison admission');}},select:async()=>{throw error;}});
   Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
   await assert.rejects(()=>p.play(),e=>e===error);assert.equal(verifications,1);assert.equal(p.nativeRemux,'auto');
  }

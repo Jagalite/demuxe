@@ -929,9 +929,48 @@
         "LICENSES/Native-Dependencies.txt"
       ],
       "template": "packages/provider-audio-adpcm-qt/package.json"
+    },
+    "shaka": {
+      "npmName": "@demuxe/provider-shaka",
+      "native": false,
+      "owners": [
+        "core",
+        "shaka"
+      ],
+      "licenses": [
+        "Apache-2.0",
+        "Apache-2.0 AND MIT"
+      ],
+      "requiredFiles": [
+        "LICENSE",
+        "package.json",
+        "license-map.json",
+        "provider-manifest.json",
+        "THIRD_PARTY/shaka-player/LICENSE",
+        "THIRD_PARTY/shaka-player/AUTHORS",
+        "THIRD_PARTY/shaka-player/third_party/SUMMARY.txt",
+        "THIRD_PARTY/shaka-player/third_party/language-mapping-list/LICENSE",
+        "THIRD_PARTY/shaka-player/third_party/cml-cmcd/LICENSE",
+        "THIRD_PARTY/shaka-player/third_party/cml-cmcd/NOTICE",
+        "THIRD_PARTY/shaka-player/third_party/cml-cmcd/SUMMARY.txt"
+      ],
+      "template": "packages/provider-shaka/package.json"
     }
   },
   "ownershipRules": [
+    {
+      "owner": "core",
+      "paths": [
+        "packages/provider-shaka/index.*"
+      ]
+    },
+    {
+      "owner": "shaka",
+      "paths": [
+        "web/vendor/shaka-player.js",
+        "web/vendor/shaka-player.transmuxer-worker.js"
+      ]
+    },
     {
       "owner": "core",
       "paths": [
@@ -1290,7 +1329,17 @@
         "src/internal/machine/capabilities.ts",
         "src/internal/machine/data.ts",
         "src/internal/machine/media-info.ts",
+        "src/internal/machine/bindings.ts",
+        "src/internal/machine/preview-pregeneration.ts",
+        "src/internal/machine/playback.ts",
+        "src/internal/machine/settings.ts",
+        "src/internal/machine/preview.ts",
+        "src/internal/machine/advanced-controls.ts",
+        "src/internal/machine/byte-reader.ts",
         "src/internal/machine/protocol.ts",
+        "src/internal/machine/operations.ts",
+        "src/internal/machine/state.ts",
+        "src/internal/machine/transition.ts",
         "src/internal/machine/selectors.ts",
         "src/internal/machine/telemetry.ts",
         "src/internal/machine/presentation.ts",
@@ -1352,7 +1401,12 @@
         "web/fallback-stream-policy.js",
         "web/prepared-engine.js",
         "web/video-codec-config.js",
-        "licensing/provider-runtime-qualification.json"
+        "licensing/provider-runtime-qualification.json",
+        "src/internal/machine/source.ts",
+        "src/internal/machine/element-queue.ts",
+        "src/internal/machine/element-lifecycle.ts",
+        "src/internal/machine/element-controls.ts",
+        "src/internal/machine/routing.ts"
       ]
     },
     {
@@ -1399,6 +1453,41 @@
       "source": "LICENSES/BSD-3-Clause-opus.txt",
       "sha256": "01e1167d54a096d123cf6dfbbeb19587278845c6481d2d66d545669846079551",
       "license": "BSD-3-Clause"
+    },
+    "THIRD_PARTY/shaka-player/LICENSE": {
+      "source": "third_party/notices/shaka-player/LICENSE",
+      "sha256": "20ce2eba547fd0a8c4023511c003eabe510982a335cccd4e270f1f55ffbd2250",
+      "license": "Apache-2.0 AND MIT"
+    },
+    "THIRD_PARTY/shaka-player/AUTHORS": {
+      "source": "third_party/notices/shaka-player/AUTHORS",
+      "sha256": "abdb1d4c90519127eb92d323a6f1e3b9e8aec50a7ac00f8aeee7ca4880960977",
+      "license": "Apache-2.0 AND MIT"
+    },
+    "THIRD_PARTY/shaka-player/third_party/SUMMARY.txt": {
+      "source": "third_party/notices/shaka-player/third_party/SUMMARY.txt",
+      "sha256": "e73e188e88c9d950fbbee3d2a9511057bc50af78a627becd155de173c9caa569",
+      "license": "Apache-2.0 AND MIT"
+    },
+    "THIRD_PARTY/shaka-player/third_party/language-mapping-list/LICENSE": {
+      "source": "third_party/notices/shaka-player/third_party/language-mapping-list/LICENSE",
+      "sha256": "7113f6cf87ba13ed1700a35f033b9d448eb98ae7f80884b0f785b3a9cd640c23",
+      "license": "Apache-2.0 AND MIT"
+    },
+    "THIRD_PARTY/shaka-player/third_party/cml-cmcd/LICENSE": {
+      "source": "third_party/notices/shaka-player/third_party/cml-cmcd/LICENSE",
+      "sha256": "95cdf13a152329c8a60cf739d442f578a172727f0584bff42406126719312f62",
+      "license": "Apache-2.0 AND MIT"
+    },
+    "THIRD_PARTY/shaka-player/third_party/cml-cmcd/NOTICE": {
+      "source": "third_party/notices/shaka-player/third_party/cml-cmcd/NOTICE",
+      "sha256": "ae55a4168482117b80b555f07b0b56a65d579a1910b7d38e1a4b0c81292976e5",
+      "license": "Apache-2.0 AND MIT"
+    },
+    "THIRD_PARTY/shaka-player/third_party/cml-cmcd/SUMMARY.txt": {
+      "source": "third_party/notices/shaka-player/third_party/cml-cmcd/SUMMARY.txt",
+      "sha256": "8b8d9f102b2ff73ae0111668f71ca6d985ba407769cd1888ffde3c93a9c752a6",
+      "license": "Apache-2.0 AND MIT"
     }
   },
   "playerCoreSources": [
@@ -1426,7 +1515,17 @@
     "src/internal/machine/capabilities.ts",
     "src/internal/machine/data.ts",
     "src/internal/machine/media-info.ts",
+    "src/internal/machine/bindings.ts",
+    "src/internal/machine/preview-pregeneration.ts",
+    "src/internal/machine/playback.ts",
+    "src/internal/machine/settings.ts",
+    "src/internal/machine/preview.ts",
+    "src/internal/machine/advanced-controls.ts",
+    "src/internal/machine/byte-reader.ts",
     "src/internal/machine/protocol.ts",
+    "src/internal/machine/operations.ts",
+    "src/internal/machine/state.ts",
+    "src/internal/machine/transition.ts",
     "src/internal/machine/selectors.ts",
     "src/internal/machine/telemetry.ts",
     "src/internal/machine/presentation.ts",
@@ -1491,7 +1590,12 @@
     "src/internal/component-recipes.ts",
     "src/internal/component-selection.ts",
     "src/components.ts",
-    "src/internal/private-playback-admission.ts"
+    "src/internal/private-playback-admission.ts",
+    "src/internal/machine/source.ts",
+    "src/internal/machine/element-queue.ts",
+    "src/internal/machine/element-lifecycle.ts",
+    "src/internal/machine/element-controls.ts",
+    "src/internal/machine/routing.ts"
   ],
   "playerCoreComputedImports": {
     "src/unified-player.ts": [
@@ -3074,6 +3178,19 @@
           ]
         }
       }
+    },
+    "shaka": {
+      "files": [
+        "web/vendor/shaka-player.js",
+        "web/vendor/shaka-player.transmuxer-worker.js"
+      ],
+      "engines": [],
+      "providers": [
+        "shaka-adaptive"
+      ],
+      "generated": [],
+      "compiler": "compile-shaka-provider.mjs",
+      "runtimePin": "third_party/shaka-player.json"
     }
   }
 }
