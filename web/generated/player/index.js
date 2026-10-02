@@ -10,10 +10,11 @@ import { styles } from './styles.js';
 import { themeStyles } from './themes.js';
 import { icons } from './icons.js';
 import { playerShell } from './components.js';
+import { AdvancedSettings, advancedLabels, advancedSettingsStyles } from './advanced-settings.js';
 import { applyLayout, presentationStyles } from './presentation.js';
 const Base = (typeof HTMLElement === 'undefined' ? class {
 } : HTMLElement);
-export const defaultLabels = Object.freeze({ appearance: 'Appearance', layout: 'Layout', theme: 'Theme', classic: 'Classic', modern: 'Modern', playground: 'Playground', demuxeTheme: 'Demuxe', lightTheme: 'Light', previews: 'Timeline thumbnails', previewStrategy: 'Thumbnail strategy', previewAdaptive: 'Adaptive · nearby every 5s', previewUniform: 'Evenly spaced · 48 samples', previewInterval: 'Whole video · every 5s', previewOnDemand: 'On hover only', previewCustom: 'Custom', previewHelp: 'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', reading: 'Reading media…', inspecting: 'Inspecting media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
+export const defaultLabels = Object.freeze({ ...advancedLabels, appearance: 'Appearance', layout: 'Layout', theme: 'Theme', classic: 'Classic', modern: 'Modern', playground: 'Playground', demuxeTheme: 'Demuxe', lightTheme: 'Light', previews: 'Timeline thumbnails', previewStrategy: 'Thumbnail strategy', previewAdaptive: 'Adaptive · nearby every 5s', previewUniform: 'Evenly spaced · 48 samples', previewInterval: 'Whole video · every 5s', previewOnDemand: 'On hover only', previewCustom: 'Custom', previewHelp: 'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', reading: 'Reading media…', inspecting: 'Inspecting media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
 // Never display opaque URL payloads, origins, credentials, queries or fragments.
 function sourceTitle(source) {
     if (typeof File !== 'undefined' && source instanceof File)
@@ -63,6 +64,7 @@ export class DemuxePlayerElement extends Base {
         this.$('theme-select').value = this.theme;
     }
     core;
+    advanced;
     hoverPreview;
     previewIdentity = '';
     queueItems = [];
@@ -666,6 +668,8 @@ export class DemuxePlayerElement extends Base {
         this.core?.resize(width, height);
     } }
     update(state) {
+        if (!this.$('settings').hidden)
+            this.advanced?.update(state);
         this.syncPreviewStrategy();
         applyLayout(this.shadowRoot, this.layout, !!state.sourceId);
         const identity = `${state.sourceId}:${state.activeMode}`;
@@ -847,6 +851,8 @@ export class DemuxePlayerElement extends Base {
         this.$('settings').scrollTop = 0;
     } this.$('open-menu').setAttribute('aria-expanded', String(open && this.menuTrigger === 'open-menu')); this.iconButton('open-menu', open && this.menuTrigger === 'open-menu' ? 'folderOpen' : 'folder', this.labels.open); this.$('settings-toggle').setAttribute('aria-expanded', String(open && this.menuTrigger === 'settings-toggle')); if (open) {
         this.syncPreviewStrategy();
+        if (this.core)
+            this.advanced?.update(this.core.state);
         this.$('settings-close').focus();
     }
     else if (restoreFocus)
@@ -861,6 +867,7 @@ export class DemuxePlayerElement extends Base {
     } if (icon === 'back' || icon === 'forward')
         button.querySelector('text').textContent = String(this.seekStep); button.classList.add('icon-button'); button.setAttribute('aria-label', label); button.setAttribute('title', label); }
     labelControls() {
+        this.advanced?.label(this.labels);
         this.$('preview-help').textContent = this.labels.previewHelp;
         this.$('preview-strategy-label').textContent = this.labels.previewStrategy;
         for (const [value, key] of [['adaptive', 'previewAdaptive'], ['uniform', 'previewUniform'], ['interval', 'previewInterval'], ['on-demand', 'previewOnDemand'], ['custom', 'previewCustom']])
@@ -896,7 +903,8 @@ export class DemuxePlayerElement extends Base {
             this.$(id + '-label').textContent = this.labels[id === 'live' ? 'streamLive' : id];
     }
     renderShell() {
-        this.shadowRoot.innerHTML = `<style>${styles}${themeStyles}${presentationStyles}</style>${playerShell()}`;
+        this.shadowRoot.innerHTML = `<style>${styles}${themeStyles}${presentationStyles}${advancedSettingsStyles}</style>${playerShell()}`;
+        this.advanced = new AdvancedSettings(this.shadowRoot, () => this.core, work => this.run(work));
         this.updatePresentation();
         this.labelControls();
         this.updateTitle();

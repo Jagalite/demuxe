@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: '17 4 * * 1'
   workflow_dispatch:
     inputs:
       source_run:
@@ -45,6 +47,61 @@ jobs:
   providers:
     if: ${{ !inputs.source_run }}
     uses: ./.github/workflows/ci-providers.yml
+  api:
+    name: Public API (${{ matrix.browser }}, ${{ matrix.suite }})
+    needs: providers
+    if: ${{ !inputs.source_run }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        browser: [chromium, firefox]
+        suite: [core, ui, integration, preview, sequences, streaming]
+    env:
+      BROWSER: ${{ matrix.browser }}
+      BUNDLE_INVENTORY_SHA256: ${{ needs.providers.outputs.inventory_sha256 }}
+      BUNDLE_SOURCE_CANDIDATE: '1'
+      DEMUXE_RUNTIME_ROOT: build/bundle-flexibility/ci-assets/assets
+      API_EXTENDED: ${{ github.event_name == 'schedule' && '1' || '0' }}
+      API_SEED: ${{ github.event_name == 'schedule' && github.run_number || '24301' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Install fixture tools and audio service
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg pulseaudio
+          pulseaudio --start --exit-idle-time=-1
+      - uses: actions/download-artifact@v4
+        with:
+          name: source-provider-browser-inputs
+          path: build/bundle-ci-inputs
+      - run: node scripts/prepare-bundle-ci.mjs
+      - run: node tests/api-stability/fixtures.mjs
+      - run: node tests/api-stability/run.mjs browser ${{ matrix.suite }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-api-${{ matrix.browser }}-${{ matrix.suite }}
+          path: |
+            results/api-stability/
+            results/public-api/
+            results/api-roadmap/
+            results/api-integration/
+            results/player-component/
+            results/player-presentation/
+            results/shaka/
+            build/fixtures/api-fixtures.json
+            build/bundle-flexibility/ci-assets/bundle-manifest.json
+            build/bundle-ci-inputs/bundle-ci-inventory.json
+            build/bundle-ci-consumer/candidate-admission.json
   native:
     needs: providers
     if: ${{ !cancelled() && (needs.providers.result == 'success' || inputs.source_run != '') }}

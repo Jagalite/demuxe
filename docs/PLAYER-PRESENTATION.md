@@ -109,6 +109,27 @@ Modern controls retain keyboard focusability while visually hidden, including wh
 
 Review validation: **20/20** checks passed in [Chrome](../results/player-presentation/chrome-2026-09-27T17-31-41.212Z/result.json) and [Firefox](../results/player-presentation/firefox-2026-09-27T17-32-20.236Z/result.json). The narrow-layout and compact-fullscreen failures were reproduced before their fixes. Narrow-layout and fullscreen screenshots were inspected. TypeScript passed; the original 50-check classic baseline above remains the prior implementation result.
 
+
+## Extended playback settings
+
+The shared settings panel includes collapsible sections in every layout:
+
+| Section | Controls |
+| --- | --- |
+| Video and filters | Mirror, vertical flip, grayscale and negative presets; editable video filter chain with Apply/Reset; HDR-to-SDR tone mapping |
+| Audio adjustments | Audio filter chain with Apply/Reset, scalar gain, audio delay, browser audio-output picker and default-output reset |
+| Subtitle adjustments | Visibility, delay, plain-text font size/color/outline/family, style reset, TTF/OTF font attachment |
+| Navigation and repeat | Chapters, whole-source/range repeat, A–B loop, playback bounds, current-time markers, previous/next frame |
+| Streaming | Automatic or manual quality, automatic height/bitrate limits, live-edge navigation |
+| Playback and display | Automatic/Native/Hybrid/Software selection, PNG frame download with optional subtitles, picture in picture, system media controls |
+
+`src/player/advanced-settings.ts` owns the persistent controls and binds them to the public player API. Its labels extend the existing element `labels` property. Feature availability drives disabled controls and explanatory text; route-switch reasons are shown before applying changes. Snapshot and audio-output availability can remain unknown until the browser attempts the operation, so these actions remain attemptable with media open. Failures use the existing player error surface. Filter presets are convenience strings, not a guarantee that every deployed runtime includes the corresponding filter.
+
+Filter, subtitle-style, quality-limit and range drafts survive playback state updates. Failed Apply operations preserve drafts; immediate settings resynchronize with accepted player state. A new source resets drafts and refreshes chapter/quality inventories. Subtitle visibility respects track policy. Output-device permission is requested only from the explicit picker action. Snapshot download URLs are released after use.
+
+The frontend was subsequently compiled on 2026-10-01. The focused Firefox startup/thumbnail investigation below covers playback and previews; earlier presentation reports do not qualify every new advanced setting.
+
+
 ### Playback priority for timeline thumbnails
 
 The element defaults to the Adaptive strategy: 24 samples distributed across the finite timeline first, followed by five-second samples within 30 seconds of playback or the latest hover position. Its cache remains bounded to 16 MiB / 96 entries. It does not eagerly generate every five-second position in a long movie. Explicit `previewOptions` retain their own configuration. The thumbnail toggle and initial `no-preview` attribute stop generation as well as hiding the image; enabling the toggle cannot override `previewOptions: false` or `enabled: false`. Software samples deferred by active playback remain queued for pause. Hover requests check the cache without waiting for an active decode and use strategy-specific proximity and preserve the approximate represented timestamp. Adaptive hover can show a broad sample immediately, then request a closer frame. Exact API requests do not use nearby samples. The first uncached request still requires decoding; the UI shows the requested time while waiting.

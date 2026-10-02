@@ -4,9 +4,10 @@ import {spawn,execFileSync} from 'node:child_process';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
+import path from 'node:path';
 const family=process.env.BROWSER??'chrome',out=`results/api-integration/${family}-${Date.now()}`;
 await mkdir(out,{recursive:true});
-const hashes={};for(const file of ['tests/integration-browser.mjs','examples/integration.html','web/generated/unified-player.js','web/generated/presentation.js','web/generated/integration/index.js','web/generated/integration/media-view.js','web/generated/media-element/index.js','web/generated/adapters/videojs.js','web/engine-hybrid/player.wasm','web/engine-software-yuv/player.wasm','node_modules/media-chrome/dist/index.js','node_modules/video.js/dist/video.js'])hashes[file]=createHash('sha256').update(await readFile(file)).digest('hex');
+const hashes={};for(const file of ['tests/integration-browser.mjs','examples/integration.html','web/generated/unified-player.js','web/generated/presentation.js','web/generated/integration/index.js','web/generated/integration/media-view.js','web/generated/media-element/index.js','web/generated/adapters/videojs.js',...(process.env.DEMUXE_RUNTIME_ROOT?[]:['web/engine-hybrid/player.wasm','web/engine-software-yuv/player.wasm']),'node_modules/media-chrome/dist/index.js','node_modules/video.js/dist/video.js'])hashes[file]=createHash('sha256').update(await readFile(file.startsWith('web/')&&process.env.DEMUXE_RUNTIME_ROOT?path.join(process.env.DEMUXE_RUNTIME_ROOT,file):file)).digest('hex');
 let browser,server;const checks=[],errors=[];
 try{
  server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});

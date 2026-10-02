@@ -32,7 +32,7 @@ for(const name of ['english','alternate','low','high']){
 }
 const eventMaster=(await fs.readFile(path.join(fixture,'master.m3u8'),'utf8')).split('\n').filter(line=>!line.startsWith('#EXT-X-MEDIA:TYPE=SUBTITLES')).join('\n').replaceAll(',SUBTITLES="subs"','').replaceAll('index.m3u8','event.m3u8');
 await fs.writeFile(path.join(fixture,'event-master.m3u8'),eventMaster);
-const server=await serve(repo,path.join(repo,'tests/head-to-head'),path.join(out,'requests.jsonl'));
+const server=await serve(repo,path.join(repo,'tests/head-to-head'),path.join(out,'requests.jsonl'),{runtimeRoot:process.env.DEMUXE_RUNTIME_ROOT});
 const url=server.origin+'/'+path.relative(repo,fixture)+'/master.m3u8';
 const dash=server.origin+'/build/head-to-head/assets-component-isolation-01/fixtures/dash-h264/index.mpd';
 const eventURL=server.origin+'/'+path.relative(repo,fixture)+'/event-master.m3u8';
