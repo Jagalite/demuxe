@@ -17,10 +17,9 @@ export declare class Player extends EventTarget {
     private providerRuntime?;
     private get buffering();
     private set buffering(value);
-    private stateSnapshot;
+    private get stateSnapshot();
     private subscribers;
-    private publishQueued;
-    private publicationSerial;
+    private get publicationSerial();
     readonly presentation: PlayerPresentation;
     private get outputDeviceId();
     private set outputDeviceId(value);
@@ -41,8 +40,7 @@ export declare class Player extends EventTarget {
     private set audioDelay(value);
     private get subtitleStyle();
     private set subtitleStyle(value);
-    private readonly statistics;
-    private operationStarted;
+    private get operationStarted();
     private get publicSelections();
     private control;
     private controlTrace;
@@ -52,7 +50,8 @@ export declare class Player extends EventTarget {
     private get operationEpoch();
     private get activeOperation();
     private get pendingOperation();
-    private sessionError;
+    private get sessionError();
+    private set sessionError(value);
     private get observedPlaying();
     private get observedWaiting();
     private get muted();
@@ -148,8 +147,8 @@ export declare class Player extends EventTarget {
     private get fonts();
     private get subtitleAssets();
     private root;
-    private width;
-    private height;
+    private get width();
+    private get height();
     private current?;
     private candidate?;
     private source?;

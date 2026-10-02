@@ -5,11 +5,12 @@ import { rangeRequirement } from './playback-boundary.js';
 import { featureRejection } from './playback-plans.js';
 export function initialSettings() { return Object.freeze({ pause: true, volume: 100, speed: 1, aid: 'auto', sid: 'auto', subtitles: true, vf: '', af: '', gain: 1 }); }
 export function transitionSettings(state, input) { return Object.freeze(input.type === 'settings.accept' ? { ...input.value } : { ...state, ...input.value }); }
-export function initialPreferences() { return Object.freeze({ publicSelections: Object.freeze({}), muted: false, outputDeviceId: '', buffering: Object.freeze({ preload: 'auto', profile: 'balanced' }), toneMapping: 'off', subtitleDelay: 0, audioDelay: 0, subtitleStyle: Object.freeze({}), playbackRange: null, loopPolicy: false, qualityPolicy: null }); }
+export function initialPreferences() { return Object.freeze({ publicSelections: Object.freeze({}), outputSize: Object.freeze({ width: 640, height: 360 }), muted: false, outputDeviceId: '', buffering: Object.freeze({ preload: 'auto', profile: 'balanced' }), toneMapping: 'off', subtitleDelay: 0, audioDelay: 0, subtitleStyle: Object.freeze({}), playbackRange: null, loopPolicy: false, qualityPolicy: null }); }
 export function effectiveVideoFilters(settings, preferences) {
     const tone = preferences.toneMapping === 'hdr-to-sdr' ? 'zscale=transfer=linear:npl=100,format=gbrpf32le,zscale=primaries=bt709,tonemap=tonemap=mobius:desat=0,zscale=transfer=bt709:matrix=bt709:range=limited,format=yuv420p' : '';
     return [tone ? `lavfi=[${tone}]` : '', settings.vf].filter(Boolean).join(',');
 }
+export function validOutputSize(width, height) { return Number.isInteger(width) && Number.isInteger(height) && width >= 1 && height >= 1 && width <= 1920 && height <= 1080; }
 export function changePreferences(state, value) { return copyData({ ...state, ...value }); }
 export function clearSourcePreferences(state) { return Object.freeze({ ...state, publicSelections: Object.freeze({}), playbackRange: null, loopPolicy: false, qualityPolicy: null }); }
 export function initialSettingsTransactions() { return Object.freeze({ serial: 0, pending: null, degraded: null }); }

@@ -7,6 +7,7 @@ import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {SoftwarePreviewProvider} from '../../web/generated/preview/software.js';
 import {WasmPlayer} from '../../web/generated/internal/wasm-player.js';
+import {createWasmLifecycle} from '../../web/generated/internal/machine/wasm-lifecycle.js';
 const turn=()=>new Promise(setImmediate);
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return{promise,resolve,reject};};
 
@@ -14,7 +15,7 @@ async function fixture(t,{geometry={w:320,h:180}}={}){
  const root=await mkdtemp(join(tmpdir(),'demuxe-preview-readiness-')),created=deferred(),opened=deferred(),loaded=deferred(),presented=deferred();
  const key=Symbol.for(root),log={snapshots:0,destroys:0,cleanups:[],resizes:[],commands:[]};
  class ControlledPlayer extends EventTarget{
-  ready=Promise.resolve();properties=new Map();eventWaiters=new Set();destroyed=false;
+  ready=Promise.resolve();properties=new Map();eventWaiters=new Map();lifecycle=createWasmLifecycle();destroyed=false;
   constructor(canvas){super();this.canvas=canvas;if(geometry)this.properties.set('video-params',geometry);created.resolve(this);}
   async command(...args){log.commands.push(args);}
   async open(){opened.resolve(this);await loaded.promise;}
@@ -24,7 +25,7 @@ async function fixture(t,{geometry={w:320,h:180}}={}){
   waitForEvent(predicate){return WasmPlayer.prototype.waitForEvent.call(this,predicate);}
   resize(width,height){log.resizes.push([width,height]);this.canvas.width=width;this.canvas.height=height;}
   async previewSnapshot(){log.snapshots++;return{blob:new Blob(['image'],{type:'image/jpeg'}),time:2,width:this.canvas.width,height:this.canvas.height};}
-  async destroy(){if(this.destroyed)return;this.destroyed=true;log.destroys++;for(const cancel of this.eventWaiters)cancel(Error('Player destroyed'));}
+  async destroy(){if(this.destroyed)return;this.destroyed=true;log.destroys++;for(const entry of [...this.eventWaiters.values()])entry.cancel(Error('Player destroyed'));}
   tracks(value){this.properties.set('track-list',value);this.dispatchEvent(new CustomEvent('mpv',{detail:{event:'property-change',name:'track-list',data:value}}));}
   geometry(value){this.properties.set('video-params',value);this.dispatchEvent(new CustomEvent('mpv',{detail:{event:'property-change',name:'video-params',data:value}}));}
   end(){this.dispatchEvent(new CustomEvent('mpv',{detail:{event:'end-file'}}));}
@@ -102,10 +103,10 @@ test('end-of-file while metadata is withheld rejects the bounded waiter and rele
 });
 
 test('withheld metadata uses the existing bounded media waiter and removes its listener at deadline',async t=>{
- const f=await fixture(t),timers=[];
+ const f=await fixture(t),timers=[];let now=0;t.mock.method(performance,'now',()=>now);
  t.mock.method(globalThis,'setTimeout',(callback,delay)=>{const timer={callback,delay};timers.push(timer);return timer;});
  t.mock.method(globalThis,'clearTimeout',timer=>{timer.cleared=true;});
  f.loaded.resolve();f.presented.resolve();await turn();assert.equal(f.settled,false);
- assert.equal(timers.length,1);assert.equal(timers[0].delay,25000);timers[0].callback();
+ assert.equal(timers.length,1);assert.equal(timers[0].delay,25000);now=25000;timers[0].callback();
  await assert.rejects(f.result,/timed out/);assert.equal(timers[0].cleared,true);assert.equal(f.log.snapshots,0);await f.clean();
 });

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';
+import {initialNativeBackend} from '../web/generated/internal/machine/native-backend.js';
 import assert from 'node:assert/strict';
 import {featureRejection, qualifiedAudioFilter, executionPlan} from '../web/generated/internal/playback-plans.js';
 import {RemuxPlayer} from '../web/native-remux-player.js';
@@ -59,7 +60,7 @@ test('adapted and packet-copy Native share source stream identities with mpv',()
 function seekingPlayer(){
  const video=new EventTarget();let serial=0;const callbacks=new Map();
  Object.assign(video,{seeking:false,currentTime:3.5,requestVideoFrameCallback(callback){callbacks.set(++serial,callback);return serial},cancelVideoFrameCallback(id){callbacks.delete(id)}});
- const p=Object.assign(Object.create(NativePlayer.prototype),{video,remux:{generation:4,timelineBias:1},stopped:false,cancelers:new Set()});
+ const p=Object.assign(Object.create(NativePlayer.prototype),{video,remux:{generation:4,timelineBias:1},native:initialNativeBackend(),cancelers:new Set()});
  return {p,video,frame(mediaTime){const [id,callback]=callbacks.entries().next().value;callbacks.delete(id);callback(0,{mediaTime})},callbacks};
 }
 test('seek presentation accepts a covering low-fps frame only after seeking completes',async()=>{
@@ -86,7 +87,7 @@ test('playing buffered seeks hold the clock until verified output then restore i
  const calls=[];
  const video={paused:false,videoWidth:1280,currentTime:3,seeking:false};
  const remux={timelineBias:1,canSeekBuffered:()=>true,pause(){calls.push('pause');video.paused=true},async seek(t){calls.push('seek');video.currentTime=t+1},async play(){calls.push('play');video.paused=false}};
- const p=Object.assign(Object.create(NativePlayer.prototype),{video,remux,stopped:false,refresh(){},async seekPresented(target,action){assert.equal(video.paused,true);await action();calls.push('verified')}});
+ const p=Object.assign(Object.create(NativePlayer.prototype),{video,remux,native:initialNativeBackend(),refresh(){},async seekPresented(target,action){assert.equal(video.paused,true);await action();calls.push('verified')}});
  await p.seek(5);assert.deepEqual(calls,['pause','seek','verified','play']);assert.equal(video.paused,false);
  calls.length=0;video.paused=true;await p.seek(7);assert.deepEqual(calls,['pause','seek','verified']);assert.equal(video.paused,true);
 });

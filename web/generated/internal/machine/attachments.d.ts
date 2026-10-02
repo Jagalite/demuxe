@@ -87,6 +87,10 @@ export declare function attachmentAuthority(state: PlayerControlState, id: numbe
 export declare function candidateAttachments(state: PlayerControlState): readonly AttachmentEntry[];
 export declare function attachmentPreferences(state: PlayerControlState): Readonly<{
     publicSelections: Readonly<Partial<Record<"audio" | "sub", string>>>;
+    outputSize: Readonly<{
+        width: number;
+        height: number;
+    }>;
     muted: boolean;
     outputDeviceId: string;
     buffering: import("../../types.js").BufferingPolicy;
@@ -101,6 +105,8 @@ export declare function attachmentPreferences(state: PlayerControlState): Readon
 export declare function transitionAttachment(state: PlayerControlState, input: AttachmentInput): Readonly<{
     state: Readonly<{
         revision: number;
+        captureRevision: number;
+        publication: import("./player-publication.js").PlayerPublicationState;
         monitor: import("./player-monitor.js").PlayerMonitorState;
         attachments: AttachmentState;
         routing: import("./route-state.js").RoutingState;

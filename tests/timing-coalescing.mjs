@@ -2,8 +2,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {WasmPlayer} from '../web/generated/internal/wasm-player.js';
+import {createWasmLifecycle,retireWasmLifecycle} from '../web/generated/internal/machine/wasm-lifecycle.js';
 function setup(){
  const messages=[],player=Object.create(WasmPlayer.prototype);
+ player.lifecycle=createWasmLifecycle();
  player.worker={postMessage:message=>messages.push(message)};
  player.audioContext={baseLatency:.005,outputLatency:.01,state:'running'};
  return {player,messages};
@@ -23,6 +25,6 @@ test('post-initialization handoff republishes state even if an early message was
  player.sendTiming();assert.equal(messages.length,1);
 });
 test('destroyed players ignore even a forced late timing observation',()=>{
- const {player,messages}=setup();player.destroyed=true;player.sendTiming(true);
+ const {player,messages}=setup();player.lifecycle=retireWasmLifecycle(player.lifecycle).state;player.sendTiming(true);
  assert.deepEqual(messages,[]);
 });

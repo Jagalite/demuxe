@@ -12,6 +12,7 @@ import type {ExternalDecodeIntent} from './external-decoder-selection.js';
 import type {DecodeQuality} from './decode-policy.js';
 import {watchdogPolicy} from './watchdogs.js';
 import type {WatchdogPolicy} from '../types.js';
+import {createWasmLifecycle,wasmAlive,markWasmInitialized,settleWasmInitialization,claimWasmWorkerFailure,admitWasmRequest,settleWasmRequest,rejectWasmRequests,admitWasmWaiter,settleWasmWaiter,beginWasmOpen,ownsWasmOpen,finishWasmOpen,observeWasmFile,retireWasmLifecycle,finishWasmRetirement} from './machine/wasm-lifecycle.js';
 export type PlayerEvent = {event:string; id?:number; name?:string; data?:unknown; error?:string; [key:string]:unknown};
 export type RemoteSource = MediaInputOptions & {streaming?:StreamingOptions;url:string;format?:'file'|'hls'|'dash';headers?:Record<string,string>;credentials?:RequestCredentials;allowedOrigins?:string[];immutable?:boolean;refreshAuthorization?:(resource?:{url:string})=>Promise<{url?:string;headers?:Record<string,string>}>};
 export type PlayerDiagnostics = {buffering?:BufferingResolution;path:'wasm';presentation?:{position?:number;pts?:number[];retained?:number;pending?:number;received?:number;closed?:number};decoder?:'software'|'webcodecs'|'webgpu';decoderBackend?:'ffmpeg'|'webcodecs'|'webgpu';webgpu?:{available:boolean;selected:boolean;codec:string|null;decodeIntent?:ExternalDecodeIntent|null;queuedPackets:number;retainedFrames:number;liveSurfaces:number;surfaceBytes:number;pooledBufferBytes:number;pipelineCount:number;submissions:number;deviceLost:boolean};decoderStats?:Record<string,number|boolean>; rendered:number; heapBytes:number; queuedFrames:number; epoch:number;io?:Record<string,number|string>;seeking?:boolean;position?:number;presentedPosition?:number;ioPending?:boolean;interruptions?:number;renderMs?:number;copyMs?:number};
@@ -31,22 +32,20 @@ export class WasmPlayer extends EventTarget {
   private timing?: ReturnType<typeof setInterval>;
   private lastTiming?: {latencyUs:number;running:boolean};
   private watchdogs=watchdogPolicy();
-  private initSent=false;
+  private lifecycle=createWasmLifecycle();
+  private initializationError?:Error;
+  private get destroyed(){return this.lifecycle.phase==='retiring'||this.lifecycle.phase==='closed';}
   setWatchdogs(policy:WatchdogPolicy){
     this.watchdogs=policy;
-    if(this.initSent&&!this.destroyed)this.worker.postMessage({type:'watchdogs',decoderOutput:policy.decoderOutput});
+    if(this.lifecycle.initSent&&!this.destroyed)this.worker.postMessage({type:'watchdogs',decoderOutput:policy.decoderOutput});
   }
-  private nextId = 100;
-  private pending = new Map<number,{resolve:(result?:any)=>void;reject:(error:Error)=>void;timer:ReturnType<typeof setTimeout>}>();
-  private destroyed = false;
+  private pending = new Map<number,{resolve:(result?:any)=>void;reject:(error:Error)=>void;timer?:ReturnType<typeof setTimeout>}>();
   private destruction?: Promise<void>;
   private onDestroyed?: () => void;
   private readyTimer?: ReturnType<typeof setTimeout>;
   private rejectReady?: (error:Error)=>void;
-  private eventWaiters=new Set<(error:Error)=>void>();
-  private hasFile=false;
+  private eventWaiters=new Map<number,{cancel:(error:Error)=>void;finish:(error?:Error)=>unknown}>();
   private seekObservation?: {target:number; restarted:boolean; eof:boolean; clamped?:number};
-  private opening=false;
   private refreshAuthorization?:RemoteSource['refreshAuthorization'];
   private audioHeader: Int32Array;
   private readonly audioOnly:boolean;
@@ -84,39 +83,39 @@ export class WasmPlayer extends EventTarget {
     this.audioHeader = new Int32Array(audio,0,16);
     this.ready = new Promise<void>((resolve,reject) => {
       this.rejectReady=reject;
-      const timeout=this.readyTimer=setTimeout(()=>reject(new Error('Player initialization timed out')),60000);
-      let workerFailed=false;
+      const failReady=(error:Error)=>{if(this.lifecycle.phase!=='initializing')return;this.lifecycle=settleWasmInitialization(this.lifecycle,false);this.initializationError=error;reject(error);};
+      const timeout=this.readyTimer=setTimeout(()=>failReady(new Error('Player initialization timed out')),60000);
       const workerFailure=(event:ErrorEvent|MessageEvent)=>{
-        if(this.destroyed||workerFailed)return;
-        workerFailed=true;event.preventDefault();clearTimeout(timeout);
+        const failure=claimWasmWorkerFailure(this.lifecycle);this.lifecycle=failure.state;if(!failure.accepted)return;
+        event.preventDefault();clearTimeout(timeout);
         const error=new PlayerError('ASSET_LOAD_FAILED','Playback engine worker failed: '+('message' in event?event.message:event.type),null,null,'operation',true);
-        reject(error);this.fail(error);
+        if(this.lifecycle.phase==='failed')this.initializationError??=error;reject(error);this.fail(error);
       };
       this.worker.onerror=workerFailure;this.worker.onmessageerror=workerFailure;
       this.worker.onmessage = ({data}) => {
+        if((this.destroyed||this.lifecycle.phase==='failed')&&data.type!=='destroyed')return;
         if(data.type==='provider-module') {
           const path=data.path;
           if(!providerAssets||!['web/engine-software-full/player.wasm','web/engine-software-yuv/player.wasm'].includes(path)) {this.worker.postMessage({type:'provider-module',error:'Unexpected provider engine request'});return;}
-          void providerAssets.module(path).then(module=>{if(!this.destroyed)this.worker.postMessage({type:'provider-module',module});},error=>{if(!this.destroyed)this.worker.postMessage({type:'provider-module',error:String(error)});});
+          void providerAssets.module(path).then(module=>{if(wasmAlive(this.lifecycle))this.worker.postMessage({type:'provider-module',module});},error=>{if(wasmAlive(this.lifecycle))this.worker.postMessage({type:'provider-module',error:String(error)});});
         }
-        else if(data.type==='ready') {clearTimeout(timeout);this.browserCodecsAbsent=data.browserCodecsAbsent;this.sendTiming(true);resolve();}
-        else if(data.type==='error') {clearTimeout(timeout);const error=data.assetFailure?new PlayerError('ASSET_LOAD_FAILED',data.message):data.decoderTimeout?new PlayerError('NETWORK_TIMEOUT',data.message,null,null,'operation',true):data.decoderFailure?new PlayerError('DECODE_FAILED',data.message):new Error(data.message);reject(isPlayerError(error)?error:new PlayerError('ASSET_LOAD_FAILED','Playback engine initialization failed: '+error.message,null,null,'operation',true));this.fail(error,data.id);}
-        else if(data.type==='destroyed') {if(this.diagnostics){this.diagnostics.decoderStats=data.decoderStats;if(data.presentation)this.diagnostics.presentation=data.presentation;}this.onDestroyed?.();}
-        else if(data.type==='refresh'){void this.refreshAuthorization?.(data.resource).then(update=>{if(!this.destroyed)this.worker.postMessage({type:'refreshed',id:data.id,update});},()=>{if(!this.destroyed)this.worker.postMessage({type:'refreshed',id:data.id,error:true});});}
+        else if(data.type==='ready') {if(this.lifecycle.phase!=='initializing')return;this.lifecycle=settleWasmInitialization(this.lifecycle,true);clearTimeout(timeout);this.browserCodecsAbsent=data.browserCodecsAbsent;this.sendTiming(true);resolve();}
+        else if(data.type==='error') {clearTimeout(timeout);const error=data.assetFailure?new PlayerError('ASSET_LOAD_FAILED',data.message):data.decoderTimeout?new PlayerError('NETWORK_TIMEOUT',data.message,null,null,'operation',true):data.decoderFailure?new PlayerError('DECODE_FAILED',data.message):new Error(data.message);failReady(isPlayerError(error)?error:new PlayerError('ASSET_LOAD_FAILED','Playback engine initialization failed: '+error.message,null,null,'operation',true));this.fail(error,data.id);}
+        else if(data.type==='destroyed') {if(this.diagnostics){this.diagnostics.decoderStats=data.decoderStats;if(data.presentation)this.diagnostics.presentation=data.presentation;}const completed=this.onDestroyed;this.onDestroyed=undefined;completed?.();}
+        else if(data.type==='refresh'){void this.refreshAuthorization?.(data.resource).then(update=>{if(wasmAlive(this.lifecycle))this.worker.postMessage({type:'refreshed',id:data.id,update});},()=>{if(wasmAlive(this.lifecycle))this.worker.postMessage({type:'refreshed',id:data.id,error:true});});}
         else if(data.type==='output')this.dispatchEvent(new CustomEvent('output',{detail:data.data}));
         else if(data.type==='source')this.dispatchEvent(new CustomEvent('source',{detail:data.info}));
         else if(data.type==='diagnostics') this.diagnostics={...data.data,buffering:{...resolveBuffering(this.buffering,'mpv'),settings:{...this.bufferingSettings,'demuxer-cache-state':this.properties.get('demuxer-cache-state'),'paused-for-cache':this.properties.get('paused-for-cache'),'cache-buffering-state':this.properties.get('cache-buffering-state')}}};
         else if(data.type==='log') this.dispatchEvent(new CustomEvent('log',{detail:data.message}));
         else if(data.type==='event') {
           const event=data.event as PlayerEvent;
-          if(event.event==='start-file'){this.hasFile=true;this.seekObservation=undefined;}
+          if(event.event==='start-file'){this.lifecycle=observeWasmFile(this.lifecycle,true);this.seekObservation=undefined;}
           this.observeSeekEvent(event);
-          if(event.event==='end-file') this.hasFile=false;
+          if(event.event==='end-file') this.lifecycle=observeWasmFile(this.lifecycle,false);
           if(event.event==='property-change' && event.name==='track-list' && Array.isArray(event.data))
             event.data=event.data.map(track=>({...track,id:String(track.id)}));
           if(event.event==='command-reply' && event.id) {
-            const pending=this.pending.get(event.id);
-            if(pending) {clearTimeout(pending.timer);this.pending.delete(event.id);event.error?pending.reject(new Error(event.error)):pending.resolve(event.result);}
+            this.settleRequest(event.id,event.error?new Error(event.error):undefined,event.result);
           }
           if(event.event==='property-change'&&event.name==='track-list'&&Array.isArray(event.data)){let external=0;event.data=event.data.map(t=>t.external?{...t,'attachment-id':this.attachmentIds[external],'external-index':++external}:t);}
           if(event.event==='property-change' && event.name) this.properties.set(event.name,event.data);
@@ -128,12 +127,12 @@ export class WasmPlayer extends EventTarget {
           prepared?.font?Promise.resolve(prepared.font):(async()=>{const response=await fetch(new URL('fixtures/DejaVuSans.ttf',assetBase),{signal:this.loading.signal});if(!response.ok)throw Error('Could not load the bundled subtitle font');return response.arrayBuffer();})(),
           this.audioContext.audioWorklet.addModule(new URL(this.audioOnly?'web/selective-sync-worklet.js':'web/audio-worklet.js',assetBase)),
         ]);
-        if(this.destroyed) throw new Error('Player destroyed during initialization');
+        if(!wasmAlive(this.lifecycle)) throw this.unavailableError();
         this.audioNode=new AudioWorkletNode(this.audioContext,'demuxe-pcm',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[this.outputChannels],channelCount:this.outputChannels,channelCountMode:'explicit',processorOptions:{buffer:audio,capacity:8192,channels:this.outputChannels,measureOutput}});
         this.audioNode.port.onmessage=({data})=>{const stamp=this.audioContext.getOutputTimestamp();const wallTime=stamp.performanceTime!==undefined&&stamp.contextTime!==undefined?performance.timeOrigin+stamp.performanceTime+(data.audioFrame/data.sampleRate-stamp.contextTime)*1000:null;this.dispatchEvent(new CustomEvent('output',{detail:{...data,wallTime,stamp}}));};
         this.analyser=this.audioContext.createAnalyser();
         this.audioNode.connect(this.analyser);this.audioNode.connect(this.audioContext.destination);
-        if(this.destroyed) throw new Error('Player destroyed during initialization');
+        if(!wasmAlive(this.lifecycle)) throw this.unavailableError();
         const decodePolicy=resolveDecodePolicy({codec:videoTrack?.codec,codedWidth:videoTrack?.width,codedHeight:videoTrack?.height,displayWidth:canvas.width,displayHeight:canvas.height,decodeQuality,maxDecodePixels:resourceLimits.maxDecodePixels??8294400});
         let decoder:'software'|'webcodecs'|'webgpu'=mode==='hybrid'||this.audioOnly?'webcodecs':'software';
         let selectedDecodeIntent:ExternalDecodeIntent|undefined;
@@ -149,11 +148,12 @@ export class WasmPlayer extends EventTarget {
           }
         }
         const offscreen=canvas.transferControlToOffscreen();
-        this.initSent=true;
+        this.lifecycle=markWasmInitialized(this.lifecycle);
         this.worker.postMessage({type:'init',decoderOutputWatchdog:this.watchdogs.decoderOutput,compiledWasm:prepared?.module,verifiedProviderAssets:!!providerAssets,canvas:offscreen,audio,font,fonts,audioChannels:this.outputChannels,maxDecodePixels:resourceLimits.maxDecodePixels,maxAllocationBytes:resourceLimits.maxAllocationBytes,sampleRate:this.audioContext.sampleRate,disableBrowserCodecs,measureOutput,decoder,softwarePresenter,decoderFaultAfter:0,decodeQuality,decodePolicy,adaptiveFrameDrop,videoTrack,...(selectedDecodeIntent?{webgpuDecodeIntent:selectedDecodeIntent}:{}),displayWidth:canvas.width,displayHeight:canvas.height},[offscreen,font]);
-        this.timing=setInterval(()=>this.sendTiming(),20);
-        this.sendTiming();
-      })().catch(error=>{clearTimeout(timeout);reject(new PlayerError('ASSET_LOAD_FAILED','Playback engine initialization failed: '+String(error),null,null,'operation',true));});
+        if(!wasmAlive(this.lifecycle))return;
+        const timing=setInterval(()=>this.sendTiming(),20);
+        if(wasmAlive(this.lifecycle)){this.timing=timing;this.sendTiming();}else clearInterval(timing);
+      })().catch(error=>{clearTimeout(timeout);failReady(new PlayerError('ASSET_LOAD_FAILED','Playback engine initialization failed: '+String(error),null,null,'operation',true));});
     });
   }
   private sendTiming(force=false) {
@@ -165,68 +165,120 @@ export class WasmPlayer extends EventTarget {
     this.lastTiming={latencyUs,running};
     this.worker.postMessage({type:'timing',latencyUs,running});
   }
+  private settleRequest(id:number,error?:Error,result?:unknown,deadline?:number) {
+    const settled=settleWasmRequest(this.lifecycle,id,deadline);this.lifecycle=settled.state;
+    if(!settled.accepted)return;
+    const pending=this.pending.get(id);this.pending.delete(id);
+    if(pending){let failure=error;try{clearTimeout(pending.timer);}catch(cause){failure??=cause as Error;}failure?pending.reject(failure):pending.resolve(result);}
+  }
+  private unavailableError(){return this.initializationError??new Error('Player is destroyed');}
   private fail(error:Error,id?:number,report=true) {
-    for(const [key,p] of this.pending) if(!id||key===id) {clearTimeout(p.timer);p.reject(error);this.pending.delete(key);}
-    if(report)for(const cancel of this.eventWaiters)cancel(error);
-    // Preserve typed terminal failures through the session listener. Turning an
-    // asset error into a string would make it look like decoder compatibility.
-    if(report) this.dispatchEvent(new CustomEvent('error',{detail:isPlayerError(error)?error:error.message}));
+    const rejected=rejectWasmRequests(this.lifecycle,id);this.lifecycle=rejected.state;
+    const pending=rejected.ids.map(key=>this.pending.get(key));for(const key of rejected.ids)this.pending.delete(key);
+    for(const entry of pending)if(entry){try{clearTimeout(entry.timer);}catch{}entry.reject(error);}
+    if(report)for(const entry of [...this.eventWaiters.values()])entry.cancel(error);
+    // Preserve typed terminal failures through the session listener.
+    if(report&&!this.destroyed)this.dispatchEvent(new CustomEvent('error',{detail:isPlayerError(error)?error:error.message}));
   }
   private request(message:Record<string,unknown>,transfer:Transferable[]=[]):Promise<any> {
-    if(this.destroyed) return Promise.reject(new Error('Player is destroyed'));
-    if(this.pending.size>=128) return Promise.reject(new Error('Command queue is full'));
-    const id=this.nextId++;
+    const admitted=admitWasmRequest(this.lifecycle,performance.now());this.lifecycle=admitted.state;
+    if(!admitted.request)return Promise.reject(admitted.reason==='capacity'?new Error('Command queue is full'):this.unavailableError());
+    const {id,deadline}=admitted.request;
     return new Promise((resolve,reject)=>{
-      const timer=setTimeout(()=>{this.pending.delete(id);reject(new Error('Command timed out'));},15000);
-      this.pending.set(id,{resolve,reject,timer});
-      this.worker.postMessage({...message,id},transfer);
+      const entry:{resolve:(result?:any)=>void;reject:(error:Error)=>void;timer?:ReturnType<typeof setTimeout>}={resolve,reject};
+      this.pending.set(id,entry);
+      try{
+        const arm=()=>{
+          if(this.pending.get(id)!==entry)return;
+          const timer=setTimeout(()=>{
+            const now=performance.now();
+            if(now<deadline){try{arm();}catch(error){this.settleRequest(id,error as Error);}return;}
+            this.settleRequest(id,new Error('Command timed out'),undefined,now);
+          },Math.max(0,deadline-performance.now()));
+          if(this.pending.get(id)===entry)entry.timer=timer;else clearTimeout(timer);
+        };
+        arm();if(this.pending.get(id)!==entry)return;
+        this.worker.postMessage({...message,id},transfer);
+      }catch(error){this.settleRequest(id,error as Error);}
     });
   }
+  private startOpen():number {
+    const admitted=beginWasmOpen(this.lifecycle);this.lifecycle=admitted.state;
+    if(admitted.id===null)throw admitted.reason==='busy'?new Error('Another open is in progress'):this.unavailableError();
+    return admitted.id;
+  }
+  private assertOpen(id:number){if(!ownsWasmOpen(this.lifecycle,id))throw this.unavailableError();}
   async open(file:File|ArrayBuffer, options:MediaInputOptions={}):Promise<void> {
-    if(this.destroyed) throw new Error('Player is destroyed');
-    if(this.opening) throw new Error('Another open is in progress');
-    this.opening=true;
-    try {await this.openLocal(file,options);} finally {this.opening=false;}
+    const id=this.startOpen();
+    try {await this.openLocal(file,options,id);} finally {this.lifecycle=finishWasmOpen(this.lifecycle,id);}
   }
   async openRemote(source:RemoteSource):Promise<void>{
-    if(this.destroyed)throw new Error('Player is destroyed');
-    if(this.opening)throw new Error('Another open is in progress');
-    this.opening=true;
+    const id=this.startOpen();
     try{
-      await this.ready;
-      if(this.hasFile)await Promise.all([this.waitForEvent(e=>e.event==='end-file'),this.command('stop')]);
+      await this.ready;this.assertOpen(id);
+      if(this.lifecycle.hasFile)await this.withEvent(e=>e.event==='end-file',()=>this.command('stop'));
       else await this.command('stop');
-      await this.configureBuffering(true);
+      this.assertOpen(id);await this.configureBuffering(true);this.assertOpen(id);
       if(source.demuxer&&!/^[a-z0-9_]{1,64}$/.test(source.demuxer))throw Error('Invalid demuxer hint');
       await this.command('set','demuxer-lavf-format',source.demuxer??'');
-      const {refreshAuthorization,...options}=source;this.refreshAuthorization=refreshAuthorization;
-      const loaded=this.waitForEvent(e=>e.event==='file-loaded'||(e.event==='end-file'&&e.reason==='error'?new Error(String(e.file_error)):false));
-      await Promise.all([loaded,this.request({type:'open-remote',options,canRefresh:!!refreshAuthorization})]);
-    }finally{this.opening=false;}
+      this.assertOpen(id);const {refreshAuthorization,...options}=source;this.refreshAuthorization=refreshAuthorization;
+      await this.withEvent(e=>e.event==='file-loaded'||(e.event==='end-file'&&e.reason==='error'?new Error(String(e.file_error)):false),()=>this.request({type:'open-remote',options,canRefresh:!!refreshAuthorization}));this.assertOpen(id);
+    }finally{this.lifecycle=finishWasmOpen(this.lifecycle,id);}
   }
-  private waitForEvent(predicate:(event:PlayerEvent)=>boolean|Error):Promise<void> {
+  private waitForEvent(predicate:(event:PlayerEvent)=>boolean|Error,capture?:(cancel:(error:Error)=>void)=>void):Promise<void> {
+    const admitted=admitWasmWaiter(this.lifecycle,performance.now());this.lifecycle=admitted.state;
+    if(!admitted.waiter)return Promise.reject(this.unavailableError());
+    const {id,deadline}=admitted.waiter;
     return new Promise<void>((resolve,reject)=>{
-      const finish=(error?:Error)=>{clearTimeout(timeout);this.removeEventListener('mpv',listener);this.eventWaiters.delete(cancel);error?reject(error):resolve();};
-      const cancel=(error:Error)=>finish(error);
-      const listener=(event:Event)=>{const result=predicate((event as CustomEvent<PlayerEvent>).detail);if(result)finish(result instanceof Error?result:undefined);};
-      const timeout=setTimeout(()=>finish(new Error('Media operation timed out')),25000);
-      this.eventWaiters.add(cancel);this.addEventListener('mpv',listener);
+      let timeout:ReturnType<typeof setTimeout>|undefined;
+      const finish=(error?:Error)=>{
+        let failure:unknown;
+        try{clearTimeout(timeout);}catch(error){failure=error;}
+        try{this.removeEventListener('mpv',listener);}catch(error){failure??=error;}
+        error||failure?reject(error??failure):resolve();return failure;
+      };
+      const settle=(error?:Error,now?:number)=>{const next=settleWasmWaiter(this.lifecycle,id,now);this.lifecycle=next.state;if(!next.accepted)return;this.eventWaiters.delete(id);finish(error);};
+      const cancel=(error:Error)=>settle(error);
+      const listener=(event:Event)=>{if(!this.eventWaiters.has(id))return;try{const result=predicate((event as CustomEvent<PlayerEvent>).detail);if(result)settle(result instanceof Error?result:undefined);}catch(error){settle(error as Error);}};
+      const entry={cancel,finish};this.eventWaiters.set(id,entry);capture?.(cancel);
+      try{
+        this.addEventListener('mpv',listener);
+        if(this.eventWaiters.get(id)!==entry)return;
+        const arm=()=>{
+          if(this.eventWaiters.get(id)!==entry)return;
+          const timer=setTimeout(()=>{
+            const now=performance.now();
+            if(now<deadline){try{arm();}catch(error){settle(error as Error);}return;}
+            settle(new Error('Media operation timed out'),now);
+          },Math.max(0,deadline-performance.now()));
+          if(this.eventWaiters.get(id)===entry)timeout=timer;else clearTimeout(timer);
+        };
+        arm();
+      }catch(error){settle(error as Error);}
     });
   }
-  private async openLocal(file:File|ArrayBuffer, options:MediaInputOptions):Promise<void> {
-    await this.ready;
+  private async withEvent(predicate:(event:PlayerEvent)=>boolean|Error,work:()=>Promise<unknown>):Promise<void> {
+    let cancel:((error:Error)=>void)|undefined;
+    const observed=this.waitForEvent(predicate,value=>{cancel=value;});void observed.catch(()=>{});
+    try{if(!wasmAlive(this.lifecycle))throw this.unavailableError();await Promise.all([observed,work()]);}
+    catch(error){cancel?.(error as Error);throw error;}
+  }
+  private async openLocal(file:File|ArrayBuffer, options:MediaInputOptions,id:number):Promise<void> {
+    await this.ready;this.assertOpen(id);
     const size=file instanceof File?file.size:file.byteLength;
     if(!(file instanceof File)&&size>32*1024*1024) throw new Error('ArrayBuffer sources are limited to 32 MiB');
-    if(this.hasFile) await Promise.all([this.waitForEvent(event=>event.event==='end-file'),this.command('stop')]);
+    if(this.lifecycle.hasFile) await this.withEvent(event=>event.event==='end-file',()=>this.command('stop'));
     else await this.command('stop');
-    await this.configureBuffering(true);
+    this.assertOpen(id);await this.configureBuffering(true);this.assertOpen(id);
     const suffix=file instanceof File?file.name.split('.').at(-1)?.toLowerCase():undefined;
     const demuxer=options.demuxer??(suffix==='sbc'||suffix==='msbc'?'sbc':'');
     if(demuxer&&!/^[a-z0-9_]{1,64}$/.test(demuxer))throw Error('Invalid demuxer hint');
     await this.command('set','demuxer-lavf-format',demuxer);
-    const loaded=this.waitForEvent(event=>event.event==='file-loaded'||(event.event==='end-file'&&event.reason==='error'?new Error(String(event.file_error)):false));
-    if(file instanceof File)await Promise.all([loaded,this.request({type:'open-file',file})]);
-    else {const bytes=file.slice(0);await Promise.all([loaded,this.request({type:'open',bytes},[bytes])]);}
+    this.assertOpen(id);
+    await this.withEvent(event=>event.event==='file-loaded'||(event.event==='end-file'&&event.reason==='error'?new Error(String(event.file_error)):false),()=>{
+      if(file instanceof File)return this.request({type:'open-file',file});
+      const bytes=file.slice(0);return this.request({type:'open',bytes},[bytes]);
+    });this.assertOpen(id);
   }
   waitForPreviewPresentation():Promise<void> {return this.waitForEvent(event=>event.event==='playback-restart'||(event.event==='end-file'?new Error('No preview video frame'):false));}
   /** Presentation and observed metadata arrive independently from the worker. */
@@ -290,7 +342,7 @@ export class WasmPlayer extends EventTarget {
   }
   private async setPause(paused:boolean) {
     if(this.properties.get('pause')===paused){await this.command('set','pause',paused?'yes':'no');return;}
-    await Promise.all([this.waitForEvent(e=>e.event==='property-change'&&e.name==='pause'&&e.data===paused),this.command('set','pause',paused?'yes':'no')]);
+    await this.withEvent(e=>e.event==='property-change'&&e.name==='pause'&&e.data===paused,()=>this.command('set','pause',paused?'yes':'no'));
   }
   async setBuffering(policy:BufferingPolicy){
     const settings={...mpvBufferingOptions(policy,this.properties.get('pause')!==false),'cache-secs':policy.preload==='auto'||this.properties.get('pause')===false?'3600000':'1'};
@@ -372,8 +424,7 @@ export class WasmPlayer extends EventTarget {
     const previous=((this.properties.get('track-list')??[]) as Array<{external?:boolean}>).filter(t=>t.external).length;
     // Command acceptance can precede the track-list event. Selection must wait
     // for the new source-scoped external identity to become observable.
-    const listed=this.waitForEvent(e=>e.event==='property-change'&&e.name==='track-list'&&Array.isArray(e.data)&&e.data.filter(t=>t.external).length>previous);
-    await Promise.all([listed,this.request({type:'subtitle',...subtitle,bytes},[bytes])]);
+    await this.withEvent(e=>e.event==='property-change'&&e.name==='track-list'&&Array.isArray(e.data)&&e.data.filter(t=>t.external).length>previous,()=>this.request({type:'subtitle',...subtitle,bytes},[bytes]));
   }
   async setAudioOutputDevice(id:string){
     await this.ready;const context=this.audioContext as AudioContext&{setSinkId?:(id:string)=>Promise<void>};
@@ -399,30 +450,42 @@ export class WasmPlayer extends EventTarget {
     return {gain:this.gainValue,gainStage:this.gainNode?'web-audio':'none',requestedOutput:this.requestedOutput,outputChannels:this.outputChannels,deviceChannels:this.deviceChannels,channelLayout:this.outputChannels===8?'7.1':this.outputChannels===6?'5.1':'stereo',state:this.audioContext.state,sampleRate:this.audioContext.sampleRate,mediaFrames:Atomics.load(this.audioHeader,5),underruns:Atomics.load(this.audioHeader,6),rms:Math.sqrt(samples.reduce((sum,v)=>sum+v*v,0)/samples.length),latencyConfidence:'reported-latency estimate'};
   }
   destroy():Promise<void> {
-    if(this.destruction) return this.destruction;
-    this.destroyed=true;this.loading.abort();this.refreshAuthorization=undefined;
-    clearTimeout(this.readyTimer);
-    this.rejectReady?.(new Error('Player destroyed'));
-    for(const cancel of this.eventWaiters) cancel(new Error('Player destroyed'));
-    this.fail(new Error('Player destroyed'),undefined,false);
-    clearInterval(this.timing);
-    Atomics.store(this.audioHeader,2,0);
-    this.audioNode?.port.postMessage('close');this.audioNode?.disconnect();this.audioNode?.port.close();this.analyser?.disconnect();this.gainNode?.disconnect();
-    this.destruction=(async()=>{
-      let timeout:ReturnType<typeof setTimeout>;
-      try {
-        await new Promise<void>((resolve,reject)=>{
-          this.onDestroyed=resolve;
-          timeout=setTimeout(()=>reject(new Error('Native cleanup timed out; worker containment applied')),10000);
+    if(this.destruction)return this.destruction;
+    const retirement=retireWasmLifecycle(this.lifecycle);this.lifecycle=retirement.state;
+    let resolve!:()=>void,reject!:(error:unknown)=>void;
+    const result=this.destruction=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});
+    // Install retirement and its joinable promise before invoking any host cleanup.
+    const error=new Error('Player destroyed'),pending=retirement.requests.map(id=>this.pending.get(id));
+    for(const id of retirement.requests)this.pending.delete(id);
+    const waiters=retirement.waiters.map(id=>this.eventWaiters.get(id));
+    for(const id of retirement.waiters)this.eventWaiters.delete(id);
+    let failure:unknown,failed=false;
+    const cleanup=(work:()=>void)=>{try{work();}catch(error){if(!failed){failed=true;failure=error;}}};
+    cleanup(()=>this.loading.abort());this.refreshAuthorization=undefined;
+    cleanup(()=>clearTimeout(this.readyTimer));cleanup(()=>this.rejectReady?.(error));
+    for(const entry of pending)if(entry){cleanup(()=>clearTimeout(entry.timer));entry.reject(error);}
+    for(const entry of waiters)if(entry)cleanup(()=>{const failure=entry.finish(error);if(failure)throw failure;});
+    cleanup(()=>clearInterval(this.timing));this.timing=undefined;
+    cleanup(()=>Atomics.store(this.audioHeader,2,0));
+    cleanup(()=>this.audioNode?.port.postMessage('close'));cleanup(()=>this.audioNode?.disconnect());
+    cleanup(()=>this.audioNode?.port.close());cleanup(()=>this.analyser?.disconnect());cleanup(()=>this.gainNode?.disconnect());
+    void (async()=>{
+      let timeout:ReturnType<typeof setTimeout>|undefined;
+      try{
+        await new Promise<void>((done,no)=>{
+          this.onDestroyed=done;
+          timeout=setTimeout(()=>no(new Error('Native cleanup timed out; worker containment applied')),10000);
           this.worker.postMessage({type:'destroy'});
         });
-      } finally {
-        clearTimeout(timeout!);
-        this.worker.terminate();
-        this.workerOwner.remove();
-        await this.audioContext.close();
+      }catch(error){if(!failed){failed=true;failure=error;}}
+      finally{
+        this.onDestroyed=undefined;cleanup(()=>clearTimeout(timeout));
+        cleanup(()=>this.worker.terminate());cleanup(()=>this.workerOwner.remove());
+        try{await this.audioContext.close();}catch(error){if(!failed){failed=true;failure=error;}}
+        this.lifecycle=finishWasmRetirement(this.lifecycle);
       }
-    })();
-    return this.destruction;
+      if(failed)throw failure;
+    })().then(resolve,reject);
+    return result;
   }
 }

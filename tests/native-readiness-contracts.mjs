@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';
+import {initialNativeBackend} from '../web/generated/internal/machine/native-backend.js';
 import {unitPlayer} from './helpers/unit-player.mjs';
 import {Player} from '../web/generated/unified-player.js';
 import assert from 'node:assert/strict';
@@ -8,19 +9,28 @@ import {bufferingPolicy} from '../web/generated/internal/buffering.js';
 import {PlayerError,playerError} from '../web/generated/internal/errors.js';
 import {compatibilityFailure} from '../web/generated/internal/runtime-capability.js';
 import {StartupEvidenceTimeout} from '../web/generated/internal/runtime-capability.js';
-function candidate(overrides={}){const p=Object.create(NativePlayer.prototype);Object.assign(p,{buffering:bufferingPolicy(),stopped:false,capability:{},cancelers:new Set(),video:{readyState:4,videoWidth:640,currentTime:0,paused:true,seeking:false,error:null,getVideoPlaybackQuality:()=>({totalVideoFrames:0}),cancelVideoFrameCallback(){},...overrides}});return p;}
+function candidate(overrides={}){const p=Object.create(NativePlayer.prototype);Object.assign(p,{buffering:bufferingPolicy(),native:initialNativeBackend(),cancelers:new Set(),video:{readyState:4,videoWidth:640,currentTime:0,paused:true,seeking:false,error:null,getVideoPlaybackQuality:()=>({totalVideoFrames:0}),cancelVideoFrameCallback(){},...overrides}});return p;}
 test('paused current-data preparation does not require vendor counters or presentation',async()=>{const p=candidate();await p.verifyStartup({video:true,audio:true});assert.equal(p.capability.prepared,true);assert.notEqual(p.capability.videoPresented,true);assert.notEqual(p.capability.outputVerified,true);assert.equal(p.cancelers.size,0);});
 // Avoid reading unrelated full Native diagnostics in these focused backend tests.
+// Advance the injected monotonic clock with shortened deadline timers. Timer
+// delivery alone cannot establish that an explicit core deadline has elapsed.
+function shortenDeadlineTimers(delay=1){
+ const original=globalThis.setTimeout,descriptor=Object.getOwnPropertyDescriptor(performance,'now'),clock=performance.now.bind(performance);let offset=0;
+ Object.defineProperty(performance,'now',{configurable:true,value:()=>clock()+offset});
+ globalThis.setTimeout=(callback,ms,...args)=>original(()=>{if(ms===10000)offset+=10000-delay;callback(...args);},ms===10000?delay:ms);
+ return ()=>{globalThis.setTimeout=original;if(descriptor)Object.defineProperty(performance,'now',descriptor);else delete performance.now;};
+}
 
-test('metadata alone and absent presentation cannot verify output',async()=>{const original=globalThis.setTimeout;globalThis.setTimeout=(f,n,...args)=>original(f,n===10000?1:n,...args);try{const metadata=candidate({readyState:1});await assert.rejects(()=>metadata.verifyStartup({video:true,audio:true}),StartupEvidenceTimeout);assert.notEqual(metadata.capability.prepared,true);const prepared=candidate();prepared.capability={outputVerified:true,videoPresented:true};await prepared.verifyStartup({video:true,audio:true});await assert.rejects(()=>prepared.verifyOutput(),StartupEvidenceTimeout);assert.notEqual(prepared.capability.outputVerified,true);}finally{globalThis.setTimeout=original;}});
-test('missing declared audio is a media failure only after output is requested',async()=>{const p=candidate({webkitAudioDecodedByteCount:0});await p.verifyStartup({video:true,audio:true});assert.equal(p.capability.prepared,true);const original=globalThis.setTimeout;globalThis.setTimeout=(f,n,...args)=>original(f,n===10000?1:n,...args);try{await assert.rejects(()=>p.verifyOutput(),e=>e.code==='DECODE_FAILED');assert.equal(p.cancelers.size,0);}finally{globalThis.setTimeout=original;}});
+
+test('metadata alone and absent presentation cannot verify output',async()=>{const restore=shortenDeadlineTimers();try{const metadata=candidate({readyState:1});await assert.rejects(()=>metadata.verifyStartup({video:true,audio:true}),StartupEvidenceTimeout);assert.notEqual(metadata.capability.prepared,true);const prepared=candidate();prepared.native={...prepared.native,capability:{outputVerified:true,videoPresented:true}};await prepared.verifyStartup({video:true,audio:true});await assert.rejects(()=>prepared.verifyOutput(),StartupEvidenceTimeout);assert.notEqual(prepared.capability.outputVerified,true);}finally{restore();}});
+test('missing declared audio is a media failure only after output is requested',async()=>{const p=candidate({webkitAudioDecodedByteCount:0});await p.verifyStartup({video:true,audio:true});assert.equal(p.capability.prepared,true);const restore=shortenDeadlineTimers();try{await assert.rejects(()=>p.verifyOutput(),e=>e.code==='DECODE_FAILED');assert.equal(p.cancelers.size,0);}finally{restore();}});
 test('Firefox missing selected audio rejects paused A/V preparation',async()=>{const p=candidate({mozHasAudio:false});await assert.rejects(()=>p.verifyStartup({video:true,audio:true}),e=>e.code==='DECODE_FAILED');assert.notEqual(p.capability.prepared,true);assert.equal(p.cancelers.size,0);});
 test('Firefox missing audio after preparation rejects output',async()=>{const p=candidate();await p.verifyStartup({video:true,audio:true});p.video.mozHasAudio=false;await assert.rejects(()=>p.verifyOutput(),e=>e.code==='DECODE_FAILED');assert.equal(p.capability.outputVerified,false);assert.equal(p.cancelers.size,0);});
 test('media-error classification is single-flight and cancellation retires verification',async()=>{let calls=0,release;const p=candidate({error:{code:4}});p.classifyDirectFailure=()=>{calls++;return new Promise(r=>release=r)};const verification=p.verifyStartup({video:true,audio:true});const rejected=assert.rejects(verification,/cancelled/);await new Promise(r=>setTimeout(r,90));assert.equal(calls,1);for(const cancel of p.cancelers)cancel(Error('cancelled'));await rejected;release(Error('Source transport: HTTP 403'));await new Promise(r=>setTimeout(r,30));assert.equal(calls,1);assert.equal(p.cancelers.size,0);});
-test('verified source may complete a short EOF interval without claiming fresh presentation',async()=>{const p=candidate({currentTime:11.995,ended:false});p.capability.outputVerified=true;const output=p.verifyStartup({video:true,audio:true},true);p.video.currentTime=12;p.video.ended=true;await output;assert.equal(p.capability.completedAtEOF,true);assert.equal(p.capability.outputVerified,true);assert.equal(p.capability.videoPresented,false);assert.equal(p.capability.audioProgress,false);});
-test('EOF alone never qualifies an unverified source',async()=>{const p=candidate({currentTime:12,ended:true});const original=globalThis.setTimeout;globalThis.setTimeout=(f,n,...args)=>original(f,n===10000?1:n,...args);try{await assert.rejects(()=>p.verifyStartup({video:true,audio:true},true),StartupEvidenceTimeout);assert.notEqual(p.capability.outputVerified,true);}finally{globalThis.setTimeout=original;}});
+test('verified source may complete a short EOF interval without claiming fresh presentation',async()=>{const p=candidate({currentTime:11.995,ended:false});p.native={...p.native,capability:{...p.capability,outputVerified:true}};const output=p.verifyStartup({video:true,audio:true},true);p.video.currentTime=12;p.video.ended=true;await output;assert.equal(p.capability.completedAtEOF,true);assert.equal(p.capability.outputVerified,true);assert.equal(p.capability.videoPresented,false);assert.equal(p.capability.audioProgress,false);});
+test('EOF alone never qualifies an unverified source',async()=>{const p=candidate({currentTime:12,ended:true});const restore=shortenDeadlineTimers();try{await assert.rejects(()=>p.verifyStartup({video:true,audio:true},true),StartupEvidenceTimeout);assert.notEqual(p.capability.outputVerified,true);}finally{restore();}});
 
-test('EOF arriving before verification starts completes an already verified session',async()=>{const p=candidate({currentTime:12,ended:true,readyState:2});p.capability.outputVerified=true;await p.verifyStartup({video:true,audio:true},true);assert.equal(p.capability.completedAtEOF,true);assert.equal(p.capability.videoPresented,false);});
+test('EOF arriving before verification starts completes an already verified session',async()=>{const p=candidate({currentTime:12,ended:true,readyState:2});p.native={...p.native,capability:{...p.capability,outputVerified:true}};await p.verifyStartup({video:true,audio:true},true);assert.equal(p.capability.completedAtEOF,true);assert.equal(p.capability.videoPresented,false);});
 
 
 test('a plain 200 manifest endpoint permits Native compatibility fallback without file range probing',async()=>{
@@ -35,7 +45,7 @@ test('HTTP authorization failure behind a Native manifest decode error remains t
 test('retiring Native manifest classification aborts its transport and cannot admit fallback',async()=>{
   const original=globalThis.fetch;let signal,entered;const started=new Promise(resolve=>entered=resolve);
   globalThis.fetch=async(_url,init)=>{signal=init.signal;entered();return new Promise((_,reject)=>signal.addEventListener('abort',()=>reject(new DOMException('cancelled','AbortError')),{once:true}));};
-  try{const p=candidate();p.remoteSource={url:'https://media.test/vod.m3u8',format:'hls'};const pending=p.classifyDirectFailure(new PlayerError('UNSUPPORTED_MEDIA','Browser rejected manifest'));await started;p.stopped=true;for(const cancel of p.cancelers)cancel(Error('Player is destroyed'));const result=await pending;assert.equal(signal.aborted,true);assert.equal(compatibilityFailure(result),false);assert.equal(p.cancelers.size,0);}finally{globalThis.fetch=original;}
+  try{const p=candidate();p.remoteSource={url:'https://media.test/vod.m3u8',format:'hls'};const pending=p.classifyDirectFailure(new PlayerError('UNSUPPORTED_MEDIA','Browser rejected manifest'));await started;p.changeNative({type:'stop'});for(const cancel of p.cancelers)cancel(Error('Player is destroyed'));const result=await pending;assert.equal(signal.aborted,true);assert.equal(compatibilityFailure(result),false);assert.equal(p.cancelers.size,0);}finally{globalThis.fetch=original;}
 });
 test('Native discovered live manifest without permission is terminal rather than a fallback bypass',async()=>{
   const oldLocation=globalThis.location,oldFetch=globalThis.fetch;globalThis.location=new URL('https://app.test/');let fetched=false;globalThis.fetch=async()=>{fetched=true;throw Error('Must not probe after a policy rejection');};
@@ -49,9 +59,8 @@ test('delayed decoded audio is allowed within the output deadline and records fr
  await verified;assert.equal(p.capability.outputVerified,true);assert.equal(p.capability.audioObservation.delta,2048);
 });
 test('video and clock advancement alone cannot verify audio',async()=>{
- const p=candidate({paused:false});const original=globalThis.setTimeout;
- globalThis.setTimeout=(f,n,...args)=>original(f,n===10000?100:n,...args);
- try{const verified=p.verifyStartup({video:true,audio:true},true);p.video.currentTime=.2;p.video.getVideoPlaybackQuality=()=>({totalVideoFrames:1});await assert.rejects(verified,StartupEvidenceTimeout);assert.notEqual(p.capability.outputVerified,true);assert.equal(p.capability.audioEvidence,'unobservable');}finally{globalThis.setTimeout=original;}
+ const p=candidate({paused:false});const restore=shortenDeadlineTimers(100);
+ try{const verified=p.verifyStartup({video:true,audio:true},true);p.video.currentTime=.2;p.video.getVideoPlaybackQuality=()=>({totalVideoFrames:1});await assert.rejects(verified,StartupEvidenceTimeout);assert.notEqual(p.capability.outputVerified,true);assert.equal(p.capability.audioEvidence,'unobservable');}finally{restore();}
 });
 
 test('bounded local output trials preserve position without caching unknown as incompatibility',async()=>{
@@ -71,8 +80,8 @@ test('enabled browser audio tracks provide explicit presence evidence without ve
  await verified;assert.equal(p.capability.audioEvidence,'enabled-browser-audio-track-and-clock');assert.equal(p.capability.audioEvidenceStrength,'presence');assert.equal(p.capability.audioDecoded,false);assert.equal(p.capability.audioObservation.enabledTrack,true);
 });
 test('disabled browser audio tracks cannot qualify output',async()=>{
- const original=globalThis.setTimeout;globalThis.setTimeout=(f,n,...args)=>original(f,n===10000?100:n,...args);
- try{const p=candidate({paused:false,audioTracks:[{enabled:false}]});const verified=p.verifyStartup({video:true,audio:true},true);setTimeout(()=>{p.video.currentTime=.1;p.video.getVideoPlaybackQuality=()=>({totalVideoFrames:1});},30);await assert.rejects(verified,StartupEvidenceTimeout);}finally{globalThis.setTimeout=original;}
+ const restore=shortenDeadlineTimers(100);
+ try{const p=candidate({paused:false,audioTracks:[{enabled:false}]});const verified=p.verifyStartup({video:true,audio:true},true);setTimeout(()=>{p.video.currentTime=.1;p.video.getVideoPlaybackQuality=()=>({totalVideoFrames:1});},30);await assert.rejects(verified,StartupEvidenceTimeout);}finally{restore();}
 });
 test('failed play cancels and settles its verifier before allowing a retry',async()=>{
  const p=candidate();await p.verifyStartup({video:true,audio:true});

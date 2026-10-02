@@ -27,6 +27,10 @@ export declare function initialSettings(): Readonly<PlaybackSettings>;
 export declare function transitionSettings(state: Readonly<PlaybackSettings>, input: SettingsInput): Readonly<PlaybackSettings>;
 export type PlayerPreferences = Readonly<{
     publicSelections: Readonly<Partial<Record<'audio' | 'sub', string>>>;
+    outputSize: Readonly<{
+        width: number;
+        height: number;
+    }>;
     muted: boolean;
     outputDeviceId: string;
     buffering: BufferingPolicy;
@@ -40,6 +44,7 @@ export type PlayerPreferences = Readonly<{
 }>;
 export declare function initialPreferences(): PlayerPreferences;
 export declare function effectiveVideoFilters(settings: Readonly<PlaybackSettings>, preferences: PlayerPreferences): string;
+export declare function validOutputSize(width: number, height: number): boolean;
 export declare function changePreferences(state: PlayerPreferences, value: Partial<PlayerPreferences>): PlayerPreferences;
 export declare function clearSourcePreferences(state: PlayerPreferences): PlayerPreferences;
 export type SettingCommand = Readonly<{
@@ -187,6 +192,8 @@ export declare function settingAuthority(state: PlayerControlState, id: number):
 export declare function transitionSettingTransaction(state: PlayerControlState, input: SettingTransactionInput): Readonly<{
     state: Readonly<{
         revision: number;
+        captureRevision: number;
+        publication: import("./player-publication.js").PlayerPublicationState;
         monitor: import("./player-monitor.js").PlayerMonitorState;
         attachments: import("./attachments.js").AttachmentState;
         routing: import("./route-state.js").RoutingState;

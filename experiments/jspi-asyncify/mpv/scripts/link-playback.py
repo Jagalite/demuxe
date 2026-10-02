@@ -184,7 +184,10 @@ static int request(int operation) {
     if a.hybrid:
         command.insert(1,'-I'+str(deps/'sources/mpv/video/out'))
     if a.retained_lease:
-        command[1:1]=['-DDEMUXE_RETAINED_LEASE_V1=1', '-I'+str(inputs/'experiments/jspi-asyncify/mpv/native')]
+        # mp_image.c is copied into the isolated output so its adapted lifetime
+        # carrier is linked before libmpv.a. Preserve its sibling-header lookup.
+        command[1:1]=['-DDEMUXE_RETAINED_LEASE_V1=1', '-I'+str(inputs/'experiments/jspi-asyncify/mpv/native'),
+                      '-I'+str(deps/'sources/mpv/video')]
     if a.retained_lease_tests:
         command.insert(1, '-DDEMUXE_TEST_MPV=1')
     if (deps/'prefix/lib/libzimg.a').is_file():command.insert(1,'-fexceptions')

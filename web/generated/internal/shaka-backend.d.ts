@@ -62,20 +62,13 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     startupEvidence(): {
         sourceBufferCreated: boolean;
         audioEvidenceStrength?: "unknown" | "presence" | "decoded" | "consumed";
-        audioObservation?: {
-            initialBytes?: number;
-            decodedBytes?: number;
-            delta?: number;
-            present?: boolean;
-            enabledTrack?: boolean;
-            clockAdvanced: boolean;
-        };
+        audioObservation?: Readonly<NonNullable<import("./runtime-capability.js").CapabilityEvidence["audioObservation"]>>;
         apiHint?: string;
         prepared?: boolean;
         completedAtEOF?: boolean;
         outputVerified?: boolean;
         audioEvidence?: string;
-        timing?: Record<string, number>;
+        timing?: Record<string, number> | undefined;
         metadata?: boolean;
         initAccepted?: boolean;
         mediaAccepted?: boolean;

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { ProviderRuntimeAssets } from './provider-runtime.js';
 import type { BufferingPolicy } from '../types.js';
+import type { CapabilityEvidence } from './runtime-capability.js';
 import type { RemoteSource, TextTrackSource, TrackType, SubtitleAsset, FontAsset } from '../types.js';
 import type { Backend } from './backend.js';
 import type { WatchdogPolicy } from '../types.js';
@@ -22,9 +23,16 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private providerRuntime?;
     readonly ready: Promise<void>;
     readonly properties: Map<string, unknown>;
-    private stopped;
-    private seekPresentationRetries;
-    private capability;
+    private native;
+    private get stopped();
+    private get seekPresentationRetries();
+    private get capability();
+    private get expectedOutput();
+    private verificationCancel?;
+    private seekCancel?;
+    private changeNative;
+    private assertNative;
+    private retireNativeSource;
     private mpvSubs?;
     private mpvAudio?;
     private get execution();
@@ -119,20 +127,13 @@ export declare class NativePlayer extends EventTarget implements Backend {
         };
         capability: {
             audioEvidenceStrength?: "unknown" | "presence" | "decoded" | "consumed";
-            audioObservation?: {
-                initialBytes?: number;
-                decodedBytes?: number;
-                delta?: number;
-                present?: boolean;
-                enabledTrack?: boolean;
-                clockAdvanced: boolean;
-            };
+            audioObservation?: Readonly<NonNullable<CapabilityEvidence["audioObservation"]>>;
             apiHint?: string;
             prepared?: boolean;
             completedAtEOF?: boolean;
             outputVerified?: boolean;
             audioEvidence?: string;
-            timing?: Record<string, number>;
+            timing?: Record<string, number> | undefined;
             metadata?: boolean;
             sourceBufferCreated?: boolean;
             initAccepted?: boolean;
@@ -262,7 +263,6 @@ export declare class NativePlayer extends EventTarget implements Backend {
         readyState: number;
     };
     private load;
-    private expectedOutput?;
     /** A paused candidate may prepare current data without presenting it. Only
      * verifyOutput can promote this evidence to executed playback. */
     verifyStartup(expected?: {

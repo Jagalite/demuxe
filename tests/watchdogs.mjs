@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';
+import {initialNativeBackend} from '../web/generated/internal/machine/native-backend.js';
 import assert from 'node:assert/strict';
 import {watchdogPolicy,NativeProgressWatchdog} from '../web/generated/internal/watchdogs.js';
 import {NativePlayer} from '../web/generated/internal/native-player.js';
@@ -61,7 +62,8 @@ function nativeSample(videoOverrides={},playerOverrides={}){
  const video={currentTime:2,duration:20,playbackRate:1,paused:false,seeking:false,ended:false,error:null,readyState:4,videoWidth:640,
   buffered:{length:1,start:()=>0,end:()=>20},getVideoPlaybackQuality:()=>({totalVideoFrames:20,droppedVideoFrames:2})};
  Object.defineProperties(video,Object.getOwnPropertyDescriptors(videoOverrides));
- Object.assign(player,{video,stopped:false,opening:false,capability:{outputVerified:true},...playerOverrides});
+ const {stopped=false,capability={outputVerified:true},...shell}=playerOverrides;
+ Object.assign(player,{video,native:{...initialNativeBackend(),stopped,capability},opening:false,...shell});
  return player.nativeProgressSample();
 }
 test('Native eligibility excludes pause, seek, buffering, EOF, and unverified startup',()=>{

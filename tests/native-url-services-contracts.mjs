@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';
+import {initialNativeBackend} from '../web/generated/internal/machine/native-backend.js';
 import assert from 'node:assert/strict';
 import {NativePlayer} from '../web/generated/internal/native-player.js';
 
@@ -13,7 +14,7 @@ for(const plan of ['native-video-mpv-audio','native-video-mpv-audio-subtitles','
    credentials:'omit',allowedOrigins:['https://media.example'],refreshAuthorization:async()=>({headers:{Authorization:'Bearer renewed'}})};
   let preparation,services;
   const player=Object.create(NativePlayer.prototype);
-  Object.assign(player,{requestedPlan:plan,initialAudioTrack:3,video:{},assertActive(){},
+  Object.assign(player,{native:initialNativeBackend(),requestedPlan:plan,initialAudioTrack:3,video:{},assertActive(){},
    async loadPlan(input,direct,required){preparation={input,required};},
    async openServices(input){services=input;}});
   await player.openRemote(source);
@@ -32,7 +33,7 @@ test('failed video preparation does not start independent services',async t=>{
  t.after(()=>{if(prior)Object.defineProperty(globalThis,'location',prior);else delete globalThis.location;});
  const player=Object.create(NativePlayer.prototype),failure=Error('Source transport: Media representation changed');
  let services=false;
- Object.assign(player,{requestedPlan:'native-video-mpv-audio',video:{},assertActive(){},
+ Object.assign(player,{native:initialNativeBackend(),requestedPlan:'native-video-mpv-audio',video:{},assertActive(){},
   async loadPlan(){throw failure;},async openServices(){services=true;}});
  await assert.rejects(player.openRemote({url:'/movie.mkv'}),error=>error===failure);
  assert.equal(services,false);
@@ -49,7 +50,7 @@ for(const [label,tracks,stream] of [
   const {NativeMpvAudio}=await import('../web/generated/internal/native-mpv-audio.js');
   const {compatibilityFailure}=await import('../web/generated/internal/runtime-capability.js');
   const service=Object.create(NativeMpvAudio.prototype);
-  service.engine={ready:Promise.resolve(),selectiveAudioState:()=>({}),command:async()=>{},
+  service.engine={ready:Promise.resolve(),selectiveAudioState:()=>({context:new EventTarget()}),command:async()=>{},
    openRemote:async()=>{},inspectMetadata:async()=>{},properties:new Map([['track-list',tracks]])};
   await assert.rejects(service.open({url:'https://media.example/movie.mkv'},stream),error=>
    error.code==='DECODE_FAILED'&&compatibilityFailure(error));
@@ -60,7 +61,7 @@ for(const message of ['Source transport: HTTP 403','Source transport: Media repr
   const {NativeMpvAudio}=await import('../web/generated/internal/native-mpv-audio.js');
   const {compatibilityFailure}=await import('../web/generated/internal/runtime-capability.js');
   const failure=Error(message),service=Object.create(NativeMpvAudio.prototype);
-  service.engine={ready:Promise.resolve(),selectiveAudioState:()=>({}),command:async()=>{},openRemote:async()=>{throw failure;}};
+  service.engine={ready:Promise.resolve(),selectiveAudioState:()=>({context:new EventTarget()}),command:async()=>{},openRemote:async()=>{throw failure;}};
   await assert.rejects(service.open({url:'https://media.example/movie.mkv'}),error=>error===failure&&!compatibilityFailure(error));
  });
 }
@@ -69,7 +70,7 @@ for(const name of ['AbortError','NotAllowedError']){
   const {NativeMpvAudio}=await import('../web/generated/internal/native-mpv-audio.js');
   const {compatibilityFailure}=await import('../web/generated/internal/runtime-capability.js');
   const failure=new DOMException(name,name),service=Object.create(NativeMpvAudio.prototype);
-  service.engine={ready:Promise.resolve(),selectiveAudioState:()=>({}),command:async()=>{},openRemote:async()=>{throw failure;}};
+  service.engine={ready:Promise.resolve(),selectiveAudioState:()=>({context:new EventTarget()}),command:async()=>{},openRemote:async()=>{throw failure;}};
   await assert.rejects(service.open({url:'https://media.example/movie.mkv'}),error=>error===failure&&!compatibilityFailure(error));
  });
 }

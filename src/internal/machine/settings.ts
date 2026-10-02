@@ -13,15 +13,16 @@ export function initialSettings():Readonly<PlaybackSettings>{return Object.freez
 export function transitionSettings(state:Readonly<PlaybackSettings>,input:SettingsInput):Readonly<PlaybackSettings>{return Object.freeze(input.type==='settings.accept'?{...input.value}:{...state,...input.value});}
 
 export type PlayerPreferences=Readonly<{
-  publicSelections:Readonly<Partial<Record<'audio'|'sub',string>>>;muted:boolean;outputDeviceId:string;buffering:BufferingPolicy;toneMapping:ToneMapping;
+  publicSelections:Readonly<Partial<Record<'audio'|'sub',string>>>;outputSize:Readonly<{width:number;height:number}>;muted:boolean;outputDeviceId:string;buffering:BufferingPolicy;toneMapping:ToneMapping;
   subtitleDelay:number;audioDelay:number;subtitleStyle:Readonly<SubtitleStyle>;
   playbackRange:Readonly<PlaybackRange>|null;loopPolicy:LoopPolicy;qualityPolicy:QualityPolicy|null;
 }>;
-export function initialPreferences():PlayerPreferences{return Object.freeze({publicSelections:Object.freeze({}),muted:false,outputDeviceId:'',buffering:Object.freeze({preload:'auto',profile:'balanced'}),toneMapping:'off',subtitleDelay:0,audioDelay:0,subtitleStyle:Object.freeze({}),playbackRange:null,loopPolicy:false,qualityPolicy:null});}
+export function initialPreferences():PlayerPreferences{return Object.freeze({publicSelections:Object.freeze({}),outputSize:Object.freeze({width:640,height:360}),muted:false,outputDeviceId:'',buffering:Object.freeze({preload:'auto',profile:'balanced'}),toneMapping:'off',subtitleDelay:0,audioDelay:0,subtitleStyle:Object.freeze({}),playbackRange:null,loopPolicy:false,qualityPolicy:null});}
 export function effectiveVideoFilters(settings:Readonly<PlaybackSettings>,preferences:PlayerPreferences):string{
   const tone=preferences.toneMapping==='hdr-to-sdr'?'zscale=transfer=linear:npl=100,format=gbrpf32le,zscale=primaries=bt709,tonemap=tonemap=mobius:desat=0,zscale=transfer=bt709:matrix=bt709:range=limited,format=yuv420p':'';
   return [tone?`lavfi=[${tone}]`:'',settings.vf].filter(Boolean).join(',');
 }
+export function validOutputSize(width:number,height:number):boolean{return Number.isInteger(width)&&Number.isInteger(height)&&width>=1&&height>=1&&width<=1920&&height<=1080;}
 export function changePreferences(state:PlayerPreferences,value:Partial<PlayerPreferences>):PlayerPreferences{return copyData({...state,...value});}
 export function clearSourcePreferences(state:PlayerPreferences):PlayerPreferences{return Object.freeze({...state,publicSelections:Object.freeze({}),playbackRange:null,loopPolicy:false,qualityPolicy:null});}
 export type SettingCommand=

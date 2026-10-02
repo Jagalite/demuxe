@@ -7,7 +7,7 @@ import { routingRequirements, missingRoutingFacts } from './internal/probe-requi
 import { bufferingPolicy, resolveBuffering } from './internal/buffering.js';
 import { PlayerPresentation } from './presentation.js';
 import { isCustomSource, materializeSource } from './sources.js';
-import { PlaybackStatistics } from './internal/playback-statistics.js';
+import { playbackStatisticsClockReads, selectPlaybackStatistics } from './internal/machine/telemetry.js';
 import { watchdogPolicy } from './internal/watchdogs.js';
 import { normalizeTrackPolicy, trackAllowed, defaultTrack, assertTrackSelection, capturePolicyTrack, captureTrackPolicy } from './internal/track-policy.js';
 import { plainVTT, BrowserCaptionUnsupported } from './internal/plain-vtt.js';
@@ -28,7 +28,6 @@ import { monitorSampleEligible } from './internal/machine/player-monitor.js';
 import { PlayerError, playerError, redact } from './internal/errors.js';
 import { freeze, tracks, trackKey, usesRemuxTracks } from './internal/state.js';
 import { capturePlayerObservation } from './internal/effects/observations.js';
-import { projectPlayer } from './internal/machine/selectors.js';
 import { selectCapabilities } from './internal/machine/capabilities.js';
 import { copyData } from './internal/machine/data.js';
 import { initialPlayerControl } from './internal/machine/state.js';
@@ -51,7 +50,7 @@ import { fastInspectionAllowed, inspectionSelection, initialInspectionPolicy, op
 import { refineRouteAdmission, applyDeploymentRejections, attachRouteDecoding } from './internal/machine/route-admission.js';
 import { attachmentAuthority, candidateAttachments, attachmentPreferences } from './internal/machine/attachments.js';
 import { boundaryAuthority } from './internal/machine/playback-boundary.js';
-import { settingAuthority, effectiveVideoFilters } from './internal/machine/settings.js';
+import { settingAuthority, effectiveVideoFilters, validOutputSize } from './internal/machine/settings.js';
 import { createTrace, tracePlayerTransition, selectTrace } from './internal/machine/trace.js';
 const filterChain = (value) => {
     if (typeof value !== 'string' || value.length > 4096 || value.includes('\0'))
@@ -65,7 +64,7 @@ const modeValue = (mode) => {
     return mode;
 };
 const dimensions = (width, height) => {
-    if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width > 1920 || height > 1080)
+    if (!validOutputSize(width, height))
         throw new PlayerError('INVALID_ARGUMENT', 'Output dimensions must be within 1920×1080');
 };
 /** Three explicit playback modes. Mode/filter changes reopen transactionally. */
@@ -79,10 +78,9 @@ export class Player extends EventTarget {
     providerRuntime;
     get buffering() { return this.control.preferences.buffering; }
     set buffering(value) { this.updatePreferences({ buffering: value }); }
-    stateSnapshot;
+    get stateSnapshot() { return this.control.publication.snapshot ?? undefined; }
     subscribers = new Set();
-    publishQueued = false;
-    publicationSerial = 0;
+    get publicationSerial() { return this.control.publication.serial; }
     presentation = new PlayerPresentation(this, () => this.root);
     get outputDeviceId() { return this.control.preferences.outputDeviceId; }
     set outputDeviceId(value) { this.updatePreferences({ outputDeviceId: value }); }
@@ -103,8 +101,7 @@ export class Player extends EventTarget {
     set audioDelay(value) { this.updatePreferences({ audioDelay: value }); }
     get subtitleStyle() { return this.control.preferences.subtitleStyle; }
     set subtitleStyle(value) { this.updatePreferences({ subtitleStyle: value }); }
-    statistics = new PlaybackStatistics();
-    operationStarted = 0;
+    get operationStarted() { return this.control.publication.operationStart?.now ?? 0; }
     get publicSelections() { return new Map(Object.entries(this.candidatePreferences.publicSelections)); }
     control = initialPlayerControl();
     controlTrace = createTrace(256);
@@ -116,7 +113,8 @@ export class Player extends EventTarget {
     get operationEpoch() { return this.control.operations.epoch; }
     get activeOperation() { const entry = activeOperation(this.control.operations), resources = entry && this.operationResources.get(entry.id); return entry && resources ? { ...entry, ...resources } : undefined; }
     get pendingOperation() { return pendingOperation(this.control.operations); }
-    sessionError = null;
+    get sessionError() { return this.control.publication.error; }
+    set sessionError(error) { this.dispatchControl({ type: 'publication.error', epoch: this.operationEpoch, session: this.control.source.acceptedSession, error }); }
     get observedPlaying() { return this.control.playback.observedPlaying; }
     get observedWaiting() { return this.control.playback.observedWaiting; }
     get muted() { return this.control.preferences.muted; }
@@ -334,8 +332,8 @@ export class Player extends EventTarget {
     get fonts() { return candidateAttachments(this.control).flatMap(entry => { const resource = this.attachmentResources?.get(entry.id); return resource?.kind === 'font' ? [resource.asset] : []; }); }
     get subtitleAssets() { return candidateAttachments(this.control).flatMap(entry => { const resource = this.attachmentResources?.get(entry.id); return resource?.kind === 'subtitle' ? [resource.asset] : []; }); }
     root;
-    width;
-    height;
+    get width() { return this.control.preferences.outputSize.width; }
+    get height() { return this.control.preferences.outputSize.height; }
     current;
     candidate;
     source;
@@ -543,9 +541,9 @@ export class Player extends EventTarget {
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid software presenter');
         if (!['auto', 'never', 'always'].includes(this.nativeRemux))
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid native remux policy');
-        this.width = options.width ?? 640;
-        this.height = options.height ?? 360;
-        dimensions(this.width, this.height);
+        const width = options.width ?? 640, height = options.height ?? 360;
+        dimensions(width, height);
+        this.updatePreferences({ outputSize: { width, height } });
         this.settings = { pause: true, volume: 100, speed: 1, aid: 'auto', sid: 'auto', subtitles: true, vf: filterChain(options.videoFilters ?? ''), af: filterChain(options.audioFilters ?? ''), gain: options.audioGain ?? 1 };
         if (!Number.isFinite(this.settings.gain) || this.settings.gain < 0 || this.settings.gain > 1)
             throw new PlayerError('INVALID_ARGUMENT', 'Gain must be between 0 and 1');
@@ -573,10 +571,10 @@ export class Player extends EventTarget {
     addEventListener(type, listener, options) { super.addEventListener(type, listener, options); }
     removeEventListener(type, listener, options) { super.removeEventListener(type, listener, options); }
     schedulePublish() {
-        if (this.publishQueued)
+        const queued = this.dispatchControl({ type: 'publication.schedule' });
+        if (!queued.accepted)
             return;
-        this.publishQueued = true;
-        queueMicrotask(() => { this.publishQueued = false; if (!this.busy)
+        queueMicrotask(() => { if (this.dispatchControl({ type: 'publication.scheduled', id: queued.id }).accepted && !this.busy)
             this.publish(); });
     }
     sessionTracks(session = this.current, source = this.source, mode = this.mode, settings = this.settings) {
@@ -665,9 +663,9 @@ export class Player extends EventTarget {
         }
     }
     publish() {
-        const serial = ++this.publicationSerial, previous = this.stateSnapshot, session = this.current, source = this.source, acceptedControl = this.control;
+        const serial = this.dispatchControl({ type: 'publication.begin' }).id, previous = this.stateSnapshot, session = this.current, source = this.source, acceptedControl = this.control.captureRevision;
         const sourceId = this.sourceSerial, epoch = this.operationEpoch, mode = this.mode, settings = { ...this.settings };
-        const current = () => acceptedControl === this.control && serial === this.publicationSerial && previous === this.stateSnapshot && session === this.current && source === this.source && sourceId === this.sourceSerial && epoch === this.operationEpoch && mode === this.mode;
+        const current = () => acceptedControl === this.control.captureRevision && serial === this.publicationSerial && previous === this.stateSnapshot && session === this.current && source === this.source && sourceId === this.sourceSerial && epoch === this.operationEpoch && mode === this.mode;
         const controls = {
             sourceId: session ? sourceId : null, sourcePresent: !!source, requestedLive: source?.kind === 'remote' && source.options.streaming?.live === true,
             mode, automaticSelection: this.automatic, pause: settings.pause, subtitlesVisible: settings.subtitles, volumePercent: settings.volume, muted: this.muted, playbackRate: settings.speed,
@@ -685,7 +683,12 @@ export class Player extends EventTarget {
             this.schedulePublish();
             return;
         }
-        const projection = projectPlayer(previous, input), preview = projection.preview;
+        const prepared = this.dispatchControl({ type: 'publication.prepare', id: serial, captureRevision: acceptedControl, input });
+        if (!prepared.accepted) {
+            this.schedulePublish();
+            return;
+        }
+        const projection = prepared.publication, preview = projection.preview;
         for (const apply of [() => this.#previewController.setPlaybackActive(preview.playbackActive), () => this.#previewController.setSuspended(preview.suspended), () => this.#previewController.setDuration(preview.duration), () => this.#previewController.setPlaybackPosition(preview.position)]) {
             apply();
             if (!current()) {
@@ -693,11 +696,20 @@ export class Player extends EventTarget {
                 return;
             }
         }
+        const next = projection.state;
+        const command = { kind: 'observe', observation: { sourceId: next.sourceId, status: next.status, playbackIntent: next.playbackIntent, operationPending: !!next.pendingOperation } };
+        const timestamps = Array.from({ length: projection.changed ? playbackStatisticsClockReads(this.control.publication.statistics, command) : 0 }, () => performance.now());
+        if (!current()) {
+            this.schedulePublish();
+            return;
+        }
+        const committed = this.dispatchControl({ type: 'publication.commit', id: serial, captureRevision: acceptedControl, timestamps });
+        if (!committed.accepted) {
+            this.schedulePublish();
+            return;
+        }
         if (!projection.changed)
             return;
-        const next = projection.state;
-        this.statistics.observe(next);
-        this.stateSnapshot = next;
         const stillCurrent = () => serial === this.publicationSerial && this.stateSnapshot === next && this.operationEpoch === epoch;
         // A reentrant publication supersedes the rest of this batch. Every delivered
         // event carries the exact committed snapshot that selected its event name.
@@ -805,7 +817,7 @@ export class Player extends EventTarget {
             }
         });
     }
-    getStats() { return this.statistics.snapshot(); }
+    getStats() { const statistics = this.control.publication.statistics; return selectPlaybackStatistics(statistics, statistics.waitingAt === null ? undefined : performance.now()); }
     getPlaybackExplanation() {
         const diagnostics = this.diagnostics, plan = diagnostics.plan;
         const backend = this.current?.backend.diagnostics;
@@ -852,7 +864,7 @@ export class Player extends EventTarget {
         const result = this.queue.then(async () => {
             if (!this.dispatchControl({ type: 'operation.start', id }).accepted)
                 throw new PlayerError('ABORTED', this.destroyed ? 'Player is destroyed' : 'Operation aborted', id, kind);
-            this.operationStarted = performance.now();
+            this.dispatchControl({ type: 'publication.operation-start', id, epoch: this.operationEpoch, now: performance.now() });
             this.publish();
             if (kind === 'seeking')
                 this.dispatchEvent(new CustomEvent('seeking', { detail: this.state }));
@@ -860,7 +872,7 @@ export class Player extends EventTarget {
                 await operation();
                 this.assertOperation();
                 if (kind === 'seeking')
-                    this.statistics.seek(performance.now() - this.operationStarted);
+                    this.dispatchControl({ type: 'publication.seek', id, epoch: this.operationEpoch, now: performance.now() });
             }
             catch (error) {
                 if (optimization)
@@ -1370,15 +1382,15 @@ export class Player extends EventTarget {
             if (overlapping)
                 await p.volume(this.muted ? 0 : desired.volume);
             this.assertOperation();
-            const acceptance = this.dispatchControl({ type: 'source.accept', attempt, operationEpoch: this.operationEpoch, settings: desired, planMatches: !!actual && actual.id === planId && admitted.some(plan => plan.id === actual.id && plan.eligible), ...(!preserve ? { publicSelections: { ...(initialAudio ? { audio: `audio:stream:${initialAudio.index}` } : {}), ...(initialSubtitle ? { sub: `sub:stream:${initialSubtitle.index}` } : {}) } } : {}) });
+            const elapsed = performance.now() - this.operationStarted;
+            const timestamps = Array.from({ length: playbackStatisticsClockReads(this.control.publication.statistics, { kind: 'accept', sourceId: this.sourceSerial + (preserve ? 0 : 1), preserve, elapsed }) }, () => performance.now());
+            const acceptance = this.dispatchControl({ type: 'source.accept', attempt, operationEpoch: this.operationEpoch, timing: { elapsed, timestamps }, settings: desired, planMatches: !!actual && actual.id === planId && admitted.some(plan => plan.id === actual.id && plan.eligible), ...(!preserve ? { publicSelections: { ...(initialAudio ? { audio: `audio:stream:${initialAudio.index}` } : {}), ...(initialSubtitle ? { sub: `sub:stream:${initialSubtitle.index}` } : {}) } } : {}) });
             if (!acceptance.accepted)
                 throw new PlayerError('ABORTED', 'Source acceptance was retired');
             this.current = candidate;
             this.candidate = undefined;
             this.source = source;
             this.activeOperation?.detachCallerAbort();
-            this.statistics.accept(this.sourceSerial, preserve, performance.now() - this.operationStarted);
-            this.sessionError = null;
             if (queried && this.sourceInspection?.source === source) {
                 queried = { ...queried, decodingInfo: this.mediaCapabilityQueries.cached(queried, this.sourceInspection.probe) };
                 admitted = attachRouteDecoding(admitted, planId, queried.decodingInfo);
@@ -2691,8 +2703,7 @@ export class Player extends EventTarget {
         if (this.destroyed)
             throw new PlayerError('ABORTED', 'Player is destroyed');
         dimensions(width, height);
-        this.width = width;
-        this.height = height;
+        this.updatePreferences({ outputSize: { width, height } });
         this.current?.backend.resize(width, height);
     }
     close() {
@@ -2708,7 +2719,7 @@ export class Player extends EventTarget {
         this.inspection?.abort();
         this.stopWatchdogs();
         const cleanup = Promise.all([this.#previewController.drain(), ...[this.candidate, this.current].map(s => s?.backend.destroy().catch(() => { }))]);
-        this.closing = this.enqueue(async () => { await cleanup; await this.dispose(this.current); this.playbackRange = null; this.loopPolicy = false; this.statistics.clear(); this.current = undefined; this.candidate = undefined; this.source = undefined; this.dispatchControl({ type: 'source.clear' }); this.sourceInspection = undefined; this.losslessInspection = undefined; this.sessionError = null; }, 'closing').finally(() => { this.closing = undefined; });
+        this.closing = this.enqueue(async () => { await cleanup; await this.dispose(this.current); this.playbackRange = null; this.loopPolicy = false; this.current = undefined; this.candidate = undefined; this.source = undefined; this.dispatchControl({ type: 'source.clear' }); this.sourceInspection = undefined; this.losslessInspection = undefined; this.sessionError = null; }, 'closing').finally(() => { this.closing = undefined; });
         return this.closing;
     }
     destroy() {
@@ -2732,7 +2743,6 @@ export class Player extends EventTarget {
                 await this.dispose(this.current);
             }
             finally {
-                this.statistics.clear();
                 this.current = undefined;
                 this.source = undefined;
                 this.dispatchControl({ type: 'source.clear' });

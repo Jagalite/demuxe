@@ -3,7 +3,7 @@ import { loadProviderModule } from './provider-modules.js';
 import { executionRecipe } from './execution-recipes.js';
 import { bufferingPolicy, resolveBuffering } from './buffering.js';
 import { plainVTT, BrowserCaptionUnsupported } from './plain-vtt.js';
-import { observeBrowserAudio } from './browser-evidence-adapters.js';
+import { initialNativeBackend, nativeRequestCurrent, transitionNativeBackend } from './machine/native-backend.js';
 import { nativeMediaError, compatibilityFailure, StartupEvidenceTimeout, NativeLoadTimeout } from './runtime-capability.js';
 import { PlayerError, isPlayerError } from './errors.js';
 import { watchdogPolicy } from './watchdogs.js';
@@ -25,9 +25,23 @@ export class NativePlayer extends EventTarget {
     providerRuntime;
     ready = Promise.resolve();
     properties = new Map();
-    stopped = false;
-    seekPresentationRetries = 0;
-    capability = {};
+    native = initialNativeBackend();
+    get stopped() { return this.native.stopped; }
+    get seekPresentationRetries() { return this.native.seekPresentationRetries; }
+    get capability() { return this.native.capability; }
+    get expectedOutput() { return this.native.expected; }
+    verificationCancel;
+    seekCancel;
+    changeNative(command) { const result = transitionNativeBackend(this.native, command); this.native = result.state; return result; }
+    assertNative(request) { if (!nativeRequestCurrent(this.native, request))
+        throw new Error(this.stopped ? 'Player is destroyed' : 'Native operation was retired'); }
+    retireNativeSource() {
+        this.changeNative({ type: 'source' });
+        const verification = this.verificationCancel, seek = this.seekCancel;
+        verification?.cancel(new Error('Native verification was retired'));
+        seek?.cancel(new Error('Native seek presentation was retired'));
+        this.assertActive();
+    }
     mpvSubs;
     mpvAudio;
     get execution() { return executionRecipe(this.requestedPlan)?.native; }
@@ -247,6 +261,7 @@ export class NativePlayer extends EventTarget {
     }
     get diagnostics() { const q = this.video.getVideoPlaybackQuality(), remux = this.remux?.snapshot(); return { buffering: { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: remux?.buffering ?? { elementPreload: this.video.preload } }, capability: { ...this.capability, ...(remux?.capability ?? {}) }, path: 'native', projection: this.projection?.diagnostics, mpvAudio: this.mpvAudio?.diagnostics, mpvSubtitles: this.mpvSubs ? { route: this.mpvAudio ? 'native-video + mpv-audio + mpv-subtitles' : this.remux ? 'native-remux + mpv-subtitles' : 'native-direct + mpv-subtitles', ...this.mpvSubs.stats, ...this.mpvSubs.service } : undefined, plan: this.planId, subtitleOverlay: this.mpvSubs?.tracks.some(t => t.external) ? { component: 'mpv-subtitle-service', scope: 'external', destination: 'container-only', ...this.mpvSubs.stats } : undefined, audioProcessing: this.mpvAudio ? { component: 'mpv-pcm-worklet', gain: this.gainValue } : { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux, seekPresentation: { bufferedRetries: this.seekPresentationRetries }, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
     async load(url) {
+        const epoch = this.native.epoch;
         // open promises metadata even when speculative preload was disabled.
         if (this.buffering.preload === 'none')
             this.video.preload = 'metadata';
@@ -254,160 +269,199 @@ export class NativePlayer extends EventTarget {
             await this.wait(this.buffering.preload === 'auto' ? 'loadeddata' : 'loadedmetadata', () => { this.video.src = url; this.video.load(); });
         }
         finally {
-            this.video.preload = this.buffering.preload;
+            if (!this.stopped && this.native.epoch === epoch)
+                this.video.preload = this.buffering.preload;
         }
-        this.capability.metadata = true;
+        this.assertActive();
+        if (this.native.epoch !== epoch)
+            throw new Error('Native load was retired');
+        this.changeNative({ type: 'metadata', epoch });
         this.refresh();
         this.emit('mpv', { event: 'file-loaded' });
     }
-    expectedOutput;
     /** A paused candidate may prepare current data without presenting it. Only
      * verifyOutput can promote this evidence to executed playback. */
     async verifyStartup(expected, output = false, signal, outputBudgetMs = 10000) {
         signal?.throwIfAborted();
         this.assertActive();
-        await this.mpvSubs?.verify(signal);
-        signal?.throwIfAborted();
-        this.expectedOutput = expected ?? this.expectedOutput;
-        expected = this.expectedOutput;
-        if (this.mpvAudio)
-            expected = { ...expected, video: true, audio: false };
-        const previouslyVerified = this.capability.outputVerified === true;
-        if (output) {
-            this.capability.completedAtEOF = false;
-            this.capability.outputVerified = false;
-            this.capability.videoPresented = false;
-            this.capability.playbackReady = false;
-            this.capability.audioProgress = false;
-            this.capability.audioEvidenceStrength = 'unknown';
-            this.capability.audioDecoded = false;
-        }
+        const request = this.changeNative({ type: 'verify.begin', output, budget: outputBudgetMs, expected }).request, previous = this.verificationCancel;
         const v = this.video;
-        const initialAudioBytes = v.webkitAudioDecodedByteCount;
-        const initialTime = v.currentTime, initialFrames = v.getVideoPlaybackQuality().totalVideoFrames;
-        // A verified session may continue through a shorter track's silent or
-        // frozen tail. Require fresh evidence from tracks still on the timeline.
-        const bounds = this.remux?.trackBounds, position = initialTime - (this.remux?.timelineBias ?? 0);
-        const active = { video: (expected?.video ?? v.videoWidth > 0) && !(output && previouslyVerified && bounds && bounds.videoEnd >= 0 && position >= bounds.videoEnd - .01),
-            audio: (expected?.audio ?? false) && !(output && previouslyVerified && bounds && bounds.audioEnd >= 0 && position >= bounds.audioEnd - .01) };
-        const timing = this.capability.timing ?? (this.capability.timing = {});
-        timing[output ? 'outputRequested' : 'preparationRequested'] = performance.now();
-        await new Promise((resolve, reject) => {
-            let finished = false, classifying = false, frame = 0, presented = false;
-            const finish = (error) => { if (finished)
-                return; finished = true; clearTimeout(timer); clearInterval(poll); if (frame)
-                v.cancelVideoFrameCallback(frame); this.cancelers.delete(cancel); signal?.removeEventListener('abort', aborted); error ? reject(error) : resolve(); };
-            const cancel = (error) => finish(error);
-            const aborted = () => finish(signal?.reason ?? new DOMException('Verification cancelled', 'AbortError'));
-            const check = () => {
-                if (this.stopped) {
-                    finish(new Error('Player is destroyed'));
+        const subtitles = this.mpvSubs;
+        return new Promise((resolve, reject) => {
+            // These slots own physical registrations and promise settlement. Logical
+            // readiness, classification and request authority live in native state.
+            let settled = false, timer, poll, frame;
+            const cleanBrowser = () => {
+                const timeout = timer, interval = poll, callback = frame;
+                timer = undefined;
+                poll = undefined;
+                frame = undefined;
+                let failure;
+                for (const clean of [() => clearTimeout(timeout), () => clearInterval(interval), () => { if (callback?.id)
+                        v.cancelVideoFrameCallback(callback.id); }])
+                    try {
+                        clean();
+                    }
+                    catch (error) {
+                        failure ??= error;
+                    }
+                if (failure)
+                    throw failure;
+            };
+            const finish = (error) => {
+                if (settled)
                     return;
+                settled = true;
+                this.changeNative({ type: 'verify.finish', request, failed: error !== undefined });
+                this.cancelers.delete(cancel);
+                if (this.verificationCancel?.request.id === request.id)
+                    this.verificationCancel = undefined;
+                try {
+                    signal?.removeEventListener('abort', aborted);
                 }
-                if (finished || classifying)
+                catch (cleanup) {
+                    error ??= cleanup;
+                }
+                try {
+                    cleanBrowser();
+                }
+                catch (cleanup) {
+                    error ??= cleanup;
+                }
+                error !== undefined ? reject(error) : resolve();
+            };
+            const assertCurrent = () => { signal?.throwIfAborted(); this.assertNative(request); if (this.mpvSubs !== subtitles)
+                throw new Error('Native verification was retired'); };
+            const cancel = (error) => finish(error), aborted = () => finish(signal?.reason ?? new DOMException('Verification cancelled', 'AbortError'));
+            const failure = (kind) => kind === 'missing-audio' ? new PlayerError('DECODE_FAILED', 'Native selected audio track produced no output') : kind === 'missing-output' ? new PlayerError('DECODE_FAILED', 'Native selected track produced no decoded output') : new StartupEvidenceTimeout(output ? 'output' : 'preparation');
+            const armTimer = (delay) => {
+                const acquired = setTimeout(expired, delay);
+                if (settled || !nativeRequestCurrent(this.native, request))
+                    clearTimeout(acquired);
+                else
+                    timer = acquired;
+            };
+            const expired = () => {
+                timer = undefined;
+                if (settled)
                     return;
-                if (v.error) {
-                    classifying = true;
-                    clearInterval(poll);
-                    void this.classifyDirectFailure(nativeMediaError(v.error)).then(error => finish(error instanceof Error ? error : new Error(String(error))), error => finish(error));
-                    return;
+                try {
+                    assertCurrent();
+                    const facts = { readyState: v.readyState, videoWidth: v.videoWidth, audioBytes: v.webkitAudioDecodedByteCount, hasAudio: v.mozHasAudio, now: performance.now() };
+                    assertCurrent();
+                    const result = this.changeNative({ type: 'verify.deadline', request, ...facts });
+                    if (result.remaining !== undefined)
+                        armTimer(result.remaining);
+                    else if (result.failure)
+                        finish(failure(result.failure));
                 }
-                this.capability.metadata = v.readyState >= 1;
-                if (this.capability.metadata)
-                    timing.metadata ??= performance.now();
-                const hasVideo = active.video;
-                const decoded = v.getVideoPlaybackQuality().totalVideoFrames > 0 || (v.mozDecodedFrames ?? 0) > 0;
-                if (decoded)
-                    this.capability.decoderOutput = true;
-                // A previously verified session can naturally finish a short remaining
-                // interval without presenting another frame. This is completion, not
-                // fresh frame/audio evidence; do not strand play() until its deadline.
-                if (output && previouslyVerified && v.ended) {
-                    this.capability.completedAtEOF = true;
-                    this.capability.outputVerified = true;
-                    timing.outputAccepted = performance.now();
-                    finish();
-                    return;
-                }
-                const ready = v.readyState >= (!output && !this.remux && this.buffering.preload !== 'auto' ? 1 : 3) && !v.seeking && (!hasVideo || v.videoWidth > 0);
-                if (!ready)
-                    return;
-                // A ready video can omit selected audio. Use browser runtime evidence,
-                // but an instantaneous zero counter is not a decode failure. Paused
-                // preparation does not claim output; play verification has a deadline.
-                if (active.audio)
-                    this.capability.audioObservation = { initialBytes: initialAudioBytes, decodedBytes: v.webkitAudioDecodedByteCount, delta: typeof initialAudioBytes === 'number' && typeof v.webkitAudioDecodedByteCount === 'number' ? v.webkitAudioDecodedByteCount - initialAudioBytes : undefined, present: v.mozHasAudio, enabledTrack: v.audioTracks ? Array.from(v.audioTracks).some(track => track.enabled) : undefined, clockAdvanced: v.currentTime > initialTime + .02 };
-                if (active.audio && v.readyState >= 3 && v.mozHasAudio === false) {
-                    finish(new PlayerError('DECODE_FAILED', 'Native selected audio track produced no output'));
-                    return;
-                }
-                this.capability.prepared = true;
-                timing.ready ??= performance.now();
-                if (!output) {
-                    finish();
-                    return;
-                }
-                const advancing = (!v.paused || v.ended) && v.currentTime > initialTime + (v.ended ? 0 : .02);
-                if (presented || v.getVideoPlaybackQuality().totalVideoFrames > initialFrames) {
-                    this.capability.videoPresented = true;
-                    timing.firstFrame ??= performance.now();
-                }
-                const audio = observeBrowserAudio(v, advancing);
-                const audioReady = !active.audio || audio.ready;
-                if (active.audio) {
-                    this.capability.audioEvidenceStrength = audio.strength;
-                    this.capability.audioEvidence = audio.adapter;
-                    this.capability.audioDecoded = audio.strength === 'decoded';
-                    this.capability.audioProgress = audioReady && advancing;
-                }
-                if (advancing && (!hasVideo || this.capability.videoPresented) && audioReady) {
-                    this.capability.playbackReady = true;
-                    this.capability.outputVerified = true;
-                    timing.outputAccepted = performance.now();
-                    finish();
+                catch (error) {
+                    finish(error);
                 }
             };
-            const timer = setTimeout(() => {
-                const missing = v.readyState >= 3 && ((active.video && !v.videoWidth) || (output && active.audio && (v.webkitAudioDecodedByteCount === 0 || v.mozHasAudio === false)));
-                // A scheduling trial is inconclusive; it must never poison codec admission.
-                finish(missing && (!output || outputBudgetMs >= 10000) ? new PlayerError('DECODE_FAILED', 'Native selected track produced no decoded output') : new StartupEvidenceTimeout(output ? 'output' : 'preparation'));
-            }, output ? outputBudgetMs : 10000);
-            const poll = setInterval(check, 25);
+            let audio;
+            const check = () => {
+                if (settled)
+                    return;
+                try {
+                    assertCurrent();
+                    if (this.native.verification?.phase !== 'sampling')
+                        return;
+                    const mediaError = v.error;
+                    assertCurrent();
+                    if (mediaError) {
+                        if (!this.changeNative({ type: 'verify.classify', request }).accepted)
+                            return;
+                        const interval = poll;
+                        poll = undefined;
+                        clearInterval(interval);
+                        Promise.resolve(this.classifyDirectFailure(nativeMediaError(mediaError))).then(error => finish(error instanceof Error ? error : new Error(String(error))), finish);
+                        return;
+                    }
+                    const tracks = v.audioTracks;
+                    const facts = { now: performance.now(), readyState: v.readyState, videoWidth: v.videoWidth, time: v.currentTime, frames: v.getVideoPlaybackQuality().totalVideoFrames, decodedFrames: v.mozDecodedFrames, seeking: v.seeking, paused: v.paused, ended: v.ended, audio: { decodedBytes: v.webkitAudioDecodedByteCount, present: v.mozHasAudio, tracksPresent: !!tracks, enabledTrack: tracks ? Array.from(tracks).some(track => track.enabled) : false } };
+                    assertCurrent();
+                    if (this.mpvAudio !== audio)
+                        throw new Error('Native verification was retired');
+                    const result = this.changeNative({ type: 'verify.sample', request, facts });
+                    if (result.failure) {
+                        finish(failure(result.failure));
+                        return;
+                    }
+                    if (!result.completed)
+                        return;
+                    cleanBrowser();
+                    assertCurrent();
+                    if (output && audio) {
+                        const selected = audio;
+                        Promise.resolve(selected.verifyOutput(signal)).then(() => {
+                            try {
+                                assertCurrent();
+                                if (this.mpvAudio !== selected)
+                                    throw new Error('Native verification was retired');
+                                if (this.changeNative({ type: 'verify.audio', request }).accepted)
+                                    finish();
+                            }
+                            catch (error) {
+                                finish(error);
+                            }
+                        }, error => {
+                            try {
+                                assertCurrent();
+                                finish(new PlayerError('DECODE_FAILED', 'Selective audio runtime output was not verified: ' + String(error)));
+                            }
+                            catch (retired) {
+                                finish(retired);
+                            }
+                        });
+                    }
+                    else
+                        finish();
+                }
+                catch (error) {
+                    finish(error);
+                }
+            };
+            this.verificationCancel = { request, cancel };
             this.cancelers.add(cancel);
             signal?.addEventListener('abort', aborted, { once: true });
-            if (signal?.aborted) {
-                aborted();
-                return;
-            }
-            if (output && typeof v.requestVideoFrameCallback === 'function')
-                frame = v.requestVideoFrameCallback(() => { if (!finished && !this.stopped) {
-                    presented = true;
-                    check();
-                } });
-            check();
+            previous?.cancel(new Error('Native verification was retired'));
+            void (async () => {
+                assertCurrent();
+                await subtitles?.verify(signal);
+                assertCurrent();
+                audio = this.mpvAudio;
+                const initialAudioBytes = v.webkitAudioDecodedByteCount, time = v.currentTime, frames = v.getVideoPlaybackQuality().totalVideoFrames, bounds = this.remux?.trackBounds;
+                const facts = { now: performance.now(), time, frames, audioBytes: initialAudioBytes, videoWidth: v.videoWidth, selectiveAudio: !!audio, metadataPreparation: !this.remux && this.buffering.preload !== 'auto', videoEnd: bounds?.videoEnd, audioEnd: bounds?.audioEnd, timelineBias: this.remux?.timelineBias ?? 0 };
+                assertCurrent();
+                if (!this.changeNative({ type: 'verify.start', request, ...facts }).accepted)
+                    throw new Error('Native verification was retired');
+                armTimer(output ? outputBudgetMs : 10000);
+                assertCurrent();
+                if (settled)
+                    return;
+                const interval = setInterval(check, 25);
+                if (settled || !nativeRequestCurrent(this.native, request)) {
+                    clearInterval(interval);
+                    return;
+                }
+                poll = interval;
+                if (output && typeof v.requestVideoFrameCallback === 'function') {
+                    const registration = { id: 0 };
+                    frame = registration;
+                    const acquired = v.requestVideoFrameCallback(() => { if (frame !== registration || settled)
+                        return; frame = undefined; if (this.changeNative({ type: 'verify.presented', request }).accepted)
+                        check(); });
+                    registration.id = acquired;
+                    if (frame !== registration || settled || !nativeRequestCurrent(this.native, request))
+                        v.cancelVideoFrameCallback(acquired);
+                }
+                assertCurrent();
+                check();
+            })().catch(finish);
         });
-        if (output && this.mpvAudio) {
-            try {
-                await this.mpvAudio.verifyOutput(signal);
-                signal?.throwIfAborted();
-            }
-            catch (error) {
-                signal?.throwIfAborted();
-                throw new PlayerError('DECODE_FAILED', 'Selective audio runtime output was not verified: ' + String(error));
-            }
-            this.capability.audioProgress = true;
-            this.capability.audioEvidence = 'mpv-pcm-worklet-consumption';
-            this.capability.audioEvidenceStrength = 'consumed';
-            this.capability.audioDecoded = true;
-        }
     }
-    async verifyOutput(signal, outputBudgetMs = 10000) { try {
-        await this.verifyStartup(this.expectedOutput, true, signal, outputBudgetMs);
-    }
-    catch (error) {
-        this.capability.outputVerified = false;
-        throw error;
-    } }
+    async verifyOutput(signal, outputBudgetMs = 10000) { await this.verifyStartup(this.expectedOutput, true, signal, outputBudgetMs); }
     preparationError(error) {
         // These are explicit media/profile rejections from the selected audio engine.
         // Source transport, asset failures and cancellations keep their original type.
@@ -606,6 +660,7 @@ export class NativePlayer extends EventTarget {
     }
     async open(file) {
         this.assertActive();
+        this.retireNativeSource();
         const local = file instanceof File ? file : new File([file], 'media');
         this.objectURL = URL.createObjectURL(local);
         try {
@@ -625,12 +680,14 @@ export class NativePlayer extends EventTarget {
         const url = new URL(source.url, location.href);
         if (!['http:', 'https:'].includes(url.protocol))
             throw Error('Remote sources require HTTP or HTTPS');
+        this.retireNativeSource();
         const requiresRemux = !!(source.headers || source.refreshAuthorization || source.allowedOrigins || source.immutable !== undefined || source.credentials === 'omit' || this.mpvSubtitlePlan);
         this.video.crossOrigin = source.credentials === 'include' ? 'use-credentials' : 'anonymous';
         await this.loadPlan({ options: { ...source, url: url.href }, audioTrack: this.initialAudioTrack, videoOnly: this.selectiveAudio }, async () => {
             if (source.format && source.format !== 'file') {
                 const mime = source.format === 'hls' ? 'application/vnd.apple.mpegurl' : 'application/dash+xml';
-                this.capability.apiHint = `canPlayType(${mime})=${this.video.canPlayType(mime) || 'unknown'}`;
+                const epoch = this.native.epoch, value = `canPlayType(${mime})=${this.video.canPlayType(mime) || 'unknown'}`;
+                this.changeNative({ type: 'api-hint', epoch, value });
             }
             this.remoteSource = { ...source, url: url.href };
             try {
@@ -711,134 +768,233 @@ export class NativePlayer extends EventTarget {
         this.video.pause(); this.refresh(); }
     async seek(seconds) {
         this.assertActive();
-        this.mpvSubs?.suspend(true);
+        const epoch = this.native.epoch, subtitles = this.mpvSubs, audio = this.mpvAudio;
+        const current = () => { this.assertActive(); if (this.native.epoch !== epoch || this.mpvSubs !== subtitles || this.mpvAudio !== audio)
+            throw new Error('Native seek was retired'); };
+        subtitles?.suspend(true);
         try {
-            if (this.mpvAudio)
-                await this.mpvAudio.seek(seconds, async () => { this.remux?.pause(); await this.seekVideo(seconds); });
+            current();
+            if (audio)
+                await audio.seek(seconds, async () => { current(); this.remux?.pause(); current(); await this.seekVideo(seconds); });
             else
                 await this.seekVideo(seconds);
-            await this.mpvSubs?.seek(seconds);
+            current();
+            await subtitles?.seek(seconds);
+            current();
         }
         catch (error) {
             throw this.preparationError(error);
         }
         finally {
-            this.mpvSubs?.suspend(false);
+            if (!this.stopped && this.native.epoch === epoch && this.mpvSubs === subtitles)
+                subtitles?.suspend(false);
         }
     }
     async seekVideo(seconds) {
         this.assertActive();
-        if (this.remux) {
-            const paused = this.remux.playbackPaused ?? this.video.paused;
+        const epoch = this.native.epoch, remux = this.remux;
+        const current = () => { this.assertActive(); if (this.native.epoch !== epoch || this.remux !== remux)
+            throw new Error('Native seek was retired'); };
+        if (remux) {
+            const paused = remux.playbackPaused ?? this.video.paused;
             // Even a sub-millisecond movement can cross a source-frame boundary.
-            const frameChanged = this.remux.expectedVideoFrame?.(seconds) !== this.remux.expectedVideoFrame?.(this.sourceTime());
-            if (this.remux.canSeekBuffered?.(seconds) && this.video.videoWidth && (frameChanged || Math.abs(this.sourceTime() - seconds) > .001)) {
-                // Hold the presentation clock while verifying the target frame. Otherwise
-                // a playing clock can advance beyond the exact target before rVFC runs.
-                // Producer/session identity is retained; restore the captured intent below.
-                this.remux.pause();
-                await this.seekPresented(seconds, () => this.remux.seek(seconds));
+            const frameChanged = remux.expectedVideoFrame?.(seconds) !== remux.expectedVideoFrame?.(this.sourceTime());
+            const presented = remux.canSeekBuffered?.(seconds) && this.video.videoWidth && (frameChanged || Math.abs(this.sourceTime() - seconds) > .001);
+            current();
+            if (presented) {
+                // Preserve the captured intent while validating the target source frame.
+                remux.pause();
+                current();
+                await this.seekPresented(seconds, () => remux.seek(seconds));
             }
             else
-                await this.remux.seek(seconds);
-            this.assertActive();
+                await remux.seek(seconds);
+            current();
             if (this.video.seeking)
                 await this.wait('seeked', () => { });
+            current();
             if (!paused)
-                await this.remux.play();
+                await remux.play();
+            current();
             this.refresh();
             return;
         }
         if (Math.abs(this.video.currentTime - seconds) < .001 && !this.video.seeking)
             return;
-        await this.wait('seeked', () => { this.video.currentTime = seconds; });
+        current();
+        await this.wait('seeked', () => { current(); this.video.currentTime = seconds; });
+        current();
         this.refresh();
     }
     seekPresented(target, action) {
+        this.assertActive();
+        const presentation = this.remux, generation = presentation?.generation, mediaTarget = target + (presentation?.timelineBias ?? 0), expected = presentation?.expectedVideoFrame?.(target), correlated = !!presentation?.muxedFrames || expected !== undefined;
+        this.assertActive();
+        const request = this.changeNative({ type: 'seek.begin', target, mediaTarget, correlated, now: performance.now() }).request, previous = this.seekCancel;
         return new Promise((resolve, reject) => {
-            let frame = 0, accepted = false, completed = false, finished = false, retried = false;
-            let retryTimer;
-            const presentation = this.remux, generation = presentation?.generation, mediaTarget = target + (presentation?.timelineBias ?? 0), expected = presentation?.expectedVideoFrame?.(target);
-            const correlated = !!presentation?.muxedFrames || expected !== undefined;
-            let presented = false;
-            const retired = () => this.stopped || this.remux !== presentation || presentation?.generation !== generation;
-            const atTarget = () => !this.video.seeking && Math.abs(this.video.currentTime - mediaTarget) < .001;
-            const seeked = () => {
-                if (retired()) {
-                    finish(new Error('Native seek presentation was retired'));
+            let settled = false, frame, timer, retryTimer;
+            const retired = () => !nativeRequestCurrent(this.native, request) || this.remux !== presentation || presentation?.generation !== generation || !nativeRequestCurrent(this.native, request) || this.remux !== presentation;
+            const assertCurrent = () => { if (retired())
+                throw new Error('Native seek presentation was retired'); };
+            const finish = (error) => {
+                if (settled)
                     return;
-                }
-                if (correlated && presented && atTarget()) {
-                    accepted = true;
-                    if (completed)
-                        finish();
-                    return;
-                }
-                // Firefox can complete a paused seek without issuing a fresh frame
-                // callback (reproduced after a remux restart with Native ASS). Give the
-                // compositor time to deliver it, then re-present the same buffered
-                // target once. Keep the producer and source-frame verification intact;
-                // seeked/currentTime alone must never establish correct output.
-                if (!presented && atTarget() && !retried && retryTimer === undefined) {
-                    retryTimer = setTimeout(() => {
-                        retryTimer = undefined;
-                        if (finished)
-                            return;
-                        if (retired()) {
-                            finish(new Error('Native seek presentation was retired'));
-                            return;
-                        }
-                        if (presented || !atTarget() || !this.video.paused || !presentation?.canSeekBuffered?.(target))
-                            return;
-                        retried = true;
-                        this.seekPresentationRetries++;
-                        if (frame)
-                            this.video.cancelVideoFrameCallback(frame);
-                        frame = this.video.requestVideoFrameCallback(next);
-                        try {
-                            this.video.currentTime = mediaTarget;
-                        }
-                        catch (error) {
-                            finish(error);
-                        }
-                    }, 100);
-                }
+                settled = true;
+                this.changeNative({ type: 'seek.finish', request });
+                const timeout = timer, retry = retryTimer, callback = frame;
+                timer = undefined;
+                retryTimer = undefined;
+                frame = undefined;
+                this.cancelers.delete(cancel);
+                if (this.seekCancel?.request.id === request.id)
+                    this.seekCancel = undefined;
+                for (const clean of [() => clearTimeout(timeout), () => clearTimeout(retry), () => { if (callback?.id)
+                        this.video.cancelVideoFrameCallback(callback.id); }, () => this.video.removeEventListener('seeked', seeked), () => this.video.removeEventListener('error', failed)])
+                    try {
+                        clean();
+                    }
+                    catch (cleanup) {
+                        error ??= cleanup;
+                    }
+                error !== undefined ? reject(error) : resolve();
             };
-            const failed = () => finish(nativeMediaError(this.video.error));
-            const finish = (error) => { if (finished)
-                return; finished = true; clearTimeout(timer); clearTimeout(retryTimer); if (frame)
-                this.video.cancelVideoFrameCallback(frame); this.video.removeEventListener('seeked', seeked); this.video.removeEventListener('error', failed); this.cancelers.delete(cancel); error ? reject(error) : resolve(); };
-            const cancel = (error) => finish(error);
-            const timer = setTimeout(() => finish(new Error('Native seek did not present the target')), 10000);
-            const next = (_, metadata) => {
-                if (finished)
-                    return;
-                if (retired()) {
-                    finish(new Error('Native seek presentation was retired'));
-                    return;
-                }
-                // A browser may report the frame's PTS or clip that timestamp to the seek
-                // point (Firefox). Accept only the corresponding source-frame interval.
-                // Legacy remux artifacts without packet metadata retain their prior guard.
-                const matches = presentation?.matchesVideoFrame?.(target, metadata.mediaTime) ?? (expected !== undefined && metadata.mediaTime >= expected + (presentation?.timelineBias ?? 0) - .001 && metadata.mediaTime <= mediaTarget + .001);
-                if (correlated && matches && Math.abs(this.video.currentTime - mediaTarget) < .001)
-                    presented = true;
-                if (!this.video.seeking && Math.abs(this.video.currentTime - mediaTarget) < .001 && (correlated ? presented : metadata.mediaTime <= mediaTarget + .001)) {
-                    accepted = true;
-                    if (completed)
-                        finish();
-                }
+            const cancel = (error) => finish(error), failed = () => { try {
+                assertCurrent();
+                const error = nativeMediaError(this.video.error);
+                assertCurrent();
+                finish(error);
+            }
+            catch (error) {
+                finish(error);
+            } };
+            const facts = () => { const result = { position: this.video.currentTime, seeking: this.video.seeking }; assertCurrent(); return result; };
+            const armFrame = () => {
+                assertCurrent();
+                const registration = { id: 0 };
+                frame = registration;
+                const acquired = this.video.requestVideoFrameCallback((_, metadata) => { if (frame !== registration || settled)
+                    return; frame = undefined; next(metadata); });
+                registration.id = acquired;
+                if (frame !== registration || settled || retired())
+                    this.video.cancelVideoFrameCallback(acquired);
+            };
+            const armDeadline = (delay) => {
+                const acquired = setTimeout(expired, delay);
+                if (settled || retired())
+                    clearTimeout(acquired);
                 else
-                    frame = this.video.requestVideoFrameCallback(next);
+                    timer = acquired;
             };
-            // Register before currentTime changes: the compositor callback may precede
-            // the queued DOM seeking/seeked events, especially for buffered media.
+            const expired = () => {
+                timer = undefined;
+                if (settled)
+                    return;
+                try {
+                    assertCurrent();
+                    const result = this.changeNative({ type: 'seek.deadline', request, now: performance.now() });
+                    if (result.remaining !== undefined)
+                        armDeadline(result.remaining);
+                    else if (result.failure)
+                        finish(new Error('Native seek did not present the target'));
+                }
+                catch (error) {
+                    finish(error);
+                }
+            };
+            const armRetry = (delay) => {
+                const acquired = setTimeout(retry, delay);
+                if (settled || retired())
+                    clearTimeout(acquired);
+                else
+                    retryTimer = acquired;
+            };
+            const retry = () => {
+                retryTimer = undefined;
+                if (settled)
+                    return;
+                try {
+                    assertCurrent();
+                    const sample = facts(), paused = this.video.paused, buffered = !!presentation?.canSeekBuffered?.(target);
+                    assertCurrent();
+                    const result = this.changeNative({ type: 'seek.retry', request, facts: sample, now: performance.now(), paused, buffered });
+                    if (result.remaining !== undefined) {
+                        armRetry(result.remaining);
+                        return;
+                    }
+                    if (!result.retry)
+                        return;
+                    const callback = frame;
+                    frame = undefined;
+                    if (callback?.id)
+                        this.video.cancelVideoFrameCallback(callback.id);
+                    assertCurrent();
+                    armFrame();
+                    assertCurrent();
+                    this.video.currentTime = mediaTarget;
+                    assertCurrent();
+                }
+                catch (error) {
+                    finish(error);
+                }
+            };
+            const seeked = () => {
+                if (settled)
+                    return;
+                try {
+                    assertCurrent();
+                    const result = this.changeNative({ type: 'seek.seeked', request, facts: facts(), now: performance.now() });
+                    if (result.completed)
+                        finish();
+                    else if (result.remaining !== undefined)
+                        armRetry(result.remaining);
+                }
+                catch (error) {
+                    finish(error);
+                }
+            };
+            const next = (metadata) => {
+                if (settled)
+                    return;
+                try {
+                    assertCurrent();
+                    const matches = presentation?.matchesVideoFrame?.(target, metadata.mediaTime) ?? (expected !== undefined && metadata.mediaTime >= expected + (presentation?.timelineBias ?? 0) - .001 && metadata.mediaTime <= mediaTarget + .001), sample = facts();
+                    assertCurrent();
+                    const result = this.changeNative({ type: 'seek.frame', request, facts: sample, mediaTime: metadata.mediaTime, matches });
+                    if (result.completed)
+                        finish();
+                    else if (result.armFrame)
+                        armFrame();
+                }
+                catch (error) {
+                    finish(error);
+                }
+            };
+            this.seekCancel = { request, cancel };
             this.cancelers.add(cancel);
-            this.video.addEventListener('seeked', seeked);
-            this.video.addEventListener('error', failed);
-            frame = this.video.requestVideoFrameCallback(next);
-            Promise.resolve().then(action).then(() => { completed = true; if (accepted)
-                finish(); }, error => finish(error));
+            previous?.cancel(new Error('Native seek presentation was retired'));
+            try {
+                assertCurrent();
+                armDeadline(10000);
+                assertCurrent();
+                this.video.addEventListener('seeked', seeked);
+                assertCurrent();
+                this.video.addEventListener('error', failed);
+                assertCurrent();
+                // The compositor may deliver a frame before queued seeking/seeked events.
+                armFrame();
+                assertCurrent();
+                Promise.resolve().then(() => { assertCurrent(); return action(); }).then(() => { try {
+                    assertCurrent();
+                    if (this.changeNative({ type: 'seek.completed', request }).completed)
+                        finish();
+                }
+                catch (error) {
+                    finish(error);
+                } }, finish);
+            }
+            catch (error) {
+                finish(error);
+            }
         });
     }
     async rate(value) { this.assertActive(); if (this.selectiveAudio) {
@@ -1065,7 +1221,9 @@ export class NativePlayer extends EventTarget {
         return this.destruction;
     }
     async dispose() {
-        this.stopped = true;
+        this.changeNative({ type: 'stop' });
+        this.verificationCancel?.cancel(new Error('Player is destroyed'));
+        this.seekCancel?.cancel(new Error('Player is destroyed'));
         await this.mpvAudio?.destroy();
         this.mpvAudio = undefined;
         await this.mpvSubs?.destroy();

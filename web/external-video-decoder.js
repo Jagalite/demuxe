@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {initialExternalDecoder,externalDecoderCurrent,beginExternalDecoderConfiguration,acceptExternalDecoderConfiguration,retireExternalDecoder,externalDecoderSubmission} from './generated/internal/machine/external-video-decoder.js';
 // Internal decoder service contract. PTS and duration are integer microseconds.
 // The mpv mailbox owns packet bytes until submit returns. A backend owns every
 // emitted frame until it transfers ownership to the retained-frame presenter.
@@ -23,36 +24,59 @@ export function assertExternalVideoDecoder(backend){
 export class WebCodecsVideoDecoder {
   constructor({output,error,dequeue,Decoder=globalThis.VideoDecoder}) {
     this.Decoder=Decoder;this.output=output;this.error=error;this.dequeue=dequeue;
-    this.decoder=null;this.generation=0;
+    this.machine=initialExternalDecoder();this.handles=new Map();
   }
+  get generation(){return this.machine.generation;}
+  get decoder(){return this.machine.current?this.handles.get(this.machine.current.id)??null:null;}
   get queuedPackets(){return this.decoder?.decodeQueueSize??0;}
+  closeHandle(id){
+    const decoder=this.handles.get(id);this.handles.delete(id);
+    if(decoder&&decoder.state!=='closed')decoder.close();
+  }
+  assertCurrent(lease){if(!externalDecoderCurrent(this.machine,lease))throw Error('Decoder configuration was retired');}
   configure(config){
-    this.destroy();
-    if(!this.Decoder)throw Error('VideoDecoder unavailable');
-    const generation=++this.generation;
-    const decoder=new this.Decoder({
-      output:frame=>{if(generation===this.generation)this.output(frame);else frame.close();},
-      error:error=>{if(generation===this.generation)this.error(error);},
-    });
-    this.decoder=decoder;
-    decoder.addEventListener('dequeue',()=>{if(generation===this.generation)this.dequeue?.();});
-    try{decoder.configure(config);}catch(error){this.destroy();throw error;}
+    const decision=beginExternalDecoderConfiguration(this.machine);this.machine=decision.state;
+    const lease=decision.lease;let acquired=null;
+    try{
+      if(decision.close!==null)this.closeHandle(decision.close);
+      this.assertCurrent(lease);
+      const Decoder=this.Decoder;this.assertCurrent(lease);
+      if(!Decoder)throw Error('VideoDecoder unavailable');
+      acquired=new Decoder({
+        output:frame=>{if(externalDecoderCurrent(this.machine,lease))this.output(frame);else frame.close();},
+        error:error=>{if(externalDecoderCurrent(this.machine,lease))this.error(error);},
+      });
+      this.assertCurrent(lease);
+      const decoder=acquired;this.handles.set(lease.id,decoder);acquired=null;
+      const listen=decoder.addEventListener;this.assertCurrent(lease);
+      listen.call(decoder,'dequeue',()=>{if(externalDecoderCurrent(this.machine,lease))this.dequeue?.();});
+      this.assertCurrent(lease);const configure=decoder.configure;this.assertCurrent(lease);
+      configure.call(decoder,config);this.assertCurrent(lease);
+      this.machine=acceptExternalDecoderConfiguration(this.machine,lease);
+    }catch(error){
+      // A constructor may retire its lease before returning the raw handle.
+      // A failed predecessor must never destroy a reentrant successor.
+      const retirement=retireExternalDecoder(this.machine,lease);this.machine=retirement.state;
+      const failures=[error];
+      try{this.closeHandle(lease.id);}catch(cleanup){failures.push(cleanup);}
+      try{if(acquired&&acquired.state!=='closed')acquired.close();}catch(cleanup){failures.push(cleanup);}
+      if(failures.length>1)throw new AggregateError(failures,'Decoder configuration failed');throw error;
+    }
   }
   submit(packet){
-    if(!this.decoder||this.decoder.state==='closed')throw Error('Decoder is closed');
-    if(this.queuedPackets>=8)return false;
-    this.decoder.decode(packet);
-    return true;
+    const lease=this.machine.current,decoder=this.decoder,decode=decoder?.decode;
+    const facts={present:!!decoder,closed:decoder?.state==='closed',queued:decoder?.decodeQueueSize??0};
+    const decision=externalDecoderSubmission(this.machine,lease,facts);
+    if(decision==='closed')throw Error('Decoder is closed');if(decision==='again')return false;
+    decode.call(decoder,packet);return true;
   }
-  drain(){if(!this.decoder)throw Error('Decoder is closed');return this.decoder.flush();}
+  drain(){const lease=this.machine.current,decoder=this.decoder,flush=decoder?.flush;if(!lease||!decoder||!externalDecoderCurrent(this.machine,lease))throw Error('Decoder is closed');return flush.call(decoder);}
   reset(){
-    // The mailbox worker reconfigures after reset. Closing, rather than reusing
-    // VideoDecoder.reset(), also invalidates asynchronous output callbacks.
+    // Closing invalidates browser callbacks; the owner reconfigures after reset.
     this.destroy();
   }
   destroy(){
-    this.generation++;
-    if(this.decoder?.state!=='closed')this.decoder?.close();
-    this.decoder=null;
+    const decision=retireExternalDecoder(this.machine);this.machine=decision.state;
+    if(decision.close!==null)this.closeHandle(decision.close);
   }
 }

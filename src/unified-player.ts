@@ -7,7 +7,7 @@ import {routingRequirements, missingRoutingFacts} from './internal/probe-require
 import {bufferingPolicy, resolveBuffering} from './internal/buffering.js';
 import {PlayerPresentation} from './presentation.js';
 import {isCustomSource,materializeSource} from './sources.js';
-import {PlaybackStatistics} from './internal/playback-statistics.js';
+import {playbackStatisticsClockReads,selectPlaybackStatistics} from './internal/machine/telemetry.js';
 import {watchdogPolicy} from './internal/watchdogs.js';
 import type {WatchdogOptions,WatchdogPolicy} from './types.js';
 import type {BufferingOptions, BufferingPolicy, BufferingResolution, BufferingState} from './types.js';
@@ -34,7 +34,6 @@ import type {NativeProgressSample} from './internal/machine/telemetry.js';
 import {PlayerError, playerError, redact} from './internal/errors.js';
 import {freeze, tracks, trackKey, usesRemuxTracks} from './internal/state.js';
 import {capturePlayerObservation} from './internal/effects/observations.js';
-import {projectPlayer} from './internal/machine/selectors.js';
 import {selectCapabilities,type CapabilityFacts} from './internal/machine/capabilities.js';
 import {copyData} from './internal/machine/data.js';
 import {initialPlayerControl} from './internal/machine/state.js';
@@ -65,7 +64,7 @@ import {fastInspectionAllowed,inspectionSelection,initialInspectionPolicy,option
 import {refineRouteAdmission,applyDeploymentRejections,attachRouteDecoding,type RoutePlan} from './internal/machine/route-admission.js';
 import {attachmentAuthority,candidateAttachments,attachmentPreferences,type AttachmentInput,type AttachmentEffect,type AttachmentCommand,type AttachmentFacts} from './internal/machine/attachments.js';
 import {boundaryAuthority} from './internal/machine/playback-boundary.js';
-import {settingAuthority,effectiveVideoFilters,type SettingCommand,type SettingEffect,type PlayerPreferences} from './internal/machine/settings.js';
+import {settingAuthority,effectiveVideoFilters,validOutputSize,type SettingCommand,type SettingEffect,type PlayerPreferences} from './internal/machine/settings.js';
 import {createTrace,tracePlayerTransition,selectTrace} from './internal/machine/trace.js';
 type Settings = import('./internal/machine/settings.js').PlaybackSettings;
 const filterChain = (value: string) => {
@@ -78,7 +77,7 @@ const modeValue = (mode: PlaybackMode) => {
   return mode;
 };
 const dimensions = (width: number, height: number) => {
-  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width > 1920 || height > 1080) throw new PlayerError('INVALID_ARGUMENT','Output dimensions must be within 1920×1080');
+  if (!validOutputSize(width,height)) throw new PlayerError('INVALID_ARGUMENT','Output dimensions must be within 1920×1080');
 };
 
 /** Three explicit playback modes. Mode/filter changes reopen transactionally. */
@@ -92,10 +91,9 @@ export class Player extends EventTarget {
   private providerRuntime?: ProviderRuntime;
   private get buffering(){return this.control.preferences.buffering;}
   private set buffering(value:BufferingPolicy){this.updatePreferences({buffering:value});}
-  private stateSnapshot!: PlayerState;
+  private get stateSnapshot():PlayerState{return this.control.publication.snapshot??undefined!;}
   private subscribers = new Set<(state:PlayerState)=>void>();
-  private publishQueued = false;
-  private publicationSerial = 0;
+  private get publicationSerial(){return this.control.publication.serial;}
   readonly presentation=new PlayerPresentation(this,()=>this.root);
   private get outputDeviceId(){return this.control.preferences.outputDeviceId;}
   private set outputDeviceId(value:string){this.updatePreferences({outputDeviceId:value});}
@@ -116,8 +114,7 @@ export class Player extends EventTarget {
   private set audioDelay(value:number){this.updatePreferences({audioDelay:value});}
   private get subtitleStyle(){return this.control.preferences.subtitleStyle;}
   private set subtitleStyle(value:import('./types.js').SubtitleStyle){this.updatePreferences({subtitleStyle:value});}
-  private readonly statistics=new PlaybackStatistics();
-  private operationStarted=0;
+  private get operationStarted(){return this.control.publication.operationStart?.now??0;}
   private get publicSelections():ReadonlyMap<TrackType,string>{return new Map(Object.entries(this.candidatePreferences.publicSelections) as [TrackType,string][]);}
   private control=initialPlayerControl();
   private controlTrace=createTrace(256);
@@ -129,7 +126,8 @@ export class Player extends EventTarget {
   private get operationEpoch(){return this.control.operations.epoch;}
   private get activeOperation(){const entry=activeOperation(this.control.operations),resources=entry&&this.operationResources.get(entry.id);return entry&&resources?{...entry,...resources}:undefined;}
   private get pendingOperation():PendingOperation|null{return pendingOperation(this.control.operations);}
-  private sessionError: SessionError|null = null;
+  private get sessionError(){return this.control.publication.error;}
+  private set sessionError(error:SessionError|null){this.dispatchControl({type:'publication.error',epoch:this.operationEpoch,session:this.control.source.acceptedSession,error});}
   private get observedPlaying(){return this.control.playback.observedPlaying;}
   private get observedWaiting(){return this.control.playback.observedWaiting;}
   private get muted(){return this.control.preferences.muted;}
@@ -293,8 +291,8 @@ export class Player extends EventTarget {
   private get fonts():FontAsset[]{return candidateAttachments(this.control).flatMap(entry=>{const resource=this.attachmentResources?.get(entry.id);return resource?.kind==='font'?[resource.asset]:[];});}
   private get subtitleAssets():SubtitleAsset[]{return candidateAttachments(this.control).flatMap(entry=>{const resource=this.attachmentResources?.get(entry.id);return resource?.kind==='subtitle'?[resource.asset]:[];});}
   private root: HTMLDivElement;
-  private width: number;
-  private height: number;
+  private get width(){return this.control.preferences.outputSize.width;}
+  private get height(){return this.control.preferences.outputSize.height;}
   private current?: Session;
   private candidate?: Session;
   private source?: Source;
@@ -429,7 +427,7 @@ export class Player extends EventTarget {
     if(!['exact','balanced','performance'].includes(this.decodeQuality)||typeof this.adaptiveFrameDrop!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid Software decode policy');
     if(!['auto','rgb','experimental-yuv'].includes(this.softwarePresenter))throw new PlayerError('INVALID_ARGUMENT','Invalid software presenter');
     if(!['auto','never','always'].includes(this.nativeRemux))throw new PlayerError('INVALID_ARGUMENT','Invalid native remux policy');
-    this.width = options.width ?? 640;this.height = options.height ?? 360;dimensions(this.width, this.height);
+    const width=options.width??640,height=options.height??360;dimensions(width,height);this.updatePreferences({outputSize:{width,height}});
     this.settings = {pause: true, volume: 100, speed: 1, aid: 'auto', sid: 'auto', subtitles: true, vf: filterChain(options.videoFilters ?? ''), af: filterChain(options.audioFilters ?? ''), gain:options.audioGain??1};
     if(!Number.isFinite(this.settings.gain)||this.settings.gain<0||this.settings.gain>1)throw new PlayerError('INVALID_ARGUMENT','Gain must be between 0 and 1');
     if(this.automatic&&(this.settings.vf||this.settings.af||this.toneMapping!=='off'))this.currentMode=this.settings.vf||this.toneMapping!=='off'||!this.hybridAudioFilters||!qualifiedAudioFilter(this.settings.af)?'software':'hybrid';
@@ -454,8 +452,8 @@ export class Player extends EventTarget {
   removeEventListener(type:string,listener:EventListenerOrEventListenerObject|null,options?:boolean|EventListenerOptions):void;
   removeEventListener(type:string,listener:any,options?:boolean|EventListenerOptions){super.removeEventListener(type,listener,options);}
   private schedulePublish() {
-    if(this.publishQueued)return;this.publishQueued=true;
-    queueMicrotask(()=>{this.publishQueued=false;if(!this.busy)this.publish();});
+    const queued=this.dispatchControl({type:'publication.schedule'});if(!queued.accepted)return;
+    queueMicrotask(()=>{if(this.dispatchControl({type:'publication.scheduled',id:queued.id!}).accepted&&!this.busy)this.publish();});
   }
   private sessionTracks(session=this.current,source=this.source,mode=this.mode,settings=this.settings):RawTrack[] {
     let raw=(session?.backend.properties.get('track-list')??[]) as RawTrack[];
@@ -515,9 +513,9 @@ export class Player extends EventTarget {
     try{listener(state);}catch(error){try{globalThis.reportError?.(error);}catch{/* Reporting cannot change playback or stop other observers. */}}
   }
   private publish() {
-    const serial=++this.publicationSerial,previous=this.stateSnapshot,session=this.current,source=this.source,acceptedControl=this.control;
+    const serial=this.dispatchControl({type:'publication.begin'}).id!,previous=this.stateSnapshot,session=this.current,source=this.source,acceptedControl=this.control.captureRevision;
     const sourceId=this.sourceSerial,epoch=this.operationEpoch,mode=this.mode,settings={...this.settings};
-    const current=()=>acceptedControl===this.control&&serial===this.publicationSerial&&previous===this.stateSnapshot&&session===this.current&&source===this.source&&sourceId===this.sourceSerial&&epoch===this.operationEpoch&&mode===this.mode;
+    const current=()=>acceptedControl===this.control.captureRevision&&serial===this.publicationSerial&&previous===this.stateSnapshot&&session===this.current&&source===this.source&&sourceId===this.sourceSerial&&epoch===this.operationEpoch&&mode===this.mode;
     const controls={
       sourceId:session?sourceId:null,sourcePresent:!!source,requestedLive:source?.kind==='remote'&&source.options.streaming?.live===true,
       mode,automaticSelection:this.automatic,pause:settings.pause,subtitlesVisible:settings.subtitles,volumePercent:settings.volume,muted:this.muted,playbackRate:settings.speed,
@@ -531,13 +529,19 @@ export class Player extends EventTarget {
     // Host reads can invoke application code. Never install a sample from a
     // retired tuple, or overwrite a publication made by that application code.
     if(!current()){this.schedulePublish();return;}
-    const projection=projectPlayer(previous,input),preview=projection.preview;
+    const prepared=this.dispatchControl({type:'publication.prepare',id:serial,captureRevision:acceptedControl,input});
+    if(!prepared.accepted){this.schedulePublish();return;}
+    const projection=prepared.publication!,preview=projection.preview;
     for(const apply of [()=>this.#previewController.setPlaybackActive(preview.playbackActive),()=>this.#previewController.setSuspended(preview.suspended),()=>this.#previewController.setDuration(preview.duration),()=>this.#previewController.setPlaybackPosition(preview.position)]){
       apply();if(!current()){this.schedulePublish();return;}
     }
-    if(!projection.changed)return;
     const next=projection.state;
-    this.statistics.observe(next);this.stateSnapshot=next;
+    const command={kind:'observe' as const,observation:{sourceId:next.sourceId,status:next.status,playbackIntent:next.playbackIntent,operationPending:!!next.pendingOperation}};
+    const timestamps=Array.from({length:projection.changed?playbackStatisticsClockReads(this.control.publication.statistics,command):0},()=>performance.now());
+    if(!current()){this.schedulePublish();return;}
+    const committed=this.dispatchControl({type:'publication.commit',id:serial,captureRevision:acceptedControl,timestamps});
+    if(!committed.accepted){this.schedulePublish();return;}
+    if(!projection.changed)return;
     const stillCurrent=()=>serial===this.publicationSerial&&this.stateSnapshot===next&&this.operationEpoch===epoch;
     // A reentrant publication supersedes the rest of this batch. Every delivered
     // event carries the exact committed snapshot that selected its event name.
@@ -613,7 +617,7 @@ export class Player extends EventTarget {
       catch(error){if((error as Error).name==='NotAllowedError')throw new PlayerError('SOURCE_PERMISSION','Audio output permission denied');throw error;}
     });
   }
-  getStats():import('./types.js').PlaybackStats {return this.statistics.snapshot();}
+  getStats():import('./types.js').PlaybackStats {const statistics=this.control.publication.statistics;return selectPlaybackStatistics(statistics,statistics.waitingAt===null?undefined:performance.now());}
   getPlaybackExplanation():import('./types.js').PlaybackExplanation {
     const diagnostics=this.diagnostics,plan=diagnostics.plan;
     const backend=this.current?.backend.diagnostics as {subtitleOverlay?:{component?:string};mpvSubtitles?:unknown;decodePolicy?:{effective?:unknown;shortcuts?:unknown}}|undefined;
@@ -645,10 +649,10 @@ export class Player extends EventTarget {
     signal?.addEventListener('abort',cancel,{once:true});if(signal?.aborted)cancel();
     const result=this.queue.then(async()=>{
       if(!this.dispatchControl({type:'operation.start',id}).accepted)throw new PlayerError('ABORTED',this.destroyed?'Player is destroyed':'Operation aborted',id,kind);
-      this.operationStarted=performance.now();
+      this.dispatchControl({type:'publication.operation-start',id,epoch:this.operationEpoch,now:performance.now()});
       this.publish();
       if(kind==='seeking')this.dispatchEvent(new CustomEvent('seeking',{detail:this.state}));
-      try {await operation();this.assertOperation();if(kind==='seeking')this.statistics.seek(performance.now()-this.operationStarted);}
+      try {await operation();this.assertOperation();if(kind==='seeking')this.dispatchControl({type:'publication.seek',id,epoch:this.operationEpoch,now:performance.now()});}
       catch(error){if(optimization)return;const structured=playerError(controller.signal.aborted?new PlayerError('ABORTED',this.destroyed?'Player is destroyed':'Operation aborted'):error,id,kind);
         if(!this.current&&kind==='opening'&&structured.code!=='ABORTED')this.sessionError={...structured.toJSON(),scope:'session'};
         this.publish();this.dispatchEvent(new CustomEvent('error',{detail:freeze(structured.toJSON())}));throw structured;
@@ -995,12 +999,13 @@ export class Player extends EventTarget {
       this.assertOperation();
       if(overlapping)await p.volume(this.muted?0:desired.volume);
       this.assertOperation();
-      const acceptance=this.dispatchControl({type:'source.accept',attempt,operationEpoch:this.operationEpoch,settings:desired,planMatches:!!actual&&actual.id===planId&&admitted.some(plan=>plan.id===actual.id&&plan.eligible),...(!preserve?{publicSelections:{...(initialAudio?{audio:`audio:stream:${initialAudio.index}`} :{}),...(initialSubtitle?{sub:`sub:stream:${initialSubtitle.index}`}:{})}}:{})});
+      const elapsed=performance.now()-this.operationStarted;
+      const timestamps=Array.from({length:playbackStatisticsClockReads(this.control.publication.statistics,{kind:'accept',sourceId:this.sourceSerial+(preserve?0:1),preserve,elapsed})},()=>performance.now());
+      const acceptance=this.dispatchControl({type:'source.accept',attempt,operationEpoch:this.operationEpoch,timing:{elapsed,timestamps},settings:desired,planMatches:!!actual&&actual.id===planId&&admitted.some(plan=>plan.id===actual.id&&plan.eligible),...(!preserve?{publicSelections:{...(initialAudio?{audio:`audio:stream:${initialAudio.index}`} :{}),...(initialSubtitle?{sub:`sub:stream:${initialSubtitle.index}`}:{})}}:{})});
       if(!acceptance.accepted)throw new PlayerError('ABORTED','Source acceptance was retired');
       this.current=candidate;this.candidate=undefined;this.source=source;
       this.activeOperation?.detachCallerAbort();
-      this.statistics.accept(this.sourceSerial,preserve,performance.now()-this.operationStarted);
-      this.sessionError=null;
+
       if(queried&&this.sourceInspection?.source===source){queried={...queried,decodingInfo:this.mediaCapabilityQueries.cached(queried,this.sourceInspection.probe)};admitted=attachRouteDecoding(admitted,planId,queried.decodingInfo);}
       this.planDecisions=admitted;this.runtimeCapabilities.admission(admitted);
       this.acceptEvidence(planId,candidate);
@@ -1847,7 +1852,7 @@ export class Player extends EventTarget {
   }
   resize(width: number, height: number) {
     if(this.destroyed)throw new PlayerError('ABORTED','Player is destroyed');dimensions(width, height);
-    this.width = width;this.height = height;this.current?.backend.resize(width, height);
+    this.updatePreferences({outputSize:{width,height}});this.current?.backend.resize(width, height);
   }
   close():Promise<void> {
     this.cancelPromotion();
@@ -1856,7 +1861,7 @@ export class Player extends EventTarget {
     this.#previewController.setSourceIdentity(`closed:${this.sourceSerial}`);this.previewSource=undefined;
     this.dispatchControl({type:'operation.retire',terminal:false});this.activeOperation?.controller.abort();this.inspection?.abort();this.stopWatchdogs();
     const cleanup=Promise.all([this.#previewController.drain(),...[this.candidate,this.current].map(s=>s?.backend.destroy().catch(()=>{}))]);
-    this.closing=this.enqueue(async()=>{await cleanup;await this.dispose(this.current);this.playbackRange=null;this.loopPolicy=false;this.statistics.clear();this.current=undefined;this.candidate=undefined;this.source=undefined;this.dispatchControl({type:'source.clear'});this.sourceInspection=undefined;this.losslessInspection=undefined;this.sessionError=null;},'closing').finally(()=>{this.closing=undefined;});
+    this.closing=this.enqueue(async()=>{await cleanup;await this.dispose(this.current);this.playbackRange=null;this.loopPolicy=false;this.current=undefined;this.candidate=undefined;this.source=undefined;this.dispatchControl({type:'source.clear'});this.sourceInspection=undefined;this.losslessInspection=undefined;this.sessionError=null;},'closing').finally(()=>{this.closing=undefined;});
     return this.closing;
   }
   destroy(): Promise<void> {
@@ -1870,7 +1875,7 @@ export class Player extends EventTarget {
     this.destruction = (async () => {
       await Promise.all([providerCleanup,presentationCleanup,previewCleanup,...[this.candidate, this.current].map(session => session?.backend.destroy().catch(() => {}))]);
       await this.queue;
-      try {await this.dispose(this.current);} finally {this.statistics.clear();this.current = undefined;this.source = undefined;this.dispatchControl({type:'source.clear'});this.sourceInspection=undefined;this.losslessInspection=undefined;this.sessionError=null;this.publish();this.subscribers.clear();this.root.remove();}
+      try {await this.dispose(this.current);} finally {this.current = undefined;this.source = undefined;this.dispatchControl({type:'source.clear'});this.sourceInspection=undefined;this.losslessInspection=undefined;this.sessionError=null;this.publish();this.subscribers.clear();this.root.remove();}
     })();return this.destruction;
   }
 }

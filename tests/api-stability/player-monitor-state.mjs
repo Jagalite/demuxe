@@ -57,7 +57,11 @@ test('an activity change during sampling rejects the stale observation',()=>{
  const m=model();m.start();const activity=m.state.monitor.activity;m.send({type:'monitor.activity'});assert.equal(m.sample(0,{activity}).accepted,false);assert.equal(m.state.monitor.current.progress.previous,null);
 });
 function physical(t,mode='native'){
- const p=unitPlayer(),m=model(mode),timers=[],cleared=[];p.control=m.state;
+ const p=unitPlayer(),timers=[],cleared=[];
+ p.dispatchControl({type:'monitor.policy',policy:initialPlayerControl().monitor.policy});
+ const attempt=p.dispatchControl({type:'source.begin',operationEpoch:p.operationEpoch,mode,preserve:false,planId:'fixture'}).id;
+ for(const type of ['source.created','source.configured','source.opened','source.applied','source.positioned'])p.dispatchControl({type,attempt});
+ p.dispatchControl({type:'source.accept',attempt,operationEpoch:p.operationEpoch,settings:{...p.settings,pause:false},planMatches:true});p.dispatchControl({type:'source.finished',attempt});
  const backend={properties:new Map(),diagnostics:{decoder:'software'},pause:async()=>{},destroy:async()=>{},nativeProgressSample:()=>({eligible:true,time:1,rate:1})};
  p.current={backend,surface:{remove(){}}};p.source={kind:'local',file:new ArrayBuffer(1)};
  t.mock.method(globalThis,'setInterval',(callback,delay)=>{const handle={callback,delay};timers.push(handle);return handle;});t.mock.method(globalThis,'clearInterval',timer=>{if(timer)cleared.push(timer);});

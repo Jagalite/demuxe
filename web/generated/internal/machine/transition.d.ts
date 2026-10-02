@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type PlayerPublicationInput } from './player-publication.js';
+import type { PlayerProjection } from './selectors.js';
 import { type PlayerMonitorInput } from './player-monitor.js';
 import { type BoundaryInput, type BoundaryEffect } from './playback-boundary.js';
 import { type OperationInput } from './operations.js';
@@ -16,7 +18,7 @@ export type SessionObservation = Readonly<{
     value?: number | boolean;
     publishedTime?: number;
 }>;
-export type PlayerControlInput = PlayerMonitorInput | RoutingInput | AttachmentInput | BoundaryInput | OperationInput | PlaybackInput | SettingsInput | SettingTransactionInput | SourceInput | SessionObservation;
+export type PlayerControlInput = PlayerPublicationInput | PlayerMonitorInput | RoutingInput | AttachmentInput | BoundaryInput | OperationInput | PlaybackInput | SettingsInput | SettingTransactionInput | SourceInput | SessionObservation;
 export type PlayerControlDecision<Effect = SettingEffect | BoundaryEffect | AttachmentEffect> = Readonly<{
     state: PlayerControlState;
     accepted: boolean;
@@ -25,7 +27,10 @@ export type PlayerControlDecision<Effect = SettingEffect | BoundaryEffect | Atta
     message?: string;
     retire: readonly number[];
     effects?: readonly Effect[];
+    publication?: PlayerProjection;
 }>;
+/** Publication bookkeeping does not invalidate an otherwise current capture.
+ * Every domain change still advances the same composed authority revision. */
 export declare function transitionPlayer(state: PlayerControlState, input: PlayerControlInput): PlayerControlDecision;
 /** A backend listener keeps its allocation identity. Retirement fences every
  * accepted-session effect, including errors/recovery, not just playback flags. */
