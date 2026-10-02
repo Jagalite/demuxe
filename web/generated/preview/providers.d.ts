@@ -24,3 +24,18 @@ export declare class LocalVideoPreviewProvider implements PreviewProvider {
     canHandle(): boolean;
     getFrame(request: PreviewContext): Promise<PreviewResult | null>;
 }
+/** Reuse the accepted packet-copy route for a local container the browser cannot
+ * open directly. This is an independent, muted session, never the main player. */
+export declare class LocalRemuxPreviewProvider implements PreviewProvider {
+    private source;
+    private document;
+    private create;
+    private maxDecodePixels;
+    readonly id = "local-remux";
+    readonly priority = 35;
+    readonly requiresDecoder = true;
+    readonly allowDuringPlayback = true;
+    constructor(source: () => Blob | undefined, document: Document, create: (video: HTMLVideoElement) => import('../internal/native-player.js').NativePlayer, maxDecodePixels?: number);
+    canHandle(): boolean;
+    getFrame(request: PreviewContext): Promise<PreviewResult | null>;
+}

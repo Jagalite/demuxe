@@ -134,6 +134,50 @@ test('Play during asynchronous decoder admission never starts decoding',async()=
  finally{await c.destroy();}
 });
 
+test('cancelling a remux thumbnail destroys its independent session and drains cleanup',async()=>{
+ const {LocalRemuxPreviewProvider}=await import('../web/generated/preview/providers.js');
+ let began,rejectOpen,destroyed=0;const started=new Promise(resolve=>{began=resolve;});
+ const video={},document={createElement:()=>video};
+ const remux=new LocalRemuxPreviewProvider(()=>new File(['media'],'local.mkv'),document,()=>({
+  open(){began();return new Promise((_,reject)=>{rejectOpen=reject;});},
+  async destroy(){destroyed++;rejectOpen(new DOMException('Preview cancelled','AbortError'));},
+ }));
+ assert.equal(remux.requiresDecoder,true);
+ const c=new PreviewController([remux],{debounceMs:0});
+ const pending=aborted(c.getFrame({time:20}));await started;c.setSuspended(true);await pending;await c.destroy();
+ assert.equal(destroyed,1);assert.equal(c.diagnostics.cacheEntries,0);
+});
+
+test('remux thumbnails clamp end seeks, scale frames, and release the independent session',async()=>{
+ const {LocalRemuxPreviewProvider}=await import('../web/generated/preview/providers.js');
+ const video={videoWidth:1920,videoHeight:1080,duration:10},draws=[],seeks=[],cleanups=[];let destroyed=0;
+ const canvas={getContext:()=>({drawImage:(...args)=>draws.push(args)}),toBlob:done=>done(new Blob(['jpeg']))};
+ const document={createElement:tag=>tag==='video'?video:canvas};
+ const remux=new LocalRemuxPreviewProvider(()=>new File(['media'],'local.mkv'),document,surface=>{
+  assert.equal(surface,video);assert.equal(surface.muted,true);
+  return {open:async()=>{},seek:async time=>seeks.push(time),verifyStartup:async options=>assert.deepEqual(options,{video:true,audio:false}),
+   properties:new Map([['time-pos',9.999]]),destroy:async()=>{destroyed++;}};
+ });
+ const result=await remux.getFrame({time:12,width:320,height:100,signal:new AbortController().signal,trackCleanup:p=>cleanups.push(p)});
+ await Promise.all(cleanups);
+ assert.deepEqual(seeks,[9.999]);assert.equal(result.width,178);assert.equal(result.height,100);
+ assert.equal(result.time,9.999);assert.equal(result.temporalAccuracy,'approximate');assert.equal(result.path,'local-remux');
+ assert.deepEqual(draws,[[video,0,0,178,100]]);assert.equal(destroyed,1);
+});
+
+test('remux thumbnails decline oversized video and release failed sessions',async()=>{
+ const {LocalRemuxPreviewProvider}=await import('../web/generated/preview/providers.js');
+ for(const failure of [undefined,new Error('open failed')]){
+  let destroyed=0;const video={videoWidth:3840,videoHeight:2160,duration:10};
+  const remux=new LocalRemuxPreviewProvider(()=>new File(['media'],'local.mkv'),{createElement:()=>video},()=>({
+   open:async()=>{if(failure)throw failure;},seek:async()=>assert.fail('must not seek rejected media'),destroy:async()=>{destroyed++;},
+  }),1920*1080);
+  const result=remux.getFrame({time:1,width:320,signal:new AbortController().signal});
+  if(failure)await assert.rejects(result,error=>error===failure);else assert.equal(await result,null);
+  assert.equal(destroyed,1);
+ }
+});
+
 test('cache-only nearby lookup bypasses an active decode without cancelling it',async()=>{
  let release,started;const ready=new Promise(resolve=>{started=resolve;});
  const c=new PreviewController([provider(async r=>{if(r.time===20){started();await new Promise(resolve=>{release=resolve;});assert.equal(r.signal.aborted,false);}return frame(r.time);})],{debounceMs:0});

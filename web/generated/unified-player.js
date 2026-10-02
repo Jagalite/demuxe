@@ -30,7 +30,8 @@ import { backendPlan } from './internal/backend.js';
 import { PreviewController } from './preview/controller.js';
 import { createPlayerPreview } from './preview/player-preview.js';
 import { SoftwarePreviewProvider } from './preview/software.js';
-import { LocalVideoPreviewProvider } from './preview/providers.js';
+import { LocalVideoPreviewProvider, LocalRemuxPreviewProvider } from './preview/providers.js';
+import { NativePlayer as PreviewNativePlayer } from './internal/native-player.js';
 class SeekPresentationBoundary extends PlayerError {
     constructor(target, boundary) { super('INVALID_ARGUMENT', `Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`); }
 }
@@ -334,6 +335,11 @@ export class Player extends EventTarget {
             { id: 'shaka', priority: 20, canHandle: () => !!this.current?.backend.previewFrame,
                 getFrame: request => this.current?.backend.previewFrame?.(request) ?? Promise.resolve(null) },
             new LocalVideoPreviewProvider(() => this.busy || this.queued > 0 || this.previewBuffering() ? undefined : this.previewSource, container.ownerDocument, options.resourceLimits?.maxDecodePixels),
+            new LocalRemuxPreviewProvider(() => {
+                if (this.busy || this.queued > 0 || this.previewBuffering() || !['remux', 'remux-mpv'].includes(backendPlan(this.current?.backend) ?? ''))
+                    return undefined;
+                return this.previewSource;
+            }, container.ownerDocument, video => new PreviewNativePlayer(video, 'always', this.assetBase, false, undefined, undefined, false, [], 'native-remux', bufferingPolicy({ preload: 'auto', profile: 'low-latency', memoryBudget: 8 * 1024 * 1024 }), 2500, undefined, this.remuxRuntime, this.providerRuntime), options.resourceLimits?.maxDecodePixels),
             new SoftwarePreviewProvider(() => {
                 if (this.busy || this.queued > 0 || this.previewBuffering())
                     return undefined;

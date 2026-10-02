@@ -113,7 +113,9 @@ Review validation: **20/20** checks passed in [Chrome](../results/player-present
 
 The element defaults to the Adaptive strategy: 24 samples distributed across the finite timeline first, followed by five-second samples within 30 seconds of playback or the latest hover position. Its cache remains bounded to 16 MiB / 96 entries. It does not eagerly generate every five-second position in a long movie. Explicit `previewOptions` retain their own configuration. The thumbnail toggle and initial `no-preview` attribute stop generation as well as hiding the image; enabling the toggle cannot override `previewOptions: false` or `enabled: false`. Software samples deferred by active playback remain queued for pause. Hover requests check the cache without waiting for an active decode and use strategy-specific proximity and preserve the approximate represented timestamp. Adaptive hover can show a broad sample immediately, then request a closer frame. Exact API requests do not use nearby samples. The first uncached request still requires decoding; the UI shows the requested time while waiting.
 
-Independent local browser previews may run during playback. Software decoding yields to playback; generation suspends during operations and buffering.
+Independent local browser/remux preview providers may run during playback. Software decoding yields to playback; generation suspends during operations and buffering. Hover requests supersede background generation.
+
+For accepted local Native packet-copy routes, the preview lane tries an independent muted remux session before direct-browser or software decoding. Other sources retain the existing fallback. The remux session uses an 8 MiB buffering budget, is destroyed on completion/cancellation, and never receives the main playback surface. Preview dimensions and the decode-pixel limit still apply; reported timestamps remain approximate.
 
 ### Thumbnail strategies
 

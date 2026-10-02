@@ -44,3 +44,37 @@ export class LocalVideoPreviewProvider implements PreviewProvider {
     }finally{try{video.pause();video.removeAttribute('src');video.load();URL.revokeObjectURL(url);}finally{released?.();}}
   }
 }
+
+/** Reuse the accepted packet-copy route for a local container the browser cannot
+ * open directly. This is an independent, muted session, never the main player. */
+export class LocalRemuxPreviewProvider implements PreviewProvider {
+  readonly id='local-remux';readonly priority=35;readonly requiresDecoder=true;readonly allowDuringPlayback=true;
+  constructor(private source:()=>Blob|undefined,private document:Document,private create:(video:HTMLVideoElement)=>import('../internal/native-player.js').NativePlayer,private maxDecodePixels=8294400){}
+  canHandle(){return !!this.source();}
+  async getFrame(request:PreviewContext):Promise<PreviewResult|null>{
+    const source=this.source();if(!source)return null;request.signal.throwIfAborted();
+    const start=performance.now(),video=this.document.createElement('video');
+    video.muted=true;video.playsInline=true;
+    const player=this.create(video);
+    let cleanup:Promise<void>|undefined,release!:()=>void;
+    request.trackCleanup?.(new Promise<void>(resolve=>{release=resolve;}));
+    const dispose=()=>cleanup??(cleanup=player.destroy().catch(()=>{}).finally(()=>release?.()));
+    const abort=()=>{void dispose();};request.signal.addEventListener('abort',abort,{once:true});
+    try{
+      request.signal.throwIfAborted();
+      await player.open(source instanceof File?source:new File([source],'preview-media'));
+      request.signal.throwIfAborted();
+      if(!video.videoWidth||!video.videoHeight||video.videoWidth*video.videoHeight>this.maxDecodePixels||!Number.isFinite(video.duration)||video.duration<=0)return null;
+      const mediaReadyMs=performance.now()-start,seekStart=performance.now();
+      await player.seek(Math.min(request.time,Math.max(0,video.duration-.001)));
+      await player.verifyStartup({video:true,audio:false});request.signal.throwIfAborted();
+      const seekMs=performance.now()-seekStart,conversionStart=performance.now();
+      const scale=Math.min(request.width/video.videoWidth,(request.height??2048)/video.videoHeight,1);
+      const width=Math.max(1,Math.round(video.videoWidth*scale)),height=Math.max(1,Math.round(video.videoHeight*scale));
+      const canvas=this.document.createElement('canvas');canvas.width=width;canvas.height=height;
+      const context=canvas.getContext('2d');if(!context)return null;context.drawImage(video,0,0,width,height);
+      const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/jpeg',.8));request.signal.throwIfAborted();
+      return blob?{time:Number(player.properties.get('time-pos'))||0,width,height,image:{blob},path:this.id,actualTime:null,temporalAccuracy:'approximate',fidelity:'full',timestampKind:'media-time',metrics:{mediaReadyMs,seekMs,resizeConversionMs:performance.now()-conversionStart,bytesFetched:0,decodedFrames:null}}:null;
+    }finally{request.signal.removeEventListener('abort',abort);await dispose();}
+  }
+}
