@@ -17,6 +17,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts
+      - name: Check functional core source boundary
+        run: node scripts/check-functional-core.mjs
       - run: npm run build
       - name: Check core package declaration boundary
         run: node scripts/compile-player-package.mjs > /dev/null

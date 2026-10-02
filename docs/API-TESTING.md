@@ -14,8 +14,11 @@ API stability requires more than successful imports or playback of one fixture. 
 | Playback contracts and integration bindings | Consumer typechecking, selector behavior, borrowed/owned disposal and observer isolation | Binding → media element → seek → replacement sequences; Media Chrome and Video.js controls |
 | Streaming controls | Shaka policy/backend/network contracts | Portable HLS roadmap scenarios for quality, audio/attachment identity and live navigation; DASH preview images |
 | Components and deployment | Recipes, provider selection/acquisition/ownership, resource loading and asset deployment | Existing installed-provider bundle tests, both assets and embedded deliveries |
+| Functional-core foundation (inactive) | Scoped effect retirement, immediate invocation, duplicate callbacks, completion permutations, virtual timers, resource ownership/cleanup and static boundary rejection fixtures | Production integration and browser activation/resource-adapter qualification remain pending |
 
-`Public API contracts` runs on pushes and pull requests. It builds TypeScript in CI, checks the core package declaration boundary, executes the contract manifest and consumer typechecks, and independently runs the advanced-control contracts in Chromium and Firefox without building engines.
+`Public API contracts` runs on pushes and pull requests. It checks the functional-core source boundary, builds TypeScript in CI, checks the core package declaration boundary, executes the contract manifest and consumer typechecks, and independently runs the advanced-control contracts in Chromium and Firefox without building engines.
+
+The initial functional-core suites use a virtual scheduler and deferred effects to vary completion and retirement order without browser globals or Player private fields. The resource ledger covers owned/borrowed handles, bounded admission, concurrent teardown, cleanup failures and late registration. These suites are included in the contract manifest, but have not been executed for the initial migration slice. Their scope is the inactive foundation; they do not establish Player command ordering or browser output correctness. See the [migration progress and remaining gates](FUNCTIONAL-CORE-MIGRATION-PLAN.md#implementation-progress).
 
 An isolated negative-control step removes the advanced lifecycle guards from the generated test runtime, requires the four corresponding regressions to fail, and restores the bytes in a `finally` block. Timeouts, page errors, unrelated failures and unexpected passes do not count as successful detection. These intentionally failing reports are stored separately from qualification results.
 
@@ -25,7 +28,7 @@ The weekly provider workflow increases lifecycle repetitions and browser sequenc
 
 The expected-state model updates its expectations from accepted commands, independently of player readback. It checks settings, intent, settled status, source lifetime and rollback after every action. Contract histories include rejected buffering changes and retired bindings. Browser histories run two seeds in each of Automatic, Native, Hybrid and Software: 39 actions per history normally, 130 weekly, plus recorded seeks to avoid EOF. Actions include previews, replacement, close/reopen, borrowed bindings, invalid commands and overlapping play/pause bursts and competing latest-wins seeks.
 
-Every browser step checks source identity and route stability. Playing must advance both the playback clock and video pixels; paused playback must keep both stable. Reports contain the seed, action prefix, expected state, observed state and output measurements. These checks establish video behavior for the synthetic fixture, not audio fidelity or coverage of every possible sequence. New model scenarios require CI validation before being counted as passing evidence.
+Every browser step checks source identity, forced-mode route stability and an explicit allowance for automatic fallback/promotion on the synthetic fixture. General histories permit unavailable/suspended previews; dedicated positive-preview scenarios must still require images. Playing must advance both the playback clock and video pixels; paused playback must keep both stable. The history samples the public media surface directly, avoiding queued snapshot commands that alter scheduling. This passive readback needs validation for each renderer. Reports contain the seed, action prefix, expected state, observed state and output measurements. These checks target healthy moving video away from EOF, not audio fidelity, arbitrary buffering or every possible sequence. New model scenarios require CI validation before being counted as passing evidence. The [compatibility ledger](FUNCTIONAL-CORE-COMPATIBILITY.md#existing-sequence-oracle-review) records the oracle corrections and remaining assumptions.
 
 ## Commands
 
@@ -33,6 +36,7 @@ Run these in CI or another authorized validation environment. They are not instr
 
 ```sh
 npm ci --ignore-scripts
+node scripts/check-functional-core.mjs
 npm run build
 npm run build:components
 npm run test:stability

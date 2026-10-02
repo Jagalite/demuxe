@@ -2,7 +2,22 @@
 
 Date: 2026-10-02. Reviewed source: local `main`, `6e17c428`.
 
-Status: proposed implementation plan, based on source inspection. No architecture implementation, builds, tests, or new remote validation were performed for this plan. Work stays on local `main`; no PRs or pushes are part of this task.
+Status: implementation started on local `main`, from `67ef9d3b`. The first slice repairs baseline contracts and adds an inactive protocol/runtime foundation. No production state ownership has moved. No local builds or tests, generated-output regeneration, or new remote validation have been performed. No PRs or pushes are part of this task.
+
+## Implementation progress
+
+The first slice implements the following source changes; neither phase 0 nor phase 1 has passed its completion gate.
+
+| Phase | Implemented | Remaining gate / next work |
+| --- | --- | --- |
+| 0: baseline and compatibility | Added the narrow remux-preview `properties.get('time-pos')` type; recorded the [compatibility ledger](FUNCTIONAL-CORE-COMPATIBILITY.md); corrected automatic-route, nullable-preview, passive-readback and rejection-before-apply assumptions in the sequence oracle. | Regenerate outputs in an authorized environment; validate contract/type/package checks and supported browser scenarios on the candidate revision. Capture route and reentrancy traces and resolve the ledger's source/documentation disagreements. |
+| 1: inactive foundation | Added scoped effect/outcome data, an immediate/scheduled interpreter, bounded resource registry, virtual scheduler/deferred completions, retirement/permutation scenarios, and a static pure-module boundary guard wired into CI. | Execute the added tests. Extend the vocabulary to acquisition and normalized observations, add versioned bounded traces/replay and shrinking, and cover concrete resource adapters. State/input transitions, public command settlement and publication ordering are not implemented by this foundation. |
+
+The current interpreter handles only backend play/pause, explicit resource release and timer waits. Its tests describe effect settlement, not public command acceptance or proof of user activation in a browser. All six orderings of two deferred completions and retirement are represented, alongside stale scheduled work, duplicate callbacks, reentrant outcome observers and ignored cancellation. No Player code imports the interpreter yet.
+
+The registry owns handles in the shell and keeps bounded lifetime tombstones. Configure capacity before production integration; rejecting admission leaves cleanup with the caller. Retirement invalidates lookups before callbacks, attempts remaining cleanup after failures, and releases late accepted allocations. A release callback that never settles can still hold physical teardown: deadline/containment policy and adapters for workers, readers, URLs, audio and preview resources remain to be designed. A retirement promise covers resources present at its start; late allocation cleanup has its own promise.
+
+Validation so far is static only: pure-source boundary inspection, TypeScript parsing, JavaScript syntax checks and whitespace checks. The guard catches forbidden imports/host reads and visible mutations; it is not proof against arbitrary aliases, getters or helper-hidden effects. Runtime scenarios, generated declarations and package/browser qualification remain pending. The next ownership work is gated by the baseline evidence above.
 
 ## Objective and boundary
 
