@@ -1,33 +1,49 @@
 // SPDX-License-Identifier: Apache-2.0
 import {preparedEngine} from './prepared-engine.js';
 import {createFFmpegBridge} from './private-ffmpeg/bridge.js';
+import {initialRemuxPortReader,beginRemuxPortRead,replyRemuxPortRead,closeRemuxPortReader,remuxPortReadCurrent,remuxPortResponseCurrent} from './generated/internal/machine/remux-port-reader.js';
 
 /** One outstanding read; source bytes cross a MessagePort, never shared memory. */
 export function portReader(port,size) {
- if(!port||!Number.isSafeInteger(size)||size<=0)throw Error('Invalid private remux source');
- let sequence=0,pending,closed=false;
- const fail=error=>{closed=true;pending?.finish(error);port.close();};
+ if(!port)throw Error('Invalid private remux source');
+ let state=initialRemuxPortReader(size),cleanupFailure;const requests=new Map();
+ const current=id=>remuxPortReadCurrent(state,id);
+ const cleanup=record=>{try{record.signal.removeEventListener('abort',record.abort);}catch(error){cleanupFailure??={error};}};
+ const settle=(request,error,bytes,success=false)=>{
+  const record=request&&requests.get(request.id);if(!record)return;requests.delete(request.id);cleanup(record);success?record.resolve(bytes):record.reject(error);
+ };
+ const closePort=()=>{try{port.close();}catch(error){cleanupFailure??={error};}};
+ const fail=error=>{const decision=closeRemuxPortReader(state);state=decision.state;if(!decision.accepted)return;settle(decision.request,error);closePort();};
+ const failure=reason=>reason==='cancelled'?new DOMException('Source cancelled','AbortError'):Error(reason==='concurrent'?'Concurrent private source read':reason==='range'?'Invalid private source range':reason==='unexpected'?'Unexpected private source response':'Invalid private source bytes');
  port.onmessage=({data})=>{
-  if(closed)return;
-  if(!data||typeof data!=='object'||!pending||data.id!==pending.id)return fail(Error('Unexpected private source response'));
-  if(data.error)return fail(Error('Source transport: '+data.error));
-  if(!(data.buffer instanceof ArrayBuffer)||data.buffer.byteLength<1||data.buffer.byteLength>pending.count)return fail(Error('Invalid private source bytes'));
-  pending.finish(null,new Uint8Array(data.buffer));
+  if(state.closed)return;
+  const expected=state.pending?.id??null;let error,errorText,buffer,facts;
+  try{const object=!!data&&typeof data==='object',rawId=object?data.id:null,id=typeof rawId==='number'?rawId:null;error=object?data.error:null;errorText=error?String(error):null;buffer=object?data.buffer:null;facts={object,id,error:!!error,buffer:buffer instanceof ArrayBuffer,bytes:buffer instanceof ArrayBuffer?buffer.byteLength:0};}catch(error){if(remuxPortResponseCurrent(state,expected))fail(error);return;}
+  const decision=replyRemuxPortRead(state,facts,expected);state=decision.state;
+  if(!decision.accepted)return;
+  if(decision.error){settle(decision.request,decision.error==='transport'?Error('Source transport: '+errorText):failure(decision.error));closePort();return;}
+  let bytes;try{bytes=new Uint8Array(buffer);}catch(error){settle(decision.request,error);fail(error);return;}
+  settle(decision.request,null,bytes,true);
  };
  port.onmessageerror=()=>fail(Error('Private source message error'));
  return {size,
   read(offset,count,signal){
-   if(closed||signal.aborted)return Promise.reject(new DOMException('Source cancelled','AbortError'));
-   if(pending)return Promise.reject(Error('Concurrent private source read'));
-   if(!Number.isSafeInteger(offset)||offset<0||!Number.isInteger(count)||count<1||count>262144||offset+count>size)return Promise.reject(Error('Invalid private source range'));
+   const aborted=signal.aborted;const decision=beginRemuxPortRead(state,offset,count,aborted);state=decision.state;
+   if(!decision.accepted)return Promise.reject(failure(decision.error));
+   const request=decision.request;
    return new Promise((resolve,reject)=>{
-    const id=++sequence,abort=()=>fail(new DOMException('Source cancelled','AbortError'));
-    pending={id,count,finish(error,bytes){signal.removeEventListener('abort',abort);pending=null;error?reject(error):resolve(bytes);}};
-    signal.addEventListener('abort',abort,{once:true});
-    try{port.postMessage({type:'read',id,offset,count});}catch(error){fail(error);}
+    const abort=()=>{if(current(request.id))fail(new DOMException('Source cancelled','AbortError'));};
+    const record={signal,abort,resolve,reject};requests.set(request.id,record);
+    try{
+     signal.addEventListener('abort',abort,{once:true});
+     if(!current(request.id)){cleanup(record);return;}
+     if(signal.aborted){abort();return;}
+     const post=port.postMessage;if(!current(request.id)){cleanup(record);return;}
+     post.call(port,{type:'read',id:request.id,offset:request.offset,count:request.count});
+    }catch(error){if(current(request.id))fail(error);else cleanup(record);}
    });
   },
-  close(){fail(new DOMException('Source closed','AbortError'));},
+  close(){fail(new DOMException('Source closed','AbortError'));if(cleanupFailure)throw cleanupFailure.error;},
  };
 }
 

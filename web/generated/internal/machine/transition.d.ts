@@ -11,6 +11,7 @@ import { type BoundaryInput, type BoundaryEffect } from './playback-boundary.js'
 import { type OperationInput } from './operations.js';
 import { type PlaybackInput } from './playback.js';
 import { type SettingsInput, type SettingTransactionInput, type SettingEffect } from './settings.js';
+import type { SourceApplicationEffect } from './source-application.js';
 import type { SourcePreparationEffect } from './source-preparation.js';
 import { type SourceInput } from './source.js';
 import { type AttachmentInput, type AttachmentEffect } from './attachments.js';
@@ -35,6 +36,7 @@ export type PlayerControlDecision<Effect = SettingEffect | BoundaryEffect | Atta
     state: PlayerControlState;
     accepted: boolean;
     preparationEffect?: SourcePreparationEffect;
+    applicationEffect?: SourceApplicationEffect;
     execution?: EffectRuntimeDecision;
     executionOutcomes?: readonly EffectOutcome[];
     resource?: ResourceLedgerDecision;

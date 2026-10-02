@@ -10,6 +10,7 @@ import {PlayerError,isPlayerError} from './errors.js';
 import {rasterizePreview} from '../preview/images.js';
 import {runtimeAt} from './shaka-runtime.js';
 import {initialShakaBackend,transitionShakaBackend,shakaLeaseCurrent,shakaQualityCandidates,shakaQualityPlan,shakaAttachmentSelect,type ShakaBackendState,type ShakaCommand,type ShakaLease} from './machine/shaka-backend.js';
+import {shakaAudioCatalog,shakaRequestedAudio,shakaSelectAudio,shakaInitialRepresentation,shakaSelectText,shakaExpectedOutput,type ShakaAudioFacts,type ShakaSelectionVariant} from './machine/shaka-selection.js';
 import {plainVTT} from './plain-vtt.js';
 
 /** Shaka exclusively owns adaptive manifests, scheduling, ABR and MediaSource.
@@ -161,12 +162,9 @@ export class ShakaBackend extends EventTarget implements Backend {
       if(player.isDynamic()&&source.streaming?.live!==true)throw new PlayerError('SOURCE_PERMISSION','Live streaming requires explicit live permission');
       const representation=source.streaming?.representation;
       if(representation){
-        const variants=player.getVariantTracks(),active=variants.find(t=>t.active);
-        const audioKey=(t:Shaka.extern.Track)=>JSON.stringify([t.audioLanguage??t.language,t.originalLanguage,t.label,t.audioRoles,t.channelsCount,t.audioCodec,t.spatialAudio,t.accessibilityPurpose]);
-        const token=/^variant:(\d+)$/.exec(representation);
-        const matches=variants.filter(t=>token?String(t.id)===token[1]:t.originalVideoId===representation||(!t.videoCodec&&t.originalAudioId===representation)).filter(t=>!active||audioKey(t)===audioKey(active));
-        if(matches.length!==1)throw new PlayerError('UNSUPPORTED_FEATURE','Cannot preserve requested streaming representation and selected audio unambiguously');
-        player.selectVariantTrack(matches[0],true);this.check(lease);this.move({type:'quality',lease,value:{mode:'manual',id:`variant:${matches[0].id}`},runtime:false});
+        const variants=player.getVariantTracks();this.check(lease);const facts=this.selectionVariants(variants);this.check(lease);const id=shakaInitialRepresentation(facts,representation);
+        if(id===null)throw new PlayerError('UNSUPPORTED_FEATURE','Cannot preserve requested streaming representation and selected audio unambiguously');
+        const track=variants[facts.findIndex(track=>track.id===id)],select=player.selectVariantTrack;this.check(lease);select.call(player,track,true);this.check(lease);this.move({type:'quality',lease,value:{mode:'manual',id:`variant:${id}`},runtime:false});
       }
       this.check(lease);this.applyText();this.check(lease);this.refresh();this.check(lease);this.emit('mpv',{event:'file-loaded'});this.check(lease);this.move({type:'opened',lease});
     }catch(error){this.move({type:'failed',lease});throw this.mapped(error);}finally{this.finishControl(lease);}
@@ -183,14 +181,10 @@ export class ShakaBackend extends EventTarget implements Backend {
     const range=player.seekRange();this.properties.set('native-seekable',range.end>range.start?[{start:range.start,end:range.end}]:[]);
     if(player.isDynamic())this.properties.set('duration',null);
   }
-  private audioTracks(){
-    const tracks=this.player?.getAudioTracks()??[];
-    // Channels, rate and codecs can be discovered only after selection. They
-    // are descriptive metadata, never a stable public track identity.
-    const key=(t:Shaka.extern.AudioTrack)=>`shaka-audio-${encodeURIComponent(JSON.stringify([t.language,t.originalLanguage,t.label,t.roles,t.spatialAudio,t.accessibilityPurpose]))}`;
-    return tracks.map((track,index)=>{const base=key(track),ambiguous=tracks.filter(t=>key(t)===base).length>1;return {track,id:ambiguous?`${base}:ambiguous:${index}`:base,ambiguous};});
-  }
-  private expected(){const selected=this.player?.getVariantTracks().find(t=>t.active);return {video:!!selected?.videoCodec,audio:!!selected?.audioCodec&&!this.audioDisabled};}
+  private audioFacts(tracks:Shaka.extern.AudioTrack[]):ShakaAudioFacts[]{return tracks.map(track=>({language:track.language,originalLanguage:track.originalLanguage,label:track.label,roles:track.roles?.slice(),spatialAudio:track.spatialAudio,accessibilityPurpose:track.accessibilityPurpose,channelsCount:track.channelsCount,codecs:track.codecs,active:track.active}));}
+  private selectionVariants(tracks:Shaka.extern.Track[]):ShakaSelectionVariant[]{return tracks.map(track=>({id:track.id,active:track.active,audioLanguage:track.audioLanguage,language:track.language,originalLanguage:track.originalLanguage,label:track.label,audioRoles:track.audioRoles?.slice(),spatialAudio:track.spatialAudio,accessibilityPurpose:track.accessibilityPurpose,channelsCount:track.channelsCount,audioCodec:track.audioCodec,videoCodec:track.videoCodec,originalVideoId:track.originalVideoId,originalAudioId:track.originalAudioId,bandwidth:track.bandwidth,height:track.height}));}
+  private audioTracks(){const tracks=this.player?.getAudioTracks()??[];return shakaAudioCatalog(this.audioFacts(tracks)).map(entry=>({...entry,track:tracks[entry.index]}));}
+  private expected(){return shakaExpectedOutput(this.selectionVariants(this.player?.getVariantTracks()??[]),this.audioDisabled);}
   async verifyStartup(_expected?:{video:boolean;audio:boolean},output=false){this.active();if(this.failure)throw this.failure;await this.native.verifyStartup(this.expected(),output);this.active();if(this.failure)throw this.failure;}
   verifyOutput(){return this.verifyStartup(undefined,true);}
   startupEvidence(){return {...this.native.diagnostics.capability,sourceBufferCreated:!!this.player&&this.player.getLoadMode()===this.runtime?.Player.LoadMode.MEDIA_SOURCE};}
@@ -237,36 +231,38 @@ export class ShakaBackend extends EventTarget implements Backend {
   async selectTrack(type:TrackType,id:string){
     const lease=this.begin(type==='audio'?'audio':'selection');try{await this.enter(lease);this.check(lease);const player=this.loaded();
     if(type==='audio'){
-      if(id==='no'){this.video.muted=true;this.check(lease);this.move({type:'selection',lease,audioDisabled:true});}
-      else{const audio=this.audioTracks();const candidates=id==='auto'?audio.filter(t=>t.track.active):audio.filter(t=>t.id===id);if(!audio.length&&id==='auto'){this.refresh();return;}if(candidates.length!==1||(id!=='auto'&&candidates[0].ambiguous))throw new PlayerError('UNSUPPORTED_FEATURE','Cannot preserve requested audio track');const requested=candidates[0].track,representation=this.runtimeQuality&&this.qualityPolicy.mode==='manual'?this.qualityPolicy.id:this.control.source?.representation;
-        if(representation){
-          const token=/^variant:(\d+)$/.exec(representation);
-          const key=(language:string|null|undefined,originalLanguage:string|null|undefined,label:string|null|undefined,roles:string[]|null|undefined,spatial:boolean|null|undefined,purpose:unknown)=>JSON.stringify([language??'',originalLanguage??'',label??'',roles??[],!!spatial,purpose??null]);
-          const expected=key(requested.language,requested.originalLanguage,requested.label,requested.roles,requested.spatialAudio,requested.accessibilityPurpose);
-          const matches=player.getVariantTracks().filter(t=>(token?String(t.id)===token[1]:t.originalVideoId===representation||(!t.videoCodec&&t.originalAudioId===representation))&&t.bandwidth<=(this.control.source?.maxBandwidth??Infinity)).filter(t=>
-            key(t.audioLanguage??t.language,t.originalLanguage,t.label,t.audioRoles,t.spatialAudio,t.accessibilityPurpose)===expected&&
-            (!t.channelsCount||!requested.channelsCount||t.channelsCount===requested.channelsCount)&&(!t.audioCodec||!requested.codecs||t.audioCodec===requested.codecs));
-          if(matches.length!==1)throw new PlayerError('UNSUPPORTED_FEATURE','Cannot preserve pinned streaming representation and bandwidth with requested audio track');
-          player.selectVariantTrack(matches[0],true);
-          this.check(lease);if(!this.runtimeQuality)this.move({type:'quality',lease,value:{mode:'manual',id:`variant:${matches[0].id}`},runtime:false});
-          if(player.getVariantTracks().find(t=>t.active)?.id!==matches[0].id)throw new PlayerError('UNSUPPORTED_FEATURE','Shaka did not apply the pinned audio/video variant');
-        }else {
-          const policy=this.qualityPolicy;
-          const identity=(language:unknown,original:unknown,label:unknown,roles:unknown,spatial:unknown,purpose:unknown)=>JSON.stringify([language??'',original??'',label??'',roles??[],!!spatial,purpose??null]);
-          const expected=identity(requested.language,requested.originalLanguage,requested.label,requested.roles,requested.spatialAudio,requested.accessibilityPurpose);
-          const allowed=player.getVariantTracks().some(t=>identity(t.audioLanguage??t.language,t.originalLanguage,t.label,t.audioRoles,t.spatialAudio,t.accessibilityPurpose)===expected&&(!t.audioCodec||!requested.codecs||t.audioCodec===requested.codecs)&&(!t.channelsCount||!requested.channelsCount||t.channelsCount===requested.channelsCount)&&t.bandwidth<=Math.min(this.control.source?.maxBandwidth??Infinity,policy.mode==='auto'?(policy.maxBandwidth??Infinity):Infinity)&&(t.height??0)<=(policy.mode==='auto'?(policy.maxHeight??Infinity):Infinity));
-          if(!allowed&&(this.runtimeQuality||this.control.source?.maxBandwidth!==undefined))throw new PlayerError('UNSUPPORTED_FEATURE','Requested audio has no variant satisfying the quality constraints');
-          player.selectAudioTrack(requested);
-        }
-        this.check(lease);this.video.muted=false;this.check(lease);this.move({type:'selection',lease,audioDisabled:false});}
+      const audio=id==='no'?[]:player.getAudioTracks();this.check(lease);const facts=this.audioFacts(audio);this.check(lease);
+      const requested=shakaRequestedAudio(facts,id),variants=requested.kind==='selected'?player.getVariantTracks():[];this.check(lease);
+      const variantsFacts=this.selectionVariants(variants);this.check(lease);const plan=shakaSelectAudio(this.control,facts,variantsFacts,id);
+      if(plan.kind==='failure')throw new PlayerError('UNSUPPORTED_FEATURE',plan.reason==='identity'?'Cannot preserve requested audio track':plan.reason==='pin'?'Cannot preserve pinned streaming representation and bandwidth with requested audio track':'Requested audio has no variant satisfying the quality constraints');
+      if(plan.kind==='empty'){this.refresh();return;}
+      if(plan.kind==='disabled'){this.video.muted=true;this.check(lease);this.move({type:'selection',lease,audioDisabled:true});}
+      else{
+        if(plan.kind==='variant'){
+          const track=variants[variantsFacts.findIndex(track=>track.id===plan.variant)],select=player.selectVariantTrack;this.check(lease);select.call(player,track,true);this.check(lease);
+          if(plan.commitQuality)this.move({type:'quality',lease,value:{mode:'manual',id:`variant:${plan.variant}`},runtime:false});
+          const selected=player.getVariantTracks().find(track=>track.active)?.id;this.check(lease);if(selected!==plan.variant)throw new PlayerError('UNSUPPORTED_FEATURE','Shaka did not apply the pinned audio/video variant');
+        }else{const select=player.selectAudioTrack;this.check(lease);select.call(player,audio[plan.index]);}
+        this.check(lease);this.video.muted=false;this.check(lease);this.move({type:'selection',lease,audioDisabled:false});
+      }
     }else{
       if(id==='no'){this.check(lease);this.move({type:'selection',lease,selectedSub:id});this.applyText();}
-      else{const texts=player.getTextTracks();const track=id==='auto'?texts.find(t=>t.active)??texts[0]:texts.find(t=>`shaka-sub-${t.id}`===id);if(!track&&id!=='auto')throw new PlayerError('UNSUPPORTED_FEATURE','Cannot preserve requested subtitle track');if(track)player.selectTextTrack(track);this.check(lease);this.move({type:'selection',lease,selectedSub:id});this.applyText();}
+      else{const texts=player.getTextTracks();this.check(lease);const facts=texts.map(track=>({id:track.id,active:track.active}));this.check(lease);const selected=shakaSelectText(facts,id),track=texts[facts.findIndex(track=>track.id===selected)];if(!track&&id!=='auto')throw new PlayerError('UNSUPPORTED_FEATURE','Cannot preserve requested subtitle track');if(track){const select=player.selectTextTrack;this.check(lease);select.call(player,track);}this.check(lease);this.move({type:'selection',lease,selectedSub:id});this.applyText();}
     }
     this.check(lease);this.refresh();this.check(lease);this.emit('mpv',{event:'property-change',name:'track-list',data:this.properties.get('track-list')});
     }finally{this.finishControl(lease);}
   }
-  private applyText(){const player=this.player;if(!player)return;if(!this.visible||this.selectedSub==='no'){player.selectTextTrack(null);return;}const texts=player.getTextTracks();const selected=this.selectedSub==='auto'?texts.find(t=>t.active)??texts[0]:texts.find(t=>`shaka-sub-${t.id}`===this.selectedSub);if(selected)player.selectTextTrack(selected);}
+  private applyText(){
+    const player=this.player;if(!player||this.stopped)return;
+    const epoch=this.control.epoch,serial=this.control.selectionSerial,visible=this.visible,id=this.selectedSub;
+    const current=()=>!this.stopped&&this.player===player&&this.control.epoch===epoch&&this.control.selectionSerial===serial&&this.visible===visible&&this.selectedSub===id;
+    let selected:Shaka.extern.TextTrack|null=null;
+    if(visible&&id!=='no'){
+      const texts=player.getTextTracks();if(!current())return;const facts=texts.map(track=>({id:track.id,active:track.active}));if(!current())return;
+      const chosen=shakaSelectText(facts,id);if(chosen===null)return;selected=texts[facts.findIndex(track=>track.id===chosen)];
+    }
+    const select=player.selectTextTrack;if(current())select.call(player,selected);
+  }
   async subtitleVisible(visible:boolean){const lease=this.begin('selection');try{await this.enter(lease);this.check(lease);this.move({type:'selection',lease,visible});this.applyText();this.check(lease);this.refresh();}finally{this.finishControl(lease);}}
   async addTextTrack(track:TextTrackSource,attachmentId?:string){const lease=this.begin('attachment');try{const player=this.loaded();this.policy!.authorize(track.src);this.check(lease);const added=await player.addTextTrackAsync(track.src,track.language??'und','subtitle','text/vtt',undefined,track.label);this.check(lease);if(track.default&&shakaAttachmentSelect(this.control,lease)){player.selectTextTrack(added);this.check(lease);}this.move({type:'attached',lease,id:added.id,attachmentId,select:!!track.default});this.applyText();this.refresh();}finally{this.finishControl(lease);}}
   async addSubtitle(asset:SubtitleAsset){

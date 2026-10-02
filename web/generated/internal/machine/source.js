@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { initialSourcePreparation, claimSourcePreparation, completeSourcePreparation, sourcePreparationDone } from './source-preparation.js';
+import { initialSourceApplication, claimSourceApplication, completeSourceApplication, sourceApplicationDone } from './source-application.js';
 export function initialSource() { return Object.freeze({ serial: 0, attemptSerial: 0, sessionSerial: 0, acceptedSession: null, acceptedEpoch: null, mode: 'native', automatic: true, candidate: null }); }
 const ok = (state) => Object.freeze({ state: Object.freeze({ ...state }), accepted: true });
 const no = (state, reason) => Object.freeze({ state, accepted: false, reason });
@@ -15,7 +16,7 @@ export function transitionSource(state, input) {
         if (state.candidate)
             return no(state, 'busy');
         const id = state.attemptSerial + 1, session = state.sessionSerial + 1;
-        return Object.freeze({ state: Object.freeze({ ...state, attemptSerial: id, sessionSerial: session, candidate: Object.freeze({ id, session, operationEpoch: input.operationEpoch, operation: input.operation ?? null, mode: input.mode, preserve: input.preserve, planId: input.planId, phase: 'preparing', preparation: null }) }), accepted: true, attempt: id });
+        return Object.freeze({ state: Object.freeze({ ...state, attemptSerial: id, sessionSerial: session, candidate: Object.freeze({ id, session, operationEpoch: input.operationEpoch, operation: input.operation ?? null, mode: input.mode, preserve: input.preserve, planId: input.planId, phase: 'preparing', preparation: null, application: null }) }), accepted: true, attempt: id });
     }
     const attempt = state.candidate;
     if (!attempt || attempt.id !== input.attempt)
@@ -41,6 +42,29 @@ export function transitionSource(state, input) {
             return no(state, 'phase');
         return ok({ ...state, candidate: Object.freeze({ ...attempt, preparation: next.state, phase: next.phase ?? attempt.phase }) });
     }
+    if (input.type === 'source.application.begin') {
+        if (attempt.phase !== 'applying' || attempt.application || attempt.mode !== input.facts.mode || attempt.preserve !== input.facts.preserve || attempt.planId !== input.facts.planId)
+            return no(state, 'phase');
+        return ok({ ...state, candidate: Object.freeze({ ...attempt, application: initialSourceApplication(input.facts) }) });
+    }
+    if (input.type === 'source.application.next' || input.type === 'source.application.completed') {
+        if (input.type === 'source.application.next' && attempt.application && sourceApplicationDone(attempt.application))
+            return Object.freeze({ state, accepted: true });
+        if (!attempt.application || attempt.phase !== 'applying')
+            return no(state, 'phase');
+        if (input.type === 'source.application.next') {
+            const next = claimSourceApplication(attempt.application);
+            if (!next.accepted)
+                return no(state, 'busy');
+            return Object.freeze({ ...ok({ ...state, candidate: Object.freeze({ ...attempt, application: next.state }) }), applicationEffect: next.effect });
+        }
+        const next = completeSourceApplication(attempt.application, input.step, input.observation);
+        if (!next.accepted)
+            return no(state, 'phase');
+        return ok({ ...state, candidate: Object.freeze({ ...attempt, application: next.state, phase: next.applied ? 'positioning' : attempt.phase }) });
+    }
+    if (attempt.application && input.type === 'source.applied')
+        return no(state, 'phase');
     if (attempt.preparation && (input.type === 'source.configured' || input.type === 'source.opened'))
         return no(state, 'phase');
     if (input.type === 'source.accept') {
@@ -50,7 +74,7 @@ export function transitionSource(state, input) {
             return no(state, 'phase');
         if (!input.planMatches)
             return no(state, 'plan');
-        return Object.freeze({ state: Object.freeze({ ...state, serial: state.serial + (attempt.preserve ? 0 : 1), acceptedSession: attempt.session, acceptedEpoch: attempt.operationEpoch, mode: attempt.mode, candidate: Object.freeze({ ...attempt, phase: 'accepted' }) }), accepted: true, settings: Object.freeze({ ...input.settings }), newSource: !attempt.preserve });
+        return Object.freeze({ state: Object.freeze({ ...state, serial: state.serial + (attempt.preserve ? 0 : 1), acceptedSession: attempt.session, acceptedEpoch: attempt.operationEpoch, mode: attempt.mode, candidate: Object.freeze({ ...attempt, phase: 'accepted' }) }), accepted: true, settings: Object.freeze({ ...attempt.application?.settings ?? input.settings }), newSource: !attempt.preserve });
     }
     const phases = {
         'source.created': ['preparing', 'configuring'],
@@ -67,3 +91,4 @@ export function sourceDesiredSettings(settings, facts) {
     return Object.freeze({ ...settings, pause: facts.preserve ? facts.previousPause : true, ...(reset ? { aid: facts.preserve && settings.aid === 'no' ? 'no' : 'auto', sid: facts.preserve && settings.sid === 'no' ? 'no' : 'auto' } : {}) });
 }
 export function sourcePreparationCurrent(state, attempt, step) { return state.candidate?.id === attempt && state.candidate.preparation?.pending === step; }
+export function sourceApplicationCurrent(state, attempt, step) { return state.candidate?.id === attempt && state.candidate.application?.pending === step; }

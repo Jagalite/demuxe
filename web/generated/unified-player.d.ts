@@ -222,7 +222,6 @@ export declare class Player extends EventTarget {
     private sessionTracks;
     private sourceTracks;
     private confirmTrackSelection;
-    private applyTrackPolicy;
     private previewBuffering;
     private notifySubscriber;
     private publish;

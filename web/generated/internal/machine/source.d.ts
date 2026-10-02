@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { type SourcePreparation, type SourcePreparationFacts, type SourcePreparationEffect } from './source-preparation.js';
+import { type SourceApplication, type SourceApplicationFacts, type SourceApplicationEffect, type SourceApplicationObservation } from './source-application.js';
 import type { PlaybackMode } from '../../types.js';
 import type { PlaybackSettings } from './settings.js';
 type Phase = 'preparing' | 'configuring' | 'opening' | 'applying' | 'positioning' | 'verifying' | 'accepted';
@@ -13,6 +14,7 @@ export type SourceAttempt = Readonly<{
     phase: Phase;
     planId: string;
     preparation: SourcePreparation | null;
+    application: SourceApplication | null;
 }>;
 export type SourceControl = Readonly<{
     serial: number;
@@ -39,6 +41,18 @@ export type SourceInput = Readonly<{
     type: 'source.created';
     attempt: number;
     prepare?: boolean;
+}> | Readonly<{
+    type: 'source.application.begin';
+    attempt: number;
+    facts: SourceApplicationFacts;
+}> | Readonly<{
+    type: 'source.application.next';
+    attempt: number;
+}> | Readonly<{
+    type: 'source.application.completed';
+    attempt: number;
+    step: number;
+    observation?: SourceApplicationObservation;
 }> | Readonly<{
     type: 'source.preparation.next';
     attempt: number;
@@ -69,6 +83,7 @@ export type SourceDecision = Readonly<{
     accepted: boolean;
     attempt?: number;
     preparationEffect?: SourcePreparationEffect;
+    applicationEffect?: SourceApplicationEffect;
     settings?: Readonly<PlaybackSettings>;
     newSource?: boolean;
     reason?: 'busy' | 'retired' | 'phase' | 'plan';
@@ -86,4 +101,5 @@ export declare function sourceDesiredSettings(settings: Readonly<PlaybackSetting
     mode: PlaybackMode;
 }>): Readonly<PlaybackSettings>;
 export declare function sourcePreparationCurrent(state: SourceControl, attempt: number, step: number): boolean;
+export declare function sourceApplicationCurrent(state: SourceControl, attempt: number, step: number): boolean;
 export {};

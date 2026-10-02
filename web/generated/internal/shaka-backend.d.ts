@@ -62,6 +62,8 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     open(_file: File | ArrayBuffer): Promise<void>;
     openRemote(source: RemoteSource): Promise<void>;
     private refresh;
+    private audioFacts;
+    private selectionVariants;
     private audioTracks;
     private expected;
     verifyStartup(_expected?: {
