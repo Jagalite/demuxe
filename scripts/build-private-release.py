@@ -93,7 +93,7 @@ def main(args):
         if next(v['value'] for v in options if v['name'] == 'gpl'):
             raise ValueError('Private mpv GPL configuration enabled')
         if profile == 'playback-full':
-            run(sys.executable, EXP/'mpv/scripts/link-playback.py', '--deps', deps, '--out', service, '--sdk', sdk, '--hybrid')
+            run(sys.executable, EXP/'mpv/scripts/link-playback.py', '--deps', deps, '--out', service, '--sdk', sdk, '--hybrid', '--retained-lease')
             run(sys.executable, ROOT/'scripts/install-private-playback.py', '--build', service, '--runtime-root', ROOT)
         else:
             run(sys.executable, EXP/'mpv/scripts/link-subtitles.py', '--deps', deps, '--out', service, '--sdk', sdk, '--profile', profile)

@@ -14,10 +14,31 @@ ROOT = Path(__file__).resolve().parents[1]
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
+def retained_lease_version(record):
+    version = record.get('retainedLeaseVersion', 0)
+    if type(version) is not int or version not in (0, 1):
+        raise ValueError('Unsupported retained frame lease version')
+    if record.get('retainedLeaseTests'):
+        raise ValueError('Diagnostic retained lease test exports cannot be installed')
+    return version
+
+
+def verify_retained_lease_abi(record, audit):
+    version = retained_lease_version(record)
+    advertised = any(item.get('module') == 'demuxe_decoder' and
+                     item.get('name') == 'demuxe_decoder_release_v1' and
+                     item.get('kind') == 'function' for item in audit['imports'])
+    if advertised != bool(version):
+        raise ValueError('Retained frame lease record and native ABI disagree')
+    if any(item.get('name', '').startswith('demuxe_test_lease_') for item in audit['exports']):
+        raise ValueError('Diagnostic retained lease test exports cannot be installed')
+
+
 def install(build, runtime_root):
     record = json.loads((build / 'build.json').read_text())
     if record.get('status') != 'built_candidate_only' or record.get('dependencyProfile') not in ('playback','playback-full'):
         raise ValueError('Successful private playback build required')
+    lease_version = retained_lease_version(record)
     deps = Path(record['dependencyPath'])
     if digest(deps / 'build-result.json') != record['dependencyRecordSHA256']:
         raise ValueError('Playback dependency record drift')
@@ -30,6 +51,9 @@ def install(build, runtime_root):
     for name, wanted in record['adaptedSourceSHA256'].items():
         if digest(build / 'inputs' / name) != wanted:
             raise ValueError('Playback link input drift: ' + name)
+    for name, wanted in record.get('adaptedDependencySourceSHA256', {}).items():
+        if digest(build / 'inputs' / name) != wanted:
+            raise ValueError('Playback adapted dependency input drift: ' + name)
     names = ['playback.mjs', 'playback.wasm', 'playback.asyncify.wasm']
     for name in names:
         if digest(build / name) != record['artifacts'][name]:
@@ -46,7 +70,8 @@ def install(build, runtime_root):
         raise ValueError('Refusing to replace installed playback assets')
     auditor = build / 'inputs/experiments/jspi-asyncify/scripts/audit-wasm.mjs'
     for backend in ('jspi', 'asyncify'):
-        subprocess.run(['node', str(auditor), str(build / ('playback.asyncify.wasm' if backend == 'asyncify' else 'playback.wasm')), *(['--asyncify'] if backend == 'asyncify' else [])], check=True, capture_output=True)
+        audited = subprocess.run(['node', str(auditor), str(build / ('playback.asyncify.wasm' if backend == 'asyncify' else 'playback.wasm')), *(['--asyncify'] if backend == 'asyncify' else [])], check=True, capture_output=True)
+        verify_retained_lease_abi(record, json.loads(audited.stdout))
     for backend, target in zip(('jspi', 'asyncify'), targets):
         target.mkdir(parents=True)
         sources = {'player.mjs': 'playback.mjs', 'player.wasm': 'playback.asyncify.wasm' if backend == 'asyncify' else 'playback.wasm'}
@@ -59,6 +84,7 @@ def install(build, runtime_root):
             'maxHeapBytes': record.get('maxHeapBytes', 134217728),
             'audioCapacity': record.get('audioCapacity', 8192),
             'retainedDecoder': bool(record.get('retainedDecoder')),
+            'retainedLeaseVersion': lease_version,
             'traceLogs': bool(record.get('traceLogs')),
             'buildRecordSHA256': digest(build / 'build.json'),
             'files': {dest: digest(build / source) for dest, source in sources.items()},
