@@ -18,20 +18,21 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     private loading;
     private pending;
     private requests;
-    private generation;
+    private policy;
+    private get generation();
     private get closing();
     private destruction?;
     private failure?;
     private get failed();
     private refresh?;
-    private userPaused;
-    private gainValue;
-    private outputVerified;
+    private get userPaused();
+    private get gainValue();
+    private get outputVerified();
     private outputChannels;
     private deviceChannels;
     private requestedOutput;
-    private attachmentIds;
-    private presentedDraws;
+    private get attachmentIds();
+    private get presentedDraws();
     private presentation?;
     constructor(canvas: HTMLCanvasElement, options: {
         providerAssets?: ProviderRuntimeAssets;
@@ -59,6 +60,10 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     private request;
     private receive;
     private fail;
+    private assertSource;
+    private assertControl;
+    private beginControl;
+    private facts;
     private waitUntil;
     open(file: File | ArrayBuffer, input?: MediaInputOptions): Promise<void>;
     openRemote(source: RemoteSource): Promise<void>;
@@ -85,14 +90,14 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
         height: number;
     }>;
     addSubtitle(subtitle: SubtitleAsset): Promise<void>;
-    startupEvidence(): {
+    startupEvidence(): Readonly<{
         metadata: boolean;
         audioDecoderConfigured: boolean;
         audioDecoded: boolean;
         audioProgress: boolean;
         videoPresented: boolean;
         decoderOutput: boolean;
-    };
+    }>;
     verifyOutput(signal?: AbortSignal): Promise<void>;
     setAudioOutputDevice(id: string): Promise<void>;
     audioDiagnostics(): {

@@ -119,7 +119,7 @@ test('windowed Native ranges retain the public object shape through refresh',asy
  const {ranges}=await import('../web/generated/internal/state.js');
  const video={textTracks:[],duration:6,currentTime:2,volume:1,playbackRate:1};
  const remux={windowed:true,timelineBias:1,duration:30,ranges:()=>[[1,5]],playbackPaused:true,playbackEnded:false};
- const player=Object.assign(Object.create(NativePlayer.prototype),{video,remux,assAssets:[],properties:new Map(),emit:()=>{}});
+ const player=Object.assign(Object.create(NativePlayer.prototype),{video,remux,native:initialNativeBackend(),textAttachmentIds:new WeakMap(),captionAssets:new Map(),assAssets:[],properties:new Map(),emit:()=>{}});
  player.refresh();
  assert.deepEqual(ranges(player.properties.get('native-buffered')),[{start:1,end:5}]);
  assert.deepEqual(ranges(player.properties.get('native-seekable')),[{start:0,end:30}]);

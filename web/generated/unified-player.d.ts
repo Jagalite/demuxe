@@ -291,6 +291,8 @@ export declare class Player extends EventTarget {
     setPlaybackRange(range: import('./types.js').PlaybackRange | null): Promise<void>;
     setLoop(policy: import('./types.js').LoopPolicy): Promise<void>;
     private enforceBoundary;
+    private mediaActionScope;
+    private runMediaAction;
     stepFrame(direction?: 1 | -1): Promise<void>;
     snapshot(options?: import('./types.js').SnapshotOptions): Promise<import('./types.js').VideoSnapshot>;
     volume(value: number): Promise<void>;

@@ -106,6 +106,8 @@ export declare function transitionAttachment(state: PlayerControlState, input: A
     state: Readonly<{
         revision: number;
         captureRevision: number;
+        readiness: import("./player-readiness.js").PlayerReadinessState;
+        actions: import("./player-actions.js").PlayerActionState;
         publication: import("./player-publication.js").PlayerPublicationState;
         monitor: import("./player-monitor.js").PlayerMonitorState;
         attachments: AttachmentState;

@@ -52,6 +52,14 @@ function harness(execute,options={}){
  return {mailbox,memory,ptr,header,scheduler,service,timers,cleared,get wait(){return wait;},set now(value){now=value;},stop:()=>stop()};
 }
 const frame=()=>({closed:0,close(){this.closed++;}});
+test('actual default browser timers retain the WorkerGlobalScope receiver',async t=>{
+ let issued=0,cleared=0,executed=0;
+ t.mock.method(globalThis,'setTimeout',function(callback,delay){assert.equal(this,globalThis,'browser timer requires its global receiver');issued++;return {callback,delay};});
+ t.mock.method(globalThis,'clearTimeout',function(timer){assert.equal(this,globalThis,'browser timer cancellation requires its global receiver');assert.equal(timer.delay,5000);cleared++;});
+ const h=harness(async()=>{executed++;return {result:1};},{setTimer:undefined,clearTimer:undefined});
+ try{h.mailbox.request(h.ptr,4);await turn();assert.equal(executed,1);assert.equal(h.wait.task.resumeAction(),1);assert.equal(h.mailbox.snapshot().error,null);assert.equal(issued,1);assert.equal(cleared,1);}
+ finally{h.mailbox.close();}
+});
 test('actual duplicate restored callback neither writes a second result nor increments committed',async()=>{
  const h=harness(async()=>({result:1}));try{h.mailbox.request(h.ptr,4);await turn();const resume=h.wait.task.resumeAction;assert.equal(resume(),1);h.header[3]=71;assert.equal(resume(),-29);assert.equal(h.header[3],71);assert.equal(h.mailbox.snapshot().committed,1);}finally{h.mailbox.close();}
 });

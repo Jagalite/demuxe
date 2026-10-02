@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-export function createWasmLifecycle() { return Object.freeze({ phase: 'initializing', initSent: false, workerFailed: false, nextRequest: 100, nextWaiter: 1, nextOpen: 1, requests: Object.freeze([]), waiters: Object.freeze([]), open: null, hasFile: false }); }
+import { createWasmSeek, clearWasmSeek, beginWasmSeek, observeWasmSeek, confirmWasmSeek } from './wasm-seek.js';
+export function createWasmLifecycle() { return Object.freeze({ phase: 'initializing', initSent: false, workerFailed: false, nextRequest: 100, nextWaiter: 1, nextOpen: 1, requests: Object.freeze([]), waiters: Object.freeze([]), open: null, hasFile: false, seek: createWasmSeek() }); }
 export function wasmAlive(state) { return state.phase === 'initializing' || state.phase === 'ready'; }
 export function markWasmInitialized(state) { return wasmAlive(state) ? Object.freeze({ ...state, initSent: true }) : state; }
 export function settleWasmInitialization(state, success) { return state.phase === 'initializing' ? Object.freeze({ ...state, phase: success ? 'ready' : 'failed' }) : state; }
@@ -47,10 +48,33 @@ export function beginWasmOpen(state) {
 }
 export function ownsWasmOpen(state, id) { return wasmAlive(state) && state.open === id; }
 export function finishWasmOpen(state, id) { return state.open === id ? Object.freeze({ ...state, open: null }) : state; }
-export function observeWasmFile(state, present) { return wasmAlive(state) && state.hasFile !== present ? Object.freeze({ ...state, hasFile: present }) : state; }
+export function observeWasmFile(state, present) {
+    if (!wasmAlive(state))
+        return state;
+    const seek = present ? clearWasmSeek(state.seek) : state.seek;
+    return state.hasFile === present && seek === state.seek ? state : Object.freeze({ ...state, hasFile: present, seek });
+}
+export function beginWasmPlayerSeek(state, target) {
+    const decision = beginWasmSeek(state.seek, target);
+    if (!decision.accepted)
+        return Object.freeze({ state, reason: 'invalid' });
+    if (!wasmAlive(state))
+        return Object.freeze({ state, reason: 'unavailable' });
+    return Object.freeze({ state: Object.freeze({ ...state, seek: decision.state }), reason: null });
+}
+export function observeWasmPlayerSeek(state, event) {
+    if (!wasmAlive(state))
+        return state;
+    const seek = observeWasmSeek(state.seek, event);
+    return seek === state.seek ? state : Object.freeze({ ...state, seek });
+}
+export function confirmWasmPlayerSeek(state, id, target, position, settled) {
+    const decision = confirmWasmSeek(state.seek, id, target, position, settled);
+    return Object.freeze({ state: decision.state === state.seek ? state : Object.freeze({ ...state, seek: decision.state }), confirmed: decision.confirmed });
+}
 export function retireWasmLifecycle(state) {
     if (state.phase === 'retiring' || state.phase === 'closed')
         return Object.freeze({ state, accepted: false, requests: Object.freeze([]), waiters: Object.freeze([]) });
-    return Object.freeze({ state: Object.freeze({ ...state, phase: 'retiring', open: null, hasFile: false, requests: Object.freeze([]), waiters: Object.freeze([]) }), accepted: true, requests: Object.freeze(state.requests.map(item => item.id)), waiters: Object.freeze(state.waiters.map(item => item.id)) });
+    return Object.freeze({ state: Object.freeze({ ...state, phase: 'retiring', open: null, hasFile: false, seek: clearWasmSeek(state.seek), requests: Object.freeze([]), waiters: Object.freeze([]) }), accepted: true, requests: Object.freeze(state.requests.map(item => item.id)), waiters: Object.freeze(state.waiters.map(item => item.id)) });
 }
 export function finishWasmRetirement(state) { return state.phase === 'retiring' ? Object.freeze({ ...state, phase: 'closed' }) : state; }

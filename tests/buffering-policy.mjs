@@ -66,8 +66,10 @@ test('public buffering updates replace policy, serialize and roll back without s
 test('mpv runtime updates reset preload throttling when returning to auto',async()=>{
  const {WasmPlayer}=await import('../web/generated/internal/wasm-player.js');
  const {PrivateSoftwarePlayer}=await import('../web/generated/internal/private-software-player.js');
- for(const [Class,extra] of [[WasmPlayer,{properties:new Map([['pause',true]]),bufferingSettings:{}}],[PrivateSoftwarePlayer,{ready:Promise.resolve(),options:{},userPaused:true}]]){
-  const calls=[];const p=Object.assign(Object.create(Class.prototype),extra,{command:async(...args)=>calls.push(args)});
+ const {initialPrivateSoftware}=await import('../web/generated/internal/machine/private-software.js');
+ const {createBackendRequests}=await import('../web/generated/internal/machine/backend-requests.js');
+ for(const [Class,extra] of [[WasmPlayer,{properties:new Map([['pause',true]]),bufferingSettings:{}}],[PrivateSoftwarePlayer,{ready:Promise.resolve(),options:{},policy:initialPrivateSoftware(),requests:createBackendRequests('software')}]]){
+  const calls=[];const p=Object.assign(Object.create(Class.prototype),extra,{command:async(...args)=>calls.push(args),request:async(_kind,{args})=>calls.push(args)});
   await p.setBuffering(bufferingPolicy({preload:'metadata'}));assert.deepEqual(calls.at(-1),['set','cache-secs','1']);
   await p.setBuffering(bufferingPolicy());assert.deepEqual(calls.at(-1),['set','cache-secs','3600000']);
   assert.equal(p.bufferingDiagnostics.preload,'auto');

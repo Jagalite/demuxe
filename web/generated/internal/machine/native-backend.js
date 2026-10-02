@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-export function initialNativeBackend() { return Object.freeze({ epoch: 0, serial: 0, stopped: false, expected: undefined, capability: Object.freeze({}), verification: null, seek: null, seekPresentationRetries: 0 }); }
-export function nativeRequestCurrent(state, request) { return !state.stopped && state.epoch === request.epoch && (request.kind === 'verification' ? state.verification : state.seek)?.request.id === request.id; }
+import { initialNativeLoad, beginNativeLoad, retireNativeLoad, transitionNativeLoad } from './native-load.js';
+export function initialNativeBackend() { return Object.freeze({ epoch: 0, serial: 0, stopped: false, expected: undefined, capability: Object.freeze({}), verification: null, seek: null, seekPresentationRetries: 0, load: initialNativeLoad() }); }
+export function nativeRequestCurrent(state, request) { return !state.stopped && state.epoch === request.epoch && (request.kind === 'verification' ? state.verification : request.kind === 'seek' ? state.seek : state.load.work)?.request.id === request.id; }
 export function nativeAudioEvidence(facts, advancing) {
     if (typeof facts.decodedBytes === 'number')
         return Object.freeze({ adapter: 'decoded-byte-counter', ready: facts.decodedBytes > 0, strength: facts.decodedBytes > 0 ? 'decoded' : 'unknown' });
@@ -12,13 +13,17 @@ function evidence(value) { return Object.freeze({ ...value, ...value.timing ? { 
 export function transitionNativeBackend(state, command) {
     const result = (next, extra = {}, accepted = true) => Object.freeze({ state: next === state ? state : Object.freeze({ ...next }), accepted, ...extra });
     if (command.type === 'stop')
-        return state.stopped ? result(state, {}, false) : result({ ...state, epoch: state.epoch + 1, stopped: true, verification: null, seek: null });
+        return state.stopped ? result(state, {}, false) : result({ ...state, epoch: state.epoch + 1, stopped: true, verification: null, seek: null, load: retireNativeLoad(state.load) });
     if (state.stopped)
         return result(state, {}, false);
     if (command.type === 'source')
-        return result({ ...state, epoch: state.epoch + 1, expected: undefined, capability: Object.freeze({}), verification: null, seek: null });
+        return result({ ...state, epoch: state.epoch + 1, expected: undefined, capability: Object.freeze({}), verification: null, seek: null, load: retireNativeLoad(state.load) });
     if (command.type === 'metadata' || command.type === 'api-hint')
         return command.epoch !== state.epoch ? result(state, {}, false) : result({ ...state, capability: evidence({ ...state.capability, ...command.type === 'metadata' ? { metadata: true } : { apiHint: command.value } }) });
+    if (command.type === 'load.begin') {
+        const source = command.kind === 'source', epoch = state.epoch + (source ? 1 : 0), request = Object.freeze({ id: state.serial + 1, epoch, kind: 'load' });
+        return result({ ...state, serial: request.id, epoch, ...source ? { expected: undefined, capability: Object.freeze({}) } : {}, verification: null, seek: null, load: beginNativeLoad(state.load, request, command.kind, command.policy, command.position, command.paused) }, { request, retired: state.load.work?.request });
+    }
     if (command.type === 'verify.begin') {
         const request = Object.freeze({ id: state.serial + 1, epoch: state.epoch, kind: 'verification' });
         const verification = Object.freeze({ request, output: command.output, budget: command.budget, expected: command.expected ? Object.freeze({ ...command.expected }) : undefined, phase: 'preflight', deadline: 0, previouslyVerified: false, active: Object.freeze({ video: false, audio: false }), initialTime: 0, initialFrames: 0, initialAudioBytes: undefined, metadataPreparation: false, presented: false, selectiveAudio: false });
@@ -31,6 +36,12 @@ export function transitionNativeBackend(state, command) {
     }
     if (!nativeRequestCurrent(state, command.request) || (command.type.startsWith('verify.') && command.request.kind !== 'verification') || (command.type.startsWith('seek.') && command.request.kind !== 'seek'))
         return result(state, {}, false);
+    if (command.type === 'load.event') {
+        const decision = transitionNativeLoad(state.load, command.request, command.event);
+        if (!decision.accepted)
+            return result(state, {}, false);
+        return result({ ...state, load: decision.state }, { fallback: decision.fallback, rollback: decision.rollback, resume: decision.resume, position: decision.position }, decision.accepted);
+    }
     if (command.type.startsWith('verify.')) {
         const verification = state.verification;
         if (command.type === 'verify.finish')

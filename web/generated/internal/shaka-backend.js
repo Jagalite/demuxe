@@ -4,81 +4,8 @@ import { NativePlayer } from './native-player.js';
 import { ShakaNetworkPolicy } from './shaka-network.js';
 import { PlayerError, isPlayerError } from './errors.js';
 import { rasterizePreview } from '../preview/images.js';
+import { runtimeAt } from './shaka-runtime.js';
 import { plainVTT } from './plain-vtt.js';
-const runtimes = new Map();
-function runtimeAt(base, signal) {
-    const aborted = () => new PlayerError('ABORTED', 'Shaka runtime loading cancelled');
-    if (signal.aborted)
-        return Promise.reject(aborted());
-    const url = new URL('web/vendor/shaka-player.js', base);
-    let shared = runtimes.get(url.href);
-    if (!shared) {
-        const controller = new AbortController();
-        const entry = { promise: undefined, pending: true, users: 0, cancel: () => { } };
-        entry.promise = new Promise((resolve, reject) => {
-            let script, blob;
-            const finish = (error) => {
-                if (!entry.pending)
-                    return;
-                entry.pending = false;
-                clearTimeout(timer);
-                if (script) {
-                    script.onload = null;
-                    script.onerror = null;
-                    script.remove();
-                }
-                if (blob)
-                    URL.revokeObjectURL(blob);
-                if (error) {
-                    controller.abort();
-                    if (runtimes.get(url.href) === entry)
-                        runtimes.delete(url.href);
-                    reject(error);
-                }
-                else
-                    resolve(globalThis.shaka);
-            };
-            entry.cancel = () => finish(aborted());
-            const timer = setTimeout(() => finish(new PlayerError('ASSET_LOAD_FAILED', 'Shaka runtime loading timed out')), 15000);
-            // Removing a network script element does not reliably abort its download
-            // or execution. Fetch is cancellable; the blob executes only while owned.
-            void (async () => {
-                const response = await fetch(url.href, { signal: controller.signal, credentials: 'same-origin', redirect: 'error' });
-                if (!response.ok)
-                    throw new Error('Shaka asset response failed');
-                const code = await response.text();
-                if (!entry.pending)
-                    return;
-                blob = URL.createObjectURL(new Blob(['if(document.currentScript?.isConnected){\n', code, '\n}'], { type: 'text/javascript' }));
-                script = document.createElement('script');
-                script.src = blob;
-                script.async = true;
-                script.onload = () => { const runtime = globalThis.shaka; finish(runtime?.Player ? undefined : new PlayerError('ASSET_LOAD_FAILED', 'Shaka runtime is unavailable')); };
-                script.onerror = () => finish(new PlayerError('ASSET_LOAD_FAILED', 'Shaka runtime execution failed'));
-                document.head.append(script);
-            })().catch(() => finish(new PlayerError('ASSET_LOAD_FAILED', 'Shaka runtime loading failed')));
-        });
-        runtimes.set(url.href, entry);
-        shared = entry;
-    }
-    const entry = shared;
-    entry.users++;
-    return new Promise((resolve, reject) => {
-        let done = false;
-        const release = () => { done = true; signal.removeEventListener('abort', cancel); if (--entry.users === 0 && entry.pending)
-            entry.cancel(); };
-        const cancel = () => { if (done)
-            return; release(); reject(aborted()); };
-        signal.addEventListener('abort', cancel, { once: true });
-        entry.promise.then(runtime => { if (!done) {
-            release();
-            resolve(runtime);
-        } }, error => { if (!done) {
-            release();
-            reject(error);
-        } });
-    });
-}
 /** Shaka exclusively owns adaptive manifests, scheduling, ABR and MediaSource.
  * NativePlayer supplies only media-element controls, output verification and gain. */
 export class ShakaBackend extends EventTarget {

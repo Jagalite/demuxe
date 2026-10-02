@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { CapabilityEvidenceData } from './routing.js';
+import { type NativeLoadState, type NativeLoadRequest, type NativeLoadPolicy, type NativeLoadEvent } from './native-load.js';
 type Expected = Readonly<{
     video: boolean;
     audio: boolean;
@@ -7,7 +8,7 @@ type Expected = Readonly<{
 export type NativeRequest = Readonly<{
     id: number;
     epoch: number;
-    kind: 'verification' | 'seek';
+    kind: 'verification' | 'seek' | 'load';
 }>;
 type Verification = Readonly<{
     request: NativeRequest;
@@ -46,6 +47,7 @@ export type NativeBackendState = Readonly<{
     verification: Verification | null;
     seek: Seek | null;
     seekPresentationRetries: number;
+    load: NativeLoadState;
 }>;
 export declare function initialNativeBackend(): NativeBackendState;
 export declare function nativeRequestCurrent(state: NativeBackendState, request: NativeRequest): boolean;
@@ -80,6 +82,16 @@ export type NativeBackendCommand = Readonly<{
     type: 'source';
 }> | Readonly<{
     type: 'stop';
+}> | Readonly<{
+    type: 'load.begin';
+    kind: 'source' | 'audio-track';
+    policy: NativeLoadPolicy;
+    position: number;
+    paused: boolean;
+}> | Readonly<{
+    type: 'load.event';
+    request: NativeLoadRequest;
+    event: NativeLoadEvent;
 }> | Readonly<{
     type: 'metadata';
     epoch: number;
@@ -175,6 +187,10 @@ export type NativeBackendDecision = Readonly<{
     armFrame?: boolean;
     retry?: boolean;
     remaining?: number;
+    fallback?: boolean;
+    rollback?: boolean;
+    resume?: boolean;
+    position?: number;
     failure?: 'missing-audio' | 'missing-output' | 'verification-timeout' | 'seek-timeout';
 }>;
 export declare function transitionNativeBackend(state: NativeBackendState, command: NativeBackendCommand): NativeBackendDecision;

@@ -3,14 +3,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {PrivateSoftwarePlayer} from '../web/generated/internal/private-software-player.js';
 import {createBackendRequests,admitBackendRequest} from '../web/generated/internal/machine/backend-requests.js';
+import * as core from '../web/generated/internal/machine/private-software.js';
+function advance(player){const next=core.beginPrivateSoftwareLoad(player.policy);player.policy=core.startPrivateSoftwareLoad(next.state,next.load);}
+function drawn(player,value){player.policy=core.acceptPrivateSoftwarePicture(player.policy,player.generation,value);}
 const tick=()=>new Promise(resolve=>setTimeout(resolve,30));
 function control(){
  const player=Object.create(PrivateSoftwarePlayer.prototype),messages=[];
- Object.assign(player,{ready:Promise.resolve(),generation:0,presentedDraws:0,properties:new Map(),requests:createBackendRequests('software'),options:{},worker:{postMessage:data=>messages.push(data)},request:async()=>({})});
+ Object.assign(player,{ready:Promise.resolve(),policy:core.initialPrivateSoftware(),properties:new Map(),requests:createBackendRequests('software'),options:{},worker:{postMessage:data=>messages.push(data)},request:async()=>({})});
  return {player,messages};
 }
 test('authorization requests from a replaced source cannot invoke the current callback',async()=>{
- const {player,messages}=control();player.generation=2;let calls=0;
+ const {player,messages}=control();advance(player);advance(player);let calls=0;
  player.refresh=async()=>{calls++;return {headers:{Authorization:'fixture'}};};
  player.receive({type:'refresh',generation:1,refreshId:'old'});await tick();assert.equal(calls,0);assert.match(messages[0].error,/replaced/);
  player.receive({type:'refresh',generation:2,refreshId:'current'});await tick();assert.equal(calls,1);assert.equal(messages[1].update.headers.Authorization,'fixture');
@@ -20,13 +23,13 @@ test('idle render and an empty track list cannot satisfy source readiness',async
  const load=player.load({file:{}}).then(()=>{resolved=true;});await tick();
  player.properties.set('track-list',[]);player.diagnostics={rendered:5,seeking:false};await tick();assert.equal(resolved,false);
  player.properties.set('track-list',[{type:'video',selected:true}]);player.diagnostics.seeking=true;await tick();assert.equal(resolved,false);
- player.diagnostics.seeking=false;player.presentedDraws=1;await load;assert.equal(resolved,true);
+ player.diagnostics.seeking=false;drawn(player,1);await load;assert.equal(resolved,true);
 });
 test('a superseded load cannot finish using metadata from its replacement',async()=>{
  const {player}=control();const first=player.load({file:{}});void first.catch(()=>{});await tick();
  const second=player.load({file:{}});await tick();
  player.properties.set('track-list',[{type:'video',selected:true}]);player.diagnostics={rendered:1,seeking:false};
- player.presentedDraws=1;await assert.rejects(first,/replaced/);await second;assert.equal(player.generation,2);
+ drawn(player,1);await assert.rejects(first,/replaced/);await second;assert.equal(player.generation,2);
 });
 test('paused audio-only load waits for its decoder while output verification waits for PCM',async()=>{
  const {player}=control();let resolved=false;
@@ -40,11 +43,11 @@ test('paused audio-only load waits for its decoder while output verification wai
 test('verification requires an actual selected media owner',async()=>{
  const {player}=control(),abort=new AbortController();player.properties.set('track-list',[]);player.diagnostics={rendered:5};
  const verification=player.verifyOutput(abort.signal);await tick();abort.abort();await assert.rejects(verification,/abort/i);
- assert.equal(player.outputVerified,undefined);
+ assert.equal(player.outputVerified,false);
 });
 test('presented bitmap precedes readiness and releases ownership exactly once',()=>{
  const {player,messages}=control(),calls=[];
- player.generation=1;player.presentation={canvas:{width:320,height:180},drawImage:bitmap=>calls.push(bitmap)};
+ advance(player);player.presentation={canvas:{width:320,height:180},drawImage:bitmap=>calls.push(bitmap)};
  const bitmap={width:320,height:180,closed:0,close(){this.closed++;}};
  player.receive({type:'picture',generation:1,pictureId:7,rendered:3,bitmap});
  assert.deepEqual(calls,[bitmap]);assert.equal(player.presentedDraws,3);assert.equal(bitmap.closed,1);
@@ -90,7 +93,7 @@ test('finite cooperative loads report actual seekability for public timeline and
   player.request=async(op,data)=>{
    if(op==='load'){
     player.properties.set('track-list',[{type:'video',selected:true}]);
-    player.properties.set('duration',6);player.diagnostics={seeking:false,rendered:1};player.presentedDraws=1;
+    player.properties.set('duration',6);player.diagnostics={seeking:false,rendered:1};drawn(player,1);
    }
    if(op==='command'&&data.args[1]==='${seekable}'){queries.push(data.args);return value;}
   };
@@ -104,11 +107,11 @@ test('a seekability response from a retired load cannot overwrite its replacemen
  const {player}=control();let release,queried;
  const query=new Promise(resolve=>queried=resolve);
  player.request=async(op,data)=>{
-  if(op==='load'){player.properties.set('track-list',[{type:'video',selected:true}]);player.diagnostics={seeking:false};player.presentedDraws=1;}
+  if(op==='load'){player.properties.set('track-list',[{type:'video',selected:true}]);player.diagnostics={seeking:false};drawn(player,1);}
   if(op==='command'&&data.args[1]==='${seekable}'){queried();return new Promise(resolve=>release=resolve);}
  };
  const loading=player.open(new File(['fixture'],'media.mkv'));await query;
- player.generation++;player.properties.set('seekable',false);release('yes');
+ advance(player);player.properties.set('seekable',false);release('yes');
  await assert.rejects(loading,error=>error.code==='ABORTED');assert.equal(player.properties.get('seekable'),false);
 });
 

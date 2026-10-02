@@ -94,7 +94,6 @@ export declare class WasmPlayer extends EventTarget {
     private readyTimer?;
     private rejectReady?;
     private eventWaiters;
-    private seekObservation?;
     private refreshAuthorization?;
     private audioHeader;
     private readonly audioOnly;

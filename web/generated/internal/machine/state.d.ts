@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type PlayerReadinessState } from './player-readiness.js';
+import { type PlayerActionState } from './player-actions.js';
 import { type PlayerPublicationState } from './player-publication.js';
 import { type PlayerMonitorState } from './player-monitor.js';
 import { type OperationState } from './operations.js';
@@ -13,6 +15,8 @@ import { type RoutingState } from './route-state.js';
 export type PlayerControlState = Readonly<{
     revision: number;
     captureRevision: number;
+    readiness: PlayerReadinessState;
+    actions: PlayerActionState;
     publication: PlayerPublicationState;
     monitor: PlayerMonitorState;
     attachments: AttachmentState;

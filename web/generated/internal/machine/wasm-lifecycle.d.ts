@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import type { WasmSeekState, WasmSeekObservation } from './wasm-seek.js';
 /** Logical ownership only. Workers, promises, errors and timers remain in the shell. */
 export type WasmPhase = 'initializing' | 'ready' | 'failed' | 'retiring' | 'closed';
 export type WasmDeadline = Readonly<{
@@ -16,6 +17,7 @@ export type WasmLifecycle = Readonly<{
     waiters: readonly WasmDeadline[];
     open: number | null;
     hasFile: boolean;
+    seek: WasmSeekState;
 }>;
 export declare function createWasmLifecycle(): WasmLifecycle;
 export declare function wasmAlive(state: WasmLifecycle): boolean;
@@ -54,6 +56,15 @@ export declare function beginWasmOpen(state: WasmLifecycle): Readonly<{
 export declare function ownsWasmOpen(state: WasmLifecycle, id: number): boolean;
 export declare function finishWasmOpen(state: WasmLifecycle, id: number): WasmLifecycle;
 export declare function observeWasmFile(state: WasmLifecycle, present: boolean): WasmLifecycle;
+export declare function beginWasmPlayerSeek(state: WasmLifecycle, target: number): Readonly<{
+    state: WasmLifecycle;
+    reason: 'invalid' | 'unavailable' | null;
+}>;
+export declare function observeWasmPlayerSeek(state: WasmLifecycle, event: WasmSeekObservation): WasmLifecycle;
+export declare function confirmWasmPlayerSeek(state: WasmLifecycle, id: number, target: number, position: number, settled: boolean): Readonly<{
+    state: WasmLifecycle;
+    confirmed: boolean;
+}>;
 export declare function retireWasmLifecycle(state: WasmLifecycle): Readonly<{
     state: WasmLifecycle;
     accepted: boolean;

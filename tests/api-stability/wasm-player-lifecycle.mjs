@@ -153,3 +153,31 @@ test('destroy settles a waiter even when timer cleanup throws and still contains
  for(const name of ['terminate','owner-remove','audio-close'])assert.equal(f.log.filter(entry=>entry===name).length,1);
  assert.equal(f.player.eventWaiters.size,0);assert.equal(f.player.lifecycle.waiters.length,0);f.clearHook=undefined;
 });
+
+
+test('worker error with sentinel ID zero rejects every pending request as before',async t=>{
+ const f=await fixture(t),first=f.player.command('first'),second=f.player.command('second');await turn();
+ f.worker.emit({type:'error',id:0,message:'worker-wide failure'});
+ await assert.rejects(first,/worker-wide failure/);await assert.rejects(second,/worker-wide failure/);
+ assert.equal(f.player.pending.size,0);assert.equal(f.player.lifecycle.requests.length,0);
+});
+
+test('seek confirmation survives immutable restart observations while rejecting a newer equal-target seek',async t=>{
+ const f=await fixture(t);f.hook=message=>{if(message.type==='seek')f.worker.reply(message.id);};
+ await f.player.seek(5);const first=f.player.confirmSeek(5);await turn();const firstId=f.messages.at(-1).id;
+ f.worker.event({event:'playback-restart'});f.worker.reply(firstId,'5|no');assert.equal(await first,true);
+ const old=f.player.confirmSeek(5);await turn();const oldId=f.messages.at(-1).id;await f.player.seek(5);
+ f.worker.reply(oldId,'3|no');assert.equal(await old,false);assert.equal(f.player.seekBoundary(5),undefined);
+});
+
+test('native clamping uses completed presentation and idle EOF, then source start clears it',async t=>{
+ const f=await fixture(t);f.hook=message=>{if(message.type==='seek')f.worker.reply(message.id);};await f.player.seek(10);
+ f.worker.event({event:'property-change',name:'demuxer-cache-state',data:{eof:true,idle:true}});f.worker.event({event:'playback-restart'});
+ const confirmed=f.player.confirmSeek(10);await turn();f.worker.reply(f.messages.at(-1).id,'8|no');assert.equal(await confirmed,false);assert.equal(f.player.seekBoundary(10),8);
+ f.worker.event({event:'start-file'});assert.equal(f.player.seekBoundary(10),undefined);assert.equal(await f.player.confirmSeek(10),true);
+});
+
+test('retired valid seek rejects before touching the physical audio ring',async t=>{
+ const f=await fixture(t);await f.player.destroy();Atomics.store(f.player.audioHeader,2,11);
+ await assert.rejects(f.player.seek(2),/destroyed/);assert.equal(Atomics.load(f.player.audioHeader,2),11);assert.equal(f.player.lifecycle.seek.seek,null);
+});

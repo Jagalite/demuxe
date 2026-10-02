@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import type {CapabilityEvidenceData} from './routing.js';
+import {initialNativeLoad,beginNativeLoad,retireNativeLoad,transitionNativeLoad,type NativeLoadState,type NativeLoadRequest,type NativeLoadPolicy,type NativeLoadEvent} from './native-load.js';
 
 type Expected=Readonly<{video:boolean;audio:boolean}>;
-export type NativeRequest=Readonly<{id:number;epoch:number;kind:'verification'|'seek'}>;
+export type NativeRequest=Readonly<{id:number;epoch:number;kind:'verification'|'seek'|'load'}>;
 type Verification=Readonly<{
  request:NativeRequest;output:boolean;budget:number;expected:Expected|undefined;phase:'preflight'|'sampling'|'classifying'|'audio'|'complete';
  deadline:number;previouslyVerified:boolean;active:Expected;initialTime:number;initialFrames:number;initialAudioBytes:number|undefined;
@@ -13,10 +14,10 @@ type Seek=Readonly<{
 }>;
 export type NativeBackendState=Readonly<{
  epoch:number;serial:number;stopped:boolean;expected:Expected|undefined;capability:CapabilityEvidenceData;
- verification:Verification|null;seek:Seek|null;seekPresentationRetries:number;
+ verification:Verification|null;seek:Seek|null;seekPresentationRetries:number;load:NativeLoadState;
 }>;
-export function initialNativeBackend():NativeBackendState{return Object.freeze({epoch:0,serial:0,stopped:false,expected:undefined,capability:Object.freeze({}),verification:null,seek:null,seekPresentationRetries:0});}
-export function nativeRequestCurrent(state:NativeBackendState,request:NativeRequest):boolean{return !state.stopped&&state.epoch===request.epoch&&(request.kind==='verification'?state.verification:state.seek)?.request.id===request.id;}
+export function initialNativeBackend():NativeBackendState{return Object.freeze({epoch:0,serial:0,stopped:false,expected:undefined,capability:Object.freeze({}),verification:null,seek:null,seekPresentationRetries:0,load:initialNativeLoad()});}
+export function nativeRequestCurrent(state:NativeBackendState,request:NativeRequest):boolean{return !state.stopped&&state.epoch===request.epoch&&(request.kind==='verification'?state.verification:request.kind==='seek'?state.seek:state.load.work)?.request.id===request.id;}
 export type NativeAudioFacts=Readonly<{decodedBytes:number|undefined;present:boolean|undefined;tracksPresent:boolean;enabledTrack:boolean}>;
 export function nativeAudioEvidence(facts:NativeAudioFacts,advancing:boolean):Readonly<{adapter:string;ready:boolean;strength:'unknown'|'presence'|'decoded'}>{
  if(typeof facts.decodedBytes==='number')return Object.freeze({adapter:'decoded-byte-counter',ready:facts.decodedBytes>0,strength:facts.decodedBytes>0?'decoded':'unknown'});
@@ -30,6 +31,8 @@ export type NativeVerificationFacts=Readonly<{
 type SeekFacts=Readonly<{position:number;seeking:boolean}>;
 export type NativeBackendCommand=
  |Readonly<{type:'source'}>|Readonly<{type:'stop'}>
+ |Readonly<{type:'load.begin';kind:'source'|'audio-track';policy:NativeLoadPolicy;position:number;paused:boolean}>
+ |Readonly<{type:'load.event';request:NativeLoadRequest;event:NativeLoadEvent}>
  |Readonly<{type:'metadata';epoch:number}>|Readonly<{type:'api-hint';epoch:number;value:string}>
  |Readonly<{type:'verify.begin';output:boolean;budget:number;expected?:Expected}>
  |Readonly<{type:'verify.start';request:NativeRequest;now:number;time:number;frames:number;audioBytes:number|undefined;videoWidth:number;selectiveAudio:boolean;metadataPreparation:boolean;videoEnd?:number;audioEnd?:number;timelineBias:number}>
@@ -48,15 +51,20 @@ export type NativeBackendCommand=
  |Readonly<{type:'seek.finish';request:NativeRequest}>;
 export type NativeBackendDecision=Readonly<{
  state:NativeBackendState;accepted:boolean;request?:NativeRequest;retired?:NativeRequest;completed?:boolean;sample?:boolean;armFrame?:boolean;retry?:boolean;remaining?:number;
+ fallback?:boolean;rollback?:boolean;resume?:boolean;position?:number;
  failure?:'missing-audio'|'missing-output'|'verification-timeout'|'seek-timeout';
 }>;
 function evidence(value:CapabilityEvidenceData):CapabilityEvidenceData{return Object.freeze({...value,...value.timing?{timing:Object.freeze({...value.timing})}:{},...value.audioObservation?{audioObservation:Object.freeze({...value.audioObservation})}:{}});}
 export function transitionNativeBackend(state:NativeBackendState,command:NativeBackendCommand):NativeBackendDecision{
  const result=(next:NativeBackendState,extra:Omit<NativeBackendDecision,'state'|'accepted'>={},accepted=true)=>Object.freeze({state:next===state?state:Object.freeze({...next}),accepted,...extra});
- if(command.type==='stop')return state.stopped?result(state,{},false):result({...state,epoch:state.epoch+1,stopped:true,verification:null,seek:null});
+ if(command.type==='stop')return state.stopped?result(state,{},false):result({...state,epoch:state.epoch+1,stopped:true,verification:null,seek:null,load:retireNativeLoad(state.load)});
  if(state.stopped)return result(state,{},false);
- if(command.type==='source')return result({...state,epoch:state.epoch+1,expected:undefined,capability:Object.freeze({}),verification:null,seek:null});
+ if(command.type==='source')return result({...state,epoch:state.epoch+1,expected:undefined,capability:Object.freeze({}),verification:null,seek:null,load:retireNativeLoad(state.load)});
  if(command.type==='metadata'||command.type==='api-hint')return command.epoch!==state.epoch?result(state,{},false):result({...state,capability:evidence({...state.capability,...command.type==='metadata'?{metadata:true}:{apiHint:command.value}})});
+ if(command.type==='load.begin'){
+  const source=command.kind==='source',epoch=state.epoch+(source?1:0),request=Object.freeze({id:state.serial+1,epoch,kind:'load' as const});
+  return result({...state,serial:request.id,epoch,...source?{expected:undefined,capability:Object.freeze({})}:{},verification:null,seek:null,load:beginNativeLoad(state.load,request,command.kind,command.policy,command.position,command.paused)},{request,retired:state.load.work?.request});
+ }
  if(command.type==='verify.begin'){
   const request=Object.freeze({id:state.serial+1,epoch:state.epoch,kind:'verification' as const});
   const verification=Object.freeze({request,output:command.output,budget:command.budget,expected:command.expected?Object.freeze({...command.expected}):undefined,phase:'preflight' as const,deadline:0,previouslyVerified:false,active:Object.freeze({video:false,audio:false}),initialTime:0,initialFrames:0,initialAudioBytes:undefined,metadataPreparation:false,presented:false,selectiveAudio:false});
@@ -68,6 +76,7 @@ export function transitionNativeBackend(state:NativeBackendState,command:NativeB
   return result({...state,serial:request.id,seek},{request,retired:state.seek?.request});
  }
  if(!nativeRequestCurrent(state,command.request)||(command.type.startsWith('verify.')&&command.request.kind!=='verification')||(command.type.startsWith('seek.')&&command.request.kind!=='seek'))return result(state,{},false);
+ if(command.type==='load.event'){const decision=transitionNativeLoad(state.load,command.request,command.event);if(!decision.accepted)return result(state,{},false);return result({...state,load:decision.state},{fallback:decision.fallback,rollback:decision.rollback,resume:decision.resume,position:decision.position},decision.accepted);}
  if(command.type.startsWith('verify.')){
   const verification=state.verification!;
   if(command.type==='verify.finish')return result({...state,verification:null,capability:command.failed&&verification.output?evidence({...state.capability,outputVerified:false}):state.capability});

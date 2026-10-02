@@ -64,6 +64,8 @@ import {fastInspectionAllowed,inspectionSelection,initialInspectionPolicy,option
 import {refineRouteAdmission,applyDeploymentRejections,attachRouteDecoding,type RoutePlan} from './internal/machine/route-admission.js';
 import {attachmentAuthority,candidateAttachments,attachmentPreferences,type AttachmentInput,type AttachmentEffect,type AttachmentCommand,type AttachmentFacts} from './internal/machine/attachments.js';
 import {boundaryAuthority} from './internal/machine/playback-boundary.js';
+import {playerReadinessAuthority,type ReadinessFacts} from './internal/machine/player-readiness.js';
+import {playerActionAuthority,type PlayerActionInput} from './internal/machine/player-actions.js';
 import {settingAuthority,effectiveVideoFilters,validOutputSize,type SettingCommand,type SettingEffect,type PlayerPreferences} from './internal/machine/settings.js';
 import {createTrace,tracePlayerTransition,selectTrace} from './internal/machine/trace.js';
 type Settings = import('./internal/machine/settings.js').PlaybackSettings;
@@ -607,7 +609,7 @@ export class Player extends EventTarget {
       await this.applySetting({kind:'quality',value:raw,previous:backend.streamingState?.().requested??{mode:'auto'}});
     });
   }
-  seekToLive():Promise<void>{return this.enqueue(async()=>{if(!this.current?.backend.seekToLive)throw new PlayerError('UNSUPPORTED_FEATURE','This route has no live navigation');await this.current.backend.seekToLive();},'seeking');}
+  seekToLive():Promise<void>{return this.enqueue(async()=>{await this.runMediaAction({type:'action.live',scope:this.mediaActionScope(),supported:!!this.current?.backend.seekToLive});},'seeking');}
   getAudioOutputDevice(){return this.outputDeviceId;}
   setAudioOutputDevice(id:string){
     if(typeof id!=='string'||id.length>1024)throw new PlayerError('INVALID_ARGUMENT','Invalid output device ID');
@@ -753,28 +755,40 @@ export class Player extends EventTarget {
     });
   }
   private async settled(session: Session, mode: PlaybackMode, target: number) {
-    if (mode === 'native') {
-      const probe=this.sourceInspection?.probe;
-      await (session.backend as Backend & {verifyStartup(expected?:{video:boolean;audio:boolean}):Promise<void>}).verifyStartup(probe?{video:probe.tracks.some(t=>t.type==='video'&&!t.attachedPicture),audio:this.sourceInspection!.settings.aid!=='no'&&probe.tracks.some(t=>t.type==='audio')}:undefined);
-      return;
-    }
-    const deadline = performance.now() + 25000;
-    while (performance.now() < deadline) {
-      this.assertOperation();
-      if (session.error) throw session.error;
-      const boundary=(session.backend as Backend & {seekBoundary?:(target:number)=>number|undefined}).seekBoundary?.(target);
-      if(boundary!==undefined)throw new SeekPresentationBoundary(target,boundary);
-      const d = session.backend.diagnostics as {rendered?: number; seeking?: boolean; decoder?: string; presentation?: {position?: number}; presentedPosition?: number} | undefined;
-      const tracks = session.backend.properties.get('track-list') as Array<{type: string; codec?: string; selected?: boolean}> | undefined;
-      // Selection is transiently empty while mpv initializes a video track.
-      const hasVideo = tracks?.some(t => t.type === 'video');
-      if (hasVideo === false && tracks?.length && (!tracks.some(t=>t.type==='audio'&&t.selected)||session.backend.startupEvidence?.().audioDecoderConfigured)) return;
-      if (mode === 'hybrid' && tracks?.some(t => t.type === 'video' && t.selected && !['h264','hevc','vp8','vp9','av1'].includes(t.codec ?? '')&&!webgpuDecoderSupported(t.codec??''))) throw new Error('Hybrid mode has no external decoder for this video codec. Choose software mode for this source.');
-      const position = mode === 'hybrid' ? d?.presentation?.position : d?.presentedPosition;
-      if (d?.rendered && (mode !== 'hybrid' || d.decoder === 'webcodecs'||d.decoder === 'webgpu') && !d.seeking && position !== undefined && Math.abs(position - target) < .15 && await (session.backend as Backend & {confirmSeek?:(target:number)=>Promise<boolean>}).confirmSeek?.(target)!==false) return;
-      await new Promise(resolve => setTimeout(resolve, 25));
-    }
-    throw new Error(`${mode} mode did not present the requested position`);
+    const probe=this.sourceInspection?.probe,sessionId=session===this.candidate?this.control.source.candidate?.session:session===this.current?this.control.source.acceptedSession:null;
+    const expected=probe?{video:probe.tracks.some(t=>t.type==='video'&&!t.attachedPicture),audio:this.sourceInspection!.settings.aid!=='no'&&probe.tracks.some(t=>t.type==='audio')}:undefined;
+    let decision=this.dispatchControl({type:'readiness.begin',epoch:this.operationEpoch,operation:this.control.operations.active,session:sessionId??null,mode,target,...(mode==='native'?{expected}:{now:performance.now()})});
+    const failure=()=>decision.reason==='retired'?new PlayerError('ABORTED','Presentation verification was retired'):new Error(decision.message??'Presentation verification failed');
+    if(!decision.accepted)throw failure();const id=decision.id!;
+    const assertCurrent=()=>{if(!playerReadinessAuthority(this.control,id)||session.retired)throw new PlayerError('ABORTED','Presentation verification was retired');};
+    try{
+      while(decision.readinessEffects?.length){
+        for(const effect of decision.readinessEffects){
+          assertCurrent();const phase=this.control.readiness.pending!.phase;let confirmed:boolean|undefined;
+          switch(effect.kind){
+            case 'readiness.native':{const verify=(session.backend as Backend&{verifyStartup(expected?:{video:boolean;audio:boolean}):Promise<void>}).verifyStartup;assertCurrent();await this.interruptible(verify.call(session.backend,effect.expected));break;}
+            case 'readiness.wait':await this.interruptible(new Promise<void>(resolve=>setTimeout(resolve,effect.milliseconds)));break;
+            case 'readiness.confirm':{const confirm=(session.backend as Backend&{confirmSeek?:(target:number)=>Promise<boolean>}).confirmSeek;assertCurrent();confirmed=await this.interruptible(Promise.resolve(confirm?.call(session.backend,effect.target)));break;}
+            case 'readiness.sample':{
+              const now=performance.now();let boundary:number|undefined,facts:ReadinessFacts|undefined;const error=session.error;
+              if(now<effect.deadline&&!error){
+                const readBoundary=(session.backend as Backend&{seekBoundary?:(target:number)=>number|undefined}).seekBoundary;assertCurrent();boundary=readBoundary?.call(session.backend,target);assertCurrent();
+                if(boundary===undefined){
+                  const d=session.backend.diagnostics as {rendered?:number;seeking?:boolean;decoder?:string;presentation?:{position?:number};presentedPosition?:number}|undefined;
+                  const tracks=session.backend.properties.get('track-list') as Array<{type:string;codec?:string;selected?:boolean}>|undefined;
+                  const hasVideo=!!tracks?.some(t=>t.type==='video'),selectedAudio=!!tracks?.some(t=>t.type==='audio'&&t.selected);assertCurrent();
+                  const evidence=!hasVideo&&!!tracks?.length&&selectedAudio?session.backend.startupEvidence:undefined;assertCurrent();
+                  facts={trackCount:tracks?.length??0,hasVideo,selectedAudio,audioConfigured:!!evidence?.call(session.backend).audioDecoderConfigured,unsupportedVideo:mode==='hybrid'&&!!tracks?.some(t=>t.type==='video'&&t.selected&&!['h264','hevc','vp8','vp9','av1'].includes(t.codec??'')&&!webgpuDecoderSupported(t.codec??'')),rendered:!!d?.rendered,decoderCompatible:d?.decoder==='webcodecs'||d?.decoder==='webgpu',seeking:!!d?.seeking,position:(mode==='hybrid'?d?.presentation?.position:d?.presentedPosition)??null};
+                }
+              }
+              assertCurrent();decision=this.dispatchControl({type:'readiness.sample',id,now,failed:!!error,boundary,facts});
+              if(!decision.accepted){if(decision.reason==='session-error')throw error;if(decision.reason==='boundary')throw new SeekPresentationBoundary(target,boundary!);throw failure();}continue;
+            }
+          }
+          assertCurrent();decision=this.dispatchControl({type:'readiness.completed',id,phase,confirmed});if(!decision.accepted)throw failure();
+        }
+      }
+    }finally{this.dispatchControl({type:'readiness.finished',id});}
   }
   private fileServicesSource(source:Source):boolean {
     // Every URL consumer uses the inspected representation through RangeReader.
@@ -1691,37 +1705,60 @@ export class Player extends EventTarget {
       }catch(error){fail();throw error;}
     },'seeking').catch(fail).finally(()=>{this.dispatchControl({type:'boundary.settled',id});});
   }
+  private mediaActionScope(){return {epoch:this.operationEpoch,session:this.control.source.acceptedSession,operation:this.control.operations.active};}
+  private async runMediaAction(input:Extract<PlayerActionInput,{type:'action.step'|'action.snapshot'|'action.live'}>):Promise<import('./types.js').VideoSnapshot|undefined>{
+    const session=this.current,mode=this.mode,surface=session?.surface;
+    let decision=this.dispatchControl(input),result:import('./types.js').VideoSnapshot|undefined;
+    const failure=()=>new PlayerError(decision.reason==='invalid'?'INVALID_ARGUMENT':decision.reason==='retired'?'ABORTED':'UNSUPPORTED_FEATURE',decision.message??'Media action was retired');
+    if(!decision.accepted)throw failure();
+    const id=decision.id!;
+    const assertCurrent=()=>{if(!playerActionAuthority(this.control,id)||this.current!==session)throw new PlayerError('ABORTED','Media action was retired');};
+    try{
+      while(decision.actionEffects?.length){
+        for(const effect of decision.actionEffects){
+          assertCurrent();const phase=this.control.actions.pending!.phase;
+          switch(effect.kind){
+            case 'action.pause':{const pause=session!.backend.pause;assertCurrent();await this.interruptible(pause.call(session!.backend));break;}
+            case 'action.step':{const command=session!.backend.command!;assertCurrent();await this.interruptible(command.call(session!.backend,effect.direction===1?'frame-step':'frame-back-step'));break;}
+            case 'action.live':{const seek=session!.backend.seekToLive!;assertCurrent();await this.interruptible(seek.call(session!.backend));break;}
+            case 'action.verify':await this.interruptible(this.settled(session!,mode,effect.target));break;
+            case 'action.wait':await this.interruptible(new Promise<void>(resolve=>setTimeout(resolve,effect.milliseconds)));break;
+            case 'action.sample':{
+              const now=performance.now(),time=Number(session!.backend.properties.get('time-pos'));assertCurrent();
+              decision=this.dispatchControl({type:'action.sample',id,now,time});
+              if(!decision.accepted)throw failure();continue;
+            }
+            case 'action.capture':{
+              const {plan}=effect;let image:{blob:Blob;width:number;height:number};
+              if(plan.kind==='mpv'){const capture=(session!.backend as Backend&{previewSnapshot:()=>Promise<{blob:Blob;width:number;height:number}>}).previewSnapshot;assertCurrent();image=await this.interruptible(capture.call(session!.backend));}
+              else{
+                const canvas=document.createElement('canvas');canvas.width=plan.width;canvas.height=plan.height;assertCurrent();
+                try{
+                  canvas.getContext('2d')!.drawImage(surface as HTMLVideoElement,0,0,plan.width,plan.height);
+                  const encode=canvas.toBlob;assertCurrent();
+                  const blob=await this.interruptible(new Promise<Blob>((resolve,reject)=>encode.call(canvas,value=>value?resolve(value):reject(new PlayerError('UNSUPPORTED_FEATURE','Snapshot encoding failed')),'image/png')));
+                  image={blob,width:plan.width,height:plan.height};
+                }catch(error){assertCurrent();throw new PlayerError('UNSUPPORTED_FEATURE','The browser does not permit snapshot readback for this source');}
+              }
+              assertCurrent();result=Object.freeze({...image,mediaTime:this.state.currentTime,actualTime:null,includesSubtitles:plan.includesSubtitles});break;
+            }
+          }
+          assertCurrent();decision=this.dispatchControl({type:'action.completed',id,phase,...(phase==='stepping'?{now:performance.now()}:{})});
+          if(!decision.accepted)throw failure();
+        }
+      }
+      return result;
+    }finally{this.dispatchControl({type:'action.finished',id});}
+  }
   stepFrame(direction:1|-1=1){
     if(direction!==1&&direction!==-1)throw new PlayerError('INVALID_ARGUMENT','Frame direction must be 1 or -1');
-    return this.enqueue(async()=>{
-      if(!this.current||this.mode==='native'||!this.state.mediaInfo.video)throw new PlayerError('UNSUPPORTED_FEATURE','Frame stepping requires mpv video playback');
-      const backend=this.current.backend,initial=this.state.currentTime;
-      if(direction<0&&initial<=0)throw new PlayerError('INVALID_ARGUMENT','No previous frame at the start of the source');
-      await backend.pause();this.updateSettings({pause:true});
-      await backend.command!(direction===1?'frame-step':'frame-back-step');
-      const deadline=performance.now()+25000;
-      while(performance.now()<deadline){this.assertOperation();const time=Number(backend.properties.get('time-pos'));if(Number.isFinite(time)&&(direction>0?time>initial:time<initial)){await this.settled(this.current,this.mode,time);return;}await new Promise(resolve=>setTimeout(resolve,20));}
-      throw new PlayerError('UNSUPPORTED_FEATURE','No adjacent frame was presented within the stepping deadline');
-    },'seeking');
+    return this.enqueue(async()=>{await this.runMediaAction({type:'action.step',scope:this.mediaActionScope(),direction,hasVideo:!!this.state.mediaInfo.video,initial:this.state.currentTime});},'seeking');
   }
   snapshot(options:import('./types.js').SnapshotOptions={}):Promise<import('./types.js').VideoSnapshot>{
     let result:import('./types.js').VideoSnapshot;
     return this.enqueue(async()=>{
-      const surface=this.surface;if(!surface||!this.state.mediaInfo.video)throw new PlayerError('UNSUPPORTED_FEATURE','No video presentation');
-      const subtitle=this.state.subtitlesVisible&&!!this.state.mediaInfo.subtitle,include=options.includeSubtitles??true;
-      if(this.mode!=='native'){
-        if(subtitle&&!include)throw new PlayerError('UNSUPPORTED_FEATURE','The mpv surface already contains subtitles');
-        if(options.width!==undefined||options.height!==undefined)throw new PlayerError('UNSUPPORTED_FEATURE','mpv snapshots use the current presentation size');
-        const backend=this.current!.backend as Backend&{previewSnapshot?:()=>Promise<{blob:Blob;width:number;height:number}>};
-        if(!backend.previewSnapshot)throw new PlayerError('UNSUPPORTED_FEATURE','Snapshot readback is unavailable');
-        const image=await backend.previewSnapshot();result=Object.freeze({...image,mediaTime:this.state.currentTime,actualTime:null,includesSubtitles:subtitle});return;
-      }
-      if(subtitle&&include)throw new PlayerError('UNSUPPORTED_FEATURE','Native subtitle composition is not qualified for snapshots');
-      const video=surface as HTMLVideoElement,scale=Math.min(1,1920/video.videoWidth,1080/video.videoHeight);
-      const width=options.width??Math.max(1,Math.round(video.videoWidth*scale)),height=options.height??Math.max(1,Math.round(video.videoHeight*scale));dimensions(width,height);
-      const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
-      try{canvas.getContext('2d')!.drawImage(video,0,0,width,height);const blob=await new Promise<Blob>((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new PlayerError('UNSUPPORTED_FEATURE','Snapshot encoding failed')),'image/png'));result=Object.freeze({blob,width,height,mediaTime:this.state.currentTime,actualTime:null,includesSubtitles:false});}
-      catch{throw new PlayerError('UNSUPPORTED_FEATURE','The browser does not permit snapshot readback for this source');}
+      const scope=this.mediaActionScope(),mode=this.mode,surface=this.surface,video=mode==='native'?surface as HTMLVideoElement|undefined:undefined,backend=this.current?.backend as (Backend&{previewSnapshot?:unknown})|undefined;
+      result=(await this.runMediaAction({type:'action.snapshot',scope,options:{includeSubtitles:options.includeSubtitles,width:options.width,height:options.height},facts:{hasSurface:!!surface,hasVideo:!!this.state.mediaInfo.video,subtitle:this.state.subtitlesVisible&&!!this.state.mediaInfo.subtitle,readback:!!backend?.previewSnapshot,width:video?.videoWidth??0,height:video?.videoHeight??0}}))!;
     }).then(()=>result);
   }
   volume(value: number) {

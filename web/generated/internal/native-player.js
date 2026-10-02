@@ -3,6 +3,7 @@ import { loadProviderModule } from './provider-modules.js';
 import { executionRecipe } from './execution-recipes.js';
 import { bufferingPolicy, resolveBuffering } from './buffering.js';
 import { plainVTT, BrowserCaptionUnsupported } from './plain-vtt.js';
+import { nativeLoadOpening, selectNativeLoadRoute, selectNativePreparation } from './machine/native-load.js';
 import { initialNativeBackend, nativeRequestCurrent, transitionNativeBackend } from './machine/native-backend.js';
 import { nativeMediaError, compatibilityFailure, StartupEvidenceTimeout, NativeLoadTimeout } from './runtime-capability.js';
 import { PlayerError, isPlayerError } from './errors.js';
@@ -110,19 +111,21 @@ export class NativePlayer extends EventTarget {
         this.assertActive();
     }
     destruction;
-    opening = false;
+    get opening() { return nativeLoadOpening(this.native.load); }
     remux;
     remuxEnginePath;
     projection;
-    adapted = false;
+    get adapted() { return this.native.load.adapted; }
     remuxSource;
-    directFailure;
+    get directFailure() { return this.native.load.directFailure; }
     remoteSource;
     shiftedCues = new WeakSet();
     sourceTime() { return Math.max(0, this.video.currentTime - (this.remux?.timelineBias ?? 0)); }
     sourceDuration() { if (this.remux?.windowed)
         return this.remux.duration ?? 0; return Number.isFinite(this.video.duration) ? Math.max(0, this.video.duration - (this.remux?.timelineBias ?? 0)) : 0; }
     objectURL;
+    ownedObjectURLs = new Map();
+    sourceCleanup = Promise.resolve();
     selectedSub = 'auto';
     subsVisible = true;
     cancelers = new Set();
@@ -167,8 +170,15 @@ export class NativePlayer extends EventTarget {
         video.preload = this.buffering.preload;
         for (const event of ['timeupdate', 'durationchange', 'loadedmetadata', 'play', 'pause', 'volumechange', 'ratechange', 'ended', 'waiting', 'playing', 'progress', 'seeking', 'seeked', 'resize']) {
             const listener = () => {
+                const epoch = this.native.epoch;
+                if (this.stopped)
+                    return;
                 this.refresh();
+                if (this.stopped || this.native.epoch !== epoch)
+                    return;
                 this.emit('activity', event);
+                if (this.stopped || this.native.epoch !== epoch)
+                    return;
                 if (event === 'ended' && (!this.remux?.windowed || this.remux.playbackEnded))
                     this.emit('mpv', { event: 'end-file', reason: 'eof' });
             };
@@ -178,8 +188,9 @@ export class NativePlayer extends EventTarget {
         const failed = () => {
             if (this.opening || this.remux?.starting || this.stopped)
                 return;
-            void this.classifyDirectFailure(nativeMediaError(video.error)).then(error => { if (!this.stopped)
-                this.emit('error', error); }, error => { if (!this.stopped)
+            const epoch = this.native.epoch;
+            void this.classifyDirectFailure(nativeMediaError(video.error)).then(error => { if (!this.stopped && this.native.epoch === epoch)
+                this.emit('error', error); }, error => { if (!this.stopped && this.native.epoch === epoch)
                 this.emit('error', error); });
         };
         video.addEventListener('error', failed);
@@ -193,25 +204,44 @@ export class NativePlayer extends EventTarget {
     emit(type, detail) { this.dispatchEvent(new CustomEvent(type, { detail })); }
     assertActive() { if (this.stopped)
         throw new Error('Player is destroyed'); }
-    wait(event, start) {
+    wait(event, start, signal) {
         this.assertActive();
+        signal?.throwIfAborted();
         return new Promise((resolve, reject) => {
+            let settled = false, timer;
             const finish = (error) => {
-                clearTimeout(timer);
-                this.video.removeEventListener(event, done);
-                this.video.removeEventListener('error', failed);
+                if (settled)
+                    return;
+                settled = true;
+                const timeout = timer;
+                timer = undefined;
                 this.cancelers.delete(cancel);
-                error ? reject(error) : resolve();
+                for (const clean of [() => clearTimeout(timeout), () => this.video.removeEventListener(event, done), () => this.video.removeEventListener('error', failed), () => signal?.removeEventListener('abort', aborted)])
+                    try {
+                        clean();
+                    }
+                    catch (cleanup) {
+                        error ??= cleanup;
+                    }
+                error !== undefined ? reject(error) : resolve();
             };
-            const done = () => finish();
-            const failed = () => finish(nativeMediaError(this.video.error));
-            const cancel = (error) => finish(error);
-            const loading = event === 'loadeddata' || event === 'loadedmetadata';
-            const timer = setTimeout(() => finish(loading ? new NativeLoadTimeout(event, this.loadTimeoutMs) : new Error(`Native ${event} timed out`)), loading ? this.loadTimeoutMs : 25000);
+            const done = () => finish(), failed = () => finish(nativeMediaError(this.video.error)), cancel = (error) => finish(error), aborted = () => finish(signal?.reason ?? new DOMException('Native wait cancelled', 'AbortError'));
             this.cancelers.add(cancel);
-            this.video.addEventListener(event, done, { once: true });
-            this.video.addEventListener('error', failed, { once: true });
+            signal?.addEventListener('abort', aborted, { once: true });
             try {
+                const loading = event === 'loadeddata' || event === 'loadedmetadata', acquired = setTimeout(() => finish(loading ? new NativeLoadTimeout(event, this.loadTimeoutMs) : new Error(`Native ${event} timed out`)), loading ? this.loadTimeoutMs : 25000);
+                if (settled) {
+                    clearTimeout(acquired);
+                    return;
+                }
+                timer = acquired;
+                this.video.addEventListener(event, done, { once: true });
+                if (settled)
+                    return;
+                this.video.addEventListener('error', failed, { once: true });
+                if (settled)
+                    return;
+                signal?.throwIfAborted();
                 start();
             }
             catch (error) {
@@ -225,7 +255,10 @@ export class NativePlayer extends EventTarget {
         const caption = this.captionAssets.get(track);
         return caption ? String(200000 + caption.index) : String(Array.from(this.video.textTracks).filter(t => !this.captionAssets.has(t)).indexOf(track) + 1);
     }
-    refresh() {
+    refresh(request) {
+        const epoch = this.native.epoch, current = () => !this.stopped && epoch === this.native.epoch && (!request || nativeRequestCurrent(this.native, request));
+        if (!current())
+            return;
         const tracks = Array.from(this.video.textTracks, t => ({ id: this.textTrackId(t), type: 'sub', title: t.label, lang: t.language, selected: t.mode === 'showing', ...(this.textAttachmentIds.has(t) ? { external: true, 'attachment-id': this.textAttachmentIds.get(t) } : {}), ...(this.captionAssets.has(t) ? { external: true, 'attachment-id': this.captionAssets.get(t).asset.attachmentId, 'external-index': this.captionAssets.get(t).index, codec: 'webvtt' } : {}) }));
         if (this.mpvSubs)
             tracks.push(...this.mpvSubs.tracks);
@@ -239,6 +272,8 @@ export class NativePlayer extends EventTarget {
         const timeRanges = (r) => Array.from({ length: r.length }, (_, i) => ({ start: Math.max(0, r.start(i) - (this.remux?.timelineBias ?? 0)), end: Math.max(0, r.end(i) - (this.remux?.timelineBias ?? 0)) }));
         const values = { 'native-waiting': !!this.remux?.waitingForMedia, 'time-pos': this.sourceTime(), duration: Number.isFinite(this.video.duration) ? this.sourceDuration() : null, 'native-buffered': this.remux?.windowed ? (this.remux.ranges?.() ?? []).map(([start, end]) => ({ start, end })) : timeRanges(this.video.buffered), 'native-seekable': this.remux?.windowed ? [{ start: 0, end: this.sourceDuration() }] : timeRanges(this.video.seekable), 'native-live': this.video.duration === Infinity, pause: this.remux?.playbackPaused ?? this.video.paused, 'eof-reached': this.remux?.playbackEnded ?? this.video.ended, volume: this.selectiveAudio ? this.requestedVolume : this.video.volume * 100, speed: this.video.playbackRate, 'track-list': tracks };
         for (const [name, data] of Object.entries(values)) {
+            if (!current())
+                return;
             if (name !== 'track-list' && this.properties.get(name) === data)
                 continue;
             this.properties.set(name, data);
@@ -260,23 +295,25 @@ export class NativePlayer extends EventTarget {
         return { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: this.remux?.bufferingDiagnostics ?? { elementPreload: this.video.preload } };
     }
     get diagnostics() { const q = this.video.getVideoPlaybackQuality(), remux = this.remux?.snapshot(); return { buffering: { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: remux?.buffering ?? { elementPreload: this.video.preload } }, capability: { ...this.capability, ...(remux?.capability ?? {}) }, path: 'native', projection: this.projection?.diagnostics, mpvAudio: this.mpvAudio?.diagnostics, mpvSubtitles: this.mpvSubs ? { route: this.mpvAudio ? 'native-video + mpv-audio + mpv-subtitles' : this.remux ? 'native-remux + mpv-subtitles' : 'native-direct + mpv-subtitles', ...this.mpvSubs.stats, ...this.mpvSubs.service } : undefined, plan: this.planId, subtitleOverlay: this.mpvSubs?.tracks.some(t => t.external) ? { component: 'mpv-subtitle-service', scope: 'external', destination: 'container-only', ...this.mpvSubs.stats } : undefined, audioProcessing: this.mpvAudio ? { component: 'mpv-pcm-worklet', gain: this.gainValue } : { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux, seekPresentation: { bufferedRetries: this.seekPresentationRetries }, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
-    async load(url) {
-        const epoch = this.native.epoch;
-        // open promises metadata even when speculative preload was disabled.
+    async load(url, request) {
+        const epoch = this.native.epoch, current = () => { this.assertActive(); if (this.native.epoch !== epoch)
+            throw new Error('Native load was retired'); if (request)
+            this.assertLoad(request); };
+        current();
         if (this.buffering.preload === 'none')
             this.video.preload = 'metadata';
+        current();
         try {
-            await this.wait(this.buffering.preload === 'auto' ? 'loadeddata' : 'loadedmetadata', () => { this.video.src = url; this.video.load(); });
+            await this.wait(this.buffering.preload === 'auto' ? 'loadeddata' : 'loadedmetadata', () => { current(); this.video.src = url; current(); this.video.load(); }, request ? this.loadSignal(request) : undefined);
         }
         finally {
-            if (!this.stopped && this.native.epoch === epoch)
+            if (!this.stopped && this.native.epoch === epoch && (!request || nativeRequestCurrent(this.native, request)))
                 this.video.preload = this.buffering.preload;
         }
-        this.assertActive();
-        if (this.native.epoch !== epoch)
-            throw new Error('Native load was retired');
+        current();
         this.changeNative({ type: 'metadata', epoch });
-        this.refresh();
+        this.refresh(request);
+        current();
         this.emit('mpv', { event: 'file-loaded' });
     }
     /** A paused candidate may prepare current data without presenting it. Only
@@ -469,237 +506,441 @@ export class NativePlayer extends EventTarget {
             return new PlayerError('DECODE_FAILED', String(error));
         return error;
     }
-    async startRemux(source, target = 0) {
+    loadWait;
+    loadPolicy(requiresRemux = false) { return { requested: !!this.requestedPlan, original: this.execution?.transport === 'original', remux: this.remuxPolicy, requiresRemux, adaptation: this.audioAdaptation }; }
+    changeLoad(request, event) { return this.changeNative({ type: 'load.event', request, event }); }
+    assertLoad(request) { this.assertNative(request); }
+    async awaitLoad(request, value) {
+        const observed = Promise.resolve(value);
+        void observed.catch(() => { });
+        this.assertLoad(request);
+        const pending = this.loadWait;
+        if (pending?.request.id !== request.id)
+            throw new Error('Native load was retired');
+        const result = await Promise.race([observed, pending.interrupted]);
+        this.assertLoad(request);
+        return result;
+    }
+    withLoad(kind, policy, position, paused, work) {
         this.assertActive();
+        const previous = this.loadWait, verification = this.verificationCancel, seek = this.seekCancel, obsolete = kind === 'source' ? [...this.cancelers] : [];
+        const request = this.changeNative({ type: 'load.begin', kind, policy, position, paused }).request;
+        let controller;
+        try {
+            controller = new AbortController();
+            this.assertLoad(request);
+        }
+        catch (error) {
+            this.changeLoad(request, { type: 'finish' });
+            try {
+                controller?.abort(error);
+            }
+            catch { }
+            return Promise.reject(error);
+        }
+        const acquired = controller;
+        let reject, cancelled = false;
+        const interrupted = new Promise((_, no) => { reject = no; });
+        void interrupted.catch(() => { });
+        const cancel = (error) => { if (cancelled)
+            return; cancelled = true; reject(error); if (!acquired.signal.aborted)
+            acquired.abort(error); };
+        const entry = { request, controller: acquired, interrupted, cancel };
+        this.loadWait = entry;
+        this.cancelers.add(cancel);
+        const finish = () => { this.changeLoad(request, { type: 'finish' }); this.cancelers.delete(cancel); if (this.loadWait === entry)
+            this.loadWait = undefined; };
+        try {
+            const errors = [];
+            for (const retire of [() => previous?.cancel(new Error('Native load was retired')), () => verification?.cancel(new Error('Native verification was retired')), () => seek?.cancel(new Error('Native seek presentation was retired')), ...obsolete.map(cancel => () => cancel(new Error('Native source was retired')))])
+                try {
+                    retire();
+                }
+                catch (error) {
+                    errors.push(error);
+                }
+            this.assertLoad(request);
+            if (errors.length)
+                throw errors.length === 1 ? errors[0] : new AggregateError(errors, 'Native load retirement failed');
+            return this.awaitLoad(request, work(request)).finally(finish);
+        }
+        catch (error) {
+            finish();
+            return Promise.reject(error);
+        }
+    }
+    loadSignal(request) { this.assertLoad(request); return this.loadWait.controller.signal; }
+    queueSourceCleanup(work) {
+        const prior = this.sourceCleanup;
+        const pending = prior.then(work, async (previous) => { try {
+            await work();
+        }
+        catch (error) {
+            throw new AggregateError([previous, error], 'Native source cleanup failed');
+        } throw previous; });
+        this.sourceCleanup = pending;
+        void pending.catch(() => { });
+        return pending;
+    }
+    async awaitSourceCleanup(request) {
+        for (;;) {
+            const cleanup = this.sourceCleanup;
+            await this.awaitLoad(request, cleanup);
+            if (this.sourceCleanup === cleanup)
+                return;
+        }
+    }
+    async drainSourceCleanup() {
+        for (;;) {
+            const cleanup = this.sourceCleanup;
+            let failure;
+            try {
+                await cleanup;
+            }
+            catch (error) {
+                failure = error;
+            }
+            if (this.sourceCleanup === cleanup) {
+                if (failure !== undefined)
+                    throw failure;
+                return;
+            }
+        }
+    }
+    async cleanupSourceHandles(remux, audio, subtitles, urls) {
+        const errors = [];
+        for (const clean of [() => audio?.destroy(), () => subtitles?.destroy(), () => remux?.destroy(), ...urls.map(url => () => URL.revokeObjectURL(url))])
+            try {
+                await clean();
+            }
+            catch (error) {
+                errors.push(error);
+            }
+        if (errors.length === 1)
+            throw errors[0];
+        if (errors.length)
+            throw new AggregateError(errors, 'Native source cleanup failed');
+    }
+    async retireRemux(request) {
+        this.assertLoad(request);
+        const remux = this.remux;
+        this.remux = undefined;
+        this.remuxEnginePath = undefined;
+        if (remux)
+            this.queueSourceCleanup(() => this.cleanupSourceHandles(remux, undefined, undefined, []));
+        await this.awaitSourceCleanup(request);
+    }
+    async retireSourceResources(request) {
+        this.assertLoad(request);
+        const remux = this.remux, audio = this.mpvAudio, subtitles = this.mpvSubs, urls = [...this.ownedObjectURLs.keys(), ...this.captionURLs];
+        this.remux = undefined;
+        this.remuxEnginePath = undefined;
+        this.mpvAudio = undefined;
+        this.mpvSubs = undefined;
+        this.projection = undefined;
+        this.remuxSource = undefined;
+        this.subtitleSource = undefined;
+        this.remoteSource = undefined;
+        this.objectURL = undefined;
+        this.ownedObjectURLs.clear();
+        this.captionURLs.clear();
+        this.captionAssets.clear();
+        this.textAttachmentIds = new WeakMap();
+        this.shiftedCues = new WeakSet();
+        if (remux || audio || subtitles || urls.length)
+            this.queueSourceCleanup(() => this.cleanupSourceHandles(remux, audio, subtitles, urls));
+        await this.awaitSourceCleanup(request);
+    }
+    acquireObjectURL(file, request) {
+        this.assertLoad(request);
+        const url = URL.createObjectURL(file);
+        if (!nativeRequestCurrent(this.native, request)) {
+            URL.revokeObjectURL(url);
+            this.assertLoad(request);
+        }
+        this.ownedObjectURLs.set(url, request.id);
+        return url;
+    }
+    installObjectURL(url, request) {
+        this.assertLoad(request);
+        const old = this.objectURL;
+        this.objectURL = url;
+        if (old && old !== url) {
+            const owner = this.ownedObjectURLs.get(old);
+            if (owner !== undefined)
+                this.releaseObjectURL(old, owner);
+        }
+        this.assertLoad(request);
+    }
+    releaseObjectURL(url, owner) {
+        if (this.ownedObjectURLs.get(url) !== owner)
+            return;
+        this.ownedObjectURLs.delete(url);
+        if (this.objectURL === url)
+            this.objectURL = undefined;
+        URL.revokeObjectURL(url);
+    }
+    async startRemux(source, target, request) {
+        this.assertLoad(request);
         const codecEngine = source.file && this.audioAdaptation === 'flac24' && this.requestedPlan === 'native-transcode' ? this.providerRuntime?.preparation?.(source.file, this.remuxRuntime, source.audioTrack) : undefined;
-        if (!codecEngine && source.file && this.audioAdaptation === 'flac24' && !this.selectiveAudio && !this.mpvSubtitlePlan && this.execution?.subtitles !== 'external' && this.providerRuntime?.prepareAudio) {
-            const controller = new AbortController(), cancel = () => controller.abort();
-            this.cancelers.add(cancel);
-            try {
-                const prepared = await this.providerRuntime.prepareAudio(source.file, controller.signal);
-                this.assertActive();
-                if (prepared) {
-                    await this.remux?.destroy();
-                    this.remux = undefined;
-                    const url = URL.createObjectURL(prepared.file);
-                    try {
-                        await this.load(url);
-                        await this.verifyStartup({ video: true, audio: true });
-                        this.assertActive();
-                        if (target > 0)
-                            await this.wait('seeked', () => { this.video.currentTime = target; });
-                        if (this.objectURL)
-                            URL.revokeObjectURL(this.objectURL);
-                        this.objectURL = url;
-                        this.projection = prepared;
-                        this.adapted = true;
-                        this.remuxSource = source;
-                        this.refresh();
-                        this.emit('source', { plan: 'adapted-flac24', tracks: prepared.tracks });
-                        this.emit('mpv', { event: 'file-loaded' });
-                        return;
-                    }
-                    catch (error) {
-                        URL.revokeObjectURL(url);
-                        throw error;
-                    }
+        this.assertLoad(request);
+        const preparation = selectNativePreparation({ codecEngine: !!codecEngine, file: !!source.file, adaptation: this.audioAdaptation, selectiveAudio: this.selectiveAudio, embeddedSubtitles: this.mpvSubtitlePlan, externalSubtitles: this.execution?.subtitles === 'external', prepareAudio: !!this.providerRuntime?.prepareAudio });
+        if (preparation.audio) {
+            const prepared = await this.awaitLoad(request, this.providerRuntime.prepareAudio(source.file, this.loadSignal(request)));
+            if (prepared) {
+                await this.retireRemux(request);
+                const url = this.acquireObjectURL(prepared.file, request);
+                let installed = false;
+                try {
+                    await this.load(url, request);
+                    await this.awaitLoad(request, this.verifyStartup({ video: true, audio: true }));
+                    if (target > 0)
+                        await this.awaitLoad(request, this.wait('seeked', () => { this.assertLoad(request); this.video.currentTime = target; }, this.loadSignal(request)));
+                    this.installObjectURL(url, request);
+                    installed = true;
+                    this.projection = prepared;
+                    this.changeLoad(request, { type: 'attempt', adapted: true });
+                    this.remuxSource = source;
+                    this.refresh(request);
+                    this.assertLoad(request);
+                    this.emit('source', { plan: 'adapted-flac24', tracks: prepared.tracks });
+                    this.assertLoad(request);
+                    this.emit('mpv', { event: 'file-loaded' });
+                    this.assertLoad(request);
+                    return;
+                }
+                catch (error) {
+                    if (!installed)
+                        this.releaseObjectURL(url, request.id);
+                    throw error;
                 }
             }
-            finally {
-                this.cancelers.delete(cancel);
-            }
         }
-        if (source.file && !this.audioAdaptation && !this.selectiveAudio) {
-            const controller = new AbortController(), cancel = () => controller.abort();
-            this.cancelers.add(cancel);
-            try {
-                const { selectedMP4View } = await import(new URL('web/selected-mp4-view.js', this.assetBase).href);
-                const view = await selectedMP4View(source.file, source.audioTrack, controller.signal);
-                this.assertActive();
-                if (view) {
-                    await this.remux?.destroy();
-                    this.remux = undefined;
-                    const url = URL.createObjectURL(view.file);
-                    try {
-                        await this.load(url);
-                        await this.verifyStartup({ video: true, audio: true });
-                        this.assertActive();
-                        if (target > 0)
-                            await this.wait('seeked', () => { this.video.currentTime = target; });
-                        if (this.objectURL)
-                            URL.revokeObjectURL(this.objectURL);
-                        this.objectURL = url;
-                        this.projection = view;
-                        this.remuxSource = source;
-                        this.refresh();
-                        this.emit('source', { plan: 'remux', tracks: view.tracks });
-                        return;
-                    }
-                    catch (error) {
-                        URL.revokeObjectURL(url);
-                        this.assertActive();
-                        this.directFailure = String(error);
-                    }
+        if (preparation.mp4) {
+            const { selectedMP4View } = await this.awaitLoad(request, import(new URL('web/selected-mp4-view.js', this.assetBase).href));
+            const view = await this.awaitLoad(request, selectedMP4View(source.file, source.audioTrack, this.loadSignal(request)));
+            if (view) {
+                await this.retireRemux(request);
+                const url = this.acquireObjectURL(view.file, request);
+                let installed = false;
+                try {
+                    await this.load(url, request);
+                    await this.awaitLoad(request, this.verifyStartup({ video: true, audio: true }));
+                    if (target > 0)
+                        await this.awaitLoad(request, this.wait('seeked', () => { this.assertLoad(request); this.video.currentTime = target; }, this.loadSignal(request)));
+                    this.installObjectURL(url, request);
+                    installed = true;
+                    this.projection = view;
+                    this.remuxSource = source;
+                    this.refresh(request);
+                    this.assertLoad(request);
+                    this.emit('source', { plan: 'remux', tracks: view.tracks });
+                    this.assertLoad(request);
+                    return;
+                }
+                catch (error) {
+                    if (!installed)
+                        this.releaseObjectURL(url, request.id);
+                    this.assertLoad(request);
+                    this.changeLoad(request, { type: 'projection-failed', reason: String(error) });
                 }
             }
-            finally {
-                this.cancelers.delete(cancel);
-            }
         }
+        this.assertLoad(request);
         this.projection = undefined;
         if (typeof MediaSource === 'undefined')
             throw Error('Native remux requires MediaSource');
         if (source.options?.format && source.options.format !== 'file')
             throw Error('Native remux currently requires a random-access file source; use Hybrid for this manifest');
         const moduleURL = new URL(codecEngine ? codecEngine.folder + 'native-remux-player.js' : 'web/native-remux-player.js', this.assetBase).href;
-        const { RemuxPlayer } = await import(moduleURL);
-        this.assertActive();
+        const { RemuxPlayer } = await this.awaitLoad(request, import(moduleURL));
         const { refreshAuthorization, ...options } = source.options ?? {};
         const transport = { ...source, ...(codecEngine ? { audioTrack: codecEngine.audioIndex, videoTrack: codecEngine.videoIndex } : {}), ...(source.options ? { options: options } : {}), refreshAuthorization };
+        this.assertLoad(request);
         const attempt = async (adapted) => {
-            this.assertActive();
-            this.adapted = adapted;
+            this.assertLoad(request);
+            this.changeLoad(request, { type: 'attempt', adapted });
             const enginePath = codecEngine?.wasmPath ?? `web/engine-${adapted ? 'adaptation' : 'remux'}${this.remuxRuntime === 'pthread' ? '' : '-' + this.remuxRuntime}/remux.wasm`;
-            if (this.remux && (this.remuxEnginePath !== enginePath || this.remux.audioAdaptation !== (adapted ? this.audioAdaptation : undefined))) {
-                await this.remux.destroy();
-                this.remux = undefined;
-                this.assertActive();
+            const replace = this.remux && (this.remuxEnginePath !== enginePath || this.remux.audioAdaptation !== (adapted ? this.audioAdaptation : undefined));
+            this.assertLoad(request);
+            if (replace)
+                await this.retireRemux(request);
+            const compiledWasm = this.providerRuntime ? await this.awaitLoad(request, this.providerRuntime.module(enginePath)) : undefined;
+            this.assertLoad(request);
+            let remux = this.remux;
+            if (!remux) {
+                const acquired = new RemuxPlayer(this.video, { compiledWasm, buffering: { ...resolveBuffering(this.buffering, 'remux'), preload: this.buffering.preload }, bufferedSeeks: this.bufferedSeeks, runtime: this.remuxRuntime, audioAdaptation: adapted ? this.audioAdaptation : undefined, mseOwner: this.execution?.mseOwner ?? 'auto' });
+                if (!nativeRequestCurrent(this.native, request)) {
+                    await this.queueSourceCleanup(() => this.cleanupSourceHandles(acquired, undefined, undefined, []));
+                    this.assertLoad(request);
+                }
+                this.remux = remux = acquired;
             }
-            const compiledWasm = this.providerRuntime ? await this.providerRuntime.module(enginePath) : undefined;
-            this.assertActive();
-            this.remux ??= new RemuxPlayer(this.video, { compiledWasm, buffering: { ...resolveBuffering(this.buffering, 'remux'), preload: this.buffering.preload }, bufferedSeeks: this.bufferedSeeks, runtime: this.remuxRuntime, audioAdaptation: adapted ? this.audioAdaptation : undefined, mseOwner: this.execution?.mseOwner ?? 'auto' });
             this.remuxEnginePath = enginePath;
-            this.remux.onBufferingChange = () => { if (!this.stopped)
+            const owner = remux;
+            owner.onBufferingChange = () => { if (!this.stopped && this.native.epoch === request.epoch && this.remux === owner)
                 this.refresh(); };
-            this.remux.audioAdaptation = adapted ? this.audioAdaptation : undefined;
-            this.remux.onError = message => { if (!this.opening && !this.stopped)
+            this.assertLoad(request);
+            owner.audioAdaptation = adapted ? this.audioAdaptation : undefined;
+            this.assertLoad(request);
+            owner.onError = message => { if (!this.opening && !this.stopped && this.native.epoch === request.epoch && this.remux === owner)
                 this.emit('error', this.preparationError(message)); };
-            await this.remux.open(transport, target);
-            this.assertActive();
+            this.assertLoad(request);
+            await this.awaitLoad(request, owner.open(transport, target));
         };
         try {
             await attempt(!!this.requestedPlan && !!this.audioAdaptation);
         }
         catch (error) {
-            if (this.requestedPlan || this.stopped || !this.audioAdaptation || !String(error).includes('Audio codec has no browser MP4 packet contract'))
+            this.assertLoad(request);
+            if (!this.changeLoad(request, { type: 'attempt-failed', reason: String(error) }).fallback)
                 throw this.preparationError(error);
             await attempt(true);
         }
+        this.assertLoad(request);
         this.remuxSource = source;
         if (this.video.seeking)
-            await this.wait('seeked', () => { });
-        this.refresh();
-        this.emit('source', { plan: this.adapted ? `adapted-${this.audioAdaptation}` : 'remux', tracks: this.remux.tracks });
+            await this.awaitLoad(request, this.wait('seeked', () => { }, this.loadSignal(request)));
+        this.assertLoad(request);
+        const tracks = this.remux.tracks;
+        this.assertLoad(request);
+        this.refresh(request);
+        this.assertLoad(request);
+        this.emit('source', { plan: this.adapted ? `adapted-${this.audioAdaptation}` : 'remux', tracks });
+        this.assertLoad(request);
         this.emit('mpv', { event: 'file-loaded' });
+        this.assertLoad(request);
     }
-    async loadPlan(source, direct, requiresRemux = false) {
-        this.assertActive();
-        this.opening = true;
-        try {
-            if (this.requestedPlan) {
-                if (this.execution?.transport === 'original')
-                    await direct();
-                else
-                    await this.startRemux(source);
+    async loadPlan(source, direct, requiresRemux = false, request) {
+        this.assertLoad(request);
+        const policy = this.native.load.work.policy, decision = selectNativeLoadRoute({ ...policy, requiresRemux });
+        if (decision.error)
+            throw Error(decision.error);
+        if (decision.route === 'direct') {
+            try {
+                await this.awaitLoad(request, direct());
                 return;
             }
-            if (this.remuxPolicy !== 'always' && !requiresRemux) {
-                try {
-                    await direct();
-                    return;
-                }
-                catch (error) {
-                    if (this.stopped || this.remuxPolicy === 'never' || ![3, 4].includes(this.video.error?.code ?? 0))
-                        throw error;
-                    this.directFailure = String(error);
-                }
+            catch (error) {
+                this.assertLoad(request);
+                const code = this.video.error?.code;
+                this.assertLoad(request);
+                if (!this.changeLoad(request, { type: 'direct-failed', code, reason: String(error) }).fallback)
+                    throw error;
             }
-            else if (this.remuxPolicy === 'never')
-                throw Error('Native direct cannot enforce these source permissions; enable native remux or choose Hybrid');
-            await this.startRemux(source);
         }
-        finally {
-            this.opening = false;
-        }
+        await this.startRemux(source, 0, request);
+        this.assertLoad(request);
     }
-    async openServices(source) {
+    async openServices(source, request) {
+        this.assertLoad(request);
         this.subtitleSource = source;
         if (this.selectiveAudio) {
             this.video.muted = true;
+            this.assertLoad(request);
+            let audio;
             if (this.remuxRuntime === 'pthread') {
-                const { NativeMpvAudio } = await loadProviderModule('mpv-audio', this.assetBase);
-                this.assertActive();
-                const prepared = this.providerRuntime ? { module: await this.providerRuntime.module('web/engine-selective/player.wasm'), font: await this.providerRuntime.bytes('fixtures/DejaVuSans.ttf') } : undefined;
-                this.assertActive();
-                this.mpvAudio = new NativeMpvAudio(this.video, () => this.sourceTime(), this.assetBase, error => this.emit('error', error), prepared);
+                const { NativeMpvAudio } = await this.awaitLoad(request, loadProviderModule('mpv-audio', this.assetBase));
+                const prepared = this.providerRuntime ? { module: await this.awaitLoad(request, this.providerRuntime.module('web/engine-selective/player.wasm')), font: await this.awaitLoad(request, this.providerRuntime.bytes('fixtures/DejaVuSans.ttf')) } : undefined;
+                this.assertLoad(request);
+                audio = new NativeMpvAudio(this.video, () => this.sourceTime(), this.assetBase, error => { if (!this.stopped && this.native.epoch === request.epoch && this.mpvAudio !== undefined && this.mpvAudio === audio)
+                    this.emit('error', error); }, prepared);
             }
             else {
-                const { NativePrivateMpvAudio } = await loadProviderModule('mpv-private-audio', this.assetBase);
-                this.assertActive();
-                this.mpvAudio = new NativePrivateMpvAudio(this.video, () => this.sourceTime(), this.assetBase, this.remuxRuntime, error => this.emit('error', error));
+                const { NativePrivateMpvAudio } = await this.awaitLoad(request, loadProviderModule('mpv-private-audio', this.assetBase));
+                audio = new NativePrivateMpvAudio(this.video, () => this.sourceTime(), this.assetBase, this.remuxRuntime, error => { if (!this.stopped && this.native.epoch === request.epoch && this.mpvAudio !== undefined && this.mpvAudio === audio)
+                    this.emit('error', error); });
             }
-            this.mpvAudio.setWatchdogs(this.watchdogs);
-            await this.mpvAudio.open(source, this.initialAudioTrack);
-            this.assertActive();
-            await this.mpvAudio.volume(this.requestedVolume);
-            await this.mpvAudio.gainValue(this.gainValue);
+            if (!nativeRequestCurrent(this.native, request)) {
+                await this.queueSourceCleanup(() => this.cleanupSourceHandles(undefined, audio, undefined, []));
+                this.assertLoad(request);
+            }
+            this.mpvAudio = audio;
+            audio.setWatchdogs(this.watchdogs);
+            this.assertLoad(request);
+            await this.awaitLoad(request, audio.open(source, this.initialAudioTrack));
+            await this.awaitLoad(request, audio.volume(this.requestedVolume));
+            await this.awaitLoad(request, audio.gainValue(this.gainValue));
             if (this.requestedRate !== 1)
-                await this.mpvAudio.rate(this.requestedRate);
-            this.refresh();
+                await this.awaitLoad(request, audio.rate(this.requestedRate));
+            this.assertLoad(request);
+            this.refresh(request);
         }
         if (this.mpvSubtitlePlan) {
-            const { NativeMpvSubtitles } = await loadProviderModule('mpv-subtitles', this.assetBase);
-            this.assertActive();
-            this.mpvSubs = new NativeMpvSubtitles(this.video, () => this.sourceTime(), this.assetBase, this.fonts, source, error => this.emit('error', error), this.defaultSubtitleStreamIndex, this.remuxRuntime);
-            await this.mpvSubs.ready;
-            this.assertActive();
-            await this.mpvSubs.select('auto');
-            this.mpvSubs.visible(false);
-            this.refresh();
+            const { NativeMpvSubtitles } = await this.awaitLoad(request, loadProviderModule('mpv-subtitles', this.assetBase));
+            let subtitles;
+            subtitles = new NativeMpvSubtitles(this.video, () => this.sourceTime(), this.assetBase, this.fonts, source, error => { if (!this.stopped && this.native.epoch === request.epoch && this.mpvSubs !== undefined && this.mpvSubs === subtitles)
+                this.emit('error', error); }, this.defaultSubtitleStreamIndex, this.remuxRuntime);
+            if (!nativeRequestCurrent(this.native, request)) {
+                await this.queueSourceCleanup(() => this.cleanupSourceHandles(undefined, undefined, subtitles, []));
+                this.assertLoad(request);
+            }
+            this.mpvSubs = subtitles;
+            await this.awaitLoad(request, subtitles.ready);
+            await this.awaitLoad(request, subtitles.select('auto'));
+            subtitles.visible(false);
+            this.assertLoad(request);
+            this.refresh(request);
         }
     }
     async open(file) {
         this.assertActive();
-        this.retireNativeSource();
-        const local = file instanceof File ? file : new File([file], 'media');
-        this.objectURL = URL.createObjectURL(local);
-        try {
-            await this.loadPlan({ file: local, audioTrack: this.initialAudioTrack, videoOnly: this.selectiveAudio }, () => this.load(this.objectURL));
-            await this.openServices(local);
-        }
-        catch (error) {
-            URL.revokeObjectURL(this.objectURL);
-            this.objectURL = undefined;
-            if (this.selectiveAudio && !isPlayerError(error) && !(error instanceof DOMException && ['AbortError', 'NotAllowedError'].includes(error.name)))
-                throw new PlayerError('DECODE_FAILED', 'Selective video preparation failed: ' + String(error));
-            throw error;
-        }
+        return this.withLoad('source', this.loadPolicy(), 0, true, async (request) => {
+            await this.retireSourceResources(request);
+            const local = file instanceof File ? file : new File([file], 'media');
+            this.assertLoad(request);
+            const url = this.acquireObjectURL(local, request);
+            try {
+                this.installObjectURL(url, request);
+                await this.loadPlan({ file: local, audioTrack: this.initialAudioTrack, videoOnly: this.selectiveAudio }, () => this.load(url, request), false, request);
+                this.assertLoad(request);
+                this.changeLoad(request, { type: 'services' });
+                await this.openServices(local, request);
+                this.assertLoad(request);
+            }
+            catch (error) {
+                this.releaseObjectURL(url, request.id);
+                if (this.selectiveAudio && !isPlayerError(error) && !(error instanceof DOMException && ['AbortError', 'NotAllowedError'].includes(error.name)))
+                    throw new PlayerError('DECODE_FAILED', 'Selective video preparation failed: ' + String(error));
+                throw error;
+            }
+        });
     }
     async openRemote(source) {
         this.assertActive();
         const url = new URL(source.url, location.href);
         if (!['http:', 'https:'].includes(url.protocol))
             throw Error('Remote sources require HTTP or HTTPS');
-        this.retireNativeSource();
         const requiresRemux = !!(source.headers || source.refreshAuthorization || source.allowedOrigins || source.immutable !== undefined || source.credentials === 'omit' || this.mpvSubtitlePlan);
-        this.video.crossOrigin = source.credentials === 'include' ? 'use-credentials' : 'anonymous';
-        await this.loadPlan({ options: { ...source, url: url.href }, audioTrack: this.initialAudioTrack, videoOnly: this.selectiveAudio }, async () => {
-            if (source.format && source.format !== 'file') {
-                const mime = source.format === 'hls' ? 'application/vnd.apple.mpegurl' : 'application/dash+xml';
-                const epoch = this.native.epoch, value = `canPlayType(${mime})=${this.video.canPlayType(mime) || 'unknown'}`;
-                this.changeNative({ type: 'api-hint', epoch, value });
-            }
-            this.remoteSource = { ...source, url: url.href };
-            try {
-                await this.load(url.href);
-                if (source.format && source.format !== 'file' && !Number.isFinite(this.video.duration))
-                    throw new PlayerError('SOURCE_PERMISSION', 'Native manifest has no finite VOD duration; live playback requires explicit Shaka live permission');
-            }
-            catch (error) {
-                throw await this.classifyDirectFailure(error);
-            }
-        }, requiresRemux);
-        await this.openServices({ ...source, url: url.href });
+        return this.withLoad('source', this.loadPolicy(requiresRemux), 0, true, async (request) => {
+            await this.retireSourceResources(request);
+            this.assertLoad(request);
+            this.video.crossOrigin = source.credentials === 'include' ? 'use-credentials' : 'anonymous';
+            this.assertLoad(request);
+            await this.loadPlan({ options: { ...source, url: url.href }, audioTrack: this.initialAudioTrack, videoOnly: this.selectiveAudio }, async () => {
+                this.assertLoad(request);
+                if (source.format && source.format !== 'file') {
+                    const mime = source.format === 'hls' ? 'application/vnd.apple.mpegurl' : 'application/dash+xml', value = `canPlayType(${mime})=${this.video.canPlayType(mime) || 'unknown'}`;
+                    this.assertLoad(request);
+                    this.changeNative({ type: 'api-hint', epoch: request.epoch, value });
+                }
+                this.remoteSource = { ...source, url: url.href };
+                try {
+                    await this.load(url.href, request);
+                    this.assertLoad(request);
+                    if (source.format && source.format !== 'file' && !Number.isFinite(this.video.duration))
+                        throw new PlayerError('SOURCE_PERMISSION', 'Native manifest has no finite VOD duration; live playback requires explicit Shaka live permission');
+                }
+                catch (error) {
+                    this.assertLoad(request);
+                    throw await this.awaitLoad(request, this.classifyDirectFailure(error));
+                }
+            }, requiresRemux, request);
+            this.assertLoad(request);
+            this.changeLoad(request, { type: 'services' });
+            await this.openServices({ ...source, url: url.href }, request);
+            this.assertLoad(request);
+        });
     }
     async classifyDirectFailure(error) {
         const source = this.remoteSource;
@@ -1035,25 +1276,43 @@ export class NativePlayer extends EventTarget {
                 if (!track)
                     throw Error('Unknown remux audio track');
                 if (!track.selected) {
-                    const previous = this.remuxSource, position = this.sourceTime(), paused = this.video.paused;
-                    this.opening = true;
-                    try {
-                        await this.startRemux({ ...previous, audioTrack: Number(id) - 1 }, position);
-                    }
-                    catch (error) {
+                    const epoch = this.native.epoch, previous = this.remuxSource, position = this.sourceTime(), paused = this.video.paused;
+                    this.assertActive();
+                    if (this.native.epoch !== epoch || this.remuxSource !== previous)
+                        throw new Error('Native track selection was retired');
+                    await this.withLoad('audio-track', this.loadPolicy(true), position, paused, async (request) => {
+                        await this.awaitSourceCleanup(request);
                         try {
-                            await this.startRemux(previous, position);
+                            await this.startRemux({ ...previous, audioTrack: Number(id) - 1 }, position, request);
                         }
-                        catch (recovery) {
-                            this.emit('error', String(recovery));
+                        catch (error) {
+                            this.assertLoad(request);
+                            if (this.changeLoad(request, { type: 'track-failed' }).rollback) {
+                                try {
+                                    await this.startRemux(previous, position, request);
+                                }
+                                catch (recovery) {
+                                    this.assertLoad(request);
+                                    this.emit('error', String(recovery));
+                                    this.assertLoad(request);
+                                }
+                            }
+                            throw error;
                         }
-                        throw error;
-                    }
-                    finally {
-                        this.opening = false;
-                        if (!paused)
-                            await this.video.play();
-                    }
+                        finally {
+                            const completion = this.changeLoad(request, { type: 'track-settled' });
+                            if (completion.accepted && completion.resume) {
+                                this.assertLoad(request);
+                                await this.awaitLoad(request, this.video.play());
+                            }
+                        }
+                        this.assertLoad(request);
+                        this.video.muted = false;
+                        this.assertLoad(request);
+                        this.refresh(request);
+                        this.assertLoad(request);
+                    });
+                    return;
                 }
                 this.video.muted = false;
                 this.refresh();
@@ -1217,37 +1476,56 @@ export class NativePlayer extends EventTarget {
     destroy() {
         if (this.destruction)
             return this.destruction;
-        this.destruction = this.dispose();
-        return this.destruction;
+        let resolve, reject;
+        const destruction = new Promise((yes, no) => { resolve = yes; reject = no; });
+        this.destruction = destruction;
+        void this.dispose().then(resolve, reject);
+        return destruction;
     }
     async dispose() {
         this.changeNative({ type: 'stop' });
-        this.verificationCancel?.cancel(new Error('Player is destroyed'));
-        this.seekCancel?.cancel(new Error('Player is destroyed'));
-        await this.mpvAudio?.destroy();
+        const remux = this.remux, audio = this.mpvAudio, subtitles = this.mpvSubs, urls = [...new Set([...this.ownedObjectURLs.keys(), ...this.captionURLs])];
+        const gainSource = this.gainSource, gainNode = this.gainNode, gainContext = this.gainContext, listeners = this.listeners;
+        const load = this.loadWait, verification = this.verificationCancel, seek = this.seekCancel, cancelers = [...this.cancelers];
+        this.remux = undefined;
+        this.remuxEnginePath = undefined;
         this.mpvAudio = undefined;
-        await this.mpvSubs?.destroy();
         this.mpvSubs = undefined;
+        this.projection = undefined;
+        this.remuxSource = undefined;
         this.subtitleSource = undefined;
-        for (const cancel of this.cancelers)
-            cancel(new Error('Player is destroyed'));
-        await this.remux?.destroy();
-        this.gainSource?.disconnect();
-        this.gainNode?.disconnect();
-        if (this.gainContext)
-            await this.gainContext.close();
-        this.listeners.forEach(remove => remove());
+        this.remoteSource = undefined;
+        this.objectURL = undefined;
+        this.gainSource = undefined;
+        this.gainNode = undefined;
+        this.gainContext = undefined;
         this.listeners = [];
-        for (const url of this.captionURLs)
-            URL.revokeObjectURL(url);
+        this.loadWait = undefined;
+        this.verificationCancel = undefined;
+        this.seekCancel = undefined;
+        this.ownedObjectURLs.clear();
         this.captionURLs.clear();
         this.captionAssets.clear();
-        this.video.pause();
-        this.video.removeAttribute('src');
-        this.video.replaceChildren();
-        this.video.load();
-        if (this.objectURL)
-            URL.revokeObjectURL(this.objectURL);
-        this.objectURL = undefined;
+        this.cancelers.clear();
+        const errors = [], destroyed = new Error('Player is destroyed');
+        for (const cancel of [() => load?.cancel(destroyed), () => verification?.cancel(destroyed), () => seek?.cancel(destroyed), ...cancelers.map(cancel => () => cancel(destroyed))])
+            try {
+                cancel();
+            }
+            catch (error) {
+                errors.push(error);
+            }
+        this.queueSourceCleanup(() => this.cleanupSourceHandles(remux, audio, subtitles, urls));
+        for (const clean of [() => this.drainSourceCleanup(), () => gainSource?.disconnect(), () => gainNode?.disconnect(), () => gainContext?.close(), ...listeners, () => this.video.pause(), () => this.video.removeAttribute('src'), () => this.video.replaceChildren(), () => this.video.load()])
+            try {
+                await clean();
+            }
+            catch (error) {
+                errors.push(error);
+            }
+        if (errors.length === 1)
+            throw errors[0];
+        if (errors.length)
+            throw new AggregateError(errors, 'Native player cleanup failed');
     }
 }

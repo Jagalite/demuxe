@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
+import {createWasmSeek,clearWasmSeek,beginWasmSeek,observeWasmSeek,confirmWasmSeek} from './wasm-seek.js';
+import type {WasmSeekState,WasmSeekObservation} from './wasm-seek.js';
 /** Logical ownership only. Workers, promises, errors and timers remain in the shell. */
 export type WasmPhase='initializing'|'ready'|'failed'|'retiring'|'closed';
 export type WasmDeadline=Readonly<{id:number;deadline:number}>;
-export type WasmLifecycle=Readonly<{phase:WasmPhase;initSent:boolean;workerFailed:boolean;nextRequest:number;nextWaiter:number;nextOpen:number;requests:readonly WasmDeadline[];waiters:readonly WasmDeadline[];open:number|null;hasFile:boolean}>;
-export function createWasmLifecycle():WasmLifecycle{return Object.freeze({phase:'initializing',initSent:false,workerFailed:false,nextRequest:100,nextWaiter:1,nextOpen:1,requests:Object.freeze([]),waiters:Object.freeze([]),open:null,hasFile:false});}
+export type WasmLifecycle=Readonly<{phase:WasmPhase;initSent:boolean;workerFailed:boolean;nextRequest:number;nextWaiter:number;nextOpen:number;requests:readonly WasmDeadline[];waiters:readonly WasmDeadline[];open:number|null;hasFile:boolean;seek:WasmSeekState}>;
+export function createWasmLifecycle():WasmLifecycle{return Object.freeze({phase:'initializing',initSent:false,workerFailed:false,nextRequest:100,nextWaiter:1,nextOpen:1,requests:Object.freeze([]),waiters:Object.freeze([]),open:null,hasFile:false,seek:createWasmSeek()});}
 export function wasmAlive(state:WasmLifecycle):boolean{return state.phase==='initializing'||state.phase==='ready';}
 export function markWasmInitialized(state:WasmLifecycle):WasmLifecycle{return wasmAlive(state)?Object.freeze({...state,initSent:true}):state;}
 export function settleWasmInitialization(state:WasmLifecycle,success:boolean):WasmLifecycle{return state.phase==='initializing'?Object.freeze({...state,phase:success?'ready':'failed'}):state;}
@@ -43,9 +45,24 @@ export function beginWasmOpen(state:WasmLifecycle):Readonly<{state:WasmLifecycle
 }
 export function ownsWasmOpen(state:WasmLifecycle,id:number):boolean{return wasmAlive(state)&&state.open===id;}
 export function finishWasmOpen(state:WasmLifecycle,id:number):WasmLifecycle{return state.open===id?Object.freeze({...state,open:null}):state;}
-export function observeWasmFile(state:WasmLifecycle,present:boolean):WasmLifecycle{return wasmAlive(state)&&state.hasFile!==present?Object.freeze({...state,hasFile:present}):state;}
+export function observeWasmFile(state:WasmLifecycle,present:boolean):WasmLifecycle{
+ if(!wasmAlive(state))return state;const seek=present?clearWasmSeek(state.seek):state.seek;
+ return state.hasFile===present&&seek===state.seek?state:Object.freeze({...state,hasFile:present,seek});
+}
+export function beginWasmPlayerSeek(state:WasmLifecycle,target:number):Readonly<{state:WasmLifecycle;reason:'invalid'|'unavailable'|null}>{
+ const decision=beginWasmSeek(state.seek,target);if(!decision.accepted)return Object.freeze({state,reason:'invalid'});
+ if(!wasmAlive(state))return Object.freeze({state,reason:'unavailable'});
+ return Object.freeze({state:Object.freeze({...state,seek:decision.state}),reason:null});
+}
+export function observeWasmPlayerSeek(state:WasmLifecycle,event:WasmSeekObservation):WasmLifecycle{
+ if(!wasmAlive(state))return state;const seek=observeWasmSeek(state.seek,event);return seek===state.seek?state:Object.freeze({...state,seek});
+}
+export function confirmWasmPlayerSeek(state:WasmLifecycle,id:number,target:number,position:number,settled:boolean):Readonly<{state:WasmLifecycle;confirmed:boolean}>{
+ const decision=confirmWasmSeek(state.seek,id,target,position,settled);
+ return Object.freeze({state:decision.state===state.seek?state:Object.freeze({...state,seek:decision.state}),confirmed:decision.confirmed});
+}
 export function retireWasmLifecycle(state:WasmLifecycle):Readonly<{state:WasmLifecycle;accepted:boolean;requests:readonly number[];waiters:readonly number[]}>{
   if(state.phase==='retiring'||state.phase==='closed')return Object.freeze({state,accepted:false,requests:Object.freeze([]),waiters:Object.freeze([])});
-  return Object.freeze({state:Object.freeze({...state,phase:'retiring',open:null,hasFile:false,requests:Object.freeze([]),waiters:Object.freeze([])}),accepted:true,requests:Object.freeze(state.requests.map(item=>item.id)),waiters:Object.freeze(state.waiters.map(item=>item.id))});
+  return Object.freeze({state:Object.freeze({...state,phase:'retiring',open:null,hasFile:false,seek:clearWasmSeek(state.seek),requests:Object.freeze([]),waiters:Object.freeze([])}),accepted:true,requests:Object.freeze(state.requests.map(item=>item.id)),waiters:Object.freeze(state.waiters.map(item=>item.id))});
 }
 export function finishWasmRetirement(state:WasmLifecycle):WasmLifecycle{return state.phase==='retiring'?Object.freeze({...state,phase:'closed'}):state;}

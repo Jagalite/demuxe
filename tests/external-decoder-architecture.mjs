@@ -42,7 +42,10 @@ test('empty qualification registry preserves every production route',async()=>{
   assert.match(packageScript,/registered\.values\(\)/);
   assert.doesNotMatch(packageScript,/experiments\/prores-/);
   const playbackWorker=await readFile('web/filter-retained-engine-worker.js','utf8');
-  assert.match(playbackWorker,/else if\(data\.decoder==='webgpu'\)\{/);
+  // The optional GPU branch also excludes selective audio; qualification must
+  // still be checked before acquiring its decoder or presentation resources.
+  assert.match(playbackWorker,/else if\(data\.decoder==='webgpu'&&!audioOnly\)\{/);
+  assert.match(playbackWorker,/if\(!webgpuDecoderSupported\(data\.videoTrack\?\.codec\)\)throw Error\('No qualified WebGPU codec adapter'\);\s*webgpuService=new WebGPUMailboxService/);
   assert.doesNotMatch(playbackWorker,/^import .*webgpu\/(?:runtime|mailbox-service|presenter)\.js/m);
   assert.match(playbackWorker,/import\('\.\/webgpu\/mailbox-service\.js'\)/);
   assert.match(playbackWorker,/import\('\.\/webgpu\/presenter\.js'\)/);

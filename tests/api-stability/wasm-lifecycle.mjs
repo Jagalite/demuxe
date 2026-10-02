@@ -50,3 +50,14 @@ test('event waits retain 25 second deadlines and targeted rejection preserves un
  assert.deepEqual(target.ids,[100]);assert.deepEqual(target.state.requests.map(item=>item.id),[101]);
  assert.deepEqual(core.rejectWasmRequests(target.state).ids,[101]);assert.equal(b.state.requests.length,2);
 });
+
+
+test('source start and retirement atomically retire seek authority with the backend lifecycle',()=>{
+ const first=core.beginWasmPlayerSeek(core.createWasmLifecycle(),10);assert.equal(first.reason,null);
+ const observed=core.observeWasmPlayerSeek(first.state,{kind:'restart',eof:true});assert.equal(observed.seek.seek.restarted,true);
+ const started=core.observeWasmFile(observed,true);assert.equal(started.hasFile,true);assert.equal(started.seek.seek,null);
+ const second=core.beginWasmPlayerSeek(started,12),retired=core.retireWasmLifecycle(second.state).state;
+ assert.equal(retired.phase,'retiring');assert.equal(retired.seek.seek,null);assert.equal(retired.hasFile,false);
+ assert.equal(core.beginWasmPlayerSeek(retired,1).reason,'unavailable');assert.equal(core.observeWasmPlayerSeek(retired,{kind:'restart',eof:true}),retired);
+ assert.equal(core.confirmWasmPlayerSeek(retired,second.state.seek.seek.id,12,12,true).confirmed,false);
+});

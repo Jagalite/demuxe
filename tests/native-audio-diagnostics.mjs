@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {initialRemuxLifecycle} from '../web/generated/internal/machine/remux-lifecycle.js';
 import test from 'node:test';
+import {initialNativeBackend} from '../web/generated/internal/machine/native-backend.js';
 import assert from 'node:assert/strict';
 import {NativeMpvAudio} from '../web/generated/internal/native-mpv-audio.js';
 import {RemuxPlayer} from '../web/native-remux-player.js';
@@ -48,7 +49,7 @@ test('cached sync percentiles refresh when the full rolling window advances',()=
 test('native control-plane reads do not collect audio or video diagnostics',()=>{
   const player=Object.assign(Object.create(NativePlayer.prototype),{
     video:{preload:'auto',getVideoPlaybackQuality(){throw Error('video diagnostics collected');}},
-    buffering:bufferingPolicy(),
+    buffering:bufferingPolicy(),native:initialNativeBackend(),
     mpvAudio:{get diagnostics(){throw Error('audio diagnostics collected');}},
     requestedPlan:'native-video-mpv-audio',
   });
@@ -60,9 +61,9 @@ test('native control-plane reads do not collect audio or video diagnostics',()=>
   player.remux={snapshot:()=>({})};assert.equal(backendPlan(player),'remux-mpv');
   assert.equal(player.bufferingDiagnostics.backend,'remux');
   player.mpvSubs=undefined;assert.equal(backendPlan(player),'remux');
-  player.adapted=true;player.audioAdaptation='flac';assert.equal(backendPlan(player),'adapted-flac');
+  player.native={...player.native,load:{...player.native.load,adapted:true}};player.audioAdaptation='flac';assert.equal(backendPlan(player),'adapted-flac');
   player.projection={};assert.equal(backendPlan(player),'adapted-flac24');
-  player.adapted=false;assert.equal(backendPlan(player),'remux');
+  player.native={...player.native,load:{...player.native.load,adapted:false}};assert.equal(backendPlan(player),'remux');
   assert.equal(backendPlan({diagnostics:{plan:'shaka-mse'}}),'shaka-mse');
   assert.equal(backendPlan(undefined),undefined);
 });

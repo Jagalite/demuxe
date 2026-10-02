@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type PlayerReadinessInput, type PlayerReadinessEffect } from './player-readiness.js';
+import { type PlayerActionInput, type PlayerActionEffect } from './player-actions.js';
 import { type PlayerPublicationInput } from './player-publication.js';
 import type { PlayerProjection } from './selectors.js';
 import { type PlayerMonitorInput } from './player-monitor.js';
@@ -18,7 +20,7 @@ export type SessionObservation = Readonly<{
     value?: number | boolean;
     publishedTime?: number;
 }>;
-export type PlayerControlInput = PlayerPublicationInput | PlayerMonitorInput | RoutingInput | AttachmentInput | BoundaryInput | OperationInput | PlaybackInput | SettingsInput | SettingTransactionInput | SourceInput | SessionObservation;
+export type PlayerControlInput = PlayerReadinessInput | PlayerActionInput | PlayerPublicationInput | PlayerMonitorInput | RoutingInput | AttachmentInput | BoundaryInput | OperationInput | PlaybackInput | SettingsInput | SettingTransactionInput | SourceInput | SessionObservation;
 export type PlayerControlDecision<Effect = SettingEffect | BoundaryEffect | AttachmentEffect> = Readonly<{
     state: PlayerControlState;
     accepted: boolean;
@@ -28,6 +30,8 @@ export type PlayerControlDecision<Effect = SettingEffect | BoundaryEffect | Atta
     retire: readonly number[];
     effects?: readonly Effect[];
     publication?: PlayerProjection;
+    actionEffects?: readonly PlayerActionEffect[];
+    readinessEffects?: readonly PlayerReadinessEffect[];
 }>;
 /** Publication bookkeeping does not invalidate an otherwise current capture.
  * Every domain change still advances the same composed authority revision. */

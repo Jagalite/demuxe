@@ -4,7 +4,7 @@
 import {initialDecoderMailbox,validDecoderRequest,validDecoderPacket,beginDecoderRequest,canSettleDecoderRequest,settleDecoderRequest,cancelDecoderRequest,retireDecoderMailbox,decoderCommitCurrent,decoderRequestResult,beginDecoderCommit,failDecoderCommit,failDecoderRelease,validDecoderFrameIdentity,finishDecoderCommit,validDecoderResponse} from '../generated/internal/machine/private-decoder-mailbox.js';
 const IO=-29,PACKET_MAX=8*1024*1024;
 export class CooperativeDecoderMailbox {
-  constructor(scheduler,service,{timeoutMs=5000,onFrame=frame=>frame.close(),onReleaseFrame=()=>{},retainedLease=false,now=()=>performance.now(),setTimer=setTimeout,clearTimer=clearTimeout}={}) {
+  constructor(scheduler,service,{timeoutMs=5000,onFrame=frame=>frame.close(),onReleaseFrame=()=>{},retainedLease=false,now=()=>performance.now(),setTimer=(callback,delay)=>globalThis.setTimeout(callback,delay),clearTimer=timer=>globalThis.clearTimeout(timer)}={}) {
     if(!Number.isFinite(timeoutMs)||timeoutMs<=0||timeoutMs>60000)throw Error('Invalid decoder deadline');
     if(typeof service?.execute!=='function'||typeof service?.cancel!=='function')throw Error('Invalid decoder service');
     this.scheduler=scheduler;this.service=service;this.timeoutMs=timeoutMs;this.onFrame=onFrame;this.onReleaseFrame=onReleaseFrame;this.retainedLease=retainedLease;this.now=now;this.setTimer=setTimer;this.clearTimer=clearTimer;

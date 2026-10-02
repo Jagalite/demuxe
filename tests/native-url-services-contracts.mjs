@@ -14,7 +14,7 @@ for(const plan of ['native-video-mpv-audio','native-video-mpv-audio-subtitles','
    credentials:'omit',allowedOrigins:['https://media.example'],refreshAuthorization:async()=>({headers:{Authorization:'Bearer renewed'}})};
   let preparation,services;
   const player=Object.create(NativePlayer.prototype);
-  Object.assign(player,{native:initialNativeBackend(),requestedPlan:plan,initialAudioTrack:3,video:{},assertActive(){},
+  Object.assign(player,{native:initialNativeBackend(),cancelers:new Set(),ownedObjectURLs:new Map(),sourceCleanup:Promise.resolve(),captionURLs:new Set(),captionAssets:new Map(),requestedPlan:plan,initialAudioTrack:3,video:{},assertActive(){},
    async loadPlan(input,direct,required){preparation={input,required};},
    async openServices(input){services=input;}});
   await player.openRemote(source);
@@ -33,7 +33,7 @@ test('failed video preparation does not start independent services',async t=>{
  t.after(()=>{if(prior)Object.defineProperty(globalThis,'location',prior);else delete globalThis.location;});
  const player=Object.create(NativePlayer.prototype),failure=Error('Source transport: Media representation changed');
  let services=false;
- Object.assign(player,{native:initialNativeBackend(),requestedPlan:'native-video-mpv-audio',video:{},assertActive(){},
+ Object.assign(player,{native:initialNativeBackend(),cancelers:new Set(),ownedObjectURLs:new Map(),sourceCleanup:Promise.resolve(),captionURLs:new Set(),captionAssets:new Map(),requestedPlan:'native-video-mpv-audio',video:{},assertActive(){},
   async loadPlan(){throw failure;},async openServices(){services=true;}});
  await assert.rejects(player.openRemote({url:'/movie.mkv'}),error=>error===failure);
  assert.equal(services,false);

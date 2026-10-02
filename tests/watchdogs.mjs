@@ -62,8 +62,8 @@ function nativeSample(videoOverrides={},playerOverrides={}){
  const video={currentTime:2,duration:20,playbackRate:1,paused:false,seeking:false,ended:false,error:null,readyState:4,videoWidth:640,
   buffered:{length:1,start:()=>0,end:()=>20},getVideoPlaybackQuality:()=>({totalVideoFrames:20,droppedVideoFrames:2})};
  Object.defineProperties(video,Object.getOwnPropertyDescriptors(videoOverrides));
- const {stopped=false,capability={outputVerified:true},...shell}=playerOverrides;
- Object.assign(player,{video,native:{...initialNativeBackend(),stopped,capability},opening:false,...shell});
+ const {opening=false,stopped=false,capability={outputVerified:true},...shell}=playerOverrides;
+ Object.assign(player,{video,native:{...initialNativeBackend(),stopped,capability,load:{...initialNativeBackend().load,work:opening?{phase:'plan'}:null}},...shell});
  return player.nativeProgressSample();
 }
 test('Native eligibility excludes pause, seek, buffering, EOF, and unverified startup',()=>{
