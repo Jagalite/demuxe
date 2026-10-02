@@ -74,6 +74,8 @@ export class SoftwarePreviewProvider {
             }
             await presented;
             request.signal.throwIfAborted();
+            await player.waitForPreviewMetadata();
+            request.signal.throwIfAborted();
             const tracks = player.properties.get('track-list');
             if (!tracks?.some(t => t.type === 'video'))
                 return null;

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type PlayerMonitorInput } from './player-monitor.js';
 import { type BoundaryInput, type BoundaryEffect } from './playback-boundary.js';
 import { type OperationInput } from './operations.js';
 import { type PlaybackInput } from './playback.js';
@@ -15,7 +16,7 @@ export type SessionObservation = Readonly<{
     value?: number | boolean;
     publishedTime?: number;
 }>;
-export type PlayerControlInput = RoutingInput | AttachmentInput | BoundaryInput | OperationInput | PlaybackInput | SettingsInput | SettingTransactionInput | SourceInput | SessionObservation;
+export type PlayerControlInput = PlayerMonitorInput | RoutingInput | AttachmentInput | BoundaryInput | OperationInput | PlaybackInput | SettingsInput | SettingTransactionInput | SourceInput | SessionObservation;
 export type PlayerControlDecision<Effect = SettingEffect | BoundaryEffect | AttachmentEffect> = Readonly<{
     state: PlayerControlState;
     accepted: boolean;

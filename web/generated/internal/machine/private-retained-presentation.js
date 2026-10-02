@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-export function createPrivateRetainedPresentation() { return Object.freeze({ generation: -1, serial: -1, awaiting: true, epoch: 0, frameSerial: 0, seekTarget: null, seekGeneration: null, frames: Object.freeze([]), held: null, pending: null, selectionSerial: 0, preparing: null, received: 0, presented: 0, closed: 0, dropped: 0, peakFrames: 0 }); }
+export function createPrivateRetainedPresentation() { return Object.freeze({ generation: -1, serial: -1, awaiting: true, epoch: 0, frameSerial: 0, seekTarget: null, seekGeneration: null, frames: Object.freeze([]), held: null, pending: null, selectionSerial: 0, preparing: null, received: 0, presented: 0, closed: 0, dropped: 0, peakFrames: 0, nativeReleased: 0 }); }
 export function clearRetainedPresentation(state, target = null, generation = state.generation) {
     const close = [...state.frames.map(frame => frame.id), ...state.held ? [state.held.id] : []];
     return Object.freeze({ state: Object.freeze({ ...state, epoch: state.epoch + 1, seekGeneration: target === null ? null : generation, seekTarget: target, frames: Object.freeze([]), held: null, pending: null, preparing: null, serial: -1, awaiting: true, closed: state.closed + close.length }), close: Object.freeze(close) });
@@ -13,7 +13,7 @@ export function canReceiveRetainedFrame(state, timestamp, generation) {
         return true;
     return state.frames.length + (state.held ? 1 : 0) < 16;
 }
-export function admitRetainedFrame(state, timestamp, generation) {
+export function admitRetainedFrame(state, timestamp, generation, nativeId = null) {
     let next = Object.freeze({ ...state, received: state.received + 1 }), close = Object.freeze([]), clearOverlay = false;
     const result = (id = null, closeInput = false, error = null) => Object.freeze({ state: next, id, close, closeInput, clearOverlay, error });
     const discard = () => { next = Object.freeze({ ...next, closed: next.closed + 1, dropped: next.dropped + 1 }); return result(null, true); };
@@ -27,15 +27,27 @@ export function admitRetainedFrame(state, timestamp, generation) {
     }
     if (!Number.isSafeInteger(timestamp))
         return result(null, false, 'Invalid retained frame timestamp');
+    if (nativeId !== null && (!Number.isInteger(nativeId) || nativeId < 1 || nativeId > 2147483647 || !Number.isInteger(generation) || generation < 1 || generation > 2147483647))
+        return result(null, false, 'Invalid retained native frame identity');
+    if (nativeId !== null && (next.held?.nativeId === nativeId || next.frames.some(frame => frame.nativeId === nativeId)))
+        return result(null, false, 'Retained native frame identity collision');
     if (next.seekTarget !== null && timestamp / 1e6 < next.seekTarget - .15)
         return discard();
     if (next.frames.some(frame => frame.timestamp === timestamp) || next.held?.timestamp === timestamp)
         return result(null, false, 'Retained timestamp collision');
     if (next.frames.length + (next.held ? 1 : 0) >= 16)
         return result(null, false, 'Retained presentation frame budget');
-    const frame = Object.freeze({ id: next.frameSerial + 1, timestamp });
+    const frame = Object.freeze({ id: next.frameSerial + 1, timestamp, nativeId });
     next = Object.freeze({ ...next, frameSerial: frame.id, frames: Object.freeze([...next.frames, frame]), peakFrames: Math.max(next.peakFrames, next.frames.length + 1 + (next.held ? 1 : 0)) });
     return result(frame.id);
+}
+/** Native final-unref proves that an unselected timing frame cannot be selected
+ * later. Keep held/pending output for redraw until normal selection retires it. */
+export function releaseRetainedNativeFrame(state, generation, nativeId) {
+    const frame = generation === state.generation ? state.frames.find(frame => frame.nativeId === nativeId) : undefined;
+    if (!frame || !Number.isInteger(nativeId) || nativeId < 1 || nativeId > 2147483647)
+        return Object.freeze({ state, close: Object.freeze([]) });
+    return Object.freeze({ state: Object.freeze({ ...state, frames: Object.freeze(state.frames.filter(item => item.id !== frame.id)), closed: state.closed + 1, dropped: state.dropped + 1, nativeReleased: state.nativeReleased + 1 }), close: Object.freeze([frame.id]) });
 }
 /** Failed physical ingress returns the input to its caller without closing it. */
 export function returnRetainedFrame(state, id) {

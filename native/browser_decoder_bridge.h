@@ -14,6 +14,9 @@ struct browser_decoder_mailbox {
     int serial, operation, result;
     int size, width, height, key;
     int format, primaries, transfer, matrix;
+    // Configure input: codec kind/profile/level. Private receive output with
+    // demuxe_decoder_release_v1: generation/frame identity/lease version1.
+    // Legacy consumers keep the same layout and ignore this output extension.
     int full_range, reserved[3];
     double timestamp, duration;
     unsigned char packet[WEB_DEC_PACKET_MAX];

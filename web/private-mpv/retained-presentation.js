@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import {drawRetainedVideo} from '../retained-video.js';
 import {SubtitleOverlay} from '../subtitle-overlay.js';
-import {createPrivateRetainedPresentation,clearRetainedPresentation,admitRetainedFrame,canReceiveRetainedFrame,returnRetainedFrame,retainedFrameCurrent,selectRetainedFrame,armRetainedDraw,beginRetainedDraw,finishRetainedDraw} from '../generated/internal/machine/private-retained-presentation.js';
+import {createPrivateRetainedPresentation,clearRetainedPresentation,admitRetainedFrame,canReceiveRetainedFrame,releaseRetainedNativeFrame,returnRetainedFrame,retainedFrameCurrent,selectRetainedFrame,armRetainedDraw,beginRetainedDraw,finishRetainedDraw} from '../generated/internal/machine/private-retained-presentation.js';
 export class PrivateRetainedPresentation {
   constructor({now=()=>performance.now(),onCapacity=()=>{}}={}){this.machine=createPrivateRetainedPresentation();this.owned=new Map();this.overlay=new SubtitleOverlay();this.now=now;this.onCapacity=onCapacity;this.selected=null;}
   get generation(){return this.machine.generation;}get serial(){return this.machine.serial;}get awaiting(){return this.machine.awaiting;}get epoch(){return this.machine.epoch;}
@@ -11,8 +11,9 @@ export class PrivateRetainedPresentation {
   get pending(){return this.machine.pending?{...this.machine.pending,frame:this.owned.get(this.machine.pending.frame),overlay:this.selected?.overlay,track:this.selected?.track}:this.machine.epoch===0?undefined:null;}
   release(ids){const errors=[];for(const id of ids){const frame=this.owned.get(id);this.owned.delete(id);try{frame?.close();}catch(error){errors.push(error);}}if(ids.length)this.onCapacity();if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Retained frame cleanup failed');}
   canReceive(frame,generation){return canReceiveRetainedFrame(this.machine,frame.timestamp,generation);}
-  enqueue(frame,generation){
-    const admission=admitRetainedFrame(this.machine,frame.timestamp,generation);this.machine=admission.state;
+  releaseNative(generation,id){const decision=releaseRetainedNativeFrame(this.machine,generation,id);this.machine=decision.state;this.release(decision.close);}
+  enqueue(frame,generation,nativeId=null){
+    const admission=admitRetainedFrame(this.machine,frame.timestamp,generation,nativeId);this.machine=admission.state;
     // Metadata reserves the identity before cleanup callbacks. Physical input
     // ownership transfers only once prior-generation retirement succeeds: on a
     // thrown enqueue the decoder mailbox still owns and closes the input.
@@ -51,5 +52,5 @@ export class PrivateRetainedPresentation {
   clear(seekTarget,seekGeneration=this.machine.generation){
     const decision=clearRetainedPresentation(this.machine,seekTarget??null,seekGeneration);this.machine=decision.state;this.selected=null;this.overlay.clear();this.release(decision.close);
   }
-  snapshot(){const s=this.machine;return {received:s.received,presented:s.presented,closed:s.closed,dropped:s.dropped,peakFrames:s.peakFrames,queued:s.frames.length,held:+!!s.held,pending:+!!s.pending,generation:s.generation};}
+  snapshot(){const s=this.machine;return {received:s.received,presented:s.presented,closed:s.closed,dropped:s.dropped,nativeReleased:s.nativeReleased,peakFrames:s.peakFrames,queued:s.frames.length,held:+!!s.held,pending:+!!s.pending,generation:s.generation};}
 }

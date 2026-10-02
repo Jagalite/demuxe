@@ -2,6 +2,7 @@
 export type RetainedFrame = Readonly<{
     id: number;
     timestamp: number;
+    nativeId: number | null;
 }>;
 export type RetainedPending = Readonly<{
     serial: number;
@@ -31,6 +32,7 @@ export type PrivateRetainedPresentationState = Readonly<{
     closed: number;
     dropped: number;
     peakFrames: number;
+    nativeReleased: number;
 }>;
 export declare function createPrivateRetainedPresentation(): PrivateRetainedPresentationState;
 export declare function clearRetainedPresentation(state: PrivateRetainedPresentationState, target?: number | null, generation?: number): Readonly<{
@@ -48,7 +50,13 @@ export type RetainedFrameAdmission = Readonly<{
     clearOverlay: boolean;
     error: string | null;
 }>;
-export declare function admitRetainedFrame(state: PrivateRetainedPresentationState, timestamp: number, generation: number): RetainedFrameAdmission;
+export declare function admitRetainedFrame(state: PrivateRetainedPresentationState, timestamp: number, generation: number, nativeId?: number | null): RetainedFrameAdmission;
+/** Native final-unref proves that an unselected timing frame cannot be selected
+ * later. Keep held/pending output for redraw until normal selection retires it. */
+export declare function releaseRetainedNativeFrame(state: PrivateRetainedPresentationState, generation: number, nativeId: number): Readonly<{
+    state: PrivateRetainedPresentationState;
+    close: readonly number[];
+}>;
 /** Failed physical ingress returns the input to its caller without closing it. */
 export declare function returnRetainedFrame(state: PrivateRetainedPresentationState, id: number): PrivateRetainedPresentationState;
 export declare function retainedFrameCurrent(state: PrivateRetainedPresentationState, id: number): boolean;

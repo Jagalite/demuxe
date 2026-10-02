@@ -21,6 +21,9 @@
 #include "filters/filter_internal.h"
 #include "video/mp_image.h"
 #include "browser_decoder_bridge.h"
+#ifdef DEMUXE_RETAINED_LEASE_V1
+#include "retained-lease.h"
+#endif
 
 struct browser_decoder_mailbox web_decoder;
 static _Atomic int enabled;
@@ -132,10 +135,21 @@ static int receive(struct mp_filter *f,struct mp_frame *out) {
         if(result<0&&result!=AVERROR(EAGAIN)&&result!=AVERROR_EOF){fallback(f);return 0;}
         if(result<=0)return result;
         AVFrame *frame=p->frame;
+#ifdef DEMUXE_RETAINED_LEASE_V1
+        // JS transfers the exact retained surface before native receives its
+        // timing frame. opaque_ref follows all native refs/copies until the
+        // final native owner releases it; no timestamp or timeout inference.
+        if(demuxe_retained_lease(frame,web_decoder.reserved[0],web_decoder.reserved[1],sizeof(struct mp_image_params))<0){fallback(f);return 0;}
+#endif
         frame->format=AV_PIX_FMT_YUV420P;
         frame->width=web_decoder.width;frame->height=web_decoder.height;
         if(frame->width<1||frame->height<1||frame->width>1920||frame->height>1080||
-           (frame->width&1)||(frame->height&1)||av_frame_get_buffer(frame,32)<0){fallback(f);return 0;}
+           (frame->width&1)||(frame->height&1)||av_frame_get_buffer(frame,32)<0){
+#ifdef DEMUXE_RETAINED_LEASE_V1
+            av_frame_unref(frame);
+#endif
+            fallback(f);return 0;
+        }
         int w=frame->width,h=frame->height,at=w*h;
         for(int y=0;y<h;y++)memcpy(frame->data[0]+y*frame->linesize[0],web_decoder.frame+y*w,w);
         for(int plane=1;plane<3;plane++){

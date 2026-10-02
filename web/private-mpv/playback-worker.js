@@ -128,7 +128,7 @@ onmessage = ({data}) => {
       const admission=admitPlaybackWorkerInit(lifecycle);lifecycle=admission.state;if(admission.error)throw Error(admission.error);
       if(data.mode!==undefined&&!['software','hybrid'].includes(data.mode))throw Error('Invalid private playback mode');
       if(data.mode==='hybrid')retained=new PrivateRetainedPresentation({onCapacity:()=>engine?.decoder?.service.capacityChanged?.()});
-      const acquired = await privateMpv(data.runtime, 'playback', {signal: loading.signal,assets:data.playbackAssets,maxDecodePixels:data.maxDecodePixels,canReceiveFrame:(frame,epoch)=>!retained||retained.canReceive(frame,epoch),onFrame:(frame,epoch)=>retained?retained.enqueue(frame,epoch):frame.close()});
+      const acquired = await privateMpv(data.runtime, 'playback', {signal: loading.signal,assets:data.playbackAssets,maxDecodePixels:data.maxDecodePixels,canReceiveFrame:(frame,epoch)=>!retained||retained.canReceive(frame,epoch),onFrame:(frame,epoch,id)=>retained?retained.enqueue(frame,epoch,id):frame.close(),onReleaseFrame:(epoch,id)=>retained?.releaseNative(epoch,id)});
       if(!playbackWorkerInitCurrent(lifecycle)){acquired.dispose();throw Error('Playback host closing');}engine=acquired;
       if(retained&&(!engine.decoder||!engine.raw.web_selected_snapshot))throw Error('Private Hybrid engine assets required');
       if (data.font) {engine.module.FS.mkdirTree('/fonts');engine.module.FS.writeFile('/fonts/DejaVuSans.ttf', new Uint8Array(data.font));}

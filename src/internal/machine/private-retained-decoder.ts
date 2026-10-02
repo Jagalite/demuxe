@@ -14,7 +14,7 @@ export function checkRetainedConfiguration(state:RetainedDecoderState,generation
  if(state.generation!==generation)return Object.freeze({state,id:null});const id=state.checkSerial+1;return Object.freeze({state:Object.freeze({...state,configuration:true,checkSerial:id,check:id}),id});
 }
 export function activateRetainedDecoder(state:RetainedDecoderState,generation:number,check?:number):Readonly<{state:RetainedDecoderState;scope:RetainedDecoderScope|null}>{
- if(state.generation!==generation||!state.configuration||check!==undefined&&state.check!==check)return Object.freeze({state,scope:null});
+ if(state.generation!==generation||generation<1||generation>2147483647||!state.configuration||check!==undefined&&state.check!==check)return Object.freeze({state,scope:null});
  const decoder=state.decoderSerial+1,scope=Object.freeze({generation,decoder});return Object.freeze({state:Object.freeze({...state,decoderSerial:decoder,decoder,pending:false,check:null,needsKey:true}),scope});
 }
 export function retainedSourcePolicy(source:Readonly<{width:number;height:number;kind:number;profile:number;depth:number;inBandHEVC:boolean}>,maxPixels:number):Readonly<{pending:boolean;error:string|null}>{
@@ -25,7 +25,7 @@ export function retainedSourcePolicy(source:Readonly<{width:number;height:number
 export function acceptRetainedDecoderFrame(state:RetainedDecoderState,scope:RetainedDecoderScope):Readonly<{state:RetainedDecoderState;id:number|null;overflow:boolean}>{
  const stats={...state.stats,received:state.stats.received+1};
  if(!retainedDecoderCurrent(state,scope))return Object.freeze({state:Object.freeze({...state,stats:Object.freeze(stats)}),id:null,overflow:false});
- if(state.frames.length>=32)return Object.freeze({state:Object.freeze({...state,failed:true,stats:Object.freeze(stats)}),id:null,overflow:true});
+ if(state.frames.length>=32||state.frameSerial>=2147483647)return Object.freeze({state:Object.freeze({...state,failed:true,stats:Object.freeze(stats)}),id:null,overflow:true});
  const id=state.frameSerial+1;return Object.freeze({state:Object.freeze({...state,frameSerial:id,frames:Object.freeze([...state.frames,id]),stats:Object.freeze({...stats,peakFrames:Math.max(stats.peakFrames,state.frames.length+1)})}),id,overflow:false});
 }
 export function closeRetainedDecoderFrame(state:RetainedDecoderState):RetainedDecoderState{return Object.freeze({...state,stats:Object.freeze({...state.stats,closed:state.stats.closed+1})});}

@@ -17,7 +17,8 @@ export async function createCooperativeEngine(createModule,wasmBytes,backend,opt
  const source=new RangeSource(scheduler);
  try {
   const compiled=new WebAssembly.Module(wasmBytes);
-  if(WebAssembly.Module.imports(compiled).some(item=>item.module==='demuxe_decoder')){
+  const decoderImports=WebAssembly.Module.imports(compiled).filter(item=>item.module==='demuxe_decoder');
+  if(decoderImports.length){
    let wakePending=false;
    const wakeup=()=>{
     if(wakePending||scheduler.stopped)return;wakePending=true;
@@ -26,7 +27,7 @@ export async function createCooperativeEngine(createModule,wasmBytes,backend,opt
     });
    };
    const service=decoderOptions.service??new PrivateRetainedDecoder({wakeup,maxPixels:decoderOptions.maxDecodePixels,canReceive:decoderOptions.canReceiveFrame});
-   decoder=new CooperativeDecoderMailbox(scheduler,service,{onFrame:decoderOptions.onFrame});
+   decoder=new CooperativeDecoderMailbox(scheduler,service,{onFrame:decoderOptions.onFrame,onReleaseFrame:decoderOptions.onReleaseFrame,retainedLease:decoderImports.some(item=>item.name==='demuxe_decoder_release_v1')});
   }
   let rejectInstantiation;
   const failedInstantiation=new Promise((_,reject)=>{rejectInstantiation=reject;});
@@ -34,7 +35,7 @@ export async function createCooperativeEngine(createModule,wasmBytes,backend,opt
    try{
    imports.demuxe_coop=Object.fromEntries(Object.entries(scheduler.imports).map(([name,fn])=>['demuxe_coop_'+name,fn]));
    imports.demuxe_source=Object.fromEntries(Object.entries(source.imports).map(([name,fn])=>['demuxe_source_'+name,fn]));
-   if(decoder)imports.demuxe_decoder={demuxe_decoder_request:decoder.imports.request};
+   if(decoder)imports.demuxe_decoder={demuxe_decoder_request:decoder.imports.request,demuxe_decoder_release_v1:decoder.imports.release};
    raw=new WebAssembly.Instance(compiled,imports).exports;
    receive({exports:raw},compiled);return raw;
    }catch(error){rejectInstantiation(error);return {};}

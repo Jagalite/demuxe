@@ -5,7 +5,7 @@ import {RangeReader} from './range-reader.js';
 
 const digest=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');
 /** The scheduler owns every mpv call; source IO stays asynchronous and bounded. */
-export async function privateMpv(runtime,profile,{signal,decoderService,onFrame,canReceiveFrame,maxDecodePixels,assets}={}) {
+export async function privateMpv(runtime,profile,{signal,decoderService,onFrame,onReleaseFrame,canReceiveFrame,maxDecodePixels,assets}={}) {
  if(!['jspi','asyncify'].includes(runtime)||!['subtitles','audio','playback'].includes(profile))throw Error('Invalid private mpv runtime');
  if(runtime==='jspi'&&(typeof WebAssembly.Suspending!=='function'||typeof WebAssembly.promising!=='function'))throw Error('Selected JSPI runtime unavailable');
  const base=new URL(`./engine-mpv-${profile}-${runtime}/`,import.meta.url);
@@ -33,7 +33,7 @@ export async function privateMpv(runtime,profile,{signal,decoderService,onFrame,
   try{({default:create}=await import(url));}finally{URL.revokeObjectURL(url);}
  }else({default:create}=await import(new URL(stem+'.mjs',base)));
  signal?.throwIfAborted();
- const host=await createCooperativeEngine(create,bytes,runtime,{print:()=>{},printErr:()=>{}},{service:decoderService,onFrame,canReceiveFrame,maxDecodePixels});
+ const host=await createCooperativeEngine(create,bytes,runtime,{print:()=>{},printErr:()=>{}},{service:decoderService,onFrame,onReleaseFrame,canReceiveFrame,maxDecodePixels});
  if(!(host.raw.memory.buffer instanceof ArrayBuffer)){host.dispose();throw Error('Private mpv memory mismatch');}
  if(profile==='playback'){
   const capacity=host.raw.web_audio_capacity?await host.call('web_audio_capacity'):8192;

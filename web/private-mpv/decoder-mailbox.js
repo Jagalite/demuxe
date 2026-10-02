@@ -1,19 +1,25 @@
 // SPDX-License-Identifier: MIT
 // Browser results remain physically owned here until the requesting native
 // continuation is restored. The pure request lease owns publication authority.
-import {initialDecoderMailbox,validDecoderRequest,validDecoderPacket,beginDecoderRequest,canSettleDecoderRequest,settleDecoderRequest,cancelDecoderRequest,retireDecoderMailbox,decoderCommitCurrent,decoderRequestResult,beginDecoderCommit,failDecoderCommit,finishDecoderCommit,validDecoderResponse} from '../generated/internal/machine/private-decoder-mailbox.js';
+import {initialDecoderMailbox,validDecoderRequest,validDecoderPacket,beginDecoderRequest,canSettleDecoderRequest,settleDecoderRequest,cancelDecoderRequest,retireDecoderMailbox,decoderCommitCurrent,decoderRequestResult,beginDecoderCommit,failDecoderCommit,failDecoderRelease,validDecoderFrameIdentity,finishDecoderCommit,validDecoderResponse} from '../generated/internal/machine/private-decoder-mailbox.js';
 const IO=-29,PACKET_MAX=8*1024*1024;
 export class CooperativeDecoderMailbox {
-  constructor(scheduler,service,{timeoutMs=5000,onFrame=frame=>frame.close(),now=()=>performance.now(),setTimer=setTimeout,clearTimer=clearTimeout}={}) {
+  constructor(scheduler,service,{timeoutMs=5000,onFrame=frame=>frame.close(),onReleaseFrame=()=>{},retainedLease=false,now=()=>performance.now(),setTimer=setTimeout,clearTimer=clearTimeout}={}) {
     if(!Number.isFinite(timeoutMs)||timeoutMs<=0||timeoutMs>60000)throw Error('Invalid decoder deadline');
     if(typeof service?.execute!=='function'||typeof service?.cancel!=='function')throw Error('Invalid decoder service');
-    this.scheduler=scheduler;this.service=service;this.timeoutMs=timeoutMs;this.onFrame=onFrame;this.now=now;this.setTimer=setTimer;this.clearTimer=clearTimer;
+    this.scheduler=scheduler;this.service=service;this.timeoutMs=timeoutMs;this.onFrame=onFrame;this.onReleaseFrame=onReleaseFrame;this.retainedLease=retainedLease;this.now=now;this.setTimer=setTimer;this.clearTimer=clearTimer;
     this.machine=initialDecoderMailbox();this.requestHandle=null;
-    this.imports={request:scheduler.wrapImport('demuxe_decoder.request',(ptr,operation)=>this.request(ptr,operation))};
+    this.imports={request:scheduler.wrapImport('demuxe_decoder.request',(ptr,operation)=>this.request(ptr,operation)),release:(generation,id)=>this.releaseFrame(generation,id)};
     this.unsubscribe=scheduler.onStop(()=>this.close());
   }
   get closed(){return this.machine.closed;}get generation(){return this.machine.generation;}get stats(){return this.machine.stats;}
   get pending(){return this.machine.pending?.phase!=='done'?this.requestHandle:null;}
+  releaseFrame(generation,id){
+    if(this.closed||!this.retainedLease||!validDecoderFrameIdentity(generation,id))return;
+    // Called synchronously by native final-unref. Never suspend, reenter native,
+    // or throw through a native destructor; the host observes boundary failure.
+    try{this.onReleaseFrame(generation,id);}catch(error){this.machine=failDecoderRelease(this.machine);this.error=String(error);}
+  }
   attach(memory) {
     if(!(memory instanceof WebAssembly.Memory)||!(memory.buffer instanceof ArrayBuffer))throw Error('Private decoder memory required');
     if(this.memory&&this.memory!==memory&&this.pending)this.cancel();this.memory=memory;
@@ -56,12 +62,13 @@ export class CooperativeDecoderMailbox {
     const fields=response.fields,fieldsValid=fields===undefined||Array.isArray(fields),pixels=response.pixels;
     const captured={...response,fields:fieldsValid&&fields?fields.slice():fields,pixels:pixels instanceof Uint8Array?pixels.slice():pixels};
     if(!fieldsValid||!validDecoderResponse({result:captured.result,fields:captured.fields,timestamp:captured.timestamp,duration:captured.duration,pixels:!pixels?'none':pixels instanceof Uint8Array?'bytes':'invalid',pixelBytes:pixels?.length??0}))throw Error('Invalid decoder result');
+    if(this.retainedLease&&captured.result>0&&(!captured.frame||!validDecoderFrameIdentity(captured.generation,captured.frameId)))throw Error('Invalid retained native frame identity');
     return captured;
   }
   settle(request,response,failed=false){
     if(!canSettleDecoderRequest(this.machine,request.id)){this.machine=settleDecoderRequest(this.machine,request.id,IO).state;response?.frame?.close();return;}
     let captured,valid=!failed;
-    try{captured=this.capture(response);}catch{valid=false;const frame=response?.frame;response=null;frame?.close();captured={result:IO};}
+    try{captured=this.capture(response);}catch(error){this.error=String(error);valid=false;const frame=response?.frame;response=null;frame?.close();captured={result:IO};}
     const decision=settleDecoderRequest(this.machine,request.id,captured.result,valid);this.machine=decision.state;
     if(!decision.accepted){captured.frame?.close();return;}
     if(!valid)captured.result=IO;request.response=captured;this.clearDeadline(request);this.wake(request);
@@ -75,7 +82,7 @@ export class CooperativeDecoderMailbox {
       if(request.ptr>this.memory.buffer.byteLength-80||response.pixels&&request.ptr+80+PACKET_MAX>this.memory.buffer.byteLength-response.pixels.length)return IO;
       if(response.frame){
         const frame=response.frame;response.frame=null;
-        try{this.onFrame(frame,response.generation);}catch(error){
+        try{this.onFrame(frame,response.generation,this.retainedLease?response.frameId:null);}catch(error){
           frame.close();this.machine=failDecoderCommit(this.machine,request.id,'presentation');this.error=String(error);
           if(decoderCommitCurrent(this.machine,request.id)&&this.memory===request.memory&&request.ptr<=this.memory.buffer.byteLength-80)new Int32Array(this.memory.buffer,request.ptr,16)[3]=IO;
           return IO;
@@ -87,6 +94,7 @@ export class CooperativeDecoderMailbox {
       const memory=this.memory.buffer;if(request.ptr>memory.byteLength-80||response.pixels&&request.ptr+80+PACKET_MAX>memory.byteLength-response.pixels.length)return IO;
       const fields=new Int32Array(memory,request.ptr,16),data=new DataView(memory,request.ptr,80);
       if(response.fields)fields.set(response.fields,5);
+      if(this.retainedLease){fields[13]=response.frameId===undefined?0:response.generation;fields[14]=response.frameId??0;fields[15]=1;}
       if(response.timestamp!==undefined)data.setFloat64(64,response.timestamp,true);
       if(response.duration!==undefined)data.setFloat64(72,response.duration,true);
       if(response.pixels)new Uint8Array(memory,request.ptr+80+PACKET_MAX,response.pixels.length).set(response.pixels);

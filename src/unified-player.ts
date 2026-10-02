@@ -8,7 +8,7 @@ import {bufferingPolicy, resolveBuffering} from './internal/buffering.js';
 import {PlayerPresentation} from './presentation.js';
 import {isCustomSource,materializeSource} from './sources.js';
 import {PlaybackStatistics} from './internal/playback-statistics.js';
-import {watchdogPolicy,NativeProgressWatchdog} from './internal/watchdogs.js';
+import {watchdogPolicy} from './internal/watchdogs.js';
 import type {WatchdogOptions,WatchdogPolicy} from './types.js';
 import type {BufferingOptions, BufferingPolicy, BufferingResolution, BufferingState} from './types.js';
 import {normalizeTrackPolicy,trackAllowed,defaultTrack,assertTrackSelection,capturePolicyTrack,captureTrackPolicy} from './internal/track-policy.js';
@@ -29,6 +29,8 @@ import {TierAttempts,preferredPlans} from './internal/tier-policy.js';
 import {runtimeBase} from './internal/assets.js';
 import {selectRemuxRuntime,deployedRemuxRuntime} from './internal/remux-runtime.js';
 import {webgpuDecoderSupported,hasQualifiedWebGPUCodecs} from './internal/webgpu-codecs.js';
+import {monitorSampleEligible} from './internal/machine/player-monitor.js';
+import type {NativeProgressSample} from './internal/machine/telemetry.js';
 import {PlayerError, playerError, redact} from './internal/errors.js';
 import {freeze, tracks, trackKey, usesRemuxTracks} from './internal/state.js';
 import {capturePlayerObservation} from './internal/effects/observations.js';
@@ -305,55 +307,66 @@ export class Player extends EventTarget {
   private get busy(){return this.control.source.candidate!==null;}
   private empty = new Map<string, unknown>();
   private monitor?: ReturnType<typeof setInterval>;
-  private monitorSession?:Session;
-  private monitorPolicy?:WatchdogPolicy;
-  private watchdogConfiguration:WatchdogPolicy;
-  private watchdogEpoch=0;
+  private get watchdogConfiguration(){return this.control.monitor.policy;}
+  private set watchdogConfiguration(policy:WatchdogPolicy){this.dispatchControl({type:'monitor.policy',policy});}
   get watchdogs():WatchdogPolicy {return this.watchdogConfiguration;}
   /** Replaces the watchdog policy immediately; omitted object fields use defaults. */
   setWatchdogs(options:boolean|WatchdogOptions):void {
     if(this.destroyed)throw new PlayerError('ABORTED','Player is destroyed');
-    const policy=watchdogPolicy(options);
-    this.watchdogConfiguration=policy;
-    this.current?.backend.setWatchdogs?.(policy);this.candidate?.backend.setWatchdogs?.(policy);
-    this.startWatchdogs();
+    const policy=watchdogPolicy(options);this.watchdogConfiguration=policy;
+    const revision=this.control.monitor.policyRevision,session=this.current,candidate=this.candidate;
+    this.stopWatchdogs();session?.backend.setWatchdogs?.(policy);
+    if(revision!==this.control.monitor.policyRevision||this.destroyed)return;
+    if(candidate===this.candidate)candidate?.backend.setWatchdogs?.(policy);
+    if(revision===this.control.monitor.policyRevision&&!this.destroyed)this.startWatchdogs();
   }
   private startWatchdogs(){
-    const session=this.current,mode=this.mode,policy=this.watchdogConfiguration;
-    const enabled=mode==='native'?policy.nativeProgress:mode==='hybrid'&&policy.hybridDecoder;
-    if(!session||session.error||this.destroyed||this.closing||!enabled||this.settings.pause||session.backend.properties.get('pause')===true||session.backend.properties.get('eof-reached')===true||this.root.ownerDocument.hidden){this.stopWatchdogs();return;}
-    if(this.monitor!==undefined&&this.monitorSession===session&&this.monitorPolicy===policy)return;
-    this.stopWatchdogs();this.monitorSession=session;this.monitorPolicy=policy;
-    const progress=new NativeProgressWatchdog();let inactiveSamples=0,epoch=this.watchdogEpoch;
-    this.monitor=setInterval(()=>{
-      if(epoch!==this.watchdogEpoch){epoch=this.watchdogEpoch;progress.reset();inactiveSamples=0;}
-      const eligible=this.current===session&&!session.retired&&!session.error&&!this.destroyed&&!this.busy&&!this.activeOperation&&this.queued===0&&!this.settings.pause&&!this.root.ownerDocument.hidden;
-      if(!eligible){progress.reset();inactiveSamples=0;return;}
-      let error:PlayerError|undefined;
-      if(mode==='native'){
-        const sample=session.backend.nativeProgressSample?.();
-        if(!sample){progress.reset();return;}
-        sample.eligible=sample.eligible&&eligible;
-        const timing=this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture)?.frameTiming;
-        // A declared maximum presentation gap accounts for VFR holds and
-        // composition reordering; an average frame rate cannot establish this.
-        if(timing&&sample.time>=timing.startTime&&sample.time<timing.endTime-.25)sample.frameIntervalMs=1000*timing.maxIntervalSeconds/(sample.rate??1);
-        else sample.frames=undefined;
-        const stalled=progress.sample(performance.now(),sample,policy.nativeProgressTimeoutMs);
-        if(stalled)error=new PlayerError('PLAYBACK_STALLED',`Native ${stalled==='clock'?'playback clock':'video frame counter'} stopped progressing despite buffered media`,null,null,'session',true);
-      }else{
-        const hasVideo=(session.backend.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined)?.some(t=>t.type==='video'&&t.selected);
-        const decoder=(session.backend.diagnostics as {decoder?:string}|undefined)?.decoder;
-        inactiveSamples=eligible&&hasVideo&&decoder==='software'?inactiveSamples+1:0;
-        if(inactiveSamples>=4)error=new PlayerError('DECODE_FAILED','Hybrid browser decoder became inactive for four consecutive checks');
-      }
-      if(!error)return;
-      this.stopWatchdogs();session.error=error;
-      if(this.automatic)this.recover(session);
-      else {this.updateSettings({pause:true});void session.backend.pause().catch(()=>{});this.emit('error',error);}
-    },mode==='native'?500:250);
+    const session=this.current,mode=this.mode,epoch=this.operationEpoch,sessionId=this.control.source.acceptedSession;
+    const error=!!session?.error,closing=!!this.closing,enabled=mode==='native'?this.watchdogConfiguration.nativeProgress:mode==='hybrid'&&this.watchdogConfiguration.hybridDecoder;
+    // Preserve cheap eligibility before optional host property reads.
+    const cheap=!!session&&!error&&!this.destroyed&&!closing&&enabled&&!this.settings.pause;
+    const backendPaused=cheap&&session!.backend.properties.get('pause')===true;
+    const backendEOF=cheap&&!backendPaused&&session!.backend.properties.get('eof-reached')===true;
+    const hidden=cheap&&!backendPaused&&!backendEOF&&!!this.root.ownerDocument.hidden;
+    if(session!==this.current||epoch!==this.operationEpoch)return;
+    this.dispatchControl({type:'monitor.reconcile',epoch,session:sessionId,mode,present:!!session,error,closing,backendPaused,backendEOF,hidden});
+    const owner=this.control.monitor.current;
+    if(!owner){this.stopWatchdogs();return;}
+    // The physical timer is associated with exactly one pure monitor lease.
+    if(this.monitor!==undefined&&this.monitorHandleId===owner.id)return;
+    const old=this.monitor;this.monitor=undefined;this.monitorHandleId=undefined;clearInterval(old);
+    if(this.control.monitor.current?.id!==owner.id||this.monitor!==undefined)return;
+    let timer:ReturnType<typeof setInterval>;
+    try{timer=setInterval(()=>this.sampleWatchdog(session!,owner.id,owner.session),owner.mode==='native'?500:250);}
+    catch(error){if(this.control.monitor.current?.id===owner.id&&this.monitor===undefined)this.dispatchControl({type:'monitor.stop'});throw error;}
+    if(this.control.monitor.current?.id!==owner.id||this.monitor!==undefined){clearInterval(timer);return;}
+    this.monitor=timer;this.monitorHandleId=owner.id;
   }
-  private stopWatchdogs(){clearInterval(this.monitor);this.monitor=undefined;this.monitorSession=undefined;this.monitorPolicy=undefined;}
+  private monitorHandleId?:number;
+  private sampleWatchdog(session:Session,id:number,sessionId:number){
+    const owner=this.control.monitor.current;if(!owner||owner.id!==id||this.current!==session)return;
+    const epoch=this.operationEpoch,activity=this.control.monitor.activity;
+    const facts={session:sessionId,hidden:!!this.root.ownerDocument.hidden,retired:!!session.retired,error:!!session.error};
+    const eligible=monitorSampleEligible(this.control,facts);
+    let native:NativeProgressSample|null=null,now:number|undefined,timing:null|{startTime:number;endTime:number;maxIntervalSeconds:number}=null,hasVideo=false,softwareDecoder=false;
+    if(eligible&&owner.mode==='native'){
+      const sample=session.backend.nativeProgressSample?.();
+      if(sample){native={eligible:sample.eligible,time:sample.time,rate:sample.rate,frames:sample.frames,frameIntervalMs:sample.frameIntervalMs,videoEnd:sample.videoEnd};
+        const metadata=this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture)?.frameTiming;
+        if(metadata)timing={startTime:metadata.startTime,endTime:metadata.endTime,maxIntervalSeconds:metadata.maxIntervalSeconds};now=performance.now();}
+    }else if(eligible){
+      hasVideo=!!(session.backend.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined)?.some(t=>t.type==='video'&&t.selected);
+      softwareDecoder=(session.backend.diagnostics as {decoder?:string}|undefined)?.decoder==='software';
+    }
+    if(this.current!==session)return;
+    const sampled=this.dispatchControl({type:'monitor.sample',id,epoch,session:sessionId,activity,hidden:facts.hidden,retired:facts.retired,error:facts.error,native,now,timing,hasVideo,softwareDecoder});
+    const fault=this.control.monitor.fault;if(!sampled.accepted||fault?.id!==id)return;
+    const error=fault.reason==='hybrid'?new PlayerError('DECODE_FAILED','Hybrid browser decoder became inactive for four consecutive checks'):new PlayerError('PLAYBACK_STALLED',`Native ${fault.reason==='clock'?'playback clock':'video frame counter'} stopped progressing despite buffered media`,null,null,'session',true);
+    this.stopWatchdogs();if(this.current!==session||sessionAuthority(this.control,sessionId)!=='accepted')return;session.error=error;
+    if(this.automatic)this.recover(session);
+    else {this.updateSettings({pause:true});void session.backend.pause().catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionId)==='accepted')this.emit('error',error);}
+  }
+  private stopWatchdogs(){const timer=this.monitor;this.monitor=undefined;this.monitorHandleId=undefined;this.dispatchControl({type:'monitor.stop'});clearInterval(timer);}
 
   constructor(container: HTMLElement, options: PlayerOptions = {}) {
     super();
@@ -422,7 +435,7 @@ export class Player extends EventTarget {
     if(this.automatic&&(this.settings.vf||this.settings.af||this.toneMapping!=='off'))this.currentMode=this.settings.vf||this.toneMapping!=='off'||!this.hybridAudioFilters||!qualifiedAudioFilter(this.settings.af)?'software':'hybrid';
     this.validateFilters(this.currentMode, this.settings);
     this.root = document.createElement('div');this.root.className = 'demuxe-player';container.append(this.root);
-    this.root.ownerDocument.addEventListener('visibilitychange',()=>{this.watchdogEpoch++;this.startWatchdogs();},{signal:this.lifetime.signal});
+    this.root.ownerDocument.addEventListener('visibilitychange',()=>{this.dispatchControl({type:'monitor.activity'});this.startWatchdogs();},{signal:this.lifetime.signal});
     this.publish();
     if(prepare.length)void this.prepare(prepare);
   }
@@ -705,7 +718,7 @@ export class Player extends EventTarget {
     for (const type of ['mpv', 'error', 'log', 'output', 'source', 'activity']) backend.addEventListener(type, event => {
       if(session.retired||sessionAuthority(this.control,sessionEpoch)==='retired')return;
       const detail = (event as CustomEvent).detail;
-      if(this.current===session&&type==='activity'&&['seeking','seeked','play','pause','ratechange','waiting','playing','ended'].includes(detail))this.watchdogEpoch++;
+      if(this.current===session&&type==='activity'&&['seeking','seeked','play','pause','ratechange','waiting','playing','ended'].includes(detail))this.dispatchControl({type:'monitor.activity'});
       if(this.current===session&&this.promotionRunning&&((type==='activity'&&detail==='waiting')||(type==='mpv'&&detail.event==='property-change'&&detail.name==='paused-for-cache'&&detail.data===true)))this.cancelPromotion();
       if(sessionAuthority(this.control,sessionEpoch)==='retired')return;
       if (type === 'error') session.error = detail instanceof Error?detail:new Error(String(detail));

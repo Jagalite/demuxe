@@ -11,7 +11,7 @@ export function checkRetainedConfiguration(state, generation) {
     return Object.freeze({ state: Object.freeze({ ...state, configuration: true, checkSerial: id, check: id }), id });
 }
 export function activateRetainedDecoder(state, generation, check) {
-    if (state.generation !== generation || !state.configuration || check !== undefined && state.check !== check)
+    if (state.generation !== generation || generation < 1 || generation > 2147483647 || !state.configuration || check !== undefined && state.check !== check)
         return Object.freeze({ state, scope: null });
     const decoder = state.decoderSerial + 1, scope = Object.freeze({ generation, decoder });
     return Object.freeze({ state: Object.freeze({ ...state, decoderSerial: decoder, decoder, pending: false, check: null, needsKey: true }), scope });
@@ -27,7 +27,7 @@ export function acceptRetainedDecoderFrame(state, scope) {
     const stats = { ...state.stats, received: state.stats.received + 1 };
     if (!retainedDecoderCurrent(state, scope))
         return Object.freeze({ state: Object.freeze({ ...state, stats: Object.freeze(stats) }), id: null, overflow: false });
-    if (state.frames.length >= 32)
+    if (state.frames.length >= 32 || state.frameSerial >= 2147483647)
         return Object.freeze({ state: Object.freeze({ ...state, failed: true, stats: Object.freeze(stats) }), id: null, overflow: true });
     const id = state.frameSerial + 1;
     return Object.freeze({ state: Object.freeze({ ...state, frameSerial: id, frames: Object.freeze([...state.frames, id]), stats: Object.freeze({ ...stats, peakFrames: Math.max(stats.peakFrames, state.frames.length + 1) }) }), id, overflow: false });

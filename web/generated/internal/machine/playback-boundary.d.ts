@@ -65,6 +65,7 @@ export declare function boundaryAuthority(state: PlayerControlState, id: number)
 export declare function transitionBoundary(state: PlayerControlState, input: BoundaryInput): Readonly<{
     state: Readonly<{
         revision: number;
+        monitor: import("./player-monitor.js").PlayerMonitorState;
         attachments: import("./attachments.js").AttachmentState;
         routing: import("./route-state.js").RoutingState;
         boundary: BoundaryState;

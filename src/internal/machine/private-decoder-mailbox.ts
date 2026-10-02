@@ -29,6 +29,8 @@ export function beginDecoderCommit(state:DecoderMailboxState,id:number):Readonly
  return Object.freeze({state:Object.freeze({...state,pending:Object.freeze({...request,phase:'committing'})}),accepted:true,result:request.cancelled==='timeout'?-73:request.result});
 }
 export function failDecoderCommit(state:DecoderMailboxState,id:number,failure:'boundary'|'presentation'):DecoderMailboxState{return state.pending?.id===id?Object.freeze({...state,failure,stats:Object.freeze({...state.stats,errors:state.stats.errors+1})}):state;}
+export function failDecoderRelease(state:DecoderMailboxState):DecoderMailboxState{return state.closed?state:Object.freeze({...state,failure:'presentation',stats:Object.freeze({...state.stats,errors:state.stats.errors+1})});}
+export function validDecoderFrameIdentity(generation:number,id:number):boolean{return Number.isInteger(generation)&&generation>=1&&generation<=2147483647&&Number.isInteger(id)&&id>=1&&id<=2147483647;}
 export function finishDecoderCommit(state:DecoderMailboxState,id:number,committed:boolean):DecoderMailboxState{
  if(state.pending?.id!==id)return state;return Object.freeze({...state,pending:null,stats:committed&&decoderCommitCurrent(state,id)?Object.freeze({...state.stats,committed:state.stats.committed+1}):state.stats});
 }

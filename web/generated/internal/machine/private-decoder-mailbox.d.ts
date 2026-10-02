@@ -53,6 +53,8 @@ export declare function beginDecoderCommit(state: DecoderMailboxState, id: numbe
     result: number;
 }>;
 export declare function failDecoderCommit(state: DecoderMailboxState, id: number, failure: 'boundary' | 'presentation'): DecoderMailboxState;
+export declare function failDecoderRelease(state: DecoderMailboxState): DecoderMailboxState;
+export declare function validDecoderFrameIdentity(generation: number, id: number): boolean;
 export declare function finishDecoderCommit(state: DecoderMailboxState, id: number, committed: boolean): DecoderMailboxState;
 export type DecoderResponseFacts = Readonly<{
     result: number;

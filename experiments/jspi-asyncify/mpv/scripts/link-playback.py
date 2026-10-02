@@ -33,6 +33,10 @@ def main(a):
         raise ValueError('Video-enabled private playback dependencies required')
     if a.hybrid and build['profile'] != 'playback-full':
         raise ValueError('Retained Hybrid requires the full codec dependency profile')
+    if a.retained_lease and not a.hybrid:
+        raise ValueError('Retained lifetime acknowledgment requires Hybrid')
+    if a.retained_lease_tests and not a.retained_lease:
+        raise ValueError('Retained lifetime tests require the lifetime bridge')
     out.mkdir(parents=True)
     files = ['native/player.c', 'native/events.c', 'native/audio_bridge.h', 'native/stream_bridge.h',
              'experiments/jspi-asyncify/stage2/native/stream-coop.c',
@@ -47,6 +51,11 @@ def main(a):
         files[0]='experiments/retained-subtitles/player.c'
         files[-1:-1]=['native/vd_browser.c','native/browser_decoder_bridge.h',
                      'experiments/retained-subtitles/vo_libmpv.c','native/subtitles/bitmap.c']
+    if a.retained_lease:
+        files[-1:-1]=['experiments/jspi-asyncify/mpv/native/retained-lease.c',
+                     'experiments/jspi-asyncify/mpv/native/retained-lease.h']
+    if a.retained_lease_tests:
+        files[-1:-1]=['tests/native/private-retained-lease.c']
     inputs = out / 'inputs'
     for rel in files:
         dest = inputs / rel
@@ -108,6 +117,40 @@ static int request(int operation) {
         decoder.write_text(adapted)
         imports=inputs/'experiments/jspi-asyncify/mpv/runtime/imports.js'
         imports.write_text(imports.read_text()+"\naddToLibrary({demuxe_decoder_request:function(){throw new Error('Unbound decoder import');}});\n")
+    private_image = None
+    dependency_sources = {}
+    if a.retained_lease:
+        original_image = deps / 'sources/mpv/video/mp_image.c'
+        dependency_sources['mpv/video/mp_image.c'] = digest(original_image)
+        image = original_image.read_text()
+        capture = '    for (int n = 0; n < src->nb_side_data; n++) {'
+        restore = '        struct mp_ff_side_data *mpsd = &new_ref->ff_side_data[n];'
+        opaque = '''    dst->opaque_ref = av_buffer_alloc(sizeof(struct mp_image_params));
+    MP_HANDLE_OOM(dst->opaque_ref);
+    *(struct mp_image_params *)dst->opaque_ref->data = params;'''
+        if image.count(capture) != 1 or image.count(restore) != 1 or image.count(opaque) != 1:
+            raise ValueError('Retained lifetime mp_image adaptation failed')
+        image = '#include "retained-lease.h"\n' + image
+        image = image.replace(capture, '''    if (demuxe_retained_has_lease(src->opaque_ref, sizeof(struct mp_image_params))) {
+        struct mp_ff_side_data lease = {
+            .type = DEMUXE_RETAINED_OPAQUE_REF, .buf = src->opaque_ref,
+        };
+        MP_TARRAY_APPEND(NULL, dst->ff_side_data, dst->num_ff_side_data, lease);
+    }
+''' + capture)
+        image = image.replace(opaque, '''    AVBufferRef *retained_opaque = NULL;
+    for (int n = 0; n < new_ref->num_ff_side_data; n++)
+        if (new_ref->ff_side_data[n].type == DEMUXE_RETAINED_OPAQUE_REF)
+            retained_opaque = new_ref->ff_side_data[n].buf;
+    dst->opaque_ref = demuxe_retained_copy_opaque(retained_opaque, &params, sizeof(params));
+    MP_HANDLE_OOM(dst->opaque_ref);''')
+        image = image.replace(restore, restore + '''
+        if (mpsd->type == DEMUXE_RETAINED_OPAQUE_REF)
+            continue;''')
+        private_image = inputs / 'mpv/video/mp_image.c'
+        private_image.parent.mkdir(parents=True)
+        private_image.write_text(image)
+        imports.write_text(imports.read_text()+"\naddToLibrary({demuxe_decoder_release_v1:function(){throw new Error('Unbound retained release import');}});\n")
     config = out / 'em.config'
     config.write_text(f'LLVM_ROOT={str(sdk / "upstream/bin")!r}\nBINARYEN_ROOT={str(sdk / "upstream")!r}\nNODE_JS={shutil.which("node")!r}\nCACHE={str(out / "cache")!r}\n')
     env = {**os.environ, 'EM_CONFIG': str(config), 'EM_CACHE': str(out / 'cache'),
@@ -125,6 +168,8 @@ static int request(int operation) {
                'demuxe_coop_stack_top', 'demuxe_coop_stack_count', 'demuxe_asyncify_count', 'demuxe_asyncify_data',
                'demuxe_asyncify_base', 'demuxe_asyncify_end', 'demuxe_source_live', 'malloc', 'free']
     sources = [inputs / p for p in files if p.endswith(('.c', '.s'))]
+    if private_image:
+        sources.append(private_image)
     maximum_memory = 536870912 if build['profile'] == 'playback-full' else 134217728
     command = [sdk / 'upstream/emscripten/emcc', *flags,
                '-ffile-prefix-map=' + str(out) + '=/demuxe-private-playback',
@@ -138,6 +183,10 @@ static int request(int operation) {
                '-Wl,-Map,' + str(out / 'playback.map'), '-o', out / 'playback.mjs']
     if a.hybrid:
         command.insert(1,'-I'+str(deps/'sources/mpv/video/out'))
+    if a.retained_lease:
+        command[1:1]=['-DDEMUXE_RETAINED_LEASE_V1=1', '-I'+str(inputs/'experiments/jspi-asyncify/mpv/native')]
+    if a.retained_lease_tests:
+        command.insert(1, '-DDEMUXE_TEST_MPV=1')
     if (deps/'prefix/lib/libzimg.a').is_file():command.insert(1,'-fexceptions')
     suspending='demuxe_coop.demuxe_coop_wait,demuxe_coop.demuxe_coop_join,demuxe_coop.demuxe_coop_yield,demuxe_source.demuxe_source_read'
     if a.hybrid:suspending+=',demuxe_decoder.demuxe_decoder_request'
@@ -154,6 +203,10 @@ static int request(int operation) {
               'dependencyProfile': build['profile'], 'sourceSHA256': source_hashes,
               'audioCapacity': a.audio_capacity, 'maxHeapBytes': maximum_memory,
               'retainedDecoder': a.hybrid, 'traceLogs': a.trace_logs,
+              'retainedLeaseVersion': 1 if a.retained_lease else 0,
+              'retainedLeaseTests': a.retained_lease_tests,
+              'dependencySourceSHA256': dependency_sources,
+              'adaptedDependencySourceSHA256': {'mpv/video/mp_image.c': digest(private_image)} if private_image else {},
               'adaptedSourceSHA256': {p: digest(inputs / p) for p in files},
               'builderSHA256': digest(Path(__file__)), 'commands': []}
     try:
@@ -179,5 +232,7 @@ if __name__ == '__main__':
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--audio-capacity', type=int, choices=[8192, 32768], default=32768)
     parser.add_argument('--hybrid', action='store_true')
+    parser.add_argument('--retained-lease', action='store_true', help='Candidate native timing-frame lifetime acknowledgment')
+    parser.add_argument('--retained-lease-tests', action='store_true', help='Diagnostic-only native frame-copy/free exports')
     parser.add_argument('--trace-logs', action='store_true', help='Diagnostic build only: forward mpv trace messages')
     main(parser.parse_args())

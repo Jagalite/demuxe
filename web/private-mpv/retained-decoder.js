@@ -136,7 +136,7 @@ export class PrivateRetainedDecoder {
         if(!retainedOutputValid({width,height,timestamp,duration},this.maxPixels))throw Error('Invalid retained output frame');
         const space=frame.colorSpace;if(!this.current(scope))throw Error('Decoder generation replaced');
         this.machine=deliveredRetainedFrame(this.machine,scope,received.resumed);
-        return {result:1,frame,generation:scope.generation,fields:[2,2,0,color[space.primaries]??2,color[space.transfer]??2,color[space.matrix]??2,+!!space.fullRange,0],timestamp,duration,pixels:new Uint8Array([16,16,16,16,128,128])};
+        return {result:1,frame,generation:scope.generation,frameId:received.id,fields:[2,2,0,color[space.primaries]??2,color[space.transfer]??2,color[space.matrix]??2,+!!space.fullRange,0],timestamp,duration,pixels:new Uint8Array([16,16,16,16,128,128])};
       }catch(error){this.closeFrame(frame);throw error;}
     }
     throw Error('Unknown retained decoder operation');

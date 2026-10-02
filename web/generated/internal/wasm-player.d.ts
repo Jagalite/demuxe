@@ -144,6 +144,8 @@ export declare class WasmPlayer extends EventTarget {
     private waitForEvent;
     private openLocal;
     waitForPreviewPresentation(): Promise<void>;
+    /** Presentation and observed metadata arrive independently from the worker. */
+    waitForPreviewMetadata(): Promise<void>;
     /** Snapshot only this private software surface after a completed presentation. */
     previewSnapshot(): Promise<{
         blob: Blob;

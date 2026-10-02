@@ -101,6 +101,7 @@ export declare function attachmentPreferences(state: PlayerControlState): Readon
 export declare function transitionAttachment(state: PlayerControlState, input: AttachmentInput): Readonly<{
     state: Readonly<{
         revision: number;
+        monitor: import("./player-monitor.js").PlayerMonitorState;
         attachments: AttachmentState;
         routing: import("./route-state.js").RoutingState;
         boundary: import("./playback-boundary.js").BoundaryState;

@@ -229,6 +229,21 @@ export class WasmPlayer extends EventTarget {
     else {const bytes=file.slice(0);await Promise.all([loaded,this.request({type:'open',bytes},[bytes])]);}
   }
   waitForPreviewPresentation():Promise<void> {return this.waitForEvent(event=>event.event==='playback-restart'||(event.event==='end-file'?new Error('No preview video frame'):false));}
+  /** Presentation and observed metadata arrive independently from the worker. */
+  async waitForPreviewMetadata():Promise<void> {
+    if(this.destroyed)throw new Error('Player destroyed');
+    const ready=()=>{
+      const tracks=this.properties.get('track-list');
+      if(!Array.isArray(tracks)||!tracks.length)return false;
+      if(!tracks.some(track=>track.type==='video'))return true;
+      const params=this.properties.get('video-params') as {w?:number;h?:number;dw?:number;dh?:number}|undefined;
+      const width=params?.dw??params?.w,height=params?.dh??params?.h;
+      return typeof width==='number'&&Number.isFinite(width)&&width>0&&typeof height==='number'&&Number.isFinite(height)&&height>0;
+    };
+    if(ready())return;
+    await this.waitForEvent(event=>event.event==='end-file'?new Error('No preview video metadata'):
+      event.event==='property-change'&&(event.name==='track-list'||event.name==='video-params')&&ready());
+  }
   /** Snapshot only this private software surface after a completed presentation. */
   async previewSnapshot():Promise<{blob:Blob;time:number;width:number;height:number}> {
     await this.ready;return this.request({type:'preview-snapshot'});

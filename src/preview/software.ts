@@ -47,6 +47,7 @@ export class SoftwarePreviewProvider implements PreviewProvider {
         await player.openRemote(options);
       }
       await presented;request.signal.throwIfAborted();
+      await player.waitForPreviewMetadata();request.signal.throwIfAborted();
       const tracks=player.properties.get('track-list') as {type:string}[]|undefined;
       if(!tracks?.some(t=>t.type==='video'))return null;
       const params=player.properties.get('video-params') as {w?:number;h?:number;dw?:number;dh?:number}|undefined;

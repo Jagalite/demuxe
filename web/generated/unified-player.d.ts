@@ -162,14 +162,14 @@ export declare class Player extends EventTarget {
     private get busy();
     private empty;
     private monitor?;
-    private monitorSession?;
-    private monitorPolicy?;
-    private watchdogConfiguration;
-    private watchdogEpoch;
+    private get watchdogConfiguration();
+    private set watchdogConfiguration(value);
     get watchdogs(): WatchdogPolicy;
     /** Replaces the watchdog policy immediately; omitted object fields use defaults. */
     setWatchdogs(options: boolean | WatchdogOptions): void;
     private startWatchdogs;
+    private monitorHandleId?;
+    private sampleWatchdog;
     private stopWatchdogs;
     constructor(container: HTMLElement, options?: PlayerOptions);
     /** Stable composition host; internal surfaces may change between routes. */
