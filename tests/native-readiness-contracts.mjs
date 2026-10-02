@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';
-import {unitPlayer} from './helpers/unit-player.mjs';import assert from 'node:assert/strict';
+import {unitPlayer} from './helpers/unit-player.mjs';
+import {Player} from '../web/generated/unified-player.js';
+import assert from 'node:assert/strict';
 import {NativePlayer} from '../web/generated/internal/native-player.js';
 import {bufferingPolicy} from '../web/generated/internal/buffering.js';
 import {PlayerError,playerError} from '../web/generated/internal/errors.js';
