@@ -49,7 +49,7 @@ test('cached sync percentiles refresh when the full rolling window advances',()=
 test('native control-plane reads do not collect audio or video diagnostics',()=>{
   const player=Object.assign(Object.create(NativePlayer.prototype),{
     video:{preload:'auto',getVideoPlaybackQuality(){throw Error('video diagnostics collected');}},
-    buffering:bufferingPolicy(),native:initialNativeBackend(),
+    native:initialNativeBackend(),
     mpvAudio:{get diagnostics(){throw Error('audio diagnostics collected');}},
     requestedPlan:'native-video-mpv-audio',
   });
@@ -75,7 +75,7 @@ for(const ownership of ['window','worker','worker-fallback'])test(`${ownership} 
   Object.defineProperty(remux,'stats',{get(){throw Error('statistics cloned');}});
   const expected={effectiveForwardSeconds:30,playbackRate:1,paused:false,waitingForMedia:true};
   const worker=new WorkerRemuxController(video,{},()=>undefined),owner=worker.transition({type:'boot'}).owner;worker.accept({snapshot:{buffering:expected}},owner);worker.local=ownership==='worker-fallback'?remux:undefined;
-  const player=Object.assign(Object.create(NativePlayer.prototype),{video,buffering:bufferingPolicy(),remux:ownership==='window'?remux:worker});
+  const player=Object.assign(Object.create(NativePlayer.prototype),{video,native:initialNativeBackend(),remux:ownership==='window'?remux:worker});
   assert.equal(player.bufferingDiagnostics.backend,'remux');
   assert.deepEqual(player.bufferingDiagnostics.settings,expected);
   if(ownership!=='worker'){

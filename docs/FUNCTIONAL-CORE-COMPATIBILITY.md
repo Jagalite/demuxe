@@ -169,6 +169,10 @@ Player output verification retains distinct Native and mpv preparation contracts
 
 Shared Shaka code remains cached per asset URL after successful loading. Each consumer owns a distinct pure lease; only the final pending consumer cancels fetch/script acquisition. The original 15-second load deadline is unchanged and now uses sampled time when callbacks arrive early. Logical failure/retirement commits before DOM cleanup or consumer settlement, and synchronous acquisition reentry sees the existing shared promise. A URL or script acquired after retirement is released; cleanup attempts handler detachment, node removal, URL revocation and fetch abort independently. Runtime code and third-party handles never enter the pure cache metadata.
 
+Shaka backend lifecycle, accepted buffering/quality/text intent and external caption membership now share one pure owner. Quality and audio selection share variant authority; a retained physical configuration slot prevents reentrant commands from applying out of order. Compensation finishes before the next slot is granted. Retirement fences late runtime/player/network/listener acquisition, and cleanup attempts independent releases even when one fails. A late default caption cannot replace a newer explicit subtitle selection. Shaka-selected quality remains distinct from presented quality; the latter remains unknown.
+
+Native control domains share the existing backend epoch and serial. Playback still invokes media play on the calling stack when eligible, while the pure output slot serializes gain setup and output-device changes. Accepted device state is checked against physical sink completion, including supersession and rejection. Wasm buffering, gain, volume, watchdog and timing acknowledgments now compose within its existing lifecycle; buffers and graph handles stay in the adapter.
+
 ## Gesture-sensitive effects
 
 Source: [Player.play](../src/unified-player.ts#L1461), [presentation requests](../src/presentation.ts#L31), [output picker](../src/player/advanced-settings.ts#L146).

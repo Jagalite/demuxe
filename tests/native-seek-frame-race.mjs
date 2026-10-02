@@ -10,7 +10,7 @@ function fixture(){
  const video=new EventTarget(),callbacks=new Map();let id=0;
  Object.assign(video,{seeking:true,currentTime:3,paused:true,requestVideoFrameCallback:f=>{callbacks.set(++id,f);return id},cancelVideoFrameCallback:id=>callbacks.delete(id)});
  const remux={generation:1,timelineBias:1,expectedVideoFrame:()=>2,canSeekBuffered:()=>true};
- const player=Object.assign(Object.create(NativePlayer.prototype),{video,remux,native:initialNativeBackend(),cancelers:new Set()});
+ const player=Object.assign(Object.create(NativePlayer.prototype),{video,remux,native:initialNativeBackend(),cancelers:new Set(),controlWait:new Map()});
  const deliver=pts=>{const [id,callback]=callbacks.entries().next().value;callbacks.delete(id);callback(0,{mediaTime:pts});};
  const cancel=()=>{for(const fn of player.cancelers)fn(Error('Test cleanup'));};
  return {player,video,remux,callbacks,deliver,cancel};

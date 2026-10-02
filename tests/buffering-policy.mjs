@@ -2,6 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {bufferingPolicy,resolveBuffering,mpvBufferingOptions,shakaBufferingOptions} from '../web/generated/internal/buffering.js';
+import {createWasmLifecycle,applyWasmSetting} from '../web/generated/internal/machine/wasm-lifecycle.js';
+import {initialNativeBackend} from '../web/generated/internal/machine/native-backend.js';
 const MiB=1024*1024;
 test('zero configuration delegates balanced auto with bounded mpv caching',()=>{
  const p=bufferingPolicy();assert.deepEqual(p,{preload:'auto',profile:'balanced'});
@@ -27,7 +29,7 @@ test('non-auto preload preserves synchronous audio resume for a user gesture',as
  const {WasmPlayer}=await import('../web/generated/internal/wasm-player.js');
  const calls=[];let release;
  const p=Object.assign(Object.create(WasmPlayer.prototype),{
-  buffering:bufferingPolicy({preload:'metadata'}),
+  lifecycle:applyWasmSetting(createWasmLifecycle(),{kind:'buffer-policy',policy:bufferingPolicy({preload:'metadata'})}).state,
   audioContext:{state:'running',resume(){calls.push('resume');return Promise.resolve();}},
   sendTiming(){},configureBuffering(){calls.push('configure');return new Promise(resolve=>release=resolve);},
   async setPause(value){calls.push(['pause',value]);}
@@ -68,7 +70,7 @@ test('mpv runtime updates reset preload throttling when returning to auto',async
  const {PrivateSoftwarePlayer}=await import('../web/generated/internal/private-software-player.js');
  const {initialPrivateSoftware}=await import('../web/generated/internal/machine/private-software.js');
  const {createBackendRequests}=await import('../web/generated/internal/machine/backend-requests.js');
- for(const [Class,extra] of [[WasmPlayer,{properties:new Map([['pause',true]]),bufferingSettings:{}}],[PrivateSoftwarePlayer,{ready:Promise.resolve(),options:{},policy:initialPrivateSoftware(),requests:createBackendRequests('software')}]]){
+ for(const [Class,extra] of [[WasmPlayer,{properties:new Map([['pause',true]]),lifecycle:createWasmLifecycle()}],[PrivateSoftwarePlayer,{ready:Promise.resolve(),options:{},policy:initialPrivateSoftware(),requests:createBackendRequests('software')}]]){
   const calls=[];const p=Object.assign(Object.create(Class.prototype),extra,{command:async(...args)=>calls.push(args),request:async(_kind,{args})=>calls.push(args)});
   await p.setBuffering(bufferingPolicy({preload:'metadata'}));assert.deepEqual(calls.at(-1),['set','cache-secs','1']);
   await p.setBuffering(bufferingPolicy());assert.deepEqual(calls.at(-1),['set','cache-secs','3600000']);
@@ -78,7 +80,7 @@ test('mpv runtime updates reset preload throttling when returning to auto',async
 
 test('native runtime updates change hints and reject providers without update support',async()=>{
  const {NativePlayer}=await import('../web/generated/internal/native-player.js');
- const video={preload:'auto'},p=Object.assign(Object.create(NativePlayer.prototype),{video,buffering:bufferingPolicy()});
+ const video={preload:'auto'},p=Object.assign(Object.create(NativePlayer.prototype),{video,native:initialNativeBackend(),controlWait:new Map(),sinkWait:new Map(),cancelers:new Set()});
  await p.setBuffering(bufferingPolicy({preload:'metadata'}));assert.equal(video.preload,'metadata');
  p.remux={};assert.equal(p.bufferingUpdateSupported,false);
  await assert.rejects(p.setBuffering(bufferingPolicy()),e=>e.code==='UNSUPPORTED_FEATURE');assert.equal(video.preload,'metadata');

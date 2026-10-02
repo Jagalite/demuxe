@@ -60,7 +60,7 @@ test('adapted and packet-copy Native share source stream identities with mpv',()
 function seekingPlayer(){
  const video=new EventTarget();let serial=0;const callbacks=new Map();
  Object.assign(video,{seeking:false,currentTime:3.5,requestVideoFrameCallback(callback){callbacks.set(++serial,callback);return serial},cancelVideoFrameCallback(id){callbacks.delete(id)}});
- const p=Object.assign(Object.create(NativePlayer.prototype),{video,remux:{generation:4,timelineBias:1},native:initialNativeBackend(),cancelers:new Set()});
+ const p=Object.assign(Object.create(NativePlayer.prototype),{video,remux:{generation:4,timelineBias:1},native:initialNativeBackend(),cancelers:new Set(),controlWait:new Map()});
  return {p,video,frame(mediaTime){const [id,callback]=callbacks.entries().next().value;callbacks.delete(id);callback(0,{mediaTime})},callbacks};
 }
 test('seek presentation accepts a covering low-fps frame only after seeking completes',async()=>{

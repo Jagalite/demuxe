@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import type { BufferingPolicy } from '../../types.js';
+import { type NativeControls, type NativeControlDomain, type NativeControlRequest, type NativeControlValue } from './native-controls.js';
 import type { CapabilityEvidenceData } from './routing.js';
 import { type NativeLoadState, type NativeLoadRequest, type NativeLoadPolicy, type NativeLoadEvent } from './native-load.js';
 type Expected = Readonly<{
@@ -9,7 +11,7 @@ export type NativeRequest = Readonly<{
     id: number;
     epoch: number;
     kind: 'verification' | 'seek' | 'load';
-}>;
+}> | NativeControlRequest;
 type Verification = Readonly<{
     request: NativeRequest;
     output: boolean;
@@ -48,8 +50,10 @@ export type NativeBackendState = Readonly<{
     seek: Seek | null;
     seekPresentationRetries: number;
     load: NativeLoadState;
+    controls: NativeControls;
+    loadPlaybackSerial: number;
 }>;
-export declare function initialNativeBackend(): NativeBackendState;
+export declare function initialNativeBackend(buffering?: BufferingPolicy): NativeBackendState;
 export declare function nativeRequestCurrent(state: NativeBackendState, request: NativeRequest): boolean;
 export type NativeAudioFacts = Readonly<{
     decodedBytes: number | undefined;
@@ -82,6 +86,24 @@ export type NativeBackendCommand = Readonly<{
     type: 'source';
 }> | Readonly<{
     type: 'stop';
+}> | Readonly<{
+    type: 'control.begin';
+    domain: NativeControlDomain;
+    paused?: boolean;
+}> | Readonly<{
+    type: 'control.value';
+    request: NativeControlRequest;
+    change: NativeControlValue;
+}> | Readonly<{
+    type: 'control.finish';
+    request: NativeControlRequest;
+}> | Readonly<{
+    type: 'control.activation' | 'control.deadline';
+    request: NativeControlRequest;
+    now: number;
+}> | Readonly<{
+    type: 'control.sink.begin' | 'control.sink.finished';
+    request: NativeControlRequest;
 }> | Readonly<{
     type: 'load.begin';
     kind: 'source' | 'audio-track';
@@ -187,11 +209,12 @@ export type NativeBackendDecision = Readonly<{
     armFrame?: boolean;
     retry?: boolean;
     remaining?: number;
+    sinkStart?: NativeControlRequest;
     fallback?: boolean;
     rollback?: boolean;
     resume?: boolean;
     position?: number;
-    failure?: 'missing-audio' | 'missing-output' | 'verification-timeout' | 'seek-timeout';
+    failure?: 'missing-audio' | 'missing-output' | 'verification-timeout' | 'seek-timeout' | 'activation-timeout';
 }>;
 export declare function transitionNativeBackend(state: NativeBackendState, command: NativeBackendCommand): NativeBackendDecision;
 export {};

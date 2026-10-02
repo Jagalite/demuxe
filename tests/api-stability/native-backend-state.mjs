@@ -65,7 +65,7 @@ function candidate(t,overrides={}){
  let now=0,serial=0;const callbacks=new Map(),cancelled=[],video=new EventTarget();
  t.mock.method(performance,'now',()=>now);t.mock.timers.enable({apis:['setTimeout','setInterval']});
  Object.assign(video,{readyState:4,videoWidth:640,currentTime:0,paused:true,seeking:false,ended:false,error:null,frames:0,getVideoPlaybackQuality(){return {totalVideoFrames:this.frames};},requestVideoFrameCallback(callback){callbacks.set(++serial,callback);return serial;},cancelVideoFrameCallback(id){cancelled.push(id);callbacks.delete(id);},...overrides});
- const player=Object.assign(Object.create(NativePlayer.prototype),{native:core.initialNativeBackend(),video,buffering:{preload:'auto'},cancelers:new Set()});
+ const player=Object.assign(Object.create(NativePlayer.prototype),{native:core.initialNativeBackend(),video,cancelers:new Set(),controlWait:new Map()});
  return {player,video,callbacks,cancelled,tick(ms){now+=ms;t.mock.timers.tick(ms);},frame(mediaTime=video.currentTime){const [id,callback]=callbacks.entries().next().value;callbacks.delete(id);callback(now,{mediaTime});}};
 }
 test('actual native verifier retires blocked subtitle preflight promptly and ignores its late completion',async t=>{

@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 import { runtimeWorker } from './runtime-worker.js';
-import { bufferingPolicy, resolveBuffering, mpvBufferingOptions } from './buffering.js';
+import { bufferingPolicy, resolveBuffering } from './buffering.js';
 import { PlayerError, isPlayerError } from './errors.js';
 import { resolveDecodePolicy } from './decode-policy.js';
 import { webgpuDecoderSupported } from './webgpu-codecs.js';
 import { selectExternalDecoderConfiguration } from './external-decoder-selection.js';
 import { watchdogPolicy } from './watchdogs.js';
+import { cloneWasmBuffering, validWasmVolume, planWasmGain, effectiveWasmGain, planWasmBuffering, planWasmAudioOutput } from './machine/wasm-settings.js';
 import { wasmSeekBoundary } from './machine/wasm-seek.js';
-import { createWasmLifecycle, wasmAlive, markWasmInitialized, settleWasmInitialization, claimWasmWorkerFailure, admitWasmRequest, settleWasmRequest, rejectWasmRequests, admitWasmWaiter, settleWasmWaiter, beginWasmOpen, ownsWasmOpen, finishWasmOpen, observeWasmFile, retireWasmLifecycle, finishWasmRetirement, beginWasmPlayerSeek, observeWasmPlayerSeek, confirmWasmPlayerSeek } from './machine/wasm-lifecycle.js';
+import { createWasmLifecycle, wasmAlive, markWasmInitialized, settleWasmInitialization, claimWasmWorkerFailure, admitWasmRequest, settleWasmRequest, rejectWasmRequests, admitWasmWaiter, settleWasmWaiter, beginWasmOpen, ownsWasmOpen, finishWasmOpen, observeWasmFile, retireWasmLifecycle, finishWasmRetirement, beginWasmPlayerSeek, observeWasmPlayerSeek, confirmWasmPlayerSeek, applyWasmSetting } from './machine/wasm-lifecycle.js';
 /** One isolated software engine per player; bounded remote ranges and local File reads; ArrayBuffer inputs remain capped. */
 export class WasmPlayer extends EventTarget {
     loading = new AbortController();
@@ -18,18 +19,17 @@ export class WasmPlayer extends EventTarget {
     selectiveGain;
     analyser;
     gainNode;
-    gainValue = 1;
-    volumeValue = 100;
+    get gainValue() { return this.lifecycle.settings.gain; }
+    get volumeValue() { return this.lifecycle.settings.volume; }
     timing;
-    lastTiming;
-    watchdogs = watchdogPolicy();
-    lifecycle = createWasmLifecycle();
+    lifecycle = createWasmLifecycle(watchdogPolicy().decoderOutput);
     initializationError;
     get destroyed() { return this.lifecycle.phase === 'retiring' || this.lifecycle.phase === 'closed'; }
     setWatchdogs(policy) {
-        this.watchdogs = policy;
-        if (this.lifecycle.initSent && !this.destroyed)
-            this.worker.postMessage({ type: 'watchdogs', decoderOutput: policy.decoderOutput });
+        const decision = applyWasmSetting(this.lifecycle, { kind: 'watchdog', decoderOutput: policy.decoderOutput });
+        this.lifecycle = decision.state;
+        if (decision.send)
+            this.worker.postMessage({ type: 'watchdogs', decoderOutput: this.lifecycle.settings.decoderOutput });
     }
     pending = new Map();
     destruction;
@@ -44,26 +44,26 @@ export class WasmPlayer extends EventTarget {
     requestedOutput;
     deviceChannels;
     diagnostics;
-    buffering;
-    bufferingSettings = {};
+    get buffering() { return this.lifecycle.settings.buffering; }
+    get bufferingSettings() { return this.lifecycle.settings.bufferingSettings; }
     browserCodecsAbsent = false;
     properties = new Map();
     ready;
     constructor(canvas, { providerAssets, prepared, buffering = bufferingPolicy(), disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'auto', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url), decodeQuality = 'exact', adaptiveFrameDrop = false, videoTrack, webgpuDecodeIntent } = {}) {
         super();
-        this.buffering = buffering;
+        this.lifecycle = applyWasmSetting(this.lifecycle, { kind: 'buffer-policy', policy: buffering }).state;
         this.audioOnly = mode === 'selective-audio';
         if (!crossOriginIsolated)
             throw new Error('This player requires a secure, cross-origin isolated page.');
         this.audioContext = new AudioContext({ latencyHint: 'interactive' });
         this.requestedOutput = audioOutput;
         this.deviceChannels = this.audioContext.destination.maxChannelCount;
-        const wanted = audioOutput === 'auto' ? (this.deviceChannels >= 8 ? 8 : this.deviceChannels >= 6 ? 6 : 2) : audioOutput === '7.1' ? 8 : audioOutput === '5.1' ? 6 : 2;
-        if (wanted > this.deviceChannels && audioFallback === 'reject') {
+        const output = planWasmAudioOutput(audioOutput, this.deviceChannels, audioFallback);
+        if (output.unavailable) {
             void this.audioContext.close();
             throw Error('Requested audio layout is unavailable on this output device');
         }
-        this.outputChannels = wanted <= this.deviceChannels ? wanted : 2;
+        this.outputChannels = output.channels;
         try {
             this.audioContext.destination.channelCount = this.outputChannels;
         }
@@ -216,7 +216,7 @@ export class WasmPlayer extends EventTarget {
                 }
                 const offscreen = canvas.transferControlToOffscreen();
                 this.lifecycle = markWasmInitialized(this.lifecycle);
-                this.worker.postMessage({ type: 'init', decoderOutputWatchdog: this.watchdogs.decoderOutput, compiledWasm: prepared?.module, verifiedProviderAssets: !!providerAssets, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0, decodeQuality, decodePolicy, adaptiveFrameDrop, videoTrack, ...(selectedDecodeIntent ? { webgpuDecodeIntent: selectedDecodeIntent } : {}), displayWidth: canvas.width, displayHeight: canvas.height }, [offscreen, font]);
+                this.worker.postMessage({ type: 'init', decoderOutputWatchdog: this.lifecycle.settings.decoderOutput, compiledWasm: prepared?.module, verifiedProviderAssets: !!providerAssets, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0, decodeQuality, decodePolicy, adaptiveFrameDrop, videoTrack, ...(selectedDecodeIntent ? { webgpuDecodeIntent: selectedDecodeIntent } : {}), displayWidth: canvas.width, displayHeight: canvas.height }, [offscreen, font]);
                 if (!wasmAlive(this.lifecycle))
                     return;
                 const timing = setInterval(() => this.sendTiming(), 20);
@@ -235,9 +235,10 @@ export class WasmPlayer extends EventTarget {
         // Fallback latency estimate, explicitly not an independent A/V sync measurement.
         const latency = (this.audioContext.baseLatency || 0) + (this.audioContext.outputLatency || 0);
         const latencyUs = Math.round(latency * 1e6), running = this.audioContext.state === 'running';
-        if (!force && this.lastTiming?.latencyUs === latencyUs && this.lastTiming.running === running)
+        const decision = applyWasmSetting(this.lifecycle, { kind: 'timing', latencyUs, running, force });
+        this.lifecycle = decision.state;
+        if (!decision.send)
             return;
-        this.lastTiming = { latencyUs, running };
         this.worker.postMessage({ type: 'timing', latencyUs, running });
     }
     settleRequest(id, error, result, deadline) {
@@ -558,18 +559,25 @@ export class WasmPlayer extends EventTarget {
         await this.withEvent(e => e.event === 'property-change' && e.name === 'pause' && e.data === paused, () => this.command('set', 'pause', paused ? 'yes' : 'no'));
     }
     async setBuffering(policy) {
-        const settings = { ...mpvBufferingOptions(policy, this.properties.get('pause') !== false), 'cache-secs': policy.preload === 'auto' || this.properties.get('pause') === false ? '3600000' : '1' };
+        policy = cloneWasmBuffering(policy);
+        const settings = planWasmBuffering(this.lifecycle.settings, { kind: 'update', policy, paused: this.properties.get('pause') !== false });
         for (const [key, value] of Object.entries(settings)) {
             await this.command('set', key, value);
-            this.bufferingSettings[key] = value;
+            const acknowledged = applyWasmSetting(this.lifecycle, { kind: 'buffer-setting', key, value });
+            this.lifecycle = acknowledged.state;
+            if (!acknowledged.accepted)
+                throw this.unavailableError();
         }
-        this.buffering = policy;
+        this.lifecycle = applyWasmSetting(this.lifecycle, { kind: 'buffer-policy', policy }).state;
     }
     get bufferingDiagnostics() { return { ...resolveBuffering(this.buffering, 'mpv'), settings: { ...this.bufferingSettings, 'demuxer-cache-state': this.properties.get('demuxer-cache-state'), 'paused-for-cache': this.properties.get('paused-for-cache'), 'cache-buffering-state': this.properties.get('cache-buffering-state') } }; }
     async configureBuffering(preparing) {
-        for (const [key, value] of Object.entries(mpvBufferingOptions(this.buffering, preparing))) {
+        for (const [key, value] of Object.entries(planWasmBuffering(this.lifecycle.settings, { kind: 'configure', preparing }))) {
             await this.command('set', key, value);
-            this.bufferingSettings[key] = value;
+            const acknowledged = applyWasmSetting(this.lifecycle, { kind: 'buffer-setting', key, value });
+            this.lifecycle = acknowledged.state;
+            if (!acknowledged.accepted)
+                throw this.unavailableError();
         }
     }
     async play() {
@@ -597,34 +605,93 @@ export class WasmPlayer extends EventTarget {
     rate(rate) { if (!Number.isFinite(rate) || rate < 0.5 || rate > 2)
         throw new Error('Playback rate must be 0.5 to 2'); return this.command('set', 'speed', String(rate)); }
     async volume(percent) {
-        if (!Number.isFinite(percent) || percent < 0 || percent > 100)
+        if (!validWasmVolume(percent))
             throw new Error('Invalid volume');
         await this.command('set', 'volume', String(percent));
-        this.volumeValue = percent;
+        const accepted = applyWasmSetting(this.lifecycle, { kind: 'volume', value: percent });
+        this.lifecycle = accepted.state;
+        if (!accepted.accepted)
+            throw this.unavailableError();
         // mpv may have queued PCM before acknowledging mute. Silence that output
         // at the browser graph too, without applying normal volume twice.
-        this.gainNode?.gain.setValueAtTime(percent === 0 ? 0 : this.gainValue, this.audioContext.currentTime);
+        this.gainNode?.gain.setValueAtTime(effectiveWasmGain(this.lifecycle.settings), this.audioContext.currentTime);
     }
     async gain(value) {
-        if (!Number.isFinite(value) || value < 0 || value > 1)
+        if (!planWasmGain(this.lifecycle.settings, value, !!this.gainNode).valid)
             throw new Error('Gain must be between 0 and 1');
         await this.ready;
         if (this.destroyed)
             throw new Error('Player is destroyed');
-        if (!this.gainNode && value !== 1) {
+        const decision = planWasmGain(this.lifecycle.settings, value, !!this.gainNode);
+        if (decision.createStage) {
             const gain = this.audioContext.createGain();
-            gain.channelCount = this.outputChannels;
-            gain.channelCountMode = 'explicit';
-            gain.channelInterpretation = 'discrete';
-            gain.gain.setValueAtTime(this.volumeValue === 0 ? 0 : value, this.audioContext.currentTime);
-            this.audioNode.disconnect();
-            this.audioNode.connect(gain);
-            gain.connect(this.audioContext.destination);
-            gain.connect(this.analyser);
+            if (!wasmAlive(this.lifecycle)) {
+                try {
+                    gain.disconnect();
+                }
+                catch { }
+                throw this.unavailableError();
+            }
+            // Acquire the physical node before host callbacks so retirement can contain it.
             this.gainNode = gain;
+            const source = this.audioNode, destination = this.audioContext.destination, analyser = this.analyser;
+            const owns = () => { if (!wasmAlive(this.lifecycle) || this.gainNode !== gain)
+                throw this.unavailableError(); };
+            try {
+                owns();
+                gain.channelCount = this.outputChannels;
+                owns();
+                gain.channelCountMode = 'explicit';
+                owns();
+                gain.channelInterpretation = 'discrete';
+                owns();
+                gain.gain.setValueAtTime(decision.effective, this.audioContext.currentTime);
+                owns();
+                source.disconnect();
+                owns();
+                source.connect(gain);
+                owns();
+                gain.connect(destination);
+                owns();
+                gain.connect(analyser);
+                owns();
+            }
+            catch (error) {
+                if (this.gainNode === gain) {
+                    this.gainNode = undefined;
+                    if (wasmAlive(this.lifecycle)) {
+                        try {
+                            gain.disconnect();
+                        }
+                        catch { }
+                    }
+                    if (wasmAlive(this.lifecycle)) {
+                        try {
+                            source.disconnect();
+                        }
+                        catch { }
+                    }
+                    if (wasmAlive(this.lifecycle)) {
+                        try {
+                            source.connect(destination);
+                        }
+                        catch { }
+                    }
+                    if (wasmAlive(this.lifecycle)) {
+                        try {
+                            source.connect(analyser);
+                        }
+                        catch { }
+                    }
+                }
+                throw error;
+            }
         }
-        this.gainNode?.gain.setValueAtTime(this.volumeValue === 0 ? 0 : value, this.audioContext.currentTime);
-        this.gainValue = value;
+        this.gainNode?.gain.setValueAtTime(decision.effective, this.audioContext.currentTime);
+        const accepted = applyWasmSetting(this.lifecycle, { kind: 'gain', value });
+        this.lifecycle = accepted.state;
+        if (!accepted.accepted)
+            throw this.unavailableError();
     }
     selectTrack(type, id) {
         if (!['audio', 'sub'].includes(type) || !/^(?:[1-9][0-9]*|auto|no)$/.test(id))

@@ -199,7 +199,7 @@ test('ignored manual selection rejects without publishing the requested policy',
 test('runtime buffering updates restore captured defaults and report rejected configuration',async()=>{
  const backend=new ShakaBackend(video(),new URL('https://app.test/'));
  try{
-  await backend.openRemote(source);backend.bufferingDefaults={bufferingGoal:10,bufferBehind:30};
+  const configuration=FakePlayer.prototype.getConfiguration;FakePlayer.prototype.getConfiguration=function(){return {...configuration.call(this),streaming:{bufferingGoal:10,bufferBehind:30}};};try{await backend.openRemote(source);}finally{FakePlayer.prototype.getConfiguration=configuration;}
   await backend.setBuffering({preload:'auto',profile:'balanced',aheadSeconds:25,behindSeconds:8});
   assert.equal(backend.bufferingDiagnostics.settings.bufferingGoal,25);
   await backend.setBuffering({preload:'auto',profile:'balanced'});
@@ -207,4 +207,62 @@ test('runtime buffering updates restore captured defaults and report rejected co
   backend.player.configure=()=>false;await assert.rejects(backend.setBuffering({preload:'auto',profile:'resilient'}),e=>e.code==='INVALID_ARGUMENT');
   assert.equal(backend.buffering.profile,'balanced');
  }finally{await backend.destroy();}
+});
+
+test('Shaka destroy promise is installed before reentrant cleanup and all owners release after failure',async()=>{
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));await backend.openRemote(source);
+ const failure=new Error('listener removal');let nested,nativeReleased=0,playerReleased=0;
+ backend.listeners.push(()=>{nested=backend.destroy();throw failure;});
+ backend.player.destroy=async()=>{playerReleased++;};backend.native.destroy=async()=>{nativeReleased++;};
+ const done=backend.destroy();assert.equal(done,nested);await assert.rejects(done,error=>error===failure);
+ assert.equal(nativeReleased,1);assert.equal(playerReleased,1);assert.equal(backend.policy.diagnostics.active,false);assert.equal(backend.destroy(),done);
+});
+test('Shaka late quality observations cannot revive retired state',async()=>{
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));await backend.openRemote(source);let observed;
+ const original=FakePlayer.prototype.addEventListener;FakePlayer.prototype.addEventListener=function(type,fn,...args){if(type==='mediaqualitychanged')observed=fn;return original.call(this,type,fn,...args);};
+ let second;try{second=new ShakaBackend(video(),new URL('https://app.test/'));await second.openRemote(source);await second.destroy();const state=second.control;observed({mediaQuality:{width:640},position:1});assert.equal(second.control,state);assert.equal(second.control.observedQuality,null);}finally{FakePlayer.prototype.addEventListener=original;await backend.destroy();await second?.destroy();}
+});
+test('Shaka configure reentry cannot commit or roll back a newer quality selection',async()=>{
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));await backend.openRemote(source);const player=backend.player,configure=player.configure.bind(player);let nested,calls=0;
+ player.configure=value=>{calls++;if(calls===1)nested=backend.setQuality({mode:'manual',id:'variant:4'});return configure(value);};
+ try{await assert.rejects(backend.setQuality({mode:'auto'}),e=>e.code==='ABORTED');await nested;assert.equal(calls,3);assert.deepEqual(backend.streamingState().requested,{mode:'manual',id:'variant:4'});}finally{await backend.destroy();}
+});
+test('Shaka buffering setter retirement cannot publish accepted settings',async()=>{
+ const v=video(),backend=new ShakaBackend(v,new URL('https://app.test/'));await backend.openRemote(source);const old=backend.control.buffering;let cleanup;
+ Object.defineProperty(v,'preload',{set(){cleanup=backend.destroy();},configurable:true});
+ await assert.rejects(backend.setBuffering({...old,preload:'none'}),e=>e.code==='ABORTED');await cleanup;assert.equal(backend.control.buffering,old);
+});
+test('Shaka late text attachment cannot populate a retired source',async()=>{
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));await backend.openRemote(source);let finish;
+ backend.player.addTextTrackAsync=()=>new Promise(resolve=>finish=resolve);
+ const work=backend.addTextTrack({src:'https://media.test/caption.vtt',default:true});await backend.destroy();finish({id:42});await assert.rejects(work,e=>e.code==='ABORTED');assert.deepEqual(backend.control.external,[]);
+});
+test('Shaka quality reentry leaves physical ABR consistent with the newer accepted policy',async()=>{
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));await backend.openRemote(source);const player=backend.player,configure=player.configure.bind(player);let nested,calls=0;
+ player.configure=value=>{if(++calls===1)nested=backend.setQuality({mode:'manual',id:'variant:4'});return configure(value);};
+ try{await assert.rejects(backend.setQuality({mode:'auto'}),e=>e.code==='ABORTED');await nested;assert.equal(player.config.abr.enabled,false);assert.deepEqual(backend.streamingState().requested,{mode:'manual',id:'variant:4'});}finally{await backend.destroy();}
+});
+test('Shaka audio selection supersedes a pending quality change without restoring old audio',async()=>{
+ const en={id:4,active:true,videoId:3,videoCodec:'avc1',audioCodec:'mp4a.40.2',language:'en',audioLanguage:'en',label:'English',audioRoles:[],channelsCount:2,spatialAudio:false,bandwidth:900000};
+ variantOverride=[en,{...en,id:5,active:false,language:'fr',audioLanguage:'fr',label:'French'}];
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));let nested;
+ try{await backend.openRemote(source);const player=backend.player,configure=player.configure.bind(player),french=backend.properties.get('track-list').find(t=>t.type==='audio'&&t.lang==='fr').id;let calls=0;
+ player.configure=value=>{if(++calls===1)nested=backend.selectTrack('audio',french);return configure(value);};
+ player.selectAudioTrack=track=>{for(const item of player.audio)item.active=item===track;for(const variant of variantOverride)variant.active=variant.language===track.language;};
+ await assert.rejects(backend.setQuality({mode:'manual',id:'variant:4'}),e=>e.code==='ABORTED');await nested;assert.equal(player.getVariantTracks().find(t=>t.active).language,'fr');assert.equal(backend.control.quality.mode,'auto');assert.equal(player.config.abr.enabled,true);
+ }finally{await backend.destroy();variantOverride=undefined;}
+});
+for(const phase of ['network','filter','listener','configure'])test(`Shaka ${phase} acquisition retirement prevents subsequent load and releases late registration`,async()=>{
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));let cleanup,loads=0,adds=0,removes=0;
+ const prototype=FakePlayer.prototype,original={getNetworkingEngine:prototype.getNetworkingEngine,addEventListener:prototype.addEventListener,removeEventListener:prototype.removeEventListener,configure:prototype.configure,load:prototype.load};
+ prototype.getNetworkingEngine=function(){if(phase==='network')cleanup=backend.destroy();return {registerRequestFilter(){if(phase==='filter')cleanup=backend.destroy();}};};
+ prototype.addEventListener=function(...args){adds++;if(phase==='listener')cleanup=backend.destroy();return original.addEventListener.apply(this,args);};
+ prototype.removeEventListener=function(...args){removes++;return original.removeEventListener.apply(this,args);};
+ prototype.configure=function(...args){if(phase==='configure')cleanup=backend.destroy();return original.configure.apply(this,args);};prototype.load=async()=>{loads++;};
+ try{await assert.rejects(backend.openRemote(source),e=>e.code==='ABORTED');await cleanup;assert.equal(loads,0);assert.equal(removes,adds);assert.equal(backend.listeners.length,0);assert.equal(backend.control.requests.length,0);}finally{Object.assign(prototype,original);await backend.destroy();}
+});
+test('late default caption attachment preserves a newer explicit subtitle selection',async()=>{
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));await backend.openRemote(source);let finish;const player=backend.player;
+ player.addTextTrackAsync=()=>new Promise(resolve=>finish=resolve);
+ try{const attachment=backend.addTextTrack({src:'https://media.test/caption.vtt',default:true});await backend.selectTrack('sub','shaka-sub-21');const added={id:42,active:false,language:'de'};player.text.push(added);finish(added);await attachment;assert.equal(player.text.find(t=>t.active).id,21);assert.equal(backend.control.selectedSub,'shaka-sub-21');assert.equal(backend.control.external.length,1);}finally{await backend.destroy();}
 });

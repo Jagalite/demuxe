@@ -7,7 +7,6 @@ import type { RemoteSource, TextTrackSource, SubtitleAsset, TrackType } from '..
 export declare class ShakaBackend extends EventTarget implements Backend {
     private video;
     private assetBase;
-    private buffering;
     setWatchdogs(policy: import('../types.js').WatchdogPolicy): void;
     nativeProgressSample(): {
         eligible: boolean;
@@ -28,19 +27,30 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     private player?;
     private policy?;
     private runtime?;
-    private stopped;
+    private control;
+    private get stopped();
+    private get opening();
+    private get buffering();
+    private get bufferingDefaults();
+    private get qualityPolicy();
+    private get runtimeQuality();
+    private get observedQuality();
+    private get visible();
+    private get selectedSub();
+    private get audioDisabled();
+    private move;
+    private check;
+    private begin;
+    private controlWaiters;
+    private enter;
+    private pumpControls;
+    private finishControl;
+    private listen;
     private runtimeLoad;
-    private opening;
     private failure?;
     private disposal?;
     private listeners;
     private blobs;
-    private external;
-    private visible;
-    private selectedSub;
-    private audioDisabled;
-    private source?;
-    private bufferingDefaults;
     constructor(video: HTMLVideoElement, assetBase?: URL, buffering?: BufferingPolicy);
     /** Shaka owns image-track indexing. Return its authored reference without
      * downloading a sprite through playback's network/error/ABR machinery. */
@@ -79,9 +89,7 @@ export declare class ShakaBackend extends EventTarget implements Backend {
         audioDecoderConfigured?: boolean;
         playbackReady?: boolean;
     };
-    private observedQuality;
-    private runtimeQuality;
-    private qualityPolicy;
+    private variantFacts;
     private qualityTracks;
     streamingState(): import('../types.js').StreamingState;
     setQuality(policy: import('../types.js').QualityPolicy): Promise<void>;

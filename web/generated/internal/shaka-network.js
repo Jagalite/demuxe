@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PlayerError, isPlayerError } from './errors.js';
+import { initialShakaNetwork, shakaNetworkRequest, shakaNetworkCurrent, beginShakaNetworkRequest, setShakaNetworkResource, cancelShakaNetworkRequest, expireShakaNetworkRequest, cleanupShakaNetworkRequest, finishShakaNetworkRequest, failShakaNetwork, retireShakaNetwork, shakaNetworkAdmission, receiveShakaNetworkStatus, finishShakaNetworkRefresh, observeShakaNetworkValidator, beginShakaNetworkBody, appendShakaNetworkBody, completeShakaNetworkBody, shakaNetworkResourceIDs } from './machine/shaka-network.js';
 const owners = new WeakMap();
 const installed = new WeakSet();
 function installTransport(runtime) {
@@ -17,29 +18,29 @@ function installTransport(runtime) {
         runtime.net.NetworkingEngine.registerScheme(scheme, plugin, undefined, true);
     installed.add(runtime);
 }
-/** Per-session Shaka transport. Scheduling, retries and bandwidth estimation stay
- * in NetworkingEngine. A WeakMap associates only this player's requests.
- * Fetch redirect:error is intentional: filters cannot authorize a redirect before
- * the browser sends it. Applications must supply final authorized resource URLs. */
+/** Per-session Shaka transport. The immutable owner admits requests and evidence;
+ * this shell owns browser handles and private URL/header identity registries.
+ * Shaka retains retries, connection/stall deadlines and bandwidth scheduling. */
 export class ShakaNetworkPolicy {
     source;
     runtime;
     fetcher;
     preview;
-    requests = new Set();
-    terminalError;
-    active = true;
-    controllers = new Set();
+    control;
+    terminal;
+    controllers = new Map();
+    requests = new Map();
+    resources = new Map();
+    resourceSerial = 0;
     allowed;
     headers;
-    validators = new Map();
-    rangeTotals = new Map();
     ownedBlobs = new Set();
     constructor(source, runtime, fetcher = globalThis.fetch.bind(globalThis), preview = false) {
         this.source = source;
         this.runtime = runtime;
         this.fetcher = fetcher;
         this.preview = preview;
+        this.control = initialShakaNetwork(!!source.immutable, preview);
         const root = new URL(source.url, globalThis.location?.href);
         this.allowed = new Set(source.allowedOrigins ?? [root.origin]);
         this.headers = { ...source.headers };
@@ -47,221 +48,284 @@ export class ShakaNetworkPolicy {
         this.authorize(root.href);
         installTransport(runtime);
     }
-    checkHeaders(headers) { if (Object.keys(headers).some(name => name.toLowerCase() === 'range'))
-        throw this.fail(new PlayerError('SOURCE_PERMISSION', 'Source headers cannot override Shaka byte ranges')); }
-    checkActive() { if (!this.active)
+    get terminalError() { return this.terminal?.id === this.control.terminal ? this.terminal.error : undefined; }
+    checkActive() { if (!this.control.active)
         throw new PlayerError('ABORTED', 'Streaming source was retired'); }
+    checkRequest(id) { this.checkActive(); if (!shakaNetworkCurrent(this.control, id))
+        throw new DOMException('Streaming request cancelled', 'AbortError'); }
+    fail(error) { this.control = failShakaNetwork(this.control); this.terminal = { id: this.control.terminal, error }; return error; }
+    failure(value) { throw this.fail(new PlayerError(value.code, value.message)); }
+    accept(decision) { this.control = decision.state; if (decision.failure)
+        this.failure(decision.failure); return decision.accepted; }
+    admission(facts) { const failed = shakaNetworkAdmission({ license: false, drm: false, rangeOverride: false, ownedBlob: false, http: true, userinfo: false, allowed: true, ...facts }); if (failed)
+        this.failure(failed); }
+    checkHeaders(headers) { this.admission({ rangeOverride: Object.keys(headers).some(name => name.toLowerCase() === 'range') }); }
     authorize(uri) {
         this.checkActive();
         const url = new URL(uri, this.source.url);
-        if (this.ownedBlobs.has(url.href))
-            return url.href;
-        if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password || !this.allowed.has(url.origin)) {
-            throw this.fail(new PlayerError('SOURCE_PERMISSION', 'Streaming resource origin is not allowed'));
-        }
+        this.admission({ ownedBlob: this.ownedBlobs.has(url.href), http: ['https:', 'http:'].includes(url.protocol), userinfo: !!(url.username || url.password), allowed: this.allowed.has(url.origin) });
         return url.href;
     }
-    ownBlob(uri) { this.ownedBlobs.add(uri); }
-    fail(error) { this.terminalError = error; return error; }
+    ownBlob(uri) { this.checkActive(); this.ownedBlobs.add(uri); }
+    resource(uri) { let id = this.resources.get(uri); if (id === undefined) {
+        id = ++this.resourceSerial;
+        this.resources.set(uri, id);
+    } return id; }
+    pruneResources() { const retained = new Set(shakaNetworkResourceIDs(this.control)); for (const [uri, id] of this.resources)
+        if (!retained.has(id))
+            this.resources.delete(uri); }
     filter = (type, request) => {
         this.checkActive();
-        if (type === this.runtime.net.NetworkingEngine.RequestType.LICENSE || request.drmInfo)
-            throw this.fail(new PlayerError('UNSUPPORTED_FEATURE', 'Encrypted streaming requires a DRM contract'));
-        request.uris = request.uris.map(uri => this.authorize(uri));
+        this.admission({ license: type === this.runtime.net.NetworkingEngine.RequestType.LICENSE, drm: !!request.drmInfo });
+        const uris = request.uris.map(uri => this.authorize(uri));
+        this.checkActive();
+        request.uris = uris;
+        this.checkActive();
         owners.set(request, this);
-        this.requests.add(request);
+        if (!this.requests.has(request))
+            this.requests.set(request, new Set());
     };
     plugin = (resource, request, type, progress, received) => {
-        const controller = new AbortController();
-        this.controllers.add(controller);
-        let timedOut = false;
-        // NetworkingEngine owns connection/stall deadlines via progressSupport.
-        // Like Shaka HttpFetchPlugin, this transport enforces only the total timeout.
-        const timer = request.retryParameters.timeout ? setTimeout(() => { timedOut = true; controller.abort(); }, request.retryParameters.timeout) : undefined;
-        let reader;
-        const started = performance.now();
+        const started = performance.now(), kind = type === this.runtime.net.NetworkingEngine.RequestType.MANIFEST ? 'manifest' : type === this.runtime.net.NetworkingEngine.RequestType.SEGMENT ? 'segment' : 'other';
+        const admitted = beginShakaNetworkRequest(this.control, kind, request.retryParameters.timeout, started);
+        this.control = admitted.state;
+        const id = admitted.id;
+        let controller, reader, timer;
         const E = this.runtime.util.Error;
+        const check = () => { if (id === undefined) {
+            this.checkActive();
+            throw new DOMException('Streaming request cancelled', 'AbortError');
+        } this.checkRequest(id); };
+        const arm = (delay) => {
+            const registration = {};
+            timer = registration;
+            const acquired = setTimeout(() => {
+                if (timer !== registration)
+                    return;
+                timer = undefined;
+                if (id === undefined)
+                    return;
+                const decision = expireShakaNetworkRequest(this.control, id, performance.now());
+                this.control = decision.state;
+                if (!decision.accepted)
+                    return;
+                if (decision.remaining !== undefined) {
+                    try {
+                        arm(decision.remaining);
+                    }
+                    catch {
+                        this.accept(cancelShakaNetworkRequest(this.control, id));
+                        controller?.abort();
+                    }
+                }
+                else
+                    controller?.abort();
+            }, delay);
+            registration.handle = acquired;
+            if (timer !== registration || id === undefined || !shakaNetworkCurrent(this.control, id)) {
+                clearTimeout(acquired);
+                check();
+            }
+        };
         const promise = (async () => {
+            check();
+            const acquired = new AbortController();
+            controller = acquired;
+            if (id === undefined || !shakaNetworkCurrent(this.control, id)) {
+                acquired.abort();
+                check();
+            }
+            this.controllers.set(id, acquired);
+            const pending = this.requests.get(request) ?? new Set();
+            pending.add(id);
+            this.requests.set(request, pending);
+            if (request.retryParameters.timeout)
+                arm(request.retryParameters.timeout);
             let uri = this.authorize(resource), response;
-            for (let attempt = 0; attempt < 2; attempt++) {
-                this.checkActive();
-                // Headers from Shaka include Range and content negotiation. Source auth
-                // overrides only matching names; refreshing never drops Range.
+            for (;;) {
+                check();
+                this.control = setShakaNetworkResource(this.control, id, this.resource(uri));
                 const headers = new Headers(request.headers);
                 for (const [name, value] of Object.entries(this.headers))
                     headers.set(name, value);
-                response = await this.fetcher(uri, { method: request.method, headers, body: request.body, signal: controller.signal, credentials: this.source.credentials ?? 'same-origin', redirect: 'error', priority: this.preview ? 'low' : 'auto' });
-                this.checkActive();
+                check();
+                const fetched = await this.fetcher(uri, { method: request.method, headers, body: request.body, signal: acquired.signal, credentials: this.source.credentials ?? 'same-origin', redirect: 'error', priority: this.preview ? 'low' : 'auto' });
+                if (!shakaNetworkCurrent(this.control, id)) {
+                    try {
+                        await fetched.body?.cancel();
+                    }
+                    catch { }
+                    check();
+                }
+                response = fetched;
                 if (response.status !== 401 && response.status !== 403)
                     break;
                 await response.body?.cancel();
-                if (attempt || !this.source.refreshAuthorization)
-                    throw this.fail(new PlayerError('SOURCE_PERMISSION', 'Streaming authorization was rejected'));
-                let update;
-                let cancel = () => { };
+                check();
+                const status = receiveShakaNetworkStatus(this.control, id, response.status, !!this.source.refreshAuthorization);
+                this.accept(status);
+                check();
+                if (!status.refresh)
+                    break;
+                let update, cancel = () => { };
                 try {
-                    update = await Promise.race([this.source.refreshAuthorization({ url: uri }), new Promise((_, reject) => { cancel = () => reject(new PlayerError('ABORTED', 'Streaming authorization refresh cancelled')); if (controller.signal.aborted)
+                    const source = this.source, refresh = source.refreshAuthorization;
+                    check();
+                    update = await Promise.race([refresh.call(source, { url: uri }), new Promise((_, reject) => { cancel = () => reject(new PlayerError('ABORTED', 'Streaming authorization refresh cancelled')); if (acquired.signal.aborted)
                             cancel();
                         else
-                            controller.signal.addEventListener('abort', cancel, { once: true }); })]);
+                            acquired.signal.addEventListener('abort', cancel, { once: true }); })]);
                 }
                 catch (error) {
                     this.checkActive();
                     throw this.fail(isPlayerError(error) ? error : new PlayerError('SOURCE_PERMISSION', 'Streaming authorization refresh failed'));
                 }
                 finally {
-                    controller.signal.removeEventListener('abort', cancel);
+                    acquired.signal.removeEventListener('abort', cancel);
                 }
-                this.checkActive();
-                if (controller.signal.aborted)
-                    throw new PlayerError('ABORTED', 'Streaming request cancelled');
+                check();
                 if (update.headers) {
-                    this.checkHeaders(update.headers);
-                    this.headers = { ...this.headers, ...update.headers };
+                    const headers = { ...update.headers };
+                    check();
+                    this.checkHeaders(headers);
+                    this.headers = { ...this.headers, ...headers };
                 }
                 if (update.url)
                     uri = this.authorize(update.url);
+                check();
+                if (!this.accept(finishShakaNetworkRefresh(this.control, id)))
+                    check();
             }
             reader = response.body?.getReader();
+            check();
             if (!response.ok)
                 throw new E(E.Severity.RECOVERABLE, E.Category.NETWORK, E.Code.BAD_HTTP_STATUS, uri, response.status, '', {}, type);
             if (response.url)
                 this.authorize(response.url);
-            if (this.source.immutable && type === this.runtime.net.NetworkingEngine.RequestType.SEGMENT && !this.ownedBlobs.has(uri)) {
-                const etag = response.headers.get('etag'), validator = etag && !etag.startsWith('W/') ? etag : null;
-                // immutable is the caller's stable-byte promise. Available strong ETags
-                // can disprove that promise; absent/weak validators are not identity proof.
-                if (validator) {
-                    if (this.validators.has(uri) && this.validators.get(uri) !== validator)
-                        throw this.fail(new PlayerError('SOURCE_CHANGED', 'Streaming resource representation changed'));
-                    if (this.validators.size >= 4096 && !this.validators.has(uri))
-                        this.validators.delete(this.validators.keys().next().value);
-                    this.validators.set(uri, validator);
-                }
-            }
+            check();
+            this.accept(observeShakaNetworkValidator(this.control, id, response.headers.get('etag'), this.ownedBlobs.has(uri)));
+            this.pruneResources();
             const headers = {};
             response.headers.forEach((value, key) => headers[key] = value);
+            check();
             received(headers);
+            check();
             const range = new Headers(request.headers).get('range');
-            const requested = range ? /^bytes=(\d+)-(\d*)$/.exec(range) : null;
-            if (range && !requested)
-                throw this.fail(new PlayerError('SOURCE_CHANGED', 'Unsupported streaming byte range'));
-            if (range && headers['content-encoding'] && headers['content-encoding'] !== 'identity')
-                throw this.fail(new PlayerError('SOURCE_CHANGED', 'Encoded response cannot preserve streaming byte ranges'));
-            let expectedBytes, total, start = 0n, end = 0n;
-            if (requested) {
-                start = BigInt(requested[1]);
-                if (response.status === 206) {
-                    const match = /^bytes (\d+)-(\d+)\/(\d+)$/.exec(headers['content-range'] ?? '');
-                    if (!match)
-                        throw this.fail(new PlayerError('SOURCE_CHANGED', 'Invalid streaming Content-Range'));
-                    total = BigInt(match[3]);
-                    end = requested[2] ? BigInt(requested[2]) : total - 1n;
-                    if (end >= total)
-                        end = total - 1n;
-                    if (BigInt(match[1]) !== start || BigInt(match[2]) !== end || start > end || end >= total)
-                        throw this.fail(new PlayerError('SOURCE_CHANGED', 'Streaming response does not match requested byte range'));
-                    expectedBytes = end - start + 1n;
-                }
-                else if (response.status !== 200)
-                    throw this.fail(new PlayerError('SOURCE_CHANGED', 'Streaming range request needs a complete 200 or exact 206 response'));
-            }
-            else if (response.status === 206)
-                throw this.fail(new PlayerError('SOURCE_CHANGED', 'Unexpected partial streaming response'));
+            this.accept(beginShakaNetworkBody(this.control, id, { range, status: response.status, encoding: headers['content-encoding'], contentRange: headers['content-range'], contentLength: headers['content-length'], now: performance.now() }));
+            check();
             const chunks = [];
-            const byteLimit = (this.preview ? 4 : type === this.runtime.net.NetworkingEngine.RequestType.MANIFEST ? 4 : 16) * 1024 * 1024;
-            if (Number(headers['content-length']) > byteLimit)
-                throw this.fail(new PlayerError('SOURCE_PERMISSION', 'Streaming resource exceeds the response byte budget'));
-            let bytes = 0, last = performance.now();
-            const length = Number(headers['content-length']) || 0;
             if (reader)
                 while (true) {
                     const value = await reader.read();
-                    this.checkActive();
+                    check();
                     if (value.done)
                         break;
-                    bytes += value.value.byteLength;
-                    if (bytes > byteLimit)
-                        throw this.fail(new PlayerError('SOURCE_PERMISSION', 'Streaming resource exceeds the response byte budget'));
+                    const decision = appendShakaNetworkBody(this.control, id, value.value.byteLength, performance.now());
+                    this.accept(decision);
+                    check();
                     chunks.push(value.value);
-                    const now = performance.now();
-                    progress(now - last, value.value.byteLength, Math.max(0, length - bytes));
-                    last = now;
-                    if (request.streamDataCallback && !requested)
-                        await request.streamDataCallback(value.value);
+                    const observed = decision.progress;
+                    progress(observed.elapsed, observed.bytes, observed.remaining);
+                    check();
+                    if (request.streamDataCallback && !range) {
+                        const callback = request.streamDataCallback;
+                        check();
+                        await callback.call(request, value.value);
+                        check();
+                    }
                 }
-            const data = new Uint8Array(bytes);
+            const bytes = shakaNetworkRequest(this.control, id).bytes, data = new Uint8Array(bytes);
             let offset = 0;
             for (const chunk of chunks) {
                 data.set(chunk, offset);
                 offset += chunk.byteLength;
             }
-            let result = data.buffer;
-            if (requested) {
-                if (headers['content-length'] && BigInt(headers['content-length']) !== BigInt(bytes))
-                    throw this.fail(new PlayerError('SOURCE_CHANGED', 'Streaming range body length disagrees with Content-Length'));
-                if (expectedBytes !== undefined && expectedBytes !== BigInt(bytes))
-                    throw this.fail(new PlayerError('SOURCE_CHANGED', 'Streaming range body has the wrong byte count'));
-                if (response.status === 200) {
-                    total = BigInt(bytes);
-                    end = requested[2] ? BigInt(requested[2]) : total - 1n;
-                    if (end >= total)
-                        end = total - 1n;
-                    if (start > end || start >= total)
-                        throw this.fail(new PlayerError('SOURCE_CHANGED', 'Complete streaming response does not contain requested range'));
-                    result = data.slice(Number(start), Number(end + 1n)).buffer;
-                }
-                const known = this.rangeTotals.get(uri);
-                if (known !== undefined && known !== total)
-                    throw this.fail(new PlayerError('SOURCE_CHANGED', 'Streaming range resource changed length'));
-                if (this.rangeTotals.size >= 4096 && !this.rangeTotals.has(uri))
-                    this.rangeTotals.delete(this.rangeTotals.keys().next().value);
-                this.rangeTotals.set(uri, total);
-                // Validate the complete bounded response before incremental parsers see
-                // range bytes. A server ignoring Range is safely sliced after validation.
-                if (request.streamDataCallback)
-                    await request.streamDataCallback(result);
+            const decision = completeShakaNetworkBody(this.control, id);
+            this.accept(decision);
+            check();
+            this.pruneResources();
+            const result = decision.slice ? data.slice(decision.slice.start, decision.slice.end).buffer : data.buffer;
+            if (decision.streamRange && request.streamDataCallback) {
+                const callback = request.streamDataCallback;
+                check();
+                await callback.call(request, result);
+                check();
             }
             return { uri, originalUri: uri, data: result, headers, status: response.status, timeMs: performance.now() - started, originalRequest: request };
         })().catch(error => {
-            // Shaka's preload manager intentionally ignores OPERATION_ABORTED. A
-            // transport retired externally must reject its load promise so player
-            // destroy can acquire the load mutex; the backend maps retirement to
-            // Demuxe ABORTED and suppresses all session events.
-            if (!this.active)
+            if (!this.control.active)
                 throw new E(E.Severity.CRITICAL, E.Category.NETWORK, E.Code.HTTP_ERROR, 'Demuxe streaming source retired');
             if (isPlayerError(error)) {
                 if (error.code !== 'ABORTED')
-                    this.terminalError = error;
+                    this.fail(error);
                 throw new E(E.Severity.CRITICAL, E.Category.NETWORK, E.Code.HTTP_ERROR, '[authorized resource]', error);
             }
-            if (controller.signal.aborted)
+            if (controller?.signal.aborted) {
+                const timedOut = id !== undefined && shakaNetworkRequest(this.control, id)?.cancelled === 'timeout';
                 throw new E(E.Severity.RECOVERABLE, E.Category.NETWORK, timedOut ? E.Code.TIMEOUT : E.Code.OPERATION_ABORTED);
+            }
             if (error instanceof E)
                 throw error;
             throw new E(E.Severity.RECOVERABLE, E.Category.NETWORK, E.Code.HTTP_ERROR, '[authorized resource]', error);
-        }).finally(async () => { clearTimeout(timer); try {
-            await reader?.cancel();
-        }
-        catch { }
-        finally {
-            reader?.releaseLock();
-            this.controllers.delete(controller);
-            owners.delete(request);
-            this.requests.delete(request);
-        } });
-        return new this.runtime.util.AbortableOperation(promise, async () => { controller.abort(); });
+        }).finally(async () => {
+            // Retire forward authority before cleanup effects, but keep the request
+            // counted until the captured physical reader has released its resources.
+            if (id !== undefined)
+                this.control = cleanupShakaNetworkRequest(this.control, id);
+            const pending = timer;
+            timer = undefined;
+            try {
+                clearTimeout(pending?.handle);
+            }
+            catch { }
+            try {
+                await reader?.cancel();
+            }
+            catch { }
+            finally {
+                try {
+                    reader?.releaseLock();
+                }
+                catch { }
+                if (id !== undefined) {
+                    this.control = finishShakaNetworkRequest(this.control, id);
+                    this.controllers.delete(id);
+                    const owned = this.requests.get(request);
+                    owned?.delete(id);
+                    if (owned && !owned.size) {
+                        if (owners.get(request) === this)
+                            owners.delete(request);
+                        this.requests.delete(request);
+                    }
+                    this.pruneResources();
+                }
+            }
+        });
+        return new this.runtime.util.AbortableOperation(promise, async () => { if (id !== undefined && this.accept(cancelShakaNetworkRequest(this.control, id)))
+            controller?.abort(); });
     };
-    /** Preview has current credentials but never owns playback authorization renewal. */
-    forkForPreview() {
-        this.checkActive();
-        const policy = new ShakaNetworkPolicy({ ...this.source, headers: { ...this.headers }, refreshAuthorization: undefined }, this.runtime, this.fetcher, true);
-        for (const uri of this.ownedBlobs)
-            policy.ownBlob(uri);
-        return policy;
+    /** Preview copies current credentials; it cannot renew playback authorization. */
+    forkForPreview() { this.checkActive(); const policy = new ShakaNetworkPolicy({ ...this.source, headers: { ...this.headers }, refreshAuthorization: undefined }, this.runtime, this.fetcher, true); for (const uri of this.ownedBlobs)
+        policy.ownBlob(uri); return policy; }
+    destroy() {
+        if (!this.control.active)
+            return;
+        this.control = retireShakaNetwork(this.control);
+        const controllers = [...this.controllers.values()];
+        this.controllers.clear();
+        this.requests.clear();
+        this.resources.clear();
+        this.headers = {};
+        this.ownedBlobs.clear();
+        this.allowed.clear();
+        this.source = { url: '' };
+        // Keep weak request associations after retirement: a retry whose scheme was
+        // selected before its filter must never fall through to unowned fetch.
+        for (const controller of controllers)
+            try {
+                controller.abort();
+            }
+            catch { }
     }
-    destroy() { if (!this.active)
-        return; this.active = false; for (const controller of this.controllers)
-        controller.abort(); this.controllers.clear(); this.requests.clear(); this.validators.clear(); this.rangeTotals.clear(); this.headers = {}; this.ownedBlobs.clear(); this.allowed.clear(); this.source = { url: '' }; }
-    get diagnostics() { return { active: this.active, pendingRequests: this.controllers.size, redirects: 'rejected', credentials: this.source.credentials ?? 'same-origin', allowedOriginCount: this.allowed.size }; }
+    get diagnostics() { return { active: this.control.active, pendingRequests: this.control.requests.length, redirects: 'rejected', credentials: this.source.credentials ?? 'same-origin', allowedOriginCount: this.allowed.size }; }
 }

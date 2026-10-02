@@ -181,3 +181,68 @@ test('retired valid seek rejects before touching the physical audio ring',async 
  const f=await fixture(t);await f.player.destroy();Atomics.store(f.player.audioHeader,2,11);
  await assert.rejects(f.player.seek(2),/destroyed/);assert.equal(Atomics.load(f.player.audioHeader,2),11);assert.equal(f.player.lifecycle.seek.seek,null);
 });
+
+test('failed volume leaves accepted mute/gain state and actual graph unchanged',async t=>{
+ const f=await fixture(t),values=[];f.player.gainNode={gain:{setValueAtTime:value=>values.push(value)},disconnect(){}};
+ f.hook=message=>{if(message.id)f.worker.reply(message.id);};await f.player.gain(.4);await f.player.volume(0);await f.player.gain(.2);
+ assert.deepEqual(values,[.4,0,0]);assert.equal(f.player.lifecycle.settings.gain,.2);assert.equal(f.player.lifecycle.settings.volume,0);
+ const error=Error('volume rejected');f.hook=message=>{if(message.id)throw error;};await assert.rejects(f.player.volume(50),value=>value===error);
+ assert.equal(f.player.lifecycle.settings.volume,0);assert.deepEqual(values,[.4,0,0]);
+ f.hook=message=>{if(message.id)f.worker.reply(message.id);};await f.player.volume(50);assert.equal(values.at(-1),.2);
+});
+
+test('partially failed buffering preserves old policy and only acknowledges successful commands',async t=>{
+ const f=await fixture(t),error=Error('buffer rejected');let writes=0;f.hook=message=>{if(message.id){if(++writes===2)throw error;f.worker.reply(message.id);}};
+ await assert.rejects(f.player.setBuffering({profile:'low-latency',preload:'metadata'}),value=>value===error);
+ assert.equal(f.player.bufferingDiagnostics.requestedProfile,'balanced');assert.deepEqual(f.player.lifecycle.settings.bufferingSettings,{cache:'yes'});
+});
+
+test('buffering captures one caller policy before asynchronous native acknowledgments',async t=>{
+ const f=await fixture(t),policy={profile:'low-latency',preload:'metadata'};let first=true;
+ f.hook=message=>{if(message.id){if(first){first=false;policy.profile='resilient';policy.preload='auto';}f.worker.reply(message.id);}};
+ await f.player.setBuffering(policy);assert.equal(Object.isFrozen(policy),false);assert.equal(f.player.bufferingDiagnostics.requestedProfile,'low-latency');assert.equal(f.player.bufferingDiagnostics.preload,'metadata');
+ assert.equal(f.player.lifecycle.settings.bufferingSettings['demuxer-max-bytes'],'8388608');assert.equal(f.player.lifecycle.settings.bufferingSettings['cache-secs'],'1');
+});
+
+test('synchronous destruction after native volume reply prevents late accepted settings',async t=>{
+ const f=await fixture(t);f.hook=message=>{if(message.type==='destroy')f.worker.emit({type:'destroyed'});else if(message.id){f.worker.reply(message.id);void f.player.destroy();}};
+ await assert.rejects(f.player.volume(0),/destroyed/);await f.player.destroy();assert.equal(f.player.lifecycle.settings.volume,100);
+});
+
+test('synchronous destruction after buffering reply stops later writes and policy acceptance',async t=>{
+ const f=await fixture(t);f.hook=message=>{if(message.type==='destroy')f.worker.emit({type:'destroyed'});else if(message.id){f.worker.reply(message.id);void f.player.destroy();}};
+ await assert.rejects(f.player.setBuffering({profile:'resilient',preload:'none'}),/destroyed/);await f.player.destroy();
+ assert.equal(f.messages.filter(message=>message.type==='command').length,1);assert.equal(f.player.lifecycle.settings.buffering.profile,'balanced');assert.deepEqual(f.player.lifecycle.settings.bufferingSettings,{});
+});
+
+test('timing and watchdog observations suppress retired worker writes while preserving explicit force',async t=>{
+ const f=await fixture(t);f.messages.length=0;f.player.sendTiming();assert.equal(f.messages.length,0);f.player.sendTiming(true);assert.equal(f.messages.length,1);
+ f.context.outputLatency=.012;f.player.sendTiming();assert.deepEqual(f.messages.at(-1),{type:'timing',latencyUs:12000,running:true});
+ f.player.setWatchdogs({decoderOutput:false});assert.deepEqual(f.messages.at(-1),{type:'watchdogs',decoderOutput:false});
+ await f.player.destroy();const state=f.player.lifecycle,count=f.messages.length;f.player.sendTiming(true);f.player.setWatchdogs({decoderOutput:true});assert.equal(f.messages.length,count);assert.equal(f.player.lifecycle,state);
+});
+
+
+test('gain acquired after synchronous destruction is disconnected without installing a stage',async t=>{
+ const f=await fixture(t);let disconnected=0;f.context.createGain=()=>{void f.player.destroy();return{disconnect(){disconnected++;}};};
+ await assert.rejects(f.player.gain(.3),/destroyed/);await f.player.destroy();assert.equal(disconnected,1);assert.equal(f.player.gainNode,undefined);assert.equal(f.player.lifecycle.settings.gain,1);
+});
+
+test('gain graph reentry cannot reconnect a resource after backend retirement',async t=>{
+ const f=await fixture(t),actions=[];const node={gain:{setValueAtTime(){}},disconnect(){actions.push('disconnect');},connect(){actions.push('connect');}};
+ f.context.createGain=()=>node;f.player.audioNode.disconnect=()=>{actions.push('source-disconnect');void f.player.destroy();};
+ await assert.rejects(f.player.gain(.3),/destroyed/);await f.player.destroy();assert.equal(actions.includes('connect'),false);assert.ok(actions.includes('disconnect'));assert.equal(f.player.lifecycle.settings.gain,1);
+});
+
+test('failed gain graph setup removes the partial stage and preserves the original error',async t=>{
+ const f=await fixture(t),error=Error('gain connection failed');let disconnected=0;const node={gain:{setValueAtTime(){}},disconnect(){disconnected++;},connect(){throw error;}};f.context.createGain=()=>node;
+ await assert.rejects(f.player.gain(.3),reason=>reason===error);assert.equal(f.player.gainNode,undefined);assert.equal(f.player.lifecycle.settings.gain,1);assert.equal(disconnected,1);
+});
+
+
+test('gain rollback stops reconnecting when cleanup synchronously destroys the backend',async t=>{
+ const f=await fixture(t),error=Error('graph setup failed'),connections=[];let node;
+ f.context.createGain=()=>node={gain:{setValueAtTime(){}},disconnect(){void f.player.destroy();},connect(){throw error;}};
+ f.player.audioNode.connect=target=>connections.push(target);
+ await assert.rejects(f.player.gain(.3),reason=>reason===error);await f.player.destroy();assert.deepEqual(connections,[node]);assert.equal(f.player.lifecycle.settings.gain,1);
+});

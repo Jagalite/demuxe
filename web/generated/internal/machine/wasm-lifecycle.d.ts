@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { WasmSeekState, WasmSeekObservation } from './wasm-seek.js';
+import type { WasmSettings, WasmSettingInput } from './wasm-settings.js';
 /** Logical ownership only. Workers, promises, errors and timers remain in the shell. */
 export type WasmPhase = 'initializing' | 'ready' | 'failed' | 'retiring' | 'closed';
 export type WasmDeadline = Readonly<{
@@ -18,8 +19,9 @@ export type WasmLifecycle = Readonly<{
     open: number | null;
     hasFile: boolean;
     seek: WasmSeekState;
+    settings: WasmSettings;
 }>;
-export declare function createWasmLifecycle(): WasmLifecycle;
+export declare function createWasmLifecycle(decoderOutput?: boolean): WasmLifecycle;
 export declare function wasmAlive(state: WasmLifecycle): boolean;
 export declare function markWasmInitialized(state: WasmLifecycle): WasmLifecycle;
 export declare function settleWasmInitialization(state: WasmLifecycle, success: boolean): WasmLifecycle;
@@ -72,3 +74,8 @@ export declare function retireWasmLifecycle(state: WasmLifecycle): Readonly<{
     waiters: readonly number[];
 }>;
 export declare function finishWasmRetirement(state: WasmLifecycle): WasmLifecycle;
+export declare function applyWasmSetting(state: WasmLifecycle, input: WasmSettingInput): Readonly<{
+    state: WasmLifecycle;
+    accepted: boolean;
+    send: boolean;
+}>;

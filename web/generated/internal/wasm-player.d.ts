@@ -79,11 +79,9 @@ export declare class WasmPlayer extends EventTarget {
     private selectiveGain?;
     private analyser?;
     private gainNode?;
-    private gainValue;
-    private volumeValue;
+    private get gainValue();
+    private get volumeValue();
     private timing?;
-    private lastTiming?;
-    private watchdogs;
     private lifecycle;
     private initializationError?;
     private get destroyed();
@@ -101,8 +99,8 @@ export declare class WasmPlayer extends EventTarget {
     private requestedOutput;
     private deviceChannels;
     diagnostics?: PlayerDiagnostics;
-    private buffering;
-    private bufferingSettings;
+    private get buffering();
+    private get bufferingSettings();
     browserCodecsAbsent: boolean;
     properties: Map<string, unknown>;
     readonly ready: Promise<void>;

@@ -2,33 +2,39 @@
 import type Shaka from 'shaka-player';
 import type { RemoteSource } from '../types.js';
 import { PlayerError } from './errors.js';
-/** Per-session Shaka transport. Scheduling, retries and bandwidth estimation stay
- * in NetworkingEngine. A WeakMap associates only this player's requests.
- * Fetch redirect:error is intentional: filters cannot authorize a redirect before
- * the browser sends it. Applications must supply final authorized resource URLs. */
+/** Per-session Shaka transport. The immutable owner admits requests and evidence;
+ * this shell owns browser handles and private URL/header identity registries.
+ * Shaka retains retries, connection/stall deadlines and bandwidth scheduling. */
 export declare class ShakaNetworkPolicy {
     private source;
     private runtime;
     private fetcher;
     private preview;
-    private requests;
-    terminalError?: PlayerError;
-    private active;
+    private control;
+    private terminal?;
     private controllers;
+    private requests;
+    private resources;
+    private resourceSerial;
     private allowed;
     private headers;
-    private validators;
-    private rangeTotals;
     private ownedBlobs;
     constructor(source: RemoteSource, runtime: typeof Shaka, fetcher?: typeof fetch, preview?: boolean);
-    private checkHeaders;
+    get terminalError(): PlayerError | undefined;
     private checkActive;
+    private checkRequest;
+    private fail;
+    private failure;
+    private accept;
+    private admission;
+    private checkHeaders;
     authorize(uri: string): string;
     ownBlob(uri: string): void;
-    private fail;
+    private resource;
+    private pruneResources;
     readonly filter: Shaka.extern.RequestFilter;
     readonly plugin: Shaka.extern.SchemePlugin;
-    /** Preview has current credentials but never owns playback authorization renewal. */
+    /** Preview copies current credentials; it cannot renew playback authorization. */
     forkForPreview(): ShakaNetworkPolicy;
     destroy(): void;
     get diagnostics(): {

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { createWasmSeek, clearWasmSeek, beginWasmSeek, observeWasmSeek, confirmWasmSeek } from './wasm-seek.js';
-export function createWasmLifecycle() { return Object.freeze({ phase: 'initializing', initSent: false, workerFailed: false, nextRequest: 100, nextWaiter: 1, nextOpen: 1, requests: Object.freeze([]), waiters: Object.freeze([]), open: null, hasFile: false, seek: createWasmSeek() }); }
+import { createWasmSettings, updateWasmSettings } from './wasm-settings.js';
+export function createWasmLifecycle(decoderOutput = true) { return Object.freeze({ phase: 'initializing', initSent: false, workerFailed: false, nextRequest: 100, nextWaiter: 1, nextOpen: 1, requests: Object.freeze([]), waiters: Object.freeze([]), open: null, hasFile: false, seek: createWasmSeek(), settings: createWasmSettings(decoderOutput) }); }
 export function wasmAlive(state) { return state.phase === 'initializing' || state.phase === 'ready'; }
 export function markWasmInitialized(state) { return wasmAlive(state) ? Object.freeze({ ...state, initSent: true }) : state; }
 export function settleWasmInitialization(state, success) { return state.phase === 'initializing' ? Object.freeze({ ...state, phase: success ? 'ready' : 'failed' }) : state; }
@@ -78,3 +79,9 @@ export function retireWasmLifecycle(state) {
     return Object.freeze({ state: Object.freeze({ ...state, phase: 'retiring', open: null, hasFile: false, seek: clearWasmSeek(state.seek), requests: Object.freeze([]), waiters: Object.freeze([]) }), accepted: true, requests: Object.freeze(state.requests.map(item => item.id)), waiters: Object.freeze(state.waiters.map(item => item.id)) });
 }
 export function finishWasmRetirement(state) { return state.phase === 'retiring' ? Object.freeze({ ...state, phase: 'closed' }) : state; }
+export function applyWasmSetting(state, input) {
+    if (!wasmAlive(state))
+        return Object.freeze({ state, accepted: false, send: false });
+    const decision = updateWasmSettings(state.settings, input);
+    return Object.freeze({ state: decision.state === state.settings ? state : Object.freeze({ ...state, settings: decision.state }), accepted: decision.accepted, send: decision.send && (input.kind !== 'watchdog' || state.initSent) });
+}

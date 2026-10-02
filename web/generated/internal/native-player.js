@@ -4,6 +4,7 @@ import { executionRecipe } from './execution-recipes.js';
 import { bufferingPolicy, resolveBuffering } from './buffering.js';
 import { plainVTT, BrowserCaptionUnsupported } from './plain-vtt.js';
 import { nativeLoadOpening, selectNativeLoadRoute, selectNativePreparation } from './machine/native-load.js';
+import { selectNativeGain, nativeGainOutputWait } from './machine/native-controls.js';
 import { initialNativeBackend, nativeRequestCurrent, transitionNativeBackend } from './machine/native-backend.js';
 import { nativeMediaError, compatibilityFailure, StartupEvidenceTimeout, NativeLoadTimeout } from './runtime-capability.js';
 import { PlayerError, isPlayerError } from './errors.js';
@@ -19,7 +20,6 @@ export class NativePlayer extends EventTarget {
     nativeASS;
     fonts;
     requestedPlan;
-    buffering;
     loadTimeoutMs;
     defaultSubtitleStreamIndex;
     remuxRuntime;
@@ -38,7 +38,9 @@ export class NativePlayer extends EventTarget {
         throw new Error(this.stopped ? 'Player is destroyed' : 'Native operation was retired'); }
     retireNativeSource() {
         this.changeNative({ type: 'source' });
-        const verification = this.verificationCancel, seek = this.seekCancel;
+        const verification = this.verificationCancel, seek = this.seekCancel, controls = [...this.controlWait.values()];
+        for (const control of controls)
+            control.cancel(new Error('Native source was retired'));
         verification?.cancel(new Error('Native verification was retired'));
         seek?.cancel(new Error('Native seek presentation was retired'));
         this.assertActive();
@@ -52,63 +54,212 @@ export class NativePlayer extends EventTarget {
     textAttachmentIds = new WeakMap();
     captionAssets = new Map();
     captionURLs = new Set();
-    outputDevice = '';
+    get outputDevice() { return this.native.controls.outputDevice; }
+    get buffering() { return this.native.controls.buffering; }
     gainContext;
     gainSource;
     gainNode;
-    gainValue = 1;
-    requestedVolume = 100;
-    requestedRate = 1;
+    get gainValue() { return this.native.controls.gain; }
+    get requestedVolume() { return this.native.controls.volume; }
+    get requestedRate() { return this.native.controls.rate; }
+    controlWait = new Map();
+    assertControl(request) { this.assertNative(request); }
+    changeControl(request, change) { this.assertControl(request); return this.changeNative({ type: 'control.value', request, change }); }
+    async awaitControl(request, value) {
+        const observed = Promise.resolve(value);
+        void observed.catch(() => { });
+        this.assertControl(request);
+        const pending = this.controlWait.get(request.domain);
+        if (pending?.request.id !== request.id)
+            throw new Error('Native control was retired');
+        const result = await Promise.race([observed, pending.interrupted]);
+        this.assertControl(request);
+        return result;
+    }
+    withControl(domain, work, paused) {
+        this.assertActive();
+        const previous = this.controlWait.get(domain), request = this.changeNative({ type: 'control.begin', domain, paused }).request;
+        let reject, cancelled = false;
+        const interrupted = new Promise((_, no) => { reject = no; });
+        void interrupted.catch(() => { });
+        let settle;
+        const settled = new Promise(resolve => { settle = resolve; });
+        const cleanups = new Set(), cancel = (error) => { if (cancelled)
+            return; cancelled = true; reject(error); for (const cleanup of [...cleanups])
+            cleanup(error); }, entry = { request, interrupted, cancel, cleanups, settled };
+        this.controlWait.set(domain, entry);
+        this.cancelers.add(cancel);
+        const finish = () => { this.changeNative({ type: 'control.finish', request }); this.cancelers.delete(cancel); if (this.controlWait.get(domain) === entry)
+            this.controlWait.delete(domain); settle(); };
+        try {
+            previous?.cancel(new Error('Native control was retired'));
+            this.assertControl(request);
+            return this.awaitControl(request, work(request)).finally(finish);
+        }
+        catch (error) {
+            finish();
+            return Promise.reject(error);
+        }
+    }
     async gain(value) {
         this.assertActive();
-        if (!Number.isFinite(value) || value < 0 || value > 1)
-            throw new Error('Gain must be between 0 and 1');
-        if (this.selectiveAudio) {
-            if (this.mpvAudio)
-                await this.mpvAudio.gainValue(value);
-            this.gainValue = value;
-            return;
-        }
-        if (!this.gainSource && value !== 1) {
-            const context = this.gainContext ?? (this.gainContext = new AudioContext());
-            // Resume before redirecting an already playing element into the graph.
-            // Ownership is recorded before awaiting; destroy cancels the wait.
-            if (!this.video.paused)
-                await this.resumeGain();
-            this.assertActive();
-            if (this.outputDevice)
-                await this.setAudioOutputDevice(this.outputDevice);
-            const source = context.createMediaElementSource(this.video), gain = context.createGain();
-            gain.gain.setValueAtTime(value, context.currentTime);
-            source.connect(gain);
-            gain.connect(context.destination);
-            this.gainSource = source;
-            this.gainNode = gain;
-        }
-        if (this.gainNode)
-            this.gainNode.gain.setValueAtTime(value, this.gainContext.currentTime);
-        this.gainValue = value;
-    }
-    async resumeGain() {
-        const context = this.gainContext;
-        if (!context || context.state !== 'suspended')
-            return;
-        await new Promise((resolve, reject) => {
-            let settled = false;
-            const finish = (error) => {
-                if (settled)
-                    return;
-                settled = true;
-                clearTimeout(timer);
-                this.cancelers.delete(cancel);
-                error ? reject(error) : resolve();
-            };
-            const cancel = (error) => finish(error);
-            const timer = setTimeout(() => finish(new DOMException('Audio activation timed out', 'NotAllowedError')), 10000);
-            this.cancelers.add(cancel);
-            context.resume().then(() => finish(), error => finish(error));
+        const validation = selectNativeGain(value, { selective: false, graph: false, paused: true, outputDevice: '' });
+        if (validation.error)
+            throw new Error(validation.error);
+        return this.withControl('gain', async (request) => {
+            const audio = this.mpvAudio, decision = selectNativeGain(value, { selective: this.selectiveAudio, graph: !!this.gainNode, paused: this.video.paused, outputDevice: this.outputDevice });
+            this.assertControl(request);
+            if (decision.error)
+                throw new Error(decision.error);
+            if (decision.selective) {
+                if (audio) {
+                    const apply = audio.gainValue;
+                    this.assertControl(request);
+                    await this.awaitControl(request, apply.call(audio, value));
+                }
+                this.changeControl(request, { type: 'gain', value });
+                return;
+            }
+            if (decision.createGraph) {
+                let context = this.gainContext;
+                if (!context) {
+                    const acquired = new AudioContext();
+                    if (!nativeRequestCurrent(this.native, request)) {
+                        try {
+                            void Promise.resolve(acquired.close()).catch(() => { });
+                        }
+                        catch { }
+                        this.assertControl(request);
+                    }
+                    this.gainContext = context = acquired;
+                }
+                if (decision.resume)
+                    await this.resumeGain(request);
+                this.assertControl(request);
+                for (;;) {
+                    const id = nativeGainOutputWait(this.native.controls, request);
+                    if (id === undefined)
+                        break;
+                    const output = this.controlWait.get('output');
+                    if (output?.request.id !== id)
+                        throw new Error('Native output control was retired');
+                    await this.awaitControl(request, output.settled);
+                }
+                if (this.outputDevice)
+                    await this.awaitControl(request, this.applyAudioOutput(this.outputDevice, request));
+                this.assertControl(request);
+                let source = this.gainSource;
+                if (!source) {
+                    const create = context.createMediaElementSource;
+                    this.assertControl(request);
+                    const acquired = create.call(context, this.video);
+                    if (!nativeRequestCurrent(this.native, request)) {
+                        try {
+                            acquired.disconnect();
+                        }
+                        finally {
+                            this.assertControl(request);
+                        }
+                    }
+                    this.gainSource = source = acquired;
+                }
+                const create = context.createGain;
+                this.assertControl(request);
+                const gain = create.call(context);
+                let installed = false;
+                try {
+                    this.assertControl(request);
+                    gain.gain.setValueAtTime(value, context.currentTime);
+                    this.assertControl(request);
+                    source.connect(gain);
+                    this.assertControl(request);
+                    gain.connect(context.destination);
+                    this.assertControl(request);
+                    this.gainNode = gain;
+                    installed = true;
+                }
+                finally {
+                    if (!installed) {
+                        try {
+                            source.disconnect(gain);
+                        }
+                        catch { }
+                        try {
+                            gain.disconnect();
+                        }
+                        catch { }
+                    }
+                }
+            }
+            const gain = this.gainNode, context = this.gainContext;
+            if (gain && context) {
+                const parameter = gain.gain, apply = parameter.setValueAtTime, now = context.currentTime;
+                this.assertControl(request);
+                apply.call(parameter, value, now);
+                this.assertControl(request);
+            }
+            this.changeControl(request, { type: 'gain', value });
         });
-        this.assertActive();
+    }
+    resumeGain(request) {
+        const context = this.gainContext, state = context?.state;
+        this.assertControl(request);
+        if (!context || state !== 'suspended')
+            return;
+        const owner = this.controlWait.get(request.domain);
+        return this.awaitControl(request, new Promise((resolve, reject) => {
+            let settled = false, timer;
+            const finish = (error) => { if (settled)
+                return; settled = true; const timeout = timer; timer = undefined; this.cancelers.delete(cancel); owner.cleanups.delete(cancel); try {
+                clearTimeout(timeout);
+            }
+            catch (cleanup) {
+                error ??= cleanup;
+            } error !== undefined ? reject(error) : resolve(); };
+            const cancel = (error) => finish(error);
+            this.cancelers.add(cancel);
+            owner.cleanups.add(cancel);
+            const expired = () => { try {
+                const decision = this.changeNative({ type: 'control.deadline', request, now: performance.now() });
+                if (!decision.accepted) {
+                    finish(new Error('Native control was retired'));
+                    return;
+                }
+                if (decision.remaining !== undefined) {
+                    const acquired = setTimeout(expired, decision.remaining);
+                    if (settled || !nativeRequestCurrent(this.native, request)) {
+                        clearTimeout(acquired);
+                        if (!settled)
+                            finish(new Error('Native control was retired'));
+                        return;
+                    }
+                    timer = acquired;
+                    return;
+                }
+                finish(new DOMException('Audio activation timed out', 'NotAllowedError'));
+            }
+            catch (error) {
+                finish(error);
+            } };
+            try {
+                const now = performance.now();
+                this.assertControl(request);
+                this.changeNative({ type: 'control.activation', request, now });
+                const acquired = setTimeout(expired, 10000);
+                if (settled || !nativeRequestCurrent(this.native, request)) {
+                    clearTimeout(acquired);
+                    this.assertControl(request);
+                    return;
+                }
+                timer = acquired;
+                const resume = context.resume;
+                this.assertControl(request);
+                Promise.resolve(resume.call(context)).then(() => finish(), finish);
+            }
+            catch (error) {
+                finish(error);
+            }
+        }));
     }
     destruction;
     get opening() { return nativeLoadOpening(this.native.load); }
@@ -161,11 +312,11 @@ export class NativePlayer extends EventTarget {
         this.nativeASS = nativeASS;
         this.fonts = fonts;
         this.requestedPlan = requestedPlan;
-        this.buffering = buffering;
         this.loadTimeoutMs = loadTimeoutMs;
         this.defaultSubtitleStreamIndex = defaultSubtitleStreamIndex;
         this.remuxRuntime = remuxRuntime;
         this.providerRuntime = providerRuntime;
+        this.native = initialNativeBackend(buffering);
         video.playsInline = true;
         video.preload = this.buffering.preload;
         for (const event of ['timeupdate', 'durationchange', 'loadedmetadata', 'play', 'pause', 'volumechange', 'ratechange', 'ended', 'waiting', 'playing', 'progress', 'seeking', 'seeked', 'resize']) {
@@ -283,13 +434,19 @@ export class NativePlayer extends EventTarget {
     get planId() { return this.mpvSubtitlePlan && this.mpvSubs && this.adapted && this.audioAdaptation === 'flac24' ? 'native-transcode-mpv' : this.mpvAudio ? this.requestedPlan : this.mpvSubtitlePlan && this.mpvSubs ? (this.remux ? 'remux-mpv' : 'direct-mpv') : this.projection ? (this.adapted ? 'adapted-flac24' : 'remux') : this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct'; }
     get bufferingUpdateSupported() { return !this.remux || !!this.remux.setBuffering; }
     async setBuffering(policy) {
-        if (this.remux) {
-            if (!this.remux.setBuffering)
-                throw new PlayerError('UNSUPPORTED_FEATURE', 'This remux provider cannot update buffering at runtime');
-            await this.remux.setBuffering(resolveBuffering(policy, 'remux'));
-        }
-        this.video.preload = policy.preload;
-        this.buffering = policy;
+        return this.withControl('buffering', async (request) => {
+            const remux = this.remux, apply = remux?.setBuffering;
+            this.assertControl(request);
+            if (remux) {
+                if (!apply)
+                    throw new PlayerError('UNSUPPORTED_FEATURE', 'This remux provider cannot update buffering at runtime');
+                await this.awaitControl(request, apply.call(remux, resolveBuffering(policy, 'remux')));
+            }
+            this.assertControl(request);
+            this.video.preload = policy.preload;
+            this.assertControl(request);
+            this.changeControl(request, { type: 'buffering', value: policy });
+        });
     }
     get bufferingDiagnostics() {
         return { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: this.remux?.bufferingDiagnostics ?? { elementPreload: this.video.preload } };
@@ -991,22 +1148,41 @@ export class NativePlayer extends EventTarget {
             reader.close();
         }
     }
-    async play() { this.assertActive(); if (this.mpvAudio) {
-        await this.mpvAudio.play(() => this.remux ? this.remux.play() : this.video.play());
-        this.refresh();
-        return;
-    } await this.resumeGain(); this.assertActive(); if (this.remux)
-        await this.remux.play();
-    else
-        await this.video.play(); this.refresh(); }
-    async pause() { this.assertActive(); if (this.mpvAudio) {
-        await this.mpvAudio.pause(() => this.remux ? this.remux.pause() : this.video.pause());
-        this.refresh();
-        return;
-    } if (this.remux)
-        this.remux.pause();
-    else
-        this.video.pause(); this.refresh(); }
+    async play() {
+        return this.withControl('playback', async (request) => {
+            const audio = this.mpvAudio, remux = this.remux, video = this.video;
+            const start = () => { const target = remux ?? video, play = target.play; this.assertControl(request); return play.call(target); };
+            if (audio) {
+                const play = audio.play;
+                this.assertControl(request);
+                await this.awaitControl(request, play.call(audio, start));
+            }
+            else {
+                const activation = this.resumeGain(request);
+                if (activation)
+                    await activation;
+                this.assertControl(request);
+                await this.awaitControl(request, start());
+            }
+            this.assertControl(request);
+            this.refresh();
+        }, false);
+    }
+    async pause() {
+        return this.withControl('playback', async (request) => {
+            const audio = this.mpvAudio, remux = this.remux, video = this.video;
+            const stop = () => { const target = remux ?? video, pause = target.pause; this.assertControl(request); pause.call(target); };
+            if (audio) {
+                const pause = audio.pause;
+                this.assertControl(request);
+                await this.awaitControl(request, pause.call(audio, stop));
+            }
+            else
+                stop();
+            this.assertControl(request);
+            this.refresh();
+        }, true);
+    }
     async seek(seconds) {
         this.assertActive();
         const epoch = this.native.epoch, subtitles = this.mpvSubs, audio = this.mpvAudio;
@@ -1238,22 +1414,44 @@ export class NativePlayer extends EventTarget {
             }
         });
     }
-    async rate(value) { this.assertActive(); if (this.selectiveAudio) {
-        this.requestedRate = value;
-        if (this.mpvAudio)
-            await this.mpvAudio.rate(value);
+    async rate(value) {
+        return this.withControl('rate', async (request) => {
+            const audio = this.mpvAudio;
+            if (this.selectiveAudio) {
+                this.changeControl(request, { type: 'rate', value });
+                if (audio) {
+                    const apply = audio.rate;
+                    this.assertControl(request);
+                    await this.awaitControl(request, apply.call(audio, value));
+                }
+            }
+            else {
+                this.video.defaultPlaybackRate = value;
+                this.assertControl(request);
+                this.video.playbackRate = value;
+                this.assertControl(request);
+            }
+            this.refresh();
+        });
     }
-    else {
-        this.video.defaultPlaybackRate = value;
-        this.video.playbackRate = value;
-    } this.refresh(); }
-    async volume(value) { this.assertActive(); if (this.selectiveAudio) {
-        this.requestedVolume = value;
-        if (this.mpvAudio)
-            await this.mpvAudio.volume(value);
+    async volume(value) {
+        return this.withControl('volume', async (request) => {
+            const audio = this.mpvAudio;
+            if (this.selectiveAudio) {
+                this.changeControl(request, { type: 'volume', value });
+                if (audio) {
+                    const apply = audio.volume;
+                    this.assertControl(request);
+                    await this.awaitControl(request, apply.call(audio, value));
+                }
+            }
+            else {
+                this.video.volume = value / 100;
+                this.assertControl(request);
+            }
+            this.refresh();
+        });
     }
-    else
-        this.video.volume = value / 100; this.refresh(); }
     async selectTrack(type, id) {
         this.assertActive();
         if (type === 'audio') {
@@ -1347,19 +1545,49 @@ export class NativePlayer extends EventTarget {
         const autoIndex = preferred ? Array.from(this.video.textTracks).indexOf(preferred) : Array.from(this.video.textTracks).findIndex(t => !this.captionAssets.has(t));
         Array.from(this.video.textTracks).forEach((t, i) => { t.mode = this.subsVisible && !overlaySelected && this.selectedSub !== 'no' && (this.selectedSub === 'auto' ? i === autoIndex : this.textTrackId(t) === this.selectedSub) ? 'showing' : 'disabled'; });
     }
-    async setAudioOutputDevice(id) {
-        this.assertActive();
-        if (this.mpvAudio) {
-            await this.mpvAudio.setAudioOutputDevice(id);
-            this.outputDevice = id;
+    sinkWait = new Map();
+    startSink(request) {
+        const entry = this.sinkWait.get(request.id);
+        if (!entry)
             return;
+        const finish = (success, error) => {
+            const decision = this.changeNative({ type: 'control.sink.finished', request });
+            this.sinkWait.delete(request.id);
+            this.controlWait.get(request.domain)?.cleanups.delete(entry.cancel);
+            success ? entry.resolve() : entry.reject(error);
+            if (decision.sinkStart)
+                this.startSink(decision.sinkStart);
+        };
+        try {
+            this.assertControl(request);
+            Promise.resolve(entry.run()).then(() => finish(true), error => finish(false, error));
         }
-        const output = (this.gainContext ?? this.video);
-        if (!output.setSinkId)
-            throw new PlayerError('UNSUPPORTED_FEATURE', 'Output device selection is unavailable');
-        await output.setSinkId(id === 'default' ? '' : id);
-        this.outputDevice = id;
+        catch (error) {
+            finish(false, error);
+        }
     }
+    applyAudioOutput(id, request) {
+        this.assertControl(request);
+        const audio = this.mpvAudio, output = (audio ?? this.gainContext ?? this.video);
+        const apply = audio ? audio.setAudioOutputDevice : output.setSinkId;
+        this.assertControl(request);
+        if (!apply)
+            return Promise.reject(new PlayerError('UNSUPPORTED_FEATURE', 'Output device selection is unavailable'));
+        const decision = this.changeNative({ type: 'control.sink.begin', request });
+        if (!decision.accepted)
+            return Promise.reject(new Error('Native output control was retired'));
+        const owner = this.controlWait.get(request.domain);
+        const pending = new Promise((resolve, reject) => {
+            const cancel = (error) => { reject(error); if (this.native.controls.sink.active?.id !== request.id)
+                this.sinkWait.delete(request.id); owner.cleanups.delete(cancel); };
+            this.sinkWait.set(request.id, { request, run: () => { this.assertControl(request); return apply.call(output, audio ? id : id === 'default' ? '' : id); }, resolve, reject, cancel });
+            owner.cleanups.add(cancel);
+            if (decision.sinkStart)
+                this.startSink(decision.sinkStart);
+        });
+        return this.awaitControl(request, pending);
+    }
+    async setAudioOutputDevice(id) { return this.withControl('output', async (request) => { await this.applyAudioOutput(id, request); this.changeControl(request, { type: 'output', value: id }); }); }
     async subtitleVisible(visible) { this.assertActive(); this.subsVisible = visible; this.applySubtitles(); this.refresh(); }
     async addSubtitle(asset) {
         this.assertActive();
