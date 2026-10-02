@@ -389,6 +389,7 @@ export class DemuxePlayerElement extends Base {
       // not hide a newer failure or an active session error from another action.
       if(this.core===owner&&this.lastFailure===failure&&!owner?.state.error)this.clearError();
     }));
+  }
   private componentError(error:unknown){const detail=playerError(error).toJSON();this.showError(detail);this.dispatchEvent(new CustomEvent('error',{detail}));}
   private showError(error:SessionError){if(error.code==='ABORTED')return;this.lastFailure=error;this.$('error').hidden=false;this.$('error-text').textContent=error.message;this.$('retry').hidden=!error.retryable;this.$('retry').textContent=error.code==='AUTOPLAY_BLOCKED'?this.labels.play:this.labels.retry;this.announce(error.message,false);}
   private clearError(){this.lastFailure=undefined;this.$('error').hidden=true;}

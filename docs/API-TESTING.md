@@ -31,14 +31,14 @@ Run these in CI or another authorized validation environment. They are not instr
 npm ci --ignore-scripts
 npm run build
 npm run build:components
-node tests/api-stability/run.mjs unit
+npm run test:stability
 ```
 
 Browser jobs first download and verify `source-provider-browser-inputs`, then run `scripts/prepare-bundle-ci.mjs` and `tests/api-stability/fixtures.mjs`. With those prerequisites:
 
 ```sh
 BROWSER=firefox DEMUXE_RUNTIME_ROOT=build/bundle-flexibility/ci-assets/assets \
-  node tests/api-stability/run.mjs browser sequences
+  npm run test:stability:browser -- sequences
 ```
 
 Other shards are `core`, `ui`, `integration`, `preview`, and `streaming`. `API_EXTENDED=1` increases repetitions; `API_SEED` selects the browser history. Fixtures are generated from FFmpeg test patterns, with commands and hashes retained. They require no personal media library or previous benchmark campaign.
