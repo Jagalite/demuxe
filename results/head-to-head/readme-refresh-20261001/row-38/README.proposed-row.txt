@@ -1,0 +1,1 @@
+| H.264 + AAC / fragmented MP4 (single file) | 🟢 (Pass) · 13.6% CPU | 🟢 (Pass) · 14.0% CPU | 🟢 (Pass) · 17.0% CPU · forced-remux ref | 🟢 (Pass) · 16.1% CPU · forced-remux ref | 🟢 (Pass) · 34.8% CPU | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened · 33.1% CPU | 🟢 (Pass) · 23.9% CPU |
