@@ -77,6 +77,8 @@ An operation begins by publishing its named pending state; `seeking` follows tha
 
 These are source paths, not yet a complete reentrant trace guarantee. Subscribers may issue commands, unsubscribe, subscribe new listeners, or call close/destroy. Update delivery iterates a copied observer list and reads `this.stateSnapshot` when each callback is called. A reducer runner must commit atomically and serialize new transitions, but must not silently change same-stack delivery, acceptance cancellation, or gesture invocation. Capture nested subscription/command traces before declaring a particular reentrant ordering compatible.
 
+The inactive projection candidate returns ordered event names for the captured previous/next pair. It does not dispatch them. Legacy event decisions use that pair while event details read the possibly newer `stateSnapshot` after each reentrant callback. Decide and test how obsolete batches are retired before integrating the new projection. Snapshot equality also suppresses statistics and boundary enforcement, while preview priority/suspension/duration/position updates still occur; the candidate therefore returns preview values even for an unchanged public snapshot.
+
 ## Observed state and settings lifetimes
 
 Source: [projection](../src/unified-player.ts#L416), [new-source acceptance](../src/unified-player.ts#L931), [close/destroy](../src/unified-player.ts#L1784), [attachments](../src/unified-player.ts#L1717).
@@ -96,6 +98,8 @@ Source: [projection](../src/unified-player.ts#L416), [new-source acceptance](../
 Private `qualityPolicy` currently survives close until the next accepted new source resets it; no streaming state is exposed while there is no backend. Record the distinction between inaccessible retained implementation data and a promised source-scoped API value. Reset/source-scope changes need deliberate tests rather than a blanket “clear all state” action.
 
 `getStats()` samples elapsed rebuffer time at getter invocation; extracting it must supply an explicit clock observation while preserving the getter's units/meaning. Diagnostics and capability getters include current backend facts. A frozen public snapshot does not make those physical facts constant.
+
+The projection extraction records additional source quirks for explicit compatibility decisions: loop availability reads the **previous** snapshot's duration, with initial `undefined` differing from `null`; positive infinity can survive `currentTime` normalization; malformed `ranges([null])` throws while packet-cache normalization returns unknown. These are preserved in inactive comparisons, not newly promised API behavior. The candidate copies normalized graphs before freezing so it cannot freeze caller-owned tracks, policies or streaming records. Legacy freezing and live getter behavior remain unchanged until cutover.
 
 ## Gesture-sensitive effects
 

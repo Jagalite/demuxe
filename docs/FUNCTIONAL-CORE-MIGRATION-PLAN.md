@@ -2,20 +2,23 @@
 
 Date: 2026-10-02. Reviewed source: local `main`, `6e17c428`.
 
-Status: implementation started on local `main`, from `67ef9d3b`. The first slice repairs baseline contracts and adds an inactive protocol/runtime foundation. No production state ownership has moved. No local builds or tests, generated-output regeneration, or new remote validation have been performed. No PRs or pushes are part of this task.
+Status: implementation started on local `main`, from `67ef9d3b`. Baseline repairs and an inactive protocol/runtime foundation are committed; the next slice adds inactive observation and public projection functions. No production state ownership has moved. No local builds or tests, generated-output regeneration, or new remote validation have been performed. No PRs or pushes are part of this task.
 
 ## Implementation progress
 
-The first slice implements the following source changes; neither phase 0 nor phase 1 has passed its completion gate.
+The following source changes are implemented; phases 0, 1 and 2 have not passed their completion gates.
 
 | Phase | Implemented | Remaining gate / next work |
 | --- | --- | --- |
 | 0: baseline and compatibility | Added the narrow remux-preview `properties.get('time-pos')` type; recorded the [compatibility ledger](FUNCTIONAL-CORE-COMPATIBILITY.md); corrected automatic-route, nullable-preview, passive-readback and rejection-before-apply assumptions in the sequence oracle. | Regenerate outputs in an authorized environment; validate contract/type/package checks and supported browser scenarios on the candidate revision. Capture route and reentrancy traces and resolve the ledger's source/documentation disagreements. |
 | 1: inactive foundation | Added scoped effect/outcome data, an immediate/scheduled interpreter, bounded resource registry, virtual scheduler/deferred completions, retirement/permutation scenarios, and a static pure-module boundary guard wired into CI. | Execute the added tests. Extend the vocabulary to acquisition and normalized observations, add versioned bounded traces/replay and shrinking, and cover concrete resource adapters. State/input transitions, public command settlement and publication ordering are not implemented by this foundation. |
+| 2: inactive observation/projection candidate | Added detached property/surface observations and pure media metadata, capability, public state and ordered event-name projections. Added independent expected-value scenarios and controlled comparisons with the existing projection for CI. | Run comparisons and browser capture checks. Integrate session identity/observation ordering, move statistics/watchdog policy, decide reentrant delivery semantics, and validate allocation cost before replacing production publication. Track enrichment/locale labels, streaming normalization, diagnostics and live capture remain shell integration work. |
 
 The current interpreter handles only backend play/pause, explicit resource release and timer waits. Its tests describe effect settlement, not public command acceptance or proof of user activation in a browser. All six orderings of two deferred completions and retirement are represented, alongside stale scheduled work, duplicate callbacks, reentrant outcome observers and ignored cancellation. No Player code imports the interpreter yet.
 
 The registry owns handles in the shell and keeps bounded lifetime tombstones. Configure capacity before production integration; rejecting admission leaves cleanup with the caller. Retirement invalidates lookups before callbacks, attempts remaining cleanup after failures, and releases late accepted allocations. A release callback that never settles can still hold physical teardown: deadline/containment policy and adapters for workers, readers, URLs, audio and preview resources remain to be designed. A retirement promise covers resources present at its start; late allocation cleanup has its own promise.
+
+The projection candidate has no production imports from `Player`. Its observation adapter receives one accepted-session tuple, already enriched/filtered tracks and normalized settings/streaming DTOs; it does not acquire resources or decide whether a late observation is current. Pure projection returns an immutable snapshot, ordered notification names and preview scheduling values. Preview values are produced even when snapshot equality suppresses publication. Existing loop-capability dependence on the previous duration is preserved explicitly; this is a compatibility observation, not a new API guarantee. Event names describe non-reentrant publication; delivering them after a callback changes state requires a separate decision and tests.
 
 Validation so far is static only: pure-source boundary inspection, TypeScript parsing, JavaScript syntax checks and whitespace checks. The guard catches forbidden imports/host reads and visible mutations; it is not proof against arbitrary aliases, getters or helper-hidden effects. Runtime scenarios, generated declarations and package/browser qualification remain pending. The next ownership work is gated by the baseline evidence above.
 
@@ -23,7 +26,9 @@ Validation so far is static only: pure-source boundary inspection, TypeScript pa
 
 Move every application-owned playback decision and logical state transition into deterministic functions. Keep the public API stable. Make command histories, failed operations, cancellation, late completions and resource retirement reproducible without a browser.
 
-Use several composed state machines with explicit ownership, rather than one global reducer containing every control and decoder. A player owns playback state and its preview lane; an element owns its queue and editing drafts; document-level presentation arbitration owns shared browser leases. Each logical value has one authoritative writer.
+Use **one composed player state machine and one atomic transition boundary per player**. Operations, source acceptance, routing, settings and playback are pure domain functions within that composition. They do not have independent mutable stores, event loops or independently published intermediate states. A source acceptance updates its source/session, settings and playback intent together before effects and notifications become visible.
+
+Separate state-machine owners follow real lifetime or authority boundaries: the player's restricted preview lane owns thumbnail work, the optional element owns its queue and editing drafts, and document-level presentation arbitration owns shared browser leases across players. A preview owner cannot emit playback route/source effects; UI playback values are derived from the player. Each logical value has one authoritative writer. Test the composed player across commands and completions as well as its individual functions.
 
 Browser media engines, FFmpeg/mpv, WebCodecs, audio worklets, network connections and DOM nodes retain physical execution state. They report observations to the functional machines. We do not represent physical playback as if a successful command proved that frames or audio were produced. Implementation-private buffers and handles remain mutable inside their owning adapters.
 
@@ -50,6 +55,8 @@ Paths and symbols below refer to the reviewed source; line numbers may move.
 
 Useful existing pieces should be retained: finite playback plans, policy normalizers, provider resolution, the backend interface, transactional replacement, resource ownership and the public preview facade. They are seams for extraction, not reasons to rewrite the media stack.
 
+In the table, playback, operations, source/route and settings machines name parts of the same player composition. Module boundaries alone do not create separate runtime owners.
+
 Several apparently pure surfaces need work first:
 
 - `Player.publish()` reads live properties and DOM dimensions, configures previews, mutates statistics, emits synchronous events and enforces range/loop boundaries. Split observation capture, state transition, projection and publication.
@@ -74,10 +81,14 @@ src/internal/machine/
   playback.ts                 intent, observations, loops and ranges
   telemetry.ts                buffering, watchdog and statistics transitions
   selectors.ts                public state, capabilities, diagnostics and event diffs
+  capabilities.ts             pure capability projection from sampled deployment facts
+  media-info.ts               pure media metadata/geometry projection
+  data.ts                     copy normalized DTOs before freezing owned output
 src/internal/effects/
   runtime.ts                  executes effect descriptions and dispatches results
   resources.ts                scoped registry of opaque handles and cleanup
   observations.ts             normalize backend/browser observations
+  media-observations.ts       capture backend metadata and surface dimensions
   ...                         adapters over existing source/provider/backend code
 src/preview/machine.ts        preview control state
 src/player/machine.ts         element queue, drafts and interaction control state
