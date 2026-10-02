@@ -38,12 +38,17 @@ for(const item of packages){const metadata=JSON.parse(await readFile(path.join(r
 if(sourceCandidate){
  // Candidate admission is confined to this installed test copy. Package archives
  // and the production qualification registry are never rewritten.
+ const file=path.join(core,'web/generated/internal/provider-build.js'),before=await readFile(file);
+ const maintained=(await import(pathToFileURL(file))).qualifiedProviderIdentities;
  const identities={};
+ for(const id of ['browser-original','browser-prepared','web-audio-gain']){
+  assert.equal(maintained[id],'demuxe-browser-v1','Missing maintained browser identity: '+id);
+  identities[id]=maintained[id];
+ }
  for(const item of packages.filter(item=>item.name!=='demuxe')){
   const manifest=JSON.parse(await readFile(path.join(root,'node_modules',item.name,'provider-manifest.json')));
   for(const provider of manifest.provides){assert.ok(!identities[provider.id],'Duplicate provider');identities[provider.id]=provider.implementationIdentity;}
  }
- const file=path.join(core,'web/generated/internal/provider-build.js'),before=await readFile(file);
  const after=Buffer.from('// SPDX-License-Identifier: Apache-2.0\n// CI TEST CANDIDATES ONLY; not production qualification.\nexport const providerDeploymentEnabled = true;\nexport const qualifiedProviderIdentities = Object.freeze('+JSON.stringify(identities)+');\n');
  await writeFile(file,after);
  await writeFile(path.join(root,'candidate-admission.json'),JSON.stringify({commit:inventory.commit,beforeSHA256:sha(before),afterSHA256:sha(after),identities,releaseQualified:false},null,2)+'\n');

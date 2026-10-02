@@ -5,8 +5,19 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      source_run:
+        description: Optional completed source run to replay (requires commit and inventory hash)
+        type: string
+      source_commit:
+        description: Exact source commit of the replayed packages
+        type: string
+      inventory_sha256:
+        description: Exact replayed bundle-ci-inventory.json SHA256
+        type: string
 permissions:
   contents: read
+  actions: read
 jobs:
   loader:
     runs-on: ubuntu-latest
@@ -32,9 +43,11 @@ jobs:
           name: bundle-loader-${{ matrix.browser }}
           path: build/bundle-flexibility/browser-*/report.json
   providers:
+    if: ${{ !inputs.source_run }}
     uses: ./.github/workflows/ci-providers.yml
   native:
     needs: providers
+    if: ${{ !cancelled() && (needs.providers.result == 'success' || inputs.source_run != '') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
@@ -43,11 +56,25 @@ jobs:
         browser: [chromium, firefox]
         delivery: [assets, embedded]
     env:
-      BUNDLE_INVENTORY_SHA256: ${{ needs.providers.outputs.inventory_sha256 }}
+      BUNDLE_INVENTORY_SHA256: ${{ inputs.inventory_sha256 || needs.providers.outputs.inventory_sha256 }}
       BUNDLE_SOURCE_CANDIDATE: '1'
     steps:
       - uses: actions/checkout@v4
         with:
+          persist-credentials: false
+      - name: Retain current harness for an explicit artifact replay
+        if: inputs.source_run
+        env:
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+        run: |
+          [[ "$SOURCE_COMMIT" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$BUNDLE_INVENTORY_SHA256" =~ ^[a-f0-9]{64}$ ]]
+          cp scripts/prepare-bundle-ci.mjs "$RUNNER_TEMP/prepare-bundle-ci.mjs"
+          git rev-parse HEAD > "$RUNNER_TEMP/bundle-harness-commit.txt"
+      - uses: actions/checkout@v4
+        if: inputs.source_run
+        with:
+          ref: ${{ inputs.source_commit }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -59,6 +86,13 @@ jobs:
         with:
           name: source-provider-browser-inputs
           path: build/bundle-ci-inputs
+          run-id: ${{ inputs.source_run || github.run_id }}
+          github-token: ${{ github.token }}
+      - name: Restore the recorded replay harness
+        if: inputs.source_run
+        run: |
+          cp "$RUNNER_TEMP/prepare-bundle-ci.mjs" scripts/prepare-bundle-ci.mjs
+          cp "$RUNNER_TEMP/bundle-harness-commit.txt" build/bundle-ci-inputs/harness-commit.txt
       - run: node scripts/prepare-bundle-ci.mjs
       - name: Exercise freshly built FFmpeg, Hybrid and atomic mpv
         env:
@@ -75,3 +109,4 @@ jobs:
             build/bundle-flexibility/ci-*/bundle-manifest.json
             build/bundle-flexibility/ci-*/playback-*.json
             build/bundle-ci-consumer/candidate-admission.json
+            build/bundle-ci-inputs/harness-commit.txt

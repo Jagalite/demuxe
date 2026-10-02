@@ -70,3 +70,9 @@ node tests/ci-slice-native.mjs audio-flac
 Build destinations must be fresh. Build logs and failed attempt directories are
 retained; the script does not replace an existing native candidate. Automatic CI
 uses no mutable native-output cache and needs no manually published input release.
+
+For remote harness diagnosis, the bundle workflow accepts an explicit source run,
+full source commit and inventory SHA256. Replay checks out that source commit and
+uses its audited packages unchanged, retaining the current preparation harness
+commit separately. This does not replace the normal PR source rebuild or qualify
+the replayed packages as artifacts of the newer harness commit.
