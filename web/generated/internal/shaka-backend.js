@@ -5,8 +5,9 @@ import { ShakaNetworkPolicy } from './shaka-network.js';
 import { PlayerError, isPlayerError } from './errors.js';
 import { rasterizePreview } from '../preview/images.js';
 import { runtimeAt } from './shaka-runtime.js';
-import { initialShakaBackend, transitionShakaBackend, shakaLeaseCurrent, shakaQualityCandidates, shakaQualityPlan, shakaAttachmentSelect } from './machine/shaka-backend.js';
-import { shakaAudioCatalog, shakaRequestedAudio, shakaSelectAudio, shakaInitialRepresentation, shakaSelectText, shakaExpectedOutput } from './machine/shaka-selection.js';
+import { initialShakaBackend, transitionShakaBackend, shakaLeaseCurrent, shakaQualityPlan, shakaAttachmentSelect } from './machine/shaka-backend.js';
+import { shakaStreamingProjection, shakaTrackProjection, shakaSeekTarget, shakaPreviewChoice } from './machine/shaka-observation.js';
+import { shakaRequestedAudio, shakaSelectAudio, shakaInitialRepresentation, shakaSelectText, shakaExpectedOutput } from './machine/shaka-selection.js';
 import { plainVTT } from './plain-vtt.js';
 /** Shaka exclusively owns adaptive manifests, scheduling, ABR and MediaSource.
  * NativePlayer supplies only media-element controls, output verification and gain. */
@@ -108,43 +109,82 @@ export class ShakaBackend extends EventTarget {
         // In pinned Shaka, clear DASH JPEG SegmentList/Template indexes are metadata
         // only: SegmentBase/index templates reject non-MP4/WebM at manifest admission.
         // HLS lazy playlists and other formats must already be indexed.
+        const epoch = this.control.epoch, current = () => !this.stopped && player === this.player && epoch === this.control.epoch;
         const streams = player.getManifest()?.imageStreams ?? [];
-        const eligible = streams.filter(stream => !stream.encrypted && (stream.segmentIndex ||
-            (this.control.source?.format === 'dash' && !player.isDynamic() && stream.mimeType === 'image/jpeg')));
-        const ids = new Set(eligible.map(stream => stream.id));
-        const tracks = player.getImageTracks().filter(track => ids.has(track.id));
-        if (!tracks.length)
+        if (!current())
             return null;
-        const track = [...tracks].sort((a, b) => Math.abs((a.width ?? request.width) - request.width) - Math.abs((b.width ?? request.width) - request.width))[0];
-        const stream = eligible.find(stream => stream.id === track.id);
-        if (!stream.segmentIndex)
-            await stream.createSegmentIndex();
+        const streamFacts = streams.map(stream => ({ id: stream.id, encrypted: stream.encrypted, indexed: !!stream.segmentIndex, mimeType: stream.mimeType }));
+        if (!current())
+            return null;
+        const live = player.isDynamic();
+        if (!current())
+            return null;
+        const tracks = player.getImageTracks();
+        if (!current())
+            return null;
+        const trackFacts = tracks.map(track => ({ id: track.id, width: track.width }));
+        if (!current())
+            return null;
+        const choice = shakaPreviewChoice(this.control.source?.format, live, request.width, streamFacts, trackFacts);
+        if (!choice)
+            return null;
+        const stream = streams[choice.stream];
+        if (choice.createIndex) {
+            const create = stream.createSegmentIndex;
+            if (!current())
+                return null;
+            await create.call(stream);
+        }
         request.signal.throwIfAborted();
-        const thumbnail = await player.getThumbnails(track.id, request.time);
+        if (!current())
+            return null;
+        const get = player.getThumbnails;
+        if (!current())
+            return null;
+        const thumbnail = await get.call(player, choice.id, request.time);
         request.signal.throwIfAborted();
-        if (!thumbnail || this.stopped || player !== this.player)
+        if (!thumbnail || !current())
             return null;
         const indexLookupMs = performance.now() - indexStart;
         if (!this.runtime || !this.control.source || !this.policy)
             return null;
         const runtime = this.runtime, policy = this.policy.forkForPreview();
+        if (!current()) {
+            policy.destroy();
+            return null;
+        }
         const type = runtime.net.NetworkingEngine.RequestType.SEGMENT;
         const acquisitionStart = performance.now();
         try {
             for (const uri of thumbnail.uris) {
                 request.signal.throwIfAborted();
+                if (!current())
+                    return null;
                 const networkRequest = runtime.net.NetworkingEngine.makeRequest([uri], { ...runtime.net.NetworkingEngine.defaultRetryParameters(), timeout: 5000, maxAttempts: 1 });
                 if (thumbnail.startByte || thumbnail.endByte !== null)
                     networkRequest.headers.Range = `bytes=${thumbnail.startByte}-${thumbnail.endByte ?? ''}`;
                 policy.filter(type, networkRequest);
+                if (!current())
+                    return null;
                 const operation = policy.plugin(uri, networkRequest, type, () => { }, () => { }, {});
-                const cancel = () => { void operation.abort(); };
-                request.signal.addEventListener('abort', cancel, { once: true });
+                const responsePromise = operation.promise;
+                void responsePromise.catch(() => { });
+                const cancel = () => { void operation.abort().catch(() => { }); };
                 try {
-                    const response = await operation.promise;
+                    request.signal.addEventListener('abort', cancel, { once: true });
+                    if (request.signal.aborted || !current()) {
+                        cancel();
+                        request.signal.throwIfAborted();
+                        return null;
+                    }
+                    const response = await responsePromise;
                     request.signal.throwIfAborted();
+                    if (!current())
+                        return null;
                     const bytes = new Uint8Array(response.data), byteAcquisitionMs = performance.now() - acquisitionStart, conversionStart = performance.now();
                     const image = await rasterizePreview(new Blob([bytes], { type: thumbnail.mimeType ?? 'image/jpeg' }), request, { x: thumbnail.positionX, y: thumbnail.positionY, width: thumbnail.width, height: thumbnail.height });
+                    if (!current())
+                        return null;
                     return { time: thumbnail.startTime, actualTime: thumbnail.startTime, width: image.width, height: image.height, path: 'shaka-image-track', timestampKind: 'interval', temporalAccuracy: 'approximate', fidelity: 'full', image: { blob: image.blob }, metrics: { indexLookupMs, byteAcquisitionMs, resizeConversionMs: performance.now() - conversionStart, bytesFetched: bytes.length, bytesRead: bytes.length } };
                 }
                 catch (error) {
@@ -297,27 +337,58 @@ export class ShakaBackend extends EventTarget {
         }
     }
     refresh() {
-        for (const [key, value] of this.native.properties)
-            this.properties.set(key, value);
-        const player = this.player;
-        if (!player || this.stopped)
+        const player = this.player, state = this.control;
+        const current = () => this.player === player && this.control === state && !this.stopped;
+        const properties = [...this.native.properties];
+        if (!current())
             return;
-        this.properties.set('paused-for-cache', player.isBuffering?.() ?? false);
-        const variants = player.getVariantTracks(), current = variants.find(t => t.active), texts = player.getTextTracks(), audio = this.audioTracks();
-        const tracks = audio.map(({ track: t, id }) => ({ id, type: 'audio', codec: t.codecs, title: t.label, lang: t.language, selected: t.active && !this.audioDisabled }));
-        tracks.push(...texts.map(t => ({ id: `shaka-sub-${t.id}`, type: 'sub', codec: t.codecs || t.mimeType, title: t.label, lang: t.language, selected: t.active && this.visible && this.selectedSub !== 'no', external: this.control.external.some(item => item.id === t.id), ...(this.control.external.some(item => item.id === t.id) ? { 'external-index': this.control.external.find(item => item.id === t.id).index, 'attachment-id': this.control.external.find(item => item.id === t.id).attachmentId } : {}) })));
-        if (current?.videoCodec)
-            tracks.push({ id: `shaka-video-${current.videoId}`, type: 'video', codec: current.videoCodec, selected: true, 'demux-w': current.width, 'demux-h': current.height });
+        if (!player) {
+            for (const [key, value] of properties)
+                this.properties.set(key, value);
+            return;
+        }
+        const buffering = player.isBuffering?.() ?? false;
+        if (!current())
+            return;
+        const variants = player.getVariantTracks();
+        if (!current())
+            return;
+        const variantFacts = this.observedVariants(variants);
+        if (!current())
+            return;
+        const texts = player.getTextTracks();
+        if (!current())
+            return;
+        const textFacts = texts.map(track => ({ id: track.id, active: track.active, codecs: track.codecs, mimeType: track.mimeType, label: track.label, language: track.language }));
+        if (!current())
+            return;
+        const audio = player.getAudioTracks();
+        if (!current())
+            return;
+        const audioFacts = this.audioFacts(audio);
+        if (!current())
+            return;
+        const live = player.isDynamic();
+        if (!current())
+            return;
+        const observed = player.seekRange();
+        if (!current())
+            return;
+        const range = { start: observed.start, end: observed.end };
+        if (!current())
+            return;
+        const tracks = shakaTrackProjection(state, audioFacts, textFacts, variantFacts);
+        for (const [key, value] of properties)
+            this.properties.set(key, value);
+        this.properties.set('paused-for-cache', buffering);
         this.properties.set('track-list', tracks);
-        this.properties.set('native-live', player.isDynamic());
-        const range = player.seekRange();
-        this.properties.set('native-seekable', range.end > range.start ? [{ start: range.start, end: range.end }] : []);
-        if (player.isDynamic())
+        this.properties.set('native-live', live);
+        this.properties.set('native-seekable', range.end > range.start ? [range] : []);
+        if (live)
             this.properties.set('duration', null);
     }
     audioFacts(tracks) { return tracks.map(track => ({ language: track.language, originalLanguage: track.originalLanguage, label: track.label, roles: track.roles?.slice(), spatialAudio: track.spatialAudio, accessibilityPurpose: track.accessibilityPurpose, channelsCount: track.channelsCount, codecs: track.codecs, active: track.active })); }
     selectionVariants(tracks) { return tracks.map(track => ({ id: track.id, active: track.active, audioLanguage: track.audioLanguage, language: track.language, originalLanguage: track.originalLanguage, label: track.label, audioRoles: track.audioRoles?.slice(), spatialAudio: track.spatialAudio, accessibilityPurpose: track.accessibilityPurpose, channelsCount: track.channelsCount, audioCodec: track.audioCodec, videoCodec: track.videoCodec, originalVideoId: track.originalVideoId, originalAudioId: track.originalAudioId, bandwidth: track.bandwidth, height: track.height })); }
-    audioTracks() { const tracks = this.player?.getAudioTracks() ?? []; return shakaAudioCatalog(this.audioFacts(tracks)).map(entry => ({ ...entry, track: tracks[entry.index] })); }
     expected() { return shakaExpectedOutput(this.selectionVariants(this.player?.getVariantTracks() ?? []), this.audioDisabled); }
     async verifyStartup(_expected, output = false) { this.active(); if (this.failure)
         throw this.failure; await this.native.verifyStartup(this.expected(), output); this.active(); if (this.failure)
@@ -325,13 +396,27 @@ export class ShakaBackend extends EventTarget {
     verifyOutput() { return this.verifyStartup(undefined, true); }
     startupEvidence() { return { ...this.native.diagnostics.capability, sourceBufferCreated: !!this.player && this.player.getLoadMode() === this.runtime?.Player.LoadMode.MEDIA_SOURCE }; }
     variantFacts(tracks) { return tracks.map(t => ({ id: t.id, active: t.active, audioIdentity: JSON.stringify([t.audioLanguage ?? t.language, t.originalLanguage, t.label, t.audioRoles, t.channelsCount, t.audioCodec, t.spatialAudio, t.accessibilityPurpose]), videoCodec: t.videoCodec ?? null, originalVideoId: t.originalVideoId ?? null, originalAudioId: t.originalAudioId ?? null, bandwidth: t.bandwidth, height: t.height ?? null })); }
-    qualityTracks() { const tracks = this.loaded().getVariantTracks(), ids = shakaQualityCandidates(this.control, this.variantFacts(tracks)); return tracks.filter(track => ids.includes(track.id)); }
+    observedVariants(tracks) { return tracks.map(track => ({ ...this.variantFacts([track])[0], videoId: track.videoId, width: track.width, frameRate: track.frameRate, audioCodec: track.audioCodec, hdr: track.hdr })); }
     streamingState() {
-        const player = this.loaded(), list = this.qualityTracks(), active = list.find(t => t.active), live = player.isDynamic(), range = player.seekRange();
-        const number = (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null;
-        const playheadDate = live ? player.getPlayheadTimeAsDate?.() : null;
-        const latency = playheadDate ? number((Date.now() - playheadDate.getTime()) / 1000) : null;
-        return { qualities: list.map(t => ({ id: `variant:${t.id}`, width: number(t.width), height: number(t.height), bandwidth: number(t.bandwidth), frameRate: number(t.frameRate), videoCodec: t.videoCodec ?? null, audioCodec: t.audioCodec ?? null, dynamicRange: t.hdr ?? null })), requested: { ...this.qualityPolicy }, selectedId: active ? `variant:${active.id}` : null, presentedId: null, observedQuality: this.observedQuality ? { ...this.observedQuality } : null, transition: 'unknown', live: { isLive: live, seekable: range.end > range.start ? range : null, latencySeconds: latency, nearLive: live && range.end > range.start ? Math.abs(this.video.currentTime - range.end) <= 2 : null } };
+        const player = this.loaded(), state = this.control, check = () => { if (this.player !== player || this.control !== state || this.stopped)
+            throw new PlayerError('ABORTED', 'Shaka observation retired'); };
+        const tracks = player.getVariantTracks();
+        check();
+        const facts = this.observedVariants(tracks);
+        check();
+        const live = player.isDynamic();
+        check();
+        const observed = player.seekRange();
+        check();
+        const start = observed.start, end = observed.end;
+        check();
+        const date = live ? player.getPlayheadTimeAsDate?.() : null;
+        check();
+        const playheadDate = date?.getTime() ?? null;
+        check();
+        const time = live && end > start ? this.video.currentTime : 0, now = playheadDate !== null ? Date.now() : 0;
+        check();
+        return shakaStreamingProjection(state, facts, { live, start, end, time, now, playheadDate });
     }
     async setQuality(policy) {
         const lease = this.begin('quality');
@@ -394,8 +479,9 @@ export class ShakaBackend extends EventTarget {
     async play() { this.active(); if (this.buffering.preload !== 'auto')
         this.player?.configure({ streaming: { ...this.bufferingDefaults, ...shakaBufferingOptions(this.buffering, false) } }); await this.native.play(); }
     async pause() { this.active(); await this.native.pause(); }
-    async seek(seconds) { const range = this.loaded().seekRange(); if (!Number.isFinite(seconds) || seconds < range.start - .01 || seconds > range.end + .01)
-        throw new PlayerError('INVALID_ARGUMENT', 'Seek target is outside the streaming seekable window'); await this.native.seek(Math.max(range.start, Math.min(range.end, seconds))); }
+    async seek(seconds) { const player = this.loaded(), epoch = this.control.epoch, range = player.seekRange(), target = shakaSeekTarget(range.start, range.end, seconds); this.active(); if (player !== this.player || epoch !== this.control.epoch)
+        throw new PlayerError('ABORTED', 'Shaka seek retired'); if (target === null)
+        throw new PlayerError('INVALID_ARGUMENT', 'Seek target is outside the streaming seekable window'); await this.native.seek(target); }
     async rate(value) { this.active(); await this.native.rate(value); }
     setAudioOutputDevice(id) { return this.native.setAudioOutputDevice(id); }
     async volume(value) { this.active(); await this.native.volume(value); }

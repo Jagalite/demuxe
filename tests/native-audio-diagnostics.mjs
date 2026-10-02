@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {initialRemuxLifecycle} from '../web/generated/internal/machine/remux-lifecycle.js';
 import test from 'node:test';
+import {initialNativeAudio} from '../web/generated/internal/machine/native-audio.js';
 import {initialNativeBackend} from '../web/generated/internal/machine/native-backend.js';
 import assert from 'node:assert/strict';
 import {NativeMpvAudio} from '../web/generated/internal/native-mpv-audio.js';
@@ -13,20 +14,20 @@ import {watchdogPolicy} from '../web/generated/internal/watchdogs.js';
 
 function audio(){
   return Object.assign(Object.create(NativeMpvAudio.prototype),{
-    points:[],generation:1,running:true,errors:[],header:new Int32Array(16),
-    video:{playbackRate:1,paused:false,seeking:false,ended:false,readyState:4,ownerDocument:{hidden:false}},context:{state:'running'},engine:{properties:new Map()},watchdogs:watchdogPolicy(),
-    time:()=>10,requestedRate:1,effectiveRate:1,maxAbsError:0,sustained:0,release:0,
+    machine:{...initialNativeAudio(watchdogPolicy()),generation:1,running:true},header:new Int32Array(16),
+    video:{playbackRate:1,paused:false,seeking:false,ended:false,readyState:4,ownerDocument:{hidden:false}},context:{state:'running'},engine:{properties:new Map()},
+    time:()=>10,
   });
 }
 test('clock preserves due, generation, ordering, freshness and paused semantics',()=>{
   const a=audio(),origin=performance.timeOrigin;
   const point=(wallTime,mediaTime,rate=1,generation=1)=>({wallTime:origin+wallTime,mediaTime,rate,generation});
-  a.points=[point(90,4,2),point(110,99),point(80,3),point(95,88,1,0),point(90,77)];
+  a.machine={...a.machine,points:[point(90,4,2),point(110,99),point(80,3),point(95,88,1,0),point(90,77)]};
   assert.equal(a.estimatedAudioPresentationTime(100),4.02);
-  a.running=false;assert.equal(a.estimatedAudioPresentationTime(100),4);
+  a.machine={...a.machine,running:false};assert.equal(a.estimatedAudioPresentationTime(100),4);
   assert.equal(a.estimatedAudioPresentationTime(79),null);
   assert.equal(a.estimatedAudioPresentationTime(361),null);
-  a.generation=2;assert.equal(a.estimatedAudioPresentationTime(100),null);
+  a.machine={...a.machine,generation:2};assert.equal(a.estimatedAudioPresentationTime(100),null);
 });
 test('one clock sample supplies both position and error in a diagnostic snapshot',()=>{
   const a=audio();let calls=0;
@@ -36,15 +37,15 @@ test('one clock sample supplies both position and error in a diagnostic snapshot
   a.estimatedAudioPresentationTime=()=>null;assert.equal(a.diagnostics.errorMs,null);
 });
 test('cached sync percentiles refresh when the full rolling window advances',()=>{
-  const a=audio();a.errors=Array(1200).fill(0);a.errors.fill(20,600);
+  const a=audio(),errors=Array(1200).fill(0);errors.fill(20,600);a.machine={...a.machine,drift:{...a.machine.drift,errors}};
   a.estimatedAudioPresentationTime=()=>10.020;
   assert.equal(a.diagnostics.absErrorP50Ms,0);
   // Unchanged diagnostics must reuse the sorted history.
-  a.errors[Symbol.iterator]=()=>{throw Error('unchanged history was sorted again');};
+  errors[Symbol.iterator]=()=>{throw Error('unchanged history was sorted again');};
   assert.equal(a.diagnostics.absErrorP50Ms,0);
-  delete a.errors[Symbol.iterator];
+  delete errors[Symbol.iterator];
   a.observe();
-  assert.equal(a.errors.length,1200);assert.ok(Math.abs(a.diagnostics.absErrorP50Ms-20)<1e-9);
+  assert.equal(a.machine.drift.errors.length,1200);assert.ok(Math.abs(a.diagnostics.absErrorP50Ms-20)<1e-9);
 });
 test('native control-plane reads do not collect audio or video diagnostics',()=>{
   const player=Object.assign(Object.create(NativePlayer.prototype),{

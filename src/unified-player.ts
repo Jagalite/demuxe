@@ -43,7 +43,7 @@ import {copyData} from './internal/machine/data.js';
 import {initialPlayerControl} from './internal/machine/state.js';
 import {transitionPlayer,sessionAuthority,type PlayerControlInput,type PlayerControlDecision} from './internal/machine/transition.js';
 import {activeOperation,pendingOperation} from './internal/machine/operations.js';
-import {sourceDesiredSettings,sourcePreparationCurrent,sourceApplicationCurrent} from './internal/machine/source.js';
+import {sourceDesiredSettings,sourcePreparationCurrent,sourceApplicationCurrent,sourcePositioningCurrent} from './internal/machine/source.js';
 import type {RawTrack} from './internal/state.js';
 import type {PlayerState, PlayerEventMap, PlayerCapabilities, SessionError, OperationKind, PendingOperation, OpenOptions, MediaSourceInput} from './types.js';
 import {PLAYBACK_MODES} from './types.js';
@@ -996,7 +996,7 @@ export class Player extends EventTarget {
     const beginning=this.dispatchControl({type:'source.begin',...sourceScope,mode,preserve,planId});
     if(!beginning.accepted)throw new PlayerError('ABORTED','Source transaction is already active');
     const attempt=beginning.id!,attemptSession=this.control.source.candidate!.session;
-    const advance=(type:'source.created'|'source.positioned')=>{if(!this.dispatchControl({type,attempt,...(type==='source.created'?{prepare:true}:{})}).accepted)throw new PlayerError('ABORTED','Source transaction was retired');};
+    const advance=(type:'source.created')=>{if(!this.dispatchControl({type,attempt,...(type==='source.created'?{prepare:true}:{})}).accepted)throw new PlayerError('ABORTED','Source transaction was retired');};
     this.publish();this.emit('modechange', {phase: 'loading', mode});
     let candidate: Session | undefined;
     const overlapping=!!(old&&!old.error&&this.promotionRunning&&this.backgroundPromotion&&!wasPaused&&mode==='native');
@@ -1084,24 +1084,37 @@ export class Player extends EventTarget {
         if(!this.dispatchControl({type:'source.application.completed',attempt,step:effect.step,observation}).accepted)throw new PlayerError('ABORTED','Source application completion was retired');
       }
       Object.assign(desired,this.control.source.candidate!.application!.settings);
-      await this.settled(candidate, mode, 0);
-      if(overlapping){
-        this.assertOperation();await this.backendEffect(old!,'backend.pause');
-        target=Math.max(0,Number(old!.backend.properties.get('time-pos'))||0);
-        clearInterval(resourceMonitor);
+      if(!this.dispatchControl({type:'source.positioning.begin',attempt,target,overlapping}).accepted)throw new PlayerError('ABORTED','Source positioning was retired');
+      for(;;){
+        const decision=this.dispatchControl({type:'source.positioning.next',attempt});
+        if(!decision.accepted)throw new PlayerError('ABORTED','Source positioning was retired');
+        const effect=decision.positioningEffect;if(!effect)break;
+        const current=()=>{this.assertOperation();if(!sourcePositioningCurrent(this.control.source,attempt,effect.step)||sessionAuthority(this.control,attemptSession)!=='candidate')throw new PlayerError('ABORTED','Source positioning was retired');};
+        const invoke=(name:'seek'|'volume',value:number)=>{current();const method=p[name];current();return method.call(p,value);};
+        let observation:import('./internal/machine/source-positioning.js').SourcePositioningObservation|undefined;current();
+        switch(effect.kind){
+          case 'settled':await this.settled(candidate,mode,effect.target);break;
+          case 'previous.pause':await this.backendEffect(old!,'backend.pause');break;
+          case 'previous.time':{const value=Number(old!.backend.properties.get('time-pos'));current();observation={kind:'time',value};break;}
+          case 'monitor.release':clearInterval(resourceMonitor);break;
+          case 'seek':await invoke('seek',effect.target);break;
+          case 'candidate.error':if(candidate.error)throw candidate.error;break;
+          case 'plan':{
+            const actual=executionPlan(mode,backendPlan(p),desired.af,desired.gain,!!(p.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay);current();
+            observation={kind:'plan',actual:actual?.id??null,eligible:!!actual&&admitted.some(plan=>plan.id===actual.id&&plan.eligible)};break;
+          }
+          case 'play':if(effect.native)await this.playNativeVerified(p);else await this.invokeBackend(p,'backend.play');break;
+          case 'volume.observe':observation={kind:'muted',value:this.muted};break;
+          case 'volume':await invoke('volume',effect.value);break;
+          case 'position':case 'positioned':case 'ready':break;
+          case 'reject':throw new PlayerError('UNSUPPORTED_FEATURE',effect.message);
+        }
+        if(!this.dispatchControl({type:'source.positioning.completed',attempt,step:effect.step,observation}).accepted)throw new PlayerError('ABORTED','Source positioning completion was retired');
       }
-      if (target > 0) {await p.seek(target);await this.settled(candidate, mode, target);}
-      advance('source.positioned');
-      if (candidate.error) throw candidate.error;
-      const actual=executionPlan(mode,backendPlan(p),desired.af,desired.gain,!!(p.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay);
-      if(!actual||actual.id!==planId||!admitted.some(plan=>plan.id===actual.id&&plan.eligible))throw new PlayerError('UNSUPPORTED_FEATURE','The prepared components do not match an admitted complete playback plan');
-      if (!desired.pause) {if(mode==='native')await this.playNativeVerified(p);else await this.invokeBackend(p,'backend.play');}
-      this.assertOperation();
-      if(overlapping)await p.volume(this.muted?0:desired.volume);
-      this.assertOperation();
+      target=this.control.source.candidate!.positioning!.target;
       const elapsed=performance.now()-this.operationStarted;
       const timestamps=Array.from({length:playbackStatisticsClockReads(this.control.publication.statistics,{kind:'accept',sourceId:this.sourceSerial+(preserve?0:1),preserve,elapsed})},()=>performance.now());
-      const acceptance=this.dispatchControl({type:'source.accept',attempt,operationEpoch:this.operationEpoch,timing:{elapsed,timestamps},settings:desired,planMatches:!!actual&&actual.id===planId&&admitted.some(plan=>plan.id===actual.id&&plan.eligible),...(!preserve?{publicSelections:{...(initialAudio?{audio:`audio:stream:${initialAudio.index}`} :{}),...(initialSubtitle?{sub:`sub:stream:${initialSubtitle.index}`}:{})}}:{})});
+      const acceptance=this.dispatchControl({type:'source.accept',attempt,operationEpoch:this.operationEpoch,timing:{elapsed,timestamps},settings:desired,planMatches:true,...(!preserve?{publicSelections:{...(initialAudio?{audio:`audio:stream:${initialAudio.index}`} :{}),...(initialSubtitle?{sub:`sub:stream:${initialSubtitle.index}`}:{})}}:{})});
       if(!acceptance.accepted)throw new PlayerError('ABORTED','Source acceptance was retired');
       this.current=candidate;this.candidate=undefined;this.source=source;
       this.activeOperation?.detachCallerAbort();

@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';
+import {initialNativeAudio} from '../web/generated/internal/machine/native-audio.js';
+import {watchdogPolicy} from '../web/generated/internal/watchdogs.js';
 import {initialNativeBackend} from '../web/generated/internal/machine/native-backend.js';
 import assert from 'node:assert/strict';
 import {NativePlayer} from '../web/generated/internal/native-player.js';
@@ -49,7 +51,7 @@ for(const [label,tracks,stream] of [
  test(`URL selective audio ${label} admits compatibility fallback`,async()=>{
   const {NativeMpvAudio}=await import('../web/generated/internal/native-mpv-audio.js');
   const {compatibilityFailure}=await import('../web/generated/internal/runtime-capability.js');
-  const service=Object.create(NativeMpvAudio.prototype);
+  const service=Object.assign(Object.create(NativeMpvAudio.prototype),{machine:initialNativeAudio(watchdogPolicy()),operations:new Map(),contextChanged(){}});
   service.engine={ready:Promise.resolve(),selectiveAudioState:()=>({context:new EventTarget()}),command:async()=>{},
    openRemote:async()=>{},inspectMetadata:async()=>{},properties:new Map([['track-list',tracks]])};
   await assert.rejects(service.open({url:'https://media.example/movie.mkv'},stream),error=>
@@ -60,7 +62,7 @@ for(const message of ['Source transport: HTTP 403','Source transport: Media repr
  test(`URL selective audio preserves terminal failure: ${message}`,async()=>{
   const {NativeMpvAudio}=await import('../web/generated/internal/native-mpv-audio.js');
   const {compatibilityFailure}=await import('../web/generated/internal/runtime-capability.js');
-  const failure=Error(message),service=Object.create(NativeMpvAudio.prototype);
+  const failure=Error(message),service=Object.assign(Object.create(NativeMpvAudio.prototype),{machine:initialNativeAudio(watchdogPolicy()),operations:new Map(),contextChanged(){}});
   service.engine={ready:Promise.resolve(),selectiveAudioState:()=>({context:new EventTarget()}),command:async()=>{},openRemote:async()=>{throw failure;}};
   await assert.rejects(service.open({url:'https://media.example/movie.mkv'}),error=>error===failure&&!compatibilityFailure(error));
  });
@@ -69,7 +71,7 @@ for(const name of ['AbortError','NotAllowedError']){
  test(`URL selective audio preserves ${name}`,async()=>{
   const {NativeMpvAudio}=await import('../web/generated/internal/native-mpv-audio.js');
   const {compatibilityFailure}=await import('../web/generated/internal/runtime-capability.js');
-  const failure=new DOMException(name,name),service=Object.create(NativeMpvAudio.prototype);
+  const failure=new DOMException(name,name),service=Object.assign(Object.create(NativeMpvAudio.prototype),{machine:initialNativeAudio(watchdogPolicy()),operations:new Map(),contextChanged(){}});
   service.engine={ready:Promise.resolve(),selectiveAudioState:()=>({context:new EventTarget()}),command:async()=>{},openRemote:async()=>{throw failure;}};
   await assert.rejects(service.open({url:'https://media.example/movie.mkv'}),error=>error===failure&&!compatibilityFailure(error));
  });

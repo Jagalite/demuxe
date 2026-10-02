@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: Apache-2.0
+import type {StreamingState} from '../../types.js';
+import {shakaQualityCandidates,type ShakaBackendState,type ShakaVariantFacts} from './shaka-backend.js';
+import {shakaAudioCatalog,type ShakaAudioFacts} from './shaka-selection.js';
+export type ShakaObservedVariant=ShakaVariantFacts&Readonly<{videoId?:number|null;width?:number|null;frameRate?:number|null;audioCodec?:string|null;hdr?:string|null}>;
+export type ShakaObservedText=Readonly<{id:number;active:boolean;codecs?:string|null;mimeType?:string|null;label?:string|null;language?:string|null}>;
+const finite=(value:unknown):number|null=>typeof value==='number'&&Number.isFinite(value)&&value>=0?value:null;
+export function shakaStreamingProjection(state:ShakaBackendState,tracks:readonly ShakaObservedVariant[],observation:Readonly<{live:boolean;start:number;end:number;time:number;now:number;playheadDate:number|null}>):StreamingState{
+ const ids=shakaQualityCandidates(state,tracks),list=tracks.filter(track=>ids.includes(track.id)),active=list.find(track=>track.active),range=observation.end>observation.start?{start:observation.start,end:observation.end}:null;
+ return {qualities:list.map(track=>({id:`variant:${track.id}`,width:finite(track.width),height:finite(track.height),bandwidth:finite(track.bandwidth),frameRate:finite(track.frameRate),videoCodec:track.videoCodec??null,audioCodec:track.audioCodec??null,dynamicRange:track.hdr??null})),requested:{...state.quality},selectedId:active?`variant:${active.id}`:null,presentedId:null,observedQuality:state.observedQuality?{...state.observedQuality}:null,transition:'unknown',live:{isLive:observation.live,seekable:range,latencySeconds:observation.live&&observation.playheadDate!==null?finite((observation.now-observation.playheadDate)/1000):null,nearLive:observation.live&&range?Math.abs(observation.time-range.end)<=2:null}};
+}
+export function shakaTrackProjection(state:ShakaBackendState,audio:readonly ShakaAudioFacts[],texts:readonly ShakaObservedText[],variants:readonly ShakaObservedVariant[]):Array<Record<string,unknown>>{
+ const tracks:Array<Record<string,unknown>>=shakaAudioCatalog(audio).map(({index,id})=>{const track=audio[index];return{id,type:'audio',codec:track.codecs,title:track.label,lang:track.language,selected:track.active&&!state.audioDisabled};});
+ for(const track of texts){const external=state.external.find(item=>item.id===track.id);tracks.push({id:`shaka-sub-${track.id}`,type:'sub',codec:track.codecs||track.mimeType,title:track.label,lang:track.language,selected:track.active&&state.visible&&state.selectedSub!=='no',external:!!external,...(external?{'external-index':external.index,'attachment-id':external.attachmentId}:{})});}
+ const current=variants.find(track=>track.active);if(current?.videoCodec)tracks.push({id:`shaka-video-${current.videoId}`,type:'video',codec:current.videoCodec,selected:true,'demux-w':current.width,'demux-h':current.height});return tracks;
+}
+export function shakaSeekTarget(start:number,end:number,seconds:number):number|null{return !Number.isFinite(seconds)||seconds<start-.01||seconds>end+.01?null:Math.max(start,Math.min(end,seconds));}
+export function shakaPreviewChoice(format:'hls'|'dash'|undefined,live:boolean,width:number,streams:readonly Readonly<{id:number;encrypted:boolean;indexed:boolean;mimeType:string}>[],tracks:readonly Readonly<{id:number;width:number|null}>[]):Readonly<{id:number;stream:number;createIndex:boolean}>|null{
+ const eligible=streams.filter(stream=>!stream.encrypted&&(stream.indexed||(format==='dash'&&!live&&stream.mimeType==='image/jpeg'))),ids=eligible.map(stream=>stream.id),ranked=tracks.filter(track=>ids.includes(track.id)).map((track,index)=>({track,index,distance:Math.abs((track.width??width)-width)})).sort((a,b)=>a.distance-b.distance||a.index-b.index),selected=ranked[0]?.track;if(!selected)return null;const stream=streams.findIndex(stream=>stream.id===selected.id&&eligible.includes(stream));return{ id:selected.id,stream,createIndex:!streams[stream].indexed};
+}

@@ -14,7 +14,7 @@ const deployment=JSON.parse(await readFile(setup.work+'/deployed/demuxe-provider
 const identities=Object.fromEntries(deployment.providers.map(p=>[p.id,p.implementationIdentity]));
 const hash=b=>createHash('sha256').update(b).digest('hex'),root=process.cwd();
 const runtime=process.env.BASELINE_RUNTIME??'asyncify';
-const baselineFiles=['tests/provider-lossless-broad-worker.mjs','web/private-ffmpeg/bridge.js','web/private-ffmpeg/range-source.js','web/private-ffmpeg/single-owner.js','web/engine-adaptation-'+runtime+'/remux.mjs','web/engine-adaptation-'+runtime+'/remux.wasm'];
+const baselineFiles=['tests/provider-lossless-broad-worker.mjs','web/private-ffmpeg/bridge.js','web/private-ffmpeg/range-source.js','web/private-ffmpeg/single-owner.js','web/generated/internal/machine/private-range-source.js','web/generated/internal/machine/ffmpeg-owner.js','web/generated/internal/machine/ffmpeg-bridge.js','web/engine-adaptation-'+runtime+'/remux.mjs','web/engine-adaptation-'+runtime+'/remux.wasm'];
 const baselineHashes=Object.fromEntries(await Promise.all(baselineFiles.map(async name=>[name,hash(await readFile(name))])));
 const server=createServer(async(req,res)=>{
  res.setHeader('Cross-Origin-Opener-Policy','same-origin');res.setHeader('Cross-Origin-Embedder-Policy','require-corp');res.setHeader('Cache-Control','no-store');const name=new URL(req.url,'http://localhost').pathname;

@@ -64,7 +64,6 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     private refresh;
     private audioFacts;
     private selectionVariants;
-    private audioTracks;
     private expected;
     verifyStartup(_expected?: {
         video: boolean;
@@ -92,7 +91,7 @@ export declare class ShakaBackend extends EventTarget implements Backend {
         playbackReady?: boolean;
     };
     private variantFacts;
-    private qualityTracks;
+    private observedVariants;
     streamingState(): import('../types.js').StreamingState;
     setQuality(policy: import('../types.js').QualityPolicy): Promise<void>;
     seekToLive(): Promise<void>;

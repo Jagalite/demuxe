@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';
+import {initialNativeAudio} from '../web/generated/internal/machine/native-audio.js';
 import {initialNativeBackend} from '../web/generated/internal/machine/native-backend.js';
 import assert from 'node:assert/strict';
 import {watchdogPolicy,NativeProgressWatchdog} from '../web/generated/internal/watchdogs.js';
@@ -77,24 +78,24 @@ test('a health heuristic cannot cache a codec rejection even with misleading dia
 });
 test('selective audio health switches reset suspicion without disabling explicit failures',()=>{
  const service=Object.create(NativeMpvAudio.prototype),errors=[];
- Object.assign(service,{running:true,video:{paused:false,seeking:false,ended:false,readyState:4,ownerDocument:{hidden:false}},context:{state:'running'},
-  watchdogs:watchdogPolicy(),missingTimeline:0,largeError:0,engine:{setWatchdogs(){}},estimatedAudioPresentationTime:()=>null,failed:error=>errors.push(error)});
+ Object.assign(service,{machine:{...initialNativeAudio(watchdogPolicy()),running:true},video:{paused:false,seeking:false,ended:false,readyState:4,ownerDocument:{hidden:false}},context:{state:'running'},
+  engine:{setWatchdogs(){}},estimatedAudioPresentationTime:()=>null,failed:error=>errors.push(error)});
  service.setWatchdogs(watchdogPolicy(false));for(let i=0;i<20;i++)service.observe();assert.equal(errors.length,0);
  service.setWatchdogs(watchdogPolicy({selectiveAudio:true}));for(let i=0;i<7;i++)service.observe();assert.equal(errors.length,0);
  service.video.paused=true;service.observe();service.video.paused=false;
  for(let i=0;i<7;i++)service.observe();assert.equal(errors.length,0);
  service.observe();assert.equal(errors.length,1);assert.equal(errors[0].code,'PLAYBACK_STALLED');
- service.failedOnce=false;service.setWatchdogs(watchdogPolicy(false));service.fail(new PlayerError('SOURCE_CHANGED','Identity changed'));
+ service.machine={...service.machine,failed:false};service.setWatchdogs(watchdogPolicy(false));service.fail(new PlayerError('SOURCE_CHANGED','Identity changed'));
  assert.equal(errors[1].code,'SOURCE_CHANGED');
 });
 
 test('hidden selective audio keeps sync corrections but suppresses heuristic failures',()=>{
  const service=Object.create(NativeMpvAudio.prototype),rates=[],failures=[];
- Object.assign(service,{running:true,video:{paused:false,seeking:false,ended:false,readyState:4,ownerDocument:{hidden:true}},context:{state:'running'},
- watchdogs:watchdogPolicy(),missingTimeline:7,largeError:7,errors:[],maxAbsError:0,sustained:0,release:0,requestedRate:1,effectiveRate:1,softCount:0,
+ Object.assign(service,{machine:{...initialNativeAudio(watchdogPolicy()),running:true},video:{paused:false,seeking:false,ended:false,readyState:4,ownerDocument:{hidden:true}},context:{state:'running'},
+ 
  engine:{rate:async rate=>rates.push(rate)},estimatedAudioPresentationTime:()=>1.4,time:()=>1,failed:error=>failures.push(error)});
  for(let i=0;i<10;i++)service.observe();
- assert.equal(failures.length,0);assert.equal(service.largeError,0);assert.equal(service.missingTimeline,0);assert.ok(rates[0]<1);assert.equal(service.errors.length,10);
+ assert.equal(failures.length,0);assert.equal(service.machine.drift.largeError,0);assert.equal(service.machine.drift.missingTimeline,0);assert.ok(rates[0]<1);assert.equal(service.machine.drift.errors.length,10);
 });
 test('ineligible Native sampling avoids browser quality and buffer reads',()=>{
  assert.equal(nativeSample({paused:true,get buffered(){throw Error('unexpected buffer read');},getVideoPlaybackQuality(){throw Error('unexpected quality read');}}).eligible,false);

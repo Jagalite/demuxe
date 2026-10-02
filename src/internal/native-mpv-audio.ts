@@ -4,15 +4,12 @@ import {PlayerError,playerError} from './errors.js';
 import type {RemoteSource} from '../types.js';
 import type {WatchdogPolicy} from '../types.js';
 import {watchdogPolicy} from './watchdogs.js';
+import {nativeAudioWait,completeNativeAudioFrame,observeNativeAudioContext,initialNativeAudio,beginNativeAudio,finishNativeAudio,closeNativeAudio,failNativeAudio,nativeAudioCurrent,nativeAudioAlive,nativeAudioEstimate,observeNativeAudioDrift,observeNativeAudioPoint,transitionNativeAudio,type NativeAudioLease,type NativeAudioDomain,type NativeAudioCommand,type NativeAudioPoint} from './machine/native-audio.js';
 
-type Timeline={kind:string;wallTime:number|null;mediaTime:number;rate:number;generation:number;epoch:number;audioFrame:number};
-type PendingRate={rate:number;generation:number;resolve:()=>void;reject:(error:Error)=>void;timer?:ReturnType<typeof setTimeout>;deadline:ReturnType<typeof setTimeout>};
-const wait=async(predicate:()=>boolean|Promise<boolean>,timeout=5000,signal?:AbortSignal)=>{
-  const end=performance.now()+timeout;
-  while(performance.now()<end){signal?.throwIfAborted();if(await predicate()){signal?.throwIfAborted();return;}await new Promise(resolve=>setTimeout(resolve,20));}
-  throw Error('Selective audio convergence timed out');
-};
-
+type Timeline=NativeAudioPoint;
+type Timer={handle?:ReturnType<typeof setTimeout>};
+type Operation={lease:NativeAudioLease;cancel:Promise<never>;reject:(error:unknown)=>void};
+type PendingRate={lease:NativeAudioLease;resolve:()=>void;reject:(error:unknown)=>void;timer?:Timer;deadline?:Timer};
 /** Browser presentation clock with isolated mpv demux/decode and timestamped PCM. */
 export class NativeMpvAudio extends EventTarget {
   readonly engine:WasmPlayer;
@@ -20,47 +17,80 @@ export class NativeMpvAudio extends EventTarget {
   private header!:Int32Array;
   private context!:AudioContext;
   private gain!:GainNode;
-  private points:Timeline[]=[];
-  private firstPoint?:{generation:number;resolve:(point:Timeline)=>void;reject:(error:Error)=>void;timer:ReturnType<typeof setTimeout>};
+  private machine=initialNativeAudio(watchdogPolicy());
+  private operations=new Map<number,Operation>();
+  private firstPoint?:{lease:NativeAudioLease;resolve:(point:Timeline)=>void;reject:(error:unknown)=>void;timer?:Timer};
   private pendingRate?:PendingRate;
-  private running=false;
-  private contextPaused=false;
   private contextOperations=Promise.resolve();
-  private contextChanged=()=>{
-    if(this.stopped)return;
-    if(this.context.state!=='running'&&this.running){
-      this.contextPaused=true;this.running=false;this.set(12,0);this.video.pause();
-      this.contextOperations=this.contextOperations.then(()=>this.engine.pause()).catch(error=>this.fail(error));
-    }else if(this.context.state==='running'&&this.contextPaused){
-      this.contextOperations=this.contextOperations.then(async()=>{if(!this.stopped&&this.contextPaused){this.contextPaused=false;await this.start(()=>this.video.play());}}).catch(error=>this.fail(error));
-    }
-  };
-  private stopped=false;
-  private generation=0;
-  private requestedRate=1;
-  private effectiveRate=1;
-  private resumeRate?:number;
   private driftTimer?:ReturnType<typeof setInterval>;
-  private watchdogs=watchdogPolicy();
-  private lastObservation?:number;
-  setWatchdogs(policy:WatchdogPolicy){this.watchdogs=policy;this.missingTimeline=this.largeError=0;this.engine.setWatchdogs(policy);}
-  private sustained=0;
-  private release=0;
-  private soft=false;
-  private softCount=0;
-  private missingTimeline=0;
-  private largeError=0;
-  private failedOnce=false;
-  private hardCount=0;
-  private rateCount=0;
-  private errors:number[]=[];
-  private orderedErrors?:number[];
-  private maxAbsError=0;
   private drain?:Promise<void>;
-  private frameCallback?:number;
+  private frameCallback?:{id:number;handle?:number};
+  private closing?:Promise<void>;
+  private get running(){return this.machine.running;}
+  private get stopped(){return this.machine.phase==='closed';}
+  private get contextPaused(){return this.machine.contextPaused;}
+  private get generation(){return this.machine.generation;}
+  private get requestedRate(){return this.machine.requestedRate;}
+  private get effectiveRate(){return this.machine.effectiveRate;}
+  private get resumeRate(){return this.machine.resumeRate;}
+  private get points(){return this.machine.points;}
+  private change(command:NativeAudioCommand){this.machine=transitionNativeAudio(this.machine,command);}
+  private assert(lease:NativeAudioLease){if(!nativeAudioCurrent(this.machine,lease))throw new DOMException('Selective audio operation retired','AbortError');}
+  private async owned<T>(lease:NativeAudioLease,work:T|PromiseLike<T>):Promise<T>{
+    const observed=Promise.resolve(work);void observed.catch(()=>{});this.assert(lease);
+    const result=await Promise.race([observed,this.operations.get(lease.id)!.cancel]);this.assert(lease);return result;
+  }
+  private call<T>(lease:NativeAudioLease,target:object,key:string,args:unknown[]=[]):Promise<T>{
+    this.assert(lease);const method=(target as Record<string,(...args:unknown[])=>T>)[key];this.assert(lease);return this.owned(lease,method.apply(target,args));
+  }
+  private clearTimer(timer?:Timer){if(timer?.handle!==undefined){const handle=timer.handle;timer.handle=undefined;clearTimeout(handle);}}
+  private armTimer(timer:Timer,callback:()=>void,delay:number,current:()=>boolean){
+    if(!current())return;const acquired=setTimeout(callback,delay);timer.handle=acquired;if(!current())this.clearTimer(timer);
+  }
+  private retireResources(){
+    const point=this.firstPoint,rate=this.pendingRate;let failed=false,failure:unknown;
+    const release=(work:()=>void)=>{try{work();}catch(error){if(!failed){failed=true;failure=error;}}};
+    if(point&&!nativeAudioCurrent(this.machine,point.lease)){this.firstPoint=undefined;release(()=>this.clearTimer(point.timer));point.reject(new DOMException('Selective PCM publication retired','AbortError'));}
+    if(rate&&!nativeAudioCurrent(this.machine,rate.lease)){this.pendingRate=undefined;release(()=>this.clearTimer(rate.timer));release(()=>this.clearTimer(rate.deadline));rate.reject(new DOMException('Selective rate transition retired','AbortError'));}
+    if(failed)throw failure;
+  }
+  private run<T>(domain:NativeAudioDomain,work:(lease:NativeAudioLease)=>Promise<T>,report=false):Promise<T>{
+    const decision=beginNativeAudio(this.machine,domain);this.machine=decision.state;
+    if(!decision.lease)return Promise.reject(new DOMException('Selective audio destroyed','AbortError'));
+    const lease=decision.lease;let reject!:(error:unknown)=>void;const cancel=new Promise<never>((_,no)=>{reject=no;});void cancel.catch(()=>{});
+    this.operations.set(lease.id,{lease,cancel,reject});
+    for(const id of decision.retire)this.operations.get(id)?.reject(new DOMException('Selective audio operation superseded','AbortError'));
+    try{this.retireResources();}catch(error){this.machine=finishNativeAudio(this.machine,lease);reject(error);}
+    const result=Promise.resolve().then(()=>{this.assert(lease);return work(lease);});void result.catch(()=>{});
+    const finish=()=>{const disable=nativeAudioCurrent(this.machine,lease)&&this.machine.publication?.id===lease.id&&!this.running;this.operations.delete(lease.id);this.machine=finishNativeAudio(this.machine,lease);if(disable&&this.header)this.set(12,0);this.retireResources();};
+    return Promise.race([result,cancel]).then(value=>{finish();return value;},error=>{if(report&&nativeAudioCurrent(this.machine,lease))try{this.fail(error);}catch{}try{finish();}catch{}throw error;});
+  }
+  private async wait(lease:NativeAudioLease,predicate:()=>boolean|Promise<boolean>,timeout=5000,signal?:AbortSignal){
+    const now=performance.now();this.assert(lease);this.change({type:'wait.begin',lease,now,timeout});
+    try{for(;;){const status=nativeAudioWait(this.machine,lease,performance.now());this.assert(lease);if(status==='timeout')throw Error('Selective audio convergence timed out');if(status==='retired')this.assert(lease);
+      signal?.throwIfAborted();if(await this.owned(lease,predicate())){this.assert(lease);signal?.throwIfAborted();return;}await this.delay(lease,20);
+    }}finally{this.change({type:'wait.finish',id:lease.id});}
+  }
+  private async delay(lease:NativeAudioLease,duration:number){
+    let timer:ReturnType<typeof setTimeout>|undefined;
+    try{await this.owned(lease,new Promise<void>(resolve=>{timer=setTimeout(resolve,duration);}));}finally{clearTimeout(timer);}
+  }
+  private contextChanged=()=>this.observeContext();
+  private observeContext(){
+    const epoch=this.machine.epoch;if(this.stopped)return;const running=this.context.state==='running';if(!nativeAudioAlive(this.machine,epoch))return;
+    const decision=observeNativeAudioContext(this.machine,running);this.machine=decision.state;
+    if(decision.action==='pause'){
+      const work=this.run('playback',async lease=>{this.assert(lease);this.set(12,0);this.video.pause();this.assert(lease);await this.call(lease,this.engine,'pause',[]);this.assert(lease);},true);
+      this.contextOperations=work.catch(()=>{});
+    }else if(decision.action==='resume'){
+      const previous=this.contextOperations;
+      this.contextOperations=this.run('playback',async lease=>{await this.owned(lease,previous);this.assert(lease);if(this.contextPaused){this.change({type:'context.clear'});await this.start(lease,()=>this.video.play());}},true).catch(()=>{});
+    }
+  }
+  setWatchdogs(policy:WatchdogPolicy){this.change({type:'watchdogs',policy});this.engine.setWatchdogs(policy);}
   get selectedTrackId(){return (this.engine.properties.get('track-list') as Array<{id:string;type:string;selected?:boolean}>|undefined)?.find(t=>t.type==='audio'&&t.selected)?.id;}
   get selectedStreamIndex(){return (this.engine.properties.get('track-list') as Array<{type:string;selected?:boolean;'ff-index'?:number}>|undefined)?.find(t=>t.type==='audio'&&t.selected)?.['ff-index'];}
-  private readonly ended=()=>{void this.finishEOF().catch(error=>this.fail(error));};
+  private readonly ended=()=>{void this.finishEOF()?.catch(()=>{});};
   constructor(private video:HTMLVideoElement,private time:()=>number,private assetBase:URL,private failed:(error:Error)=>void,prepared?:{module?:WebAssembly.Module;font?:ArrayBuffer}){
     super();
     this.hidden=document.createElement('canvas');this.hidden.width=1;this.hidden.height=1;this.hidden.hidden=true;
@@ -69,67 +99,50 @@ export class NativeMpvAudio extends EventTarget {
     this.engine.addEventListener('output',event=>this.onOutput((event as CustomEvent<Timeline>).detail));
     this.engine.addEventListener('error',event=>this.fail((event as CustomEvent).detail));
     video.addEventListener('ended',this.ended);
-    const frame=(_:number,metadata:VideoFrameCallbackMetadata)=>{
-      if(this.stopped)return;
-      if(this.header&&this.running&&Number.isFinite(video.duration)&&metadata.mediaTime>=video.duration-.2)this.set(7,1);
-      this.frameCallback=video.requestVideoFrameCallback(frame);
-    };
-    this.frameCallback=video.requestVideoFrameCallback(frame);
+    this.scheduleFrame();
   }
-  private fail(error:unknown){if(!this.stopped&&!this.failedOnce){this.failedOnce=true;this.failed(playerError(error));}}
+  private scheduleFrame(){
+    if(this.stopped||this.machine.frame!==null)return;this.change({type:'frame.request'});const id=this.machine.frame!,registration:{id:number;handle?:number}={id};this.frameCallback=registration;
+    const frame=(_:number,metadata:VideoFrameCallbackMetadata)=>{
+      if(this.frameCallback!==registration||this.stopped)return;this.frameCallback=undefined;
+      const duration=this.video.duration,mediaTime=metadata.mediaTime,decision=completeNativeAudioFrame(this.machine,id,!!this.header,duration,mediaTime);this.machine=decision.state;
+      if(!decision.accepted)return;if(decision.tail)this.set(7,1);this.scheduleFrame();
+    };
+    const acquired=this.video.requestVideoFrameCallback(frame);registration.handle=acquired;
+    if(this.frameCallback!==registration||this.stopped)this.video.cancelVideoFrameCallback(acquired);
+  }
+  private fail(error:unknown){const decision=failNativeAudio(this.machine);this.machine=decision.state;if(decision.notify)this.failed(playerError(error));}
   private h(index:number){return Atomics.load(this.header,index);}
   private set(index:number,value:number){Atomics.store(this.header,index,value);}
   private cancelRate(reason:string){
-    const pending=this.pendingRate;if(!pending)return;this.pendingRate=undefined;
-    clearTimeout(pending.timer);clearTimeout(pending.deadline);pending.reject(new DOMException(reason,'AbortError'));
+    const pending=this.pendingRate;if(!pending)return;this.pendingRate=undefined;this.change({type:'rate.clear',id:pending.lease.id});
+    try{this.clearTimer(pending.timer);}finally{try{this.clearTimer(pending.deadline);}finally{pending.reject(new DOMException(reason,'AbortError'));}}
   }
   private onOutput(point:Timeline){
-    if(point.kind!=='timeline'&&point.kind!=='rate-boundary'||point.wallTime===null||point.generation!==this.generation)return;
-    this.points.push(point);if(this.points.length>300)this.points.shift();
-    if(point.kind==='timeline'&&this.firstPoint?.generation===this.generation){const waiter=this.firstPoint;this.firstPoint=undefined;clearTimeout(waiter.timer);waiter.resolve(point);}
+    const origin=performance.timeOrigin,decision=observeNativeAudioPoint(this.machine,point,origin);this.machine=decision.state;
+    if(decision.publication!==undefined&&this.firstPoint?.lease.id===decision.publication){const waiter=this.firstPoint,value=this.machine.publication!.point!;this.firstPoint=undefined;try{this.clearTimer(waiter.timer);waiter.resolve(value);}catch(error){waiter.reject(error);}}
     const pending=this.pendingRate;
-    if(point.kind==='rate-boundary'&&pending&&!pending.timer&&pending.generation===this.generation&&Math.abs(point.rate-pending.rate)<1e-5){
-      const due=point.wallTime!-performance.timeOrigin;
-      pending.timer=setTimeout(()=>{
-        if(this.pendingRate!==pending||this.stopped)return;
-        this.pendingRate=undefined;clearTimeout(pending.deadline);
-        this.video.defaultPlaybackRate=pending.rate;this.video.playbackRate=pending.rate;this.effectiveRate=pending.rate;this.rateCount++;
-        pending.resolve();
-      },Math.max(0,due-performance.now()));
+    if(decision.rate!==undefined&&pending?.lease.id===decision.rate){
+      const timer:Timer={};pending.timer=timer;
+      const apply=()=>{
+        if(this.pendingRate!==pending||!nativeAudioCurrent(this.machine,pending.lease))return;
+        const rate=this.machine.rate!,remaining=rate.due!-performance.now();if(this.pendingRate!==pending||!nativeAudioCurrent(this.machine,pending.lease))return;
+        if(remaining>0){try{this.armTimer(timer,apply,remaining,()=>this.pendingRate===pending&&nativeAudioCurrent(this.machine,pending.lease));}catch(error){this.pendingRate=undefined;this.change({type:'rate.clear',id:pending.lease.id});pending.reject(error);}return;}
+        try{this.clearTimer(pending.deadline);this.assert(pending.lease);this.video.defaultPlaybackRate=rate.rate;this.assert(pending.lease);this.video.playbackRate=rate.rate;this.assert(pending.lease);this.pendingRate=undefined;this.change({type:'rate.clear',id:pending.lease.id,applied:true});pending.resolve();}
+        catch(error){if(this.pendingRate===pending){this.pendingRate=undefined;this.change({type:'rate.clear',id:pending.lease.id});}pending.reject(error);}
+      };
+      try{const delay=Math.max(0,this.machine.rate!.due!-performance.now());this.armTimer(timer,apply,delay,()=>this.pendingRate===pending&&nativeAudioCurrent(this.machine,pending.lease));}catch(error){this.pendingRate=undefined;this.change({type:'rate.clear',id:pending.lease.id});pending.reject(error);}
     }
   }
-  estimatedAudioPresentationTime(at=performance.now()):number|null {
-    const origin=performance.timeOrigin;
-    let latest:Timeline|undefined;
-    for(const point of this.points)if(point.generation===this.generation&&point.wallTime!==null&&point.wallTime-origin<=at&&(!latest||point.wallTime>latest.wallTime!))latest=point;
-    if(!latest)return null;
-    const age=at-(latest.wallTime!-origin);
-    if(age>250)return null;
-    return latest.mediaTime+(this.running?age*latest.rate/1000:0);
-  }
+  estimatedAudioPresentationTime(at=performance.now()):number|null{return nativeAudioEstimate(this.machine,at,performance.timeOrigin);}
   private observe(){
-    const now=performance.now();
-    if(this.lastObservation!==undefined&&now-this.lastObservation>1500)this.missingTimeline=this.largeError=0;
-    this.lastObservation=now;
-    if(!this.running||this.pendingRate||this.video.paused||this.video.seeking||this.video.ended||this.video.readyState<3||this.context.state!=='running'){this.missingTimeline=this.largeError=0;return;}
-    // Background throttling weakens health evidence, not the need for A/V sync.
-    const watch=this.watchdogs.selectiveAudio&&!this.video.ownerDocument.hidden;
-    if(!watch)this.missingTimeline=this.largeError=0;
-    const position=this.estimatedAudioPresentationTime();
-    if(position===null){if(watch&&++this.missingTimeline>=8)this.fail(new PlayerError('PLAYBACK_STALLED','Selective audio timeline stopped during playback',null,null,'session',true));return;}
-    this.missingTimeline=0;
-    const error=(position-this.time())*1000;
-    if(watch&&Math.abs(error)>250){if(++this.largeError>=8)this.fail(new PlayerError('PLAYBACK_STALLED','Selective A/V sync error remained above 250 ms',null,null,'session',true));}else this.largeError=0;
-    this.orderedErrors=undefined;
-    this.errors.push(Math.abs(error));if(this.errors.length>1200)this.errors.shift();
-    this.maxAbsError=Math.max(this.maxAbsError,Math.abs(error));
-    this.sustained=Math.abs(error)>50?this.sustained+1:0;
-    this.release=Math.abs(error)<30?this.release+1:0;
-    if(this.sustained>=3)this.soft=true;
-    if(this.release>=3)this.soft=false;
-    const trim=this.soft?Math.max(-.005,Math.min(.005,-error/1000*.1)):0;
-    const target=this.requestedRate*(1+trim);
-    if(Math.abs(target-this.effectiveRate)>.001){this.effectiveRate=target;this.softCount++;void this.engine.rate(target).catch(error=>this.fail(error));}
+    const epoch=this.machine.epoch,generation=this.generation,now=performance.now(),paused=this.video.paused,seeking=this.video.seeking,ended=this.video.ended,readyState=this.video.readyState,contextRunning=this.context.state==='running';
+    const eligible=this.running&&!this.machine.rate&&!paused&&!seeking&&!ended&&readyState>=3&&contextRunning;
+    const hidden=eligible?this.video.ownerDocument.hidden:false,position=eligible?this.estimatedAudioPresentationTime():null,videoTime=position===null?0:this.time();
+    if(!nativeAudioAlive(this.machine,epoch)||this.generation!==generation)return;
+    const decision=observeNativeAudioDrift(this.machine,{now,paused,seeking,ended,readyState,contextRunning,hidden,position,videoTime});this.machine=decision.state;
+    if(decision.failure)this.fail(new PlayerError('PLAYBACK_STALLED',decision.failure==='missing'?'Selective audio timeline stopped during playback':'Selective A/V sync error remained above 250 ms',null,null,'session',true));
+    if(decision.rate!==undefined&&nativeAudioAlive(this.machine,epoch)&&this.generation===generation)void this.engine.rate(decision.rate).catch(error=>{if(nativeAudioAlive(this.machine,epoch)&&this.generation===generation)this.fail(error);});
   }
   private fadeOut=async()=>{
     const at=this.context.currentTime;this.gain.gain.cancelScheduledValues(at);
@@ -137,88 +150,95 @@ export class NativeMpvAudio extends EventTarget {
     await new Promise(resolve=>setTimeout(resolve,12));
   };
   private fadeIn(){const at=this.context.currentTime;this.gain.gain.cancelScheduledValues(at);this.gain.gain.setValueAtTime(0,at);this.gain.gain.linearRampToValueAtTime(1,at+.008);}
-  async open(source:File|RemoteSource,audioStream?:number){
-    await this.engine.ready;
-    const state=this.engine.selectiveAudioState();this.header=state.header;this.context=state.context;this.gain=state.gain;this.context.addEventListener('statechange',this.contextChanged);
-    await this.engine.command('set','vid','no');await this.engine.command('set','sid','no');
-    if(audioStream!==undefined)await this.engine.command('set','aid',String(audioStream+1));
-    if(source instanceof File)await this.engine.open(source);
-    else await this.engine.openRemote(source);
-    await this.engine.inspectMetadata();
-    let tracks=this.engine.properties.get('track-list') as Array<{id:string;type:string;selected?:boolean;'ff-index'?:number}>|undefined;
+  open(source:File|RemoteSource,audioStream?:number){return this.run('open',async lease=>{
+    await this.owned(lease,this.engine.ready);this.assert(lease);
+    const state=this.engine.selectiveAudioState();this.assert(lease);this.header=state.header;this.context=state.context;this.gain=state.gain;
+    const context=this.context;context.addEventListener('statechange',this.contextChanged);if(!nativeAudioCurrent(this.machine,lease)){context.removeEventListener('statechange',this.contextChanged);this.assert(lease);}
+    await this.call(lease,this.engine,'command',['set','vid','no']);await this.call(lease,this.engine,'command',['set','sid','no']);
+    if(audioStream!==undefined)await this.call(lease,this.engine,'command',['set','aid',String(audioStream+1)]);
+    if(source instanceof File)await this.call(lease,this.engine,'open',[source]);
+    else await this.call(lease,this.engine,'openRemote',[source]);
+    await this.call(lease,this.engine,'inspectMetadata',[]);this.assert(lease);
+    let tracks=this.engine.properties.get('track-list') as Array<{id:string;type:string;selected?:boolean;'ff-index'?:number}>|undefined;this.assert(lease);
     if(audioStream!==undefined){
       const requested=tracks?.find(t=>t.type==='audio'&&t['ff-index']===audioStream);
       if(!requested)throw new PlayerError('DECODE_FAILED','Selective requested audio stream is absent');
-      if(!requested.selected){await this.engine.selectTrack('audio',requested.id);await wait(()=>this.selectedStreamIndex===audioStream);}
-      tracks=this.engine.properties.get('track-list') as typeof tracks;
+      if(!requested.selected){await this.call(lease,this.engine,'selectTrack',['audio',requested.id]);await this.wait(lease,()=>this.selectedStreamIndex===audioStream);this.assert(lease);}
+      tracks=this.engine.properties.get('track-list') as typeof tracks;this.assert(lease);
     }
     if(tracks?.some(t=>t.type==='video'&&t.selected)||!tracks?.some(t=>t.type==='audio'&&t.selected))throw new PlayerError('DECODE_FAILED','Selective mpv track ownership failed');
-    this.driftTimer=setInterval(()=>this.observe(),250);
-  }
-  private async publish(startVideo:()=>Promise<void>){
+    const timer=setInterval(()=>this.observe(),250);if(nativeAudioCurrent(this.machine,lease))this.driftTimer=timer;else{clearInterval(timer);this.assert(lease);}
+  });}
+  private async publish(lease:NativeAudioLease,startVideo:()=>Promise<void>){
+    this.assert(lease);const now=performance.now();this.assert(lease);this.change({type:'publication.begin',lease,now});
     const point=new Promise<Timeline>((resolve,reject)=>{
-      const timer=setTimeout(()=>{if(this.firstPoint?.resolve===resolve){this.firstPoint=undefined;reject(Error('Selective PCM timestamp timeout'));}},3000);
-      this.firstPoint={generation:this.generation,resolve,reject,timer};
-    });
-    this.set(12,1);this.fadeIn();
-    const first=await point;
-    const due=first.wallTime!-performance.timeOrigin+(this.time()-first.mediaTime)/this.video.playbackRate*1000;
-    await new Promise(resolve=>setTimeout(resolve,Math.max(0,due-performance.now())));
-    if(this.stopped)throw Error('Selective audio destroyed during publication');
-    await startVideo();this.running=true;
+      const waiter={lease,resolve,reject,timer:{} as Timer};this.firstPoint=waiter;
+      const expired=()=>{
+        if(this.firstPoint!==waiter)return;
+        const remaining=this.machine.publication!.deadline-performance.now();if(this.firstPoint!==waiter||!nativeAudioCurrent(this.machine,lease))return;
+        if(remaining>0){try{this.armTimer(waiter.timer,expired,remaining,()=>this.firstPoint===waiter&&nativeAudioCurrent(this.machine,lease));}catch(error){this.firstPoint=undefined;reject(error);}return;}
+        this.firstPoint=undefined;reject(Error('Selective PCM timestamp timeout'));
+      };
+      try{this.armTimer(waiter.timer,expired,3000,()=>this.firstPoint===waiter&&nativeAudioCurrent(this.machine,lease));}catch(error){this.firstPoint=undefined;reject(error);}
+    });void point.catch(()=>{});
+    this.assert(lease);if(!this.firstPoint&&this.machine.publication?.point===null)await this.owned(lease,point);this.assert(lease);this.set(12,1);this.fadeIn();this.assert(lease);
+    await this.owned(lease,point);this.assert(lease);
+    const origin=performance.timeOrigin,videoTime=this.time(),rate=this.video.playbackRate;this.assert(lease);this.change({type:'publication.schedule',id:lease.id,origin,videoTime,rate});
+    const due=this.machine.publication!.due!;do{const delay=Math.max(0,due-performance.now());this.assert(lease);await this.delay(lease,delay);this.assert(lease);}while(performance.now()<due);
+    this.assert(lease);await this.owned(lease,startVideo());this.assert(lease);this.change({type:'running',value:true});this.change({type:'publication.clear',id:lease.id});
   }
-  async play(startVideo:()=>Promise<void>){await this.contextOperations;await this.start(startVideo);}
-  private async start(startVideo:()=>Promise<void>){
-    if(this.running)return;
-    if(this.context?.state==='suspended')await this.context.resume();
+  play(startVideo:()=>Promise<void>){this.change({type:'playback.intent',intent:'play'});return this.run('playback',async lease=>{await this.owned(lease,this.contextOperations);this.assert(lease);await this.start(lease,startVideo);});}
+  private async start(lease:NativeAudioLease,startVideo:()=>Promise<void>){
+    this.assert(lease);if(this.running)return;
+    const context=this.context;if(context?.state==='suspended'){this.assert(lease);await this.call(lease,context,'resume');this.assert(lease);}
     let deferred:Promise<void>|undefined;
-    if(this.resumeRate!==undefined){deferred=this.waitRate(this.resumeRate);this.resumeRate=undefined;}
-    await this.engine.play();
-    this.set(14,this.h(3));await this.publish(startVideo);
-    await deferred;
+    if(this.resumeRate!==null){deferred=this.waitRate(lease,this.resumeRate);void deferred.catch(()=>{});this.change({type:'rate.resume',rate:null});}
+    await this.call(lease,this.engine,'play',[]);this.assert(lease);
+    this.set(14,this.h(3));await this.publish(lease,startVideo);
+    if(deferred)await this.owned(lease,deferred);
   }
-  async pause(stopVideo:()=>void){
-    this.contextPaused=false;await this.contextOperations;
-    if(this.pendingRate){this.resumeRate=this.requestedRate;this.cancelRate('Paused during rate transition');}
-    this.running=false;await this.fadeOut();this.set(12,0);stopVideo();await this.engine.pause();
-  }
-  async seek(seconds:number,seekVideo:()=>Promise<void>){
-    this.contextPaused=false;await this.contextOperations;
-    this.cancelRate('Seek superseded pending rate');this.resumeRate=undefined;
-    if(this.firstPoint){const pending=this.firstPoint;this.firstPoint=undefined;clearTimeout(pending.timer);pending.reject(Error('Selective PCM publication superseded by seek'));}
-    this.video.defaultPlaybackRate=this.requestedRate;this.video.playbackRate=this.requestedRate;
-    const wasRunning=this.running,oldEpoch=this.h(3);
-    this.drain=undefined;
-    this.running=false;await this.fadeOut();this.generation++;this.points=[];this.sustained=0;this.release=0;this.soft=false;this.missingTimeline=0;this.largeError=0;
-    this.set(7,0);this.set(12,0);this.set(10,this.generation);this.video.pause();await this.engine.pause();
-    if(this.context.state==='suspended')await this.context.resume();
-    await Promise.all([seekVideo(),this.engine.seek(seconds)]);this.hardCount++;
-    await wait(()=>this.h(3)!==oldEpoch&&this.h(3)===this.h(4));
-    await this.engine.play();
-    await wait(()=>this.engine.confirmSeek(seconds));
+  pause(stopVideo:()=>void){this.change({type:'playback.intent',intent:'pause'});this.change({type:'context.clear'});if(this.machine.rate)this.change({type:'rate.resume',rate:this.requestedRate});return this.run('playback',async lease=>{
+    await this.owned(lease,this.contextOperations);this.assert(lease);
+    if(this.pendingRate){this.change({type:'rate.resume',rate:this.requestedRate});this.cancelRate('Paused during rate transition');this.assert(lease);}
+    this.change({type:'paused'});await this.owned(lease,this.fadeOut());this.assert(lease);this.set(12,0);stopVideo();this.assert(lease);await this.call(lease,this.engine,'pause',[]);this.assert(lease);
+  });}
+  seek(seconds:number,seekVideo:()=>Promise<void>){this.change({type:'context.clear'});return this.run('seek',async lease=>{
+    await this.owned(lease,this.contextOperations);this.assert(lease);
+    this.cancelRate('Seek superseded pending rate');this.assert(lease);this.change({type:'rate.resume',rate:null});
+    this.video.defaultPlaybackRate=this.requestedRate;this.assert(lease);this.video.playbackRate=this.requestedRate;this.assert(lease);
+    const wasRunning=this.running,oldEpoch=this.h(3);this.drain=undefined;
+    this.change({type:'paused'});await this.owned(lease,this.fadeOut());this.assert(lease);this.change({type:'seek.reset'});
+    this.set(7,0);this.set(12,0);this.set(10,this.generation);this.video.pause();this.assert(lease);await this.call(lease,this.engine,'pause',[]);this.assert(lease);
+    const context=this.context;if(context.state==='suspended'){this.assert(lease);await this.call(lease,context,'resume');this.assert(lease);}
+    const videoSeek=Promise.resolve(seekVideo());void videoSeek.catch(()=>{});this.assert(lease);await this.owned(lease,Promise.all([videoSeek,this.call(lease,this.engine,'seek',[seconds])]));this.assert(lease);this.change({type:'seek.complete'});
+    await this.wait(lease,()=>this.h(3)!==oldEpoch&&this.h(3)===this.h(4));
+    await this.call(lease,this.engine,'play',[]);this.assert(lease);await this.wait(lease,()=>this.call<boolean>(lease,this.engine,'confirmSeek',[seconds]));this.assert(lease);
     this.set(14,this.h(3));
-    if(wasRunning)await this.publish(async()=>{await this.video.play();});
-    else {await this.engine.pause();this.set(12,0);}
-    this.running=wasRunning;
-  }
-  private waitRate(value:number){
-    this.cancelRate('Superseded by another rate request');
+    if(wasRunning)await this.publish(lease,async()=>{await this.video.play();});
+    else {await this.call(lease,this.engine,'pause',[]);this.assert(lease);this.set(12,0);}
+    this.assert(lease);this.change({type:'running',value:wasRunning});
+  });}
+  private waitRate(lease:NativeAudioLease,value:number){
+    this.cancelRate('Superseded by another rate request');this.assert(lease);const now=performance.now();this.assert(lease);this.change({type:'rate.begin',lease,rate:value,now});
     return new Promise<void>((resolve,reject)=>{
-      const pending:PendingRate={rate:value,generation:this.generation,resolve,reject,deadline:setTimeout(()=>{
-        if(this.pendingRate===pending){this.pendingRate=undefined;const error=new PlayerError('DECODE_FAILED','Selective rate boundary timed out');this.fail(error);reject(error);}
-      },3000)};
-      this.pendingRate=pending;
+      const pending:PendingRate={lease,resolve,reject,deadline:{}};this.pendingRate=pending;
+      const expired=()=>{
+        if(this.pendingRate!==pending)return;const remaining=this.machine.rate!.deadline-performance.now();if(this.pendingRate!==pending||!nativeAudioCurrent(this.machine,lease))return;
+        if(remaining>0){try{this.armTimer(pending.deadline!,expired,remaining,()=>this.pendingRate===pending&&nativeAudioCurrent(this.machine,lease));}catch(error){this.pendingRate=undefined;this.change({type:'rate.clear',id:lease.id});reject(error);}return;}
+        this.pendingRate=undefined;this.change({type:'rate.clear',id:lease.id});const error=new PlayerError('DECODE_FAILED','Selective rate boundary timed out');try{this.fail(error);}finally{reject(error);}
+      };
+      try{this.armTimer(pending.deadline!,expired,3000,()=>this.pendingRate===pending&&nativeAudioCurrent(this.machine,lease));}catch(error){this.pendingRate=undefined;this.change({type:'rate.clear',id:lease.id});reject(error);}
     });
   }
-  async rate(value:number){
-    await this.contextOperations;
+  rate(value:number){return this.run('rate',async lease=>{
+    await this.owned(lease,this.contextOperations);this.assert(lease);
     if(!Number.isFinite(value)||value<.5||value>2)throw Error('Playback rate must be 0.5 to 2');
     if(value===this.requestedRate&&value===this.effectiveRate&&!this.pendingRate)return;
-    this.requestedRate=value;this.sustained=0;this.release=0;this.soft=false;
-    if(!this.running){await this.engine.rate(value);this.resumeRate=value;return;}
-    const boundary=this.waitRate(value);
-    await this.engine.rate(value);await boundary;
-  }
+    this.change({type:'rate.request',rate:value});
+    if(!this.running){await this.call(lease,this.engine,'rate',[value]);this.assert(lease);this.change({type:'rate.resume',rate:value});return;}
+    const boundary=this.waitRate(lease,value);void boundary.catch(()=>{});
+    await this.call(lease,this.engine,'rate',[value]);await this.owned(lease,boundary);
+  });}
   async selectAudio(id:string){
     if(id==='auto'||id==='no')throw Error('Selective audio track change requires a new admitted plan');
     const tracks=this.engine.properties.get('track-list') as Array<{id:string;type:string}>|undefined;
@@ -228,39 +248,41 @@ export class NativeMpvAudio extends EventTarget {
   volume(percent:number){return this.engine.volume(percent);}
   setAudioOutputDevice(id:string){return this.engine.setAudioOutputDevice(id);}
   gainValue(value:number){return this.engine.gain(value);}
-  async verifyOutput(signal?:AbortSignal){
-    await wait(()=>this.h(5)>0&&this.points.some(p=>p.kind==='timeline'&&p.generation===this.generation),10000,signal);
-    const tracks=this.engine.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined;
+  verifyOutput(signal?:AbortSignal){return this.run('verify',async lease=>{
+    await this.wait(lease,()=>this.h(5)>0&&this.points.some(p=>p.kind==='timeline'&&p.generation===this.generation),10000,signal);this.assert(lease);
+    const tracks=this.engine.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined;this.assert(lease);
     if(tracks?.some(t=>t.type==='video'&&t.selected)||!tracks?.some(t=>t.type==='audio'&&t.selected))throw Error('Selective audio output ownership changed');
-  }
-  private async finishEOF(){
+  });}
+  private finishEOF(){
     if(this.drain||this.stopped)return this.drain;
-    this.running=false;this.set(7,2);
-    this.drain=(async()=>{
-      await wait(()=>this.h(0)===this.h(1),2000);
-      this.set(12,0);this.set(2,0);await this.engine.pause();
-      await wait(()=>this.h(0)===this.h(1)&&this.h(3)===this.h(4),2000);
-      await this.context.suspend();
-    })();
-    return this.drain;
+    this.change({type:'playback.intent',intent:'pause'});this.drain=this.run('eof',async lease=>{
+      this.change({type:'paused'});this.set(7,2);
+      await this.wait(lease,()=>this.h(0)===this.h(1),2000);this.assert(lease);
+      this.set(12,0);this.set(2,0);await this.call(lease,this.engine,'pause',[]);this.assert(lease);
+      await this.wait(lease,()=>this.h(0)===this.h(1)&&this.h(3)===this.h(4),2000);this.assert(lease);
+      await this.call(lease,this.context,'suspend');
+    },true);return this.drain;
   }
   get diagnostics(){
     if(!this.header)return {plan:'native-video-mpv-audio',state:'initializing'};
     const estimated=this.estimatedAudioPresentationTime();
-    const ordered=this.orderedErrors??= [...this.errors].sort((a,b)=>a-b),p=(q:number)=>ordered[Math.floor((ordered.length-1)*q)]??null;
-    return {plan:'native-video-mpv-audio',requestedRate:this.requestedRate,effectiveRate:this.video.playbackRate,pendingRate:this.pendingRate?.rate,
+    this.change({type:'diagnostics'});const drift=this.machine.drift,ordered=drift.ordered!,p=(q:number)=>ordered[Math.floor((ordered.length-1)*q)]??null;
+    return {plan:'native-video-mpv-audio',requestedRate:this.requestedRate,effectiveRate:this.video.playbackRate,pendingRate:this.machine.rate?.rate,
       generation:this.generation,estimatedAudioPresentationTime:estimated,errorMs:estimated===null?null:(estimated-this.time())*1000,
-      absErrorP50Ms:p(.5),absErrorP95Ms:p(.95),absErrorP99Ms:p(.99),maxAbsErrorMs:this.maxAbsError,
-      rateTransitions:this.rateCount,userSeeks:this.hardCount,softCorrections:this.softCount,preEofUnderruns:this.h(8),postEofDrainCallbacks:this.h(9),staleEpochRejects:this.h(15),
+      absErrorP50Ms:p(.5),absErrorP95Ms:p(.95),absErrorP99Ms:p(.99),maxAbsErrorMs:drift.maxAbsError,
+      rateTransitions:drift.rateCount,userSeeks:drift.hardCount,softCorrections:drift.softCount,preEofUnderruns:this.h(8),postEofDrainCallbacks:this.h(9),staleEpochRejects:this.h(15),
       nativeEpoch:this.h(3),ackEpoch:this.h(4),queuedFrames:Math.max(0,this.h(0)-this.h(1)),contextState:this.context.state,mpvVideoTracks:(this.engine.properties.get('track-list') as Array<{type:string;selected?:boolean}>|undefined)?.filter(t=>t.type==='video'&&t.selected).length??null,
       worker:this.engine.diagnostics};
   }
-  async destroy(){
-    if(this.stopped)return;this.stopped=true;this.cancelRate('Selective service destroyed');
-    if(this.firstPoint){const pending=this.firstPoint;this.firstPoint=undefined;clearTimeout(pending.timer);pending.reject(Error('Selective PCM publication destroyed'));}
-    this.context?.removeEventListener('statechange',this.contextChanged);clearInterval(this.driftTimer);this.video.removeEventListener('ended',this.ended);
-    if(this.frameCallback)this.video.cancelVideoFrameCallback(this.frameCallback);
-    if(this.header)this.set(12,0);
-    await this.engine.destroy();this.hidden.remove();
+  destroy(){
+    if(this.closing)return this.closing;
+    let resolve!:()=>void,reject!:(error:unknown)=>void;this.closing=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});
+    this.machine=closeNativeAudio(this.machine);const retirement=new DOMException('Selective audio destroyed','AbortError');for(const operation of this.operations.values())operation.reject(retirement);
+    const releases=[()=>this.retireResources(),()=>this.context?.removeEventListener('statechange',this.contextChanged),()=>clearInterval(this.driftTimer),()=>this.video.removeEventListener('ended',this.ended),()=>{const frame=this.frameCallback;this.frameCallback=undefined;if(frame?.handle!==undefined)this.video.cancelVideoFrameCallback(frame.handle);},()=>{if(this.header)this.set(12,0);}];
+    let failed=false,failure:unknown;const remember=(error:unknown)=>{if(!failed){failed=true;failure=error;}};
+    for(const release of releases)try{release();}catch(error){remember(error);}
+    let destruction:Promise<void>;try{destruction=Promise.resolve(this.engine.destroy());}catch(error){destruction=Promise.reject(error);}
+    void destruction.catch(remember).then(()=>{try{this.hidden.remove();}catch(error){remember(error);}if(failed)reject(failure);else resolve();});
+    return this.closing;
   }
 }

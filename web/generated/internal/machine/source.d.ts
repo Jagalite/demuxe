@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { type SourcePreparation, type SourcePreparationFacts, type SourcePreparationEffect } from './source-preparation.js';
 import { type SourceApplication, type SourceApplicationFacts, type SourceApplicationEffect, type SourceApplicationObservation } from './source-application.js';
+import { type SourcePositioning, type SourcePositioningEffect, type SourcePositioningObservation } from './source-positioning.js';
 import type { PlaybackMode } from '../../types.js';
 import type { PlaybackSettings } from './settings.js';
 type Phase = 'preparing' | 'configuring' | 'opening' | 'applying' | 'positioning' | 'verifying' | 'accepted';
@@ -15,6 +16,7 @@ export type SourceAttempt = Readonly<{
     planId: string;
     preparation: SourcePreparation | null;
     application: SourceApplication | null;
+    positioning: SourcePositioning | null;
 }>;
 export type SourceControl = Readonly<{
     serial: number;
@@ -41,6 +43,19 @@ export type SourceInput = Readonly<{
     type: 'source.created';
     attempt: number;
     prepare?: boolean;
+}> | Readonly<{
+    type: 'source.positioning.begin';
+    attempt: number;
+    target: number;
+    overlapping: boolean;
+}> | Readonly<{
+    type: 'source.positioning.next';
+    attempt: number;
+}> | Readonly<{
+    type: 'source.positioning.completed';
+    attempt: number;
+    step: number;
+    observation?: SourcePositioningObservation;
 }> | Readonly<{
     type: 'source.application.begin';
     attempt: number;
@@ -84,6 +99,7 @@ export type SourceDecision = Readonly<{
     attempt?: number;
     preparationEffect?: SourcePreparationEffect;
     applicationEffect?: SourceApplicationEffect;
+    positioningEffect?: SourcePositioningEffect;
     settings?: Readonly<PlaybackSettings>;
     newSource?: boolean;
     reason?: 'busy' | 'retired' | 'phase' | 'plan';
@@ -102,4 +118,5 @@ export declare function sourceDesiredSettings(settings: Readonly<PlaybackSetting
 }>): Readonly<PlaybackSettings>;
 export declare function sourcePreparationCurrent(state: SourceControl, attempt: number, step: number): boolean;
 export declare function sourceApplicationCurrent(state: SourceControl, attempt: number, step: number): boolean;
+export declare function sourcePositioningCurrent(state: SourceControl, attempt: number, step: number): boolean;
 export {};

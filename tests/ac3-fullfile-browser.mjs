@@ -67,7 +67,7 @@ const server=createServer(async(req,res)=>{
   if(name==='/test-page.mjs')file=root+'/tests/ac3-fullfile-page.mjs';
   else if(name.startsWith('/fixtures/')){const fixture=fixtures.find(f=>f.id+'.mkv'===name.slice(10));assert.ok(fixture);file=fixture.file;}
   else if(name.startsWith('/engines/')){const [, ,runtime,leaf]=name.split('/');assert.ok(records[runtime]&&['remux.mjs','remux.wasm'].includes(leaf));file=records[runtime].directory+'/engine/'+leaf;}
-  else if(name.startsWith('/repository/')){const relative=name.slice(12);assert.ok(['tests/provider-lossless-broad-worker.mjs','web/private-ffmpeg/bridge.js','web/private-ffmpeg/single-owner.js','web/private-ffmpeg/range-source.js'].includes(relative));file=root+'/'+relative;}
+  else if(name.startsWith('/repository/')){const relative=name.slice(12);assert.ok(['tests/provider-lossless-broad-worker.mjs','web/private-ffmpeg/bridge.js','web/private-ffmpeg/single-owner.js','web/generated/internal/machine/private-range-source.js','web/generated/internal/machine/ffmpeg-owner.js','web/generated/internal/machine/ffmpeg-bridge.js','web/private-ffmpeg/range-source.js'].includes(relative));file=root+'/'+relative;}
   else if(consumer){file=path.resolve(consumer,'.'+name);assert.ok(file.startsWith(consumer+path.sep));}
   else throw Error('Unknown path');
   const bytes=await readFile(file);res.setHeader('Content-Type',/\.m?js$/.test(file)?'text/javascript':file.endsWith('.wasm')?'application/wasm':file.endsWith('.json')?'application/json':'application/octet-stream');res.end(bytes);

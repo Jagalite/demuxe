@@ -20,7 +20,7 @@ for(const profile of profiles){
  for(const name of ['remux.mjs','remux.wasm'])assert.equal(createHash('sha256').update(await readFile(directory+'/engine/'+name)).digest('hex'),record.artifacts[name]);
  builds[profile]={directory,record};
 }
-const allowed=['tests/provider-lossless-broad-worker.mjs','web/private-ffmpeg/bridge.js','web/private-ffmpeg/single-owner.js','web/private-ffmpeg/range-source.js'];
+const allowed=['tests/provider-lossless-broad-worker.mjs','web/private-ffmpeg/bridge.js','web/private-ffmpeg/single-owner.js','web/generated/internal/machine/private-range-source.js','web/generated/internal/machine/ffmpeg-owner.js','web/generated/internal/machine/ffmpeg-bridge.js','web/private-ffmpeg/range-source.js'];
 const server=createServer(async(req,res)=>{
  res.setHeader('Cross-Origin-Opener-Policy','same-origin');res.setHeader('Cross-Origin-Embedder-Policy','require-corp');res.setHeader('Cache-Control','no-store');
  const name=new URL(req.url,'http://localhost').pathname;if(name==='/'){res.setHeader('Content-Type','text/html');res.end('Codec-specific preparation');return;}
