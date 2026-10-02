@@ -28,7 +28,7 @@ try{
   });
   assert.equal(result.timedOut,false);assert.equal(result.code,1,'Unguarded implementation unexpectedly passed');
   const report=JSON.parse(await readFile(out+'/result.json','utf8'));
-  assert.equal(report.checks.length,19);assert.deepEqual(report.pageErrors,[]);
+  assert.equal(report.checks.length,20);assert.deepEqual(report.pageErrors,[]);
   const failed=report.checks.filter(c=>!c.passed).map(c=>c.name).sort();
   assert.deepEqual(failed,[
     'idle, terminal, feature availability and accessible labels',

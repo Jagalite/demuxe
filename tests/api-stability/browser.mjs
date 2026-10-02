@@ -18,7 +18,7 @@ async function check(name,operation,options={}) {
   try {
     await page.route('**/__api_stability__',route=>route.fulfill({contentType:'text/html',body:'<button id="activate">Activate</button><div id="host"></div>'}));
     await page.goto(report.origin+'/__api_stability__');await page.locator('#activate').click();
-    const evidence=await deadline(page.evaluate(operation,options),90000,name);
+    const evidence=await deadline(page.evaluate(operation,options),process.env.API_EXTENDED==='1'?300000:90000,name);
     assert.deepEqual(errors,[]);report.checks.push({name,passed:true,evidence});
   }catch(error){report.checks.push({name,passed:false,error:String(error.stack),errors});process.exitCode=1;await page.screenshot({path:`${directory}/failure-${report.checks.length}.png`}).catch(()=>{});}
   finally{await deadline(context.close(),10000,'context cleanup');await writeFile(directory+'/result.json',JSON.stringify(report,null,2));}

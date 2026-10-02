@@ -130,7 +130,19 @@ try{
       try{await f.click('snapshot');assert(made===1&&downloads===1&&!f.root.querySelector('a'),'Download lifecycle failed');await new Promise(resolve=>setTimeout(resolve,1100));assert(retired===1,'Download URL leaked');}
       finally{URL.createObjectURL=create;URL.revokeObjectURL=revoke;HTMLAnchorElement.prototype.click=click;}
     });
+    await check('successful settings correction clears only the previous operation error',async()=>{
+      const {definePlayerElement}=await import('/web/generated/player/index.js');definePlayerElement();
+      const element=document.createElement('demuxe-player');element.previewOptions=false;document.body.append(element);await element.ready;
+      const failure=message=>({code:'UNSUPPORTED_FEATURE',message,retryable:false,scope:'operation'});
+      try{
+        element.showError(failure('Old filter error'));element.runSettings(Promise.resolve());await Promise.resolve();await Promise.resolve();
+        assert(element.shadowRoot.getElementById('error').hidden,'Successful correction left a stale error');
+        let finish;const work=new Promise(resolve=>finish=resolve);element.showError(failure('Previous error'));element.runSettings(work);
+        element.showError(failure('Newer failure'));finish();await work;await Promise.resolve();
+        assert(!element.shadowRoot.getElementById('error').hidden&&element.shadowRoot.getElementById('error-text').textContent==='Newer failure','Correction hid a newer failure');
+      }finally{await element.destroy();element.remove();}
+    });
     return checks;
   });
-  report.pageErrors=errors;assert.deepEqual(errors,[]);assert.equal(report.checks.length,19);assert.ok(report.checks.every(c=>c.passed),JSON.stringify(report.checks.filter(c=>!c.passed)));report.passed=true;
+  report.pageErrors=errors;assert.deepEqual(errors,[]);assert.equal(report.checks.length,20);assert.ok(report.checks.every(c=>c.passed),JSON.stringify(report.checks.filter(c=>!c.passed)));report.passed=true;
 }finally{await browser?.close();server.kill();await writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');}

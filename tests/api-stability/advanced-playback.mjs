@@ -25,6 +25,24 @@ try{
     const evidence=await page.evaluate(async()=>{const mirrored=await pixels();let error=0;for(let y=0;y<36;y++)for(let x=0;x<64;x++)for(let c=0;c<3;c++)error+=Math.abs(mirrored[(y*64+x)*4+c]-original[(y*64+63-x)*4+c]);return {source:p.state.sourceId,time:p.state.currentTime,intent:p.state.playbackIntent,mode:p.state.activeMode,before,mirrorError:error/(64*36*3)};});
     assert.equal(evidence.source,evidence.before.source);assert.equal(evidence.intent,'pause');assert.equal(evidence.mode,'software');assert.ok(Math.abs(evidence.time-evidence.before.time)<.2);assert.ok(evidence.mirrorError<20,JSON.stringify(evidence));return evidence;
   });
+  await check('flip, grayscale and negative presets transform the presented image',async()=>{
+    const evidence=[];
+    for(const preset of ['vflip','lavfi=[format=gray]','negate']){
+      await el.locator('#advanced-preset').selectOption(preset);await el.locator('#advanced-video-form button[type=submit]').click();
+      await page.waitForFunction(value=>p.diagnostics.videoFilters===value&&!p.state.pendingOperation,preset);
+      const metric=await page.evaluate(async preset=>{
+        const output=await pixels();let error=0;
+        for(let y=0;y<36;y++)for(let x=0;x<64;x++){
+          const at=(y*64+x)*4;
+          if(preset==='lavfi=[format=gray]')error+=(Math.abs(output[at]-output[at+1])+Math.abs(output[at+1]-output[at+2]))/2;
+          else for(let c=0;c<3;c++)error+=Math.abs(output[at+c]-(preset==='vflip'?original[((35-y)*64+x)*4+c]:255-original[at+c]))/3;
+        }
+        return error/(64*36);
+      },preset);
+      assert.ok(metric<(preset==='lavfi=[format=gray]'?10:25),`${preset}: pixel error ${metric}`);evidence.push({preset,meanError:metric});
+    }
+    return evidence;
+  });
   await check('invalid filter retains accepted filter, source and draft; Reset recovers',async()=>{
     const before=await page.evaluate(()=>({source:p.state.sourceId,filter:p.diagnostics.videoFilters}));
     await el.locator('#advanced-vf').fill('definitely-not-a-filter');await el.locator('#advanced-video-form button[type=submit]').click();
@@ -34,7 +52,7 @@ try{
     assert.deepEqual(await page.evaluate(()=>({source:p.state.sourceId,filter:p.diagnostics.videoFilters})),before);
     assert.equal(await page.evaluate(()=>p.state.error),null);await el.locator('#advanced-clear-vf').click();
     await page.waitForFunction(()=>p.diagnostics.videoFilters===''&&!p.state.pendingOperation);
-    assert.equal(await el.locator('#advanced-vf').inputValue(),'');return before;
+    assert.equal(await el.locator('#advanced-vf').inputValue(),'');await el.locator('#error').waitFor({state:'hidden'});return before;
   });
   await check('gain change while playing preserves intent and accepted source',async()=>{
     await page.evaluate(()=>p.play());await page.waitForFunction(()=>p.state.status==='playing');const source=await page.evaluate(()=>p.state.sourceId);
@@ -50,5 +68,5 @@ try{
     await el.locator('#advanced-vf').fill('unapplied draft');await page.evaluate(()=>element.open(movie));
     await page.waitForFunction(()=>!p.state.pendingOperation);assert.equal(await el.locator('#advanced-vf').inputValue(),'');assert.equal(await el.locator('#advanced-loop').inputValue(),'off');
   });
-  report.pageErrors=errors;assert.deepEqual(errors,[]);assert.equal(report.checks.length,4);assert.ok(report.checks.every(c=>c.passed));report.passed=true;
+  report.pageErrors=errors;assert.deepEqual(errors,[]);assert.equal(report.checks.length,5);assert.ok(report.checks.every(c=>c.passed));report.passed=true;
 }finally{try{await page?.evaluate(()=>Promise.all([...document.querySelectorAll('demuxe-player')].map(element=>element.destroy())));}finally{await browser?.close();server.kill();await writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');}}
