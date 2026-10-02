@@ -102,7 +102,7 @@ def local_sha(path):
 
 def verify_corresponding_source(companion, engine, record, profile, files):
     """Inspect the companion itself, not only a self-declared archive hash."""
-    observed = {}; retained = {}; source_manifest = None; native_record = None; total = 0
+    observed = {}; retained = {}; source_manifest = None; native_record = None; ci_catalog = None; total = 0
     with tarfile.open(local_file(companion['repositoryPath']), 'r|gz') as archive:
         for entry in archive:
             safe_path(entry.name)
@@ -116,11 +116,26 @@ def verify_corresponding_source(companion, engine, record, profile, files):
             if entry.name.startswith('demuxe/native-groups/') and entry.name.endswith('.json'):retained[entry.name[len('demuxe/'):]]=data
             if entry.name=='source-manifest.json':source_manifest=json.loads(data)
             if entry.name=='engine-build.json':native_record=json.loads(data)
+            if entry.name=='application/licensing/ci-slices.json':ci_catalog=json.loads(data)
     if not source_manifest or native_record!=engine:
         raise ValueError('Missing or mismatched source engine evidence')
     observed.pop('source-manifest.json',None)
     if observed!=source_manifest['files']:
         raise ValueError('Corresponding-source inventory differs from archive bytes')
+    # New CI companions carry their orchestration catalog. Check its required
+    # inputs against the actual archive, not merely its self-declared inventory.
+    # Historical companions without that catalog retain their existing contract.
+    if ci_catalog is not None or 'application/scripts/ci-slices.py' in observed:
+        if ci_catalog is None:
+            raise ValueError('Incomplete CI application source: licensing/ci-slices.json')
+        for name in ['sources.lock.json', 'scripts/ci-slices.py', 'scripts/build-ci-reference.py',
+                     '.github/actions/reference-tools/action.yml']:
+            if 'application/'+name not in observed:
+                raise ValueError('Incomplete CI application source: '+name)
+        for row in ci_catalog['include']:
+            name=safe_path(row['evidence'])
+            if observed.get('application/'+name)!=row['evidenceSHA256']:
+                raise ValueError('Missing matching CI catalog evidence: '+name)
     excluded=set(profile.get('excludedSourceConfigurations', []))
     if set(source_manifest.get('excludedConfigurations',[]))!=excluded:
         raise ValueError('Unreviewed native configuration exclusion')

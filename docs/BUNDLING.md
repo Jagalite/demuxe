@@ -193,28 +193,24 @@ immutable verified snapshot. Evidence validation rejects missing bindings, chang
 outputs, and rebuilt manifests. The historical 20-case reports have no browser
 artifact binding and cannot qualify the current source or newly rebuilt outputs.
 
-The CI native matrix installs the packed current build tool plus the pinned core
-and all 15 provider packages, then builds assets and embedded deliveries. Chromium
-and Firefox exercise TrueHD Asyncify preparation, Hybrid and atomic mpv Software
-playback and seeking. Loader contract tests remain a separate job.
+The automatic CI native matrix now consumes packages built from the same
+revision by [the source provider workflow](../.github/workflows/ci-providers.yml).
+That workflow compiles the 30 explicitly tested slices plus the four broad
+providers, audits packages and corresponding sources, and assembles a fresh
+candidate core. Chromium and Firefox exercise TrueHD Asyncify preparation,
+Hybrid and atomic mpv Software playback and seeking in assets and embedded
+forms. Loader contract tests remain a separate job.
 
-Prepare the native CI inputs locally without publishing:
+The complete target inventory and every cross-job artifact hash are verified.
+The inventory digest is passed through the producing job output. Missing builds,
+wrong revisions, duplicate targets and changed bytes fail the job. Automatic CI
+no longer requires `BUNDLE_NATIVE_TAG` or `BUNDLE_NATIVE_INVENTORY_SHA256`.
 
-```sh
-node scripts/package-bundle-ci-inputs.mjs build/bundle-ci-inputs-NEW
-```
-
-The command writes `bundle-ci-inventory.json`, package archives and a prepared
-TrueHD fixture. Its printed inventory SHA256 must be pinned independently. A release
-containing these files must be available for CI. Configure repository variables
-`BUNDLE_NATIVE_TAG` and `BUNDLE_NATIVE_INVENTORY_SHA256`, or supply `native_tag` and
-`inventory_sha256` when dispatching the workflow. The native job fails when these
-inputs are absent. It verifies every archive and fixture against the pinned inventory
-before installation. This tests delivery of existing native artifacts; clean native
-compilation and corresponding source publication remain separate release gates.
-
-No remote CI run or release upload has been performed for these review fixes.
-The production gate remains pending until the native matrix passes remotely.
+Fresh native identities receive explicit admission only in the installed CI test
+copy of the core, with before/after hashes retained. This does not update the
+production qualification registry or publish packages. Historical artifact replay
+remains available through `scripts/prepare-bundle-ci.mjs` with its schema-1 pinned
+inventory. See [source CI coverage and limits](CI-PROVIDERS.md).
 
 Current review-fix evidence is in
 `results/media-components/bundling/review-fixes.json`: 11 Node tests and six

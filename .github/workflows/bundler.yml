@@ -2,17 +2,22 @@
 name: Provider bundle loader
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
     inputs:
-      native_tag:
-        description: Release containing the native bundle CI inventory and its pinned artifacts
+      source_run:
+        description: Optional completed source run to replay (requires commit and inventory hash)
+        type: string
+      source_commit:
+        description: Exact source commit of the replayed packages
         type: string
       inventory_sha256:
-        description: SHA256 of bundle-ci-inventory.json
+        description: Exact replayed bundle-ci-inventory.json SHA256
         type: string
 permissions:
   contents: read
+  actions: read
 jobs:
   loader:
     runs-on: ubuntu-latest
@@ -37,33 +42,64 @@ jobs:
         with:
           name: bundle-loader-${{ matrix.browser }}
           path: build/bundle-flexibility/browser-*/report.json
+  providers:
+    if: ${{ !inputs.source_run }}
+    uses: ./.github/workflows/ci-providers.yml
   native:
-    runs-on: ubuntu-latest
+    needs: providers
+    if: ${{ !cancelled() && (needs.providers.result == 'success' || inputs.source_run != '') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
     strategy:
+      fail-fast: false
       matrix:
         browser: [chromium, firefox]
         delivery: [assets, embedded]
     env:
-      NATIVE_TAG: ${{ inputs.native_tag || vars.BUNDLE_NATIVE_TAG }}
-      BUNDLE_INVENTORY_SHA256: ${{ inputs.inventory_sha256 || vars.BUNDLE_NATIVE_INVENTORY_SHA256 }}
+      BUNDLE_INVENTORY_SHA256: ${{ inputs.inventory_sha256 || needs.providers.outputs.inventory_sha256 }}
+      BUNDLE_SOURCE_CANDIDATE: '1'
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Retain current harness for an explicit artifact replay
+        if: inputs.source_run
+        env:
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+        run: |
+          [[ "$SOURCE_COMMIT" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$BUNDLE_INVENTORY_SHA256" =~ ^[a-f0-9]{64}$ ]]
+          cp scripts/prepare-bundle-ci.mjs "$RUNNER_TEMP/prepare-bundle-ci.mjs"
+          git rev-parse HEAD > "$RUNNER_TEMP/bundle-harness-commit.txt"
+      - uses: actions/checkout@v4
+        if: inputs.source_run
+        with:
+          ref: ${{ inputs.source_commit }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - name: Require pinned native inputs
-        run: test -n "$NATIVE_TAG" && test -n "$BUNDLE_INVENTORY_SHA256"
-      - name: Download native packages and fixtures
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Install media codecs and start browser audio
         run: |
-          mkdir -p build/bundle-ci-inputs
-          gh release download "$NATIVE_TAG" --repo "$GITHUB_REPOSITORY" --dir build/bundle-ci-inputs
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg pulseaudio
+          pulseaudio --start --exit-idle-time=-1
+      - uses: actions/download-artifact@v4
+        with:
+          name: source-provider-browser-inputs
+          path: build/bundle-ci-inputs
+          run-id: ${{ inputs.source_run || github.run_id }}
+          github-token: ${{ github.token }}
+      - name: Restore the recorded replay harness
+        if: inputs.source_run
+        run: |
+          cp "$RUNNER_TEMP/prepare-bundle-ci.mjs" scripts/prepare-bundle-ci.mjs
+          cp "$RUNNER_TEMP/bundle-harness-commit.txt" build/bundle-ci-inputs/harness-commit.txt
       - run: node scripts/prepare-bundle-ci.mjs
-      - name: Exercise FFmpeg, Hybrid and atomic mpv
+      - name: Exercise freshly built FFmpeg, Hybrid and atomic mpv
         env:
           BROWSER: ${{ matrix.browser }}
           BUNDLE_OUTPUT: build/bundle-flexibility/ci-${{ matrix.delivery }}
@@ -77,3 +113,5 @@ jobs:
           path: |
             build/bundle-flexibility/ci-*/bundle-manifest.json
             build/bundle-flexibility/ci-*/playback-*.json
+            build/bundle-ci-consumer/candidate-admission.json
+            build/bundle-ci-inputs/harness-commit.txt
