@@ -1,5 +1,5 @@
 import {createContinuationBackend} from './continuations.js';
-import {initialCoopState,beginCoopAttachment,finishCoopAttachment,coopTask,coopCanCreate,createCoopTask,scheduleCoopPump,consumeCoopPump,startCoopTask,parkCoopTask,bindCoopWait,releaseCoopTask,settleCoopWait,coopConditionWaits,prepareCoopJoin,detachCoopTask,completeCoopTask,checkedCoopStack,closeCoopState,snapshotCoopState} from '../generated/internal/machine/private-scheduler.js';
+import {initialCoopState,transitionCoopContinuation,snapshotCoopContinuations,beginCoopAttachment,finishCoopAttachment,coopTask,coopCanCreate,createCoopTask,scheduleCoopPump,consumeCoopPump,startCoopTask,parkCoopTask,bindCoopWait,releaseCoopTask,settleCoopWait,coopConditionWaits,prepareCoopJoin,detachCoopTask,completeCoopTask,checkedCoopStack,closeCoopState,snapshotCoopState} from '../generated/internal/machine/private-scheduler.js';
 /* SPDX-License-Identifier: MIT
  * One Worker owns physical Wasm stacks and continuation handles. Logical task,
  * wait, join and slot authority lives in the synchronous scheduler machine.
@@ -9,7 +9,7 @@ export class CoopScheduler {
   constructor({slots=24,maxRetainedTasks=256,unsafeSharedStack=false,contextHooks=null,backend='jspi'}={}){
     if(!Number.isInteger(slots)||slots<1||slots>256)throw Error('Invalid task stack capacity');
     if(!Number.isInteger(maxRetainedTasks)||maxRetainedTasks<slots||maxRetainedTasks>4096)throw Error('Invalid retained-task limit');
-    this.machine=initialCoopState(slots,maxRetainedTasks);this.tasks=new Map();this.waiters=new Map();this.stopListeners=new Set();this.timers=new Set();
+    this.machine=initialCoopState(slots,maxRetainedTasks,backend);this.tasks=new Map();this.waiters=new Map();this.stopListeners=new Set();this.timers=new Set();
     this.continuations=createContinuationBackend(backend,this);this.contextHooks=contextHooks;this.unsafeSharedStack=unsafeSharedStack;this.timeoutCode=1;
     this.channel=new MessageChannel();this.channel.port1.onmessage=()=>{this.machine=consumeCoopPump(this.machine);this.pump();};
     this.imports={self:()=>this.self(),panic:(ptr,line)=>{throw Error(`Cooperative backend invariant: ${this.readString(ptr)} at threads-coop.c:${line}`);},wait:this.wrapImport('demuxe_coop.wait',(key,ms)=>this.wait(key,ms)),wake:(key,all)=>this.wake(key,!!all),waiters:key=>coopConditionWaits(this.machine,key,true).length,create:(fn,arg)=>this.create(this.e.demuxe_coop_invoke,[fn,arg],false)?.id??0,join:this.wrapImport('demuxe_coop.join',id=>this.join(id)),detach:id=>this.detach(id),name:ptr=>{this.self();this.active.name=this.readString(ptr);},yield:this.wrapImport('demuxe_coop.yield',()=>this.yield())};
@@ -23,6 +23,9 @@ export class CoopScheduler {
   get free(){return this.machine.free;}
   get nextId(){return this.machine.nextId;}
   get ready(){return this.machine.ready.map(id=>this.tasks.get(id)).filter(Boolean);}
+  continuation(input){const decision=transitionCoopContinuation(this.machine,input);this.machine=decision.state;return decision.accepted;}
+  continuationCurrent(t){return !this.stopped&&this.active===t;}
+  continuationSnapshot(){return snapshotCoopContinuations(this.machine);}
   wrapImport(name,fn) {return this.continuations.wrapImport(name,fn);}
   attach(exports){
     const admitted=beginCoopAttachment(this.machine);this.machine=admitted.state;if(!admitted.accepted)throw Error('Scheduler already attached or closed');

@@ -1815,7 +1815,7 @@ export class NativePlayer extends EventTarget {
             try {
                 await this.awaitCaption(request, selected.ready);
                 if (created)
-                    selected.tracks = [];
+                    selected.resetTracks();
                 this.assertCaption(request);
                 const id = await selected.add({ ...asset, select: !!asset.select && nativeCaptionMaySelect(this.native.captions, request) });
                 this.assertCaption(request);

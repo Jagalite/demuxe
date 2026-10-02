@@ -101,12 +101,14 @@ test('audio adapters prefer decoding evidence without upgrading presence to deco
  assert.equal(observeBrowserAudio({},true).ready,false);
 });
 
-test('play rejection cancels subtitle sampling and restoration RPCs without waiting for the worker',async()=>{
+test('play rejection cancels subtitle sampling and restoration RPCs without waiting for the worker',async t=>{
+ const priorDocument=Object.getOwnPropertyDescriptor(globalThis,'document');Object.defineProperty(globalThis,'document',{configurable:true,value:{hidden:false}});t.after(()=>{if(priorDocument)Object.defineProperty(globalThis,'document',priorDocument);else delete globalThis.document;});
  const {NativeMpvSubtitles}=await import('../web/generated/internal/native-mpv-subtitles.js');
  for(const phase of ['sample','restore']){
   const service=Object.create(NativeMpvSubtitles.prototype);const sent=[];
-  const {initialNativeSubtitleLifetime}=await import('../web/generated/internal/machine/native-subtitle-lifetime.js');
-  Object.assign(service,{lifetime:initialNativeSubtitleLifetime(),pending:new Map(),tracks:[{selected:true,mpvId:1}],video:{videoWidth:640,videoHeight:360,duration:10},time:()=>0,revision:0,frame:1,worker:{postMessage(message){sent.push(message);if(phase==='restore'&&sent.length===1)queueMicrotask(()=>service.completeRequest(message.id,true,{hasOverlay:true,service:{}}));}}});
+  const {initialNativeSubtitleLifetime,changeNativeSubtitleTimeline,changeNativeSubtitlePresentation}=await import('../web/generated/internal/machine/native-subtitle-lifetime.js');
+  const lifetime=initialNativeSubtitleLifetime(),catalog=changeNativeSubtitleTimeline(lifetime,lifetime.epoch,{kind:'catalog',tracks:[{id:'1',selected:true,mpvId:1,'ff-index':0,type:'sub'}]}).state,waiting=changeNativeSubtitlePresentation(catalog,lifetime.epoch,{kind:'frame.request'}).state;
+  Object.assign(service,{lifetime:waiting,timelineWork:new Map(),pending:new Map(),video:{videoWidth:640,videoHeight:360,duration:10},time:()=>0,frame:{epoch:lifetime.epoch,id:waiting.presentation.frame,handle:1},worker:{postMessage(message){sent.push(message);if(phase==='restore'&&sent.length===1)queueMicrotask(()=>service.completeRequest(message.id,true,{hasOverlay:true,service:{}}));}}});
   const p=candidate();p.mpvSubs=service;
   const denied=new DOMException('blocked','NotAllowedError');
   await assert.rejects(()=>Player.prototype.playNativeVerified.call({},p,new Promise((_,reject)=>setTimeout(()=>reject(denied),30))),e=>e===denied);

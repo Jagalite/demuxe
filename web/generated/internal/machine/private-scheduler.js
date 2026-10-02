@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
-export function initialCoopState(slots = 24, maxRetainedTasks = 256) { return Object.freeze({ attachment: 'unattached', slots, maxRetainedTasks, nextId: 1, nextWait: 1, tasks: Object.freeze([]), waits: Object.freeze([]), ready: Object.freeze([]), free: Object.freeze(Array.from({ length: slots }, (_, index) => index)), active: null, pendingPump: false, stopped: false, stats: Object.freeze({ created: 0, completed: 0, abandoned: 0, suspensions: 0, resumes: 0, maxLive: 0, timerWakes: 0, signals: 0, stackChecks: 0 }) }); }
+export function initialCoopState(slots = 24, maxRetainedTasks = 256, backend = 'jspi') { return Object.freeze({ backend, continuations: Object.freeze({ maxSavedBytes: 0, unwinds: 0, rewinds: 0 }), attachment: 'unattached', slots, maxRetainedTasks, nextId: 1, nextWait: 1, tasks: Object.freeze([]), waits: Object.freeze([]), ready: Object.freeze([]), free: Object.freeze(Array.from({ length: slots }, (_, index) => index)), active: null, pendingPump: false, stopped: false, stats: Object.freeze({ created: 0, completed: 0, abandoned: 0, suspensions: 0, resumes: 0, maxLive: 0, timerWakes: 0, signals: 0, stackChecks: 0 }) }); }
 export function coopTask(state, id) { return state.tasks.find(task => task.id === id); }
 export function coopCanCreate(state) { return !state.stopped && state.free.length > 0 && state.tasks.length < state.maxRetainedTasks && state.nextId <= 0xffffffff; }
 export function createCoopTask(state, root) {
     if (state.attachment !== 'attached' || !coopCanCreate(state))
         return Object.freeze({ state, task: null });
-    const task = Object.freeze({ id: state.nextId, slot: state.free[state.free.length - 1], status: 'new', root, detached: false, joined: false });
+    const task = Object.freeze({ continuation: Object.freeze({ phase: 'fresh', site: null }), id: state.nextId, slot: state.free[state.free.length - 1], status: 'new', root, detached: false, joined: false });
     return Object.freeze({ state: Object.freeze({ ...state, nextId: task.id + 1, tasks: Object.freeze([...state.tasks, task]), ready: Object.freeze([...state.ready, task.id]), free: Object.freeze(state.free.slice(0, -1)), stats: Object.freeze({ ...state.stats, created: state.stats.created + 1, maxLive: Math.max(state.stats.maxLive, state.tasks.filter(task => task.status !== 'done').length + 1) }) }), task });
 }
 export function scheduleCoopPump(state) { return state.pendingPump || state.stopped ? Object.freeze({ state, send: false }) : Object.freeze({ state: Object.freeze({ ...state, pendingPump: true }), send: true }); }
@@ -21,7 +21,7 @@ export function startCoopTask(state) {
 }
 export function parkCoopTask(state) {
     const task = state.active === null ? undefined : coopTask(state, state.active);
-    if (state.stopped || !task || task.status !== 'running')
+    if (state.stopped || !task || task.status !== 'running' || task.continuation.phase !== 'running')
         return Object.freeze({ state, wait: null });
     const wait = Object.freeze({ id: state.nextWait, task: task.id, key: null, deadline: null, join: null });
     return Object.freeze({ state: Object.freeze({ ...state, nextWait: wait.id + 1, waits: Object.freeze([...state.waits, wait]), tasks: Object.freeze(state.tasks.map(item => item.id === task.id ? Object.freeze({ ...item, status: 'waiting' }) : item)), stats: Object.freeze({ ...state.stats, suspensions: state.stats.suspensions + 1 }) }), wait });
@@ -32,7 +32,8 @@ export function bindCoopWait(state, id, policy) {
     return Object.freeze({ ...state, waits: Object.freeze(state.waits.map(wait => wait.id === id ? Object.freeze({ ...wait, ...policy.key === undefined ? {} : { key: policy.key }, ...policy.deadline === undefined ? {} : { deadline: policy.deadline }, ...policy.join === undefined ? {} : { join: policy.join } }) : wait)) });
 }
 export function releaseCoopTask(state, id) {
-    if (state.stopped || state.active !== id)
+    const task = coopTask(state, id);
+    if (state.stopped || state.active !== id || !task || !['waiting', 'ready'].includes(task.status) || task.continuation.phase !== 'suspended')
         return Object.freeze({ state, accepted: false });
     return Object.freeze({ state: Object.freeze({ ...state, active: null }), accepted: true });
 }
@@ -70,7 +71,7 @@ export function detachCoopTask(state, id) {
 }
 export function completeCoopTask(state, id) {
     const task = coopTask(state, id), empty = { state, accepted: false, wake: Object.freeze([]), remove: Object.freeze([]) };
-    if (state.stopped || state.active !== id || !task || task.status !== 'running' || task.slot === null)
+    if (state.stopped || state.active !== id || !task || task.status !== 'running' || task.continuation.phase !== 'running' || task.slot === null)
         return Object.freeze(empty);
     const remove = task.root || task.detached ? [id] : [], wake = state.waits.filter(wait => wait.join === id).map(wait => wait.id);
     let next = Object.freeze({ ...state, active: null, free: Object.freeze([...state.free, task.slot]), tasks: Object.freeze(state.tasks.filter(item => !remove.includes(item.id)).map(item => item.id === id ? Object.freeze({ ...item, status: 'done', slot: null }) : item)), stats: Object.freeze({ ...state.stats, completed: state.stats.completed + 1 }) });
@@ -93,3 +94,63 @@ export function snapshotCoopState(state) {
 }
 export function beginCoopAttachment(state) { return state.stopped || state.attachment !== 'unattached' ? Object.freeze({ state, accepted: false }) : Object.freeze({ state: Object.freeze({ ...state, attachment: 'attaching' }), accepted: true }); }
 export function finishCoopAttachment(state) { return state.stopped || state.attachment !== 'attaching' ? Object.freeze({ state, accepted: false }) : Object.freeze({ state: Object.freeze({ ...state, attachment: 'attached' }), accepted: true }); }
+/** Protocol authority shares the scheduler lifetime; all native objects stay in the driver. */
+export function transitionCoopContinuation(state, input) {
+    const task = coopTask(state, input.id), no = Object.freeze({ state, accepted: false });
+    if (state.stopped || state.active !== input.id || !task)
+        return no;
+    const current = task.continuation;
+    let phase = current.phase, site = current.site, stats = state.continuations;
+    switch (input.type) {
+        case 'begin':
+            if (task.status !== 'running' || phase !== 'fresh')
+                return no;
+            phase = 'running';
+            break;
+        case 'park':
+            if (task.status !== 'waiting' || phase !== 'running')
+                return no;
+            phase = state.backend === 'asyncify' ? 'unwinding' : 'suspended';
+            break;
+        case 'site':
+            if (state.backend !== 'asyncify' || phase !== 'unwinding' || site !== null || !input.site)
+                return no;
+            site = input.site;
+            break;
+        case 'unwound':
+            if (state.backend !== 'asyncify' || phase !== 'unwinding' || site === null)
+                return no;
+            phase = 'suspended';
+            stats = Object.freeze({ ...stats, unwinds: stats.unwinds + 1 });
+            break;
+        case 'resume':
+            if (task.status !== 'running' || phase !== 'suspended' || (state.backend === 'asyncify' && site === null))
+                return no;
+            phase = state.backend === 'asyncify' ? 'rewinding' : 'running';
+            break;
+        case 'rewind-import':
+            if (state.backend !== 'asyncify' || phase !== 'rewinding' || site !== input.site)
+                return no;
+            phase = 'rewind-stopping';
+            site = null;
+            break;
+        case 'rewound':
+            if (state.backend !== 'asyncify' || phase !== 'rewind-stopping')
+                return no;
+            phase = 'running';
+            stats = Object.freeze({ ...stats, rewinds: stats.rewinds + 1 });
+            break;
+        case 'return':
+            if (task.status !== 'running' || phase !== 'running')
+                return no;
+            return Object.freeze({ state, accepted: true });
+        case 'checked':
+            if (state.backend !== 'asyncify' || !Number.isSafeInteger(input.savedBytes) || input.savedBytes < 0)
+                return no;
+            stats = Object.freeze({ ...stats, maxSavedBytes: Math.max(stats.maxSavedBytes, input.savedBytes) });
+            break;
+    }
+    const continuation = phase === current.phase && site === current.site ? current : Object.freeze({ phase, site });
+    return Object.freeze({ state: Object.freeze({ ...state, continuations: stats, tasks: continuation === current ? state.tasks : Object.freeze(state.tasks.map(value => value.id === input.id ? Object.freeze({ ...value, continuation }) : value)) }), accepted: true });
+}
+export function snapshotCoopContinuations(state) { return state.backend === 'jspi' ? Object.freeze({ kind: state.backend }) : Object.freeze({ kind: state.backend, ...state.continuations }); }

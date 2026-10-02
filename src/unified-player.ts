@@ -43,7 +43,7 @@ import {copyData} from './internal/machine/data.js';
 import {initialPlayerControl} from './internal/machine/state.js';
 import {transitionPlayer,sessionAuthority,type PlayerControlInput,type PlayerControlDecision} from './internal/machine/transition.js';
 import {activeOperation,pendingOperation} from './internal/machine/operations.js';
-import {sourceDesiredSettings} from './internal/machine/source.js';
+import {sourceDesiredSettings,sourcePreparationCurrent} from './internal/machine/source.js';
 import type {RawTrack} from './internal/state.js';
 import type {PlayerState, PlayerEventMap, PlayerCapabilities, SessionError, OperationKind, PendingOperation, OpenOptions, MediaSourceInput} from './types.js';
 import {PLAYBACK_MODES} from './types.js';
@@ -694,28 +694,52 @@ export class Player extends EventTarget {
     const reason=featureRejection(mode,{...settings,toneMapping:this.candidatePreferences.toneMapping,hybridAudioFilters:this.hybridAudioFilters});
     if(reason)throw new PlayerError('UNSUPPORTED_FEATURE',reason);
   }
-  private enqueue(operation: () => Promise<void>, kind:OperationKind|null=null, signal?:AbortSignal, optimization=false): Promise<void> {
-    if(!optimization)this.cancelPromotion();
-    const admission=this.dispatchControl({type:'operation.admit',kind}),id=admission.id!;
+  private enqueue(operation:()=>Promise<void>,kind:OperationKind|null=null,signal?:AbortSignal,optimization=false,acquisition?:{reserved:(result:Promise<void>)=>void;cleanup:()=>Promise<void>}):Promise<void>{
+    if(!optimization&&kind!=='closing')this.cancelPromotion();
+    const admission=this.dispatchControl({type:'operation.admit',kind}),id=admission.id!,epoch=admission.state.operations.epoch;
     if(!admission.accepted)return Promise.reject(new PlayerError(admission.reason==='full'?'INVALID_ARGUMENT':'ABORTED',admission.reason==='full'?'Player operation queue is full':'Player is destroyed',id,kind));
-    const controller=new AbortController();
-    controller.signal.addEventListener('abort',()=>{this.dispatchControl({type:'operation.cancel',id});},{once:true});
-    const cancel=()=>{controller.abort();if(this.activeOperation?.id===id){this.inspection?.abort();void this.dispose(this.candidate).catch(()=>{});}};
-    this.operationResources.set(id,{controller,detachCallerAbort:()=>signal?.removeEventListener('abort',cancel)});
-    signal?.addEventListener('abort',cancel,{once:true});if(signal?.aborted)cancel();
+    let controller:AbortController|undefined,setupFailure:{error:unknown}|undefined;
+    let callerAcquiring=false,callerAttached=false,callerDetachRequested=false,controllerAttached=false;
+    const cancelled=()=>{this.dispatchControl({type:'operation.cancel',id});};
+    const current=()=>{const entry=this.control.operations.entries.find(entry=>entry.id===id);return !this.destroyed&&this.operationEpoch===epoch&&entry?.epoch===epoch&&!entry.cancelled;};
+    const detachCaller=()=>{callerDetachRequested=true;if(callerAcquiring||!callerAttached)return;callerAttached=false;signal?.removeEventListener('abort',cancel);};
+    const detachController=()=>{if(!controllerAttached)return;controllerAttached=false;controller?.signal.removeEventListener('abort',cancelled);};
+    const cancel=()=>{
+      cancelled();
+      try{controller?.abort();}finally{if(this.activeOperation?.id===id){this.inspection?.abort();void this.dispose(this.candidate).catch(()=>{});}}
+    };
+    // Publish the queue slot before any host acquisition can admit a successor.
+    // The optional close cleanup runs inside this same slot even if acquisition
+    // throws, so later opens cannot overtake cleanup of the retired source.
     const result=this.queue.then(async()=>{
+      if(setupFailure){try{await acquisition?.cleanup();}catch{}throw setupFailure.error;}
       if(!this.dispatchControl({type:'operation.start',id}).accepted)throw new PlayerError('ABORTED',this.destroyed?'Player is destroyed':'Operation aborted',id,kind);
       this.dispatchControl({type:'publication.operation-start',id,epoch:this.operationEpoch,now:performance.now()});
       this.publish();
       if(kind==='seeking')this.dispatchEvent(new CustomEvent('seeking',{detail:this.state}));
-      try {await operation();this.assertOperation();if(kind==='seeking')this.dispatchControl({type:'publication.seek',id,epoch:this.operationEpoch,now:performance.now()});}
-      catch(error){if(optimization)return;const structured=playerError(controller.signal.aborted?new PlayerError('ABORTED',this.destroyed?'Player is destroyed':'Operation aborted'):error,id,kind);
+      try{await operation();this.assertOperation();if(kind==='seeking')this.dispatchControl({type:'publication.seek',id,epoch:this.operationEpoch,now:performance.now()});}
+      catch(error){if(optimization)return;const structured=playerError(controller!.signal.aborted?new PlayerError('ABORTED',this.destroyed?'Player is destroyed':'Operation aborted'):error,id,kind);
         if(!this.current&&kind==='opening'&&structured.code!=='ABORTED')this.sessionError={...structured.toJSON(),scope:'session'};
         this.publish();this.dispatchEvent(new CustomEvent('error',{detail:freeze(structured.toJSON())}));throw structured;
-      } finally {this.dispatchControl({type:'operation.finish',id});this.startWatchdogs();this.publish();}
+      }finally{this.dispatchControl({type:'operation.finish',id});this.startWatchdogs();this.publish();}
       if(kind==='seeking')this.dispatchEvent(new CustomEvent('seeked',{detail:this.state}));
-    }).finally(()=>signal?.removeEventListener('abort',cancel));
-    this.queue=result.catch(()=>{}).finally(()=>{this.dispatchControl({type:'operation.release',id});this.operationResources.delete(id);});return result;
+    }).finally(detachCaller);
+    this.queue=result.catch(()=>{}).finally(()=>{try{detachController();}catch{}finally{this.dispatchControl({type:'operation.release',id});this.operationResources.delete(id);}});
+    acquisition?.reserved(result);
+    try{
+      controller=new AbortController();
+      if(!current()){cancel();return result;}
+      controllerAttached=true;controller.signal.addEventListener('abort',cancelled,{once:true});
+      if(!current()){cancel();return result;}
+      this.operationResources.set(id,{controller,detachCallerAbort:detachCaller});
+      if(signal){callerAcquiring=true;callerAttached=true;try{signal.addEventListener('abort',cancel,{once:true});}finally{callerAcquiring=false;if(callerDetachRequested||!current())detachCaller();}}
+      if(signal?.aborted||!current())cancel();
+    }catch(error){
+      setupFailure={error};cancelled();
+      try{controller?.abort();}catch{}try{detachCaller();}catch{}try{detachController();}catch{}
+      throw error;
+    }
+    return result;
   }
   private async interruptible<T>(work: Promise<T>): Promise<T> {
     // An effect's synchronous prefix may retire this operation before returning
@@ -935,6 +959,7 @@ export class Player extends EventTarget {
     return this.dispatchControl({type:'routing.recovery',change:{kind:'streaming.failed',source:this.sourceSerial,session:sessionId,plan:plan.id}}).accepted;
   }
   private async replace(source: Source, mode: PlaybackMode, settings: Settings, preserve: boolean, nativeTracks: (TextTrackSource & {attachmentId?:string})[], requestedTarget?: number, automaticAdmission=this.automatic, planId?:string, directLoadBudget?:number, requirements:RouteRequirements={}) {
+    const sourceScope={operationEpoch:this.operationEpoch,operation:this.control.operations.active};
     if(this.presentation.locksSurface)throw new PlayerError('UNSUPPORTED_FEATURE','Exit video Picture-in-Picture before replacing the playback surface');
     if(!planId)return this.discover(source,settings,preserve,nativeTracks,requestedTarget,automaticAdmission,mode,0,requirements);
     if(this.sourceInspection?.source!==source)this.sourceInspection=undefined;
@@ -985,10 +1010,10 @@ export class Player extends EventTarget {
     }
     if(preserve&&this.publicSelections.has('sub')&&desired.sid!=='no')desired.sid='auto';
     if(this.activeOperation&&!this.pendingOperation)this.dispatchControl({type:'operation.name',id:this.activeOperation.id,kind:'switching'});
-    const beginning=this.dispatchControl({type:'source.begin',operationEpoch:this.operationEpoch,mode,preserve,planId});
+    const beginning=this.dispatchControl({type:'source.begin',...sourceScope,mode,preserve,planId});
     if(!beginning.accepted)throw new PlayerError('ABORTED','Source transaction is already active');
     const attempt=beginning.id!,attemptSession=this.control.source.candidate!.session;
-    const advance=(type:'source.created'|'source.configured'|'source.opened'|'source.applied'|'source.positioned')=>{if(!this.dispatchControl({type,attempt}).accepted)throw new PlayerError('ABORTED','Source transaction was retired');};
+    const advance=(type:'source.created'|'source.applied'|'source.positioned')=>{if(!this.dispatchControl({type,attempt,...(type==='source.created'?{prepare:true}:{})}).accepted)throw new PlayerError('ABORTED','Source transaction was retired');};
     this.publish();this.emit('modechange', {phase: 'loading', mode});
     let candidate: Session | undefined;
     const overlapping=!!(old&&!old.error&&this.promotionRunning&&this.backgroundPromotion&&!wasPaused&&mode==='native');
@@ -1009,22 +1034,31 @@ export class Player extends EventTarget {
       }
       const recipe=executionRecipe(planId);
       const adaptation=recipe?.native?.adaptation;
-      candidate = this.candidate = await this.create(mode,desired.aid,adaptation,recipe?.native?.transport!=='original',planId,directLoadBudget);this.assertOperation();advance('source.created');const p = candidate.backend;await this.interruptible(p.ready);
-      this.assertOperation();
-      const vf=effectiveVideoFilters(desired,this.candidatePreferences);
-      if(vf)await p.command!('set','vf',vf);
-      if(mode!=='native'&&desired.af)await p.command!('set','af',desired.af);
-      if(mode!=='native'){
-        await p.command!('set','sub-delay',String(this.candidatePreferences.subtitleDelay));await p.command!('set','audio-delay',String(this.candidatePreferences.audioDelay));
-        for(const [key,value] of Object.entries(this.candidatePreferences.subtitleStyle))await p.command!('set',({fontSize:'sub-font-size',color:'sub-color',borderSize:'sub-border-size',fontFamily:'sub-font'} as Record<string,string>)[key],String(value));
+      candidate = this.candidate = await this.create(mode,desired.aid,adaptation,recipe?.native?.transport!=='original',planId,directLoadBudget);this.assertOperation();advance('source.created');const p = candidate.backend;
+      for(;;){
+        const decision=this.dispatchControl({type:'source.preparation.next',attempt});
+        if(!decision.accepted)throw new PlayerError('ABORTED','Source preparation was retired');
+        const effect=decision.preparationEffect;if(!effect)break;
+        const current=()=>{this.assertOperation();if(!sourcePreparationCurrent(this.control.source,attempt,effect.step)||sessionAuthority(this.control,attemptSession)!=='candidate')throw new PlayerError('ABORTED','Source preparation was retired');};
+        const invoke=(name:keyof Backend,args:unknown[])=>{current();const method=p[name] as (...args:unknown[])=>unknown;current();return method.apply(p,args);};
+        let facts:import('./internal/machine/source-preparation.js').SourcePreparationFacts|undefined;
+        switch(effect.kind){
+          case 'ready':{
+            const ready=p.ready;current();await this.interruptible(ready);current();
+            const preferences=this.candidatePreferences;
+            facts={mode,settings:desired,videoFilters:effectiveVideoFilters(desired,preferences),subtitleDelay:preferences.subtitleDelay,audioDelay:preferences.audioDelay,subtitleStyle:preferences.subtitleStyle,overlapping,muted:this.muted};break;
+          }
+          case 'command':await invoke('command',['set',effect.property,effect.value]);break;
+          case 'gain':await invoke('gain',[effect.value]);break;
+          case 'volume':await invoke('volume',[effect.value]);break;
+          case 'rate':await invoke('rate',[effect.value]);break;
+          case 'track':await invoke('selectTrack',[effect.track,effect.value]);break;
+          case 'subtitles':await invoke('subtitleVisible',[effect.value]);break;
+          case 'configured':break;
+          case 'open':if(source.kind==='local')await this.interruptible(Promise.resolve(invoke('open',[source.file,source.input])));else await this.interruptible(Promise.resolve(invoke('openRemote',[source.options])));break;
+        }
+        if(!this.dispatchControl({type:'source.preparation.completed',attempt,step:effect.step,facts}).accepted)throw new PlayerError('ABORTED','Source preparation completion was retired');
       }
-      await p.gain!(desired.gain);
-      await p.volume(overlapping||this.muted?0:desired.volume);await p.rate(desired.speed);
-      // Native numeric track IDs only exist after metadata/text-track loading.
-      if (mode !== 'native') {await p.selectTrack('audio', desired.aid);await p.selectTrack('sub', desired.sid);await p.subtitleVisible(desired.subtitles);}
-      advance('source.configured');
-      if (source.kind === 'local') await this.interruptible(p.open(source.file,source.input));else await this.interruptible(p.openRemote(source.options));
-      advance('source.opened');
       if(!preserve&&requestedTarget!==undefined){
         const duration=p.properties.get('duration');
         if(p.properties.get('native-live')===true||!Number.isFinite(duration)||Number(duration)<=0||requestedTarget>=Number(duration))throw new PlayerError('INVALID_ARGUMENT','startTime requires a target within finite VOD duration');
@@ -1955,27 +1989,49 @@ export class Player extends EventTarget {
     this.updatePreferences({outputSize:{width,height}});this.current?.backend.resize(width, height);
   }
   close():Promise<void> {
-    this.cancelPromotion();
     if(this.destroyed)return this.destruction!;
     if(this.closing)return this.closing;
-    this.#previewController.setSourceIdentity(`closed:${this.sourceSerial}`);this.previewSource=undefined;
-    this.dispatchControl({type:'operation.retire',terminal:false});this.activeOperation?.controller.abort();this.inspection?.abort();this.stopWatchdogs();
-    const cleanup=Promise.all([this.#previewController.drain(),...[this.candidate,this.current].map(s=>this.dispose(s).catch(()=>{}))]);
-    this.closing=this.enqueue(async()=>{await cleanup;await this.dispose(this.current);this.playbackRange=null;this.loopPolicy=false;this.current=undefined;this.candidate=undefined;this.source=undefined;this.dispatchControl({type:'source.clear'});this.sourceInspection=undefined;this.losslessInspection=undefined;this.sessionError=null;},'closing').finally(()=>{this.closing=undefined;});
-    return this.closing;
+    let resolve!:()=>void,reject!:(error:unknown)=>void;
+    const result=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});this.closing=result;
+    let failed=false,failure:unknown;const clean=(work:()=>unknown)=>{try{return Promise.resolve(work()).catch(error=>{if(!failed){failed=true;failure=error;}});}catch(error){if(!failed){failed=true;failure=error;}return Promise.resolve();}};
+    // Retire and install the shared settlement before invoking host callbacks.
+    this.dispatchControl({type:'operation.retire',terminal:false});
+    const sessions=[this.candidate,this.current];let released!:()=>void;
+    const cleanup=new Promise<void>(done=>{released=done;});
+    const finish=()=>{if(this.closing===result)this.closing=undefined;};
+    const clear=async()=>{
+      await cleanup;await clean(()=>this.dispose(this.current));
+      this.playbackRange=null;this.loopPolicy=false;this.current=undefined;this.candidate=undefined;this.source=undefined;this.dispatchControl({type:'source.clear'});this.sourceInspection=undefined;this.losslessInspection=undefined;this.sessionError=null;
+      if(failed)throw failure;
+    };
+    let queued:Promise<void>|undefined;
+    try{queued=this.enqueue(clear,'closing',undefined,false,{reserved:result=>{queued=result;},cleanup:clear});}catch(error){queued??=Promise.reject(error);}
+    queued!.then(()=>{finish();resolve();},error=>{finish();reject(error);});
+    // The queue barrier exists before cleanup can enqueue a successor open.
+    void Promise.all([
+      clean(()=>this.cancelPromotion()),clean(()=>this.activeOperation?.controller.abort()),clean(()=>this.inspection?.abort()),clean(()=>this.stopWatchdogs()),
+      clean(()=>this.#previewController.setSourceIdentity(`closed:${this.sourceSerial}`)),clean(()=>this.#previewController.drain()),
+      ...sessions.map(session=>clean(()=>this.dispose(session))),
+    ]).then(released);this.previewSource=undefined;
+    return result;
   }
   destroy(): Promise<void> {
-    this.cancelPromotion();
-    if (this.destruction) return this.destruction;
-    this.preparation?.destroy();
-    const providerCleanup=this.providerRuntime?.destroy();
-    const presentationCleanup=this.presentation.destroy();
-    const previewCleanup=this.#previewController.destroy();this.previewSource=undefined;
-    this.dispatchControl({type:'operation.retire',terminal:true});this.activeOperation?.controller.abort();this.lifetime.abort();this.inspection?.abort();this.stopWatchdogs();
-    this.destruction = (async () => {
-      await Promise.all([providerCleanup,presentationCleanup,previewCleanup,...[this.candidate, this.current].map(session => this.dispose(session).catch(() => {}))]);
-      await this.queue;
-      try {await this.dispose(this.current);} finally {this.current = undefined;this.source = undefined;this.dispatchControl({type:'source.clear'});this.sourceInspection=undefined;this.losslessInspection=undefined;this.sessionError=null;this.publish();this.subscribers.clear();this.root.remove();}
-    })();return this.destruction;
+    if(this.destruction)return this.destruction;
+    let resolve!:()=>void,reject!:(error:unknown)=>void;
+    const result=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});this.destruction=result;
+    let failed=false,failure:unknown;const clean=(work:()=>unknown)=>{try{return Promise.resolve(work()).catch(error=>{if(!failed){failed=true;failure=error;}});}catch(error){if(!failed){failed=true;failure=error;}return Promise.resolve();}};
+    this.dispatchControl({type:'operation.retire',terminal:true});
+    const cleanup=Promise.all([
+      clean(()=>this.cancelPromotion()),clean(()=>this.activeOperation?.controller.abort()),clean(()=>this.lifetime.abort()),clean(()=>this.inspection?.abort()),clean(()=>this.stopWatchdogs()),
+      clean(()=>this.preparation?.destroy()),clean(()=>this.providerRuntime?.destroy()),clean(()=>this.presentation.destroy()),clean(()=>this.#previewController.destroy()),
+      ...[this.candidate,this.current].map(session=>clean(()=>this.dispose(session))),
+    ]);this.previewSource=undefined;
+    void(async()=>{
+      await cleanup;await clean(()=>this.queue);await clean(()=>this.dispose(this.current));
+      this.current=undefined;this.candidate=undefined;this.source=undefined;
+      await clean(()=>this.dispatchControl({type:'source.clear'}));await clean(()=>{this.sourceInspection=undefined;this.losslessInspection=undefined;this.sessionError=null;});
+      await clean(()=>this.publish());await clean(()=>this.subscribers.clear());await clean(()=>this.root.remove());
+      if(failed)throw failure;
+    })().then(resolve,reject);return result;
   }
 }

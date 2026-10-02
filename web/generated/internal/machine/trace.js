@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { resourceAvailable } from './resource-ledger.js';
 const identity = (value) => Number.isSafeInteger(value) && value !== null && value >= 0 ? value : null;
 const count = (value) => Number.isSafeInteger(value) && value >= 0 ? value : 0;
 const status = (value) => ['idle', 'paused', 'playing', 'buffering', 'ended', 'error'].includes(value) ? value : 'unknown';
@@ -58,9 +59,20 @@ export function selectTrace(trace) {
  * source graphs, compound settings and lifecycle-only notifications are marked
  * omitted. Public media status cannot be inferred from intent alone. */
 export function tracePlayerTransition(trace, input, before, decision, tick) {
-    const state = decision.state, identities = { lifetime: 1, sourceId: state.source.serial || null, sessionId: state.source.acceptedSession, operationId: state.operations.active ?? before.operations.active };
+    const state = decision.state, identities = { lifetime: state.operations.epoch, sourceId: state.source.serial || null, sessionId: state.source.acceptedSession, operationId: state.operations.active ?? before.operations.active };
     let event = { kind: 'omitted', scope: identities, category: 'other', reason: 'unsupported-input' };
-    if (input.type === 'play.request')
+    if (input.type === 'effect.event' && input.input.type === 'admit' && decision.accepted)
+        event = effectTrace(input.input.effect, 'issued');
+    else if (input.type === 'resource.event' && decision.accepted) {
+        const request = input.input, resourceId = 'id' in request ? request.id : null, id = resourceId === null ? null : numericResource(resourceId);
+        if (id !== null) {
+            const metadata = state.resources.resources.find(entry => entry.id === resourceId) ?? before.resources.resources.find(entry => entry.id === resourceId);
+            const phase = request.type === 'register' ? 'acquired' : request.type === 'release' && decision.resource?.start && resourceAvailable(before.resources, resourceId) && !resourceAvailable(state.resources, resourceId) ? 'retired' : request.type === 'deadline' && decision.resource?.start ? 'detached' : request.type === 'physical-result' && decision.resource?.start ? (request.success ? 'released' : 'failed') : null;
+            if (phase && metadata)
+                event = { kind: 'resource', scope: { ...identities, sessionId: numericScope(metadata.scopeKey) }, resourceId: id, phase };
+        }
+    }
+    else if (input.type === 'play.request')
         event = { kind: 'control', scope: identities, control: { name: 'play' } };
     else if (input.type === 'source.configure')
         event = { kind: 'control', scope: identities, control: { name: 'mode', value: state.source.automatic ? 'auto' : state.source.mode } };
@@ -105,5 +117,20 @@ export function tracePlayerTransition(trace, input, before, decision, tick) {
     else
         event = { kind: 'omitted', scope: identities, category: 'other', reason: 'lifetime-only' };
     const reason = decision.accepted ? 'none' : decision.reason === 'retired' ? 'stale' : decision.reason === 'full' ? 'full' : 'unknown';
-    return appendTrace(trace, event, { accepted: decision.accepted, status: 'unknown', effectCount: decision.effects?.length ?? 0, pendingCount: state.operations.entries.length, reason }, tick);
+    const summary = { accepted: decision.accepted, status: 'unknown', effectCount: (decision.effects?.length ?? 0) + (decision.actionEffects?.length ?? 0) + (decision.readinessEffects?.length ?? 0) + (decision.execution?.execute ? 1 : 0) + (decision.preparationEffect ? 1 : 0), pendingCount: state.operations.entries.length, reason };
+    let next = appendTrace(trace, event, summary, tick);
+    for (const outcome of [...decision.execution?.outcomes ?? [], ...decision.executionOutcomes ?? []]) {
+        const effect = before.executor.pending.find(work => work.effect.id === outcome.id)?.effect;
+        if (effect)
+            next = appendTrace(next, effectTrace(effect, outcome.kind), { ...summary, accepted: outcome.kind === 'completed', effectCount: 0, reason: outcome.kind === 'retired' ? 'stale' : outcome.kind === 'failed' ? 'failed' : 'none' }, tick);
+    }
+    for (const resource of before.resources.resources) {
+        const id = numericResource(resource.id);
+        if (id !== null && resourceAvailable(before.resources, resource.id) && !resourceAvailable(state.resources, resource.id) && !(event.kind === 'resource' && event.resourceId === id && event.phase === 'retired'))
+            next = appendTrace(next, { kind: 'resource', scope: { ...identities, sessionId: numericScope(resource.scopeKey) }, resourceId: id, phase: 'retired' }, { ...summary, effectCount: 0 }, tick);
+    }
+    return next;
 }
+function numericResource(value) { const match = /^resource:([1-9][0-9]*)$/.exec(value), id = match ? Number(match[1]) : null; return id !== null && Number.isSafeInteger(id) ? id : null; }
+function numericScope(value) { const match = /^scope:([1-9][0-9]*)$/.exec(value), id = match ? Number(match[1]) : null; return id !== null && Number.isSafeInteger(id) ? id : null; }
+function effectTrace(effect, phase) { return { kind: 'effect', scope: { lifetime: effect.scope.lifetime, sourceId: effect.scope.sourceId, sessionId: effect.scope.sessionId, operationId: effect.scope.operationId }, effectId: effect.id, name: effect.kind, phase }; }

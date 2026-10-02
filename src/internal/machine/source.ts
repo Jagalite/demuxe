@@ -1,17 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
+import {initialSourcePreparation,claimSourcePreparation,completeSourcePreparation,sourcePreparationDone,type SourcePreparation,type SourcePreparationFacts,type SourcePreparationEffect} from './source-preparation.js';
 import type {PlaybackMode} from '../../types.js';
 import type {PlaybackSettings} from './settings.js';
 
 type Phase='preparing'|'configuring'|'opening'|'applying'|'positioning'|'verifying'|'accepted';
-export type SourceAttempt=Readonly<{id:number;operationEpoch:number;session:number;mode:PlaybackMode;preserve:boolean;phase:Phase;planId:string}>;
+export type SourceAttempt=Readonly<{id:number;operationEpoch:number;operation:number|null;session:number;mode:PlaybackMode;preserve:boolean;phase:Phase;planId:string;preparation:SourcePreparation|null}>;
 export type SourceControl=Readonly<{serial:number;attemptSerial:number;sessionSerial:number;acceptedSession:number|null;acceptedEpoch:number|null;mode:PlaybackMode;automatic:boolean;candidate:SourceAttempt|null}>;
 export type SourceInput=
   |Readonly<{type:'source.configure';mode?:PlaybackMode;automatic?:boolean}>
-  |Readonly<{type:'source.begin';operationEpoch:number;mode:PlaybackMode;preserve:boolean;planId:string}>
-  |Readonly<{type:'source.created'|'source.configured'|'source.opened'|'source.applied'|'source.positioned'|'source.finished';attempt:number}>
+  |Readonly<{type:'source.begin';operationEpoch:number;operation?:number|null;mode:PlaybackMode;preserve:boolean;planId:string}>
+  |Readonly<{type:'source.created';attempt:number;prepare?:boolean}>
+  |Readonly<{type:'source.preparation.next';attempt:number}>
+  |Readonly<{type:'source.preparation.completed';attempt:number;step:number;facts?:SourcePreparationFacts}>
+  |Readonly<{type:'source.configured'|'source.opened'|'source.applied'|'source.positioned'|'source.finished';attempt:number}>
   |Readonly<{type:'source.accept';attempt:number;operationEpoch:number;settings:Readonly<PlaybackSettings>;planMatches:boolean;timing?:Readonly<{elapsed:number;timestamps:readonly number[]}>;publicSelections?:Readonly<Partial<Record<'audio'|'sub',string>>>}>
   |Readonly<{type:'source.clear'}>;
-export type SourceDecision=Readonly<{state:SourceControl;accepted:boolean;attempt?:number;settings?:Readonly<PlaybackSettings>;newSource?:boolean;reason?:'busy'|'retired'|'phase'|'plan'}>;
+export type SourceDecision=Readonly<{state:SourceControl;accepted:boolean;attempt?:number;preparationEffect?:SourcePreparationEffect;settings?:Readonly<PlaybackSettings>;newSource?:boolean;reason?:'busy'|'retired'|'phase'|'plan'}>;
 export function initialSource():SourceControl{return Object.freeze({serial:0,attemptSerial:0,sessionSerial:0,acceptedSession:null,acceptedEpoch:null,mode:'native',automatic:true,candidate:null});}
 const ok=(state:SourceControl):SourceDecision=>Object.freeze({state:Object.freeze({...state}),accepted:true});
 const no=(state:SourceControl,reason:SourceDecision['reason']):SourceDecision=>Object.freeze({state,accepted:false,reason});
@@ -24,10 +28,23 @@ export function transitionSource(state:SourceControl,input:SourceInput):SourceDe
   if(input.type==='source.begin'){
     if(state.candidate)return no(state,'busy');
     const id=state.attemptSerial+1,session=state.sessionSerial+1;
-    return Object.freeze({state:Object.freeze({...state,attemptSerial:id,sessionSerial:session,candidate:Object.freeze({id,session,operationEpoch:input.operationEpoch,mode:input.mode,preserve:input.preserve,planId:input.planId,phase:'preparing' as const})}),accepted:true,attempt:id});
+    return Object.freeze({state:Object.freeze({...state,attemptSerial:id,sessionSerial:session,candidate:Object.freeze({id,session,operationEpoch:input.operationEpoch,operation:input.operation??null,mode:input.mode,preserve:input.preserve,planId:input.planId,phase:'preparing' as const,preparation:null})}),accepted:true,attempt:id});
   }
   const attempt=state.candidate;if(!attempt||attempt.id!==input.attempt)return no(state,'retired');
   if(input.type==='source.finished')return ok({...state,candidate:null});
+  if(input.type==='source.preparation.next'||input.type==='source.preparation.completed'){
+    if(input.type==='source.preparation.next'&&attempt.preparation&&sourcePreparationDone(attempt.preparation))return Object.freeze({state,accepted:true});
+    if(!attempt.preparation||!['configuring','opening'].includes(attempt.phase))return no(state,'phase');
+    if(input.type==='source.preparation.next'){
+      const next=claimSourcePreparation(attempt.preparation);if(!next.accepted)return no(state,'busy');
+      const candidate=next.state===attempt.preparation?attempt:Object.freeze({...attempt,preparation:next.state});
+      return Object.freeze({...ok(candidate===attempt?state:{...state,candidate}),preparationEffect:next.effect});
+    }
+    if(input.facts&&input.facts.mode!==attempt.mode)return no(state,'phase');
+    const next=completeSourcePreparation(attempt.preparation,input.step,input.facts);if(!next.accepted)return no(state,'phase');
+    return ok({...state,candidate:Object.freeze({...attempt,preparation:next.state,phase:next.phase??attempt.phase})});
+  }
+  if(attempt.preparation&&(input.type==='source.configured'||input.type==='source.opened'))return no(state,'phase');
   if(input.type==='source.accept'){
     if(attempt.operationEpoch!==input.operationEpoch)return no(state,'retired');
     if(attempt.phase!=='verifying')return no(state,'phase');
@@ -42,9 +59,11 @@ export function transitionSource(state:SourceControl,input:SourceInput):SourceDe
     'source.positioned':['positioning','verifying'],
   } as const;
   const [before,after]=phases[input.type];
-  return attempt.phase===before?ok({...state,candidate:Object.freeze({...attempt,phase:after})}):no(state,'phase');
+  return attempt.phase===before?ok({...state,candidate:Object.freeze({...attempt,phase:after,...(input.type==='source.created'&&input.prepare?{preparation:initialSourcePreparation()}:{})})}):no(state,'phase');
 }
 export function sourceDesiredSettings(settings:Readonly<PlaybackSettings>,facts:Readonly<{preserve:boolean;previousPause:boolean;previousSession:boolean;previousMode:PlaybackMode;mode:PlaybackMode}>):Readonly<PlaybackSettings>{
   const reset=(!facts.preserve&&facts.previousSession)||(facts.preserve&&(facts.mode==='native')!==(facts.previousMode==='native'));
   return Object.freeze({...settings,pause:facts.preserve?facts.previousPause:true,...(reset?{aid:facts.preserve&&settings.aid==='no'?'no':'auto',sid:facts.preserve&&settings.sid==='no'?'no':'auto'}:{})});
 }
+
+export function sourcePreparationCurrent(state:SourceControl,attempt:number,step:number):boolean{return state.candidate?.id===attempt&&state.candidate.preparation?.pending===step;}

@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-import { initialNativeSubtitleLifetime, acknowledgeNativeSubtitleClose, nativeSubtitleCurrent, startNativeSubtitleInitialization, finishNativeSubtitleInitialization, nativeSubtitleInitializationRemaining, admitNativeSubtitleRequest, settleNativeSubtitleRequest, nativeSubtitleRequestRemaining, closeNativeSubtitleLifetime, nativeSubtitleCloseRemaining, finishNativeSubtitleClose } from './machine/native-subtitle-lifetime.js';
+import { initialNativeSubtitleLifetime, changeNativeSubtitleTimeline, changeNativeSubtitlePresentation, acknowledgeNativeSubtitleClose, nativeSubtitleCurrent, startNativeSubtitleInitialization, finishNativeSubtitleInitialization, nativeSubtitleInitializationRemaining, admitNativeSubtitleRequest, settleNativeSubtitleRequest, nativeSubtitleRequestRemaining, closeNativeSubtitleLifetime, nativeSubtitleCloseRemaining, finishNativeSubtitleClose } from './machine/native-subtitle-lifetime.js';
+import { subtitlePumpCurrent, subtitleTickAllowed, subtitleRenderCurrent, subtitleTimingStale, subtitleFollowFrame, subtitleRetryRender, subtitleDeadlineActive, subtitleDeadlineDue, subtitleLayout } from './machine/native-subtitle-presentation.js';
+import { subtitleTimelineCurrent, subtitleVerificationNeeded, subtitleVerificationSample } from './machine/native-subtitle-timeline.js';
 import { runtimeWorker } from './runtime-worker.js';
 import { PlayerError } from './errors.js';
 import { BrowserCaptionUnsupported } from './plain-vtt.js';
@@ -17,30 +19,33 @@ export class NativeMpvSubtitles {
     closed;
     destruction;
     pending = new Map();
-    revision = 0;
-    timingEpoch = 0;
-    deadlineEpoch = -1;
-    schedulerMode = 'fallback';
+    frame;
     pumpTimer;
-    pumpBusy = false;
+    get output() { return this.lifetime.presentation; }
+    change(input, epoch = this.lifetime.epoch) { const result = changeNativeSubtitlePresentation(this.lifetime, epoch, input); this.lifetime = result.state; return result.accepted; }
+    get revision() { return this.output.revision; }
+    get schedulerMode() { return this.output.mode; }
+    get enabled() { return this.output.enabled; }
+    get changingTrack() { return this.output.changing; }
     get stopped() { return this.lifetime.requests.phase !== 'active'; }
     current(epoch) { if (!nativeSubtitleCurrent(this.lifetime, epoch))
         throw Error('Subtitle renderer destroyed'); }
-    enabled = false;
-    busy = false;
-    changingTrack = false;
-    frame = 0;
-    last = '';
-    lastRevision = -1;
-    verifiedTrack;
+    timelineWork = new Map();
+    get verifiedTrack() { return this.lifetime.timeline.verified ?? undefined; }
+    timeline(input, epoch = this.lifetime.epoch) { const result = changeNativeSubtitleTimeline(this.lifetime, epoch, input); this.lifetime = result.state; return result; }
+    timelineCurrent(epoch, id) { this.current(epoch); if (!subtitleTimelineCurrent(this.lifetime.timeline, id))
+        throw Error('Subtitle timeline operation retired'); }
     loading = new AbortController();
     cancelInitialization;
     observer;
     handlers = [];
     ready;
-    tracks = [];
+    get tracks() { return this.lifetime.timeline.tracks.map(track => ({ ...track })); }
+    /** A newly created external-only overlay omits the embedded source catalog. */
+    resetTracks() { const epoch = this.lifetime.epoch; this.current(epoch); if (!this.timeline({ kind: 'catalog.reset' }, epoch).accepted)
+        throw Error('Subtitle timeline is busy'); }
     service = {};
-    stats = { position: -1, renders: 0, bitmapUpdates: 0, bytes: 0, peakBytes: 0, discarded: 0, stateUpdates: 0, scheduler: 'frame' };
+    get stats() { return { ...this.output.stats }; }
     constructor(video, time, base, fonts, source, failed, defaultStreamIndex, runtime = 'pthread') {
         this.video = video;
         this.time = time;
@@ -93,18 +98,23 @@ export class NativeMpvSubtitles {
                     return;
                 }
                 if (data.type === 'subtitleTimingChanged') {
-                    this.timingEpoch = data.epoch >>> 0;
+                    this.change({ kind: 'timing', epoch: data.epoch }, epoch);
                     if (this.schedulerMode !== 'fallback')
                         void this.pump();
                     return;
                 }
                 if (data.type === 'subtitleDeadline') {
-                    if (this.schedulerMode === 'deadline' && data.epoch === this.deadlineEpoch && !this.video.paused && !document.hidden) {
-                        if (this.time() + .004 >= data.target)
-                            this.invalidate();
-                        else
-                            void this.pump();
-                    }
+                    const visibility = { paused: this.video.paused, hidden: document.hidden };
+                    if (!nativeSubtitleCurrent(this.lifetime, epoch) || !subtitleDeadlineActive(this.output, data.epoch, visibility))
+                        return;
+                    const facts = { ...visibility, seconds: this.time(), target: data.target };
+                    if (!nativeSubtitleCurrent(this.lifetime, epoch))
+                        return;
+                    const action = subtitleDeadlineDue(this.output, data.epoch, facts);
+                    if (action === 'invalidate')
+                        this.invalidate();
+                    else if (action === 'pump')
+                        void this.pump();
                     return;
                 }
                 const error = data.error ? (/^Error: Subtitle (?:decoder unavailable|decode failed|packet deadline exceeded|source load failed|selection failed|seek failed)/.test(data.error) ? new BrowserCaptionUnsupported(data.error) : Error(data.error)) : undefined;
@@ -164,11 +174,11 @@ export class NativeMpvSubtitles {
                     const transport = source instanceof File ? { file: source } : (() => { const { refreshAuthorization, ...options } = source; return { options, canRefresh: !!refreshAuthorization }; })();
                     const result = await this.request('init', { ...transport, runtime: this.runtime, fonts: [{ name: 'DejaVuSans.ttf', bytes }, ...fonts] });
                     this.current(epoch);
-                    this.tracks = result.tracks;
-                    if (this.defaultStreamIndex !== undefined && !this.tracks.some(track => track['ff-index'] === this.defaultStreamIndex))
+                    const tracks = result.tracks.map(track => ({ id: track.id, mpvId: track.mpvId, 'ff-index': track['ff-index'], type: track.type, selected: track.selected, external: track.external, 'attachment-id': track['attachment-id'], 'external-index': track['external-index'], title: track.title, lang: track.lang, codec: track.codec }));
+                    const catalog = this.timeline({ kind: 'catalog', tracks, defaultStreamIndex: this.defaultStreamIndex }, epoch);
+                    if (catalog.error === 'default')
                         throw new PlayerError('UNSUPPORTED_FEATURE', 'Inspected subtitle stream was not enumerated by mpv');
-                    for (const track of this.tracks)
-                        track.default = track['ff-index'] === this.defaultStreamIndex;
+                    this.current(epoch);
                 }
                 finally {
                     this.lifetime = finishNativeSubtitleInitialization(this.lifetime, epoch);
@@ -186,22 +196,119 @@ export class NativeMpvSubtitles {
             throw error;
         }
     }
+    withTimeline(kind, run, signal) {
+        if (signal?.aborted)
+            return Promise.reject(signal.reason);
+        const epoch = this.lifetime.epoch, admission = this.timeline({ kind: 'admit', operation: kind }, epoch);
+        if (!admission.accepted)
+            return Promise.reject(Error('Subtitle renderer destroyed'));
+        const id = admission.id;
+        let resolve, reject;
+        const done = new Promise((yes, no) => { resolve = yes; reject = no; });
+        const work = { run, resolve, reject };
+        this.timelineWork.set(id, work);
+        const cancel = () => { if (!this.timeline({ kind: 'cancel', id }, epoch).accepted)
+            return; this.timelineWork.delete(id); try {
+            work.detach?.();
+        }
+        catch { /* Caller cancellation keeps its original reason and releases the queue. */ } reject(signal?.reason); this.drainTimeline(epoch); };
+        if (signal) {
+            work.detach = () => signal.removeEventListener('abort', cancel);
+            try {
+                signal.addEventListener('abort', cancel, { once: true });
+                if (this.timelineWork.get(id) !== work) {
+                    work.detach();
+                    return done;
+                }
+                if (signal.aborted)
+                    cancel();
+            }
+            catch (error) {
+                this.timeline({ kind: 'cancel', id }, epoch);
+                this.timelineWork.delete(id);
+                try {
+                    work.detach();
+                }
+                catch { }
+                reject(error);
+                return done;
+            }
+        }
+        this.drainTimeline(epoch);
+        return done;
+    }
+    drainTimeline(epoch = this.lifetime.epoch) {
+        const started = this.timeline({ kind: 'start' }, epoch);
+        if (!started.accepted)
+            return;
+        const id = started.id, work = this.timelineWork.get(id);
+        if (!work)
+            return;
+        void (async () => {
+            let value, failure, failed = false;
+            try {
+                this.timelineCurrent(epoch, id);
+                value = await work.run(epoch, id);
+                this.timelineCurrent(epoch, id);
+            }
+            catch (error) {
+                failed = true;
+                failure = error;
+            }
+            this.timelineWork.delete(id);
+            try {
+                work.detach?.();
+            }
+            catch (error) {
+                if (!failed) {
+                    failed = true;
+                    failure = error;
+                }
+            }
+            if (this.timeline({ kind: 'finish', id }, epoch).accepted) {
+                try {
+                    this.syncPump();
+                    this.invalidate();
+                }
+                catch (error) {
+                    if (!failed) {
+                        failed = true;
+                        failure = error;
+                    }
+                }
+                this.drainTimeline(epoch);
+            }
+            if (!nativeSubtitleCurrent(this.lifetime, epoch) && !failed) {
+                failed = true;
+                failure = Error('Subtitle renderer destroyed');
+            }
+            if (failed)
+                work.reject(failure);
+            else
+                work.resolve(value);
+        })();
+    }
     async add(asset) {
         await this.ready;
-        const result = await this.request('add', { asset });
-        const index = this.tracks.filter(t => t.external).length + 1;
-        const track = { id: String(100000 + index), mpvId: result.mpvId, 'ff-index': -1, type: 'sub', external: true, 'attachment-id': asset.attachmentId, 'external-index': index, title: asset.label, lang: asset.language, codec: asset.format };
-        this.tracks.push(track);
-        try {
-            if (asset.select)
-                await this.select(track.id);
-        }
-        catch (error) {
-            this.tracks.splice(this.tracks.indexOf(track), 1);
-            await this.request('remove', { trackId: track.mpvId });
-            throw error;
-        }
-        return track.id;
+        return this.withTimeline('add', async (epoch, id) => {
+            const attachmentId = asset.attachmentId, title = asset.label, language = asset.language, format = asset.format, select = asset.select;
+            this.timelineCurrent(epoch, id);
+            const result = await this.request('add', { asset });
+            this.timelineCurrent(epoch, id);
+            const addition = this.timeline({ kind: 'add', id, mpvId: result.mpvId, attachmentId, title, language, format }, epoch), track = addition.track;
+            try {
+                if (select)
+                    await this.selectTimeline(epoch, id, track.id);
+            }
+            catch (error) {
+                if (nativeSubtitleCurrent(this.lifetime, epoch) && subtitleTimelineCurrent(this.lifetime.timeline, id)) {
+                    this.timeline({ kind: 'remove', id, track: track.mpvId }, epoch);
+                    await this.request('remove', { trackId: track.mpvId });
+                }
+                throw error;
+            }
+            return track.id;
+        });
     }
     initializationDeadline(epoch) {
         const now = performance.now();
@@ -365,126 +472,163 @@ export class NativeMpvSubtitles {
         this.failed(error);
     }
     applyMode(mode) {
-        const next = mode === 'deadline' || mode === 'animated' ? mode : 'fallback';
-        if (this.schedulerMode === next)
+        if (!this.change({ kind: 'mode', mode }))
             return;
-        this.schedulerMode = next;
-        this.stats.scheduler = next === 'fallback' ? 'frame' : next;
         this.syncPump();
         this.invalidate();
     }
+    playbackFacts() { return { paused: this.video.paused, ended: this.video.ended, hidden: document.hidden }; }
     syncPump() {
-        const running = this.schedulerMode !== 'fallback' && this.enabled && !this.changingTrack && !this.video.paused && !this.video.ended && !document.hidden;
-        if (running) {
-            if (!this.pumpTimer) {
-                this.pumpTimer = setInterval(() => { void this.pump(); }, 100);
+        const epoch = this.lifetime.epoch, facts = this.playbackFacts();
+        if (!nativeSubtitleCurrent(this.lifetime, epoch))
+            return;
+        this.change({ kind: 'interval', facts }, epoch);
+        const id = this.output.interval;
+        const prior = this.pumpTimer;
+        if (prior && prior.id !== id) {
+            this.pumpTimer = undefined;
+            if (prior.handle !== undefined)
+                clearInterval(prior.handle);
+        }
+        if (!nativeSubtitleCurrent(this.lifetime, epoch) || this.output.interval !== id)
+            return;
+        if (id !== null && !this.pumpTimer) {
+            const registration = { epoch, id };
+            this.pumpTimer = registration;
+            try {
+                const acquired = setInterval(() => { if (this.pumpTimer === registration && nativeSubtitleCurrent(this.lifetime, epoch) && this.output.interval === id)
+                    void this.pump(); }, 100);
+                registration.handle = acquired;
+                if (this.pumpTimer !== registration || !nativeSubtitleCurrent(this.lifetime, epoch) || this.output.interval !== id) {
+                    clearInterval(acquired);
+                    return;
+                }
                 void this.pump();
             }
-        }
-        else {
-            if (this.pumpTimer) {
-                clearInterval(this.pumpTimer);
-                this.pumpTimer = undefined;
+            catch (error) {
+                if (this.pumpTimer === registration)
+                    this.pumpTimer = undefined;
+                if (nativeSubtitleCurrent(this.lifetime, epoch))
+                    this.fail(error);
             }
-            this.deadlineEpoch = -1;
-            if (this.schedulerMode === 'deadline' && !this.stopped)
-                void this.request('cancelDeadline').catch(error => this.fail(error));
         }
+        else if (id === null && this.schedulerMode === 'deadline')
+            void this.request('cancelDeadline').catch(error => { if (nativeSubtitleCurrent(this.lifetime, epoch))
+                this.fail(error); });
     }
     async pump() {
-        if (this.pumpBusy || this.stopped || this.schedulerMode === 'fallback' || !this.enabled || this.changingTrack || this.video.paused || this.video.ended || document.hidden)
+        const epoch = this.lifetime.epoch, facts = this.playbackFacts();
+        if (!this.change({ kind: 'pump.begin', facts }, epoch))
             return;
-        this.pumpBusy = true;
+        const id = this.output.pump.id;
         try {
-            const result = await this.request('pump', { seconds: this.time(), rate: this.video.playbackRate, running: true });
-            if (this.stopped)
+            const seconds = this.time(), rate = this.video.playbackRate;
+            if (!nativeSubtitleCurrent(this.lifetime, epoch) || !subtitlePumpCurrent(this.output, id))
                 return;
+            const result = await this.request('pump', { seconds, rate, running: true });
+            if (!nativeSubtitleCurrent(this.lifetime, epoch) || !subtitlePumpCurrent(this.output, id))
+                return;
+            this.change({ kind: 'pump.accept', id, deadlineEpoch: result.schedule?.epoch ?? -1 }, epoch);
             this.service = result.service ?? this.service;
             this.applyMode(result.mode);
-            this.stats.stateUpdates++;
-            this.deadlineEpoch = result.schedule?.epoch ?? -1;
+            if (!nativeSubtitleCurrent(this.lifetime, epoch) || this.output.pump?.id !== id)
+                return;
+            this.change({ kind: 'deadline', epoch: result.schedule?.epoch ?? -1 }, epoch);
             if (result.timingChanged)
                 this.invalidate();
         }
         catch (error) {
-            this.fail(error);
+            if (nativeSubtitleCurrent(this.lifetime, epoch) && subtitlePumpCurrent(this.output, id))
+                this.fail(error);
         }
         finally {
-            this.pumpBusy = false;
+            this.change({ kind: 'pump.finish', id }, epoch);
         }
     }
-    async select(id) {
-        await this.ready;
-        const track = id === 'no' ? undefined : id === 'auto' ? (this.tracks.find(t => t.external && t.selected) ?? this.tracks.find(t => t.default) ?? this.tracks.find(t => !t.external)) : this.tracks.find(t => t.id === id);
-        if (track?.selected)
+    async select(requested) { await this.ready; return this.withTimeline('select', (epoch, id) => this.selectTimeline(epoch, id, requested)); }
+    async selectTimeline(epoch, id, requested) {
+        this.timelineCurrent(epoch, id);
+        const selection = this.timeline({ kind: 'select.begin', id, requested }, epoch);
+        if (selection.skip)
             return;
-        if (!track && id !== 'no' && id !== 'auto')
+        if (selection.error === 'track')
             throw new PlayerError('UNSUPPORTED_FEATURE', 'Requested subtitle track was not enumerated by mpv');
-        const previous = this.tracks.find(t => t.selected);
-        this.changingTrack = true;
+        if (!selection.accepted)
+            throw Error('Subtitle timeline operation retired');
         this.applyMode('fallback');
         this.syncPump();
-        this.revision++;
         try {
-            await this.request('select', { trackId: track?.mpvId ?? -2 });
-            this.tracks.forEach(t => t.selected = t === track);
-            this.verifiedTrack = undefined;
-            if (track) {
-                await this.verify();
+            this.timelineCurrent(epoch, id);
+            await this.request('select', { trackId: selection.trackId });
+            this.timelineCurrent(epoch, id);
+            this.timeline({ kind: 'select.accept', id }, epoch);
+            if (selection.track) {
+                await this.verifyTimeline(epoch, id);
+                this.timelineCurrent(epoch, id);
                 const profile = await this.request('profile');
+                this.timelineCurrent(epoch, id);
                 this.applyMode(profile.mode);
             }
         }
         catch (error) {
-            if (!this.stopped) {
-                await this.request('select', { trackId: previous?.mpvId ?? -2 });
-                this.tracks.forEach(t => t.selected = t === previous);
-                this.verifiedTrack = undefined;
+            if (nativeSubtitleCurrent(this.lifetime, epoch) && subtitleTimelineCurrent(this.lifetime.timeline, id)) {
+                const previous = this.lifetime.timeline.selection?.previous ?? -2;
+                await this.request('select', { trackId: previous });
+                this.timelineCurrent(epoch, id);
+                this.timeline({ kind: 'select.rollback', id }, epoch);
             }
             throw error;
         }
-        finally {
-            this.changingTrack = false;
-            this.syncPump();
-            this.invalidate();
-        }
     }
-    async verify(signal) {
+    async verify(signal) { signal?.throwIfAborted(); return this.withTimeline('verify', (epoch, id) => this.verifyTimeline(epoch, id, signal), signal); }
+    async verifyTimeline(epoch, id, signal) {
         signal?.throwIfAborted();
-        const selected = this.tracks.find(t => t.selected);
-        if (!selected || this.verifiedTrack === selected.mpvId)
+        this.timelineCurrent(epoch, id);
+        if (!subtitleVerificationNeeded(this.lifetime.timeline))
             return;
-        const width = Math.min(1920, this.video.videoWidth || this.video.width), height = Math.min(1080, this.video.videoHeight || this.video.height);
-        const now = this.time(), duration = this.video.duration;
-        const samples = (selected.external ? [now] : [now, 0, 1, 2, 5, 10, 20, 30]).filter((time, index, list) => time >= 0 && (!Number.isFinite(duration) || time < duration) && list.indexOf(time) === index);
-        let visible = false;
+        const width = this.video.videoWidth || this.video.width, height = this.video.videoHeight || this.video.height, seconds = this.time(), duration = this.video.duration;
+        this.timelineCurrent(epoch, id);
+        const started = this.timeline({ kind: 'verify.begin', id, width, height, seconds, duration }, epoch);
+        if (started.skip)
+            return;
+        if (!started.accepted)
+            throw Error('Subtitle timeline operation retired');
         try {
-            for (const seconds of samples) {
-                const result = await this.request('render', { seconds, width, height, force: true }, signal);
+            for (;;) {
+                const effect = subtitleVerificationSample(this.lifetime.timeline, id);
+                if (effect?.kind !== 'sample')
+                    break;
+                const result = await this.request('render', { seconds: effect.seconds, width: effect.width, height: effect.height, force: true }, signal);
                 result.bitmap?.close();
                 signal?.throwIfAborted();
+                this.timelineCurrent(epoch, id);
                 this.service = result.service;
-                if (result.hasOverlay) {
-                    visible = true;
-                    break;
+                this.timeline({ kind: 'verify.sample', id, visible: !!result.hasOverlay }, epoch);
+            }
+        }
+        finally {
+            // Restore the latest browser clock under the same admitted operation.
+            if (!signal?.aborted && nativeSubtitleCurrent(this.lifetime, epoch) && subtitleTimelineCurrent(this.lifetime.timeline, id)) {
+                this.timeline({ kind: 'verify.restore', id }, epoch);
+                const effect = subtitleVerificationSample(this.lifetime.timeline, id);
+                if (effect?.kind === 'restore') {
+                    const seconds = this.time();
+                    this.timelineCurrent(epoch, id);
+                    const result = await this.request('render', { seconds, width: effect.width, height: effect.height, force: true }, signal);
+                    result.bitmap?.close();
+                    signal?.throwIfAborted();
+                    this.timelineCurrent(epoch, id);
+                    this.service = result.service;
+                    this.timeline({ kind: 'verify.restored', id }, epoch);
                 }
             }
-        }
-        finally {
-            // Verification samples must not leave mpv ahead of the browser A/V clock.
-            if (!signal?.aborted) {
-                const result = await this.request('render', { seconds: this.time(), width, height, force: true }, signal);
-                result.bitmap?.close();
-                signal?.throwIfAborted();
-                this.service = result.service;
-            }
-            else
+            else if (signal?.aborted)
                 this.invalidate();
         }
-        // Parsed external files may intentionally have no cue near the playhead.
-        if (!visible && !selected.external)
+        this.timelineCurrent(epoch, id);
+        const accepted = this.timeline({ kind: 'verify.accept', id }, epoch);
+        if (accepted.error === 'output')
             throw new PlayerError('UNSUPPORTED_FEATURE', 'Selected subtitle track produced no output in the bounded startup window');
-        this.verifiedTrack = selected.mpvId;
     }
     /** Internal cue oracle for tests; never exposes media text in diagnostics. */
     async currentText() {
@@ -499,89 +643,120 @@ export class NativeMpvSubtitles {
         await this.ready;
         const revision = this.revision;
         const result = await this.request('timing', { seconds });
-        const newerNotification = this.timingEpoch !== result.epoch && ((this.timingEpoch - result.epoch) >>> 0) < 0x80000000;
-        return { ...result, revision, stale: result.unstable || this.stopped || revision !== this.revision || newerNotification };
+        return { ...result, revision, stale: this.stopped || subtitleTimingStale(this.output, revision, result.epoch, result.unstable) };
     }
-    suspend(value) { this.changingTrack = value; this.revision++; this.syncPump(); if (!value)
+    suspend(value) { this.timeline({ kind: 'suspend', value }); this.syncPump(); if (!value)
         this.invalidate(); }
-    async seek(seconds) { this.changingTrack = true; this.revision++; this.syncPump(); this.canvas.getContext('2d')?.clearRect(0, 0, this.canvas.width, this.canvas.height); try {
-        await this.request('seek', { seconds });
+    seek(seconds) { return this.withTimeline('seek', async (epoch, id) => { this.syncPump(); this.timelineCurrent(epoch, id); const context = this.canvas.getContext('2d'); this.timelineCurrent(epoch, id); context?.clearRect(0, 0, this.canvas.width, this.canvas.height); this.timelineCurrent(epoch, id); await this.request('seek', { seconds }); this.timelineCurrent(epoch, id); }); }
+    visible(value) { const epoch = this.lifetime.epoch; if (!this.change({ kind: 'enabled', value }, epoch))
+        return; this.canvas.style.display = value ? 'block' : 'none'; if (!nativeSubtitleCurrent(this.lifetime, epoch))
+        return; this.syncPump(); this.invalidate(); }
+    invalidate() { const epoch = this.lifetime.epoch; if (!this.change({ kind: 'invalidate' }, epoch))
+        return; this.scheduleFrame(epoch); }
+    scheduleFrame(epoch = this.lifetime.epoch) {
+        if (!this.change({ kind: 'frame.request' }, epoch))
+            return;
+        const id = this.output.frame;
+        const registration = { epoch, id };
+        this.frame = registration;
+        try {
+            const acquired = requestAnimationFrame(() => { if (this.frame !== registration)
+                return; this.frame = undefined; if (this.change({ kind: 'frame.take', id }, epoch))
+                this.tick(); });
+            registration.handle = acquired;
+            if (this.frame !== registration || !nativeSubtitleCurrent(this.lifetime, epoch) || this.output.frame !== id)
+                cancelAnimationFrame(acquired);
+        }
+        catch (error) {
+            if (this.frame === registration)
+                this.frame = undefined;
+            this.change({ kind: 'frame.take', id }, epoch);
+            if (nativeSubtitleCurrent(this.lifetime, epoch))
+                this.fail(error);
+        }
     }
-    finally {
-        this.changingTrack = false;
-        this.syncPump();
-        this.invalidate();
-    } }
-    visible(value) { this.enabled = value; this.canvas.style.display = value ? 'block' : 'none'; this.syncPump(); this.invalidate(); }
-    invalidate() { this.revision++; this.last = ''; if (!this.stopped && !this.frame)
-        this.frame = requestAnimationFrame(() => this.tick()); }
     tick() {
-        this.frame = 0;
-        if (this.stopped || !this.enabled || this.changingTrack || this.schedulerMode === 'deadline' && document.hidden)
+        const epoch = this.lifetime.epoch, hidden = document.hidden;
+        if (!nativeSubtitleCurrent(this.lifetime, epoch) || !subtitleTickAllowed(this.output, hidden))
             return;
-        const rect = this.video.getBoundingClientRect(), parent = this.video.parentElement.getBoundingClientRect();
-        const ratio = this.video.videoWidth / this.video.videoHeight;
-        let width = rect.width, height = rect.height;
-        if (Number.isFinite(ratio)) {
-            if (width / height > ratio)
-                width = height * ratio;
-            else
-                height = width / ratio;
-        }
-        if (width < 1 || height < 1) {
-            this.frame = requestAnimationFrame(() => this.tick());
+        const rect = this.video.getBoundingClientRect();
+        if (!nativeSubtitleCurrent(this.lifetime, epoch))
             return;
-        }
-        this.canvas.style.left = `${rect.left - parent.left + (rect.width - width) / 2}px`;
-        this.canvas.style.top = `${rect.top - parent.top + (rect.height - height) / 2}px`;
-        this.canvas.style.width = `${width}px`;
-        this.canvas.style.height = `${height}px`;
-        const scale = Math.min(1, 1920 / width, 1080 / height), w = Math.max(1, Math.round(width * scale)), h = Math.max(1, Math.round(height * scale));
+        const element = this.video.parentElement;
+        if (!nativeSubtitleCurrent(this.lifetime, epoch) || !element)
+            return;
+        const parent = element.getBoundingClientRect();
+        if (!nativeSubtitleCurrent(this.lifetime, epoch))
+            return;
         const sourceWidth = this.video.videoWidth, sourceHeight = this.video.videoHeight;
-        const seconds = this.time(), key = `${w}:${h}:${sourceWidth}:${sourceHeight}:${seconds}`, revision = this.revision;
-        if (!this.busy && key !== this.last) {
-            this.busy = true;
-            this.request('render', { seconds, width: w, height: h, sourceWidth, sourceHeight, force: this.lastRevision !== revision, rate: this.video.playbackRate, running: !this.video.paused && !this.video.ended && !document.hidden }).then(({ bitmap, size, unchanged, service, mode, schedule }) => {
-                this.service = service;
-                this.applyMode(mode);
-                if (this.schedulerMode === 'deadline')
-                    this.deadlineEpoch = schedule?.epoch ?? -1;
-                if (this.stopped || !this.enabled || revision !== this.revision) {
+        const layout = subtitleLayout({ left: rect.left, top: rect.top, width: rect.width, height: rect.height, parentLeft: parent.left, parentTop: parent.top, sourceWidth, sourceHeight });
+        if (!nativeSubtitleCurrent(this.lifetime, epoch))
+            return;
+        if (!layout) {
+            this.scheduleFrame(epoch);
+            return;
+        }
+        const revision = this.revision, current = () => nativeSubtitleCurrent(this.lifetime, epoch) && this.revision === revision && subtitleTickAllowed(this.output, document.hidden);
+        for (const [name, value] of [['left', layout.left], ['top', layout.top], ['width', layout.width], ['height', layout.height]]) {
+            if (!current())
+                return;
+            this.canvas.style[name] = `${value}px`;
+        }
+        if (!current())
+            return;
+        const seconds = this.time(), rate = this.video.playbackRate, facts = this.playbackFacts(), width = layout.renderWidth, height = layout.renderHeight;
+        if (!current())
+            return;
+        const admitted = this.change({ kind: 'render.begin', seconds, width, height, sourceWidth, sourceHeight }, epoch);
+        const render = this.output.render, key = `${width}:${height}:${sourceWidth}:${sourceHeight}:${seconds}`;
+        // Only the request admitted in this tick may start physical rendering.
+        if (admitted && render) {
+            void this.request('render', { seconds, width, height, sourceWidth, sourceHeight, force: render.force, rate, running: !facts.paused && !facts.ended && !facts.hidden }).then(result => {
+                const bitmap = result.bitmap;
+                const owned = () => nativeSubtitleCurrent(this.lifetime, epoch) && subtitleRenderCurrent(this.output, render.id);
+                try {
+                    if (!owned()) {
+                        this.change({ kind: 'render.discard', id: render.id }, epoch);
+                        return;
+                    }
+                    this.service = result.service;
+                    this.applyMode(result.mode);
+                    if (this.schedulerMode === 'deadline')
+                        this.change({ kind: 'deadline', epoch: result.schedule?.epoch ?? -1 }, epoch);
+                    if (!owned()) {
+                        this.change({ kind: 'render.discard', id: render.id }, epoch);
+                        return;
+                    }
+                    if (!result.unchanged) {
+                        this.canvas.width = width;
+                        if (!owned())
+                            return;
+                        this.canvas.height = height;
+                        if (!owned())
+                            return;
+                        const context = this.canvas.getContext('2d');
+                        if (!owned())
+                            return;
+                        if (bitmap)
+                            context.drawImage(bitmap, 0, 0);
+                        if (!owned())
+                            return;
+                    }
+                    this.change({ kind: 'render.accept', id: render.id, unchanged: !!result.unchanged, size: result.size }, epoch);
+                }
+                finally {
                     bitmap?.close();
-                    this.stats.discarded++;
-                    return;
                 }
-                this.lastRevision = revision;
-                this.stats.position = seconds;
-                if (unchanged) {
-                    this.stats.renders++;
-                    this.last = key;
-                    return;
-                }
-                // Resize only when a complete accepted replacement bitmap is ready. A
-                // paused resize must redraw active cues even if libass reports unchanged.
-                this.canvas.width = w;
-                this.canvas.height = h;
-                const context = this.canvas.getContext('2d');
-                if (bitmap) {
-                    context.drawImage(bitmap, 0, 0);
-                    bitmap.close();
-                }
-                this.stats.renders++;
-                this.stats.bitmapUpdates++;
-                this.stats.bytes += size;
-                this.stats.peakBytes = Math.max(this.stats.peakBytes, size);
-                this.last = key;
-            }, error => this.fail(error)).finally(() => {
-                this.busy = false;
-                // A static invalidation can arrive while this render is in flight.
-                // The old response is discarded above, so schedule its replacement.
-                if (this.schedulerMode === 'deadline' && !this.stopped && this.enabled && revision !== this.revision)
+            }).catch(error => { if (nativeSubtitleCurrent(this.lifetime, epoch) && subtitleRenderCurrent(this.output, render.id))
+                this.fail(error); }).finally(() => {
+                const retry = subtitleRetryRender(this.output, render.revision);
+                if (this.change({ kind: 'render.finish', id: render.id }, epoch) && retry)
                     this.invalidate();
             });
         }
-        if (this.schedulerMode !== 'deadline' && (!this.video.paused || this.busy || this.last !== key))
-            this.frame = requestAnimationFrame(() => this.tick());
+        const paused = this.video.paused;
+        if (nativeSubtitleCurrent(this.lifetime, epoch) && subtitleFollowFrame(this.output, paused, key))
+            this.scheduleFrame(epoch);
     }
     destroy() {
         if (this.destruction)
@@ -591,12 +766,13 @@ export class NativeMpvSubtitles {
         let resolve, reject;
         const done = new Promise((yes, no) => { resolve = yes; reject = no; });
         this.destruction = done;
+        const timeline = [...this.timelineWork.values()];
+        this.timelineWork.clear();
         const worker = this.worker, observer = this.observer, cancelInitialization = this.cancelInitialization, handlers = this.handlers.splice(0), frame = this.frame, pump = this.pumpTimer;
-        this.frame = 0;
+        this.frame = undefined;
         this.pumpTimer = undefined;
         this.observer = undefined;
         this.cancelInitialization = undefined;
-        this.revision++;
         let timer, finished = false, cleanupComplete = false, finishRequested = this.lifetime.acknowledged;
         const errors = [];
         const attempt = (work) => { try {
@@ -624,9 +800,15 @@ export class NativeMpvSubtitles {
         } }, delay); registration.handle = acquired; if (finished || timer !== registration)
             clearTimeout(acquired); };
         this.closed = finish;
-        this.rejectRequests(retired.reject, Error('Subtitle renderer destroyed'));
-        for (const release of [() => cancelInitialization?.(), () => this.loading.abort(), () => cancelAnimationFrame(frame), () => { if (pump)
-                clearInterval(pump); }, () => observer?.disconnect(), ...handlers, () => this.canvas.remove()])
+        const stopped = Error('Subtitle renderer destroyed');
+        for (const work of timeline) {
+            attempt(() => work.detach?.());
+            work.reject(stopped);
+        }
+        this.rejectRequests(retired.reject, stopped);
+        for (const release of [() => cancelInitialization?.(), () => this.loading.abort(), () => { if (frame?.handle !== undefined)
+                cancelAnimationFrame(frame.handle); }, () => { if (pump?.handle !== undefined)
+                clearInterval(pump.handle); }, () => observer?.disconnect(), ...handlers, () => this.canvas.remove()])
             attempt(release);
         cleanupComplete = true;
         if (finishRequested)

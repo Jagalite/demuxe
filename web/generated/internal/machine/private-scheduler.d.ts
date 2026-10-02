@@ -1,5 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
+export type CoopContinuation = Readonly<{
+    phase: 'fresh' | 'running' | 'unwinding' | 'suspended' | 'rewinding' | 'rewind-stopping';
+    site: string | null;
+}>;
+export type CoopContinuationStats = Readonly<{
+    maxSavedBytes: number;
+    unwinds: number;
+    rewinds: number;
+}>;
 export type CoopTask = Readonly<{
+    continuation: CoopContinuation;
     id: number;
     slot: number | null;
     status: 'new' | 'running' | 'waiting' | 'ready' | 'done';
@@ -26,6 +36,8 @@ export type CoopStats = Readonly<{
     stackChecks: number;
 }>;
 export type CoopState = Readonly<{
+    backend: 'jspi' | 'asyncify';
+    continuations: CoopContinuationStats;
     attachment: 'unattached' | 'attaching' | 'attached';
     slots: number;
     maxRetainedTasks: number;
@@ -40,7 +52,7 @@ export type CoopState = Readonly<{
     stopped: boolean;
     stats: CoopStats;
 }>;
-export declare function initialCoopState(slots?: number, maxRetainedTasks?: number): CoopState;
+export declare function initialCoopState(slots?: number, maxRetainedTasks?: number, backend?: 'jspi' | 'asyncify'): CoopState;
 export declare function coopTask(state: CoopState, id: number): CoopTask | undefined;
 export declare function coopCanCreate(state: CoopState): boolean;
 export declare function createCoopTask(state: CoopState, root: boolean): Readonly<{
@@ -112,4 +124,27 @@ export declare function beginCoopAttachment(state: CoopState): Readonly<{
 export declare function finishCoopAttachment(state: CoopState): Readonly<{
     state: CoopState;
     accepted: boolean;
+}>;
+export type CoopContinuationInput = Readonly<{
+    type: 'begin' | 'park' | 'unwound' | 'resume' | 'rewound' | 'return';
+    id: number;
+}> | Readonly<{
+    type: 'site' | 'rewind-import';
+    id: number;
+    site: string;
+}> | Readonly<{
+    type: 'checked';
+    id: number;
+    savedBytes: number;
+}>;
+/** Protocol authority shares the scheduler lifetime; all native objects stay in the driver. */
+export declare function transitionCoopContinuation(state: CoopState, input: CoopContinuationInput): Readonly<{
+    state: CoopState;
+    accepted: boolean;
+}>;
+export declare function snapshotCoopContinuations(state: CoopState): Readonly<{
+    kind: 'jspi' | 'asyncify';
+    maxSavedBytes?: number;
+    unwinds?: number;
+    rewinds?: number;
 }>;

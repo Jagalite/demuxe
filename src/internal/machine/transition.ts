@@ -12,6 +12,7 @@ import {transitionBoundary,type BoundaryInput,type BoundaryEffect} from './playb
 import {transitionOperations,type OperationInput} from './operations.js';
 import {transitionPlayback,type PlaybackInput} from './playback.js';
 import {transitionSettings,transitionSettingTransaction,changePreferences,clearSourcePreferences,type SettingsInput,type SettingTransactionInput,type SettingEffect} from './settings.js';
+import type {SourcePreparationEffect} from './source-preparation.js';
 import {transitionSource,type SourceInput} from './source.js';
 import {transitionAttachment,attachmentAuthority,attachmentPreferences,type AttachmentInput,type AttachmentEffect} from './attachments.js';
 import {transitionRouting,type RoutingInput} from './route-state.js';
@@ -22,7 +23,7 @@ import {transitionInspection,isInspectionWorkChange} from './route-inspection.js
 import type {PlayerControlState} from './state.js';
 export type SessionObservation=Readonly<{type:'playback.sample';session:number;sequence:number;observation:'waiting'|'playing'|'time'|'pause';value?:number|boolean;publishedTime?:number}>;
 export type PlayerControlInput=Readonly<{type:'effect.event';input:EffectRuntimeInput}>|Readonly<{type:'resource.event';input:ResourceLedgerInput}>|PlayerReadinessInput|PlayerActionInput|PlayerPublicationInput|PlayerMonitorInput|RoutingInput|AttachmentInput|BoundaryInput|OperationInput|PlaybackInput|SettingsInput|SettingTransactionInput|SourceInput|SessionObservation;
-export type PlayerControlDecision<Effect=SettingEffect|BoundaryEffect|AttachmentEffect>=Readonly<{state:PlayerControlState;accepted:boolean;execution?:EffectRuntimeDecision;executionOutcomes?:readonly EffectOutcome[];resource?:ResourceLedgerDecision;id?:number;reason?:string;message?:string;retire:readonly number[];effects?:readonly Effect[];publication?:PlayerProjection;actionEffects?:readonly PlayerActionEffect[];readinessEffects?:readonly PlayerReadinessEffect[]}>;
+export type PlayerControlDecision<Effect=SettingEffect|BoundaryEffect|AttachmentEffect>=Readonly<{state:PlayerControlState;accepted:boolean;preparationEffect?:SourcePreparationEffect;execution?:EffectRuntimeDecision;executionOutcomes?:readonly EffectOutcome[];resource?:ResourceLedgerDecision;id?:number;reason?:string;message?:string;retire:readonly number[];effects?:readonly Effect[];publication?:PlayerProjection;actionEffects?:readonly PlayerActionEffect[];readinessEffects?:readonly PlayerReadinessEffect[]}>;
 /** Publication bookkeeping does not invalidate an otherwise current capture.
  * Every domain change still advances the same composed authority revision. */
 export function transitionPlayer(state:PlayerControlState,input:PlayerControlInput):PlayerControlDecision{
@@ -85,9 +86,9 @@ function reducePlayer(state:PlayerControlState,input:PlayerControlInput):PlayerC
   if(isSourceInput(input)){
     const retired=state.operations.terminal||state.operations.entries.some(entry=>entry.id===state.operations.active&&entry.cancelled);
     const forward=input.type!=='source.configure'&&input.type!=='source.clear'&&input.type!=='source.finished';
-    const expired=input.type!=='source.begin'&&state.source.candidate?.operationEpoch!==state.operations.epoch;
+    const expired=input.type==='source.begin'?input.operationEpoch!==state.operations.epoch||input.operation!==undefined&&input.operation!==state.operations.active:state.source.candidate?.operationEpoch!==state.operations.epoch||state.source.candidate?.operation!==state.operations.active;
     if(forward&&(retired||expired))return Object.freeze({state,accepted:false,id:undefined,reason:'retired' as const,retire:Object.freeze([]) as readonly number[]});
-    const decision=transitionSource(state.source,input.type==='source.accept'?{...input,operationEpoch:state.operations.epoch}:input),settings=decision.settings??(input.type==='source.clear'?Object.freeze({...state.settings,pause:true,aid:'auto',sid:'auto'}):state.settings);
+    const decision=transitionSource(state.source,input.type==='source.accept'?{...input,operationEpoch:state.operations.epoch}:input.type==='source.begin'?{...input,operation:state.operations.active}:input),settings=decision.settings??(input.type==='source.clear'?Object.freeze({...state.settings,pause:true,aid:'auto',sid:'auto'}):state.settings);
     const playback=decision.settings||input.type==='source.clear'?Object.freeze({...state.playback,observedPlaying:false,observedWaiting:false,sampleSession:decision.state.acceptedSession,sampleSequence:0}):state.playback;
     const reset=input.type==='source.clear'||input.type==='source.accept'&&decision.accepted&&!state.source.candidate?.preserve;
     const pending=state.settingsTransactions.pending;
@@ -131,7 +132,7 @@ export function sessionAuthority(state:PlayerControlState,session:number):'accep
   if(state.operations.terminal)return 'retired';
   if(state.source.acceptedSession===session&&state.source.acceptedEpoch===state.operations.epoch)return 'accepted';
   const candidate=state.source.candidate;
-  if(candidate?.session===session&&candidate.operationEpoch===state.operations.epoch&&!state.operations.entries.some(entry=>entry.id===state.operations.active&&entry.cancelled))return 'candidate';
+  if(candidate?.session===session&&candidate.operationEpoch===state.operations.epoch&&candidate.operation===state.operations.active&&!state.operations.entries.some(entry=>entry.id===state.operations.active&&entry.cancelled))return 'candidate';
   return 'retired';
 }
 

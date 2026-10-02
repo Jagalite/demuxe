@@ -860,7 +860,7 @@ export class NativePlayer extends EventTarget implements Backend {
       }
       const selected=subtitles;
       try{
-        await this.awaitCaption(request,selected.ready);if(created)selected.tracks=[];this.assertCaption(request);
+        await this.awaitCaption(request,selected.ready);if(created)selected.resetTracks();this.assertCaption(request);
         const id=await selected.add({...asset,select:!!asset.select&&nativeCaptionMaySelect(this.native.captions,request)});this.assertCaption(request);this.changeNative({type:'caption.accept',request,publicId:id,select:!!asset.select});
         this.applySubtitles();this.assertCaption(request);this.refresh();
       }catch(error){if(created&&this.mpvSubs===selected){this.mpvSubs=undefined;await this.queueSourceCleanup(()=>this.cleanupSourceHandles(undefined,undefined,selected,[]));}throw error;}

@@ -108,10 +108,10 @@ function reducePlayer(state, input) {
     if (isSourceInput(input)) {
         const retired = state.operations.terminal || state.operations.entries.some(entry => entry.id === state.operations.active && entry.cancelled);
         const forward = input.type !== 'source.configure' && input.type !== 'source.clear' && input.type !== 'source.finished';
-        const expired = input.type !== 'source.begin' && state.source.candidate?.operationEpoch !== state.operations.epoch;
+        const expired = input.type === 'source.begin' ? input.operationEpoch !== state.operations.epoch || input.operation !== undefined && input.operation !== state.operations.active : state.source.candidate?.operationEpoch !== state.operations.epoch || state.source.candidate?.operation !== state.operations.active;
         if (forward && (retired || expired))
             return Object.freeze({ state, accepted: false, id: undefined, reason: 'retired', retire: Object.freeze([]) });
-        const decision = transitionSource(state.source, input.type === 'source.accept' ? { ...input, operationEpoch: state.operations.epoch } : input), settings = decision.settings ?? (input.type === 'source.clear' ? Object.freeze({ ...state.settings, pause: true, aid: 'auto', sid: 'auto' }) : state.settings);
+        const decision = transitionSource(state.source, input.type === 'source.accept' ? { ...input, operationEpoch: state.operations.epoch } : input.type === 'source.begin' ? { ...input, operation: state.operations.active } : input), settings = decision.settings ?? (input.type === 'source.clear' ? Object.freeze({ ...state.settings, pause: true, aid: 'auto', sid: 'auto' }) : state.settings);
         const playback = decision.settings || input.type === 'source.clear' ? Object.freeze({ ...state.playback, observedPlaying: false, observedWaiting: false, sampleSession: decision.state.acceptedSession, sampleSequence: 0 }) : state.playback;
         const reset = input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted && !state.source.candidate?.preserve;
         const pending = state.settingsTransactions.pending;
@@ -156,7 +156,7 @@ export function sessionAuthority(state, session) {
     if (state.source.acceptedSession === session && state.source.acceptedEpoch === state.operations.epoch)
         return 'accepted';
     const candidate = state.source.candidate;
-    if (candidate?.session === session && candidate.operationEpoch === state.operations.epoch && !state.operations.entries.some(entry => entry.id === state.operations.active && entry.cancelled))
+    if (candidate?.session === session && candidate.operationEpoch === state.operations.epoch && candidate.operation === state.operations.active && !state.operations.entries.some(entry => entry.id === state.operations.active && entry.cancelled))
         return 'candidate';
     return 'retired';
 }
