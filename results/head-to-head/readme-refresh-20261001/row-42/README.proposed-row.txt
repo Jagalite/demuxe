@@ -1,0 +1,1 @@
+| H.264 + AAC + embedded SRT / MKV | 🔴 (Fail) | 🟢 (Pass) · 18.9% CPU | 🟢 (Pass) · 18.9% CPU · forced-remux ref | 🟢 (Pass) · 20.2% CPU · forced-remux ref | 🟢 (Pass) · 36.5% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |
