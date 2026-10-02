@@ -28,6 +28,8 @@ try{
   });
   assert.equal(result.timedOut,false);assert.equal(result.code,1,'Unguarded implementation unexpectedly passed');
   const report=JSON.parse(await readFile(out+'/result.json','utf8'));
+  const guard=JSON.parse(await readFile(out+'/guard.json','utf8'));
+  assert.ok(guard.pages>0);assert.deepEqual(guard.errors,[]);
   assert.equal(report.checks.length,20);assert.deepEqual(report.pageErrors,[]);
   const failed=report.checks.filter(c=>!c.passed).map(c=>c.name).sort();
   assert.deepEqual(failed,[

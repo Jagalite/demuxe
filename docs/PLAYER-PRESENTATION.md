@@ -127,6 +127,8 @@ The shared settings panel includes collapsible sections in every layout:
 
 Filter, subtitle-style, quality-limit and range drafts survive playback state updates. Failed Apply operations preserve drafts; immediate settings resynchronize with accepted player state. A new source resets drafts and refreshes chapter/quality inventories. Subtitle visibility respects track policy. Output-device permission is requested only from the explicit picker action. Snapshot download URLs are released after use.
 
+Pending snapshots and output-device choices are discarded if their source or owner has been retired. Detached controls do not dispatch new operations. A successful settings correction clears its previous operation error while preserving a newer failure or an active session error. Maintained contracts, browser scenarios and qualification boundaries are described in [API-TESTING.md](API-TESTING.md).
+
 The frontend was subsequently compiled on 2026-10-01. The focused Firefox startup/thumbnail investigation below covers playback and previews; earlier presentation reports do not qualify every new advanced setting.
 
 
