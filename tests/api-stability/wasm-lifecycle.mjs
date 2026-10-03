@@ -61,3 +61,14 @@ test('source start and retirement atomically retire seek authority with the back
  assert.equal(core.beginWasmPlayerSeek(retired,1).reason,'unavailable');assert.equal(core.observeWasmPlayerSeek(retired,{kind:'restart',eof:true}),retired);
  assert.equal(core.confirmWasmPlayerSeek(retired,second.state.seek.seek.id,12,12,true).confirmed,false);
 });
+test('Wasm event waiters are bounded and all forward identities reject exhaustion',()=>{
+ let state=core.createWasmLifecycle();for(let i=0;i<128;i++)state=core.admitWasmWaiter(state,0).state;assert.equal(core.admitWasmWaiter(state,0).waiter,null);
+ for(const field of ['nextRequest','nextWaiter','nextOpen']){const exhausted={...core.createWasmLifecycle(),[field]:Number.MAX_SAFE_INTEGER};assert.equal(field==='nextRequest'?core.admitWasmRequest(exhausted,0).request:field==='nextWaiter'?core.admitWasmWaiter(exhausted,0).waiter:core.beginWasmOpen(exhausted).id,null);}
+});
+test('Wasm subtitle catalog bounds lifetime native bytes and quarantines ambiguous submission',()=>{
+ let state=core.createWasmLifecycle();const first=core.admitWasmAttachment(state,8*1024*1024,'first');state=first.state;assert.equal(core.wasmAttachmentIdentity(state,0),'first');assert.equal(core.beginWasmOpen(state).reason,'busy');assert.equal(core.admitWasmAttachment(state,1,'second').id,null);
+ state=core.finishWasmAttachment(state,first.id,'uncertain');assert.equal(core.wasmAttachmentIdentity(state,0),undefined);assert.equal(core.admitWasmAttachment(state,1,'second').id,null);
+ const open=core.beginWasmOpen(state);state=core.finishWasmOpen(open.state,open.id);assert.equal(core.wasmAttachmentIdentity(state,0),undefined);
+ const second=core.admitWasmAttachment(state,8*1024*1024,'second');state=core.finishWasmAttachment(second.state,second.id,'accepted');assert.equal(core.wasmAttachmentIdentity(state,0),'second');assert.equal(core.admitWasmAttachment(state,1,'overflow').id,null);assert.equal(state.attachments.length,2);
+ const rollback=core.admitWasmAttachment(core.createWasmLifecycle(),1,'rollback');state=core.finishWasmAttachment(rollback.state,rollback.id,'unsubmitted');assert.equal(state.attachments.length,0);assert.equal(core.finishWasmAttachment(state,rollback.id,'accepted'),state);
+});

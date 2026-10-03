@@ -8,7 +8,7 @@ import { selectExternalDecoderConfiguration } from './external-decoder-selection
 import { watchdogPolicy } from './watchdogs.js';
 import { cloneWasmBuffering, validWasmVolume, planWasmGain, effectiveWasmGain, planWasmBuffering, planWasmAudioOutput } from './machine/wasm-settings.js';
 import { wasmSeekBoundary } from './machine/wasm-seek.js';
-import { createWasmLifecycle, wasmAlive, markWasmInitialized, settleWasmInitialization, claimWasmWorkerFailure, admitWasmRequest, settleWasmRequest, rejectWasmRequests, admitWasmWaiter, settleWasmWaiter, beginWasmOpen, ownsWasmOpen, finishWasmOpen, observeWasmFile, retireWasmLifecycle, finishWasmRetirement, beginWasmPlayerSeek, observeWasmPlayerSeek, confirmWasmPlayerSeek, applyWasmSetting } from './machine/wasm-lifecycle.js';
+import { admitWasmAttachment, wasmAttachmentCurrent, finishWasmAttachment, wasmAttachmentIdentity, createWasmLifecycle, wasmAlive, markWasmInitialized, settleWasmInitialization, claimWasmWorkerFailure, admitWasmRequest, settleWasmRequest, rejectWasmRequests, admitWasmWaiter, settleWasmWaiter, beginWasmOpen, ownsWasmOpen, finishWasmOpen, observeWasmFile, retireWasmLifecycle, finishWasmRetirement, beginWasmPlayerSeek, observeWasmPlayerSeek, confirmWasmPlayerSeek, applyWasmSetting } from './machine/wasm-lifecycle.js';
 /** One isolated software engine per player; bounded remote ranges and local File reads; ArrayBuffer inputs remain capped. */
 export class WasmPlayer extends EventTarget {
     loading = new AbortController();
@@ -177,7 +177,7 @@ export class WasmPlayer extends EventTarget {
                     }
                     if (event.event === 'property-change' && event.name === 'track-list' && Array.isArray(event.data)) {
                         let external = 0;
-                        event.data = event.data.map(t => t.external ? { ...t, 'attachment-id': this.attachmentIds[external], 'external-index': ++external } : t);
+                        event.data = event.data.map(t => t.external ? { ...t, 'attachment-id': wasmAttachmentIdentity(this.lifecycle, external), 'external-index': ++external } : t);
                     }
                     if (event.event === 'property-change' && event.name)
                         this.properties.set(event.name, event.data);
@@ -281,7 +281,7 @@ export class WasmPlayer extends EventTarget {
         if (report && !this.destroyed)
             this.dispatchEvent(new CustomEvent('error', { detail: isPlayerError(error) ? error : error.message }));
     }
-    request(message, transfer = []) {
+    request(message, transfer = [], sent) {
         const admitted = admitWasmRequest(this.lifecycle, performance.now());
         this.lifecycle = admitted.state;
         if (!admitted.request)
@@ -315,7 +315,11 @@ export class WasmPlayer extends EventTarget {
                 arm();
                 if (this.pending.get(id) !== entry)
                     return;
-                this.worker.postMessage({ ...message, id }, transfer);
+                const payload = { ...message, id }, post = this.worker.postMessage;
+                if (this.pending.get(id) !== entry)
+                    return;
+                sent?.();
+                post.call(this.worker, payload, transfer);
             }
             catch (error) {
                 this.settleRequest(id, error);
@@ -444,6 +448,8 @@ export class WasmPlayer extends EventTarget {
         try {
             if (!wasmAlive(this.lifecycle))
                 throw this.unavailableError();
+            if (!cancel)
+                throw new Error('Media event wait unavailable');
             await Promise.all([observed, work()]);
         }
         catch (error) {
@@ -721,15 +727,33 @@ export class WasmPlayer extends EventTarget {
         return decision.confirmed;
     }
     seekBoundary(target) { return wasmSeekBoundary(this.lifecycle.seek, target); }
-    attachmentIds = [];
     async addSubtitle(subtitle) {
-        this.attachmentIds.push(subtitle.attachmentId);
         await this.ready;
-        const bytes = subtitle.bytes.slice(0);
-        const previous = (this.properties.get('track-list') ?? []).filter(t => t.external).length;
-        // Command acceptance can precede the track-list event. Selection must wait
-        // for the new source-scoped external identity to become observable.
-        await this.withEvent(e => e.event === 'property-change' && e.name === 'track-list' && Array.isArray(e.data) && e.data.filter(t => t.external).length > previous, () => this.request({ type: 'subtitle', ...subtitle, bytes }, [bytes]));
+        const admission = admitWasmAttachment(this.lifecycle, subtitle.bytes.byteLength, subtitle.attachmentId);
+        this.lifecycle = admission.state;
+        if (admission.id === null)
+            throw new PlayerError('INVALID_ARGUMENT', admission.error);
+        const id = admission.id;
+        let submitted = false;
+        try {
+            const bytes = subtitle.bytes.slice(0);
+            if (!wasmAttachmentCurrent(this.lifecycle, id))
+                throw this.unavailableError();
+            const previous = (this.properties.get('track-list') ?? []).filter(t => t.external).length;
+            // Publish the bounded pending identity before synchronous worker events.
+            await this.withEvent(e => e.event === 'property-change' && e.name === 'track-list' && Array.isArray(e.data) && e.data.filter(t => t.external).length > previous, () => {
+                if (!wasmAttachmentCurrent(this.lifecycle, id))
+                    throw this.unavailableError();
+                return this.request({ type: 'subtitle', ...subtitle, bytes }, [bytes], () => { submitted = true; });
+            });
+            if (!wasmAttachmentCurrent(this.lifecycle, id))
+                throw this.unavailableError();
+            this.lifecycle = finishWasmAttachment(this.lifecycle, id, 'accepted');
+        }
+        catch (error) {
+            this.lifecycle = finishWasmAttachment(this.lifecycle, id, submitted ? 'uncertain' : 'unsubmitted');
+            throw error;
+        }
     }
     async setAudioOutputDevice(id) {
         await this.ready;

@@ -6,7 +6,7 @@ import { transitionPlayerReadiness, retirePlayerReadiness } from './player-readi
 import { transitionPlayerAction, retirePlayerActions } from './player-actions.js';
 import { transitionPlayerPublication, acceptPlayerPublication, clearPlayerPublication, retirePlayerPublication } from './player-publication.js';
 import { transitionPlayerMonitor, stopPlayerMonitor } from './player-monitor.js';
-import { transitionBoundary } from './playback-boundary.js';
+import { transitionBoundary, playbackBoundaryReached } from './playback-boundary.js';
 import { transitionOperations } from './operations.js';
 import { transitionPlayback } from './playback.js';
 import { transitionSettings, transitionSettingTransaction, changePreferences, clearSourcePreferences } from './settings.js';
@@ -104,7 +104,10 @@ function reducePlayer(state, input) {
             return Object.freeze({ state, accepted: false, id: undefined, reason: 'retired', retire: Object.freeze([]) });
         const playing = input.observation === 'playing' || input.observation === 'time' && !state.settings.pause && typeof input.value === 'number' && input.value > (input.publishedTime ?? 0);
         const playback = Object.freeze({ ...previous, sampleSession: input.session, sampleSequence: input.sequence, observedPlaying: playing ? true : previous.observedPlaying, observedWaiting: playing ? false : input.observation === 'waiting' ? true : previous.observedWaiting });
-        const settings = input.observation === 'pause' && input.value === true && state.operations.active === null ? Object.freeze({ ...state.settings, pause: true }) : state.settings;
+        // EOF pauses are physical observations, not a new user pause intent. Keep
+        // accepted play intent until the boundary owner has restarted/stopped it.
+        const boundaryPause = input.boundary && playbackBoundaryReached(state, input.boundary.time, input.boundary.duration, input.boundary.ended);
+        const settings = input.observation === 'pause' && input.value === true && state.operations.active === null && !boundaryPause ? Object.freeze({ ...state.settings, pause: true }) : state.settings;
         return Object.freeze({ state: Object.freeze({ ...state, revision: state.revision + 1, playback, settings }), accepted: true, id: undefined, reason: undefined, retire: Object.freeze([]) });
     }
     if (isSourceInput(input)) {

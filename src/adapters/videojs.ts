@@ -49,7 +49,7 @@ export function registerVideojsTech(videojs:any,name='Demuxe'):void {
           if(this.control.retired)return;const detail=(value as CustomEvent).detail,snapshot=this.view.state;
           if(event==='operationerror')videojs.getPlayer(options.playerId)?.trigger({type:'demuxeoperationerror',detail});
           else {if(event==='loadedmetadata'||event==='emptied')this.reflectSource();if(!this.control.retired&&this.view.state===snapshot)this.trigger({type:event,detail});}
-        };this.view.addEventListener(event,listener);this.stops.push(()=>this.view.removeEventListener(event,listener));}
+        };this.stops.push(()=>this.view.removeEventListener(event,listener));this.view.addEventListener(event,listener);}
         this.ready(()=>{if(!this.transition({type:'ready'}).accepted)return;if(this.view.state.sourceId!==null)this.reflectSource();});
         this.triggerReady();
       }catch(error){

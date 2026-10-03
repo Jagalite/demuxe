@@ -43,7 +43,7 @@ export function boundaryAuthority(state, id) {
     return !!pending && pending.id === id && !state.operations.terminal && pending.epoch === state.operations.epoch && pending.session === state.source.acceptedSession &&
         (pending.operation === null || state.operations.active === pending.operation && !state.operations.entries.some(entry => entry.id === pending.operation && entry.cancelled));
 }
-function reached(state, time, duration, ended) {
+export function playbackBoundaryReached(state, time, duration, ended) {
     if (state.settings.pause || !state.preferences.loopPolicy && !state.preferences.playbackRange)
         return;
     const range = typeof state.preferences.loopPolicy === 'object' ? state.preferences.loopPolicy : state.preferences.playbackRange ?? { start: 0, end: duration ?? Infinity };
@@ -58,7 +58,7 @@ export function transitionBoundary(state, input) {
     const result = (next, accepted, effects = empty, id) => Object.freeze({ state: next === state ? state : Object.freeze({ ...next, revision: state.revision + 1 }), accepted, effects, id, retire: Object.freeze([]) });
     const set = (pending, effects = empty, paused = false) => result({ ...state, boundary: Object.freeze({ ...state.boundary, pending }), settings: paused ? Object.freeze({ ...state.settings, pause: true }) : state.settings }, true, Object.freeze([...effects]), pending?.id);
     if (input.type === 'boundary.sample') {
-        if (state.operations.terminal || state.operations.active !== null || state.boundary.pending || state.source.acceptedSession === null || state.source.acceptedEpoch !== state.operations.epoch || !reached(state, input.time, input.duration, input.ended))
+        if (state.operations.terminal || state.operations.active !== null || state.boundary.pending || state.source.acceptedSession === null || state.source.acceptedEpoch !== state.operations.epoch || !playbackBoundaryReached(state, input.time, input.duration, input.ended))
             return result(state, false);
         const id = state.boundary.serial + 1;
         return result({ ...state, boundary: Object.freeze({ serial: id, pending: Object.freeze({ id, epoch: state.operations.epoch, session: state.source.acceptedSession, operation: null, phase: 'queued', loop: false, position: 0 }) }) }, true, empty, id);
@@ -71,7 +71,7 @@ export function transitionBoundary(state, input) {
     if (input.type === 'boundary.start') {
         if (pending.phase !== 'queued')
             return result(state, false);
-        const range = reached(state, input.time, input.duration, input.ended);
+        const range = playbackBoundaryReached(state, input.time, input.duration, input.ended);
         if (!range || state.operations.active === null)
             return set(Object.freeze({ ...pending, phase: 'finished' }));
         const loop = !!state.preferences.loopPolicy;

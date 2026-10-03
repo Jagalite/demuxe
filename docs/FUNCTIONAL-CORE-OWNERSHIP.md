@@ -1,6 +1,6 @@
 # Functional-core ownership audit
 
-Status: migration and audit in progress on local `main`. The twenty-first integrated checkpoint passes 2,712 contracts plus consumer types, build/license boundaries, static pure guard and package compilation pass. Subsequent isolated slices have focused evidence until their next integrated gate. This inventory does not establish final architecture completion or v1 readiness.
+Status: migration and audit in progress on local `main`. The twenty-second integrated checkpoint passes 2,866 contracts plus consumer types, build/license boundaries, static pure guard and package compilation pass. Subsequent isolated slices have focused evidence until their next integrated gate. This inventory does not establish final architecture completion or v1 readiness.
 
 ## Authority boundaries
 
@@ -68,6 +68,26 @@ This is a scoped source inventory, not the completed whole-application bound or 
 | Lower playback host | Constant-size control state; event history capped at 256 and at most 64 events drained per pump; draw counter saturates. | Native command strings must be freed after retirement; serialized native creation success retains destruction obligation. Canvas/ImageData/PCM/native execution remain physical. The host queue and caller containment still require whole-stack retained-state audit. |
 | Selective worklet | Constant three-field lifetime/header owner; unchanged quanta retain state identity. Ring scans and consumption are bounded by configured capacity. | Fixed shared PCM/metadata buffers and DSP cursors stay mutable. Node/V8 allocation probes do not establish browser real-time behavior or whole-player memory bounds. |
 
+
+## Checkpoint 22 integration scope
+
+The integrated source now reserves finite queue capacity before physical caller/controller allocation:
+
+| Owner | Retained bound and retirement rule |
+| --- | --- |
+| Playback host | 128 active/queued calls plus one mandatory cleanup slot. Retirement drops queued closures and rejects their callers; active native work retains its obligation until settlement. |
+| Private playback worker | 128 ingress envelopes plus reserved close; 64 MiB aggregate copied payloads, 4,096 traversal nodes and depth 16. Native commands, authorization refreshes and presentation fences each cap at 128. Blob, canvas and port backing stores are physical handles. |
+| Backend RPC profiles | Software, audio and subtitle profiles each cap at 128 calls plus mandatory cleanup. |
+| MediaCapabilities | 128 actual outstanding browser queries, including those whose advisory deadline expired. Capacity returns only on native settlement. Terminal Player destruction detaches the callback and retires admission; reusable close leaves the service usable. |
+| Wasm attachments | 32 native lifetime entries, 8 MiB per attachment, 16 MiB aggregate. Source replacement clears public associations without pretending native files were freed. Uncertain submissions remain charged; worker teardown releases native storage. |
+| Native event/caption/timeline | 128 event waits, 16 pending/accepted captions and 128 active/queued subtitle timeline jobs. Request identities reject safe-integer exhaustion. Add/select calls reserve a timeline slot before awaiting initialization. |
+| Shaka | 32 playback or four preview network requests including cancellation/reader cleanup. Filter associations use weak keys. Caption admission has 16 pending/committed/uncertain slots; native uncertainty remains charged until backend close. |
+
+Consumer acquisition checks now cover preview controllers/caller timers, pregeneration timers, MediaView/borrowed media elements, scrubber image/timer/URL ownership and document presentation. Shared cleanup completions are published before reentry; independent release operations continue after one fails. The Native EOF observation now preserves accepted play intent for the boundary owner, instead of converting a physical EOF pause into a new user pause. This fixes a bug reproduced in the older baseline as well as checkpoint 21.
+
+These source changes pass the final integrated receipt `results/api-stability/gate-unit-all-node-1790990620835/result.json`. The field-level audit expanded to public worker entrypoints and found production SoftwareFull and FilterRetained scheduling policies requiring migration. They remain an architecture blocker. See the supported runtime boundary in `FUNCTIONAL-CORE-WORKER-SCOPE.md` and the finite replay gate in `FUNCTIONAL-CORE-REPLAY-INVENTORY.md`; legacy demonstration entrypoints are explicitly outside the supported package migration boundary.
+
+Externally owned subscriber, provider and application queue cardinalities are reviewed adapter exceptions, not global finite-count claims. Physical browser decode or third-party work that ignores cancellation remains an outstanding host obligation; logical retirement is not evidence that the browser released it. The final field inventory must identify these exceptions individually.
 
 ## Qualification still required
 

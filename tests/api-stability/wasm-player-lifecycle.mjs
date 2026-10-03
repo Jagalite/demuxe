@@ -246,3 +246,19 @@ test('gain rollback stops reconnecting when cleanup synchronously destroys the b
  f.player.audioNode.connect=target=>connections.push(target);
  await assert.rejects(f.player.gain(.3),reason=>reason===error);await f.player.destroy();assert.deepEqual(connections,[node]);assert.equal(f.player.lifecycle.settings.gain,1);
 });
+test('actual failed ready cannot retain a subtitle identity or copy native bytes',async t=>{
+ const f=await fixture(t,{ready:false});const promise=f.player.addSubtitle({format:'srt',label:'late',attachmentId:'late',bytes:new ArrayBuffer(2),select:false});f.worker.emit({type:'error',message:'init failed',assetFailure:true});await assert.rejects(promise,/init failed/);assert.equal(f.player.lifecycle.attachments?.length??f.player.attachmentIds.length,0);assert.equal(f.messages.filter(message=>message.type==='subtitle').length,0);
+});
+test('actual synchronous subtitle acknowledgment publishes the bounded pending identity first',async t=>{
+ const f=await fixture(t);f.hook=message=>{if(message.type==='subtitle'){f.worker.event({event:'property-change',name:'track-list',data:[{external:true,type:'sub',id:1}]});f.worker.reply(message.id,true);}};
+ await f.player.addSubtitle({format:'srt',label:'one',attachmentId:'one',bytes:new ArrayBuffer(2),select:false});assert.equal(f.player.properties.get('track-list')[0]['attachment-id'],'one');assert.equal(f.player.lifecycle.attachments[0].status,'accepted');assert.equal(f.player.lifecycle.attachmentPending,null);
+});
+test('actual native subtitle rejection retains uncertain bytes and blocks repeated unaccounted acquisition',async t=>{
+ const f=await fixture(t);f.hook=message=>{if(message.type==='subtitle')f.worker.event({event:'command-reply',id:message.id,error:'subtitle rejected'});};
+ const subtitle={format:'srt',label:'bad',attachmentId:'bad',bytes:new ArrayBuffer(2),select:false};await assert.rejects(f.player.addSubtitle(subtitle),/subtitle rejected/);if(f.player.lifecycle.attachments){assert.equal(f.player.lifecycle.attachments[0].status,'uncertain');assert.equal(f.player.lifecycle.attachments[0].identity,undefined);}
+ await assert.rejects(f.player.addSubtitle(subtitle),/uncertain/);assert.equal(f.messages.filter(message=>message.type==='subtitle').length,1);
+});
+test('actual subtitle rejection before native submission rolls back reserved metadata',async t=>{
+ const f=await fixture(t);f.player.lifecycle={...f.player.lifecycle,requests:Array.from({length:128},(_,index)=>({id:index+1000,deadline:15000}))};
+ await assert.rejects(f.player.addSubtitle({format:'srt',label:'full',attachmentId:'full',bytes:new ArrayBuffer(2),select:false}),/queue is full/);assert.equal(f.player.lifecycle.attachments?.length??f.player.attachmentIds.length,0);assert.equal(f.player.lifecycle.attachmentFailed,false);assert.equal(f.messages.filter(message=>message.type==='subtitle').length,0);
+});

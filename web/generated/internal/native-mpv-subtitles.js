@@ -201,7 +201,7 @@ export class NativeMpvSubtitles {
             return Promise.reject(signal.reason);
         const epoch = this.lifetime.epoch, admission = this.timeline({ kind: 'admit', operation: kind }, epoch);
         if (!admission.accepted)
-            return Promise.reject(Error('Subtitle renderer destroyed'));
+            return Promise.reject(Error(admission.error === 'capacity' ? 'Subtitle timeline capacity exceeded' : admission.error === 'identity' ? 'Subtitle timeline identity exhausted' : 'Subtitle renderer destroyed'));
         const id = admission.id;
         let resolve, reject;
         const done = new Promise((yes, no) => { resolve = yes; reject = no; });
@@ -289,8 +289,9 @@ export class NativeMpvSubtitles {
         })();
     }
     async add(asset) {
-        await this.ready;
         return this.withTimeline('add', async (epoch, id) => {
+            await this.ready;
+            this.timelineCurrent(epoch, id);
             const attachmentId = asset.attachmentId, title = asset.label, language = asset.language, format = asset.format, select = asset.select;
             this.timelineCurrent(epoch, id);
             const result = await this.request('add', { asset });
@@ -545,7 +546,7 @@ export class NativeMpvSubtitles {
             this.change({ kind: 'pump.finish', id }, epoch);
         }
     }
-    async select(requested) { await this.ready; return this.withTimeline('select', (epoch, id) => this.selectTimeline(epoch, id, requested)); }
+    async select(requested) { return this.withTimeline('select', async (epoch, id) => { await this.ready; this.timelineCurrent(epoch, id); return this.selectTimeline(epoch, id, requested); }); }
     async selectTimeline(epoch, id, requested) {
         this.timelineCurrent(epoch, id);
         const selection = this.timeline({ kind: 'select.begin', id, requested }, epoch);

@@ -33,7 +33,7 @@ class PreviewDeferred extends Error {}
 const aborted=()=>new DOMException('Preview superseded or cancelled','AbortError');
 const now=()=>performance.now();
 const emptyMetrics=():PreviewMetrics=>({providerSelectionMs:0,cacheLookupMs:0,totalMs:0,indexLookupMs:null,byteAcquisitionMs:null,decoderInitializationMs:null,frameDecodeMs:null,resizeConversionMs:null,decodedFrames:null,bytesRead:null,bytesFetched:null});
-type Job={id:number;context:PreviewContext;controller:AbortController;timer:ReturnType<typeof setTimeout>};
+type Job={id:number;context:PreviewContext;controller:AbortController;timer?:ReturnType<typeof setTimeout>};
 type Caller={job:Job;request:PreviewRequest;start:number;cacheMs:number;onUpdate?:(frame:PreviewFrame)=>void;resolve:(frame:PreviewFrame|null)=>void;reject:(error:unknown)=>void;cleanup:()=>void};
 /** Owns provider resources, timers and caller callbacks. The immutable preview
  * authority contains only data and cannot issue playback or source effects. */
@@ -88,16 +88,21 @@ export class PreviewController {
   addProvider(provider:PreviewProvider):()=>void {this.setProviders([...this.providers,provider]);let removed=false;return ()=>{if(!removed){removed=true;this.setProviders(this.providers.filter(p=>p!==provider));}};}
   private cancelJob(job:Job){
     const active=this.state.active?.id===job.id;
-    this.dispatch({kind:'cancel-job',id:job.id});clearTimeout(job.timer);if(!active)this.jobs.delete(job.id);job.controller.abort();
+    this.dispatch({kind:'cancel-job',id:job.id});if(!active)this.jobs.delete(job.id);
+    try{clearTimeout(job.timer);}finally{job.controller.abort();}
   }
   private settle(error?:unknown,frame:PreviewFrame|null=null){
     const caller=this.caller,id=this.state.caller?.id;if(!caller||id===undefined)return;
-    this.dispatch({kind:'settle',failed:!!error});this.callers.delete(id);caller.cleanup();if(error)caller.reject(error);else caller.resolve(frame);
+    this.dispatch({kind:'settle',failed:!!error});this.callers.delete(id);
+    try{caller.cleanup();}catch(failure){if(error===undefined)error=failure;}
+    if(error!==undefined)caller.reject(error);else caller.resolve(frame);
   }
   private cancelWork(){
     this.dispatch({kind:'retire-work'});
-    try{this.settle(aborted());if(this.active)this.cancelJob(this.active);if(this.pending)this.cancelJob(this.pending);}
+    const active=this.active,pending=this.pending,errors:unknown[]=[];
+    try{for(const release of [()=>this.settle(aborted()),()=>{if(active)this.cancelJob(active);},()=>{if(pending)this.cancelJob(pending);}])try{release();}catch(error){errors.push(error);}}
     finally{this.dispatch({kind:'retired-work'});}
+    if(errors.length)throw errors.length===1?errors[0]:new AggregateError(errors,'Preview cancellation failed');
   }
   /** Playback pressure cancels generation, but resident thumbnails remain usable. */
   setSuspended(value:boolean){this.dispatch({kind:'suspended',value});if(value)this.cancelWork();}
@@ -135,7 +140,11 @@ export class PreviewController {
   clear(){this.cancelWork();this.dispatch({kind:'clear-cache'});this.images.clear();this.pregenerator?.reset();}
   destroy():Promise<void>{
     if(this.destruction)return this.destruction;
-    this.dispatch({kind:'dispose'});this.clear();this.pregenerator?.stop();this.providers=[];return this.destruction=this.drain();
+    let resolve!:()=>void,reject!:(error:unknown)=>void;this.destruction=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});
+    this.dispatch({kind:'dispose'});const errors:unknown[]=[];
+    for(const release of [()=>this.clear(),()=>this.pregenerator?.stop()])try{release();}catch(error){errors.push(error);}
+    this.providers=[];this.images.clear();this.dispatch({kind:'clear-cache'});
+    void this.drain().then(()=>{if(errors.length)reject(errors.length===1?errors[0]:new AggregateError(errors,'Preview cleanup failed'));else resolve();},reject);return this.destruction;
   }
   /** Explicit optional prefetch. Busy lanes decline; a hover always supersedes it. */
   async prefetch(request:PreviewRequest):Promise<void>{if(!previewCanPrefetch(this.state))return;try{await this.requestWork(request,true);}catch{}}
@@ -147,7 +156,11 @@ export class PreviewController {
     return this.requestWork(request);
   }
   private requestWork(request:PreviewRequest & {onUpdate?:(frame:PreviewFrame)=>void},background=false):Promise<PreviewFrame|null>{
+    const entryEpoch=this.state.requestEpoch;
     const data={time:request.time,width:request.width,height:request.height,exact:request.exact,maxDistance:request.maxDistance,cacheOnly:request.cacheOnly};
+    const capturedSignal=request.signal,onUpdate=request.onUpdate;
+    if(entryEpoch!==this.state.requestEpoch)return Promise.reject(aborted());
+    request={...data,signal:capturedSignal,onUpdate};
     const admission=admitPreviewRequest(this.state,data,!!request.signal?.aborted);
     if(admission.kind==='aborted')return Promise.reject(aborted());
     if(admission.kind==='disabled')return Promise.resolve(null);
@@ -166,20 +179,49 @@ export class PreviewController {
     if(cached.key!==null){const frame=this.frame(this.images.get(cached.key)!,request,JSON.parse(cached.key)[2],'hit',start,cacheMs,0);this.notify(request.onUpdate,frame);return Promise.resolve(frame);}
     if(request.cacheOnly||this.state.suspended)return Promise.resolve(null);
     if(!job){
-      this.state=createPreviewJob(this.state,admission,background);const id=this.state.pending!.id,controller=new AbortController();
-      job={id,controller,timer:undefined!,context:{time,width,height,signal:controller.signal,exact:!!request.exact,sourceId:this.sourceId,publish:result=>this.publish(job!,result),trackCleanup:completion=>this.trackCleanup(completion)}};
-      this.jobs.set(id,job);job.timer=setTimeout(()=>{this.dispatch({kind:'ready',id});this.pump();},this.options.debounceMs);
+      this.state=createPreviewJob(this.state,admission,background);const id=this.state.pending!.id;
+      let controller:AbortController|undefined,created:Job|undefined;
+      const current=()=>this.state.requestEpoch===requestEpoch&&!this.state.disposed&&this.state.pending?.id===id;
+      try{
+        controller=new AbortController();if(!current())throw aborted();
+        const signal=controller.signal;if(!current())throw aborted();
+        created={id,controller,context:{time,width,height,signal,exact:!!request.exact,sourceId:this.sourceId,publish:result=>this.publish(created!,result),trackCleanup:completion=>this.trackCleanup(completion)}};
+        job=created;this.jobs.set(id,created);
+        // Queue execution after caller publication even for a synchronous timer adapter.
+        const handle=setTimeout(()=>{this.dispatch({kind:'ready',id});void Promise.resolve().then(()=>this.pump());},this.options.debounceMs);
+        if(!current()){clearTimeout(handle);throw aborted();}created.timer=handle;
+      }catch(error){
+        this.dispatch({kind:'cancel-job',id});this.jobs.delete(id);
+        try{if(created)clearTimeout(created.timer);}catch{}try{controller?.abort();}catch{}
+        return Promise.reject(error);
+      }
     }
     const selected=job;
     return new Promise((resolve,reject)=>{
-      let callerId:number;
-      const cancel=()=>{if(this.state.caller?.id===callerId&&this.caller?.job===selected){this.settle(aborted());this.cancelJob(selected);}};
-      const timeout=setTimeout(cancel,this.options.timeoutMs);
-      const cleanup=()=>{clearTimeout(timeout);request.signal?.removeEventListener('abort',cancel);};
-      this.dispatch({kind:'caller',jobId:selected.id});callerId=this.state.caller!.id;this.callers.set(callerId,{job:selected,request,start,cacheMs,onUpdate:request.onUpdate,resolve,reject,cleanup});
-      request.signal?.addEventListener('abort',cancel,{once:true});
+      let timeout:ReturnType<typeof setTimeout>|undefined,attached=false;
+      const signal=request.signal;
+      this.dispatch({kind:'caller',jobId:selected.id});const callerId=this.state.caller?.id;
+      if(callerId===undefined||this.state.caller?.jobId!==selected.id){reject(aborted());return;}
+      const current=()=>this.state.caller?.id===callerId&&this.caller?.job===selected;
+      const cancel=()=>{if(current()){this.settle(aborted());this.cancelJob(selected);}};
+      const cleanup=()=>{
+        let failed=false,failure:unknown;
+        try{clearTimeout(timeout);}catch(error){failed=true;failure=error;}
+        try{if(attached){attached=false;signal?.removeEventListener('abort',cancel);}}catch(error){if(!failed){failed=true;failure=error;}}
+        if(failed)throw failure;
+      };
+      this.callers.set(callerId,{job:selected,request,start,cacheMs,onUpdate:request.onUpdate,resolve,reject,cleanup});
+      try{
+        if(signal?.aborted){cancel();return;}
+        const acquired=setTimeout(cancel,this.options.timeoutMs);
+        if(!current()){clearTimeout(acquired);return;}timeout=acquired;
+        if(signal?.aborted){cancel();return;}
+        if(signal){attached=true;try{signal.addEventListener('abort',cancel,{once:true});}finally{if(!current())signal.removeEventListener('abort',cancel);}}
+        if(signal?.aborted)cancel();
+      }catch(error){if(current()){this.settle(error);try{this.cancelJob(selected);}catch{}}}
     });
   }
+
   private pump(){
     const previous=this.state;this.state=startPreviewJob(this.state);if(this.state===previous)return;
     const job=this.active!;

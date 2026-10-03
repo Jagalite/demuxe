@@ -36,7 +36,8 @@ export class ShakaBackend extends EventTarget {
     move(command) { const decision = transitionShakaBackend(this.control, command); this.control = decision.state; return decision; }
     check(lease) { if (!shakaLeaseCurrent(this.control, lease))
         throw new PlayerError('ABORTED', 'Shaka operation retired'); }
-    begin(domain) { this.active(); return this.move({ type: 'begin', domain }).lease; }
+    begin(domain) { this.active(); const decision = this.move({ type: 'begin', domain }); if (!decision.lease)
+        throw new PlayerError('UNSUPPORTED_FEATURE', 'Streaming attachment capacity exceeded'); return decision.lease; }
     controlWaiters = new Map();
     enter(lease) {
         return new Promise((resolve, reject) => { this.controlWaiters.set(lease.id, { lease, resolve, reject }); this.pumpControls(); });
@@ -604,19 +605,26 @@ export class ShakaBackend extends EventTarget {
     finally {
         this.finishControl(lease);
     } }
-    async addTextTrack(track, attachmentId) { const lease = this.begin('attachment'); try {
-        const player = this.loaded();
-        this.policy.authorize(track.src);
+    async attachTextTrack(lease, track, attachmentId) {
+        const player = this.loaded(), src = track.src, language = track.language ?? 'und', label = track.label, select = !!track.default;
         this.check(lease);
-        const added = await player.addTextTrackAsync(track.src, track.language ?? 'und', 'subtitle', 'text/vtt', undefined, track.label);
+        this.policy.authorize(src);
         this.check(lease);
-        if (track.default && shakaAttachmentSelect(this.control, lease)) {
+        const add = player.addTextTrackAsync;
+        this.check(lease);
+        this.move({ type: 'attachment.issued', lease });
+        const added = await add.call(player, src, language, 'subtitle', 'text/vtt', undefined, label);
+        this.check(lease);
+        if (select && shakaAttachmentSelect(this.control, lease)) {
             player.selectTextTrack(added);
             this.check(lease);
         }
-        this.move({ type: 'attached', lease, id: added.id, attachmentId, select: !!track.default });
+        this.move({ type: 'attached', lease, id: added.id, attachmentId, select });
         this.applyText();
         this.refresh();
+    }
+    async addTextTrack(track, attachmentId) { const lease = this.begin('attachment'); try {
+        await this.attachTextTrack(lease, track, attachmentId);
     }
     finally {
         this.finishControl(lease);
@@ -625,14 +633,29 @@ export class ShakaBackend extends EventTarget {
         this.active();
         if (!plainVTT(asset))
             throw new PlayerError('UNSUPPORTED_FEATURE', 'Shaka external subtitles require plain WebVTT');
-        const url = URL.createObjectURL(new Blob([asset.bytes], { type: 'text/vtt' }));
-        if (this.stopped) {
-            URL.revokeObjectURL(url);
-            this.active();
+        const lease = this.begin('attachment');
+        let url;
+        try {
+            url = URL.createObjectURL(new Blob([asset.bytes], { type: 'text/vtt' }));
+            this.blobs.add(url);
+            this.check(lease);
+            this.policy?.ownBlob(url);
+            this.check(lease);
+            await this.attachTextTrack(lease, { src: url, label: asset.label, language: asset.language, default: asset.select }, asset.attachmentId);
         }
-        this.blobs.add(url);
-        this.policy?.ownBlob(url);
-        await this.addTextTrack({ src: url, label: asset.label, language: asset.language, default: asset.select }, asset.attachmentId);
+        finally {
+            if (url && !this.control.attachmentIssued.includes(lease.id) && !this.control.external.some(entry => entry.request === lease.id)) {
+                try {
+                    URL.revokeObjectURL(url);
+                    this.blobs.delete(url);
+                    this.policy?.disownBlob(url);
+                }
+                catch {
+                    this.move({ type: 'attachment.issued', lease });
+                }
+            }
+            this.finishControl(lease);
+        }
     }
     resize(width, height) { this.native.resize(width, height); }
     audioDiagnostics() { return { ...this.native.audioDiagnostics(), source: 'shaka-mse' }; }

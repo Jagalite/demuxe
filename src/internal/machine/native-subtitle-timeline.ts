@@ -12,7 +12,7 @@ export type SubtitleTimelineChange=
  |Readonly<{kind:'add';id:number;mpvId:number;attachmentId?:string;title?:string;language?:string;format?:string}>|Readonly<{kind:'remove';id:number;track:number}>
  |Readonly<{kind:'verify.begin';id:number;seconds:number;duration:number;width:number;height:number}>
  |Readonly<{kind:'verify.sample';id:number;visible:boolean}>|Readonly<{kind:'verify.restore'|'verify.restored'|'verify.accept';id:number}>;
-export type SubtitleTimelineDecision=Readonly<{state:NativeSubtitleTimeline;accepted:boolean;id?:number;skip?:boolean;error?:'track'|'default'|'output';track?:NativeSubtitleTrack;trackId?:number}>;
+export type SubtitleTimelineDecision=Readonly<{state:NativeSubtitleTimeline;accepted:boolean;id?:number;skip?:boolean;error?:'track'|'default'|'output'|'capacity'|'identity';track?:NativeSubtitleTrack;trackId?:number}>;
 export function subtitleTimelineCurrent(state:NativeSubtitleTimeline,id:number):boolean{return state.active===id&&state.queue.some(operation=>operation.id===id);}
 export function subtitleTimelineChanging(state:NativeSubtitleTimeline):boolean{return state.suspended||state.active!==null||state.queue.length>0;}
 export function subtitleSelection(state:NativeSubtitleTimeline,id:string):NativeSubtitleTrack|undefined{return id==='no'?undefined:id==='auto'?(state.tracks.find(track=>track.external&&track.selected)??state.tracks.find(track=>track.default)??state.tracks.find(track=>!track.external)):state.tracks.find(track=>track.id===id);}
@@ -31,7 +31,7 @@ export function transitionSubtitleTimeline(state:NativeSubtitleTimeline,input:Su
   return patch({tracks:Object.freeze(input.tracks.map(track=>Object.freeze({...track,default:track['ff-index']===input.defaultStreamIndex}))),verified:null});
  }
  if(input.kind==='catalog.reset')return state.queue.length?no():patch({tracks:Object.freeze([]),verified:null,selection:null,verification:null});
- if(input.kind==='admit'){const id=state.serial+1;return patch({serial:id,queue:Object.freeze([...state.queue,Object.freeze({id,kind:input.operation})])},{id});}
+ if(input.kind==='admit'){if(state.queue.length>=128)return no('capacity');if(!Number.isSafeInteger(state.serial+1))return no('identity');const id=state.serial+1;return patch({serial:id,queue:Object.freeze([...state.queue,Object.freeze({id,kind:input.operation})])},{id});}
  if(input.kind==='start'){if(state.active!==null||!state.queue.length)return no();const id=state.queue[0].id;return patch({active:id},{id});}
  if(input.kind==='suspend')return patch({suspended:input.value});
  if(input.kind==='retire')return patch({queue:Object.freeze([]),active:null,selection:null,verification:null});

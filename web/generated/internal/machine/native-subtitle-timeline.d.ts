@@ -99,7 +99,7 @@ export type SubtitleTimelineDecision = Readonly<{
     accepted: boolean;
     id?: number;
     skip?: boolean;
-    error?: 'track' | 'default' | 'output';
+    error?: 'track' | 'default' | 'output' | 'capacity' | 'identity';
     track?: NativeSubtitleTrack;
     trackId?: number;
 }>;

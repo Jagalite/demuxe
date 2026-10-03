@@ -30,6 +30,7 @@ export declare class ShakaNetworkPolicy {
     private checkHeaders;
     authorize(uri: string): string;
     ownBlob(uri: string): void;
+    disownBlob(uri: string): void;
     private resource;
     private pruneResources;
     readonly filter: Shaka.extern.RequestFilter;

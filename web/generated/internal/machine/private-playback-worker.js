@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { resolveDecodePolicy, mpvDecoderOptions, nextAdaptiveState, supportsEmergencyFrameDrop, adaptiveDecodeSignal } from './decode-policy.js';
-export function createPrivatePlaybackWorker() { return Object.freeze({ decodeInput: null, decodePolicy: null, hybrid: false, adaptiveFrameDrop: false, adaptiveSerial: 0, adaptiveRequest: null, adaptivePrevious: null, adaptiveStreak: 0, adaptiveDirection: '', adaptiveCooldown: 0, adaptiveReason: 'disabled', phase: 'new', initialized: false, closeStarted: false, loadSerial: 0, load: null, replacing: false, generation: 0, userPaused: true, contextRunning: false, settings: Object.freeze([]), commandSerial: 1, commands: Object.freeze([]), refreshSerial: 0, refreshes: Object.freeze([]), pumping: false, pumpSerial: 0, pumpLoad: 0, target: null, opening: false, restarted: false, targetDrawBaseline: 0, pictureSerial: 0, capture: null, pendingPicture: null, sentDraws: 0, presentedDraws: 0, picturePaused: false, fenceSerial: 0, fences: Object.freeze([]), lastDraws: 0, lastDiagnostics: 0, subtitleCount: 0, subtitleBytes: 0 }); }
+export function createPrivatePlaybackWorker() { return Object.freeze({ rpcSerial: 0, rpcs: Object.freeze([]), decodeInput: null, decodePolicy: null, hybrid: false, adaptiveFrameDrop: false, adaptiveSerial: 0, adaptiveRequest: null, adaptivePrevious: null, adaptiveStreak: 0, adaptiveDirection: '', adaptiveCooldown: 0, adaptiveReason: 'disabled', phase: 'new', initialized: false, closeStarted: false, loadSerial: 0, load: null, replacing: false, generation: 0, userPaused: true, contextRunning: false, settings: Object.freeze([]), commandSerial: 1, commands: Object.freeze([]), refreshSerial: 0, refreshes: Object.freeze([]), pumping: false, pumpSerial: 0, pumpLoad: 0, target: null, opening: false, restarted: false, targetDrawBaseline: 0, pictureSerial: 0, capture: null, pendingPicture: null, sentDraws: 0, presentedDraws: 0, picturePaused: false, fenceSerial: 0, fences: Object.freeze([]), lastDraws: 0, lastDiagnostics: 0, subtitleCount: 0, subtitleBytes: 0 }); }
 export function playbackWorkerAccepts(state, op) { return op === 'close' || state.phase !== 'closing' && state.phase !== 'closed'; }
 export function admitPlaybackWorkerInit(state) {
     const error = state.initialized ? 'Playback host already initialized' : state.phase !== 'new' ? 'Playback host closed' : null;
@@ -31,14 +31,14 @@ export function retirePlaybackWorker(state) {
 export function beginPlaybackWorkerClose(state) { return state.closeStarted ? state : Object.freeze({ ...state, closeStarted: true }); }
 export function finishPlaybackWorkerClose(state) { return Object.freeze({ ...state, phase: 'closed' }); }
 export function admitPlaybackWorkerCommand(state, seek, now) {
-    const error = !playbackWorkerAccepts(state, 'command') ? 'Playback host closing' : state.replacing ? 'Source replaced' : state.commandSerial >= 0x3fffffff ? 'Command identity limit' : null;
+    const error = !playbackWorkerAccepts(state, 'command') ? 'Playback host closing' : state.replacing ? 'Source replaced' : state.commandSerial >= 0x3fffffff ? 'Command identity limit' : state.commands.length >= 128 ? 'Native command capacity' : null;
     if (error)
         return Object.freeze({ state, id: null, request: null, error });
     const id = state.commandSerial, request = Object.freeze({ id: seek ? id + 0x40000000 : id, load: state.loadSerial, deadline: now + 15000 });
     return Object.freeze({ state: Object.freeze({ ...state, commandSerial: id + 1, commands: Object.freeze([...state.commands, request]) }), id, request, error: null });
 }
 export function admitPlaybackWorkerRefresh(state, load, now) {
-    if (!playbackWorkerLoadCurrent(state, load))
+    if (!playbackWorkerLoadCurrent(state, load) || state.refreshes.length >= 128 || !Number.isSafeInteger(state.refreshSerial + 1))
         return Object.freeze({ state, request: null });
     const request = Object.freeze({ id: state.refreshSerial + 1, load, deadline: now + 5000 });
     return Object.freeze({ state: Object.freeze({ ...state, refreshSerial: request.id, refreshes: Object.freeze([...state.refreshes, request]) }), request });
@@ -114,6 +114,8 @@ export function pausePlaybackWorkerPresentation(state, draws, now) {
         return Object.freeze({ state, fence: null, error: 'Playback presentation retired' });
     if (state.picturePaused || state.presentedDraws >= draws)
         return Object.freeze({ state: state.picturePaused ? state : Object.freeze({ ...state, picturePaused: true }), fence: null, error: null });
+    if (state.fences.length >= 128 || !Number.isSafeInteger(state.fenceSerial + 1))
+        return Object.freeze({ state, fence: null, error: 'Playback presentation capacity' });
     const fence = Object.freeze({ id: state.fenceSerial + 1, load: state.loadSerial, generation: state.generation, rendered: draws, deadline: now + 15000 });
     return Object.freeze({ state: Object.freeze({ ...state, fenceSerial: fence.id, fences: Object.freeze([...state.fences, fence]) }), fence, error: null });
 }
@@ -168,3 +170,17 @@ export function settlePlaybackWorkerAdaptive(state, id, success) {
     const accepted = state.phase === 'ready' && !state.replacing && request.load === state.loadSerial;
     return Object.freeze({ state: Object.freeze({ ...state, adaptiveRequest: null, ...accepted && success ? { decodePolicy: request.candidate, adaptiveReason: request.reason } : {} }), accepted });
 }
+/** RPC slots retain physical chain obligations until completion, even after retirement. */
+export function admitPlaybackWorkerRPC(state, bytes, closing = false) {
+    if (state.phase === 'closing' || state.phase === 'closed' || state.rpcs.some(entry => entry.id === 0))
+        return Object.freeze({ state, error: 'Playback host closed' });
+    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > 64 * 1024 * 1024)
+        return Object.freeze({ state, error: 'Playback RPC byte capacity' });
+    if (!closing && (state.rpcs.length >= 128 || state.rpcs.reduce((sum, entry) => sum + entry.bytes, 0) + bytes > 64 * 1024 * 1024))
+        return Object.freeze({ state, error: 'Playback RPC capacity' });
+    if (!closing && !Number.isSafeInteger(state.rpcSerial + 1))
+        return Object.freeze({ state, error: 'Playback RPC identity exhausted' });
+    const id = closing ? 0 : state.rpcSerial + 1;
+    return Object.freeze({ state: Object.freeze({ ...state, rpcSerial: closing ? state.rpcSerial : id, rpcs: Object.freeze([...state.rpcs, Object.freeze({ id, bytes })]) }), id });
+}
+export function finishPlaybackWorkerRPC(state, id) { return state.rpcs.some(entry => entry.id === id) ? Object.freeze({ ...state, rpcs: Object.freeze(state.rpcs.filter(entry => entry.id !== id)) }) : state; }

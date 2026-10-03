@@ -14,7 +14,7 @@ import {watchdogPolicy} from './watchdogs.js';
 import type {WatchdogPolicy} from '../types.js';
 import {cloneWasmBuffering,validWasmVolume,planWasmGain,effectiveWasmGain,planWasmBuffering,planWasmAudioOutput} from './machine/wasm-settings.js';
 import {wasmSeekBoundary} from './machine/wasm-seek.js';
-import {createWasmLifecycle,wasmAlive,markWasmInitialized,settleWasmInitialization,claimWasmWorkerFailure,admitWasmRequest,settleWasmRequest,rejectWasmRequests,admitWasmWaiter,settleWasmWaiter,beginWasmOpen,ownsWasmOpen,finishWasmOpen,observeWasmFile,retireWasmLifecycle,finishWasmRetirement,beginWasmPlayerSeek,observeWasmPlayerSeek,confirmWasmPlayerSeek,applyWasmSetting} from './machine/wasm-lifecycle.js';
+import {admitWasmAttachment,wasmAttachmentCurrent,finishWasmAttachment,wasmAttachmentIdentity,createWasmLifecycle,wasmAlive,markWasmInitialized,settleWasmInitialization,claimWasmWorkerFailure,admitWasmRequest,settleWasmRequest,rejectWasmRequests,admitWasmWaiter,settleWasmWaiter,beginWasmOpen,ownsWasmOpen,finishWasmOpen,observeWasmFile,retireWasmLifecycle,finishWasmRetirement,beginWasmPlayerSeek,observeWasmPlayerSeek,confirmWasmPlayerSeek,applyWasmSetting} from './machine/wasm-lifecycle.js';
 export type PlayerEvent = {event:string; id?:number; name?:string; data?:unknown; error?:string; [key:string]:unknown};
 export type RemoteSource = MediaInputOptions & {streaming?:StreamingOptions;url:string;format?:'file'|'hls'|'dash';headers?:Record<string,string>;credentials?:RequestCredentials;allowedOrigins?:string[];immutable?:boolean;refreshAuthorization?:(resource?:{url:string})=>Promise<{url?:string;headers?:Record<string,string>}>};
 export type PlayerDiagnostics = {buffering?:BufferingResolution;path:'wasm';presentation?:{position?:number;pts?:number[];retained?:number;pending?:number;received?:number;closed?:number};decoder?:'software'|'webcodecs'|'webgpu';decoderBackend?:'ffmpeg'|'webcodecs'|'webgpu';webgpu?:{available:boolean;selected:boolean;codec:string|null;decodeIntent?:ExternalDecodeIntent|null;queuedPackets:number;retainedFrames:number;liveSurfaces:number;surfaceBytes:number;pooledBufferBytes:number;pipelineCount:number;submissions:number;deviceLost:boolean};decoderStats?:Record<string,number|boolean>; rendered:number; heapBytes:number; queuedFrames:number; epoch:number;io?:Record<string,number|string>;seeking?:boolean;position?:number;presentedPosition?:number;ioPending?:boolean;interruptions?:number;renderMs?:number;copyMs?:number};
@@ -116,7 +116,7 @@ export class WasmPlayer extends EventTarget {
           if(event.event==='command-reply' && event.id) {
             this.settleRequest(event.id,event.error?new Error(event.error):undefined,event.result);
           }
-          if(event.event==='property-change'&&event.name==='track-list'&&Array.isArray(event.data)){let external=0;event.data=event.data.map(t=>t.external?{...t,'attachment-id':this.attachmentIds[external],'external-index':++external}:t);}
+          if(event.event==='property-change'&&event.name==='track-list'&&Array.isArray(event.data)){let external=0;event.data=event.data.map(t=>t.external?{...t,'attachment-id':wasmAttachmentIdentity(this.lifecycle,external),'external-index':++external}:t);}
           if(event.event==='property-change' && event.name) this.properties.set(event.name,event.data);
           this.dispatchEvent(new CustomEvent('mpv',{detail:event}));
         }
@@ -178,7 +178,7 @@ export class WasmPlayer extends EventTarget {
     // Preserve typed terminal failures through the session listener.
     if(report&&!this.destroyed)this.dispatchEvent(new CustomEvent('error',{detail:isPlayerError(error)?error:error.message}));
   }
-  private request(message:Record<string,unknown>,transfer:Transferable[]=[]):Promise<any> {
+  private request(message:Record<string,unknown>,transfer:Transferable[]=[],sent?:()=>void):Promise<any> {
     const admitted=admitWasmRequest(this.lifecycle,performance.now());this.lifecycle=admitted.state;
     if(!admitted.request)return Promise.reject(admitted.reason==='capacity'?new Error('Command queue is full'):this.unavailableError());
     const {id,deadline}=admitted.request;
@@ -196,7 +196,7 @@ export class WasmPlayer extends EventTarget {
           if(this.pending.get(id)===entry)entry.timer=timer;else clearTimeout(timer);
         };
         arm();if(this.pending.get(id)!==entry)return;
-        this.worker.postMessage({...message,id},transfer);
+        const payload={...message,id},post=this.worker.postMessage;if(this.pending.get(id)!==entry)return;sent?.();(post as (message:unknown,transfer:Transferable[])=>void).call(this.worker,payload,transfer);
       }catch(error){this.settleRequest(id,error as Error);}
     });
   }
@@ -258,7 +258,7 @@ export class WasmPlayer extends EventTarget {
   private async withEvent(predicate:(event:PlayerEvent)=>boolean|Error,work:()=>Promise<unknown>):Promise<void> {
     let cancel:((error:Error)=>void)|undefined;
     const observed=this.waitForEvent(predicate,value=>{cancel=value;});void observed.catch(()=>{});
-    try{if(!wasmAlive(this.lifecycle))throw this.unavailableError();await Promise.all([observed,work()]);}
+    try{if(!wasmAlive(this.lifecycle))throw this.unavailableError();if(!cancel)throw new Error('Media event wait unavailable');await Promise.all([observed,work()]);}
     catch(error){cancel?.(error as Error);throw error;}
   }
   private async openLocal(file:File|ArrayBuffer, options:MediaInputOptions,id:number):Promise<void> {
@@ -425,14 +425,23 @@ export class WasmPlayer extends EventTarget {
     this.lifecycle=decision.state;return decision.confirmed;
   }
   seekBoundary(target:number):number|undefined {return wasmSeekBoundary(this.lifecycle.seek,target);}
-  private attachmentIds:Array<string|undefined>=[];
   async addSubtitle(subtitle:SubtitleAsset){
-    this.attachmentIds.push(subtitle.attachmentId);
-    await this.ready;const bytes=subtitle.bytes.slice(0);
-    const previous=((this.properties.get('track-list')??[]) as Array<{external?:boolean}>).filter(t=>t.external).length;
-    // Command acceptance can precede the track-list event. Selection must wait
-    // for the new source-scoped external identity to become observable.
-    await this.withEvent(e=>e.event==='property-change'&&e.name==='track-list'&&Array.isArray(e.data)&&e.data.filter(t=>t.external).length>previous,()=>this.request({type:'subtitle',...subtitle,bytes},[bytes]));
+    await this.ready;
+    const admission=admitWasmAttachment(this.lifecycle,subtitle.bytes.byteLength,subtitle.attachmentId);this.lifecycle=admission.state;
+    if(admission.id===null)throw new PlayerError('INVALID_ARGUMENT',admission.error!);
+    const id=admission.id;let submitted=false;
+    try{
+      const bytes=subtitle.bytes.slice(0);
+      if(!wasmAttachmentCurrent(this.lifecycle,id))throw this.unavailableError();
+      const previous=((this.properties.get('track-list')??[]) as Array<{external?:boolean}>).filter(t=>t.external).length;
+      // Publish the bounded pending identity before synchronous worker events.
+      await this.withEvent(e=>e.event==='property-change'&&e.name==='track-list'&&Array.isArray(e.data)&&e.data.filter(t=>t.external).length>previous,()=>{
+        if(!wasmAttachmentCurrent(this.lifecycle,id))throw this.unavailableError();
+        return this.request({type:'subtitle',...subtitle,bytes},[bytes],()=>{submitted=true;});
+      });
+      if(!wasmAttachmentCurrent(this.lifecycle,id))throw this.unavailableError();
+      this.lifecycle=finishWasmAttachment(this.lifecycle,id,'accepted');
+    }catch(error){this.lifecycle=finishWasmAttachment(this.lifecycle,id,submitted?'uncertain':'unsubmitted');throw error;}
   }
   async setAudioOutputDevice(id:string){
     await this.ready;const context=this.audioContext as AudioContext&{setSinkId?:(id:string)=>Promise<void>};

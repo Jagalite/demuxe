@@ -12,6 +12,8 @@ export declare class PlayerPresentation {
     private leaseValue?;
     private ownerValue?;
     private documentValue?;
+    private destruction?;
+    private pipClose?;
     constructor(player: Player, host: () => HTMLElement);
     private get ownerDocument();
     private get lease();

@@ -25,6 +25,10 @@ export function transitionSubtitleTimeline(state, input) {
     if (input.kind === 'catalog.reset')
         return state.queue.length ? no() : patch({ tracks: Object.freeze([]), verified: null, selection: null, verification: null });
     if (input.kind === 'admit') {
+        if (state.queue.length >= 128)
+            return no('capacity');
+        if (!Number.isSafeInteger(state.serial + 1))
+            return no('identity');
         const id = state.serial + 1;
         return patch({ serial: id, queue: Object.freeze([...state.queue, Object.freeze({ id, kind: input.operation })]) }, { id });
     }

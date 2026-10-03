@@ -100,3 +100,16 @@ test('actual external-only overlay reset removes embedded catalog through pure o
 test('actual catalog reset cannot overwrite an active verification or retired lifetime',async t=>{
  const f=fixture(t,{tracks:[{...tracks[0],selected:true}]});await f.service.ready;const verify=f.service.verify(),rejected=assert.rejects(verify,/destroyed/);assert.throws(()=>f.service.resetTracks(),/busy/);assert.equal(f.service.tracks[0].selected,true);await f.service.destroy();await rejected;assert.throws(()=>f.service.resetTracks(),/destroyed/);
 });
+
+test('subtitle timeline bounds active plus queued work and refuses unsafe identities',()=>{
+ let state=initial();for(let n=0;n<128;n++){const admitted=core.transitionSubtitleTimeline(state,{kind:'admit',operation:'select'});assert.equal(admitted.accepted,true);state=admitted.state;if(n===0)state=step(state,{kind:'start'});}
+ assert.equal(state.queue.length,128);const denied=core.transitionSubtitleTimeline(state,{kind:'admit',operation:'seek'});assert.equal(denied.error,'capacity');assert.equal(denied.state,state);
+ state=step(state,{kind:'cancel',id:state.queue.at(-1).id});assert.equal(core.transitionSubtitleTimeline(state,{kind:'admit',operation:'seek'}).accepted,true);
+ const exhausted={...initial(),serial:Number.MAX_SAFE_INTEGER};assert.equal(core.transitionSubtitleTimeline(exhausted,{kind:'admit',operation:'seek'}).error,'identity');
+});
+test('subtitle shell charges readiness-blocked calls before allocating an unbounded promise queue',async()=>{
+ const service=Object.create(NativeMpvSubtitles.prototype);let release;Object.assign(service,{lifetime:life.initialNativeSubtitleLifetime(),timelineWork:new Map(),ready:new Promise(resolve=>release=resolve),syncPump(){},invalidate(){}});
+ let calls=0;service.selectTimeline=async()=>{calls++;};const work=Array.from({length:128},()=>service.select('no'));
+ await assert.rejects(service.select('no'),/capacity/);assert.equal(service.timelineWork.size,128);assert.equal(calls,0);
+ release();await Promise.all(work);assert.equal(calls,128);assert.equal(service.timelineWork.size,0);assert.equal(service.lifetime.timeline.queue.length,0);
+});

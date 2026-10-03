@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {ScrubberPreview} from '../web/generated/player/preview.js';
+const {ScrubberPreview}=await import(process.env.SCRUBBER_PREVIEW_URL??'../web/generated/player/preview.js');
 
 function fixture(decode=()=>Promise.resolve(),api=()=>undefined) {
  const timeline=new EventTarget(),panel={hidden:false},label={textContent:''};
@@ -49,4 +49,22 @@ test('adaptive hover reuses a nearby cache sample without another decode',async(
  const calls=[];const api={strategy:{type:'adaptive',samples:24,every:5},getFrame:async request=>{calls.push(request);return {...frame({}),time:102};}};
  const {preview,timeline}=fixture(undefined,()=>api);timeline.min='0';timeline.max='7200';preview.show=async()=>{};
  await preview.sample(api,100,0);await new Promise(resolve=>setImmediate(resolve));assert.equal(calls.length,1);preview.destroy();
+});
+
+for(const kind of ['controller','timer'])test(`scrubber retirement during ${kind} acquisition releases the late handle`,async t=>{
+ const {preview}=fixture();let handles=0,aborts=0;const Original=AbortController;
+ if(kind==='controller')t.mock.method(globalThis,'AbortController',class extends Original{constructor(){super();this.signal.addEventListener('abort',()=>aborts++);preview.destroy();}});
+ else {t.mock.method(globalThis,'setTimeout',()=>{handles++;preview.destroy();return 1;});t.mock.method(globalThis,'clearTimeout',()=>{handles--;});}
+ await preview.show(frame({blob:new Blob(['x'])}));assert.equal(preview.presentations.size,0);assert.equal(preview.control.presentation,null);assert.equal(handles,0);if(kind==='controller')assert.equal(aborts,1);
+});
+test('scrubber listener acquisition rollback removes partially acquired listeners',t=>{
+ const timeline=new EventTarget(),listeners=new Set(),failure=Error('add');
+ timeline.addEventListener=(name,fn)=>{listeners.add(name);if(name==='pointerleave')throw failure;};timeline.removeEventListener=name=>listeners.delete(name);
+ assert.throws(()=>new ScrubberPreview(timeline,{hidden:false},{removeAttribute(){}},{},()=>undefined),e=>e===failure);assert.equal(listeners.size,0);
+});
+test('scrubber timer failure retires presentation metadata without escaping async UI work',async t=>{
+ const {preview}=fixture();t.mock.method(globalThis,'setTimeout',()=>{throw Error('timer');});await preview.show(frame({blob:new Blob(['x'])}));assert.equal(preview.control.presentation,null);assert.equal(preview.presentations.size,0);preview.destroy();
+});
+test('scrubber URL acquisition reentry revokes the late URL without publishing',async t=>{
+ const {preview,image}=fixture(),revoked=[];t.mock.method(URL,'createObjectURL',()=>{preview.destroy();return 'blob:late';});t.mock.method(URL,'revokeObjectURL',url=>revoked.push(url));await preview.show(frame({blob:new Blob(['x'])}));assert.deepEqual(revoked,['blob:late']);assert.equal(image.src,undefined);assert.equal(preview.presentations.size,0);
 });

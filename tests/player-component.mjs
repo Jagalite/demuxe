@@ -435,5 +435,14 @@ await check('queue navigation remains inside a small player and source ownership
  await page.evaluate(async()=>{q.showSourceControls=true;await q.destroy();});
  assert.equal(await page.evaluate(()=>q.queueItems.length),0);
 });
+await check('failed observer acquisition rolls back the partially initialized player element',async()=>{
+ const data=await page.evaluate(async()=>{
+  const Original=globalThis.ResizeObserver;let disconnected=0;
+  const element=document.createElement('demuxe-player'),ready=element.ready.then(()=>false,()=>true);
+  globalThis.ResizeObserver=class{observe(){throw Error('fixture observer acquisition');}disconnect(){disconnected++;}};
+  try{document.body.append(element);const rejected=await ready;await element.connecting;const retained=!!element.player;await element.destroy();return {rejected,retained,disconnected};}
+  finally{globalThis.ResizeObserver=Original;element.remove();}
+ });assert.equal(data.rejected,true);assert.equal(data.retained,false);assert.ok(data.disconnected>=1);
+});
 await page.emulateMedia({forcedColors:'none'});await page.waitForTimeout(150);await page.setViewportSize({width:1280,height:1000});await page.screenshot({path:out+'/desktop.png',fullPage:true});
 }finally{await page.evaluate(()=>Promise.all([...document.querySelectorAll('demuxe-player')].map(p=>p.destroy()))).catch(()=>{});await browser.close();server.kill();result.passed=result.checks.every(c=>c.passed);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}

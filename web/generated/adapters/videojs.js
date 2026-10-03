@@ -83,8 +83,8 @@ export function registerVideojsTech(videojs, name = 'Demuxe') {
                                 this.trigger({ type: event, detail });
                         }
                     };
-                    this.view.addEventListener(event, listener);
                     this.stops.push(() => this.view.removeEventListener(event, listener));
+                    this.view.addEventListener(event, listener);
                 }
                 this.ready(() => { if (!this.transition({ type: 'ready' }).accepted)
                     return; if (this.view.state.sourceId !== null)

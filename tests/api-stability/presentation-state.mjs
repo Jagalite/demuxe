@@ -156,7 +156,7 @@ test('shell restores video PiP after late entry into a destroyed owner or change
 test('document PiP shell rejects late windows and stale pagehide cannot restore a replacement',async t=>{
   const env=environment(t),{presentation}=env.make(),wait=deferred();let invoked=false;
   const windows=[];
-  const window=()=>{const win={closed:false,document:{body:{style:{},append(){}}},addEventListener(_name,callback){this.hide=callback;},close(){this.closed=true;}};windows.push(win);return win;};
+  const window=()=>{const win={closed:false,document:{body:{style:{},append(){}}},addEventListener(_name,callback){this.hide=callback;},removeEventListener(){},close(){this.closed=true;}};windows.push(win);return win;};
   globalThis.documentPictureInPicture={requestWindow(){invoked=true;return wait.promise;}};
   const first=presentation.requestPictureInPicture('document');assert.equal(invoked,true);
   await presentation.exitPictureInPicture();const retired=window();wait.resolve(retired);
@@ -204,4 +204,29 @@ test('Media Session release cannot clear a different owner installed during unsu
   assert.equal(env.media.playbackState,'paused');
   env.handlers.get('play')();await Promise.resolve();assert.deepEqual(b.calls,['play']);
   await a.presentation.destroy();await b.presentation.destroy();
+});
+
+for(const boundary of ['marker','style','append','listener'])test(`document PiP rolls back ${boundary} acquisition failure`,async t=>{
+ const env=environment(t),{host,presentation}=env.make(),failure=Error(boundary);let restored=0,closed=0;const listeners=new Set();
+ env.doc.createComment=()=>({parentNode:{},replaceWith(){this.parentNode=null;restored++;}});
+ const body={style:{},append(){if(boundary==='append')throw failure;}},win={document:{body},addEventListener(_name,fn){listeners.add(fn);if(boundary==='listener')throw failure;},removeEventListener(_name,fn){listeners.delete(fn);},close(){closed++;}};
+ if(boundary==='marker')host.before=()=>{throw failure;};if(boundary==='style')Object.defineProperty(body,'style',{get(){throw failure;}});
+ globalThis.documentPictureInPicture={requestWindow:async()=>win};await assert.rejects(presentation.requestPictureInPicture('document'),e=>e===failure);assert.equal(closed,1);assert.equal(restored,1);assert.equal(listeners.size,0);assert.equal(presentation.control.pip,null);assert.equal(presentation.pipWindow,undefined);await presentation.destroy();
+});
+test('document PiP retirement during host movement restores before closing late window',async t=>{
+ const env=environment(t),{presentation}=env.make();let destroyed,restored=0,closed=0,registered=0;
+ env.doc.createComment=()=>({parentNode:{},replaceWith(){this.parentNode=null;restored++;}});
+ const win={document:{body:{style:{},append(){destroyed=presentation.destroy();}}},addEventListener(){registered++;},removeEventListener(){},close(){closed++;}};
+ globalThis.documentPictureInPicture={requestWindow:async()=>win};await assert.rejects(presentation.requestPictureInPicture('document'),e=>e.code==='ABORTED');await destroyed;assert.equal(restored,1);assert.equal(closed,1);assert.equal(registered,0);assert.equal(presentation.pipWindow,undefined);
+});
+test('presentation destruction attempts window and fullscreen release after host restoration fails',async t=>{
+ const env=environment(t),{host,presentation}=env.make(),failure=Error('restore');let closed=0,exited=0,nested;
+ presentation.pipWindow={close(){closed++;}};presentation.restore=()=>{nested=presentation.destroy();throw failure;};env.doc.fullscreenElement=host;env.doc.exitFullscreen=async()=>{exited++;env.doc.fullscreenElement=null;};
+ const done=presentation.destroy();assert.equal(nested,done);assert.equal(presentation.destroy(),done);await assert.rejects(done,e=>e===failure);assert.equal(closed,1);assert.equal(exited,1);
+});
+for(const api of ['fullscreen','document'])test(`${api} method getter retirement prevents gesture invocation`,async t=>{
+ const env=environment(t),{host,presentation}=env.make();let calls=0,done;
+ if(api==='fullscreen')Object.defineProperty(host,'requestFullscreen',{get(){done=presentation.destroy();return()=>{calls++;};}});
+ else globalThis.documentPictureInPicture={get requestWindow(){done=presentation.destroy();return()=>{calls++;};}};
+ await assert.rejects(api==='fullscreen'?presentation.requestFullscreen():presentation.requestPictureInPicture('document'),e=>e.code==='ABORTED');await done;assert.equal(calls,0);
 });

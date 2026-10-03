@@ -2,7 +2,7 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import vm from 'node:vm';import {readFile} from 'node:fs/promises';
 import * as decode from '../../web/generated/internal/decode-policy.js';
 import * as policy from '../../web/generated/internal/machine/private-playback-worker.js';
-const source=(await readFile(new URL('../../web/private-mpv/playback-worker.js',import.meta.url),'utf8')).replace(/^import .*;$/gm,'');
+const source=(await readFile(process.env.PLAYBACK_WORKER_SOURCE??new URL('../../web/private-mpv/playback-worker.js',import.meta.url),'utf8')).replace(/^import .*;$/gm,'');
 const turn=()=>new Promise(resolve=>setImmediate(resolve));
 function worker(options={}){
  const messages=[],commands=[],events=[],sources=[],calls=[],timers=new Map();let timer=0,bitmapResolve,now=1000;
@@ -148,4 +148,44 @@ test('successful replacement destruction is recorded before reentrant close can 
  w.send({id:1,op:'load',generation:2});await w.drain();await closing;
  assert.equal(w.calls.filter(name=>name==='web_destroy').length,1);
  assert.equal(w.host.created,false);assert.match(w.messages.find(message=>message.id===1).error,/replaced/i);
+});
+test('RPC ingress bounds blocked caller chains and preserves current load on overload',async()=>{
+ const w=worker();let release;w.host.command=()=>new Promise(resolve=>release=resolve);
+ for(let id=1;id<=128;id++)w.send({id,op:'command',args:['expand-text','ok']});await turn();
+ w.send({id:129,op:'load',generation:99});assert.match(w.messages.find(m=>m.id===129).error,/RPC capacity/);
+ assert.equal(vm.runInContext('lifecycle.rpcs.length',w.context),128);assert.equal(vm.runInContext('lifecycle.loadSerial',w.context),0);
+ w.send({id:130,op:'close'});assert.equal(vm.runInContext('lifecycle.rpcs.length',w.context),129);
+ w.send({id:131,op:'command',args:['expand-text','late']});assert.match(w.messages.find(m=>m.id===131).error,/closed/);
+ release();await w.drain();assert.equal(vm.runInContext('lifecycle.rpcs.length',w.context),0);assert.equal(w.messages.filter(m=>m.id>=1&&m.id<=128).length,128);
+});
+test('RPC copied payload aggregate rejects excess before retaining another closure',async()=>{
+ const w=worker();let release;w.host.command=()=>new Promise(resolve=>release=resolve);const bytes=new ArrayBuffer(33*1024*1024);
+ w.send({id:1,op:'command',args:['expand-text','ok'],bytes});await turn();w.send({id:2,op:'command',args:['expand-text','ok'],bytes});
+ assert.match(w.messages.find(m=>m.id===2).error,/RPC capacity/);assert.equal(vm.runInContext('lifecycle.rpcs.length',w.context),1);
+ w.send({id:3,op:'close'});release();await w.drain();assert.equal(vm.runInContext('lifecycle.rpcs.length',w.context),0);
+});
+test('RPC envelope traversal rejects excessive depth without changing load ownership',async()=>{
+ const w=worker();let nested={};for(let i=0;i<20;i++)nested={nested};w.send({id:1,op:'load',nested});assert.match(w.messages.find(m=>m.id===1).error,/envelope capacity/);assert.equal(vm.runInContext('lifecycle.loadSerial',w.context),0);await w.close();
+});
+test('pure async command refresh and presentation maps have separate finite capacities',()=>{
+ let command=ready();for(let i=0;i<128;i++){const result=policy.admitPlaybackWorkerCommand(command,false,0);assert.ok(result.request);command=result.state;}assert.match(policy.admitPlaybackWorkerCommand(command,false,0).error,/capacity/);
+ let refresh=loaded(ready());for(let i=0;i<128;i++){const result=policy.admitPlaybackWorkerRefresh(refresh,refresh.load.id,0);assert.ok(result.request);refresh=result.state;}assert.equal(policy.admitPlaybackWorkerRefresh(refresh,refresh.load.id,0).request,null);
+ let presentation=ready();for(let i=0;i<128;i++){const result=policy.pausePlaybackWorkerPresentation(presentation,1,0);assert.ok(result.fence);presentation=result.state;}assert.match(policy.pausePlaybackWorkerPresentation(presentation,1,0).error,/capacity/);
+ const exhausted={...ready(),rpcSerial:Number.MAX_SAFE_INTEGER};assert.match(policy.admitPlaybackWorkerRPC(exhausted,0).error,/identity exhausted/);const close=policy.admitPlaybackWorkerRPC(exhausted,0,true);assert.equal(close.id,0);assert.equal(policy.finishPlaybackWorkerRPC(close.state,0).rpcs.length,0);
+});
+test('oversized setting is rejected before persisting its replay value',async()=>{
+ const w=worker();w.send({id:1,op:'command',args:['set','vf','x'.repeat(16385)]});await w.drain();assert.match(w.messages.find(m=>m.id===1).error,/Invalid playback command/);assert.equal(vm.runInContext("lifecycle.settings.some(entry=>entry[0]==='vf')",w.context),false);await w.close();
+});
+test('native cleanup proceeds after retirement source cleanup throws and completion is shared',async()=>{
+ const w=worker(),calls=[];w.context.retireFailure=Error('source close failed');vm.runInContext('source={close(){throw retireFailure;}}',w.context);
+ w.engine.source.cancelSource=()=>{calls.push('cancel');};w.host.destroy=async()=>{calls.push('destroy');return{};};w.engine.dispose=()=>{calls.push('dispose');};
+ const closing=vm.runInContext('close()',w.context);assert.equal(vm.runInContext('close()',w.context),closing);await assert.rejects(closing,/source close failed/);assert.deepEqual(calls,['cancel','destroy','dispose']);assert.equal(vm.runInContext('lifecycle.phase',w.context),'closed');
+});
+test('failed load retirement releases its ingress reservation before closing native resources',async()=>{
+ const w=worker();let disposed=0;w.engine.dispose=()=>disposed++;vm.runInContext("source={close(){throw Error('bad source close');}}",w.context);w.send({id:1,op:'load',generation:2});await turn();
+ assert.match(w.messages.find(m=>m.id===1).error,/bad source close/);assert.equal(vm.runInContext('lifecycle.rpcs.length',w.context),0);assert.equal(vm.runInContext('lifecycle.phase',w.context),'closed');assert.equal(disposed,1);
+});
+test('pending native replies are all rejected even if one timer removal fails',async()=>{
+ const w=worker();let rejects=0;w.context.rejectReceipt=()=>rejects++;vm.runInContext("commands.set(1,{timer:1,reject:rejectReceipt});commands.set(2,{timer:2,reject:rejectReceipt});",w.context);w.context.clearTimeout=id=>{if(id===1)throw Error('timer removal failed');};
+ await assert.rejects(vm.runInContext('close()',w.context),/timer removal failed/);assert.equal(rejects,2);assert.equal(vm.runInContext('commands.size',w.context),0);assert.equal(vm.runInContext('lifecycle.phase',w.context),'closed');
 });

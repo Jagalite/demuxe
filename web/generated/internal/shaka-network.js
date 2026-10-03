@@ -67,6 +67,7 @@ export class ShakaNetworkPolicy {
         return url.href;
     }
     ownBlob(uri) { this.checkActive(); this.ownedBlobs.add(uri); }
+    disownBlob(uri) { this.ownedBlobs.delete(uri); }
     resource(uri) { let id = this.resources.get(uri); if (id === undefined) {
         id = ++this.resourceSerial;
         this.resources.set(uri, id);
@@ -82,12 +83,10 @@ export class ShakaNetworkPolicy {
         request.uris = uris;
         this.checkActive();
         owners.set(request, this);
-        if (!this.requests.has(request))
-            this.requests.set(request, new Set());
     };
     plugin = (resource, request, type, progress, received) => {
-        const started = performance.now(), kind = type === this.runtime.net.NetworkingEngine.RequestType.MANIFEST ? 'manifest' : type === this.runtime.net.NetworkingEngine.RequestType.SEGMENT ? 'segment' : 'other';
-        const admitted = beginShakaNetworkRequest(this.control, kind, request.retryParameters.timeout, started);
+        const timeout = request.retryParameters.timeout, started = performance.now(), kind = type === this.runtime.net.NetworkingEngine.RequestType.MANIFEST ? 'manifest' : type === this.runtime.net.NetworkingEngine.RequestType.SEGMENT ? 'segment' : 'other';
+        const admitted = beginShakaNetworkRequest(this.control, kind, timeout, started);
         this.control = admitted.state;
         const id = admitted.id;
         let controller, reader, timer;
@@ -105,7 +104,7 @@ export class ShakaNetworkPolicy {
                 timer = undefined;
                 if (id === undefined)
                     return;
-                const decision = expireShakaNetworkRequest(this.control, id, performance.now());
+                const now = performance.now(), decision = expireShakaNetworkRequest(this.control, id, now);
                 this.control = decision.state;
                 if (!decision.accepted)
                     return;
@@ -128,6 +127,8 @@ export class ShakaNetworkPolicy {
             }
         };
         const promise = (async () => {
+            if (admitted.failure)
+                this.failure(admitted.failure);
             check();
             const acquired = new AbortController();
             controller = acquired;
@@ -139,8 +140,8 @@ export class ShakaNetworkPolicy {
             const pending = this.requests.get(request) ?? new Set();
             pending.add(id);
             this.requests.set(request, pending);
-            if (request.retryParameters.timeout)
-                arm(request.retryParameters.timeout);
+            if (timeout)
+                arm(timeout);
             let uri = this.authorize(resource), response;
             for (;;) {
                 check();
@@ -211,7 +212,9 @@ export class ShakaNetworkPolicy {
             received(headers);
             check();
             const range = new Headers(request.headers).get('range');
-            this.accept(beginShakaNetworkBody(this.control, id, { range, status: response.status, encoding: headers['content-encoding'], contentRange: headers['content-range'], contentLength: headers['content-length'], now: performance.now() }));
+            const bodyFacts = { range, status: response.status, encoding: headers['content-encoding'], contentRange: headers['content-range'], contentLength: headers['content-length'], now: performance.now() };
+            check();
+            this.accept(beginShakaNetworkBody(this.control, id, bodyFacts));
             check();
             const chunks = [];
             if (reader)
@@ -220,17 +223,19 @@ export class ShakaNetworkPolicy {
                     check();
                     if (value.done)
                         break;
-                    const decision = appendShakaNetworkBody(this.control, id, value.value.byteLength, performance.now());
+                    const chunk = value.value, size = chunk.byteLength, now = performance.now();
+                    check();
+                    const decision = appendShakaNetworkBody(this.control, id, size, now);
                     this.accept(decision);
                     check();
-                    chunks.push(value.value);
+                    chunks.push(chunk);
                     const observed = decision.progress;
                     progress(observed.elapsed, observed.bytes, observed.remaining);
                     check();
                     if (request.streamDataCallback && !range) {
                         const callback = request.streamDataCallback;
                         check();
-                        await callback.call(request, value.value);
+                        await callback.call(request, chunk);
                         check();
                     }
                 }

@@ -17,20 +17,46 @@ export class DemuxeMediaElement extends Base {
             throw new PlayerError('INVALID_ARGUMENT', 'Dispose the previous binding before rebinding');
         const generation = bound.state.generation;
         let view;
+        const current = () => mediaElementBindingCurrent(this.bindingState, generation);
+        const check = () => { if (!current())
+            throw new PlayerError('ABORTED', 'Media element binding was retired'); };
         try {
-            view = this.view = new MediaView(player);
+            view = new MediaView(player);
+            if (!current()) {
+                void view.dispose().catch(() => { });
+                check();
+            }
+            this.view = view;
+            for (const name of MEDIA_VIEW_EVENTS) {
+                const target = view, listener = (event) => { if (current())
+                    this.dispatchEvent(new CustomEvent(name, { detail: event.detail })); };
+                const stop = () => target.removeEventListener(name, listener);
+                this.stops.push(stop);
+                try {
+                    target.addEventListener(name, listener);
+                }
+                catch (error) {
+                    try {
+                        stop();
+                    }
+                    catch { }
+                    throw error;
+                }
+                if (!current())
+                    try {
+                        stop();
+                    }
+                    catch { }
+                check();
+            }
+            view.synchronize();
+            check();
         }
         catch (error) {
-            this.bindingState = transitionMediaElementBinding(this.bindingState, { type: 'dispose' }).state;
+            if (current())
+                void this.dispose().catch(() => { });
             throw error;
         }
-        for (const name of MEDIA_VIEW_EVENTS) {
-            const listener = (event) => { if (mediaElementBindingCurrent(this.bindingState, generation))
-                this.dispatchEvent(new CustomEvent(name, { detail: event.detail })); };
-            view.addEventListener(name, listener);
-            this.stops.push(() => view.removeEventListener(name, listener));
-        }
-        view.synchronize();
         return this;
     }
     get state() { return this.view?.state ?? null; }
@@ -62,9 +88,35 @@ export class DemuxeMediaElement extends Base {
     pause() { this.requireView().pause(); }
     requireView() { if (!this.bindingState.bound || !this.view)
         throw new PlayerError('ABORTED', 'Media element is not bound'); return this.view; }
-    dispose() { this.bindingState = transitionMediaElementBinding(this.bindingState, { type: 'dispose' }).state; const view = this.view; this.view = undefined; for (const stop of this.stops.splice(0))
-        stop(); if (view)
-        this.cleanup = view.dispose(); return this.cleanup; }
+    dispose() {
+        if (!this.bindingState.bound)
+            return this.cleanup;
+        let resolve, reject;
+        const done = this.cleanup = new Promise((yes, no) => { resolve = yes; reject = no; });
+        this.bindingState = transitionMediaElementBinding(this.bindingState, { type: 'dispose' }).state;
+        const view = this.view, stops = this.stops.splice(0);
+        this.view = undefined;
+        const errors = [];
+        for (const stop of stops)
+            try {
+                stop();
+            }
+            catch (error) {
+                errors.push(error);
+            }
+        let release;
+        try {
+            release = view?.dispose();
+        }
+        catch (error) {
+            errors.push(error);
+        }
+        Promise.resolve(release).catch(error => { errors.push(error); }).then(() => { if (errors.length)
+            reject(errors.length === 1 ? errors[0] : new AggregateError(errors, 'Media element cleanup failed'));
+        else
+            resolve(); });
+        return done;
+    }
     disconnectedCallback() { this.bindingState = transitionMediaElementBinding(this.bindingState, { type: 'disconnect' }).state; const connection = this.bindingState.connection; queueMicrotask(() => { if (transitionMediaElementBinding(this.bindingState, { type: 'disconnect-ready', connection, connected: this.isConnected }).accepted)
         void this.dispose(); }); }
 }

@@ -115,3 +115,18 @@ test('actual old native load completion cannot mark replacement metadata ready',
  const f=candidate(t),hold=deferred();f.player.wait=()=>hold.promise;
  const pending=f.player.load('https://media.test/old.mp4'),rejected=assert.rejects(pending,/retired/);f.player.retireNativeSource();hold.resolve();await rejected;assert.deepEqual(f.player.capability,{});
 });
+
+test('Native pending event waits and captions have finite admission before physical allocation',()=>{
+ let state=core.initialNativeBackend();for(let i=0;i<128;i++){const next=core.transitionNativeBackend(state,{type:'event.begin',event:'seeked',now:0,loadBudget:1000});assert.equal(next.accepted,true);state=next.state;}
+ const full=state,denied=core.transitionNativeBackend(state,{type:'event.begin',event:'seeked',now:0,loadBudget:1000});assert.equal(denied.failure,'event-capacity');assert.equal(denied.state,full);
+ const request=state.waits[0].request;state=core.transitionNativeBackend(state,{type:'event.finish',request}).state;assert.equal(core.transitionNativeBackend(state,{type:'event.begin',event:'seeked',now:0,loadBudget:1000}).accepted,true);
+ for(let i=0;i<16;i++)state=core.transitionNativeBackend(state,{type:'caption.begin',kind:'browser-file',attachmentId:String(i),now:0}).state;
+ assert.equal(core.transitionNativeBackend(state,{type:'caption.begin',kind:'browser-file',now:0}).failure,'caption-capacity');
+ for(const type of ['event.begin','caption.begin','control.begin','load.begin','verify.begin','seek.begin'])assert.equal(core.transitionNativeBackend({...core.initialNativeBackend(),serial:Number.MAX_SAFE_INTEGER},{type}).failure,'identity-exhausted');
+});
+test('Native wait shell refuses capacity before listeners or timers can be acquired',async()=>{
+ const player=Object.create(NativePlayer.prototype);let state=core.initialNativeBackend(),listeners=0,starts=0;
+ for(let i=0;i<128;i++)state=core.transitionNativeBackend(state,{type:'event.begin',event:'seeked',now:0,loadBudget:1000}).state;
+ Object.assign(player,{native:state,loadTimeoutMs:1000,video:{addEventListener(){listeners++;}}});
+ await assert.rejects(async()=>player.wait('seeked',()=>starts++),/event-capacity/);assert.equal(listeners,0);assert.equal(starts,0);assert.equal(player.native,state);
+});

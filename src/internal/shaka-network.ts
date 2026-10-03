@@ -51,16 +51,17 @@ export class ShakaNetworkPolicy {
     return url.href;
   }
   ownBlob(uri:string){this.checkActive();this.ownedBlobs.add(uri);}
+  disownBlob(uri:string){this.ownedBlobs.delete(uri);}
   private resource(uri:string){let id=this.resources.get(uri);if(id===undefined){id=++this.resourceSerial;this.resources.set(uri,id);}return id;}
   private pruneResources(){const retained=new Set(shakaNetworkResourceIDs(this.control));for(const [uri,id] of this.resources)if(!retained.has(id))this.resources.delete(uri);}
   readonly filter:Shaka.extern.RequestFilter=(type,request)=>{
     this.checkActive();this.admission({license:type===this.runtime.net.NetworkingEngine.RequestType.LICENSE,drm:!!request.drmInfo});
     const uris=request.uris.map(uri=>this.authorize(uri));this.checkActive();request.uris=uris;this.checkActive();
-    owners.set(request,this);if(!this.requests.has(request))this.requests.set(request,new Set());
+    owners.set(request,this);
   };
   readonly plugin:Shaka.extern.SchemePlugin=(resource,request,type,progress,received)=>{
-    const started=performance.now(),kind=type===this.runtime.net.NetworkingEngine.RequestType.MANIFEST?'manifest':type===this.runtime.net.NetworkingEngine.RequestType.SEGMENT?'segment':'other';
-    const admitted=beginShakaNetworkRequest(this.control,kind,request.retryParameters.timeout,started);this.control=admitted.state;const id=admitted.id;
+    const timeout=request.retryParameters.timeout,started=performance.now(),kind=type===this.runtime.net.NetworkingEngine.RequestType.MANIFEST?'manifest':type===this.runtime.net.NetworkingEngine.RequestType.SEGMENT?'segment':'other';
+    const admitted=beginShakaNetworkRequest(this.control,kind,timeout,started);this.control=admitted.state;const id=admitted.id;
     let controller:AbortController|undefined,reader:ReadableStreamDefaultReader<Uint8Array>|undefined,timer:{handle?:ReturnType<typeof setTimeout>}|undefined;
     const E=this.runtime.util.Error;
     const check=()=>{if(id===undefined){this.checkActive();throw new DOMException('Streaming request cancelled','AbortError');}this.checkRequest(id);};
@@ -69,7 +70,7 @@ export class ShakaNetworkPolicy {
       const acquired=setTimeout(()=>{
         if(timer!==registration)return;timer=undefined;
         if(id===undefined)return;
-        const decision=expireShakaNetworkRequest(this.control,id,performance.now());this.control=decision.state;
+        const now=performance.now(),decision=expireShakaNetworkRequest(this.control,id,now);this.control=decision.state;
         if(!decision.accepted)return;
         if(decision.remaining!==undefined){try{arm(decision.remaining);}catch{this.accept(cancelShakaNetworkRequest(this.control,id));controller?.abort();}}else controller?.abort();
       },delay);
@@ -77,10 +78,10 @@ export class ShakaNetworkPolicy {
       if(timer!==registration||id===undefined||!shakaNetworkCurrent(this.control,id)){clearTimeout(acquired);check();}
     };
     const promise=(async()=>{
-      check();const acquired=new AbortController();controller=acquired;
+      if(admitted.failure)this.failure(admitted.failure);check();const acquired=new AbortController();controller=acquired;
       if(id===undefined||!shakaNetworkCurrent(this.control,id)){acquired.abort();check();}
       this.controllers.set(id!,acquired);const pending=this.requests.get(request)??new Set<number>();pending.add(id!);this.requests.set(request,pending);
-      if(request.retryParameters.timeout)arm(request.retryParameters.timeout);
+      if(timeout)arm(timeout);
       let uri=this.authorize(resource),response:Response|undefined;
       for(;;){
         check();this.control=setShakaNetworkResource(this.control,id!,this.resource(uri));
@@ -107,13 +108,15 @@ export class ShakaNetworkPolicy {
       this.accept(observeShakaNetworkValidator(this.control,id!,response!.headers.get('etag'),this.ownedBlobs.has(uri)));this.pruneResources();
       const headers:Record<string,string>={};response!.headers.forEach((value,key)=>headers[key]=value);check();received(headers);check();
       const range=new Headers(request.headers).get('range');
-      this.accept(beginShakaNetworkBody(this.control,id!,{range,status:response!.status,encoding:headers['content-encoding'],contentRange:headers['content-range'],contentLength:headers['content-length'],now:performance.now()}));check();
+      const bodyFacts={range,status:response!.status,encoding:headers['content-encoding'],contentRange:headers['content-range'],contentLength:headers['content-length'],now:performance.now()};check();
+      this.accept(beginShakaNetworkBody(this.control,id!,bodyFacts));check();
       const chunks:Uint8Array[]=[];
       if(reader)while(true){
         const value=await reader.read();check();if(value.done)break;
-        const decision=appendShakaNetworkBody(this.control,id!,value.value.byteLength,performance.now());this.accept(decision);check();chunks.push(value.value);
+        const chunk=value.value,size=chunk.byteLength,now=performance.now();check();
+        const decision=appendShakaNetworkBody(this.control,id!,size,now);this.accept(decision);check();chunks.push(chunk);
         const observed=decision.progress!;progress(observed.elapsed,observed.bytes,observed.remaining);check();
-        if(request.streamDataCallback&&!range){const callback=request.streamDataCallback;check();await callback.call(request,value.value);check();}
+        if(request.streamDataCallback&&!range){const callback=request.streamDataCallback;check();await callback.call(request,chunk);check();}
       }
       const bytes=shakaNetworkRequest(this.control,id!)!.bytes,data=new Uint8Array(bytes);let offset=0;for(const chunk of chunks){data.set(chunk,offset);offset+=chunk.byteLength;}
       const decision=completeShakaNetworkBody(this.control,id!);this.accept(decision);check();this.pruneResources();

@@ -10,6 +10,7 @@ export declare class MediaCapabilityQueries {
     private decode?;
     private timeoutMs;
     private onLateAnswer?;
+    private queryControl;
     private cache;
     private tokens;
     private lateAnswers;
@@ -18,5 +19,6 @@ export declare class MediaCapabilityQueries {
     cached(capability: BrowserMediaCapability, probe: Probe): DecodingEvidence | undefined;
     constructor(decode?: Decode | undefined, timeoutMs?: number, onLateAnswer?: (() => void) | undefined);
     inspect(capability: BrowserMediaCapability, probe: Probe): Promise<DecodingEvidence>;
+    destroy(): void;
     private query;
 }

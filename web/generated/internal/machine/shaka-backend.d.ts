@@ -29,9 +29,12 @@ export type ShakaBackendState = Readonly<{
     visible: boolean;
     selectedSub: string;
     audioDisabled: boolean;
+    attachmentIssued: readonly number[];
+    attachmentUncertain: number;
     external: readonly Readonly<{
         id: number;
         index: number;
+        request?: number;
         attachmentId?: string;
     }>[];
 }>;
@@ -72,6 +75,9 @@ export type ShakaCommand = Readonly<{
     selectedSub?: string;
     visible?: boolean;
 }> | Readonly<{
+    type: 'attachment.issued';
+    lease: ShakaLease;
+}> | Readonly<{
     type: 'attached';
     lease: ShakaLease;
     id: number;
@@ -88,6 +94,7 @@ export declare function transitionShakaBackend(state: ShakaBackendState, command
     state: ShakaBackendState;
     accepted: boolean;
     lease?: ShakaLease;
+    reason?: 'capacity';
 }>;
 /** Normalized observations only; Shaka objects and selection methods stay in the adapter. */
 export type ShakaVariantFacts = Readonly<{

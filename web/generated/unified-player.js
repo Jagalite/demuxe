@@ -1480,7 +1480,7 @@ export class Player extends EventTarget {
                             if (detail.event === 'property-change' && detail.name === 'time-pos')
                                 this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'time', value: Number(detail.data), publishedTime: this.state.currentTime });
                             if (detail.event === 'property-change' && detail.name === 'pause')
-                                this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'pause', value: detail.data === true });
+                                this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'pause', value: detail.data === true, boundary: { time: Number(backend.properties.get('time-pos') ?? this.state.currentTime), duration: typeof backend.properties.get('duration') === 'number' ? Number(backend.properties.get('duration')) : this.state.duration, ended: detail.ended === true || backend.properties.get('eof-reached') === true } });
                             this.schedulePublish();
                         }
                         if (this.current === session && sessionAuthority(this.control, sessionEpoch) === 'accepted')
@@ -3762,7 +3762,7 @@ export class Player extends EventTarget {
         this.dispatchControl({ type: 'operation.retire', terminal: true });
         const cleanup = Promise.all([
             clean(() => this.cancelPromotion()), clean(() => this.activeOperation?.controller.abort()), clean(() => this.lifetime.abort()), clean(() => this.inspection?.abort()), clean(() => this.stopWatchdogs()),
-            clean(() => this.preparation?.destroy()), clean(() => this.providerRuntime?.destroy()), clean(() => this.presentation.destroy()), clean(() => this.#previewController.destroy()),
+            clean(() => this.mediaCapabilityQueries.destroy()), clean(() => this.preparation?.destroy()), clean(() => this.providerRuntime?.destroy()), clean(() => this.presentation.destroy()), clean(() => this.#previewController.destroy()),
             ...[this.candidate, this.current].map(session => clean(() => this.dispose(session))),
         ]);
         this.previewSource = undefined;

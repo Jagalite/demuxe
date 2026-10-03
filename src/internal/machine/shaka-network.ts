@@ -16,6 +16,7 @@ function result(state:ShakaNetworkState,extra:Omit<ShakaNetworkDecision,'state'|
 function replace(state:ShakaNetworkState,request:ShakaNetworkRequest):ShakaNetworkState{return Object.freeze({...state,requests:Object.freeze(state.requests.map(value=>value.id===request.id?Object.freeze({...request}):value))});}
 export function beginShakaNetworkRequest(state:ShakaNetworkState,kind:ShakaNetworkRequest['kind'],timeout:number,now:number):ShakaNetworkDecision{
  if(!state.active)return result(state,{},false);
+ if(state.requests.length>=(state.preview?4:32))return result(state,{failure:permission('Streaming concurrent request capacity exceeded')},false);
  const request:ShakaNetworkRequest=Object.freeze({id:state.serial+1,kind,phase:'fetch',resource:undefined,attempt:0,cancelled:null,deadline:timeout?now+Math.max(0,timeout):undefined,limit:(state.preview||kind==='manifest'?4:16)*1024*1024,bytes:0,lastProgress:now,length:0,contentLength:undefined,range:null});
  return result(Object.freeze({...state,serial:request.id,requests:Object.freeze([...state.requests,request])}),{id:request.id});
 }

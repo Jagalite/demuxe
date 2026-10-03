@@ -79,3 +79,18 @@ test('adapted audio never reuses source bitrate or layout as output metadata',as
   assert.deepEqual(evidence.unqueriedTracks,[1]);assert.ok(calls.every(c=>!c.audio));assert.match(evidence.reason,/output metadata/);
  }
 });
+
+test('advisory timeout does not release unresolved physical capability query capacity',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const completions=[];let late=0;
+ const queries=new MediaCapabilityQueries(()=>new Promise(resolve=>completions.push(resolve)),1);
+ const pending=Array.from({length:128},()=>queries.query({type:'file'},()=>late++));await Promise.resolve();t.mock.timers.tick(1);assert.ok((await Promise.all(pending)).every(answer=>answer.status==='timeout'));
+ assert.equal(completions.length,128);
+ const overflowing=queries.query({type:'file'},()=>late++);await Promise.resolve();t.mock.timers.tick(1);const excess=await overflowing;assert.equal(excess.status,'unavailable');assert.equal(completions.length,128);
+ completions[0]({supported:true,smooth:true,powerEfficient:true});for(let i=0;i<5;i++)await Promise.resolve();assert.equal(queries.queryControl.pending.length,127);
+ const replacement=queries.query({type:'file'},()=>late++);await Promise.resolve();assert.equal(completions.length,129);queries.destroy();
+ for(const finish of completions.slice(1))finish({supported:true,smooth:true,powerEfficient:true});await replacement;for(let i=0;i<5;i++)await Promise.resolve();
+ assert.equal(queries.queryControl.pending.length,0);assert.equal(late,1);assert.equal(queries.cache.size,0);assert.equal(queries.evidence.size,0);
+});
+test('terminal capability retirement before native acquisition fences the scheduled call',async()=>{
+ let calls=0;const queries=new MediaCapabilityQueries(async()=>{calls++;return{supported:true,smooth:true,powerEfficient:true};});const pending=queries.query({type:'file'},()=>{});queries.destroy();assert.equal((await pending).status,'error');assert.equal(calls,0);assert.equal(queries.queryControl.pending.length,0);
+});

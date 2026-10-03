@@ -14,13 +14,12 @@ test('profiles retain distinct deadlines, monotonic identities and timeout failu
   assert.deepEqual(state.pending,[]);
  }
 });
-test('software queue stops at 128 while cleanup bypasses admission and audio retains existing uncapped policy',()=>{
- let software=createBackendRequests('software'),audio=createBackendRequests('audio');
- for(let i=0;i<129;i++){
-  const next=admitBackendRequest(software,'status',0);software=next.state;assert.equal(next.effect.kind,i===128?'reject':'send');
-  const allowed=admitBackendRequest(audio,'status',0);audio=allowed.state;assert.equal(allowed.effect.kind,'send');
+test('all backend profiles cap pending work at128 and reserve one cleanup request',()=>{
+ for(const profile of ['software','audio','subtitles']){
+  let state=createBackendRequests(profile);for(let i=0;i<128;i++){const next=admitBackendRequest(state,'status',0);state=next.state;assert.equal(next.effect.kind,'send');}
+  assert.equal(admitBackendRequest(state,'status',0).effect.reason,'capacity');const cleanup=admitBackendRequest(state,'close',0);assert.equal(cleanup.effect.kind,'send');assert.equal(cleanup.state.pending.length,129);assert.equal(admitBackendRequest(cleanup.state,'close',0).effect.kind,'reject');
+  const exhausted={...createBackendRequests(profile),nextId:Number.MAX_SAFE_INTEGER};assert.equal(admitBackendRequest(exhausted,'status',0).effect.reason,'capacity');const final=admitBackendRequest(exhausted,'close',0);assert.equal(final.effect.request.id,0);assert.equal(settleBackendRequest(final.state,0,{kind:'reply'}).effect.kind,'settle');
  }
- assert.equal(software.nextId,129);assert.equal(admitBackendRequest(software,'close',0).effect.kind,'send');assert.equal(audio.pending.length,129);
 });
 test('reply, timeout and transport failure settle each request exactly once',()=>{
  for(const first of [{kind:'reply'},{kind:'transport-error'},{kind:'deadline',now:15000}]){

@@ -75,7 +75,7 @@ test('document PiP rejects concurrent entry and ignores retired window events',a
  const oldDocument=globalThis.document,oldAPI=globalThis.documentPictureInPicture;let restores=0,calls=0;
  const doc={pictureInPictureElement:null,fullscreenElement:null,createComment:()=>({parentNode:{},replaceWith(){restores++;this.parentNode=null;}})};
  const host={ownerDocument:doc,before(){}};
- const windows=[0,1].map(()=>({closed:false,document:{body:{style:{},append(){}}},addEventListener(type,listener){this.hide=listener;},close(){this.closed=true;}}));
+ const windows=[0,1].map(()=>({closed:false,document:{body:{style:{},append(){}}},addEventListener(type,listener){this.hide=listener;},removeEventListener(){},close(){this.closed=true;}}));
  globalThis.document=doc;globalThis.documentPictureInPicture={requestWindow:async()=>windows[calls++]};
  const presentation=new PlayerPresentation({surface:null,state:{}},()=>host);
  try{

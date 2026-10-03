@@ -91,10 +91,14 @@ export class PreviewController {
     cancelJob(job) {
         const active = this.state.active?.id === job.id;
         this.dispatch({ kind: 'cancel-job', id: job.id });
-        clearTimeout(job.timer);
         if (!active)
             this.jobs.delete(job.id);
-        job.controller.abort();
+        try {
+            clearTimeout(job.timer);
+        }
+        finally {
+            job.controller.abort();
+        }
     }
     settle(error, frame = null) {
         const caller = this.caller, id = this.state.caller?.id;
@@ -102,24 +106,37 @@ export class PreviewController {
             return;
         this.dispatch({ kind: 'settle', failed: !!error });
         this.callers.delete(id);
-        caller.cleanup();
-        if (error)
+        try {
+            caller.cleanup();
+        }
+        catch (failure) {
+            if (error === undefined)
+                error = failure;
+        }
+        if (error !== undefined)
             caller.reject(error);
         else
             caller.resolve(frame);
     }
     cancelWork() {
         this.dispatch({ kind: 'retire-work' });
+        const active = this.active, pending = this.pending, errors = [];
         try {
-            this.settle(aborted());
-            if (this.active)
-                this.cancelJob(this.active);
-            if (this.pending)
-                this.cancelJob(this.pending);
+            for (const release of [() => this.settle(aborted()), () => { if (active)
+                    this.cancelJob(active); }, () => { if (pending)
+                    this.cancelJob(pending); }])
+                try {
+                    release();
+                }
+                catch (error) {
+                    errors.push(error);
+                }
         }
         finally {
             this.dispatch({ kind: 'retired-work' });
         }
+        if (errors.length)
+            throw errors.length === 1 ? errors[0] : new AggregateError(errors, 'Preview cancellation failed');
     }
     /** Playback pressure cancels generation, but resident thumbnails remain usable. */
     setSuspended(value) { this.dispatch({ kind: 'suspended', value }); if (value)
@@ -177,11 +194,25 @@ export class PreviewController {
     destroy() {
         if (this.destruction)
             return this.destruction;
+        let resolve, reject;
+        this.destruction = new Promise((yes, no) => { resolve = yes; reject = no; });
         this.dispatch({ kind: 'dispose' });
-        this.clear();
-        this.pregenerator?.stop();
+        const errors = [];
+        for (const release of [() => this.clear(), () => this.pregenerator?.stop()])
+            try {
+                release();
+            }
+            catch (error) {
+                errors.push(error);
+            }
         this.providers = [];
-        return this.destruction = this.drain();
+        this.images.clear();
+        this.dispatch({ kind: 'clear-cache' });
+        void this.drain().then(() => { if (errors.length)
+            reject(errors.length === 1 ? errors[0] : new AggregateError(errors, 'Preview cleanup failed'));
+        else
+            resolve(); }, reject);
+        return this.destruction;
     }
     /** Explicit optional prefetch. Busy lanes decline; a hover always supersedes it. */
     async prefetch(request) { if (!previewCanPrefetch(this.state))
@@ -201,7 +232,12 @@ export class PreviewController {
         return this.requestWork(request);
     }
     requestWork(request, background = false) {
+        const entryEpoch = this.state.requestEpoch;
         const data = { time: request.time, width: request.width, height: request.height, exact: request.exact, maxDistance: request.maxDistance, cacheOnly: request.cacheOnly };
+        const capturedSignal = request.signal, onUpdate = request.onUpdate;
+        if (entryEpoch !== this.state.requestEpoch)
+            return Promise.reject(aborted());
+        request = { ...data, signal: capturedSignal, onUpdate };
         const admission = admitPreviewRequest(this.state, data, !!request.signal?.aborted);
         if (admission.kind === 'aborted')
             return Promise.reject(aborted());
@@ -238,24 +274,119 @@ export class PreviewController {
             return Promise.resolve(null);
         if (!job) {
             this.state = createPreviewJob(this.state, admission, background);
-            const id = this.state.pending.id, controller = new AbortController();
-            job = { id, controller, timer: undefined, context: { time, width, height, signal: controller.signal, exact: !!request.exact, sourceId: this.sourceId, publish: result => this.publish(job, result), trackCleanup: completion => this.trackCleanup(completion) } };
-            this.jobs.set(id, job);
-            job.timer = setTimeout(() => { this.dispatch({ kind: 'ready', id }); this.pump(); }, this.options.debounceMs);
+            const id = this.state.pending.id;
+            let controller, created;
+            const current = () => this.state.requestEpoch === requestEpoch && !this.state.disposed && this.state.pending?.id === id;
+            try {
+                controller = new AbortController();
+                if (!current())
+                    throw aborted();
+                const signal = controller.signal;
+                if (!current())
+                    throw aborted();
+                created = { id, controller, context: { time, width, height, signal, exact: !!request.exact, sourceId: this.sourceId, publish: result => this.publish(created, result), trackCleanup: completion => this.trackCleanup(completion) } };
+                job = created;
+                this.jobs.set(id, created);
+                // Queue execution after caller publication even for a synchronous timer adapter.
+                const handle = setTimeout(() => { this.dispatch({ kind: 'ready', id }); void Promise.resolve().then(() => this.pump()); }, this.options.debounceMs);
+                if (!current()) {
+                    clearTimeout(handle);
+                    throw aborted();
+                }
+                created.timer = handle;
+            }
+            catch (error) {
+                this.dispatch({ kind: 'cancel-job', id });
+                this.jobs.delete(id);
+                try {
+                    if (created)
+                        clearTimeout(created.timer);
+                }
+                catch { }
+                try {
+                    controller?.abort();
+                }
+                catch { }
+                return Promise.reject(error);
+            }
         }
         const selected = job;
         return new Promise((resolve, reject) => {
-            let callerId;
-            const cancel = () => { if (this.state.caller?.id === callerId && this.caller?.job === selected) {
+            let timeout, attached = false;
+            const signal = request.signal;
+            this.dispatch({ kind: 'caller', jobId: selected.id });
+            const callerId = this.state.caller?.id;
+            if (callerId === undefined || this.state.caller?.jobId !== selected.id) {
+                reject(aborted());
+                return;
+            }
+            const current = () => this.state.caller?.id === callerId && this.caller?.job === selected;
+            const cancel = () => { if (current()) {
                 this.settle(aborted());
                 this.cancelJob(selected);
             } };
-            const timeout = setTimeout(cancel, this.options.timeoutMs);
-            const cleanup = () => { clearTimeout(timeout); request.signal?.removeEventListener('abort', cancel); };
-            this.dispatch({ kind: 'caller', jobId: selected.id });
-            callerId = this.state.caller.id;
+            const cleanup = () => {
+                let failed = false, failure;
+                try {
+                    clearTimeout(timeout);
+                }
+                catch (error) {
+                    failed = true;
+                    failure = error;
+                }
+                try {
+                    if (attached) {
+                        attached = false;
+                        signal?.removeEventListener('abort', cancel);
+                    }
+                }
+                catch (error) {
+                    if (!failed) {
+                        failed = true;
+                        failure = error;
+                    }
+                }
+                if (failed)
+                    throw failure;
+            };
             this.callers.set(callerId, { job: selected, request, start, cacheMs, onUpdate: request.onUpdate, resolve, reject, cleanup });
-            request.signal?.addEventListener('abort', cancel, { once: true });
+            try {
+                if (signal?.aborted) {
+                    cancel();
+                    return;
+                }
+                const acquired = setTimeout(cancel, this.options.timeoutMs);
+                if (!current()) {
+                    clearTimeout(acquired);
+                    return;
+                }
+                timeout = acquired;
+                if (signal?.aborted) {
+                    cancel();
+                    return;
+                }
+                if (signal) {
+                    attached = true;
+                    try {
+                        signal.addEventListener('abort', cancel, { once: true });
+                    }
+                    finally {
+                        if (!current())
+                            signal.removeEventListener('abort', cancel);
+                    }
+                }
+                if (signal?.aborted)
+                    cancel();
+            }
+            catch (error) {
+                if (current()) {
+                    this.settle(error);
+                    try {
+                        this.cancelJob(selected);
+                    }
+                    catch { }
+                }
+            }
         });
     }
     pump() {

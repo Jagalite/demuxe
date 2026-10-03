@@ -26,6 +26,11 @@ export type SessionObservation = Readonly<{
     observation: 'waiting' | 'playing' | 'time' | 'pause';
     value?: number | boolean;
     publishedTime?: number;
+    boundary?: Readonly<{
+        time: number;
+        duration: number | null;
+        ended: boolean;
+    }>;
 }>;
 export type PlayerControlInput = Readonly<{
     type: 'effect.event';

@@ -8,7 +8,7 @@ import {transitionPlayerAction,retirePlayerActions,type PlayerActionInput,type P
 import {transitionPlayerPublication,acceptPlayerPublication,clearPlayerPublication,retirePlayerPublication,type PlayerPublicationInput} from './player-publication.js';
 import type {PlayerProjection} from './selectors.js';
 import {transitionPlayerMonitor,stopPlayerMonitor,type PlayerMonitorInput} from './player-monitor.js';
-import {transitionBoundary,type BoundaryInput,type BoundaryEffect} from './playback-boundary.js';
+import {transitionBoundary,playbackBoundaryReached,type BoundaryInput,type BoundaryEffect} from './playback-boundary.js';
 import {transitionOperations,type OperationInput} from './operations.js';
 import {transitionPlayback,type PlaybackInput} from './playback.js';
 import {transitionSettings,transitionSettingTransaction,changePreferences,clearSourcePreferences,type SettingsInput,type SettingTransactionInput,type SettingEffect} from './settings.js';
@@ -24,7 +24,7 @@ import {cancelPromotion} from './route-promotion.js';
 import {clearRouteEvidence,retireRouteEvidence} from './route-evidence.js';
 import {transitionInspection,isInspectionWorkChange} from './route-inspection.js';
 import type {PlayerControlState} from './state.js';
-export type SessionObservation=Readonly<{type:'playback.sample';session:number;sequence:number;observation:'waiting'|'playing'|'time'|'pause';value?:number|boolean;publishedTime?:number}>;
+export type SessionObservation=Readonly<{type:'playback.sample';session:number;sequence:number;observation:'waiting'|'playing'|'time'|'pause';value?:number|boolean;publishedTime?:number;boundary?:Readonly<{time:number;duration:number|null;ended:boolean}>}>;
 export type PlayerControlInput=Readonly<{type:'effect.event';input:EffectRuntimeInput}>|Readonly<{type:'resource.event';input:ResourceLedgerInput}>|PlayerReadinessInput|PlayerActionInput|PlayerPublicationInput|PlayerMonitorInput|RoutingInput|AttachmentInput|BoundaryInput|OperationInput|PlaybackInput|SettingsInput|SettingTransactionInput|SourceInput|SessionObservation;
 export type PlayerControlDecision<Effect=SettingEffect|BoundaryEffect|AttachmentEffect>=Readonly<{state:PlayerControlState;accepted:boolean;preparationEffect?:SourcePreparationEffect;applicationEffect?:SourceApplicationEffect;positioningEffect?:SourcePositioningEffect;acceptanceEffect?:SourceAcceptanceEffect;execution?:EffectRuntimeDecision;executionOutcomes?:readonly EffectOutcome[];resource?:ResourceLedgerDecision;id?:number;reason?:string;message?:string;retire:readonly number[];effects?:readonly Effect[];publication?:PlayerProjection;actionEffects?:readonly PlayerActionEffect[];readinessEffects?:readonly PlayerReadinessEffect[]}>;
 /** Publication bookkeeping does not invalidate an otherwise current capture.
@@ -84,7 +84,10 @@ function reducePlayer(state:PlayerControlState,input:PlayerControlInput):PlayerC
     if(state.operations.terminal||state.source.acceptedEpoch!==state.operations.epoch||state.source.candidate||input.session!==state.source.acceptedSession||input.session===previous.sampleSession&&input.sequence<=previous.sampleSequence)return Object.freeze({state,accepted:false,id:undefined,reason:'retired' as const,retire:Object.freeze([]) as readonly number[]});
     const playing=input.observation==='playing'||input.observation==='time'&&!state.settings.pause&&typeof input.value==='number'&&input.value>(input.publishedTime??0);
     const playback=Object.freeze({...previous,sampleSession:input.session,sampleSequence:input.sequence,observedPlaying:playing?true:previous.observedPlaying,observedWaiting:playing?false:input.observation==='waiting'?true:previous.observedWaiting});
-    const settings=input.observation==='pause'&&input.value===true&&state.operations.active===null?Object.freeze({...state.settings,pause:true}):state.settings;
+    // EOF pauses are physical observations, not a new user pause intent. Keep
+    // accepted play intent until the boundary owner has restarted/stopped it.
+    const boundaryPause=input.boundary&&playbackBoundaryReached(state,input.boundary.time,input.boundary.duration,input.boundary.ended);
+    const settings=input.observation==='pause'&&input.value===true&&state.operations.active===null&&!boundaryPause?Object.freeze({...state.settings,pause:true}):state.settings;
     return Object.freeze({state:Object.freeze({...state,revision:state.revision+1,playback,settings}),accepted:true,id:undefined,reason:undefined,retire:Object.freeze([]) as readonly number[]});
   }
   if(isSourceInput(input)){

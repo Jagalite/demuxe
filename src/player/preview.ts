@@ -17,9 +17,11 @@ export class ScrubberPreview {
   private identity<T extends object>(map:WeakMap<T,number>,value:T){let id=map.get(value);if(id===undefined){id=this.transition({type:'allocate'}).id!;map.set(value,id);}return id;}
   private abort(map:Map<number,AbortController>,id:number|undefined){if(id===undefined)return;const controller=map.get(id);map.delete(id);controller?.abort();}
   private applyClear(decision:ScrubberDecision){
-    this.abort(this.generators,decision.abortGeneration);this.abort(this.presentations,decision.abortPresentation);
-    if(!decision.clear)return;
-    this.panel.hidden=true;this.image.removeAttribute('src');this.displayedURL?.release();this.displayedURL=undefined;
+    const cleared=this.control;
+    const actions=[()=>this.abort(this.generators,decision.abortGeneration),()=>this.abort(this.presentations,decision.abortPresentation)];
+    if(decision.clear){const displayed=this.displayedURL;this.displayedURL=undefined;actions.push(()=>{if(this.control===cleared)this.panel.hidden=true;},()=>{if(this.control===cleared)this.image.removeAttribute('src');},()=>displayed?.release());}
+    // Cleanup operations are independent: a hostile DOM shim must not retain other handles.
+    for(const action of actions)try{action();}catch{}
   }
   private readonly move=(event:PointerEvent)=>{
     if(event.pointerType==='touch'||this.timeline.disabled){this.hide();return;}
@@ -30,10 +32,10 @@ export class ScrubberPreview {
     this.panel.style.left=`${pointer.left}px`;
     const hover=this.transition({type:'hover'});if(hover.id===undefined)return;
     if(hover.placeholder){this.image.hidden=true;this.label.textContent=`${formatTime(pointer.time)} · …`;this.panel.hidden=false;}
-    void this.sample(api,pointer.time,hover.id);
+    void this.sample(api,pointer.time,hover.id).catch(()=>{});
   };
   constructor(private timeline:HTMLInputElement,private panel:HTMLElement,private image:HTMLImageElement,private label:HTMLElement,private api:()=>PlayerPreview|undefined){
-    timeline.addEventListener('pointermove',this.move);timeline.addEventListener('pointerleave',this.hide);timeline.addEventListener('pointercancel',this.hide);
+    try{timeline.addEventListener('pointermove',this.move);timeline.addEventListener('pointerleave',this.hide);timeline.addEventListener('pointercancel',this.hide);}catch(error){this.destroy();throw error;}
   }
   private distance(api:PlayerPreview,generation=false){return scrubberDistance(api.strategy,Number(this.timeline.max)-Number(this.timeline.min),generation);}
   private async sample(api:PlayerPreview,time:number,hover:number){
@@ -47,40 +49,69 @@ export class ScrubberPreview {
   }
   private async next(){
     const api=this.pendingApi,decision=this.transition({type:'generate'});if(!decision.generate||!api)return;
-    this.pendingApi=undefined;const request=decision.generate,controller=new AbortController();this.generators.set(request.id,controller);
+    this.pendingApi=undefined;const request=decision.generate;let controller:AbortController|undefined;
     try{
-      const frame=await api.getFrame({time:request.time,width:240,height:135,signal:controller.signal,maxDistance:this.distance(api,true)});
-      const completed=this.transition({type:'generated',id:request.id,aborted:controller.signal.aborted,hasFrame:!!frame});
+      controller=new AbortController();
+      if(this.control.generation?.id!==request.id){controller.abort();return;}
+      this.generators.set(request.id,controller);
+      const signal=controller.signal,distance=this.distance(api,true);
+      if(this.control.generation?.id!==request.id||signal.aborted)return;
+      const frame=await api.getFrame({time:request.time,width:240,height:135,signal,maxDistance:distance});
+      const completed=this.transition({type:'generated',id:request.id,aborted:signal.aborted,hasFrame:!!frame});
       if(completed.show&&frame)void this.show(frame);else if(completed.clear)this.clearImage();
-    }catch{if(this.transition({type:'generated',id:request.id,aborted:controller.signal.aborted,hasFrame:false}).accepted)this.clearImage();}
+    }catch{if(this.transition({type:'generated',id:request.id,aborted:controller?.signal.aborted??false,hasFrame:false}).accepted)this.clearImage();}
     finally{this.generators.delete(request.id);if(this.transition({type:'generation-finished',id:request.id}).accepted)void this.next();}
   }
   private async show(frame:PreviewFrame){
     const image=this.identity(this.imageIds,frame.image),decision=this.transition({type:'show',image});if(!decision.presentation)return;
-    this.abort(this.presentations,decision.abortPresentation);
-    const {id,needsImage}=decision.presentation,controller=new AbortController();this.presentations.set(id,controller);
-    const deadline=setTimeout(()=>this.applyClear(this.transition({type:'deadline',id})),5000);
-    const cancelDeadline=()=>clearTimeout(deadline);controller.signal.addEventListener('abort',cancelDeadline,{once:true});
+    const {id,needsImage}=decision.presentation;
+    let controller:AbortController|undefined,deadline:ReturnType<typeof setTimeout>|undefined;
+    let signal:AbortSignal|undefined,cancelDeadline:(()=>void)|undefined;
     let acquiredURL:{url:string;release:()=>void}|undefined;
+    const current=()=>this.control.presentation?.id===id&&!signal?.aborted;
     try{
+      this.abort(this.presentations,decision.abortPresentation);
+      if(!current())return;
+      controller=new AbortController();
+      if(!current()){controller.abort();return;}
+      this.presentations.set(id,controller);signal=controller.signal;
+      if(!current())return;
+      deadline=setTimeout(()=>this.applyClear(this.transition({type:'deadline',id})),5000);
+      if(!current())return;
+      cancelDeadline=()=>{if(deadline!==undefined)clearTimeout(deadline);};
+      signal.addEventListener('abort',cancelDeadline,{once:true});
+      if(!current())return;
       if(needsImage){
-        const blob=await previewImageBlob(frame.image,controller.signal);if(controller.signal.aborted)return;
+        const blob=await previewImageBlob(frame.image,signal);if(!current())return;
         const url=URL.createObjectURL(blob);let released=false;
         const release=()=>{if(!released){released=true;URL.revokeObjectURL(url);}};
-        const resource=acquiredURL={url,release};
-        const decoded=this.image.ownerDocument.createElement('img');decoded.src=url;
-        const cancel=()=>{decoded.removeAttribute('src');release();};controller.signal.addEventListener('abort',cancel,{once:true});
+        const resource=acquiredURL={url,release};if(!current())return;
+        const decoded=this.image.ownerDocument.createElement('img');
+        const cancel=()=>{try{decoded.removeAttribute('src');}finally{release();}};
         try{
-          await decoded.decode();if(controller.signal.aborted||!this.transition({type:'decoded',id}).accepted)return;
-          const previous=this.displayedURL;this.displayedURL=resource;this.image.src=url;this.image.hidden=false;previous?.release();
-        }finally{controller.signal.removeEventListener('abort',cancel);decoded.removeAttribute('src');if(this.displayedURL!==resource)release();}
+          if(!current())return;decoded.src=url;if(!current())return;
+          signal.addEventListener('abort',cancel,{once:true});if(!current())return;
+          await decoded.decode();if(!current()||!this.transition({type:'decoded',id}).accepted)return;
+          const previous=this.displayedURL;this.displayedURL=resource;
+          try{this.image.src=url;if(current())this.image.hidden=false;}finally{previous?.release();}
+        }finally{
+          try{signal.removeEventListener('abort',cancel);}catch{}
+          try{decoded.removeAttribute('src');}catch{}
+          if(this.displayedURL!==resource)release();
+        }
       }
-      if(controller.signal.aborted||!this.transition({type:'presented',id}).accepted)return;
-      this.label.textContent=`${frame.temporalAccuracy==='approximate'?'≈ ':''}${formatTime(frame.actualTime??frame.time)}`;this.panel.hidden=false;
-    }catch{if(!controller.signal.aborted)this.applyClear(this.transition({type:'presentation-failed',id}));}
-    finally{if(acquiredURL&&this.displayedURL!==acquiredURL)acquiredURL.release();clearTimeout(deadline);controller.signal.removeEventListener('abort',cancelDeadline);this.presentations.delete(id);this.transition({type:'presentation-finished',id});}
+      if(!current()||!this.transition({type:'presented',id}).accepted)return;
+      this.label.textContent=`${frame.temporalAccuracy==='approximate'?'≈ ':''}${formatTime(frame.actualTime??frame.time)}`;
+      if(current())this.panel.hidden=false;
+    }catch{this.applyClear(this.transition({type:'presentation-failed',id}));}
+    finally{
+      if(acquiredURL&&this.displayedURL!==acquiredURL)try{acquiredURL.release();}catch{}
+      if(deadline!==undefined)try{clearTimeout(deadline);}catch{}
+      if(signal&&cancelDeadline)try{signal.removeEventListener('abort',cancelDeadline);}catch{}
+      this.presentations.delete(id);this.transition({type:'presentation-finished',id});
+    }
   }
   private clearImage(){this.applyClear(this.transition({type:'clear'}));}
   readonly hide=()=>{this.pendingApi=undefined;this.applyClear(this.transition({type:'hide'}));};
-  destroy(){this.pendingApi=undefined;this.applyClear(this.transition({type:'destroy'}));this.timeline.removeEventListener('pointermove',this.move);this.timeline.removeEventListener('pointerleave',this.hide);this.timeline.removeEventListener('pointercancel',this.hide);}
+  destroy(){this.pendingApi=undefined;this.applyClear(this.transition({type:'destroy'}));for(const [name,listener] of [['pointermove',this.move],['pointerleave',this.hide],['pointercancel',this.hide]] as const)try{this.timeline.removeEventListener(name,listener);}catch{}}
 }

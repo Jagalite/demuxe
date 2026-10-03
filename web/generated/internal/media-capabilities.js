@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
+import { initialMediaQueries, admitMediaQuery, mediaQueryCurrent, finishMediaQuery, retireMediaQueries } from './machine/media-facts.js';
 /** Per-player, bounded cache of exact API inputs. No source outcomes are cached.
  * Predictions never prove output, change fidelity, or veto a working file route. */
 export class MediaCapabilityQueries {
     decode;
     timeoutMs;
     onLateAnswer;
+    queryControl = initialMediaQueries();
     cache = new Map();
     tokens = new Map();
     lateAnswers = new Map();
@@ -17,6 +19,8 @@ export class MediaCapabilityQueries {
         this.onLateAnswer = onLateAnswer;
     }
     async inspect(capability, probe) {
+        if (this.queryControl.retired)
+            return { api: 'decodingInfo', queries: [], unqueriedTracks: [], scope: 'advisory', reason: 'Media capability queries retired' };
         const result = { api: 'decodingInfo', queries: [], unqueriedTracks: [], scope: 'advisory' };
         const type = capability.api === 'canPlayType' ? 'file' : 'media-source';
         const configurations = [];
@@ -81,19 +85,28 @@ export class MediaCapabilityQueries {
         result.queries = result.queries.map(q => ({ ...q, ...this.lateAnswers.get(JSON.stringify(q.configuration)) }));
         if (result.unqueriedTracks.length)
             result.reason = 'Exact source/output metadata or viable packaging unavailable for some tracks; no adaptation parameters, frame rate or bitrate are guessed';
+        if (this.queryControl.retired)
+            return result;
         this.evidence.set(this.key(capability, probe), result);
         if (this.evidence.size > 128)
             this.evidence.delete(this.evidence.keys().next().value);
         return result;
     }
+    destroy() { this.queryControl = retireMediaQueries(this.queryControl); this.cache.clear(); this.tokens.clear(); this.lateAnswers.clear(); this.evidence.clear(); this.onLateAnswer = undefined; this.decode = undefined; }
     async query(configuration, onLate) {
         if (!this.decode)
             return { status: 'unavailable', reason: 'MediaCapabilities.decodingInfo is unavailable' };
+        const admission = admitMediaQuery(this.queryControl);
+        this.queryControl = admission.state;
+        if (admission.id === null)
+            return { status: 'unavailable', reason: 'MediaCapabilities physical query capacity exhausted' };
+        const id = admission.id, decode = this.decode;
         let timer, timedOut = false;
         try {
             return await Promise.race([
-                Promise.resolve().then(() => this.decode(configuration)).then(info => { const answer = { status: 'answered', supported: info.supported, smooth: info.smooth, powerEfficient: info.powerEfficient, ...(timedOut ? { late: true } : {}) }; if (timedOut)
-                    onLate(answer); return answer; }),
+                Promise.resolve().then(() => { if (!mediaQueryCurrent(this.queryControl, id))
+                    throw Error('Media capability query retired'); return decode(configuration); }).then(info => { this.queryControl = finishMediaQuery(this.queryControl, id); const answer = { status: 'answered', supported: info.supported, smooth: info.smooth, powerEfficient: info.powerEfficient, ...(timedOut ? { late: true } : {}) }; if (timedOut && !this.queryControl.retired)
+                    onLate(answer); return answer; }, error => { this.queryControl = finishMediaQuery(this.queryControl, id); throw error; }),
                 new Promise(resolve => { timer = setTimeout(() => { timedOut = true; resolve({ status: 'timeout', reason: 'MediaCapabilities query deadline exceeded' }); }, this.timeoutMs); })
             ]);
         }

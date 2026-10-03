@@ -45,6 +45,11 @@ export type PrivatePlaybackWorkerState = Readonly<{
     adaptiveDirection: string;
     adaptiveCooldown: number;
     adaptiveReason: string;
+    rpcSerial: number;
+    rpcs: readonly Readonly<{
+        id: number;
+        bytes: number;
+    }>[];
     phase: 'new' | 'initializing' | 'ready' | 'closing' | 'closed';
     initialized: boolean;
     closeStarted: boolean;
@@ -205,4 +210,11 @@ export declare function settlePlaybackWorkerAdaptive(state: PrivatePlaybackWorke
     state: PrivatePlaybackWorkerState;
     accepted: boolean;
 }>;
+/** RPC slots retain physical chain obligations until completion, even after retirement. */
+export declare function admitPlaybackWorkerRPC(state: PrivatePlaybackWorkerState, bytes: number, closing?: boolean): Readonly<{
+    state: PrivatePlaybackWorkerState;
+    id?: number;
+    error?: string;
+}>;
+export declare function finishPlaybackWorkerRPC(state: PrivatePlaybackWorkerState, id: number): PrivatePlaybackWorkerState;
 export {};

@@ -20,14 +20,34 @@ export class PreviewPregenerator {
         for (const effect of next.effects) {
             if (effect.kind === 'cancel-timer') {
                 if (this.timer?.id === effect.id) {
-                    clearTimeout(this.timer.handle);
+                    const timer = this.timer;
                     this.timer = undefined;
+                    clearTimeout(timer.handle);
                 }
             }
-            else if (effect.kind === 'schedule')
-                this.timer = { id: effect.id, handle: setTimeout(() => { if (this.timer?.id !== effect.id)
-                        return; this.timer = undefined; this.dispatch({ kind: 'timer', id: effect.id }); }, effect.delayMs) };
+            else if (effect.kind === 'schedule') {
+                if (this.state.timer !== effect.id)
+                    continue;
+                const timer = { id: effect.id };
+                this.timer = timer;
+                try {
+                    const acquired = setTimeout(() => { if (this.timer !== timer || this.state.timer !== effect.id)
+                        return; this.timer = undefined; this.dispatch({ kind: 'timer', id: effect.id }); }, effect.delayMs);
+                    timer.handle = acquired;
+                    if (this.timer !== timer || this.state.timer !== effect.id)
+                        clearTimeout(acquired);
+                }
+                catch (error) {
+                    if (this.timer === timer)
+                        this.timer = undefined;
+                    if (this.state.timer === effect.id)
+                        this.dispatch({ kind: 'stop' });
+                    throw error;
+                }
+            }
             else {
+                if (this.state.running?.id !== effect.id)
+                    continue;
                 let completion;
                 try {
                     completion = this.run(effect.request);

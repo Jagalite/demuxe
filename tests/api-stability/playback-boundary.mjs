@@ -2,7 +2,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {initialPlayerControl} from '../../web/generated/internal/machine/state.js';
-import {transitionPlayer} from '../../web/generated/internal/machine/transition.js';
+const {transitionPlayer}=await import(process.env.PLAYER_TRANSITION_URL??'../../web/generated/internal/machine/transition.js');
 import {unitPlayer} from '../helpers/unit-player.mjs';
 import {acceptSourceIdentity,publishControlSnapshot} from '../helpers/player-control.mjs';
 const facts={hasBackend:true,time:7,duration:10,seekable:[{start:0,end:10}]};
@@ -65,4 +65,25 @@ test('boundary publication cannot enqueue another loop before the completed oper
 test('failed range positioning and compensation retain the accepted range and report degradation',async t=>{
   const {p,backend}=adapter(t);p.playbackRange={start:0,end:10};backend.seek=async()=>{throw Error('position rejected');};
   await assert.rejects(p.setPlaybackRange({start:1,end:5}),{code:'DECODE_FAILED'});assert.deepEqual(p.getPlaybackRange(),{start:0,end:10});assert.equal(p.sessionError.code,'DECODE_FAILED');assert.ok(p.control.settingsTransactions.degraded);
+});
+
+for(const policy of [true,false,{start:1,end:5}])test(`boundary pause observation preserves intent until ${JSON.stringify(policy)} policy executes`,()=>{
+ const r=core();source(r);r.send({type:'settings.change',value:{pause:false}});r.send({type:'preferences.change',value:{playbackRange:policy===false?{start:1,end:5}:null,loopPolicy:policy}});
+ const end=policy===true?10:5;
+ r.send({type:'playback.sample',session:r.state.source.acceptedSession,sequence:1,observation:'pause',value:true,boundary:{time:end,duration:10,ended:true}});
+ assert.equal(r.state.settings.pause,false);const id=r.send({type:'boundary.sample',time:end,duration:10,ended:true}).id;assert.ok(id);r.start();assert.deepEqual(r.send({type:'boundary.start',id,time:end,duration:10,ended:true}).effects,[{kind:'pause'}]);
+ r.send({type:'boundary.complete',id,phase:'pausing'});assert.equal(r.state.settings.pause,policy===false);
+});
+for(const kind of ['ordinary','explicit-pause','no-boundary'])test(`${kind} pause still commits without unintended automatic replay`,()=>{
+ const r=core();source(r);r.send({type:'settings.change',value:{pause:kind==='explicit-pause'}});if(kind!=='no-boundary')r.send({type:'preferences.change',value:{loopPolicy:true}});
+ r.send({type:'playback.sample',session:r.state.source.acceptedSession,sequence:1,observation:'pause',value:true,boundary:{time:kind==='ordinary'?3:10,duration:10,ended:kind!=='ordinary'}});
+ assert.equal(r.state.settings.pause,true);assert.equal(r.send({type:'boundary.sample',time:10,duration:10,ended:true}).accepted,false);
+});
+test('Native EOF pause carries sampled end fact before eof property publication and loops through actual observer',async t=>{
+ const {p,backend,calls}=adapter(t);p.updateSettings({pause:false});p.loopPolicy=true;
+ backend.properties.set('time-pos',9.99);backend.properties.set('duration',10);backend.properties.set('eof-reached',false);
+ p.schedulePublish=()=>{};p.startWatchdogs=()=>{};p.observeBackend(p.current,p.control.source.acceptedSession);
+ backend.dispatchEvent(new CustomEvent('mpv',{detail:{event:'property-change',name:'pause',data:true,ended:true}}));assert.equal(p.settings.pause,false);
+ publishControlSnapshot(p,{currentTime:10,duration:10,status:'ended'});p.enforceBoundary();await p.queue;await new Promise(setImmediate);
+ assert.deepEqual(calls,['pause',['seek',0],['verified',0],'play']);assert.equal(p.settings.pause,false);
 });

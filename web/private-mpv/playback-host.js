@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 // Physical pointers, pixel buffers and native execution remain in this adapter.
 import {PrivatePCMTransport} from './playback-pcm.js';
-import {initialPlaybackHost,playbackHostCurrent,playbackHostFailureCurrent,beginPlaybackHostCreate,finishPlaybackHostCreate,playbackHostNativeDestroyed,resetPlaybackHostSource,setPlaybackHostPreroll,playbackHostSeekPreroll,observePlaybackHostEvent,playbackHostEventBudget,failPlaybackHostSource,beginPlaybackHostRender,presentPlaybackHost,closePlaybackHost,finishPlaybackHostClose} from '../generated/internal/machine/playback-host.js';
+import {admitPlaybackHostWork,startPlaybackHostWork,finishPlaybackHostWork,initialPlaybackHost,playbackHostCurrent,playbackHostFailureCurrent,beginPlaybackHostCreate,finishPlaybackHostCreate,playbackHostNativeDestroyed,resetPlaybackHostSource,setPlaybackHostPreroll,playbackHostSeekPreroll,observePlaybackHostEvent,playbackHostEventBudget,failPlaybackHostSource,beginPlaybackHostRender,presentPlaybackHost,closePlaybackHost,finishPlaybackHostClose} from '../generated/internal/machine/playback-host.js';
 export class PrivatePlaybackHost {
   constructor(engine,canvas,width,height,{fatalCommandErrors=true,retained,channels=2}={}) {
     this.control=initialPlaybackHost(channels,fatalCommandErrors);
     this.engine=engine;this.canvas=canvas;this.retained=retained;
     this.context=canvas.getContext('2d',{willReadFrequently:true});
     this.width=canvas.width=width;this.height=canvas.height=height;
-    this.tail=Promise.resolve();this.events=[];this.properties={};
+    this.work=new Map();this.draining=false;this.events=[];this.properties={};
   }
   get closed(){return this.control.phase!=='active';}
   get created(){return this.control.created;}
@@ -16,11 +16,32 @@ export class PrivatePlaybackHost {
   get channels(){return this.control.channels;}
   get seekPreroll(){return this.control.seekPreroll;}
   setNativeDestroyed(){this.control=playbackHostNativeDestroyed(this.control);}
-  resetSource(){this.control=resetPlaybackHostSource(this.control);this.properties={};this.events=[];this.sourceError=undefined;}
+  resetSource(){this.control=resetPlaybackHostSource(this.control);this.rejectRetiredWork();this.properties={};this.events=[];this.sourceError=undefined;}
   setSeekPreroll(duration){this.control=setPlaybackHostPreroll(this.control,duration);}
   current(epoch){return playbackHostCurrent(this.control,epoch);}
   assertCurrent(epoch){if(!this.current(epoch))throw Error('Playback host closed or replaced');}
-  serial(operation){const next=this.tail.then(operation);this.tail=next.catch(()=>{});return next;}
+  rejectRetiredWork(){
+    const live=new Set(this.control.queue.map(work=>work.id));if(this.control.activeWork)live.add(this.control.activeWork.id);
+    for(const [id,pending] of this.work)if(!live.has(id)){this.work.delete(id);pending.reject(Error('Playback host closed or replaced'));}
+  }
+  serial(operation,cleanup=false){
+    const admission=admitPlaybackHostWork(this.control,cleanup);this.control=admission.state;
+    if(!admission.work)return Promise.reject(Error(admission.error));
+    const completion=new Promise((resolve,reject)=>this.work.set(admission.work.id,{operation,resolve,reject}));
+    // Keep ignored internal completions handled without swallowing caller errors.
+    void completion.catch(()=>{});
+    if(!this.draining){this.draining=true;void Promise.resolve().then(()=>this.drainWork());}
+    return completion;
+  }
+  async drainWork(){
+    try{for(;;){
+      const started=startPlaybackHostWork(this.control);this.control=started.state;if(!started.work)return;
+      const work=started.work,pending=this.work.get(work.id);
+      try{const result=await pending.operation();if(!work.cleanup)this.assertCurrent(work.epoch);pending.resolve(result);}
+      catch(error){pending.reject(error);}
+      finally{this.work.delete(work.id);this.control=finishPlaybackHostWork(this.control,work.id);}
+    }}finally{this.draining=false;}
+  }
   // Acquire the native method before checking authority: property access itself
   // can retire the host. Cleanup calls use the separate physical path below.
   async invoke(epoch,name,...args){const call=this.engine.call;this.assertCurrent(epoch);const result=await call.call(this.engine,name,...args);this.assertCurrent(epoch);return result;}
@@ -124,7 +145,7 @@ export class PrivatePlaybackHost {
   destroy(){
     if(this.destroyPromise)return this.destroyPromise;
     // Publish retirement and shared completion before callback-capable cleanup.
-    this.control=closePlaybackHost(this.control);let resolve,reject;
+    this.control=closePlaybackHost(this.control);this.rejectRetiredWork();let resolve,reject;
     this.destroyPromise=new Promise((yes,no)=>{resolve=yes;reject=no;});
     const errors=[];try{this.engine.source.cancelSource();}catch(error){errors.push(error);}
     this.serial(async()=>{
@@ -138,7 +159,7 @@ export class PrivatePlaybackHost {
       try{if(result){result.retained=this.retained?.snapshot();result.decoder=this.engine.decoder?.snapshot();}}catch(error){errors.push(error);}
       this.control=finishPlaybackHostClose(this.control);
       if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Playback cleanup failed');return result;
-    }).then(resolve,reject);
+    },true).then(resolve,reject);
     return this.destroyPromise;
   }
 }

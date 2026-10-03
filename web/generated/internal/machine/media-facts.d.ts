@@ -94,3 +94,18 @@ export type BrowserMediaCapability = {
     unqueriedAudio?: boolean;
     reason?: string;
 };
+/** Browser capability promises have no cancellation API. Timeout does not free
+ * an outstanding physical query slot; only its actual settlement does. */
+export type MediaQueryState = Readonly<{
+    retired: boolean;
+    serial: number;
+    pending: readonly number[];
+}>;
+export declare function initialMediaQueries(): MediaQueryState;
+export declare function admitMediaQuery(state: MediaQueryState): Readonly<{
+    state: MediaQueryState;
+    id: number | null;
+}>;
+export declare function mediaQueryCurrent(state: MediaQueryState, id: number): boolean;
+export declare function finishMediaQuery(state: MediaQueryState, id: number): MediaQueryState;
+export declare function retireMediaQueries(state: MediaQueryState): MediaQueryState;

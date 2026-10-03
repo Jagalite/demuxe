@@ -110,7 +110,7 @@ export class NativeMpvSubtitles {
   }
   private withTimeline<T>(kind:SubtitleTimelineKind,run:(epoch:number,id:number)=>Promise<T>,signal?:AbortSignal):Promise<T>{
     if(signal?.aborted)return Promise.reject(signal.reason);
-    const epoch=this.lifetime.epoch,admission=this.timeline({kind:'admit',operation:kind},epoch);if(!admission.accepted)return Promise.reject(Error('Subtitle renderer destroyed'));
+    const epoch=this.lifetime.epoch,admission=this.timeline({kind:'admit',operation:kind},epoch);if(!admission.accepted)return Promise.reject(Error(admission.error==='capacity'?'Subtitle timeline capacity exceeded':admission.error==='identity'?'Subtitle timeline identity exhausted':'Subtitle renderer destroyed'));
     const id=admission.id!;let resolve!:(value:T)=>void,reject!:(error:unknown)=>void;const done=new Promise<T>((yes,no)=>{resolve=yes;reject=no;});
     const work:{run:(epoch:number,id:number)=>Promise<unknown>;resolve:(value:any)=>void;reject:(error:unknown)=>void;detach?:()=>void}={run,resolve,reject};this.timelineWork.set(id,work);
     const cancel=()=>{if(!this.timeline({kind:'cancel',id},epoch).accepted)return;this.timelineWork.delete(id);try{work.detach?.();}catch{/* Caller cancellation keeps its original reason and releases the queue. */}reject(signal?.reason);this.drainTimeline(epoch);};
@@ -138,8 +138,8 @@ export class NativeMpvSubtitles {
     })();
   }
   async add(asset:SubtitleAsset){
-    await this.ready;
     return this.withTimeline('add',async(epoch,id)=>{
+      await this.ready;this.timelineCurrent(epoch,id);
       const attachmentId=asset.attachmentId,title=asset.label,language=asset.language,format=asset.format,select=asset.select;this.timelineCurrent(epoch,id);
       const result=await this.request('add',{asset});this.timelineCurrent(epoch,id);
       const addition=this.timeline({kind:'add',id,mpvId:result.mpvId,attachmentId,title,language,format},epoch),track=addition.track!;
@@ -228,7 +228,7 @@ export class NativeMpvSubtitles {
     }catch(error){if(nativeSubtitleCurrent(this.lifetime,epoch)&&subtitlePumpCurrent(this.output,id))this.fail(error as Error);}
     finally{this.change({kind:'pump.finish',id},epoch);}
   }
-  async select(requested:string){await this.ready;return this.withTimeline('select',(epoch,id)=>this.selectTimeline(epoch,id,requested));}
+  async select(requested:string){return this.withTimeline('select',async(epoch,id)=>{await this.ready;this.timelineCurrent(epoch,id);return this.selectTimeline(epoch,id,requested);});}
   private async selectTimeline(epoch:number,id:number,requested:string){
     this.timelineCurrent(epoch,id);const selection=this.timeline({kind:'select.begin',id,requested},epoch);
     if(selection.skip)return;if(selection.error==='track')throw new PlayerError('UNSUPPORTED_FEATURE','Requested subtitle track was not enumerated by mpv');

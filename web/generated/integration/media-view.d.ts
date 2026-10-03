@@ -11,6 +11,7 @@ export declare class MediaView extends EventTarget {
     readonly binding: PlaybackBinding;
     private control;
     private stops;
+    private cleanup?;
     constructor(runtime: PlaybackRuntime);
     /** Initialize an existing control consumer from an already accepted snapshot. */
     synchronize(): void;

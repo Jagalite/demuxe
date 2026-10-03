@@ -10,11 +10,13 @@ export function admitBackendRequest(state:BackendRequests,op:string,now:number):
   if(op!=='close'){
     if(state.phase!=='active')return reject('closed');
     if(state.failed)return reject('failed');
-    if(state.profile==='software'&&state.pending.length>=128)return reject('capacity');
+    if(state.pending.length>=128||!Number.isSafeInteger(state.nextId)||state.nextId>=Number.MAX_SAFE_INTEGER)return reject('capacity');
   }
+  if(op==='close'&&state.pending.some(request=>request.op==='close'))return reject('closed');
+  const id=op==='close'&&(!Number.isSafeInteger(state.nextId)||state.nextId>=Number.MAX_SAFE_INTEGER)?0:state.nextId;
   const timeout=state.profile==='subtitles'?25000:state.profile==='software'?(op==='init'?60000:op==='close'?2000:25000):(op==='close'?1500:15000);
-  const request=Object.freeze({id:state.nextId,op,deadline:now+timeout});
-  return Object.freeze({state:Object.freeze({...state,nextId:state.nextId+1,pending:Object.freeze([...state.pending,request])}),effect:Object.freeze({kind:'send',request})});
+  const request=Object.freeze({id,op,deadline:now+timeout});
+  return Object.freeze({state:Object.freeze({...state,nextId:id===0?state.nextId:state.nextId+1,pending:Object.freeze([...state.pending,request])}),effect:Object.freeze({kind:'send',request})});
 }
 export type BackendRequestSettlement=Readonly<{state:BackendRequests;effect:Readonly<{kind:'ignore'}|{kind:'settle';request:BackendRequest;fatal:boolean}>}>;
 export function settleBackendRequest(state:BackendRequests,id:number,event:Readonly<{kind:'reply'|'transport-error'}|{kind:'deadline';now:number}>):BackendRequestSettlement{

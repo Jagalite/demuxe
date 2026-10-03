@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { createWasmSeek, clearWasmSeek, beginWasmSeek, observeWasmSeek, confirmWasmSeek } from './wasm-seek.js';
 import { createWasmSettings, updateWasmSettings } from './wasm-settings.js';
-export function createWasmLifecycle(decoderOutput = true) { return Object.freeze({ phase: 'initializing', initSent: false, workerFailed: false, nextRequest: 100, nextWaiter: 1, nextOpen: 1, requests: Object.freeze([]), waiters: Object.freeze([]), open: null, hasFile: false, seek: createWasmSeek(), settings: createWasmSettings(decoderOutput) }); }
+export function createWasmLifecycle(decoderOutput = true) { return Object.freeze({ attachmentSerial: 0, attachments: Object.freeze([]), attachmentPending: null, attachmentFailed: false, phase: 'initializing', initSent: false, workerFailed: false, nextRequest: 100, nextWaiter: 1, nextOpen: 1, requests: Object.freeze([]), waiters: Object.freeze([]), open: null, hasFile: false, seek: createWasmSeek(), settings: createWasmSettings(decoderOutput) }); }
 export function wasmAlive(state) { return state.phase === 'initializing' || state.phase === 'ready'; }
 export function markWasmInitialized(state) { return wasmAlive(state) ? Object.freeze({ ...state, initSent: true }) : state; }
 export function settleWasmInitialization(state, success) { return state.phase === 'initializing' ? Object.freeze({ ...state, phase: success ? 'ready' : 'failed' }) : state; }
@@ -13,7 +13,7 @@ export function claimWasmWorkerFailure(state) {
 export function admitWasmRequest(state, now) {
     if (!wasmAlive(state))
         return Object.freeze({ state, request: null, reason: 'unavailable' });
-    if (state.requests.length >= 128)
+    if (state.requests.length >= 128 || !Number.isSafeInteger(state.nextRequest) || state.nextRequest >= Number.MAX_SAFE_INTEGER)
         return Object.freeze({ state, request: null, reason: 'capacity' });
     const request = Object.freeze({ id: state.nextRequest, deadline: now + 15000 });
     return Object.freeze({ state: Object.freeze({ ...state, nextRequest: state.nextRequest + 1, requests: Object.freeze([...state.requests, request]) }), request, reason: null });
@@ -29,7 +29,7 @@ export function rejectWasmRequests(state, id) {
     return Object.freeze({ state: ids.length ? Object.freeze({ ...state, requests: Object.freeze(state.requests.filter(item => !ids.includes(item.id))) }) : state, ids });
 }
 export function admitWasmWaiter(state, now) {
-    if (!wasmAlive(state))
+    if (!wasmAlive(state) || state.waiters.length >= 128 || !Number.isSafeInteger(state.nextWaiter) || state.nextWaiter >= Number.MAX_SAFE_INTEGER)
         return Object.freeze({ state, waiter: null });
     const waiter = Object.freeze({ id: state.nextWaiter, deadline: now + 25000 });
     return Object.freeze({ state: Object.freeze({ ...state, nextWaiter: state.nextWaiter + 1, waiters: Object.freeze([...state.waiters, waiter]) }), waiter });
@@ -43,9 +43,11 @@ export function settleWasmWaiter(state, id, now) {
 export function beginWasmOpen(state) {
     if (!wasmAlive(state))
         return Object.freeze({ state, id: null, reason: 'unavailable' });
-    if (state.open !== null)
+    if (state.open !== null || state.attachmentPending !== null)
         return Object.freeze({ state, id: null, reason: 'busy' });
-    return Object.freeze({ state: Object.freeze({ ...state, open: state.nextOpen, nextOpen: state.nextOpen + 1 }), id: state.nextOpen, reason: null });
+    if (!Number.isSafeInteger(state.nextOpen) || state.nextOpen >= Number.MAX_SAFE_INTEGER)
+        return Object.freeze({ state, id: null, reason: 'unavailable' });
+    return Object.freeze({ state: Object.freeze({ ...state, open: state.nextOpen, nextOpen: state.nextOpen + 1, attachmentFailed: false }), id: state.nextOpen, reason: null });
 }
 export function ownsWasmOpen(state, id) { return wasmAlive(state) && state.open === id; }
 export function finishWasmOpen(state, id) { return state.open === id ? Object.freeze({ ...state, open: null }) : state; }
@@ -76,7 +78,7 @@ export function confirmWasmPlayerSeek(state, id, target, position, settled) {
 export function retireWasmLifecycle(state) {
     if (state.phase === 'retiring' || state.phase === 'closed')
         return Object.freeze({ state, accepted: false, requests: Object.freeze([]), waiters: Object.freeze([]) });
-    return Object.freeze({ state: Object.freeze({ ...state, phase: 'retiring', open: null, hasFile: false, seek: clearWasmSeek(state.seek), requests: Object.freeze([]), waiters: Object.freeze([]) }), accepted: true, requests: Object.freeze(state.requests.map(item => item.id)), waiters: Object.freeze(state.waiters.map(item => item.id)) });
+    return Object.freeze({ state: Object.freeze({ ...state, phase: 'retiring', open: null, attachmentPending: null, hasFile: false, seek: clearWasmSeek(state.seek), requests: Object.freeze([]), waiters: Object.freeze([]) }), accepted: true, requests: Object.freeze(state.requests.map(item => item.id)), waiters: Object.freeze(state.waiters.map(item => item.id)) });
 }
 export function finishWasmRetirement(state) { return state.phase === 'retiring' ? Object.freeze({ ...state, phase: 'closed' }) : state; }
 export function applyWasmSetting(state, input) {
@@ -85,3 +87,18 @@ export function applyWasmSetting(state, input) {
     const decision = updateWasmSettings(state.settings, input);
     return Object.freeze({ state: decision.state === state.settings ? state : Object.freeze({ ...state, settings: decision.state }), accepted: decision.accepted, send: decision.send && (input.kind !== 'watchdog' || state.initSent) });
 }
+export function admitWasmAttachment(state, bytes, identity) {
+    const error = !wasmAlive(state) ? 'Player unavailable' : state.open !== null || state.attachmentPending !== null ? 'Subtitle attachment busy' : state.attachmentFailed ? 'Subtitle attachment state uncertain' : !Number.isSafeInteger(bytes) || bytes <= 0 || bytes > 8 * 1024 * 1024 || identity !== undefined && (typeof identity !== 'string' || identity.length > 256) ? 'Invalid subtitle attachment' : state.attachments.length >= 32 || state.attachments.reduce((sum, item) => sum + item.bytes, 0) + bytes > 16 * 1024 * 1024 || !Number.isSafeInteger(state.attachmentSerial + 1) ? 'Subtitle attachment capacity' : null;
+    if (error)
+        return Object.freeze({ state, id: null, error });
+    const entry = Object.freeze({ id: state.attachmentSerial + 1, source: state.nextOpen - 1, identity, bytes, status: 'pending' });
+    return Object.freeze({ state: Object.freeze({ ...state, attachmentSerial: entry.id, attachmentPending: entry.id, attachments: Object.freeze([...state.attachments, entry]) }), id: entry.id, error: null });
+}
+export function wasmAttachmentCurrent(state, id) { return wasmAlive(state) && state.attachmentPending === id; }
+export function finishWasmAttachment(state, id, outcome) {
+    if (!wasmAttachmentCurrent(state, id))
+        return state;
+    const attachments = outcome === 'unsubmitted' ? state.attachments.filter(entry => entry.id !== id) : state.attachments.map(entry => entry.id === id ? Object.freeze({ ...entry, status: outcome, identity: outcome === 'uncertain' ? undefined : entry.identity }) : entry);
+    return Object.freeze({ ...state, attachmentPending: null, attachmentFailed: outcome === 'uncertain', attachments: Object.freeze(attachments) });
+}
+export function wasmAttachmentIdentity(state, index) { return state.attachments.filter(entry => entry.source === state.nextOpen - 1)[index]?.identity; }

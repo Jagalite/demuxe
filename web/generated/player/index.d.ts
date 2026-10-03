@@ -271,6 +271,7 @@ export declare class DemuxePlayerElement extends Base {
     selectSubtitleTrack(id: string | null): Promise<void>;
     addSubtitle(file: File, options?: SubtitleOptions): Promise<void>;
     destroy(): Promise<void>;
+    private releaseOwnedResources;
     private run;
     private runSettings;
     private componentError;

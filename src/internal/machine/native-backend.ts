@@ -70,7 +70,7 @@ export type NativeBackendCommand=
 export type NativeBackendDecision=Readonly<{
  state:NativeBackendState;accepted:boolean;request?:NativeRequest;retired?:NativeRequest;completed?:boolean;sample?:boolean;armFrame?:boolean;retry?:boolean;remaining?:number;
  eventTimeout?:Readonly<{event:string;loading:boolean;budget:number}>;captionStart?:NativeCaptionEffect;sinkStart?:NativeControlRequest;fallback?:boolean;rollback?:boolean;resume?:boolean;position?:number;
- failure?:'missing-audio'|'missing-output'|'verification-timeout'|'seek-timeout'|'activation-timeout'|'caption-timeout';
+ failure?:'event-capacity'|'caption-capacity'|'identity-exhausted'|'missing-audio'|'missing-output'|'verification-timeout'|'seek-timeout'|'activation-timeout'|'caption-timeout';
 }>;
 function evidence(value:CapabilityEvidenceData):CapabilityEvidenceData{return Object.freeze({...value,...value.timing?{timing:Object.freeze({...value.timing})}:{},...value.audioObservation?{audioObservation:Object.freeze({...value.audioObservation})}:{}});}
 export function transitionNativeBackend(state:NativeBackendState,command:NativeBackendCommand):NativeBackendDecision{
@@ -81,6 +81,9 @@ export function transitionNativeBackend(state:NativeBackendState,command:NativeB
  if(state.stopped)return result(state,{},false);
  if(command.type==='source')return result({...state,epoch:state.epoch+1,expected:undefined,capability:Object.freeze({}),verification:null,seek:null,load:retireNativeLoad(state.load),controls:retireNativeControls(state.controls),captions:retireNativeCaptions(state.captions),waits:Object.freeze([])});
  if(command.type==='metadata'||command.type==='api-hint')return command.epoch!==state.epoch?result(state,{},false):result({...state,capability:evidence({...state.capability,...command.type==='metadata'?{metadata:true}:{apiHint:command.value}})});
+ if(['event.begin','caption.begin','control.begin','load.begin','verify.begin','seek.begin'].includes(command.type)&&!Number.isSafeInteger(state.serial+1))return result(state,{failure:'identity-exhausted'},false);
+ if(command.type==='event.begin'&&state.waits.length>=128)return result(state,{failure:'event-capacity'},false);
+ if(command.type==='caption.begin'&&state.captions.attachments.length>=16)return result(state,{failure:'caption-capacity'},false);
  if(command.type==='event.begin'){const request=Object.freeze({id:state.serial+1,epoch:state.epoch,kind:'event' as const});return result({...state,serial:request.id,waits:Object.freeze([...state.waits,beginNativeEventWait(request,command.event,command.now,command.loadBudget)])},{request});}
  if(command.type==='caption.begin'){const request=Object.freeze({id:state.serial+1,epoch:state.epoch,kind:'caption' as const});return result({...state,serial:request.id,captions:beginNativeCaption(state.captions,request,command.kind,command.attachmentId,command.now)},{request});}
  if(command.type==='control.begin'){const request=Object.freeze({id:state.serial+1,epoch:state.epoch,kind:'control' as const,domain:command.domain});return result({...state,serial:request.id,controls:beginNativeControl(state.controls,request,command.paused),captions:command.domain==='subtitles'?beginNativeCaptionSelection(state.captions,request.id):state.captions},{request});}

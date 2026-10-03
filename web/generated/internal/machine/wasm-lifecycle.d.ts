@@ -7,7 +7,18 @@ export type WasmDeadline = Readonly<{
     id: number;
     deadline: number;
 }>;
+export type WasmAttachment = Readonly<{
+    id: number;
+    source: number;
+    identity: string | undefined;
+    bytes: number;
+    status: 'pending' | 'accepted' | 'uncertain';
+}>;
 export type WasmLifecycle = Readonly<{
+    attachmentSerial: number;
+    attachments: readonly WasmAttachment[];
+    attachmentPending: number | null;
+    attachmentFailed: boolean;
     phase: WasmPhase;
     initSent: boolean;
     workerFailed: boolean;
@@ -79,3 +90,11 @@ export declare function applyWasmSetting(state: WasmLifecycle, input: WasmSettin
     accepted: boolean;
     send: boolean;
 }>;
+export declare function admitWasmAttachment(state: WasmLifecycle, bytes: number, identity: string | undefined): Readonly<{
+    state: WasmLifecycle;
+    id: number | null;
+    error: string | null;
+}>;
+export declare function wasmAttachmentCurrent(state: WasmLifecycle, id: number): boolean;
+export declare function finishWasmAttachment(state: WasmLifecycle, id: number, outcome: 'accepted' | 'unsubmitted' | 'uncertain'): WasmLifecycle;
+export declare function wasmAttachmentIdentity(state: WasmLifecycle, index: number): string | undefined;

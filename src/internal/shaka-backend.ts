@@ -38,7 +38,7 @@ export class ShakaBackend extends EventTarget implements Backend {
   private get audioDisabled(){return this.control.audioDisabled;}
   private move(command:ShakaCommand){const decision=transitionShakaBackend(this.control,command);this.control=decision.state;return decision;}
   private check(lease:ShakaLease){if(!shakaLeaseCurrent(this.control,lease))throw new PlayerError('ABORTED','Shaka operation retired');}
-  private begin(domain:Exclude<ShakaLease['domain'],'load'>){this.active();return this.move({type:'begin',domain}).lease!;}
+  private begin(domain:Exclude<ShakaLease['domain'],'load'>){this.active();const decision=this.move({type:'begin',domain});if(!decision.lease)throw new PlayerError('UNSUPPORTED_FEATURE','Streaming attachment capacity exceeded');return decision.lease;}
   private controlWaiters=new Map<number,{lease:ShakaLease;resolve:()=>void;reject:(error:unknown)=>void}>();
   private enter(lease:ShakaLease):Promise<void>{
     return new Promise((resolve,reject)=>{this.controlWaiters.set(lease.id,{lease,resolve,reject});this.pumpControls();});
@@ -271,11 +271,26 @@ export class ShakaBackend extends EventTarget implements Backend {
     const select=player.selectTextTrack;if(current())select.call(player,selected);
   }
   async subtitleVisible(visible:boolean){const lease=this.begin('selection');try{await this.enter(lease);this.check(lease);this.move({type:'selection',lease,visible});this.applyText();this.check(lease);this.refresh();}finally{this.finishControl(lease);}}
-  async addTextTrack(track:TextTrackSource,attachmentId?:string){const lease=this.begin('attachment');try{const player=this.loaded();this.policy!.authorize(track.src);this.check(lease);const added=await player.addTextTrackAsync(track.src,track.language??'und','subtitle','text/vtt',undefined,track.label);this.check(lease);if(track.default&&shakaAttachmentSelect(this.control,lease)){player.selectTextTrack(added);this.check(lease);}this.move({type:'attached',lease,id:added.id,attachmentId,select:!!track.default});this.applyText();this.refresh();}finally{this.finishControl(lease);}}
+  private async attachTextTrack(lease:ShakaLease,track:TextTrackSource,attachmentId?:string){
+    const player=this.loaded(),src=track.src,language=track.language??'und',label=track.label,select=!!track.default;this.check(lease);this.policy!.authorize(src);this.check(lease);
+    const add=player.addTextTrackAsync;this.check(lease);this.move({type:'attachment.issued',lease});
+    const added=await add.call(player,src,language,'subtitle','text/vtt',undefined,label);this.check(lease);
+    if(select&&shakaAttachmentSelect(this.control,lease)){player.selectTextTrack(added);this.check(lease);}
+    this.move({type:'attached',lease,id:added.id,attachmentId,select});this.applyText();this.refresh();
+  }
+  async addTextTrack(track:TextTrackSource,attachmentId?:string){const lease=this.begin('attachment');try{await this.attachTextTrack(lease,track,attachmentId);}finally{this.finishControl(lease);}}
   async addSubtitle(asset:SubtitleAsset){
     this.active();if(!plainVTT(asset))throw new PlayerError('UNSUPPORTED_FEATURE','Shaka external subtitles require plain WebVTT');
-    const url=URL.createObjectURL(new Blob([asset.bytes],{type:'text/vtt'}));if(this.stopped){URL.revokeObjectURL(url);this.active();}this.blobs.add(url);this.policy?.ownBlob(url);
-    await this.addTextTrack({src:url,label:asset.label,language:asset.language,default:asset.select},asset.attachmentId);
+    const lease=this.begin('attachment');let url:string|undefined;
+    try{
+      url=URL.createObjectURL(new Blob([asset.bytes],{type:'text/vtt'}));this.blobs.add(url);this.check(lease);this.policy?.ownBlob(url);this.check(lease);
+      await this.attachTextTrack(lease,{src:url,label:asset.label,language:asset.language,default:asset.select},asset.attachmentId);
+    }finally{
+      if(url&&!this.control.attachmentIssued.includes(lease.id)&&!this.control.external.some(entry=>entry.request===lease.id)){
+        try{URL.revokeObjectURL(url);this.blobs.delete(url);this.policy?.disownBlob(url);}catch{this.move({type:'attachment.issued',lease});}
+      }
+      this.finishControl(lease);
+    }
   }
   resize(width:number,height:number){this.native.resize(width,height);}
   audioDiagnostics(){return {...this.native.audioDiagnostics(),source:'shaka-mse'};}

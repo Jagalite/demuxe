@@ -126,3 +126,22 @@ test('actual operation abort remains available while physical reader cleanup is 
  const hold=deferred(),entered=deferred(),r=response();let signal;const get=r.value.body.getReader;r.value.body.getReader=()=>({...get(),cancel(){entered.resolve();return hold.promise;}});
  const h=harness({},async(_uri,init)=>{signal=init.signal;signal.addEventListener('abort',()=>hold.resolve());return r.value;}),op=h.request();await entered.promise;await op.abort();assert.equal(signal.aborted,true);await op.promise;assert.equal(h.policy.diagnostics.pendingRequests,0);h.policy.destroy();
 });
+test('request slots include cancelled and cleaning requests until physical finish',()=>{
+ for(const preview of [false,true]){let state=core.initialShakaNetwork(false,preview);const limit=preview?4:32,ids=[];
+ for(let i=0;i<limit;i++){const next=core.beginShakaNetworkRequest(state,'segment',0,0);state=next.state;ids.push(next.id);}
+ assert.equal(core.beginShakaNetworkRequest(state,'segment',0,0).accepted,false);state=core.cancelShakaNetworkRequest(state,ids[0]).state;state=core.cleanupShakaNetworkRequest(state,ids[0]);assert.equal(core.beginShakaNetworkRequest(state,'segment',0,0).accepted,false);state=core.finishShakaNetworkRequest(state,ids[0]);assert.equal(core.beginShakaNetworkRequest(state,'segment',0,0).accepted,true);
+ }
+});
+test('filter-only request association retains no strong request entries',()=>{
+ const h=harness();for(let i=0;i<1000;i++)h.policy.filter(1,{uris:['https://private.test/media'],headers:{},retryParameters:{timeout:0}});assert.equal(h.policy.requests.size,0);assert.equal(h.policy.controllers.size,0);h.policy.destroy();
+});
+test('actual request overflow allocates no controller timer or fetch and cancelled physical fetch still occupies slot',async()=>{
+ const holds=[],h=harness({},()=>{const pending=deferred();holds.push(pending);return pending.promise;}),operations=[];
+ for(let i=0;i<32;i++){const op=h.request({retryParameters:{timeout:0}});op.promise.catch(()=>{});operations.push(op);}assert.equal(holds.length,32);assert.equal(h.policy.controllers.size,32);
+ await assert.rejects(h.request({retryParameters:{timeout:0}}).promise);assert.equal(holds.length,32);assert.equal(h.policy.controllers.size,32);assert.equal(h.policy.requests.size,32);
+ await operations[0].abort();await assert.rejects(h.request({retryParameters:{timeout:0}}).promise);assert.equal(holds.length,32);
+ for(const hold of holds)hold.resolve(new Response('data'));await Promise.allSettled(operations.map(op=>op.promise));assert.equal(h.policy.controllers.size,0);assert.equal(h.policy.requests.size,0);assert.equal(h.policy.control.requests.length,0);h.policy.destroy();
+});
+test('request timeout getter retirement does not restore the prior active state',async()=>{
+ const h=harness(),parameters={get timeout(){h.policy.destroy();return 0;}};await assert.rejects(h.request({retryParameters:parameters}).promise);assert.equal(h.policy.control.active,false);assert.equal(h.policy.controllers.size,0);assert.equal(h.policy.control.requests.length,0);
+});

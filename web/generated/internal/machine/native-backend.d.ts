@@ -261,7 +261,7 @@ export type NativeBackendDecision = Readonly<{
     rollback?: boolean;
     resume?: boolean;
     position?: number;
-    failure?: 'missing-audio' | 'missing-output' | 'verification-timeout' | 'seek-timeout' | 'activation-timeout' | 'caption-timeout';
+    failure?: 'event-capacity' | 'caption-capacity' | 'identity-exhausted' | 'missing-audio' | 'missing-output' | 'verification-timeout' | 'seek-timeout' | 'activation-timeout' | 'caption-timeout';
 }>;
 export declare function transitionNativeBackend(state: NativeBackendState, command: NativeBackendCommand): NativeBackendDecision;
 export {};

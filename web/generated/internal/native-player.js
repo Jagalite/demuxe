@@ -34,7 +34,8 @@ export class NativePlayer extends EventTarget {
     get expectedOutput() { return this.native.expected; }
     verificationCancel;
     seekCancel;
-    changeNative(command) { const result = transitionNativeBackend(this.native, command); this.native = result.state; return result; }
+    changeNative(command) { const result = transitionNativeBackend(this.native, command); this.native = result.state; if (result.failure === 'event-capacity' || result.failure === 'caption-capacity' || result.failure === 'identity-exhausted')
+        throw Error(`Native ${result.failure}`); return result; }
     assertNative(request) { if (!nativeRequestCurrent(this.native, request))
         throw new Error(this.stopped ? 'Player is destroyed' : 'Native operation was retired'); }
     retireNativeSource() {
@@ -513,7 +514,7 @@ export class NativePlayer extends EventTarget {
             if (name !== 'track-list' && this.properties.get(name) === data)
                 continue;
             this.properties.set(name, data);
-            this.emit('mpv', { event: 'property-change', name, data });
+            this.emit('mpv', { event: 'property-change', name, data, ...name === 'pause' ? { ended: values['eof-reached'] === true } : {} });
         }
     }
     get planId() { return this.mpvSubtitlePlan && this.mpvSubs && this.adapted && this.audioAdaptation === 'flac24' ? 'native-transcode-mpv' : this.mpvAudio ? this.requestedPlan : this.mpvSubtitlePlan && this.mpvSubs ? (this.remux ? 'remux-mpv' : 'direct-mpv') : this.projection ? (this.adapted ? 'adapted-flac24' : 'remux') : this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct'; }

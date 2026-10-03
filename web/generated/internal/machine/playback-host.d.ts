@@ -1,5 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
+export type PlaybackHostWork = Readonly<{
+    id: number;
+    epoch: number;
+    cleanup: boolean;
+}>;
 export type PlaybackHostState = Readonly<{
+    workSerial: number;
+    queue: readonly PlaybackHostWork[];
+    activeWork: PlaybackHostWork | null;
     phase: 'active' | 'closing' | 'closed';
     epoch: number;
     creating: boolean;
@@ -44,3 +52,13 @@ export declare function presentPlaybackHost(state: PlaybackHostState, epoch: num
 export declare function closePlaybackHost(state: PlaybackHostState): PlaybackHostState;
 export declare function finishPlaybackHostClose(state: PlaybackHostState): PlaybackHostState;
 export declare function playbackHostFailureCurrent(failureGeneration: number | undefined, generation: number | undefined): boolean;
+export declare function admitPlaybackHostWork(state: PlaybackHostState, cleanup?: boolean): Readonly<{
+    state: PlaybackHostState;
+    work?: PlaybackHostWork;
+    error?: string;
+}>;
+export declare function startPlaybackHostWork(state: PlaybackHostState): Readonly<{
+    state: PlaybackHostState;
+    work?: PlaybackHostWork;
+}>;
+export declare function finishPlaybackHostWork(state: PlaybackHostState, id: number): PlaybackHostState;

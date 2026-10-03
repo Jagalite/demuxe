@@ -19,6 +19,8 @@ export class PlayerPresentation {
   private leaseValue?:DocumentLease;
   private ownerValue?:number;
   private documentValue?:Document;
+  private destruction?:Promise<void>;
+  private pipClose?:(()=>void);
   // Player constructs this facade in a field initializer, before creating its host.
   constructor(private player:Player,private host:()=>HTMLElement){}
   private get ownerDocument(){return this.documentValue??(this.documentValue=this.host().ownerDocument);}
@@ -43,11 +45,11 @@ export class PlayerPresentation {
   get state(){return projectPresentation({fullscreen:this.host().ownerDocument.fullscreenElement===this.fullscreenHost(),documentPiP:!!this.pipWindow&&!this.pipWindow.closed,videoPiP:this.videoPiP(),mediaSession:ownsMediaSession(this.lease.state,this.owner)});}
   get locksSurface(){return presentationLocksSurface(this.control,this.videoPiP());}
   async requestFullscreen(){
-    const host=this.fullscreenHost();
-    const {requestId:id}=this.accept({type:'fullscreen.request',containsHost:this.containsHost(host),supported:typeof host.requestFullscreen==='function'});
+    const host=this.fullscreenHost(),request=host.requestFullscreen;
+    const {requestId:id}=this.accept({type:'fullscreen.request',containsHost:this.containsHost(host),supported:typeof request==='function'});
     try{
       // Invoke on the initiating gesture stack, before awaiting completion.
-      await host.requestFullscreen();
+      await request.call(host);
       const decision=this.transition({type:'fullscreen.check',id:id!,containsHost:this.containsHost(host)});
       if(decision.error){
         if(host.ownerDocument.fullscreenElement===host)await host.ownerDocument.exitFullscreen();
@@ -62,18 +64,34 @@ export class PlayerPresentation {
     const api=(globalThis as typeof globalThis&{documentPictureInPicture?:{requestWindow(options:{width:number;height:number}):Promise<Window>}}).documentPictureInPicture;
     const surface=this.player.surface;
     const video=typeof HTMLVideoElement!=='undefined'&&surface instanceof HTMLVideoElement;
-    const {requestId:id}=this.accept({type:'pip.request',kind,supported:kind==='document'?!!api:video&&typeof surface.requestPictureInPicture==='function',eligible:kind==='document'||video&&!surface.disablePictureInPicture&&!(this.player.state.subtitlesVisible&&this.player.state.mediaInfo.subtitle),documentOpen:!!this.pipWindow&&!this.pipWindow.closed});
+    const requestWindow=kind==='document'?api?.requestWindow:undefined,requestVideo=kind==='video'&&video?surface.requestPictureInPicture:undefined;
+    const {requestId:id}=this.accept({type:'pip.request',kind,supported:kind==='document'?typeof requestWindow==='function':typeof requestVideo==='function',eligible:kind==='document'||video&&!surface.disablePictureInPicture&&!(this.player.state.subtitlesVisible&&this.player.state.mediaInfo.subtitle),documentOpen:!!this.pipWindow&&!this.pipWindow.closed});
     if(id===undefined)return;
     try{
       if(kind==='document'){
-        const win=await api!.requestWindow({width:640,height:360});
-        const decision=this.transition({type:'pip.check',id,sameSurface:true,subtitles:false});
-        if(decision.error){win.close();throw new PlayerError(decision.error.code,decision.error.message);}
-        const host=this.host(),marker=host.ownerDocument.createComment('demuxe-presentation');host.before(marker);
-        const restore=()=>{if(this.pipWindow!==win)return;if(marker.parentNode)marker.replaceWith(host);this.pipWindow=undefined;this.restore=undefined;};
-        this.restore=restore;this.pipWindow=win;win.document.body.style.margin='0';win.document.body.append(host);win.addEventListener('pagehide',restore,{once:true});return;
+        const win=await requestWindow!.call(api,{width:640,height:360});
+        let closed=false;const close=()=>{if(!closed){closed=true;win.close();}};
+        const check=()=>this.accept({type:'pip.check',id,sameSurface:true,subtitles:false});
+        let marker:Comment|undefined,host:HTMLElement|undefined,restore:(()=>void)|undefined;
+        try{
+          check();host=this.host();check();marker=host.ownerDocument.createComment('demuxe-presentation');check();
+          const before=host.before;check();before.call(host,marker);check();
+          restore=()=>{
+            if(this.pipWindow!==win)return;this.pipWindow=undefined;this.restore=undefined;this.pipClose=undefined;
+            try{win.removeEventListener('pagehide',restore!);}finally{if(marker?.parentNode)marker.replaceWith(host!);}
+          };
+          this.restore=restore;this.pipClose=close;this.pipWindow=win;
+          const body=win.document.body;check();const style=body.style;check();style.margin='0';check();
+          const append=body.append;check();append.call(body,host);check();
+          const listen=win.addEventListener;check();listen.call(win,'pagehide',restore,{once:true});check();return;
+        }catch(error){
+          if(this.pipWindow===win){this.pipWindow=undefined;this.restore=undefined;this.pipClose=undefined;}
+          try{if(restore)win.removeEventListener('pagehide',restore);}catch{}
+          try{if(marker?.parentNode&&host)marker.replaceWith(host);}catch{}
+          try{close();}catch{}throw error;
+        }
       }
-      await (surface as HTMLVideoElement).requestPictureInPicture();
+      await requestVideo!.call(surface as HTMLVideoElement);
       const decision=this.transition({type:'pip.check',id,sameSurface:surface===this.player.surface,subtitles:this.player.state.subtitlesVisible&&!!this.player.state.mediaInfo.subtitle});
       if(decision.error){
         if(this.ownerDocument.pictureInPictureElement===surface)await this.ownerDocument.exitPictureInPicture();
@@ -83,7 +101,7 @@ export class PlayerPresentation {
   }
   async exitPictureInPicture(){
     this.accept({type:'pip.exit'});
-    if(this.pipWindow){const win=this.pipWindow;this.restore?.();win.close();}
+    if(this.pipWindow){const win=this.pipWindow,close=this.pipClose??(()=>win.close());try{this.restore?.();}finally{close();}}
     if(this.videoPiP())await this.ownerDocument.exitPictureInPicture();
   }
   private mediaSession(){return this.ownerDocument.defaultView?.navigator.mediaSession??globalThis.navigator?.mediaSession;}
@@ -123,10 +141,15 @@ export class PlayerPresentation {
     if(!vacant())return;
     media.playbackState='none';if(vacant())try{media.setPositionState?.();}catch{}
   }
-  async destroy(){
-    if(this.control.disposed)return;this.transition({type:'destroy'});this.releaseMediaSession();
-    const win=this.pipWindow;this.restore?.();win?.close();
-    if(this.videoPiP())await this.ownerDocument.exitPictureInPicture().catch(()=>{});
-    if(this.host().ownerDocument.fullscreenElement===this.fullscreenHost())await this.host().ownerDocument.exitFullscreen().catch(()=>{});
+  destroy():Promise<void>{
+    if(this.destruction)return this.destruction;
+    let resolve!:()=>void,reject!:(error:unknown)=>void;this.destruction=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});
+    this.transition({type:'destroy'});const errors:unknown[]=[],win=this.pipWindow,restore=this.restore,close=this.pipClose??(()=>win?.close());
+    const release=(work:()=>void)=>{try{work();}catch(error){errors.push(error);}};
+    release(()=>this.releaseMediaSession());release(()=>restore?.());release(close);
+    const exits:Promise<unknown>[]=[];
+    release(()=>{if(this.videoPiP())exits.push(this.ownerDocument.exitPictureInPicture().catch(()=>{}));});
+    release(()=>{if(this.host().ownerDocument.fullscreenElement===this.fullscreenHost())exits.push(this.host().ownerDocument.exitFullscreen().catch(()=>{}));});
+    void Promise.all(exits).then(()=>{if(errors.length)reject(errors.length===1?errors[0]:new AggregateError(errors,'Presentation cleanup failed'));else resolve();},reject);return this.destruction;
   }
 }

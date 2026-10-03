@@ -24,14 +24,21 @@ export class ScrubberPreview {
     abort(map, id) { if (id === undefined)
         return; const controller = map.get(id); map.delete(id); controller?.abort(); }
     applyClear(decision) {
-        this.abort(this.generators, decision.abortGeneration);
-        this.abort(this.presentations, decision.abortPresentation);
-        if (!decision.clear)
-            return;
-        this.panel.hidden = true;
-        this.image.removeAttribute('src');
-        this.displayedURL?.release();
-        this.displayedURL = undefined;
+        const cleared = this.control;
+        const actions = [() => this.abort(this.generators, decision.abortGeneration), () => this.abort(this.presentations, decision.abortPresentation)];
+        if (decision.clear) {
+            const displayed = this.displayedURL;
+            this.displayedURL = undefined;
+            actions.push(() => { if (this.control === cleared)
+                this.panel.hidden = true; }, () => { if (this.control === cleared)
+                this.image.removeAttribute('src'); }, () => displayed?.release());
+        }
+        // Cleanup operations are independent: a hostile DOM shim must not retain other handles.
+        for (const action of actions)
+            try {
+                action();
+            }
+            catch { }
     }
     move = (event) => {
         if (event.pointerType === 'touch' || this.timeline.disabled) {
@@ -54,7 +61,7 @@ export class ScrubberPreview {
             this.label.textContent = `${formatTime(pointer.time)} · …`;
             this.panel.hidden = false;
         }
-        void this.sample(api, pointer.time, hover.id);
+        void this.sample(api, pointer.time, hover.id).catch(() => { });
     };
     constructor(timeline, panel, image, label, api) {
         this.timeline = timeline;
@@ -62,9 +69,15 @@ export class ScrubberPreview {
         this.image = image;
         this.label = label;
         this.api = api;
-        timeline.addEventListener('pointermove', this.move);
-        timeline.addEventListener('pointerleave', this.hide);
-        timeline.addEventListener('pointercancel', this.hide);
+        try {
+            timeline.addEventListener('pointermove', this.move);
+            timeline.addEventListener('pointerleave', this.hide);
+            timeline.addEventListener('pointercancel', this.hide);
+        }
+        catch (error) {
+            this.destroy();
+            throw error;
+        }
     }
     distance(api, generation = false) { return scrubberDistance(api.strategy, Number(this.timeline.max) - Number(this.timeline.min), generation); }
     async sample(api, time, hover) {
@@ -88,18 +101,27 @@ export class ScrubberPreview {
         if (!decision.generate || !api)
             return;
         this.pendingApi = undefined;
-        const request = decision.generate, controller = new AbortController();
-        this.generators.set(request.id, controller);
+        const request = decision.generate;
+        let controller;
         try {
-            const frame = await api.getFrame({ time: request.time, width: 240, height: 135, signal: controller.signal, maxDistance: this.distance(api, true) });
-            const completed = this.transition({ type: 'generated', id: request.id, aborted: controller.signal.aborted, hasFrame: !!frame });
+            controller = new AbortController();
+            if (this.control.generation?.id !== request.id) {
+                controller.abort();
+                return;
+            }
+            this.generators.set(request.id, controller);
+            const signal = controller.signal, distance = this.distance(api, true);
+            if (this.control.generation?.id !== request.id || signal.aborted)
+                return;
+            const frame = await api.getFrame({ time: request.time, width: 240, height: 135, signal, maxDistance: distance });
+            const completed = this.transition({ type: 'generated', id: request.id, aborted: signal.aborted, hasFrame: !!frame });
             if (completed.show && frame)
                 void this.show(frame);
             else if (completed.clear)
                 this.clearImage();
         }
         catch {
-            if (this.transition({ type: 'generated', id: request.id, aborted: controller.signal.aborted, hasFrame: false }).accepted)
+            if (this.transition({ type: 'generated', id: request.id, aborted: controller?.signal.aborted ?? false, hasFrame: false }).accepted)
                 this.clearImage();
         }
         finally {
@@ -112,17 +134,35 @@ export class ScrubberPreview {
         const image = this.identity(this.imageIds, frame.image), decision = this.transition({ type: 'show', image });
         if (!decision.presentation)
             return;
-        this.abort(this.presentations, decision.abortPresentation);
-        const { id, needsImage } = decision.presentation, controller = new AbortController();
-        this.presentations.set(id, controller);
-        const deadline = setTimeout(() => this.applyClear(this.transition({ type: 'deadline', id })), 5000);
-        const cancelDeadline = () => clearTimeout(deadline);
-        controller.signal.addEventListener('abort', cancelDeadline, { once: true });
+        const { id, needsImage } = decision.presentation;
+        let controller, deadline;
+        let signal, cancelDeadline;
         let acquiredURL;
+        const current = () => this.control.presentation?.id === id && !signal?.aborted;
         try {
+            this.abort(this.presentations, decision.abortPresentation);
+            if (!current())
+                return;
+            controller = new AbortController();
+            if (!current()) {
+                controller.abort();
+                return;
+            }
+            this.presentations.set(id, controller);
+            signal = controller.signal;
+            if (!current())
+                return;
+            deadline = setTimeout(() => this.applyClear(this.transition({ type: 'deadline', id })), 5000);
+            if (!current())
+                return;
+            cancelDeadline = () => { if (deadline !== undefined)
+                clearTimeout(deadline); };
+            signal.addEventListener('abort', cancelDeadline, { once: true });
+            if (!current())
+                return;
             if (needsImage) {
-                const blob = await previewImageBlob(frame.image, controller.signal);
-                if (controller.signal.aborted)
+                const blob = await previewImageBlob(frame.image, signal);
+                if (!current())
                     return;
                 const url = URL.createObjectURL(blob);
                 let released = false;
@@ -131,46 +171,85 @@ export class ScrubberPreview {
                     URL.revokeObjectURL(url);
                 } };
                 const resource = acquiredURL = { url, release };
+                if (!current())
+                    return;
                 const decoded = this.image.ownerDocument.createElement('img');
-                decoded.src = url;
-                const cancel = () => { decoded.removeAttribute('src'); release(); };
-                controller.signal.addEventListener('abort', cancel, { once: true });
+                const cancel = () => { try {
+                    decoded.removeAttribute('src');
+                }
+                finally {
+                    release();
+                } };
                 try {
+                    if (!current())
+                        return;
+                    decoded.src = url;
+                    if (!current())
+                        return;
+                    signal.addEventListener('abort', cancel, { once: true });
+                    if (!current())
+                        return;
                     await decoded.decode();
-                    if (controller.signal.aborted || !this.transition({ type: 'decoded', id }).accepted)
+                    if (!current() || !this.transition({ type: 'decoded', id }).accepted)
                         return;
                     const previous = this.displayedURL;
                     this.displayedURL = resource;
-                    this.image.src = url;
-                    this.image.hidden = false;
-                    previous?.release();
+                    try {
+                        this.image.src = url;
+                        if (current())
+                            this.image.hidden = false;
+                    }
+                    finally {
+                        previous?.release();
+                    }
                 }
                 finally {
-                    controller.signal.removeEventListener('abort', cancel);
-                    decoded.removeAttribute('src');
+                    try {
+                        signal.removeEventListener('abort', cancel);
+                    }
+                    catch { }
+                    try {
+                        decoded.removeAttribute('src');
+                    }
+                    catch { }
                     if (this.displayedURL !== resource)
                         release();
                 }
             }
-            if (controller.signal.aborted || !this.transition({ type: 'presented', id }).accepted)
+            if (!current() || !this.transition({ type: 'presented', id }).accepted)
                 return;
             this.label.textContent = `${frame.temporalAccuracy === 'approximate' ? '≈ ' : ''}${formatTime(frame.actualTime ?? frame.time)}`;
-            this.panel.hidden = false;
+            if (current())
+                this.panel.hidden = false;
         }
         catch {
-            if (!controller.signal.aborted)
-                this.applyClear(this.transition({ type: 'presentation-failed', id }));
+            this.applyClear(this.transition({ type: 'presentation-failed', id }));
         }
         finally {
             if (acquiredURL && this.displayedURL !== acquiredURL)
-                acquiredURL.release();
-            clearTimeout(deadline);
-            controller.signal.removeEventListener('abort', cancelDeadline);
+                try {
+                    acquiredURL.release();
+                }
+                catch { }
+            if (deadline !== undefined)
+                try {
+                    clearTimeout(deadline);
+                }
+                catch { }
+            if (signal && cancelDeadline)
+                try {
+                    signal.removeEventListener('abort', cancelDeadline);
+                }
+                catch { }
             this.presentations.delete(id);
             this.transition({ type: 'presentation-finished', id });
         }
     }
     clearImage() { this.applyClear(this.transition({ type: 'clear' })); }
     hide = () => { this.pendingApi = undefined; this.applyClear(this.transition({ type: 'hide' })); };
-    destroy() { this.pendingApi = undefined; this.applyClear(this.transition({ type: 'destroy' })); this.timeline.removeEventListener('pointermove', this.move); this.timeline.removeEventListener('pointerleave', this.hide); this.timeline.removeEventListener('pointercancel', this.hide); }
+    destroy() { this.pendingApi = undefined; this.applyClear(this.transition({ type: 'destroy' })); for (const [name, listener] of [['pointermove', this.move], ['pointerleave', this.hide], ['pointercancel', this.hide]])
+        try {
+            this.timeline.removeEventListener(name, listener);
+        }
+        catch { } }
 }

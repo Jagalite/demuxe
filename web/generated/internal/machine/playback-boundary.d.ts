@@ -59,6 +59,10 @@ export type BoundaryEffect = Readonly<{
 }>;
 export declare function initialBoundary(): BoundaryState;
 export declare function boundaryAuthority(state: PlayerControlState, id: number): boolean;
+export declare function playbackBoundaryReached(state: PlayerControlState, time: number, duration: number | null, ended: boolean): Readonly<{
+    start: number;
+    end: number;
+}> | undefined;
 /** Automatic boundary work shares the Player's operation/session authority.
  * Each completed physical step re-enters this transition before the next runs.
  * Finished work retains its lease until queue publication has completed. */

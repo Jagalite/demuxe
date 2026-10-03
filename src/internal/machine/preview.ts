@@ -73,7 +73,7 @@ export function transitionPreviewControl(state:PreviewControlState,event:Preview
       const job=previewJob(state,event.id);return job?Object.freeze({...state,...updateJob(event.id,{selectionMs:job.selectionMs+event.milliseconds})}):state;
     }
     case 'failure':return Object.freeze({...state,counters:Object.freeze({...state.counters,failures:state.counters.failures+1}),lastFailure:Object.freeze({provider:event.provider,kind:event.errorKind})});
-    case 'caller':return Object.freeze({...state,serial:state.serial+1,caller:Object.freeze({id:state.serial+1,jobId:event.jobId})});
+    case 'caller':return state.disposed||state.retiring||!previewJob(state,event.jobId)||previewJob(state,event.jobId)!.aborted?state:Object.freeze({...state,serial:state.serial+1,caller:Object.freeze({id:state.serial+1,jobId:event.jobId})});
     case 'settle':return !state.caller?state:Object.freeze({...state,caller:null,counters:event.failed?Object.freeze({...state.counters,cancelled:state.counters.cancelled+1}):state.counters});
   }
 }

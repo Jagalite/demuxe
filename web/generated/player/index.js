@@ -396,15 +396,24 @@ export class DemuxePlayerElement extends Base {
             }
         if (this.core)
             return;
+        const rejectReady = this.rejectReady;
         this.connecting = (async () => {
             await this.cleanup;
             if (!transitionElementLifecycle(this.lifecycle, { type: 'connect-ready', connection: token, connected: this.isConnected }).accepted)
                 return;
-            let initializing;
+            let initializing, subscription, observer;
+            let fullscreenListener = false, pointerListener = false;
+            const current = () => initializing ? transitionElementLifecycle(this.lifecycle, { type: 'owner-ready', connected: this.isConnected, sameOwner: this.core === initializing }).accepted : transitionElementLifecycle(this.lifecycle, { type: 'connect-ready', connection: token, connected: this.isConnected }).accepted;
+            const check = () => { if (!current())
+                throw new PlayerError('ABORTED', 'Player element initialization retired'); };
             try {
                 this.configure({ type: 'asset-lock', value: this.getAttribute('asset-base') });
-                const core = initializing = this.core = new Player(this.$('surface'), { assetBase: this.assetBase, watchdogs: this.configuration.watchdogs, audioPlayback: this.configuration.audioPlayback, preview: this.configuration.preview ?? { strategy: { type: 'adaptive' }, maxEntries: 96, maxCacheBytes: 16 * 1024 * 1024 }, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
+                const core = initializing = new Player(this.$('surface'), { assetBase: this.assetBase, watchdogs: this.configuration.watchdogs, audioPlayback: this.configuration.audioPlayback, preview: this.configuration.preview ?? { strategy: { type: 'adaptive' }, maxEntries: 96, maxCacheBytes: 16 * 1024 * 1024 }, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
+                if (!transitionElementLifecycle(this.lifecycle, { type: 'connect-ready', connection: token, connected: this.isConnected }).accepted)
+                    throw new PlayerError('ABORTED', 'Player element initialization retired');
+                this.core = core;
                 this.syncPreviewEnabled();
+                check();
                 core.presentation.setFullscreenTarget(this);
                 this.view({ type: 'reset-owner' });
                 for (const type of [...PLAYER_EVENTS, 'preparationchange', 'inspectionchange', 'mpv', 'log', 'source', 'output'])
@@ -430,26 +439,54 @@ export class DemuxePlayerElement extends Base {
                         this.dispatchEvent(new CustomEvent(type, { detail }));
                     });
                 const initiallyMuted = this.muted;
-                this.unsubscribe = core.subscribe(state => this.update(state));
+                subscription = core.subscribe(state => this.update(state));
+                check();
+                this.unsubscribe = subscription;
                 if (initiallyMuted)
                     await core.setMuted(true);
                 if (!transitionElementLifecycle(this.lifecycle, { type: 'owner-ready', connected: this.isConnected, sameOwner: this.core === core }).accepted)
-                    return;
-                this.resizeObserver = new ResizeObserver(() => { if (this.core)
-                    this.geometry(this.core.state); });
-                this.resizeObserver.observe(this.$('stage'));
+                    throw new PlayerError('ABORTED', 'Player element initialization retired');
+                observer = new ResizeObserver(() => { if (this.core === core)
+                    this.geometry(core.state); });
+                check();
+                this.resizeObserver = observer;
+                observer.observe(this.$('stage'));
+                check();
+                fullscreenListener = true;
                 document.addEventListener('fullscreenchange', this.fullscreenChanged);
+                check();
+                pointerListener = true;
                 document.addEventListener('pointerdown', this.dismissMenu, true);
+                check();
                 this.resolveReady(core);
                 if (this.src)
                     this.scheduleSource();
             }
             catch (error) {
-                const current = initializing ? transitionElementLifecycle(this.lifecycle, { type: 'owner-ready', connected: this.isConnected, sameOwner: this.core === initializing }) : transitionElementLifecycle(this.lifecycle, { type: 'connect-ready', connection: token, connected: this.isConnected });
-                if (!current.accepted)
-                    return;
-                this.rejectReady(playerError(error));
-                this.componentError(error);
+                const report = current(), owns = !!initializing && this.core === initializing;
+                if (owns) {
+                    this.core = undefined;
+                    if (this.unsubscribe === subscription)
+                        this.unsubscribe = undefined;
+                    if (this.resizeObserver === observer)
+                        this.resizeObserver = undefined;
+                }
+                for (const stop of [() => subscription?.(), () => observer?.disconnect(), () => { if (fullscreenListener)
+                        document.removeEventListener('fullscreenchange', this.fullscreenChanged); }, () => { if (pointerListener)
+                        document.removeEventListener('pointerdown', this.dismissMenu, true); }])
+                    try {
+                        stop();
+                    }
+                    catch { }
+                try {
+                    await initializing?.destroy();
+                }
+                catch { }
+                if (report) {
+                    rejectReady(playerError(error));
+                    if (transitionElementLifecycle(this.lifecycle, { type: 'connect-ready', connection: token, connected: this.isConnected }).accepted)
+                        this.componentError(error);
+                }
             }
         })();
     }
@@ -462,25 +499,8 @@ export class DemuxePlayerElement extends Base {
             this.lifecycle = retired.state;
             if (!retired.accepted)
                 return;
-            this.hoverPreview.hide();
-            clearTimeout(this.hideTimer);
-            clearTimeout(this.seekPreviewTimer);
-            this.sourceAbort?.abort();
-            this.resetQueue();
-            this.lastSource = undefined;
-            this.lastOptions = undefined;
-            this.view({ type: 'source', name: '', sourceId: null });
-            this.updateTitle();
-            this.unsubscribe?.();
-            this.resizeObserver?.disconnect();
-            document.removeEventListener('fullscreenchange', this.fullscreenChanged);
-            document.removeEventListener('pointerdown', this.dismissMenu, true);
-            const old = this.core;
-            this.core = undefined;
-            this.advanced?.reconcile();
-            this.rejectReady(new PlayerError('ABORTED', 'Player element disconnected'));
-            this.newReady();
-            this.cleanup = Promise.all([this.connecting, old?.destroy()]).then(() => { });
+            void this.releaseOwnedResources(false).catch(error => { if (!this.terminal)
+                this.componentError(error); });
         });
     }
     attributeChangedCallback(name, old, value) {
@@ -599,28 +619,48 @@ export class DemuxePlayerElement extends Base {
     selectSubtitleTrack(id) { return this.ready.then(p => p.selectSubtitleTrack(id)); }
     addSubtitle(file, options) { return this.ready.then(p => p.addSubtitle(file, options)); }
     destroy() {
-        this.hoverPreview.destroy();
         const destroyed = transitionElementLifecycle(this.lifecycle, { type: 'destroy' });
         this.lifecycle = destroyed.state;
-        if (!destroyed.accepted)
-            return this.cleanup;
-        clearTimeout(this.hideTimer);
-        clearTimeout(this.seekPreviewTimer);
-        this.sourceAbort?.abort();
-        this.resetQueue();
+        return destroyed.accepted ? this.releaseOwnedResources(true) : this.cleanup;
+    }
+    releaseOwnedResources(terminal) {
+        const previous = this.cleanup, connecting = this.connecting, old = this.core, unsubscribe = this.unsubscribe, observer = this.resizeObserver, sourceAbort = this.sourceAbort;
+        this.core = undefined;
+        this.unsubscribe = undefined;
+        this.resizeObserver = undefined;
+        this.sourceAbort = undefined;
+        let resolve, reject;
+        const done = this.cleanup = new Promise((yes, no) => { resolve = yes; reject = no; });
+        const errors = [], attempt = (action) => { try {
+            action();
+        }
+        catch (error) {
+            errors.push(error);
+        } };
         this.lastSource = undefined;
         this.lastOptions = undefined;
-        this.view({ type: 'source', name: '', sourceId: null });
-        this.updateTitle();
-        this.unsubscribe?.();
-        this.resizeObserver?.disconnect();
-        document.removeEventListener('fullscreenchange', this.fullscreenChanged);
-        document.removeEventListener('pointerdown', this.dismissMenu, true);
-        this.rejectReady(new PlayerError('ABORTED', 'Player element is destroyed'));
-        const old = this.core;
-        this.core = undefined;
-        this.cleanup = Promise.all([this.cleanup, this.connecting, old?.destroy()]).then(() => { this.$('surface').replaceChildren(); this.$('controls').hidden = true; this.$('transport').hidden = true; this.$('topbar').hidden = true; this.$('settings').hidden = true; this.$('empty').hidden = true; this.$('diagnostics-overlay').hidden = true; this.$('buffering-indicator').hidden = true; });
-        return this.cleanup;
+        attempt(() => this.rejectReady(new PlayerError('ABORTED', terminal ? 'Player element is destroyed' : 'Player element disconnected')));
+        if (!terminal)
+            attempt(() => this.newReady());
+        for (const action of [() => terminal ? this.hoverPreview.destroy() : this.hoverPreview.hide(), () => clearTimeout(this.hideTimer), () => clearTimeout(this.seekPreviewTimer), () => sourceAbort?.abort(), () => this.resetQueue(), () => this.view({ type: 'source', name: '', sourceId: null }), () => this.updateTitle(), () => unsubscribe?.(), () => observer?.disconnect(), () => document.removeEventListener('fullscreenchange', this.fullscreenChanged), () => document.removeEventListener('pointerdown', this.dismissMenu, true), () => this.advanced?.reconcile()])
+            attempt(action);
+        let destruction;
+        attempt(() => { destruction = old?.destroy(); });
+        void Promise.allSettled([previous, connecting, destruction]).then(results => {
+            for (const result of results)
+                if (result.status === 'rejected')
+                    errors.push(result.reason);
+            if (terminal) {
+                attempt(() => this.$('surface').replaceChildren());
+                for (const id of ['controls', 'transport', 'topbar', 'settings', 'empty', 'diagnostics-overlay', 'buffering-indicator'])
+                    attempt(() => { this.$(id).hidden = true; });
+            }
+            if (errors.length)
+                reject(errors.length === 1 ? errors[0] : new AggregateError(errors, 'Player element cleanup failed'));
+            else
+                resolve();
+        });
+        return done;
     }
     run(work) { void work.catch(error => { if (!this.terminal && playerError(error).code !== 'ABORTED')
         this.showError(playerError(error).toJSON()); }); }

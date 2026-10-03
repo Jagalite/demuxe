@@ -3,7 +3,7 @@
 import {privateMpv, privateMpvSource} from '../private-mpv.js';
 import {PrivatePlaybackHost} from './playback-host.js';
 import {mpvDecoderOptions} from '../generated/internal/decode-policy.js';
-import {createPrivatePlaybackWorker,playbackWorkerAccepts,admitPlaybackWorkerInit,playbackWorkerInitCurrent,finishPlaybackWorkerInit,receivePlaybackWorkerLoad,playbackWorkerLoadCurrent,beginPlaybackWorkerLoad,advancePlaybackWorkerLoad,retirePlaybackWorker,beginPlaybackWorkerClose,finishPlaybackWorkerClose,admitPlaybackWorkerCommand,admitPlaybackWorkerRefresh,settlePlaybackWorkerRequest,playbackWorkerSetting,beginPlaybackWorkerControl,openPlaybackWorkerPresentation,preparePlaybackWorkerCommand,beginPlaybackWorkerSeek,acceptPlaybackWorkerSubtitle,playbackWorkerSubtitleFits,beginPlaybackWorkerPump,playbackWorkerPumpCurrent,finishPlaybackWorkerPump,observePlaybackWorkerRestart,observePlaybackWorkerOutput,beginPlaybackWorkerCapture,finishPlaybackWorkerCapture,acknowledgePlaybackWorkerPicture,pausePlaybackWorkerPresentation,expirePlaybackWorkerPresentation,publishPlaybackWorkerOutput,publishPlaybackWorkerDiagnostics,configurePlaybackWorkerDecode,samplePlaybackWorkerAdaptive,settlePlaybackWorkerAdaptive} from '../generated/internal/machine/private-playback-worker.js';
+import {admitPlaybackWorkerRPC,finishPlaybackWorkerRPC,createPrivatePlaybackWorker,playbackWorkerAccepts,admitPlaybackWorkerInit,playbackWorkerInitCurrent,finishPlaybackWorkerInit,receivePlaybackWorkerLoad,playbackWorkerLoadCurrent,beginPlaybackWorkerLoad,advancePlaybackWorkerLoad,retirePlaybackWorker,beginPlaybackWorkerClose,finishPlaybackWorkerClose,admitPlaybackWorkerCommand,admitPlaybackWorkerRefresh,settlePlaybackWorkerRequest,playbackWorkerSetting,beginPlaybackWorkerControl,openPlaybackWorkerPresentation,preparePlaybackWorkerCommand,beginPlaybackWorkerSeek,acceptPlaybackWorkerSubtitle,playbackWorkerSubtitleFits,beginPlaybackWorkerPump,playbackWorkerPumpCurrent,finishPlaybackWorkerPump,observePlaybackWorkerRestart,observePlaybackWorkerOutput,beginPlaybackWorkerCapture,finishPlaybackWorkerCapture,acknowledgePlaybackWorkerPicture,pausePlaybackWorkerPresentation,expirePlaybackWorkerPresentation,publishPlaybackWorkerOutput,publishPlaybackWorkerDiagnostics,configurePlaybackWorkerDecode,samplePlaybackWorkerAdaptive,settlePlaybackWorkerAdaptive} from '../generated/internal/machine/private-playback-worker.js';
 import {PrivateRetainedPresentation} from './retained-presentation.js';
 let engine,host,source,timer,retained,closePromise;
 let chain=Promise.resolve(),lifecycle=createPrivatePlaybackWorker();
@@ -12,13 +12,19 @@ const describe=error=>String(error)+(error?.stack?'\n'+error.stack:'');
 const post=value=>postMessage(value);
 const replaced=()=>Object.assign(Error('Source replaced'),{code:'SOURCE_REPLACED'});
 function rejectPending(error){
- for(const pending of [...commands.values(),...refreshes.values(),...presentations.values()]){clearTimeout(pending.timer);pending.reject(error);}
- commands.clear();refreshes.clear();presentations.clear();
+ const retired=[...commands.values(),...refreshes.values(),...presentations.values()];commands.clear();refreshes.clear();presentations.clear();
+ let failed=false,failure;for(const pending of retired){try{clearTimeout(pending.timer);}catch(cause){if(!failed){failed=true;failure=cause;}}try{pending.reject(error);}catch(cause){if(!failed){failed=true;failure=cause;}}}
+ if(failed)throw failure;
 }
 function assertInit(){if(!playbackWorkerInitCurrent(lifecycle))throw Error('Playback host closing');}
 function assertLoad(id){if(!playbackWorkerLoadCurrent(lifecycle,id))throw replaced();}
 function advanceLoad(id,input){const result=advancePlaybackWorkerLoad(lifecycle,id,input);lifecycle=result.state;if(!result.accepted)throw replaced();}
-function retire(){const result=retirePlaybackWorker(lifecycle);lifecycle=result.state;if(!result.revoke)return;clearTimeout(timer);rejectPending(Error('Playback host closed'));loading.abort();source?.close();engine?.source.cancelSource();}
+function retire(){
+ const result=retirePlaybackWorker(lifecycle);lifecycle=result.state;if(!result.revoke)return;
+ let failed=false,failure;const cleanup=effect=>{try{effect();}catch(error){if(!failed){failed=true;failure=error;}}};
+ cleanup(()=>clearTimeout(timer));cleanup(()=>rejectPending(Error('Playback host closed')));cleanup(()=>loading.abort());cleanup(()=>source?.close());cleanup(()=>engine?.source.cancelSource());
+ if(failed)throw failure;
+}
 function pendingRequest(kind,request,send){
  const map=kind==='command'?commands:refreshes,{id,deadline}=request;
  return new Promise((resolve,reject)=>{
@@ -102,15 +108,32 @@ function close(){
  if(closePromise)return closePromise;lifecycle=beginPlaybackWorkerClose(lifecycle);
  let resolve,reject;closePromise=new Promise((yes,no)=>{resolve=yes;reject=no;});
  // Shared completion and logical retirement precede abort/source callbacks.
- void(async()=>{retire();try{return host?await host.destroy():undefined;}finally{engine?.dispose();lifecycle=finishPlaybackWorkerClose(lifecycle);}})().then(resolve,reject);return closePromise;
+ void(async()=>{let failed=false,failure,result;const record=error=>{if(!failed){failed=true;failure=error;}};try{retire();}catch(error){record(error);}try{result=host?await host.destroy():undefined;}catch(error){record(error);}finally{try{engine?.dispose();}catch(error){record(error);}lifecycle=finishPlaybackWorkerClose(lifecycle);}if(failed)throw failure;return result;})().then(resolve,reject);return closePromise;
 }
 async function fail(error){let cleanup,cleanupError;try{cleanup=await close();}catch(cause){cleanupError=describe(cause);}post({type:'fatal',error:describe(error),cleanup,cleanupError});}
 function validateCommand(args) {
-  if (!Array.isArray(args) || !args.length || args.length > 4 || args.some(arg => typeof arg !== 'string' || arg.includes('\0'))) throw Error('Invalid playback command');
+  if (!Array.isArray(args) || !args.length || args.length > 4 || args.some(arg => typeof arg !== 'string' || arg.includes('\0') || arg.length>16384)) throw Error('Invalid playback command');
   if (args[0] === 'set') {
     if(retained&&args[1]==='vf'&&args[2])throw Error('Private Hybrid video filters require Software');
     if (!['vd-lavc-o','cache','cache-secs','demuxer-max-bytes','demuxer-max-back-bytes','pause', 'volume', 'speed', 'aid', 'sid', 'sub-visibility', 'audio-delay', 'sub-delay', 'hr-seek-demuxer-offset','vf','af','sub-font-size','sub-color','sub-border-size','sub-font'].includes(args[1])) throw Error('Unsupported private playback property');
   } else if (!['expand-text', 'frame-step', 'frame-back-step', 'stop'].includes(args[0])) throw Error('Unsupported private playback command');
+}
+// Account copied command/attachment bytes; Blob/canvas/port identities are
+// physical handles, not materialized media bytes. Traversal itself is bounded.
+function rpcBytes(value){
+ let bytes=0,nodes=0;const seen=new Set(),stack=[[value,0]];
+ while(stack.length){const [item,depth]=stack.pop();if(++nodes>4096||depth>16)throw Error('Playback RPC envelope capacity');
+  if(typeof item==='string'){bytes+=item.length*2;}else if(item&&typeof item==='object'&&!seen.has(item)){
+   seen.add(item);bytes+=64;
+   if(item instanceof ArrayBuffer||typeof SharedArrayBuffer!=='undefined'&&item instanceof SharedArrayBuffer)bytes+=item.byteLength;
+   else if(ArrayBuffer.isView(item))stack.push([item.buffer,depth+1]);
+   else if(!(typeof Blob!=='undefined'&&item instanceof Blob)&&!(typeof MessagePort!=='undefined'&&item instanceof MessagePort)&&!(typeof OffscreenCanvas!=='undefined'&&item instanceof OffscreenCanvas)){
+    if(!Array.isArray(item)&&Object.prototype.toString.call(item)!=='[object Object]')throw Error('Unsupported playback RPC envelope');
+    for(const key in item)if(Object.prototype.hasOwnProperty.call(item,key)){bytes+=key.length*2;stack.push([item[key],depth+1]);if(stack.length>4096)throw Error('Playback RPC envelope capacity');}
+   }
+  }
+  if(bytes>64*1024*1024)throw Error('Playback RPC byte capacity');
+ }return bytes;
 }
 onmessage = ({data}) => {
   if(data.op==='picture-presented'){const result=acknowledgePlaybackWorkerPicture(lifecycle,data.pictureId);lifecycle=result.state;for(const id of result.resolved){const pending=presentations.get(id);if(pending){presentations.delete(id);clearTimeout(pending.timer);pending.resolve();}}return;}
@@ -118,9 +141,11 @@ onmessage = ({data}) => {
     const id=Number(data.refreshId),result=settlePlaybackWorkerRequest(lifecycle,'refresh',id,{kind:'reply'});lifecycle=result.state;const pending=refreshes.get(id);
     if(result.accepted&&pending){refreshes.delete(id);clearTimeout(pending.timer);data.error?pending.reject(Error(data.error)):pending.resolve(data.update);}return;
   }
+  let rpc;try{const admission=admitPlaybackWorkerRPC(lifecycle,rpcBytes(data),data.op==='close');lifecycle=admission.state;if(admission.id===undefined)throw Error(admission.error);rpc=admission.id;}catch(error){post({id:data.id,error:describe(error)});return;}
   let loadToken=lifecycle.loadSerial;
-  if(data.op==='load'){const result=receivePlaybackWorkerLoad(lifecycle);lifecycle=result.state;loadToken=result.id;if(result.revoke){clearTimeout(timer);rejectPending(replaced());source?.close();engine?.source.cancelSource();}}
-  if(data.op==='close')retire();
+  try{if(data.op==='load'){const result=receivePlaybackWorkerLoad(lifecycle);lifecycle=result.state;loadToken=result.id;if(result.revoke){clearTimeout(timer);rejectPending(replaced());source?.close();engine?.source.cancelSource();}}
+  if(data.op==='close')retire();}
+  catch(error){lifecycle=finishPlaybackWorkerRPC(lifecycle,rpc);post({id:data.id,error:describe(error)});void fail(error);return;}
   chain = chain.then(async () => {
     if (!playbackWorkerAccepts(lifecycle,data.op)) throw Error('Playback host closed');
     let result;
@@ -209,5 +234,5 @@ onmessage = ({data}) => {
     if(!['init','close','context'].includes(data.op)&&loadToken!==lifecycle.loadSerial)throw replaced();
     if(data.op==='load'&&!playbackWorkerLoadCurrent(lifecycle,loadToken))throw replaced();
     post({id:data.id,result});
-  }).catch(error => {post({id: data.id, error: describe(error),code:data.op==='init'?'ASSET_LOAD_FAILED':undefined});if (data.op === 'init' || data.op === 'load' && loadToken===lifecycle.loadSerial&&playbackWorkerAccepts(lifecycle,'load')) void fail(error);});
+  }).catch(error => {post({id: data.id, error: describe(error),code:data.op==='init'?'ASSET_LOAD_FAILED':undefined});if (data.op === 'init' || data.op === 'load' && loadToken===lifecycle.loadSerial&&playbackWorkerAccepts(lifecycle,'load')) void fail(error);}).finally(()=>{lifecycle=finishPlaybackWorkerRPC(lifecycle,rpc);});
 };

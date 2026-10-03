@@ -31,6 +31,12 @@ export function transitionNativeBackend(state, command) {
         return result({ ...state, epoch: state.epoch + 1, expected: undefined, capability: Object.freeze({}), verification: null, seek: null, load: retireNativeLoad(state.load), controls: retireNativeControls(state.controls), captions: retireNativeCaptions(state.captions), waits: Object.freeze([]) });
     if (command.type === 'metadata' || command.type === 'api-hint')
         return command.epoch !== state.epoch ? result(state, {}, false) : result({ ...state, capability: evidence({ ...state.capability, ...command.type === 'metadata' ? { metadata: true } : { apiHint: command.value } }) });
+    if (['event.begin', 'caption.begin', 'control.begin', 'load.begin', 'verify.begin', 'seek.begin'].includes(command.type) && !Number.isSafeInteger(state.serial + 1))
+        return result(state, { failure: 'identity-exhausted' }, false);
+    if (command.type === 'event.begin' && state.waits.length >= 128)
+        return result(state, { failure: 'event-capacity' }, false);
+    if (command.type === 'caption.begin' && state.captions.attachments.length >= 16)
+        return result(state, { failure: 'caption-capacity' }, false);
     if (command.type === 'event.begin') {
         const request = Object.freeze({ id: state.serial + 1, epoch: state.epoch, kind: 'event' });
         return result({ ...state, serial: request.id, waits: Object.freeze([...state.waits, beginNativeEventWait(request, command.event, command.now, command.loadBudget)]) }, { request });

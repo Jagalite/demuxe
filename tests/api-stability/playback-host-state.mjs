@@ -88,7 +88,44 @@ for(let seed=1;seed<=12;seed++)test(`composed lifetime history ${seed}: reset, d
 test('unchanged render dimensions preserve immutable state through idle and forced pumps',async()=>{
  const f=fixture();await f.host.pump();const original=f.host.control;
  for(let i=0;i<100;i++)await f.host.pump(i%2===0);
- assert.equal(f.host.control,original);
+ assert.equal(core.beginPlaybackHostRender(original,original.epoch,4,4,true).state,original);
+ assert.equal(f.host.control.renderWidth,original.renderWidth);assert.equal(f.host.control.renderHeight,original.renderHeight);
  f.host.width=8;await f.host.pump();assert.notEqual(f.host.control,original);
  assert.equal(original.renderWidth,4);assert.equal(f.host.control.renderWidth,8);
+});
+
+test('host queue pressure rejects before retaining excess commands and reserves close cleanup',async()=>{
+ const f=fixture(),gate=deferred();await f.host.create({});const active=f.host.serial(()=>gate.promise);await turn();
+ const queued=Array.from({length:127},()=>f.host.command(1,'pause'));
+ await assert.rejects(f.host.command(1,'pause'),/queue capacity/);assert.equal(f.host.work.size,128);
+ const closing=f.host.destroy();await Promise.all(queued.map(p=>assert.rejects(p,/closed|replaced/)));
+ assert.equal(f.host.work.size,2);assert.equal(f.host.control.queue.length,1);assert.equal(f.calls.filter(n=>n==='web_destroy').length,0);
+ gate.resolve();await assert.rejects(active,/closed|replaced/);await closing;
+ assert.equal(f.host.work.size,0);assert.equal(f.host.control.activeWork,null);assert.equal(f.calls.filter(n=>n==='web_destroy').length,1);
+});
+test('source replacement releases queued payload closures without growing a blocked native chain',async()=>{
+ const f=fixture(),gate=deferred(),active=f.host.serial(()=>gate.promise);await turn();
+ for(let generation=0;generation<20;generation++){
+  let invoked=0;const queued=Array.from({length:127},()=>f.host.serial(()=>{invoked++;}));f.host.resetSource();
+  await Promise.all(queued.map(p=>assert.rejects(p,/closed|replaced/)));assert.equal(f.host.work.size,1);assert.equal(f.host.control.queue.length,0);assert.equal(invoked,0);
+ }
+ const final=f.host.serial(()=>42);gate.resolve();await assert.rejects(active,/closed|replaced/);assert.equal(await final,42);assert.equal(f.host.work.size,0);await f.host.destroy();
+});
+test('cleanup bypasses exhausted forward queue identities without reviving admission',async()=>{
+ const f=fixture();await f.host.create({});f.host.control=Object.freeze({...f.host.control,workSerial:Number.MAX_SAFE_INTEGER});
+ await assert.rejects(f.host.command(1,'pause'),/identity exhausted/);await f.host.destroy();assert.equal(f.calls.filter(n=>n==='web_destroy').length,1);assert.equal(f.host.work.size,0);
+});
+test('pure queue stale completion cannot release current active ownership',()=>{
+ let state=core.initialPlaybackHost();const first=core.admitPlaybackHostWork(state);state=core.startPlaybackHostWork(first.state).state;
+ const queued=core.admitPlaybackHostWork(state);state=core.resetPlaybackHostSource(queued.state);assert.equal(state.queue.length,0);assert.equal(state.activeWork.id,first.work.id);
+ assert.equal(core.finishPlaybackHostWork(state,queued.work.id),state);state=core.finishPlaybackHostWork(state,first.work.id);assert.equal(state.activeWork,null);
+ const closed=core.closePlaybackHost(state);assert.ok(core.admitPlaybackHostWork(closed).error);const cleanup=core.admitPlaybackHostWork(closed,true);assert.equal(cleanup.work.cleanup,true);assert.ok(core.admitPlaybackHostWork(cleanup.state,true).error);
+});
+test('host admission refuses excess work while native execution is blocked',async()=>{
+ const f=fixture(),gate=deferred(),pending=[];let rejection;
+ try{
+  for(let i=0;i<128;i++)pending.push(f.host.serial(()=>gate.promise));
+  const excess=f.host.serial(()=>{});pending.push(excess);void excess.catch(error=>rejection=error);await turn();
+  assert.match(String(rejection),/queue capacity/);
+ }finally{gate.resolve();await Promise.allSettled(pending);await f.host.destroy();}
 });

@@ -279,9 +279,13 @@ export class DemuxePlayerElement extends Base {
     const connection=transitionElementLifecycle(this.lifecycle,{type:'connect'});this.lifecycle=connection.state;const token=connection.connection!;if(!connection.accepted)return;
     for(const name of ['layout','theme','watchdogs','trackPolicy','previewOptions','previewThumbnails','assetBase','labels','controls','poster','autoplay','muted','title','titleMode','showSourceControls','showDiagnostics','allowFileDrop','seekStep','controlsAutoHideDelay','src'])if(Object.prototype.hasOwnProperty.call(this,name)){const value=(this as any)[name];delete (this as any)[name];(this as any)[name]=value;}
     if(this.core)return;
+    const rejectReady=this.rejectReady;
     this.connecting=(async()=>{await this.cleanup;if(!transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted)return;
-      let initializing:Player|undefined;
-      try {this.configure({type:'asset-lock',value:this.getAttribute('asset-base')});const core=initializing=this.core=new Player(this.$('surface'),{assetBase:this.assetBase,watchdogs:this.configuration.watchdogs,audioPlayback:this.configuration.audioPlayback,preview:this.configuration.preview??{strategy:{type:'adaptive'},maxEntries:96,maxCacheBytes:16*1024*1024},prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});this.syncPreviewEnabled();core.presentation.setFullscreenTarget(this);this.view({type:'reset-owner'});
+      let initializing:Player|undefined,subscription:(()=>void)|undefined,observer:ResizeObserver|undefined;
+      let fullscreenListener=false,pointerListener=false;
+      const current=()=>initializing?transitionElementLifecycle(this.lifecycle,{type:'owner-ready',connected:this.isConnected,sameOwner:this.core===initializing}).accepted:transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted;
+      const check=()=>{if(!current())throw new PlayerError('ABORTED','Player element initialization retired');};
+      try {this.configure({type:'asset-lock',value:this.getAttribute('asset-base')});const core=initializing=new Player(this.$('surface'),{assetBase:this.assetBase,watchdogs:this.configuration.watchdogs,audioPlayback:this.configuration.audioPlayback,preview:this.configuration.preview??{strategy:{type:'adaptive'},maxEntries:96,maxCacheBytes:16*1024*1024},prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});if(!transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted)throw new PlayerError('ABORTED','Player element initialization retired');this.core=core;this.syncPreviewEnabled();check();core.presentation.setFullscreenTarget(this);this.view({type:'reset-owner'});
         for(const type of [...PLAYER_EVENTS,'preparationchange','inspectionchange','mpv','log','source','output'])core.addEventListener(type,event=>{
           if(this.core!==core||this.terminal)return;const detail=(event as CustomEvent).detail;
           if(type==='inspectionchange'&&core.state.pendingOperation?.kind==='opening'){this.control({type:'opening-stage',stage:detail.phase==='reading'?this.labels.reading:this.labels.inspecting});this.update(core.state);}
@@ -291,19 +295,23 @@ export class DemuxePlayerElement extends Base {
           if(type==='ended')queueMicrotask(()=>{if(this.core===core)this.advanceQueue();});
           this.dispatchEvent(new CustomEvent(type,{detail}));
         });
-        const initiallyMuted=this.muted;this.unsubscribe=core.subscribe(state=>this.update(state));
+        const initiallyMuted=this.muted;subscription=core.subscribe(state=>this.update(state));check();this.unsubscribe=subscription;
         if(initiallyMuted)await core.setMuted(true);
-        if(!transitionElementLifecycle(this.lifecycle,{type:'owner-ready',connected:this.isConnected,sameOwner:this.core===core}).accepted)return;
-        this.resizeObserver=new ResizeObserver(()=>{if(this.core)this.geometry(this.core.state);});this.resizeObserver.observe(this.$('stage'));document.addEventListener('fullscreenchange',this.fullscreenChanged);document.addEventListener('pointerdown',this.dismissMenu,true);
+        if(!transitionElementLifecycle(this.lifecycle,{type:'owner-ready',connected:this.isConnected,sameOwner:this.core===core}).accepted)throw new PlayerError('ABORTED','Player element initialization retired');
+        observer=new ResizeObserver(()=>{if(this.core===core)this.geometry(core.state);});check();this.resizeObserver=observer;observer.observe(this.$('stage'));check();fullscreenListener=true;document.addEventListener('fullscreenchange',this.fullscreenChanged);check();pointerListener=true;document.addEventListener('pointerdown',this.dismissMenu,true);check();
         this.resolveReady(core);if(this.src)this.scheduleSource();
-      } catch(error){const current=initializing?transitionElementLifecycle(this.lifecycle,{type:'owner-ready',connected:this.isConnected,sameOwner:this.core===initializing}):transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected});if(!current.accepted)return;this.rejectReady(playerError(error));this.componentError(error);}
+      } catch(error){
+        const report=current(),owns=!!initializing&&this.core===initializing;
+        if(owns){this.core=undefined;if(this.unsubscribe===subscription)this.unsubscribe=undefined;if(this.resizeObserver===observer)this.resizeObserver=undefined;}
+        for(const stop of [()=>subscription?.(),()=>observer?.disconnect(),()=>{if(fullscreenListener)document.removeEventListener('fullscreenchange',this.fullscreenChanged);},()=>{if(pointerListener)document.removeEventListener('pointerdown',this.dismissMenu,true);}])try{stop();}catch{}
+        try{await initializing?.destroy();}catch{}
+        if(report){rejectReady(playerError(error));if(transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted)this.componentError(error);}
+      }
     })();
   }
   disconnectedCallback(){const connection=transitionElementLifecycle(this.lifecycle,{type:'disconnect'});this.lifecycle=connection.state;const token=connection.connection!;queueMicrotask(()=>{
     const retired=transitionElementLifecycle(this.lifecycle,{type:'disconnect-ready',connection:token,connected:this.isConnected});this.lifecycle=retired.state;if(!retired.accepted)return;
-    this.hoverPreview.hide();clearTimeout(this.hideTimer);clearTimeout(this.seekPreviewTimer);this.sourceAbort?.abort();this.resetQueue();this.lastSource=undefined;this.lastOptions=undefined;this.view({type:'source',name:'',sourceId:null});this.updateTitle();this.unsubscribe?.();this.resizeObserver?.disconnect();document.removeEventListener('fullscreenchange',this.fullscreenChanged);document.removeEventListener('pointerdown',this.dismissMenu,true);
-    const old=this.core;this.core=undefined;this.advanced?.reconcile();this.rejectReady(new PlayerError('ABORTED','Player element disconnected'));this.newReady();
-    this.cleanup=Promise.all([this.connecting,old?.destroy()]).then(()=>{});
+    void this.releaseOwnedResources(false).catch(error=>{if(!this.terminal)this.componentError(error);});
   });}
   attributeChangedCallback(name:string,old:string|null,value:string|null){
     if(old===value||this.configuration.reflectionDepth>0||this.terminal)return;
@@ -350,10 +358,26 @@ export class DemuxePlayerElement extends Base {
   selectSubtitleTrack(id:string|null){return this.ready.then(p=>p.selectSubtitleTrack(id));}
   addSubtitle(file:File,options?:SubtitleOptions){return this.ready.then(p=>p.addSubtitle(file,options));}
   destroy():Promise<void>{
-    this.hoverPreview.destroy();
-    const destroyed=transitionElementLifecycle(this.lifecycle,{type:'destroy'});this.lifecycle=destroyed.state;if(!destroyed.accepted)return this.cleanup;clearTimeout(this.hideTimer);clearTimeout(this.seekPreviewTimer);this.sourceAbort?.abort();this.resetQueue();this.lastSource=undefined;this.lastOptions=undefined;this.view({type:'source',name:'',sourceId:null});this.updateTitle();this.unsubscribe?.();this.resizeObserver?.disconnect();document.removeEventListener('fullscreenchange',this.fullscreenChanged);document.removeEventListener('pointerdown',this.dismissMenu,true);
-    this.rejectReady(new PlayerError('ABORTED','Player element is destroyed'));const old=this.core;this.core=undefined;
-    this.cleanup=Promise.all([this.cleanup,this.connecting,old?.destroy()]).then(()=>{this.$('surface').replaceChildren();this.$('controls').hidden=true;this.$('transport').hidden=true;this.$('topbar').hidden=true;this.$('settings').hidden=true;this.$('empty').hidden=true;this.$('diagnostics-overlay').hidden=true;this.$('buffering-indicator').hidden=true;});return this.cleanup;
+    const destroyed=transitionElementLifecycle(this.lifecycle,{type:'destroy'});this.lifecycle=destroyed.state;
+    return destroyed.accepted?this.releaseOwnedResources(true):this.cleanup;
+  }
+  private releaseOwnedResources(terminal:boolean):Promise<void>{
+    const previous=this.cleanup,connecting=this.connecting,old=this.core,unsubscribe=this.unsubscribe,observer=this.resizeObserver,sourceAbort=this.sourceAbort;
+    this.core=undefined;this.unsubscribe=undefined;this.resizeObserver=undefined;this.sourceAbort=undefined;
+    let resolve!:()=>void,reject!:(error:unknown)=>void;
+    const done=this.cleanup=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});
+    const errors:unknown[]=[],attempt=(action:()=>void)=>{try{action();}catch(error){errors.push(error);}};
+    this.lastSource=undefined;this.lastOptions=undefined;
+    attempt(()=>this.rejectReady(new PlayerError('ABORTED',terminal?'Player element is destroyed':'Player element disconnected')));
+    if(!terminal)attempt(()=>this.newReady());
+    for(const action of [()=>terminal?this.hoverPreview.destroy():this.hoverPreview.hide(),()=>clearTimeout(this.hideTimer),()=>clearTimeout(this.seekPreviewTimer),()=>sourceAbort?.abort(),()=>this.resetQueue(),()=>this.view({type:'source',name:'',sourceId:null}),()=>this.updateTitle(),()=>unsubscribe?.(),()=>observer?.disconnect(),()=>document.removeEventListener('fullscreenchange',this.fullscreenChanged),()=>document.removeEventListener('pointerdown',this.dismissMenu,true),()=>this.advanced?.reconcile()])attempt(action);
+    let destruction:Promise<void>|undefined;attempt(()=>{destruction=old?.destroy();});
+    void Promise.allSettled([previous,connecting,destruction]).then(results=>{
+      for(const result of results)if(result.status==='rejected')errors.push(result.reason);
+      if(terminal){attempt(()=>this.$('surface').replaceChildren());for(const id of ['controls','transport','topbar','settings','empty','diagnostics-overlay','buffering-indicator'])attempt(()=>{this.$(id).hidden=true;});}
+      if(errors.length)reject(errors.length===1?errors[0]:new AggregateError(errors,'Player element cleanup failed'));else resolve();
+    });
+    return done;
   }
   private run(work:Promise<unknown>){void work.catch(error=>{if(!this.terminal&&playerError(error).code!=='ABORTED')this.showError(playerError(error).toJSON());});}
   private runSettings(work:Promise<unknown>){

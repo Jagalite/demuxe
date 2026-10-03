@@ -131,6 +131,7 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     selectTrack(type: TrackType, id: string): Promise<void>;
     private applyText;
     subtitleVisible(visible: boolean): Promise<void>;
+    private attachTextTrack;
     addTextTrack(track: TextTrackSource, attachmentId?: string): Promise<void>;
     addSubtitle(asset: SubtitleAsset): Promise<void>;
     resize(width: number, height: number): void;

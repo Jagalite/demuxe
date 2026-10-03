@@ -10,6 +10,8 @@ function replace(state, request) { return Object.freeze({ ...state, requests: Ob
 export function beginShakaNetworkRequest(state, kind, timeout, now) {
     if (!state.active)
         return result(state, {}, false);
+    if (state.requests.length >= (state.preview ? 4 : 32))
+        return result(state, { failure: permission('Streaming concurrent request capacity exceeded') }, false);
     const request = Object.freeze({ id: state.serial + 1, kind, phase: 'fetch', resource: undefined, attempt: 0, cancelled: null, deadline: timeout ? now + Math.max(0, timeout) : undefined, limit: (state.preview || kind === 'manifest' ? 4 : 16) * 1024 * 1024, bytes: 0, lastProgress: now, length: 0, contentLength: undefined, range: null });
     return result(Object.freeze({ ...state, serial: request.id, requests: Object.freeze([...state.requests, request]) }), { id: request.id });
 }
