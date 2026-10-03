@@ -94,7 +94,17 @@ export class PrivateSoftwarePlayer extends EventTarget {
             this.fail(new Error(data.error)); };
         const provider = this.options.providerAssets;
         const assetPath = `web/engine-mpv-playback-${this.options.runtime}/`;
-        const playbackAssets = provider ? Object.fromEntries(await Promise.all(['manifest.json', 'player.wasm', 'player.mjs'].map(async (name) => [name, await provider.bytes(assetPath + name)]))) : undefined;
+        const prefetchedWasm = await this.options.prefetchedWasm?.();
+        let playbackAssets = provider ? Object.fromEntries(await Promise.all(['manifest.json', 'player.wasm', 'player.mjs'].map(async (name) => [name, await provider.bytes(assetPath + name)]))) : undefined;
+        if (!provider && prefetchedWasm) {
+            playbackAssets = { 'player.wasm': prefetchedWasm };
+            for (const name of ['manifest.json', 'player.mjs']) {
+                const response = await fetch(new URL(assetPath + name, this.options.assetBase), { signal: this.loading.signal });
+                if (!response.ok)
+                    throw new PlayerError('ASSET_LOAD_FAILED', 'Private Software asset HTTP ' + response.status);
+                playbackAssets[name] = await response.arrayBuffer();
+            }
+        }
         let font;
         if (provider)
             font = await provider.bytes('fixtures/DejaVuSans.ttf');

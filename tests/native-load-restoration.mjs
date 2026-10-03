@@ -21,7 +21,7 @@ try{for(const variant of ['missing','missing-gain','unsupported','bounded','abor
     if(this.requestedPlan?.startsWith('native-direct')&&['loadeddata','loadedmetadata'].includes(event)){
      budgets.push(this.loadTimeoutMs);
      if(variant.startsWith('missing')){let timer;return wait.call(this,event,()=>{timer=setTimeout(start,2000);}).finally(()=>clearTimeout(timer));}
-     const timeout=window.setTimeout;window.setTimeout=(fn,ms,...args)=>timeout(fn,[1500,25000].includes(ms)?50:ms,...args);
+     const timeout=window.setTimeout;window.setTimeout=(fn,ms,...args)=>timeout(fn,[500,25000].includes(ms)?50:ms,...args);
      try{return wait.call(this,event,()=>{if(budgets.length>1&&variant!=='bounded')start();});}finally{window.setTimeout=timeout;}
     }return wait.call(this,event,start);
    };
@@ -40,9 +40,9 @@ try{for(const variant of ['missing','missing-gain','unsupported','bounded','abor
   },variant);results.push(result);
   assert.equal(result.remuxCalls,1);assert.equal(result.surfaces,0);
   if(['abort','permission','identity'].includes(variant)){
-   assert.deepEqual(result.budgets,[1500]);assert.equal(result.error,{abort:'ABORTED',permission:'SOURCE_PERMISSION',identity:'SOURCE_CHANGED'}[variant]);
+   assert.deepEqual(result.budgets,[500]);assert.equal(result.error,{abort:'ABORTED',permission:'SOURCE_PERMISSION',identity:'SOURCE_CHANGED'}[variant]);
   }else{
-   assert.deepEqual(result.budgets,[1500,25000]);
+   assert.deepEqual(result.budgets,[500,25000]);
    if(variant==='bounded')assert.equal(result.error,'NETWORK_TIMEOUT');
    else{assert.equal(result.error,undefined);assert.equal(result.plan,variant.includes('gain')?'native-direct-gain':'native-direct');assert.equal(result.gain,variant.includes('gain')?.5:1);assert.ok(result.playback.time>0);assert.ok(result.playback.frames>0);}
   }

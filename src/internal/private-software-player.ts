@@ -39,7 +39,7 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   private get attachmentIds(){return this.policy.attachments.map(item=>item.attachmentId);}
   private get presentedDraws(){return this.policy.presentedDraws;}
   private presentation?:CanvasRenderingContext2D;
-  constructor(canvas:HTMLCanvasElement, private options:{providerAssets?:ProviderRuntimeAssets;runtime:'jspi'|'asyncify';mode?:'software'|'hybrid';channels?:2|6|8;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';buffering?:BufferingPolicy;decodeQuality?:DecodeQuality;adaptiveFrameDrop?:boolean;videoTrack?:{codec:string;width?:number;height?:number};assetBase:URL;duration?:number;resourceLimits?:ResourceLimits;fonts?:FontAsset[]}) {
+  constructor(canvas:HTMLCanvasElement, private options:{prefetchedWasm?:()=>Promise<ArrayBuffer|undefined>|undefined;providerAssets?:ProviderRuntimeAssets;runtime:'jspi'|'asyncify';mode?:'software'|'hybrid';channels?:2|6|8;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';buffering?:BufferingPolicy;decodeQuality?:DecodeQuality;adaptiveFrameDrop?:boolean;videoTrack?:{codec:string;width?:number;height?:number};assetBase:URL;duration?:number;resourceLimits?:ResourceLimits;fonts?:FontAsset[]}) {
     super();this.policy=initialPrivateSoftware(options.buffering);
     this.planId=options.mode==='hybrid'?'hybrid-private':'software-private';
     if(typeof AudioContext==='undefined'||typeof OffscreenCanvas==='undefined')throw new PlayerError('UNSUPPORTED_FEATURE','Private Software requires Web Audio and OffscreenCanvas');
@@ -73,7 +73,16 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     this.node.port.onmessage = ({data}) => {if(data.type==='error')this.fail(new Error(data.error));};
     const provider=this.options.providerAssets;
     const assetPath=`web/engine-mpv-playback-${this.options.runtime}/`;
-    const playbackAssets=provider?Object.fromEntries(await Promise.all(['manifest.json','player.wasm','player.mjs'].map(async name=>[name,await provider.bytes(assetPath+name)] as const))):undefined;
+    const prefetchedWasm=await this.options.prefetchedWasm?.();
+    let playbackAssets:Record<string,ArrayBuffer>|undefined=provider?Object.fromEntries(await Promise.all(['manifest.json','player.wasm','player.mjs'].map(async name=>[name,await provider.bytes(assetPath+name)] as const))):undefined;
+    if(!provider&&prefetchedWasm){
+      playbackAssets={'player.wasm':prefetchedWasm};
+      for(const name of ['manifest.json','player.mjs']){
+        const response=await fetch(new URL(assetPath+name,this.options.assetBase),{signal:this.loading.signal});
+        if(!response.ok)throw new PlayerError('ASSET_LOAD_FAILED','Private Software asset HTTP '+response.status);
+        playbackAssets[name]=await response.arrayBuffer();
+      }
+    }
     let font:ArrayBuffer;
     if(provider)font=await provider.bytes('fixtures/DejaVuSans.ttf');
     else{

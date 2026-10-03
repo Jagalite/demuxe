@@ -19,6 +19,7 @@ This table classifies the current constructor surface. Experimental/compatibilit
 | `toneMapping` | Stable policy | Off. HDR metadata is not proof of HDR presentation. |
 | `resourceLimits` | Stable policy | Software decode cap 8,294,400 pixels; individual FFmpeg allocation cap 134,217,728 bytes. Not a total memory cap. |
 | `videoFilters`, `audioFilters` | Advanced | Empty filter chains. Capability/routing checks apply. |
+| `startupEscalation` | Startup policy | `{prefetchAfterMs:400, switchAfterMs:500}`; `false` disables accelerated direct-load escalation. See below. |
 | `nativeRemux` | Advanced | Auto; `never` disables packet-copy fallback, `always` is an explicit packaging choice. |
 | `audioGain` | Experimental | Scalar 1 (no extra attenuation graph). |
 | `remuxRuntime` | Runtime policy | `auto` (default), `on`, `off`, `jspi`, or `asyncify`. Automatic isolation/JSPI detection for file remux and FLAC24 transcode; [semantics and assets](REMUX-RUNTIME.md). |
@@ -44,3 +45,18 @@ Source decode dimensions, presentation dimensions, and total process/device reso
 - The individual FFmpeg allocation cap defaults to 128 MiB and accepts 32–256 MiB. It does not account for all allocations, browser decoder memory, GPU resources, or an application's other players.
 
 Browser/native decoder limits remain separately observable. This documentation does not relax any resource or presentation bound.
+
+
+## Native startup escalation
+
+```js
+const player = new Player(container, {
+  startupEscalation: {prefetchAfterMs: 400, switchAfterMs: 500},
+});
+```
+
+The thresholds apply to an initial direct native media load when discovery has an eligible fallback, regardless of browser or container. At 400 ms without readiness, Demuxe begins preparing the next fallback's Wasm code without creating its playback engine. At 500 ms it cancels and disposes the direct candidate, then tries the fallback. These are latency budgets, not codec incompatibility evidence. They do not limit the fallback engine's startup or promise playback by 500 ms. Timers measure the native load wait, not page navigation or source inspection, and browser scheduling can delay timer delivery.
+
+Both fields are optional. Values must be finite milliseconds with `0 <= prefetchAfterMs < switchAfterMs < 25000`. Set `startupEscalation:false` to retain the ordinary native load deadline. Mode pinning, rejected plans and missing fallback routes remain authoritative. A fallback failure can still restore a full-budget direct attempt under the existing recovery policy.
+
+Direct readiness or cancellation clears the pending prefetch timer. If prefetch has already started, immutable assets remain reusable by the player; it does not create a second active playback session. Player destruction cancels owned asset downloads. This policy does not switch back to an abandoned direct session.

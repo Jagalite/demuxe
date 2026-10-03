@@ -116,6 +116,8 @@ export declare class Player extends EventTarget {
     private get recovering();
     private lifetime;
     private preparation?;
+    private startupEscalation;
+    private startupModules?;
     private preparationTask;
     private audioAdaptation?;
     private automaticLossless;
@@ -278,6 +280,8 @@ export declare class Player extends EventTarget {
     private updateEvidence;
     private acceptEvidence;
     private evidence;
+    private startupFallback;
+    private prefetchStartup;
     private localRemuxRetry;
     private discover;
     private recover;

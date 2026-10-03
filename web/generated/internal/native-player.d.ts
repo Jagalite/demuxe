@@ -20,6 +20,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private defaultSubtitleStreamIndex?;
     private remuxRuntime;
     private providerRuntime?;
+    private startup?;
     readonly ready: Promise<void>;
     readonly properties: Map<string, unknown>;
     private native;
@@ -91,7 +92,11 @@ export declare class NativePlayer extends EventTarget implements Backend {
         frames: number | undefined;
         videoEnd: number | undefined;
     };
-    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | "flac24" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined, buffering?: BufferingPolicy, loadTimeoutMs?: number, defaultSubtitleStreamIndex?: number | undefined, remuxRuntime?: 'pthread' | 'jspi' | 'asyncify', providerRuntime?: ProviderRuntimeAssets | undefined);
+    constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | "flac24" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined, buffering?: BufferingPolicy, loadTimeoutMs?: number, defaultSubtitleStreamIndex?: number | undefined, remuxRuntime?: 'pthread' | 'jspi' | 'asyncify', providerRuntime?: ProviderRuntimeAssets | undefined, startup?: {
+        prefetchAfterMs?: number;
+        prefetch?: () => void;
+        module?: (path: string) => Promise<WebAssembly.Module | undefined>;
+    } | undefined);
     private emit;
     private assertActive;
     private eventWaits;

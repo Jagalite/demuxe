@@ -17,15 +17,17 @@ try{
     const {Player}=await import('/web/generated/index.js');
     const {NativePlayer}=await import('/web/generated/internal/native-player.js');
     const matroska=variant.includes('matroska');
-    const p=new Player(document.querySelector('#surface'),{...(variant.includes('gain')?{audioGain:.5}:{}),...(variant.endsWith('never')?{nativeRemux:'never'}:{}),...(variant==='metadata'?{buffering:{preload:'metadata'}}:{})});
+    const accelerated=['local','matroska','matroska-gain','metadata'].includes(variant);
+    const p=new Player(document.querySelector('#surface'),{...(!accelerated?{startupEscalation:false}:{}),...(variant.includes('gain')?{audioGain:.5}:{}),...(variant.endsWith('never')?{nativeRemux:'never'}:{}),...(variant==='metadata'?{buffering:{preload:'metadata'}}:{})});
     const file=new File([await(await fetch(matroska?'/media/matroska':'/fixtures/example.mp4')).arrayBuffer()],matroska?'example.mkv':'example.mp4',{type:matroska?'video/x-matroska':'video/mp4'});
     const controller=new AbortController(),wait=NativePlayer.prototype.wait;let injected=0,deadline;
     NativePlayer.prototype.wait=function(event,start){
      if(!injected&&this.requestedPlan?.startsWith('native-direct')&&['loadeddata','loadedmetadata'].includes(event)){
-      injected++;const timeout=window.setTimeout;
+      injected++;deadline=this.loadTimeoutMs;const timeout=window.setTimeout;
       // Exercise the real readiness deadline without waiting 25 seconds. Withhold
       // the load action to represent a candidate that never delivers readiness.
-      window.setTimeout=(fn,ms,...args)=>{deadline=ms;return timeout(fn,ms===25000?100:ms,...args);};
+      const clock=performance.now.bind(performance);let offset=0;performance.now=()=>clock()+offset;
+      window.setTimeout=(fn,ms,...args)=>timeout(()=>{if(ms===25000)offset+=24900;fn(...args);},ms===25000?100:ms);
       try{const work=wait.call(this,event,()=>{});if(variant==='abort')timeout(()=>controller.abort(),10);return work;}
       finally{window.setTimeout=timeout;}
      }
@@ -43,7 +45,7 @@ try{
     return {variant,injected,deadline,code,playback,reopened,gain:diagnostics.audioGain,plan:diagnostics.plan?.id,records:diagnostics.runtimeCapabilities,attempts:diagnostics.selection.attempts,surfaces:document.querySelectorAll('.demuxe-player video').length};
    },variant);
    results.push(result);assert.equal(result.injected,1);assert.equal(result.surfaces,0);
-   assert.equal(result.deadline,['matroska','matroska-gain'].includes(variant)?1500:25000);
+   assert.equal(result.deadline,['local','matroska','matroska-gain','metadata'].includes(variant)?500:25000);
    if(['local','matroska','matroska-gain','metadata'].includes(variant)){
     const suffix=variant.includes('gain')?'-gain':'';
     assert.equal(result.code,undefined);assert.equal(result.plan,'native-remux'+suffix);assert.ok(result.playback.time>0);assert.ok(result.playback.frames>0);assert.equal(result.gain,suffix?.5:1);

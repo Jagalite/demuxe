@@ -168,7 +168,7 @@ export class NativePlayer extends EventTarget implements Backend {
       time,rate,frames:quality&&video.videoWidth>0?quality.totalVideoFrames-quality.droppedVideoFrames:undefined,videoEnd:this.remux?.trackBounds?.videoEnd};
   }
 
-  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus'|'flac24', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string, buffering:BufferingPolicy=bufferingPolicy(), private loadTimeoutMs=25000, private defaultSubtitleStreamIndex?:number, private remuxRuntime:'pthread'|'jspi'|'asyncify'='pthread',private providerRuntime?:ProviderRuntimeAssets) {
+  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus'|'flac24', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string, buffering:BufferingPolicy=bufferingPolicy(), private loadTimeoutMs=25000, private defaultSubtitleStreamIndex?:number, private remuxRuntime:'pthread'|'jspi'|'asyncify'='pthread',private providerRuntime?:ProviderRuntimeAssets, private startup?:{prefetchAfterMs?:number;prefetch?:()=>void;module?:(path:string)=>Promise<WebAssembly.Module|undefined>}) {
     super();this.native=initialNativeBackend(buffering);
     const listen=(target:EventTarget,event:string,listener:EventListener)=>{this.assertActive();const remove=()=>target.removeEventListener(event,listener);this.listeners.push(remove);try{target.addEventListener(event,listener);this.assertActive();}catch(error){if(this.stopped)try{remove();}catch{}throw error;}};
     try{video.playsInline = true;this.assertActive();
@@ -201,10 +201,10 @@ export class NativePlayer extends EventTarget implements Backend {
     this.assertActive();signal?.throwIfAborted();const now=performance.now();this.assertActive();
     const request=this.changeNative({type:'event.begin',event,now,loadBudget:this.loadTimeoutMs}).request as NativeEventRequest,video=this.video;
     return new Promise((resolve,reject)=>{
-      let settled=false,timer:{handle?:ReturnType<typeof setTimeout>}|undefined;
+      let settled=false,timer:{handle?:ReturnType<typeof setTimeout>}|undefined,softTimer:ReturnType<typeof setTimeout>|undefined;
       const finish=(error?:unknown)=>{
         if(settled)return;settled=true;this.changeNative({type:'event.finish',request});
-        const pending=timer;timer=undefined;this.cancelers.delete(cancel);this.eventWaits.delete(request.id);
+        const pending=timer;timer=undefined;clearTimeout(softTimer);this.cancelers.delete(cancel);this.eventWaits.delete(request.id);
         for(const clean of [()=>clearTimeout(pending?.handle),()=>video.removeEventListener(event,done),()=>video.removeEventListener('error',failed),()=>signal?.removeEventListener('abort',aborted)])try{clean();}catch(cleanup){error??=cleanup;}
         error!==undefined?reject(error):resolve();
       };
@@ -219,6 +219,9 @@ export class NativePlayer extends EventTarget implements Backend {
         signal?.addEventListener('abort',aborted,{once:true});if(settled||!nativeRequestCurrent(this.native,request)){signal?.removeEventListener('abort',aborted);this.assertNative(request);return;}
         const deadline=this.changeNative({type:'event.deadline',request,now});arm(deadline.remaining??0);if(settled)return;
         for(const [name,listener] of [[event,done],['error',failed]] as const){video.addEventListener(name,listener,{once:true});if(settled||!nativeRequestCurrent(this.native,request)){video.removeEventListener(name,listener);this.assertNative(request);return;}}
+        if((event==='loadeddata'||event==='loadedmetadata')&&this.startup?.prefetch&&this.startup.prefetchAfterMs!==undefined){
+          softTimer=setTimeout(()=>{if(settled)return;try{this.assertNative(request);this.startup?.prefetch?.();}catch{/* Speculation cannot fail the active load. */}},this.startup.prefetchAfterMs);
+        }
         signal?.throwIfAborted();this.assertNative(request);start();
       }catch(error){finish(error);}
     });
@@ -472,7 +475,7 @@ export class NativePlayer extends EventTarget implements Backend {
       const enginePath=codecEngine?.wasmPath??`web/engine-${adapted?'adaptation':'remux'}${this.remuxRuntime==='pthread'?'':'-'+this.remuxRuntime}/remux.wasm`;
       const replace=this.remux&&(this.remuxEnginePath!==enginePath||this.remux.audioAdaptation!==(adapted?this.audioAdaptation:undefined));this.assertLoad(request);
       if(replace)await this.retireRemux(request);
-      const compiledWasm=this.providerRuntime?await this.awaitLoad(request,this.providerRuntime.module(enginePath)):undefined;this.assertLoad(request);
+      const compiledWasm=this.providerRuntime?await this.awaitLoad(request,this.providerRuntime.module(enginePath)):await this.awaitLoad(request,this.startup?.module?.(enginePath)??Promise.resolve(undefined));this.assertLoad(request);
       let remux=this.remux;
       if(!remux){
         const acquired=new RemuxPlayer(this.video,{compiledWasm,buffering:{...resolveBuffering(this.buffering,'remux'),preload:this.buffering.preload},bufferedSeeks:this.bufferedSeeks,runtime:this.remuxRuntime,audioAdaptation:adapted?this.audioAdaptation:undefined,mseOwner:this.execution?.mseOwner??'auto'}) as RemuxController;

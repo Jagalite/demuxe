@@ -25,6 +25,7 @@ export class NativePlayer extends EventTarget {
     defaultSubtitleStreamIndex;
     remuxRuntime;
     providerRuntime;
+    startup;
     ready = Promise.resolve();
     properties = new Map();
     native = initialNativeBackend();
@@ -308,7 +309,7 @@ export class NativePlayer extends EventTarget {
         return { eligible: true,
             time, rate, frames: quality && video.videoWidth > 0 ? quality.totalVideoFrames - quality.droppedVideoFrames : undefined, videoEnd: this.remux?.trackBounds?.videoEnd };
     }
-    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack, nativeASS = false, fonts = [], requestedPlan, buffering = bufferingPolicy(), loadTimeoutMs = 25000, defaultSubtitleStreamIndex, remuxRuntime = 'pthread', providerRuntime) {
+    constructor(video, remuxPolicy = 'auto', assetBase = new URL('../../../', import.meta.url), bufferedSeeks = false, audioAdaptation, initialAudioTrack, nativeASS = false, fonts = [], requestedPlan, buffering = bufferingPolicy(), loadTimeoutMs = 25000, defaultSubtitleStreamIndex, remuxRuntime = 'pthread', providerRuntime, startup) {
         super();
         this.video = video;
         this.remuxPolicy = remuxPolicy;
@@ -323,6 +324,7 @@ export class NativePlayer extends EventTarget {
         this.defaultSubtitleStreamIndex = defaultSubtitleStreamIndex;
         this.remuxRuntime = remuxRuntime;
         this.providerRuntime = providerRuntime;
+        this.startup = startup;
         this.native = initialNativeBackend(buffering);
         const listen = (target, event, listener) => { this.assertActive(); const remove = () => target.removeEventListener(event, listener); this.listeners.push(remove); try {
             target.addEventListener(event, listener);
@@ -396,7 +398,7 @@ export class NativePlayer extends EventTarget {
         this.assertActive();
         const request = this.changeNative({ type: 'event.begin', event, now, loadBudget: this.loadTimeoutMs }).request, video = this.video;
         return new Promise((resolve, reject) => {
-            let settled = false, timer;
+            let settled = false, timer, softTimer;
             const finish = (error) => {
                 if (settled)
                     return;
@@ -404,6 +406,7 @@ export class NativePlayer extends EventTarget {
                 this.changeNative({ type: 'event.finish', request });
                 const pending = timer;
                 timer = undefined;
+                clearTimeout(softTimer);
                 this.cancelers.delete(cancel);
                 this.eventWaits.delete(request.id);
                 for (const clean of [() => clearTimeout(pending?.handle), () => video.removeEventListener(event, done), () => video.removeEventListener('error', failed), () => signal?.removeEventListener('abort', aborted)])
@@ -476,6 +479,14 @@ export class NativePlayer extends EventTarget {
                         this.assertNative(request);
                         return;
                     }
+                }
+                if ((event === 'loadeddata' || event === 'loadedmetadata') && this.startup?.prefetch && this.startup.prefetchAfterMs !== undefined) {
+                    softTimer = setTimeout(() => { if (settled)
+                        return; try {
+                        this.assertNative(request);
+                        this.startup?.prefetch?.();
+                    }
+                    catch { /* Speculation cannot fail the active load. */ } }, this.startup.prefetchAfterMs);
                 }
                 signal?.throwIfAborted();
                 this.assertNative(request);
@@ -1009,7 +1020,7 @@ export class NativePlayer extends EventTarget {
             this.assertLoad(request);
             if (replace)
                 await this.retireRemux(request);
-            const compiledWasm = this.providerRuntime ? await this.awaitLoad(request, this.providerRuntime.module(enginePath)) : undefined;
+            const compiledWasm = this.providerRuntime ? await this.awaitLoad(request, this.providerRuntime.module(enginePath)) : await this.awaitLoad(request, this.startup?.module?.(enginePath) ?? Promise.resolve(undefined));
             this.assertLoad(request);
             let remux = this.remux;
             if (!remux) {

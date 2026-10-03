@@ -191,7 +191,17 @@ export type TrackPolicy = Readonly<{
     audio?: TrackTypePolicy;
     subtitles?: TrackTypePolicy;
 }>;
+/** Direct native startup budgets, in milliseconds, when an eligible fallback exists. */
+export type StartupEscalationOptions = {
+    /** Begin preparing the next route's immutable Wasm code. Default: 400. */
+    prefetchAfterMs?: number;
+    /** Cancel an unready direct load and try the fallback. Default: 500. */
+    switchAfterMs?: number;
+};
 export type PlayerOptions = {
+    /** Browser-independent direct-load policy. false retains the ordinary load deadline.
+     * Requires 0 <= prefetchAfterMs < switchAfterMs < 25000. */
+    startupEscalation?: StartupEscalationOptions | false;
     /** Defaults to enabled. false disables all playback-health watchdogs. */
     watchdogs?: boolean | WatchdogOptions;
     /** Software decoder fidelity. Exact is the default. */

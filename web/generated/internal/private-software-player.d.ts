@@ -35,6 +35,7 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     private get presentedDraws();
     private presentation?;
     constructor(canvas: HTMLCanvasElement, options: {
+        prefetchedWasm?: () => Promise<ArrayBuffer | undefined> | undefined;
         providerAssets?: ProviderRuntimeAssets;
         runtime: 'jspi' | 'asyncify';
         mode?: 'software' | 'hybrid';

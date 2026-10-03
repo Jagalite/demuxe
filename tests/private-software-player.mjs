@@ -154,3 +154,17 @@ test('provider integrity failure prevents cooperative native initialization',asy
  try{await assert.rejects(player.initialize({width:320,height:180,getContext:()=>({})}),error=>error.code==='ASSET_LOAD_FAILED');assert.equal(calls,0);}
  finally{for(const port of ports)port.close();}
 });
+
+test('raw private startup passes prefetched Wasm with the complete verifiable asset set',async t=>{
+ const {player}=control(),paths=[],wasm=Uint8Array.of(0,97,115,109,1,0,0,0).buffer;
+ const port=()=>({postMessage(){},close(){}}),node=()=>({connect(){},port:port()});
+ t.mock.method(globalThis,'fetch',async url=>{paths.push(String(url));return new Response(String(url).endsWith('manifest.json')?'{}':Uint8Array.of(1,2));});
+ const previous={AudioWorkletNode:globalThis.AudioWorkletNode,OffscreenCanvas:globalThis.OffscreenCanvas,MessageChannel:globalThis.MessageChannel};
+ Object.assign(globalThis,{AudioWorkletNode:class{constructor(){return node();}},OffscreenCanvas:class{},MessageChannel:class{constructor(){this.port1=port();this.port2=port();}}});
+ try{
+  let sent;Object.assign(player,{options:{runtime:'asyncify',assetBase:new URL('https://example.test/'),prefetchedWasm:async()=>wasm},loading:new AbortController(),context:{audioWorklet:{async addModule(){}},createGain:node,createAnalyser:node,state:'suspended',baseLatency:0,outputLatency:0,sampleRate:48000},outputChannels:2,request:async(_type,data)=>{sent=data;}});
+  await player.initialize({width:320,height:180,getContext:()=>({})});
+  assert.equal(paths.some(p=>p.endsWith('.wasm')),false);assert.equal(sent.playbackAssets['player.wasm'],wasm);
+  assert.deepEqual(Object.keys(sent.playbackAssets).sort(),['manifest.json','player.mjs','player.wasm']);
+ }finally{for(const [key,value]of Object.entries(previous))if(value===undefined)delete globalThis[key];else globalThis[key]=value;}
+});
