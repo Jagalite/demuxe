@@ -1,0 +1,1 @@
+| AAC audio-only / M4A | 🟢 (Pass) · 2.4% CPU | 🟢 (Pass) · 13.4% CPU | 🟢 (Pass) · 15.7% CPU · forced-remux ref | 🟢 (Pass) · 15.8% CPU · forced-remux ref | 🟢 (Pass) · 19.2% CPU | 🟢 (Pass) · CPU withheld | 🟢 (Pass) · 9.9% CPU | 🟡 Screened · 45.4% CPU | 🟢 (Pass) · 11.3% CPU |

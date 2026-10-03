@@ -1,0 +1,1 @@
+| HEVC Main 10 + Opus / MKV | 🟢 (Pass)\* | 🟡 Screened* · CPU withheld | 🟡 Screened* · 26.5% CPU · forced-remux ref | 🟡 Screened* · 25.9% CPU · forced-remux ref | 🟡 Screened* · 41.0% CPU | 🔴 (Fail) | 🟡 (Screened)\* | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending |

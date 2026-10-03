@@ -28,7 +28,7 @@ if(onlyArg)for(const key of onlyArg.split(','))assert(fixtures[key],'Unknown spe
 for(const [key,f] of Object.entries(fixtures))assert.equal(manifest.files['fixtures/'+f.file]?.sha256,f.sha256,'Specialist source identity: '+key);
 await fs.mkdir(out);await fs.mkdir(path.join(out,'files'));
 const sourceHashes={};
-for(const name of ['specialist-screen.mjs','specialist-audio.mjs','prepare-specialist-fixtures.py','prepare-library-fixtures.py','server.mjs','harness.html','adapters.mjs','checks.mjs','browser-exit.mjs','benchmark-browser.mjs','campaign-progress.mjs']){const source=await fs.readFile(path.join(import.meta.dirname,name));sourceHashes[name]=sha(source);await fs.writeFile(path.join(out,'files',name),source);}
+for(const name of ['specialist-screen.mjs','specialist-audio.mjs','prepare-specialist-fixtures.py','prepare-library-fixtures.py','server.mjs','harness.html','adapters.mjs','remux-evidence.mjs','component-trials.mjs','checks.mjs','browser-exit.mjs','benchmark-browser.mjs','campaign-progress.mjs']){const source=await fs.readFile(path.join(import.meta.dirname,name));sourceHashes[name]=sha(source);await fs.writeFile(path.join(out,'files',name),source);}
 const harnessSHA256=sha(JSON.stringify(sourceHashes));
 if(previous&&(previous.kind!=='specialist-basic-screen'||!previous.finishedAt||previous.assetsSHA256!==sha(bytes)||previous.harnessSHA256!==harnessSHA256))throw Error('Reusable specialist correctness must match completed assets and harness');
 await fs.writeFile(path.join(out,'assets-manifest.json'),bytes);

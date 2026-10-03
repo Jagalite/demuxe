@@ -1,0 +1,1 @@
+| H.264 + AAC / HLS live (sliding window) | 🔴 (Fail) | 🟢 (Pass) · 23.1% CPU | N/A · finite-file scope | N/A · finite-file scope | 🟢 (Pass) · 37.1% CPU | 🟢 (Pass) | 🔴 (Fail) | N/A · File example | 🟢 (Pass) · CPU pending |

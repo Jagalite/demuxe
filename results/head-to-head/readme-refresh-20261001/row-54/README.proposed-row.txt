@@ -1,0 +1,1 @@
+| Opus audio-only / Ogg | 🟢 (Pass) · 3.4% CPU | 🟢 (Pass) · CPU withheld | 🟢 (Pass) · 16.1% CPU · forced-remux ref | 🟢 (Pass) · 16.2% CPU · forced-remux ref | 🟢 (Pass) · 19.8% CPU | 🟢 (Pass) · CPU withheld | 🔴 (Fail) | 🟡 Screened · 45.8% CPU | 🟢 (Pass) · 12.7% CPU |

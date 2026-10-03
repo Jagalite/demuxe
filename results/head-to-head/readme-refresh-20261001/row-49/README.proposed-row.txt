@@ -1,0 +1,1 @@
+| H.264 + AAC + PGS / MKV (subtitle isolation) | 🔴 (Fail) | 🟢 (Pass) · 24.5% CPU | 🟢 (Pass) · 24.4% CPU · forced-remux ref | 🟢 (Pass) · 24.7% CPU · forced-remux ref | 🟢 (Pass) · 36.4% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |

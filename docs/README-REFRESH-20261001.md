@@ -1397,3 +1397,782 @@ Earlier attempts and their original failure reasons are retained unchanged as hi
 | hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
 | software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
 | software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 48: H.264 + AC-3 + VobSub / MKV
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-48/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · CPU withheld | native-transcode-mpv; Bounded playback checks passed; CPU withheld: Error: Presentation cadence outside declared frame budget |
+| jspi | 🟢 (Pass) · 24.8% CPU · forced-remux ref | native-transcode-mpv; Bounded playback checks passed |
+| asyncify | 🟢 (Pass) · CPU withheld · forced-remux ref | native-transcode-mpv; Bounded playback checks passed; CPU withheld: Error: Presentation cadence outside declared frame budget |
+| software | 🟢 (Pass) · 37.1% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 49: H.264 + AAC + PGS / MKV (subtitle isolation)
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-49/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 24.5% CPU | native-remux-mpv; Bounded playback checks passed |
+| jspi | 🟢 (Pass) · 24.4% CPU · forced-remux ref | native-remux-mpv; Bounded playback checks passed |
+| asyncify | 🟢 (Pass) · 24.7% CPU · forced-remux ref | native-remux-mpv; Bounded playback checks passed |
+| software | 🟢 (Pass) · 36.4% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 50: H.264 + AAC + VobSub / MKV (subtitle isolation)
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-50/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 24.2% CPU | native-remux-mpv; Bounded playback checks passed |
+| jspi | 🟢 (Pass) · 23.9% CPU · forced-remux ref | native-remux-mpv; Bounded playback checks passed |
+| asyncify | 🟢 (Pass) · 25.6% CPU · forced-remux ref | native-remux-mpv; Bounded playback checks passed |
+| software | 🟢 (Pass) · 36.0% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 51: AAC audio-only / M4A
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-51/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 13.4% CPU | native-direct; Bounded playback checks passed |
+| jspi | 🟢 (Pass) · 15.7% CPU · forced-remux ref | native-remux; Bounded playback checks passed |
+| asyncify | 🟢 (Pass) · 15.8% CPU · forced-remux ref | native-remux; Bounded playback checks passed |
+| software | 🟢 (Pass) · 19.2% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 52: MP3 audio-only / MP3
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-52/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · CPU withheld | native-direct; Bounded playback checks passed; CPU withheld: Error: Process turnover makes this CPU window invalid |
+| jspi | — Blocked | Error: UNQUALIFIED: requested remux runtime was not observed on hybrid-private |
+| asyncify | — Blocked | Error: UNQUALIFIED: requested remux runtime was not observed on hybrid-private |
+| software | 🟢 (Pass) · 18.6% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 53: FLAC audio-only / FLAC
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-53/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 13.4% CPU | native-direct; Bounded playback checks passed |
+| jspi | 🟢 (Pass) · 16.7% CPU · forced-remux ref | native-remux; Bounded playback checks passed |
+| asyncify | 🟢 (Pass) · 17.3% CPU · forced-remux ref | native-remux; Bounded playback checks passed |
+| software | 🟢 (Pass) · 18.6% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 54: Opus audio-only / Ogg
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-54/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · CPU withheld | native-direct; Bounded playback checks passed; CPU withheld: Error: Process turnover makes this CPU window invalid |
+| jspi | 🟢 (Pass) · 16.1% CPU · forced-remux ref | native-remux; Bounded playback checks passed |
+| asyncify | 🟢 (Pass) · 16.2% CPU · forced-remux ref | native-remux; Bounded playback checks passed |
+| software | 🟢 (Pass) · 19.8% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 55: Vorbis audio-only / Ogg
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-55/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 13.6% CPU | native-direct; Bounded playback checks passed |
+| jspi | 🟢 (Pass) · 15.0% CPU · forced-remux ref | native-remux; Bounded playback checks passed |
+| asyncify | 🟢 (Pass) · 15.4% CPU · forced-remux ref | native-remux; Bounded playback checks passed |
+| software | 🟢 (Pass) · 19.0% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 56: PCM16 audio-only / WAV
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-56/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 8.8% CPU | native-direct; Bounded playback checks passed |
+| jspi | — Blocked | Error: UNQUALIFIED: requested remux runtime was not observed on hybrid-private |
+| asyncify | — Blocked | Error: UNQUALIFIED: requested remux runtime was not observed on hybrid-private |
+| software | 🟢 (Pass) · 18.0% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 57: PCM24 audio-only / WAV
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-57/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · CPU withheld | native-direct; Bounded playback checks passed; CPU withheld: Error: Process turnover makes this CPU window invalid |
+| jspi | — Blocked | Error: UNQUALIFIED: requested remux runtime was not observed on hybrid-private |
+| asyncify | — Blocked | Error: UNQUALIFIED: requested remux runtime was not observed on hybrid-private |
+| software | 🟢 (Pass) · 18.5% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| hybrid-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | hybrid-private; Bounded playback checks passed |
+| software-jspi | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+| software-asyncify | 🟢 (Pass) · not measured (outside CPU campaign scope) | software-private; Bounded playback checks passed |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 58: HEVC Main 10 + E-AC-3 / MKV (HDR10)
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-58/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 21.0% CPU | native-transcode; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| jspi | 🟡 Screened* · 25.9% CPU · forced-remux ref | native-transcode; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| asyncify | 🟡 Screened* · 26.4% CPU · forced-remux ref | native-transcode; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| software | 🟡 Screened* · 39.9% CPU | software; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| hybrid-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| software-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| software-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 59: HEVC Main 10 + AAC / MP4 (HLG)
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-59/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 23.9% CPU | native-direct; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| jspi | 🟡 Screened* · 24.9% CPU · forced-remux ref | native-remux; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| asyncify | 🟡 Screened* · 25.1% CPU · forced-remux ref | native-remux; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| software | 🟡 Screened* · 40.5% CPU | software; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| hybrid-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| software-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| software-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 60: AV1 10-bit + Opus / WebM (HDR10)
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-60/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 23.6% CPU | native-direct; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| jspi | 🟡 Screened* · 24.3% CPU · forced-remux ref | native-remux; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| asyncify | 🟡 Screened* · 24.7% CPU · forced-remux ref | native-remux; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| software | 🟡 Screened* · 40.7% CPU | software; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| hybrid-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| software-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+| software-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; Tagged 10-bit HDR decode/lifecycle screen only; reference HDR transfer, tone mapping and physical display fidelity remain unqualified. |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 61: HEVC + TrueHD 7.1 / MKV
+
+Bounded 36-second specialist screen on Chrome/macOS: advancing visible video, stereo audio energy, seeks, rate, EOF, and cleanup. Three accepted 20-second whole-Chrome CPU windows are required for a numeric cell. No discrete surround, losslessness, spatial objects, Dolby Vision color or physical HDR qualification.
+
+[Compact specialist evidence](../results/head-to-head/readme-refresh-20261001/specialist-20261003/receipt.json)
+
+| Lane | Result | Accepted CPU windows |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 26.7% CPU | 26.1%, 26.7%, 28.0% |
+| software | 🟡 Screened* · 43.6% CPU | 42.7%, 43.6%, 43.9% |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 62: HEVC + DTS-HD MA 7.1 / MKV
+
+Bounded 36-second specialist screen on Chrome/macOS: advancing visible video, stereo audio energy, seeks, rate, EOF, and cleanup. Three accepted 20-second whole-Chrome CPU windows are required for a numeric cell. No discrete surround, losslessness, spatial objects, Dolby Vision color or physical HDR qualification.
+
+[Compact specialist evidence](../results/head-to-head/readme-refresh-20261001/specialist-20261003/receipt.json)
+
+| Lane | Result | Accepted CPU windows |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 28.5% CPU | 28.5%, 27.1%, 28.6% |
+| software | 🟡 Screened* · 43.5% CPU | 43.5%, 44.2%, 41.4% |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 63: HEVC + E-AC-3 with Atmos metadata / MP4
+
+Bounded 36-second specialist screen on Chrome/macOS: advancing visible video, stereo audio energy, seeks, rate, EOF, and cleanup. Three accepted 20-second whole-Chrome CPU windows are required for a numeric cell. No discrete surround, losslessness, spatial objects, Dolby Vision color or physical HDR qualification.
+
+[Compact specialist evidence](../results/head-to-head/readme-refresh-20261001/specialist-20261003/receipt.json)
+
+| Lane | Result | Accepted CPU windows |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 24.4% CPU | 24.4%, 25.6%, 22.4% |
+| software | 🟡 Screened* · 38.8% CPU | 38.8%, 39.9%, 38.3% |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 64: Dolby Vision profile 5 HEVC + E-AC-3 / MP4
+
+Bounded 36-second specialist screen on Chrome/macOS: advancing visible video, stereo audio energy, seeks, rate, EOF, and cleanup. Three accepted 20-second whole-Chrome CPU windows are required for a numeric cell. No discrete surround, losslessness, spatial objects, Dolby Vision color or physical HDR qualification.
+
+[Compact specialist evidence](../results/head-to-head/readme-refresh-20261001/specialist-20261003/receipt.json)
+
+| Lane | Result | Accepted CPU windows |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 70.3% CPU | 70.3%, 72.7%, 59.1% |
+| software | 🟡 Screened* · 72.0% CPU | 72.3%, 72.0%, 71.9% |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 65: Dolby Vision profile 8.1 HEVC + E-AC-3 / MKV
+
+Bounded 36-second specialist screen on Chrome/macOS: advancing visible video, stereo audio energy, seeks, rate, EOF, and cleanup. Three accepted 20-second whole-Chrome CPU windows are required for a numeric cell. No discrete surround, losslessness, spatial objects, Dolby Vision color or physical HDR qualification.
+
+[Compact specialist evidence](../results/head-to-head/readme-refresh-20261001/specialist-20261003/receipt.json)
+
+| Lane | Result | Accepted CPU windows |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 62.7% CPU | 71.3%, 62.7%, 61.2% |
+| software | 🟡 Screened* · CPU withheld | 73.4%, 72.7% |
+
+The Software CPU figure is withheld after three process-turnover rejections across five attempts.
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 66: H.264 + AAC / HLS VOD (TS segments)
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-66/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · CPU withheld | shaka-mse; Bounded playback checks passed; CPU withheld: Error: Process turnover makes this CPU window invalid |
+| software | 🟢 (Pass) · 35.4% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | N/A · finite-file scope | Streaming excluded from this lane |
+| hybrid-asyncify | N/A · finite-file scope | Streaming excluded from this lane |
+| software-jspi | N/A · finite-file scope | Streaming excluded from this lane |
+| software-asyncify | N/A · finite-file scope | Streaming excluded from this lane |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 67: H.264 + AAC / HLS VOD (fMP4 segments)
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-67/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 22.4% CPU | shaka-mse; Bounded playback checks passed |
+| software | 🟢 (Pass) · 35.6% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | N/A · finite-file scope | Streaming excluded from this lane |
+| hybrid-asyncify | N/A · finite-file scope | Streaming excluded from this lane |
+| software-jspi | N/A · finite-file scope | Streaming excluded from this lane |
+| software-asyncify | N/A · finite-file scope | Streaming excluded from this lane |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 68: HEVC + AAC / HLS VOD (fMP4 segments)
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-68/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🔴 (Fail) | shaka-mse; page.evaluate: PlayerError: No playback route satisfied the source: mpv subtitle service requires inspected finite file subtitles and available assets; Controlled adaptive quality requires Shaka; mpv subtitle service requires inspected finite file subtitles and available assets; File preparation is not qualified for manifest sources; Gain stage does not match the requested presentation; This execution plan already failed for the current streaming source; Gain stage does not match the requested presentation; Gain stage does not match the requested presentation; File preparation is not qualified for manifest sources; Gain stage does not match the requested presentation; Subtitle component does not match the requested presentation; Gain stage does not match the requested presentation; Subtitle component does not match the requested presentation; Gain stage does not match the requested presentation; Subtitle component does not match the requested presentation; Gain stage does not match the requested presentation; File preparation is not qualified for manifest sources; Gain stage does not match the requested presentation; Audio transcoding requires an inspected random-access file; Audio transcoding requires an inspected random-access file; Audio transcoding requires an inspected random-access file; Selective audio requires an inspected random-access file; Selective audio requires an inspected random-access file; FFmpeg fallback cannot preserve an explicit adaptive quality constraint; FFmpeg fallback cannot preserve an explicit adaptive quality constraint; Gain stage does not match the requested presentation; Gain stage does not match the requested presentation; Private playback requires the selected cooperative runtime; Private playback requires the selected cooperative runtime; Private playback requires the selected cooperative runtime; Private playback requires the selected cooperative runtime; Gain stage does not match the requested presentation; FFmpeg fallback cannot preserve an explicit adaptive quality constraint |
+| software | 🟢 (Pass) · 36.5% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | N/A · finite-file scope | Streaming excluded from this lane |
+| hybrid-asyncify | N/A · finite-file scope | Streaming excluded from this lane |
+| software-jspi | N/A · finite-file scope | Streaming excluded from this lane |
+| software-asyncify | N/A · finite-file scope | Streaming excluded from this lane |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 69: H.264 + AAC / DASH VOD (fMP4 segments)
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-69/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 21.6% CPU | shaka-mse; Bounded playback checks passed |
+| software | 🟢 (Pass) · 33.8% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | N/A · finite-file scope | Streaming excluded from this lane |
+| hybrid-asyncify | N/A · finite-file scope | Streaming excluded from this lane |
+| software-jspi | N/A · finite-file scope | Streaming excluded from this lane |
+| software-asyncify | N/A · finite-file scope | Streaming excluded from this lane |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 70: AV1 + Opus / DASH VOD (WebM segments)
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-70/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 21.4% CPU | shaka-mse; Bounded playback checks passed |
+| software | 🟢 (Pass) · 34.9% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | N/A · finite-file scope | Streaming excluded from this lane |
+| hybrid-asyncify | N/A · finite-file scope | Streaming excluded from this lane |
+| software-jspi | N/A · finite-file scope | Streaming excluded from this lane |
+| software-asyncify | N/A · finite-file scope | Streaming excluded from this lane |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 71: H.264 + AAC / HLS live (sliding window)
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-71/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟢 (Pass) · 23.1% CPU | shaka-mse; Bounded playback checks passed |
+| software | 🟢 (Pass) · 37.1% CPU | software; Bounded playback checks passed |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | N/A · finite-file scope | Streaming excluded from this lane |
+| hybrid-asyncify | N/A · finite-file scope | Streaming excluded from this lane |
+| software-jspi | N/A · finite-file scope | Streaming excluded from this lane |
+| software-asyncify | N/A · finite-file scope | Streaming excluded from this lane |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 72: HEVC Main 10 + AAC / MKV
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-72/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 24.2% CPU | native-direct; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| jspi | 🟡 Screened* · 25.2% CPU · forced-remux ref | native-remux; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| asyncify | 🟡 Screened* · 25.8% CPU · forced-remux ref | native-remux; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software | 🟡 Screened* · 40.7% CPU | software; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| hybrid-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 73: HEVC Main 10 + FLAC / MKV
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-73/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 23.8% CPU | native-direct; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| jspi | 🟡 Screened* · 24.6% CPU · forced-remux ref | native-remux; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| asyncify | 🟡 Screened* · 25.8% CPU · forced-remux ref | native-remux; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software | 🟡 Screened* · 40.5% CPU | software; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| hybrid-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 74: HEVC Main 10 + Opus / MKV
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-74/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟡 Screened* · CPU withheld | native-direct; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.; CPU withheld: Error: Process turnover makes this CPU window invalid |
+| jspi | 🟡 Screened* · 26.5% CPU · forced-remux ref | native-remux; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| asyncify | 🟡 Screened* · 25.9% CPU · forced-remux ref | native-remux; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software | 🟡 Screened* · 41.0% CPU | software; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| hybrid-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 75: HEVC Main 10 + FLAC + ASS / MKV
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-75/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 26.0% CPU | native-remux-mpv; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| jspi | 🟡 Screened* · 26.4% CPU · forced-remux ref | native-remux-mpv; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| asyncify | 🟡 Screened* · 27.8% CPU · forced-remux ref | native-remux-mpv; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software | 🟡 Screened* · 41.0% CPU | software; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| hybrid-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 76: HEVC Main 10 + Opus + ASS / MKV
+
+Browser: chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8. Player source: `75585a0f91920fdc30391698b0d0156aed4572c1`.
+
+Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.
+
+[Compact evidence](../results/head-to-head/readme-refresh-20261001/row-76/receipt.json)
+
+### README lanes
+
+| Lane | Result | Route / reason |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 26.8% CPU | native-remux-mpv; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| jspi | 🟡 Screened* · 27.1% CPU · forced-remux ref | native-remux-mpv; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| asyncify | 🟡 Screened* · 27.4% CPU · forced-remux ref | native-remux-mpv; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software | 🟡 Screened* · 40.8% CPU | software; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+
+### Nonisolated observations
+
+| Mode / runtime | Result | Route / reason |
+| --- | --- | --- |
+| hybrid-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| hybrid-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | hybrid-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software-jspi | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+| software-asyncify | 🟡 Screened* · not measured (outside CPU campaign scope) | software-private; 36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification. |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 77: HEVC Main 10 HDR10 + TrueHD 7.1 + PGS / MKV
+
+Bounded 36-second specialist screen on Chrome/macOS: advancing visible video, stereo audio energy, seeks, rate, EOF, and cleanup. Three accepted 20-second whole-Chrome CPU windows are required for a numeric cell. No discrete surround, losslessness, spatial objects, Dolby Vision color or physical HDR qualification.
+
+[Compact specialist evidence](../results/head-to-head/readme-refresh-20261001/specialist-20261003/receipt.json)
+
+| Lane | Result | Accepted CPU windows |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 27.1% CPU | 27.1%, 25.8%, 27.5% |
+| software | 🟡 Screened* · 44.6% CPU | 44.6%, 44.6%, 45.2% |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 78: HEVC Main 10 HDR10 + DTS-HD MA 7.1 + PGS / MKV
+
+Bounded 36-second specialist screen on Chrome/macOS: advancing visible video, stereo audio energy, seeks, rate, EOF, and cleanup. Three accepted 20-second whole-Chrome CPU windows are required for a numeric cell. No discrete surround, losslessness, spatial objects, Dolby Vision color or physical HDR qualification.
+
+[Compact specialist evidence](../results/head-to-head/readme-refresh-20261001/specialist-20261003/receipt.json)
+
+| Lane | Result | Accepted CPU windows |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 28.2% CPU | 28.2%, 29.3%, 25.9% |
+| software | 🟡 Screened* · 42.7% CPU | 42.7%, 43.0%, 42.0% |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 79: Dolby Vision profile 5 + E-AC-3/Atmos + ASS / MKV
+
+Bounded 36-second specialist screen on Chrome/macOS: advancing visible video, stereo audio energy, seeks, rate, EOF, and cleanup. Three accepted 20-second whole-Chrome CPU windows are required for a numeric cell. No discrete surround, losslessness, spatial objects, Dolby Vision color or physical HDR qualification.
+
+[Compact specialist evidence](../results/head-to-head/readme-refresh-20261001/specialist-20261003/receipt.json)
+
+| Lane | Result | Accepted CPU windows |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 73.3% CPU | 74.9%, 73.3%, 72.3% |
+| software | 🟡 Screened* · 73.3% CPU | 74.4%, 72.9%, 73.3% |
+
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+## Row 80: Dolby Vision profile 8.1 + E-AC-3/Atmos + ASS / MKV
+
+Bounded 36-second specialist screen on Chrome/macOS: advancing visible video, stereo audio energy, seeks, rate, EOF, and cleanup. Three accepted 20-second whole-Chrome CPU windows are required for a numeric cell. No discrete surround, losslessness, spatial objects, Dolby Vision color or physical HDR qualification.
+
+[Compact specialist evidence](../results/head-to-head/readme-refresh-20261001/specialist-20261003/receipt.json)
+
+| Lane | Result | Accepted CPU windows |
+| --- | --- | --- |
+| auto | 🟡 Screened* · 72.9% CPU | 72.9%, 73.5%, 72.4% |
+| software | 🟡 Screened* · 71.5% CPU | 71.5%, 74.2%, 70.9% |

@@ -1,0 +1,1 @@
+| H.264 + AC-3 + VobSub / MKV | 🔴 (Fail) | 🟢 (Pass) · CPU withheld | 🟢 (Pass) · 24.8% CPU · forced-remux ref | 🟢 (Pass) · CPU withheld · forced-remux ref | 🟢 (Pass) · 37.1% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |

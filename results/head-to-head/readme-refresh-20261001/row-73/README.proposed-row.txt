@@ -1,0 +1,1 @@
+| HEVC Main 10 + FLAC / MKV | 🟢 (Pass)\* | 🟡 Screened* · 23.8% CPU | 🟡 Screened* · 24.6% CPU · forced-remux ref | 🟡 Screened* · 25.8% CPU · forced-remux ref | 🟡 Screened* · 40.5% CPU | 🔴 (Fail) | 🟢 (Pass)\* | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending |

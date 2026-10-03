@@ -1,0 +1,1 @@
+| HEVC Main 10 + AAC / MP4 (HLG) | 🟡 Screened* · 18.1% CPU | 🟡 Screened* · 23.9% CPU | 🟡 Screened* · 24.9% CPU · forced-remux ref | 🟡 Screened* · 25.1% CPU · forced-remux ref | 🟡 Screened* · 40.5% CPU | 🔴 (Fail) | 🟡 Screened* · 36.0% CPU | 🟡 Screened* · 41.0% CPU | 🟡 Screened* · 26.0% CPU |

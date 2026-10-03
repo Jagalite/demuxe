@@ -1,0 +1,1 @@
+| HEVC Main 10 + E-AC-3 / MKV (HDR10) | 🔴 (Fail) | 🟡 Screened* · 21.0% CPU | 🟡 Screened* · 25.9% CPU · forced-remux ref | 🟡 Screened* · 26.4% CPU · forced-remux ref | 🟡 Screened* · 39.9% CPU | 🔴 (Fail) | 🟡 Screened* · 35.0% CPU | 🟡 Screened* · 41.4% CPU | 🔴 (Fail) |

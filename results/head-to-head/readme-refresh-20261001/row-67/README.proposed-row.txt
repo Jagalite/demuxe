@@ -1,0 +1,1 @@
+| H.264 + AAC / HLS VOD (fMP4 segments) | 🟢 (Pass) | 🟢 (Pass) · 22.4% CPU | N/A · finite-file scope | N/A · finite-file scope | 🟢 (Pass) · 35.6% CPU | 🟢 (Pass) | 🟢 (Pass) | N/A · File example | 🟢 (Pass) · CPU pending |

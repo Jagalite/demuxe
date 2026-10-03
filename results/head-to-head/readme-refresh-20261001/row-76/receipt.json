@@ -1,0 +1,470 @@
+{
+  "schema": 1,
+  "row": 76,
+  "label": "HEVC Main 10 + Opus + ASS / MKV",
+  "fixture": "hevc10-opus-ass",
+  "scope": "Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.",
+  "assetsSHA256": "bf1923b14cb5a319c110d83eeffe0485533b3c5cf376f40e9c12fb7c794a2f2f",
+  "browserIdentity": "chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8",
+  "playerSourceRevision": "75585a0f91920fdc30391698b0d0156aed4572c1",
+  "streaming": false,
+  "cases": [
+    {
+      "id": "demuxe.auto.hevc10-opus-ass",
+      "lane": "auto",
+      "status": "blocked",
+      "cell": "\ud83d\udfe1 Screened* \u00b7 26.8% CPU",
+      "reason": "36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.",
+      "route": "native-remux-mpv",
+      "runtimeObservations": [],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "accepted",
+        "rounds": 3,
+        "oneCorePercent": [
+          23.38980550106732,
+          26.8399896504,
+          27.37424846983275
+        ],
+        "medianOneCorePercent": 26.8399896504
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "eff21eb6fe7b960950e186abefc77a393941b3c18d50a16c8559bba1968cfd44"
+    },
+    {
+      "id": "demuxe.jspi.hevc10-opus-ass",
+      "lane": "jspi",
+      "status": "blocked",
+      "cell": "\ud83d\udfe1 Screened* \u00b7 27.1% CPU \u00b7 forced-remux ref",
+      "reason": "36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.",
+      "route": "native-remux-mpv",
+      "runtimeObservations": [
+        {
+          "requested": true,
+          "bypass": false,
+          "route": "native-remux-mpv",
+          "runtime": {
+            "calls": 13,
+            "remuxMs": 67.2000000178814,
+            "generatedBytes": 213756,
+            "peakBatchBytes": 17230,
+            "heapBytes": 67108864,
+            "transport": "jspi",
+            "sharedHeap": false,
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "function",
+            "jspiPromising": "function",
+            "asset": "http://127.0.0.1:55057/demuxe/web/engine-remux-jspi/remux.mjs",
+            "gatherCopiedBytes": 3597,
+            "reusedOwnedBatches": 13
+          },
+          "services": {
+            "mpvSubtitles": {
+              "runtime": "jspi",
+              "profile": "subtitles",
+              "asset": "http://127.0.0.1:55057/demuxe/web/engine-mpv-subtitles-jspi/",
+              "memory": "ArrayBuffer",
+              "heapBytes": 67108864,
+              "crossOriginIsolated": false,
+              "sharedArrayBuffer": "undefined",
+              "jspiSuspending": "function",
+              "jspiPromising": "function",
+              "scheduler": {
+                "created": 146,
+                "completed": 142,
+                "abandoned": 0,
+                "suspensions": 250,
+                "resumes": 246,
+                "maxLive": 5,
+                "timerWakes": 18,
+                "signals": 185,
+                "stackChecks": 784,
+                "continuations": {
+                  "kind": "jspi"
+                },
+                "liveTasks": 4,
+                "retainedTasks": 4,
+                "waitKeys": 3,
+                "timers": 1,
+                "freeSlots": 20,
+                "stopped": false
+              },
+              "source": {
+                "reads": 44,
+                "bytes": 2411500,
+                "copies": 44,
+                "cancelled": 0,
+                "timeouts": 0,
+                "errors": 0,
+                "lateCompletions": 0,
+                "staleCommitsRejected": 0,
+                "maxPending": 1,
+                "abandonedRequests": 0,
+                "handles": 1,
+                "pending": 0,
+                "timers": 0
+              }
+            }
+          }
+        }
+      ],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "accepted",
+        "rounds": 3,
+        "oneCorePercent": [
+          27.24831929138605,
+          24.655202115832044,
+          27.117157498523603
+        ],
+        "medianOneCorePercent": 27.117157498523603
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "325a5c8cfc90f9a57e0b27ca2ae6ed84cbb7ff70d3bcdae937a9c1c6d04b52d4"
+    },
+    {
+      "id": "demuxe.asyncify.hevc10-opus-ass",
+      "lane": "asyncify",
+      "status": "blocked",
+      "cell": "\ud83d\udfe1 Screened* \u00b7 27.4% CPU \u00b7 forced-remux ref",
+      "reason": "36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.",
+      "route": "native-remux-mpv",
+      "runtimeObservations": [
+        {
+          "requested": true,
+          "bypass": false,
+          "route": "native-remux-mpv",
+          "runtime": {
+            "calls": 12,
+            "remuxMs": 133.50000008940697,
+            "generatedBytes": 197911,
+            "peakBatchBytes": 17230,
+            "heapBytes": 67108864,
+            "transport": "asyncify",
+            "sharedHeap": false,
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "undefined",
+            "jspiPromising": "undefined",
+            "asset": "http://127.0.0.1:55057/demuxe/web/engine-remux-asyncify/remux.mjs",
+            "gatherCopiedBytes": 3597,
+            "reusedOwnedBatches": 12
+          },
+          "services": {
+            "mpvSubtitles": {
+              "runtime": "asyncify",
+              "profile": "subtitles",
+              "asset": "http://127.0.0.1:55057/demuxe/web/engine-mpv-subtitles-asyncify/",
+              "memory": "ArrayBuffer",
+              "heapBytes": 67108864,
+              "crossOriginIsolated": false,
+              "sharedArrayBuffer": "undefined",
+              "jspiSuspending": "function",
+              "jspiPromising": "function",
+              "scheduler": {
+                "created": 147,
+                "completed": 143,
+                "abandoned": 0,
+                "suspensions": 250,
+                "resumes": 246,
+                "maxLive": 5,
+                "timerWakes": 17,
+                "signals": 186,
+                "stackChecks": 786,
+                "continuations": {
+                  "kind": "asyncify",
+                  "maxSavedBytes": 5436,
+                  "unwinds": 250,
+                  "rewinds": 246
+                },
+                "liveTasks": 4,
+                "retainedTasks": 4,
+                "waitKeys": 3,
+                "timers": 1,
+                "freeSlots": 20,
+                "stopped": false
+              },
+              "source": {
+                "reads": 44,
+                "bytes": 2411500,
+                "copies": 44,
+                "cancelled": 0,
+                "timeouts": 0,
+                "errors": 0,
+                "lateCompletions": 0,
+                "staleCommitsRejected": 0,
+                "maxPending": 1,
+                "abandonedRequests": 0,
+                "handles": 1,
+                "pending": 0,
+                "timers": 0
+              }
+            }
+          }
+        }
+      ],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "accepted",
+        "rounds": 3,
+        "oneCorePercent": [
+          27.449544505050586,
+          29.082098596897893,
+          24.821426188758352
+        ],
+        "medianOneCorePercent": 27.449544505050586
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "4a544b90f5f33418c27b8a34f69cc54499c349755318ce3a8778b5314285cae9"
+    },
+    {
+      "id": "demuxe.software.hevc10-opus-ass",
+      "lane": "software",
+      "status": "blocked",
+      "cell": "\ud83d\udfe1 Screened* \u00b7 40.8% CPU",
+      "reason": "36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.",
+      "route": "software",
+      "runtimeObservations": [],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "accepted",
+        "rounds": 3,
+        "oneCorePercent": [
+          40.79124942288229,
+          43.89069294102167,
+          40.719454458365455
+        ],
+        "medianOneCorePercent": 40.79124942288229
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "6961875daabfc01919d83a79ff834a7fd88a90d41d21fa2f3fbeb889a1cb689d"
+    },
+    {
+      "id": "demuxe.hybrid-jspi.hevc10-opus-ass",
+      "lane": "hybrid-jspi",
+      "status": "blocked",
+      "cell": "\ud83d\udfe1 Screened* \u00b7 not measured (outside CPU campaign scope)",
+      "reason": "36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.",
+      "route": "hybrid-private",
+      "runtimeObservations": [
+        {
+          "requested": true,
+          "bypass": false,
+          "kind": "nonisolated-playback",
+          "mode": "hybrid",
+          "route": "hybrid-private",
+          "runtime": "jspi",
+          "decoderBackend": "webcodecs",
+          "environment": {
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "function",
+            "jspiPromising": "function"
+          },
+          "selection": {
+            "policy": "jspi",
+            "runtime": "jspi",
+            "isolated": false,
+            "jspi": true
+          }
+        }
+      ],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "outside-scope"
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "25c9aa39c1813218d658a7d17d7bf48833916bc5bd798627b855d8ab30280ba5"
+    },
+    {
+      "id": "demuxe.hybrid-asyncify.hevc10-opus-ass",
+      "lane": "hybrid-asyncify",
+      "status": "blocked",
+      "cell": "\ud83d\udfe1 Screened* \u00b7 not measured (outside CPU campaign scope)",
+      "reason": "36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.",
+      "route": "hybrid-private",
+      "runtimeObservations": [
+        {
+          "requested": true,
+          "bypass": false,
+          "kind": "nonisolated-playback",
+          "mode": "hybrid",
+          "route": "hybrid-private",
+          "runtime": "asyncify",
+          "decoderBackend": "webcodecs",
+          "environment": {
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "function",
+            "jspiPromising": "function"
+          },
+          "selection": {
+            "policy": "asyncify",
+            "runtime": "asyncify",
+            "isolated": false,
+            "jspi": true
+          }
+        }
+      ],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "outside-scope"
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "ea60217a58f6e2054cbe70b8d5fa09bd31b9928542125975308abab27ea08324"
+    },
+    {
+      "id": "demuxe.software-jspi.hevc10-opus-ass",
+      "lane": "software-jspi",
+      "status": "blocked",
+      "cell": "\ud83d\udfe1 Screened* \u00b7 not measured (outside CPU campaign scope)",
+      "reason": "36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.",
+      "route": "software-private",
+      "runtimeObservations": [
+        {
+          "requested": true,
+          "bypass": false,
+          "kind": "nonisolated-playback",
+          "mode": "software",
+          "route": "software-private",
+          "runtime": "jspi",
+          "decoderBackend": "ffmpeg",
+          "environment": {
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "function",
+            "jspiPromising": "function"
+          },
+          "selection": {
+            "policy": "jspi",
+            "runtime": "jspi",
+            "isolated": false,
+            "jspi": true
+          }
+        }
+      ],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "outside-scope"
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "3a3fef3712243f7006e2ff70202ebc9b5c5c83673ce097d4b3829425afb42d94"
+    },
+    {
+      "id": "demuxe.software-asyncify.hevc10-opus-ass",
+      "lane": "software-asyncify",
+      "status": "blocked",
+      "cell": "\ud83d\udfe1 Screened* \u00b7 not measured (outside CPU campaign scope)",
+      "reason": "36-second bounded playback only; synthetic picture/audio for ordinary Main10 cases; repeated specialist audio and tagged synthetic HDR10 for UHD-style cases. No HDR, lossless, discrete surround or object fidelity qualification.",
+      "route": "software-private",
+      "runtimeObservations": [
+        {
+          "requested": true,
+          "bypass": false,
+          "kind": "nonisolated-playback",
+          "mode": "software",
+          "route": "software-private",
+          "runtime": "asyncify",
+          "decoderBackend": "ffmpeg",
+          "environment": {
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "function",
+            "jspiPromising": "function"
+          },
+          "selection": {
+            "policy": "asyncify",
+            "runtime": "asyncify",
+            "isolated": false,
+            "jspi": true
+          }
+        }
+      ],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "outside-scope"
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "d351caf85feb76134a7f778b69fa67885270ae88a6c7fd36ac2d3f2ff8889383"
+    }
+  ],
+  "runs": [
+    {
+      "originalDirectory": "build/readme-refresh-20261001/campaign-05/76-hevc10-opus-ass-all-correctness",
+      "summarySHA256": "ff94b0b7500d29cef50e9db8bbb5c3996bc82252f97e771bd30f4ef7653dd0a7",
+      "manifestSHA256": "c96bac28091aa41656806cf4c039d2fe127816699ff4f29cfea62c19c9e7b05c",
+      "capturedHarnessFiles": {
+        "adapters.mjs": "73753b0c3caedcb8287894631ca2118809bfc9be5d5f0e1d8d1d061cde098ede",
+        "assets.lock.json": "da47f3bc6e2c208d30070ece28bf81fc9981b4db81620ce53717570071cc4e0c",
+        "benchmark-browser.mjs": "02788b92fbd9c2667cf853d9c69bba3ffbde93ae34ee50a064cea66c821c2b20",
+        "bitmap.py": "d5233d39d5cdd3aa9df0379f2e3b033801fd33105e31d4f0189e6a38abb49517",
+        "browser-exit.mjs": "4caad89f38a04fef61c70cf71df22661c7e0ea901367cc2583ba94ed58d6498f",
+        "campaign-progress.mjs": "f99a82eb9579aac48680a75d6614b67a13192d7a67e920cc3a729e58b671d5b0",
+        "checks.mjs": "3900402cef8ac46701090055872564a64015df215231ac510ed9c64d2e85b714",
+        "component-trials.mjs": "8788c79bf23223c39272b5158a58e59434ec018ba3fed1dbd777da54f263225d",
+        "expand.py": "a16950b8730fc5ee12b19a98e7e7069483cb7f4a4ad53403b74a3a31317a1425",
+        "harness.html": "39550e4790ef0c9acfa16126d8b24f3b184b27b80fc70ba07aa52b5dfe37badd",
+        "initial-output.mjs": "1cfe6771cf446ed71e9bac19ba05c579e765369c777f11e3387f3a20db466666",
+        "matrix.json": "5dd00f20b387a2f0fcd08116af2a96c0d3975353ca2bf49583478425310fcf0e",
+        "performance-metrics.mjs": "5f06d911c7e8d014fe8a575c294002fbb297fcb5f5d6d10c2dbb3b08f3744295",
+        "planned.json": "e648ba183fa2caeba7996fb8e314535be4d84edaeac0cf0b8511a381e4bea8b1",
+        "playback-rate.mjs": "7f43f7733f35ce60d4a5a0b0aa435063d1734b9f70b3cf98281ce28dbb17a9e3",
+        "remux-evidence.mjs": "b8f9636139f8235af66ca902650edc71ac0f4516e230ef56e8e4a17c9d76439f",
+        "run.mjs": "b6370683e5dc76c8ecf2c49b6d28805dc7447a1ed0201e0d9d132c2dea0aac44",
+        "server.mjs": "34ede8c8efb58e378e12834301d75b17ce4f462e08245c27cf44b0e607e0087f",
+        "setup.py": "230e66e5844b688bd0f31c0b73cb3582d8140712413db9035501a72f3d988a59",
+        "specialist-audio.mjs": "8ed3af093c5b9b28974ff8c74b91a3a4ebd645a0a685382119ef49bf759d426f",
+        "specialist-contract.mjs": "f1e041e613ee05cca9fdbf430e86529ce4df44a4414d9dd0ce7dd1dd468d3604",
+        "subtitle-ocr.swift": "852d6c7a6c1f4fdd1e8ff2e077701fe1f76742d1a3bfffd7b1d4f5231d84029e"
+      },
+      "compactFiles": {
+        "assets-manifest.json.gz": "4937ca7736157fbbb787d2998da0867e0225c3f28b3cfff32cf072b4927dd6d3",
+        "captured-harness.tar.gz": "123920ee44debedbb17557512ca0457d54dc864d8548855b4bb24c40b0ccc9fc",
+        "manifest.json": "c96bac28091aa41656806cf4c039d2fe127816699ff4f29cfea62c19c9e7b05c",
+        "summary.json.gz": "45f34b0c473f7b995d0c94202191d942bfb04c370da6deda68184f827f21cd0f"
+      }
+    },
+    {
+      "originalDirectory": "build/readme-refresh-20261001/campaign-10/76-hevc10-opus-ass-all-screened-cpu",
+      "summarySHA256": "8d60a8ae183f52925e75a3c65a906f224189c04891c67589444f28fdb06a9f7d",
+      "manifestSHA256": "32d0f02df155f10a37da88cea906f203694333a856d1ed3d5ade83c3903a2f96",
+      "capturedHarnessFiles": {
+        "adapters.mjs": "73753b0c3caedcb8287894631ca2118809bfc9be5d5f0e1d8d1d061cde098ede",
+        "assets.lock.json": "da47f3bc6e2c208d30070ece28bf81fc9981b4db81620ce53717570071cc4e0c",
+        "benchmark-browser.mjs": "02788b92fbd9c2667cf853d9c69bba3ffbde93ae34ee50a064cea66c821c2b20",
+        "bitmap.py": "d5233d39d5cdd3aa9df0379f2e3b033801fd33105e31d4f0189e6a38abb49517",
+        "browser-exit.mjs": "4caad89f38a04fef61c70cf71df22661c7e0ea901367cc2583ba94ed58d6498f",
+        "campaign-progress.mjs": "f99a82eb9579aac48680a75d6614b67a13192d7a67e920cc3a729e58b671d5b0",
+        "checks.mjs": "3900402cef8ac46701090055872564a64015df215231ac510ed9c64d2e85b714",
+        "component-trials.mjs": "8788c79bf23223c39272b5158a58e59434ec018ba3fed1dbd777da54f263225d",
+        "expand.py": "a16950b8730fc5ee12b19a98e7e7069483cb7f4a4ad53403b74a3a31317a1425",
+        "harness.html": "39550e4790ef0c9acfa16126d8b24f3b184b27b80fc70ba07aa52b5dfe37badd",
+        "initial-output.mjs": "1cfe6771cf446ed71e9bac19ba05c579e765369c777f11e3387f3a20db466666",
+        "matrix.json": "5dd00f20b387a2f0fcd08116af2a96c0d3975353ca2bf49583478425310fcf0e",
+        "performance-metrics.mjs": "5f06d911c7e8d014fe8a575c294002fbb297fcb5f5d6d10c2dbb3b08f3744295",
+        "planned.json": "e648ba183fa2caeba7996fb8e314535be4d84edaeac0cf0b8511a381e4bea8b1",
+        "playback-rate.mjs": "7f43f7733f35ce60d4a5a0b0aa435063d1734b9f70b3cf98281ce28dbb17a9e3",
+        "remux-evidence.mjs": "b8f9636139f8235af66ca902650edc71ac0f4516e230ef56e8e4a17c9d76439f",
+        "run.mjs": "b6370683e5dc76c8ecf2c49b6d28805dc7447a1ed0201e0d9d132c2dea0aac44",
+        "server.mjs": "34ede8c8efb58e378e12834301d75b17ce4f462e08245c27cf44b0e607e0087f",
+        "setup.py": "230e66e5844b688bd0f31c0b73cb3582d8140712413db9035501a72f3d988a59",
+        "specialist-audio.mjs": "8ed3af093c5b9b28974ff8c74b91a3a4ebd645a0a685382119ef49bf759d426f",
+        "specialist-contract.mjs": "f1e041e613ee05cca9fdbf430e86529ce4df44a4414d9dd0ce7dd1dd468d3604",
+        "subtitle-ocr.swift": "852d6c7a6c1f4fdd1e8ff2e077701fe1f76742d1a3bfffd7b1d4f5231d84029e"
+      },
+      "compactFiles": {
+        "assets-manifest.json.gz": "4937ca7736157fbbb787d2998da0867e0225c3f28b3cfff32cf072b4927dd6d3",
+        "captured-harness.tar.gz": "cab4a4936267d91744163b1b2a8542c8b5979eb89cd2a077c585cf8f181f87a8",
+        "manifest.json": "32d0f02df155f10a37da88cea906f203694333a856d1ed3d5ade83c3903a2f96",
+        "summary.json.gz": "360946624e0be30924d3fe8cd3220700f348c5cd118cc44965b1605f85397f2d"
+      }
+    }
+  ],
+  "readmeBeforeSHA256": "2d712954b0e91316386b678e554f02937950c916388bef933b8b043d6e1ffc60",
+  "originalRow": "| HEVC Main 10 + Opus + ASS / MKV | \ud83d\udd34 (Fail) | \ud83d\udfe1 Screened* \u00b7 CPU pending | \ud83d\udfe1 Screened* \u00b7 CPU pending \u00b7 forced-remux ref | \ud83d\udfe1 Screened* \u00b7 CPU pending \u00b7 forced-remux ref | \ud83d\udfe1 Screened* \u00b7 CPU pending | \ud83d\udd34 (Fail) | \ud83d\udd34 (Fail) | \ud83d\udd34 (Fail) | \ud83d\udd34 (Fail) |",
+  "replacementRow": "| HEVC Main 10 + Opus + ASS / MKV | \ud83d\udd34 (Fail) | \ud83d\udfe1 Screened* \u00b7 26.8% CPU | \ud83d\udfe1 Screened* \u00b7 27.1% CPU \u00b7 forced-remux ref | \ud83d\udfe1 Screened* \u00b7 27.4% CPU \u00b7 forced-remux ref | \ud83d\udfe1 Screened* \u00b7 40.8% CPU | \ud83d\udd34 (Fail) | \ud83d\udd34 (Fail) | \ud83d\udd34 (Fail) | \ud83d\udd34 (Fail) |",
+  "publicationPath": "results/head-to-head/readme-refresh-20261001/row-76",
+  "retainedHistoricalRuns": [],
+  "supplementalAudits": []
+}

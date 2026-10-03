@@ -1,0 +1,1 @@
+| HEVC Main 10 + AAC / MKV | 🟢 (Pass)\* | 🟡 Screened* · 24.2% CPU | 🟡 Screened* · 25.2% CPU · forced-remux ref | 🟡 Screened* · 25.8% CPU · forced-remux ref | 🟡 Screened* · 40.7% CPU | 🟢 (Pass)\* | 🟢 (Pass)\* | 🟡 Screened* · CPU pending | 🟡 Screened* · CPU pending |

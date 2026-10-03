@@ -1,0 +1,1 @@
+| Vorbis audio-only / Ogg | 🟢 (Pass) · 2.3% CPU | 🟢 (Pass) · 13.6% CPU | 🟢 (Pass) · 15.0% CPU · forced-remux ref | 🟢 (Pass) · 15.4% CPU · forced-remux ref | 🟢 (Pass) · 19.0% CPU | 🔴 (Fail) | 🔴 (Fail) | 🟡 Screened* · 45.9% CPU | 🟢 (Pass) · 11.1% CPU |

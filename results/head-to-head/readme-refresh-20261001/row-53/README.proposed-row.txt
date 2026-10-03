@@ -1,0 +1,1 @@
+| FLAC audio-only / FLAC | 🟢 (Pass) · 2.1% CPU | 🟢 (Pass) · 13.4% CPU | 🟢 (Pass) · 16.7% CPU · forced-remux ref | 🟢 (Pass) · 17.3% CPU · forced-remux ref | 🟢 (Pass) · 18.6% CPU | 🟢 (Pass) · CPU withheld | 🟢 (Pass) · 8.0% CPU | 🟡 Screened · 42.9% CPU | 🟢 (Pass) · 10.1% CPU |

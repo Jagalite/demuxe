@@ -1,0 +1,1 @@
+| MP3 audio-only / MP3 | 🟢 (Pass) · 0.9% CPU | 🟢 (Pass) · CPU withheld | — Blocked | — Blocked | 🟢 (Pass) · 18.6% CPU | 🟢 (Pass) · CPU withheld | 🔴 (Fail) | 🟡 Screened · 10.1% CPU | 🟢 (Pass) · 11.5% CPU |

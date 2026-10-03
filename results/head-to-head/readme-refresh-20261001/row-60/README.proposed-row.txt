@@ -1,0 +1,1 @@
+| AV1 10-bit + Opus / WebM (HDR10) | 🟡 Screened* · 17.0% CPU | 🟡 Screened* · 23.6% CPU | 🟡 Screened* · 24.3% CPU · forced-remux ref | 🟡 Screened* · 24.7% CPU · forced-remux ref | 🟡 Screened* · 40.7% CPU | 🔴 (Fail) | 🟡 Screened* · 37.6% CPU | 🟡 Screened* · 35.3% CPU | 🟡 Screened* · 23.8% CPU |

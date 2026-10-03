@@ -1,0 +1,1 @@
+| H.264 + AAC + VobSub / MKV (subtitle isolation) | 🔴 (Fail) | 🟢 (Pass) · 24.2% CPU | 🟢 (Pass) · 23.9% CPU · forced-remux ref | 🟢 (Pass) · 25.6% CPU · forced-remux ref | 🟢 (Pass) · 36.0% CPU | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) | 🔴 (Fail) |

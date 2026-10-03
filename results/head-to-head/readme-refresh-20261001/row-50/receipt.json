@@ -1,0 +1,470 @@
+{
+  "schema": 1,
+  "row": 50,
+  "label": "H.264 + AAC + VobSub / MKV (subtitle isolation)",
+  "fixture": "h264-aac-vobsub-isolation",
+  "scope": "Bounded marked-output and lifecycle correctness; CPU only for exact matching assets/browser/captured harness. Separate nonisolated lanes do not replace README Auto/Software/remux cells. No release or broad-codec claim.",
+  "assetsSHA256": "bf1923b14cb5a319c110d83eeffe0485533b3c5cf376f40e9c12fb7c794a2f2f",
+  "browserIdentity": "chromium/154.0.8037.93/chrome/headed/5cf9f2f24ceb3e4a10fbce9dc2f1c4aa56fddd16640818dba1676d00f6d827f8",
+  "playerSourceRevision": "75585a0f91920fdc30391698b0d0156aed4572c1",
+  "streaming": false,
+  "cases": [
+    {
+      "id": "demuxe.auto.h264-aac-vobsub-isolation",
+      "lane": "auto",
+      "status": "passed",
+      "cell": "\ud83d\udfe2 (Pass) \u00b7 24.2% CPU",
+      "reason": "Bounded playback checks passed",
+      "route": "native-remux-mpv",
+      "runtimeObservations": [],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "accepted",
+        "rounds": 3,
+        "oneCorePercent": [
+          20.83312690471716,
+          24.183959966462687,
+          24.327278950853856
+        ],
+        "medianOneCorePercent": 24.183959966462687
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "6bba2ee0aaa5d54544bd37847865d4fc631027dd7fdd2ff144aa9b91c48a3b50"
+    },
+    {
+      "id": "demuxe.jspi.h264-aac-vobsub-isolation",
+      "lane": "jspi",
+      "status": "passed",
+      "cell": "\ud83d\udfe2 (Pass) \u00b7 23.9% CPU \u00b7 forced-remux ref",
+      "reason": "Bounded playback checks passed",
+      "route": "native-remux-mpv",
+      "runtimeObservations": [
+        {
+          "requested": true,
+          "bypass": false,
+          "route": "native-remux-mpv",
+          "runtime": {
+            "calls": 12,
+            "remuxMs": 92.59999999403954,
+            "generatedBytes": 161231,
+            "peakBatchBytes": 14115,
+            "heapBytes": 67108864,
+            "transport": "jspi",
+            "sharedHeap": false,
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "function",
+            "jspiPromising": "function",
+            "asset": "http://127.0.0.1:49225/demuxe/web/engine-remux-jspi/remux.mjs",
+            "gatherCopiedBytes": 1222,
+            "reusedOwnedBatches": 12
+          },
+          "services": {
+            "mpvSubtitles": {
+              "runtime": "jspi",
+              "profile": "subtitles",
+              "asset": "http://127.0.0.1:49225/demuxe/web/engine-mpv-subtitles-jspi/",
+              "memory": "ArrayBuffer",
+              "heapBytes": 67108864,
+              "crossOriginIsolated": false,
+              "sharedArrayBuffer": "undefined",
+              "jspiSuspending": "function",
+              "jspiPromising": "function",
+              "scheduler": {
+                "created": 141,
+                "completed": 137,
+                "abandoned": 0,
+                "suspensions": 201,
+                "resumes": 197,
+                "maxLive": 5,
+                "timerWakes": 6,
+                "signals": 173,
+                "stackChecks": 676,
+                "continuations": {
+                  "kind": "jspi"
+                },
+                "liveTasks": 4,
+                "retainedTasks": 4,
+                "waitKeys": 3,
+                "timers": 1,
+                "freeSlots": 20,
+                "stopped": false
+              },
+              "source": {
+                "reads": 19,
+                "bytes": 1056188,
+                "copies": 19,
+                "cancelled": 0,
+                "timeouts": 0,
+                "errors": 0,
+                "lateCompletions": 0,
+                "staleCommitsRejected": 0,
+                "maxPending": 1,
+                "abandonedRequests": 0,
+                "handles": 1,
+                "pending": 0,
+                "timers": 0
+              }
+            }
+          }
+        }
+      ],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "accepted",
+        "rounds": 3,
+        "oneCorePercent": [
+          23.930973346066505,
+          21.512553884109327,
+          24.909427296975146
+        ],
+        "medianOneCorePercent": 23.930973346066505
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "f18daa265c572477ba6def4c1c9d885dee35622e434c96b1ecf3b0d8f61fbb48"
+    },
+    {
+      "id": "demuxe.asyncify.h264-aac-vobsub-isolation",
+      "lane": "asyncify",
+      "status": "passed",
+      "cell": "\ud83d\udfe2 (Pass) \u00b7 25.6% CPU \u00b7 forced-remux ref",
+      "reason": "Bounded playback checks passed",
+      "route": "native-remux-mpv",
+      "runtimeObservations": [
+        {
+          "requested": true,
+          "bypass": false,
+          "route": "native-remux-mpv",
+          "runtime": {
+            "calls": 12,
+            "remuxMs": 63.700000047683716,
+            "generatedBytes": 161231,
+            "peakBatchBytes": 14115,
+            "heapBytes": 67108864,
+            "transport": "asyncify",
+            "sharedHeap": false,
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "undefined",
+            "jspiPromising": "undefined",
+            "asset": "http://127.0.0.1:49225/demuxe/web/engine-remux-asyncify/remux.mjs",
+            "gatherCopiedBytes": 1222,
+            "reusedOwnedBatches": 12
+          },
+          "services": {
+            "mpvSubtitles": {
+              "runtime": "asyncify",
+              "profile": "subtitles",
+              "asset": "http://127.0.0.1:49225/demuxe/web/engine-mpv-subtitles-asyncify/",
+              "memory": "ArrayBuffer",
+              "heapBytes": 67108864,
+              "crossOriginIsolated": false,
+              "sharedArrayBuffer": "undefined",
+              "jspiSuspending": "function",
+              "jspiPromising": "function",
+              "scheduler": {
+                "created": 158,
+                "completed": 154,
+                "abandoned": 0,
+                "suspensions": 217,
+                "resumes": 213,
+                "maxLive": 5,
+                "timerWakes": 5,
+                "signals": 190,
+                "stackChecks": 742,
+                "continuations": {
+                  "kind": "asyncify",
+                  "maxSavedBytes": 5436,
+                  "unwinds": 217,
+                  "rewinds": 213
+                },
+                "liveTasks": 4,
+                "retainedTasks": 4,
+                "waitKeys": 3,
+                "timers": 1,
+                "freeSlots": 20,
+                "stopped": false
+              },
+              "source": {
+                "reads": 19,
+                "bytes": 1056188,
+                "copies": 19,
+                "cancelled": 0,
+                "timeouts": 0,
+                "errors": 0,
+                "lateCompletions": 0,
+                "staleCommitsRejected": 0,
+                "maxPending": 1,
+                "abandonedRequests": 0,
+                "handles": 1,
+                "pending": 0,
+                "timers": 0
+              }
+            }
+          }
+        }
+      ],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "accepted",
+        "rounds": 3,
+        "oneCorePercent": [
+          25.955422588586316,
+          25.56758045760222,
+          21.59678746738783
+        ],
+        "medianOneCorePercent": 25.56758045760222
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "97e8e50c6515c105abe9db3bfd940fad306e2e09f98d0793cc813839fe16137b"
+    },
+    {
+      "id": "demuxe.software.h264-aac-vobsub-isolation",
+      "lane": "software",
+      "status": "passed",
+      "cell": "\ud83d\udfe2 (Pass) \u00b7 36.0% CPU",
+      "reason": "Bounded playback checks passed",
+      "route": "software",
+      "runtimeObservations": [],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "accepted",
+        "rounds": 3,
+        "oneCorePercent": [
+          36.54926649154973,
+          35.16015877349628,
+          36.0070849532314
+        ],
+        "medianOneCorePercent": 36.0070849532314
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "1bdfdedd9ceafca43e19dfe0f0bfc54fc1ccd97879426d515ac433de5d0a917d"
+    },
+    {
+      "id": "demuxe.hybrid-jspi.h264-aac-vobsub-isolation",
+      "lane": "hybrid-jspi",
+      "status": "passed",
+      "cell": "\ud83d\udfe2 (Pass) \u00b7 not measured (outside CPU campaign scope)",
+      "reason": "Bounded playback checks passed",
+      "route": "hybrid-private",
+      "runtimeObservations": [
+        {
+          "requested": true,
+          "bypass": false,
+          "kind": "nonisolated-playback",
+          "mode": "hybrid",
+          "route": "hybrid-private",
+          "runtime": "jspi",
+          "decoderBackend": "webcodecs",
+          "environment": {
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "function",
+            "jspiPromising": "function"
+          },
+          "selection": {
+            "policy": "jspi",
+            "runtime": "jspi",
+            "isolated": false,
+            "jspi": true
+          }
+        }
+      ],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "outside-scope"
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "b3f0afed33c6ba87294a27e820da44a14ee24bfee5908e3e7104faf79adc7a00"
+    },
+    {
+      "id": "demuxe.hybrid-asyncify.h264-aac-vobsub-isolation",
+      "lane": "hybrid-asyncify",
+      "status": "passed",
+      "cell": "\ud83d\udfe2 (Pass) \u00b7 not measured (outside CPU campaign scope)",
+      "reason": "Bounded playback checks passed",
+      "route": "hybrid-private",
+      "runtimeObservations": [
+        {
+          "requested": true,
+          "bypass": false,
+          "kind": "nonisolated-playback",
+          "mode": "hybrid",
+          "route": "hybrid-private",
+          "runtime": "asyncify",
+          "decoderBackend": "webcodecs",
+          "environment": {
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "function",
+            "jspiPromising": "function"
+          },
+          "selection": {
+            "policy": "asyncify",
+            "runtime": "asyncify",
+            "isolated": false,
+            "jspi": true
+          }
+        }
+      ],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "outside-scope"
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "b1d4bb21d3a7dfe22a14cf2669184e7db0f2e0eb2ef465fed885a9ba098342a1"
+    },
+    {
+      "id": "demuxe.software-jspi.h264-aac-vobsub-isolation",
+      "lane": "software-jspi",
+      "status": "passed",
+      "cell": "\ud83d\udfe2 (Pass) \u00b7 not measured (outside CPU campaign scope)",
+      "reason": "Bounded playback checks passed",
+      "route": "software-private",
+      "runtimeObservations": [
+        {
+          "requested": true,
+          "bypass": false,
+          "kind": "nonisolated-playback",
+          "mode": "software",
+          "route": "software-private",
+          "runtime": "jspi",
+          "decoderBackend": "ffmpeg",
+          "environment": {
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "function",
+            "jspiPromising": "function"
+          },
+          "selection": {
+            "policy": "jspi",
+            "runtime": "jspi",
+            "isolated": false,
+            "jspi": true
+          }
+        }
+      ],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "outside-scope"
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "479622b2f46dce710e335fe95a4f4c5cfaf03a7d9f430142eee7270846136b4d"
+    },
+    {
+      "id": "demuxe.software-asyncify.h264-aac-vobsub-isolation",
+      "lane": "software-asyncify",
+      "status": "passed",
+      "cell": "\ud83d\udfe2 (Pass) \u00b7 not measured (outside CPU campaign scope)",
+      "reason": "Bounded playback checks passed",
+      "route": "software-private",
+      "runtimeObservations": [
+        {
+          "requested": true,
+          "bypass": false,
+          "kind": "nonisolated-playback",
+          "mode": "software",
+          "route": "software-private",
+          "runtime": "asyncify",
+          "decoderBackend": "ffmpeg",
+          "environment": {
+            "crossOriginIsolated": false,
+            "sharedArrayBuffer": "undefined",
+            "jspiSuspending": "function",
+            "jspiPromising": "function"
+          },
+          "selection": {
+            "policy": "asyncify",
+            "runtime": "asyncify",
+            "isolated": false,
+            "jspi": true
+          }
+        }
+      ],
+      "runtimeBypass": false,
+      "cpu": {
+        "status": "outside-scope"
+      },
+      "correctnessHarnessSHA256": "dc16a9e333c37170a0620d95a7e5e8cec4940b28bdce15b8671dc3f58742cf89",
+      "canonicalCaseSHA256": "5e56af5063c06326e1257c64c7e39a02417e4ce80a655a2d3ba0a46eac5c869b"
+    }
+  ],
+  "runs": [
+    {
+      "originalDirectory": "build/readme-refresh-20261001/campaign-05/50-h264-aac-vobsub-isolation-all-correctness",
+      "summarySHA256": "2dfd276bf518aaa0d14f650cda9637d2f82c1960a26bbb6bccf302d55eab42e1",
+      "manifestSHA256": "024287ffc36cc053dea192cc02dc014995bcfaf243add0e2a40e1becf5a7114e",
+      "capturedHarnessFiles": {
+        "adapters.mjs": "73753b0c3caedcb8287894631ca2118809bfc9be5d5f0e1d8d1d061cde098ede",
+        "assets.lock.json": "da47f3bc6e2c208d30070ece28bf81fc9981b4db81620ce53717570071cc4e0c",
+        "benchmark-browser.mjs": "02788b92fbd9c2667cf853d9c69bba3ffbde93ae34ee50a064cea66c821c2b20",
+        "bitmap.py": "d5233d39d5cdd3aa9df0379f2e3b033801fd33105e31d4f0189e6a38abb49517",
+        "browser-exit.mjs": "4caad89f38a04fef61c70cf71df22661c7e0ea901367cc2583ba94ed58d6498f",
+        "campaign-progress.mjs": "f99a82eb9579aac48680a75d6614b67a13192d7a67e920cc3a729e58b671d5b0",
+        "checks.mjs": "3900402cef8ac46701090055872564a64015df215231ac510ed9c64d2e85b714",
+        "component-trials.mjs": "8788c79bf23223c39272b5158a58e59434ec018ba3fed1dbd777da54f263225d",
+        "expand.py": "a16950b8730fc5ee12b19a98e7e7069483cb7f4a4ad53403b74a3a31317a1425",
+        "harness.html": "39550e4790ef0c9acfa16126d8b24f3b184b27b80fc70ba07aa52b5dfe37badd",
+        "initial-output.mjs": "1cfe6771cf446ed71e9bac19ba05c579e765369c777f11e3387f3a20db466666",
+        "matrix.json": "5dd00f20b387a2f0fcd08116af2a96c0d3975353ca2bf49583478425310fcf0e",
+        "performance-metrics.mjs": "5f06d911c7e8d014fe8a575c294002fbb297fcb5f5d6d10c2dbb3b08f3744295",
+        "planned.json": "e648ba183fa2caeba7996fb8e314535be4d84edaeac0cf0b8511a381e4bea8b1",
+        "playback-rate.mjs": "7f43f7733f35ce60d4a5a0b0aa435063d1734b9f70b3cf98281ce28dbb17a9e3",
+        "remux-evidence.mjs": "b8f9636139f8235af66ca902650edc71ac0f4516e230ef56e8e4a17c9d76439f",
+        "run.mjs": "b6370683e5dc76c8ecf2c49b6d28805dc7447a1ed0201e0d9d132c2dea0aac44",
+        "server.mjs": "34ede8c8efb58e378e12834301d75b17ce4f462e08245c27cf44b0e607e0087f",
+        "setup.py": "230e66e5844b688bd0f31c0b73cb3582d8140712413db9035501a72f3d988a59",
+        "specialist-audio.mjs": "8ed3af093c5b9b28974ff8c74b91a3a4ebd645a0a685382119ef49bf759d426f",
+        "specialist-contract.mjs": "f1e041e613ee05cca9fdbf430e86529ce4df44a4414d9dd0ce7dd1dd468d3604",
+        "subtitle-ocr.swift": "852d6c7a6c1f4fdd1e8ff2e077701fe1f76742d1a3bfffd7b1d4f5231d84029e"
+      },
+      "compactFiles": {
+        "assets-manifest.json.gz": "4937ca7736157fbbb787d2998da0867e0225c3f28b3cfff32cf072b4927dd6d3",
+        "captured-harness.tar.gz": "50e6a6f235fd96a69ca2bb75c71af861e32c8f23f90e41887fbddbb3d8fc3aa3",
+        "manifest.json": "024287ffc36cc053dea192cc02dc014995bcfaf243add0e2a40e1becf5a7114e",
+        "summary.json.gz": "bb5a78d48810bdde2a9b8f97ae2f173a57c2c66977582b48c2d4a7f6bf1df0a5"
+      }
+    },
+    {
+      "originalDirectory": "build/readme-refresh-20261001/campaign-12/50-h264-aac-vobsub-isolation-all-cpu",
+      "summarySHA256": "974e63bc52c0005c07f6cfa611748665a096caa27e381f67fa62f0e0fd193054",
+      "manifestSHA256": "7e5936424924e0bb873bb556f658e3b92bcc273f9227bd744104ab52219eda07",
+      "capturedHarnessFiles": {
+        "adapters.mjs": "73753b0c3caedcb8287894631ca2118809bfc9be5d5f0e1d8d1d061cde098ede",
+        "assets.lock.json": "da47f3bc6e2c208d30070ece28bf81fc9981b4db81620ce53717570071cc4e0c",
+        "benchmark-browser.mjs": "02788b92fbd9c2667cf853d9c69bba3ffbde93ae34ee50a064cea66c821c2b20",
+        "bitmap.py": "d5233d39d5cdd3aa9df0379f2e3b033801fd33105e31d4f0189e6a38abb49517",
+        "browser-exit.mjs": "4caad89f38a04fef61c70cf71df22661c7e0ea901367cc2583ba94ed58d6498f",
+        "campaign-progress.mjs": "f99a82eb9579aac48680a75d6614b67a13192d7a67e920cc3a729e58b671d5b0",
+        "checks.mjs": "3900402cef8ac46701090055872564a64015df215231ac510ed9c64d2e85b714",
+        "component-trials.mjs": "8788c79bf23223c39272b5158a58e59434ec018ba3fed1dbd777da54f263225d",
+        "expand.py": "a16950b8730fc5ee12b19a98e7e7069483cb7f4a4ad53403b74a3a31317a1425",
+        "harness.html": "39550e4790ef0c9acfa16126d8b24f3b184b27b80fc70ba07aa52b5dfe37badd",
+        "initial-output.mjs": "1cfe6771cf446ed71e9bac19ba05c579e765369c777f11e3387f3a20db466666",
+        "matrix.json": "5dd00f20b387a2f0fcd08116af2a96c0d3975353ca2bf49583478425310fcf0e",
+        "performance-metrics.mjs": "5f06d911c7e8d014fe8a575c294002fbb297fcb5f5d6d10c2dbb3b08f3744295",
+        "planned.json": "e648ba183fa2caeba7996fb8e314535be4d84edaeac0cf0b8511a381e4bea8b1",
+        "playback-rate.mjs": "7f43f7733f35ce60d4a5a0b0aa435063d1734b9f70b3cf98281ce28dbb17a9e3",
+        "remux-evidence.mjs": "b8f9636139f8235af66ca902650edc71ac0f4516e230ef56e8e4a17c9d76439f",
+        "run.mjs": "b6370683e5dc76c8ecf2c49b6d28805dc7447a1ed0201e0d9d132c2dea0aac44",
+        "server.mjs": "34ede8c8efb58e378e12834301d75b17ce4f462e08245c27cf44b0e607e0087f",
+        "setup.py": "230e66e5844b688bd0f31c0b73cb3582d8140712413db9035501a72f3d988a59",
+        "specialist-audio.mjs": "8ed3af093c5b9b28974ff8c74b91a3a4ebd645a0a685382119ef49bf759d426f",
+        "specialist-contract.mjs": "f1e041e613ee05cca9fdbf430e86529ce4df44a4414d9dd0ce7dd1dd468d3604",
+        "subtitle-ocr.swift": "852d6c7a6c1f4fdd1e8ff2e077701fe1f76742d1a3bfffd7b1d4f5231d84029e"
+      },
+      "compactFiles": {
+        "assets-manifest.json.gz": "4937ca7736157fbbb787d2998da0867e0225c3f28b3cfff32cf072b4927dd6d3",
+        "captured-harness.tar.gz": "b85c25ee4195d3e99e81466dbc4035fdaced8068b7f274d3f6c73138e5fad0b6",
+        "manifest.json": "7e5936424924e0bb873bb556f658e3b92bcc273f9227bd744104ab52219eda07",
+        "summary.json.gz": "5eee7a442701968a22278beb535952b9a5606de72ca4ce7506bfed952c4ae022"
+      }
+    }
+  ],
+  "readmeBeforeSHA256": "60e3954d154c2724231397c81c21ada11284feebedc1a1e60bf66b82b2596c65",
+  "originalRow": "| H.264 + AAC + VobSub / MKV (subtitle isolation) | \ud83d\udd34 (Fail) | \ud83d\udfe2 (Pass) \u00b7 18.6% CPU \u00b7 native-remux-mpv | \ud83d\udfe2 (Pass) \u00b7 18.2% CPU \u00b7 forced-remux ref | \ud83d\udfe2 (Pass) \u00b7 19.7% CPU \u00b7 forced-remux ref | \ud83d\udfe2 (Pass)* \u00b7 35.9% CPU | \ud83d\udd34 (Fail) | \ud83d\udd34 (Fail) | \ud83d\udd34 (Fail) | \ud83d\udd34 (Fail) |",
+  "replacementRow": "| H.264 + AAC + VobSub / MKV (subtitle isolation) | \ud83d\udd34 (Fail) | \ud83d\udfe2 (Pass) \u00b7 24.2% CPU | \ud83d\udfe2 (Pass) \u00b7 23.9% CPU \u00b7 forced-remux ref | \ud83d\udfe2 (Pass) \u00b7 25.6% CPU \u00b7 forced-remux ref | \ud83d\udfe2 (Pass) \u00b7 36.0% CPU | \ud83d\udd34 (Fail) | \ud83d\udd34 (Fail) | \ud83d\udd34 (Fail) | \ud83d\udd34 (Fail) |",
+  "publicationPath": "results/head-to-head/readme-refresh-20261001/row-50",
+  "retainedHistoricalRuns": [],
+  "supplementalAudits": []
+}

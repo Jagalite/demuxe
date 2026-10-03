@@ -1,0 +1,1 @@
+| H.264 + AAC / HLS VOD (TS segments) | 🟢 (Pass) | 🟢 (Pass) · CPU withheld | N/A · finite-file scope | N/A · finite-file scope | 🟢 (Pass) · 35.4% CPU | 🟢 (Pass) | 🟢 (Pass) | N/A · File example | 🟢 (Pass) · CPU pending |

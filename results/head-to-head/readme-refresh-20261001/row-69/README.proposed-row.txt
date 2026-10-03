@@ -1,0 +1,1 @@
+| H.264 + AAC / DASH VOD (fMP4 segments) | 🔴 (Fail) | 🟢 (Pass) · 21.6% CPU | N/A · finite-file scope | N/A · finite-file scope | 🟢 (Pass) · 33.8% CPU | 🟢 (Pass) | 🟢 (Pass) | N/A · File example | 🟢 (Pass) · CPU pending |
