@@ -13,11 +13,17 @@ with tempfile.TemporaryDirectory() as directory:
  root=pathlib.Path(directory);(root/'licensing').mkdir()
  (root/'licensing/provider-packages.json').write_text(json.dumps({'playerCoreSources':[],'profiles':{},'targets':{}}))
  (root/'licensing/provider-runtime-qualification.json').write_text(json.dumps({'evidence':[]}))
- (root/'licensing/ci-slices.json').write_text(json.dumps({'include':[{'evidence':'results/ci-only-evidence.json'}]}))
+ (root/'licensing/web-pin.json').write_text(json.dumps({'notices':[{'noticePath':'LICENSES/web-runtime.txt'}]}))
+ (root/'licensing/ci-slices.json').write_text(json.dumps({'include':[
+  {'kind':'audio','evidence':'results/ci-only-evidence.json'},
+  {'kind':'web','pin':'licensing/web-pin.json'}
+ ]}))
  m.ROOT=root
  print(json.dumps(sorted(m.application_source_paths())))`;
   const {stdout} = await promisify(execFile)('python3', ['-c', source], {maxBuffer:1024*1024});
   const paths = JSON.parse(stdout);
   assert.ok(paths.includes('licensing/provider-runtime-qualification.json'));
   assert.ok(paths.includes('results/ci-only-evidence.json'));
+  assert.ok(paths.includes('licensing/web-pin.json'));
+  assert.ok(paths.includes('LICENSES/web-runtime.txt'));
 });
