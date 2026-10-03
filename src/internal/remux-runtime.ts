@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 import type {PlayerOptions,RemuxRuntimePolicy} from '../types.js';
 import {PlayerError} from './errors.js';
+import {remuxDeploymentCandidates,resolveRemuxDeployment,type RemuxSelection,type RemuxRuntime} from './machine/remux-deployment.js';
 
 export function selectRemuxRuntime(options:Pick<PlayerOptions,'remuxRuntime'|'experimentalRemuxRuntime'>,
   capabilities={isolated:globalThis.crossOriginIsolated===true,jspi:typeof WebAssembly!=='undefined'&&
     typeof (WebAssembly as unknown as {Suspending?:unknown}).Suspending==='function'&&
-    typeof (WebAssembly as unknown as {promising?:unknown}).promising==='function'}) {
+    typeof (WebAssembly as unknown as {promising?:unknown}).promising==='function'}):RemuxSelection {
   const legacy=options.experimentalRemuxRuntime;
   if(legacy!==undefined&&!['pthread','jspi','asyncify'].includes(legacy))throw new PlayerError('INVALID_ARGUMENT','Invalid experimental remux runtime');
   if(legacy!==undefined&&options.remuxRuntime!==undefined)throw new PlayerError('INVALID_ARGUMENT','Use remuxRuntime or experimentalRemuxRuntime, not both');
@@ -14,15 +15,14 @@ export function selectRemuxRuntime(options:Pick<PlayerOptions,'remuxRuntime'|'ex
   if(policy==='jspi'&&!capabilities.jspi)throw new PlayerError('UNSUPPORTED_FEATURE','Requested JSPI runtime is unavailable in this browser');
   const runtime:'pthread'|'jspi'|'asyncify'=policy==='off'||(policy==='auto'&&capabilities.isolated)?'pthread':
     policy==='jspi'||policy==='asyncify'?policy:capabilities.jspi?'jspi':'asyncify';
-  return {policy,runtime,...capabilities};
+  return Object.freeze({policy,runtime,...capabilities});
 }
 
 /** Deployment filters runtime implementations, never playback-plan order.
  * Explicit policies remain pinned. Absence preserves the original choice so
  * normal plan rejection can report the missing provider requirement. */
 export function deployedRemuxRuntime(selection:ReturnType<typeof selectRemuxRuntime>,available:(runtime:'pthread'|'jspi'|'asyncify')=>boolean){
- if(!['auto','on'].includes(selection.policy))return selection;
- const ordered:('pthread'|'jspi'|'asyncify')[]=selection.policy==='auto'&&selection.isolated?['pthread','jspi','asyncify']:['jspi','asyncify'];
- const runtime=ordered.find(r=>(r!=='jspi'||selection.jspi)&&available(r))??selection.runtime;
- return {...selection,runtime};
+ const facts:Partial<Record<RemuxRuntime,boolean>>={};
+ for(const runtime of remuxDeploymentCandidates(selection)){facts[runtime]=available(runtime);if(facts[runtime])break;}
+ return resolveRemuxDeployment(selection,facts);
 }

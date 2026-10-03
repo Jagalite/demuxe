@@ -15,6 +15,8 @@ export function transitionPromotion(state, change) {
         const admitted = !state.active && !f.queued && f.automatic && f.source && f.current && !f.error && (f.paused || f.background) && !f.waiting;
         return Object.freeze({ ...state, timer: null, active: admitted ? Object.freeze({ id: timer.id, epoch: state.epoch, phase: 'queued' }) : state.active });
     }
+    if (change.kind === 'timer-failed')
+        return state.timer?.id === change.id ? Object.freeze({ ...state, timer: null }) : state;
     const active = state.active;
     if (!active || active.id !== change.id || active.epoch !== state.epoch)
         return state;

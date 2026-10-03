@@ -6,7 +6,7 @@ export type PromotionChange=
   |Readonly<{kind:'schedule';now:number;facts:PromotionFacts}>
   |Readonly<{kind:'fired';id:number;now:number;facts:PromotionFacts}>
   |Readonly<{kind:'start';id:number;facts:PromotionFacts}>
-  |Readonly<{kind:'trying'|'finished';id:number}>;
+  |Readonly<{kind:'trying'|'finished'|'timer-failed';id:number}>;
 export function initialPromotion():PromotionState{return Object.freeze({serial:0,epoch:0,timer:null,active:null});}
 export function cancelPromotion(state:PromotionState):PromotionState{return Object.freeze({...state,epoch:state.epoch+1,timer:null,active:null});}
 export function transitionPromotion(state:PromotionState,change:PromotionChange):PromotionState{
@@ -21,6 +21,7 @@ export function transitionPromotion(state:PromotionState,change:PromotionChange)
     const admitted=!state.active&&!f.queued&&f.automatic&&f.source&&f.current&&!f.error&&(f.paused||f.background)&&!f.waiting;
     return Object.freeze({...state,timer:null,active:admitted?Object.freeze({id:timer.id,epoch:state.epoch,phase:'queued' as const}):state.active});
   }
+  if(change.kind==='timer-failed')return state.timer?.id===change.id?Object.freeze({...state,timer:null}):state;
   const active=state.active;
   if(!active||active.id!==change.id||active.epoch!==state.epoch)return state;
   if(change.kind==='finished')return Object.freeze({...state,active:null});

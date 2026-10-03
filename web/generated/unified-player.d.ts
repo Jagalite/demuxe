@@ -141,8 +141,8 @@ export declare class Player extends EventTarget {
     private set admissionContext(value);
     private rejectPlan;
     private nativeRemux;
-    private remuxSelection;
-    private remuxRuntime;
+    private get remuxSelection();
+    private get remuxRuntime();
     private get privateRemux();
     private selectDeployedRuntime;
     private get preparationProviderId();

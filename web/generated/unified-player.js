@@ -26,7 +26,8 @@ import { recoveryRoute } from './internal/machine/route-recovery.js';
 import { promotionPlanAllowed } from './internal/machine/route-promotion.js';
 import { TierAttempts, preferredPlans } from './internal/tier-policy.js';
 import { runtimeBase } from './internal/assets.js';
-import { selectRemuxRuntime, deployedRemuxRuntime } from './internal/remux-runtime.js';
+import { selectRemuxRuntime } from './internal/remux-runtime.js';
+import { remuxDeploymentCandidates } from './internal/machine/remux-deployment.js';
 import { webgpuDecoderSupported, hasQualifiedWebGPUCodecs } from './internal/webgpu-codecs.js';
 import { monitorSampleEligible } from './internal/machine/player-monitor.js';
 import { PlayerError, playerError, redact } from './internal/errors.js';
@@ -35,7 +36,7 @@ import { capturePlayerObservation } from './internal/effects/observations.js';
 import { selectCapabilities } from './internal/machine/capabilities.js';
 import { copyData } from './internal/machine/data.js';
 import { initialPlayerControl } from './internal/machine/state.js';
-import { transitionPlayer, sessionAuthority } from './internal/machine/transition.js';
+import { transitionPlayer, sessionAuthority, playerDeploymentCurrent } from './internal/machine/transition.js';
 import { activeOperation, pendingOperation } from './internal/machine/operations.js';
 import { sourceSessionFault, sourceDesiredSettings, sourcePreparationCurrent, sourceApplicationCurrent, sourcePositioningCurrent } from './internal/machine/source.js';
 import { PLAYBACK_MODES } from './types.js';
@@ -264,78 +265,156 @@ export class Player extends EventTarget {
     promotionFacts() { return { automatic: this.automatic, source: !!this.source, current: !!this.current, error: !!this.current?.error, paused: this.settings.pause, background: !!this.backgroundPromotion, waiting: this.observedWaiting, queued: this.queued }; }
     cancelPromotion() {
         const running = this.promotionRunning, controller = this.promotionController, operation = this.activeOperation?.controller, inspection = this.inspection, candidate = this.candidate;
-        this.dispatchControl({ type: 'routing.promotion', change: { kind: 'cancel' } });
-        clearTimeout(this.promotionTimer);
+        const timer = this.promotionTimer;
         this.promotionTimer = undefined;
         this.promotionController = undefined;
-        controller?.abort();
-        if (running) {
-            operation?.abort();
-            inspection?.abort();
-            void this.dispose(candidate).catch(() => { });
+        this.dispatchControl({ type: 'routing.promotion', change: { kind: 'cancel' } });
+        let failed = false, failure;
+        const cleanup = (effect) => { try {
+            effect();
         }
+        catch (error) {
+            if (!failed) {
+                failed = true;
+                failure = error;
+            }
+        } };
+        cleanup(() => clearTimeout(timer));
+        cleanup(() => controller?.abort());
+        if (running) {
+            cleanup(() => operation?.abort());
+            cleanup(() => inspection?.abort());
+            cleanup(() => { void this.dispose(candidate).catch(() => { }); });
+        }
+        if (failed)
+            throw failure;
     }
     schedulePromotion() {
-        clearTimeout(this.promotionTimer);
+        const previous = this.promotionTimer;
         this.promotionTimer = undefined;
-        if (!this.dispatchControl({ type: 'routing.promotion', change: { kind: 'schedule', now: performance.now(), facts: this.promotionFacts() } }).accepted)
+        if (!this.dispatchControl({ type: 'routing.promotion', change: { kind: 'schedule', now: performance.now(), facts: this.promotionFacts() } }).accepted) {
+            clearTimeout(previous);
             return;
+        }
         const timer = this.control.routing.promotion.timer;
+        try {
+            clearTimeout(previous);
+        }
+        catch (error) {
+            if (timer)
+                this.dispatchControl({ type: 'routing.promotion', change: { kind: 'timer-failed', id: timer.id } });
+            throw error;
+        }
         if (!timer)
             return;
+        const currentTimer = () => this.control.routing.promotion.timer?.id === timer.id;
+        const currentActive = () => this.control.routing.promotion.active?.id === timer.id;
+        const arm = (delay) => {
+            if (!currentTimer())
+                return;
+            let acquiring = true, fired = false, handle;
+            try {
+                handle = setTimeout(() => { if (fired)
+                    return; fired = true; if (this.promotionTimer === handle)
+                    this.promotionTimer = undefined; if (acquiring)
+                    void Promise.resolve().then(wake);
+                else
+                    wake(); }, delay);
+            }
+            catch (error) {
+                this.dispatchControl({ type: 'routing.promotion', change: { kind: 'timer-failed', id: timer.id } });
+                throw error;
+            }
+            finally {
+                acquiring = false;
+            }
+            if (!fired && currentTimer())
+                this.promotionTimer = handle;
+            else
+                clearTimeout(handle);
+        };
         const wake = () => {
             this.dispatchControl({ type: 'routing.promotion', change: { kind: 'fired', id: timer.id, now: performance.now(), facts: this.promotionFacts() } });
             // Native timers may round down a fractional millisecond. Keep the same
             // lease and explicit deadline rather than losing a valid promotion.
-            if (this.control.routing.promotion.timer?.id === timer.id) {
-                this.promotionTimer = setTimeout(wake, Math.max(1, timer.due - performance.now()));
+            if (currentTimer()) {
+                try {
+                    arm(Math.max(1, timer.due - performance.now()));
+                }
+                catch { /* Failed acquisition already retired its lease. */ }
                 return;
             }
             if (this.control.routing.promotion.active?.id !== timer.id)
                 return;
-            const controller = this.promotionController = new AbortController();
-            void this.enqueue(async () => {
-                try {
-                    this.dispatchControl({ type: 'routing.promotion', change: { kind: 'start', id: timer.id, facts: this.promotionFacts() } });
-                    if (this.control.routing.promotion.active?.id !== timer.id || this.control.routing.promotion.active.phase !== 'inspecting')
-                        return;
-                    const current = this.diagnostics.plan?.id, source = this.source, settings = { ...this.settings };
-                    if (this.sourceInspection?.source !== source)
-                        await this.select(source, settings, true, this.nativeTracks, 0, undefined, [], true);
-                    const inspected = this.sourceInspection;
-                    if (!current || !inspected || inspected.source !== source)
-                        return;
-                    const nativeReason = nativeRejection(inspected.probe, { ...inspected.settings, subtitles: settings.subtitles, sid: settings.sid === 'no' ? 'no' : inspected.settings.sid });
-                    const plans = this.admissible(source, settings, this.subtitleAssets, this.nativeTracks, nativeReason, true);
-                    this.assertOperation();
-                    if (!this.dispatchControl({ type: 'routing.promotion', change: { kind: 'trying', id: timer.id } }).accepted)
-                        return;
-                    this.admissionContext = { nativeReason, automatic: true };
-                    for (const plan of preferredPlans(plans, current)) {
-                        if (!promotionPlanAllowed(settings.pause, plan.mode, false) || this.tierAttempts.reason(source, this.tierConfiguration(settings), plan.id))
-                            continue;
-                        this.assertOperation();
-                        try {
-                            await this.replace(source, plan.mode, settings, true, this.nativeTracks, undefined, true, plan.id);
+            let controller;
+            try {
+                controller = new AbortController();
+            }
+            catch {
+                this.dispatchControl({ type: 'routing.promotion', change: { kind: 'finished', id: timer.id } });
+                return;
+            }
+            if (!currentActive()) {
+                controller.abort();
+                return;
+            }
+            this.promotionController = controller;
+            const finish = () => { this.dispatchControl({ type: 'routing.promotion', change: { kind: 'finished', id: timer.id } }); if (this.promotionController === controller)
+                this.promotionController = undefined; };
+            try {
+                const signal = controller.signal;
+                if (!currentActive()) {
+                    if (this.promotionController === controller)
+                        this.promotionController = undefined;
+                    controller.abort();
+                    return;
+                }
+                void this.enqueue(async () => {
+                    try {
+                        this.dispatchControl({ type: 'routing.promotion', change: { kind: 'start', id: timer.id, facts: this.promotionFacts() } });
+                        if (this.control.routing.promotion.active?.id !== timer.id || this.control.routing.promotion.active.phase !== 'inspecting')
                             return;
-                        }
-                        catch (error) {
-                            if (compatibilityFailure(error))
-                                this.tierAttempts.failure(source, this.tierConfiguration(settings), plan.id, String(error));
-                            else
+                        const current = this.diagnostics.plan?.id, source = this.source, settings = { ...this.settings };
+                        if (this.sourceInspection?.source !== source)
+                            await this.select(source, settings, true, this.nativeTracks, 0, undefined, [], true);
+                        const inspected = this.sourceInspection;
+                        if (!current || !inspected || inspected.source !== source)
+                            return;
+                        const nativeReason = nativeRejection(inspected.probe, { ...inspected.settings, subtitles: settings.subtitles, sid: settings.sid === 'no' ? 'no' : inspected.settings.sid });
+                        const plans = this.admissible(source, settings, this.subtitleAssets, this.nativeTracks, nativeReason, true);
+                        this.assertOperation();
+                        if (!this.dispatchControl({ type: 'routing.promotion', change: { kind: 'trying', id: timer.id } }).accepted)
+                            return;
+                        this.admissionContext = { nativeReason, automatic: true };
+                        for (const plan of preferredPlans(plans, current)) {
+                            if (!promotionPlanAllowed(settings.pause, plan.mode, false) || this.tierAttempts.reason(source, this.tierConfiguration(settings), plan.id))
+                                continue;
+                            this.assertOperation();
+                            try {
+                                await this.replace(source, plan.mode, settings, true, this.nativeTracks, undefined, true, plan.id);
                                 return;
+                            }
+                            catch (error) {
+                                if (compatibilityFailure(error))
+                                    this.tierAttempts.failure(source, this.tierConfiguration(settings), plan.id, String(error));
+                                else
+                                    return;
+                            }
                         }
                     }
-                }
-                finally {
-                    this.dispatchControl({ type: 'routing.promotion', change: { kind: 'finished', id: timer.id } });
-                }
-                // Inspection and a no-op preference check keep the accepted session paused.
-                // replace() publishes switching only when an actual handoff begins.
-            }, null, controller.signal, true).catch(() => { }).finally(() => { this.dispatchControl({ type: 'routing.promotion', change: { kind: 'finished', id: timer.id } }); if (this.promotionController === controller)
-                this.promotionController = undefined; });
+                    finally {
+                        this.dispatchControl({ type: 'routing.promotion', change: { kind: 'finished', id: timer.id } });
+                    }
+                    // Inspection and a no-op preference check keep the accepted session paused.
+                    // replace() publishes switching only when an actual handoff begins.
+                }, null, signal, true).catch(() => { }).finally(finish);
+            }
+            catch {
+                finish();
+                controller.abort();
+            }
         };
-        this.promotionTimer = setTimeout(wake, 200);
+        arm(200);
     }
     mediaCapabilityQueries = new MediaCapabilityQueries(typeof navigator === 'undefined' || !navigator.mediaCapabilities?.decodingInfo ? undefined : config => navigator.mediaCapabilities.decodingInfo(config), 150, () => {
         if (this.destroyed)
@@ -436,17 +515,47 @@ export class Player extends EventTarget {
     set admissionContext(context) { this.dispatchControl({ type: 'routing.context', context }); }
     rejectPlan(id, reason) { this.dispatchControl({ type: 'routing.reject', id, code: 'FEATURE_UNSUPPORTED', reason }); return this.planDecisions.find(plan => plan.id === id); }
     nativeRemux;
-    remuxSelection;
-    remuxRuntime;
+    get remuxSelection() { return this.control.routing.deployment.selection; }
+    get remuxRuntime() { return this.remuxSelection.runtime; }
     get privateRemux() { return this.remuxRuntime !== 'pthread'; }
     selectDeployedRuntime() {
-        if (!this.providerRuntime)
-            return;
-        this.remuxSelection = deployedRemuxRuntime(this.remuxSelection, runtime => {
+        const provider = this.providerRuntime, owner = this.control.routing.deployment, epoch = this.operationEpoch, operation = this.control.operations.active;
+        const current = () => this.providerRuntime === provider && playerDeploymentCurrent(this.control, epoch, operation, owner.revision);
+        if (!current())
+            return false;
+        if (!provider)
+            return true;
+        const available = {};
+        for (const runtime of remuxDeploymentCandidates(owner.selection)) {
             const suffix = runtime === 'pthread' ? '' : '-' + runtime;
-            return this.providerRuntime.hasOffer('ffmpeg-file-preparation' + suffix, 'packet-copy') && this.providerRuntime.has(`web/engine-remux${suffix}/remux.wasm`) || !!this.providerRuntime.codecInspector(runtime);
-        });
-        this.remuxRuntime = this.remuxSelection.runtime;
+            const offer = provider.hasOffer;
+            if (!current())
+                return false;
+            const offered = offer.call(provider, 'ffmpeg-file-preparation' + suffix, 'packet-copy');
+            if (!current())
+                return false;
+            let deployed = false;
+            if (offered) {
+                const has = provider.has;
+                if (!current())
+                    return false;
+                deployed = has.call(provider, `web/engine-remux${suffix}/remux.wasm`);
+                if (!current())
+                    return false;
+            }
+            if (!deployed) {
+                const inspect = provider.codecInspector;
+                if (!current())
+                    return false;
+                deployed = !!inspect.call(provider, runtime);
+                if (!current())
+                    return false;
+            }
+            available[runtime] = deployed;
+            if (deployed)
+                break;
+        }
+        return this.dispatchControl({ type: 'routing.deployment', epoch, operation, change: { kind: 'resolved', revision: owner.revision, available } }).accepted;
     }
     get preparationProviderId() { return 'ffmpeg-file-preparation' + (this.privateRemux ? '-' + this.remuxRuntime : ''); }
     get canInspectFFmpeg() { return (globalThis.crossOriginIsolated === true || this.privateRemux) && (!this.providerRuntime || this.providerRuntime.hasOffer(this.preparationProviderId, 'packet-copy') && this.providerRuntime.has(`web/engine-remux${this.privateRemux ? '-' + this.remuxRuntime : ''}/remux.wasm`) || !!this.providerRuntime.codecInspector(this.remuxRuntime)); }
@@ -666,8 +775,7 @@ export class Player extends EventTarget {
         if (this.audioAdaptation === 'opus' && options.allowLossyAudio !== true)
             throw new PlayerError('INVALID_ARGUMENT', 'Opus adaptation requires allowLossyAudio: true');
         this.nativeRemux = options.nativeRemux ?? 'auto';
-        this.remuxSelection = selectRemuxRuntime(options);
-        this.remuxRuntime = this.remuxSelection.runtime;
+        this.dispatchControl({ type: 'routing.deployment', epoch: this.operationEpoch, operation: this.control.operations.active, change: { kind: 'configure', selection: selectRemuxRuntime(options) } });
         this.softwarePresenter = options.softwarePresenter ?? 'auto';
         this.decodeQuality = options.decodeQuality ?? 'exact';
         this.adaptiveFrameDrop = options.adaptiveFrameDrop ?? false;
@@ -738,21 +846,111 @@ export class Player extends EventTarget {
     sourceTracks() { return this.sessionTracks(); }
     confirmTrackSelection(session, source, mode, settings, type, id) {
         const matches = () => { const raw = this.sessionTracks(session, source, mode, settings).filter(t => t.type === type); return id === 'no' ? !raw.some(t => t.selected) : id === 'auto' || raw.some(t => String(t.id) === id && t.selected); };
-        if (matches())
-            return Promise.resolve();
         return new Promise((resolve, reject) => {
-            const signal = this.activeOperation?.controller.signal;
-            const finish = (error) => { clearTimeout(timer); session.backend.removeEventListener('mpv', check); signal?.removeEventListener('abort', abort); error ? reject(error) : resolve(); };
-            const check = () => { if (matches())
-                finish(); };
-            const abort = () => finish(new PlayerError('ABORTED', 'Track selection aborted'));
-            const timer = setTimeout(() => finish(new PlayerError('UNSUPPORTED_FEATURE', 'Backend did not apply the required track selection')), 5000);
-            session.backend.addEventListener('mpv', check);
-            signal?.addEventListener('abort', abort, { once: true });
-            if (signal?.aborted)
-                abort();
-            else
+            let settled = false, timer, backendAttached = false, abortAttached = false;
+            let signal;
+            const cleanup = () => {
+                const handle = timer;
+                timer = undefined;
+                let failed = false, failure;
+                const run = (effect) => { try {
+                    effect();
+                }
+                catch (error) {
+                    if (!failed) {
+                        failed = true;
+                        failure = error;
+                    }
+                } };
+                if (handle !== undefined)
+                    run(() => clearTimeout(handle));
+                if (backendAttached) {
+                    backendAttached = false;
+                    run(() => session.backend.removeEventListener('mpv', check));
+                }
+                if (abortAttached) {
+                    abortAttached = false;
+                    run(() => signal?.removeEventListener('abort', abort));
+                }
+                if (failed)
+                    throw failure;
+            };
+            const finish = (failed = false, error) => { if (settled)
+                return; settled = true; try {
+                cleanup();
+            }
+            catch (failure) {
+                if (!failed) {
+                    failed = true;
+                    error = failure;
+                }
+            } failed ? reject(error) : resolve(); };
+            const check = () => { if (settled)
+                return; try {
+                const matched = matches();
+                if (signal?.aborted)
+                    abort();
+                else if (matched)
+                    finish();
+            }
+            catch (error) {
+                finish(true, error);
+            } };
+            const abort = () => finish(true, new PlayerError('ABORTED', 'Track selection aborted'));
+            try {
+                signal = this.activeOperation?.controller.signal;
+                if (signal?.aborted) {
+                    abort();
+                    return;
+                }
                 check();
+                if (settled)
+                    return;
+                const acquired = setTimeout(() => finish(true, new PlayerError('UNSUPPORTED_FEATURE', 'Backend did not apply the required track selection')), 5000);
+                if (settled) {
+                    clearTimeout(acquired);
+                    return;
+                }
+                timer = acquired;
+                if (signal?.aborted) {
+                    abort();
+                    return;
+                }
+                backendAttached = true;
+                try {
+                    session.backend.addEventListener('mpv', check);
+                }
+                finally {
+                    if (settled)
+                        session.backend.removeEventListener('mpv', check);
+                }
+                // Registration may synchronously complete before returning its handle.
+                if (settled)
+                    return;
+                if (signal?.aborted) {
+                    abort();
+                    return;
+                }
+                if (signal) {
+                    abortAttached = true;
+                    try {
+                        signal.addEventListener('abort', abort, { once: true });
+                    }
+                    finally {
+                        if (settled)
+                            signal.removeEventListener('abort', abort);
+                    }
+                    if (settled)
+                        return;
+                }
+                if (signal?.aborted)
+                    abort();
+                else
+                    check();
+            }
+            catch (error) {
+                finish(true, error);
+            }
         });
     }
     previewBuffering() {
@@ -1121,18 +1319,38 @@ export class Player extends EventTarget {
             this.cancelPromotion();
         if (this.destroyed || this.activeOperation)
             return this.preparationTask;
+        const epoch = this.operationEpoch, provider = this.providerRuntime;
+        const live = () => !this.destroyed && this.operationEpoch === epoch && this.providerRuntime === provider && !this.activeOperation;
+        const empty = () => Promise.resolve({ milliseconds: 0, assets: [] });
         const warm = () => {
-            if (this.destroyed)
-                return Promise.resolve({ milliseconds: 0, assets: [] });
-            this.selectDeployedRuntime();
-            this.preparation ??= new EnginePreparation(this.assetBase, this.softwarePresenter === 'rgb' ? 'engine-software-full' : 'engine-software-yuv', () => { if (!this.destroyed)
-                this.dispatchEvent(new CustomEvent('preparationchange', { detail: freeze(this.preparationProgress) })); }, this.remuxRuntime, this.providerRuntime);
-            return this.preparation.warm(selected);
+            if (!live() || !this.selectDeployedRuntime() || !live())
+                return empty();
+            const selection = this.control.routing.deployment.selection;
+            const current = () => live() && this.control.routing.deployment.selection === selection;
+            let preparation = this.preparation;
+            if (!preparation) {
+                const acquired = new EnginePreparation(this.assetBase, this.softwarePresenter === 'rgb' ? 'engine-software-full' : 'engine-software-yuv', () => { if (!this.destroyed)
+                    this.dispatchEvent(new CustomEvent('preparationchange', { detail: freeze(this.preparationProgress) })); }, this.remuxRuntime, provider);
+                if (!current() || this.preparation) {
+                    acquired.destroy();
+                    return empty();
+                }
+                this.preparation = preparation = acquired;
+            }
+            const run = preparation.warm;
+            if (!current() || this.preparation !== preparation)
+                return empty();
+            return run.call(preparation, selected);
         };
         // EnginePreparation turns the retained deployment error into per-asset
         // failure reports, just like fetch/compile errors. Constructor-started
         // preparation must never leave a rejected promise unobserved.
-        return this.preparationTask = this.providerRuntime ? this.providerRuntime.load().then(warm, warm) : warm();
+        if (!provider)
+            return this.preparationTask = warm();
+        const load = provider.load;
+        if (!live())
+            return this.preparationTask = empty();
+        return this.preparationTask = load.call(provider).then(warm, warm);
     }
     async create(mode, aid = 'auto', adaptation, forcePreparation = false, planId, loadTimeoutMs) {
         const sessionId = this.control.source.candidate?.session;
@@ -1209,69 +1427,92 @@ export class Player extends EventTarget {
         let observationSequence = 0;
         const listeners = [];
         this.sessionListeners.set(session, listeners);
-        for (const type of ['mpv', 'error', 'log', 'output', 'source', 'activity']) {
-            const listener = (event) => {
-                if (session.retired || sessionAuthority(this.control, sessionEpoch) === 'retired')
-                    return;
-                const detail = event.detail;
-                if (this.current === session && type === 'activity' && ['seeking', 'seeked', 'play', 'pause', 'ratechange', 'waiting', 'playing', 'ended'].includes(detail))
-                    this.dispatchControl({ type: 'monitor.activity' });
-                if (this.current === session && this.promotionRunning && ((type === 'activity' && detail === 'waiting') || (type === 'mpv' && detail.event === 'property-change' && detail.name === 'paused-for-cache' && detail.data === true)))
-                    this.cancelPromotion();
-                if (sessionAuthority(this.control, sessionEpoch) === 'retired')
-                    return;
-                if (type === 'error')
-                    this.recordSessionFault(session, detail instanceof Error ? detail : new Error(String(detail)));
-                if (type === 'mpv' && detail.event === 'end-file' && detail.reason === 'error')
-                    this.recordSessionFault(session, new Error(String(detail.file_error)));
-                if (this.current === session && (session.error || type === 'activity' && ['play', 'pause', 'playing', 'ended'].includes(detail) || type === 'mpv' && detail.event === 'property-change' && ['pause', 'eof-reached'].includes(detail.name)))
-                    this.startWatchdogs();
-                if (this.current === session && sessionAuthority(this.control, sessionEpoch) === 'accepted' && !this.busy && !this.destroyed) {
-                    if (session.error && (type === 'error' || (type === 'mpv' && detail.event === 'end-file')) && this.automatic && this.mode !== 'software') {
-                        this.recover(session);
+        // The map identity validates the physical listener binding; playback
+        // authority remains in the pure session/resource state checked below.
+        try {
+            for (const type of ['mpv', 'error', 'log', 'output', 'source', 'activity']) {
+                const listener = (event) => {
+                    if (this.sessionListeners.get(session) !== listeners || session.retired || sessionAuthority(this.control, sessionEpoch) === 'retired')
                         return;
-                    }
+                    const detail = event.detail;
+                    if (this.current === session && type === 'activity' && ['seeking', 'seeked', 'play', 'pause', 'ratechange', 'waiting', 'playing', 'ended'].includes(detail))
+                        this.dispatchControl({ type: 'monitor.activity' });
+                    if (this.current === session && this.promotionRunning && ((type === 'activity' && detail === 'waiting') || (type === 'mpv' && detail.event === 'property-change' && detail.name === 'paused-for-cache' && detail.data === true)))
+                        this.cancelPromotion();
+                    if (sessionAuthority(this.control, sessionEpoch) === 'retired')
+                        return;
+                    if (type === 'error')
+                        this.recordSessionFault(session, detail instanceof Error ? detail : new Error(String(detail)));
                     if (type === 'mpv' && detail.event === 'end-file' && detail.reason === 'error')
-                        this.emit('error', session.error);
-                    if (this.current !== session || sessionAuthority(this.control, sessionEpoch) !== 'accepted')
-                        return;
-                    if (type === 'activity') {
-                        if (detail === 'waiting')
-                            this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'waiting' });
-                        if (detail === 'playing')
-                            this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'playing' });
-                        this.schedulePublish();
-                        return;
-                    }
-                    if (type === 'mpv') {
-                        if (detail.event === 'property-change' && detail.name === 'track-list' && !this.sessionError) {
-                            const inventory = tracks(this.sourceTracks(), this.sourceSerial, this.mode, backendPlan(session.backend));
-                            if (this.current !== session || sessionAuthority(this.control, sessionEpoch) !== 'accepted')
-                                return;
-                            const forbidden = inventory.some(t => t.selected && !trackAllowed(t, t.type === 'audio' ? this.trackPolicy.audio : t.type === 'subtitle' ? this.trackPolicy.subtitles : undefined));
-                            if (forbidden) {
-                                this.updateSettings({ pause: true });
-                                void this.invokeBackend(backend, 'backend.pause').catch(() => { });
-                                this.emit('error', new PlayerError('UNSUPPORTED_FEATURE', 'Backend selected a track excluded by the host policy'));
-                                return;
-                            }
+                        this.recordSessionFault(session, new Error(String(detail.file_error)));
+                    if (this.current === session && (session.error || type === 'activity' && ['play', 'pause', 'playing', 'ended'].includes(detail) || type === 'mpv' && detail.event === 'property-change' && ['pause', 'eof-reached'].includes(detail.name)))
+                        this.startWatchdogs();
+                    if (this.current === session && sessionAuthority(this.control, sessionEpoch) === 'accepted' && !this.busy && !this.destroyed) {
+                        if (session.error && (type === 'error' || (type === 'mpv' && detail.event === 'end-file')) && this.automatic && this.mode !== 'software') {
+                            this.recover(session);
+                            return;
                         }
-                        if (detail.event === 'property-change' && detail.name === 'time-pos')
-                            this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'time', value: Number(detail.data), publishedTime: this.state.currentTime });
-                        if (detail.event === 'property-change' && detail.name === 'pause')
-                            this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'pause', value: detail.data === true });
-                        this.schedulePublish();
+                        if (type === 'mpv' && detail.event === 'end-file' && detail.reason === 'error')
+                            this.emit('error', session.error);
+                        if (this.current !== session || sessionAuthority(this.control, sessionEpoch) !== 'accepted')
+                            return;
+                        if (type === 'activity') {
+                            if (detail === 'waiting')
+                                this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'waiting' });
+                            if (detail === 'playing')
+                                this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'playing' });
+                            this.schedulePublish();
+                            return;
+                        }
+                        if (type === 'mpv') {
+                            if (detail.event === 'property-change' && detail.name === 'track-list' && !this.sessionError) {
+                                const inventory = tracks(this.sourceTracks(), this.sourceSerial, this.mode, backendPlan(session.backend));
+                                if (this.current !== session || sessionAuthority(this.control, sessionEpoch) !== 'accepted')
+                                    return;
+                                const forbidden = inventory.some(t => t.selected && !trackAllowed(t, t.type === 'audio' ? this.trackPolicy.audio : t.type === 'subtitle' ? this.trackPolicy.subtitles : undefined));
+                                if (forbidden) {
+                                    this.updateSettings({ pause: true });
+                                    void this.invokeBackend(backend, 'backend.pause').catch(() => { });
+                                    this.emit('error', new PlayerError('UNSUPPORTED_FEATURE', 'Backend selected a track excluded by the host policy'));
+                                    return;
+                                }
+                            }
+                            if (detail.event === 'property-change' && detail.name === 'time-pos')
+                                this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'time', value: Number(detail.data), publishedTime: this.state.currentTime });
+                            if (detail.event === 'property-change' && detail.name === 'pause')
+                                this.dispatchControl({ type: 'playback.sample', session: sessionEpoch, sequence: ++observationSequence, observation: 'pause', value: detail.data === true });
+                            this.schedulePublish();
+                        }
+                        if (this.current === session && sessionAuthority(this.control, sessionEpoch) === 'accepted')
+                            this.emit(type, detail);
                     }
-                    if (this.current === session && sessionAuthority(this.control, sessionEpoch) === 'accepted')
-                        this.emit(type, detail);
+                };
+                try {
+                    backend.addEventListener(type, listener);
+                    if (session.retired || sessionAuthority(this.control, sessionEpoch) === 'retired')
+                        throw new PlayerError('ABORTED', 'Session listener allocation retired');
                 }
-            };
-            backend.addEventListener(type, listener);
-            if (session.retired || sessionAuthority(this.control, sessionEpoch) === 'retired') {
-                backend.removeEventListener(type, listener);
-                throw new PlayerError('ABORTED', 'Session listener allocation retired');
+                catch (error) {
+                    if (this.sessionListeners.get(session) === listeners)
+                        this.sessionListeners.delete(session);
+                    try {
+                        backend.removeEventListener(type, listener);
+                    }
+                    catch { }
+                    throw error;
+                }
+                listeners.push(() => backend.removeEventListener(type, listener));
             }
-            listeners.push(() => backend.removeEventListener(type, listener));
+        }
+        catch (error) {
+            if (this.sessionListeners.get(session) === listeners)
+                this.sessionListeners.delete(session);
+            for (const remove of listeners.splice(0))
+                try {
+                    remove();
+                }
+                catch { }
+            throw error;
         }
     }
     async settled(session, mode, target) {

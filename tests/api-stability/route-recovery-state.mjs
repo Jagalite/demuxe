@@ -13,7 +13,7 @@ function model(){let state=initialPlayerControl();return {get state(){return sta
  this.send({type:'source.accept',attempt,operationEpoch:state.operations.epoch,settings:state.settings,planMatches:true});this.send({type:'source.finished',attempt});return state.source.acceptedSession;
  },recover(session=state.source.acceptedSession){return this.send({type:'routing.recovery',change:{kind:'begin',epoch:state.operations.epoch,session}});},finish(id=state.routing.recovery.pending.id){return this.send({type:'routing.recovery',change:{kind:'finished',id}});}};}
 function install(p,{mode='native',error=new PlayerError('DECODE_FAILED','decoder failed'),source={kind:'local',file:new ArrayBuffer(1)}}={}){
- const m=model();m.accept(false,mode);p.control=m.state;
+ const deployment=p.control.routing.deployment,m=model();m.accept(false,mode);p.control={...m.state,routing:{...m.state.routing,deployment}};
  const session={backend:{properties:new Map(),diagnostics:{plan:'direct'},pause:async()=>{},destroy:async()=>{}},surface:{remove(){}},error};p.current=session;p.source=source;p.evidence=()=>({});return session;
 }
 test('one recovery lease belongs to the accepted session and repeated requests remain one shot',()=>{

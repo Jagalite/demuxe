@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {initialRemuxDeployment} from '../../web/generated/internal/machine/remux-deployment.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {initialDiscovery,transitionDiscovery,discoveryPlanPolicy,discoveryOptionalProbe,localDiscoveryRemux} from '../../web/generated/internal/machine/route-discovery.js';
@@ -78,7 +79,7 @@ test('operation retirement clears discovery and rejects late original attempt, p
  assert.equal(send({type:'routing.discovery',epoch:state.operations.epoch,operation:op,change:{kind:'begin',automatic:true,start:0}}).accepted,false);
 });
 test('actual discovery stops after a failure observer closes the player before fallback',async t=>{
- const p=unitPlayer();t.after(()=>p.destroy());const source={kind:'local',file:new ArrayBuffer(1)};p.remuxRuntime='pthread';p.admissible=()=>['native-direct','hybrid-private','software-private'].map(id=>plan(id));p.inspectForQualifiedWebGPU=async()=>{};let tries=0,closing;
+ const p=unitPlayer();t.after(()=>p.destroy());const source={kind:'local',file:new ArrayBuffer(1)};p.control={...p.control,routing:{...p.control.routing,deployment:initialRemuxDeployment({...p.remuxSelection,runtime:'pthread'})}};p.admissible=()=>['native-direct','hybrid-private','software-private'].map(id=>plan(id));p.inspectForQualifiedWebGPU=async()=>{};let tries=0,closing;
  p.replace=async()=>{tries++;throw new PlayerError('UNSUPPORTED_MEDIA','fixture incompatible');};p.addEventListener('selectionchange',event=>{if(event.detail.outcome==='failed')closing=p.close();});
  await assert.rejects(p.discover(source,p.settings,false,[],undefined,true),error=>error.code==='ABORTED');await closing;assert.equal(tries,1);assert.equal(p.control.routing.discovery.current,null);
 });

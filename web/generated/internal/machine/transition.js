@@ -72,6 +72,8 @@ function reducePlayer(state, input) {
     if (isMonitorInput(input))
         return transitionPlayerMonitor(state, input);
     if (isRoutingInput(input)) {
+        if (input.type === 'routing.deployment' && !playerDeploymentCurrent(state, input.epoch, input.operation, input.change.kind === 'resolved' ? input.change.revision : state.routing.deployment.revision))
+            return Object.freeze({ state, accepted: false, reason: 'retired', retire: Object.freeze([]) });
         if (input.type === 'routing.recovery' && (state.operations.terminal || input.change.kind === 'begin' && (input.change.epoch !== state.operations.epoch || input.change.session !== state.source.acceptedSession || state.source.acceptedEpoch !== state.operations.epoch || !state.source.automatic || state.source.mode === 'software') || input.change.kind === 'streaming.failed' && (input.change.source !== state.source.serial || input.change.session !== state.source.acceptedSession || state.source.acceptedEpoch !== state.operations.epoch)))
             return Object.freeze({ state, accepted: false, reason: 'retired', retire: Object.freeze([]) });
         if ((input.type === 'routing.capabilities' || input.type === 'routing.tiers' || input.type === 'routing.promotion') && state.operations.terminal)
@@ -88,7 +90,7 @@ function reducePlayer(state, input) {
         if (input.type === 'routing.decoding' && (state.operations.terminal || input.epoch !== state.operations.epoch || input.session !== state.source.acceptedSession))
             return Object.freeze({ state, accepted: false, reason: 'retired', retire: Object.freeze([]) });
         const routing = transitionRouting(state.routing, input);
-        return Object.freeze({ state: routing === state.routing ? state : Object.freeze({ ...state, revision: state.revision + 1, routing }), accepted: routing !== state.routing || !['routing.inspection', 'routing.discovery', 'routing.capabilities', 'routing.tiers', 'routing.promotion', 'routing.recovery'].includes(input.type), retire: Object.freeze([]) });
+        return Object.freeze({ state: routing === state.routing ? state : Object.freeze({ ...state, revision: state.revision + 1, routing }), accepted: routing !== state.routing || !['routing.deployment', 'routing.inspection', 'routing.discovery', 'routing.capabilities', 'routing.tiers', 'routing.promotion', 'routing.recovery'].includes(input.type), retire: Object.freeze([]) });
     }
     if (isAttachmentInput(input))
         return transitionAttachment(state, input);
@@ -171,3 +173,4 @@ export function playerEffectAuthority(state, scope) {
         return false;
     return scope.playId === undefined || state.playback.plays.includes(scope.playId);
 }
+export function playerDeploymentCurrent(state, epoch, operation, revision) { return !state.operations.terminal && state.operations.epoch === epoch && state.operations.active === operation && state.routing.deployment.revision === revision && (operation === null || state.operations.entries.some(entry => entry.id === operation && entry.epoch === epoch && !entry.cancelled)); }

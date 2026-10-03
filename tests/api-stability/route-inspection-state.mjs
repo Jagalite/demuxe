@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {initialRemuxDeployment} from '../../web/generated/internal/machine/remux-deployment.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {initialInspection,transitionInspection,initialInspectionPolicy,fastInspectionAllowed,inspectionSelection,optionalInspectionFallback} from '../../web/generated/internal/machine/route-inspection.js';
@@ -103,7 +104,7 @@ test('close retirement cannot rebind a canceled open rollback to the newer opera
  assert.equal(p.sourceInspection,undefined);assert.equal(p.inspectionSources.size,0);assert.equal(p.control.routing.inspection.probe,null);
 });
 test('late successful physical asset check after close cannot repopulate inspection state',async t=>{
- const p=unitPlayer();t.after(()=>p.destroy());p.remuxRuntime='pthread';p.mpvSubtitles=true;p.fileServicesSource=()=>true;
+ const p=unitPlayer();t.after(()=>p.destroy());p.control={...p.control,routing:{...p.control.routing,deployment:initialRemuxDeployment({...p.remuxSelection,runtime:'pthread'})}};p.mpvSubtitles=true;p.fileServicesSource=()=>true;
  let answer,started;const begun=new Promise(resolve=>started=resolve);p.optionalAssetsAvailable=()=>{started();return new Promise(resolve=>answer=resolve);};
  const action=p.enqueue(()=>p.checkInspectedAssets({kind:'local',file:new ArrayBuffer(8)},probe(),settings,'auto',new AbortController()),'opening');
  await begun;const closing=p.close();answer(true);await assert.rejects(action,error=>error.code==='ABORTED');await closing;

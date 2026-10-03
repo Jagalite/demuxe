@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type RemuxDeployment, type RemuxDeploymentChange } from './remux-deployment.js';
 import { type RecoveryState, type RecoveryChange } from './route-recovery.js';
 import { type PromotionState, type PromotionChange } from './route-promotion.js';
 import { type RouteEvidence, type CapabilityChange, type TierChange } from './route-evidence.js';
@@ -8,6 +9,7 @@ import type { SelectionAttempt } from './source-policy.js';
 import type { RoutePlan } from './route-admission.js';
 import type { DecodingEvidence } from './media-facts.js';
 export type RoutingState = Readonly<{
+    deployment: RemuxDeployment;
     recovery: RecoveryState;
     promotion: PromotionState;
     evidence: RouteEvidence;
@@ -22,6 +24,11 @@ export type RoutingState = Readonly<{
 }>;
 export declare function initialRouting(): RoutingState;
 export type RoutingInput = Readonly<{
+    type: 'routing.deployment';
+    epoch: number;
+    operation: number | null;
+    change: RemuxDeploymentChange;
+}> | Readonly<{
     type: 'routing.recovery';
     change: RecoveryChange;
 }> | Readonly<{

@@ -61,3 +61,4 @@ export declare function transitionPlayer(state: PlayerControlState, input: Playe
 export declare function sessionAuthority(state: PlayerControlState, session: number): 'accepted' | 'candidate' | 'retired';
 /** Current ownership is determined entirely by the composed Player state. */
 export declare function playerEffectAuthority(state: PlayerControlState, scope: EffectScope): boolean;
+export declare function playerDeploymentCurrent(state: PlayerControlState, epoch: number, operation: number | null, revision: number): boolean;

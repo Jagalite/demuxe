@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
+import { initialRemuxDeployment, transitionRemuxDeployment } from './remux-deployment.js';
 import { initialRecovery, transitionRecovery } from './route-recovery.js';
 import { initialPromotion, transitionPromotion } from './route-promotion.js';
 import { initialRouteEvidence, transitionCapabilityOwner, transitionTierOwner } from './route-evidence.js';
 import { copyData } from './data.js';
 import { initialDiscovery, transitionDiscovery } from './route-discovery.js';
 import { initialInspection, transitionInspection } from './route-inspection.js';
-export function initialRouting() { return Object.freeze({ recovery: initialRecovery(), promotion: initialPromotion(), evidence: initialRouteEvidence(), discovery: initialDiscovery(), inspection: initialInspection(), plans: Object.freeze([]), attempts: Object.freeze([]), context: Object.freeze({ automatic: false }) }); }
+export function initialRouting() { return Object.freeze({ deployment: initialRemuxDeployment(), recovery: initialRecovery(), promotion: initialPromotion(), evidence: initialRouteEvidence(), discovery: initialDiscovery(), inspection: initialInspection(), plans: Object.freeze([]), attempts: Object.freeze([]), context: Object.freeze({ automatic: false }) }); }
 export function transitionRouting(state, input) {
+    if (input.type === 'routing.deployment') {
+        const deployment = transitionRemuxDeployment(state.deployment, input.change);
+        return deployment === state.deployment ? state : Object.freeze({ ...state, deployment });
+    }
     if (input.type === 'routing.recovery') {
         const recovery = transitionRecovery(state.recovery, input.change);
         return recovery === state.recovery ? state : Object.freeze({ ...state, recovery });

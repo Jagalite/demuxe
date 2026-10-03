@@ -39,7 +39,7 @@ export type PromotionChange = Readonly<{
     id: number;
     facts: PromotionFacts;
 }> | Readonly<{
-    kind: 'trying' | 'finished';
+    kind: 'trying' | 'finished' | 'timer-failed';
     id: number;
 }>;
 export declare function initialPromotion(): PromotionState;

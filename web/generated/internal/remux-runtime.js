@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PlayerError } from './errors.js';
+import { remuxDeploymentCandidates, resolveRemuxDeployment } from './machine/remux-deployment.js';
 export function selectRemuxRuntime(options, capabilities = { isolated: globalThis.crossOriginIsolated === true, jspi: typeof WebAssembly !== 'undefined' &&
         typeof WebAssembly.Suspending === 'function' &&
         typeof WebAssembly.promising === 'function' }) {
@@ -15,15 +16,17 @@ export function selectRemuxRuntime(options, capabilities = { isolated: globalThi
         throw new PlayerError('UNSUPPORTED_FEATURE', 'Requested JSPI runtime is unavailable in this browser');
     const runtime = policy === 'off' || (policy === 'auto' && capabilities.isolated) ? 'pthread' :
         policy === 'jspi' || policy === 'asyncify' ? policy : capabilities.jspi ? 'jspi' : 'asyncify';
-    return { policy, runtime, ...capabilities };
+    return Object.freeze({ policy, runtime, ...capabilities });
 }
 /** Deployment filters runtime implementations, never playback-plan order.
  * Explicit policies remain pinned. Absence preserves the original choice so
  * normal plan rejection can report the missing provider requirement. */
 export function deployedRemuxRuntime(selection, available) {
-    if (!['auto', 'on'].includes(selection.policy))
-        return selection;
-    const ordered = selection.policy === 'auto' && selection.isolated ? ['pthread', 'jspi', 'asyncify'] : ['jspi', 'asyncify'];
-    const runtime = ordered.find(r => (r !== 'jspi' || selection.jspi) && available(r)) ?? selection.runtime;
-    return { ...selection, runtime };
+    const facts = {};
+    for (const runtime of remuxDeploymentCandidates(selection)) {
+        facts[runtime] = available(runtime);
+        if (facts[runtime])
+            break;
+    }
+    return resolveRemuxDeployment(selection, facts);
 }

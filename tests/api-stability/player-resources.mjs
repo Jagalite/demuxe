@@ -44,5 +44,5 @@ test('actual allocation failure stops waiting at cleanup deadline and accounts f
 test('actual late listener registration is removed when registration callback retires its session',async()=>{
  const player=unitPlayer(),id=accept(player),f=session();await player.registerSession(f.value,id);const add=f.value.backend.addEventListener.bind(f.value.backend),remove=f.value.backend.removeEventListener.bind(f.value.backend);let cleaned,adds=0,removes=0;
  f.value.backend.addEventListener=(...args)=>{adds++;cleaned=player.dispose(f.value);return add(...args);};f.value.backend.removeEventListener=(...args)=>{removes++;return remove(...args);};
- assert.throws(()=>player.observeBackend(f.value,id),/retired/);await cleaned;assert.equal(adds,1);assert.equal(removes,1);assert.equal(player.sessionListeners.get(f.value).length,0);
+ assert.throws(()=>player.observeBackend(f.value,id),/retired/);await cleaned;assert.equal(adds,1);assert.equal(removes,1);assert.equal(player.sessionListeners.has(f.value),false);
 });

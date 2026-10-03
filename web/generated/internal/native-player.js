@@ -323,40 +323,66 @@ export class NativePlayer extends EventTarget {
         this.remuxRuntime = remuxRuntime;
         this.providerRuntime = providerRuntime;
         this.native = initialNativeBackend(buffering);
-        video.playsInline = true;
-        video.preload = this.buffering.preload;
-        for (const event of ['timeupdate', 'durationchange', 'loadedmetadata', 'play', 'pause', 'volumechange', 'ratechange', 'ended', 'waiting', 'playing', 'progress', 'seeking', 'seeked', 'resize']) {
-            const listener = () => {
-                const epoch = this.native.epoch;
-                if (this.stopped)
-                    return;
-                this.refresh();
-                if (this.stopped || this.native.epoch !== epoch)
-                    return;
-                this.emit('activity', event);
-                if (this.stopped || this.native.epoch !== epoch)
-                    return;
-                if (event === 'ended' && (!this.remux?.windowed || this.remux.playbackEnded))
-                    this.emit('mpv', { event: 'end-file', reason: 'eof' });
-            };
-            video.addEventListener(event, listener);
-            this.listeners.push(() => video.removeEventListener(event, listener));
+        const listen = (target, event, listener) => { this.assertActive(); const remove = () => target.removeEventListener(event, listener); this.listeners.push(remove); try {
+            target.addEventListener(event, listener);
+            this.assertActive();
         }
-        const failed = () => {
-            if (this.opening || this.remux?.starting || this.stopped)
-                return;
-            const epoch = this.native.epoch;
-            void this.classifyDirectFailure(nativeMediaError(video.error)).then(error => { if (!this.stopped && this.native.epoch === epoch)
-                this.emit('error', error); }, error => { if (!this.stopped && this.native.epoch === epoch)
-                this.emit('error', error); });
-        };
-        video.addEventListener('error', failed);
-        this.listeners.push(() => video.removeEventListener('error', failed));
-        const tracks = () => this.refresh();
-        video.textTracks.addEventListener('change', tracks);
-        video.textTracks.addEventListener('addtrack', tracks);
-        this.listeners.push(() => { video.textTracks.removeEventListener('change', tracks); video.textTracks.removeEventListener('addtrack', tracks); });
-        this.refresh();
+        catch (error) {
+            if (this.stopped)
+                try {
+                    remove();
+                }
+                catch { }
+            throw error;
+        } };
+        try {
+            video.playsInline = true;
+            this.assertActive();
+            video.preload = this.buffering.preload;
+            this.assertActive();
+            for (const event of ['timeupdate', 'durationchange', 'loadedmetadata', 'play', 'pause', 'volumechange', 'ratechange', 'ended', 'waiting', 'playing', 'progress', 'seeking', 'seeked', 'resize']) {
+                const listener = () => {
+                    const epoch = this.native.epoch;
+                    if (this.stopped)
+                        return;
+                    this.refresh();
+                    if (this.stopped || this.native.epoch !== epoch)
+                        return;
+                    this.emit('activity', event);
+                    if (this.stopped || this.native.epoch !== epoch)
+                        return;
+                    if (event === 'ended' && (!this.remux?.windowed || this.remux.playbackEnded))
+                        this.emit('mpv', { event: 'end-file', reason: 'eof' });
+                };
+                listen(video, event, listener);
+            }
+            const failed = () => {
+                if (this.opening || this.remux?.starting || this.stopped)
+                    return;
+                const epoch = this.native.epoch;
+                void this.classifyDirectFailure(nativeMediaError(video.error)).then(error => { if (!this.stopped && this.native.epoch === epoch)
+                    this.emit('error', error); }, error => { if (!this.stopped && this.native.epoch === epoch)
+                    this.emit('error', error); });
+            };
+            listen(video, 'error', failed);
+            const tracks = () => { if (!this.stopped)
+                this.refresh(); };
+            const textTracks = video.textTracks;
+            listen(textTracks, 'change', tracks);
+            listen(textTracks, 'addtrack', tracks);
+            this.assertActive();
+            this.refresh();
+            this.assertActive();
+        }
+        catch (error) {
+            this.changeNative({ type: 'stop' });
+            for (const remove of this.listeners.splice(0))
+                try {
+                    remove();
+                }
+                catch { }
+            throw error;
+        }
     }
     emit(type, detail) { this.dispatchEvent(new CustomEvent(type, { detail })); }
     assertActive() { if (this.stopped)
