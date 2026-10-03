@@ -14,7 +14,7 @@ try{
   const page=await browser.newPage(),item={kind,workers:[]};result.cases.push(item);page.setDefaultTimeout(20000);
   page.on('worker',worker=>{const entry={url:worker.url(),created:Date.now()};item.workers.push(entry);worker.on('close',()=>entry.closed=Date.now());});
   try{
-   await page.goto(origin+'/examples/custom-controls.html');
+   await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');
    await page.evaluate(async kind=>{
     await player.destroy();const {Player}=await import('/web/generated/index.js');window.errors=[];window.frameTrace=[];const request=HTMLVideoElement.prototype.requestVideoFrameCallback;HTMLVideoElement.prototype.requestVideoFrameCallback=function(cb){return request.call(this,(now,m)=>{const r=player?.current?.backend?.remux;frameTrace.push({mediaTime:m.mediaTime,currentTime:this.currentTime,seeking:this.seeking,expected:r?.expectedVideoFrame?.(this.currentTime-(r.timelineBias??0)),bias:r?.timelineBias});if(frameTrace.length>100)frameTrace.shift();cb(now,m);});};
     window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:kind==='direct'?'never':'always',experimentalNativeASS:true,experimentalAudioAdaptation:kind.startsWith('flac')?'flac':undefined,audioGain:kind==='flac-gain'?.5:1,experimentalBufferedNativeSeeks:true});
@@ -69,7 +69,7 @@ try{
  let release,entered;const barrier=new Promise(r=>entered=r),unblock=new Promise(r=>release=r);
  try{
   await page.route('**/engine-subtitles/service.wasm',async route=>{entered();await unblock;await route.abort().catch(()=>{});});
-  await page.goto(origin+'/examples/custom-controls.html');
+  await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');
   await page.evaluate(async()=>{
    await player.destroy();const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',experimentalNativeASS:true});
    await player.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'movie.mp4'));
@@ -82,3 +82,22 @@ try{
   assert.match(item.output.error,/destroy|abort/i);release();await page.waitForTimeout(100);assert.equal(page.workers().length,0);assert.equal(await page.locator('.demuxe-native-ass').count(),0);item.frameTrace=await page.evaluate(()=>window.frameTrace);item.passed=true;
  }catch(error){item.frameTrace=await page.evaluate(()=>window.frameTrace);item.error=String(error.stack);process.exitCode=1;}finally{release();await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(item.kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
 }finally{try{await closeTestBrowser(browser,name);}finally{server.kill();}}
+
+// BEGIN installed-package entrypoint adapter (keep identical across standalone harnesses).
+async function installPackageEntrypoint(page, origin) {
+ const runtime = process.env.DEMUXE_RUNTIME_ROOT;
+ if (!runtime) return;
+ const {readFile} = await import('node:fs/promises');
+ const {join} = await import('node:path');
+ const {createHash} = await import('node:crypto');
+ let manifest;
+ try { manifest = JSON.parse(await readFile(join(runtime, 'release-manifest.json'), 'utf8')); }
+ catch (error) { if (error.code === 'ENOENT') return; throw error; }
+ const entry = manifest.files?.['index.js'];
+ if (!entry || !/^[a-f0-9]{64}$/.test(entry.sha256)) throw Error('Installed package manifest lacks index.js digest');
+ const body = await readFile(join(runtime, 'index.js'));
+ if (body.length !== entry.bytes || createHash('sha256').update(body).digest('hex') !== entry.sha256) throw Error('Installed package index.js differs from manifest');
+ // Exact URL only: all dependencies and other routes retain the real HTTP server.
+ await page.route(url => url.href === new URL('/index.js', origin).href, route => route.fulfill({status:200, contentType:'text/javascript', body}));
+}
+// END installed-package entrypoint adapter.

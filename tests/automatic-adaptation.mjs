@@ -18,7 +18,7 @@ try{
    const preparationRequests=[];
    page.context().on('request',request=>{if(request.url().includes('/engine-adaptation/'))preparationRequests.push(request.url());});
    if(name==='copy-mkv-no-preparation')await page.context().route('**/engine-adaptation/**',route=>route.fulfill({status:404,body:'Optional preparation assets unavailable'}));
-   await page.goto(origin+'/examples/custom-controls.html');
+   await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');
    await page.evaluate(async name=>{
     await player.destroy();const {Player}=await import('/web/generated/index.js');window.errors=[];
     window.player=new Player(document.querySelector('#surface'),{nativeRemux:['copy-first','copy-mkv-no-policy','copy-mkv','copy-mkv-no-preparation'].includes(name)?'auto':'always',automaticAudioAdaptation:['no-policy','copy-mkv-no-policy'].includes(name)?undefined:'lossless',mode:name==='explicit-hybrid'?'hybrid':undefined,experimentalBufferedNativeSeeks:true,experimentalNativeASS:name==='ass-gain',audioGain:name==='ass-gain'?.5:1});
@@ -57,3 +57,22 @@ try{
   finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(name,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
  }
 }finally{await browser.close();server.kill();}
+
+// BEGIN installed-package entrypoint adapter (keep identical across standalone harnesses).
+async function installPackageEntrypoint(page, origin) {
+ const runtime = process.env.DEMUXE_RUNTIME_ROOT;
+ if (!runtime) return;
+ const {readFile} = await import('node:fs/promises');
+ const {join} = await import('node:path');
+ const {createHash} = await import('node:crypto');
+ let manifest;
+ try { manifest = JSON.parse(await readFile(join(runtime, 'release-manifest.json'), 'utf8')); }
+ catch (error) { if (error.code === 'ENOENT') return; throw error; }
+ const entry = manifest.files?.['index.js'];
+ if (!entry || !/^[a-f0-9]{64}$/.test(entry.sha256)) throw Error('Installed package manifest lacks index.js digest');
+ const body = await readFile(join(runtime, 'index.js'));
+ if (body.length !== entry.bytes || createHash('sha256').update(body).digest('hex') !== entry.sha256) throw Error('Installed package index.js differs from manifest');
+ // Exact URL only: all dependencies and other routes retain the real HTTP server.
+ await page.route(url => url.href === new URL('/index.js', origin).href, route => route.fulfill({status:200, contentType:'text/javascript', body}));
+}
+// END installed-package entrypoint adapter.

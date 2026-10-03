@@ -47,11 +47,29 @@ for(let i=0;i<40&&page.workers().length;i++)await page.waitForTimeout(50);
 assert.equal(page.workers().length,0,`Workers still alive after destroy: ${page.workers().map(worker=>worker.url()).join(', ')}`);
 });
 await check('missing assets have structured errors',async page=>{missingEngine=true;await page.goto(origin+'/?bundle');await page.waitForFunction(()=>window.apiReady);const d=await page.evaluate(async()=>{await viewer.ready;await viewer.player.setMode('hybrid');try{await viewer.open(location.origin+'/media/movie.mp4');}catch(e){return {code:e.code,state:viewer.player.state};}});assert.equal(d.code,'ASSET_LOAD_FAILED');assert.equal(d.state.activeMode,null);missingEngine=false;});
-await check('runtime policy separates private qualification from pthread isolation',async page=>{missingEngine=false;await page.goto(origin+'/?unisolated&bundle');await page.waitForFunction(()=>window.apiReady);const codes=await page.evaluate(async()=>{
- await viewer.ready;await viewer.player.setMode('hybrid');let automatic;
- try{await viewer.open(location.origin+'/media/movie.mp4');}catch(e){automatic=e.code;}
- window.custom=new Player(document.querySelector('#custom'),{mode:'hybrid',remuxRuntime:'off'});
- try{await custom.open(location.origin+'/media/movie.mp4');}catch(e){return {automatic,pthread:e.code};}
-});assert.deepEqual(codes,{automatic:'UNSUPPORTED_FEATURE',pthread:'ISOLATION_REQUIRED'});});
+await check('runtime policy separates private qualification from pthread isolation',async page=>{
+ missingEngine=false;const requests=[];page.on('request',request=>requests.push(request.url()));
+ await page.goto(origin+'/?unisolated&bundle');await page.waitForFunction(()=>window.apiReady);
+ const capabilities=await page.evaluate(()=>({isolated:crossOriginIsolated,jspi:typeof WebAssembly.Suspending==='function'&&typeof WebAssembly.promising==='function'}));
+ assert.equal(capabilities.isolated,false);const runtime=capabilities.jspi?'jspi':'asyncify';
+ const manifest=JSON.parse(await readFile(path.join(root,'node_modules/demuxe/release-manifest.json')));
+ assert.ok(manifest.files[`web/engine-mpv-playback-${runtime}/player.wasm`],'Selected private playback runtime is packaged');
+ await page.evaluate(async()=>{await viewer.ready;await viewer.player.setMode('hybrid');await viewer.open(location.origin+'/media/movie.mp4');await viewer.player.play();});
+ await page.waitForFunction(()=>viewer.player.state.currentTime>.3&&viewer.player.state.status==='playing'&&viewer.player.state.activeMode==='hybrid');
+ const before=await page.evaluate(()=>viewer.player.diagnostics);
+ assert.equal(before.plan.id,'hybrid-private');assert.equal(before.backend.runtime,runtime);assert.equal(before.backend.decoderBackend,'webcodecs');assert.ok(before.backend.retained.presented>0);
+ await page.evaluate(async()=>{await viewer.player.pause();await viewer.player.seek(1);});
+ const paused=await page.evaluate(()=>viewer.player.state);assert.ok(Math.abs(paused.currentTime-1)<.15);assert.equal(paused.status,'paused');assert.equal(paused.pendingOperation,null);assert.equal(paused.activeMode,'hybrid');
+ await page.evaluate(()=>viewer.player.play());await page.waitForFunction(()=>viewer.player.state.currentTime>1.2);
+ const after=await page.evaluate(()=>viewer.player.diagnostics);
+ assert.equal(after.plan.id,'hybrid-private');assert.equal(after.backend.runtime,runtime);assert.equal(after.backend.decoderBackend,'webcodecs');assert.ok(after.backend.retained.presented>before.backend.retained.presented);
+ assert.ok(requests.some(url=>url.endsWith(`/engine-mpv-playback-${runtime}/player.wasm`)),'Private runtime was actually requested');
+ const pthread=await page.evaluate(async()=>{window.custom=new Player(document.querySelector('#custom'),{mode:'hybrid',remuxRuntime:'off'});try{await custom.open(location.origin+'/media/movie.mp4');return null;}catch(error){return error.code;}});
+ assert.equal(pthread,'ISOLATION_REQUIRED');
+ result.runtimePolicy={capabilities,runtime,before,paused,after,pthread};
+ await page.evaluate(()=>Promise.all([viewer.destroy(),custom.destroy()]));
+ for(let end=Date.now()+3000;page.workers().length&&Date.now()<end;)await page.waitForTimeout(50);
+ assert.equal(page.workers().length,0,'Private runtime workers survive destroy');
+});
 // Actual browser policy is tested separately without the permissive autoplay flag.
 }finally{await browser.close();server.closeAllConnections();await new Promise(r=>server.close(r));result.passed=result.checks.every(c=>c.passed);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}

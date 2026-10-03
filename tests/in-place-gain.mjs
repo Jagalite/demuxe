@@ -14,7 +14,7 @@ try{
   const page=await browser.newPage(),item={mode};result.cases.push(item);
   try{
    await page.route('**/gain-signal.mp4',async r=>r.fulfill({contentType:'video/mp4',body:await readFile('build/optimization-fixtures/gain.mp4')}));
-   await page.goto(origin+'/examples/custom-controls.html');
+   await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');
    if(mode==='hybrid')item.chunkOwnership=await page.evaluate(()=>{
     const source=new Uint8Array(new SharedArrayBuffer(4));source.set([1,2,3,4]);
     try{const chunk=new EncodedVideoChunk({type:'key',timestamp:0,data:source});source.fill(9);const copied=new Uint8Array(4);chunk.copyTo(copied);return {shared:true,copied:Array.from(copied),heapBytes:source.buffer.byteLength};}
@@ -63,7 +63,7 @@ try{
  // happens during an outstanding Native gain update, before graph allocation.
  const page=await browser.newPage(),item={mode:'native-destroy-resume-barrier'};result.cases.push(item);
  try{
-  await page.goto(origin+'/examples/custom-controls.html');
+  await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');
   item.output=await page.evaluate(async()=>{
    await window.player?.destroy();const {NativePlayer}=await import('/web/generated/internal/native-player.js');
    const video=document.createElement('video');Object.defineProperty(video,'paused',{value:false});
@@ -77,3 +77,22 @@ try{
   assert.equal(item.output.outstanding,true);assert.equal(item.output.allocated,false);assert.equal(item.output.state,'closed');assert.match(item.output.outcome.error,/destroyed/);item.passed=true;
  }catch(error){item.error=String(error.stack);process.exitCode=1;}finally{await page.close();console.log(item.mode,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
 }finally{await browser.close();server.kill();}
+
+// BEGIN installed-package entrypoint adapter (keep identical across standalone harnesses).
+async function installPackageEntrypoint(page, origin) {
+ const runtime = process.env.DEMUXE_RUNTIME_ROOT;
+ if (!runtime) return;
+ const {readFile} = await import('node:fs/promises');
+ const {join} = await import('node:path');
+ const {createHash} = await import('node:crypto');
+ let manifest;
+ try { manifest = JSON.parse(await readFile(join(runtime, 'release-manifest.json'), 'utf8')); }
+ catch (error) { if (error.code === 'ENOENT') return; throw error; }
+ const entry = manifest.files?.['index.js'];
+ if (!entry || !/^[a-f0-9]{64}$/.test(entry.sha256)) throw Error('Installed package manifest lacks index.js digest');
+ const body = await readFile(join(runtime, 'index.js'));
+ if (body.length !== entry.bytes || createHash('sha256').update(body).digest('hex') !== entry.sha256) throw Error('Installed package index.js differs from manifest');
+ // Exact URL only: all dependencies and other routes retain the real HTTP server.
+ await page.route(url => url.href === new URL('/index.js', origin).href, route => route.fulfill({status:200, contentType:'text/javascript', body}));
+}
+// END installed-package entrypoint adapter.

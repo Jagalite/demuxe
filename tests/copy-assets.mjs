@@ -52,7 +52,7 @@ with tarfile.open(sys.argv[1]) as archive:
 test('package ships the maintained standard and private runtime engines',async()=>{
  const manifest=JSON.parse(await readFile(path.join(pkg,'release-manifest.json')));
  const expected=['hybrid','remux','selective','software','software-rgb','subtitles'];
- for(const backend of ['jspi','asyncify'])for(const service of ['remux','adaptation','mpv-subtitles','mpv-audio'])expected.push(`${service}-${backend}`);
+ for(const backend of ['jspi','asyncify'])for(const service of ['remux','adaptation','mpv-subtitles','mpv-audio','mpv-playback'])expected.push(`${service}-${backend}`);
  assert.deepEqual(Object.keys(manifest.engines).sort(),expected.sort());
  for(const [name,[folder,stem]]of Object.entries(manifest.engines))for(const extension of ['mjs','wasm']){
   const file=`web/${folder}/${stem}.${extension}`;

@@ -23,7 +23,7 @@ const media=createServer((req,res)=>{
 });await new Promise(r=>media.listen(0,'127.0.0.1',r));const url=`http://127.0.0.1:${media.address().port}/fixture.mkv`;
 const browser=await(family==='firefox'?firefox:chromium).launch(family==='firefox'?{headless:true}:{channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});
 const result={browser:browser.version(),cases:[]};
-async function setup(page,gain=1){await page.goto(origin+'/examples/custom-controls.html');await page.evaluate(async({gain,profile})=>{await player.destroy();const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalAudioAdaptation:profile,allowLossyAudio:profile==='opus',experimentalBufferedNativeSeeks:true,audioGain:gain});},{gain,profile})}
+async function setup(page,gain=1){await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');await page.evaluate(async({gain,profile})=>{await player.destroy();const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalAudioAdaptation:profile,allowLossyAudio:profile==='opus',experimentalBufferedNativeSeeks:true,audioGain:gain});},{gain,profile})}
 async function cleanup(page){await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0)}
 try{
  for(const kind of ['bounded-local-gain','authenticated-range','destroy-blocked-read','incorrect-range','changed-identity','stale-generation','reject-pcm32','reject-float','reject-surround',...(profile==='opus'?['lossy-policy','original-audio-copy','reject-rate']:[])].filter(k=>!process.env.CASES||process.env.CASES.split(',').includes(k))){
@@ -77,3 +77,22 @@ try{
   finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();for(const r of held)r.destroy();console.log(kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
  }
 }finally{await browser.close();for(const r of held)r.destroy();media.closeAllConnections();await new Promise(r=>media.close(r));app.kill();}
+
+// BEGIN installed-package entrypoint adapter (keep identical across standalone harnesses).
+async function installPackageEntrypoint(page, origin) {
+ const runtime = process.env.DEMUXE_RUNTIME_ROOT;
+ if (!runtime) return;
+ const {readFile} = await import('node:fs/promises');
+ const {join} = await import('node:path');
+ const {createHash} = await import('node:crypto');
+ let manifest;
+ try { manifest = JSON.parse(await readFile(join(runtime, 'release-manifest.json'), 'utf8')); }
+ catch (error) { if (error.code === 'ENOENT') return; throw error; }
+ const entry = manifest.files?.['index.js'];
+ if (!entry || !/^[a-f0-9]{64}$/.test(entry.sha256)) throw Error('Installed package manifest lacks index.js digest');
+ const body = await readFile(join(runtime, 'index.js'));
+ if (body.length !== entry.bytes || createHash('sha256').update(body).digest('hex') !== entry.sha256) throw Error('Installed package index.js differs from manifest');
+ // Exact URL only: all dependencies and other routes retain the real HTTP server.
+ await page.route(url => url.href === new URL('/index.js', origin).href, route => route.fulfill({status:200, contentType:'text/javascript', body}));
+}
+// END installed-package entrypoint adapter.
