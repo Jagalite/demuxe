@@ -129,3 +129,20 @@ test('host admission refuses excess work while native execution is blocked',asyn
   assert.match(String(rejection),/queue capacity/);
  }finally{gate.resolve();await Promise.allSettled(pending);await f.host.destroy();}
 });
+
+for(const cleanupThrows of [false,true])test(`late captured bitmap is disposed once after actual host close (cleanup throws: ${cleanupThrows})`,async()=>{
+ const f=fixture(),gate=deferred();let closed=0,delivered=false;
+ const capture=f.host.serial(()=>gate.promise,false,bitmap=>bitmap.close());
+ const observed=capture.then(()=>{delivered=true;},error=>assert.match(String(error),cleanupThrows?/bitmap close failed/:/closed|replaced/));
+ await turn();const closing=f.host.destroy();gate.resolve({close(){closed++;if(cleanupThrows)throw Error('bitmap close failed');}});
+ await Promise.all([observed,closing]);assert.equal(closed,1);assert.equal(delivered,false);assert.equal(f.calls.filter(name=>name==='dispose').length,1);assert.equal(f.host.control.phase,'closed');
+});
+test('live captured bitmap transfers ownership to consumer and closes once there',async()=>{
+ const f=fixture();let closed=0,retired=0;const bitmap={close(){closed++;}};
+ const delivered=await f.host.serial(async()=>bitmap,false,value=>{retired++;value.close();});
+ assert.equal(delivered,bitmap);assert.equal(closed,0);delivered.close();await f.host.destroy();assert.equal(closed,1);assert.equal(retired,0);
+});
+test('failed capture has no acquired bitmap to dispose and cannot block cleanup',async()=>{
+ const f=fixture();let retired=0;await assert.rejects(f.host.serial(async()=>{throw Error('capture failed');},false,()=>retired++),/capture failed/);
+ await f.host.destroy();assert.equal(retired,0);assert.equal(f.host.control.phase,'closed');
+});

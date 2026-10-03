@@ -2429,6 +2429,8 @@ export class Player extends EventTarget {
         }
     }
     async select(source, settings, preserve, tracks, start = 0, target, priorAttempts = [], inspectOnly = false, requirements = {}) {
+        if (!inspectOnly && this.presentation.locksSurface)
+            throw new PlayerError('UNSUPPORTED_FEATURE', 'Exit video Picture-in-Picture before replacing the playback surface');
         const original = { epoch: this.operationEpoch, operation: this.control.operations.active }, sourceKey = this.inspectionSourceKey(source);
         if (!this.dispatchControl({ type: 'routing.inspection', ...original, change: { kind: 'work.begin', ...original, source: sourceKey, provider: !!this.providerRuntime, preserve, inspectOnly } }).accepted)
             throw new PlayerError('ABORTED', 'Inspection was retired');
@@ -3763,6 +3765,7 @@ export class Player extends EventTarget {
         void Promise.all([
             clean(() => this.cancelPromotion()), clean(() => this.activeOperation?.controller.abort()), clean(() => this.inspection?.abort()), clean(() => this.stopWatchdogs()),
             clean(() => this.#previewController.setSourceIdentity(`closed:${this.sourceSerial}`)), clean(() => this.#previewController.drain()),
+            clean(() => this.presentation.exitPictureInPicture()),
             ...sessions.map(session => clean(() => this.dispose(session))),
         ]).then(released);
         this.previewSource = undefined;

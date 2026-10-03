@@ -24,10 +24,10 @@ export class PrivatePlaybackHost {
     const live=new Set(this.control.queue.map(work=>work.id));if(this.control.activeWork)live.add(this.control.activeWork.id);
     for(const [id,pending] of this.work)if(!live.has(id)){this.work.delete(id);pending.reject(Error('Playback host closed or replaced'));}
   }
-  serial(operation,cleanup=false){
+  serial(operation,cleanup=false,disposeRetired){
     const admission=admitPlaybackHostWork(this.control,cleanup);this.control=admission.state;
     if(!admission.work)return Promise.reject(Error(admission.error));
-    const completion=new Promise((resolve,reject)=>this.work.set(admission.work.id,{operation,resolve,reject}));
+    const completion=new Promise((resolve,reject)=>this.work.set(admission.work.id,{operation,resolve,reject,disposeRetired}));
     // Keep ignored internal completions handled without swallowing caller errors.
     void completion.catch(()=>{});
     if(!this.draining){this.draining=true;void Promise.resolve().then(()=>this.drainWork());}
@@ -37,7 +37,15 @@ export class PrivatePlaybackHost {
     try{for(;;){
       const started=startPlaybackHostWork(this.control);this.control=started.state;if(!started.work)return;
       const work=started.work,pending=this.work.get(work.id);
-      try{const result=await pending.operation();if(!work.cleanup)this.assertCurrent(work.epoch);pending.resolve(result);}
+      try{
+        const result=await pending.operation();
+        if(!work.cleanup&&!this.current(work.epoch)){
+          // Resource-producing work still owns its late result after retirement.
+          // Dispose it before rejecting; ordinary work retains the same fence.
+          pending.disposeRetired?.(result);this.assertCurrent(work.epoch);
+        }
+        pending.resolve(result);
+      }
       catch(error){pending.reject(error);}
       finally{this.work.delete(work.id);this.control=finishPlaybackHostWork(this.control,work.id);}
     }}finally{this.draining=false;}

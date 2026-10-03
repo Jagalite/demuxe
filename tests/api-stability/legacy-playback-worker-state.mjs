@@ -92,3 +92,12 @@ for(const file of ['software-full-engine-worker.js','filter-retained-engine-work
   h[3]=2;h[0]=1024+8193;assert.throws(()=>context.pumpAudio(),/PCM capacity invariant/);
  });
 }
+test('worker failure keeps encoding charged but suppresses its late snapshot reply',()=>{
+ let state=reduce(reduce(initial(),{type:'init'}),{type:'ready'});
+ state=policy.captureLegacySnapshot(policy.admitLegacySnapshot(state,17));
+ state=reduce(state,{type:'fail'});
+ assert.equal(state.snapshot.capturing,true);
+ assert.equal(policy.admitLegacySnapshot(state,18),state);
+ const finished=policy.finishLegacySnapshot(state,17,0);
+ assert.equal(finished.publish,false);assert.equal(finished.state.snapshot,null);
+});

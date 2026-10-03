@@ -55,6 +55,7 @@ function presentReady(key){
   videoPresenter.draw(frame,videoTrack,overlay);if(!valid())return;
   if(context)subtitles.draw(context,overlay);if(!valid())return;
   const presented=retainedStep({type:'presented',id:result.drawing,epoch:request.epoch});if(!presented.accepted)return;
+  capturePresentedSnapshot();
   canvasSubmissions++;
   if(presentation.lateMs.length<10000)presentation.lateMs.push(performance.now()-request.deadline);
   if(presentation.pts.length<10000)presentation.pts.push(key);
@@ -73,9 +74,22 @@ function presentSelected(){
  if(before!==retainedControl)return;
  const overlay=subtitles.read(engine);if(before!==retainedControl)return;
  const decision=retainedStep({type:'select',serial,key,redraw,delay,now});if(decision.error)throw Error(decision.error);
- if(decision.redraw!==undefined){const valid=()=>retainedControl.epoch===decision.state.epoch&&retainedControl.held?.id===decision.redraw&&!retainedControl.closed;const frame=frames.get(decision.redraw);if(!frame||!valid())return;videoPresenter.draw(frame,videoTrack,overlay);if(!valid())return;if(context)subtitles.draw(context,overlay);if(!valid())return;const presented=retainedStep({type:'presented',id:decision.drawing,epoch:decision.state.epoch});if(presented.accepted&&valid())engine._web_presented();return;}
+ if(decision.redraw!==undefined){const valid=()=>retainedControl.epoch===decision.state.epoch&&retainedControl.held?.id===decision.redraw&&!retainedControl.closed;const frame=frames.get(decision.redraw);if(!frame||!valid())return;videoPresenter.draw(frame,videoTrack,overlay);if(!valid())return;if(context)subtitles.draw(context,overlay);if(!valid())return;const presented=retainedStep({type:'presented',id:decision.drawing,epoch:decision.state.epoch});if(presented.accepted&&valid()){capturePresentedSnapshot();engine._web_presented();}return;}
  if(decision.request){if(!legacyRetainedRequestCurrent(retainedControl,decision.request.id,decision.request.epoch))return;pendingFrames.set(decision.request.id,overlay);presentReady(key);}
  const checked=retainedStep({type:'check',now:performance.now()});if(checked.error)throw Error(checked.error);
+}
+// Encode only after the retained presenter has drawn video and subtitles.
+function capturePresentedSnapshot(){
+ if(!control.snapshot||control.snapshot.capturing||control.pendingTarget!==null||control.closing||control.pumpFailed)return;
+ control=captureLegacySnapshot(control);const {id,source}=control.snapshot;
+ const time=retainedControl.position,width=canvas.width,height=canvas.height;
+ const settled=(error,blob)=>{const result=finishLegacySnapshot(control,id,source);control=result.state;if(result.publish)post(error?{type:'error',id,message:String(error)}:{type:'event',event:{event:'command-reply',id,result:{blob,time,width,height}}});};
+ try{Promise.resolve(canvas.convertToBlob({type:'image/png'})).then(blob=>settled(null,blob),error=>settled(error));}catch(error){settled(error);}
+}
+function requestSnapshot(id){
+ if(audioOnly)throw Error('Snapshot unavailable for audio-only playback');
+ const next=admitLegacySnapshot(control,id);if(next===control)throw Error('Snapshot unavailable');
+ control=next;transition({type:'touch',now:performance.now()});schedulePump(0);
 }
 let decoderWorker,decoderStats,webgpuService,decoderBackend='ffmpeg';
 
@@ -353,6 +367,7 @@ self.onmessage = async ({data}) => {
       Atomics.store(engine.HEAPU32, (nativeAudio >>> 2) + 6, +data.running);
     } else if (data.type === 'open-remote' || data.type === 'open-file') {await openRemote(data);
     } else if(data.type==='refreshed'){ioWorker?.postMessage(data);
+    } else if(data.type==='preview-snapshot'){requestSnapshot(data.id);
     } else if(data.type==='seek'){cleanupFrames(data.seconds,false);subtitles.clear();transition({type:'seek',target:data.seconds});Atomics.store(audio,2,0);submit(data.id,['seek',String(data.seconds),'absolute+exact']);
     } else if (data.type === 'open') {cleanupFrames(undefined,false);subtitles.clear();
 

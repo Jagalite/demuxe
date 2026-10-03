@@ -72,4 +72,4 @@ export function legacyCommandCurrent(s:LegacyPlaybackWorkerState,id:number):bool
 
 export function admitLegacySnapshot(s:LegacyPlaybackWorkerState,id:number):LegacyPlaybackWorkerState{return s.ready&&!s.closing&&!s.pumpFailed&&!s.snapshot&&Number.isSafeInteger(id)?{...s,snapshot:{id,source:s.source,capturing:false},force:true}:s;}
 export function captureLegacySnapshot(s:LegacyPlaybackWorkerState):LegacyPlaybackWorkerState{return s.snapshot&&!s.snapshot.capturing&&!s.closing?{...s,snapshot:{...s.snapshot,capturing:true}}:s;}
-export function finishLegacySnapshot(s:LegacyPlaybackWorkerState,id:number,source:number):{state:LegacyPlaybackWorkerState;publish:boolean}{return s.snapshot?.id===id&&s.snapshot.source===source?{state:{...s,snapshot:null},publish:!s.closing&&s.source===source}:{state:s,publish:false};}
+export function finishLegacySnapshot(s:LegacyPlaybackWorkerState,id:number,source:number):{state:LegacyPlaybackWorkerState;publish:boolean}{return s.snapshot?.id===id&&s.snapshot.source===source?{state:{...s,snapshot:null},publish:!s.closing&&!s.pumpFailed&&s.source===source}:{state:s,publish:false};}

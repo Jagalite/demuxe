@@ -47,7 +47,13 @@ export class PlayerPresentation {
         this.fullscreenTarget = target ?? undefined;
     }
     fullscreenHost() { return this.control.targetOverride ? this.fullscreenTarget : this.host(); }
-    videoPiP() { return !!this.player.surface && this.ownerDocument.pictureInPictureElement === this.player.surface; }
+    videoPiP(surface = this.player.surface) {
+        if (!surface)
+            return false;
+        // Document observations retarget a shadow video to its component host.
+        const root = surface.getRootNode?.();
+        return this.ownerDocument.pictureInPictureElement === surface || root?.pictureInPictureElement === surface;
+    }
     get state() { return projectPresentation({ fullscreen: this.host().ownerDocument.fullscreenElement === this.fullscreenHost(), documentPiP: !!this.pipWindow && !this.pipWindow.closed, videoPiP: this.videoPiP(), mediaSession: ownsMediaSession(this.lease.state, this.owner) }); }
     get locksSurface() { return presentationLocksSurface(this.control, this.videoPiP()); }
     async requestFullscreen() {
@@ -158,7 +164,7 @@ export class PlayerPresentation {
             await requestVideo.call(surface);
             const decision = this.transition({ type: 'pip.check', id, sameSurface: surface === this.player.surface, subtitles: this.player.state.subtitlesVisible && !!this.player.state.mediaInfo.subtitle });
             if (decision.error) {
-                if (this.ownerDocument.pictureInPictureElement === surface)
+                if (this.videoPiP(surface))
                     await this.ownerDocument.exitPictureInPicture();
                 throw new PlayerError(decision.error.code, decision.error.message);
             }

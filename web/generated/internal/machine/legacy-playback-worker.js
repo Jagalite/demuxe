@@ -67,4 +67,4 @@ export function commitLegacyPCM(s, epoch, written) { return s.epoch === epoch ? 
 export function legacyCommandCurrent(s, id) { return !s.closing && s.commands.some(command => command.id === id && command.source === s.source); }
 export function admitLegacySnapshot(s, id) { return s.ready && !s.closing && !s.pumpFailed && !s.snapshot && Number.isSafeInteger(id) ? { ...s, snapshot: { id, source: s.source, capturing: false }, force: true } : s; }
 export function captureLegacySnapshot(s) { return s.snapshot && !s.snapshot.capturing && !s.closing ? { ...s, snapshot: { ...s.snapshot, capturing: true } } : s; }
-export function finishLegacySnapshot(s, id, source) { return s.snapshot?.id === id && s.snapshot.source === source ? { state: { ...s, snapshot: null }, publish: !s.closing && s.source === source } : { state: s, publish: false }; }
+export function finishLegacySnapshot(s, id, source) { return s.snapshot?.id === id && s.snapshot.source === source ? { state: { ...s, snapshot: null }, publish: !s.closing && !s.pumpFailed && s.source === source } : { state: s, publish: false }; }

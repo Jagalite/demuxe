@@ -95,7 +95,7 @@ async function pump(){
   lifecycle=observePlaybackWorkerOutput(lifecycle,{hasVideo,audioReady,position:Number(host.properties['time-pos']),draws:host.draws});
   const capture=beginPlaybackWorkerCapture(lifecycle,host.draws);lifecycle=capture.state;
   if(capture.picture){
-   const bitmap=await host.serial(()=>createImageBitmap(host.canvas));const completion=finishPlaybackWorkerCapture(lifecycle,capture.picture.id);lifecycle=completion.state;
+   const bitmap=await host.serial(()=>createImageBitmap(host.canvas),false,bitmap=>bitmap.close());const completion=finishPlaybackWorkerCapture(lifecycle,capture.picture.id);lifecycle=completion.state;
    if(!completion.picture){bitmap.close();return;}const {generation,id:pictureId,rendered}=completion.picture;try{postMessage({type:'picture',generation,pictureId,rendered,bitmap},[bitmap]);}catch(error){bitmap.close();throw error;}
   }
   if(!playbackWorkerPumpCurrent(lifecycle,id))return;

@@ -230,3 +230,22 @@ for(const api of ['fullscreen','document'])test(`${api} method getter retirement
  else globalThis.documentPictureInPicture={get requestWindow(){done=presentation.destroy();return()=>{calls++;};}};
  await assert.rejects(api==='fullscreen'?presentation.requestFullscreen():presentation.requestPictureInPicture('document'),e=>e.code==='ABORTED');await done;assert.equal(calls,0);
 });
+
+for(const cleanup of ['exit','destroy'])test(`shadow video PiP is observed, locks replacement, and clears on ${cleanup}`,async t=>{
+ const env=environment(t),{host,player,presentation}=env.make(),video=player.surface,root={pictureInPictureElement:video};
+ video.getRootNode=()=>root;env.doc.pictureInPictureElement=host;
+ let exits=0;env.doc.exitPictureInPicture=async()=>{exits++;root.pictureInPictureElement=null;env.doc.pictureInPictureElement=null;};
+ assert.equal(presentation.state.pictureInPicture,'video');assert.equal(presentation.locksSurface,true);
+ if(cleanup==='exit')await presentation.exitPictureInPicture();else await presentation.destroy();
+ assert.equal(exits,1);assert.equal(presentation.state.pictureInPicture,null);
+});
+test('retired shadow PiP entry exits its captured video without touching another player',async t=>{
+ const env=environment(t),{host,player,presentation}=env.make(),video=player.surface,root={pictureInPictureElement:null},wait=deferred();
+ video.getRootNode=()=>root;video.requestPictureInPicture=()=>wait.promise;
+ const request=presentation.requestPictureInPicture();await presentation.exitPictureInPicture();
+ env.doc.pictureInPictureElement=host;root.pictureInPictureElement=video;
+ let exits=0;env.doc.exitPictureInPicture=async()=>{exits++;root.pictureInPictureElement=null;env.doc.pictureInPictureElement=null;};
+ wait.resolve();await assert.rejects(request,{code:'ABORTED'});assert.equal(exits,1);
+ const other=env.make();root.pictureInPictureElement=other.player.surface;env.doc.pictureInPictureElement=host;
+ assert.equal(presentation.state.pictureInPicture,null);await presentation.exitPictureInPicture();assert.equal(exits,1);
+});

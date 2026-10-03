@@ -3,7 +3,7 @@
 Date: 2026-10-02. Candidate: `df1960885b1d0aa2ebcd1e9f7af4cc988327e85f`.
 Comparison baseline: `092445feece0ec7769d5a61852d5744572ca1724`, the recorded baseline before active functional-core cutover. This review covers the migration sequence, not only checkpoint 23. The compatibility ledger's earlier characterization revision is `67ef9d3b`; it is not substituted for the executable comparison baseline.
 
-The PCM epoch race and post-cancel native shutdown acknowledgement fixes are committed in the candidate. This re-review found two further migration regressions and a separate inherited resource-accounting limitation. Source review and short controls do not grant final runtime qualification.
+The PCM epoch race and post-cancel native shutdown acknowledgement fixes are committed in the candidate. This re-review found two further migration regressions and a separate inherited resource-accounting limitation. Both regressions are repaired in the subsequent working-tree fixes described below; the inherited limitation remains open. Source review and short controls do not grant final runtime qualification.
 
 ## Confirmed migration regression: pending first-frame selection is discarded
 
@@ -22,7 +22,7 @@ The shell's `receiveFrame()` only calls `presentReady()` for the incoming timest
 
 Evidence: `/tmp/demuxe-retained-first-frame-review.mjs`, independently rerun against the baseline and candidate. Observed output: baseline `drawn:["first"]`, candidate `drawn:[]`. Source trace includes `web/filter-retained-engine-worker.js`, `web/retained-decoder-worker.js`, `scripts/build-unified-mpv.py`, and the production-used `experiments/retained-subtitles/player.c` render/selection path. The fixture simulates the channel ordering; this is not a browser capture of its frequency.
 
-Required correction: distinguish first/new-generation frame admission from invalidation of genuinely obsolete selections. Preserve or rebind a valid already-selected frame while retaining stale timer/frame fencing. Add selection-before-frame controls for startup and seek, alongside existing frame-before-selection controls. Not fixed by this review.
+Required correction: distinguish first/new-generation frame admission from invalidation of genuinely obsolete selections. Preserve or rebind a valid already-selected frame while retaining stale timer/frame fencing. Add selection-before-frame controls for startup and seek, alongside existing frame-before-selection controls. Fixed after review: initial or explicitly reset presentation epochs preserve their pending selections when the expected first generation arrives; unexpected generation changes still cancel old timers. Startup (immediate and delayed) and post-seek selection-before-frame regressions pass and fail against the previous pure owner.
 
 ## Confirmed migration regression: late bitmap acquisition loses cleanup ownership
 
@@ -32,7 +32,7 @@ Required correction: distinguish first/new-generation frame admission from inval
 
 The baseline serial executor delivered the late result; its worker then detected closing/replacement and closed the bitmap. A short actual-host comparison delays capture, calls destroy, then resolves the bitmap: baseline reports `delivered-and-closed`, close count 1; candidate reports `rejected-before-consumer`, close count 0. Evidence: `/tmp/demuxe-private-bitmap-retirement-review.mjs`. This demonstrates lost explicit graphics-resource cleanup, not a measured permanent browser memory leak; garbage collection or worker termination may eventually reclaim it.
 
-Required correction: give resource-producing serial operations a stale-result disposer, or arrange for the capture operation to close a late bitmap before rejecting. Preserve retirement checks for ordinary operations. Cover close-before-capture-settlement and normal delivery exactly once. Not fixed by this review. Normal source replacement serializes native teardown before reset, so this finding specifically claims the demonstrated close/capture race.
+Required correction: give resource-producing serial operations a stale-result disposer, or arrange for the capture operation to close a late bitmap before rejecting. Preserve retirement checks for ordinary operations. Cover close-before-capture-settlement and normal delivery exactly once. Fixed after review: serial capture work retains a synchronous stale-result disposer, and the bitmap producer supplies `bitmap.close()`. Actual-host tests cover close-before-settlement, throwing disposal, normal delivery and failed acquisition; both late-disposal regressions fail against the previous host. Normal source replacement serializes native teardown before reset, so this finding specifically claims the demonstrated close/capture race.
 
 ## Inherited residual: authorization refresh work escapes Shaka request accounting
 
@@ -70,3 +70,7 @@ An internal Wasm rejected-reopen attachment-identity difference was investigated
 Fresh baseline diff passes included scheduler/continuations and private playback-host/playback-worker/retained-decoder shells with their pure owners. No additional actionable regression was established in those scheduler/continuation or decoder paths.
 
 No long checks, native build, full contract gate, browser matrix, endurance campaign or performance comparison ran for this review. The previously running native build's status was not refreshed. Final package/source alignment and runtime qualification remain separate obligations in the handoff.
+
+## Focused fix validation
+
+The retained-presentation source helper was compiled with declarations and its generated output refreshed. Retained policy and actual-shell controls pass 27/27 (`/tmp/demuxe-retained-review-fix-focused.log`); three new cases fail against the old pure owner (`/tmp/demuxe-retained-review-fix-negative.log`). Private host/worker controls pass 83/83 (`/tmp/demuxe-bitmap-fix-focused.log`); two late-disposal cases fail against the old host (`/tmp/demuxe-bitmap-fix-old-control.log`). These are 110 focused checks, not a complete integrated or browser gate. The source ownership inventory was refreshed after semantic review of the three changed source files.

@@ -41,7 +41,12 @@ export class PlayerPresentation {
     this.fullscreenTarget=target??undefined;
   }
   private fullscreenHost(){return this.control.targetOverride?this.fullscreenTarget!:this.host();}
-  private videoPiP(){return !!this.player.surface&&this.ownerDocument.pictureInPictureElement===this.player.surface;}
+  private videoPiP(surface:HTMLElement|undefined=this.player.surface){
+    if(!surface)return false;
+    // Document observations retarget a shadow video to its component host.
+    const root=surface.getRootNode?.() as Document|ShadowRoot|undefined;
+    return this.ownerDocument.pictureInPictureElement===surface||root?.pictureInPictureElement===surface;
+  }
   get state(){return projectPresentation({fullscreen:this.host().ownerDocument.fullscreenElement===this.fullscreenHost(),documentPiP:!!this.pipWindow&&!this.pipWindow.closed,videoPiP:this.videoPiP(),mediaSession:ownsMediaSession(this.lease.state,this.owner)});}
   get locksSurface(){return presentationLocksSurface(this.control,this.videoPiP());}
   async requestFullscreen(){
@@ -94,7 +99,7 @@ export class PlayerPresentation {
       await requestVideo!.call(surface as HTMLVideoElement);
       const decision=this.transition({type:'pip.check',id,sameSurface:surface===this.player.surface,subtitles:this.player.state.subtitlesVisible&&!!this.player.state.mediaInfo.subtitle});
       if(decision.error){
-        if(this.ownerDocument.pictureInPictureElement===surface)await this.ownerDocument.exitPictureInPicture();
+        if(this.videoPiP(surface))await this.ownerDocument.exitPictureInPicture();
         throw new PlayerError(decision.error.code,decision.error.message);
       }
     }finally{this.transition({type:'pip.settled',id});}

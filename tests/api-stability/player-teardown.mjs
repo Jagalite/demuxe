@@ -25,3 +25,24 @@ test('close contains throwing promotion cleanup and settles its installed promis
 test('cleanup-enqueued successor runs after the closing barrier and remains current',async()=>{
  const f=await fixture();let successor;const next={backend:new EventTarget(),surface:{remove(){}}};next.backend.destroy=async()=>{};f.player.select=async()=>{source(f.player);f.player.current=next;await f.player.registerSession(next,f.player.control.source.acceptedSession);};f.session.backend.destroy=()=>{successor=f.player.open(new ArrayBuffer(1));return Promise.resolve();};await f.player.close();await successor;assert.equal(f.player.current,next);assert.equal(next.retired,false);await f.player.destroy();
 });
+test('close retires PiP before releasing surfaces and waits for native exit',async()=>{
+ const f=await fixture();let finish,settled=false;
+ f.player.presentation.exitPictureInPicture=()=>{f.calls.push('pip-exit');return new Promise(resolve=>{finish=resolve;});};
+ const closed=f.player.close().then(()=>{settled=true;});await Promise.resolve();
+ assert.deepEqual(f.calls.slice(0,2),['pip-exit','backend']);assert.equal(settled,false);
+ finish();await closed;assert.equal(f.player.current,undefined);
+});
+test('failed PiP exit does not skip source cleanup or leave close permanently pending',async()=>{
+ const f=await fixture();f.player.presentation.exitPictureInPicture=async()=>{throw Error('PiP exit failed');};
+ await assert.rejects(f.player.close(),/PiP exit failed/);
+ assert.equal(f.player.current,undefined);assert.equal(f.player.closing,undefined);
+ assert.deepEqual(f.calls,['backend','surface']);
+});
+test('active PiP rejects source selection before inspection or route fallback',async()=>{
+ const f=await fixture(),current=f.player.current;let inspections=0;
+ Object.defineProperty(f.player.presentation,'locksSurface',{get:()=>true});
+ f.player.captureInspection=()=>{inspections++;throw Error('must not inspect');};
+ await assert.rejects(f.player.select({kind:'local',file:new ArrayBuffer(1)},f.player.settings,false,[]),error=>error.code==='UNSUPPORTED_FEATURE'&&/Picture-in-Picture/.test(error.message));
+ assert.equal(inspections,0);assert.equal(f.player.current,current);assert.deepEqual(f.calls,[]);
+ await f.player.close();
+});

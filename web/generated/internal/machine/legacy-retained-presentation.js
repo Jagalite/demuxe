@@ -19,11 +19,18 @@ export function transitionLegacyRetainedPresentation(state, input) {
         if (input.pts < state.minPts && !state.pending.some(r => r.key === key) || input.generation < state.minGeneration || state.closed)
             return discard();
         if (input.generation !== state.generation) {
-            close = ids(state);
-            cancel = Object.freeze(state.pending.map(r => r.id));
-            next = Object.freeze({ ...clear(next, false, state.minPts, input.generation), generation: input.generation });
-            if (next.closed)
-                return discard('Retained epoch exhausted');
+            // Before the first frame (including after an explicit source/seek reset),
+            // native selection can arrive first. Its pending requests belong to this
+            // presentation epoch; observing the expected generation must not erase them.
+            if (state.generation === -1 || state.minGeneration > state.generation)
+                next = Object.freeze({ ...next, generation: input.generation, minGeneration: input.generation });
+            else {
+                close = ids(state);
+                cancel = Object.freeze(state.pending.map(r => r.id));
+                next = Object.freeze({ ...clear(next, false, state.minPts, input.generation), generation: input.generation });
+                if (next.closed)
+                    return discard('Retained epoch exhausted');
+            }
         }
         if (input.pendingTarget !== null && input.pts / 1e6 < input.pendingTarget - .15)
             return discard();
