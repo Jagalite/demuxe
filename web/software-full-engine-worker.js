@@ -113,7 +113,11 @@ function pumpAudio() {
   const h = engine.HEAPU32;
   const at = nativeAudio >>> 2;
   const nextEpoch = Atomics.load(h, at + 3);
-  const plan=planLegacyPCM(pcmControl,nextEpoch,Atomics.load(audio,4),Atomics.load(h,at));pcmControl=plan.state;
+  const acknowledged=Atomics.load(audio,4),sampledWritten=Atomics.load(h,at);
+  // A native reset can change the cursor after the first epoch sample.
+  // Validate the snapshot before the pure capacity check interprets it.
+  if(Atomics.load(h,at+3)!==nextEpoch)return;
+  const plan=planLegacyPCM(pcmControl,nextEpoch,acknowledged,sampledWritten);pcmControl=plan.state;
   if(plan.kind==='wait')return;
   const epoch=pcmControl.epoch;
   if(plan.kind==='reset'){

@@ -78,3 +78,17 @@ test('snapshot conversion retains its single physical slot across source replace
 test('detected container preroll and watchdog preferences belong to worker control',()=>{
  let state=reduce(initial(),{type:'format',format:'mpegts',software:false});assert.equal(state.seekPreroll,30);state=reduce(state,{type:'format',format:'matroska,webm',software:false});assert.equal(state.seekPreroll,.5);state=reduce(state,{type:'format',format:'mpegts',software:true});assert.equal(state.seekPreroll,1);state=reduce(state,{type:'decoder-watchdog',enabled:false});assert.equal(state.decoderOutputWatchdog,false);
 });
+
+for(const file of ['software-full-engine-worker.js','filter-retained-engine-worker.js']){
+ test(`${file}: PCM reset between epoch and cursor sampling is discarded`,async()=>{
+  const source=await readFile(process.env.LEGACY_WORKER_SOURCE_ROOT?process.env.LEGACY_WORKER_SOURCE_ROOT+'/'+file:new URL('../../web/'+file,import.meta.url),'utf8');
+  const code=source.slice(source.indexOf('function pumpAudio()'),source.indexOf('function tick()'));
+  const h=new Uint32Array(new SharedArrayBuffer(128)),audio=new Int32Array(new SharedArrayBuffer(64));h[3]=2;h[0]=1024;audio[4]=2;let first=true;
+  const atomics={load(a,i){const value=Atomics.load(a,i);if(a===h&&i===3&&first){first=false;Atomics.store(h,3,4);Atomics.store(h,0,0);}return value;},store:Atomics.store};
+  const context=vm.createContext({...policy,Atomics:atomics,engine:{HEAPU32:h},nativeAudio:0,audio,audioOnly:false,pcmControl:{epoch:2,forwarded:1024},control:{pendingTarget:null},CAPACITY:8192});
+  vm.runInContext(code,context);assert.doesNotThrow(()=>context.pumpAudio());
+  assert.equal(vm.runInContext('pcmControl.epoch',context),2);assert.equal(audio[0],0);
+  // A stable epoch with a real overrun must still fail closed.
+  h[3]=2;h[0]=1024+8193;assert.throws(()=>context.pumpAudio(),/PCM capacity invariant/);
+ });
+}

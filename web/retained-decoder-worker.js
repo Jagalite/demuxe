@@ -20,7 +20,6 @@ function clear(){
  transition({type:'reset'});const old=decoder;decoder=null;const retired=[...frames.values()];frames.clear();
  let failure;const clean=action=>{try{action();}catch(error){failure??=error;}};
  if(control.closed){
-  clean(()=>clearInterval(pumpTimer));clean(()=>pumpChannel?.port1.close());clean(()=>pumpChannel?.port2.close());
   if(header){const ticket=Atomics.load(header,0);if((ticket&3)===1){header[3]=IO;Atomics.store(header,0,ticket+1);Atomics.notify(header,0);}}
  }
  clean(()=>old?.destroy());for(const frame of retired)clean(()=>closeFrame(frame));
@@ -68,7 +67,6 @@ self.onmessage=({data})=>{
  if(data.type==='cancel'){
   if(control.closed)return;
   transition({type:'cancel'});let failure;try{clear();}catch(error){failure=error;}
-  for(const cleanup of [()=>clearInterval(pumpTimer),()=>pumpChannel?.port1.close(),()=>pumpChannel?.port2.close()])try{cleanup();}catch(error){failure??=error;}
   if(header){const ticket=Atomics.load(header,0);if((ticket&3)===1){header[3]=IO;Atomics.store(header,0,ticket+1);Atomics.notify(header,0);}}
   postMessage({stats:{...stats,outstanding:0,queued:0,active:false}});if(failure)postMessage({error:String(failure)});
   return;
@@ -79,22 +77,25 @@ self.onmessage=({data})=>{
  if(typeof Atomics.waitAsync==='function')void (async()=>{
   const channel=pumpChannel=new MessageChannel();
   const yieldTask=()=>new Promise(resolve=>{channel.port1.onmessage=resolve;channel.port2.postMessage(0);});
-  while(!control.closed){
+  for(;;){
    void pump();
    const state=Atomics.load(header,0);
    // The native thread can publish its next request before this load. Do not
    // wait for another notification when that request is already ready.
    if((state&3)===1&&!control.busy){await yieldTask();continue;}
    await Atomics.waitAsync(header,0,state,1000).value;
-   if(control.closed)break;await yieldTask();
+   await yieldTask();
   }
  })();
  else pumpTimer=setInterval(pump,1);
  postMessage({ready:true});
 };
 async function pump(){
- if(!header||control.closed)return;
+ if(!header)return;
  const ticket=Atomics.load(header,0);if((ticket&3)!==1)return;
+ // Cancellation retires decoding, but native destruction can still issue its
+ // close request afterward. Keep this bounded responder until owner termination.
+ if(control.closed){header[3]=header[2]===5?0:IO;Atomics.store(header,0,ticket+1);Atomics.notify(header,0);return;}
  if(control.busy){
   if(header[2]===5||header[2]===6){clear();header[3]=header[2]===5?0:IO;Atomics.store(header,0,ticket+1);Atomics.notify(header,0);}
   return;

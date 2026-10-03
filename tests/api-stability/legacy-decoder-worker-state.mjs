@@ -16,21 +16,39 @@ test('output watchdog charges only actual blocked receive and pause resets evide
  let state=reduce(initialized(),{type:'submitted'});state=policy.observeLegacyDecoderWait(state,8,10);assert.equal(state.outputWaitSince,10);assert.equal(policy.observeLegacyDecoderWait(state,8,3010).decoderTimeout,false);assert.equal(policy.observeLegacyDecoderWait(state,8,3011).decoderTimeout,true);assert.equal(policy.observeLegacyDecoderWait(state,0,1000).outputWaitSince,null);assert.equal(reduce(state,{type:'watchdog',enabled:false}).outputWaitSince,null);
 });
 const source=(await readFile(process.env.LEGACY_DECODER_SOURCE??new URL('../../web/retained-decoder-worker.js',import.meta.url),'utf8')).replace(/^import .*;$/gm,'');
-function worker(){
- const memory=new SharedArrayBuffer(10*1024*1024),header=new Int32Array(memory,0,16),messages=[],decoders=[],timers=new Map();let serial=0,supportResolve;
+function worker(waitAsync=false){
+ const memory=new SharedArrayBuffer(10*1024*1024),header=new Int32Array(memory,0,16),messages=[],decoders=[],timers=new Map();let serial=0,supportResolve;const waits=[];
  class Decoder {constructor(options){this.options=options;this.queuedPackets=0;this.destroyed=0;this.configured=0;decoders.push(this);}configure(){this.configured++;}destroy(){this.destroyed++;}submit(){return true;}drain(){return Promise.resolve();}}
- const context=vm.createContext({...policy,WebCodecsVideoDecoder:Decoder,videoCodecConfig:()=>({configuration:{codec:'avc1.640028'}}),VideoDecoder:{isConfigSupported:()=>new Promise(resolve=>supportResolve=resolve)},Int32Array,DataView,Uint8Array,Map,Set,WeakSet,performance:{now:()=>1000},Atomics:{load:Atomics.load,store:Atomics.store,notify:Atomics.notify},setInterval:callback=>{timers.set(++serial,callback);return serial;},clearInterval:id=>timers.delete(id),postMessage:message=>messages.push(message),self:{}});
- vm.runInContext(source,context);const send=data=>context.self.onmessage({data});send({memory,pointer:0});return {context,header,memory,messages,decoders,timers,send,run:code=>vm.runInContext(code,context),support(){supportResolve({supported:true});},request(operation,ticket=1){header[0]=ticket;header[2]=operation;header[4]=0;header[5]=1920;header[6]=1080;header[13]=1;return vm.runInContext('pump()',context);}};
+ const context=vm.createContext({...policy,WebCodecsVideoDecoder:Decoder,videoCodecConfig:()=>({configuration:{codec:'avc1.640028'}}),VideoDecoder:{isConfigSupported:()=>new Promise(resolve=>supportResolve=resolve)},Int32Array,DataView,Uint8Array,Map,Set,WeakSet,performance:{now:()=>1000},MessageChannel:class {constructor(){this.port1={};this.port2={postMessage:()=>queueMicrotask(()=>this.port1.onmessage?.({}))};}},Atomics:{load:Atomics.load,store:Atomics.store,notify:Atomics.notify,...(waitAsync?{waitAsync:()=>({value:new Promise(resolve=>waits.push(resolve))})}:{})},setInterval:callback=>{timers.set(++serial,callback);return serial;},clearInterval:id=>timers.delete(id),postMessage:message=>messages.push(message),self:{}});
+ vm.runInContext(source,context);const send=data=>context.self.onmessage({data});send({memory,pointer:0});return {context,header,memory,messages,decoders,timers,send,async wake(){waits.shift()();for(let i=0;i<6;i++)await Promise.resolve();},run:code=>vm.runInContext(code,context),support(){supportResolve({supported:true});},request(operation,ticket=1){header[0]=ticket;header[2]=operation;header[4]=0;header[5]=1920;header[6]=1080;header[13]=1;return vm.runInContext('pump()',context);}};
 }
 test('worker duplicate init cannot allocate another polling loop',()=>{
  const w=worker();w.send({memory:w.memory,pointer:0});assert.equal(w.timers.size,1);assert.ok(w.messages.some(m=>m.error?.includes('initialization unavailable')));
 });
-test('cancel stops polling and pending support check cannot create late decoder',async()=>{
- const w=worker(),pending=w.request(1);w.send({type:'cancel'});w.support();await pending;assert.equal(w.timers.size,0);assert.equal(w.decoders.length,0);assert.equal(w.header[3],-29);
+test('cancel retains only mailbox response polling and pending support check cannot create late decoder',async()=>{
+ const w=worker(),pending=w.request(1);w.send({type:'cancel'});w.support();await pending;assert.equal(w.timers.size,1);assert.equal(w.decoders.length,0);assert.equal(w.header[3],-29);
 });
 test('reset while configuration waits acknowledges reset and suppresses old configuration',async()=>{
  const w=worker(),pending=w.request(1);await w.request(5,5);w.support();await pending;assert.equal(w.decoders.length,0);assert.equal(w.header[0],6);assert.equal(w.header[3],0);
 });
 test('old decoder output after reset closes frame once and does not enter next generation',async()=>{
  const w=worker(),pending=w.request(1);w.support();await pending;const old=w.decoders[0];await w.request(5,5);let closed=0;const frame={close(){closed++;}};old.options.output(frame);old.options.output(frame);assert.equal(closed,1);assert.equal(w.run('control.frames.length'),0);
+});
+
+test('cancel acknowledges later native destruction without reopening decoder work',async()=>{
+ const w=worker(),pending=w.request(1);w.send({type:'cancel'});
+ // Native mpv destruction posts operation5 after the cancel message. Exercise
+ // the retained polling callback while the earlier support query is unresolved.
+ w.header[0]=5;w.header[2]=5;await [...w.timers.values()][0]();
+ assert.equal(w.header[0],6);assert.equal(w.header[3],0);
+ w.header[0]=9;w.header[2]=1;await [...w.timers.values()][0]();
+ assert.equal(w.header[0],10);assert.equal(w.header[3],-29);
+ w.support();await pending;assert.equal(w.decoders.length,0);assert.equal(w.header[0],10);
+ w.send({type:'cancel'});assert.equal(w.timers.size,1);
+});
+
+test('cancel keeps Atomics wait service available for subsequent native close',async()=>{
+ const w=worker(true);assert.equal(w.timers.size,0);w.send({type:'cancel'});
+ w.header[0]=5;w.header[2]=5;await w.wake();assert.equal(w.header[0],6);assert.equal(w.header[3],0);
+ w.header[0]=9;w.header[2]=2;await w.wake();assert.equal(w.header[0],10);assert.equal(w.header[3],-29);assert.equal(w.decoders.length,0);
 });
