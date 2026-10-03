@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: Apache-2.0
-import {chromium,firefox} from 'playwright';
+import {chromium,firefox,webkit} from 'playwright';
 import {closeTestBrowser} from './head-to-head/browser-exit.mjs';
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 const family=process.env.BROWSER||'chrome';
+if(!['chrome','chromium','firefox','webkit'].includes(family))throw Error(`Unsupported BROWSER: ${family}`);
 const out=`results/player-presentation/${family}-${new Date().toISOString().replaceAll(':','-')}`;console.log(out);await mkdir(out,{recursive:true});
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
 const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',data=>{const match=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(match)resolve(match[0]);});});
 let browser;const checks=[];
 try{
- browser=await(family==='firefox'?firefox:chromium).launch({headless:true,...(family==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{})});
+ browser=await(family==='firefox'?firefox:family==='webkit'?webkit:chromium).launch({headless:true,...(family==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{})});
  const page=await browser.newPage({viewport:{width:1200,height:1000},reducedMotion:'reduce'});
  const errors=[];page.on('pageerror',error=>errors.push(String(error)));
- const check=async(name,fn)=>{try{await fn();checks.push({name,passed:true});console.log('PASS',name);}catch(error){const diagnostic=await page.evaluate(()=>({host:document.querySelector('#viewer')?.outerHTML,shadow:document.querySelector('#viewer')?.shadowRoot?.innerHTML})).catch(()=>null);await page.screenshot({path:`${out}/failure.png`}).catch(()=>{});checks.push({name,passed:false,error:String(error.stack),pageErrors:[...errors],diagnostic});throw error;}finally{await writeFile(`${out}/result.json`,JSON.stringify({browser:browser.version(),checks},null,2));}};
+ const check=async(name,fn)=>{try{await fn();checks.push({name,passed:true});console.log('PASS',name);}catch(error){const diagnostic=await page.evaluate(()=>({host:document.querySelector('#viewer')?.outerHTML,shadow:document.querySelector('#viewer')?.shadowRoot?.innerHTML})).catch(()=>null);await page.screenshot({path:`${out}/failure.png`}).catch(()=>{});checks.push({name,passed:false,error:String(error.stack),pageErrors:[...errors],diagnostic});process.exitCode=1;}finally{await writeFile(`${out}/result.json`,JSON.stringify({browser:browser.version(),checks},null,2));}};
  await page.goto(origin+'/examples/player-presentation.html');
  await page.evaluate(async()=>{window.viewer=document.querySelector('demuxe-player');window.core=await viewer.ready;window.$=id=>viewer.shadowRoot.getElementById(id);});
  await check('independent defaults, validation and pre-upgrade attributes',async()=>{
@@ -111,13 +112,16 @@ try{
   await page.locator('#viewer #stage').dispatchEvent('click');
   await page.keyboard.press('Tab');
   assert.equal(await page.evaluate(()=>$('shell').classList.contains('idle')),false);
+  // macOS WebKit uses Option+Tab to include native buttons in keyboard navigation.
+  const nextControl=family==='webkit'&&process.platform==='darwin'?'Alt+Tab':'Tab';
+  if(nextControl==='Alt+Tab'){await page.evaluate(()=>$('stage').focus());await page.keyboard.press(nextControl);}
   // Firefox can visit the native media surface before the shared controls.
-  for(let n=0;n<3&&await page.evaluate(()=>viewer.shadowRoot.activeElement?.id!=='play');n++)await page.keyboard.press('Tab');
+  for(let n=0;n<3&&await page.evaluate(()=>viewer.shadowRoot.activeElement?.id!=='play');n++)await page.keyboard.press(nextControl);
   assert.equal(await page.evaluate(()=>viewer.shadowRoot.activeElement?.id),'play');
   await page.evaluate(()=>viewer.update(core.state));
  });
  await check('modern previews remain independent of playback and dismiss on layout changes',async()=>{
-  await page.evaluate(()=>{$('stage').focus();window.previewPosition=core.state.currentTime;});
+  await page.evaluate(()=>{viewer.update(core.state);$('stage').focus();window.previewPosition=core.state.currentTime;});
   const rect=await page.locator('#viewer #timeline').boundingBox();
   await page.mouse.move(rect.x+rect.width*.4,rect.y+rect.height/2);
   await page.locator('#viewer #thumbnail-preview').waitFor({state:'visible'});

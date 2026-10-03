@@ -28,8 +28,8 @@ async function deadline(operation, timeoutMs, label) {
 /** Discovery failures must still close the owned browser, and must not qualify
  * process retirement without evidence. Bound both discovery and fallback close. */
 export async function closeTestBrowser(browser, family, {timeoutMs = 15000} = {}) {
-  if (family === 'firefox') {
-    await deadline(() => browser.close(), timeoutMs, 'Firefox teardown');
+  if (family === 'firefox' || family === 'webkit') {
+    await deadline(() => browser.close(), timeoutMs, family === 'firefox' ? 'Firefox teardown' : 'WebKit teardown');
     return {playwrightCloseAcknowledged: true};
   }
   let ids, discoveryError;

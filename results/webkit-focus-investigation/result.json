@@ -1,0 +1,39 @@
+{
+  "scope": "Investigation only; no production or maintained test edits in this turn",
+  "browser": "Playwright WebKit 26 on macOS",
+  "findings": [
+    {
+      "type": "player focus bug",
+      "source": "src/player/index.ts:493",
+      "cause": "WebKit pointer activation blurs the focused player stage without focusing the native Play/Pause button. Keydown is scoped to the player, so keys delivered to BODY are not handled. Play restores stage focus only after the async play operation; Pause has no corresponding focus restoration.",
+      "observed": "Immediate Play then M succeeded in 1 of 6 control trials; synchronous stage focus during click succeeded in 6 of 6. Pause then 700ms wait then M also failed without correction and passed with correction.",
+      "controlFocusDelayMs": [
+        40.9,
+        128.9,
+        184.0,
+        133.8,
+        210.2,
+        60.1
+      ],
+      "recommendation": "Keep focus inside the component synchronously when activating transport controls; retain keyboard, form-input and multi-player scoping. Regression coverage should include both Play and Pause followed by shortcuts.",
+      "correctionStatus": "Validated using an in-page click listener only; production not changed."
+    },
+    {
+      "type": "test platform assumption",
+      "source": "tests/player-presentation.mjs:108",
+      "cause": "Ordinary Tab skips native buttons under the observed macOS WebKit keyboard navigation policy; Alt+Tab reaches them.",
+      "observed": "Ordinary Tab reveals hidden player controls as intended. Alt+Tab reaches Play with timeline/back/forward disabled, in both minimal DOM and real loaded player.",
+      "recommendation": "Keep the ordinary Tab reveal assertion and use Alt+Tab for macOS WebKit native-button reachability. Do not override native tabindex or suppress the assertion."
+    }
+  ],
+  "receipts": [
+    "play-click-trace.json",
+    "play-focus-comparison.json",
+    "pause-focus-comparison.json",
+    "tab-navigation.json"
+  ],
+  "limits": [
+    "Browser-engine experiment, not physical Safari or iOS qualification.",
+    "No production changes, commit or push."
+  ]
+}

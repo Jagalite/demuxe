@@ -1,0 +1,35 @@
+{
+  "scope": "Focused local WebKit keyboard-navigation diagnosis; no product changes",
+  "browser": "Playwright WebKit 26.0",
+  "platform": "macOS",
+  "headless": true,
+  "reportedFailure": {
+    "test": "tests/player-presentation.mjs",
+    "check": "Tab can reveal hidden modern controls when the timeline is unavailable",
+    "failure": "Expected shadowRoot.activeElement.id to equal play; observed undefined",
+    "controlsRevealAssertion": "passed"
+  },
+  "plainDomExperiment": {
+    "html": "<div id=stage tabindex=0>stage</div><button id=play>play</button><input id=volume type=range><input id=text><a id=link href=#>link</a>",
+    "setup": "Focus stage before each key sequence",
+    "tabActiveElementIds": ["text", "", "stage", "text", ""],
+    "altTabActiveElementIds": ["play", "volume", "text", "link", ""]
+  },
+  "realPlayerExperiment": {
+    "url": "http://127.0.0.1:4183/examples/player-presentation.html",
+    "media": "/fixtures/example.mp4",
+    "layout": "modern",
+    "setup": "Await viewer.ready, open media, focus stage, disable timeline/back/forward, dispatch touch pointerdown and click on stage to hide controls. Repeat setup for each key.",
+    "tab": {
+      "before": {"idle": true, "shadowActiveElementId": "stage", "documentActiveElementId": "viewer"},
+      "after": {"idle": false, "shadowActiveElementId": null, "documentActiveElementId": ""}
+    },
+    "altTab": {
+      "before": {"idle": true, "shadowActiveElementId": "stage", "documentActiveElementId": "viewer"},
+      "after": {"idle": false, "shadowActiveElementId": "play", "documentActiveElementId": "viewer"}
+    }
+  },
+  "conclusion": "The player successfully reveals controls on ordinary Tab. The failed assertion assumes ordinary Tab includes native buttons, but this local macOS WebKit configuration skips buttons and range inputs. Alt+Tab reaches the play button without changing the product.",
+  "recommendedTestCorrection": "Keep ordinary Tab and its idle=false assertion. For the subsequent button-navigation assertion, focus stage again and use Alt+Tab in macOS WebKit, ordinary Tab elsewhere. Preserve disabled-control setup and the bounded allowance for a native media surface before play.",
+  "limits": "Observed behavior of this local WebKit configuration; not a claim about every Safari keyboard-navigation preference or platform. No package or endurance qualification."
+}

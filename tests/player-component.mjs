@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-import {chromium,firefox} from 'playwright';import {spawn} from 'node:child_process';import {mkdir,writeFile,readFile} from 'node:fs/promises';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';
-const family=process.env.BROWSER||'chrome',out=`results/player-component/${family}-${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});console.log(out);
+import {chromium,firefox,webkit} from 'playwright';import {spawn} from 'node:child_process';import {mkdir,writeFile,readFile} from 'node:fs/promises';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';
+const family=process.env.BROWSER||'chrome';
+if(!['chrome','chromium','firefox','webkit'].includes(family))throw Error(`Unsupported BROWSER: ${family}`);
+const out=`results/player-component/${family}-${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});console.log(out);
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',d=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(d));if(m)resolve(m[0]);});});
-const browser=await(family==='firefox'?firefox:chromium).launch({headless:true,...(family==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{})});const page=await browser.newPage({viewport:{width:1280,height:1000}});page.setDefaultTimeout(30000);const errors=[];page.on('pageerror',e=>errors.push(String(e)));
+const browser=await(family==='firefox'?firefox:family==='webkit'?webkit:chromium).launch({headless:true,...(family==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{})});const page=await browser.newPage({viewport:{width:1280,height:1000}});page.setDefaultTimeout(30000);const errors=[];page.on('pageerror',e=>errors.push(String(e)));
 const result={family,browser:browser.version(),checks:[],hashes:{},screenReader:'Semantic accessibility tree and keyboard checks; no physical screen-reader session'};for(const p of ['src/player/index.ts','src/player/styles.ts','src/unified-player.ts','tests/player-component.mjs'])result.hashes[p]=createHash('sha256').update(await readFile(p)).digest('hex');
 result.browserEvents=[];for(const event of ['crash','close'])page.on(event,()=>result.browserEvents.push({event,time:Date.now()}));browser.on('disconnected',()=>result.browserEvents.push({event:'disconnected',time:Date.now()}));
 async function check(name,fn){try{await fn();result.checks.push({name,passed:true});console.log('PASS',name);}catch(e){result.checks.push({name,passed:false,error:String(e.stack)});console.log('FAIL',name,String(e));process.exitCode=1;}await writeFile(out+'/result.json',JSON.stringify(result,null,2));}
@@ -177,6 +179,28 @@ await check('stable parts, light theme and long titles preserve embedded layout'
 });
 await check('same public core and independent playback',async()=>{await page.evaluate(async()=>{const file=new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'example.mp4');await a.open(file);await b.open(file);window.events=[];a.addEventListener('sourcechange',e=>events.push(e.detail));});await page.locator('demuxe-player').first().getByRole('button',{name:'Play',exact:true}).click();await page.waitForFunction(()=>a.player.state.status==='playing'&&a.player.state.currentTime>.3);assert.equal(await page.evaluate(()=>b.player.state.status),'paused');await page.evaluate(()=>a.pause());});
 await check('keyboard shortcuts scoped and focused controls retain native behavior',async()=>{const a=page.locator('demuxe-player').first();await a.locator('#stage').focus();await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.playbackIntent==='play');assert.equal(await page.evaluate(()=>b.player.state.playbackIntent),'pause');await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='paused');await a.locator('#timeline').focus();const before=await page.evaluate(()=>a.player.state.currentTime);await page.keyboard.press('ArrowRight');await page.waitForTimeout(200);assert.ok((await page.evaluate(()=>a.player.state.currentTime))-before<1);});
+await check('pointer Play and Pause keep immediate shortcuts scoped to the active player',async()=>{
+ const v=page.locator('demuxe-player').first();
+ const initialTime=await page.evaluate(()=>a.player.state.currentTime);
+ await page.evaluate(async()=>{await a.pause();await a.seek(1);await a.setMuted(false);await b.setMuted(false);a.shadowRoot.getElementById('stage').focus();});
+ // Let real playback run, but hold the component promise so delayed focus repair
+ // cannot mask a shortcut lost immediately after pointer activation.
+ await page.evaluate(()=>{const play=a.play;let release;const pending=new Promise(resolve=>{release=resolve;});window.restoreFocusPlay=()=>{a.play=play;release();delete window.restoreFocusPlay;};a.play=async(...args)=>{await play.apply(a,args);await pending;};});
+ try{
+  await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#play').click();
+  assert.equal(await page.evaluate(()=>document.activeElement===a),true,'Play retains focus before its asynchronous completion');
+  await page.keyboard.press('m');await page.waitForFunction(()=>a.player.state.muted&&a.player.state.status==='playing');
+ }finally{await page.evaluate(()=>window.restoreFocusPlay?.());}
+ await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#play').click();
+ assert.equal(await page.evaluate(()=>document.activeElement===a),true,'Pause retains focus before its asynchronous completion');
+ await page.keyboard.press('m');await page.waitForFunction(()=>!a.player.state.muted&&a.player.state.status==='paused');
+ assert.deepEqual(await page.evaluate(()=>({status:b.player.state.status,muted:b.player.state.muted})),{status:'paused',muted:false});
+ // Existing native button focus is preserved for keyboard activation.
+ await page.evaluate(()=>a.play());await v.dispatchEvent('pointermove',{pointerType:'mouse'});
+ await v.locator('#play').focus();await page.keyboard.press('Enter');await page.waitForFunction(()=>a.player.state.status==='paused');
+ assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement?.id),'play');
+ await page.evaluate(time=>a.seek(time),initialTime);
+});
 await check('hidden controls retain shortcuts and button focus allows playback keys',async()=>{
  const v=page.locator('demuxe-player').first();await v.locator('#stage').click({position:{x:30,y:100}});assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')));
  await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='playing');await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='paused');assert.equal(await page.evaluate(()=>b.player.state.status),'paused');
@@ -221,7 +245,7 @@ await check('late playback updates and held play keys do not reopen controls',as
 });
 await check('hidden seeking briefly reveals only the timeline without a pill',async()=>{
  const v=page.locator('demuxe-player').first();await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#stage').click({position:{x:30,y:100}});
- for(const key of ['ArrowRight','ArrowLeft']){await page.keyboard.press(key);await page.waitForFunction(()=>a.player.state.pendingOperation===null);await page.waitForTimeout(300);assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')&&el.classList.contains('seek-preview')));await v.locator('#busy').waitFor({state:'hidden',timeout:1000});assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'1');assert.equal(await v.locator('.row').evaluate(el=>getComputedStyle(el).visibility),'hidden');assert.equal(await v.locator('#transport').evaluate(el=>getComputedStyle(el).opacity),'0');assert.match(await v.locator('#time').textContent(),/\d+:\d{2}/);}
+ for(const key of ['ArrowRight','ArrowLeft']){await page.keyboard.press(key);await page.waitForFunction(()=>a.player.state.pendingOperation===null);await page.waitForTimeout(300);assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')&&el.classList.contains('seek-preview')),JSON.stringify(await v.evaluate(el=>({classes:el.shadowRoot.getElementById('shell').className,status:el.player.state.status,time:el.player.state.currentTime,focus:el.shadowRoot.activeElement?.id}))));await v.locator('#busy').waitFor({state:'hidden',timeout:1000});assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'1');assert.equal(await v.locator('.row').evaluate(el=>getComputedStyle(el).visibility),'hidden');assert.equal(await v.locator('#transport').evaluate(el=>getComputedStyle(el).opacity),'0');assert.match(await v.locator('#time').textContent(),/\d+:\d{2}/);}
  await page.waitForFunction(()=>!a.shadowRoot.getElementById('shell').classList.contains('seek-preview'));await page.waitForTimeout(300);assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'0');
 });
 await check('buffering indicator and truthful disjoint timeline ranges',async()=>{

@@ -1,0 +1,89 @@
+{
+  "date": "2026-10-03",
+  "baselineCommit": "5be050f9",
+  "scope": "WebKit transport focus and macOS keyboard navigation regression fix",
+  "browserChecks": [
+    {
+      "suite": "player-component",
+      "family": "chrome",
+      "passed": 53,
+      "failed": 0,
+      "receipt": "results/player-component/chrome-2026-10-03T16-48-27.550Z/result.json"
+    },
+    {
+      "suite": "player-component",
+      "family": "firefox",
+      "passed": 53,
+      "failed": 0,
+      "receipt": "results/player-component/firefox-2026-10-03T16-48-27.551Z/result.json"
+    },
+    {
+      "suite": "player-component",
+      "family": "webkit",
+      "passed": 53,
+      "failed": 0,
+      "receipt": "results/player-component/webkit-2026-10-03T16-50-04.912Z/result.json"
+    },
+    {
+      "suite": "player-presentation",
+      "family": "chrome",
+      "passed": 22,
+      "failed": 0,
+      "receipt": "results/player-presentation/chrome-2026-10-03T16-47-23.226Z/result.json"
+    },
+    {
+      "suite": "player-presentation",
+      "family": "firefox",
+      "passed": 22,
+      "failed": 0,
+      "receipt": "results/player-presentation/firefox-2026-10-03T16-47-23.226Z/result.json"
+    },
+    {
+      "suite": "player-presentation",
+      "family": "webkit",
+      "passed": 22,
+      "failed": 0,
+      "receipt": "results/player-presentation/webkit-2026-10-03T16-45-21.123Z/result.json"
+    }
+  ],
+  "totalPassed": 225,
+  "negativeControl": {
+    "receipt": "fix-regression-final.json",
+    "oldWebKitCodeRejectsNewAssertion": true,
+    "updatedCodePasses": [
+      "webkit",
+      "chrome",
+      "firefox"
+    ]
+  },
+  "validation": {
+    "typescript": "passed",
+    "ownershipAudit": {
+      "supportedReviewedFields": 879,
+      "changedSources": 0,
+      "pendingDynamicWrites": 0
+    },
+    "whitespace": "passed"
+  },
+  "fixes": [
+    "Restore stage focus synchronously after trusted Play/Pause pointer activation when native blur leaves no in-player focus; preserve existing button or explicit outside focus.",
+    "Retain ordinary Tab reveal check and use Option+Tab for macOS WebKit native-button reachability.",
+    "Hold real Play completion at component boundary in regression to prevent delayed focus restoration from masking the bug; test immediate shortcuts after Play and Pause and keyboard activation."
+  ],
+  "sourceHashes": {
+    "src/player/index.ts": "8f09b783d4998addc5df35c8f42ef78d778f0cfdf6befe6efd74c0d4965f41e7",
+    "web/generated/player/index.js": "15d5e0b88c6b906c8261fc0f2a3573678d2ca470125e108cfcf697b14d1c42c7",
+    "tests/player-component.mjs": "f57bd6d3bbe19601f840c3f0743a8345a8ee95902abc291b947b261f5debddd6",
+    "tests/player-presentation.mjs": "e8f65aef77423d0a3024d87f5875864799db804c6d133a5b54a6c40ac58cc52c"
+  },
+  "notes": [
+    "Earlier keyboard assertion assumed asynchronous Play focus restoration had completed; corrected test setup to begin keyboard Pause from awaited playback.",
+    "An earlier combined WebKit run failed the existing seek-preview timing assertion; new regression now restores starting position, and the final full WebKit rerun passed. Original failed receipts retained.",
+    "No production playback state machine or seek-preview policy changed."
+  ],
+  "limits": [
+    "Local browser engines with real MP4; not physical Safari/iOS, exhaustive fixtures, endurance, or release archive qualification."
+  ],
+  "committed": false,
+  "pushed": false
+}

@@ -47,7 +47,9 @@ test('empty process inventory closes but cannot qualify retirement', async () =>
   assert.equal(closed, 1);
 });
 
-test('Firefox close acknowledgement succeeds and a stalled close times out', {timeout: 2000}, async () => {
-  assert.deepEqual(await closeTestBrowser({close: async () => {}}, 'firefox'), {playwrightCloseAcknowledged: true});
-  await assert.rejects(closeTestBrowser({close: pending}, 'firefox', {timeoutMs: 20}), /Firefox teardown timed out/);
-});
+for (const [family, label] of [['firefox', 'Firefox'], ['webkit', 'WebKit']]) {
+  test(`${label} close acknowledgement succeeds and a stalled close times out`, {timeout: 2000}, async () => {
+    assert.deepEqual(await closeTestBrowser({close: async () => {}}, family), {playwrightCloseAcknowledged: true});
+    await assert.rejects(closeTestBrowser({close: pending}, family, {timeoutMs: 20}), new RegExp(`${label} teardown timed out`));
+  });
+}

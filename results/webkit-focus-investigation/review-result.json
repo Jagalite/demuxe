@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-03",
+  "baselineCommit": "5be050f9",
+  "scope": "Review and closeout of WebKit focus fix and local browser/smoke coverage",
+  "review": {
+    "productionFindings": [],
+    "fixedHarnessFindings": [
+      "Smoke checked nonexistent PlayerState.paused; now requires actual playing status and Software mode.",
+      "A browser startup or cleanup failure could abort the three-browser runner and leave incomplete receipts; now every browser is attempted, cleanup recorded, and all nine cases are required.",
+      "Unrecognized BROWSER values silently selected Chromium; component/presentation runners now reject them."
+    ],
+    "additionalImprovements": [
+      "Three-browser runner owns an ephemeral server and records runtime/source/fixture identity.",
+      "Real video-frame counters and software/hybrid audio-sample counters supplement public state assertions.",
+      "Smoke waits for mode selection and records example state; uses decoded file URLs and always closes browser when result writing fails."
+    ]
+  },
+  "validation": {
+    "uiChecks": {
+      "passed": 225,
+      "receipt": "results/webkit-focus-investigation/fix-result.json",
+      "productionHashesUnchanged": true,
+      "reviewOnlyChangesToUISuites": "Reject unsupported BROWSER values; both rejection paths checked."
+    },
+    "realPlaybackCases": 9,
+    "playbackReceipt": "results/local-player-three-browser/2026-10-03T16-55-28.550Z/result.json",
+    "smoke": {
+      "passed": true,
+      "receipt": "results/webkit-focus-investigation/review-release-smoke.json"
+    },
+    "teardownTests": {
+      "passed": 10,
+      "failed": 0
+    },
+    "missingBrowserControl": {
+      "passed": true,
+      "expectedRunnerExit": 1,
+      "allBrowsersAttempted": true,
+      "failedReceiptSaved": true,
+      "ownedServerStopped": true,
+      "receipt": "results/local-player-three-browser/2026-10-03T16-55-59.090Z/result.json"
+    },
+    "typeScript": "Previous full compilation remains valid; production source unchanged during review.",
+    "ownershipAudit": {
+      "supportedReviewedFields": 879,
+      "changedSources": 0,
+      "pendingDynamicWrites": 0
+    },
+    "whitespace": "passed"
+  },
+  "sourceHashes": {
+    "src/player/index.ts": "8f09b783d4998addc5df35c8f42ef78d778f0cfdf6befe6efd74c0d4965f41e7",
+    "web/generated/player/index.js": "15d5e0b88c6b906c8261fc0f2a3573678d2ca470125e108cfcf697b14d1c42c7",
+    "tests/player-component.mjs": "a66f1f3376c53fff9e36054344b99fd16626bb3ffa92058615bbd88b9ae7e8c1",
+    "tests/player-presentation.mjs": "35cd443010a362be0eae42d30359d258c199d020a90fcc0e7b56d06ab41f579c",
+    "tests/release-smoke.mjs": "b6496a4bcfa93f0037a6c0ade753fa055cb3f80631c08449851654c6c28f2c11",
+    "tests/local-player-three-browser.mjs": "e302c310bef7346840e6bf4f0c0f060e0331b5cf0556bc3d62ec2cd3580ce052",
+    "tests/head-to-head/browser-exit.mjs": "d4007517fa71fbc9ac8fbf0ccbd9673d494fb2c703c663a6ac7e11aaaaa8164e",
+    "tests/head-to-head/browser-exit.test.mjs": "1a4cc7ed3d380e12701d5a68cdc2e80daea0a824bacaafd305fbd1c10ab1a397"
+  },
+  "limits": [
+    "Local browser engines and selected real fixtures, not physical Safari/iOS or packaged release qualification.",
+    "Screenshots and intermediate logs remain local; selected JSON receipts are included in the scoped commit.",
+    "No long endurance or performance qualification."
+  ],
+  "git": {
+    "stateAtValidation": "uncommitted; included in subsequent scoped commit",
+    "pushed": false
+  }
+}

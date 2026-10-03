@@ -934,8 +934,16 @@ export class DemuxePlayerElement extends Base {
             return; event.preventDefault(); this.addFiles(Array.from(event.dataTransfer.files)); });
         this.$('back').onclick = () => this.skip(-this.seekStep);
         this.$('forward').onclick = () => this.skip(this.seekStep);
-        this.$('play').onclick = () => { if (this.core)
-            this.run(this.core.state.playbackIntent === 'play' ? this.pause() : this.playFromControls()); };
+        this.$('play').onclick = event => {
+            // WebKit can blur the stage without focusing a pointer-activated button.
+            // Recover before async playback so the next shortcut still reaches us.
+            const active = this.ownerDocument.activeElement;
+            if (event.isTrusted && event.detail > 0 && !this.shadowRoot.activeElement &&
+                (active === this.ownerDocument.body || active === this.ownerDocument.documentElement || active === this))
+                this.$('stage').focus({ preventScroll: true });
+            if (this.core)
+                this.run(this.core.state.playbackIntent === 'play' ? this.pause() : this.playFromControls());
+        };
         this.$('mute').onclick = () => { if (this.core)
             this.run(this.setMuted(!this.core.state.muted)); };
         this.input('volume').oninput = () => this.$('volume').style.setProperty('--volume-progress', `${Number(this.input('volume').value) * 100}%`);
