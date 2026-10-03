@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
+import * as subtitleWorkerCore from '../web/generated/internal/machine/subtitle-worker.js';
 
 // Run the production worker RPC handlers with a static cue oracle and controlled
 // timers. Demux delay sleeps are stubbed separately from deadline timers. Keep the decoded timing epoch constant: crossing a cue is not decoding.
@@ -22,7 +23,7 @@ function worker({ass=false,packetWaits=0}={}){
   _subtitle_service_text(){return 0;},_web_subtitle_ptr(){return 16;},
   _subtitle_service_select(){return 0;},_subtitle_service_seek(){calls.seeks++;eof=false;return 0;},
   _subtitle_service_bitmap_recovery_point(){return -1;}};
- const context=vm.createContext({onmessage:null,postMessage:m=>messages.push(m),TextDecoder,AbortController,
+ const context=vm.createContext({...subtitleWorkerCore,performance:{now:()=>now},onmessage:null,postMessage:m=>messages.push(m),TextDecoder,AbortController,
   setTimeout:(fn,ms)=>{timers.set(++id,{fn,due:now+ms});return id;},
   clearTimeout:id=>timers.delete(id),testEngine:engine,
   SubtitleOverlay:class{serial=0;clear(){}read(){return {surface:null};}draw(){}},

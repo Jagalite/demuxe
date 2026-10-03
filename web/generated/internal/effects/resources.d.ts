@@ -36,12 +36,24 @@ export declare class ResourceRegistry {
     private readonly store;
     private get ledger();
     private readonly handles;
+    private readonly acquisitions;
     private readonly completions;
     private readonly scopes;
     private disposal?;
     private readonly scheduleCleanupTimeout;
     constructor(options?: ResourceRegistryOptions);
     private transition;
+    /** Reserve bounded metadata before constructing the physical owner. A late
+     * acquisition remains attached to its original cleanup continuation/deadline. */
+    reserve(registration: Readonly<{
+        id: string;
+        scopeKey: string;
+        kind: string;
+    }>): void;
+    acquire<T>(registration: ResourceRegistration<T> & Readonly<{
+        ownership: 'owned';
+    }>): Promise<void>;
+    abandon(id: string, expectedScopeKey?: string): Promise<void>;
     register<T>(registration: ResourceRegistration<T>): Promise<void>;
     get<T = unknown>(id: string, expectedScopeKey?: string): T;
     isScopeRetired(scopeKey: string): boolean;
@@ -51,6 +63,7 @@ export declare class ResourceRegistry {
     get diagnostics(): Readonly<{
         disposed: boolean;
         registered: number;
+        reserved: number;
         active: number;
         retiring: number;
         releasing: number;
@@ -75,6 +88,7 @@ export declare class ResourceRegistry {
             kind: string;
             ownership: "owned" | "borrowed";
             state: import("../machine/resource-ledger.js").ResourcePhase;
+            acquired?: boolean;
         }>[];
         failures: readonly Readonly<{
             id: string;

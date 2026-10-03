@@ -41,7 +41,7 @@ export type TraceInput = Readonly<{
 }> | Readonly<{
     kind: 'resource';
     resourceId: number;
-    phase: 'acquired' | 'retired' | 'released' | 'failed' | 'detached';
+    phase: 'reserved' | 'acquired' | 'retired' | 'released' | 'failed' | 'detached';
 }> | Readonly<{
     kind: 'omitted';
     category: 'source' | 'filters' | 'attachments' | 'tracks' | 'other';

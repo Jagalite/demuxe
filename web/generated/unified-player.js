@@ -152,12 +152,18 @@ export class Player extends EventTarget {
     sessionCleanups = new WeakMap();
     sessionListeners = new WeakMap();
     get ownedResources() { return this.resourceRegistry ??= new ResourceRegistry({ store: { read: () => this.control.resources, dispatch: input => this.dispatchControl({ type: 'resource.event', input }).resource } }); }
-    registerSession(session, id) {
+    registerSession(session, id, reserved = false) {
         const token = { id: `resource:${id}`, scope: `scope:${id}` };
-        const completion = this.ownedResources.register({ id: token.id, scopeKey: token.scope, kind: 'backend-session', ownership: 'owned', value: session.backend, release: () => this.releaseSession(session) });
-        this.sessionResources.set(session, token);
-        this.backendSessions.set(session.backend, session);
-        Object.defineProperty(session, 'retired', { configurable: true, get: () => !resourceAvailable(this.control.resources, token.id) });
+        const install = () => { this.sessionResources.set(session, token); this.backendSessions.set(session.backend, session); Object.defineProperty(session, 'retired', { configurable: true, get: () => !resourceAvailable(this.control.resources, token.id) }); };
+        const registration = { id: token.id, scopeKey: token.scope, kind: 'backend-session', ownership: 'owned', value: session.backend, release: () => this.releaseSession(session) };
+        // A reserved owner may already be retiring while its constructor returns.
+        // Install identity before publishing the late handle to its cleanup waiter.
+        if (reserved) {
+            install();
+            return this.ownedResources.acquire(registration);
+        }
+        const completion = this.ownedResources.register(registration);
+        install();
         return completion;
     }
     releaseSession(session) {
@@ -1110,49 +1116,69 @@ export class Player extends EventTarget {
         const sessionId = this.control.source.candidate?.session;
         if (sessionId === undefined)
             throw new PlayerError('ABORTED', 'Source allocation retired');
-        let backend;
-        const recipe = executionRecipe(planId);
-        const backendKind = recipe?.backend ?? (mode === 'native' ? 'NativePlayer' : 'WasmPlayer');
-        const surface = document.createElement(mode === 'native' ? 'video' : 'canvas');
-        surface.width = this.width;
-        surface.height = this.height;
-        surface.style.cssText = 'display:none;width:100%;background:#000';
-        // Import before allocating workers; destroy during import cannot orphan an engine.
-        const module = backendKind === 'PrivateSoftwarePlayer' ? await this.interruptible(loadProviderModule('mpv-private-player', this.assetBase)) : backendKind === 'ShakaBackend' ? await this.interruptible(import('./internal/shaka-backend.js')) : backendKind === 'NativePlayer' ? await this.interruptible(import('./internal/native-player.js')) : await this.interruptible(loadProviderModule('mpv-player', this.assetBase));
-        const engine = mode === 'hybrid' ? 'engine-hybrid' : this.softwarePresenter === 'rgb' ? 'engine-software-full' : 'engine-software-yuv';
-        const prepared = mode === 'native' || backendKind === 'PrivateSoftwarePlayer' ? undefined : await this.interruptible(this.providerRuntime ? Promise.all([mode === 'software' ? Promise.resolve(undefined) : this.providerRuntime.module(`web/${engine}/player.wasm`), this.providerRuntime.bytes('fixtures/DejaVuSans.ttf')]).then(([module, font]) => ({ module, font })) : this.preparation?.readyEngine(engine) ?? Promise.resolve(undefined));
-        this.assertOperation();
+        const token = { id: `resource:${sessionId}`, scopeKey: `scope:${sessionId}`, kind: 'backend-session' };
+        this.ownedResources.reserve(token);
+        let surface, session;
+        const current = () => { this.assertOperation(); if (sessionAuthority(this.control, sessionId) === 'retired')
+            throw new PlayerError('ABORTED', 'Source allocation retired'); };
         try {
-            this.root.append(surface);
-            this.assertOperation();
-        }
-        catch (error) {
-            surface.remove();
-            throw error;
-        }
-        try {
+            current();
+            let backend;
+            const recipe = executionRecipe(planId);
+            const backendKind = recipe?.backend ?? (mode === 'native' ? 'NativePlayer' : 'WasmPlayer');
+            const create = document.createElement;
+            current();
+            surface = create.call(document, mode === 'native' ? 'video' : 'canvas');
+            current();
+            surface.width = this.width;
+            current();
+            surface.height = this.height;
+            current();
+            const style = surface.style;
+            current();
+            style.cssText = 'display:none;width:100%;background:#000';
+            current();
+            // Import before allocating workers; destroy during import cannot orphan an engine.
+            const module = backendKind === 'PrivateSoftwarePlayer' ? await this.interruptible(loadProviderModule('mpv-private-player', this.assetBase)) : backendKind === 'ShakaBackend' ? await this.interruptible(import('./internal/shaka-backend.js')) : backendKind === 'NativePlayer' ? await this.interruptible(import('./internal/native-player.js')) : await this.interruptible(loadProviderModule('mpv-player', this.assetBase));
+            const engine = mode === 'hybrid' ? 'engine-hybrid' : this.softwarePresenter === 'rgb' ? 'engine-software-full' : 'engine-software-yuv';
+            const prepared = mode === 'native' || backendKind === 'PrivateSoftwarePlayer' ? undefined : await this.interruptible(this.providerRuntime ? Promise.all([mode === 'software' ? Promise.resolve(undefined) : this.providerRuntime.module(`web/${engine}/player.wasm`), this.providerRuntime.bytes('fixtures/DejaVuSans.ttf')]).then(([module, font]) => ({ module, font })) : this.preparation?.readyEngine(engine) ?? Promise.resolve(undefined));
+            current();
+            const append = this.root.append;
+            current();
+            append.call(this.root, surface);
+            current();
             const subtitleTracks = this.sourceInspection?.probe.tracks.filter(t => t.type === 'sub') ?? [];
             const defaultSubtitleStreamIndex = (subtitleTracks.find(t => t.default) ?? subtitleTracks[0])?.index;
             backend = 'PrivateSoftwarePlayer' in module ? new module.PrivateSoftwarePlayer(surface, { providerAssets: this.providerRuntime, mode: mode, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture), buffering: this.buffering, audioOutput: this.audioOutput, audioFallback: this.audioFallback, runtime: this.remuxRuntime, assetBase: this.assetBase, duration: this.sourceInspection?.probe.duration, resourceLimits: this.resourceLimits, fonts: this.fonts }) : 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? (this.privateRemux && recipe?.native?.selectedAudio ? this.sourceInspection?.probe.tracks.find(t => t.type === 'audio')?.index : undefined) : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering, loadTimeoutMs, defaultSubtitleStreamIndex, this.remuxRuntime, this.providerRuntime) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared, providerAssets: this.providerRuntime, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture) });
-        }
-        catch (error) {
-            surface.remove();
-            throw error;
-        }
-        const session = { backend, surface };
-        try {
-            await this.registerSession(session, sessionId);
-            this.assertOperation();
-            if (sessionAuthority(this.control, sessionId) === 'retired')
-                throw new PlayerError('ABORTED', 'Source allocation retired');
-            backend.setWatchdogs?.(this.watchdogConfiguration);
-            this.assertOperation();
+            session = { backend, surface };
+            await this.registerSession(session, sessionId, true);
+            current();
+            const watchdogs = backend.setWatchdogs;
+            current();
+            watchdogs?.call(backend, this.watchdogConfiguration);
+            current();
             this.observeBackend(session, sessionId);
-            this.assertOperation();
+            current();
             return session;
         }
         catch (error) {
-            await this.dispose(session).catch(() => { });
+            if (session)
+                await this.dispose(session).catch(() => { });
+            else {
+                // Even a partial surface is released through the reserved deadline. If
+                // retirement already began, publishing it resumes that exact waiter.
+                try {
+                    if (surface)
+                        await this.ownedResources.acquire({ ...token, ownership: 'owned', value: surface, release: owned => owned.remove() });
+                    else
+                        await this.ownedResources.abandon(token.id, token.scopeKey);
+                }
+                catch { }
+                try {
+                    await this.ownedResources.retireScope(token.scopeKey);
+                }
+                catch { }
+            }
             throw error;
         }
     }

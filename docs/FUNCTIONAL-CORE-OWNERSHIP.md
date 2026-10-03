@@ -1,6 +1,6 @@
 # Functional-core ownership audit
 
-Status: migration and audit in progress on local `main`. The eighteenth integrated checkpoint passes 2,544 contracts plus consumer types, build/license boundaries, static pure guard and package compilation pass. Subsequent isolated slices have focused evidence until their next integrated gate. This inventory does not establish final architecture completion or v1 readiness.
+Status: migration and audit in progress on local `main`. The nineteenth integrated checkpoint passes 2,581 contracts plus consumer types, build/license boundaries, static pure guard and package compilation pass. Subsequent isolated slices have focused evidence until their next integrated gate. This inventory does not establish final architecture completion or v1 readiness.
 
 ## Authority boundaries
 
@@ -43,10 +43,10 @@ The integrated candidate preserved 72 differential histories (14,400 steps) and 
 
 | Area | Remaining work |
 | --- | --- |
-| Resource acquisition | Reserve ledger capacity before backend construction; retain late acquisition and cleanup after retirement under the same deadline/accounting. Current post-allocation admission can otherwise fall back to an unbounded raw cleanup. |
+| Resource acquisition | Backend/surface capacity is reserved before construction; late acquisition and cleanup retain the original deadline/accounting. Audit remaining resource kinds and acquisition paths. |
 | Player fault/deployment metadata | Replace the writable `Session.error` logical latch with pure fault identity while retaining original Error objects in the shell. Audit duplicate mutable remux deployment-choice fields. |
 | Player effect acquisition | Complete promotion timer/controller and source-construction/listener acquisition review. Domain-specific interpreters still execute some typed effects outside the generic executor. |
-| Lower subtitle worker | Initialization/close/fatal state, request ordering, refresh identity, render deadline/timeline and attachment budgets are being staged below the migrated service controller. |
+| Lower subtitle worker | Initialization/close/fatal state, request ordering, refresh identity and open deadlines now have a pure owner. Render deadline/timeline and attachment budgets remain staged. |
 | Lower playback host | Closed/created state, duration/preroll policy, source failure, render invalidation and event/statistic budgets still need a pure owner. Native pointers, canvases and engine objects stay physical. |
 | Selective sync worklet | Audit epoch/generation and timeline cadence separately from physical ring scanning and DSP progress. Migrating the Native audio controller did not migrate this worklet. |
 

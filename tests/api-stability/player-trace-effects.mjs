@@ -25,3 +25,11 @@ test('many composed lifetimes replay deterministically with a bounded diagnostic
 test('scope retirement followed by repeated physical release records one logical retirement',()=>{
  for(const retireScope of [false,true]){const f=owner(),session=accept(f);if(retireScope)f.send({type:'operation.retire',terminal:false});for(let index=0;index<3;index++)f.send({type:'resource.event',input:{type:'release',id:`resource:${session}`}});assert.equal(f.trace.entries.filter(entry=>entry.input.kind==='resource'&&entry.input.phase==='retired').length,1);f.send({type:'resource.event',input:{type:'physical-result',id:`resource:${session}`,success:true}});assert.equal(f.trace.entries.filter(entry=>entry.input.kind==='resource'&&entry.input.phase==='released').length,1);}
 });
+
+test('reserved resources trace retirement and late acquisition under captured scope identity',()=>{
+ const f=owner();f.send({type:'resource.event',input:{type:'reserve',id:'resource:1',scopeKey:'scope:1',kind:'backend'}});
+ f.send({type:'resource.event',input:{type:'retire-scope',scopeKey:'scope:1'}});
+ for(const input of [{type:'release',id:'resource:1'},{type:'deadline',id:'resource:1',reason:'timeout'},{type:'acquire',id:'resource:1'},{type:'physical-result',id:'resource:1',success:true}])f.send({type:'resource.event',input});
+ const events=f.trace.entries.filter(entry=>entry.input.kind==='resource').map(entry=>entry.input);
+ assert.deepEqual(events.map(event=>event.phase),['reserved','retired','detached','acquired','released']);assert.ok(events.every(event=>event.scope.sessionId===1));assert.equal(f.state.resources.resources.length,0);assert.equal(selectTrace(f.trace).exactExternalReplay,false);
+});

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /** Resource metadata authority. Values, callbacks, promises and clocks never enter this state. */
-export type ResourcePhase='active'|'releasing'|'released'|'failed'|'detached';
-export type ResourceMetadata=Readonly<{id:string;scopeKey:string;kind:string;ownership:'owned'|'borrowed';state:ResourcePhase}>;
+export type ResourcePhase='reserved'|'active'|'releasing'|'released'|'failed'|'detached';
+export type ResourceMetadata=Readonly<{id:string;scopeKey:string;kind:string;ownership:'owned'|'borrowed';state:ResourcePhase;acquired?:boolean}>;
 export type ResourceLedgerLimits=Readonly<{maxResources:number;maxScopes:number;failureLimit:number;cleanupTimeoutMs:number}>;
 export type ResourceCleanupFailure=Readonly<{id:string;scopeKey:string;kind:string;name:'CleanupError'|'CleanupTimeoutError'|'CleanupSchedulerError';message:string}>;
 export type ResourceLedgerState=Readonly<{
@@ -9,13 +9,15 @@ export type ResourceLedgerState=Readonly<{
   failures:readonly ResourceCleanupFailure[];failureCount:number;timedOut:number;deadlineErrors:number;lateReleased:number;lateFailed:number;
 }>;
 export type ResourceLedgerInput=
+  |Readonly<{type:'reserve';id:string;scopeKey:string;kind:string}>
+  |Readonly<{type:'acquire';id:string;expectedScopeKey?:string}>
   |Readonly<{type:'register';id:string;scopeKey:string;kind:string;ownership:'owned'|'borrowed'}>
   |Readonly<{type:'release';id:string;expectedScopeKey?:string}>
   |Readonly<{type:'retire-scope';scopeKey:string}>
   |Readonly<{type:'dispose'}>
   |Readonly<{type:'deadline';id:string;reason:'timeout'|'scheduler'}>
   |Readonly<{type:'physical-result';id:string;success:boolean}>;
-export type ResourceLedgerRejection='invalid-id'|'invalid-scope'|'invalid-kind'|'invalid-ownership'|'duplicate'|'resource-capacity'|'scope-capacity'|'missing'|'scope-mismatch';
+export type ResourceLedgerRejection='invalid-id'|'invalid-scope'|'invalid-kind'|'invalid-ownership'|'duplicate'|'resource-capacity'|'scope-capacity'|'missing'|'scope-mismatch'|'retired'|'already-acquired';
 export type ResourceLedgerDecision=Readonly<{state:ResourceLedgerState;accepted:boolean;reason?:ResourceLedgerRejection;start?:boolean;late?:boolean;ids?:readonly string[];scopeKeys?:readonly string[]}>;
 const valid=(value:string)=>typeof value==='string'&&value.length>0&&value.length<=256;
 const no=(state:ResourceLedgerState,reason:ResourceLedgerRejection):ResourceLedgerDecision=>Object.freeze({state,accepted:false,reason});
@@ -52,13 +54,14 @@ export function transitionResourceLedger(state:ResourceLedgerState,input:Resourc
  const decision=reduceResourceLedger(state,input),next=compactLedger(decision.state);return next===decision.state?decision:Object.freeze({...decision,state:next});
 }
 function reduceResourceLedger(state:ResourceLedgerState,input:ResourceLedgerInput):ResourceLedgerDecision {
-  if(input.type==='register'){
+  if(input.type==='register'||input.type==='reserve'){
     if(!valid(input.id)||state.monotonic&&!sequence(input.id,'resource'))return no(state,'invalid-id');if(!valid(input.scopeKey)||state.monotonic&&!sequence(input.scopeKey,'scope'))return no(state,'invalid-scope');if(!valid(input.kind))return no(state,'invalid-kind');
-    if(input.ownership!=='owned'&&input.ownership!=='borrowed')return no(state,'invalid-ownership');
+    if(input.type==='register'&&input.ownership!=='owned'&&input.ownership!=='borrowed')return no(state,'invalid-ownership');
     if(resourceMetadata(state,input.id)||state.monotonic&&sequence(input.id,'resource')<=state.resourceWatermark)return no(state,'duplicate');
     if(state.resources.length>=state.limits.maxResources)return no(state,'resource-capacity');
     const existing=state.scopes.some(scope=>scope.key===input.scopeKey),oldScope=state.monotonic&&sequence(input.scopeKey,'scope')<=state.scopeWatermark;if(!existing&&!oldScope&&state.scopes.length>=state.limits.maxScopes)return no(state,'scope-capacity');
-    const entry:ResourceMetadata=Object.freeze({id:input.id,scopeKey:input.scopeKey,kind:input.kind,ownership:input.ownership,state:'active'});
+    if(input.type==='reserve'&&resourceScopeRetired(state,input.scopeKey))return no(state,'retired');
+    const entry:ResourceMetadata=Object.freeze({id:input.id,scopeKey:input.scopeKey,kind:input.kind,ownership:input.type==='reserve'?'owned':input.ownership,state:input.type==='reserve'?'reserved':'active',...(input.type==='reserve'?{acquired:false}:{})});
     const scopes=existing||oldScope?state.scopes:Object.freeze([...state.scopes,Object.freeze({key:input.scopeKey,retired:state.disposed})]);
     return ok(Object.freeze({...state,scopes,registeredTotal:state.registeredTotal+1,resourceWatermark:state.monotonic?sequence(input.id,'resource'):state.resourceWatermark,scopeWatermark:state.monotonic?Math.max(state.scopeWatermark,sequence(input.scopeKey,'scope')):state.scopeWatermark,resources:Object.freeze([...state.resources,entry])}));
   }
@@ -71,16 +74,22 @@ function reduceResourceLedger(state:ResourceLedgerState,input:ResourceLedgerInpu
   }
   if(input.type==='dispose')return ok(state.disposed?state:Object.freeze({...state,disposed:true,scopes:Object.freeze(state.scopes.map(scope=>scope.retired?scope:Object.freeze({...scope,retired:true})))}),{scopeKeys:Object.freeze(state.scopes.map(scope=>scope.key).reverse())});
   const entry=resourceMetadata(state,input.id);if(!entry)return no(state,'missing');
+  if(input.type==='acquire'){
+    if(input.expectedScopeKey!==undefined&&entry.scopeKey!==input.expectedScopeKey)return no(state,'scope-mismatch');
+    if(entry.acquired!==false)return no(state,'already-acquired');
+    const acquired=Object.freeze({...entry,acquired:true,state:entry.state==='reserved'?'active' as const:entry.state});
+    return ok(Object.freeze({...state,resources:Object.freeze(state.resources.map(value=>value.id===entry.id?acquired:value))}));
+  }
   if(input.type==='release'){
     if(input.expectedScopeKey!==undefined&&entry.scopeKey!==input.expectedScopeKey)return no(state,'scope-mismatch');
-    return entry.state==='active'?ok(replace(state,entry,'releasing'),{start:true}):ok(state,{start:false});
+    return entry.state==='active'||entry.state==='reserved'?ok(replace(state,entry,'releasing'),{start:true}):ok(state,{start:false});
   }
   if(input.type==='deadline'){
     if(entry.state!=='releasing')return ok(state,{start:false});
     const next=failure(replace(state,entry,'detached'),entry,input.reason);
     return ok(Object.freeze({...next,timedOut:next.timedOut+(input.reason==='timeout'?1:0),deadlineErrors:next.deadlineErrors+(input.reason==='scheduler'?1:0)}),{start:true});
   }
-  if(entry.state!=='releasing'&&entry.state!=='detached')return ok(state,{start:false});
+  if(entry.acquired===false||entry.state!=='releasing'&&entry.state!=='detached')return ok(state,{start:false});
   const late=entry.state==='detached';let next=replace(state,entry,input.success?'released':'failed');if(input.success)next=Object.freeze({...next,releasedTotal:next.releasedTotal+1});
   if(late)next=Object.freeze({...next,lateReleased:next.lateReleased+(input.success?1:0),lateFailed:next.lateFailed+(input.success?0:1)});
   else if(!input.success)next=failure(next,entry,'physical');
@@ -88,8 +97,9 @@ function reduceResourceLedger(state:ResourceLedgerState,input:ResourceLedgerInpu
 }
 export function resourceLedgerDiagnostics(state:ResourceLedgerState){
   return Object.freeze({disposed:state.disposed,registered:state.registeredTotal,
+    reserved:state.resources.filter(entry=>entry.state==='reserved').length,
     active:state.resources.filter(entry=>resourceAvailable(state,entry.id)).length,
-    retiring:state.resources.filter(entry=>entry.state==='active'&&resourceScopeRetired(state,entry.scopeKey)).length,
+    retiring:state.resources.filter(entry=>(entry.state==='active'||entry.state==='reserved')&&resourceScopeRetired(state,entry.scopeKey)).length,
     releasing:state.resources.filter(entry=>entry.state==='releasing').length,released:state.releasedTotal,
     detached:state.resources.filter(entry=>entry.state==='detached').length,failed:state.failureCount,timedOut:state.timedOut,deadlineErrors:state.deadlineErrors,lateReleased:state.lateReleased,lateFailed:state.lateFailed,
     scopes:state.scopes.length,retiredScopes:state.scopes.filter(scope=>scope.retired).length,limits:state.limits,resources:state.resources,failures:state.failures});

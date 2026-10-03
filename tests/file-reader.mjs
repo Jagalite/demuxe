@@ -3,6 +3,7 @@ import {test} from 'node:test';import assert from 'node:assert/strict';
 import {LocalFileReader} from '../web/file-reader.js';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
+import * as subtitleWorkerCore from '../web/generated/internal/machine/subtitle-worker.js';
 
 test('subtitle playback can exceed 8192 uncached reads with bounded memory',async()=>{
  // Exercise the production subtitle init configuration, then its local reader.
@@ -14,7 +15,7 @@ test('subtitle playback can exceed 8192 uncached reads with bounded memory',asyn
   _web_io_configure(){},_subtitle_service_open:()=>0,
   _subtitle_service_loaded:()=>1,_subtitle_service_track_count:()=>0,
   _subtitle_service_block(){}};
- const context=vm.createContext({create:async()=>engine,SubtitleOverlay:class {},URL,AbortController,
+ const context=vm.createContext({...subtitleWorkerCore,performance:performance,create:async()=>engine,SubtitleOverlay:class {},URL,AbortController,
   setTimeout,clearTimeout,postMessage:message=>messages.push(message),
   Worker:class {postMessage(message){init=message;this.onmessage({data:{type:'ready',info:{size:String(message.file.size)}}});}}});
  const source=await readFile(new URL('../web/mpv-subtitle-worker.js',import.meta.url),'utf8');

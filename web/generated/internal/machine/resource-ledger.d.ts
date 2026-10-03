@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 /** Resource metadata authority. Values, callbacks, promises and clocks never enter this state. */
-export type ResourcePhase = 'active' | 'releasing' | 'released' | 'failed' | 'detached';
+export type ResourcePhase = 'reserved' | 'active' | 'releasing' | 'released' | 'failed' | 'detached';
 export type ResourceMetadata = Readonly<{
     id: string;
     scopeKey: string;
     kind: string;
     ownership: 'owned' | 'borrowed';
     state: ResourcePhase;
+    acquired?: boolean;
 }>;
 export type ResourceLedgerLimits = Readonly<{
     maxResources: number;
@@ -42,6 +43,15 @@ export type ResourceLedgerState = Readonly<{
     lateFailed: number;
 }>;
 export type ResourceLedgerInput = Readonly<{
+    type: 'reserve';
+    id: string;
+    scopeKey: string;
+    kind: string;
+}> | Readonly<{
+    type: 'acquire';
+    id: string;
+    expectedScopeKey?: string;
+}> | Readonly<{
     type: 'register';
     id: string;
     scopeKey: string;
@@ -65,7 +75,7 @@ export type ResourceLedgerInput = Readonly<{
     id: string;
     success: boolean;
 }>;
-export type ResourceLedgerRejection = 'invalid-id' | 'invalid-scope' | 'invalid-kind' | 'invalid-ownership' | 'duplicate' | 'resource-capacity' | 'scope-capacity' | 'missing' | 'scope-mismatch';
+export type ResourceLedgerRejection = 'invalid-id' | 'invalid-scope' | 'invalid-kind' | 'invalid-ownership' | 'duplicate' | 'resource-capacity' | 'scope-capacity' | 'missing' | 'scope-mismatch' | 'retired' | 'already-acquired';
 export type ResourceLedgerDecision = Readonly<{
     state: ResourceLedgerState;
     accepted: boolean;
@@ -85,6 +95,7 @@ export declare function transitionResourceLedger(state: ResourceLedgerState, inp
 export declare function resourceLedgerDiagnostics(state: ResourceLedgerState): Readonly<{
     disposed: boolean;
     registered: number;
+    reserved: number;
     active: number;
     retiring: number;
     releasing: number;
@@ -109,6 +120,7 @@ export declare function resourceLedgerDiagnostics(state: ResourceLedgerState): R
         kind: string;
         ownership: "owned" | "borrowed";
         state: ResourcePhase;
+        acquired?: boolean;
     }>[];
     failures: readonly Readonly<{
         id: string;

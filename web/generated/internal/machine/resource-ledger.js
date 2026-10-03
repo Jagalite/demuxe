@@ -39,14 +39,14 @@ export function transitionResourceLedger(state, input) {
     return next === decision.state ? decision : Object.freeze({ ...decision, state: next });
 }
 function reduceResourceLedger(state, input) {
-    if (input.type === 'register') {
+    if (input.type === 'register' || input.type === 'reserve') {
         if (!valid(input.id) || state.monotonic && !sequence(input.id, 'resource'))
             return no(state, 'invalid-id');
         if (!valid(input.scopeKey) || state.monotonic && !sequence(input.scopeKey, 'scope'))
             return no(state, 'invalid-scope');
         if (!valid(input.kind))
             return no(state, 'invalid-kind');
-        if (input.ownership !== 'owned' && input.ownership !== 'borrowed')
+        if (input.type === 'register' && input.ownership !== 'owned' && input.ownership !== 'borrowed')
             return no(state, 'invalid-ownership');
         if (resourceMetadata(state, input.id) || state.monotonic && sequence(input.id, 'resource') <= state.resourceWatermark)
             return no(state, 'duplicate');
@@ -55,7 +55,9 @@ function reduceResourceLedger(state, input) {
         const existing = state.scopes.some(scope => scope.key === input.scopeKey), oldScope = state.monotonic && sequence(input.scopeKey, 'scope') <= state.scopeWatermark;
         if (!existing && !oldScope && state.scopes.length >= state.limits.maxScopes)
             return no(state, 'scope-capacity');
-        const entry = Object.freeze({ id: input.id, scopeKey: input.scopeKey, kind: input.kind, ownership: input.ownership, state: 'active' });
+        if (input.type === 'reserve' && resourceScopeRetired(state, input.scopeKey))
+            return no(state, 'retired');
+        const entry = Object.freeze({ id: input.id, scopeKey: input.scopeKey, kind: input.kind, ownership: input.type === 'reserve' ? 'owned' : input.ownership, state: input.type === 'reserve' ? 'reserved' : 'active', ...(input.type === 'reserve' ? { acquired: false } : {}) });
         const scopes = existing || oldScope ? state.scopes : Object.freeze([...state.scopes, Object.freeze({ key: input.scopeKey, retired: state.disposed })]);
         return ok(Object.freeze({ ...state, scopes, registeredTotal: state.registeredTotal + 1, resourceWatermark: state.monotonic ? sequence(input.id, 'resource') : state.resourceWatermark, scopeWatermark: state.monotonic ? Math.max(state.scopeWatermark, sequence(input.scopeKey, 'scope')) : state.scopeWatermark, resources: Object.freeze([...state.resources, entry]) }));
     }
@@ -73,10 +75,18 @@ function reduceResourceLedger(state, input) {
     const entry = resourceMetadata(state, input.id);
     if (!entry)
         return no(state, 'missing');
+    if (input.type === 'acquire') {
+        if (input.expectedScopeKey !== undefined && entry.scopeKey !== input.expectedScopeKey)
+            return no(state, 'scope-mismatch');
+        if (entry.acquired !== false)
+            return no(state, 'already-acquired');
+        const acquired = Object.freeze({ ...entry, acquired: true, state: entry.state === 'reserved' ? 'active' : entry.state });
+        return ok(Object.freeze({ ...state, resources: Object.freeze(state.resources.map(value => value.id === entry.id ? acquired : value)) }));
+    }
     if (input.type === 'release') {
         if (input.expectedScopeKey !== undefined && entry.scopeKey !== input.expectedScopeKey)
             return no(state, 'scope-mismatch');
-        return entry.state === 'active' ? ok(replace(state, entry, 'releasing'), { start: true }) : ok(state, { start: false });
+        return entry.state === 'active' || entry.state === 'reserved' ? ok(replace(state, entry, 'releasing'), { start: true }) : ok(state, { start: false });
     }
     if (input.type === 'deadline') {
         if (entry.state !== 'releasing')
@@ -84,7 +94,7 @@ function reduceResourceLedger(state, input) {
         const next = failure(replace(state, entry, 'detached'), entry, input.reason);
         return ok(Object.freeze({ ...next, timedOut: next.timedOut + (input.reason === 'timeout' ? 1 : 0), deadlineErrors: next.deadlineErrors + (input.reason === 'scheduler' ? 1 : 0) }), { start: true });
     }
-    if (entry.state !== 'releasing' && entry.state !== 'detached')
+    if (entry.acquired === false || entry.state !== 'releasing' && entry.state !== 'detached')
         return ok(state, { start: false });
     const late = entry.state === 'detached';
     let next = replace(state, entry, input.success ? 'released' : 'failed');
@@ -98,8 +108,9 @@ function reduceResourceLedger(state, input) {
 }
 export function resourceLedgerDiagnostics(state) {
     return Object.freeze({ disposed: state.disposed, registered: state.registeredTotal,
+        reserved: state.resources.filter(entry => entry.state === 'reserved').length,
         active: state.resources.filter(entry => resourceAvailable(state, entry.id)).length,
-        retiring: state.resources.filter(entry => entry.state === 'active' && resourceScopeRetired(state, entry.scopeKey)).length,
+        retiring: state.resources.filter(entry => (entry.state === 'active' || entry.state === 'reserved') && resourceScopeRetired(state, entry.scopeKey)).length,
         releasing: state.resources.filter(entry => entry.state === 'releasing').length, released: state.releasedTotal,
         detached: state.resources.filter(entry => entry.state === 'detached').length, failed: state.failureCount, timedOut: state.timedOut, deadlineErrors: state.deadlineErrors, lateReleased: state.lateReleased, lateFailed: state.lateFailed,
         scopes: state.scopes.length, retiredScopes: state.scopes.filter(scope => scope.retired).length, limits: state.limits, resources: state.resources, failures: state.failures });

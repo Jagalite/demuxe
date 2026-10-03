@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import {resourceAvailable} from './resource-ledger.js';
+import {resourceAvailable,resourceScopeRetired} from './resource-ledger.js';
 import type {Effect} from './protocol.js';
 import type {PlayerControlState} from './state.js';
 import type {PlayerControlInput,PlayerControlDecision} from './transition.js';
@@ -17,7 +17,7 @@ export type TraceInput=Readonly<{scope:TraceScope}> & (
   | Readonly<{kind:'control';control:TraceControl}>
   | Readonly<{kind:'observation';status:TraceStatus;currentTime:number;duration:number|null}>
   | Readonly<{kind:'effect';effectId:number;name:'backend.play'|'backend.pause'|'resource.release'|'timer.wait';phase:'issued'|'completed'|'failed'|'retired'}>
-  | Readonly<{kind:'resource';resourceId:number;phase:'acquired'|'retired'|'released'|'failed'|'detached'}>
+  | Readonly<{kind:'resource';resourceId:number;phase:'reserved'|'acquired'|'retired'|'released'|'failed'|'detached'}>
   | Readonly<{kind:'omitted';category:'source'|'filters'|'attachments'|'tracks'|'other';reason?:'private-payload'|'unsupported-input'|'compound-settings'|'lifetime-only'|'missing-payload'}>
 );
 export type TraceDecision=Readonly<{accepted:boolean;status:TraceStatus;effectCount:number;pendingCount:number;reason:'none'|'aborted'|'unsupported'|'invalid'|'failed'|'stale'|'full'|'unknown'}>;
@@ -38,7 +38,7 @@ function sanitize(input:TraceInput):TraceInput {
   }
   if(input.kind==='observation'&&Number.isFinite(input.currentTime)&&(input.duration===null||Number.isFinite(input.duration)))return Object.freeze({scope:copiedScope,kind:'observation',status:status(input.status),currentTime:input.currentTime,duration:input.duration});
   if(input.kind==='effect'&&identity(input.effectId)!==null&&['backend.play','backend.pause','resource.release','timer.wait'].includes(input.name)&&['issued','completed','failed','retired'].includes(input.phase))return Object.freeze({scope:copiedScope,kind:'effect',effectId:input.effectId,name:input.name,phase:input.phase});
-  if(input.kind==='resource'&&identity(input.resourceId)!==null&&['acquired','retired','released','failed','detached'].includes(input.phase))return Object.freeze({scope:copiedScope,kind:'resource',resourceId:input.resourceId,phase:input.phase});
+  if(input.kind==='resource'&&identity(input.resourceId)!==null&&['reserved','acquired','retired','released','failed','detached'].includes(input.phase))return Object.freeze({scope:copiedScope,kind:'resource',resourceId:input.resourceId,phase:input.phase});
   const category=input.kind==='omitted'&&['source','filters','attachments','tracks','other'].includes(input.category)?input.category:'other';
   const reason=input.kind==='omitted'&&['private-payload','unsupported-input','compound-settings','lifetime-only','missing-payload'].includes(input.reason??'')?input.reason!:'unsupported-input';
   return Object.freeze({scope:copiedScope,kind:'omitted',category,reason});
@@ -80,7 +80,7 @@ export function tracePlayerTransition(trace:TraceState,input:PlayerControlInput,
     const request=input.input,resourceId='id' in request?request.id:null,id=resourceId===null?null:numericResource(resourceId);
     if(id!==null){
       const metadata=state.resources.resources.find(entry=>entry.id===resourceId)??before.resources.resources.find(entry=>entry.id===resourceId);
-      const phase=request.type==='register'?'acquired':request.type==='release'&&decision.resource?.start&&resourceAvailable(before.resources,resourceId!)&&!resourceAvailable(state.resources,resourceId!)?'retired':request.type==='deadline'&&decision.resource?.start?'detached':request.type==='physical-result'&&decision.resource?.start?(request.success?'released':'failed'):null;
+      const phase=request.type==='reserve'?'reserved':request.type==='register'||request.type==='acquire'?'acquired':request.type==='release'&&decision.resource?.start&&resourceTraceLive(before,resourceId!)&&!resourceTraceLive(state,resourceId!)?'retired':request.type==='deadline'&&decision.resource?.start?'detached':request.type==='physical-result'&&decision.resource?.start?(request.success?'released':'failed'):null;
       if(phase&&metadata)event={kind:'resource',scope:{...identities,sessionId:numericScope(metadata.scopeKey)},resourceId:id,phase};
     }
   }
@@ -116,7 +116,7 @@ export function tracePlayerTransition(trace:TraceState,input:PlayerControlInput,
   }
   for(const resource of before.resources.resources){
     const id=numericResource(resource.id);
-    if(id!==null&&resourceAvailable(before.resources,resource.id)&&!resourceAvailable(state.resources,resource.id)&&!(event.kind==='resource'&&event.resourceId===id&&event.phase==='retired'))next=appendTrace(next,{kind:'resource',scope:{...identities,sessionId:numericScope(resource.scopeKey)},resourceId:id,phase:'retired'},{...summary,effectCount:0},tick);
+    if(id!==null&&resourceTraceLive(before,resource.id)&&!resourceTraceLive(state,resource.id)&&!(event.kind==='resource'&&event.resourceId===id&&event.phase==='retired'))next=appendTrace(next,{kind:'resource',scope:{...identities,sessionId:numericScope(resource.scopeKey)},resourceId:id,phase:'retired'},{...summary,effectCount:0},tick);
   }
   return next;
 }
@@ -124,3 +124,5 @@ export function tracePlayerTransition(trace:TraceState,input:PlayerControlInput,
 function numericResource(value:string):number|null{const match=/^resource:([1-9][0-9]*)$/.exec(value),id=match?Number(match[1]):null;return id!==null&&Number.isSafeInteger(id)?id:null;}
 function numericScope(value:string):number|null{const match=/^scope:([1-9][0-9]*)$/.exec(value),id=match?Number(match[1]):null;return id!==null&&Number.isSafeInteger(id)?id:null;}
 function effectTrace(effect:Effect,phase:'issued'|'completed'|'failed'|'retired'):TraceInput{return {kind:'effect',scope:{lifetime:effect.scope.lifetime,sourceId:effect.scope.sourceId,sessionId:effect.scope.sessionId,operationId:effect.scope.operationId},effectId:effect.id,name:effect.kind,phase};}
+
+function resourceTraceLive(state:PlayerControlState,id:string):boolean{const entry=state.resources.resources.find(value=>value.id===id);return resourceAvailable(state.resources,id)||entry?.state==='reserved'&&!resourceScopeRetired(state.resources,entry.scopeKey);}

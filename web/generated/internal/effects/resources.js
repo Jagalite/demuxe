@@ -12,6 +12,8 @@ function rejected(reason) {
         case 'invalid-scope': return new TypeError('Scope key must be a nonempty string of at most 256 characters');
         case 'invalid-kind': return new TypeError('Resource kind must be a nonempty string of at most 256 characters');
         case 'invalid-ownership': return new TypeError('Invalid resource ownership');
+        case 'retired': return new Error('Resource acquisition scope is retired');
+        case 'already-acquired': return new Error('Resource acquisition already completed');
         case 'duplicate': return new Error('Resource ID was already registered');
         case 'resource-capacity': return new RangeError('Resource registry lifetime resource capacity exceeded');
         case 'scope-capacity': return new RangeError('Resource registry lifetime scope capacity exceeded');
@@ -30,6 +32,7 @@ export class ResourceRegistry {
     store;
     get ledger() { return this.store ? this.store.read() : this.localLedger; }
     handles = new Map();
+    acquisitions = new Map();
     completions = new Map();
     scopes = new Map();
     disposal;
@@ -42,6 +45,72 @@ export class ResourceRegistry {
     }
     transition(input) { if (this.store)
         return this.store.dispatch(input); const result = transitionResourceLedger(this.ledger, input); this.localLedger = result.state; return result; }
+    /** Reserve bounded metadata before constructing the physical owner. A late
+     * acquisition remains attached to its original cleanup continuation/deadline. */
+    reserve(registration) {
+        const { id, scopeKey, kind } = registration, input = { type: 'reserve', id, scopeKey, kind }, checked = transitionResourceLedger(this.ledger, input);
+        if (!checked.accepted)
+            throw rejected(checked.reason);
+        let resolve;
+        const promise = new Promise(yes => { resolve = yes; }), acquisition = { promise, resolve };
+        this.acquisitions.set(id, acquisition);
+        try {
+            const result = this.transition(input);
+            if (!result.accepted)
+                throw rejected(result.reason);
+        }
+        catch (error) {
+            if (resourceMetadata(this.ledger, id)?.acquired === false) {
+                try {
+                    void this.abandon(id, scopeKey).catch(() => { });
+                }
+                catch { /* Preserve the original store failure. */ }
+            }
+            else if (this.acquisitions.get(id) === acquisition)
+                this.acquisitions.delete(id);
+            throw error;
+        }
+    }
+    acquire(registration) {
+        const { id, scopeKey, value } = registration, release = registration.release;
+        if (typeof release !== 'function')
+            throw new TypeError('Owned resources require a release callback');
+        const input = { type: 'acquire', id, expectedScopeKey: scopeKey }, checked = transitionResourceLedger(this.ledger, input);
+        if (!checked.accepted)
+            throw rejected(checked.reason);
+        const acquisition = this.acquisitions.get(id), handle = { value, release: release };
+        // Publish the physical lookup before a composed transition can expose active
+        // metadata to callbacks. A release during commit still joins acquisition.
+        if (resourceMetadata(this.ledger, id)?.state === 'reserved')
+            this.handles.set(id, handle);
+        try {
+            const result = this.transition(input);
+            if (!result.accepted)
+                throw rejected(result.reason);
+        }
+        catch (error) {
+            if (resourceMetadata(this.ledger, id)?.acquired) {
+                this.acquisitions.delete(id);
+                acquisition.resolve(handle);
+                void this.release(id, scopeKey).catch(() => { });
+            }
+            else if (this.handles.get(id) === handle)
+                this.handles.delete(id);
+            throw error;
+        }
+        this.acquisitions.delete(id);
+        acquisition.resolve(handle);
+        return resourceScopeRetired(this.ledger, scopeKey) || resourceMetadata(this.ledger, id)?.state !== 'active' ? this.release(id, scopeKey) : Promise.resolve();
+    }
+    abandon(id, expectedScopeKey) {
+        // Use the same publication/retirement fences as a real acquisition. The
+        // empty handle still has to exist before store observers see active state.
+        const scopeKey = expectedScopeKey ?? resourceMetadata(this.ledger, id)?.scopeKey;
+        if (scopeKey === undefined)
+            throw rejected('missing');
+        const completion = this.acquire({ id, scopeKey, kind: 'abandoned', ownership: 'owned', value: undefined, release: () => { } });
+        return completion.then(() => resourceMetadata(this.ledger, id) ? this.release(id, scopeKey) : undefined);
+    }
     register(registration) {
         // Read each host field before admission so reentrant getters cannot overwrite
         // a newer metadata state. Host resources themselves never enter the reducer.
@@ -54,11 +123,22 @@ export class ResourceRegistry {
             throw new TypeError('Owned resources require a release callback');
         if (ownership === 'borrowed' && release !== undefined)
             throw new TypeError('Borrowed resources cannot have a release callback');
-        const committed = this.transition(input);
-        if (!committed.accepted)
-            throw rejected(committed.reason);
-        this.handles.set(id, { value, release: release });
-        return resourceScopeRetired(this.ledger, scopeKey) ? this.release(id) : Promise.resolve();
+        const handle = { value, release: release };
+        this.handles.set(id, handle);
+        try {
+            const committed = this.transition(input);
+            if (!committed.accepted)
+                throw rejected(committed.reason);
+        }
+        catch (error) {
+            if (resourceMetadata(this.ledger, id)) {
+                void this.release(id, scopeKey).catch(() => { });
+            }
+            else if (this.handles.get(id) === handle)
+                this.handles.delete(id);
+            throw error;
+        }
+        return resourceScopeRetired(this.ledger, scopeKey) && resourceMetadata(this.ledger, id) ? this.release(id) : Promise.resolve();
     }
     get(id, expectedScopeKey) {
         const entry = resourceMetadata(this.ledger, id);
@@ -77,7 +157,7 @@ export class ResourceRegistry {
             return this.completions.get(id);
         const completion = deferred();
         this.completions.set(id, completion.promise);
-        const metadata = resourceMetadata(this.ledger, id), handle = this.handles.get(id);
+        const metadata = resourceMetadata(this.ledger, id), handle = this.handles.get(id), acquisition = this.acquisitions.get(id);
         this.handles.delete(id);
         if (metadata.ownership === 'borrowed') {
             this.transition({ type: 'physical-result', id, success: true });
@@ -123,13 +203,19 @@ export class ResourceRegistry {
         catch {
             detach('scheduler');
         }
-        const release = handle.release, value = handle.value;
-        try {
-            Promise.resolve(release(value)).then(() => finish(true), error => finish(false, error));
+        const release = (owned) => { if (!owned) {
+            finish(true);
+            return;
+        } try {
+            Promise.resolve(owned.release(owned.value)).then(() => finish(true), error => finish(false, error));
         }
         catch (error) {
             finish(false, error);
-        }
+        } };
+        if (acquisition)
+            void acquisition.promise.then(release);
+        else
+            release(handle);
         return completion.promise;
     }
     retireScope(scopeKey) {
