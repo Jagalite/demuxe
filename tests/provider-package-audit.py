@@ -48,6 +48,13 @@ def fixture():
 
 
 class ProviderPackageAudit(unittest.TestCase):
+    def test_all_core_compiler_inputs_have_core_distribution_ownership(self):
+        config = json.loads((ROOT / 'licensing/provider-packages.json').read_text())
+        policy = audit.Policy()
+        for source in config['playerCoreSources']:
+            with self.subTest(source=source):
+                self.assertEqual(audit.owner(source, config, policy), 'core')
+
     def test_exact_inventory_boundary(self):
         # Inventory trust is external: this checks packaging, not compilation.
         audit.audit('core', *fixture())
