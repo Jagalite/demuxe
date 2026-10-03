@@ -98,6 +98,7 @@ test('an error observer can close without forwarding the retired backend event',
  const p=unitPlayer(),backend=new EventTarget(),events=[];let closing;
  Object.assign(backend,{properties:new Map(),diagnostics:{plan:'software'},destroy:async()=>{}});
  const session={backend,surface:{remove(){}}};p.current=session;p.source={kind:'local',file:new File(['media'],'movie.mp4')};p.automatic=false;acceptSourceIdentity(p,1);
+ await p.registerSession(session,p.control.source.acceptedSession);
  p.observeBackend(session,p.control.source.acceptedSession);
  p.addEventListener('error',()=>{events.push('error');closing=p.close();});p.addEventListener('mpv',()=>events.push('mpv'));
  backend.dispatchEvent(new CustomEvent('mpv',{detail:{event:'end-file',reason:'error',file_error:'controlled decode failure'}}));

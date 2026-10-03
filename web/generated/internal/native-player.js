@@ -404,13 +404,12 @@ export class NativePlayer extends EventTarget {
                     return;
                 settled = true;
                 this.changeNative({ type: 'event.finish', request });
-                const pending = timer;
+                const pending = timer, prefetch = softTimer;
                 timer = undefined;
-                clearTimeout(softTimer?.handle);
                 softTimer = undefined;
                 this.cancelers.delete(cancel);
                 this.eventWaits.delete(request.id);
-                for (const clean of [() => clearTimeout(pending?.handle), () => video.removeEventListener(event, done), () => video.removeEventListener('error', failed), () => signal?.removeEventListener('abort', aborted)])
+                for (const clean of [() => clearTimeout(prefetch?.handle), () => clearTimeout(pending?.handle), () => video.removeEventListener(event, done), () => video.removeEventListener('error', failed), () => signal?.removeEventListener('abort', aborted)])
                     try {
                         clean();
                     }

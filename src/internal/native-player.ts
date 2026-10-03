@@ -204,8 +204,8 @@ export class NativePlayer extends EventTarget implements Backend {
       let settled=false,timer:{handle?:ReturnType<typeof setTimeout>}|undefined,softTimer:{handle?:ReturnType<typeof setTimeout>}|undefined;
       const finish=(error?:unknown)=>{
         if(settled)return;settled=true;this.changeNative({type:'event.finish',request});
-        const pending=timer;timer=undefined;clearTimeout(softTimer?.handle);softTimer=undefined;this.cancelers.delete(cancel);this.eventWaits.delete(request.id);
-        for(const clean of [()=>clearTimeout(pending?.handle),()=>video.removeEventListener(event,done),()=>video.removeEventListener('error',failed),()=>signal?.removeEventListener('abort',aborted)])try{clean();}catch(cleanup){error??=cleanup;}
+        const pending=timer,prefetch=softTimer;timer=undefined;softTimer=undefined;this.cancelers.delete(cancel);this.eventWaits.delete(request.id);
+        for(const clean of [()=>clearTimeout(prefetch?.handle),()=>clearTimeout(pending?.handle),()=>video.removeEventListener(event,done),()=>video.removeEventListener('error',failed),()=>signal?.removeEventListener('abort',aborted)])try{clean();}catch(cleanup){error??=cleanup;}
         error!==undefined?reject(error):resolve();
       };
       const done=()=>{try{this.assertNative(request);finish();}catch(error){finish(error);}},failed=()=>{try{this.assertNative(request);const error=nativeMediaError(video.error);this.assertNative(request);finish(error);}catch(error){finish(error);}},cancel=(error:Error)=>finish(error),aborted=()=>finish(signal?.reason??new DOMException('Native wait cancelled','AbortError'));

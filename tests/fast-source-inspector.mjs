@@ -8,7 +8,10 @@ const mp4=await readFile(new URL('../fixtures/example.mp4',import.meta.url));
 const mkv=await readFile(new URL('../fixtures/m0.mkv',import.meta.url));
 const file=(bytes,name)=>new File([bytes],name,{type:'application/octet-stream'});
 
-test('one Fast Inspector qualifies simple MP4 and recognized MKV subtitles',async()=>{
+test('one Fast Inspector qualifies simple MP4 and recognized MKV subtitles',async t=>{
+ // Parser correctness is independent of host scheduling; explicit-time tests
+ // below separately verify that the parsing deadline rejects over-budget work.
+ t.mock.method(performance,'now',()=>0);
  const movie=await inspectFastSource(file(mp4,'misleading.mkv'));
  assert.equal(movie.status,'qualified');
  assert.deepEqual(movie.evidence.tracks.map(t=>[t.type,t.codec]),[['video','h264'],['audio','aac']]);

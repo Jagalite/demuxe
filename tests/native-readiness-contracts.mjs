@@ -2,6 +2,7 @@
 import test from 'node:test';
 import {initialNativeBackend} from '../web/generated/internal/machine/native-backend.js';
 import {unitPlayer} from './helpers/unit-player.mjs';
+import {acceptSourceIdentity} from './helpers/player-control.mjs';
 import {Player} from '../web/generated/unified-player.js';
 import assert from 'node:assert/strict';
 import {NativePlayer} from '../web/generated/internal/native-player.js';
@@ -63,14 +64,17 @@ test('video and clock advancement alone cannot verify audio',async()=>{
  try{const verified=p.verifyStartup({video:true,audio:true},true);p.video.currentTime=.2;p.video.getVideoPlaybackQuality=()=>({totalVideoFrames:1});await assert.rejects(verified,StartupEvidenceTimeout);assert.notEqual(p.capability.outputVerified,true);assert.equal(p.capability.audioEvidence,'unobservable');}finally{restore();}
 });
 
+// Keep the real operation queue and accepted source identity: transport admission
+// requires both, and the public queue normalizes failures into operation errors.
 test('bounded local output trials preserve position without caching unknown as incompatibility',async()=>{
  for(const [kind,error,allowed] of [['local',new StartupEvidenceTimeout('output'),true],['remote',new StartupEvidenceTimeout('output'),false],['local',new PlayerError('SOURCE_PERMISSION','denied'),false],['local',new DOMException('activation required','NotAllowedError'),false]]){
   const p=unitPlayer(),properties=new Map([['time-pos',2]]);let selected,cached=0;
   const backend={properties,diagnostics:{plan:'direct'},play:()=>{properties.set('time-pos',9);return Promise.resolve();},pause:async()=>{},verifyOutput:async()=>{throw error;}};
-  Object.assign(p,{current:{backend},source:{kind},automatic:true,settings:{pause:true},nativeRemux:'auto',enqueue:f=>f(),evidence:()=>({prepared:true}),failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;}});
+  Object.assign(p,{current:{backend},source:kind==='remote'?{kind,options:{url:'https://media.test/movie.mp4'}}:{kind},automatic:true,settings:{pause:true},nativeRemux:'auto',evidence:()=>({prepared:true}),failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;}});
   Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct'}}}});
+  acceptSourceIdentity(p,1);
   if(allowed){await p.play();assert.equal(selected[5],2);assert.equal(cached,0);assert.equal(p.nativeRemux,'auto');}
-  else{await assert.rejects(()=>p.play(),e=>e===error);assert.equal(selected,undefined);assert.equal(cached,0);}
+  else{await assert.rejects(()=>p.play(),e=>{const expected=playerError(error);assert.equal(e.code,expected.code);assert.equal(e.message,expected.message);assert.equal(e.scope,'operation');assert.ok(Number.isSafeInteger(e.operationId));return true;});assert.equal(selected,undefined);assert.equal(cached,0);}
  }
 });
 
@@ -126,11 +130,12 @@ test('short output trials remain inconclusive even with a zero audio counter',as
 });
 
 test('only automatic unverified local direct output with an admitted alternative gets a short trial',async()=>{
- for(const change of [{},{automatic:false},{source:{kind:'remote'}},{nativeRemux:'never'},{verified:true},{planDecisions:[]}]){
+ for(const change of [{},{automatic:false},{source:{kind:'remote',options:{url:'https://media.test/movie.mp4'}}},{nativeRemux:'never'},{verified:true},{planDecisions:[]}]){
   const p=unitPlayer(),budgets=[];
   const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},verifyOutput:async(_signal,budget)=>{budgets.push(budget);}};
-  Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',settings:{pause:true},planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({outputVerified:!!change.verified}),assertOperation(){},acceptEvidence(){},...change});
+  Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',settings:{pause:true},planDecisions:[{id:'hybrid',eligible:true}],evidence:()=>({outputVerified:!!change.verified}),acceptEvidence(){},...change});
   Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
+  acceptSourceIdentity(p,1);
   await p.play();assert.deepEqual(budgets,[Object.keys(change).length?undefined:1500]);
  }
 });
@@ -138,8 +143,9 @@ test('only automatic unverified local direct output with an admitted alternative
 test('inconclusive local direct-mpv output preserves position and restores full verification if fallback assets fail',async()=>{
  const p=unitPlayer(),budgets=[],seeks=[];let selected,cached=0;
  const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},seek:async time=>{seeks.push(time);},verifyOutput:async(_signal,budget)=>{budgets.push(budget);if(budgets.length===1)throw new StartupEvidenceTimeout('output');}};
- Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',settings:{pause:true},planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({prepared:true}),assertOperation(){},acceptEvidence(){},failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;assert.equal(p.nativeRemux,'auto');assert.deepEqual(args[8],{nativeRemux:'always'});throw new PlayerError('ASSET_LOAD_FAILED','missing fallback');}});
+ Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',settings:{pause:true},planDecisions:[{id:'hybrid',eligible:true}],evidence:()=>({prepared:true}),acceptEvidence(){},failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;assert.equal(p.nativeRemux,'auto');assert.deepEqual(args[8],{nativeRemux:'always'});throw new PlayerError('ASSET_LOAD_FAILED','missing fallback');}});
  Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
+ acceptSourceIdentity(p,1);
  await p.play();assert.deepEqual(seeks,[2]);assert.deepEqual(budgets,[1500,undefined]);assert.equal(selected[5],2);assert.equal(cached,0);assert.equal(p.nativeRemux,'auto');assert.equal(p.settings.pause,false);
 });
 
@@ -147,8 +153,9 @@ test('a short trial never retries the original route after terminal fallback err
  for(const error of [new PlayerError('SOURCE_PERMISSION','denied'),new DOMException('cancelled','AbortError'),new DOMException('activation required','NotAllowedError')]){
   const p=unitPlayer();let verifications=0;
   const backend={properties:new Map([['time-pos',2]]),diagnostics:{plan:'direct-mpv'},play:async()=>{},verifyOutput:async()=>{verifications++;throw new StartupEvidenceTimeout('output');}};
-  Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',settings:{pause:true},planDecisions:[{id:'hybrid',eligible:true}],enqueue:f=>f(),evidence:()=>({prepared:true}),assertOperation(){},failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){assert.fail('Unknown output must not poison admission');}},select:async()=>{throw error;}});
+  Object.assign(p,{current:{backend},source:{kind:'local'},automatic:true,nativeRemux:'auto',settings:{pause:true},planDecisions:[{id:'hybrid',eligible:true}],evidence:()=>({prepared:true}),failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){assert.fail('Unknown output must not poison admission');}},select:async()=>{throw error;}});
   Object.defineProperties(p,{mode:{value:'native'},diagnostics:{value:{plan:{id:'native-direct-mpv'}}}});
-  await assert.rejects(()=>p.play(),e=>e===error);assert.equal(verifications,1);assert.equal(p.nativeRemux,'auto');
+  acceptSourceIdentity(p,1);
+  await assert.rejects(()=>p.play(),e=>{const expected=playerError(error);assert.equal(e.code,expected.code);assert.equal(e.message,expected.message);assert.equal(e.scope,'operation');assert.ok(Number.isSafeInteger(e.operationId));return true;});assert.equal(verifications,1);assert.equal(p.nativeRemux,'auto');
  }
 });
