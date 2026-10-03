@@ -145,3 +145,18 @@ test('actual request overflow allocates no controller timer or fetch and cancell
 test('request timeout getter retirement does not restore the prior active state',async()=>{
  const h=harness(),parameters={get timeout(){h.policy.destroy();return 0;}};await assert.rejects(h.request({retryParameters:parameters}).promise);assert.equal(h.policy.control.active,false);assert.equal(h.policy.controllers.size,0);assert.equal(h.policy.control.requests.length,0);
 });
+
+test('refresh obligations share request capacity and survive cancellation and retirement',()=>{
+ const m=machine();const ids=[];
+ for(let i=0;i<32;i++){
+  const id=m.begin();ids.push(id);m.apply('receiveShakaNetworkStatus',id,401,true);
+  assert.equal(m.apply('beginShakaNetworkRefresh',id).accepted,true);assert.equal(m.apply('beginShakaNetworkRefresh',id).accepted,false);
+  assert.equal(core.shakaNetworkPending(m.state),i+1,'request and its refresh use one slot');
+  m.apply('cancelShakaNetworkRequest',id);m.apply('cleanupShakaNetworkRequest',id);m.apply('finishShakaNetworkRequest',id);
+  assert.equal(core.shakaNetworkPending(m.state),i+1,'physical callback remains charged');
+ }
+ assert.equal(m.apply('beginShakaNetworkRequest','segment',0,0).accepted,false);
+ m.apply('settleShakaNetworkRefresh',ids[0]);m.apply('settleShakaNetworkRefresh',ids[0]);assert.equal(core.shakaNetworkPending(m.state),31);
+ assert.ok(m.begin());m.apply('retireShakaNetwork');assert.equal(m.state.refreshes.length,31);
+ for(const id of ids)m.apply('settleShakaNetworkRefresh',id);assert.equal(core.shakaNetworkPending(m.state),0);
+});

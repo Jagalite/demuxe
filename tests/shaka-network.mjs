@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {ShakaNetworkPolicy} from '../web/generated/internal/shaka-network.js';
+const {ShakaNetworkPolicy}=await import(process.env.SHAKA_NETWORK_POLICY_URL??'../web/generated/internal/shaka-network.js');
 class ShakaError extends Error {
   static Severity={RECOVERABLE:1,CRITICAL:2};static Category={NETWORK:1};static Code={HTTP_ERROR:1002,BAD_HTTP_STATUS:1001,TIMEOUT:1003,OPERATION_ABORTED:7001};
   constructor(severity,category,code,...data){super(`Shaka ${code}`);Object.assign(this,{severity,category,code,data});}
@@ -99,4 +99,38 @@ test('retirement before a retry filter prevents the selected scheme plugin from 
   const selected=h.schemes.get('https');
   const attempt=()=>Promise.resolve().then(()=>h.policy.filter(1,request)).then(()=>{pluginCalls++;return selected(request.uris[0],request,1,()=>{},()=>{},{}).promise;});
   await attempt();h.policy.destroy();await assert.rejects(attempt(),e=>e.code==='ABORTED');assert.equal(pluginCalls,1);assert.equal(fetches,1);
+});
+
+const drainRefresh=async()=>{for(let i=0;i<40;i++)await Promise.resolve();};
+test('aborted authorization callbacks remain charged until physical settlement',async()=>{
+ const waiting=[],calls=[];let authorized=false;
+ const h=harness({refreshAuthorization:()=>new Promise((resolve,reject)=>waiting.push({resolve,reject}))},async(url,init)=>{calls.push(init.headers.get('authorization'));return new Response('',{status:authorized?200:401});});
+ try{
+  for(let i=0;i<32;i++){
+   const operation=h.request(undefined,{retryParameters:{timeout:0}}),rejected=assert.rejects(operation.promise,e=>e.code===ShakaError.Code.OPERATION_ABORTED);
+   await drainRefresh();assert.equal(waiting.length,i+1);await operation.abort();await rejected;assert.equal(h.policy.terminalError,undefined);
+   assert.equal(h.policy.diagnostics.pendingRequests,i+1);assert.equal(h.policy.diagnostics.pendingRefreshes,i+1);
+  }
+  await assert.rejects(h.request(undefined,{retryParameters:{timeout:0}}).promise);
+  assert.equal(calls.length,32);assert.equal(waiting.length,32,'capacity rejects before external callback');
+  waiting[0].resolve({headers:{Authorization:'stale'},url:'https://media.test/stale'});await drainRefresh();
+  assert.equal(h.policy.diagnostics.pendingRequests,31);assert.equal(calls.length,32,'late authorization must not retry');
+  authorized=true;await h.request(undefined,{retryParameters:{timeout:0}}).promise;assert.equal(calls.at(-1),null,'late credentials must not publish');
+  for(const pending of waiting.slice(1))pending.reject(Error('late refresh failure'));await drainRefresh();
+  assert.equal(h.policy.diagnostics.pendingRequests,0);assert.equal(h.policy.diagnostics.pendingRefreshes,0);
+ }finally{for(const pending of waiting)pending.resolve({});h.policy.destroy();await drainRefresh();}
+});
+test('destroy retires authorization authority but preserves unresolved refresh accounting',async()=>{
+ let finish;const h=harness({refreshAuthorization:()=>new Promise(resolve=>finish=resolve)},async()=>new Response('',{status:401}));
+ const operation=h.request(undefined,{retryParameters:{timeout:0}}),rejected=assert.rejects(operation.promise);await drainRefresh();
+ h.policy.destroy();await rejected;assert.equal(h.policy.diagnostics.pendingRequests,1);assert.equal(h.policy.diagnostics.pendingRefreshes,1);
+ finish({headers:{Authorization:'late'}});await drainRefresh();assert.equal(h.policy.diagnostics.pendingRequests,0);assert.equal(h.policy.diagnostics.active,false);
+});
+for(const kind of ['throw','reject','reentrant-abort'])test(`authorization ${kind} releases exactly its physical obligation`,async()=>{
+ let operation;const h=harness({refreshAuthorization:()=>{if(kind==='throw')throw Error('sync');if(kind==='reject')return Promise.reject(Error('async'));void operation.abort();return Promise.resolve({headers:{Authorization:'late'}});}},async()=>new Response('',{status:401}));
+ try{operation=h.request(undefined,{retryParameters:{timeout:0}});await assert.rejects(operation.promise);await drainRefresh();assert.equal(h.policy.diagnostics.pendingRefreshes,0);assert.equal(h.policy.diagnostics.pendingRequests,0);}finally{h.policy.destroy();}
+});
+test('request deadline keeps its unresolved authorization callback charged',async()=>{
+ let finish;const h=harness({refreshAuthorization:()=>new Promise(resolve=>finish=resolve)},async()=>new Response('',{status:401}));
+ try{await assert.rejects(h.request(undefined,{retryParameters:{timeout:10}}).promise,e=>e.code===ShakaError.Code.TIMEOUT);assert.equal(h.policy.terminalError,undefined);assert.equal(h.policy.diagnostics.pendingRequests,1);assert.equal(h.policy.diagnostics.pendingRefreshes,1);finish({});await drainRefresh();assert.equal(h.policy.diagnostics.pendingRequests,0);}finally{finish?.({});h.policy.destroy();await drainRefresh();}
 });

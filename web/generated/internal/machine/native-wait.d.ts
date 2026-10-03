@@ -10,8 +10,10 @@ export type NativeEventWait = Readonly<{
     loading: boolean;
     budget: number;
     deadline: number;
+    prefetchDeadline?: number;
+    prefetched: boolean;
 }>;
-export declare function beginNativeEventWait(request: NativeEventRequest, event: string, now: number, loadBudget: number): NativeEventWait;
+export declare function beginNativeEventWait(request: NativeEventRequest, event: string, now: number, loadBudget: number, prefetchAfterMs?: number): NativeEventWait;
 export declare function nativeEventWaitCurrent(waits: readonly NativeEventWait[], request: NativeEventRequest): boolean;
 export declare function nativeEventWaitDeadline(waits: readonly NativeEventWait[], request: NativeEventRequest, now: number): Readonly<{
     remaining?: number;

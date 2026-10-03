@@ -35,6 +35,7 @@ export type ShakaNetworkState = Readonly<{
     immutable: boolean;
     preview: boolean;
     requests: readonly ShakaNetworkRequest[];
+    refreshes: readonly number[];
     validators: readonly Readonly<{
         resource: number;
         value: string;
@@ -63,6 +64,11 @@ export type ShakaNetworkDecision = Readonly<{
     streamRange?: boolean;
 }>;
 export declare function initialShakaNetwork(immutable?: boolean, preview?: boolean): ShakaNetworkState;
+/** A canceled plugin can settle before its external refresh callback. Keep that
+ * physical obligation charged without retaining its URL, headers or promise. */
+export declare function shakaNetworkPending(state: ShakaNetworkState): number;
+export declare function beginShakaNetworkRefresh(state: ShakaNetworkState, id: number): ShakaNetworkDecision;
+export declare function settleShakaNetworkRefresh(state: ShakaNetworkState, id: number): ShakaNetworkState;
 export declare function shakaNetworkRequest(state: ShakaNetworkState, id: number): ShakaNetworkRequest | undefined;
 export declare function shakaNetworkCurrent(state: ShakaNetworkState, id: number): boolean;
 export declare function beginShakaNetworkRequest(state: ShakaNetworkState, kind: ShakaNetworkRequest['kind'], timeout: number, now: number): ShakaNetworkDecision;

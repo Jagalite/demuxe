@@ -1,22 +1,25 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Player} from '../web/generated/unified-player.js';
+import {unitPlayer} from './helpers/unit-player.mjs';
 import {PlayerError} from '../web/generated/internal/errors.js';
-function fixture(automatic=true,error=Error('No frame at requested source time')){
- const p=Object.create(Player.prototype),source={kind:'local',file:{}},settings={pause:true,gain:.5},calls=[];
- Object.assign(p,{automatic,source,settings,nativeTracks:[],attempts:[{mode:'hybrid',outcome:'selected',reason:'Startup accepted'}],current:{backend:{seek:async()=>{throw error;}}},enqueue:async f=>f(),select:async(...args)=>calls.push(args)});
- Object.defineProperties(p,{mode:{value:'hybrid'},state:{value:{seekable:[{start:0,end:30}]}}});
- return {p,source,settings,calls};
+function fixture(t,automatic=true,error=Error('No frame at requested source time')){
+ const p=unitPlayer(),source={kind:'local',file:new ArrayBuffer(1)},calls=[];
+ const attempt=p.dispatchControl({type:'source.begin',operationEpoch:p.operationEpoch,mode:'hybrid',preserve:false,planId:'hybrid'}).id;
+ for(const type of ['source.created','source.configured','source.opened','source.applied','source.positioned'])p.dispatchControl({type,attempt});
+ p.dispatchControl({type:'source.accept',attempt,operationEpoch:p.operationEpoch,settings:{...p.settings,pause:true,gain:.5},planMatches:true});p.dispatchControl({type:'source.finished',attempt});
+ Object.assign(p,{automatic,source,attempts:[{mode:'hybrid',outcome:'selected',reason:'Startup accepted'}],current:{backend:{properties:new Map([['time-pos',5]]),seek:async()=>{throw error;},destroy:async()=>{}},surface:{remove(){}}},select:async(...args)=>calls.push(args)});
+ Object.defineProperty(p,'state',{get:()=>({sourceId:p.control.source.serial,seekable:[{start:0,end:30}]})});
+ t.after(()=>p.destroy());return {p,source,settings:p.settings,calls};
 }
-test('automatic seek fallback records failure and preserves source, gain, intent and target',async()=>{
- const {p,source,settings,calls}=fixture();await p.seek(24);assert.equal(calls.length,1);
+test('automatic seek fallback records failure and preserves source, gain, intent and target',async t=>{
+ const {p,source,settings,calls}=fixture(t);await p.seek(24);assert.equal(calls.length,1);
  const [s,policy,preserve,tracks,start,target,history]=calls[0];assert.equal(s,source);assert.equal(policy,settings);assert.equal(preserve,true);assert.equal(start,2);assert.equal(target,24);assert.deepEqual(tracks,[]);
  assert.deepEqual(history,[{mode:'hybrid',outcome:'failed',reason:'Seek presentation failure: No frame at requested source time'}]);
 });
-test('explicit Hybrid seek failures do not override mode',async()=>{
- const {p,calls}=fixture(false);await assert.rejects(p.seek(24),/No frame/);assert.equal(calls.length,0);
+test('explicit Hybrid seek failures do not override mode',async t=>{
+ const {p,calls}=fixture(t,false);await assert.rejects(p.seek(24),/No frame/);assert.equal(calls.length,0);
 });
-test('aborted seek cannot open a fallback source',async()=>{
- const {p,calls}=fixture();p.activeOperation={controller:new AbortController()};p.activeOperation.controller.abort();await assert.rejects(p.seek(24));assert.equal(calls.length,0);
+test('aborted seek cannot open a fallback source',async t=>{
+ const {p,calls}=fixture(t),controller=new AbortController();controller.abort();await assert.rejects(p.seek(24,{signal:controller.signal}));assert.equal(calls.length,0);
 });

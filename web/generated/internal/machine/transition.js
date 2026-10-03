@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import { transitionTrackConfirmation, retireTrackConfirmation, trackConfirmationAuthority } from './track-confirmation.js';
+import { transitionPlayerTransport, pausePlayerTransport, retirePlayerTransport, playerTransportAuthority } from './player-transport.js';
 import { effectRuntimeWork, transitionEffectRuntime } from './effect-runtime.js';
 import { resourceScopeRetired } from './resource-ledger.js';
 import { transitionResourceLedger } from './resource-ledger.js';
@@ -21,6 +23,17 @@ import { transitionInspection, isInspectionWorkChange } from './route-inspection
  * Every domain change still advances the same composed authority revision. */
 export function transitionPlayer(state, input) {
     let decision = reducePlayer(state, input);
+    const confirmation = decision.state.trackConfirmation;
+    if (confirmation.pending && (input.type === 'source.clear' || !trackConfirmationAuthority(decision.state, confirmation.pending.id)))
+        decision = Object.freeze({ ...decision, state: Object.freeze({ ...decision.state, trackConfirmation: retireTrackConfirmation(confirmation) }) });
+    if (input.type === 'play.retire') {
+        const transport = pausePlayerTransport(decision.state.transport);
+        if (transport !== decision.state.transport)
+            decision = Object.freeze({ ...decision, state: Object.freeze({ ...decision.state, transport }) });
+    }
+    const transport = decision.state.transport;
+    if (transport.pending && (input.type === 'source.clear' || !playerTransportAuthority(decision.state, transport.pending.id)))
+        decision = Object.freeze({ ...decision, state: Object.freeze({ ...decision.state, transport: retirePlayerTransport(transport) }) });
     if (decision.state !== state && input.type !== 'resource.event') {
         let resources = decision.state.resources;
         const candidates = [state.source.acceptedSession, state.source.candidate?.session];
@@ -53,6 +66,10 @@ export function transitionPlayer(state, input) {
     return decision.state === state || bookkeeping ? decision : Object.freeze({ ...decision, state: Object.freeze({ ...decision.state, captureRevision: state.captureRevision + 1 }) });
 }
 function reducePlayer(state, input) {
+    if (isTrackConfirmationInput(input))
+        return transitionTrackConfirmation(state, input);
+    if (isTransportInput(input))
+        return transitionPlayerTransport(state, input);
     if (input.type === 'effect.event') {
         const event = input.input, work = 'id' in event ? effectRuntimeWork(state.executor, event.id) : undefined;
         const normalized = work && (event.type === 'start' || event.type === 'retire' || event.type === 'physical-result') ? { ...event, current: playerEffectAuthority(state, work.effect.scope), ...event.type !== 'physical-result' ? { retiredCleanup: work.effect.kind === 'resource.release' && resourceScopeRetired(state.resources, `scope:${work.effect.scope.sessionId}`) } : {} } : event;
@@ -124,12 +141,13 @@ function reducePlayer(state, input) {
         const reset = input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted && !state.source.candidate?.preserve;
         const pending = state.settingsTransactions.pending;
         const acceptedSetting = input.type === 'source.accept' && decision.accepted && pending?.reconfigure && pending.phase === 'applying' && pending.operation === state.operations.active && pending.epoch === state.operations.epoch;
+        const acceptedSource = acceptedSetting && pending.automatic !== undefined ? Object.freeze({ ...decision.state, automatic: pending.automatic }) : decision.state;
         const attachment = state.attachments.pending, acceptedAttachment = input.type === 'source.accept' && decision.accepted && !reset && attachment?.phase === 'applying' && attachmentAuthority(state, attachment.id);
         const attachments = reset ? Object.freeze({ ...state.attachments, entries: Object.freeze(state.operations.terminal ? [] : state.attachments.entries.filter(entry => entry.kind === 'font')), pending: null }) : acceptedAttachment ? Object.freeze({ ...state.attachments, entries: attachment.entries, pending: Object.freeze({ ...attachment, phase: 'accepted', session: decision.state.acceptedSession }) }) : state.attachments;
         const desiredPreferences = acceptedSetting ? changePreferences(state.preferences, pending.preferencesPatch) : acceptedAttachment ? attachmentPreferences(state) : state.preferences, resetPreferences = reset ? clearSourcePreferences(desiredPreferences) : desiredPreferences;
         const preferences = reset && input.type === 'source.accept' && input.publicSelections ? changePreferences(resetPreferences, { publicSelections: input.publicSelections }) : resetPreferences;
         const settingsTransactions = input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? Object.freeze({ ...state.settingsTransactions, pending: acceptedSetting ? Object.freeze({ ...pending, phase: 'accepted', session: decision.state.acceptedSession, settings, preferences }) : null, degraded: null }) : state.settingsTransactions;
-        return Object.freeze({ ...decision, state: decision.state === state.source ? state : Object.freeze({ ...state, revision: state.revision + 1, source: decision.state, readiness: input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? retirePlayerReadiness(state.readiness) : state.readiness, actions: input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? retirePlayerActions(state.actions) : state.actions, publication: input.type === 'source.clear' ? clearPlayerPublication(state.publication) : input.type === 'source.accept' && decision.accepted ? acceptPlayerPublication(state.publication, decision.state.serial, !!state.source.candidate?.preserve, input.timing) : state.publication, monitor: input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? stopPlayerMonitor(state.monitor) : state.monitor, attachments, settings, playback, preferences, settingsTransactions, routing: input.type === 'source.clear' ? Object.freeze({ ...state.routing, recovery: clearRecovery(state.routing.recovery), promotion: cancelPromotion(state.routing.promotion), evidence: clearRouteEvidence(state.routing.evidence), discovery: Object.freeze({ ...state.routing.discovery, current: null }), inspection: transitionInspection(state.routing.inspection, { kind: 'clear' }) }) : reset ? Object.freeze({ ...state.routing, recovery: Object.freeze({ ...state.routing.recovery, failedStreaming: null }) }) : state.routing, boundary: input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? Object.freeze({ ...state.boundary, pending: null }) : state.boundary }), id: decision.attempt, retire: Object.freeze([]) });
+        return Object.freeze({ ...decision, state: decision.state === state.source ? state : Object.freeze({ ...state, revision: state.revision + 1, source: acceptedSource, readiness: input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? retirePlayerReadiness(state.readiness) : state.readiness, actions: input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? retirePlayerActions(state.actions) : state.actions, publication: input.type === 'source.clear' ? clearPlayerPublication(state.publication) : input.type === 'source.accept' && decision.accepted ? acceptPlayerPublication(state.publication, decision.state.serial, !!state.source.candidate?.preserve, input.timing) : state.publication, monitor: input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? stopPlayerMonitor(state.monitor) : state.monitor, attachments, settings, playback, preferences, settingsTransactions, routing: input.type === 'source.clear' ? Object.freeze({ ...state.routing, recovery: clearRecovery(state.routing.recovery), promotion: cancelPromotion(state.routing.promotion), evidence: clearRouteEvidence(state.routing.evidence), discovery: Object.freeze({ ...state.routing.discovery, current: null }), inspection: transitionInspection(state.routing.inspection, { kind: 'clear' }) }) : reset ? Object.freeze({ ...state.routing, recovery: Object.freeze({ ...state.routing.recovery, failedStreaming: null }) }) : state.routing, boundary: input.type === 'source.clear' || input.type === 'source.accept' && decision.accepted ? Object.freeze({ ...state.boundary, pending: null }) : state.boundary }), id: decision.attempt, retire: Object.freeze([]) });
     }
     if (input.type === 'settings.accept' || input.type === 'settings.change')
         return Object.freeze({ state: Object.freeze({ ...state, revision: state.revision + 1, settings: transitionSettings(state.settings, input) }), accepted: true, id: undefined, reason: undefined, retire: Object.freeze([]) });
@@ -181,3 +199,5 @@ export function playerEffectAuthority(state, scope) {
     return scope.playId === undefined || state.playback.plays.includes(scope.playId);
 }
 export function playerDeploymentCurrent(state, epoch, operation, revision) { return !state.operations.terminal && state.operations.epoch === epoch && state.operations.active === operation && state.routing.deployment.revision === revision && (operation === null || state.operations.entries.some(entry => entry.id === operation && entry.epoch === epoch && !entry.cancelled)); }
+function isTransportInput(input) { return input.type.startsWith('transport.'); }
+function isTrackConfirmationInput(input) { return input.type.startsWith('trackConfirmation.'); }

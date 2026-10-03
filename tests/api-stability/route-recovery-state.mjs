@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {recoveryRoute} from '../../web/generated/internal/machine/route-recovery.js';
+import {recoveryRoute,playbackFaultResponse} from '../../web/generated/internal/machine/route-recovery.js';
 import {initialPlayerControl} from '../../web/generated/internal/machine/state.js';
 import {transitionPlayer} from '../../web/generated/internal/machine/transition.js';
 import {PlayerError} from '../../web/generated/internal/errors.js';
@@ -77,4 +77,60 @@ test('explicit discovery requirements reach admission and replacement without ch
 test('terminal pause reentry suppresses the retired session error',async t=>{
  const p=unitPlayer();t.after(()=>p.destroy());const session=install(p,{error:new PlayerError('SOURCE_PERMISSION','denied')});let closing,errors=0;
  session.backend.pause=async()=>{closing=p.close();};p.addEventListener('error',()=>errors++);p.recover(session);await closing;await tick();assert.equal(errors,0);assert.equal(p.recovering,false);
+});
+
+
+test('recovery phases reject reordered and duplicate completions and retire stale outcomes',()=>{
+ const m=model();m.accept();m.recover();const id=m.state.routing.recovery.pending.id;
+ const change=change=>m.send({type:'routing.recovery',change:{id,...change}});
+ assert.equal(change({kind:'paused'}).accepted,false);
+ assert.equal(change({kind:'outcome',selected:true}).accepted,false);
+ assert.equal(change({kind:'classified',compatible:true}).accepted,true);
+ assert.equal(change({kind:'classified',compatible:false}).accepted,false);
+ assert.equal(change({kind:'start',current:true,automatic:true}).accepted,true);
+ assert.equal(m.state.routing.recovery.pending.phase,'pausing');
+ assert.equal(change({kind:'outcome',selected:true}).accepted,false);
+ assert.equal(change({kind:'paused'}).accepted,true);
+ assert.equal(change({kind:'paused'}).accepted,false);
+ assert.equal(change({kind:'outcome',selected:false}).accepted,true);
+ assert.equal(m.state.routing.recovery.pending.phase,'failed');
+ assert.equal(change({kind:'outcome',selected:true}).accepted,false);
+ m.send({type:'operation.retire',terminal:false});assert.equal(change({kind:'outcome',selected:true}).accepted,false);
+});
+test('queued recovery stops when automatic selection is disabled or source is replaced',()=>{
+ for(const facts of [{current:false,automatic:true},{current:true,automatic:false}]){
+  const m=model();m.accept();m.recover();const id=m.state.routing.recovery.pending.id;
+  m.send({type:'routing.recovery',change:{kind:'classified',id,compatible:true}});
+  m.send({type:'routing.recovery',change:{kind:'start',id,...facts}});
+  assert.equal(m.state.routing.recovery.pending,null);
+ }
+});
+test('fault response keeps manual policy, software terminal route and retired-session boundaries',()=>{
+ const facts={origin:'backend',current:true,accepted:true,busy:false,destroyed:false,automatic:true,mode:'native',fault:true,endFileError:true};
+ assert.equal(playbackFaultResponse(facts),'recover');
+ assert.equal(playbackFaultResponse({...facts,mode:'software'}),'error');
+ assert.equal(playbackFaultResponse({...facts,automatic:false}),'error');
+ assert.equal(playbackFaultResponse({...facts,automatic:false,endFileError:false}),'forward');
+ assert.equal(playbackFaultResponse({...facts,origin:'watchdog',automatic:false}),'pause-error');
+ assert.equal(playbackFaultResponse({...facts,origin:'track-policy'}),'pause-error');
+ for(const extra of [{current:false},{accepted:false},{destroyed:true},{busy:true}])assert.equal(playbackFaultResponse({...facts,...extra}),'ignore');
+ assert.equal(playbackFaultResponse({...facts,fault:false}),'forward');
+});
+
+test('failed recovery selection emits once and closes the explicit outcome before finishing',async t=>{
+ const p=unitPlayer();t.after(()=>p.destroy());const session=install(p),failure=new Error('replacement unavailable'),errors=[];
+ p.select=async()=>{assert.equal(p.control.routing.recovery.pending.phase,'selecting');throw failure;};
+ p.addEventListener('error',event=>{errors.push(event.detail);assert.equal(p.control.routing.recovery.pending.phase,'failed');});
+ p.recover(session);await p.queue;await tick();assert.equal(errors.length,1);assert.equal(errors[0].message,failure.message);assert.equal(p.recovering,false);
+});
+
+
+for(const retire of [false,true])test(`track-policy fault ${retire?'suppresses retired':'publishes current'} error after physical pause`,async t=>{
+ const p=unitPlayer();t.after(()=>p.destroy());const session=install(p);session.error=undefined;
+ const backend=Object.assign(new EventTarget(),{properties:new Map(),diagnostics:{plan:'direct'},destroy:async()=>{}});session.backend=backend;
+ p.source.trackPolicy={audio:{allowed:[]}};p.sourceTracks=()=>[{type:'audio',id:1,selected:true}];
+ let closing,pauses=0;backend.pause=async()=>{pauses++;if(retire)closing=p.close();};
+ const errors=[];p.addEventListener('error',event=>errors.push(event.detail));p.observeBackend(session,p.control.source.acceptedSession);
+ backend.dispatchEvent(new CustomEvent('mpv',{detail:{event:'property-change',name:'track-list'}}));await closing;
+ assert.equal(pauses,1);assert.equal(errors.length,retire?0:1);if(!retire)assert.match(errors[0].message,/excluded by the host policy/);
 });

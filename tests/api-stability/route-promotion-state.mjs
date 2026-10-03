@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {initialPromotion,transitionPromotion,promotionPlanAllowed} from '../../web/generated/internal/machine/route-promotion.js';
+import {initialPromotion,transitionPromotion,promotionPlanAllowed,promotionCandidate,promotionCandidates} from '../../web/generated/internal/machine/route-promotion.js';
 import {initialPlayerControl} from '../../web/generated/internal/machine/state.js';
 import {transitionPlayer} from '../../web/generated/internal/machine/transition.js';
 import {unitPlayer} from '../helpers/unit-player.mjs';
 import {Player} from '../../web/generated/unified-player.js';
+import {PlayerError} from '../../web/generated/internal/errors.js';
 const facts={automatic:true,source:true,current:true,error:false,paused:true,background:false,waiting:false,queued:0};
 const schedule=(state=initialPromotion(),now=10,extra={})=>transitionPromotion(state,{kind:'schedule',now,facts:{...facts,...extra}});
 const fire=(state,extra={},now=state.timer.due)=>transitionPromotion(state,{kind:'fired',id:state.timer.id,now,facts:{...facts,...extra}});
@@ -62,4 +63,51 @@ test('abort callback observes retired promotion and cannot finish a successor',a
  p.dispatchControl({type:'routing.promotion',change:{kind:'schedule',now:0,facts}});p.dispatchControl({type:'routing.promotion',change:{kind:'fired',id:1,now:200,facts}});
  controller.signal.addEventListener('abort',()=>{assert.equal(p.control.routing.promotion.active,null);p.dispatchControl({type:'routing.promotion',change:{kind:'schedule',now:1000,facts}});});
  p.cancelPromotion();assert.equal(p.control.routing.promotion.timer.id,2);p.dispatchControl({type:'routing.promotion',change:{kind:'finished',id:1}});assert.equal(p.control.routing.promotion.timer.id,2);
+});
+
+
+test('promotion cursor advances only on the matching compatibility failure and stops on success or terminal failure',()=>{
+ for(const outcome of ['selected','terminal']){
+  let state=transitionPromotion(fire(schedule()),{kind:'start',id:1,facts});
+  state=transitionPromotion(state,{kind:'trying',id:1,candidates:['native-direct','native-remux','hybrid']});
+  assert.equal(promotionCandidate(state,1),'native-direct');
+  assert.equal(transitionPromotion(state,{kind:'attempt',id:1,plan:'native-remux',outcome:'compatibility'}),state);
+  state=transitionPromotion(state,{kind:'attempt',id:1,plan:'native-direct',outcome:'compatibility'});
+  assert.equal(promotionCandidate(state,1),'native-remux');
+  assert.equal(transitionPromotion(state,{kind:'attempt',id:1,plan:'native-direct',outcome:'compatibility'}),state);
+  state=transitionPromotion(state,{kind:'attempt',id:1,plan:'native-remux',outcome});
+  assert.equal(promotionCandidate(state,1),undefined);assert.equal(state.active,null);
+ }
+});
+test('canceled promotion and exhausted candidates cannot admit additional attempts',()=>{
+ let state=transitionPromotion(fire(schedule()),{kind:'start',id:1,facts});
+ state=transitionPromotion(state,{kind:'trying',id:1,candidates:['native-direct']});
+ const canceled=transitionPromotion(state,{kind:'cancel'});
+ assert.equal(transitionPromotion(canceled,{kind:'attempt',id:1,plan:'native-direct',outcome:'compatibility'}),canceled);
+ state=transitionPromotion(state,{kind:'attempt',id:1,plan:'native-direct',outcome:'compatibility'});
+ assert.equal(promotionCandidate(state,1),undefined);
+ assert.equal(transitionPromotion(state,{kind:'attempt',id:1,plan:'native-direct',outcome:'compatibility'}),state);
+});
+
+for(const cancelAt of ['completion','between'])test(`real promotion stops when canceled at ${cancelAt} and cannot attempt the next route`,async t=>{
+ let now=0,wake; t.mock.method(performance,'now',()=>now);
+ t.mock.method(globalThis,'setTimeout',fn=>{wake=fn;return 1;});t.mock.method(globalThis,'clearTimeout',()=>{});
+ const p=unitPlayer();t.after(()=>p.destroy());const source={kind:'local',file:new ArrayBuffer(1)};
+ Object.assign(p,{source,current:{backend:{properties:new Map(),diagnostics:{plan:'direct'},destroy:async()=>{}},surface:{remove(){}}}});
+ Object.defineProperty(p,'diagnostics',{get:()=>({plan:{id:'software'}})});
+ p.sourceInspection={source,probe:{tracks:[],format:'mp4'},settings:{aid:'auto',sid:'auto',subtitles:true}};
+ p.admissible=()=>[{id:'native-direct',mode:'native',eligible:true},{id:'native-remux',mode:'native',eligible:true},{id:'software',mode:'software',eligible:true}];
+ if(cancelAt==='between')p.tierAttempts.failure=()=>p.cancelPromotion();
+ const attempted=[];p.replace=async(_source,_mode,_settings,_preserve,_tracks,_at,_automatic,id)=>{attempted.push(id);if(cancelAt==='completion')p.cancelPromotion();throw new PlayerError('DECODE_FAILED','fixture decoder rejection');};
+ Player.prototype.schedulePromotion.call(p);now=200;wake();await p.queue;await new Promise(setImmediate);
+ assert.deepEqual(attempted,['native-direct']);assert.equal(p.control.routing.promotion.active,null);
+});
+
+
+test('promotion candidate policy preserves route priority and excludes pinned, rejected and cached routes',()=>{
+ const plans=[{id:'rejected',mode:'native',eligible:false,cachedFailure:false},{id:'cached',mode:'native',eligible:true,cachedFailure:true},{id:'native',mode:'native',eligible:true,cachedFailure:false},{id:'hybrid',mode:'hybrid',eligible:true,cachedFailure:false},{id:'software',mode:'software',eligible:true,cachedFailure:false}];
+ assert.deepEqual(promotionCandidates(plans,'software',true),['native','hybrid']);
+ assert.deepEqual(promotionCandidates(plans,'software',false),['native']);
+ assert.deepEqual(promotionCandidates(plans,'native',true),[]);
+ assert.deepEqual(promotionCandidates(plans,'missing',true),[]);
 });

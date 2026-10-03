@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 export type NativeEventRequest=Readonly<{id:number;epoch:number;kind:'event'}>;
-export type NativeEventWait=Readonly<{request:NativeEventRequest;event:string;loading:boolean;budget:number;deadline:number}>;
-export function beginNativeEventWait(request:NativeEventRequest,event:string,now:number,loadBudget:number):NativeEventWait{
+export type NativeEventWait=Readonly<{request:NativeEventRequest;event:string;loading:boolean;budget:number;deadline:number;prefetchDeadline?:number;prefetched:boolean}>;
+export function beginNativeEventWait(request:NativeEventRequest,event:string,now:number,loadBudget:number,prefetchAfterMs?:number):NativeEventWait{
  const loading=event==='loadeddata'||event==='loadedmetadata',budget=loading?loadBudget:25000;
- return Object.freeze({request:Object.freeze({...request}),event,loading,budget,deadline:now+budget});
+ return Object.freeze({request:Object.freeze({...request}),event,loading,budget,deadline:now+budget,prefetchDeadline:loading&&prefetchAfterMs!==undefined?now+prefetchAfterMs:undefined,prefetched:false});
 }
 export function nativeEventWaitCurrent(waits:readonly NativeEventWait[],request:NativeEventRequest):boolean{return waits.some(wait=>wait.request.id===request.id&&wait.request.epoch===request.epoch);}
 export function nativeEventWaitDeadline(waits:readonly NativeEventWait[],request:NativeEventRequest,now:number):Readonly<{remaining?:number;event?:string;loading?:boolean;budget?:number}>|undefined{

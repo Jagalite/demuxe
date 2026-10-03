@@ -14,6 +14,7 @@ export function validOutputSize(width, height) { return Number.isInteger(width) 
 export function changePreferences(state, value) { return copyData({ ...state, ...value }); }
 export function clearSourcePreferences(state) { return Object.freeze({ ...state, publicSelections: Object.freeze({}), playbackRange: null, loopPolicy: false, qualityPolicy: null }); }
 export function initialSettingsTransactions() { return Object.freeze({ serial: 0, pending: null, degraded: null }); }
+export function settingAutomaticSelection(state) { const pending = state.settingsTransactions.pending; return pending?.phase === 'applying' && pending.automaticDuringApply && pending.automatic !== undefined ? pending.automatic : state.source.automatic; }
 export function settingAuthority(state, id) {
     const pending = state.settingsTransactions.pending, operation = state.operations.entries.find(entry => entry.id === state.operations.active);
     return !!pending && pending.id === id && !state.operations.terminal && pending.epoch === state.operations.epoch && pending.session === state.source.acceptedSession && operation?.id === pending.operation && !operation.cancelled && operation.phase === 'active';
@@ -27,10 +28,42 @@ export function transitionSettingTransaction(state, input) {
         const operation = state.operations.entries.find(entry => entry.id === state.operations.active);
         if (state.operations.terminal || !operation || operation.cancelled || operation.epoch !== state.operations.epoch || state.settingsTransactions.pending || state.attachments.pending)
             return result(state, false);
-        let settings = state.settings, preferences = state.preferences, effect, rollback, reconfigure = false, promote = false, noop = false, mode, selection, verifyTrack;
+        let settings = state.settings, preferences = state.preferences, effect, rollback, reconfigure = false, promote = false, noop = false, mode, selection, verifyTrack, automatic;
+        const after = [];
         const command = input.command;
         const context = { sourceId: state.source.serial, session: state.source.acceptedSession, mode: state.source.mode, automatic: state.source.automatic, hasSource: !!input.hasSource, hasBackend: input.hasBackend };
         switch (command.kind) {
+            case 'automatic':
+                automatic = command.value;
+                noop = !command.value || !input.hasSource;
+                reconfigure = command.value;
+                effect = { kind: 'source.reconfigure', settings };
+                rollback = effect;
+                break;
+            case 'mode': {
+                const rejection = featureRejection(command.value, { ...settings, toneMapping: preferences.toneMapping, hybridAudioFilters: input.hybridAudioFilters });
+                if (rejection)
+                    return result(state, false, undefined, empty, rejection);
+                automatic = false;
+                mode = command.value;
+                noop = mode === state.source.mode;
+                reconfigure = true;
+                effect = { kind: 'source.replace', mode, settings };
+                rollback = effect;
+                if (!noop && !input.hasSource)
+                    after.push({ kind: 'mode.ready', mode });
+                break;
+            }
+            case 'routedGain': {
+                noop = command.value === settings.gain;
+                settings = Object.freeze({ ...settings, gain: command.value });
+                reconfigure = !!input.hasSource && (!command.direct || command.plan === 'remux-mpv' && command.value !== 1);
+                effect = reconfigure ? { kind: 'source.reconfigure', settings } : { kind: 'gain', value: command.value };
+                rollback = { kind: 'gain', value: state.settings.gain };
+                if (!noop && !reconfigure && input.hasSource && command.direct)
+                    after.push({ kind: 'gain.evidence' });
+                break;
+            }
             case 'publicTrack': {
                 selection = decideTrackSelection(settings, context, command.track, command.id, command.facts);
                 if (selection.rejection)
@@ -187,10 +220,10 @@ export function transitionSettingTransaction(state, input) {
             effects.push(Object.freeze({ kind: 'track.verify', track: verifyTrack, value: settings[verifyTrack === 'audio' ? 'aid' : 'sid'], settings }));
             restore.push(Object.freeze({ kind: 'track.verify', track: verifyTrack, value: state.settings[verifyTrack === 'audio' ? 'aid' : 'sid'], settings: state.settings }));
         }
-        const settingKey = command.kind === 'volume' ? 'volume' : command.kind === 'rate' ? 'speed' : command.kind === 'gain' ? 'gain' : command.kind === 'pause' ? 'pause' : command.kind === 'subtitles' || command.kind === 'visibility' ? 'subtitles' : command.kind === 'track' || command.kind === 'publicTrack' && !noop ? (command.track === 'audio' ? 'aid' : 'sid') : command.kind === 'filters' ? command.key : undefined;
+        const settingKey = command.kind === 'volume' ? 'volume' : command.kind === 'rate' ? 'speed' : command.kind === 'gain' || command.kind === 'routedGain' ? 'gain' : command.kind === 'pause' ? 'pause' : command.kind === 'subtitles' || command.kind === 'visibility' ? 'subtitles' : command.kind === 'track' || command.kind === 'publicTrack' && !noop ? (command.track === 'audio' ? 'aid' : 'sid') : command.kind === 'filters' ? command.key : undefined;
         const preferenceKey = command.kind === 'publicTrack' && selection?.action !== 'none' || command.kind === 'track' && command.clearPublicSelection ? 'publicSelections' : command.kind === 'mute' ? 'muted' : command.kind === 'buffering' ? 'buffering' : command.kind === 'output' ? 'outputDeviceId' : command.kind === 'quality' ? 'qualityPolicy' : command.kind === 'range' ? 'playbackRange' : command.kind === 'loop' ? 'loopPolicy' : command.kind === 'subtitleDelay' || command.kind === 'audioDelay' || command.kind === 'subtitleStyle' || command.kind === 'toneMapping' ? command.kind : undefined;
         const settingsPatch = Object.freeze(settingKey ? { [settingKey]: settings[settingKey] } : {}), preferencesPatch = copyData(preferenceKey ? { [preferenceKey]: preferences[preferenceKey] } : {});
-        const id = state.settingsTransactions.serial + 1, transaction = Object.freeze({ id, operation: operation.id, epoch: operation.epoch, session: state.source.acceptedSession, phase: 'applying', reconfigure, promote, mode, settings, preferences, settingsPatch, preferencesPatch, rollback: Object.freeze(restore) });
+        const id = state.settingsTransactions.serial + 1, transaction = Object.freeze({ id, operation: operation.id, epoch: operation.epoch, session: state.source.acceptedSession, phase: 'applying', reconfigure, promote, mode, automatic, automaticDuringApply: command.kind === 'automatic', after: Object.freeze(after.map(effect => Object.freeze({ ...effect }))), settings, preferences, settingsPatch, preferencesPatch, rollback: Object.freeze(restore) });
         return result({ ...state, settingsTransactions: Object.freeze({ ...state.settingsTransactions, serial: id, pending: transaction }) }, true, id, Object.freeze(effects));
     }
     if (!settingAuthority(state, input.id))
@@ -207,5 +240,5 @@ export function transitionSettingTransaction(state, input) {
     // Apply only the fields this command owns. Independent accepted observations
     // (for example an emergency pause) may arrive while its I/O is pending.
     const commit = input.type === 'setting.accept' && pending.phase !== 'accepted';
-    return result({ ...state, source: commit && pending.mode ? Object.freeze({ ...state.source, mode: pending.mode }) : state.source, settings: commit ? Object.freeze({ ...state.settings, ...pending.settingsPatch }) : state.settings, preferences: commit ? changePreferences(state.preferences, pending.preferencesPatch) : state.preferences, settingsTransactions: Object.freeze({ ...state.settingsTransactions, pending: null, degraded }) }, true, input.id, input.type === 'setting.accept' && pending.promote ? Object.freeze([{ kind: 'promotion' }]) : empty);
+    return result({ ...state, source: input.type === 'setting.accept' && (pending.mode !== undefined || pending.automatic !== undefined) ? Object.freeze({ ...state.source, ...(pending.mode === undefined ? {} : { mode: pending.mode }), ...(pending.automatic === undefined ? {} : { automatic: pending.automatic }) }) : state.source, settings: commit ? Object.freeze({ ...state.settings, ...pending.settingsPatch }) : state.settings, preferences: commit ? changePreferences(state.preferences, pending.preferencesPatch) : state.preferences, settingsTransactions: Object.freeze({ ...state.settingsTransactions, pending: null, degraded }) }, true, input.id, input.type === 'setting.accept' ? Object.freeze([...pending.after, ...(pending.promote ? [{ kind: 'promotion' }] : [])]) : empty);
 }

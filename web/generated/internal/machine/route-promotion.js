@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { preferredPlanIndices } from './routing.js';
 export function initialPromotion() { return Object.freeze({ serial: 0, epoch: 0, timer: null, active: null }); }
 export function cancelPromotion(state) { return Object.freeze({ ...state, epoch: state.epoch + 1, timer: null, active: null }); }
 export function transitionPromotion(state, change) {
@@ -28,8 +29,17 @@ export function transitionPromotion(state, change) {
         const f = change.facts;
         return Object.freeze({ ...state, active: f.automatic && f.source && f.current ? Object.freeze({ ...active, phase: 'inspecting' }) : null });
     }
-    return active.phase === 'inspecting' ? Object.freeze({ ...state, active: Object.freeze({ ...active, phase: 'trying' }) }) : state;
+    if (change.kind === 'attempt') {
+        if (active.phase !== 'trying' || active.candidates?.[active.cursor ?? 0] !== change.plan)
+            return state;
+        return Object.freeze({ ...state, active: change.outcome === 'compatibility' ? Object.freeze({ ...active, cursor: (active.cursor ?? 0) + 1 }) : null });
+    }
+    return change.kind === 'trying' && active.phase === 'inspecting' ? Object.freeze({ ...state, active: Object.freeze({ ...active, phase: 'trying', candidates: Object.freeze([...(change.candidates ?? [])]), cursor: 0 }) }) : state;
 }
 /** Only an already admitted plan before the accepted plan can be promoted.
  * Playing handoffs additionally need the Native overlap path. */
 export function promotionPlanAllowed(paused, mode, cachedFailure) { return (paused || mode === 'native') && !cachedFailure; }
+export function promotionCandidate(state, id) { const active = state.active; return active?.id === id && active.epoch === state.epoch && active.phase === 'trying' ? active.candidates?.[active.cursor ?? 0] : undefined; }
+export function promotionCandidates(plans, current, paused) {
+    return Object.freeze(preferredPlanIndices(plans, current).filter(index => promotionPlanAllowed(paused, plans[index].mode, plans[index].cachedFailure)).map(index => plans[index].id));
+}

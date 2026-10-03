@@ -4,19 +4,24 @@
 export type ShakaNetworkFailure=Readonly<{code:'SOURCE_PERMISSION'|'SOURCE_CHANGED'|'UNSUPPORTED_FEATURE';message:string}>;
 export type ShakaRange=Readonly<{start:bigint;requestedEnd:bigint|undefined;end:bigint;total:bigint|undefined;expected:bigint|undefined;complete:boolean}>;
 export type ShakaNetworkRequest=Readonly<{id:number;kind:'manifest'|'segment'|'other';phase:'fetch'|'refresh'|'body'|'ready'|'cleanup';resource:number|undefined;attempt:number;cancelled:'abort'|'timeout'|null;deadline:number|undefined;limit:number;bytes:number;lastProgress:number;length:number;contentLength:string|undefined;range:ShakaRange|null}>;
-export type ShakaNetworkState=Readonly<{active:boolean;serial:number;terminal:number;immutable:boolean;preview:boolean;requests:readonly ShakaNetworkRequest[];validators:readonly Readonly<{resource:number;value:string}>[];totals:readonly Readonly<{resource:number;value:bigint}>[]}>;
+export type ShakaNetworkState=Readonly<{active:boolean;serial:number;terminal:number;immutable:boolean;preview:boolean;requests:readonly ShakaNetworkRequest[];refreshes:readonly number[];validators:readonly Readonly<{resource:number;value:string}>[];totals:readonly Readonly<{resource:number;value:bigint}>[]}>;
 export type ShakaNetworkDecision=Readonly<{state:ShakaNetworkState;accepted:boolean;failure?:ShakaNetworkFailure;id?:number;remaining?:number;refresh?:boolean;progress?:Readonly<{elapsed:number;bytes:number;remaining:number}>;slice?:Readonly<{start:number;end:number}>;streamRange?:boolean}>;
 const failure=(code:ShakaNetworkFailure['code'],message:string):ShakaNetworkFailure=>Object.freeze({code,message});
 const changed=(message:string)=>failure('SOURCE_CHANGED',message);
 const permission=(message:string)=>failure('SOURCE_PERMISSION',message);
-export function initialShakaNetwork(immutable=false,preview=false):ShakaNetworkState{return Object.freeze({active:true,serial:0,terminal:0,immutable,preview,requests:Object.freeze([]),validators:Object.freeze([]),totals:Object.freeze([])});}
+export function initialShakaNetwork(immutable=false,preview=false):ShakaNetworkState{return Object.freeze({active:true,serial:0,terminal:0,immutable,preview,requests:Object.freeze([]),refreshes:Object.freeze([]),validators:Object.freeze([]),totals:Object.freeze([])});}
+/** A canceled plugin can settle before its external refresh callback. Keep that
+ * physical obligation charged without retaining its URL, headers or promise. */
+export function shakaNetworkPending(state:ShakaNetworkState):number{return state.requests.length+state.refreshes.filter(id=>!state.requests.some(request=>request.id===id)).length;}
+export function beginShakaNetworkRefresh(state:ShakaNetworkState,id:number):ShakaNetworkDecision{return shakaNetworkCurrent(state,id)&&shakaNetworkRequest(state,id)?.phase==='refresh'&&!state.refreshes.includes(id)?result(Object.freeze({...state,refreshes:Object.freeze([...state.refreshes,id])})):result(state,{},false);}
+export function settleShakaNetworkRefresh(state:ShakaNetworkState,id:number):ShakaNetworkState{return state.refreshes.includes(id)?Object.freeze({...state,refreshes:Object.freeze(state.refreshes.filter(value=>value!==id))}):state;}
 export function shakaNetworkRequest(state:ShakaNetworkState,id:number):ShakaNetworkRequest|undefined{return state.requests.find(request=>request.id===id);}
 export function shakaNetworkCurrent(state:ShakaNetworkState,id:number):boolean{return state.active&&!!state.requests.some(request=>request.id===id&&!request.cancelled&&request.phase!=='cleanup');}
 function result(state:ShakaNetworkState,extra:Omit<ShakaNetworkDecision,'state'|'accepted'>={},accepted=true):ShakaNetworkDecision{return Object.freeze({state,accepted,...extra});}
 function replace(state:ShakaNetworkState,request:ShakaNetworkRequest):ShakaNetworkState{return Object.freeze({...state,requests:Object.freeze(state.requests.map(value=>value.id===request.id?Object.freeze({...request}):value))});}
 export function beginShakaNetworkRequest(state:ShakaNetworkState,kind:ShakaNetworkRequest['kind'],timeout:number,now:number):ShakaNetworkDecision{
  if(!state.active)return result(state,{},false);
- if(state.requests.length>=(state.preview?4:32))return result(state,{failure:permission('Streaming concurrent request capacity exceeded')},false);
+ if(shakaNetworkPending(state)>=(state.preview?4:32))return result(state,{failure:permission('Streaming concurrent request capacity exceeded')},false);
  const request:ShakaNetworkRequest=Object.freeze({id:state.serial+1,kind,phase:'fetch',resource:undefined,attempt:0,cancelled:null,deadline:timeout?now+Math.max(0,timeout):undefined,limit:(state.preview||kind==='manifest'?4:16)*1024*1024,bytes:0,lastProgress:now,length:0,contentLength:undefined,range:null});
  return result(Object.freeze({...state,serial:request.id,requests:Object.freeze([...state.requests,request])}),{id:request.id});
 }

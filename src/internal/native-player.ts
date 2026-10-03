@@ -199,12 +199,12 @@ export class NativePlayer extends EventTarget implements Backend {
   private eventWaits=new Map<number,(error:Error)=>void>();
   private wait(event:string,start:()=>void,signal?:AbortSignal):Promise<void>{
     this.assertActive();signal?.throwIfAborted();const now=performance.now();this.assertActive();
-    const request=this.changeNative({type:'event.begin',event,now,loadBudget:this.loadTimeoutMs}).request as NativeEventRequest,video=this.video;
+    const request=this.changeNative({type:'event.begin',event,now,loadBudget:this.loadTimeoutMs,prefetchAfterMs:this.startup?.prefetch?this.startup.prefetchAfterMs:undefined}).request as NativeEventRequest,video=this.video;
     return new Promise((resolve,reject)=>{
-      let settled=false,timer:{handle?:ReturnType<typeof setTimeout>}|undefined,softTimer:ReturnType<typeof setTimeout>|undefined;
+      let settled=false,timer:{handle?:ReturnType<typeof setTimeout>}|undefined,softTimer:{handle?:ReturnType<typeof setTimeout>}|undefined;
       const finish=(error?:unknown)=>{
         if(settled)return;settled=true;this.changeNative({type:'event.finish',request});
-        const pending=timer;timer=undefined;clearTimeout(softTimer);this.cancelers.delete(cancel);this.eventWaits.delete(request.id);
+        const pending=timer;timer=undefined;clearTimeout(softTimer?.handle);softTimer=undefined;this.cancelers.delete(cancel);this.eventWaits.delete(request.id);
         for(const clean of [()=>clearTimeout(pending?.handle),()=>video.removeEventListener(event,done),()=>video.removeEventListener('error',failed),()=>signal?.removeEventListener('abort',aborted)])try{clean();}catch(cleanup){error??=cleanup;}
         error!==undefined?reject(error):resolve();
       };
@@ -220,7 +220,9 @@ export class NativePlayer extends EventTarget implements Backend {
         const deadline=this.changeNative({type:'event.deadline',request,now});arm(deadline.remaining??0);if(settled)return;
         for(const [name,listener] of [[event,done],['error',failed]] as const){video.addEventListener(name,listener,{once:true});if(settled||!nativeRequestCurrent(this.native,request)){video.removeEventListener(name,listener);this.assertNative(request);return;}}
         if((event==='loadeddata'||event==='loadedmetadata')&&this.startup?.prefetch&&this.startup.prefetchAfterMs!==undefined){
-          softTimer=setTimeout(()=>{if(settled)return;try{this.assertNative(request);this.startup?.prefetch?.();}catch{/* Speculation cannot fail the active load. */}},this.startup.prefetchAfterMs);
+          const armPrefetch=(delay:number)=>{const registration:{handle?:ReturnType<typeof setTimeout>}={};softTimer=registration;const acquired=setTimeout(()=>{if(softTimer!==registration)return;softTimer=undefined;prefetch();},delay);registration.handle=acquired;if(settled||softTimer!==registration||!nativeRequestCurrent(this.native,request)){clearTimeout(acquired);if(softTimer===registration)softTimer=undefined;}};
+          const prefetch=()=>{try{const decision=this.changeNative({type:'event.prefetch',request,now:performance.now()});if(decision.prefetch)this.startup?.prefetch?.();else if(decision.remaining!==undefined)armPrefetch(decision.remaining);}catch{/* Speculation cannot fail the active load. */}};
+          try{armPrefetch(this.startup.prefetchAfterMs);}catch{softTimer=undefined;/* Speculative timer acquisition cannot fail active loading. */}
         }
         signal?.throwIfAborted();this.assertNative(request);start();
       }catch(error){finish(error);}

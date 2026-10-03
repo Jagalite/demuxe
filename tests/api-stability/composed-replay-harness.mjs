@@ -13,7 +13,7 @@ const sort=values=>values.sort((a,b)=>String(a[0]).localeCompare(String(b[0])));
 /** Deliberately smaller than Player: contractual identities, source milestones,
  * accepted pause, outstanding execution and physical cleanup obligations only.
  * No production reducer/selectors are used to calculate expected state. */
-class Contract {
+export class Contract {
  epoch=0;terminal=false;disposed=false;session=null;sessionEpoch=null;candidate=null;attempt=0;sessionSerial=0;sourceSerial=0;playSerial=0;plays=new Set();pause=true;
  effects=new Map();resources=new Map();retired=new Set();outcomes=[];registered=0;released=0;lateReleased=0;lateFailed=0;failures=0;timedOut=0;
  current(scope){return !this.terminal&&scope.owner==='player'&&scope.lifetime===this.epoch&&!this.retired.has(scope.sessionId)&&((scope.sessionId===this.session&&this.sessionEpoch===this.epoch)||scope.sessionId===this.candidate?.session&&this.candidate.epoch===this.epoch)&&(scope.playId===undefined||this.plays.has(scope.playId));}
@@ -29,6 +29,7 @@ class Contract {
   else if(type==='operation.retire'){this.epoch++;this.terminal||=input.terminal;if(this.session!==null)this.retired.add(this.session);if(this.candidate)this.retired.add(this.candidate.session);}
   else if(type==='play.request'){this.plays.add(++this.playSerial);}
   else if(type==='play.retire')this.plays.clear();
+  else if(type==='play.settled')this.plays.delete(input.id);
   else if(type==='settings.change')this.pause=input.value.pause??this.pause;
   else if(type==='effect.event'){
    const e=input.input,work=this.effects.get(e.id);

@@ -2,7 +2,7 @@
 import type Shaka from 'shaka-player';
 import type {RemoteSource} from '../types.js';
 import {PlayerError,isPlayerError} from './errors.js';
-import {initialShakaNetwork,shakaNetworkRequest,shakaNetworkCurrent,beginShakaNetworkRequest,setShakaNetworkResource,cancelShakaNetworkRequest,expireShakaNetworkRequest,cleanupShakaNetworkRequest,finishShakaNetworkRequest,failShakaNetwork,retireShakaNetwork,shakaNetworkAdmission,receiveShakaNetworkStatus,finishShakaNetworkRefresh,observeShakaNetworkValidator,beginShakaNetworkBody,appendShakaNetworkBody,completeShakaNetworkBody,shakaNetworkResourceIDs,type ShakaNetworkState,type ShakaNetworkFailure,type ShakaNetworkDecision} from './machine/shaka-network.js';
+import {initialShakaNetwork,shakaNetworkPending,beginShakaNetworkRefresh,settleShakaNetworkRefresh,shakaNetworkRequest,shakaNetworkCurrent,beginShakaNetworkRequest,setShakaNetworkResource,cancelShakaNetworkRequest,expireShakaNetworkRequest,cleanupShakaNetworkRequest,finishShakaNetworkRequest,failShakaNetwork,retireShakaNetwork,shakaNetworkAdmission,receiveShakaNetworkStatus,finishShakaNetworkRefresh,observeShakaNetworkValidator,beginShakaNetworkBody,appendShakaNetworkBody,completeShakaNetworkBody,shakaNetworkResourceIDs,type ShakaNetworkState,type ShakaNetworkFailure,type ShakaNetworkDecision} from './machine/shaka-network.js';
 
 const owners=new WeakMap<Shaka.extern.Request,ShakaNetworkPolicy>();
 const installed=new WeakSet<typeof Shaka>();
@@ -95,8 +95,10 @@ export class ShakaNetworkPolicy {
         let update:Awaited<ReturnType<NonNullable<RemoteSource['refreshAuthorization']>>>,cancel:()=>void=()=>{};
         try{
           const source=this.source,refresh=source.refreshAuthorization;check();
-          update=await Promise.race([refresh!.call(source,{url:uri}),new Promise<never>((_,reject)=>{cancel=()=>reject(new PlayerError('ABORTED','Streaming authorization refresh cancelled'));if(acquired.signal.aborted)cancel();else acquired.signal.addEventListener('abort',cancel,{once:true});})]);
-        }catch(error){this.checkActive();throw this.fail(isPlayerError(error)?error:new PlayerError('SOURCE_PERMISSION','Streaming authorization refresh failed'));}
+          if(!this.accept(beginShakaNetworkRefresh(this.control,id!)))throw new PlayerError('ABORTED','Streaming authorization refresh retired');
+          const physical=(async()=>{try{return await refresh!.call(source,{url:uri});}finally{this.control=settleShakaNetworkRefresh(this.control,id!);}})();
+          update=await Promise.race([physical,new Promise<never>((_,reject)=>{cancel=()=>reject(new PlayerError('ABORTED','Streaming authorization refresh cancelled'));if(acquired.signal.aborted)cancel();else acquired.signal.addEventListener('abort',cancel,{once:true});})]);
+        }catch(error){check();throw this.fail(isPlayerError(error)?error:new PlayerError('SOURCE_PERMISSION','Streaming authorization refresh failed'));}
         finally{acquired.signal.removeEventListener('abort',cancel);}
         check();
         if(update.headers){const headers={...update.headers};check();this.checkHeaders(headers);this.headers={...this.headers,...headers};}
@@ -150,5 +152,5 @@ export class ShakaNetworkPolicy {
     // selected before its filter must never fall through to unowned fetch.
     for(const controller of controllers)try{controller.abort();}catch{}
   }
-  get diagnostics(){return {active:this.control.active,pendingRequests:this.control.requests.length,redirects:'rejected',credentials:this.source.credentials??'same-origin',allowedOriginCount:this.allowed.size};}
+  get diagnostics(){return {active:this.control.active,pendingRequests:shakaNetworkPending(this.control),pendingRefreshes:this.control.refreshes.length,redirects:'rejected',credentials:this.source.credentials??'same-origin',allowedOriginCount:this.allowed.size};}
 }

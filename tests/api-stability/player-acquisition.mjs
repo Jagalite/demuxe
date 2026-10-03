@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Player} from '../../web/generated/unified-player.js';
 import {unitPlayer} from '../helpers/unit-player.mjs';
+import {acceptSourceIdentity} from '../helpers/player-control.mjs';
 import {initialPromotion,transitionPromotion} from '../../web/generated/internal/machine/route-promotion.js';
 const facts={automatic:true,source:true,current:true,error:false,paused:true,background:false,waiting:false,queued:0};
 const turn=async()=>{for(let i=0;i<8;i++)await Promise.resolve();};
@@ -42,7 +43,7 @@ test('synchronous enqueue failure releases controller and active ownership',t=>{
 test('synchronous timer delivery cannot publish an already fired handle',async t=>{
  const f=setup(t);let queued=0;f.p.enqueue=()=>{queued++;return Promise.resolve();};f.hook=(_handle,callback)=>{f.hook=null;t.mock.method(performance,'now',()=>200);callback();};f.p.schedulePromotion();assert.equal(f.p.promotionTimer,undefined);await turn();assert.equal(queued,1);assert.equal(f.p.control.routing.promotion.active,null);
 });
-function track(t){const f=setup(t),listeners=new Set(),aborts=new Set();let matches=false;const signal={aborted:false,addEventListener(_name,listener){aborts.add(listener);},removeEventListener(_name,listener){aborts.delete(listener);}};Object.defineProperty(f.p,'activeOperation',{get:()=>({controller:{signal}})});const backend={addEventListener(_name,listener){listeners.add(listener);},removeEventListener(_name,listener){listeners.delete(listener);}};f.p.sessionTracks=()=>[{type:'audio',id:1,selected:matches}];return{...f,backend,signal,listeners,aborts,set selected(v){matches=v;},confirm(){return f.p.confirmTrackSelection({backend},undefined,'native',f.p.settings,'audio','1');}};}
+function track(t){const f=setup(t),listeners=new Set(),aborts=new Set();let matches=false;const signal={aborted:false,addEventListener(_name,listener){aborts.add(listener);},removeEventListener(_name,listener){aborts.delete(listener);}};Object.defineProperty(f.p,'activeOperation',{get:()=>({controller:{signal}})});const backend={addEventListener(_name,listener){listeners.add(listener);},removeEventListener(_name,listener){listeners.delete(listener);}};const session={backend};f.p.current=session;acceptSourceIdentity(f.p,1);const op=f.p.dispatchControl({type:'operation.admit',kind:'switching'}).id;f.p.dispatchControl({type:'operation.start',id:op});f.p.sessionTracks=()=>[{type:'audio',id:1,selected:matches}];return{...f,backend,signal,listeners,aborts,set selected(v){matches=v;},confirm(){return f.p.confirmTrackSelection(session,undefined,'native',f.p.settings,'audio','1');}};}
 test('synchronous track timeout rejects and releases the late timer without acquiring listeners',async t=>{
  const f=track(t);t.mock.method(globalThis,'setTimeout',callback=>{callback();return 99;});await assert.rejects(f.confirm(),/required track selection/);assert.ok(f.cleared.includes(99));assert.equal(f.listeners.size,0);assert.equal(f.aborts.size,0);
 });
@@ -87,4 +88,16 @@ test('abort during timer acquisition fences all listener allocation and clears l
 });
 test('abort during backend listener acquisition fences abort listener acquisition',async t=>{
  const f=track(t);let registrations=0;f.backend.addEventListener=(_name,listener)=>{f.listeners.add(listener);f.signal.aborted=true;};f.signal.addEventListener=()=>{registrations++;};await assert.rejects(f.confirm(),/aborted/);assert.equal(registrations,0);assert.equal(f.listeners.size,0);assert.equal(f.timers.size,0);
+});
+test('track confirmation cleanup reentry cannot replace success with an abort',async t=>{
+ const f=track(t),pending=f.confirm(),check=[...f.listeners][0];
+ const remove=f.backend.removeEventListener;f.backend.removeEventListener=(...args)=>{remove(...args);check();};f.selected=true;check();await pending;
+ assert.equal(f.listeners.size,0);assert.equal(f.aborts.size,0);assert.equal(f.timers.size,0);assert.equal(f.p.control.trackConfirmation.pending,null);
+});
+test('old confirmation cleanup cannot retire a reentrant successor lease',async t=>{
+ const f=track(t),first=f.confirm(),oldCheck=[...f.listeners][0];let successor;
+ const remove=f.backend.removeEventListener;f.backend.removeEventListener=(...args)=>{remove(...args);if(!successor){f.selected=false;successor=f.confirm();}};
+ f.selected=true;oldCheck();await first;
+ const successorId=f.p.control.trackConfirmation.pending.id;oldCheck();assert.equal(f.p.control.trackConfirmation.pending.id,successorId);
+ f.selected=true;[...f.listeners][0]();await successor;assert.equal(f.p.control.trackConfirmation.pending,null);assert.equal(f.timers.size,0);assert.equal(f.listeners.size,0);
 });

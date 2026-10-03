@@ -39,7 +39,7 @@ export function transitionNativeBackend(state, command) {
         return result(state, { failure: 'caption-capacity' }, false);
     if (command.type === 'event.begin') {
         const request = Object.freeze({ id: state.serial + 1, epoch: state.epoch, kind: 'event' });
-        return result({ ...state, serial: request.id, waits: Object.freeze([...state.waits, beginNativeEventWait(request, command.event, command.now, command.loadBudget)]) }, { request });
+        return result({ ...state, serial: request.id, waits: Object.freeze([...state.waits, beginNativeEventWait(request, command.event, command.now, command.loadBudget, command.prefetchAfterMs)]) }, { request });
     }
     if (command.type === 'caption.begin') {
         const request = Object.freeze({ id: state.serial + 1, epoch: state.epoch, kind: 'caption' });
@@ -65,6 +65,14 @@ export function transitionNativeBackend(state, command) {
     }
     if (!nativeRequestCurrent(state, command.request) || (command.type.startsWith('verify.') && command.request.kind !== 'verification') || (command.type.startsWith('seek.') && command.request.kind !== 'seek'))
         return result(state, {}, false);
+    if (command.type === 'event.prefetch') {
+        const wait = state.waits.find(value => value.request.id === command.request.id);
+        if (!wait || wait.prefetched || wait.prefetchDeadline === undefined)
+            return result(state, {}, false);
+        if (command.now < wait.prefetchDeadline)
+            return result(state, { remaining: wait.prefetchDeadline - command.now });
+        return result({ ...state, waits: Object.freeze(state.waits.map(value => value === wait ? Object.freeze({ ...wait, prefetched: true }) : value)) }, { prefetch: true });
+    }
     if (command.type === 'event.finish')
         return result({ ...state, waits: Object.freeze(state.waits.filter(wait => wait.request.id !== command.request.id)) });
     if (command.type === 'event.deadline') {

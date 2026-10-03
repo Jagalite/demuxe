@@ -2,7 +2,12 @@
 const failure = (code, message) => Object.freeze({ code, message });
 const changed = (message) => failure('SOURCE_CHANGED', message);
 const permission = (message) => failure('SOURCE_PERMISSION', message);
-export function initialShakaNetwork(immutable = false, preview = false) { return Object.freeze({ active: true, serial: 0, terminal: 0, immutable, preview, requests: Object.freeze([]), validators: Object.freeze([]), totals: Object.freeze([]) }); }
+export function initialShakaNetwork(immutable = false, preview = false) { return Object.freeze({ active: true, serial: 0, terminal: 0, immutable, preview, requests: Object.freeze([]), refreshes: Object.freeze([]), validators: Object.freeze([]), totals: Object.freeze([]) }); }
+/** A canceled plugin can settle before its external refresh callback. Keep that
+ * physical obligation charged without retaining its URL, headers or promise. */
+export function shakaNetworkPending(state) { return state.requests.length + state.refreshes.filter(id => !state.requests.some(request => request.id === id)).length; }
+export function beginShakaNetworkRefresh(state, id) { return shakaNetworkCurrent(state, id) && shakaNetworkRequest(state, id)?.phase === 'refresh' && !state.refreshes.includes(id) ? result(Object.freeze({ ...state, refreshes: Object.freeze([...state.refreshes, id]) })) : result(state, {}, false); }
+export function settleShakaNetworkRefresh(state, id) { return state.refreshes.includes(id) ? Object.freeze({ ...state, refreshes: Object.freeze(state.refreshes.filter(value => value !== id)) }) : state; }
 export function shakaNetworkRequest(state, id) { return state.requests.find(request => request.id === id); }
 export function shakaNetworkCurrent(state, id) { return state.active && !!state.requests.some(request => request.id === id && !request.cancelled && request.phase !== 'cleanup'); }
 function result(state, extra = {}, accepted = true) { return Object.freeze({ state, accepted, ...extra }); }
@@ -10,7 +15,7 @@ function replace(state, request) { return Object.freeze({ ...state, requests: Ob
 export function beginShakaNetworkRequest(state, kind, timeout, now) {
     if (!state.active)
         return result(state, {}, false);
-    if (state.requests.length >= (state.preview ? 4 : 32))
+    if (shakaNetworkPending(state) >= (state.preview ? 4 : 32))
         return result(state, { failure: permission('Streaming concurrent request capacity exceeded') }, false);
     const request = Object.freeze({ id: state.serial + 1, kind, phase: 'fetch', resource: undefined, attempt: 0, cancelled: null, deadline: timeout ? now + Math.max(0, timeout) : undefined, limit: (state.preview || kind === 'manifest' ? 4 : 16) * 1024 * 1024, bytes: 0, lastProgress: now, length: 0, contentLength: undefined, range: null });
     return result(Object.freeze({ ...state, serial: request.id, requests: Object.freeze([...state.requests, request]) }), { id: request.id });

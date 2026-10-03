@@ -8,6 +8,9 @@ import {Player} from '../web/generated/unified-player.js';
 
 function fixture() {
  const p=unitPlayer(),calls=[];
+ const attempt=p.dispatchControl({type:'source.begin',operationEpoch:p.operationEpoch,mode:'native',preserve:false,planId:'native-direct'}).id;
+ for(const type of ['source.created','source.configured','source.opened','source.applied','source.positioned'])p.dispatchControl({type,attempt});
+ p.dispatchControl({type:'source.accept',attempt,operationEpoch:p.operationEpoch,settings:p.settings,planMatches:true});p.dispatchControl({type:'source.finished',attempt});
  const backend={properties:new Map([['time-pos',1]]),diagnostics:{plan:'direct'},
   play:async()=>{calls.push('play');},pause:async()=>{calls.push('pause');},verifyOutput:async()=>{}};
  Object.assign(p,{source:{kind:'local'},current:{backend},nativeRemux:'never',evidence:()=>({outputVerified:true}),acceptEvidence(){}});
@@ -74,4 +77,14 @@ test('synchronous immediate play failure retires its logical intent and controll
  assert.equal(p.playRequests.size,0);assert.deepEqual(p.control.playback.plays,[]);assert.equal(p.queued,0);
  backend.play=async()=>{};await p.play();await p.queue;
  assert.equal(p.settings.pause,false);assert.equal(p.playRequests.size,0);
+});
+
+
+test('Pause during original-position restoration prevents a second backend play',async()=>{
+ const {p,backend,calls}=fixture();let began,finish;const restoring=new Promise(resolve=>began=resolve);
+ Object.assign(p,{nativeRemux:'auto',evidence:()=>({}),planDecisions:[{id:'native-remux',eligible:true}],select:async()=>{throw new PlayerError('ASSET_LOAD_FAILED','Unavailable replacement');}});
+ backend.verifyOutput=async()=>{throw new StartupEvidenceTimeout('output');};
+ backend.seek=()=>{began();return new Promise(resolve=>finish=resolve);};
+ const playing=p.play();await restoring;const paused=p.pause();finish();await Promise.all([playing,paused]);
+ assert.deepEqual(calls,['play','pause']);assert.equal(p.settings.pause,true);assert.equal(p.control.transport.pending,null);
 });

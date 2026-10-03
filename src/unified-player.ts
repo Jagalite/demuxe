@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {startupFallbackPlan,startupLoadBudget,startupPrefetchCurrent,startupPreparation} from './internal/machine/startup.js';
 import {resourceAvailable} from './internal/machine/resource-ledger.js';
 import {EffectRuntime} from './internal/effects/runtime.js';
 import {playerEffectAuthority} from './internal/machine/transition.js';
@@ -28,9 +29,9 @@ import {executionRecipe} from './internal/execution-recipes.js';
 import {deploymentRejectionError} from './internal/provider-deployment-errors.js';
 import {startupEscalationPolicy,StartupModules} from './internal/startup-escalation.js';
 import {EnginePreparation,preparationComponents} from './internal/engine-preparation.js';
-import {recoveryRoute,type RouteRequirements} from './internal/machine/route-recovery.js';
-import {promotionPlanAllowed,type PromotionFacts} from './internal/machine/route-promotion.js';
-import {TierAttempts,preferredPlans} from './internal/tier-policy.js';
+import {playbackFaultResponse,recoveryRoute,type RouteRequirements} from './internal/machine/route-recovery.js';
+import {promotionCandidate,promotionCandidates,type PromotionFacts} from './internal/machine/route-promotion.js';
+import {TierAttempts} from './internal/tier-policy.js';
 import {runtimeBase} from './internal/assets.js';
 import {selectRemuxRuntime} from './internal/remux-runtime.js';
 import {remuxDeploymentCandidates,type RemuxRuntime} from './internal/machine/remux-deployment.js';
@@ -72,7 +73,7 @@ import {attachmentAuthority,candidateAttachments,attachmentPreferences,type Atta
 import {boundaryAuthority} from './internal/machine/playback-boundary.js';
 import {playerReadinessAuthority,type ReadinessFacts} from './internal/machine/player-readiness.js';
 import {playerActionAuthority,type PlayerActionInput} from './internal/machine/player-actions.js';
-import {settingAuthority,effectiveVideoFilters,validOutputSize,type SettingCommand,type SettingEffect,type PlayerPreferences} from './internal/machine/settings.js';
+import {settingAuthority,settingAutomaticSelection,effectiveVideoFilters,validOutputSize,type SettingCommand,type SettingEffect,type PlayerPreferences} from './internal/machine/settings.js';
 import {createTrace,tracePlayerTransition,selectTrace} from './internal/machine/trace.js';
 type Settings = import('./internal/machine/settings.js').PlaybackSettings;
 const filterChain = (value: string) => {
@@ -203,7 +204,7 @@ export class Player extends EventTarget {
   private closing?: Promise<void>;
   private get currentMode(){return this.control.source.mode;}
   private set currentMode(mode:PlaybackMode){this.dispatchControl({type:'source.configure',mode});}
-  private get automatic(){return this.control.source.automatic;}
+  private get automatic(){return settingAutomaticSelection(this.control);}
   private set automatic(automatic:boolean){this.dispatchControl({type:'source.configure',automatic});}
   private get attempts(){return this.control.routing.attempts;}
   private set attempts(attempts:readonly SelectionAttempt[]){this.dispatchControl({type:'routing.attempts',attempts});}
@@ -262,13 +263,13 @@ export class Player extends EventTarget {
         const nativeReason=nativeRejection(inspected.probe,{...inspected.settings,subtitles:settings.subtitles,sid:settings.sid==='no'?'no':inspected.settings.sid});
         const plans=this.admissible(source,settings,this.subtitleAssets,this.nativeTracks,nativeReason,true);
         this.assertOperation();
-        if(!this.dispatchControl({type:'routing.promotion',change:{kind:'trying',id:timer.id}}).accepted)return;
+        if(!this.dispatchControl({type:'routing.promotion',change:{kind:'trying',id:timer.id,candidates:promotionCandidates(plans.map(plan=>({id:plan.id,mode:plan.mode,eligible:plan.eligible,cachedFailure:!!this.tierAttempts.reason(source,this.tierConfiguration(settings),plan.id)})),current,settings.pause)}}).accepted)return;
         this.admissionContext={nativeReason,automatic:true};
-        for(const plan of preferredPlans(plans,current)){
-          if(!promotionPlanAllowed(settings.pause,plan.mode,false)||this.tierAttempts.reason(source,this.tierConfiguration(settings),plan.id))continue;
+        while(currentActive()){
+          const planId=promotionCandidate(this.control.routing.promotion,timer.id),plan=plans.find(plan=>plan.id===planId);if(!plan)break;
           this.assertOperation();
-          try{await this.replace(source,plan.mode,settings,true,this.nativeTracks,undefined,true,plan.id);return;}
-          catch(error){if(compatibilityFailure(error))this.tierAttempts.failure(source,this.tierConfiguration(settings),plan.id,String(error));else return;}
+          try{await this.replace(source,plan.mode,settings,true,this.nativeTracks,undefined,true,plan.id);this.dispatchControl({type:'routing.promotion',change:{kind:'attempt',id:timer.id,plan:plan.id,outcome:'selected'}});return;}
+          catch(error){const compatible=compatibilityFailure(error);if(!this.dispatchControl({type:'routing.promotion',change:{kind:'attempt',id:timer.id,plan:plan.id,outcome:compatible?'compatibility':'terminal'}}).accepted)return;if(compatible)this.tierAttempts.failure(source,this.tierConfiguration(settings),plan.id,String(error));}
         }
         }finally{this.dispatchControl({type:'routing.promotion',change:{kind:'finished',id:timer.id}});}
       // Inspection and a no-op preference check keep the accepted session paused.
@@ -464,8 +465,9 @@ export class Player extends EventTarget {
     const fault=this.control.monitor.fault;if(!sampled.accepted||fault?.id!==id)return;
     const error=fault.reason==='hybrid'?new PlayerError('DECODE_FAILED','Hybrid browser decoder became inactive for four consecutive checks'):new PlayerError('PLAYBACK_STALLED',`Native ${fault.reason==='clock'?'playback clock':'video frame counter'} stopped progressing despite buffered media`,null,null,'session',true);
     this.stopWatchdogs();if(this.current!==session||sessionAuthority(this.control,sessionId)!=='accepted')return;this.recordSessionFault(session,error);
-    if(this.automatic)this.recover(session);
-    else {this.updateSettings({pause:true});void this.backendEffect(session,'backend.pause').catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionId)==='accepted')this.emit('error',error);}
+    const response=playbackFaultResponse({origin:'watchdog',current:this.current===session,accepted:sessionAuthority(this.control,sessionId)==='accepted',busy:this.busy,destroyed:this.destroyed,automatic:this.automatic,mode:this.mode,fault:true});
+    if(response==='recover')this.recover(session);
+    else if(response==='pause-error'){this.updateSettings({pause:true});void this.backendEffect(session,'backend.pause').catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionId)==='accepted')this.emit('error',error);}
   }
   private stopWatchdogs(){const timer=this.monitor;this.monitor=undefined;this.monitorHandleId=undefined;this.dispatchControl({type:'monitor.stop'});clearInterval(timer);}
 
@@ -581,10 +583,13 @@ export class Player extends EventTarget {
   }
   private sourceTracks():RawTrack[]{return this.sessionTracks();}
   private confirmTrackSelection(session:Session,source:Source|undefined,mode:PlaybackMode,settings:Settings,type:TrackType,id:string):Promise<void>{
-    const matches=()=>{const raw=this.sessionTracks(session,source,mode,settings).filter(t=>t.type===type);return id==='no'?!raw.some(t=>t.selected):id==='auto'||raw.some(t=>String(t.id)===id&&t.selected);};
+    const begin=this.dispatchControl({type:'trackConfirmation.begin',session:this.sessionIdentities.get(session)??(session===this.current?this.control.source.acceptedSession:session===this.candidate?this.control.source.candidate?.session:undefined)??-1,track:type,value:id,now:performance.now()});
+    if(!begin.accepted)return Promise.reject(new PlayerError('ABORTED','Track selection aborted'));
+    const confirmation=begin.id!,deadline=this.control.trackConfirmation.pending!.deadline;
     return new Promise((resolve,reject)=>{
-      let settled=false,timer:ReturnType<typeof setTimeout>|undefined,backendAttached=false,abortAttached=false;
+      let timer:ReturnType<typeof setTimeout>|undefined,backendAttached=false,abortAttached=false;
       let signal:AbortSignal|undefined;
+      const active=()=>this.control.trackConfirmation.pending?.id===confirmation;
       const cleanup=()=>{
         const handle=timer;timer=undefined;let failed=false,failure:unknown;
         const run=(effect:()=>void)=>{try{effect();}catch(error){if(!failed){failed=true;failure=error;}}};
@@ -593,18 +598,33 @@ export class Player extends EventTarget {
         if(abortAttached){abortAttached=false;run(()=>signal?.removeEventListener('abort',abort));}
         if(failed)throw failure;
       };
-      const finish=(failed=false,error?:unknown)=>{if(settled)return;settled=true;try{cleanup();}catch(failure){if(!failed){failed=true;error=failure;}}failed?reject(error):resolve();};
-      const check=()=>{if(settled)return;try{const matched=matches();if(signal?.aborted)abort();else if(matched)finish();}catch(error){finish(true,error);}};
+      // Consume the physical promise delivery handle before cleanup can reenter.
+      // The core owns the outcome; callbacks released during cleanup cannot replace it.
+      let deliver:((failed:boolean,error?:unknown)=>void)|undefined=(failed,error)=>failed?reject(error):resolve();
+      const finish=(failed=false,error?:unknown)=>{const complete=deliver;if(!complete)return;deliver=undefined;this.dispatchControl({type:'trackConfirmation.finished',id:confirmation});try{cleanup();}catch(failure){if(!failed){failed=true;error=failure;}}complete(failed,error);};
       const abort=()=>finish(true,new PlayerError('ABORTED','Track selection aborted'));
+      const checkAt=(now:number)=>{
+        if(!active()){abort();return;}
+        try{
+          if(signal?.aborted){abort();return;}
+          const tracks=this.sessionTracks(session,source,mode,settings).map(t=>({id:String(t.id),type:t.type,selected:!!t.selected}));
+          if(signal?.aborted){abort();return;}
+          const sampled=this.dispatchControl({type:'trackConfirmation.sample',id:confirmation,now,tracks});
+          if(!sampled.accepted){abort();return;}
+          const phase=this.control.trackConfirmation.pending?.phase;
+          if(phase==='confirmed')finish();else if(phase==='failed')finish(true,new PlayerError('UNSUPPORTED_FEATURE','Backend did not apply the required track selection'));
+        }catch(error){finish(true,error);}
+      };
+      const check=()=>checkAt(performance.now());
+      const timeout=()=>{const expired=this.dispatchControl({type:'trackConfirmation.timeout',id:confirmation,now:Math.max(deadline,performance.now())});if(!expired.accepted)abort();else finish(true,new PlayerError('UNSUPPORTED_FEATURE','Backend did not apply the required track selection'));};
       try{
         signal=this.activeOperation?.controller.signal;
-        if(signal?.aborted){abort();return;}check();if(settled)return;
-        const acquired=setTimeout(()=>finish(true,new PlayerError('UNSUPPORTED_FEATURE','Backend did not apply the required track selection')),5000);
-        if(settled){clearTimeout(acquired);return;}timer=acquired;if(signal?.aborted){abort();return;}
-        backendAttached=true;try{session.backend.addEventListener('mpv',check);}finally{if(settled)session.backend.removeEventListener('mpv',check);}
-        // Registration may synchronously complete before returning its handle.
-        if(settled)return;if(signal?.aborted){abort();return;}
-        if(signal){abortAttached=true;try{signal.addEventListener('abort',abort,{once:true});}finally{if(settled)signal.removeEventListener('abort',abort);}if(settled)return;}
+        if(signal?.aborted){abort();return;}check();if(!active())return;
+        const acquired=setTimeout(timeout,Math.max(0,deadline-performance.now()));
+        if(!active()){clearTimeout(acquired);return;}timer=acquired;if(signal?.aborted){abort();return;}
+        backendAttached=true;try{session.backend.addEventListener('mpv',check);}finally{if(!active())session.backend.removeEventListener('mpv',check);}
+        if(!active())return;if(signal?.aborted){abort();return;}
+        if(signal){abortAttached=true;try{signal.addEventListener('abort',abort,{once:true});}finally{if(!active())signal.removeEventListener('abort',abort);}if(!active())return;}
         if(signal?.aborted)abort();else check();
       }catch(error){finish(true,error);}
     });
@@ -884,8 +904,9 @@ export class Player extends EventTarget {
       if (type === 'mpv' && detail.event === 'end-file' && detail.reason === 'error') this.recordSessionFault(session,new Error(String(detail.file_error)));
       if(this.current===session&&(session.error||type==='activity'&&['play','pause','playing','ended'].includes(detail)||type==='mpv'&&detail.event==='property-change'&&['pause','eof-reached'].includes(detail.name)))this.startWatchdogs();
       if (this.current === session && sessionAuthority(this.control,sessionEpoch)==='accepted' && !this.busy && !this.destroyed) {
-        if(session.error&&(type==='error'||(type==='mpv'&&detail.event==='end-file'))&&this.automatic&&this.mode!=='software'){this.recover(session);return;}
-        if(type==='mpv'&&detail.event==='end-file'&&detail.reason==='error')this.emit('error',session.error);
+        const response=playbackFaultResponse({origin:'backend',current:true,accepted:true,busy:this.busy,destroyed:this.destroyed,automatic:this.automatic,mode:this.mode,fault:!!session.error&&(type==='error'||type==='mpv'&&detail.event==='end-file'),endFileError:type==='mpv'&&detail.event==='end-file'&&detail.reason==='error'});
+        if(response==='recover'){this.recover(session);return;}
+        if(response==='error')this.emit('error',session.error);
         if(this.current!==session||sessionAuthority(this.control,sessionEpoch)!=='accepted')return;
         if(type==='activity') {
           if(detail==='waiting')this.dispatchControl({type:'playback.sample',session:sessionEpoch,sequence:++observationSequence,observation:'waiting'});
@@ -897,7 +918,7 @@ export class Player extends EventTarget {
             const inventory=tracks(this.sourceTracks(),this.sourceSerial,this.mode,backendPlan(session.backend));
             if(this.current!==session||sessionAuthority(this.control,sessionEpoch)!=='accepted')return;
             const forbidden=inventory.some(t=>t.selected&&!trackAllowed(t,t.type==='audio'?this.trackPolicy.audio:t.type==='subtitle'?this.trackPolicy.subtitles:undefined));
-            if(forbidden){this.updateSettings({pause:true});void this.invokeBackend(backend,'backend.pause').catch(()=>{});this.emit('error',new PlayerError('UNSUPPORTED_FEATURE','Backend selected a track excluded by the host policy'));return;}
+            if(playbackFaultResponse({origin:'track-policy',current:this.current===session,accepted:sessionAuthority(this.control,sessionEpoch)==='accepted',busy:this.busy,destroyed:this.destroyed,automatic:this.automatic,mode:this.mode,fault:forbidden})==='pause-error'){this.updateSettings({pause:true});void this.invokeBackend(backend,'backend.pause').catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionEpoch)==='accepted')this.emit('error',new PlayerError('UNSUPPORTED_FEATURE','Backend selected a track excluded by the host policy'));return;}
           }
           if(detail.event==='property-change'&&detail.name==='time-pos')this.dispatchControl({type:'playback.sample',session:sessionEpoch,sequence:++observationSequence,observation:'time',value:Number(detail.data),publishedTime:this.state.currentTime});
           if(detail.event==='property-change'&&detail.name==='pause')this.dispatchControl({type:'playback.sample',session:sessionEpoch,sequence:++observationSequence,observation:'pause',value:detail.data===true,boundary:{time:Number(backend.properties.get('time-pos')??this.state.currentTime),duration:typeof backend.properties.get('duration')==='number'?Number(backend.properties.get('duration')):this.state.duration,ended:detail.ended===true||backend.properties.get('eof-reached')===true}});
@@ -1522,35 +1543,32 @@ export class Player extends EventTarget {
   }
   private startupFallback(source:Source,planId:string,settings:Settings,requirements:RouteRequirements={}):string|undefined {
     const discovery=this.control.routing.discovery.current;
-    if(!discovery||executionRecipe(planId)?.native?.transport!=='original')return;
+    if(!discovery)return;
     const remux=this.localRemuxRetry(source,planId,settings,requirements);
-    if(remux&&discoveryPlanPolicy(discovery,this.planDecisions.find(plan=>plan.id===remux)!).included)return remux;
-    // Respect pinned modes, admission order, prior failures and Hybrid rejection.
-    return this.planDecisions.slice(this.planDecisions.findIndex(plan=>plan.id===planId)+1).find(plan=>{
-      const policy=discoveryPlanPolicy(discovery,plan,this.sourceInspection?.probe.hybridRejection);
-      const recipe=executionRecipe(plan.id),fallback=plan.mode!=='native'||recipe?.native?.transport==='prepared'&&!recipe.native.selectedAudio;
-      return plan.eligible&&fallback&&policy.included&&!policy.hybridRejection&&!this.tierAttempts.reason(source,this.tierConfiguration(settings,requirements),plan.id);
-    })?.id;
+    return startupFallbackPlan(executionRecipe(planId)?.native?.transport==='original',planId,remux,this.planDecisions.map(plan=>{
+      const policy=discoveryPlanPolicy(discovery,plan,this.sourceInspection?.probe.hybridRejection),recipe=executionRecipe(plan.id);
+      return {id:plan.id,eligible:plan.eligible,included:policy.included,fallback:plan.mode!=='native'||recipe?.native?.transport==='prepared'&&!recipe.native.selectedAudio,rejected:!!policy.hybridRejection||!!this.tierAttempts.reason(source,this.tierConfiguration(settings,requirements),plan.id)};
+    }));
   }
   private async prefetchStartup(planId:string,source:Source,settings:Settings){
-    const recipe=executionRecipe(planId),adapted=!!recipe?.native?.adaptation;
-    if(recipe?.backend==='WasmPlayer'){
-      const mode=planId.startsWith('hybrid')?'hybrid':'software';
+    const recipe=executionRecipe(planId),preparationPlan=startupPreparation(planId,this.remuxRuntime,this.softwarePresenter==='rgb',{backend:recipe?.backend,adaptation:recipe?.native?.adaptation});
+    if(preparationPlan.kind==='engine'){
+      const mode=preparationPlan.mode;
       const preparation=this.preparation??=new EnginePreparation(this.assetBase,this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv',()=>{if(!this.destroyed)this.dispatchEvent(new CustomEvent('preparationchange',{detail:freeze(this.preparationProgress)}));},this.remuxRuntime,this.providerRuntime);
-      if(this.providerRuntime){const engine=mode==='hybrid'?'engine-hybrid':this.softwarePresenter==='rgb'?'engine-software-full':'engine-software-yuv';await this.providerRuntime.module(`web/${engine}/player.wasm`);}
+      if(this.providerRuntime)await this.providerRuntime.module(preparationPlan.path);
       else await preparation.warm([mode]);
       return;
     }
-    if(recipe?.backend==='PrivateSoftwarePlayer'){
-      const path=`web/engine-mpv-playback-${this.remuxRuntime}/player.wasm`;
+    if(preparationPlan.kind==='private'){
+      const path=preparationPlan.path;
       if(this.providerRuntime)await this.providerRuntime.bytes(path);
       else await (this.startupModules??=new StartupModules(this.assetBase)).warm(path);
       return;
     }
-    const codec=source.kind==='local'&&source.file instanceof File&&recipe?.native?.adaptation==='flac24'&&planId==='native-transcode'?this.providerRuntime?.preparation?.(source.file,this.remuxRuntime,settings.aid==='auto'?undefined:Number(settings.aid)-1):undefined;
-    const path=codec?.wasmPath??`web/engine-${adapted?'adaptation':'remux'}${this.remuxRuntime==='pthread'?'':'-'+this.remuxRuntime}/remux.wasm`;
+    const codec=source.kind==='local'&&source.file instanceof File&&preparationPlan.codecPreparation?this.providerRuntime?.preparation?.(source.file,this.remuxRuntime,settings.aid==='auto'?undefined:Number(settings.aid)-1):undefined;
+    const path=codec?.wasmPath??preparationPlan.path;
     if(this.providerRuntime){await this.providerRuntime.module(path);return;}
-    if(!adapted&&await this.preparation?.readyModule('engine-remux'))return;
+    if(!preparationPlan.adapted&&await this.preparation?.readyModule('engine-remux'))return;
     if(this.destroyed)return;
     const assets=this.startupModules??=new StartupModules(this.assetBase);await assets.warm(path);
   }
@@ -1585,9 +1603,9 @@ export class Player extends EventTarget {
       // Only discovery owns the replacement and full-budget restoration below.
       // Other callers of replace retain the ordinary direct readiness deadline.
       const fallback=budget===undefined&&this.startupEscalation?this.startupFallback(source,plan.id,settings,requirements):undefined;
-      const loadBudget=budget??(fallback?this.startupEscalation!.switchAfterMs:undefined);
+      const loadBudget=startupLoadBudget(budget,this.startupEscalation?.switchAfterMs,fallback);
       const epoch=this.operationEpoch;
-      const prefetch=fallback?()=>{if(!this.destroyed&&this.operationEpoch===epoch&&this.control.routing.discovery.current?.id===id)void this.prefetchStartup(fallback,source,settings).catch(()=>{});}:undefined;
+      const prefetch=fallback?()=>{if(startupPrefetchCurrent(this.destroyed,this.operationEpoch,epoch,this.control.routing.discovery.current?.id,id))void this.prefetchStartup(fallback,source,settings).catch(()=>{});}:undefined;
       this.runtimeCapabilities.update(plan.id,'probing');
       await this.replace(source,plan.mode,settings,preserve,tracks,target,automatic,plan.id,loadBudget,requirements,prefetch);this.assertOperation();current();
       this.acceptEvidence(plan.id);
@@ -1701,18 +1719,23 @@ export class Player extends EventTarget {
       if(this.control.routing.recovery.pending?.id!==id||this.current!==session)return;
       this.runtimeCapabilities.update(plan.id,'failed',evidence,message,compatible?'compatibility':'terminal',revision);
       if(this.control.routing.recovery.pending?.id!==id||this.current!==session)return;
-      if(!compatible){this.dispatchControl({type:'routing.recovery',change:{kind:'finished',id}});void this.backendEffect(session,'backend.pause').catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionId)==='accepted')this.emit('error',session.error);return;}
+      if(!this.dispatchControl({type:'routing.recovery',change:{kind:'classified',id,compatible}}).accepted)return;
+      if(this.control.routing.recovery.pending?.phase==='terminal'){this.dispatchControl({type:'routing.recovery',change:{kind:'finished',id}});void this.backendEffect(session,'backend.pause').catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionId)==='accepted')this.emit('error',session.error);return;}
       if(!evidenceInterrupted(session.error))this.tierAttempts.failure(this.source!,this.tierConfiguration(this.settings),plan.id,String(session.error));
       queued=true;
       void this.enqueue(async()=>{
-        if(this.control.routing.recovery.pending?.id!==id||this.current!==session||!this.automatic)return;
+        try{
+        if(!this.dispatchControl({type:'routing.recovery',change:{kind:'start',id,current:this.current===session,automatic:this.automatic}}).accepted||this.control.routing.recovery.pending?.phase!=='pausing')return;
         await this.backendEffect(session,'backend.pause').catch(()=>{});this.assertOperation();
         if(this.control.routing.recovery.pending?.id!==id||this.current!==session)return;
+        if(!this.dispatchControl({type:'routing.recovery',change:{kind:'paused',id}}).accepted)return;
         const streaming=this.failedStreamingPlan(session),route=recoveryRoute({mode:this.mode,backendPlan:backendPlan(session.backend),nativeRemux:this.nativeRemux,streaming,trigger:'runtime'});
         const priorAttempts:SelectionAttempt[]=[...this.attempts.filter(attempt=>attempt.outcome!=='selected'),{mode:this.mode,outcome:'failed',reason:`${plan.id}: Runtime playback failure: ${session.error?.message??'Playback backend became unavailable'}`}];
         this.assertOperation();if(this.control.routing.recovery.pending?.id!==id||this.current!==session)return;
         await this.select(this.source!,this.settings,true,this.nativeTracks,route.start,undefined,priorAttempts,false,route.requirements);
-      },'switching').catch(error=>{if(!this.destroyed&&this.control.routing.recovery.pending?.id===id)this.emit('error',error);}).finally(()=>{
+        this.dispatchControl({type:'routing.recovery',change:{kind:'outcome',id,selected:true}});
+        }catch(error){this.dispatchControl({type:'routing.recovery',change:{kind:'outcome',id,selected:false}});throw error;}
+      },'switching').catch(error=>{if(this.dispatchControl({type:'routing.recovery',change:{kind:'outcome',id,selected:false}}).accepted&&!this.destroyed)this.emit('error',error);}).finally(()=>{
         if(!this.dispatchControl({type:'routing.recovery',change:{kind:'finished',id}}).accepted)return;
         if(this.current?.error&&this.current!==session)this.recover(this.current);
       });
@@ -1720,11 +1743,7 @@ export class Player extends EventTarget {
   }
   setAutomaticSelection(enabled=true){
     if(typeof enabled!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid automatic selection policy');
-    return this.enqueue(async()=>{
-      const previous=this.automatic;this.automatic=enabled;
-      try{if(enabled&&this.source)await this.select(this.source,this.settings,true,this.nativeTracks);}
-      catch(error){this.automatic=previous;throw error;}
-    },'switching');
+    return this.enqueue(()=>this.applySetting({kind:'automatic',value:enabled}),'switching');
   }
   open(input: MediaSourceInput, options:OpenOptions={}) {
     if(options.startTime!==undefined&&(!Number.isFinite(options.startTime)||options.startTime<0))return Promise.reject(new PlayerError('INVALID_ARGUMENT','startTime must be finite nonnegative seconds'));
@@ -1760,13 +1779,7 @@ export class Player extends EventTarget {
   openRemote(source:RemoteSource, options:OpenOptions={}) {return this.open(source,options);}
   setMode(mode: PlaybackMode) {
     modeValue(mode);
-    return this.enqueue(async () => {
-      this.validateFilters(mode, this.settings);
-      if (mode === this.mode) {this.automatic=false;return;}
-      if (this.source) await this.replace(this.source, mode, this.settings, true, this.nativeTracks,undefined,false);
-      else {this.currentMode = mode;this.emit('modechange', {phase: 'ready', mode, position: 0});}
-      this.automatic=false;
-    },'switching');
+    return this.enqueue(()=>this.applySetting({kind:'mode',value:mode}),'switching');
   }
   private filters(key: 'vf' | 'af', value: string) {
     const chain = filterChain(value);
@@ -1776,23 +1789,7 @@ export class Player extends EventTarget {
   setAudioFilters(value: string) {return this.filters('af', value);}
   setAudioGain(value:number) {
     if(!Number.isFinite(value)||value<0||value>1)throw new PlayerError('INVALID_ARGUMENT','Gain must be between 0 and 1');
-    return this.enqueue(async()=>{
-      if(value===this.settings.gain)return;
-      const desired={...this.settings,gain:value};
-      if(this.source&&backendPlan(this.current?.backend)==='remux-mpv'&&value!==1){await this.select(this.source,desired,true,this.nativeTracks);return;}
-      if(this.current?.backend.gain){
-        await this.applySetting({kind:'gain',value});
-        if(this.source){
-          this.planDecisions=this.admissible(this.source,desired,this.subtitleAssets,this.nativeTracks,this.admissionContext.nativeReason,this.admissionContext.automatic);
-          // The same accepted backend now executes a different complete plan.
-          // Keep prior evidence in the bounded cache, but describe current requirements.
-          this.runtimeCapabilities.begin(this.source,this.planDecisions);
-          const plan=executionPlan(this.mode,backendPlan(this.current.backend),desired.af,desired.gain,!!(this.current.backend.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay);
-          this.acceptEvidence(plan.id);
-        }
-      }else if(this.source)await this.select(this.source,desired,true,this.nativeTracks);
-      else this.settings=desired;
-    });
+    return this.enqueue(()=>this.applySetting({kind:'routedGain',value,plan:backendPlan(this.current?.backend),direct:!!this.current?.backend.gain}));
   }
   private async executeSetting(backend:Backend,effect:SettingEffect,session?:Session):Promise<void>{
     switch(effect.kind){
@@ -1810,6 +1807,15 @@ export class Player extends EventTarget {
       case 'output':return backend.setAudioOutputDevice!(effect.value);
       case 'quality':return backend.setQuality!(effect.value);
       case 'filter':return backend.command!('set',effect.key,effect.value);
+      case 'mode.ready':this.emit('modechange',{phase:'ready',mode:effect.mode,position:0});return;
+      case 'gain.evidence':{
+        const source=this.source,current=this.current;if(!source||!current)return;
+        const owns=()=>{this.assertOperation();if(this.source!==source||this.current!==current)throw new PlayerError('ABORTED','Gain evidence source was retired');};
+        const decisions=this.admissible(source,this.settings,this.subtitleAssets,this.nativeTracks,this.admissionContext.nativeReason,this.admissionContext.automatic);owns();
+        this.planDecisions=decisions;owns();this.runtimeCapabilities.begin(source,decisions);owns();
+        const plan=executionPlan(this.mode,backendPlan(current.backend),this.settings.af,this.settings.gain,!!(current.backend.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay);owns();
+        this.acceptEvidence(plan.id,current);return;
+      }
       case 'promotion':this.schedulePromotion();return;
       case 'source.replace':return this.replace(this.source!,effect.mode,effect.settings,true,this.nativeTracks,undefined,false);
       case 'source.reconfigure':return this.select(this.source!,effect.settings,true,this.nativeTracks);
@@ -1858,47 +1864,58 @@ export class Player extends EventTarget {
     const trialSession=this.current,trialPosition=Math.max(0,Number(this.current?.backend.properties.get('time-pos'))||0);
     const trialVerified=this.evidence(this.current).outputVerified===true;
     // Initiate resume before yielding the user's activation to the operation queue.
-    let immediate:Promise<void>|undefined;
-    try{immediate=!this.destroyed&&this.queued===0&&this.current?this.backendEffect(this.current,'backend.play',intentId):undefined;}catch(error){this.dispatchControl({type:'play.settled',id:intentId});this.playRequests.delete(intentId);throw error;}
+    let immediate:Promise<void>|undefined,immediateSession:Session|undefined;
+    try{if(!this.destroyed&&this.queued===0&&this.current){immediateSession=this.current;immediate=this.backendEffect(immediateSession,'backend.play',intentId);}}catch(error){this.dispatchControl({type:'play.settled',id:intentId});this.playRequests.delete(intentId);throw error;}
     immediate?.catch(()=>{});
-    return this.enqueue(async()=>{if(intent.signal.aborted)return;if(!this.current)throw Error('No source');const session=this.current;this.updateSettings({pause:false});
-      // A local original-copy trial can yield to an already-admitted route.
-      // This is a scheduling budget, not a codec rejection or a new route.
-      const boundedTrial=this.automatic&&this.source?.kind==='local'&&this.nativeRemux!=='never'&&!trialVerified&&
-        ['direct','direct-mpv'].includes(backendPlan(session.backend)??'')&&
-        this.planDecisions?.some(plan=>plan.eligible&&!plan.id.startsWith('native-direct'));
+    return this.enqueue(async()=>{if(intent.signal.aborted)return;if(!this.current)throw Error('No source');const session=this.current;
+      const begin=this.dispatchControl({type:'transport.play.begin',intent:intentId,position:trialPosition,trialSame:session===trialSession,trialVerified:session===trialSession&&trialVerified,local:this.source?.kind==='local',backendPlan:backendPlan(session.backend),nativeRemux:this.nativeRemux,fallbackAvailable:!!this.planDecisions?.some(plan=>plan.eligible&&!plan.id.startsWith('native-direct'))});
+      if(!begin.accepted)throw new PlayerError('ABORTED','Playback recovery was retired');const id=begin.id!;
+      this.updateSettings({pause:false});
       try{
-        const playing=immediate??this.backendEffect(session,'backend.play',intentId);
-        if(this.mode==='native')await this.playNativeVerified(session.backend,playing,boundedTrial?1500:undefined,intent.signal);else await playing;
-        this.assertOperation();if(this.current===session){const plan=this.diagnostics.plan;if(plan)this.acceptEvidence(plan.id,session);}
-      }catch(error){
-        // A newer Pause supersedes this Play without rejecting the accepted
-        // codec or starting fallback. Its queued pause command applies next.
-        if(intent.signal.aborted)return;
-        const inconclusiveOutput=this.source?.kind==='local'&&error instanceof StartupEvidenceTimeout&&error.stage==='output';
-        if(this.automatic&&(compatibilityFailure(error)||inconclusiveOutput)&&this.source){
-          const streaming=this.failedStreamingPlan(session);
-          const route=recoveryRoute({mode:this.mode,backendPlan:backendPlan(session.backend),nativeRemux:this.nativeRemux,streaming,trigger:'play'});
-          const plan=this.diagnostics.plan;if(plan){
-            this.updateEvidence(plan.id,inconclusiveOutput?'prepared':'failed',session,String(error),inconclusiveOutput?undefined:'compatibility');
-            if(!evidenceInterrupted(error))this.tierAttempts.failure(this.source,this.tierConfiguration(this.settings),plan.id,String(error));
-          }
-          try{
-            this.assertOperation();
-            await this.select(this.source,this.settings,true,this.nativeTracks,route.start,session===trialSession&&!trialVerified?trialPosition:undefined,[],false,route.requirements);
-          }catch(fallbackError){
-            this.assertOperation();
-            // Slow original output is not incompatibility. If replacement fails,
-            // retain the accepted source and give it the ordinary full deadline.
-            if(!boundedTrial||!inconclusiveOutput||this.current!==session||!(compatibilityFailure(fallbackError)||['ASSET_LOAD_FAILED','NETWORK_TIMEOUT','ISOLATION_REQUIRED'].includes(playerError(fallbackError).code)))throw fallbackError;
-            if(session===trialSession&&!trialVerified){await session.backend.seek(trialPosition);this.assertOperation();}
-            try{await this.playNativeVerified(session.backend,undefined,undefined,intent.signal);}
-            catch(error){if(intent.signal.aborted)return;throw error;}
-            this.assertOperation();if(plan)this.acceptEvidence(plan.id,session);
+        try{
+          const playing=immediateSession===session&&immediate?immediate:this.backendEffect(session,'backend.play',intentId);
+          if(this.mode==='native')await this.playNativeVerified(session.backend,playing,begin.transportEffect?.budget,intent.signal);else await playing;
+          this.assertOperation();if(this.current===session){const plan=this.diagnostics.plan;if(plan)this.acceptEvidence(plan.id,session);}
+          this.dispatchControl({type:'transport.complete',id});
+        }catch(error){
+          // A newer Pause supersedes this Play without rejecting the codec.
+          if(intent.signal.aborted)return;
+          const streaming=this.current===session&&this.source?.kind==='remote'&&['hls','dash'].includes(this.source.options.format??'');
+          const decision=this.dispatchControl({type:'transport.play.failed',id,compatible:compatibilityFailure(error),inconclusive:error instanceof StartupEvidenceTimeout&&error.stage==='output',streaming});
+          if(!decision.accepted)throw error;const effect=decision.transportEffect;
+          if(effect?.kind==='ignore')return;
+          if(effect?.kind==='fallback'){
+            this.failedStreamingPlan(session);
+            const inconclusiveOutput=this.control.transport.pending!.inconclusive,plan=this.diagnostics.plan;
+            if(plan){
+              this.updateEvidence(plan.id,inconclusiveOutput?'prepared':'failed',session,String(error),inconclusiveOutput?undefined:'compatibility');
+              if(!evidenceInterrupted(error))this.tierAttempts.failure(this.source!,this.tierConfiguration(this.settings),plan.id,String(error));
+            }
+            try{
+              this.assertOperation();
+              await this.select(this.source!,this.settings,true,this.nativeTracks,effect.start,effect.target,[],false,effect.requirements);
+              this.dispatchControl({type:'transport.complete',id});
+            }catch(fallbackError){
+              this.assertOperation();
+              const retry=this.dispatchControl({type:'transport.play.fallback-failed',id,compatible:compatibilityFailure(fallbackError),code:playerError(fallbackError).code});
+              if(!retry.accepted||retry.transportEffect?.kind==='reject')throw fallbackError;
+              if(retry.transportEffect?.kind==='ignore')return;
+              if(retry.transportEffect?.kind==='restore'){
+                await session.backend.seek(retry.transportEffect.target!);this.assertOperation();
+                const restored=this.dispatchControl({type:'transport.play.restored',id});
+                if(!restored.accepted)throw new PlayerError('ABORTED','Playback restoration was retired');if(restored.transportEffect?.kind==='ignore')return;
+              }
+              try{await this.playNativeVerified(session.backend,undefined,undefined,intent.signal);}
+              catch(retryError){if(intent.signal.aborted)return;this.dispatchControl({type:'transport.play.failed',id,compatible:compatibilityFailure(retryError),inconclusive:false,streaming:false});throw retryError;}
+              this.assertOperation();if(plan)this.acceptEvidence(plan.id,session);this.dispatchControl({type:'transport.complete',id});
+            }
+          }else{
+            const plan=this.diagnostics.plan;if(plan&&evidenceInterrupted(error))this.updateEvidence(plan.id,'prepared',session,String(error));
+            if(effect?.kind==='pause')await this.backendEffect(session,'backend.pause').catch(()=>{});throw error;
           }
         }
-        else {const plan=this.diagnostics.plan;if(plan&&evidenceInterrupted(error))this.updateEvidence(plan.id,'prepared',session,String(error));this.updateSettings({pause:true});await this.backendEffect(session,'backend.pause').catch(()=>{});throw error;}
-      }}).finally(()=>{this.dispatchControl({type:'play.settled',id:intentId});this.playRequests.delete(intentId);});
+      }finally{this.dispatchControl({type:'transport.finished',id});}
+    }).finally(()=>{this.dispatchControl({type:'play.settled',id:intentId});this.playRequests.delete(intentId);});
   }
   pause() {for(const id of this.dispatchControl({type:'play.retire'}).retire){const intent=this.playRequests.get(id);this.playRequests.delete(id);intent?.abort();}return this.enqueue(async()=>{await this.applySetting({kind:'pause'});this.dispatchControl({type:'playback.observed',playing:false,waiting:false});if(this.backgroundPromotion)this.schedulePromotion();});}
   seek(seconds: number, options:import('./types.js').SeekOptions={}) {return this.seekForSource(seconds,options);}
@@ -1911,38 +1928,42 @@ export class Player extends EventTarget {
     catch(error){try{options.signal?.removeEventListener('abort',abort);}catch{}this.dispatchControl({type:'seek.settled',id:seekId});throw error;}
     this.seekRequests.set(seekId,controller);for(const id of request.retire)this.seekRequests.get(id)?.abort();
     return this.enqueue(async () => {
-      if(sourceId!==undefined&&sourceId!==this.state.sourceId)throw new PlayerError('INVALID_ARGUMENT','Chapter belongs to a retired source');
       if (!this.current) throw new Error('No source');
-      if(this.playbackRange&&(seconds<this.playbackRange.start||seconds>this.playbackRange.end))throw new PlayerError('INVALID_ARGUMENT','Seek is outside the playback range');
-      const window=this.state.seekable;if(window&&!window.some(r=>seconds>=r.start&&seconds<=r.end))throw new PlayerError('INVALID_ARGUMENT','Seek is outside the current seekable window');
-      const accepted=this.current,previous=Number(accepted.backend.properties.get('time-pos'))||0,wasPaused=this.settings.pause;
-      try{await accepted.backend.seek(seconds);await this.settled(accepted,this.mode,seconds);}
-      catch(error){
-        if(error instanceof SeekPresentationBoundary){
-          // A demux restart can prove the requested subtitle-only interval has no
-          // AV presentation. Restore the accepted position rather than leave its
-          // audio held behind an impossible seek target. A failed restoration
-          // means this route is broken and automatic selection may continue.
-          if(this.current===accepted&&!this.destroyed&&!this.activeOperation?.controller.signal.aborted){
-            try{await accepted.backend.seek(previous);await this.settled(accepted,this.mode,previous);if(!wasPaused)await this.backendEffect(accepted,'backend.play');}
-            catch(restoreError){
-              // A route that cannot restore its last presented position has
-              // failed; let automatic selection try the next admitted plan.
-              if(!this.automatic||!this.source)throw restoreError;
-              const attempts:SelectionAttempt[]=[...this.attempts.filter(attempt=>attempt.outcome!=='selected'),{mode:this.mode,outcome:'failed',reason:`Seek presentation failure: ${playerError(error).message}; accepted position recovery failed: ${playerError(restoreError).message}`}];
-              const failedPlan=this.diagnostics.plan;if(this.mode==='native'&&failedPlan)this.tierAttempts.failure(this.source,this.tierConfiguration(this.settings),failedPlan.id,String(restoreError));
-              await this.select(this.source,this.settings,true,this.nativeTracks,this.mode==='native'?0:PLAYBACK_MODES.indexOf(this.mode)+1,seconds,attempts);
-              return;
+      const accepted=this.current,previous=Number(accepted.backend.properties.get('time-pos'))||0;
+      const begin=this.dispatchControl({type:'transport.seek.begin',intent:seekId,target:seconds,previous,sourceId,seekable:this.state.seekable});
+      if(!begin.accepted)throw new PlayerError(begin.reason==='invalid'?'INVALID_ARGUMENT':'ABORTED',begin.message??'Seek was retired');const id=begin.id!;
+      try{
+        try{await accepted.backend.seek(begin.transportEffect!.target!);await this.settled(accepted,this.mode,seconds);this.dispatchControl({type:'transport.complete',id});}
+        catch(error){
+          const streaming=this.current===accepted&&this.source?.kind==='remote'&&['hls','dash'].includes(this.source.options.format??'');
+          const failed=this.dispatchControl({type:'transport.seek.failed',id,boundary:error instanceof SeekPresentationBoundary,terminal:terminalSourceFailure(error),code:playerError(error).code,invalidPosition:/out of range|Invalid seek/i.test(String(error)),streaming});
+          if(!failed.accepted||failed.transportEffect?.kind==='reject')throw error;
+          let effect=failed.transportEffect,restoreFailure:{error:unknown}|undefined;
+          if(effect?.kind==='restore'){
+            try{
+              await accepted.backend.seek(effect.target!);await this.settled(accepted,this.mode,effect.target!);
+              const restored=this.dispatchControl({type:'transport.seek.restored',id});
+              if(!restored.accepted)throw new PlayerError('ABORTED','Seek restoration was retired');
+              if(restored.transportEffect?.kind==='resume'){
+                await this.backendEffect(accepted,'backend.play');
+                if(!this.dispatchControl({type:'transport.seek.resumed',id}).accepted)throw new PlayerError('ABORTED','Seek restoration was retired');
+              }
+            }catch(restoreError){
+              const restoration=this.dispatchControl({type:'transport.seek.restore-failed',id,terminal:terminalSourceFailure(restoreError),code:playerError(restoreError).code});
+              if(!restoration.accepted||restoration.transportEffect?.kind!=='fallback')throw restoreError;
+              restoreFailure={error:restoreError};effect=restoration.transportEffect;
             }
+            if(effect.kind==='restore')throw error;
           }
-          throw error;
+          if(effect?.kind!=='fallback')throw error;
+          const reason=restoreFailure===undefined?`Seek presentation failure: ${playerError(error).message}`:`Seek presentation failure: ${playerError(error).message}; accepted position recovery failed: ${playerError(restoreFailure.error).message}`;
+          const attempts:SelectionAttempt[]=[...this.attempts.filter(attempt=>attempt.outcome!=='selected'),{mode:this.mode,outcome:'failed',reason}];
+          if(restoreFailure===undefined)this.failedStreamingPlan(accepted);
+          const failedPlan=this.diagnostics.plan;if(this.mode==='native'&&failedPlan)this.tierAttempts.failure(this.source!,this.tierConfiguration(this.settings),failedPlan.id,String(restoreFailure?restoreFailure.error:error));
+          await this.select(this.source!,this.settings,true,this.nativeTracks,effect.start,effect.target,attempts);
+          this.dispatchControl({type:'transport.complete',id});
         }
-        if(this.activeOperation?.controller.signal.aborted||['AUTOPLAY_BLOCKED','INVALID_ARGUMENT'].includes(playerError(error).code)||!this.automatic||this.mode==='software'||terminalSourceFailure(error)||/out of range|Invalid seek/i.test(String(error)))throw error;
-        const priorAttempts:SelectionAttempt[]=[...this.attempts.filter(attempt=>attempt.outcome!=='selected'),{mode:this.mode,outcome:'failed',reason:`Seek presentation failure: ${playerError(error).message}`}];
-        const streaming=this.failedStreamingPlan(accepted);
-        const failedPlan=this.diagnostics.plan;if(this.mode==='native'&&failedPlan)this.tierAttempts.failure(this.source!,this.tierConfiguration(this.settings),failedPlan.id,String(error));
-        await this.select(this.source!,this.settings,true,this.nativeTracks,streaming||this.mode==='native'?0:PLAYBACK_MODES.indexOf(this.mode)+1,seconds,priorAttempts);
-      }
+      }finally{this.dispatchControl({type:'transport.finished',id});}
     },'seeking',controller.signal).finally(()=>{options.signal?.removeEventListener('abort',abort);this.dispatchControl({type:'seek.settled',id:seekId});this.seekRequests.delete(seekId);});
   }
   seekChapter(id:string){const chapter=this.state.mediaInfo.chapters?.find(c=>c.id===id);if(!chapter)return Promise.reject(new PlayerError('INVALID_ARGUMENT','Unknown source chapter'));return this.seekForSource(chapter.start,{},this.state.sourceId);}

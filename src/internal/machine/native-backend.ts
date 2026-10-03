@@ -35,8 +35,9 @@ export type NativeVerificationFacts=Readonly<{
 type SeekFacts=Readonly<{position:number;seeking:boolean}>;
 export type NativeBackendCommand=
  |Readonly<{type:'source'}>|Readonly<{type:'stop'}>
- |Readonly<{type:'event.begin';event:string;now:number;loadBudget:number}>
+ |Readonly<{type:'event.begin';event:string;now:number;loadBudget:number;prefetchAfterMs?:number}>
  |Readonly<{type:'event.deadline';request:NativeEventRequest;now:number}>
+ |Readonly<{type:'event.prefetch';request:NativeEventRequest;now:number}>
  |Readonly<{type:'event.finish';request:NativeEventRequest}>
  |Readonly<{type:'caption.effect.begin'|'caption.effect.finished';request:NativeCaptionEffect}>
  |Readonly<{type:'caption.begin';kind:NativeCaptionKind;attachmentId?:string;now:number}>
@@ -69,7 +70,7 @@ export type NativeBackendCommand=
  |Readonly<{type:'seek.finish';request:NativeRequest}>;
 export type NativeBackendDecision=Readonly<{
  state:NativeBackendState;accepted:boolean;request?:NativeRequest;retired?:NativeRequest;completed?:boolean;sample?:boolean;armFrame?:boolean;retry?:boolean;remaining?:number;
- eventTimeout?:Readonly<{event:string;loading:boolean;budget:number}>;captionStart?:NativeCaptionEffect;sinkStart?:NativeControlRequest;fallback?:boolean;rollback?:boolean;resume?:boolean;position?:number;
+ prefetch?:boolean;eventTimeout?:Readonly<{event:string;loading:boolean;budget:number}>;captionStart?:NativeCaptionEffect;sinkStart?:NativeControlRequest;fallback?:boolean;rollback?:boolean;resume?:boolean;position?:number;
  failure?:'event-capacity'|'caption-capacity'|'identity-exhausted'|'missing-audio'|'missing-output'|'verification-timeout'|'seek-timeout'|'activation-timeout'|'caption-timeout';
 }>;
 function evidence(value:CapabilityEvidenceData):CapabilityEvidenceData{return Object.freeze({...value,...value.timing?{timing:Object.freeze({...value.timing})}:{},...value.audioObservation?{audioObservation:Object.freeze({...value.audioObservation})}:{}});}
@@ -84,7 +85,7 @@ export function transitionNativeBackend(state:NativeBackendState,command:NativeB
  if(['event.begin','caption.begin','control.begin','load.begin','verify.begin','seek.begin'].includes(command.type)&&!Number.isSafeInteger(state.serial+1))return result(state,{failure:'identity-exhausted'},false);
  if(command.type==='event.begin'&&state.waits.length>=128)return result(state,{failure:'event-capacity'},false);
  if(command.type==='caption.begin'&&state.captions.attachments.length>=16)return result(state,{failure:'caption-capacity'},false);
- if(command.type==='event.begin'){const request=Object.freeze({id:state.serial+1,epoch:state.epoch,kind:'event' as const});return result({...state,serial:request.id,waits:Object.freeze([...state.waits,beginNativeEventWait(request,command.event,command.now,command.loadBudget)])},{request});}
+ if(command.type==='event.begin'){const request=Object.freeze({id:state.serial+1,epoch:state.epoch,kind:'event' as const});return result({...state,serial:request.id,waits:Object.freeze([...state.waits,beginNativeEventWait(request,command.event,command.now,command.loadBudget,command.prefetchAfterMs)])},{request});}
  if(command.type==='caption.begin'){const request=Object.freeze({id:state.serial+1,epoch:state.epoch,kind:'caption' as const});return result({...state,serial:request.id,captions:beginNativeCaption(state.captions,request,command.kind,command.attachmentId,command.now)},{request});}
  if(command.type==='control.begin'){const request=Object.freeze({id:state.serial+1,epoch:state.epoch,kind:'control' as const,domain:command.domain});return result({...state,serial:request.id,controls:beginNativeControl(state.controls,request,command.paused),captions:command.domain==='subtitles'?beginNativeCaptionSelection(state.captions,request.id):state.captions},{request});}
  if(command.type==='load.begin'){
@@ -102,6 +103,7 @@ export function transitionNativeBackend(state:NativeBackendState,command:NativeB
   return result({...state,serial:request.id,seek},{request,retired:state.seek?.request});
  }
  if(!nativeRequestCurrent(state,command.request)||(command.type.startsWith('verify.')&&command.request.kind!=='verification')||(command.type.startsWith('seek.')&&command.request.kind!=='seek'))return result(state,{},false);
+ if(command.type==='event.prefetch'){const wait=state.waits.find(value=>value.request.id===command.request.id);if(!wait||wait.prefetched||wait.prefetchDeadline===undefined)return result(state,{},false);if(command.now<wait.prefetchDeadline)return result(state,{remaining:wait.prefetchDeadline-command.now});return result({...state,waits:Object.freeze(state.waits.map(value=>value===wait?Object.freeze({...wait,prefetched:true}):value))},{prefetch:true});}
  if(command.type==='event.finish')return result({...state,waits:Object.freeze(state.waits.filter(wait=>wait.request.id!==command.request.id))});
  if(command.type==='event.deadline'){const wait=nativeEventWaitDeadline(state.waits,command.request,command.now);return !wait?result(state,{},false):result(state,wait.remaining!==undefined?{remaining:wait.remaining}:{eventTimeout:{event:wait.event!,loading:wait.loading!,budget:wait.budget!}});}
  if(command.type==='caption.effect.begin'){if(command.request.kind==='control'&&command.request.domain!=='subtitles')return result(state,{},false);const ids=state.captions.queued.filter(request=>nativeRequestCurrent(state,request)).map(request=>request.id),effect=queueNativeCaptionEffect(state.captions,command.request,ids);return effect.state===state.captions?result(state,{},false):result({...state,captions:effect.state},{captionStart:effect.start});}

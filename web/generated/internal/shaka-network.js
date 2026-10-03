@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PlayerError, isPlayerError } from './errors.js';
-import { initialShakaNetwork, shakaNetworkRequest, shakaNetworkCurrent, beginShakaNetworkRequest, setShakaNetworkResource, cancelShakaNetworkRequest, expireShakaNetworkRequest, cleanupShakaNetworkRequest, finishShakaNetworkRequest, failShakaNetwork, retireShakaNetwork, shakaNetworkAdmission, receiveShakaNetworkStatus, finishShakaNetworkRefresh, observeShakaNetworkValidator, beginShakaNetworkBody, appendShakaNetworkBody, completeShakaNetworkBody, shakaNetworkResourceIDs } from './machine/shaka-network.js';
+import { initialShakaNetwork, shakaNetworkPending, beginShakaNetworkRefresh, settleShakaNetworkRefresh, shakaNetworkRequest, shakaNetworkCurrent, beginShakaNetworkRequest, setShakaNetworkResource, cancelShakaNetworkRequest, expireShakaNetworkRequest, cleanupShakaNetworkRequest, finishShakaNetworkRequest, failShakaNetwork, retireShakaNetwork, shakaNetworkAdmission, receiveShakaNetworkStatus, finishShakaNetworkRefresh, observeShakaNetworkValidator, beginShakaNetworkBody, appendShakaNetworkBody, completeShakaNetworkBody, shakaNetworkResourceIDs } from './machine/shaka-network.js';
 const owners = new WeakMap();
 const installed = new WeakSet();
 function installTransport(runtime) {
@@ -172,13 +172,21 @@ export class ShakaNetworkPolicy {
                 try {
                     const source = this.source, refresh = source.refreshAuthorization;
                     check();
-                    update = await Promise.race([refresh.call(source, { url: uri }), new Promise((_, reject) => { cancel = () => reject(new PlayerError('ABORTED', 'Streaming authorization refresh cancelled')); if (acquired.signal.aborted)
+                    if (!this.accept(beginShakaNetworkRefresh(this.control, id)))
+                        throw new PlayerError('ABORTED', 'Streaming authorization refresh retired');
+                    const physical = (async () => { try {
+                        return await refresh.call(source, { url: uri });
+                    }
+                    finally {
+                        this.control = settleShakaNetworkRefresh(this.control, id);
+                    } })();
+                    update = await Promise.race([physical, new Promise((_, reject) => { cancel = () => reject(new PlayerError('ABORTED', 'Streaming authorization refresh cancelled')); if (acquired.signal.aborted)
                             cancel();
                         else
                             acquired.signal.addEventListener('abort', cancel, { once: true }); })]);
                 }
                 catch (error) {
-                    this.checkActive();
+                    check();
                     throw this.fail(isPlayerError(error) ? error : new PlayerError('SOURCE_PERMISSION', 'Streaming authorization refresh failed'));
                 }
                 finally {
@@ -332,5 +340,5 @@ export class ShakaNetworkPolicy {
             }
             catch { }
     }
-    get diagnostics() { return { active: this.control.active, pendingRequests: this.control.requests.length, redirects: 'rejected', credentials: this.source.credentials ?? 'same-origin', allowedOriginCount: this.allowed.size }; }
+    get diagnostics() { return { active: this.control.active, pendingRequests: shakaNetworkPending(this.control), pendingRefreshes: this.control.refreshes.length, redirects: 'rejected', credentials: this.source.credentials ?? 'same-origin', allowedOriginCount: this.allowed.size }; }
 }

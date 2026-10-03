@@ -41,6 +41,7 @@ export declare class ShakaNetworkPolicy {
     get diagnostics(): {
         active: boolean;
         pendingRequests: number;
+        pendingRefreshes: number;
         redirects: string;
         credentials: RequestCredentials;
         allowedOriginCount: number;

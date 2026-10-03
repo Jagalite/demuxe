@@ -105,3 +105,11 @@ test('policy callbacks cannot apply an older policy to a candidate after reentra
  const {p,backend}=physical(t);const applied=[];p.candidate={backend:{setWatchdogs:policy=>applied.push(policy),destroy:async()=>{}},surface:{remove(){}}};let once=false;
  backend.setWatchdogs=()=>{if(!once){once=true;p.setWatchdogs(false);}};p.setWatchdogs(true);assert.equal(p.watchdogs.nativeProgress,false);assert.equal(applied.length,1);assert.equal(applied[0].nativeProgress,false);assert.equal(p.control.monitor.current,null);
 });
+
+for(const automatic of [false,true])test(`Hybrid watchdog ${automatic?'recovers automatic':'pauses pinned'} playback exactly once`,async t=>{
+ const {p,backend,timers}=physical(t,'hybrid');backend.properties.set('track-list',[{type:'video',selected:true}]);p.automatic=automatic;
+ let pauses=0,recoveries=0,errors=0;backend.pause=async()=>{pauses++;};p.recover=session=>{assert.equal(session,p.current);recoveries++;};p.addEventListener('error',()=>errors++);
+ p.startWatchdogs();for(let i=0;i<5;i++)timers[0].callback();await Promise.resolve();
+ assert.equal(recoveries,automatic?1:0);assert.equal(pauses,automatic?0:1);assert.equal(errors,automatic?0:1);
+ assert.equal(p.settings.pause,!automatic);assert.equal(p.control.monitor.current,null);
+});

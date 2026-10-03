@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
+import {preferredPlanIndices} from './routing.js';
 export type PromotionFacts=Readonly<{automatic:boolean;source:boolean;current:boolean;error:boolean;paused:boolean;background:boolean;waiting:boolean;queued:number}>;
-export type PromotionState=Readonly<{serial:number;epoch:number;timer:Readonly<{id:number;epoch:number;due:number}>|null;active:Readonly<{id:number;epoch:number;phase:'queued'|'inspecting'|'trying'}>|null}>;
+export type PromotionState=Readonly<{serial:number;epoch:number;timer:Readonly<{id:number;epoch:number;due:number}>|null;active:Readonly<{id:number;epoch:number;phase:'queued'|'inspecting'|'trying';candidates?:readonly string[];cursor?:number}>|null}>;
 export type PromotionChange=
   |Readonly<{kind:'cancel'}>
   |Readonly<{kind:'schedule';now:number;facts:PromotionFacts}>
   |Readonly<{kind:'fired';id:number;now:number;facts:PromotionFacts}>
   |Readonly<{kind:'start';id:number;facts:PromotionFacts}>
-  |Readonly<{kind:'trying'|'finished'|'timer-failed';id:number}>;
+  |Readonly<{kind:'trying';id:number;candidates?:readonly string[]}>
+  |Readonly<{kind:'attempt';id:number;plan:string;outcome:'selected'|'compatibility'|'terminal'}>
+  |Readonly<{kind:'finished'|'timer-failed';id:number}>;
 export function initialPromotion():PromotionState{return Object.freeze({serial:0,epoch:0,timer:null,active:null});}
 export function cancelPromotion(state:PromotionState):PromotionState{return Object.freeze({...state,epoch:state.epoch+1,timer:null,active:null});}
 export function transitionPromotion(state:PromotionState,change:PromotionChange):PromotionState{
@@ -30,8 +33,18 @@ export function transitionPromotion(state:PromotionState,change:PromotionChange)
     const f=change.facts;
     return Object.freeze({...state,active:f.automatic&&f.source&&f.current?Object.freeze({...active,phase:'inspecting' as const}):null});
   }
-  return active.phase==='inspecting'?Object.freeze({...state,active:Object.freeze({...active,phase:'trying' as const})}):state;
+  if(change.kind==='attempt'){
+    if(active.phase!=='trying'||active.candidates?.[active.cursor??0]!==change.plan)return state;
+    return Object.freeze({...state,active:change.outcome==='compatibility'?Object.freeze({...active,cursor:(active.cursor??0)+1}):null});
+  }
+  return change.kind==='trying'&&active.phase==='inspecting'?Object.freeze({...state,active:Object.freeze({...active,phase:'trying' as const,candidates:Object.freeze([...(change.candidates??[])]),cursor:0})}):state;
 }
 /** Only an already admitted plan before the accepted plan can be promoted.
  * Playing handoffs additionally need the Native overlap path. */
 export function promotionPlanAllowed(paused:boolean,mode:string,cachedFailure:boolean):boolean{return (paused||mode==='native')&&!cachedFailure;}
+
+export function promotionCandidate(state:PromotionState,id:number):string|undefined{const active=state.active;return active?.id===id&&active.epoch===state.epoch&&active.phase==='trying'?active.candidates?.[active.cursor??0]:undefined;}
+
+export function promotionCandidates(plans:readonly Readonly<{id:string;mode:string;eligible:boolean;cachedFailure:boolean}>[],current:string,paused:boolean):readonly string[]{
+ return Object.freeze(preferredPlanIndices(plans,current).filter(index=>promotionPlanAllowed(paused,plans[index].mode,plans[index].cachedFailure)).map(index=>plans[index].id));
+}

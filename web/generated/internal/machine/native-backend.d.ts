@@ -95,8 +95,13 @@ export type NativeBackendCommand = Readonly<{
     event: string;
     now: number;
     loadBudget: number;
+    prefetchAfterMs?: number;
 }> | Readonly<{
     type: 'event.deadline';
+    request: NativeEventRequest;
+    now: number;
+}> | Readonly<{
+    type: 'event.prefetch';
     request: NativeEventRequest;
     now: number;
 }> | Readonly<{
@@ -250,6 +255,7 @@ export type NativeBackendDecision = Readonly<{
     armFrame?: boolean;
     retry?: boolean;
     remaining?: number;
+    prefetch?: boolean;
     eventTimeout?: Readonly<{
         event: string;
         loading: boolean;

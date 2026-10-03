@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type TrackConfirmationState } from './track-confirmation.js';
+import { type PlayerTransportState } from './player-transport.js';
 import { type EffectRuntimeState } from './effect-runtime.js';
 import { type ResourceLedgerState } from './resource-ledger.js';
 import { type PlayerReadinessState } from './player-readiness.js';
@@ -17,6 +19,8 @@ import { type RoutingState } from './route-state.js';
 export type PlayerControlState = Readonly<{
     revision: number;
     captureRevision: number;
+    transport: PlayerTransportState;
+    trackConfirmation: TrackConfirmationState;
     resources: ResourceLedgerState;
     executor: EffectRuntimeState;
     readiness: PlayerReadinessState;

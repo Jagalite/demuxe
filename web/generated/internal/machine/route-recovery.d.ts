@@ -10,6 +10,7 @@ export type RecoveryState = Readonly<{
         id: number;
         epoch: number;
         session: number;
+        phase: 'classifying' | 'queued' | 'pausing' | 'selecting' | 'failed' | 'selected' | 'terminal';
     }> | null;
     failedStreaming: Readonly<{
         source: number;
@@ -20,6 +21,22 @@ export type RecoveryChange = Readonly<{
     kind: 'begin';
     epoch: number;
     session: number;
+}> | Readonly<{
+    kind: 'classified';
+    id: number;
+    compatible: boolean;
+}> | Readonly<{
+    kind: 'start';
+    id: number;
+    current: boolean;
+    automatic: boolean;
+}> | Readonly<{
+    kind: 'paused';
+    id: number;
+}> | Readonly<{
+    kind: 'outcome';
+    id: number;
+    selected: boolean;
 }> | Readonly<{
     kind: 'finished';
     id: number;
@@ -43,3 +60,16 @@ export declare function recoveryRoute(facts: Readonly<{
     start: number;
     requirements: RouteRequirements;
 }>;
+/** Pure response policy. Adapter facts describe the observed fault; no physical
+ * error objects, handles or callbacks are retained by this decision. */
+export declare function playbackFaultResponse(facts: Readonly<{
+    origin: 'watchdog' | 'backend' | 'track-policy';
+    current: boolean;
+    accepted: boolean;
+    busy: boolean;
+    destroyed: boolean;
+    automatic: boolean;
+    mode: PlaybackMode;
+    fault: boolean;
+    endFileError?: boolean;
+}>): 'ignore' | 'recover' | 'pause-error' | 'error' | 'forward';

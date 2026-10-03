@@ -15,10 +15,19 @@ export class VirtualEffects {
     signal.addEventListener('abort',abort,{once:true});
   });
   advanceTo(time){
-    if(!Number.isFinite(time)||time<this.time)throw Error('Virtual time must be monotonic');this.time=time;
-    for(const [id,timer] of [...this.timers].sort((a,b)=>a[1].deadline-b[1].deadline||a[0]-b[0])){
-      if(timer.deadline>time)continue;this.timers.delete(id);timer.finish();
+    if(!Number.isFinite(time)||time<this.time)throw Error('Virtual time must be monotonic');
+    let count=0;
+    // Re-read after each callback: it may cancel another timer or install a
+    // deadline inside this advance. Callbacks observe their actual deadline.
+    while(true){
+      const next=[...this.timers].filter(([,timer])=>timer.deadline<=time)
+        .sort((a,b)=>a[1].deadline-b[1].deadline||a[0]-b[0])[0];
+      if(!next)break;
+      if(++count>10000)throw Error('Virtual timers did not quiesce');
+      const [id,timer]=next;this.time=Math.max(this.time,timer.deadline);
+      this.timers.delete(id);timer.finish();
     }
+    this.time=time;
   }
 }
 export function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};}

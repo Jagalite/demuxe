@@ -48,6 +48,17 @@ export declare function validOutputSize(width: number, height: number): boolean;
 export declare function changePreferences(state: PlayerPreferences, value: Partial<PlayerPreferences>): PlayerPreferences;
 export declare function clearSourcePreferences(state: PlayerPreferences): PlayerPreferences;
 export type SettingCommand = Readonly<{
+    kind: 'automatic';
+    value: boolean;
+}> | Readonly<{
+    kind: 'mode';
+    value: PlaybackMode;
+}> | Readonly<{
+    kind: 'routedGain';
+    value: number;
+    plan?: string;
+    direct: boolean;
+}> | Readonly<{
     kind: 'volume' | 'rate' | 'gain';
     value: number;
 }> | Readonly<{
@@ -138,7 +149,10 @@ export type SettingEffect = Readonly<{
     key: 'vf' | 'af';
     value: string;
 }> | Readonly<{
-    kind: 'promotion';
+    kind: 'promotion' | 'gain.evidence';
+}> | Readonly<{
+    kind: 'mode.ready';
+    mode: PlaybackMode;
 }> | Readonly<{
     kind: 'seek' | 'seek.verify';
     value: number;
@@ -159,6 +173,9 @@ export type SettingTransaction = Readonly<{
     reconfigure: boolean;
     promote: boolean;
     mode?: PlaybackMode;
+    automatic?: boolean;
+    automaticDuringApply: boolean;
+    after: readonly SettingEffect[];
     settings: Readonly<PlaybackSettings>;
     preferences: PlayerPreferences;
     settingsPatch: Readonly<Partial<PlaybackSettings>>;
@@ -188,11 +205,14 @@ export type SettingTransactionInput = Readonly<{
     type: 'setting.accept' | 'setting.failed' | 'setting.restored' | 'setting.degraded';
     id: number;
 }>;
+export declare function settingAutomaticSelection(state: PlayerControlState): boolean;
 export declare function settingAuthority(state: PlayerControlState, id: number): boolean;
 export declare function transitionSettingTransaction(state: PlayerControlState, input: SettingTransactionInput): Readonly<{
     state: Readonly<{
         revision: number;
         captureRevision: number;
+        transport: import("./player-transport.js").PlayerTransportState;
+        trackConfirmation: import("./track-confirmation.js").TrackConfirmationState;
         resources: import("./resource-ledger.js").ResourceLedgerState;
         executor: import("./effect-runtime.js").EffectRuntimeState;
         readiness: import("./player-readiness.js").PlayerReadinessState;

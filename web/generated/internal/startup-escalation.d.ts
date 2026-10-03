@@ -7,6 +7,7 @@ export declare function startupEscalationPolicy(options?: StartupEscalationOptio
 /** Immutable fallback code only. No media, worker, decoder or audio allocation. */
 export declare class StartupModules {
     private base;
+    private state;
     private controller;
     private binaries;
     private pending;

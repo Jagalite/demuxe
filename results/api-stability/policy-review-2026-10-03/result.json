@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-03",
+  "scope": "Review of seven migrated Player policies and simulation/sequence adequacy",
+  "tests": {
+    "passed": 340,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 20819.20025,
+    "addedSinceMigrationReceipt": 29,
+    "log": "test.log"
+  },
+  "typecheck": "passed",
+  "staticCoreBoundary": "passed",
+  "ownershipAudit": {
+    "supportedReviewedFields": 879,
+    "changedSources": 0,
+    "pendingDynamicWrites": 0
+  },
+  "simulation": {
+    "newPublicMediaSeeds": [
+      7,
+      42,
+      2026
+    ],
+    "mixedSteps": 288,
+    "actionsPerShuffledRound": 12,
+    "roundsPerSeed": 8,
+    "independentOracle": [
+      "media position",
+      "physical position",
+      "rate",
+      "accepted volume",
+      "drained ownership"
+    ],
+    "newRecoveryCausalSchedules": 240,
+    "deterministicReplaysPerSchedule": 2,
+    "duplicateCompletions": true,
+    "newNegativeControls": [
+      "skip physical rate effect",
+      "omit play pause retirement",
+      "omit seek compensating pause retirement"
+    ],
+    "existingSoak": {
+      "seeds": 6,
+      "operations": 60000,
+      "checkedTransitions": 452083,
+      "virtualDays": "29 to 78"
+    }
+  },
+  "fixes": [
+    "Fence startup acquisition before fetch and after ignored-abort fetch completion.",
+    "Clean up canceled prefetch timer acquisition; optional speculative timer failure cannot fail active loading.",
+    "Consume track Promise delivery before reentrant cleanup.",
+    "Fence gain evidence against reentrant source retirement.",
+    "Reject terminal or aborted seek restoration fallback.",
+    "Suppress compensating play after newer Pause.",
+    "Fence transport completion to captured session outside route selection.",
+    "Suppress track-policy error after pause reentrantly retires source.",
+    "Bind immediate Play promise and verification evidence to the physical session."
+  ],
+  "adequacy": "Strong focused control/ownership regression evidence; not exhaustive browser/media correctness qualification.",
+  "limits": [
+    "Synthetic source attachment does not execute open/probe/backend construction.",
+    "Mixed media simulation disables browser watchdog/promotion scheduling; dedicated adapter tests cover selected outcomes.",
+    "No actual decoder, provider-network timing, permission/UI, A/V drift, memory endurance or performance campaign.",
+    "Virtual days do not equal wall-clock playback."
+  ],
+  "commit": "No commit or push"
+}

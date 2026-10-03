@@ -396,7 +396,7 @@ export class NativePlayer extends EventTarget {
         signal?.throwIfAborted();
         const now = performance.now();
         this.assertActive();
-        const request = this.changeNative({ type: 'event.begin', event, now, loadBudget: this.loadTimeoutMs }).request, video = this.video;
+        const request = this.changeNative({ type: 'event.begin', event, now, loadBudget: this.loadTimeoutMs, prefetchAfterMs: this.startup?.prefetch ? this.startup.prefetchAfterMs : undefined }).request, video = this.video;
         return new Promise((resolve, reject) => {
             let settled = false, timer, softTimer;
             const finish = (error) => {
@@ -406,7 +406,8 @@ export class NativePlayer extends EventTarget {
                 this.changeNative({ type: 'event.finish', request });
                 const pending = timer;
                 timer = undefined;
-                clearTimeout(softTimer);
+                clearTimeout(softTimer?.handle);
+                softTimer = undefined;
                 this.cancelers.delete(cancel);
                 this.eventWaits.delete(request.id);
                 for (const clean of [() => clearTimeout(pending?.handle), () => video.removeEventListener(event, done), () => video.removeEventListener('error', failed), () => signal?.removeEventListener('abort', aborted)])
@@ -481,12 +482,26 @@ export class NativePlayer extends EventTarget {
                     }
                 }
                 if ((event === 'loadeddata' || event === 'loadedmetadata') && this.startup?.prefetch && this.startup.prefetchAfterMs !== undefined) {
-                    softTimer = setTimeout(() => { if (settled)
-                        return; try {
-                        this.assertNative(request);
-                        this.startup?.prefetch?.();
+                    const armPrefetch = (delay) => { const registration = {}; softTimer = registration; const acquired = setTimeout(() => { if (softTimer !== registration)
+                        return; softTimer = undefined; prefetch(); }, delay); registration.handle = acquired; if (settled || softTimer !== registration || !nativeRequestCurrent(this.native, request)) {
+                        clearTimeout(acquired);
+                        if (softTimer === registration)
+                            softTimer = undefined;
+                    } };
+                    const prefetch = () => { try {
+                        const decision = this.changeNative({ type: 'event.prefetch', request, now: performance.now() });
+                        if (decision.prefetch)
+                            this.startup?.prefetch?.();
+                        else if (decision.remaining !== undefined)
+                            armPrefetch(decision.remaining);
                     }
-                    catch { /* Speculation cannot fail the active load. */ } }, this.startup.prefetchAfterMs);
+                    catch { /* Speculation cannot fail the active load. */ } };
+                    try {
+                        armPrefetch(this.startup.prefetchAfterMs);
+                    }
+                    catch {
+                        softTimer = undefined; /* Speculative timer acquisition cannot fail active loading. */
+                    }
                 }
                 signal?.throwIfAborted();
                 this.assertNative(request);

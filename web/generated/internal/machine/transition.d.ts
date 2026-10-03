@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type TrackConfirmationInput } from './track-confirmation.js';
+import { type PlayerTransportInput, type TransportEffect } from './player-transport.js';
 import { type EffectRuntimeInput, type EffectRuntimeDecision } from './effect-runtime.js';
 import type { EffectScope, EffectOutcome } from './protocol.js';
 import { type ResourceLedgerInput, type ResourceLedgerDecision } from './resource-ledger.js';
@@ -32,7 +34,7 @@ export type SessionObservation = Readonly<{
         ended: boolean;
     }>;
 }>;
-export type PlayerControlInput = Readonly<{
+export type PlayerControlInput = TrackConfirmationInput | PlayerTransportInput | Readonly<{
     type: 'effect.event';
     input: EffectRuntimeInput;
 }> | Readonly<{
@@ -42,6 +44,7 @@ export type PlayerControlInput = Readonly<{
 export type PlayerControlDecision<Effect = SettingEffect | BoundaryEffect | AttachmentEffect> = Readonly<{
     state: PlayerControlState;
     accepted: boolean;
+    transportEffect?: TransportEffect;
     preparationEffect?: SourcePreparationEffect;
     applicationEffect?: SourceApplicationEffect;
     positioningEffect?: SourcePositioningEffect;
