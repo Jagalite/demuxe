@@ -7,7 +7,13 @@ const family=process.env.BROWSER??'chromium',out=`results/api-stability/advanced
 await mkdir(out,{recursive:true});const report={family,passed:false,checks:[]};let browser,page;
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
 async function retainSnapshots(){
-  const snapshots=await page.evaluate(()=>window.pixelSnapshots?.splice(0)??[]);
+  const snapshots=await page.evaluate(async()=>{
+    const snapshots=window.pixelSnapshots?.splice(0)??[];
+    return Promise.all(snapshots.map(async({blob,...metadata})=>{
+      const png=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(blob);});
+      return {...metadata,png};
+    }));
+  });
   for(const {png,...metadata} of snapshots){
     const file=`snapshot-${String((report.snapshots?.length??0)+1).padStart(2,'0')}.png`;
     await writeFile(out+'/'+file,Buffer.from(png.split(',')[1],'base64'));
@@ -21,12 +27,7 @@ try{
   const errors=[];page.on('pageerror',error=>errors.push(String(error.stack)));
   await page.goto(origin+'/examples/player-element.html');
   await page.evaluate(async()=>{window.element=document.querySelector('demuxe-player');window.p=await element.ready;p.preview.enabled=false;window.movie=new File([await(await fetch('/fixtures/example.mp4')).blob()],'movie.mp4');await element.open(movie);
-    window.pixelSnapshots=[];window.nativeFrame=null;
-    const video=p.surface;
-    if(video instanceof HTMLVideoElement&&video.requestVideoFrameCallback){
-      const observe=(now,metadata)=>{window.nativeFrame={now,...metadata};if(p.surface===video)video.requestVideoFrameCallback(observe);};
-      video.requestVideoFrameCallback(observe);
-    }
+    window.pixelSnapshots=[];
     await p.seek(2);});
   const el=page.locator('demuxe-player').first();await el.locator('#settings-toggle').click();
   await el.locator('.advanced-group').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));
@@ -34,13 +35,12 @@ try{
     await page.evaluate(async()=>{
       window.before={source:p.state.sourceId,time:p.state.currentTime,intent:p.state.playbackIntent};
       window.pixels=async(label)=>{
-        const observe=()=>{const video=p.surface,quality=video instanceof HTMLVideoElement?video.getVideoPlaybackQuality?.():null;return {source:p.state.sourceId,time:p.state.currentTime,intent:p.state.playbackIntent,mode:p.state.activeMode,filter:p.diagnostics.videoFilters,backend:p.diagnostics.backend,native:video instanceof HTMLVideoElement?{currentTime:video.currentTime,seeking:video.seeking,readyState:video.readyState,width:video.videoWidth,height:video.videoHeight,quality:quality?{creationTime:quality.creationTime,totalVideoFrames:quality.totalVideoFrames,droppedVideoFrames:quality.droppedVideoFrames,corruptedVideoFrames:quality.corruptedVideoFrames}:null,lastFrame:window.nativeFrame}:null};};
+        const observe=()=>{const video=p.surface,quality=video instanceof HTMLVideoElement?video.getVideoPlaybackQuality?.():null;return {source:p.state.sourceId,time:p.state.currentTime,intent:p.state.playbackIntent,mode:p.state.activeMode,filter:p.diagnostics.videoFilters,backend:p.diagnostics.backend,native:video instanceof HTMLVideoElement?{currentTime:video.currentTime,seeking:video.seeking,readyState:video.readyState,width:video.videoWidth,height:video.videoHeight,quality:quality?{creationTime:quality.creationTime,totalVideoFrames:quality.totalVideoFrames,droppedVideoFrames:quality.droppedVideoFrames,corruptedVideoFrames:quality.corruptedVideoFrames}:null}:null};};
         const beforeCapture=observe(),shot=await p.snapshot({includeSubtitles:false}),afterCapture=observe();
         const image=await createImageBitmap(shot.blob),canvas=document.createElement('canvas');canvas.width=64;canvas.height=36;
         const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0,64,36);image.close();
         const pixels=Array.from(ctx.getImageData(0,0,64,36).data);
-        const png=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(shot.blob);});
-        window.pixelSnapshots.push({label,png,width:shot.width,height:shot.height,mediaTime:shot.mediaTime,actualTime:shot.actualTime,beforeCapture,afterCapture});
+        window.pixelSnapshots.push({label,blob:shot.blob,width:shot.width,height:shot.height,mediaTime:shot.mediaTime,actualTime:shot.actualTime,beforeCapture,afterCapture});
         return pixels;
       };window.original=await pixels('native-original');
     });
