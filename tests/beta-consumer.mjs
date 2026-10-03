@@ -31,6 +31,7 @@ const range=/^bytes=(\d+)-(\d*)$/.exec(req.headers.range||'');res.setHeader('Acc
 }catch(e){res.writeHead(404).end(String(e));}});await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;
 const launchBrowser=()=>({chrome:chromium,firefox})[family].launch({headless:true,...(family==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{})});
 let browser=await launchBrowser();result.browser=browser.version();
+const directCases=['automatic-local','native-no-isolation'];
 const cases=['automatic-local','native-no-isolation','hybrid-pin','software-pin','automatic-ass','native-remux','native-external-ass','transitions','rollback','missing-engine','isolation-error','rgb-override','av1-software','hdr-software','external-subtitles','surround-output','hls-expanded','dash-periods'];
 const privateCases=['remux-auto-isolated','remux-auto-no-isolation','remux-asyncify-no-isolation','remux-on-isolated','remux-off-no-isolation'];
 if(manifest.files['web/engine-remux-jspi/remux.wasm'])cases.push(...privateCases);
@@ -39,7 +40,8 @@ if(hasPrivatePlayback)cases.push(...playbackCases);
 if(!manifest.files['web/engine-subtitles/service.wasm'])cases.splice(cases.indexOf('native-external-ass'),1);
 if(process.env.ADAPTATION_FIXTURE){cases.push('native-adaptation','native-opus');if(manifest.files['web/engine-subtitles/service.wasm'])cases.push('native-adaptation-ass-gain');await copyFile(process.env.ADAPTATION_FIXTURE,path.join(root,'media/adaptation.mkv'));}
 if(process.env.AUTOMATIC_ADAPTATION_FIXTURE){cases.push('automatic-lossless');await copyFile(process.env.AUTOMATIC_ADAPTATION_FIXTURE,path.join(root,'media/automatic.mkv'));}
-try{let caseIndex=0;const selectedCases=cases.filter(n=>!process.env.CASES||process.env.CASES.split(",").includes(n)),workerRetries=new Map();for(let caseNumber=0;caseNumber<selectedCases.length;caseNumber++){const name=selectedCases[caseNumber];if(caseIndex++) {await browser.close();browser=await launchBrowser();}missingEngine=name==='missing-engine';const page=await browser.newPage();const r={name,requests:[],requestDetails:[],failedResponses:[],pageErrors:[],attempts:workerRetries.has(name)?[workerRetries.get(name)]:[]};let expectedErrors=[];result.cases.push(r);page.on('request',q=>{r.requests.push(q.url());r.requestDetails.push({url:q.url(),method:q.method()});});page.on('response',response=>{if(response.status()>=400)r.failedResponses.push({url:response.url(),status:response.status()});});page.on('pageerror',error=>r.pageErrors.push(String(error)));page.setDefaultTimeout(30000);
+try{let caseIndex=0;const selectedCases=cases.filter(n=>!process.env.CASES||process.env.CASES.split(",").includes(n)),workerRetries=new Map();for(let caseNumber=0;caseNumber<selectedCases.length;caseNumber++){const name=selectedCases[caseNumber];if(caseIndex++) {await browser.close();browser=await launchBrowser();}missingEngine=name==='missing-engine';const page=await browser.newPage();const r={name,requests:[],requestDetails:[],workerURLs:[],workerEvents:[],failedResponses:[],pageErrors:[],attempts:workerRetries.has(name)?[workerRetries.get(name)]:[]};let expectedErrors=[];result.cases.push(r);page.on('worker',worker=>{r.workerURLs.push(worker.url());r.workerEvents.push({url:worker.url(),at:Date.now()});});page.on('request',q=>{r.requests.push(q.url());r.requestDetails.push({url:q.url(),method:q.method(),at:Date.now()});});page.on('response',response=>{if(response.status()>=400)r.failedResponses.push({url:response.url(),status:response.status()});});page.on('pageerror',error=>r.pageErrors.push(String(error)));page.setDefaultTimeout(30000);
+if(directCases.includes(name))await page.addInitScript(observeDirectStartup);
 try{if(playbackCases.includes(name)){await runPrivatePlaybackCase(page,name,r);r.passed=true;console.log('PASS',name);continue;}if(mpvCases.includes(name)){await runPrivateMpvCase(page,name,r);r.passed=true;console.log('PASS',name);continue;}await page.goto(origin+((name.includes('isolation')&&!name.endsWith('-isolated'))?'/?noisolation':'/'));await page.waitForFunction(()=>window.API);assert.deepEqual(await page.evaluate(()=>API.PLAYBACK_MODES),['native','hybrid','software']);
 
 const mode=name==='native-no-isolation'||name==='native-remux'||name.startsWith('native-adaptation')||name==='native-opus'||name==='native-external-ass'?'native':['software-pin','rgb-override','av1-software','hdr-software','external-subtitles','surround-output','hls-expanded','dash-periods'].includes(name)?'software':['hybrid-pin','missing-engine','isolation-error'].includes(name)?'hybrid':undefined;
@@ -55,7 +57,7 @@ if(name==='hls-expanded'||name==='dash-periods'){
  r.semanticConstraint={error:unsupported,events:await page.evaluate(()=>errors.splice(0))};
  assert.deepEqual(r.semanticConstraint.events.map(e=>e.code),['DECODE_FAILED']);
 }
-const at=Date.now();r.openError=await page.evaluate(async name=>{try{if(name==='hls-expanded'||name==='dash-periods')await player.openRemote({url:location.origin+'/media/compat/'+(name==='hls-expanded'?'low/index.m3u8':'period0/manifest.mpd'),format:name==='hls-expanded'?'hls':'dash'});else await player.open(document.querySelector('#file').files[0]);return null;}catch(e){return String(e);}},name);r.openMs=Date.now()-at;
+const at=Date.now();r.openStartedAt=at;r.openError=await page.evaluate(async name=>{if(window.directStartup)directStartup.openStarted=performance.now();try{if(name==='hls-expanded'||name==='dash-periods')await player.openRemote({url:location.origin+'/media/compat/'+(name==='hls-expanded'?'low/index.m3u8':'period0/manifest.mpd'),format:name==='hls-expanded'?'hls':'dash'});else await player.open(document.querySelector('#file').files[0]);return null;}catch(e){return String(e);}},name);r.openMs=Date.now()-at;if(directCases.includes(name))r.openPlan=await page.evaluate(()=>player.diagnostics.plan?.id);
 if(['missing-engine','isolation-error','remux-off-no-isolation'].includes(name)){assert.ok(r.openError);if(name==='remux-off-no-isolation')assert.match(r.openError,/isolation/);}
 else{assert.equal(r.openError,null);await page.evaluate(()=>player.play());await page.waitForFunction(()=>Number(player.properties.get('time-pos'))>.3);r.mode=await page.evaluate(()=>player.mode);
 if(name==='automatic-ass'){
@@ -73,9 +75,13 @@ if(name==='external-subtitles'||name==='native-external-ass'||name==='native-ada
 if(name==='surround-output'){const a=await page.evaluate(()=>player.audioDiagnostics());assert.equal(a.outputChannels,a.deviceChannels>=8?8:2);r.audio=a;}
 await page.evaluate(async()=>{await player.pause();await player.seek(1);await player.play();});await page.waitForFunction(()=>Number(player.properties.get('time-pos'))>1.15);
 r.diagnostics=await page.evaluate(()=>player.diagnostics);if(privateCases.includes(name)){const selection=r.diagnostics.remuxRuntime;const expected=name==='remux-auto-isolated'?'pthread':name==='remux-asyncify-no-isolation'?'asyncify':selection.jspi?'jspi':'asyncify';assert.equal(selection.runtime,expected);assert.equal(r.diagnostics.plan.id,'native-remux');assert.equal(r.diagnostics.backend.remux.remux.transport,expected);}if(name==='software-pin')assert.ok(r.requests.some(u=>u.endsWith('/engine-software-yuv/player.wasm')));if(name==='rgb-override'){assert.ok(r.requests.some(u=>u.endsWith('/engine-software-full/player.wasm')));assert.equal(r.diagnostics.backend.softwarePresenter,'rgb');}if(name==='native-adaptation'||name==='automatic-lossless')assert.equal(r.diagnostics.plan.id,'native-flac');if(name==='native-opus'){assert.equal(r.diagnostics.plan.id,'native-opus');assert.equal(await page.evaluate(()=>player.capabilities.features.externalSubtitles.availability),manifest.files['web/engine-subtitles/service.wasm']?'available':'unavailable');}if(name==='native-adaptation-ass-gain')assert.equal(r.diagnostics.plan.id,'native-flac-ass-gain');assert.deepEqual(await page.evaluate(()=>errors),expectedErrors);
-if(['automatic-local','native-no-isolation'].includes(name))assert.ok(!r.requestDetails.some(q=>q.method!=='HEAD'&&/\.wasm|engine-worker|source-probe\.js/.test(q.url)),'Direct path fetched an engine/inspector body');
+if(directCases.includes(name)){
+ const observation=await page.evaluate(()=>({...directStartup,policy:player.startupEscalation??null}));
+ r.directStartup=classifyDirectStartupTraffic({name,observation,requests:r.requestDetails,workers:r.workerURLs,workerEvents:r.workerEvents,openStartedAt:r.openStartedAt,openPlan:r.openPlan,attempts:r.diagnostics.selection.attempts,backend:r.diagnostics.backend,mode:r.mode,plan:r.diagnostics.plan.id,runtime:r.diagnostics.remuxRuntime.runtime,assetBase:origin+'/vendor/demuxe/',manifestFiles:manifest.files});
+ r.directStartup.observation=observation;
 }
-await page.evaluate(()=>player.destroy());const cleanupStart=Date.now(),cleanupLimitMs=name==='native-remux'?5000:2000;for(const deadline=cleanupStart+cleanupLimitMs;page.workers().length&&Date.now()<deadline;)await page.waitForTimeout(50);r.cleanupMs=Date.now()-cleanupStart;r.cleanupLimitMs=cleanupLimitMs;r.workersAfter=page.workers().map(worker=>worker.url());assert.deepEqual(r.workersAfter,[]);assert.equal(await page.locator('#host video,#host canvas,iframe').count(),0);r.passed=true;console.log('PASS',name);
+}
+await page.evaluate(()=>player.destroy());const cleanupStart=Date.now(),cleanupLimitMs=name==='native-remux'?5000:2000;for(const deadline=cleanupStart+cleanupLimitMs;page.workers().length&&Date.now()<deadline;)await page.waitForTimeout(50);r.cleanupMs=Date.now()-cleanupStart;r.cleanupLimitMs=cleanupLimitMs;r.workersAfter=page.workers().map(worker=>worker.url());assert.deepEqual(r.workersAfter,[]);assert.equal(await page.locator('#host video,#host canvas,iframe').count(),0);if(name==='automatic-local'){r.disabledStartup={};await runDisabledStartupCheck(browser,origin,path.join(root,'media/simple.mp4'),manifest,r.disabledStartup);}if(directCases.includes(name)){assert.deepEqual(r.directStartup.violations,[],'Startup exceeded the selected direct or timed remux policy');assert.deepEqual(r.pageErrors,[]);}r.passed=true;console.log('PASS',name);
 }catch(e){r.state=await page.evaluate(()=>({diagnostics:window.player?.diagnostics,errors,probes:['video/mp4; codecs="avc1"','video/mp4; codecs="avc1,mp4a.40.2"','video/mp4; codecs="avc1.4d401e"','audio/mp4; codecs="mp4a.40.2"'].map(m=>[m,document.createElement('video').canPlayType(m)])})).catch(()=>null);r.error=String(e.stack);const retryableWorkerError=r.error.includes('Playback engine worker failed: error')&&r.state?.errors?.some(error=>error.code==='ASSET_LOAD_FAILED'&&error.retryable);if(retryableWorkerError&&!workerRetries.has(name)){workerRetries.set(name,{error:r.error,failedResponses:r.failedResponses,pageErrors:r.pageErrors,workers:page.workers().map(worker=>worker.url())});result.cases.pop();caseNumber--;console.log('RETRY',name,'after retryable worker startup failure');}else{console.log('FAIL',name,r.error);process.exitCode=1;}}finally{await page.evaluate(()=>window.player?.destroy()).catch(()=>{});await page.close();await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}}
 }finally{await browser.close();server.closeAllConnections();await new Promise(r=>server.close(r));result.passed=result.cases.every(r=>r.passed);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
 
@@ -174,4 +180,65 @@ async function runPrivatePlaybackCase(page,name,row){
    if(entry.cleanup){assert.equal(entry.cleanup.scheduler.liveTasks,0);assert.equal(entry.cleanup.scheduler.freeSlots,24);}entry.passed=true;
   }finally{mpvMismatch=null;armPlaybackRead=false;holdPlaybackReads=false;await page.evaluate(()=>window.player?.destroy()).catch(()=>{});}
  }
+}
+
+// Kept in this source-bound consumer harness so release verification binds this
+// assertion as well as the browser flow. Compilation of immutable fallback Wasm
+// is permitted after400ms; native remux work requires the observed500ms startup
+// timeout, selected native recipe, exact assets, and actual worker timing.
+function classifyDirectStartupTraffic({name,observation,requests,workers,workerEvents=[],openStartedAt,openPlan,attempts=[],backend,mode,plan,runtime,assetBase,manifestFiles}){
+ const violations=[],disabled=name==='automatic-local-escalation-disabled',fallback=!disabled&&plan==='native-remux';
+ if(mode!=='native'||!['native-direct',...disabled?[]:['native-remux']].includes(plan)||openPlan!==plan)violations.push('Startup route changed or left the native tier');
+ if(disabled?observation.policy!==null:observation.policy?.prefetchAfterMs!==400||observation.policy?.switchAfterMs!==500)violations.push('Unexpected startup policy');
+ if(observation.instantiations!==0)violations.push('Unexpected main-thread Wasm instantiation');
+ const path=['pthread','jspi','asyncify'].includes(runtime)?`web/engine-remux${runtime==='pthread'?'':'-'+runtime}/remux.wasm`:null;
+ const allowedURL=path?new URL(path,assetBase).href:null;
+ const workerPaths=['web/native-remux-source-worker.js','web/native-remux-worker.js',...runtime==='pthread'?['web/native-mse-worker.js']:[]];
+ const workerURLs=new Set(workerPaths.map(path=>new URL(path,assetBase).href));
+ const executableRoots=new Set(['filter-retained-engine-worker.js','software-full-engine-worker.js','retained-decoder-worker.js','native-mse-worker.js','native-remux-worker.js','native-remux-source-worker.js','io-worker.js','mpv-subtitle-worker.js','browser-decoder-worker.js','audio-worker.js','playback-worker.js','source-probe.js']);
+ const bodies=requests.filter(request=>{if(request.method==='HEAD')return false;const pathname=new URL(request.url).pathname;return pathname.endsWith('.wasm')||/\/engine-[^/]+\/[^/]+\.(?:m?js)$/.test(pathname)||!pathname.includes('/web/generated/')&&executableRoots.has(pathname.split('/').at(-1));});
+ const actualOpenStartedAt=Number.isFinite(observation.timeOrigin)&&Number.isFinite(observation.openStarted)?observation.timeOrigin+observation.openStarted:NaN;
+ const afterSwitch=event=>Number.isFinite(actualOpenStartedAt)&&Number.isFinite(event?.at)&&event.at-actualOpenStartedAt>=500;
+ if(fallback){
+  const failed=attempts.findIndex(attempt=>attempt.mode==='native'&&attempt.outcome==='failed'&&/^native-direct: NativeLoadTimeout: Native loaded(?:data|metadata) timed out$/.test(attempt.reason));
+  const selected=attempts.findIndex(attempt=>attempt.mode==='native'&&attempt.outcome==='selected'&&attempt.reason.startsWith('native-remux:'));
+  if(failed<0||selected<=failed||attempts.some((attempt,index)=>attempt.outcome==='failed'&&index!==failed))violations.push('Remux lacks the original native startup timeout and selected fallback');
+  if(backend?.path!=='native'||backend?.plan!=='remux'||backend?.remux?.remux?.transport!==runtime)violations.push('Remux recipe or transport mismatch');
+  if(!workers.some(url=>url===new URL('web/native-remux-worker.js',assetBase).href)||workers.length!==workerEvents.length||workers.some((url,index)=>workerEvents[index]?.url!==url))violations.push('Missing fallback worker evidence');
+  for(const event of workerEvents)if(!workerURLs.has(event.url)||!afterSwitch(event))violations.push('Unexpected or premature fallback worker: '+event.url);
+ }else if(workers.length)violations.push('Direct route created a worker');
+ let prefetched=0;
+ for(const request of bodies){
+  const fetch=observation.fetches.find(fetch=>fetch.url===request.url&&fetch.method!=='HEAD');
+  const warm=request.url===allowedURL&&fetch&&Number.isFinite(observation.openStarted)&&fetch.at-observation.openStarted>=400&&fetch.priority==='low';
+  if(request.method==='GET'&&!disabled&&request.url===allowedURL&&manifestFiles[path]&&warm){prefetched++;continue;}
+  const fallbackPaths=[...workerPaths,...path?[path,path.slice(0,-5)+'.mjs']:[]],selected=fallbackPaths.find(path=>new URL(path,assetBase).href===request.url);
+  if(fallback&&request.method==='GET'&&selected&&manifestFiles[selected]&&afterSwitch(request))continue;
+  violations.push('Unexpected, premature or unmanifested engine/inspector body: '+request.url);
+ }
+ if(prefetched>1||!fallback&&bodies.length>1)violations.push('More than one speculative engine body');
+ return{violations,outcome:fallback?'native-remux-after-startup-timeout':'native-direct',allowedPrefetchPath:disabled?null:path,allowedPrefetchIdentity:!disabled&&path?manifestFiles[path]:null,prefetched:prefetched>0,fallbackEvidence:fallback?{openPlan,hostDispatchStartedAt:openStartedAt,actualOpenStartedAt,attempts,workerEvents}:undefined};
+}
+
+function observeDirectStartup(){
+ window.directStartup={fetches:[],instantiations:0,timeOrigin:performance.timeOrigin,openStarted:null};
+ const fetchOriginal=globalThis.fetch;globalThis.fetch=function(input,options){const url=new URL(typeof input==='string'?input:input instanceof URL?input.href:input.url,location.href);if(url.pathname.endsWith('.wasm'))directStartup.fetches.push({url:url.href,method:options?.method??(input instanceof Request?input.method:'GET'),at:performance.now(),priority:options?.priority});return Reflect.apply(fetchOriginal,this,[input,options]);};
+ for(const name of ['instantiate','instantiateStreaming']){const original=WebAssembly[name];if(original)WebAssembly[name]=function(...args){directStartup.instantiations++;return Reflect.apply(original,this,args);};}
+ const Instance=WebAssembly.Instance;WebAssembly.Instance=new Proxy(Instance,{construct(target,args,newTarget){directStartup.instantiations++;return Reflect.construct(target,args,newTarget);}});
+}
+
+async function runDisabledStartupCheck(browser,origin,fixture,manifest,row){
+ const page=await browser.newPage();Object.assign(row,{requests:[],workers:[],pageErrors:[]});
+ page.on('request',request=>row.requests.push({url:request.url(),method:request.method()}));page.on('worker',worker=>row.workers.push(worker.url()));page.on('pageerror',error=>row.pageErrors.push(String(error)));
+ try{
+  await page.addInitScript(observeDirectStartup);await page.goto(origin+'/');await page.waitForFunction(()=>window.API);
+  await page.evaluate(()=>{window.player=new API.Player(document.querySelector('#host'),{startupEscalation:false,width:640,height:360});player.addEventListener('error',event=>errors.push(event.detail));});
+  await page.locator('#file').setInputFiles(fixture);
+  await page.evaluate(async()=>{directStartup.openStarted=performance.now();await player.open(document.querySelector('#file').files[0]);await player.play();});
+  await page.waitForFunction(()=>player.state.currentTime>.3);await page.evaluate(async()=>{await player.pause();await player.seek(1);await player.play();});await page.waitForFunction(()=>player.state.currentTime>1.15);
+  const facts=await page.evaluate(()=>({observation:{...directStartup,policy:player.startupEscalation??null},mode:player.mode,diagnostics:player.diagnostics,errors}));
+  row.observation=facts.observation;row.diagnostics=facts.diagnostics;row.classification=classifyDirectStartupTraffic({name:'automatic-local-escalation-disabled',...facts,openPlan:facts.diagnostics.plan.id,plan:facts.diagnostics.plan.id,runtime:facts.diagnostics.remuxRuntime.runtime,requests:row.requests,workers:row.workers,assetBase:origin+'/vendor/demuxe/',manifestFiles:manifest.files});
+  assert.deepEqual(row.classification.violations,[],'Disabled startup escalation fetched or executed an engine');assert.deepEqual(facts.errors,[]);assert.deepEqual(row.pageErrors,[]);
+  await page.evaluate(()=>player.destroy());const deadline=Date.now()+2000;while(page.workers().length&&Date.now()<deadline)await page.waitForTimeout(50);assert.deepEqual(page.workers(),[]);assert.equal(await page.locator('#host video,#host canvas,iframe').count(),0);row.passed=true;return row;
+ }finally{await page.evaluate(()=>window.player?.destroy()).catch(()=>{});await page.close();}
 }
