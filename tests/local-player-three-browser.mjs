@@ -15,7 +15,7 @@ const modes = ['native', 'hybrid', 'software'];
 const families = [['chrome', chromium], ['firefox', firefox], ['webkit', webkit]];
 const result = {
   started: new Date().toISOString(),
-  scope: 'Local File input, video frame counters, public playback/control state and screenshots; software/hybrid audio sample counters. No native audio-output, audible-output, endurance or packaged-release claim.',
+  scope: 'Local File input, native presentation callbacks and video frame counters, public playback/control state and screenshots; software/hybrid audio sample counters. No native audio-output, audible-output, endurance or packaged-release claim.',
   passed: false,
   expectedCases: families.length * modes.length,
   command: [process.execPath, ...process.execArgv, ...process.argv.slice(1)],
@@ -57,6 +57,47 @@ async function startServer() {
     server.once('error', onError);
     server.once('exit', onExit);
   });
+}
+
+// Presentation counters can reset across seeks. Require fresh moving output in
+// each uninterrupted resume window, retaining raw counters for diagnosis.
+async function resumeWithOutput(page, check, label, target) {
+  await page.evaluate(target => {
+    const surface = core.surface;
+    const native = core.state.activeMode === 'native';
+    if (native && typeof surface?.requestVideoFrameCallback !== 'function') throw Error('Native presentation callback unavailable');
+    const sample = window.outputWindow = {target, evidence: native ? 'requestVideoFrameCallback' : 'backend-rendered-delta', renderedBefore: core.diagnostics.backend?.rendered, callbacks: 0, firstMediaTime: null, lastMediaTime: null};
+    let handle, stopped = false;
+    const frame = (_now, metadata) => {
+      if (stopped || core.surface !== surface) return;
+      if (metadata.mediaTime >= target - .1 && (sample.lastMediaTime === null || metadata.mediaTime > sample.lastMediaTime)) {
+        sample.callbacks++;
+        sample.firstMediaTime ??= metadata.mediaTime;
+        sample.lastMediaTime = metadata.mediaTime;
+      }
+      handle = surface.requestVideoFrameCallback(frame);
+    };
+    window.stopOutputWindow = () => { stopped = true; if (handle !== undefined) surface.cancelVideoFrameCallback(handle); };
+    if (native) handle = surface.requestVideoFrameCallback(frame);
+  }, target);
+  try {
+    await page.evaluate(() => core.play());
+    await page.waitForFunction(() => {
+      const sample = window.outputWindow;
+      const output = sample.evidence === 'requestVideoFrameCallback'
+        ? sample.callbacks >= 3 && sample.lastMediaTime - sample.firstMediaTime >= .1
+        : core.diagnostics.backend?.rendered - sample.renderedBefore >= 3;
+      return output && core.state.status === 'playing' && core.state.currentTime > sample.target + .4;
+    });
+  } finally {
+    const evidence = await page.evaluate(() => {
+      window.stopOutputWindow?.();
+      const sample = {...window.outputWindow, renderedAfter: core.diagnostics.backend?.rendered, time: core.state.currentTime, status: core.state.status};
+      delete window.stopOutputWindow; delete window.outputWindow;
+      return sample;
+    });
+    (check.outputWindows ??= []).push({label, ...evidence});
+  }
 }
 
 async function stopServer() {
@@ -136,12 +177,10 @@ try {
           assert.equal(state.volume, .4);
           assert.equal(state.muted, true);
           assert.equal(state.playbackRate, 1.5);
-          await page.evaluate(() => core.play());
-          await page.waitForFunction(() => core.state.currentTime > 4.5 && core.state.status === 'playing');
-          await page.evaluate(async () => { await core.pause(); await core.seek(1); await core.setMuted(false); await core.setPlaybackRate(1); await core.play(); });
-          await page.waitForFunction(() => core.state.currentTime > 1.4 && core.state.status === 'playing');
+          await resumeWithOutput(page, check, 'forward-seek-rate-1.5', 4);
+          await page.evaluate(async () => { await core.pause(); await core.seek(1); await core.setMuted(false); await core.setPlaybackRate(1); });
+          await resumeWithOutput(page, check, 'backward-seek-rate-1', 1);
           check.finalPlayback = await page.evaluate(() => ({time: core.state.currentTime, rendered: core.diagnostics.backend?.rendered, audio: core.audioDiagnostics()}));
-          assert.ok(check.finalPlayback.rendered > check.loaded.rendered, 'Video frames continue across pause, rate change and seeks');
           await page.screenshot({path: path.join(out, `${family}-${mode}.png`)});
           await page.evaluate(() => viewer.close());
           await page.waitForFunction(() => core.state.status === 'idle' && core.state.sourceId === null && core.state.pendingOperation === null);
