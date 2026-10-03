@@ -70,7 +70,7 @@ async function resumeWithOutput(page, check, label, target) {
     let handle, stopped = false;
     const frame = (_now, metadata) => {
       if (stopped || core.surface !== surface) return;
-      if (metadata.mediaTime >= target - .1 && (sample.lastMediaTime === null || metadata.mediaTime > sample.lastMediaTime)) {
+      if (metadata.mediaTime >= target - .1 && (sample.lastMediaTime === null ? metadata.mediaTime <= target + .75 : metadata.mediaTime > sample.lastMediaTime)) {
         sample.callbacks++;
         sample.firstMediaTime ??= metadata.mediaTime;
         sample.lastMediaTime = metadata.mediaTime;
