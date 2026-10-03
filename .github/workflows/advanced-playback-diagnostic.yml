@@ -6,6 +6,9 @@ on:
     paths:
       - .github/workflows/advanced-playback-diagnostic.yml
       - tests/api-stability/advanced-playback.mjs
+      - tests/api-stability/fixtures.mjs
+      - tests/api-stability/filter-reference.mjs
+      - tests/api-stability/filter-reference.test.mjs
   workflow_dispatch:
     inputs:
       source_run:
@@ -45,6 +48,7 @@ jobs:
           [[ "$BUNDLE_INVENTORY_SHA256" =~ ^[a-f0-9]{64}$ ]]
           mkdir "$RUNNER_TEMP/advanced-diagnostic"
           cp tests/api-stability/advanced-playback.mjs "$RUNNER_TEMP/advanced-diagnostic/advanced-playback.mjs"
+          cp tests/api-stability/fixtures.mjs tests/api-stability/filter-reference.mjs tests/api-stability/filter-reference.test.mjs "$RUNNER_TEMP/advanced-diagnostic/"
           git rev-parse HEAD > "$RUNNER_TEMP/advanced-diagnostic/harness-commit.txt"
           sha256sum tests/api-stability/advanced-playback.mjs > "$RUNNER_TEMP/advanced-diagnostic/harness-sha256.txt"
       - uses: actions/checkout@v4
@@ -72,6 +76,12 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
           node scripts/prepare-bundle-ci.mjs
+          mkdir -p results/advanced-diagnostic
+          sha256sum tests/api-stability/fixtures.mjs > results/advanced-diagnostic/original-fixture-generator-sha256.txt
+          cp "$RUNNER_TEMP/advanced-diagnostic/fixtures.mjs" "$RUNNER_TEMP/advanced-diagnostic/filter-reference.mjs" "$RUNNER_TEMP/advanced-diagnostic/filter-reference.test.mjs" tests/api-stability/
+          sha256sum tests/api-stability/fixtures.mjs tests/api-stability/filter-reference.mjs tests/api-stability/filter-reference.test.mjs > results/advanced-diagnostic/fixture-overlay-sha256.txt
+          git diff -- tests/api-stability/fixtures.mjs > results/advanced-diagnostic/fixture-overlay.patch
+          node --test tests/api-stability/filter-reference.test.mjs
           node tests/api-stability/fixtures.mjs
       - name: Record exact source and fixture
         run: |
@@ -84,6 +94,8 @@ jobs:
           ffmpeg -version > results/advanced-diagnostic/ffmpeg-version.txt
           sha256sum fixtures/example.mp4 > results/advanced-diagnostic/fixture-sha256.txt
           ffprobe -v error -show_streams -show_format -of json fixtures/example.mp4 > results/advanced-diagnostic/fixture-probe.json
+          sha256sum fixtures/filter-reference.mp4 > results/advanced-diagnostic/filter-reference-sha256.txt
+          ffprobe -v error -show_streams -show_format -of json fixtures/filter-reference.mp4 > results/advanced-diagnostic/filter-reference-probe.json
       - name: Run exact original assertions before installing diagnostics
         id: original
         continue-on-error: true
@@ -112,22 +124,34 @@ jobs:
           status=$?
           printf '%s\n' "$status" > results/advanced-diagnostic/diagnostic-exit-code.txt
           exit "$status"
-      - name: Require both original and diagnostic assertions to pass
+      - name: Run the complete UI gate with the corrected geometry reference
+        id: full_ui
+        continue-on-error: true
+        run: |
+          set +e
+          node tests/api-stability/run.mjs browser ui
+          status=$?
+          printf '%s\n' "$status" > results/advanced-diagnostic/full-ui-exit-code.txt
+          exit "$status"
+      - name: Require corrected assertions and the complete UI gate to pass
         if: always()
         env:
-          ORIGINAL_OUTCOME: ${{ steps.original.outcome }}
           DIAGNOSTIC_OUTCOME: ${{ steps.diagnostic.outcome }}
+          FULL_UI_OUTCOME: ${{ steps.full_ui.outcome }}
         run: |
-          test "$ORIGINAL_OUTCOME" = success
           test "$DIAGNOSTIC_OUTCOME" = success
+          test "$FULL_UI_OUTCOME" = success
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: advanced-playback-diagnostic-firefox
           path: |
             results/advanced-diagnostic/
-            results/api-stability/advanced-playback/
+            results/api-stability/
+            results/player-component/
+            results/player-presentation/
             fixtures/example.mp4
+            fixtures/filter-reference.mp4
             build/fixtures/api-fixtures.json
             build/bundle-ci-inputs/bundle-ci-inventory.json
             build/bundle-ci-consumer/candidate-admission.json
