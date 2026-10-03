@@ -2,13 +2,17 @@
 import {initialSourcePreparation,claimSourcePreparation,completeSourcePreparation,sourcePreparationDone,type SourcePreparation,type SourcePreparationFacts,type SourcePreparationEffect} from './source-preparation.js';
 import {initialSourceApplication,claimSourceApplication,completeSourceApplication,sourceApplicationDone,type SourceApplication,type SourceApplicationFacts,type SourceApplicationEffect,type SourceApplicationObservation} from './source-application.js';
 import {initialSourcePositioning,claimSourcePositioning,completeSourcePositioning,sourcePositioningDone,type SourcePositioning,type SourcePositioningEffect,type SourcePositioningObservation} from './source-positioning.js';
+import {initialSourceAcceptance,claimSourceAcceptance,completeSourceAcceptance,failSourceAcceptance,claimSourceAcceptanceCleanup,completeSourceAcceptanceCleanup,type SourceAcceptance,type SourceAcceptanceEffect} from './source-acceptance.js';
 import type {PlaybackMode} from '../../types.js';
 import type {PlaybackSettings} from './settings.js';
 
 type Phase='preparing'|'configuring'|'opening'|'applying'|'positioning'|'verifying'|'accepted';
-export type SourceAttempt=Readonly<{id:number;operationEpoch:number;operation:number|null;session:number;mode:PlaybackMode;preserve:boolean;phase:Phase;planId:string;preparation:SourcePreparation|null;application:SourceApplication|null;positioning:SourcePositioning|null}>;
+export type SourceAttempt=Readonly<{id:number;operationEpoch:number;operation:number|null;session:number;mode:PlaybackMode;preserve:boolean;phase:Phase;planId:string;preparation:SourcePreparation|null;application:SourceApplication|null;positioning:SourcePositioning|null;acceptance:SourceAcceptance|null}>;
 export type SourceControl=Readonly<{serial:number;attemptSerial:number;sessionSerial:number;acceptedSession:number|null;acceptedEpoch:number|null;mode:PlaybackMode;automatic:boolean;candidate:SourceAttempt|null}>;
 export type SourceInput=
+  |Readonly<{type:'source.acceptance.next';attempt:number}>
+  |Readonly<{type:'source.acceptance.completed';attempt:number;step:number;hasProperty?:boolean}>
+  |Readonly<{type:'source.acceptance.failed'|'source.acceptance.cleanup'|'source.acceptance.cleaned';attempt:number;operationEpoch:number;operation:number|null}>
   |Readonly<{type:'source.configure';mode?:PlaybackMode;automatic?:boolean}>
   |Readonly<{type:'source.begin';operationEpoch:number;operation?:number|null;mode:PlaybackMode;preserve:boolean;planId:string}>
   |Readonly<{type:'source.created';attempt:number;prepare?:boolean}>
@@ -21,9 +25,9 @@ export type SourceInput=
   |Readonly<{type:'source.preparation.next';attempt:number}>
   |Readonly<{type:'source.preparation.completed';attempt:number;step:number;facts?:SourcePreparationFacts}>
   |Readonly<{type:'source.configured'|'source.opened'|'source.applied'|'source.positioned'|'source.finished';attempt:number}>
-  |Readonly<{type:'source.accept';attempt:number;operationEpoch:number;settings:Readonly<PlaybackSettings>;planMatches:boolean;timing?:Readonly<{elapsed:number;timestamps:readonly number[]}>;publicSelections?:Readonly<Partial<Record<'audio'|'sub',string>>>}>
+  |Readonly<{type:'source.accept';attempt:number;operationEpoch:number;settings:Readonly<PlaybackSettings>;planMatches:boolean;publication?:Readonly<{predecessor:boolean}>;timing?:Readonly<{elapsed:number;timestamps:readonly number[]}>;publicSelections?:Readonly<Partial<Record<'audio'|'sub',string>>>}>
   |Readonly<{type:'source.clear'}>;
-export type SourceDecision=Readonly<{state:SourceControl;accepted:boolean;attempt?:number;preparationEffect?:SourcePreparationEffect;applicationEffect?:SourceApplicationEffect;positioningEffect?:SourcePositioningEffect;settings?:Readonly<PlaybackSettings>;newSource?:boolean;reason?:'busy'|'retired'|'phase'|'plan'}>;
+export type SourceDecision=Readonly<{state:SourceControl;accepted:boolean;attempt?:number;preparationEffect?:SourcePreparationEffect;applicationEffect?:SourceApplicationEffect;positioningEffect?:SourcePositioningEffect;acceptanceEffect?:SourceAcceptanceEffect;settings?:Readonly<PlaybackSettings>;newSource?:boolean;reason?:'busy'|'retired'|'phase'|'plan'}>;
 export function initialSource():SourceControl{return Object.freeze({serial:0,attemptSerial:0,sessionSerial:0,acceptedSession:null,acceptedEpoch:null,mode:'native',automatic:true,candidate:null});}
 const ok=(state:SourceControl):SourceDecision=>Object.freeze({state:Object.freeze({...state}),accepted:true});
 const no=(state:SourceControl,reason:SourceDecision['reason']):SourceDecision=>Object.freeze({state,accepted:false,reason});
@@ -36,10 +40,25 @@ export function transitionSource(state:SourceControl,input:SourceInput):SourceDe
   if(input.type==='source.begin'){
     if(state.candidate)return no(state,'busy');
     const id=state.attemptSerial+1,session=state.sessionSerial+1;
-    return Object.freeze({state:Object.freeze({...state,attemptSerial:id,sessionSerial:session,candidate:Object.freeze({id,session,operationEpoch:input.operationEpoch,operation:input.operation??null,mode:input.mode,preserve:input.preserve,planId:input.planId,phase:'preparing' as const,preparation:null,application:null,positioning:null})}),accepted:true,attempt:id});
+    return Object.freeze({state:Object.freeze({...state,attemptSerial:id,sessionSerial:session,candidate:Object.freeze({id,session,operationEpoch:input.operationEpoch,operation:input.operation??null,mode:input.mode,preserve:input.preserve,planId:input.planId,phase:'preparing' as const,preparation:null,application:null,positioning:null,acceptance:null})}),accepted:true,attempt:id});
   }
   const attempt=state.candidate;if(!attempt||attempt.id!==input.attempt)return no(state,'retired');
-  if(input.type==='source.finished')return ok({...state,candidate:null});
+  if(input.type==='source.finished')return attempt.acceptance&&attempt.acceptance.cleanup!=='done'?no(state,'busy'):ok({...state,candidate:null});
+  if(input.type==='source.acceptance.next'||input.type==='source.acceptance.completed'||input.type==='source.acceptance.failed'||input.type==='source.acceptance.cleanup'||input.type==='source.acceptance.cleaned'){
+    if(attempt.phase!=='accepted'||!attempt.acceptance)return no(state,'phase');
+    if(input.type==='source.acceptance.next'){
+      const next=claimSourceAcceptance(attempt.acceptance);if(!next.accepted)return no(state,'busy');
+      return Object.freeze({...ok({...state,candidate:Object.freeze({...attempt,acceptance:next.state})}),acceptanceEffect:next.effect});
+    }
+    if(input.type==='source.acceptance.completed'){
+      const next=completeSourceAcceptance(attempt.acceptance,input.step,input.hasProperty);return next.accepted?ok({...state,candidate:Object.freeze({...attempt,acceptance:next.state})}):no(state,'phase');
+    }
+    if(input.type==='source.acceptance.failed'||input.type==='source.acceptance.cleanup'||input.type==='source.acceptance.cleaned'){
+      if(input.operationEpoch!==attempt.operationEpoch||input.operation!==attempt.operation)return no(state,'retired');
+      const next=input.type==='source.acceptance.failed'?{state:failSourceAcceptance(attempt.acceptance),accepted:true}:input.type==='source.acceptance.cleanup'?claimSourceAcceptanceCleanup(attempt.acceptance):completeSourceAcceptanceCleanup(attempt.acceptance);
+      return next.accepted?ok({...state,candidate:Object.freeze({...attempt,acceptance:next.state})}):no(state,'phase');
+    }
+  }
   if(input.type==='source.preparation.next'||input.type==='source.preparation.completed'){
     if(input.type==='source.preparation.next'&&attempt.preparation&&sourcePreparationDone(attempt.preparation))return Object.freeze({state,accepted:true});
     if(!attempt.preparation||!['configuring','opening'].includes(attempt.phase))return no(state,'phase');
@@ -87,7 +106,7 @@ export function transitionSource(state:SourceControl,input:SourceInput):SourceDe
     if(attempt.operationEpoch!==input.operationEpoch)return no(state,'retired');
     if(attempt.phase!=='verifying')return no(state,'phase');
     if(attempt.positioning?!sourcePositioningDone(attempt.positioning)||!attempt.positioning.planMatches:!input.planMatches)return no(state,'plan');
-    return Object.freeze({state:Object.freeze({...state,serial:state.serial+(attempt.preserve?0:1),acceptedSession:attempt.session,acceptedEpoch:attempt.operationEpoch,mode:attempt.mode,candidate:Object.freeze({...attempt,phase:'accepted' as const})}),accepted:true,settings:Object.freeze({...attempt.application?.settings??input.settings}),newSource:!attempt.preserve});
+    return Object.freeze({state:Object.freeze({...state,serial:state.serial+(attempt.preserve?0:1),acceptedSession:attempt.session,acceptedEpoch:attempt.operationEpoch,mode:attempt.mode,candidate:Object.freeze({...attempt,phase:'accepted' as const,acceptance:input.publication?initialSourceAcceptance(input.publication.predecessor):null})}),accepted:true,settings:Object.freeze({...attempt.application?.settings??input.settings}),newSource:!attempt.preserve});
   }
   const phases={
     'source.created':['preparing','configuring'],

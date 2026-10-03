@@ -49,6 +49,7 @@ export type CoopState = Readonly<{
     free: readonly number[];
     active: number | null;
     pendingPump: boolean;
+    decoderWake: 'idle' | 'scheduled' | 'running';
     stopped: boolean;
     stats: CoopStats;
 }>;
@@ -147,4 +148,8 @@ export declare function snapshotCoopContinuations(state: CoopState): Readonly<{
     maxSavedBytes?: number;
     unwinds?: number;
     rewinds?: number;
+}>;
+export declare function transitionCoopDecoderWake(state: CoopState, input: 'schedule' | 'begin' | 'finish'): Readonly<{
+    state: CoopState;
+    accepted: boolean;
 }>;

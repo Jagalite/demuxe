@@ -145,7 +145,7 @@ export class RemuxPlayer {
   this.worker.postMessage({type:'init',compiledWasm:this.compiledWasm,runtime:this.runtime,port:this.sourcePort,fragmentDelivery:this.fragmentDelivery,mailbox:this.mailbox,size:ready.size,target,audioAdaptation:this.audioAdaptation,videoTrack:this.source.videoTrack,audioTrack:this.source.videoOnly?-2:this.source.audioTrack},this.sourcePort?[this.sourcePort]:[]);this.sourcePort=null;
   await this.waitForStartup('target',generation,finish=>{
    let timer;const check=()=>{
-    if(generation===this.generation&&this.stats.errors.length){finish(this.failureError??Error(this.stats.errors.at(-1)));return;}
+    if(generation===this.generation&&this.lifecycle.failedGeneration===generation){finish(this.failureError??Error('Remux generation failed'));return;}
     if(!this.generationCurrent(generation)){finish(new DOMException('Superseded','AbortError'));return;}
     // Initial decoder preroll can leave a short leading gap in the playable range.
     if(!this.primeVideo&&(!this.windowed||!this.busy&&!this.pulling&&!this.pending)&&this.hasStartupCoverage()){

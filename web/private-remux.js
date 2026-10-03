@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {privateRuntimeError,privateRemuxAbiError} from './generated/internal/machine/private-engine-admission.js';
 import {preparedEngine} from './prepared-engine.js';
 import {createFFmpegBridge} from './private-ffmpeg/bridge.js';
 import {initialRemuxPortReader,beginRemuxPortRead,replyRemuxPortRead,closeRemuxPortReader,remuxPortReadCurrent,remuxPortResponseCurrent} from './generated/internal/machine/remux-port-reader.js';
@@ -48,8 +49,7 @@ export function portReader(port,size) {
 }
 
 export async function privateRemux(runtime,{port,size,audioAdaptation,printErr,compiledWasm}) {
- if(!['jspi','asyncify'].includes(runtime))throw Error('Invalid private remux runtime');
- if(runtime==='jspi'&&(typeof WebAssembly.Suspending!=='function'||typeof WebAssembly.promising!=='function'))throw Error('Selected JSPI runtime is unavailable');
+ const runtimeError=privateRuntimeError(runtime,typeof WebAssembly.Suspending==='function'&&typeof WebAssembly.promising==='function');if(runtimeError)throw Error(runtimeError);
  const url=new URL(`./engine-${audioAdaptation?'adaptation':'remux'}-${runtime}/remux.mjs`,import.meta.url);
  let engine;
  try{
@@ -61,13 +61,10 @@ export async function privateRemux(runtime,{port,size,audioAdaptation,printErr,c
   module=await WebAssembly.compile(await response.arrayBuffer());
  }
  const names=new Set(WebAssembly.Module.exports(module).map(e=>e.name));
- const controls=['asyncify_start_unwind','asyncify_stop_unwind','asyncify_start_rewind','asyncify_stop_rewind'];
- if(runtime==='asyncify'?!controls.every(n=>names.has(n)):controls.some(n=>names.has(n)))throw Error('Private remux initialization: Wasm backend asset mismatch');
- for(const name of ['rm_probe','rm_open','rm_start','rm_step','rm_close'])if(!names.has(name))throw Error('Private remux initialization: Wasm ABI mismatch');
+ const abiError=privateRemuxAbiError(runtime,[...names]);if(abiError)throw Error('Private remux initialization: '+abiError);
  engine=await create({...preparedEngine(module),printErr});
  if(!(engine.HEAPU8.buffer instanceof ArrayBuffer))throw Error('Private remux initialization: asset memory mismatch');
- }catch(cause){throw new Error('Private remux initialization: '+String(cause?.message??cause),{cause});}
- const reader=portReader(port,size),bridge=createFFmpegBridge(engine,{timeoutMs:45000});
- bridge.setSource(reader);
- return {engine,bridge,reader,runtime,asset:url.href};
+ }catch(cause){try{port?.close();}catch{}let message='Private remux initialization failed';try{message='Private remux initialization: '+String(cause?.message??cause);}catch{}throw new Error(message,{cause});}
+ let reader,bridge;try{reader=portReader(port,size);bridge=createFFmpegBridge(engine,{timeoutMs:45000});bridge.setSource(reader);return {engine,bridge,reader,runtime,asset:url.href};}
+ catch(error){try{reader?reader.close():port?.close();}catch{}try{await bridge?.destroy();}catch{}throw error;}
 }

@@ -1114,25 +1114,67 @@ export class Player extends EventTarget {
       target=this.control.source.candidate!.positioning!.target;
       const elapsed=performance.now()-this.operationStarted;
       const timestamps=Array.from({length:playbackStatisticsClockReads(this.control.publication.statistics,{kind:'accept',sourceId:this.sourceSerial+(preserve?0:1),preserve,elapsed})},()=>performance.now());
-      const acceptance=this.dispatchControl({type:'source.accept',attempt,operationEpoch:this.operationEpoch,timing:{elapsed,timestamps},settings:desired,planMatches:true,...(!preserve?{publicSelections:{...(initialAudio?{audio:`audio:stream:${initialAudio.index}`} :{}),...(initialSubtitle?{sub:`sub:stream:${initialSubtitle.index}`}:{})}}:{})});
+      const acceptance=this.dispatchControl({type:'source.accept',attempt,operationEpoch:this.operationEpoch,timing:{elapsed,timestamps},settings:desired,planMatches:true,publication:{predecessor:!!old},...(!preserve?{publicSelections:{...(initialAudio?{audio:`audio:stream:${initialAudio.index}`} :{}),...(initialSubtitle?{sub:`sub:stream:${initialSubtitle.index}`}:{})}}:{})});
       if(!acceptance.accepted)throw new PlayerError('ABORTED','Source acceptance was retired');
       this.current=candidate;this.candidate=undefined;this.source=source;
-      this.activeOperation?.detachCallerAbort();
-
-      if(queried&&this.sourceInspection?.source===source){queried={...queried,decodingInfo:this.mediaCapabilityQueries.cached(queried,this.sourceInspection.probe)};admitted=attachRouteDecoding(admitted,planId,queried.decodingInfo);}
-      this.planDecisions=admitted;this.runtimeCapabilities.admission(admitted);
-      this.acceptEvidence(planId,candidate);
-      this.#previewController.setSourceIdentity(`${this.sourceSerial}:${mode}`);
-      this.previewSource=source.kind==='local'?(source.file instanceof Blob?source.file:new Blob([source.file])):undefined;
-      // Physical handles and composed control state are accepted before observers.
-      this.publish();
       const stillAccepted=()=>this.current===candidate&&sessionAuthority(this.control,attemptSession)==='accepted';
-      if(stillAccepted()){candidate.surface.style.display='block';if(old)old.surface.style.display='none';this.startWatchdogs();}
-      // The new session is committed. Cleanup failures must not pretend to roll it back.
-      try {await this.dispose(old);} catch (error) {this.dispatchEvent(new CustomEvent('error',{detail:freeze(playerError(error,this.activeOperation?.id??null,this.activeOperation?.kind??null,'operation').toJSON())}));}
-      for(const [name,data]of p.properties){if(!stillAccepted())return;this.emit('mpv',{event:'property-change',name,data} satisfies PlaybackEvent);}
-      if(!stillAccepted())return;this.emit('mpv',{event:'file-loaded'});
-      if(stillAccepted())this.emit('modechange',{phase:'ready',mode,position:target});
+      const report=(error:unknown)=>{
+        // Observer/cleanup failures occur after the source commit. They cannot
+        // turn this session into a rejected candidate or restart discovery.
+        if(!stillAccepted())return;
+        const detail=freeze(playerError(error,sourceScope.operation,this.activeOperation?.kind??null,'operation').toJSON());
+        if(!stillAccepted())return;const dispatch=this.dispatchEvent,event=new CustomEvent('error',{detail});if(stillAccepted())dispatch.call(this,event);
+      };
+      const cleanup=async()=>{
+        if(!this.dispatchControl({type:'source.acceptance.cleanup',attempt,...sourceScope}).accepted)return;
+        try{await this.dispose(old);}catch(error){try{report(error);}catch{}}
+        finally{this.dispatchControl({type:'source.acceptance.cleaned',attempt,...sourceScope});}
+      };
+      let properties:Iterator<[string,unknown]>|undefined,property:IteratorResult<[string,unknown]>|undefined;
+      try{
+        for(;;){
+          if(!stillAccepted())break;
+          const decision=this.dispatchControl({type:'source.acceptance.next',attempt}),effect=decision.acceptanceEffect;
+          if(!decision.accepted||!effect)break;
+          const current=()=>stillAccepted()&&this.control.source.candidate?.id===attempt&&this.control.source.candidate.acceptance?.pending===effect.step;
+          const call=(owner:object,key:string,...args:unknown[])=>{const method=(owner as Record<string,(...args:unknown[])=>unknown>)[key];if(current())return method.apply(owner,args);};
+          let hasProperty:boolean|undefined;
+          switch(effect.kind){
+            case 'caller.detach':{const detach=this.activeOperation?.detachCallerAbort;if(current())detach?.();break;}
+            case 'decoding':{
+              const inspected=this.sourceInspection;
+              if(queried&&inspected?.source===source){const decodingInfo=this.mediaCapabilityQueries.cached(queried,inspected.probe);if(!current())break;queried={...queried,decodingInfo};admitted=attachRouteDecoding(admitted,planId,decodingInfo);}break;
+            }
+            case 'admission':this.planDecisions=admitted;if(current())call(this.runtimeCapabilities,'admission',admitted);break;
+            case 'evidence':call(this,'acceptEvidence',planId,candidate);break;
+            case 'preview.identity':call(this.#previewController,'setSourceIdentity',`${this.sourceSerial}:${mode}`);break;
+            case 'preview.source':{const preview=source.kind==='local'?(source.file instanceof Blob?source.file:new Blob([source.file])):undefined;if(current())this.previewSource=preview;break;}
+            case 'publish':call(this,'publish');break;
+            case 'surface.show':{const style=candidate.surface.style;if(current())style.display='block';break;}
+            case 'surface.hide':{const style=old?.surface.style;if(current()&&style)style.display='none';break;}
+            case 'watchdogs':call(this,'startWatchdogs');break;
+            case 'cleanup':await cleanup();break;
+            case 'property.next':{
+              if(!properties){const values=p.properties;const iterator=values[Symbol.iterator];if(!current())break;properties=iterator.call(values);}
+              if(!current())break;const next=properties.next;if(!current())break;property=next.call(properties);if(!current())break;hasProperty=!property.done;if(!hasProperty)properties=undefined;break;
+            }
+            case 'property.emit':{const [name,data]=property!.value!;if(current())call(this,'emit','mpv',{event:'property-change',name,data} satisfies PlaybackEvent);break;}
+            case 'file.loaded':call(this,'emit','mpv',{event:'file-loaded'});break;
+            case 'mode.ready':call(this,'emit','modechange',{phase:'ready',mode,position:target});break;
+          }
+          if(!current())break;
+          if(!this.dispatchControl({type:'source.acceptance.completed',attempt,step:effect.step,hasProperty}).accepted)break;
+        }
+      }catch(error){
+        this.dispatchControl({type:'source.acceptance.failed',attempt,...sourceScope});
+        try{report(error);}catch{}
+      }finally{
+        // Match for-of IteratorClose on early retirement/error. The iterator is
+        // a captured shell resource; release it even after source authority ends.
+        const iterator=properties;properties=undefined;
+        if(iterator)try{const release=iterator.return;if(release){const result=release.call(iterator);if(result===null||typeof result!=='object'&&typeof result!=='function')throw new TypeError('Invalid property iterator close result');}}catch(error){try{report(error);}catch{}}
+        await cleanup();
+      }
     } catch (error) {
       if(candidate)this.updateEvidence(planId,'probing',candidate);
       if (candidate && candidate !== this.current) await this.dispose(candidate).catch(() => {});
@@ -1140,7 +1182,15 @@ export class Player extends EventTarget {
       if (old && !old.error && this.current === old && !wasPaused && !this.destroyed && !this.closing) await this.backendEffect(old,'backend.play').catch(() => {});
       this.emit('modechange', {phase: 'failed', mode, rolledBack: this.current === old, message: String(error)});
       throw error;
-    } finally {clearInterval(resourceMonitor);this.dispatchControl({type:'source.finished',attempt});this.publish();}
+    } finally {
+      const committed=this.control.source.candidate?.id===attempt&&this.control.source.candidate.phase==='accepted';
+      let releaseFailure:{error:unknown}|undefined;
+      try{clearInterval(resourceMonitor);}catch(error){releaseFailure={error};}finally{this.dispatchControl({type:'source.finished',attempt});}
+      if(committed){
+        const notify=(error:unknown)=>{if(this.current===candidate&&sessionAuthority(this.control,attemptSession)==='accepted')try{this.dispatchEvent(new CustomEvent('error',{detail:freeze(playerError(error,sourceScope.operation,this.activeOperation?.kind??null,'operation').toJSON())}));}catch{}};
+        if(releaseFailure)notify(releaseFailure.error);try{this.publish();}catch(error){notify(error);}
+      }else{if(releaseFailure)throw releaseFailure.error;this.publish();}
+    }
   }
   private record(attempt: SelectionAttempt){
     this.dispatchControl({type:'routing.attempt',attempt});

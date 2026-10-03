@@ -19,13 +19,7 @@ export async function createCooperativeEngine(createModule,wasmBytes,backend,opt
   const compiled=new WebAssembly.Module(wasmBytes);
   const decoderImports=WebAssembly.Module.imports(compiled).filter(item=>item.module==='demuxe_decoder');
   if(decoderImports.length){
-   let wakePending=false;
-   const wakeup=()=>{
-    if(wakePending||scheduler.stopped)return;wakePending=true;
-    queueMicrotask(()=>{if(scheduler.stopped){wakePending=false;return;}
-     void scheduler.run(raw.web_decoder_wakeup).catch(error=>scheduler.fail(error)).finally(()=>{wakePending=false;});
-    });
-   };
+   const wakeup=()=>scheduler.wakeDecoder(()=>raw.web_decoder_wakeup);
    const service=decoderOptions.service??new PrivateRetainedDecoder({wakeup,maxPixels:decoderOptions.maxDecodePixels,canReceive:decoderOptions.canReceiveFrame});
    decoder=new CooperativeDecoderMailbox(scheduler,service,{onFrame:decoderOptions.onFrame,onReleaseFrame:decoderOptions.onReleaseFrame,retainedLease:decoderImports.some(item=>item.name==='demuxe_decoder_release_v1')});
   }

@@ -107,7 +107,8 @@ function reducePlayer(state, input) {
     }
     if (isSourceInput(input)) {
         const retired = state.operations.terminal || state.operations.entries.some(entry => entry.id === state.operations.active && entry.cancelled);
-        const forward = input.type !== 'source.configure' && input.type !== 'source.clear' && input.type !== 'source.finished';
+        const cleanup = input.type === 'source.acceptance.cleanup' || input.type === 'source.acceptance.cleaned' || input.type === 'source.acceptance.failed';
+        const forward = !cleanup && input.type !== 'source.configure' && input.type !== 'source.clear' && input.type !== 'source.finished';
         const expired = input.type === 'source.begin' ? input.operationEpoch !== state.operations.epoch || input.operation !== undefined && input.operation !== state.operations.active : state.source.candidate?.operationEpoch !== state.operations.epoch || state.source.candidate?.operation !== state.operations.active;
         if (forward && (retired || expired))
             return Object.freeze({ state, accepted: false, id: undefined, reason: 'retired', retire: Object.freeze([]) });

@@ -3,10 +3,11 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
-const source = await readFile(new URL('../web/private-mpv/audio-worklet.js', import.meta.url), 'utf8');
+import * as core from '../web/generated/internal/machine/private-worklet.js';
+const source = (await readFile(new URL('../web/private-mpv/audio-worklet.js', import.meta.url), 'utf8')).replace(/^import .*;$/gm,'');
 function create() {
   let Constructor;const messages = [], feedback = [];
-  vm.runInNewContext(source, {Float32Array, ArrayBuffer, AudioWorkletProcessor: class {constructor() {this.port = {postMessage: message => messages.push(message)};}}, registerProcessor(_name, value) {Constructor = value;}});
+  vm.runInNewContext(source, {...core,Float32Array, ArrayBuffer, AudioWorkletProcessor: class {constructor() {this.port = {postMessage: message => messages.push(message)};}}, registerProcessor(_name, value) {Constructor = value;}});
   const processor = new Constructor();processor.link = {postMessage: message => feedback.push(message)};
   processor.receive({type: 'reset', epoch: 2});processor.receive({type: 'state', epoch: 2, running: true});
   return {processor, messages, feedback, render() {const output = [new Float32Array(128), new Float32Array(128)];processor.process([], [output]);return output;}};

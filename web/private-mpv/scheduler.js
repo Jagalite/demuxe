@@ -1,5 +1,5 @@
 import {createContinuationBackend} from './continuations.js';
-import {initialCoopState,transitionCoopContinuation,snapshotCoopContinuations,beginCoopAttachment,finishCoopAttachment,coopTask,coopCanCreate,createCoopTask,scheduleCoopPump,consumeCoopPump,startCoopTask,parkCoopTask,bindCoopWait,releaseCoopTask,settleCoopWait,coopConditionWaits,prepareCoopJoin,detachCoopTask,completeCoopTask,checkedCoopStack,closeCoopState,snapshotCoopState} from '../generated/internal/machine/private-scheduler.js';
+import {transitionCoopDecoderWake,initialCoopState,transitionCoopContinuation,snapshotCoopContinuations,beginCoopAttachment,finishCoopAttachment,coopTask,coopCanCreate,createCoopTask,scheduleCoopPump,consumeCoopPump,startCoopTask,parkCoopTask,bindCoopWait,releaseCoopTask,settleCoopWait,coopConditionWaits,prepareCoopJoin,detachCoopTask,completeCoopTask,checkedCoopStack,closeCoopState,snapshotCoopState} from '../generated/internal/machine/private-scheduler.js';
 /* SPDX-License-Identifier: MIT
  * One Worker owns physical Wasm stacks and continuation handles. Logical task,
  * wait, join and slot authority lives in the synchronous scheduler machine.
@@ -23,6 +23,17 @@ export class CoopScheduler {
   get free(){return this.machine.free;}
   get nextId(){return this.machine.nextId;}
   get ready(){return this.machine.ready.map(id=>this.tasks.get(id)).filter(Boolean);}
+  wakeDecoder(acquire){
+    const transition=input=>{const decision=transitionCoopDecoderWake(this.machine,input);this.machine=decision.state;return decision.accepted;};
+    if(!transition('schedule'))return false;
+    const done=()=>transition('finish');
+    try{queueMicrotask(()=>{
+      if(!transition('begin'))return;
+      try{const call=acquire();if(this.stopped){done();return;}void this.run(call).catch(error=>this.fail(error)).finally(done);}
+      catch(error){done();this.fail(error);}
+    });}catch(error){done();this.fail(error);}
+    return true;
+  }
   continuation(input){const decision=transitionCoopContinuation(this.machine,input);this.machine=decision.state;return decision.accepted;}
   continuationCurrent(t){return !this.stopped&&this.active===t;}
   continuationSnapshot(){return snapshotCoopContinuations(this.machine);}
@@ -148,7 +159,7 @@ export class CoopScheduler {
     return this.park(waiter=>{this.machine=bindCoopWait(this.machine,waiter.id,{join:id});});
   }
   detach(id){const decision=detachCoopTask(this.machine,id>>>0);this.machine=decision.state;if(decision.remove)this.tasks.delete(id>>>0);return decision.code;}
-  fail(error){if(this.stopped)return;this.failure=String(error?.stack??error);this.close(error);}
+  fail(error){if(this.stopped)return;this.failure='Cooperative scheduler failure';try{this.failure=String(error?.stack??error);}catch{}this.close(error);}
   close(reason=new Error('Scheduler closed before completion')){
     if(this.stopped)return;const tasks=[...this.tasks.values()],waiters=[...this.waiters.values()];this.machine=closeCoopState(this.machine);this.tasks.clear();this.waiters.clear();
     const listeners=[...this.stopListeners];this.stopListeners.clear();for(const fn of listeners)try{fn();}catch{}

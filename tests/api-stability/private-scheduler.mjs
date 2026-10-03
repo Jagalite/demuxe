@@ -136,3 +136,26 @@ test('close runs every custom parked cleanup once even if one throws or reenters
 test('failed timer cleanup remains counted until that exact physical callback finally fires',async t=>{
  let f;const wait=()=>f.scheduler.wait(9,100);f=fixture(t,{functions:{wait}});const work=f.scheduler.run(wait);f.tick();f.clearHook=()=>{throw Error('timer cleanup failed');};f.scheduler.close();await assert.rejects(work,/closed/);assert.equal(f.scheduler.snapshot().timers,1);f.now=100;f.fire();assert.equal(f.scheduler.snapshot().timers,0);assert.equal(f.scheduler.snapshot().liveTasks,0);f.clearHook=undefined;
 });
+
+test('decoder wake owner coalesces scheduled and running work and retires atomically',()=>{
+ const initial=attached(),queued=core.transitionCoopDecoderWake(initial,'schedule');assert.equal(queued.accepted,true);assert.equal(core.transitionCoopDecoderWake(queued.state,'schedule').accepted,false);
+ const running=core.transitionCoopDecoderWake(queued.state,'begin');assert.equal(running.state.decoderWake,'running');assert.equal(core.transitionCoopDecoderWake(running.state,'schedule').accepted,false);
+ const done=core.transitionCoopDecoderWake(running.state,'finish');assert.equal(done.state.decoderWake,'idle');assert.equal(core.transitionCoopDecoderWake(done.state,'schedule').accepted,true);
+ const closed=core.closeCoopState(running.state);assert.equal(closed.decoderWake,'idle');assert.equal(core.transitionCoopDecoderWake(closed,'begin').accepted,false);assert.equal(core.transitionCoopDecoderWake(closed,'schedule').accepted,false);assert.equal(initial.decoderWake,'idle');
+});
+test('actual decoder wake merges a burst until its scheduled native call completes',async t=>{
+ let calls=0;const wake=()=>++calls,f=fixture(t,{functions:{wake}});assert.equal(f.scheduler.wakeDecoder(()=>wake),true);assert.equal(f.scheduler.wakeDecoder(()=>wake),false);await Promise.resolve();assert.equal(f.scheduler.machine.decoderWake,'running');assert.equal(f.scheduler.wakeDecoder(()=>wake),false);f.tick();await new Promise(setImmediate);assert.equal(calls,1);assert.equal(f.scheduler.machine.decoderWake,'idle');
+ assert.equal(f.scheduler.wakeDecoder(()=>wake),true);await Promise.resolve();f.tick();await new Promise(setImmediate);assert.equal(calls,2);
+});
+test('queued decoder wake cannot acquire native function after close',async t=>{
+ const f=fixture(t);f.scheduler.wakeDecoder(()=>assert.fail('retired acquisition'));f.scheduler.close();await Promise.resolve();assert.equal(f.scheduler.machine.decoderWake,'idle');assert.equal(f.scheduler.snapshot().created,0);
+});
+test('decoder export acquisition retirement prevents native task admission',async t=>{
+ const f=fixture(t);f.scheduler.wakeDecoder(()=>{f.scheduler.close();return()=>assert.fail('retired native wake');});await Promise.resolve();assert.equal(f.scheduler.snapshot().created,0);assert.equal(f.scheduler.machine.decoderWake,'idle');
+});
+test('decoder wake queue acquisition failure retires without a latched wake',t=>{
+ const f=fixture(t),saved=queueMicrotask;t.after(()=>{globalThis.queueMicrotask=saved;});globalThis.queueMicrotask=()=>{throw Error('queue failed');};f.scheduler.wakeDecoder(()=>{});assert.equal(f.scheduler.stopped,true);assert.equal(f.scheduler.machine.decoderWake,'idle');assert.match(f.scheduler.failure,/queue failed/);
+});
+test('opaque scheduler failure cannot prevent logical retirement or pending settlement',async t=>{
+ const entry=()=>1,f=fixture(t,{functions:{entry}}),error={get stack(){throw Error('cannot format');}},work=f.scheduler.run(entry);f.scheduler.fail(error);await assert.rejects(work,value=>value===error);assert.equal(f.scheduler.stopped,true);assert.equal(f.scheduler.snapshot().retainedTasks,0);
+});

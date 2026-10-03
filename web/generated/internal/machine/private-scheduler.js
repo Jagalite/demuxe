@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-export function initialCoopState(slots = 24, maxRetainedTasks = 256, backend = 'jspi') { return Object.freeze({ backend, continuations: Object.freeze({ maxSavedBytes: 0, unwinds: 0, rewinds: 0 }), attachment: 'unattached', slots, maxRetainedTasks, nextId: 1, nextWait: 1, tasks: Object.freeze([]), waits: Object.freeze([]), ready: Object.freeze([]), free: Object.freeze(Array.from({ length: slots }, (_, index) => index)), active: null, pendingPump: false, stopped: false, stats: Object.freeze({ created: 0, completed: 0, abandoned: 0, suspensions: 0, resumes: 0, maxLive: 0, timerWakes: 0, signals: 0, stackChecks: 0 }) }); }
+export function initialCoopState(slots = 24, maxRetainedTasks = 256, backend = 'jspi') { return Object.freeze({ backend, continuations: Object.freeze({ maxSavedBytes: 0, unwinds: 0, rewinds: 0 }), attachment: 'unattached', slots, maxRetainedTasks, nextId: 1, nextWait: 1, tasks: Object.freeze([]), waits: Object.freeze([]), ready: Object.freeze([]), free: Object.freeze(Array.from({ length: slots }, (_, index) => index)), active: null, pendingPump: false, decoderWake: 'idle', stopped: false, stats: Object.freeze({ created: 0, completed: 0, abandoned: 0, suspensions: 0, resumes: 0, maxLive: 0, timerWakes: 0, signals: 0, stackChecks: 0 }) }); }
 export function coopTask(state, id) { return state.tasks.find(task => task.id === id); }
 export function coopCanCreate(state) { return !state.stopped && state.free.length > 0 && state.tasks.length < state.maxRetainedTasks && state.nextId <= 0xffffffff; }
 export function createCoopTask(state, root) {
@@ -84,7 +84,7 @@ export function completeCoopTask(state, id) {
     return Object.freeze({ state: next, accepted: true, wake: Object.freeze(wake), remove: Object.freeze(remove) });
 }
 export function checkedCoopStack(state) { return state.stopped ? state : Object.freeze({ ...state, stats: Object.freeze({ ...state.stats, stackChecks: state.stats.stackChecks + 1 }) }); }
-export function closeCoopState(state) { return state.stopped ? state : Object.freeze({ ...state, stopped: true, pendingPump: false, active: null, free: Object.freeze([]), ready: Object.freeze([]), waits: Object.freeze([]), tasks: Object.freeze([]), stats: Object.freeze({ ...state.stats, abandoned: state.stats.abandoned + state.tasks.filter(task => task.status !== 'done').length }) }); }
+export function closeCoopState(state) { return state.stopped ? state : Object.freeze({ ...state, stopped: true, pendingPump: false, decoderWake: 'idle', active: null, free: Object.freeze([]), ready: Object.freeze([]), waits: Object.freeze([]), tasks: Object.freeze([]), stats: Object.freeze({ ...state.stats, abandoned: state.stats.abandoned + state.tasks.filter(task => task.status !== 'done').length }) }); }
 export function snapshotCoopState(state) {
     const keys = [];
     for (const wait of state.waits)
@@ -154,3 +154,8 @@ export function transitionCoopContinuation(state, input) {
     return Object.freeze({ state: Object.freeze({ ...state, continuations: stats, tasks: continuation === current ? state.tasks : Object.freeze(state.tasks.map(value => value.id === input.id ? Object.freeze({ ...value, continuation }) : value)) }), accepted: true });
 }
 export function snapshotCoopContinuations(state) { return state.backend === 'jspi' ? Object.freeze({ kind: state.backend }) : Object.freeze({ kind: state.backend, ...state.continuations }); }
+export function transitionCoopDecoderWake(state, input) {
+    const phase = input === 'schedule' ? 'scheduled' : input === 'begin' ? 'running' : 'idle';
+    const accepted = input === 'finish' ? state.decoderWake !== 'idle' : !state.stopped && state.decoderWake === (input === 'schedule' ? 'idle' : 'scheduled');
+    return Object.freeze({ state: accepted ? Object.freeze({ ...state, decoderWake: phase }) : state, accepted });
+}

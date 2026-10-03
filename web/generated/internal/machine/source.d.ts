@@ -2,6 +2,7 @@
 import { type SourcePreparation, type SourcePreparationFacts, type SourcePreparationEffect } from './source-preparation.js';
 import { type SourceApplication, type SourceApplicationFacts, type SourceApplicationEffect, type SourceApplicationObservation } from './source-application.js';
 import { type SourcePositioning, type SourcePositioningEffect, type SourcePositioningObservation } from './source-positioning.js';
+import { type SourceAcceptance, type SourceAcceptanceEffect } from './source-acceptance.js';
 import type { PlaybackMode } from '../../types.js';
 import type { PlaybackSettings } from './settings.js';
 type Phase = 'preparing' | 'configuring' | 'opening' | 'applying' | 'positioning' | 'verifying' | 'accepted';
@@ -17,6 +18,7 @@ export type SourceAttempt = Readonly<{
     preparation: SourcePreparation | null;
     application: SourceApplication | null;
     positioning: SourcePositioning | null;
+    acceptance: SourceAcceptance | null;
 }>;
 export type SourceControl = Readonly<{
     serial: number;
@@ -29,6 +31,19 @@ export type SourceControl = Readonly<{
     candidate: SourceAttempt | null;
 }>;
 export type SourceInput = Readonly<{
+    type: 'source.acceptance.next';
+    attempt: number;
+}> | Readonly<{
+    type: 'source.acceptance.completed';
+    attempt: number;
+    step: number;
+    hasProperty?: boolean;
+}> | Readonly<{
+    type: 'source.acceptance.failed' | 'source.acceptance.cleanup' | 'source.acceptance.cleaned';
+    attempt: number;
+    operationEpoch: number;
+    operation: number | null;
+}> | Readonly<{
     type: 'source.configure';
     mode?: PlaybackMode;
     automatic?: boolean;
@@ -85,6 +100,9 @@ export type SourceInput = Readonly<{
     operationEpoch: number;
     settings: Readonly<PlaybackSettings>;
     planMatches: boolean;
+    publication?: Readonly<{
+        predecessor: boolean;
+    }>;
     timing?: Readonly<{
         elapsed: number;
         timestamps: readonly number[];
@@ -100,6 +118,7 @@ export type SourceDecision = Readonly<{
     preparationEffect?: SourcePreparationEffect;
     applicationEffect?: SourceApplicationEffect;
     positioningEffect?: SourcePositioningEffect;
+    acceptanceEffect?: SourceAcceptanceEffect;
     settings?: Readonly<PlaybackSettings>;
     newSource?: boolean;
     reason?: 'busy' | 'retired' | 'phase' | 'plan';
