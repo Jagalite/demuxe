@@ -1791,22 +1791,24 @@ export class Player extends EventTarget {
     if(!Number.isFinite(value)||value<0||value>1)throw new PlayerError('INVALID_ARGUMENT','Gain must be between 0 and 1');
     return this.enqueue(()=>this.applySetting({kind:'routedGain',value,plan:backendPlan(this.current?.backend),direct:!!this.current?.backend.gain}));
   }
-  private async executeSetting(backend:Backend,effect:SettingEffect,session?:Session):Promise<void>{
+  private async executeSetting(backend:Backend,effect:SettingEffect,session?:Session,current:()=>void=()=>this.assertOperation()):Promise<void>{
+    const invoke=(name:keyof Backend,args:unknown[])=>{current();const method=backend[name] as (...args:unknown[])=>Promise<void>;current();return Reflect.apply(method,backend,args);};
+    current();
     switch(effect.kind){
-      case 'seek':return backend.seek(effect.value);
+      case 'seek':return invoke('seek',[effect.value]);
       case 'seek.verify':return this.settled(session!,this.mode,effect.value);
-      case 'volume':return backend.volume(effect.value);
-      case 'rate':return backend.rate(effect.value);
-      case 'gain':return backend.gain!(effect.value);
-      case 'pause':return session?this.backendEffect(session,'backend.pause'):backend.pause();
-      case 'play':return session?this.backendEffect(session,'backend.play'):backend.play();
-      case 'track':return backend.selectTrack(effect.track,effect.value);
+      case 'volume':return invoke('volume',[effect.value]);
+      case 'rate':return invoke('rate',[effect.value]);
+      case 'gain':return invoke('gain',[effect.value]);
+      case 'pause':return session?this.backendEffect(session,'backend.pause'):invoke('pause',[]);
+      case 'play':return session?this.backendEffect(session,'backend.play'):invoke('play',[]);
+      case 'track':return invoke('selectTrack',[effect.track,effect.value]);
       case 'track.verify':return this.confirmTrackSelection(session!,this.source,this.mode,effect.settings,effect.track,effect.value);
-      case 'subtitles':return backend.subtitleVisible(effect.value);
-      case 'buffering':return backend.setBuffering!(effect.value);
-      case 'output':return backend.setAudioOutputDevice!(effect.value);
-      case 'quality':return backend.setQuality!(effect.value);
-      case 'filter':return backend.command!('set',effect.key,effect.value);
+      case 'subtitles':return invoke('subtitleVisible',[effect.value]);
+      case 'buffering':return invoke('setBuffering',[effect.value]);
+      case 'output':return invoke('setAudioOutputDevice',[effect.value]);
+      case 'quality':return invoke('setQuality',[effect.value]);
+      case 'filter':return invoke('command',['set',effect.key,effect.value]);
       case 'mode.ready':this.emit('modechange',{phase:'ready',mode:effect.mode,position:0});return;
       case 'gain.evidence':{
         const source=this.source,current=this.current;if(!source||!current)return;
@@ -1827,7 +1829,8 @@ export class Player extends EventTarget {
     const session=this.current,backend=session?.backend,begin=this.dispatchControl({type:'setting.begin',command,hasBackend:!!backend,hasSource:!!this.source,hybridAudioFilters:this.hybridAudioFilters});
     if(!begin.accepted||!begin.effects)throw new PlayerError(begin.reason==='unsupported'?'UNSUPPORTED_FEATURE':begin.reason==='invalid'?'INVALID_ARGUMENT':'ABORTED',begin.message??'Setting operation was retired');
     const id=begin.id!;
-    const execute=async(effects:readonly SettingEffect[])=>{for(const effect of effects){if(!settingAuthority(this.control,id))throw new PlayerError('ABORTED','Setting operation was retired');await this.interruptible(this.executeSetting(backend!,effect,session));}};
+    const current=()=>{if(!settingAuthority(this.control,id))throw new PlayerError('ABORTED','Setting operation was retired');};
+    const execute=async(effects:readonly SettingEffect[])=>{for(const effect of effects){current();await this.interruptible(this.executeSetting(backend!,effect,session,current));}};
     try{await execute(begin.effects);}
     catch(error){
       if(this.control.settingsTransactions.pending?.id===id&&this.control.settingsTransactions.pending.phase==='accepted'){this.dispatchControl({type:'setting.accept',id});throw error;}

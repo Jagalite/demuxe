@@ -27,7 +27,7 @@ Startup immutable-code warming is explicitly Player-scoped and can survive sourc
 
 The secondary Shaka backend compensation and private-software deadline-capture suggestions below remain separate follow-ups. This completes the seven primary policy gaps, not every possible refinement of every decoder/backend transaction. Browser/native/endurance qualification remains deferred.
 
-Validation after independent review: 340 focused tests pass, including 29 added review regressions/sequence tests plus the existing soak and bounded operation exploration. TypeScript, the static core boundary and ownership audit pass. See `results/api-stability/policy-review-2026-10-03/result.json` and the replay inventory for simulation limits.
+Baseline committed as `63d41aba`. Latest adversarial follow-up: 479 focused tests pass, including real source transaction integration, overlapping controls and startup physical-settlement schedules. TypeScript, the static core boundary and ownership audit pass. See `results/api-stability/adversarial-sequences-2026-10-03/result.json` and the replay inventory for synthetic-boundary limits. The additional tests and fixes are uncommitted.
 
 The evidence and line numbers in the following findings refer to the pre-migration code.
 

@@ -21,6 +21,8 @@ export function transitionStartup(state, event) {
     const entry = state.entries.find(entry => entry.id === event.id);
     if (!entry || entry.phase !== 'pending')
         return result(state, false);
+    if (event.type === 'cancel')
+        return result({ ...state, entries: Object.freeze(state.entries.map(value => value === entry ? Object.freeze({ ...entry, phase: 'retired' }) : value)) });
     if (event.type === 'deadline')
         return event.now < entry.deadline ? result(state, true, { remaining: entry.deadline - event.now }) : result({ ...state, entries: Object.freeze(state.entries.map(value => value === entry ? Object.freeze({ ...entry, phase: 'retired' }) : value)) });
     if (event.type === 'chunk' && (!Number.isSafeInteger(event.bytes) || event.bytes < 0 || entry.bytes + event.bytes > STARTUP_BYTE_LIMIT))

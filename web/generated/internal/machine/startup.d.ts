@@ -23,6 +23,9 @@ export type StartupChange = {
     id: number;
     now: number;
 } | {
+    type: 'cancel';
+    id: number;
+} | {
     type: 'chunk';
     id: number;
     bytes: number;

@@ -10,7 +10,7 @@ const drain=async()=>{for(let i=0;i<80;i++)await Promise.resolve();};
 // Only the media/DOM boundary and background browser scheduling are simulated.
 // Public controls, command queue, effects, listeners, publication, readiness,
 // boundary enforcement and session resource disposal are production code.
-async function fixture(t,plan='direct',mutation){
+async function fixture(t,plan='direct',mutation,timing){
  const names=['HTMLElement','HTMLCanvasElement','HTMLVideoElement','document'],previous=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(globalThis,name)]));
  const document=new EventTarget();document.baseURI='http://localhost/';
  class Element extends EventTarget{ownerDocument=document;append(){}remove(){}}
@@ -37,10 +37,10 @@ async function fixture(t,plan='direct',mutation){
   const properties=new Map([['time-pos',0],['duration',20],['pause',true],['seekable',true],['native-seekable',[{start:0,end:20}]],['track-list',[{id:1,type:'audio',selected:true},{id:2,type:'audio',selected:false}]]]);
   const emit=(type,detail)=>backend.dispatchEvent(new CustomEvent(type,{detail}));
   const property=(name,data,extra={})=>{properties.set(name,data);emit('mpv',{event:'property-change',name,data,...extra});};
-  const action=(kind,work,delay=5)=>{calls.push(kind);return new Promise((resolve,reject)=>clock.scheduleDeadline(()=>{try{if(closed&&kind!=='destroy')throw Error('Simulated backend retired');work();resolve();}catch(error){reject(error);}},delay));};
+  const action=(kind,work,delay=5)=>{calls.push(kind);return new Promise((resolve,reject)=>clock.scheduleDeadline(()=>{try{if(closed&&kind!=='destroy')throw Error('Simulated backend retired');work();resolve();}catch(error){reject(error);}},timing?.(kind,delay,calls.length)??delay));};
   Object.assign(backend,{properties,diagnostics:{plan},calls,
    play:()=>action('play',()=>{paused=false;property('pause',false);emit('activity','playing');}),
-   pause:()=>action('pause',()=>{paused=true;property('pause',true);}),
+   pause:()=>action('pause',()=>{if(mutation!=='drop-pause'){paused=true;property('pause',true);}}),
    seek:value=>action(['seek',value],()=>{position=value;property('eof-reached',false);property('time-pos',value);emit('activity','seeked');},30),
    volume:value=>action(['volume',value],()=>{if(failVolume){failVolume=false;throw Error('injected volume failure');}properties.set('volume',value);}),
    rate:value=>action(['rate',value],()=>{rate=mutation==='drop-rate'?rate:value;properties.set('speed',value);}),
@@ -184,4 +184,55 @@ for(const seed of [7,42,2026])test(`seeded public media histories preserve an in
 });
 test('mixed public sequence oracle detects a skipped physical rate effect',async t=>{
  await assert.rejects(mixedHistory(t,42,{rounds:2,mutation:'drop-rate'}),error=>error.cause?.code==='ERR_ASSERTION');
+});
+
+async function overlappingHistory(t,seed,clockMode,{mutation,rounds=3}={}){
+ const timing=(_kind,delay,index)=>clockMode==='zero'?0:clockMode==='jitter'?[0,1,5,17,31][(Math.imul(index,17)+seed)%5]:delay;
+ const {p,backend,pump,idle}=await fixture(t,'shaka-mse',mutation,timing);
+ let bits=seed>>>0;const next=()=>{bits^=bits<<13;bits^=bits>>>17;bits^=bits<<5;return bits>>>0;},history=[];
+ try{
+  for(let round=0;round<rounds;round++){
+   await pump(p.pause());await pump(p.seek(1));await pump(p.setPlaybackRate(1));
+   const entries=[],actions=Array.from({length:4},()=>['play','pause','seek','rate','volume','track']).flat();
+   for(let i=actions.length-1;i>0;i--){const j=next()%(i+1);[actions[i],actions[j]]=[actions[j],actions[i]];}
+   let playing=false,rate=1,volume=p.state.volume,track,lastSeek;
+   for(const action of actions){
+    let work,value;
+    if(action==='play'||action==='pause'){playing=action==='play';work=p[action]();}
+    if(action==='seek'){value=2+next()%8;lastSeek=entries.length;work=p.seek(value,{policy:'latest'});}
+    if(action==='rate'){value=[.5,1,1.5,2][next()%4];rate=value;work=p.setPlaybackRate(value);}
+    if(action==='volume'){value=(next()%11)/10;volume=value;work=p.setVolume(value);}
+    if(action==='track'){value=String(1+next()%2);track=value;work=p.selectTrack('audio',value);}
+    // Observe rejection immediately; keep all commands pending together. Drain
+    // microtasks without advancing time to vary active versus queued cancellation.
+    entries.push({action,value,result:Promise.resolve(work).then(()=>({ok:true}),error=>({ok:false,code:error.code}))});history.push({round,action,value});await drain();
+   }
+   const results=await pump(Promise.all(entries.map(entry=>entry.result)));await idle();
+   for(let i=0;i<entries.length;i++)assert.deepEqual(results[i],entries[i].action==='seek'&&i!==lastSeek?{ok:false,code:'ABORTED'}:{ok:true},`outcome ${i}`);
+   assert.equal(p.state.playbackIntent,playing?'play':'pause');assert.equal(backend.properties.get('pause'),!playing,'physical pause must match final intent');
+   assert.equal(p.state.playbackRate,rate);assert.equal(backend.properties.get('speed'),rate);
+   assert.equal(p.state.volume,volume);assert.equal(backend.properties.get('volume'),volume*100);
+   assert.equal(backend.properties.get('aid'),track);assert.equal(p.state.audioTracks.filter(item=>item.selected).length,1);
+   const target=entries[lastSeek].value;assert.ok(p.state.currentTime>=target&&p.state.currentTime<=20);near(p.state.currentTime,backend.properties.get('time-pos'));
+   assert.equal(p.control.operations.entries.length,0);assert.equal(p.control.transport.pending,null);assert.equal(p.control.trackConfirmation.pending,null);assert.equal(p.control.settingsTransactions.pending,null);assert.equal(p.control.playback.seeks.length,0);assert.equal(p.control.playback.plays.length,0);
+  }
+  await pump(p.play());await pump(p.pause());await idle();assert.equal(backend.properties.get('pause'),true,'settled Play followed by Pause must stop physical playback');
+ }catch(error){throw new Error(`Overlapping public sequence seed=${seed} clock=${clockMode}, history=${JSON.stringify(history)}`,{cause:error});}
+}
+for(const clockMode of ['normal','zero','jitter'])for(const seed of [11,37,2027])test(`overlapping public commands retain final intent and values: ${clockMode}/${seed}`,async t=>{
+ await overlappingHistory(t,seed,clockMode);
+});
+test('overlapping public oracle detects an ignored physical pause',async t=>{
+ await assert.rejects(overlappingHistory(t,37,'jitter',{mutation:'drop-pause',rounds:1}),error=>error.cause?.code==='ERR_ASSERTION');
+});
+for(const cancelAt of [0,1,5,29,30])test(`close at ${cancelAt}ms retires an overlapping control burst before reopen`,async t=>{
+ const {p,backend,pump,step,idle,attach}=await fixture(t,'shaka-mse');
+ const capture=promise=>promise.then(()=>({ok:true}),error=>({ok:false,code:error.code}));
+ const works=[capture(p.play()),capture(p.seek(10,{policy:'latest'})),capture(p.setVolume(.3)),capture(p.setPlaybackRate(2)),capture(p.selectTrack('audio','2')),capture(p.seek(7,{policy:'latest'}))];
+ await drain();await step(cancelAt);const count=backend.calls.filter(call=>call!=='destroy').length;
+ await pump(p.close());const outcomes=await pump(Promise.all(works));await idle();
+ assert.ok(outcomes.every(result=>result.ok||result.code==='ABORTED'));assert.equal(p.state.sourceId,null);assert.equal(p.control.resources.resources.length,0);
+ assert.equal(backend.calls.filter(call=>call!=='destroy').length,count,'retired queue started new physical work');
+ const replacement=await attach(),source=p.state.sourceId;backend.stale();await pump(p.play());await idle();
+ assert.equal(p.state.sourceId,source);assert.equal(p.state.error,null);assert.equal(replacement.properties.get('pause'),false);assert.equal(p.control.transport.pending,null);
 });

@@ -44,10 +44,18 @@ export class StartupModules {
         if (this.controller.signal.aborted)
             abort();
         let timer;
-        const expired = () => { const decision = transitionStartup(this.state, { type: 'deadline', id, now: performance.now() }); this.state = decision.state; if (decision.remaining !== undefined)
-            timer = setTimeout(expired, decision.remaining);
-        else
-            abort(); };
+        const expired = () => { timer = undefined; try {
+            const decision = transitionStartup(this.state, { type: 'deadline', id, now: performance.now() });
+            this.state = decision.state;
+            if (decision.remaining !== undefined)
+                timer = setTimeout(expired, decision.remaining);
+            else
+                abort();
+        }
+        catch {
+            this.state = transitionStartup(this.state, { type: 'cancel', id }).state;
+            abort();
+        } };
         const limit = STARTUP_BYTE_LIMIT;
         try {
             expired();
@@ -57,8 +65,14 @@ export class StartupModules {
                 await response.body?.cancel();
                 controller.signal.throwIfAborted();
             }
-            if (!response.ok)
-                throw new PlayerError('ASSET_LOAD_FAILED', `Startup prefetch HTTP ${response.status}: ${path}`);
+            if (!response.ok) {
+                const failure = new PlayerError('ASSET_LOAD_FAILED', `Startup prefetch HTTP ${response.status}: ${path}`);
+                try {
+                    await response.body?.cancel();
+                }
+                catch { /* Preserve the HTTP failure after physical cancellation settles. */ }
+                throw failure;
+            }
             if (Number(response.headers.get('content-length')) > limit) {
                 await response.body?.cancel();
                 throw Error('Startup prefetch exceeds byte budget');
@@ -76,12 +90,17 @@ export class StartupModules {
                     const decision = transitionStartup(this.state, { type: 'chunk', id, bytes: value.byteLength });
                     this.state = decision.state;
                     bytes += value.byteLength;
-                    if (!decision.accepted) {
-                        await reader.cancel();
+                    if (!decision.accepted)
                         throw Error('Startup prefetch exceeds byte budget');
-                    }
                     chunks.push(value);
                 }
+            }
+            catch (error) {
+                try {
+                    await reader.cancel();
+                }
+                catch { /* Preserve the original read failure after cancellation settles. */ }
+                throw error;
             }
             finally {
                 reader.releaseLock();

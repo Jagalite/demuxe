@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-03",
+  "baselineCommit": "63d41aba",
+  "scope": "Adversarial overlapping public operations, real source transaction integration, and startup physical settlement",
+  "tests": {
+    "passed": 479,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 2162.769125,
+    "log": "test.log",
+    "newTests": 115
+  },
+  "newCoverage": {
+    "routePipelineCases": 39,
+    "settingsCases": 35,
+    "settingsSeededPublicCommands": 384,
+    "startupCases": 26,
+    "mediaCases": 15,
+    "mediaOverlappingPublicCommands": 648,
+    "mediaClockModes": [
+      "normal",
+      "zero",
+      "jitter"
+    ],
+    "mediaCloseOffsetsMs": [
+      0,
+      1,
+      5,
+      29,
+      30
+    ],
+    "negativeControl": "ignored physical pause is detected"
+  },
+  "fixes": [
+    {
+      "area": "settings effects",
+      "problem": "Method getter could retire the operation and the returned backend method was still invoked, including compensation.",
+      "change": "Recheck transaction authority after method acquisition and before bound invocation."
+    },
+    {
+      "area": "startup bodies",
+      "problem": "HTTP/read failure released the admitted entry before response/reader cancellation settled.",
+      "change": "Await physical cancellation, retain capacity until settlement and preserve original failure."
+    },
+    {
+      "area": "startup deadlines",
+      "problem": "Early timer rearm failure escaped callback and lost the deadline without retiring authority.",
+      "change": "Explicit pure cancel event retires publication authority; abort speculation and retain unresolved physical obligation."
+    }
+  ],
+  "validation": {
+    "typecheck": "passed",
+    "staticCoreBoundary": "passed",
+    "ownershipAudit": {
+      "supportedReviewedFields": 879,
+      "changedSources": 0,
+      "pendingDynamicWrites": 0
+    }
+  },
+  "sourceHashes": {
+    "src/internal/machine/startup.ts": "c11e1573beac421b027f8ecd2f531d8bf44f0854e07408845aac0db339855a14",
+    "src/internal/startup-escalation.ts": "051e9b15929aab7f0aeeea9356049476965b906ec8b63fc5a736c7ca3d0e9334",
+    "src/unified-player.ts": "ed04b914b8354de02e815b6424a70d42ac5152b9b32a61fa32414a0f09187088"
+  },
+  "limits": [
+    "Real select/discover/replace/accept executes with synthetic probe/admission/backend boundaries.",
+    "No actual browser decoding, network throughput, A/V drift or long wall-clock endurance.",
+    "Existing long virtual soak was not repeated in this focused follow-up."
+  ],
+  "git": {
+    "reviewedBaselineCommitted": true,
+    "additionalTestsAndFixesCommitted": false,
+    "pushed": false
+  }
+}

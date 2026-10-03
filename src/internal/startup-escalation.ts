@@ -31,16 +31,16 @@ export class StartupModules {
   private async load(path:string,id:number){
     const controller=new AbortController(),abort=()=>controller.abort();
     this.controller.signal.addEventListener('abort',abort,{once:true});if(this.controller.signal.aborted)abort();
-    let timer:ReturnType<typeof setTimeout>|undefined;const expired=()=>{const decision=transitionStartup(this.state,{type:'deadline',id,now:performance.now()});this.state=decision.state;if(decision.remaining!==undefined)timer=setTimeout(expired,decision.remaining);else abort();};const limit=STARTUP_BYTE_LIMIT;
+    let timer:ReturnType<typeof setTimeout>|undefined;const expired=()=>{timer=undefined;try{const decision=transitionStartup(this.state,{type:'deadline',id,now:performance.now()});this.state=decision.state;if(decision.remaining!==undefined)timer=setTimeout(expired,decision.remaining);else abort();}catch{this.state=transitionStartup(this.state,{type:'cancel',id}).state;abort();}};const limit=STARTUP_BYTE_LIMIT;
     try{
       expired();controller.signal.throwIfAborted();
       const response=await fetch(new URL(path,this.base),{signal:controller.signal,priority:'low'});
       if(controller.signal.aborted){await response.body?.cancel();controller.signal.throwIfAborted();}
-      if(!response.ok)throw new PlayerError('ASSET_LOAD_FAILED',`Startup prefetch HTTP ${response.status}: ${path}`);
+      if(!response.ok){const failure=new PlayerError('ASSET_LOAD_FAILED',`Startup prefetch HTTP ${response.status}: ${path}`);try{await response.body?.cancel();}catch{/* Preserve the HTTP failure after physical cancellation settles. */}throw failure;}
       if(Number(response.headers.get('content-length'))>limit){await response.body?.cancel();throw Error('Startup prefetch exceeds byte budget');}
       const reader=response.body?.getReader();if(!reader)throw Error('Startup prefetch has no body');
       const chunks:Uint8Array[]=[];let bytes=0;
-      try{for(;;){const {value,done}=await reader.read();if(done)break;const decision=transitionStartup(this.state,{type:'chunk',id,bytes:value.byteLength});this.state=decision.state;bytes+=value.byteLength;if(!decision.accepted){await reader.cancel();throw Error('Startup prefetch exceeds byte budget');}chunks.push(value);}}finally{reader.releaseLock();}
+      try{for(;;){const {value,done}=await reader.read();if(done)break;const decision=transitionStartup(this.state,{type:'chunk',id,bytes:value.byteLength});this.state=decision.state;bytes+=value.byteLength;if(!decision.accepted)throw Error('Startup prefetch exceeds byte budget');chunks.push(value);}}catch(error){try{await reader.cancel();}catch{/* Preserve the original read failure after cancellation settles. */}throw error;}finally{reader.releaseLock();}
       const data=new Uint8Array(bytes);let offset=0;for(const chunk of chunks){data.set(chunk,offset);offset+=chunk.byteLength;}
       controller.signal.throwIfAborted();const module=await WebAssembly.compile(data);controller.signal.throwIfAborted();const decision=transitionStartup(this.state,{type:'complete',id});this.state=decision.state;if(!decision.accepted)throw new PlayerError('ABORTED','Startup prefetch was retired');this.binaries.set(path,data.buffer);return module;
     }finally{clearTimeout(timer);this.controller.signal.removeEventListener('abort',abort);}

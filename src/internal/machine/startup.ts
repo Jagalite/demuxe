@@ -4,7 +4,7 @@ export type StartupEntry=Readonly<{id:number;path:string;bytes:number;phase:'pen
 export type StartupState=Readonly<{serial:number;stopped:boolean;entries:readonly StartupEntry[]}>;
 export const STARTUP_BYTE_LIMIT=32*1024*1024,STARTUP_ENTRY_LIMIT=8,STARTUP_TIMEOUT_MS=15000;
 export function initialStartup():StartupState{return Object.freeze({serial:0,stopped:false,entries:Object.freeze([])});}
-export type StartupChange={type:'admit';path:string;now:number}|{type:'deadline';id:number;now:number}|{type:'chunk';id:number;bytes:number}|{type:'complete';id:number}|{type:'failed';id:number}|{type:'destroy'};
+export type StartupChange={type:'admit';path:string;now:number}|{type:'deadline';id:number;now:number}|{type:'cancel';id:number}|{type:'chunk';id:number;bytes:number}|{type:'complete';id:number}|{type:'failed';id:number}|{type:'destroy'};
 export function transitionStartup(state:StartupState,event:StartupChange):Readonly<{state:StartupState;accepted:boolean;id?:number;existing?:boolean;remaining?:number}>{
  const result=(next:StartupState,accepted=true,extra:{}={})=>Object.freeze({state:next===state?state:Object.freeze({...next}),accepted,...extra});
  if(event.type==='destroy')return result({...state,stopped:true,entries:Object.freeze(state.entries.filter(entry=>entry.phase!=='ready').map(entry=>Object.freeze({...entry,phase:'retired' as const})))});
@@ -16,6 +16,7 @@ export function transitionStartup(state:StartupState,event:StartupChange):Readon
   const id=state.serial+1;return result({...state,serial:id,entries:Object.freeze([...state.entries,Object.freeze({id,path:event.path,bytes:0,phase:'pending' as const,deadline:event.now+STARTUP_TIMEOUT_MS})])},true,{id});
  }
  const entry=state.entries.find(entry=>entry.id===event.id);if(!entry||entry.phase!=='pending')return result(state,false);
+ if(event.type==='cancel')return result({...state,entries:Object.freeze(state.entries.map(value=>value===entry?Object.freeze({...entry,phase:'retired' as const}):value))});
  if(event.type==='deadline')return event.now<entry.deadline?result(state,true,{remaining:entry.deadline-event.now}):result({...state,entries:Object.freeze(state.entries.map(value=>value===entry?Object.freeze({...entry,phase:'retired' as const}):value))});
  if(event.type==='chunk'&&(!Number.isSafeInteger(event.bytes)||event.bytes<0||entry.bytes+event.bytes>STARTUP_BYTE_LIMIT))return result(state,false);
  return result({...state,entries:Object.freeze(state.entries.map(value=>value!==entry?value:Object.freeze(event.type==='chunk'?{...entry,bytes:entry.bytes+event.bytes}:{...entry,phase:'ready' as const})))});
