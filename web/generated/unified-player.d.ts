@@ -50,6 +50,9 @@ export declare class Player extends EventTarget {
     private invokeBackend;
     private get executor();
     private backendEffect;
+    private sessionFaultErrors;
+    private sessionIdentities;
+    private recordSessionFault;
     private sessionResources;
     private sessionDisposals;
     private sessionCleanups;

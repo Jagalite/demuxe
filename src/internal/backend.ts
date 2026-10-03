@@ -34,7 +34,7 @@ export interface Backend extends EventTarget {
   audioDiagnostics(): object;
   destroy(): Promise<void>;
 }
-export type Session = {backend: Backend; surface: HTMLCanvasElement | HTMLVideoElement; error?: Error; retired?:boolean};
+export type Session = {backend: Backend; surface: HTMLCanvasElement | HTMLVideoElement; readonly error?: Error; retired?:boolean};
 
 export function backendPlan(backend?:Backend):string|undefined {
   return backend?.planId ?? (backend?.diagnostics as {plan?:string}|undefined)?.plan;

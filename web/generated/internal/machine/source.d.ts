@@ -11,6 +11,7 @@ export type SourceAttempt = Readonly<{
     operationEpoch: number;
     operation: number | null;
     session: number;
+    fault: number | null;
     mode: PlaybackMode;
     preserve: boolean;
     phase: Phase;
@@ -24,6 +25,8 @@ export type SourceControl = Readonly<{
     serial: number;
     attemptSerial: number;
     sessionSerial: number;
+    faultSerial: number;
+    acceptedFault: number | null;
     acceptedSession: number | null;
     acceptedEpoch: number | null;
     mode: PlaybackMode;
@@ -31,6 +34,9 @@ export type SourceControl = Readonly<{
     candidate: SourceAttempt | null;
 }>;
 export type SourceInput = Readonly<{
+    type: 'source.fault';
+    session: number;
+}> | Readonly<{
     type: 'source.acceptance.next';
     attempt: number;
 }> | Readonly<{
@@ -121,7 +127,7 @@ export type SourceDecision = Readonly<{
     acceptanceEffect?: SourceAcceptanceEffect;
     settings?: Readonly<PlaybackSettings>;
     newSource?: boolean;
-    reason?: 'busy' | 'retired' | 'phase' | 'plan';
+    reason?: 'busy' | 'retired' | 'phase' | 'plan' | 'fault-capacity';
 }>;
 export declare function initialSource(): SourceControl;
 /** Candidate and accepted identities are separate. A preserving handoff advances
@@ -138,4 +144,6 @@ export declare function sourceDesiredSettings(settings: Readonly<PlaybackSetting
 export declare function sourcePreparationCurrent(state: SourceControl, attempt: number, step: number): boolean;
 export declare function sourceApplicationCurrent(state: SourceControl, attempt: number, step: number): boolean;
 export declare function sourcePositioningCurrent(state: SourceControl, attempt: number, step: number): boolean;
+/** Fault identities are bounded by the candidate and accepted session owners. */
+export declare function sourceSessionFault(state: SourceControl, session: number): number | null;
 export {};

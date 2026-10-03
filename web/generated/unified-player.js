@@ -37,7 +37,7 @@ import { copyData } from './internal/machine/data.js';
 import { initialPlayerControl } from './internal/machine/state.js';
 import { transitionPlayer, sessionAuthority } from './internal/machine/transition.js';
 import { activeOperation, pendingOperation } from './internal/machine/operations.js';
-import { sourceDesiredSettings, sourcePreparationCurrent, sourceApplicationCurrent, sourcePositioningCurrent } from './internal/machine/source.js';
+import { sourceSessionFault, sourceDesiredSettings, sourcePreparationCurrent, sourceApplicationCurrent, sourcePositioningCurrent } from './internal/machine/source.js';
 import { PLAYBACK_MODES } from './types.js';
 import { nativeRejection, nativeManifestRejection, losslessAdaptationRejection, audioTranscodeRejection, remuxRejection } from './internal/selection.js';
 import { backendPlan } from './internal/backend.js';
@@ -147,6 +147,28 @@ export class Player extends EventTarget {
             throw new PlayerError('ABORTED', 'Playback effect retired'); if (outcome.kind === 'failed')
             throw this.effectErrors.get(id); }).finally(() => this.effectErrors.delete(id));
     }
+    sessionFaultErrors = new WeakMap();
+    sessionIdentities = new WeakMap();
+    recordSessionFault(session, error) {
+        const identity = this.sessionIdentities.get(session);
+        if (identity === undefined || session.retired)
+            return;
+        // Publish the physical Error before dispatch can expose its pure identity to
+        // reentrant observers. A nested fault owns its own entry and must win.
+        const previous = this.sessionFaultErrors.get(session), entry = { id: this.control.source.faultSerial + 1, error };
+        this.sessionFaultErrors.set(session, entry);
+        try {
+            this.dispatchControl({ type: 'source.fault', session: identity });
+        }
+        finally {
+            if (this.sessionFaultErrors.get(session) === entry && sourceSessionFault(this.control.source, identity) !== entry.id) {
+                if (previous)
+                    this.sessionFaultErrors.set(session, previous);
+                else
+                    this.sessionFaultErrors.delete(session);
+            }
+        }
+    }
     sessionResources = new WeakMap();
     sessionDisposals = new WeakMap();
     sessionCleanups = new WeakMap();
@@ -154,7 +176,7 @@ export class Player extends EventTarget {
     get ownedResources() { return this.resourceRegistry ??= new ResourceRegistry({ store: { read: () => this.control.resources, dispatch: input => this.dispatchControl({ type: 'resource.event', input }).resource } }); }
     registerSession(session, id, reserved = false) {
         const token = { id: `resource:${id}`, scope: `scope:${id}` };
-        const install = () => { this.sessionResources.set(session, token); this.backendSessions.set(session.backend, session); Object.defineProperty(session, 'retired', { configurable: true, get: () => !resourceAvailable(this.control.resources, token.id) }); };
+        const install = () => { this.sessionIdentities.set(session, id); Object.defineProperty(session, 'error', { configurable: true, get: () => { const fault = this.sessionFaultErrors.get(session); return fault && sourceSessionFault(this.control.source, id) === fault.id ? fault.error : undefined; } }); this.sessionResources.set(session, token); this.backendSessions.set(session.backend, session); Object.defineProperty(session, 'retired', { configurable: true, get: () => !resourceAvailable(this.control.resources, token.id) }); };
         const registration = { id: token.id, scopeKey: token.scope, kind: 'backend-session', ownership: 'owned', value: session.backend, release: () => this.releaseSession(session) };
         // A reserved owner may already be retiring while its constructor returns.
         // Install identity before publishing the late handle to its cleanup waiter.
@@ -556,7 +578,7 @@ export class Player extends EventTarget {
         this.stopWatchdogs();
         if (this.current !== session || sessionAuthority(this.control, sessionId) !== 'accepted')
             return;
-        session.error = error;
+        this.recordSessionFault(session, error);
         if (this.automatic)
             this.recover(session);
         else {
@@ -1199,9 +1221,9 @@ export class Player extends EventTarget {
                 if (sessionAuthority(this.control, sessionEpoch) === 'retired')
                     return;
                 if (type === 'error')
-                    session.error = detail instanceof Error ? detail : new Error(String(detail));
+                    this.recordSessionFault(session, detail instanceof Error ? detail : new Error(String(detail)));
                 if (type === 'mpv' && detail.event === 'end-file' && detail.reason === 'error')
-                    session.error = new Error(String(detail.file_error));
+                    this.recordSessionFault(session, new Error(String(detail.file_error)));
                 if (this.current === session && (session.error || type === 'activity' && ['play', 'pause', 'playing', 'ended'].includes(detail) || type === 'mpv' && detail.event === 'property-change' && ['pause', 'eof-reached'].includes(detail.name)))
                     this.startWatchdogs();
                 if (this.current === session && sessionAuthority(this.control, sessionEpoch) === 'accepted' && !this.busy && !this.destroyed) {

@@ -7,9 +7,10 @@ import type {PlaybackMode} from '../../types.js';
 import type {PlaybackSettings} from './settings.js';
 
 type Phase='preparing'|'configuring'|'opening'|'applying'|'positioning'|'verifying'|'accepted';
-export type SourceAttempt=Readonly<{id:number;operationEpoch:number;operation:number|null;session:number;mode:PlaybackMode;preserve:boolean;phase:Phase;planId:string;preparation:SourcePreparation|null;application:SourceApplication|null;positioning:SourcePositioning|null;acceptance:SourceAcceptance|null}>;
-export type SourceControl=Readonly<{serial:number;attemptSerial:number;sessionSerial:number;acceptedSession:number|null;acceptedEpoch:number|null;mode:PlaybackMode;automatic:boolean;candidate:SourceAttempt|null}>;
+export type SourceAttempt=Readonly<{id:number;operationEpoch:number;operation:number|null;session:number;fault:number|null;mode:PlaybackMode;preserve:boolean;phase:Phase;planId:string;preparation:SourcePreparation|null;application:SourceApplication|null;positioning:SourcePositioning|null;acceptance:SourceAcceptance|null}>;
+export type SourceControl=Readonly<{serial:number;attemptSerial:number;sessionSerial:number;faultSerial:number;acceptedFault:number|null;acceptedSession:number|null;acceptedEpoch:number|null;mode:PlaybackMode;automatic:boolean;candidate:SourceAttempt|null}>;
 export type SourceInput=
+  |Readonly<{type:'source.fault';session:number}>
   |Readonly<{type:'source.acceptance.next';attempt:number}>
   |Readonly<{type:'source.acceptance.completed';attempt:number;step:number;hasProperty?:boolean}>
   |Readonly<{type:'source.acceptance.failed'|'source.acceptance.cleanup'|'source.acceptance.cleaned';attempt:number;operationEpoch:number;operation:number|null}>
@@ -27,20 +28,27 @@ export type SourceInput=
   |Readonly<{type:'source.configured'|'source.opened'|'source.applied'|'source.positioned'|'source.finished';attempt:number}>
   |Readonly<{type:'source.accept';attempt:number;operationEpoch:number;settings:Readonly<PlaybackSettings>;planMatches:boolean;publication?:Readonly<{predecessor:boolean}>;timing?:Readonly<{elapsed:number;timestamps:readonly number[]}>;publicSelections?:Readonly<Partial<Record<'audio'|'sub',string>>>}>
   |Readonly<{type:'source.clear'}>;
-export type SourceDecision=Readonly<{state:SourceControl;accepted:boolean;attempt?:number;preparationEffect?:SourcePreparationEffect;applicationEffect?:SourceApplicationEffect;positioningEffect?:SourcePositioningEffect;acceptanceEffect?:SourceAcceptanceEffect;settings?:Readonly<PlaybackSettings>;newSource?:boolean;reason?:'busy'|'retired'|'phase'|'plan'}>;
-export function initialSource():SourceControl{return Object.freeze({serial:0,attemptSerial:0,sessionSerial:0,acceptedSession:null,acceptedEpoch:null,mode:'native',automatic:true,candidate:null});}
+export type SourceDecision=Readonly<{state:SourceControl;accepted:boolean;attempt?:number;preparationEffect?:SourcePreparationEffect;applicationEffect?:SourceApplicationEffect;positioningEffect?:SourcePositioningEffect;acceptanceEffect?:SourceAcceptanceEffect;settings?:Readonly<PlaybackSettings>;newSource?:boolean;reason?:'busy'|'retired'|'phase'|'plan'|'fault-capacity'}>;
+export function initialSource():SourceControl{return Object.freeze({serial:0,attemptSerial:0,sessionSerial:0,faultSerial:0,acceptedFault:null,acceptedSession:null,acceptedEpoch:null,mode:'native',automatic:true,candidate:null});}
 const ok=(state:SourceControl):SourceDecision=>Object.freeze({state:Object.freeze({...state}),accepted:true});
 const no=(state:SourceControl,reason:SourceDecision['reason']):SourceDecision=>Object.freeze({state,accepted:false,reason});
 /** Candidate and accepted identities are separate. A preserving handoff advances
  * session identity without changing the public source identity. Settings commit
  * is returned to the composed transition, never published independently. */
 export function transitionSource(state:SourceControl,input:SourceInput):SourceDecision {
+  if(input.type==='source.fault'){
+    const accepted=state.acceptedSession===input.session,candidate=state.candidate?.session===input.session;
+    if(!accepted&&!candidate)return no(state,'retired');
+    if(!Number.isSafeInteger(state.faultSerial)||state.faultSerial>=Number.MAX_SAFE_INTEGER)return no(state,'fault-capacity');
+    const fault=state.faultSerial+1;
+    return ok({...state,faultSerial:fault,acceptedFault:accepted?fault:state.acceptedFault,candidate:candidate?Object.freeze({...state.candidate!,fault}):state.candidate});
+  }
   if(input.type==='source.configure')return ok({...state,mode:input.mode??state.mode,automatic:input.automatic??state.automatic});
-  if(input.type==='source.clear')return ok({...state,acceptedSession:null,acceptedEpoch:null,candidate:null});
+  if(input.type==='source.clear')return ok({...state,acceptedSession:null,acceptedFault:null,acceptedEpoch:null,candidate:null});
   if(input.type==='source.begin'){
     if(state.candidate)return no(state,'busy');
     const id=state.attemptSerial+1,session=state.sessionSerial+1;
-    return Object.freeze({state:Object.freeze({...state,attemptSerial:id,sessionSerial:session,candidate:Object.freeze({id,session,operationEpoch:input.operationEpoch,operation:input.operation??null,mode:input.mode,preserve:input.preserve,planId:input.planId,phase:'preparing' as const,preparation:null,application:null,positioning:null,acceptance:null})}),accepted:true,attempt:id});
+    return Object.freeze({state:Object.freeze({...state,attemptSerial:id,sessionSerial:session,candidate:Object.freeze({id,session,fault:null,operationEpoch:input.operationEpoch,operation:input.operation??null,mode:input.mode,preserve:input.preserve,planId:input.planId,phase:'preparing' as const,preparation:null,application:null,positioning:null,acceptance:null})}),accepted:true,attempt:id});
   }
   const attempt=state.candidate;if(!attempt||attempt.id!==input.attempt)return no(state,'retired');
   if(input.type==='source.finished')return attempt.acceptance&&attempt.acceptance.cleanup!=='done'?no(state,'busy'):ok({...state,candidate:null});
@@ -106,7 +114,7 @@ export function transitionSource(state:SourceControl,input:SourceInput):SourceDe
     if(attempt.operationEpoch!==input.operationEpoch)return no(state,'retired');
     if(attempt.phase!=='verifying')return no(state,'phase');
     if(attempt.positioning?!sourcePositioningDone(attempt.positioning)||!attempt.positioning.planMatches:!input.planMatches)return no(state,'plan');
-    return Object.freeze({state:Object.freeze({...state,serial:state.serial+(attempt.preserve?0:1),acceptedSession:attempt.session,acceptedEpoch:attempt.operationEpoch,mode:attempt.mode,candidate:Object.freeze({...attempt,phase:'accepted' as const,acceptance:input.publication?initialSourceAcceptance(input.publication.predecessor):null})}),accepted:true,settings:Object.freeze({...attempt.application?.settings??input.settings}),newSource:!attempt.preserve});
+    return Object.freeze({state:Object.freeze({...state,serial:state.serial+(attempt.preserve?0:1),acceptedSession:attempt.session,acceptedFault:attempt.fault,acceptedEpoch:attempt.operationEpoch,mode:attempt.mode,candidate:Object.freeze({...attempt,phase:'accepted' as const,acceptance:input.publication?initialSourceAcceptance(input.publication.predecessor):null})}),accepted:true,settings:Object.freeze({...attempt.application?.settings??input.settings}),newSource:!attempt.preserve});
   }
   const phases={
     'source.created':['preparing','configuring'],
@@ -128,3 +136,6 @@ export function sourcePreparationCurrent(state:SourceControl,attempt:number,step
 export function sourceApplicationCurrent(state:SourceControl,attempt:number,step:number):boolean{return state.candidate?.id===attempt&&state.candidate.application?.pending===step;}
 
 export function sourcePositioningCurrent(state:SourceControl,attempt:number,step:number):boolean{return state.candidate?.id===attempt&&state.candidate.positioning?.pending===step;}
+
+/** Fault identities are bounded by the candidate and accepted session owners. */
+export function sourceSessionFault(state:SourceControl,session:number):number|null{return state.acceptedSession===session?state.acceptedFault:state.candidate?.session===session?state.candidate.fault:null;}

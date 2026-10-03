@@ -3,22 +3,31 @@ import { initialSourcePreparation, claimSourcePreparation, completeSourcePrepara
 import { initialSourceApplication, claimSourceApplication, completeSourceApplication, sourceApplicationDone } from './source-application.js';
 import { initialSourcePositioning, claimSourcePositioning, completeSourcePositioning, sourcePositioningDone } from './source-positioning.js';
 import { initialSourceAcceptance, claimSourceAcceptance, completeSourceAcceptance, failSourceAcceptance, claimSourceAcceptanceCleanup, completeSourceAcceptanceCleanup } from './source-acceptance.js';
-export function initialSource() { return Object.freeze({ serial: 0, attemptSerial: 0, sessionSerial: 0, acceptedSession: null, acceptedEpoch: null, mode: 'native', automatic: true, candidate: null }); }
+export function initialSource() { return Object.freeze({ serial: 0, attemptSerial: 0, sessionSerial: 0, faultSerial: 0, acceptedFault: null, acceptedSession: null, acceptedEpoch: null, mode: 'native', automatic: true, candidate: null }); }
 const ok = (state) => Object.freeze({ state: Object.freeze({ ...state }), accepted: true });
 const no = (state, reason) => Object.freeze({ state, accepted: false, reason });
 /** Candidate and accepted identities are separate. A preserving handoff advances
  * session identity without changing the public source identity. Settings commit
  * is returned to the composed transition, never published independently. */
 export function transitionSource(state, input) {
+    if (input.type === 'source.fault') {
+        const accepted = state.acceptedSession === input.session, candidate = state.candidate?.session === input.session;
+        if (!accepted && !candidate)
+            return no(state, 'retired');
+        if (!Number.isSafeInteger(state.faultSerial) || state.faultSerial >= Number.MAX_SAFE_INTEGER)
+            return no(state, 'fault-capacity');
+        const fault = state.faultSerial + 1;
+        return ok({ ...state, faultSerial: fault, acceptedFault: accepted ? fault : state.acceptedFault, candidate: candidate ? Object.freeze({ ...state.candidate, fault }) : state.candidate });
+    }
     if (input.type === 'source.configure')
         return ok({ ...state, mode: input.mode ?? state.mode, automatic: input.automatic ?? state.automatic });
     if (input.type === 'source.clear')
-        return ok({ ...state, acceptedSession: null, acceptedEpoch: null, candidate: null });
+        return ok({ ...state, acceptedSession: null, acceptedFault: null, acceptedEpoch: null, candidate: null });
     if (input.type === 'source.begin') {
         if (state.candidate)
             return no(state, 'busy');
         const id = state.attemptSerial + 1, session = state.sessionSerial + 1;
-        return Object.freeze({ state: Object.freeze({ ...state, attemptSerial: id, sessionSerial: session, candidate: Object.freeze({ id, session, operationEpoch: input.operationEpoch, operation: input.operation ?? null, mode: input.mode, preserve: input.preserve, planId: input.planId, phase: 'preparing', preparation: null, application: null, positioning: null, acceptance: null }) }), accepted: true, attempt: id });
+        return Object.freeze({ state: Object.freeze({ ...state, attemptSerial: id, sessionSerial: session, candidate: Object.freeze({ id, session, fault: null, operationEpoch: input.operationEpoch, operation: input.operation ?? null, mode: input.mode, preserve: input.preserve, planId: input.planId, phase: 'preparing', preparation: null, application: null, positioning: null, acceptance: null }) }), accepted: true, attempt: id });
     }
     const attempt = state.candidate;
     if (!attempt || attempt.id !== input.attempt)
@@ -119,7 +128,7 @@ export function transitionSource(state, input) {
             return no(state, 'phase');
         if (attempt.positioning ? !sourcePositioningDone(attempt.positioning) || !attempt.positioning.planMatches : !input.planMatches)
             return no(state, 'plan');
-        return Object.freeze({ state: Object.freeze({ ...state, serial: state.serial + (attempt.preserve ? 0 : 1), acceptedSession: attempt.session, acceptedEpoch: attempt.operationEpoch, mode: attempt.mode, candidate: Object.freeze({ ...attempt, phase: 'accepted', acceptance: input.publication ? initialSourceAcceptance(input.publication.predecessor) : null }) }), accepted: true, settings: Object.freeze({ ...attempt.application?.settings ?? input.settings }), newSource: !attempt.preserve });
+        return Object.freeze({ state: Object.freeze({ ...state, serial: state.serial + (attempt.preserve ? 0 : 1), acceptedSession: attempt.session, acceptedFault: attempt.fault, acceptedEpoch: attempt.operationEpoch, mode: attempt.mode, candidate: Object.freeze({ ...attempt, phase: 'accepted', acceptance: input.publication ? initialSourceAcceptance(input.publication.predecessor) : null }) }), accepted: true, settings: Object.freeze({ ...attempt.application?.settings ?? input.settings }), newSource: !attempt.preserve });
     }
     const phases = {
         'source.created': ['preparing', 'configuring'],
@@ -138,3 +147,5 @@ export function sourceDesiredSettings(settings, facts) {
 export function sourcePreparationCurrent(state, attempt, step) { return state.candidate?.id === attempt && state.candidate.preparation?.pending === step; }
 export function sourceApplicationCurrent(state, attempt, step) { return state.candidate?.id === attempt && state.candidate.application?.pending === step; }
 export function sourcePositioningCurrent(state, attempt, step) { return state.candidate?.id === attempt && state.candidate.positioning?.pending === step; }
+/** Fault identities are bounded by the candidate and accepted session owners. */
+export function sourceSessionFault(state, session) { return state.acceptedSession === session ? state.acceptedFault : state.candidate?.session === session ? state.candidate.fault : null; }

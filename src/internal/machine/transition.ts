@@ -90,8 +90,10 @@ function reducePlayer(state:PlayerControlState,input:PlayerControlInput):PlayerC
     const retired=state.operations.terminal||state.operations.entries.some(entry=>entry.id===state.operations.active&&entry.cancelled);
     const cleanup=input.type==='source.acceptance.cleanup'||input.type==='source.acceptance.cleaned'||input.type==='source.acceptance.failed';
     const forward=!cleanup&&input.type!=='source.configure'&&input.type!=='source.clear'&&input.type!=='source.finished';
-    const expired=input.type==='source.begin'?input.operationEpoch!==state.operations.epoch||input.operation!==undefined&&input.operation!==state.operations.active:state.source.candidate?.operationEpoch!==state.operations.epoch||state.source.candidate?.operation!==state.operations.active;
-    if(forward&&(retired||expired))return Object.freeze({state,accepted:false,id:undefined,reason:'retired' as const,retire:Object.freeze([]) as readonly number[]});
+    const expired=input.type==='source.fault'?sessionAuthority(state,input.session)==='retired':input.type==='source.begin'?input.operationEpoch!==state.operations.epoch||input.operation!==undefined&&input.operation!==state.operations.active:state.source.candidate?.operationEpoch!==state.operations.epoch||state.source.candidate?.operation!==state.operations.active;
+    // A cancelled command retires its candidate, not the accepted backend.
+    // Fault observations follow the listener's session authority in both cases.
+    if(forward&&(expired||input.type!=='source.fault'&&retired))return Object.freeze({state,accepted:false,id:undefined,reason:'retired' as const,retire:Object.freeze([]) as readonly number[]});
     const decision=transitionSource(state.source,input.type==='source.accept'?{...input,operationEpoch:state.operations.epoch}:input.type==='source.begin'?{...input,operation:state.operations.active}:input),settings=decision.settings??(input.type==='source.clear'?Object.freeze({...state.settings,pause:true,aid:'auto',sid:'auto'}):state.settings);
     const playback=decision.settings||input.type==='source.clear'?Object.freeze({...state.playback,observedPlaying:false,observedWaiting:false,sampleSession:decision.state.acceptedSession,sampleSequence:0}):state.playback;
     const reset=input.type==='source.clear'||input.type==='source.accept'&&decision.accepted&&!state.source.candidate?.preserve;

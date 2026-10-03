@@ -15,7 +15,7 @@ function fixture(hooks={}){
  const host={module:engine,call(name,...args){return engine['_'+name](...args);},facts:()=>({runtime:'fake'}),source:{cancelSource(){calls.push(['source.cancel']);},drainFailures:()=>[]},dispose(){calls.push(['host.dispose']);hooks.dispose?.();}};
  const input={open:async()=>{calls.push(['source.open']);return hooks.sourceOpen?.();},close(){calls.push(['source.close']);hooks.sourceClose?.();},reader:{stats:{reads:0}}};
  const io={onmessage:null,onerror:null,postMessage(data){calls.push(['io.post',data.type]);if(data.type==='init'&&!hooks.ioHeld)this.onmessage({data:{type:'ready',info:{size:1024}}});},terminate(){calls.push(['io.terminate']);hooks.ioTerminate?.();}};
- const context={...core,onmessage:null,postMessage(data,transfer){hooks.post?.(data,transfer);messages.push(data);},performance:{now:()=>now},TextDecoder,TextEncoder,URL,Uint8Array,Int32Array,DataView,ArrayBuffer,AbortController,Promise,Error,DOMException,
+ const context={...core,onmessage:null,postMessage(data,transfer){hooks.post?.(data,transfer);messages.push(data);},performance:{now:()=>{hooks.clock?.();return now;}},TextDecoder,TextEncoder,URL,Uint8Array,Int32Array,DataView,ArrayBuffer,AbortController,Promise,Error,DOMException,
   self:{close(){calls.push(['self.close']);}},setTimeout(callback,delay){const entry={id:++serial,callback,due:now+delay};hooks.setTimer?.(entry);timers.set(entry.id,entry);allTimers.push(entry);return entry.id;},clearTimeout(id){hooks.clearTimer?.(id);timers.delete(id);},
   runtimeWorker(){calls.push(['io.acquire']);hooks.ioAcquire?.();return io;},
   loadModule:async path=>{hooks.import?.(path);if(path.includes('private-mpv'))return{privateMpv:async()=>hooks.hostAcquire?await hooks.hostAcquire():host,privateMpvSource:()=>input};return{default:async()=>hooks.engineAcquire?await hooks.engineAcquire():engine};},
@@ -79,4 +79,77 @@ test('actual held initialization bounds queued commands and suppresses them on c
 });
 test('actual request replies use captured client identity after native execution',async()=>{
  const f=fixture();await f.init();let reads=0;await f.send({type:'select',get id(){reads++;return 77;},trackId:1});assert.equal(reads,1);assert.equal(f.messages.at(-1).id,77);await f.close();
+});
+test('deadline early delivery retains original due time and stale callbacks cannot wake',async()=>{
+ const f=fixture({native(name,args){if(name==='subtitle_service_visual_schedule'){const view=new DataView(f.engine.HEAPU8.buffer);view.setFloat64(args[1],.5,true);view.setUint32(args[2],7,true);return 1;}}});
+ await f.init();await f.request('select');await f.request('render');const original=f.allTimers.at(-1);assert.equal(original.due,502);
+ f.now=10;f.fire(original);assert.equal(f.messages.filter(m=>m.type==='subtitleDeadline').length,0);const replacement=f.allTimers.at(-1);assert.equal(replacement.due,502);
+ f.fire(original);assert.equal(f.allTimers.at(-1),replacement);f.now=502;f.fire(replacement);f.fire(replacement);assert.equal(f.messages.filter(m=>m.type==='subtitleDeadline').length,1);assert.equal(f.inspect().control.timeline.scheduler.deadlineWakes,1);
+ await f.request('render');const cancelled=f.allTimers.at(-1);await f.request('cancelDeadline');f.now=1004;f.fire(cancelled);assert.equal(f.messages.filter(m=>m.type==='subtitleDeadline').length,1);await f.close();
+});
+test('deadline timer acquired while close reenters is released without wake',async()=>{
+ const f=fixture({native(name,args){if(name==='subtitle_service_visual_schedule'){new DataView(f.engine.HEAPU8.buffer).setFloat64(args[1],.5,true);return 1;}}});await f.init();await f.request('select');
+ f.hooks.setTimer=()=>{f.send({type:'close'});};await f.request('render');await flush();assert.equal(f.timers.size,0);f.now=1000;f.fire();assert.equal(f.messages.filter(m=>m.type==='subtitleDeadline').length,0);assert.equal(f.inspect().control.phase,'closed');
+});
+test('attachment byte and count budgets release only after successful native removal',async()=>{
+ const f=fixture();await f.init();let id=0;f.engine._malloc=()=>4096;f.engine._subtitle_service_external_api=()=>1;f.engine._subtitle_service_add=()=>++id;f.engine._subtitle_service_remove=()=>0;
+ const asset={format:'srt',bytes:new ArrayBuffer(8*1024*1024)};await f.request('add',{asset});await f.request('add',{asset});assert.equal(f.inspect().control.attachments.bytes,16*1024*1024);
+ await f.request('add',{asset:{format:'srt',bytes:new ArrayBuffer(1)}});assert.match(f.messages.at(-1).error,/budget/);assert.equal(id,2);
+ f.engine._subtitle_service_remove=()=>-1;await f.request('remove',{trackId:1});assert.equal(f.inspect().control.attachments.bytes,16*1024*1024);
+ f.engine._subtitle_service_remove=()=>0;await f.request('remove',{trackId:1});assert.equal(f.inspect().control.attachments.bytes,8*1024*1024);
+ for(let i=0;i<15;i++)await f.request('add',{asset:{format:'vtt',bytes:new ArrayBuffer(1)}});assert.equal(f.inspect().control.attachments.entries.length,16);
+ await f.request('add',{asset:{format:'vtt',bytes:new ArrayBuffer(1)}});assert.match(f.messages.at(-1).error,/budget/);assert.equal(f.inspect().control.attachments.pending,null);await f.close();
+});
+test('rejected native attachment clears reservation without consuming byte budget',async()=>{
+ const f=fixture();await f.init();f.engine._subtitle_service_external_api=()=>1;f.engine._subtitle_service_add=()=>-1;await f.request('add',{asset:{format:'ass',bytes:new ArrayBuffer(32)}});
+ assert.match(f.messages.at(-1).error,/could not load/);assert.equal(f.inspect().control.attachments.bytes,0);assert.equal(f.inspect().control.attachments.pending,null);assert.ok(f.calls.some(([name,path])=>name==='unlink'&&path==='/subtitles/1.ass'));await f.close();
+});
+test('composed timeline and attachment decisions reject retired request observations',()=>{
+ let state=core.initialSubtitleWorker();const admitted=core.admitSubtitleWorker(state,'render',1),request=admitted.request;state=core.startSubtitleWorker(admitted.state,request).state;
+ state=core.changeSubtitleTimeline(state,request,{type:'selected',trackId:1});state=core.changeSubtitleTimeline(state,request,{type:'rendered',next:.5,epoch:7});
+ const reserved=core.admitSubtitleAttachment(state,request,'srt',128,true);state=reserved.state;const scheduled=core.armSubtitleDeadline(state,request,{mode:'deadline',unstable:false,next:.5,epoch:7},0,1,true,0);state=scheduled.state;
+ assert.equal(core.subtitleMayLearnProfile(state),true);assert.equal(core.settleSubtitleDeadline(state,scheduled.deadline,10).remaining,492);
+ state=core.closeSubtitleWorker(state).state;assert.equal(core.subtitleDeadlineCurrent(state,scheduled.deadline),false);assert.equal(state.attachments.pending,null);
+ assert.equal(core.changeSubtitleTimeline(state,request,{type:'time',seconds:5}),state);assert.equal(core.commitSubtitleAttachment(state,request,1),state);assert.equal(core.completeSubtitlePump(state,request,.6,7,false).state,state);assert.equal(core.settleSubtitleDeadline(state,scheduled.deadline,600).accepted,false);
+});
+test('timeline replay keeps crossed boundaries observable across arbitrary cancelled rearming',()=>{
+ function replay(seed){let state=core.initialSubtitleWorker(),boundary=.5,last=0,invalidations=0;const snapshots=[];
+  for(let step=0;step<96;step++){
+   seed=(Math.imul(seed,1664525)+1013904223)>>>0;const seconds=last+(seed%100)/1000;
+   const admission=core.admitSubtitleWorker(state,'pump',step),request=admission.request;state=core.startSubtitleWorker(admission.state,request).state;
+   if(step===0){state=core.changeSubtitleTimeline(state,request,{type:'selected',trackId:1});state=core.changeSubtitleTimeline(state,request,{type:'rendered',next:boundary,epoch:7});}
+   state=core.cancelSubtitleDeadline(state);const armed=core.armSubtitleDeadline(state,request,{mode:'deadline',unstable:false,next:seconds<.5?.5:2,epoch:7},seconds,1,true,step*50);state=armed.state;
+   const completion=core.completeSubtitlePump(state,request,seconds,7,false);assert.equal(completion.timingChanged,boundary!==null&&seconds>=boundary);if(completion.timingChanged){invalidations++;boundary=null;}
+   state=core.changeSubtitleTimeline(completion.state,request,{type:'time',seconds});state=core.finishSubtitleWorker(state,request);last=seconds;snapshots.push(JSON.stringify(state));
+  }assert.equal(invalidations,1);return snapshots;
+ }
+ for(let seed=1;seed<=24;seed++)assert.deepEqual(replay(seed),replay(seed));
+});
+test('attachment allocation failure rolls back the retained file and reservation',async()=>{
+ const f=fixture();await f.init();f.engine._subtitle_service_external_api=()=>1;f.engine._malloc=()=>{throw Error('allocation failed');};await f.request('add',{asset:{format:'srt',bytes:new ArrayBuffer(32)}});assert.match(f.messages.at(-1).error,/allocation failed/);assert.ok(f.calls.some(([name,path])=>name==='unlink'&&path==='/subtitles/1.srt'));assert.equal(f.inspect().control.attachments.pending,null);assert.equal(f.inspect().control.attachments.bytes,0);await f.close();
+});
+test('failed attachment rollback retains cleanup and blocks additional file acquisition',async()=>{
+ const f=fixture();await f.init();f.engine._subtitle_service_external_api=()=>1;f.engine._malloc=()=>0;const unlink=f.engine.FS.unlink;let attempts=0;f.engine.FS.unlink=path=>{attempts++;if(attempts===1)throw Error('unlink failed');unlink(path);};
+ await f.request('add',{asset:{format:'srt',bytes:new ArrayBuffer(32)}});assert.match(f.messages.at(-1).error,/attachment allocation failed/);assert.equal(f.inspect().control.failed,true);
+ await f.request('add',{asset:{format:'srt',bytes:new ArrayBuffer(32)}});assert.equal(f.calls.filter(([name])=>name==='write').length,1);await f.close();assert.equal(attempts,2);assert.ok(f.calls.some(([name,path])=>name==='unlink'&&path==='/subtitles/1.srt'));
+});
+test('deadline clock observation retirement cannot restore active worker state',async()=>{
+ const f=fixture({native(name,args){if(name==='subtitle_service_visual_schedule'){new DataView(f.engine.HEAPU8.buffer).setFloat64(args[1],.5,true);return 1;}}});await f.init();await f.request('select');await f.request('render');const timer=f.allTimers.at(-1);f.now=502;f.hooks.clock=()=>{f.hooks.clock=null;f.send({type:'close'});};f.fire(timer);await flush();assert.equal(f.inspect().control.phase,'closed');assert.equal(f.messages.filter(m=>m.type==='subtitleDeadline').length,0);
+});
+test('attachment getter retirement cannot restore active worker state or acquire a file',async()=>{
+ const f=fixture();await f.init();f.engine._subtitle_service_external_api=()=>1;const asset={get format(){f.send({type:'close'});return 'srt';},bytes:new ArrayBuffer(32)};await f.request('add',{asset});await flush();assert.equal(f.inspect().control.phase,'closed');assert.equal(f.calls.filter(([name])=>name==='write').length,0);
+});
+test('successful native add with failed free poisons lifetime and bounds native admission',async()=>{
+ const f=fixture();await f.init();let adds=0;f.engine._subtitle_service_external_api=()=>1;f.engine._subtitle_service_add=()=>++adds;f.engine._free=()=>{throw Error('attachment free failed');};
+ await f.request('add',{asset:{format:'srt',bytes:new ArrayBuffer(32)}});assert.match(f.messages.at(-1).error,/attachment free failed/);assert.equal(f.inspect().control.failed,true);
+ for(let i=0;i<20;i++)await f.request('add',{asset:{format:'srt',bytes:new ArrayBuffer(32)}});assert.equal(adds,1);assert.equal(f.calls.filter(([name])=>name==='write').length,1);assert.equal(f.inspect().control.attachments.pending,null);await f.close();assert.ok(f.calls.some(([name])=>name==='subtitle_service_close'));
+});
+test('uncertain native add preserves original failure through free and file rollback errors',async()=>{
+ const f=fixture();await f.init();let adds=0;f.engine._subtitle_service_external_api=()=>1;f.engine._subtitle_service_add=()=>{adds++;throw Error('original add failure');};f.engine._free=()=>{throw Error('free cleanup failure');};const unlink=f.engine.FS.unlink;f.engine.FS.unlink=()=>{throw Error('file cleanup failure');};
+ await f.request('add',{asset:{format:'srt',bytes:new ArrayBuffer(32)}});assert.match(f.messages.at(-1).error,/original add failure/);assert.equal(f.inspect().control.failed,true);await f.request('add',{asset:{format:'srt',bytes:new ArrayBuffer(32)}});assert.equal(adds,1);assert.match(f.messages.at(-1).error,/original add failure/);f.engine.FS.unlink=unlink;await f.close();assert.ok(f.calls.some(([name,path])=>name==='unlink'&&path==='/subtitles/1.srt'));
+});
+for(const kind of ['native','unlink'])test(`uncertain removal after ${kind} failure retains budget and blocks repeat mutation`,async()=>{
+ const f=fixture();await f.init();let removes=0;f.engine._subtitle_service_external_api=()=>1;f.engine._subtitle_service_add=()=>1;await f.request('add',{asset:{format:'srt',bytes:new ArrayBuffer(32)}});
+ const unlink=f.engine.FS.unlink;f.engine._subtitle_service_remove=()=>{removes++;if(kind==='native')throw Error('remove uncertain');return 0;};if(kind==='unlink')f.engine.FS.unlink=()=>{throw Error('unlink uncertain');};
+ await f.request('remove',{trackId:1});assert.match(f.messages.at(-1).error,/uncertain/);assert.equal(f.inspect().control.failed,true);assert.equal(f.inspect().control.attachments.bytes,32);await f.request('remove',{trackId:1});assert.equal(removes,1);f.engine.FS.unlink=unlink;await f.close();assert.ok(f.calls.some(([name])=>name==='subtitle_service_close'));
 });

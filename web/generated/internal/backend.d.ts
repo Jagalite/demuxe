@@ -36,7 +36,7 @@ export interface Backend extends EventTarget {
 export type Session = {
     backend: Backend;
     surface: HTMLCanvasElement | HTMLVideoElement;
-    error?: Error;
+    readonly error?: Error;
     retired?: boolean;
 };
 export declare function backendPlan(backend?: Backend): string | undefined;

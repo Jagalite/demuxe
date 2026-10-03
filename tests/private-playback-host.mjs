@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {observePlaybackHostEvent} from '../web/generated/internal/machine/playback-host.js';
 import {PrivatePlaybackHost} from '../web/private-mpv/playback-host.js';
 for(const stage of ['before','web_event','web_render'])test('decoder mailbox failure at '+stage+' fails before presenting stale output',async()=>{
  const decoder={error:stage==='before'?'frame budget':undefined};let presented=false;
@@ -27,9 +28,9 @@ test('RGB presentation reuses owned pixels, reacquires grown memory, and resizes
 
 test('bounded native duration permits a rewind without assuming GOP length',async()=>{
  const host=new PrivatePlaybackHost({}, {getContext:()=>({})},320,180),commands=[];
- host.command=async(id,...args)=>commands.push({id,args});host.properties.duration=12;
+ host.command=async(id,...args)=>commands.push({id,args});host.control=observePlaybackHostEvent(host.control,0,{kind:"property-change",name:"duration",duration:12}).state;
  await host.seek(1,9.5);assert.deepEqual(commands[0].args,['set','hr-seek-demuxer-offset','10.5']);assert.deepEqual(commands[1].args,['seek','9.5','absolute+exact']);
- commands.length=0;host.properties.duration=120;await host.seek(2,9.5);assert.equal(commands[0].args[2],'2');
+ commands.length=0;host.control=observePlaybackHostEvent(host.control,0,{kind:"property-change",name:"duration",duration:120}).state;await host.seek(2,9.5);assert.equal(commands[0].args[2],'2');
 });
 test('subtitle allocation failure releases earlier native strings',async()=>{
  const memory=new WebAssembly.Memory({initial:1}),freed=[];let allocations=0;

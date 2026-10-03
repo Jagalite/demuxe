@@ -7,7 +7,7 @@ const turn=()=>new Promise(resolve=>setImmediate(resolve));
 function worker(options={}){
  const messages=[],commands=[],events=[],sources=[],calls=[],timers=new Map();let timer=0,bitmapResolve,now=1000;
  const engine={facts:()=>({runtime:'fixture'}),module:{FS:{mkdirTree(){},writeFile(){},unlink(){}}},async call(name){calls.push(name);return 0;},raw:{memory:{buffer:new ArrayBuffer(16)}},runtime:'fixture',source:{snapshot:()=>({}),source:{reader:{}},drainFailures:()=>[],cancelSource(){}},scheduler:{snapshot:()=>({})},dispose(){}};
- const host={audio:{header:()=>new Int32Array(8),pump(){}},draws:options.draws??1,properties:{'track-list':[{type:'video',selected:true}],'time-pos':2.5},canvas:{async convertToBlob(){return 'snapshot';}},async create(){this.created=true;},async command(id,...args){commands.push([id,...args]);events.push({event:'command-reply',id,result:true});},async pump(){return events.splice(0);},async seek(id){events.push({event:'command-reply',id:id+0x40000000,result:true});},async serial(operation){return operation();},async destroy(){return{};}};
+ const host={setNativeDestroyed(){this.created=false;},resetSource(){this.properties={};this.events=[];this.draws=0;},setSeekPreroll(duration){this.seekPreroll=Number.isFinite(duration)&&duration>0?Math.min(60,duration):2;},audio:{header:()=>new Int32Array(8),pump(){}},draws:options.draws??1,properties:{'track-list':[{type:'video',selected:true}],'time-pos':2.5},canvas:{async convertToBlob(){return 'snapshot';}},async create(){this.created=true;},async command(id,...args){commands.push([id,...args]);events.push({event:'command-reply',id,result:true});},async pump(){return events.splice(0);},async seek(id){events.push({event:'command-reply',id:id+0x40000000,result:true});},async serial(operation){return operation();},async destroy(){return{};}};
  const context=vm.createContext({...decode,...policy,performance:{now:()=>now},AbortController,ArrayBuffer,Blob,Map,privateMpv:()=>options.acquire?options.acquire(engine):Promise.resolve(engine),PrivatePlaybackHost:function(){return host;},privateMpvSource:(_data,refresh)=>{const item={refresh,closed:0,async open(){if(options.open)await options.open(item);},close(){this.closed++;this.onClose?.();}};sources.push(item);return item;},setTimeout:(callback,ms)=>{if(options.scheduleError?.(ms))throw Error('timer unavailable');const id=++timer;timers.set(id,{callback,ms});return id;},clearTimeout:id=>timers.delete(id),postMessage:value=>messages.push(value),createImageBitmap:()=>new Promise(resolve=>bitmapResolve=resolve),testEngine:engine,testHost:host});
  vm.runInContext(source,context);if(!options.boot)vm.runInContext("engine=testEngine;host=testHost;lifecycle=admitPlaybackWorkerInit(lifecycle).state;lifecycle=finishPlaybackWorkerInit(lifecycle,true).state;lifecycle=beginPlaybackWorkerControl(lifecycle,'pause',false).state;lifecycle=configurePlaybackWorkerDecode(lifecycle,{codec:'h264',decodeQuality:'exact',maxDecodePixels:8294400},false,false);",context);
  return{messages,commands,host,engine,sources,calls,context,timers,advance:ms=>now+=ms,send:data=>context.onmessage({data}),pump:()=>vm.runInContext('pump()',context),drain:()=>vm.runInContext('chain',context),bitmap(){assert.ok(bitmapResolve,'bitmap capture started');bitmapResolve({width:1,height:1,close(){options.bitmapClosed?.();}});},async close(){this.send({id:99,op:'close'});await this.drain();}};
@@ -137,4 +137,15 @@ for(const args of [['set','volume','20'],['set','speed','1.5'],['set','cache','y
 
 test('actual picture send failure closes the untransferred bitmap before retiring the worker',async()=>{
  let closed=0;const w=worker({bitmapClosed:()=>closed++});w.context.postMessage=message=>{if(message.type==='picture')throw Error('transfer rejected');w.messages.push(message);};const pumping=w.pump();await turn();w.bitmap();await pumping;await turn();assert.equal(closed,1);assert.match(w.messages.find(message=>message.type==='fatal').error,/transfer rejected/);assert.equal(vm.runInContext('lifecycle.phase',w.context),'closed');
+});
+
+test('successful replacement destruction is recorded before reentrant close can destroy again',async()=>{
+ const w=worker();w.host.created=true;let tail=Promise.resolve(),closing;
+ w.host.serial=operation=>{const next=tail.then(operation);tail=next.catch(()=>{});return next;};
+ w.host.destroy=()=>w.host.serial(async()=>{if(w.host.created){await w.engine.call('web_destroy');w.host.setNativeDestroyed();}return{};});
+ vm.runInContext('source={close(){}};',w.context);
+ w.engine.call=async name=>{w.calls.push(name);if(name==='web_destroy'&&!closing)closing=vm.runInContext('close()',w.context);return 0;};
+ w.send({id:1,op:'load',generation:2});await w.drain();await closing;
+ assert.equal(w.calls.filter(name=>name==='web_destroy').length,1);
+ assert.equal(w.host.created,false);assert.match(w.messages.find(message=>message.id===1).error,/replaced/i);
 });

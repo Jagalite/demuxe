@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
-import * as subtitleWorkerCore from '../web/generated/internal/machine/subtitle-worker.js';
+import * as core from '../web/generated/internal/machine/subtitle-worker.js';
 
 // Run the production worker RPC handlers with a static cue oracle and controlled
 // timers. Demux delay sleeps are stubbed separately from deadline timers. Keep the decoded timing epoch constant: crossing a cue is not decoding.
@@ -23,12 +23,12 @@ function worker({ass=false,packetWaits=0}={}){
   _subtitle_service_text(){return 0;},_web_subtitle_ptr(){return 16;},
   _subtitle_service_select(){return 0;},_subtitle_service_seek(){calls.seeks++;eof=false;return 0;},
   _subtitle_service_bitmap_recovery_point(){return -1;}};
- const context=vm.createContext({...subtitleWorkerCore,performance:{now:()=>now},onmessage:null,postMessage:m=>messages.push(m),TextDecoder,AbortController,
+ const context=vm.createContext({...core,performance:{now:()=>now},onmessage:null,postMessage:m=>messages.push(m),TextDecoder,AbortController,
   setTimeout:(fn,ms)=>{timers.set(++id,{fn,due:now+ms});return id;},
   clearTimeout:id=>timers.delete(id),testEngine:engine,
   SubtitleOverlay:class{serial=0;clear(){}read(){return {surface:null};}draw(){}},
   OffscreenCanvas:class{getContext(){return {};}transferToImageBitmap(){return {};}}});
- vm.runInContext(source.replace(/^import .*;\n/gm,'').replaceAll('import.meta.url',JSON.stringify('file:///worker.js')).replace('const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));','const delay=async()=>{};')+'\nengine=testEngine;selectedTrack=true;timingPointer=0;textPointer=12;',context);
+ vm.runInContext(source.replace(/^import .*;\n/gm,'').replaceAll('import.meta.url',JSON.stringify('file:///worker.js')).replace('const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));','const delay=async()=>{};')+'\nengine=testEngine;control={...control,timeline:{...control.timeline,selected:true}};timingPointer=0;textPointer=12;',context);
  return {calls,setEOF:()=>{eof=true;},timers,messages,advanceTo(milliseconds){
   assert.ok(milliseconds>=now);now=milliseconds;
   for(const [id,timer] of [...timers])if(timer.due<=now){timers.delete(id);timer.fn();}

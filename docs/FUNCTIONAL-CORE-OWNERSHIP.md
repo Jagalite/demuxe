@@ -1,6 +1,6 @@
 # Functional-core ownership audit
 
-Status: migration and audit in progress on local `main`. The nineteenth integrated checkpoint passes 2,581 contracts plus consumer types, build/license boundaries, static pure guard and package compilation pass. Subsequent isolated slices have focused evidence until their next integrated gate. This inventory does not establish final architecture completion or v1 readiness.
+Status: migration and audit in progress on local `main`. The twentieth integrated checkpoint passes 2,654 contracts plus consumer types, build/license boundaries, static pure guard and package compilation pass. Subsequent isolated slices have focused evidence until their next integrated gate. This inventory does not establish final architecture completion or v1 readiness.
 
 ## Authority boundaries
 
@@ -44,11 +44,18 @@ The integrated candidate preserved 72 differential histories (14,400 steps) and 
 | Area | Remaining work |
 | --- | --- |
 | Resource acquisition | Backend/surface capacity is reserved before construction; late acquisition and cleanup retain the original deadline/accounting. Audit remaining resource kinds and acquisition paths. |
-| Player fault/deployment metadata | Replace the writable `Session.error` logical latch with pure fault identity while retaining original Error objects in the shell. Audit duplicate mutable remux deployment-choice fields. |
+| Player fault/deployment metadata | Session fault identities now belong to accepted/candidate source state; original Error objects remain in a WeakMap. Audit duplicate mutable remux deployment-choice fields. |
 | Player effect acquisition | Complete promotion timer/controller and source-construction/listener acquisition review. Domain-specific interpreters still execute some typed effects outside the generic executor. |
-| Lower subtitle worker | Initialization/close/fatal state, request ordering, refresh identity and open deadlines now have a pure owner. Render deadline/timeline and attachment budgets remain staged. |
-| Lower playback host | Closed/created state, duration/preroll policy, source failure, render invalidation and event/statistic budgets still need a pure owner. Native pointers, canvases and engine objects stay physical. |
-| Selective sync worklet | Audit epoch/generation and timeline cadence separately from physical ring scanning and DSP progress. Migrating the Native audio controller did not migrate this worklet. |
+| Lower subtitle worker | Lifecycle, request/refresh identity, absolute deadlines, timeline/selection/completeness and attachment budgets share one pure owner. Files/pointers/timers remain physical; uncertain native add/remove faults the lifetime and retains close cleanup. Final native/browser qualification remains open. |
+| Lower playback host | Lifetime/creation, duration/preroll, source failure, render invalidation and event/statistic budgets now have a pure owner. Native pointers, canvases and engine objects stay physical. Final native/browser qualification remains open. |
+| Selective sync worklet | Lifetime/epoch/generation admission and cadence helpers are pure. Physical scanning/sample progress remains mutable DSP state; output fences recheck header admission. Browser audio/performance qualification remains open. |
+
+Read-only residual audit after checkpoint 20 integration (not yet reproduced):
+
+- `Player.selectDeployedRuntime` publishes mutable deployment selection after provider callbacks; `remuxRuntime` duplicates selection runtime. Capture availability facts and check lifetime before committing or allocating preparation.
+- Promotion timer/controller acquisition needs post-acquisition lease checks and rollback, including throwing constructors and reentrant successor scheduling.
+- `observeBackend` needs cleanup when listener registration physically adds then throws. Native backend constructor listener acquisition likewise needs partial-construction rollback.
+- `confirmTrackSelection` needs exception-safe timer/listener acquisition and a fence after synchronous completion during registration before attaching subsequent listeners.
 
 This is a live list, not a completed exhaustive proof. Each remaining mutable field must be classified against its actual read/write sites before this gate can close.
 

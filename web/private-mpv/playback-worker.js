@@ -153,19 +153,19 @@ onmessage = ({data}) => {
       if(typeof (data.demuxer??'')!=='string'||data.demuxer&&!/^[a-z0-9_]{1,64}$/.test(data.demuxer))throw Error('Invalid demuxer hint');
       const previousSubtitles=lifecycle.subtitleCount,admission=beginPlaybackWorkerLoad(lifecycle,loadToken,data.generation,!!source);lifecycle=admission.state;if(!admission.accepted)throw replaced();
       if(source){
-        await host.serial(()=>engine.call('web_destroy'));assertLoad(loadToken);host.created=false;
+        await host.serial(async()=>{await engine.call('web_destroy');host.setNativeDestroyed();});assertLoad(loadToken);
         const old=source;source=undefined;old.close();assertLoad(loadToken);advanceLoad(loadToken,'destroyed');
       }
       for(let i=0;i<previousSubtitles;i++){try{engine.module.FS.unlink('/subtitles/'+i);}catch{}}
-      host.properties={};host.events=[];host.draws=0;retained?.clear(0);host.sourceFailure=undefined;assertLoad(loadToken);
+      host.resetSource();retained?.clear(0);assertLoad(loadToken);
       const sourceGeneration=lifecycle.generation,refresh=data.canRefresh?resource=>requestRefresh(loadToken,sourceGeneration,resource):undefined;
       source = privateMpvSource(data, refresh);await source.open(engine);
       assertLoad(loadToken);advanceLoad(loadToken,'opened');
       if (!host.created) await host.create(engine.source.source.reader);
-      else host.sourceFailure = undefined;
+
       assertLoad(loadToken);advanceLoad(loadToken,'created');host.audio.header()[6] = +lifecycle.contextRunning;
       engine.source.drainFailures();
-      host.seekPreroll = Number.isFinite(data.duration)&&data.duration>0?Math.min(60,data.duration):2;
+      host.setSeekPreroll(data.duration);
       void pump();
       if(!retained)await submit(['set','vd-lavc-o',mpvDecoderOptions(lifecycle.decodePolicy)]);
       for (const [name,value] of lifecycle.settings){assertLoad(loadToken);await submit(['set',name,name==='pause'&&!lifecycle.contextRunning?'yes':value]);}

@@ -1,167 +1,144 @@
 // SPDX-License-Identifier: MIT
-// Experimental finite Software host. Every mpv operation is serialized through
-// the continuation owner; no render/event timer may reenter suspended Wasm.
+// Physical pointers, pixel buffers and native execution remain in this adapter.
 import {PrivatePCMTransport} from './playback-pcm.js';
+import {initialPlaybackHost,playbackHostCurrent,playbackHostFailureCurrent,beginPlaybackHostCreate,finishPlaybackHostCreate,playbackHostNativeDestroyed,resetPlaybackHostSource,setPlaybackHostPreroll,playbackHostSeekPreroll,observePlaybackHostEvent,playbackHostEventBudget,failPlaybackHostSource,beginPlaybackHostRender,presentPlaybackHost,closePlaybackHost,finishPlaybackHostClose} from '../generated/internal/machine/playback-host.js';
 export class PrivatePlaybackHost {
-  constructor(engine, canvas, width, height, {fatalCommandErrors = true,retained,channels=2} = {}) {
-    this.engine = engine;
-    this.canvas = canvas;
-    this.context = canvas.getContext('2d', {willReadFrequently: true});
-    this.width = canvas.width = width;
-    this.height = canvas.height = height;
-    this.tail = Promise.resolve();
-    this.events = [];
-    this.properties = {};
-    this.draws = 0;
-    this.closed = false;
-    this.fatalCommandErrors = fatalCommandErrors;
-    this.seekPreroll = 2;
-    this.retained=retained;
-    if(![2,6,8].includes(channels))throw Error('Invalid private audio channel count');this.channels=channels;
+  constructor(engine,canvas,width,height,{fatalCommandErrors=true,retained,channels=2}={}) {
+    this.control=initialPlaybackHost(channels,fatalCommandErrors);
+    this.engine=engine;this.canvas=canvas;this.retained=retained;
+    this.context=canvas.getContext('2d',{willReadFrequently:true});
+    this.width=canvas.width=width;this.height=canvas.height=height;
+    this.tail=Promise.resolve();this.events=[];this.properties={};
   }
-  serial(operation) {
-    const next = this.tail.then(operation);
-    this.tail = next.catch(() => {});
-    return next;
-  }
-  async create(source, audioPort, latencyUs = 0) {
-    return this.serial(async () => {
-      this.engine.source.setSource(source);
-      if(await this.engine.call('web_audio_configure',this.channels)!==0)throw Error('Native audio layout rejected');
-      if(this.retained){await this.engine.call('web_decoder_enable',2);await this.engine.call('web_experiment_skip_render',1);}
-      const rc = await this.engine.call('web_create', 48000);
-      if (rc !== 0) throw Error('web_create: ' + rc);
-      this.created = true;
-      if (audioPort) this.audio = new PrivatePCMTransport(this.engine, await this.engine.call('web_audio_ptr'), audioPort, latencyUs,
-        this.engine.raw.web_audio_capacity ? await this.engine.call('web_audio_capacity') : 8192,this.channels);
-    });
-  }
-  command(id, ...args) {
-    if (!Number.isInteger(id) || id < 0 || id > 0xffffffff || args.length < 1 || args.length > 4 || args.some(a => typeof a !== 'string' || a.includes('\0') || a.length > 16384)) throw Error('Invalid native command');
-    return this.serial(async () => {
-      if (this.closed) throw Error('Playback host closed');
-      const pointers = [];
-      try {
-        for (const arg of args) {
-          const bytes = new TextEncoder().encode(arg + '\0');
-          const ptr = await this.engine.call('malloc', bytes.length);
-          if (!ptr) throw Error('Command allocation failed');
-          pointers.push(ptr);
-          new Uint8Array(this.engine.raw.memory.buffer).set(bytes, ptr);
-        }
-        const rc = await this.engine.call('web_command_args', id, ...pointers, ...Array(4 - pointers.length).fill(0));
-        if (rc < 0) throw Error('Command rejected: ' + rc);
-      } finally {
-        for (const ptr of pointers) await this.engine.call('free', ptr);
-      }
-    });
-  }
-  addSubtitle(id, path, title, language, select) {
-    if (![path,title,language].every(value=>typeof value==='string'&&!value.includes('\0')&&value.length<=4096)) throw Error('Invalid subtitle metadata');
+  get closed(){return this.control.phase!=='active';}
+  get created(){return this.control.created;}
+  get draws(){return this.control.draws;}
+  get channels(){return this.control.channels;}
+  get seekPreroll(){return this.control.seekPreroll;}
+  setNativeDestroyed(){this.control=playbackHostNativeDestroyed(this.control);}
+  resetSource(){this.control=resetPlaybackHostSource(this.control);this.properties={};this.events=[];this.sourceError=undefined;}
+  setSeekPreroll(duration){this.control=setPlaybackHostPreroll(this.control,duration);}
+  current(epoch){return playbackHostCurrent(this.control,epoch);}
+  assertCurrent(epoch){if(!this.current(epoch))throw Error('Playback host closed or replaced');}
+  serial(operation){const next=this.tail.then(operation);this.tail=next.catch(()=>{});return next;}
+  // Acquire the native method before checking authority: property access itself
+  // can retire the host. Cleanup calls use the separate physical path below.
+  async invoke(epoch,name,...args){const call=this.engine.call;this.assertCurrent(epoch);const result=await call.call(this.engine,name,...args);this.assertCurrent(epoch);return result;}
+  async create(source,audioPort,latencyUs=0){
+    const epoch=this.control.epoch;
     return this.serial(async()=>{
-      if(this.closed)throw Error('Playback host closed');
-      const pointers=[];
+      this.control=beginPlaybackHostCreate(this.control,epoch);
       try{
-        for(const value of [path,title,language]){
-          const bytes=new TextEncoder().encode(value+'\0'),ptr=await this.engine.call('malloc',bytes.length);
-          if(!ptr)throw Error('Subtitle allocation failed');pointers.push(ptr);new Uint8Array(this.engine.raw.memory.buffer).set(bytes,ptr);
-        }
-        const rc=await this.engine.call('web_add_subtitle',id,...pointers,+select);
-        if(rc<0)throw Error('Subtitle command rejected: '+rc);
-      }finally{for(const ptr of pointers)await this.engine.call('free',ptr);}
+        const sourceHost=this.engine.source,setSource=sourceHost.setSource;this.assertCurrent(epoch);setSource.call(sourceHost,source);this.assertCurrent(epoch);
+        if(await this.invoke(epoch,'web_audio_configure',this.channels)!==0)throw Error('Native audio layout rejected');
+        if(this.retained){await this.invoke(epoch,'web_decoder_enable',2);await this.invoke(epoch,'web_experiment_skip_render',1);}
+        const call=this.engine.call;this.assertCurrent(epoch);
+        const rc=await call.call(this.engine,'web_create',48000);
+        this.control=finishPlaybackHostCreate(this.control,rc===0);
+        this.assertCurrent(epoch);if(rc!==0)throw Error('web_create: '+rc);
+        if(audioPort){const ptr=await this.invoke(epoch,'web_audio_ptr'),capacity=this.engine.raw.web_audio_capacity?await this.invoke(epoch,'web_audio_capacity'):8192;this.assertCurrent(epoch);this.audio=new PrivatePCMTransport(this.engine,ptr,audioPort,latencyUs,capacity,this.channels);this.assertCurrent(epoch);}
+      }catch(error){this.control=finishPlaybackHostCreate(this.control,false);throw error;}
     });
   }
-  // Retain demux preroll before decoding to the requested exact position.
-  // MPEG-TS demux seeking at an exact GOP boundary can otherwise start at the
-  // following keyframe; ordinary exact seeking cannot recover earlier packets.
-  // For the bounded <=60-second profile, rewind to the beginning rather than
-  // assuming a GOP interval. Longer sources still require an access-point policy.
-  async seek(id, position) {
-    if (!Number.isFinite(position) || position < 0) throw Error('Invalid seek position');
-    const duration = Number(this.properties.duration);
-    const preroll = Number.isFinite(duration) && duration > 0 && duration <= 60
-      ? Math.max(this.seekPreroll, Math.min(position + 1, duration)) : this.seekPreroll;
-    await this.command(id, 'set', 'hr-seek-demuxer-offset', String(preroll));
-    return this.command(id + 0x40000000, 'seek', String(position), 'absolute+exact');
+  async strings(epoch,values,invoke){
+    const pointers=[];let failure,result,failed=false;
+    try{
+      for(const value of values){
+        const bytes=new TextEncoder().encode(value+'\0'),call=this.engine.call;this.assertCurrent(epoch);
+        const ptr=await call.call(this.engine,'malloc',bytes.length);
+        // Capture the pointer before checking retirement; late allocation still
+        // has exactly one mandatory free even after close revokes the command.
+        if(ptr)pointers.push(ptr);this.assertCurrent(epoch);if(!ptr)throw Error('Command allocation failed');
+        const memory=this.engine.raw.memory.buffer;this.assertCurrent(epoch);new Uint8Array(memory).set(bytes,ptr);
+      }
+      result=await invoke(pointers);
+    }catch(error){failure=error;failed=true;}
+    const errors=[];
+    for(const ptr of pointers){try{await this.engine.call('free',ptr);}catch(error){errors.push(error);}}
+    if(failed)throw failure;if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Native string cleanup failed');return result;
   }
-  pump(force = false, render = true) {
-    return this.serial(async () => {
-      if (this.closed) return [];
-      const checkDecoder=()=>{if(this.engine.decoder?.error)throw Error('Retained decoder: '+this.engine.decoder.error);};
-      checkDecoder();
-      if (this.audio?.error) throw Error(this.audio.error);
-      if (this.sourceFailure) throw this.sourceFailure;
-      const failures = this.engine.source.drainFailures().filter(failure => failure.generation === undefined || failure.generation === this.engine.source.generation);
-      if (failures.length) {
-        this.engine.source.cancelSource();
-        this.sourceFailure = new Error('Source transport: ' + failures.map(failure => String(failure.cause ?? failure.kind)).join('; '), {cause: failures[0].cause});
-        throw this.sourceFailure;
+  command(id,...args){
+    if(!Number.isInteger(id)||id<0||id>0xffffffff||args.length<1||args.length>4||args.some(a=>typeof a!=='string'||a.includes('\0')||a.length>16384))throw Error('Invalid native command');
+    const epoch=this.control.epoch;
+    return this.serial(()=>{this.assertCurrent(epoch);return this.strings(epoch,args,async pointers=>{const rc=await this.invoke(epoch,'web_command_args',id,...pointers,...Array(4-pointers.length).fill(0));if(rc<0)throw Error('Command rejected: '+rc);});});
+  }
+  addSubtitle(id,path,title,language,select){
+    if(![path,title,language].every(value=>typeof value==='string'&&!value.includes('\0')&&value.length<=4096))throw Error('Invalid subtitle metadata');
+    const epoch=this.control.epoch;
+    return this.serial(()=>{this.assertCurrent(epoch);return this.strings(epoch,[path,title,language],async pointers=>{const rc=await this.invoke(epoch,'web_add_subtitle',id,...pointers,+select);if(rc<0)throw Error('Subtitle command rejected: '+rc);});});
+  }
+  async seek(id,position){
+    if(!Number.isFinite(position)||position<0)throw Error('Invalid seek position');
+    const epoch=this.control.epoch,preroll=playbackHostSeekPreroll(this.control,position);
+    await this.command(id,'set','hr-seek-demuxer-offset',String(preroll));this.assertCurrent(epoch);
+    return this.command(id+0x40000000,'seek',String(position),'absolute+exact');
+  }
+  pump(force=false,render=true){
+    const epoch=this.control.epoch;
+    return this.serial(async()=>{
+      if(!this.current(epoch))return [];
+      const check=()=>{const error=this.engine.decoder?.error;this.assertCurrent(epoch);if(error)throw Error('Retained decoder: '+error);};check();
+      const audioError=this.audio?.error;this.assertCurrent(epoch);if(audioError)throw Error(audioError);
+      if(this.control.sourceFailed)throw this.sourceError;
+      const failures=this.engine.source.drainFailures(),generation=this.engine.source.generation;this.assertCurrent(epoch);
+      const currentFailures=failures.filter(failure=>playbackHostFailureCurrent(failure.generation,generation));
+      if(currentFailures.length){
+        const error=new Error('Source transport: '+currentFailures.map(failure=>String(failure.cause??failure.kind)).join('; '),{cause:currentFailures[0].cause});this.assertCurrent(epoch);
+        this.sourceError=error;this.control=failPlaybackHostSource(this.control,epoch);this.engine.source.cancelSource();throw error;
       }
-      const events = [];
-      for (let i = 0; i < 64; i++) {
-        const ptr = await this.engine.call('web_event');
-        checkDecoder();
-        if (!ptr) break;
+      const events=[];
+      for(let i=0;i<playbackHostEventBudget();i++){
+        // Unlike other calls this result may be an owned string pointer, so
+        // retirement must be checked after capturing its cleanup obligation.
+        const call=this.engine.call;this.assertCurrent(epoch);const ptr=await call.call(this.engine,'web_event');
+        if(!ptr){this.assertCurrent(epoch);check();break;}
         let event;
-        try { event = JSON.parse(this.engine.module.UTF8ToString(ptr)); }
-        finally { await this.engine.call('free', ptr); }
-        if (event.event === 'property-change') this.properties[event.name] = event.data;
-        if (this.fatalCommandErrors && event.event === 'command-reply' && event.error && event.error !== 'success')
-          throw Error('Command reply failed: ' + JSON.stringify(event));
-        events.push(event);
-        this.events.push(event);
-        if (this.events.length > 256) this.events.shift();
+        try{this.assertCurrent(epoch);check();event=JSON.parse(this.engine.module.UTF8ToString(ptr));this.assertCurrent(epoch);}
+        finally{await this.engine.call('free',ptr);}
+        this.assertCurrent(epoch);
+        const decision=observePlaybackHostEvent(this.control,epoch,{kind:event.event,name:event.name,duration:event.name==='duration'?Number(event.data):undefined,error:event.error});this.control=decision.state;
+        if(decision.fatal)throw Error('Command reply failed: '+JSON.stringify(event));
+        if(!decision.accepted)break;
+        if(event.event==='property-change')this.properties[event.name]=event.data;
+        events.push(event);this.events.push(event);if(decision.trim)this.events.shift();
       }
-      // A settled user pause holds the canvas used by both display and snapshots.
-      // Native events and command replies still drain until a visual operation.
       if(!render)return events;
-      force=force||this.renderWidth!==this.width||this.renderHeight!==this.height;
-      this.renderWidth=this.width;this.renderHeight=this.height;
-      const ptr = await this.engine.call('web_render', this.width, this.height, +force);
-      checkDecoder();
+      const width=this.width,height=this.height,admission=beginPlaybackHostRender(this.control,epoch,width,height,force);this.control=admission.state;
+      if(!admission.accepted)return events;
+      const ptr=await this.invoke(epoch,'web_render',width,height,+admission.force);check();
       if(this.retained){
-        if(ptr)await this.retained.select(this.engine,this.properties);
-        checkDecoder();
-        if(this.retained.present(this.context,this.canvas)){await this.engine.call('web_presented');this.draws++;}
-      }else if (ptr) {
-        if (!this.imageData || this.imageData.width !== this.width || this.imageData.height !== this.height)
-          this.imageData = new ImageData(this.width, this.height);
-        const rgba = this.imageData.data;
-        rgba.set(new Uint8ClampedArray(this.engine.raw.memory.buffer, ptr, rgba.length));
-        for (let i = 3; i < rgba.length; i += 4) rgba[i] = 255;
-        this.context.putImageData(this.imageData, 0, 0);
-        await this.engine.call('web_presented');
-        this.draws++;
+        if(ptr){const select=this.retained.select;this.assertCurrent(epoch);await select.call(this.retained,this.engine,this.properties);}check();
+        const present=this.retained.present;this.assertCurrent(epoch);const presented=present.call(this.retained,this.context,this.canvas);this.assertCurrent(epoch);
+        if(presented){await this.invoke(epoch,'web_presented');this.control=presentPlaybackHost(this.control,epoch);}
+      }else if(ptr){
+        if(!this.imageData||this.imageData.width!==width||this.imageData.height!==height)this.imageData=new ImageData(width,height);
+        this.assertCurrent(epoch);const rgba=this.imageData.data,memory=this.engine.raw.memory.buffer;this.assertCurrent(epoch);
+        rgba.set(new Uint8ClampedArray(memory,ptr,rgba.length));for(let i=3;i<rgba.length;i+=4)rgba[i]=255;
+        const put=this.context.putImageData;this.assertCurrent(epoch);put.call(this.context,this.imageData,0,0);this.assertCurrent(epoch);
+        await this.invoke(epoch,'web_presented');this.control=presentPlaybackHost(this.control,epoch);
       }
       return events;
     });
   }
-  picture() { return this.context.getImageData(0, 0, this.width, this.height).data.slice(); }
-  // Revoke pending reads before waiting for a command/render owning the queue.
-  destroy() {
-    this.engine.source.cancelSource();
-    return this.serial(async () => {
-      this.closed = true;
-      const errors = [];
+  picture(){return this.context.getImageData(0,0,this.width,this.height).data.slice();}
+  destroy(){
+    if(this.destroyPromise)return this.destroyPromise;
+    // Publish retirement and shared completion before callback-capable cleanup.
+    this.control=closePlaybackHost(this.control);let resolve,reject;
+    this.destroyPromise=new Promise((yes,no)=>{resolve=yes;reject=no;});
+    const errors=[];try{this.engine.source.cancelSource();}catch(error){errors.push(error);}
+    this.serial(async()=>{
       let result;
-      try { if (this.audio) await this.audio.stop(); }
-      catch (error) { errors.push(error); }
-      try {
-        if (this.created) {
-          await this.engine.call('web_destroy');
-          this.created = false;
-        }
-      } catch (error) { errors.push(error); }
-      try { result = {audio: this.audio?.snapshot(), scheduler: this.engine.scheduler.snapshot(), source: this.engine.source.snapshot()}; }
-      catch (error) { errors.push(error); }
-      try { this.engine.dispose(); }
-      catch (error) { errors.push(error); }
-      try {this.retained?.clear();}
-      catch (error) {errors.push(error);}
-      if(result){result.retained=this.retained?.snapshot();result.decoder=this.engine.decoder?.snapshot();}
-      if (errors.length === 1) throw errors[0];
-      if (errors.length > 1) throw new AggregateError(errors, 'Playback cleanup failed');
-      return result;
-    });
+      try{if(this.audio)await this.audio.stop();}catch(error){errors.push(error);}
+      try{if(this.created)await this.engine.call('web_destroy');}catch(error){errors.push(error);}
+      this.control=playbackHostNativeDestroyed(this.control);
+      try{result={audio:this.audio?.snapshot(),scheduler:this.engine.scheduler.snapshot(),source:this.engine.source.snapshot()};}catch(error){errors.push(error);}
+      try{this.engine.dispose();}catch(error){errors.push(error);}
+      try{this.retained?.clear();}catch(error){errors.push(error);}
+      try{if(result){result.retained=this.retained?.snapshot();result.decoder=this.engine.decoder?.snapshot();}}catch(error){errors.push(error);}
+      this.control=finishPlaybackHostClose(this.control);
+      if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Playback cleanup failed');return result;
+    }).then(resolve,reject);
+    return this.destroyPromise;
   }
 }

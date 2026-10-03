@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 import {runtimeWorker} from './generated/internal/runtime-worker.js';
 import {SubtitleOverlay} from './subtitle-overlay.js';
-import {beginSubtitleOpenWait,settleSubtitleOpenWait,failSubtitleWorkerLifetime,initialSubtitleWorker,admitSubtitleWorker,startSubtitleWorker,finishSubtitleWorker,failSubtitleWorker,closeSubtitleWorker,closedSubtitleWorker,subtitleWorkerAlive,subtitleWorkerCurrent,admitSubtitleRefresh,subtitleRefreshCurrent,settleSubtitleRefresh} from './generated/internal/machine/subtitle-worker.js';
+import {subtitleRawTiming,subtitleVisualTiming,subtitleRecoverClock,subtitleSeekStart,subtitleMayLearnProfile,changeSubtitleTimeline,cancelSubtitleDeadline,armSubtitleDeadline,subtitleDeadlineCurrent,settleSubtitleDeadline,completeSubtitlePump,admitSubtitleAttachment,commitSubtitleAttachment,subtitleAttachment,removeSubtitleAttachment,beginSubtitleOpenWait,settleSubtitleOpenWait,failSubtitleWorkerLifetime,initialSubtitleWorker,admitSubtitleWorker,startSubtitleWorker,finishSubtitleWorker,failSubtitleWorker,closeSubtitleWorker,closedSubtitleWorker,subtitleWorkerAlive,subtitleWorkerCurrent,admitSubtitleRefresh,subtitleRefreshCurrent,settleSubtitleRefresh} from './generated/internal/machine/subtitle-worker.js';
 let control=initialSubtitleWorker();
-let engine, io, ioStats, fatal, lastTime=0,textPointer,timingPointer,selectedTrack=false;
+let engine, io, ioStats, fatal,textPointer,timingPointer;
 let host,source,releasedSource,privateMpvSource,ioOpening;
 const releaseSource=()=>{const captured=source;if(!captured||releasedSource===captured)return;releasedSource=captured;captured.close();};
-let attachmentSequence=0,attachmentBytes=0,attachmentsDirectory=false;
-const attachments=new Map();
+let attachmentsDirectory=false;
+const attachmentFiles=new Set();
 class AttachmentRejected extends Error {}
 const loading=new AbortController(),refreshes=new Map();
 const rawInvoke=(name,...args)=>host?host.call(name,...args):engine['_'+name](...args);
@@ -16,59 +16,60 @@ const invoke=async(request,name,...args)=>{check(request);const target=host??eng
 // native result remains reachable by cleanup.
 const allocate=async(request,size)=>{check(request);const target=host??engine,method=target[host?'call':'_malloc'];check(request);return await method.apply(target,host?['malloc',size]:[size]);};
 const send=(request,value,transfer=[])=>{check(request);postMessage(value,transfer);};
-const service=()=>({avChains:0,heapBytes:engine.HEAPU8.byteLength,io:source?.reader.stats??ioStats,scheduler:{...scheduler},...(host?{privateRuntime:host.facts()}:{} )});
+const service=()=>({avChains:0,heapBytes:engine.HEAPU8.byteLength,io:source?.reader.stats??ioStats,scheduler:{...control.timeline.scheduler},...(host?{privateRuntime:host.facts()}:{} )});
 const overlay=new SubtitleOverlay();
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const check=request=>{if(!subtitleWorkerCurrent(control,request))throw Error('Subtitle service closed');if(control.failed&&fatal)throw fatal;};
-let deadlineTimer=0,deadlineEpoch=0,lastTimingEpoch=-1;
-// Keep the next visual boundary until a render or pump accounts for it.
-// Rearming a timer after its target must not silently skip that transition.
-let nextRenderBoundary=null;
-// Only natural decoding from the beginning can establish a complete ASS
-// timeline. EOF after a seek into the middle is not complete-track evidence.
-let continuousFromStart=true;
+let deadlineTimer=null;
 const learnProfile=async request=>{
- if(continuousFromStart&&selectedTrack&&(await invoke(request,'subtitle_service_ass_scan_needed')))
+ if(subtitleMayLearnProfile(control)&&(await invoke(request,'subtitle_service_ass_scan_needed')))
   (await invoke(request,'subtitle_service_ass_scan_complete'));
 };
-const scheduler={stateUpdates:0,nativeUpdateCalls:0,fullRenders:0,deadlineWakes:0};
-const cancelDeadline=()=>{const timer=deadlineTimer;deadlineTimer=0;deadlineEpoch++;clearTimeout(timer);};
+const change=(request,event)=>{control=changeSubtitleTimeline(control,request,event);};
+const cancelDeadline=()=>{const timer=deadlineTimer;deadlineTimer=null;control=cancelSubtitleDeadline(control);if(timer?.handle!==undefined)clearTimeout(timer.handle);};
 const timing=async(request,seconds)=>{
  const status=(await invoke(request,'subtitle_service_next_raw_boundary',seconds,timingPointer,timingPointer+8));
  check(request);const view=new DataView(engine.HEAPU8.buffer,timingPointer,12);
- return {supported:status>=0,unstable:status===-2,next:status===1?view.getFloat64(0,true):null,epoch:view.getUint32(8,true)};
+ return subtitleRawTiming(status,view.getFloat64(0,true),view.getUint32(8,true));
 };
 const visual=async(request,seconds)=>{
  const status=(await invoke(request,'subtitle_service_visual_schedule',seconds,timingPointer,timingPointer+8));
  check(request);const view=new DataView(engine.HEAPU8.buffer,timingPointer,12);
- return {mode:status===1?'deadline':status===2?'animated':'fallback',unstable:status===-2,next:status>0&&view.getFloat64(0,true)>seconds?view.getFloat64(0,true):null,epoch:view.getUint32(8,true)};
+ return subtitleVisualTiming(status,view.getFloat64(0,true),view.getUint32(8,true),seconds);
 };
 const armDeadline=async(request,seconds,rate,running)=>{
  cancelDeadline();
  const snapshot=await visual(request,seconds+.0005);check(request);
- if(!running||snapshot.mode!=='deadline'||!(rate>0)||snapshot.next===null)return {...snapshot,timingEpoch:snapshot.epoch,epoch:deadlineEpoch};
- const epoch=deadlineEpoch,target=snapshot.next;
- const ms=Math.max(1,Math.ceil((target-seconds)*1000/rate)+2);
- const acquired=setTimeout(()=>{
-  if(control.phase!=='active'||epoch!==deadlineEpoch)return;
-  deadlineTimer=0;scheduler.deadlineWakes++;
-  postMessage({type:'subtitleDeadline',epoch,target});
- },ms);
- if(!subtitleWorkerCurrent(control,request)||epoch!==deadlineEpoch){clearTimeout(acquired);check(request);}else deadlineTimer=acquired;
- return {...snapshot,timingEpoch:snapshot.epoch,epoch,next:target};
+ const now=performance.now();check(request);
+ const decision=armSubtitleDeadline(control,request,snapshot,seconds,rate,running,now);control=decision.state;
+ if(!decision.deadline)return decision.schedule;
+ const deadline=decision.deadline;
+ const arm=()=>{
+  if(!subtitleDeadlineCurrent(control,deadline))return;
+  const now=performance.now();if(!subtitleDeadlineCurrent(control,deadline))return;
+  const record={handle:undefined};deadlineTimer=record;
+  const acquired=setTimeout(()=>{
+   if(deadlineTimer!==record)return;deadlineTimer=null;
+   const now=performance.now(),settled=settleSubtitleDeadline(control,deadline,now);control=settled.state;
+   if(settled.remaining!==undefined){arm();return;}
+   if(settled.accepted)postMessage({type:'subtitleDeadline',epoch:deadline.epoch,target:deadline.target});
+  },Math.max(1,deadline.due-now));record.handle=acquired;
+  if(deadlineTimer!==record||!subtitleDeadlineCurrent(control,deadline))clearTimeout(acquired);
+ };
+ arm();check(request);return decision.schedule;
 };
 const seekDisplay=async(request,seconds)=>{
  const recovery=(await invoke(request,'subtitle_service_bitmap_recovery_point',seconds));
- const start=recovery>=0&&recovery<seconds-.001?recovery:seconds;
+ const start=subtitleSeekStart(seconds,recovery);
  if((await invoke(request,'subtitle_service_seek',start))<0)throw Error('Subtitle seek failed');
- check(request);continuousFromStart=start===0;
+ check(request);change(request,{type:'seeked',start});
  await delay(30);check(request);
  if(start===seconds)return;
  (await invoke(request,'subtitle_service_block',0));
  try{
   let ready=0;
   for(let i=0;i<400&&!ready;i++){
-   check(request);ready=(await invoke(request,'subtitle_service_update',seconds));check(request);scheduler.nativeUpdateCalls++;
+   check(request);ready=(await invoke(request,'subtitle_service_update',seconds));check(request);change(request,{type:'count',counter:'nativeUpdateCalls'});
    if(ready<0){ready=0;await delay(5);continue;}if(!ready)await delay(5);
   }
   if(!ready)throw Error('Subtitle packet deadline exceeded');
@@ -111,6 +112,7 @@ function closeWorker(){
   if(textPointer){const pointer=textPointer;textPointer=0;await release(()=>rawInvoke('free',pointer));}
   if(timingPointer){const pointer=timingPointer;timingPointer=0;await release(()=>rawInvoke('free',pointer));}
   if(engine)await release(()=>rawInvoke('subtitle_service_close'));
+  for(const path of attachmentFiles)await release(()=>{engine.FS.unlink(path);attachmentFiles.delete(path);});
   if(host)await release(async()=>{cleanup={live:await host.call('demuxe_source_live'),...host.facts()};});
   else await release(async()=>{const deadline=performance.now()+2000;while(engine?.PThread?.runningWorkers.length&&performance.now()<deadline)await delay(10);});
   await release(()=>host?.dispose());await release(()=>engine?.PThread?.terminateAllThreads());if(!host)await release(()=>delay(50));
@@ -177,84 +179,91 @@ onmessage=({data:d})=>{
     (await invoke(request,'subtitle_service_block',1));result={tracks};
    }else if(type==='add'){
     if(!engine._subtitle_service_external_api||await invoke(request,'subtitle_service_external_api')!==1)throw Error('Subtitle attachment interface mismatch; install matching mpv service assets');
-    check(request);if(!['ass','ssa','srt','vtt'].includes(d.asset?.format)||!(d.asset.bytes instanceof ArrayBuffer))throw new AttachmentRejected('Invalid external subtitle attachment');
-    const bytes=d.asset.bytes.byteLength;
-    if(!bytes||bytes>8*1024*1024||attachments.size>=16||attachmentBytes+bytes>16*1024*1024)throw new AttachmentRejected('Subtitle budget exceeded');
-    const path='/subtitles/'+(++attachmentSequence)+'.'+d.asset.format;
-    if(!attachmentsDirectory){engine.FS.mkdir('/subtitles');attachmentsDirectory=true;}
-    check(request);engine.FS.writeFile(path,new Uint8Array(d.asset.bytes));check(request);
-    const encoded=new TextEncoder().encode(path+'\0'),pointer=await allocate(request,encoded.length);
-    if(!pointer){engine.FS.unlink(path);throw Error('Subtitle attachment allocation failed');}
-    let id;
-    try{check(request);engine.HEAPU8.set(encoded,pointer);id=await invoke(request,'subtitle_service_add',pointer);}
-    finally{await rawInvoke('free',pointer);}
-    check(request);if(!(id>0)){engine.FS.unlink(path);throw new AttachmentRejected('Invalid external subtitle: mpv could not load attachment');}
-    attachments.set(id,{path,bytes});attachmentBytes+=bytes;
-    result={mpvId:id};
+    check(request);const asset=d.asset,format=asset?.format,buffer=asset?.bytes,bytes=buffer?.byteLength,isBuffer=buffer instanceof ArrayBuffer;check(request);
+    const admission=admitSubtitleAttachment(control,request,format,bytes,isBuffer);control=admission.state;
+    if(admission.error)throw new AttachmentRejected(admission.error==='invalid'?'Invalid external subtitle attachment':'Subtitle budget exceeded');
+    const path=admission.path;
+    let committed=false,nativeUncertain=false,failure;
+    try{
+     if(!attachmentsDirectory){engine.FS.mkdir('/subtitles');attachmentsDirectory=true;}
+     check(request);attachmentFiles.add(path);engine.FS.writeFile(path,new Uint8Array(buffer));check(request);
+     const encoded=new TextEncoder().encode(path+'\0'),pointer=await allocate(request,encoded.length);
+     if(!pointer)throw Error('Subtitle attachment allocation failed');
+     let id,invokeFailure;
+     try{check(request);engine.HEAPU8.set(encoded,pointer);check(request);nativeUncertain=true;id=await invoke(request,'subtitle_service_add',pointer);if(Number.isSafeInteger(id)&&id<=0)nativeUncertain=false;}
+     catch(error){invokeFailure={error};throw error;}
+     finally{try{await rawInvoke('free',pointer);}catch(error){nativeUncertain=true;if(!invokeFailure)throw error;}}
+
+     check(request);if(!Number.isSafeInteger(id)||id<=0||subtitleAttachment(control,id))throw new AttachmentRejected('Invalid external subtitle: mpv could not load attachment');
+     control=commitSubtitleAttachment(control,request,id);committed=true;nativeUncertain=false;result={mpvId:id};
+    }catch(error){failure={error};if(nativeUncertain){fatal=error;control=failSubtitleWorker(control,request);}throw error;
+    }finally{
+     if(!committed&&attachmentFiles.has(path))try{engine.FS.unlink(path);attachmentFiles.delete(path);}catch(error){fatal=failure?failure.error:error;control=failSubtitleWorker(control,request);if(!failure)throw error;}
+    }
    }else if(type==='remove'){
-    const attachment=attachments.get(d.trackId);if(!attachment)throw Error('Unknown external subtitle');
-    if(await invoke(request,'subtitle_service_remove',d.trackId)<0)throw Error('Subtitle attachment removal failed');
-    check(request);engine.FS.unlink(attachment.path);check(request);attachmentBytes-=attachment.bytes;attachments.delete(d.trackId);
+    const trackId=d.trackId;check(request);const attachment=subtitleAttachment(control,trackId);if(!attachment)throw Error('Unknown external subtitle');
+    let removed;
+    try{removed=await invoke(request,'subtitle_service_remove',trackId);}catch(error){fatal=error;control=failSubtitleWorker(control,request);throw error;}
+    if(removed<0)throw Error('Subtitle attachment removal failed');
+    try{check(request);engine.FS.unlink(attachment.path);attachmentFiles.delete(attachment.path);check(request);control=removeSubtitleAttachment(control,request,trackId);}
+    catch(error){fatal=error;control=failSubtitleWorker(control,request);throw error;}
    }else if(type==='select'){
-    cancelDeadline();lastTimingEpoch=-1;nextRenderBoundary=null;
-    if(selectedTrack||lastTime!==0)continuousFromStart=false;
-    if((await invoke(request,'subtitle_service_select',d.trackId))<0)throw Error('Subtitle selection failed');check(request);selectedTrack=d.trackId>0;overlay.clear();lastTime=0;await delay(0);
+    cancelDeadline();change(request,{type:'select-begin'});
+    if((await invoke(request,'subtitle_service_select',d.trackId))<0)throw Error('Subtitle selection failed');check(request);change(request,{type:'selected',trackId:d.trackId});overlay.clear();await delay(0);
    }else if(type==='seek'){
-    cancelDeadline();lastTimingEpoch=-1;nextRenderBoundary=null;
-    await seekDisplay(request,d.seconds);check(request);overlay.clear();check(request);lastTime=d.seconds;
+    cancelDeadline();change(request,{type:'reset'});
+    await seekDisplay(request,d.seconds);check(request);overlay.clear();check(request);change(request,{type:'time',seconds:d.seconds});
    }else if(type==='timing'){
     if(!Number.isFinite(d.seconds))throw Error('Invalid subtitle timing position');
     const status=(await invoke(request,'subtitle_service_next_raw_boundary',d.seconds,timingPointer,timingPointer+8));
     check(request);const view=new DataView(engine.HEAPU8.buffer,timingPointer,12);
-    result={supported:status>=0,unstable:status===-2,next:status===1?view.getFloat64(0,true):null,epoch:view.getUint32(8,true),visual:await visual(request,d.seconds),avChains:(await invoke(request,'subtitle_service_av_chains'))};
+    result={...subtitleRawTiming(status,view.getFloat64(0,true),view.getUint32(8,true)),visual:await visual(request,d.seconds),avChains:(await invoke(request,'subtitle_service_av_chains'))};
    }else if(type==='profile'){
     // Scheduling is advisory. Never seek/read the whole track to classify it
     // on the critical startup path; normal render/pump calls learn its state.
     await learnProfile(request);
-    result={mode:selectedTrack?(await visual(request,lastTime)).mode:'fallback',avChains:(await invoke(request,'subtitle_service_av_chains'))};
+    result={mode:control.timeline.selected?(await visual(request,control.timeline.lastTime)).mode:'fallback',avChains:(await invoke(request,'subtitle_service_av_chains'))};
    }else if(type==='cancelDeadline'){
-    cancelDeadline();result={epoch:deadlineEpoch};
+    cancelDeadline();result={epoch:control.timeline.deadlineEpoch};
    }else if(type==='pump'){
     if(!Number.isFinite(d.seconds))throw Error('Invalid subtitle clock position');
-    if(!selectedTrack){cancelDeadline();result={mode:'fallback'};}
+    if(!control.timeline.selected){cancelDeadline();result={mode:'fallback'};}
     else{
-     const recoveredClock=!Number.isFinite(lastTime)||d.seconds<lastTime-.05||d.seconds>lastTime+1;
+     const recoveredClock=subtitleRecoverClock(control,d.seconds);
      if(recoveredClock){
-      cancelDeadline();lastTimingEpoch=-1;nextRenderBoundary=null;
+      cancelDeadline();change(request,{type:'reset'});
       await seekDisplay(request,d.seconds);check(request);overlay.clear();check(request);
      }
-     lastTime=d.seconds;(await invoke(request,'subtitle_service_block',0));let ready=0;
+     change(request,{type:'time',seconds:d.seconds});(await invoke(request,'subtitle_service_block',0));let ready=0;
      for(let i=0;i<400&&!ready;i++){
-      check(request);ready=(await invoke(request,'subtitle_service_update',d.seconds));check(request);scheduler.nativeUpdateCalls++;
+      check(request);ready=(await invoke(request,'subtitle_service_update',d.seconds));check(request);change(request,{type:'count',counter:'nativeUpdateCalls'});
       if(ready<0){ready=0;await delay(5);continue;}if(!ready)await delay(5);
      }
      (await invoke(request,'subtitle_service_block',1));if(!ready)throw Error('Subtitle packet deadline exceeded');
-     check(request);scheduler.stateUpdates++;
+     check(request);change(request,{type:'count',counter:'stateUpdates'});
      if((await invoke(request,'subtitle_service_av_chains'))!==0)throw Error('Subtitle service unexpectedly allocated A/V decoding');
      await learnProfile(request);
      const schedule=await armDeadline(request,d.seconds,d.rate,d.running);check(request);
-     const crossedBoundary=nextRenderBoundary!==null&&d.seconds>=nextRenderBoundary;
-     if(crossedBoundary)nextRenderBoundary=null;
-     const timingChanged=recoveredClock||crossedBoundary||lastTimingEpoch>=0&&schedule.timingEpoch!==lastTimingEpoch;
-     lastTimingEpoch=schedule.timingEpoch;
+     const completed=completeSubtitlePump(control,request,d.seconds,schedule.timingEpoch,recoveredClock);control=completed.state;
+     const timingChanged=completed.timingChanged;
      result={mode:schedule.mode,timingChanged,schedule,service:service()};
     }
    }else if(type==='render'){
     if(!Number.isFinite(d.seconds)||d.width<1||d.height<1||d.width>1920||d.height>1080)throw Error('Invalid subtitle render bounds');
-    if(!selectedTrack){if((await invoke(request,'subtitle_service_av_chains'))!==0)throw Error('Subtitle service unexpectedly allocated A/V decoding');send(request,{id:request.clientId,size:0,text:'',service:service()});return;}
-    if(!Number.isFinite(lastTime)||d.seconds<lastTime-.05||d.seconds>lastTime+1){
+    if(!control.timeline.selected){if((await invoke(request,'subtitle_service_av_chains'))!==0)throw Error('Subtitle service unexpectedly allocated A/V decoding');send(request,{id:request.clientId,size:0,text:'',service:service()});return;}
+    if(subtitleRecoverClock(control,d.seconds)){
      await seekDisplay(request,d.seconds);check(request);overlay.clear();check(request);
     }
-    lastTime=d.seconds;(await invoke(request,'subtitle_service_block',0));let ready=0;
+    change(request,{type:'time',seconds:d.seconds});(await invoke(request,'subtitle_service_block',0));let ready=0;
     for(let i=0;i<400&&!ready;i++){
      // Packet acquisition can take many turns. Do not run libass and rebuild
      // the bitmap on every poll while the subtitle decoder is still waiting.
-     check(request);ready=(await invoke(request,'subtitle_service_update',d.seconds));check(request);scheduler.nativeUpdateCalls++;
+     check(request);ready=(await invoke(request,'subtitle_service_update',d.seconds));check(request);change(request,{type:'count',counter:'nativeUpdateCalls'});
      if(ready>0)ready=(await invoke(request,'subtitle_service_render',d.seconds,d.width,d.height));
      if(ready<0){ready=0;await delay(5);continue;}if(!ready)await delay(5);
     }
     (await invoke(request,'subtitle_service_block',1));if(!ready)throw Error('Subtitle packet deadline exceeded');
-    check(request);scheduler.fullRenders++;
+    check(request);change(request,{type:'count',counter:'fullRenders'});
     if((await invoke(request,'subtitle_service_av_chains'))!==0)throw Error('Subtitle service unexpectedly allocated A/V decoding');
     check(request);const previous=overlay.serial,snapshot=overlay.read(engine);check(request);
     let bitmap;
@@ -267,8 +276,7 @@ onmessage=({data:d})=>{
     const schedule=await armDeadline(request,d.seconds,d.rate,d.running);
     // Use the exact rendered time, without the timer query's look-ahead.
     const renderedTiming=await visual(request,d.seconds);check(request);
-    nextRenderBoundary=renderedTiming.next;
-    lastTimingEpoch=renderedTiming.epoch;
+    change(request,{type:'rendered',next:renderedTiming.next,epoch:renderedTiming.epoch});
     send(request,{id:request.clientId,bitmap,unchanged:!bitmap,hasOverlay:!!snapshot.surface,size:bitmap?engine.HEAP32[(engine._web_subtitle_ptr()>>>2)+2]:0,text,mode:schedule.mode,schedule,service:service()},bitmap?[bitmap]:[]);outgoingBitmap=null;return;
    }
    send(request,{id:request.clientId,...result});
