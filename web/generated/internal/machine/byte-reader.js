@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 export function createByteReader(input) {
-    return Object.freeze({ id: input.id, size: input.size, maxReads: input.maxReads, maxBytes: input.maxBytes, ownedClose: input.ownedClose, reads: 0, bytes: 0, nextRequest: 0, nextChunk: 0, active: null, retired: false, closeIssued: false, failure: null });
+    return Object.freeze({ id: input.id, size: input.size, maxReads: input.maxReads, maxBytes: input.maxBytes, ownedClose: input.ownedClose, leaseSerial: 0, leases: Object.freeze([]), reads: 0, bytes: 0, nextRequest: 0, nextChunk: 0, active: null, retired: false, closeIssued: false, failure: null });
 }
 function fault(code, message) { return Object.freeze({ code, message }); }
 function transition(state, effect, copyAt = null) {
@@ -72,3 +72,14 @@ export function retireByteReader(state) {
 export function closeByteReader(state) {
     return Object.freeze({ state: state.retired && state.closeIssued ? state : Object.freeze({ ...state, retired: true, closeIssued: true }), closeProvider: state.ownedClose && !state.closeIssued });
 }
+/** Reserve closure capacity before adding a range to the shell's promise queue.
+ * A timeout may settle the caller but does not release an ignored provider call. */
+export function admitByteReadLease(state) {
+    if (state.retired)
+        return { state, id: null, fault: fault('ABORTED', 'Source closed') };
+    if (state.leases.length >= 128 || state.leaseSerial >= Number.MAX_SAFE_INTEGER)
+        return { state, id: null, fault: fault('INVALID_ARGUMENT', 'Source read queue capacity exceeded') };
+    const id = state.leaseSerial + 1;
+    return { state: Object.freeze({ ...state, leaseSerial: id, leases: Object.freeze([...state.leases, id]) }), id, fault: null };
+}
+export function finishByteReadLease(state, id) { return state.leases.includes(id) ? Object.freeze({ ...state, leases: Object.freeze(state.leases.filter(lease => lease !== id)) }) : state; }

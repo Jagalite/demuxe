@@ -26,3 +26,18 @@ test('legacy worker edges remain explicit demo/experiment dependencies, separate
  const wasm=await read('src/internal/wasm-player.ts');assert.ok(wasm.includes('web/filter-retained-engine-worker.js'));assert.ok(wasm.includes('web/software-full-engine-worker.js'));
  for(const name of legacy)assert.equal(wasm.includes('web/'+name),false);
 });
+
+test('explicit worker policy imports are present in beta and provider source inventories',async()=>{
+ const packaging=await read('scripts/package-beta.py'),inventory=JSON.parse(await read('licensing/provider-packages.json'));
+ const workers=['software-full-engine-worker','filter-retained-engine-worker','retained-decoder-worker','io-worker','audio-worklet','fast-source-inspector'];
+ for(const worker of workers){
+  const source=await read('web/'+worker+'.js');
+  for(const match of source.matchAll(/from ['"]\.\/generated\/internal\/machine\/([^'"]+)\.js['"]/g)){
+   const name=match[1],input='src/internal/machine/'+name+'.ts',output='web/generated/internal/machine/'+name+'.js';
+   assert.ok(packaging.includes("'"+name+"'"),'beta worker helper missing: '+name);
+   assert.ok(inventory.playerCoreSources.includes(input),'core source missing: '+input);
+   assert.ok(inventory.profiles.mpv.generated.includes(output),'provider helper missing: '+output);
+   assert.ok(inventory.ownershipRules.some(rule=>rule.owner==='core'&&rule.paths?.includes(input)),'source owner missing: '+input);
+  }
+ }
+});

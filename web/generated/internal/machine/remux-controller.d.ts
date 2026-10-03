@@ -33,6 +33,7 @@ export type RemuxController = Readonly<{
     destroyed: boolean;
     cleanupFailures: number;
     ownerSerial: number;
+    releasing: readonly number[];
     owner: Owner | null;
     operationSerial: number;
     operation: Operation | null;
@@ -67,6 +68,9 @@ export type RemuxControllerCommand = Readonly<{
     message: string;
 }> | Readonly<{
     type: 'release';
+    owner: number;
+}> | Readonly<{
+    type: 'released';
     owner: number;
 }> | Readonly<{
     type: 'request';

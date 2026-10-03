@@ -60,3 +60,29 @@ test('abort before synchronous append attachment removes the late attached node'
 test('throwing handler cleanup cannot prevent script node removal or settlement',async t=>{
  const f=fixture(t),work=f.loader.load(f.base,new AbortController().signal);await f.fetched();const script=f.scripts[0],complete=script.onload;Object.defineProperty(script,'onload',{get:()=>complete,set(){throw Error('handler cleanup');}});complete();assert.equal(await work,f.runtime);assert.equal(script.appended,false);assert.equal(script.onerror,null);assert.equal(f.revoked.length,1);
 });
+test('aborted fetch acquisitions keep all32 slots charged until physical completion',async t=>{
+ const f=fixture(t);
+ for(let i=0;i<32;i++){const c=new AbortController(),work=f.loader.load(new URL(`https://assets.test/${i}/`),c.signal);c.abort();await assert.rejects(work,{code:'ABORTED'});}
+ assert.equal(f.loader.state.loads.length,32);assert.equal(f.loader.handles.size,32);
+ await assert.rejects(f.loader.load(f.base,new AbortController().signal),/capacity/);assert.equal(f.requests.length,32);
+ await f.fetched(0);assert.equal(f.loader.state.loads.length,31);assert.equal(f.loader.handles.size,31);
+ const c=new AbortController(),next=f.loader.load(f.base,c.signal);assert.equal(f.requests.length,33);c.abort();await assert.rejects(next);
+});
+test('consumer capacity rejects before callback or fetch acquisition and reopens on leave',async t=>{
+ const f=fixture(t),controllers=[],works=[];
+ for(let i=0;i<128;i++){const c=new AbortController();controllers.push(c);works.push(f.loader.load(f.base,c.signal));}
+ await assert.rejects(f.loader.load(f.base,new AbortController().signal),/capacity/);assert.equal(f.requests.length,1);
+ controllers[0].abort();await assert.rejects(works[0]);const next=f.loader.load(f.base,new AbortController().signal);
+ await f.fetched();f.scripts[0].onload();await Promise.all([...works.slice(1),next]);assert.equal(f.loader.state.loads[0].consumers.length,0);
+});
+test('ready module cache and monotonic identities have finite admission',()=>{
+ let state=createShakaRuntime();for(let i=0;i<32;i++){const joined=joinShakaRuntime(state,String(i),0);state=finishShakaRuntime(joined.state,joined.load,true).state;state=leaveShakaRuntime(state,joined.load,joined.consumer).state;}
+ assert.equal(joinShakaRuntime(state,'extra',0).accepted,false);assert.equal(joinShakaRuntime(state,'0',0).start,false);
+ assert.equal(joinShakaRuntime({...state,nextConsumer:Number.MAX_SAFE_INTEGER},'0',0).accepted,false);
+ assert.equal(joinShakaRuntime({...createShakaRuntime(),nextLoad:Number.MAX_SAFE_INTEGER},'new',0).accepted,false);
+});
+test('deadline during pending response text retains native acquisition charge',async t=>{
+ const f=fixture(t),body=deferred(),work=f.loader.load(f.base,new AbortController().signal);f.requests[0].resolve({ok:true,text:()=>body.promise});await turn();
+ f.now=15000;f.fire();await assert.rejects(work,/timed out/);assert.equal(f.loader.state.loads.length,1);assert.equal(f.loader.handles.size,1);
+ body.resolve('');await turn();assert.equal(f.loader.state.loads.length,0);assert.equal(f.loader.handles.size,0);assert.equal(f.scripts.length,0);
+});

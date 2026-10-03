@@ -10,6 +10,8 @@ export type PrivateAudioState = Readonly<{
     resumeAfterContext: boolean;
     contextObservation: number;
     contextActive: boolean;
+    contextWork: number | null;
+    contextApplied: number;
     eof: boolean;
     eofTask: number | null;
     nextEOF: number;
@@ -119,3 +121,16 @@ export declare function privateAudioDeadlineOpen(deadline: Readonly<{
     until: number;
 }>, now: number): boolean;
 export declare function privateAudioReady(status: PrivateAudioStatus, wait: PrivateAudioWait): boolean;
+/** One physical context write with latest-observation coalescing; no queued promise chain. */
+export declare function beginAudioContextWork(state: PrivateAudioState): Readonly<{
+    state: PrivateAudioState;
+    request: Readonly<{
+        id: number;
+        active: boolean;
+    }> | null;
+}>;
+export declare function finishAudioContextWork(state: PrivateAudioState, id: number): Readonly<{
+    state: PrivateAudioState;
+    accepted: boolean;
+    playVideo: boolean;
+}>;

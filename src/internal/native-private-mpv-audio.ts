@@ -3,7 +3,7 @@ import {runtimeWorker} from './runtime-worker.js';
 import {PlayerError,playerError} from './errors.js';
 import {createBackendRequests,admitBackendRequest,settleBackendRequest,failBackendRequests,beginBackendClose,finishBackendClose} from './machine/backend-requests.js';
 import type {RemoteSource,WatchdogPolicy} from '../types.js';
-import {createPrivateAudio,selectPrivateAudioStream,privateAudioSettings,beginAudioControl,audioControlCurrent,finishAudioPlay,observeAudioContext,acknowledgeAudioContext,beginAudioPoll,finishAudioPoll,observeAudioClock,privateAudioObservesClock,resetAudioClock,beginAudioEOF,audioEOFCurrent,finishAudioEOF,retirePrivateAudio,privateAudioReady,privateAudioDeadline,privateAudioDeadlineOpen} from './machine/private-audio.js';
+import {createPrivateAudio,selectPrivateAudioStream,privateAudioSettings,beginAudioContextWork,finishAudioContextWork,beginAudioControl,audioControlCurrent,finishAudioPlay,observeAudioContext,acknowledgeAudioContext,beginAudioPoll,finishAudioPoll,observeAudioClock,privateAudioObservesClock,resetAudioClock,beginAudioEOF,audioEOFCurrent,finishAudioEOF,retirePrivateAudio,privateAudioReady,privateAudioDeadline,privateAudioDeadlineOpen} from './machine/private-audio.js';
 
 /** Restricted stereo PCM service: private memory, acknowledged consumption and lifecycle. */
 export class NativePrivateMpvAudio extends EventTarget {
@@ -67,11 +67,27 @@ export class NativePrivateMpvAudio extends EventTarget {
     });
   }
   private latency(){const context=this.context!;const stamp=context.getOutputTimestamp?.();return Math.round(Math.max(0,stamp?.contextTime?context.currentTime-stamp.contextTime:context.baseLatency+(context.outputLatency||0))*1e6);}
+  private drainContext(){
+    if(this.stopped)return;
+    const admitted=beginAudioContextWork(this.audio);this.audio=admitted.state;if(!admitted.request)return;
+    const work=async()=>{
+      let request=admitted.request;
+      while(request&&!this.stopped){
+        await this.rpc('context',{value:request.active});
+        const observed=acknowledgeAudioContext(this.audio,request.id);this.audio=observed.state;
+        if(observed.playVideo&&!this.stopped)await this.video.play();
+        this.audio=finishAudioContextWork(this.audio,request.id).state;
+        if(this.stopped)return;
+        const next=beginAudioContextWork(this.audio);this.audio=next.state;request=next.request;
+      }
+    };
+    this.contextTransition=work().catch(error=>this.fail(error));
+  }
   private contextChanged=()=>{
     const active=this.context!.state==='running',observation=observeAudioContext(this.audio,active,this.video.paused);this.audio=observation.state;
     if(observation.pauseVideo)this.video.pause();
-    this.contextTransition=this.contextTransition.then(async()=>{if(this.stopped)return;await this.rpc('context',{value:active});
-      const completion=acknowledgeAudioContext(this.audio,observation.id);this.audio=completion.state;if(completion.playVideo&&!this.stopped)await this.video.play();}).catch(e=>this.fail(e));
+    this.drainContext();
+
   };
   private assertControl(id:number){if(this.stopped||!audioControlCurrent(this.audio,id))throw new PlayerError('ABORTED','Private mpv audio operation superseded');}
   private readiness(status:any,wait:Parameters<typeof privateAudioReady>[1]){

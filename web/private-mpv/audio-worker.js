@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import {privateMpv,privateMpvSource} from '../private-mpv.js';
 import {createPrivatePCM,beginPrivatePCMPump,finishPrivatePCMPump,nextPrivatePCMStep,privatePCMFeedback,failPrivatePCM,beginPrivatePCMStop,settlePrivatePCMStop} from '../generated/internal/machine/private-pcm.js';
-import {createPrivateAudioWorker,admitAudioWorkerInit,audioWorkerInitCurrent,finishAudioWorkerInit,audioWorkerAccepts,retireAudioWorker,beginAudioWorkerClose,finishAudioWorkerClose,beginAudioWorkerControl,finishAudioWorkerControl,beginAudioWorkerLoad,audioWorkerLoadCurrent,advanceAudioWorkerLoad,admitAudioWorkerRefresh,settleAudioWorkerRefresh} from '../generated/internal/machine/private-audio-worker.js';
+import {admitAudioWorkerRPC,finishAudioWorkerRPC,createPrivateAudioWorker,admitAudioWorkerInit,audioWorkerInitCurrent,finishAudioWorkerInit,audioWorkerAccepts,retireAudioWorker,beginAudioWorkerClose,finishAudioWorkerClose,beginAudioWorkerControl,finishAudioWorkerControl,beginAudioWorkerLoad,audioWorkerLoadCurrent,advanceAudioWorkerLoad,admitAudioWorkerRefresh,settleAudioWorkerRefresh} from '../generated/internal/machine/private-audio-worker.js';
 let source;const loading=new AbortController(),refreshes=new Map();
 let engine,port,ptr,timer;
 let lifecycle=createPrivateAudioWorker();
@@ -118,14 +118,30 @@ function closeAudio(){
  })().then(resolve,reject);
  return closePromise;
 }
+function rpcBytes(value){
+ let bytes=0,nodes=0;const seen=new Set(),stack=[[value,0]];
+ while(stack.length){const [item,depth]=stack.pop();if(++nodes>4096||depth>16)throw Error('Audio RPC envelope capacity');
+  if(typeof item==='string'){bytes+=item.length*2;}else if(item&&typeof item==='object'&&!seen.has(item)){
+   seen.add(item);bytes+=64;
+   if(item instanceof ArrayBuffer||typeof SharedArrayBuffer!=='undefined'&&item instanceof SharedArrayBuffer)bytes+=item.byteLength;
+   else if(ArrayBuffer.isView(item))stack.push([item.buffer,depth+1]);
+   else if(!(typeof Blob!=='undefined'&&item instanceof Blob)&&!(typeof MessagePort!=='undefined'&&item instanceof MessagePort)&&!(typeof OffscreenCanvas!=='undefined'&&item instanceof OffscreenCanvas)){
+    if(!Array.isArray(item)&&Object.prototype.toString.call(item)!=='[object Object]')throw Error('Unsupported audio RPC envelope');
+    for(const key in item)if(Object.prototype.hasOwnProperty.call(item,key)){bytes+=key.length*2;stack.push([item[key],depth+1]);if(stack.length>4096)throw Error('Audio RPC envelope capacity');}
+   }
+  }
+  if(bytes>64*1024*1024)throw Error('Audio RPC byte capacity');
+ }return bytes;
+}
 let chain=Promise.resolve();
 onmessage=({data:d})=>{
  if(d.op==='refreshed'){
   const id=Number(d.refreshId),decision=settleAudioWorkerRefresh(lifecycle,id,{kind:'reply'});lifecycle=decision.state;
   const pending=refreshes.get(id);if(decision.accepted&&pending){refreshes.delete(id);clearTimeout(pending.timer);d.error?pending.reject(Error('Authorization refresh failed')):pending.resolve(d.update);}return;
  }
+ let rpc;try{const admission=admitAudioWorkerRPC(lifecycle,rpcBytes(d),d.op==='close');lifecycle=admission.state;if(admission.id===undefined)throw Error(admission.error);rpc=admission.id;}catch(error){d.port?.close();postMessage({id:d.id,error:describeError(error)});return;}
  // Close revokes pending reads before waiting on the serialized native queue.
- if(d.op==='close')retireHost();
+ try{if(d.op==='close')retireHost();}catch(error){lifecycle=finishAudioWorkerRPC(lifecycle,rpc);postMessage({id:d.id,error:describeError(error)});return;}
  chain=chain.then(async()=>{
   if(d.op==='init'&&lifecycle.initialized){d.port?.close();postMessage({id:d.id,error:'Audio host already initialized'});return;}
   if(!audioWorkerAccepts(lifecycle,d.op)){d.port?.close();postMessage({id:d.id,error:'Audio host closed'});return;}
@@ -148,5 +164,5 @@ onmessage=({data:d})=>{
    else throw Error('Unknown audio operation');
    if(!audioWorkerAccepts(lifecycle,d.op))throw Error('Audio host closing');postMessage({id:d.id,result});
   }catch(error){if(lifecycle.phase!=='closing'||d.op==='close')fail(error);postMessage({id:d.id,error:describeError(error)});}
- });
+ }).finally(()=>{lifecycle=finishAudioWorkerRPC(lifecycle,rpc);});
 };

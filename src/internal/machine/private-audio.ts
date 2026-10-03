@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 export type PrivateAudioState=Readonly<{
-  running:boolean;polling:boolean;controlId:number;rate:number;volume:number;gain:number;streamIndex:number|null;resumeAfterContext:boolean;contextObservation:number;contextActive:boolean;
+  running:boolean;polling:boolean;controlId:number;rate:number;volume:number;gain:number;streamIndex:number|null;resumeAfterContext:boolean;contextObservation:number;contextActive:boolean;contextWork:number|null;contextApplied:number;
   eof:boolean;eofTask:number|null;nextEOF:number;watchAudio:boolean;badClock:number;outside:number;inside:number;trim:boolean;rateWrites:number;errors:readonly number[];
 }>;
-export function createPrivateAudio():PrivateAudioState{return Object.freeze({running:false,polling:false,controlId:0,rate:1,volume:100,gain:1,streamIndex:null,resumeAfterContext:false,contextObservation:0,contextActive:false,eof:false,eofTask:null,nextEOF:1,watchAudio:true,badClock:0,outside:0,inside:0,trim:false,rateWrites:0,errors:Object.freeze([])});}
+export function createPrivateAudio():PrivateAudioState{return Object.freeze({running:false,polling:false,controlId:0,rate:1,volume:100,gain:1,streamIndex:null,resumeAfterContext:false,contextObservation:0,contextActive:false,contextWork:null,contextApplied:0,eof:false,eofTask:null,nextEOF:1,watchAudio:true,badClock:0,outside:0,inside:0,trim:false,rateWrites:0,errors:Object.freeze([])});}
 export function selectPrivateAudioStream(state:PrivateAudioState,index:number|undefined):Readonly<{state:PrivateAudioState;accepted:boolean}>{return index===undefined?Object.freeze({state,accepted:false}):Object.freeze({state:Object.freeze({...state,streamIndex:index}),accepted:true});}
 export function privateAudioSettings(state:PrivateAudioState,input:Readonly<{rate?:number;volume?:number;gain?:number;watchAudio?:boolean}>):PrivateAudioState{
   return Object.freeze({...state,rate:input.rate??state.rate,volume:input.volume??state.volume,gain:input.gain??state.gain,watchAudio:input.watchAudio??state.watchAudio,badClock:input.watchAudio===undefined?state.badClock:0});
@@ -17,6 +17,7 @@ export function beginAudioControl(state:PrivateAudioState,kind:'play'|'pause'|'s
 export function audioControlCurrent(state:PrivateAudioState,id:number):boolean{return state.controlId===id;}
 export function finishAudioPlay(state:PrivateAudioState,id:number):Readonly<{state:PrivateAudioState;accepted:boolean}>{return state.controlId!==id?Object.freeze({state,accepted:false}):Object.freeze({state:Object.freeze({...state,running:true}),accepted:true});}
 export function observeAudioContext(state:PrivateAudioState,active:boolean,videoPaused:boolean):Readonly<{state:PrivateAudioState;id:number;pauseVideo:boolean}>{
+  if(!Number.isSafeInteger(state.contextObservation+1))return Object.freeze({state,id:state.contextObservation,pauseVideo:false});
   const id=state.contextObservation+1,pauseVideo=!active&&state.running&&!videoPaused;
   return Object.freeze({state:Object.freeze({...state,contextObservation:id,contextActive:active,resumeAfterContext:pauseVideo||state.resumeAfterContext}),id,pauseVideo});
 }
@@ -45,7 +46,7 @@ export function beginAudioEOF(state:PrivateAudioState,active:boolean):Readonly<{
 }
 export function audioEOFCurrent(state:PrivateAudioState,id:number):boolean{return state.eofTask===id;}
 export function finishAudioEOF(state:PrivateAudioState,id:number):PrivateAudioState{return state.eofTask===id?Object.freeze({...state,eofTask:null}):state;}
-export function retirePrivateAudio(state:PrivateAudioState):PrivateAudioState{return Object.freeze({...state,controlId:state.controlId+1,contextObservation:state.contextObservation+1,contextActive:false,running:false,resumeAfterContext:false,eofTask:null});}
+export function retirePrivateAudio(state:PrivateAudioState):PrivateAudioState{return Object.freeze({...state,controlId:state.controlId+1,contextObservation:state.contextObservation+1,contextActive:false,contextWork:null,running:false,resumeAfterContext:false,eofTask:null});}
 export type PrivateAudioStatus=Readonly<{time:number;eof:boolean;produced:number;consumed:number;epoch:number;ack:boolean;nativeEpoch:number;ackEpoch:number;feedbackCount:number;chains:number}>;
 export type PrivateAudioWait=Readonly<{kind:'play';target:number}|{kind:'epoch';previous:number}|{kind:'verify'}|{kind:'drain'}>;
 export function privateAudioDeadline(now:number,timeout:number):Readonly<{until:number}>{return Object.freeze({until:now+timeout});}
@@ -55,4 +56,14 @@ export function privateAudioReady(status:PrivateAudioStatus,wait:PrivateAudioWai
   if(wait.kind==='epoch')return status.epoch!==wait.previous&&status.ack&&status.nativeEpoch===status.ackEpoch;
   if(wait.kind==='verify')return status.consumed>0&&status.feedbackCount>0&&status.chains===1;
   return status.eof&&status.produced===status.consumed;
+}
+
+/** One physical context write with latest-observation coalescing; no queued promise chain. */
+export function beginAudioContextWork(state:PrivateAudioState):Readonly<{state:PrivateAudioState;request:Readonly<{id:number;active:boolean}>|null}>{
+ if(state.contextWork!==null||state.contextApplied===state.contextObservation)return Object.freeze({state,request:null});
+ const id=state.contextObservation;return Object.freeze({state:Object.freeze({...state,contextWork:id}),request:Object.freeze({id,active:state.contextActive})});
+}
+export function finishAudioContextWork(state:PrivateAudioState,id:number):Readonly<{state:PrivateAudioState;accepted:boolean;playVideo:boolean}>{
+ if(state.contextWork!==id)return Object.freeze({state,accepted:false,playVideo:false});
+ const completion=acknowledgeAudioContext(state,id);return Object.freeze({state:Object.freeze({...completion.state,contextWork:null,contextApplied:id}),accepted:true,playVideo:completion.playVideo});
 }

@@ -28,8 +28,9 @@ export function acceptRuntimeDeployment(state, providers, assets) {
 }
 function qualifiedProvider(state, provider) { return provider.manifestMatches && state.qualified[provider.id] === provider.implementationIdentity; }
 export function runtimeAssetPath(state, path, url) {
-    if (state.assets.some(asset => asset.url === url))
-        return path;
+    const declared = state.assets.find(asset => asset.url === url);
+    if (declared)
+        return declared.path;
     return /^web\/engine-(hybrid|selective|software-full|software-yuv)\/player\.wasm$/.test(path) && state.assets.some(asset => asset.path === 'web/engine-mpv/player.wasm') ? 'web/engine-mpv/player.wasm' : path;
 }
 export function runtimeAssetOwner(state, url) {
@@ -45,6 +46,9 @@ export function runtimeHasOffer(state, providerId, profile) {
 export function admitRuntimeRequest(state, kind, path) {
     if (state.phase !== 'ready' || state.cancelled)
         return Object.freeze({ state, effect: 'retired' });
+    const asset = state.assets.find(asset => asset.path === path);
+    if (!asset || runtimeAssetOwner(state, asset.url).kind !== 'ready')
+        return Object.freeze({ state, effect: 'unavailable' });
     if (state.requests.some(request => request.kind === kind && request.path === path))
         return Object.freeze({ state, effect: 'join' });
     return Object.freeze({ state: Object.freeze({ ...state, requests: Object.freeze([...state.requests, Object.freeze({ kind, path, status: 'pending' })]) }), effect: 'start' });

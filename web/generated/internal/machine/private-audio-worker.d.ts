@@ -12,6 +12,11 @@ type AudioControl = Readonly<{
     value: boolean;
 }>;
 export type PrivateAudioWorkerState = Readonly<{
+    rpcSerial: number;
+    rpcs: readonly Readonly<{
+        id: number;
+        bytes: number;
+    }>[];
     phase: 'new' | 'initializing' | 'ready' | 'closing' | 'closed';
     initialized: boolean;
     configuredRate: number | null;
@@ -117,4 +122,11 @@ export declare function settleAudioWorkerRefresh(state: PrivateAudioWorkerState,
     state: PrivateAudioWorkerState;
     accepted: boolean;
 }>;
+/** RPC slots retain physical chain obligations until completion, even after retirement. */
+export declare function admitAudioWorkerRPC(state: PrivateAudioWorkerState, bytes: number, closing?: boolean): Readonly<{
+    state: PrivateAudioWorkerState;
+    id?: number;
+    error?: string;
+}>;
+export declare function finishAudioWorkerRPC(state: PrivateAudioWorkerState, id: number): PrivateAudioWorkerState;
 export {};

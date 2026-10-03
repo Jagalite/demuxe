@@ -3179,7 +3179,18 @@ export class Player extends EventTarget {
     }
     play() {
         this.#previewController.setPlaybackActive(true);
-        const intent = new AbortController(), intentId = this.dispatchControl({ type: 'play.request' }).id;
+        const request = this.dispatchControl({ type: 'play.request' });
+        if (!request.accepted)
+            return Promise.reject(new PlayerError(request.reason === 'destroyed' ? 'ABORTED' : 'INVALID_ARGUMENT', 'Playback request capacity unavailable'));
+        const intentId = request.id;
+        let intent;
+        try {
+            intent = new AbortController();
+        }
+        catch (error) {
+            this.dispatchControl({ type: 'play.settled', id: intentId });
+            throw error;
+        }
         this.playRequests.set(intentId, intent);
         // An unverified trial must not consume the user's requested playback position.
         const trialSession = this.current, trialPosition = Math.max(0, Number(this.current?.backend.properties.get('time-pos')) || 0);
@@ -3273,8 +3284,11 @@ export class Player extends EventTarget {
             }
         }).finally(() => { this.dispatchControl({ type: 'play.settled', id: intentId }); this.playRequests.delete(intentId); });
     }
-    pause() { for (const id of this.dispatchControl({ type: 'play.retire' }).retire)
-        this.playRequests.get(id)?.abort(); return this.enqueue(async () => { await this.applySetting({ kind: 'pause' }); this.dispatchControl({ type: 'playback.observed', playing: false, waiting: false }); if (this.backgroundPromotion)
+    pause() { for (const id of this.dispatchControl({ type: 'play.retire' }).retire) {
+        const intent = this.playRequests.get(id);
+        this.playRequests.delete(id);
+        intent?.abort();
+    } return this.enqueue(async () => { await this.applySetting({ kind: 'pause' }); this.dispatchControl({ type: 'playback.observed', playing: false, waiting: false }); if (this.backgroundPromotion)
         this.schedulePromotion(); }); }
     seek(seconds, options = {}) { return this.seekForSource(seconds, options); }
     seekForSource(seconds, options, sourceId) {
@@ -3282,11 +3296,26 @@ export class Player extends EventTarget {
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid seek time');
         if (options.policy !== undefined && !['queue', 'latest'].includes(options.policy))
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid seek policy');
-        const controller = new AbortController(), abort = () => controller.abort();
-        options.signal?.addEventListener('abort', abort, { once: true });
-        if (options.signal?.aborted)
-            abort();
-        const request = this.dispatchControl({ type: 'seek.request', latest: options.policy === 'latest' }), seekId = request.id;
+        const request = this.dispatchControl({ type: 'seek.request', latest: options.policy === 'latest' });
+        if (!request.accepted)
+            return Promise.reject(new PlayerError(request.reason === 'destroyed' ? 'ABORTED' : 'INVALID_ARGUMENT', 'Playback request capacity unavailable'));
+        const seekId = request.id;
+        let controller;
+        const abort = () => controller?.abort();
+        try {
+            controller = new AbortController();
+            options.signal?.addEventListener('abort', abort, { once: true });
+            if (options.signal?.aborted)
+                abort();
+        }
+        catch (error) {
+            try {
+                options.signal?.removeEventListener('abort', abort);
+            }
+            catch { }
+            this.dispatchControl({ type: 'seek.settled', id: seekId });
+            throw error;
+        }
         this.seekRequests.set(seekId, controller);
         for (const id of request.retire)
             this.seekRequests.get(id)?.abort();

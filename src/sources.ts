@@ -2,7 +2,7 @@
 import {PlayerError,playerError,redact} from './internal/errors.js';
 import {runtimeBase} from './internal/assets.js';
 import {tracks,freeze} from './internal/state.js';
-import {createByteReader,validateByteRange,beginByteRead,completeByteRead,failByteRead,retireByteReader,closeByteReader} from './internal/machine/byte-reader.js';
+import {createByteReader,admitByteReadLease,finishByteReadLease,validateByteRange,beginByteRead,completeByteRead,failByteRead,retireByteReader,closeByteReader} from './internal/machine/byte-reader.js';
 import type {ByteReaderState,ByteIdentity,ByteReadEffect,ByteReadTransition} from './internal/machine/byte-reader.js';
 import type {CustomSource,MediaSourceInput,MediaInspection,InspectionOptions,RemoteSource} from './types.js';
 
@@ -45,13 +45,16 @@ class ByteReader {
   }
   read(offset:number,length:number):Promise<ArrayBuffer>{
     const invalid=validateByteRange(this.model,offset,length);if(invalid)return Promise.reject(new PlayerError(invalid.code,invalid.message));
+    const admission=admitByteReadLease(this.model);this.model=admission.state;
+    if(admission.id===null)return Promise.reject(new PlayerError(admission.fault!.code,admission.fault!.message));
+    const lease=admission.id;let provider:Promise<Uint8Array>|undefined;
     const work=this.queue.then(async()=>{
       let effect=this.adopt(beginByteRead(this.model,this.model.retired?{id:null,size:null}:this.identity(),offset,length));
       if(effect.kind==='reject')this.rejected(effect);
       const result=new Uint8Array(length),signal=this.controller.signal;
       while(effect.kind==='read'){
         const request=effect;let bytes:Uint8Array;
-        try{bytes=await deadline(Promise.resolve().then(()=>this.source.read(request.offset,request.length,signal)),signal,3000);}
+        try{provider=Promise.resolve().then(()=>this.source.read(request.offset,request.length,signal));bytes=await deadline(provider,signal,3000);}
         catch(error){const normalized=playerError(error);effect=this.adopt(failByteRead(this.model,request.request,request.chunk,{code:normalized.code,message:normalized.message}),normalized);break;}
         const identity=this.model.retired?{id:null,size:null}:this.identity();
         const next=completeByteRead(this.model,{request:request.request,chunk:request.chunk,identity,validBuffer:bytes instanceof Uint8Array,length:bytes instanceof Uint8Array?bytes.length:0});
@@ -61,7 +64,10 @@ class ByteReader {
       if(effect.kind==='reject')this.rejected(effect);
       if(effect.kind==='ignore')throw new PlayerError('ABORTED','Source closed');
       return result.buffer;
-    });this.queue=work.then(()=>{},()=>{});return work;
+    });
+    const release=()=>{this.model=finishByteReadLease(this.model,lease);};
+    const settled=()=>{if(provider)void provider.then(release,release);else release();};
+    this.queue=work.then(settled,settled);return work;
   }
   async close(){const next=closeByteReader(this.model);this.model=next.state;this.controller.abort();this.removeAbort();if(next.closeProvider)await deadline(Promise.resolve().then(()=>this.source.close!()),new AbortController().signal,3000);}
 }

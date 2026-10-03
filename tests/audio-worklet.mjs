@@ -3,10 +3,11 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
-const source=await readFile(new URL('../web/audio-worklet.js',import.meta.url),'utf8');
+import * as policy from '../web/generated/internal/machine/pcm-worklet.js';
+const source=(await readFile(new URL('../web/audio-worklet.js',import.meta.url),'utf8')).replace(/^import .*;$/m,'');
 function setup(capacity=512,channels=2) {
   let Processor;
-  vm.runInNewContext(source,{AudioWorkletProcessor:class {port={};},registerProcessor:(_name,type)=>Processor=type,Int32Array,Float32Array,Atomics,Math});
+  vm.runInNewContext(source,{AudioWorkletProcessor:class {port={};},registerProcessor:(_name,type)=>Processor=type,...policy,Int32Array,Float32Array,Atomics,Math});
   const buffer=new SharedArrayBuffer(64+capacity*channels*4);
   const h=new Int32Array(buffer,0,16),pcm=new Float32Array(buffer,64);
   const processor=new Processor({processorOptions:{buffer,capacity,channels}});
@@ -48,4 +49,17 @@ for(const channels of [6,8])test(`${channels}-channel PCM preserves order across
  const {out}=render(80);for(let c=0;c<channels;c++)assert.ok(out[c].every(v=>v===Math.fround((c+1)/10)));
  h[2]=0;assert.ok(render().out.every(a=>a.every(v=>v===0)));h[3]=2;h[0]=0;render();assert.equal(h[1],0);assert.equal(h[4],2);
  pcm.fill(-.25);h[0]=32;h[2]=1;assert.ok(render(32).out.every(a=>a.every(v=>v===-.25)));
+});
+
+test('PCM epoch admission is allocation-free while stable and close is terminal',()=>{
+ const initial=policy.initialPCMWorklet(),current=policy.observePCMWorkletEpoch(initial,4);
+ assert.notEqual(initial,current);assert.ok(Object.isFrozen(current));
+ assert.equal(policy.observePCMWorkletEpoch(current,4),current);
+ const closed=policy.closePCMWorklet(current);
+ assert.equal(policy.closePCMWorklet(closed),closed);
+ assert.equal(policy.observePCMWorkletEpoch(closed,6),closed);
+});
+test('unsigned PCM cursors preserve count across integer wrap',()=>{
+ assert.equal(policy.pcmWorkletFrames(0xfffffff0,0x10,128,512),32);
+ assert.equal(policy.pcmWorkletFrames(0,900,1024,512),512);
 });

@@ -11,7 +11,7 @@ export function initialNativeAudio(watchdogs:WatchdogPolicy):NativeAudioState{re
 export function nativeAudioCurrent(state:NativeAudioState,lease:NativeAudioLease):boolean{return state.phase==='active'&&state.epoch===lease.epoch&&state.operations[lease.domain]===lease.id;}
 export function nativeAudioAlive(state:NativeAudioState,epoch:number):boolean{return state.phase==='active'&&state.epoch===epoch;}
 export function beginNativeAudio(state:NativeAudioState,domain:NativeAudioDomain):Readonly<{state:NativeAudioState;lease?:NativeAudioLease;retire:readonly number[]}>{
- if(state.phase!=='active')return Object.freeze({state,retire:Object.freeze([])});
+ if(state.phase!=='active'||!Number.isSafeInteger(state.serial+1))return Object.freeze({state,retire:Object.freeze([])});
  const id=state.serial+1,domains:readonly NativeAudioDomain[]=domain==='open'?['open','playback','seek','rate','context','eof','verify']:domain==='seek'?['seek','playback','rate','eof','verify']:domain==='playback'?['playback','seek','eof']:[domain],retire=Object.freeze(domains.flatMap(key=>state.operations[key]===null?[]:[state.operations[key]!]));
  const operations=Object.freeze({...state.operations,...Object.fromEntries(domains.map(key=>[key,null])),[domain]:id});
  return Object.freeze({state:Object.freeze({...state,serial:id,operations,waits:Object.freeze(state.waits.filter(wait=>!retire.includes(wait.id))),publication:state.publication&&retire.includes(state.publication.id)?null:state.publication,rate:state.rate&&retire.includes(state.rate.id)?null:state.rate}),lease:Object.freeze({epoch:state.epoch,id,domain}),retire});

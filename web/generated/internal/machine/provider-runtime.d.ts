@@ -60,7 +60,7 @@ export declare function runtimeAssetOwner(state: ProviderRuntimeState, url: stri
 export declare function runtimeHasOffer(state: ProviderRuntimeState, providerId: string, profile: string): boolean;
 export declare function admitRuntimeRequest(state: ProviderRuntimeState, kind: RuntimeRequest['kind'], path: string): Readonly<{
     state: ProviderRuntimeState;
-    effect: 'start' | 'join' | 'retired';
+    effect: 'start' | 'join' | 'retired' | 'unavailable';
 }>;
 export declare function completeRuntimeRequest(state: ProviderRuntimeState, kind: RuntimeRequest['kind'], path: string, ok: boolean): ProviderRuntimeState;
 export declare function retireProviderRuntime(state: ProviderRuntimeState): ProviderRuntimeState;

@@ -3,7 +3,7 @@ export function initialNativeAudio(watchdogs) { return Object.freeze({ epoch: 1,
 export function nativeAudioCurrent(state, lease) { return state.phase === 'active' && state.epoch === lease.epoch && state.operations[lease.domain] === lease.id; }
 export function nativeAudioAlive(state, epoch) { return state.phase === 'active' && state.epoch === epoch; }
 export function beginNativeAudio(state, domain) {
-    if (state.phase !== 'active')
+    if (state.phase !== 'active' || !Number.isSafeInteger(state.serial + 1))
         return Object.freeze({ state, retire: Object.freeze([]) });
     const id = state.serial + 1, domains = domain === 'open' ? ['open', 'playback', 'seek', 'rate', 'context', 'eof', 'verify'] : domain === 'seek' ? ['seek', 'playback', 'rate', 'eof', 'verify'] : domain === 'playback' ? ['playback', 'seek', 'eof'] : [domain], retire = Object.freeze(domains.flatMap(key => state.operations[key] === null ? [] : [state.operations[key]]));
     const operations = Object.freeze({ ...state.operations, ...Object.fromEntries(domains.map(key => [key, null])), [domain]: id });

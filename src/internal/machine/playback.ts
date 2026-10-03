@@ -12,6 +12,7 @@ export function initialPlayback():PlaybackControl{return Object.freeze({serial:0
 /** Logical play verification and latest-seek lifetimes are distinct from FIFO
  * operation lifetime. The shell resolves IDs to physical abort controllers. */
 export function transitionPlayback(state:PlaybackControl,input:PlaybackInput){
+  if((input.type==='play.request'||input.type==='seek.request')&&(state.plays.length+state.seeks.length>=128||!Number.isSafeInteger(state.serial+1)))return Object.freeze({state,id:undefined,retire:Object.freeze([]) as readonly number[]});
   switch(input.type){
     case 'play.request':{const id=state.serial+1;return Object.freeze({state:Object.freeze({...state,serial:id,plays:Object.freeze([...state.plays,id])}),id,retire:Object.freeze([])});}
     case 'play.retire':return Object.freeze({state:Object.freeze({...state,plays:Object.freeze([])}),retire:state.plays});

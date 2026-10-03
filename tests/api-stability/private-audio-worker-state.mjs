@@ -60,7 +60,7 @@ function worker(){
  const messages=[],calls=[],sources=[],memory=new WebAssembly.Memory({initial:5});let disposed=0,cancelled=0,portClosed=0,hook,acquire;
  const engine={raw:{memory},facts:()=>({runtime:'fixture'}),dispose(){disposed++;},source:{cancelSource(){cancelled++;},snapshot:()=>({}),drainFailures:()=>[]},scheduler:{snapshot:()=>({})},async call(name,...args){calls.push([name,...args]);if(hook){const result=hook(name,...args);if(result!==undefined)return result;}if(name==='private_audio_chains'||name==='private_audio_loaded')return 1;return 0;}};
  const port={start(){},close(){portClosed++;},postMessage(message){if(message.type==='stop')this.onmessage?.({data:{type:'stopped',id:message.id}});if(message.type==='reset')this.onmessage?.({data:{type:'resetAck',epoch:message.epoch}});}};
- const context=vm.createContext({...core,...pcm,AbortController,Map,Uint32Array,Float32Array,performance,setTimeout,clearTimeout,setInterval:()=>0,clearInterval(){},postMessage:value=>messages.push(value),privateMpv:()=>acquire?acquire():Promise.resolve(engine),privateMpvSource:(_data,refresh)=>{const source={refresh,closed:0,async open(){source.onOpen?.();},close(){source.closed++;source.onClose?.();}};sources.push(source);return source;}});
+ const context=vm.createContext({...core,...pcm,AbortController,ArrayBuffer,Map,Uint32Array,Float32Array,performance,setTimeout,clearTimeout,setInterval:()=>0,clearInterval(){},postMessage:value=>messages.push(value),privateMpv:()=>acquire?acquire():Promise.resolve(engine),privateMpvSource:(_data,refresh)=>{const source={refresh,closed:0,async open(){source.onOpen?.();},close(){source.closed++;source.onClose?.();}};sources.push(source);return source;}});
  vm.runInContext(source,context);const send=data=>context.onmessage({data}),drain=()=>vm.runInContext('chain',context);
  return{messages,calls,sources,engine,port,context,send,drain,get state(){return vm.runInContext('lifecycle',context);},get disposed(){return disposed;},get cancelled(){return cancelled;},get portClosed(){return portClosed;},set hook(value){hook=value;},set acquire(value){acquire=value;},async init(){send({id:1,op:'init',rate:48000,contextRunning:true,port,backend:'asyncify'});await drain();},async close(id=99){send({id,op:'close'});await drain();}};
 }
@@ -72,7 +72,7 @@ test('actual close while engine acquisition is pending disposes the late owner w
 });
 test('actual reentrant close revokes a source once and shares native teardown among RPC callers',async()=>{
  const w=worker();await w.init();w.send({id:2,op:'load'});await w.drain();w.sources[0].onClose=()=>w.send({id:4,op:'close'});await w.close(3);await w.drain();
- assert.equal(w.sources[0].closed,1);assert.equal(w.cancelled,1);assert.equal(w.disposed,1);assert.equal(w.calls.filter(call=>call[0]==='private_audio_close').length,1);assert.ok(w.messages.some(message=>message.id===3&&message.result));assert.ok(w.messages.some(message=>message.id===4&&message.result));
+ assert.equal(w.sources[0].closed,1);assert.equal(w.cancelled,1);assert.equal(w.disposed,1);assert.equal(w.calls.filter(call=>call[0]==='private_audio_close').length,1);assert.ok(w.messages.some(message=>message.id===3&&message.result));assert.ok(w.messages.some(message=>message.id===4&&/closed/.test(message.error))); // Duplicate close cannot retain another queued RPC.
 });
 test('actual late load response after close cannot query or publish output ownership',async()=>{
  const w=worker();await w.init();let release;w.hook=name=>name==='private_audio_open'?new Promise(resolve=>release=resolve):undefined;w.send({id:2,op:'load'});await new Promise(resolve=>setImmediate(resolve));w.send({id:3,op:'close'});release(0);await w.drain();
@@ -87,4 +87,25 @@ test('actual old source refresh cannot escape replacement and late replies canno
 test('actual context suspension applies native pause while the consumption device is still running',async()=>{
  const w=worker();await w.init();const header=new Uint32Array(w.engine.raw.memory.buffer,0,8),observed=[];w.hook=(name,value)=>{if(name==='private_audio_pause')observed.push([value,header[6]]);};
  w.send({id:2,op:'pause',value:false});await w.drain();w.send({id:3,op:'context',value:false});await w.drain();assert.equal(header[6],0);w.send({id:4,op:'context',value:true});await w.drain();assert.equal(header[6],1);assert.deepEqual(observed,[[0,1],[1,1],[0,1]]);await w.close();
+});
+
+test('audio RPC capacity retains native obligations until physical settlement and reserves close',async()=>{
+ const w=worker();await w.init();let release;w.hook=name=>name==='private_audio_speed'?new Promise(resolve=>release=resolve):undefined;
+ w.send({id:10,op:'speed',value:1});await new Promise(resolve=>setImmediate(resolve));
+ for(let id=11;id<138;id++)w.send({id,op:'status'});
+ assert.equal(w.state.rpcs.length,128);w.send({id:138,op:'status'});assert.match(w.messages.find(m=>m.id===138).error,/capacity/);
+ w.send({id:139,op:'close'});assert.equal(w.state.rpcs.length,129);assert.equal(w.state.phase,'closing');
+ w.send({id:140,op:'close'});assert.match(w.messages.find(m=>m.id===140).error,/closed/);assert.equal(w.state.rpcs.length,129);
+ release(0);await w.drain();assert.equal(w.state.rpcs.length,0);assert.equal(w.state.phase,'closed');
+});
+test('audio RPC byte and traversal limits reject before native execution',async()=>{
+ const w=worker();await w.init();w.send({id:20,op:'load',bytes:new ArrayBuffer(64*1024*1024+1)});assert.match(w.messages.find(m=>m.id===20).error,/byte capacity/);
+ let nested={};for(let i=0;i<18;i++)nested={nested};w.send({id:21,op:'load',nested});assert.match(w.messages.find(m=>m.id===21).error,/envelope capacity/);
+ assert.equal(w.sources.length,0);assert.equal(w.state.rpcs.length,0);await w.close();
+});
+test('audio RPC budget rejects aggregate bytes and exhausted identity without mutating input',()=>{
+ let state=core.createPrivateAudioWorker();const first=core.admitAudioWorkerRPC(state,40*1024*1024);assert.equal(state.rpcs.length,0);state=first.state;
+ assert.match(core.admitAudioWorkerRPC(state,25*1024*1024).error,/capacity/);
+ const retired=core.retireAudioWorker(state).state;assert.equal(retired.rpcs.length,1);assert.equal(core.finishAudioWorkerRPC(retired,first.id).rpcs.length,0);
+ assert.match(core.admitAudioWorkerRPC({...state,rpcSerial:Number.MAX_SAFE_INTEGER},0).error,/exhausted/);
 });

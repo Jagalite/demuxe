@@ -72,3 +72,10 @@ test('source hint clearing retains only the detached probe for later explicit re
  assert.equal(storedCodecPreparation(first,'jspi',true),undefined);assert.equal(storedCodecPreparation(first,'asyncify',false),undefined);
  assert.equal(storedCodecPreparation(first,'asyncify',true),first.hint);assert.equal(first.hint.audioIndex,1);
 });
+
+test('runtime request history admits only canonical declared qualified asset paths',()=>{
+ const state=ready();for(let i=0;i<256;i++){const denied=admitRuntimeRequest(state,'bytes','unknown-'+i);assert.equal(denied.effect,'unavailable');assert.equal(denied.state,state);}
+ assert.equal(runtimeAssetPath(state,'./'+asset.path,asset.url),asset.path);
+ assert.equal(runtimeAssetPath(state,asset.url,asset.url),asset.path);
+ const disabled={...state,qualified:{}};assert.equal(admitRuntimeRequest(disabled,'module',asset.path).effect,'unavailable');
+});

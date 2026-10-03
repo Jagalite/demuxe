@@ -134,7 +134,11 @@ function reducePlayer(state, input) {
     if (input.type === 'settings.accept' || input.type === 'settings.change')
         return Object.freeze({ state: Object.freeze({ ...state, revision: state.revision + 1, settings: transitionSettings(state.settings, input) }), accepted: true, id: undefined, reason: undefined, retire: Object.freeze([]) });
     if (input.type === 'play.request' || input.type === 'play.retire' || input.type === 'play.settled' || input.type === 'seek.request' || input.type === 'seek.settled' || input.type === 'playback.observed') {
+        if ((input.type === 'play.request' || input.type === 'seek.request') && state.operations.terminal)
+            return Object.freeze({ state, accepted: false, id: undefined, reason: 'destroyed', retire: Object.freeze([]) });
         const decision = transitionPlayback(state.playback, input);
+        if ((input.type === 'play.request' || input.type === 'seek.request') && (!('id' in decision) || decision.id === undefined))
+            return Object.freeze({ state, accepted: false, id: undefined, reason: 'full', retire: Object.freeze([]) });
         return Object.freeze({ state: Object.freeze({ ...state, revision: state.revision + 1, playback: decision.state }), accepted: true, id: 'id' in decision ? decision.id : undefined, reason: undefined, retire: decision.retire });
     }
     const decision = transitionOperations(state.operations, input);

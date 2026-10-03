@@ -3,6 +3,7 @@
 // inspection must decide. Read-ahead can include payload bytes, but only
 // container metadata is parsed; bounded timing-table runs are read for Native
 // health evidence, without packet iteration or sample-offset expansion.
+import {initialMetadataBudget,metadataParseMs,metadataParseAvailable,metadataReadsAvailable,admitMetadataTransfer,recordMetadataBytes,finishMetadataTransfer} from './generated/internal/machine/metadata-budget.js';
 const MAX_META = 1024 * 1024, MAX_READS = 8, MAX_BYTES = 512 * 1024;
 const READ_AHEAD = 64 * 1024, MAX_SCAN_MS = 50, IO_TIMEOUT_MS = 3000;
 const dec = new TextDecoder('latin1');
@@ -17,14 +18,15 @@ export const FAST_PROBE_BUDGET = Object.freeze({reads: MAX_READS, batches: 8, co
   milliseconds: MAX_SCAN_MS, ioTimeoutMs: IO_TIMEOUT_MS, readAhead: READ_AHEAD, indexEntries: 2048, indexBytes: 256 * 1024});
 class Source {
   constructor(file, signal, headerCache = true, onProgress) {
-    this.file = file; this.signal = signal; this.bytes = 0; this.reads = 0;
-    this.batches = 0; this.ioMs = 0; this.cache = []; this.headerCache = headerCache;
-    this.processingMs = 0; this.processingSince = null; this.onProgress = onProgress;
+    this.file = file; this.signal = signal; this.budget=initialMetadataBudget();
+    this.ioMs = 0; this.cache = []; this.headerCache = headerCache;
+    this.onProgress = onProgress;
   }
-  parseMs() {return this.processingMs + (this.processingSince === null ? 0 : performance.now() - this.processingSince);}
+  get bytes(){return this.budget.bytes;}get reads(){return this.budget.reads;}get batches(){return this.budget.batches;}
+  parseMs() {return metadataParseMs(this.budget,performance.now());}
   check() {
     if (this.signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-    if (this.parseMs() >= MAX_SCAN_MS) unknown('Metadata parsing budget');
+    if (!metadataParseAvailable(this.budget,performance.now())) unknown('Metadata parsing budget');
   }
   bounds(at, n) {
     if (!Number.isSafeInteger(at) || !Number.isSafeInteger(n) || n < 0 || at < 0 ||
@@ -69,22 +71,19 @@ class Source {
   async transfer(ranges) {
     this.check();
     const count = ranges.reduce((n, r) => n + r.n, 0);
-    if (this.batches >= FAST_PROBE_BUDGET.batches || this.bytes + count > MAX_BYTES ||
-        this.reads + ranges.length > MAX_READS) unknown('Metadata read budget');
-    this.batches++;
+    const next=admitMetadataTransfer(this.budget,ranges.length,count,performance.now());
+    if(next===this.budget)unknown('Metadata read budget');this.budget=next;
     const controller = new AbortController(), abort = () => controller.abort();
     this.signal?.addEventListener('abort', abort, {once: true});
-    this.processingMs = this.parseMs(); this.processingSince = null;
     this.onProgress?.({phase: 'reading', reads: this.reads, bytesRead: this.bytes});
     const start = performance.now();
     try {
       for (let i = 0; i < ranges.length; i += FAST_PROBE_BUDGET.concurrentReads) {
         this.check();
         const group = ranges.slice(i, i + FAST_PROBE_BUDGET.concurrentReads);
-        this.reads += group.length;
         const pending = group.map(async ({at, n}) => {
           const data = new Uint8Array(await this.readBlob(this.file.slice(at, at + n), controller.signal));
-          this.bytes += data.length;
+          this.budget=recordMetadataBytes(this.budget,data.length);
           if (data.length !== n) unknown('Short metadata read');
           if (!controller.signal.aborted) this.cache.push({at, data});
         });
@@ -95,7 +94,7 @@ class Source {
     } finally {
       this.ioMs += performance.now() - start; this.signal?.removeEventListener('abort', abort);
       if (!this.signal?.aborted) this.onProgress?.({phase: 'inspecting', reads: this.reads, bytesRead: this.bytes});
-      this.processingSince = performance.now();
+      this.budget=finishMetadataTransfer(this.budget,performance.now());
     }
   }
   async read(at, n, block = 0) {
@@ -122,7 +121,7 @@ class Source {
         else ranges.push({at: start, n: endAt - start});
       }
     }
-    if (this.reads + ranges.length > MAX_READS) unknown(`Metadata read budget (index needs ${ranges.length} more reads)`);
+    if (!metadataReadsAvailable(this.budget,ranges.length)) unknown(`Metadata read budget (index needs ${ranges.length} more reads)`);
     if (ranges.length) await this.transfer(ranges);
   }
 }

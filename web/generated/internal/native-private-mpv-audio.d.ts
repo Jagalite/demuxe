@@ -36,6 +36,7 @@ export declare class NativePrivateMpvAudio extends EventTarget {
     private fail;
     private rpc;
     private latency;
+    private drainContext;
     private contextChanged;
     private assertControl;
     private readiness;

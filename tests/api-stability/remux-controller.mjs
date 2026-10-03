@@ -91,5 +91,14 @@ test('request deadlines reschedule early wakeups and ignore late replies',async 
  const a=adapter(t),p=await a.ready();a.blocked.add('setBuffering');a.now=10;const setting=p.setBuffering({forwardSeconds:9}),rejected=assert.rejects(setting,/timed out/),request=a.last('setBuffering'),timer=[...a.timers.keys()][0];a.now=30009;a.fire(timer);assert.equal(p.pending.size,1);a.now=30010;a.fire([...a.timers.keys()][0]);await rejected;request.worker.emit({type:'reply',id:request.id,value:true});assert.equal(p.options.buffering,undefined);assert.equal(p.pending.size,0);
 });
 test('release attempts all resources and records cleanup failure without orphaning callers',async t=>{
- const a=adapter(t),p=await a.ready(),worker=a.workers[0],frame=a.frames[0];worker.removeEventListener=()=>{throw Error('listener removal failed');};worker.terminate=()=>{worker.terminated++;throw Error('terminate failed');};frame.remove=()=>{frame.removed++;throw Error('frame cleanup failed');};await p.release();assert.equal(worker.terminated,1);assert.equal(frame.removed,1);assert.equal(p.control.cleanupFailures,3);assert.equal(p.releases.size,0);
+ const a=adapter(t),p=await a.ready(),worker=a.workers[0],frame=a.frames[0];worker.removeEventListener=()=>{throw Error('listener removal failed');};worker.terminate=()=>{worker.terminated++;throw Error('terminate failed');};frame.remove=()=>{frame.removed++;throw Error('frame cleanup failed');};await p.release();assert.equal(worker.terminated,1);assert.equal(frame.removed,1);assert.equal(p.control.cleanupFailures,3);assert.equal(p.releases.size,1);
+});
+test('detached worker capacity releases only after physical cleanup acknowledgment',async t=>{
+ const a=adapter(t),p=a.controller;a.autoClose=false;
+ for(let i=0;i<128;i++){await p.boot();void p.release();}
+ assert.equal(p.releases.size,128);assert.equal(p.control.releasing.length,128);await assert.rejects(p.boot(),{name:'AbortError'});assert.equal(a.workers.length,128);
+ a.workers[0].emit({type:'closed'});assert.equal(p.control.releasing.length,127);await p.boot();assert.equal(a.workers.length,129);assert.equal(p.control.owner.id,129);
+});
+test('failed physical termination retains pure owner capacity charge',async t=>{
+ const a=adapter(t),p=await a.ready();a.workers[0].terminate=()=>{throw Error('terminate failed');};await p.release();assert.equal(p.control.releasing.length,1);assert.equal(p.releases.size,1);await p.releaseResources(1);assert.equal(p.control.releasing.length,1);assert.equal(p.releases.size,1);
 });

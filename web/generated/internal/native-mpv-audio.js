@@ -97,8 +97,11 @@ export class NativeMpvAudio extends EventTarget {
         const cancel = new Promise((_, no) => { reject = no; });
         void cancel.catch(() => { });
         this.operations.set(lease.id, { lease, cancel, reject });
-        for (const id of decision.retire)
-            this.operations.get(id)?.reject(new DOMException('Selective audio operation superseded', 'AbortError'));
+        for (const id of decision.retire) {
+            const retired = this.operations.get(id);
+            this.operations.delete(id);
+            retired?.reject(new DOMException('Selective audio operation superseded', 'AbortError'));
+        }
         try {
             this.retireResources();
         }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PlayerError } from './errors.js';
-import { createShakaRuntime, joinShakaRuntime, leaveShakaRuntime, finishShakaRuntime, shakaRuntimeLoad, shakaRuntimeDeadline } from './machine/shaka-runtime.js';
+import { createShakaRuntime, joinShakaRuntime, acquireShakaRuntime, releaseShakaRuntimeAcquisition, leaveShakaRuntime, finishShakaRuntime, shakaRuntimeLoad, shakaRuntimeDeadline } from './machine/shaka-runtime.js';
 const aborted = () => new PlayerError('ABORTED', 'Shaka runtime loading cancelled');
 /** Shared runtime policy has one module lifetime; executable code, promises,
  * script nodes, fetch controllers and object URLs stay in this adapter. */
@@ -10,8 +10,10 @@ export class ShakaRuntimeLoader {
     load(base, signal) {
         if (signal.aborted)
             return Promise.reject(aborted());
-        const url = new URL('web/vendor/shaka-player.js', base).href, joined = joinShakaRuntime(this.state, url, performance.now());
+        const url = new URL('web/vendor/shaka-player.js', base).href, now = performance.now(), joined = joinShakaRuntime(this.state, url, now);
         this.state = joined.state;
+        if (!joined.accepted)
+            return Promise.reject(new PlayerError('ASSET_LOAD_FAILED', joined.error));
         const { load, consumer, start } = joined;
         let handle = this.handles.get(load);
         if (start) {
@@ -76,13 +78,14 @@ export class ShakaRuntimeLoader {
             }
             catch { /* Finish every owned release before settling consumers. */ }
     }
-    cancel(id, handle) { this.handles.delete(id); this.cleanup(handle, true); handle.reject(aborted()); }
+    cancel(id, handle) { if (!shakaRuntimeLoad(this.state, id))
+        this.handles.delete(id); this.cleanup(handle, true); handle.reject(aborted()); }
     finish(id, handle, error, runtime) {
         const result = finishShakaRuntime(this.state, id, !error);
         this.state = result.state;
         if (!result.accepted)
             return;
-        if (error)
+        if (error && !shakaRuntimeLoad(this.state, id)?.acquiring)
             this.handles.delete(id);
         this.cleanup(handle, !!error);
         if (error)
@@ -99,7 +102,7 @@ export class ShakaRuntimeLoader {
                     return;
                 handle.timer = undefined;
                 handle.timerToken = undefined;
-                const next = shakaRuntimeDeadline(this.state, id, performance.now());
+                const now = performance.now(), next = shakaRuntimeDeadline(this.state, id, now);
                 if (!next.current)
                     return;
                 if (next.remaining > 0)
@@ -131,6 +134,7 @@ export class ShakaRuntimeLoader {
         }
         if (!this.current(id))
             return;
+        this.state = acquireShakaRuntime(this.state, id);
         void (async () => {
             const response = await fetch(url, { signal: handle.controller.signal, credentials: 'same-origin', redirect: 'error' });
             if (!this.current(id)) {
@@ -176,7 +180,8 @@ export class ShakaRuntimeLoader {
                     }
                     catch { }
             }
-        })().catch(() => this.finish(id, handle, new PlayerError('ASSET_LOAD_FAILED', 'Shaka runtime loading failed')));
+        })().catch(() => this.finish(id, handle, new PlayerError('ASSET_LOAD_FAILED', 'Shaka runtime loading failed'))).finally(() => { this.state = releaseShakaRuntimeAcquisition(this.state, id); if (shakaRuntimeLoad(this.state, id)?.phase !== 'ready' && !this.current(id))
+            this.handles.delete(id); });
     }
 }
 const shared = new ShakaRuntimeLoader();

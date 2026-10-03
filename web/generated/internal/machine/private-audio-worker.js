@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-export function createPrivateAudioWorker() { return Object.freeze({ phase: 'new', initialized: false, configuredRate: null, contextRunning: false, userPaused: true, loadSerial: 0, load: null, controlSerial: 0, control: null, closeStarted: false, refreshSerial: 0, refreshes: Object.freeze([]) }); }
+export function createPrivateAudioWorker() { return Object.freeze({ rpcSerial: 0, rpcs: Object.freeze([]), phase: 'new', initialized: false, configuredRate: null, contextRunning: false, userPaused: true, loadSerial: 0, load: null, controlSerial: 0, control: null, closeStarted: false, refreshSerial: 0, refreshes: Object.freeze([]) }); }
 export function admitAudioWorkerInit(state, rate, contextRunning) {
     const error = state.initialized ? 'Audio host already initialized' : state.phase !== 'new' ? 'Audio host closed' : null;
     return Object.freeze({ state: error ? state : Object.freeze({ ...state, phase: 'initializing', initialized: true, configuredRate: rate, contextRunning }), error });
@@ -80,3 +80,17 @@ export function settleAudioWorkerRefresh(state, id, input) {
         return Object.freeze({ state, accepted: false });
     return Object.freeze({ state: Object.freeze({ ...state, refreshes: Object.freeze(state.refreshes.filter(entry => entry.id !== id)) }), accepted: true });
 }
+/** RPC slots retain physical chain obligations until completion, even after retirement. */
+export function admitAudioWorkerRPC(state, bytes, closing = false) {
+    if (state.phase === 'closing' || state.phase === 'closed' || state.rpcs.some(entry => entry.id === 0))
+        return Object.freeze({ state, error: 'Audio host closed' });
+    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > 64 * 1024 * 1024)
+        return Object.freeze({ state, error: 'Audio RPC byte capacity' });
+    if (!closing && (state.rpcs.length >= 128 || state.rpcs.reduce((sum, entry) => sum + entry.bytes, 0) + bytes > 64 * 1024 * 1024))
+        return Object.freeze({ state, error: 'Audio RPC capacity' });
+    if (!closing && !Number.isSafeInteger(state.rpcSerial + 1))
+        return Object.freeze({ state, error: 'Audio RPC identity exhausted' });
+    const id = closing ? 0 : state.rpcSerial + 1;
+    return Object.freeze({ state: Object.freeze({ ...state, rpcSerial: closing ? state.rpcSerial : id, rpcs: Object.freeze([...state.rpcs, Object.freeze({ id, bytes })]) }), id });
+}
+export function finishAudioWorkerRPC(state, id) { return state.rpcs.some(entry => entry.id === id) ? Object.freeze({ ...state, rpcs: Object.freeze(state.rpcs.filter(entry => entry.id !== id)) }) : state; }

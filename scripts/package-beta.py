@@ -72,6 +72,9 @@ for name in json.loads(subprocess.check_output(['node',str(root/'scripts/generat
  add(name)
 for name in ['mpv-subtitle-worker.js','audio-worklet.js','selective-sync-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','external-video-decoder.js','video-presenter.js','webgl-yuv-presenter.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','fallback-stream-policy.js','split-mp4.js','native-remux-player.js','worker-remux-controller.js','native-mse-worker.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','hybrid-preflight.js','prepared-engine.js','fast-source-inspector.js','selected-mp4-view.js','progressive-mp4.js','video-codec-config.js','remux-packaging.js']:
  add('web/'+name)
+# Worker entrypoints are explicit assets outside the exported module graph.
+for name in ['legacy-playback-worker','legacy-adaptive-decode','legacy-retained-presentation','io-worker','pcm-worklet','legacy-decoder-worker','metadata-budget']:
+ add('web/generated/internal/machine/'+name+'.js')
 add('web/yuv-presenter.js')
 for name in ['codecs/registry.js','codecs/adapter.js','runtime.js','mailbox-service.js','presenter.js','diagnostics.js']:
  add('web/webgpu/'+name)

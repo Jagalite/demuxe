@@ -69,3 +69,28 @@ test('source shell timeout aborts the provider and never admits its late result'
  const source={kind:'bytes',transport:'application-managed',id:'source',size:8,ownership:'owned',close(){closed++;},read(offset,length,signal){reads++;providerSignal=signal;start();return new Promise(resolve=>{release=resolve;});}};
  const work=materializeSource(source),rejected=assert.rejects(work,error=>error.code==='NETWORK_TIMEOUT');await entered;t.mock.timers.tick(3000);await rejected;assert.equal(providerSignal.aborted,true);assert.equal(closed,1);release(new Uint8Array(8));await Promise.resolve();assert.equal(reads,1);assert.equal(closed,1);
 });
+
+import * as bytePolicy from '../../web/generated/internal/machine/byte-reader.js';
+import {PlayerError,playerError} from '../../web/generated/internal/errors.js';
+import vm from 'node:vm';
+import {readFile} from 'node:fs/promises';
+const readerSource=(await readFile(process.env.BYTE_READER_SOURCE??new URL('../../web/generated/sources.js',import.meta.url),'utf8')).split('export async function materializeSource')[0].replace(/^import .*\n/gm,'').replaceAll('export ','');
+function isolatedReader(source){const context=vm.createContext({...bytePolicy,PlayerError,playerError,AbortController,Uint8Array,setTimeout,clearTimeout});vm.runInContext(readerSource+'\nglobalThis.TestReader=ByteReader;',context);return new context.TestReader(source,undefined,4096,1048576);}
+test('range queue reserves128 callers before enqueue and ignored provider remains charged after close',async()=>{
+ let release,entered;const started=new Promise(resolve=>entered=resolve);let calls=0;
+ const reader=isolatedReader({kind:'bytes',transport:'application-managed',id:'bounded',size:8,read(){calls++;entered();return new Promise(resolve=>release=resolve);}});
+ const pending=Array.from({length:128},()=>reader.read(0,1));const settlements=Promise.allSettled(pending);let refused;
+ const overflow=reader.read(0,1).catch(error=>{refused=error;});
+ await started;await Promise.resolve();await Promise.resolve();const message=refused?.message;
+ await reader.close();await settlements;await overflow;
+ assert.match(message??'',/queue capacity/);assert.equal(calls,1);assert.equal(reader.model.leases.length,1,'advisory abort must retain actual provider obligation');
+ release(new Uint8Array(1));await Promise.resolve();await Promise.resolve();await Promise.resolve();assert.equal(reader.model.leases.length,0);
+});
+test('bounded range queue keeps FIFO provider offsets and releases successful slots',async()=>{
+ const seen=[],reader=isolatedReader({kind:'bytes',transport:'application-managed',id:'ordered',size:8,async read(offset,length){seen.push(offset);return new Uint8Array(length).fill(offset);}});
+ const values=await Promise.all([reader.read(2,1),reader.read(0,1),reader.read(1,1)]);assert.deepEqual(seen,[2,0,1]);assert.deepEqual(values.map(value=>new Uint8Array(value)[0]),[2,0,1]);await Promise.resolve();assert.equal(reader.model.leases.length,0);await reader.close();
+});
+test('pure queued read receipts reject stale release and remain charged through retirement',()=>{
+ let state=fresh();const initial=state;for(let i=0;i<128;i++){const admission=bytePolicy.admitByteReadLease(state);assert.notEqual(admission.id,null);state=admission.state;}
+ assert.equal(initial.leases.length,0);assert.equal(bytePolicy.admitByteReadLease(state).id,null);state=retireByteReader(state);assert.equal(state.leases.length,128);assert.equal(bytePolicy.finishByteReadLease(state,900),state);assert.equal(bytePolicy.finishByteReadLease(state,1).leases.length,127);
+});

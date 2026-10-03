@@ -1,0 +1,25 @@
+{
+  "scope": "Short classifier integrity checks; no runtime qualification",
+  "cases": [
+    {
+      "case": "reviewed frozen source passes",
+      "exitCode": 0,
+      "output": "{\n  \"supported-runtime:reviewed\": 871,\n  \"historical-or-development:reviewPending\": 225,\n  \"dormant-qualified-codec:reviewed\": 67\n}\n{\"changedSources\": 0, \"pendingDynamicWrites\": 0}"
+    },
+    {
+      "case": "missing supported annotation rejected",
+      "exitCode": 1,
+      "output": "{\n  \"supported-runtime:reviewed\": 870,\n  \"historical-or-development:reviewPending\": 225,\n  \"supported-runtime:reviewPending\": 1,\n  \"dormant-qualified-codec:reviewed\": 67\n}\n{\"changedSources\": 0, \"pendingDynamicWrites\": 0}"
+    },
+    {
+      "case": "changed pure owner rejected",
+      "exitCode": 1,
+      "output": "{\n  \"supported-runtime:reviewed\": 871,\n  \"historical-or-development:reviewPending\": 225,\n  \"dormant-qualified-codec:reviewed\": 67\n}\n{\"changedSources\": 1, \"pendingDynamicWrites\": 0}"
+    },
+    {
+      "case": "missing indexed-write review rejected",
+      "exitCode": 1,
+      "output": "{\n  \"supported-runtime:reviewed\": 871,\n  \"historical-or-development:reviewPending\": 225,\n  \"dormant-qualified-codec:reviewed\": 67\n}\n{\"changedSources\": 0, \"pendingDynamicWrites\": 1}"
+    }
+  ]
+}

@@ -105,7 +105,7 @@ test('real context replies cannot resume video after a newer suspension observat
  const f=fixture(t);await f.owner.play(()=>f.video.play());let resumes=0;const play=f.video.play.bind(f.video);f.video.play=async()=>{resumes++;await play();};
  const held=[];f.worker.hold=data=>{if(data.op==='context'){held.push(data);return true;}};
  for(const state of ['suspended','running','suspended']){f.context.state=state;f.owner.contextChanged();}
- for(let i=0;i<3;i++){await new Promise(resolve=>setImmediate(resolve));assert.equal(held.length,i+1);f.worker.reply(held[i].id,true);}
+ for(let i=0;i<2;i++){await new Promise(resolve=>setImmediate(resolve));assert.equal(held.length,i+1);f.worker.reply(held[i].id,true);}
  await f.owner.contextTransition;await f.owner.destroy();
- assert.deepEqual(held.map(message=>message.value),[false,true,false]);assert.equal(resumes,0);assert.equal(f.video.paused,true);
+ assert.deepEqual(held.map(message=>message.value),[false,false]);assert.equal(resumes,0);assert.equal(f.video.paused,true);
 });

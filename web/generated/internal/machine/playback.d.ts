@@ -32,6 +32,19 @@ export declare function initialPlayback(): PlaybackControl;
  * operation lifetime. The shell resolves IDs to physical abort controllers. */
 export declare function transitionPlayback(state: PlaybackControl, input: PlaybackInput): Readonly<{
     state: Readonly<{
+        serial: number;
+        plays: readonly number[];
+        seeks: readonly number[];
+        latestSeek: number | null;
+        observedPlaying: boolean;
+        observedWaiting: boolean;
+        sampleSession: number | null;
+        sampleSequence: number;
+    }>;
+    id: undefined;
+    retire: readonly number[];
+}> | Readonly<{
+    state: Readonly<{
         plays: readonly never[];
         serial: number;
         seeks: readonly number[];

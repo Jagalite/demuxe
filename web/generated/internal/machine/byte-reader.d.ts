@@ -22,6 +22,8 @@ export type ByteReaderState = Readonly<{
     maxReads: number;
     maxBytes: number;
     ownedClose: boolean;
+    leaseSerial: number;
+    leases: readonly number[];
     reads: number;
     bytes: number;
     nextRequest: number;
@@ -81,4 +83,12 @@ export declare function closeByteReader(state: ByteReaderState): Readonly<{
     state: ByteReaderState;
     closeProvider: boolean;
 }>;
+/** Reserve closure capacity before adding a range to the shell's promise queue.
+ * A timeout may settle the caller but does not release an ignored provider call. */
+export declare function admitByteReadLease(state: ByteReaderState): Readonly<{
+    state: ByteReaderState;
+    id: number | null;
+    fault: ByteFault | null;
+}>;
+export declare function finishByteReadLease(state: ByteReaderState, id: number): ByteReaderState;
 export {};

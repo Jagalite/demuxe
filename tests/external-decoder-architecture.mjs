@@ -178,3 +178,33 @@ test('device-local mailbox declines an unregistered codec without a frame or dev
     assert.equal(header[0],10);assert.equal(header[3],-29);
   }finally{await service.close();}
 });
+
+test('forced WebGPU worker initialization cannot acquire dormant resources; removed guard is detected',async()=>{
+  const ts=(await import('typescript')).default;
+  const source=await readFile('web/filter-retained-engine-worker.js','utf8');
+  const file=ts.createSourceFile('worker.js',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS);
+  const branches=[];
+  const visit=node=>{if(ts.isIfStatement(node)&&node.expression.getText(file).replace(/\s/g,'')==="data.decoder==='webgpu'&&!audioOnly")branches.push(node.thenStatement.getText(file));ts.forEachChild(node,visit);};
+  visit(file);assert.equal(branches.length,1,'Audit the production WebGPU entrypoint if its structure changes');
+  const run=async(body,codec)=>{
+    const effects=[],modules=[];
+    class Service{constructor(){effects.push('service');this.runtime={acquireDevice:async()=>effects.push('device')};}async close(){effects.push('close');}}
+    class Presenter{constructor(){effects.push('presenter');}}
+    const loadModule=async name=>{modules.push(name);if(name==='./webgpu/mailbox-service.js')return{WebGPUMailboxService:Service};if(name==='./webgpu/presenter.js')return{WebGPUPresenter:Presenter};if(name==='./generated/internal/webgpu-codecs.js')return{webgpuDecoderSupported};if(name==='./webgpu/codecs/registry.js')return{webgpuRequiredFeatures:()=>[]};throw Error('Unexpected GPU dependency: '+name);};
+    const AsyncFunction=Object.getPrototypeOf(async()=>{}).constructor;
+    const execute=new AsyncFunction('loadModule','data','control','engine','canvas','receiveFrame','post',`let webgpuService,videoPresenter;${body.replace(/\bimport\(/g,'loadModule(')}`);
+    let error;try{await execute(loadModule,{decoder:'webgpu',videoTrack:{codec}},{closing:false},{_web_decoder_enable:()=>effects.push('enable')},{},()=>{},()=>{});}catch(reason){error=reason;}
+    return{effects,modules,error};
+  };
+  assert.deepEqual(webgpuSupportedCodecs(),[],'Enabling a codec requires migrating and qualifying its runtime/mailbox/presenter ownership');
+  for(const codec of ['h264','prores','constructor','__proto__',undefined]){
+    const result=await run(branches[0],codec);
+    assert.match(String(result.error),/No qualified WebGPU codec adapter/);
+    assert.deepEqual(result.effects,[],'No mailbox timer, GPU device, presenter or decoder enable may be acquired');
+    assert.equal(result.modules.length,4,'Forced internal init may load inert modules before qualification is rejected');
+  }
+  const unguarded=branches[0].replace("if(!webgpuDecoderSupported(data.videoTrack?.codec))throw Error('No qualified WebGPU codec adapter');",'');
+  assert.notEqual(unguarded,branches[0]);
+  const negative=await run(unguarded,'h264');assert.equal(negative.error,undefined);
+  assert.deepEqual(negative.effects,['service','device','presenter','enable'],'The guard regression must observe the acquisition its removal would allow');
+});

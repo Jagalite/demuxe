@@ -6,8 +6,11 @@ Read-only audit of the current generated closure (`node scripts/generated-runtim
 
 | Worker | Current caller/evidence | Classification |
 | --- | --- | --- |
-| `web/software-full-engine-worker.js` | `src/internal/wasm-player.ts` Software worker selection; package-beta explicit runtime asset | Supported production; functional owner migration required. |
-| `web/filter-retained-engine-worker.js` | `src/internal/wasm-player.ts` Hybrid/audio-only worker selection; package-beta explicit runtime asset | Supported production, despite historical experiment origins; functional owner migration required. |
+| `web/software-full-engine-worker.js` | `src/internal/wasm-player.ts` Software worker selection; package-beta explicit runtime asset | Supported production; shared playback worker and adaptive-decode pure owners. |
+| `web/filter-retained-engine-worker.js` | `src/internal/wasm-player.ts` Hybrid/audio-only worker selection; package-beta explicit runtime asset | Supported production, despite historical experiment origins; shared playback, adaptive-decode and retained-presentation pure owners. |
+| `web/retained-decoder-worker.js` | Hybrid worker decoder asset | Supported production; pure initialization/generation, pending operation, frame budget, key/drain and watchdog owner. |
+| `web/io-worker.js` | Native mailbox source transport | Supported production; pure initialization, epoch, physical-read reservation, refresh receipt and pump lifetime owner. |
+| `web/audio-worklet.js` | WasmPlayer shared-memory PCM output | Supported production; pure terminal/epoch owner and scalar frame-count policy; fixed shared buffers and sample-copy cursors are the DSP exception. |
 | `web/mpv-subtitle-worker.js` | `src/internal/native-mpv-subtitles.ts`; package-beta explicit runtime asset | Supported production subtitle service; its composed worker lifecycle/timeline/attachment owner remains in scope. |
 | `web/engine-worker.js` | `src/player.ts` exports legacy `BrowserPlayer`, emitted as `web/generated/player.js`; loaded explicitly by `web/index.html`, `web/legacy-example.html` and `web/benchmark.html` | Legacy directly served demo/benchmark API. Neither binding nor worker is included by the supported package closure/asset list. Not migrated by this architecture gate. |
 | `web/filter-copyback-engine-worker.js` | `experiments/filter-routing/prepare.py` derives worker from engine-worker and creates `web/generated/filter-copyback-player.js`; `web/filter-player.js` imports that binding | Experimental filter/copyback comparison. Not exported or packaged. |
@@ -20,3 +23,11 @@ The package export `demuxe/player` targets `web/generated/player/index.js` (`src
 Historical generator scripts can overwrite their destination files, including the now-production FilterRetained worker. Regenerating that production worker from an older template can overwrite migrated policy; update the template and retain the supported pure owner and its tests before using regenerated output. Historical benchmarks and their immutable evidence should not be rewritten merely to claim repository-wide functional purity.
 
 The graph check establishes packaging/reachability, not browser behavior or package qualification. Production worker migrations, worker cleanup/resource tests and the supported browser/package matrix remain separate evidence requirements.
+
+## Dormant WebGPU codec assets
+
+`web/webgpu/runtime.js`, `mailbox-service.js` and `presenter.js` are shipped assets whose codec path is currently unreachable through supported Player selection. `src/internal/webgpu-codecs.ts` has an empty frozen qualified-codec registry. WasmPlayer checks this registry before selecting WebGPU; FilterRetained checks again before constructing the mailbox service, requesting a device, constructing a presenter or enabling the decoder. A forced internal WebGPU initialization can import inert modules but is rejected before acquisition.
+
+`tests/external-decoder-architecture.mjs` executes the actual worker branch with observable dependency constructors for ordinary and prototype-like codec names. It verifies zero acquisitions, and removing the guard makes the acquisition control fail. Enabling any codec must reopen the runtime/mailbox/presenter policy migration and qualification: generation, packet/surface budgets, device lifetime and terminal state have not been migrated. Experimental ProRes workers and synthetic presenter tests deliberately construct these components directly and are outside the supported runtime gate.
+
+The normal Hybrid `WebCodecsPresenter` and Software `WebGLYUVPresenter` are separate, active production adapters. The empty WebGPU codec registry does not exclude those adapters from the ownership audit. This narrow dormant-code classification is not a claim that all shipped JavaScript is functionally migrated.

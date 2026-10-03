@@ -2,7 +2,7 @@
 import { PlayerError, playerError, redact } from './internal/errors.js';
 import { runtimeBase } from './internal/assets.js';
 import { tracks, freeze } from './internal/state.js';
-import { createByteReader, validateByteRange, beginByteRead, completeByteRead, failByteRead, retireByteReader, closeByteReader } from './internal/machine/byte-reader.js';
+import { createByteReader, admitByteReadLease, finishByteReadLease, validateByteRange, beginByteRead, completeByteRead, failByteRead, retireByteReader, closeByteReader } from './internal/machine/byte-reader.js';
 export const CUSTOM_SOURCE_PLAYBACK_LIMIT = 32 * 1024 * 1024;
 export function isCustomSource(value) { return !!value && typeof value === 'object' && value.kind === 'bytes'; }
 function validate(source) { if (source.transport !== 'application-managed' || typeof source.id !== 'string' || !source.id || source.id.length > 256 || !Number.isSafeInteger(source.size) || source.size <= 0 || typeof source.read !== 'function' || source.close !== undefined && typeof source.close !== 'function' || source.ownership !== undefined && !['owned', 'borrowed'].includes(source.ownership))
@@ -64,6 +64,12 @@ class ByteReader {
         const invalid = validateByteRange(this.model, offset, length);
         if (invalid)
             return Promise.reject(new PlayerError(invalid.code, invalid.message));
+        const admission = admitByteReadLease(this.model);
+        this.model = admission.state;
+        if (admission.id === null)
+            return Promise.reject(new PlayerError(admission.fault.code, admission.fault.message));
+        const lease = admission.id;
+        let provider;
         const work = this.queue.then(async () => {
             let effect = this.adopt(beginByteRead(this.model, this.model.retired ? { id: null, size: null } : this.identity(), offset, length));
             if (effect.kind === 'reject')
@@ -73,7 +79,8 @@ class ByteReader {
                 const request = effect;
                 let bytes;
                 try {
-                    bytes = await deadline(Promise.resolve().then(() => this.source.read(request.offset, request.length, signal)), signal, 3000);
+                    provider = Promise.resolve().then(() => this.source.read(request.offset, request.length, signal));
+                    bytes = await deadline(provider, signal, 3000);
                 }
                 catch (error) {
                     const normalized = playerError(error);
@@ -92,7 +99,12 @@ class ByteReader {
                 throw new PlayerError('ABORTED', 'Source closed');
             return result.buffer;
         });
-        this.queue = work.then(() => { }, () => { });
+        const release = () => { this.model = finishByteReadLease(this.model, lease); };
+        const settled = () => { if (provider)
+            void provider.then(release, release);
+        else
+            release(); };
+        this.queue = work.then(settled, settled);
         return work;
     }
     async close() { const next = closeByteReader(this.model); this.model = next.state; this.controller.abort(); this.removeAbort(); if (next.closeProvider)

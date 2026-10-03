@@ -4,6 +4,7 @@ export type ShakaRuntimeLoad = Readonly<{
     key: string;
     phase: 'pending' | 'ready' | 'failed';
     deadline: number;
+    acquiring: boolean;
     consumers: readonly number[];
 }>;
 export type ShakaRuntimeState = Readonly<{
@@ -14,6 +15,11 @@ export type ShakaRuntimeState = Readonly<{
 export declare function createShakaRuntime(): ShakaRuntimeState;
 export declare function joinShakaRuntime(state: ShakaRuntimeState, key: string, now: number): Readonly<{
     state: ShakaRuntimeState;
+    accepted: false;
+    error: string;
+}> | Readonly<{
+    state: ShakaRuntimeState;
+    accepted: true;
     load: number;
     consumer: number;
     start: boolean;
@@ -32,3 +38,5 @@ export declare function shakaRuntimeDeadline(state: ShakaRuntimeState, id: numbe
     current: boolean;
     remaining: number;
 }>;
+export declare function acquireShakaRuntime(state: ShakaRuntimeState, id: number): ShakaRuntimeState;
+export declare function releaseShakaRuntimeAcquisition(state: ShakaRuntimeState, id: number): ShakaRuntimeState;

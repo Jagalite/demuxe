@@ -127,3 +127,12 @@ test('load preserves its retained promise identity after retirement',async t=>{
  const loading=runtime.load();await loading;await runtime.destroy();const retired=runtime.load();void retired.catch(()=>{});assert.equal(retired,loading);
  const neverLoaded=new ProviderRuntime(new URL('https://example.test/'),{});await neverLoaded.destroy();const cancelled=neverLoaded.load(),repeated=neverLoaded.load();void repeated.catch(()=>{});const rejected=assert.rejects(cancelled,{name:'AbortError'});assert.equal(repeated,cancelled);await rejected;
 });
+
+test('runtime rejects unknown assets without caching failures and normalizes equivalent paths',async t=>{
+ let calls=0;t.mock.method(globalThis,'fetch',async url=>{calls++;return String(url).endsWith('.json')?Response.json(manifest()):new Response(wasm);});
+ const runtime=new ProviderRuntime(new URL('https://example.test/'),{'ffmpeg-file-preparation':identity});await runtime.load();
+ for(let i=0;i<64;i++)await assert.rejects(runtime.bytes('missing-'+i),{code:'DEPLOYMENT_UNAVAILABLE'});
+ assert.equal(runtime.acquiredBytes.size,0);assert.equal(runtime.state.requests.length,0);
+ const [a,b,c]=await Promise.all([runtime.module(path),runtime.module('./'+path),runtime.module('https://example.test/'+path)]);
+ assert.equal(a,b);assert.equal(b,c);assert.equal(runtime.modules.size,1);assert.equal(runtime.acquiredBytes.size,1);assert.equal(calls,2);await runtime.destroy();
+});

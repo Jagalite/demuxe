@@ -152,12 +152,12 @@ export class WorkerRemuxController {
  releaseResources(id){
   if(id===undefined)return Promise.resolve();
   if(this.releases.has(id))return this.releases.get(id);
-  if(this.resourceOwner!==id)return Promise.resolve();
+  if(this.resourceOwner!==id){this.transition({type:'released',owner:id});return Promise.resolve();}
   const worker=this.worker,frame=this.workerOwner,timer=this.timer;
   this.worker=this.workerOwner=this.resourceOwner=this.timer=undefined;this.refreshSource=undefined;if(this.booting?.owner===id)this.booting=undefined;
   let resolve;const promise=new Promise(yes=>{resolve=yes;});this.releases.set(id,promise);const cleanup=action=>{try{action();}catch{this.transition({type:'cleanup-failed'});}};cleanup(()=>clearInterval(timer));
   let timeout,finished=false;
-  const finish=()=>{if(finished)return;finished=true;cleanup(()=>clearTimeout(timeout));cleanup(()=>worker?.removeEventListener('message',closed));cleanup(()=>worker?.terminate());cleanup(()=>frame?.remove());this.releases.delete(id);resolve();};
+  const finish=()=>{if(finished)return;finished=true;cleanup(()=>clearTimeout(timeout));cleanup(()=>worker?.removeEventListener('message',closed));const failures=this.control.cleanupFailures;cleanup(()=>worker?.terminate());cleanup(()=>frame?.remove());if(this.control.cleanupFailures===failures){this.transition({type:'released',owner:id});this.releases.delete(id);}resolve();};
   const closed=({data})=>{if(data.type==='closed')finish();};
   try{if(!worker){finish();return promise;}worker.addEventListener('message',closed);timeout=setTimeout(finish,1000);worker.postMessage({type:'shutdown'});}catch{finish();}
   return promise;

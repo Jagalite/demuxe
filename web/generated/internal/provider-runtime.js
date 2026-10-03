@@ -259,6 +259,8 @@ export class ProviderRuntime {
         this.state = admission.state;
         if (admission.effect === 'retired')
             throw this.controller.signal.reason;
+        if (admission.effect === 'unavailable')
+            throw new PlayerError('DEPLOYMENT_UNAVAILABLE', `No qualified provider owns required asset: ${path}`);
         let pending = this.acquiredBytes.get(path);
         if (admission.effect === 'start') {
             let resolve, reject;
@@ -286,6 +288,8 @@ export class ProviderRuntime {
         this.state = admission.state;
         if (admission.effect === 'retired')
             throw this.controller.signal.reason;
+        if (admission.effect === 'unavailable')
+            throw new PlayerError('DEPLOYMENT_UNAVAILABLE', `No qualified provider owns required asset: ${path}`);
         let pending = this.modules.get(path);
         if (admission.effect === 'start') {
             let resolve, reject;

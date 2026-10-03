@@ -190,6 +190,7 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
     await this.load(); this.controller.signal.throwIfAborted();path=this.assetPath(path);
     const admission=admitRuntimeRequest(this.state,'bytes',path);this.state=admission.state;
     if(admission.effect==='retired')throw this.controller.signal.reason;
+    if(admission.effect==='unavailable')throw new PlayerError('DEPLOYMENT_UNAVAILABLE',`No qualified provider owns required asset: ${path}`);
     let pending=this.acquiredBytes.get(path);
     if(admission.effect==='start'){
       let resolve!:(bytes:ArrayBuffer)=>void,reject!:(error:unknown)=>void;
@@ -208,6 +209,7 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
     await this.load();this.controller.signal.throwIfAborted();path=this.assetPath(path);
     const admission=admitRuntimeRequest(this.state,'module',path);this.state=admission.state;
     if(admission.effect==='retired')throw this.controller.signal.reason;
+    if(admission.effect==='unavailable')throw new PlayerError('DEPLOYMENT_UNAVAILABLE',`No qualified provider owns required asset: ${path}`);
     let pending=this.modules.get(path);
     if(admission.effect==='start'){
       let resolve!:(module:WebAssembly.Module)=>void,reject!:(error:unknown)=>void;

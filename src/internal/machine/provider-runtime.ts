@@ -28,7 +28,7 @@ export function acceptRuntimeDeployment(state:ProviderRuntimeState,providers:rea
 }
 function qualifiedProvider(state:ProviderRuntimeState,provider:RuntimeProvider):boolean{return provider.manifestMatches&&state.qualified[provider.id]===provider.implementationIdentity;}
 export function runtimeAssetPath(state:ProviderRuntimeState,path:string,url:string):string{
-  if(state.assets.some(asset=>asset.url===url))return path;
+  const declared=state.assets.find(asset=>asset.url===url);if(declared)return declared.path;
   return /^web\/engine-(hybrid|selective|software-full|software-yuv)\/player\.wasm$/.test(path)&&state.assets.some(asset=>asset.path==='web/engine-mpv/player.wasm')?'web/engine-mpv/player.wasm':path;
 }
 export function runtimeAssetOwner(state:ProviderRuntimeState,url:string):Readonly<{kind:'ready';providerId:string;implementationIdentity:string;assetId:string}|{kind:'absent'|'unqualified'}>{
@@ -39,8 +39,9 @@ export function runtimeAssetOwner(state:ProviderRuntimeState,url:string):Readonl
 export function runtimeHasOffer(state:ProviderRuntimeState,providerId:string,profile:string):boolean{
   return state.phase==='ready'&&!state.cancelled&&state.providers.some(provider=>provider.id===providerId&&qualifiedProvider(state,provider)&&provider.profiles.includes(profile));
 }
-export function admitRuntimeRequest(state:ProviderRuntimeState,kind:RuntimeRequest['kind'],path:string):Readonly<{state:ProviderRuntimeState;effect:'start'|'join'|'retired'}>{
+export function admitRuntimeRequest(state:ProviderRuntimeState,kind:RuntimeRequest['kind'],path:string):Readonly<{state:ProviderRuntimeState;effect:'start'|'join'|'retired'|'unavailable'}>{
   if(state.phase!=='ready'||state.cancelled)return Object.freeze({state,effect:'retired'});
+  const asset=state.assets.find(asset=>asset.path===path);if(!asset||runtimeAssetOwner(state,asset.url).kind!=='ready')return Object.freeze({state,effect:'unavailable'});
   if(state.requests.some(request=>request.kind===kind&&request.path===path))return Object.freeze({state,effect:'join'});
   return Object.freeze({state:Object.freeze({...state,requests:Object.freeze([...state.requests,Object.freeze({kind,path,status:'pending' as const})])}),effect:'start'});
 }

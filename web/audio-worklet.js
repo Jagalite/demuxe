@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {initialPCMWorklet,closePCMWorklet,observePCMWorkletEpoch,pcmWorkletFrames} from './generated/internal/machine/pcm-worklet.js';
 // A fixed SharedArrayBuffer, independent of growable Wasm memory.
 // Header: write, read, run, epoch, acknowledged epoch, media frames, underruns.
 class PCMOutput extends AudioWorkletProcessor {
@@ -9,17 +10,18 @@ class PCMOutput extends AudioWorkletProcessor {
     this.capacity = capacity;
     if(![2,6,8].includes(channels))throw Error("Unsupported PCM layout");
     this.channels=channels;
-    this.epoch = -1;
-    this.closed = false;this.measureOutput=measureOutput;this.lastPulse=-Infinity;
-    this.port.onmessage = ({data}) => { if (data === 'close') this.closed = true; };
+    this.control = initialPCMWorklet();
+    this.measureOutput=measureOutput;this.lastPulse=-Infinity;
+    this.port.onmessage = ({data}) => { if (data === 'close') this.control = closePCMWorklet(this.control); };
   }
   process(_inputs, outputs) {
-    if (this.closed) return false;
+    if (this.control.closed) return false;
     const channels = outputs[0];
     const h = this.h;
     const epoch = Atomics.load(h, 3);
-    if (epoch !== this.epoch) {
-      this.epoch = epoch;
+    const next = observePCMWorkletEpoch(this.control, epoch);
+    if (next !== this.control) {
+      this.control = next;
       Atomics.store(h, 1, 0);
       Atomics.store(h, 4, epoch);
       return true;
@@ -27,7 +29,7 @@ class PCMOutput extends AudioWorkletProcessor {
     if (!Atomics.load(h, 2) || !channels.length) return true;
     const read = Atomics.load(h, 1) >>> 0;
     const write = Atomics.load(h, 0) >>> 0;
-    const count = Math.min((write - read) >>> 0, channels[0].length, this.capacity);
+    const count = pcmWorkletFrames(read, write, channels[0].length, this.capacity);
     for (let i = 0; i < count; i++) {
       const at = ((read + i) % this.capacity) * this.channels;
       for (let c = 0; c < channels.length; c++) channels[c][i] = c<this.channels?this.pcm[at+c]:0;

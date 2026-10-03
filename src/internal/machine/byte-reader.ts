@@ -6,7 +6,7 @@ export type ByteIdentity=Readonly<{id:string|null;size:number|null}>;
 type ByteRequest=Readonly<{id:number;offset:number;length:number;received:number;chunk:number;chunkSize:number}>;
 export type ByteReaderState=Readonly<{
   id:string;size:number;maxReads:number;maxBytes:number;ownedClose:boolean;
-  reads:number;bytes:number;nextRequest:number;nextChunk:number;
+  leaseSerial:number;leases:readonly number[];reads:number;bytes:number;nextRequest:number;nextChunk:number;
   active:ByteRequest|null;retired:boolean;closeIssued:boolean;failure:ByteFault|null;
 }>;
 export type ByteReadEffect=
@@ -17,7 +17,7 @@ export type ByteReadEffect=
 export type ByteReadTransition=Readonly<{state:ByteReaderState;effect:ByteReadEffect;copyAt:number|null}>;
 
 export function createByteReader(input:Readonly<{id:string;size:number;maxReads:number;maxBytes:number;ownedClose:boolean}>):ByteReaderState {
-  return Object.freeze({id:input.id,size:input.size,maxReads:input.maxReads,maxBytes:input.maxBytes,ownedClose:input.ownedClose,reads:0,bytes:0,nextRequest:0,nextChunk:0,active:null,retired:false,closeIssued:false,failure:null});
+  return Object.freeze({id:input.id,size:input.size,maxReads:input.maxReads,maxBytes:input.maxBytes,ownedClose:input.ownedClose,leaseSerial:0,leases:Object.freeze([]),reads:0,bytes:0,nextRequest:0,nextChunk:0,active:null,retired:false,closeIssued:false,failure:null});
 }
 function fault(code:PlayerErrorCode,message:string):ByteFault{return Object.freeze({code,message});}
 function transition(state:ByteReaderState,effect:ByteReadEffect,copyAt:number|null=null):ByteReadTransition {
@@ -75,3 +75,12 @@ export function retireByteReader(state:ByteReaderState):ByteReaderState {
 export function closeByteReader(state:ByteReaderState):Readonly<{state:ByteReaderState;closeProvider:boolean}> {
   return Object.freeze({state:state.retired&&state.closeIssued?state:Object.freeze({...state,retired:true,closeIssued:true}),closeProvider:state.ownedClose&&!state.closeIssued});
 }
+
+/** Reserve closure capacity before adding a range to the shell's promise queue.
+ * A timeout may settle the caller but does not release an ignored provider call. */
+export function admitByteReadLease(state:ByteReaderState):Readonly<{state:ByteReaderState;id:number|null;fault:ByteFault|null}>{
+ if(state.retired)return {state,id:null,fault:fault('ABORTED','Source closed')};
+ if(state.leases.length>=128||state.leaseSerial>=Number.MAX_SAFE_INTEGER)return {state,id:null,fault:fault('INVALID_ARGUMENT','Source read queue capacity exceeded')};
+ const id=state.leaseSerial+1;return {state:Object.freeze({...state,leaseSerial:id,leases:Object.freeze([...state.leases,id])}),id,fault:null};
+}
+export function finishByteReadLease(state:ByteReaderState,id:number):ByteReaderState{return state.leases.includes(id)?Object.freeze({...state,leases:Object.freeze(state.leases.filter(lease=>lease!==id))}):state;}

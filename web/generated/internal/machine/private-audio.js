@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-export function createPrivateAudio() { return Object.freeze({ running: false, polling: false, controlId: 0, rate: 1, volume: 100, gain: 1, streamIndex: null, resumeAfterContext: false, contextObservation: 0, contextActive: false, eof: false, eofTask: null, nextEOF: 1, watchAudio: true, badClock: 0, outside: 0, inside: 0, trim: false, rateWrites: 0, errors: Object.freeze([]) }); }
+export function createPrivateAudio() { return Object.freeze({ running: false, polling: false, controlId: 0, rate: 1, volume: 100, gain: 1, streamIndex: null, resumeAfterContext: false, contextObservation: 0, contextActive: false, contextWork: null, contextApplied: 0, eof: false, eofTask: null, nextEOF: 1, watchAudio: true, badClock: 0, outside: 0, inside: 0, trim: false, rateWrites: 0, errors: Object.freeze([]) }); }
 export function selectPrivateAudioStream(state, index) { return index === undefined ? Object.freeze({ state, accepted: false }) : Object.freeze({ state: Object.freeze({ ...state, streamIndex: index }), accepted: true }); }
 export function privateAudioSettings(state, input) {
     return Object.freeze({ ...state, rate: input.rate ?? state.rate, volume: input.volume ?? state.volume, gain: input.gain ?? state.gain, watchAudio: input.watchAudio ?? state.watchAudio, badClock: input.watchAudio === undefined ? state.badClock : 0 });
@@ -14,6 +14,8 @@ export function beginAudioControl(state, kind) {
 export function audioControlCurrent(state, id) { return state.controlId === id; }
 export function finishAudioPlay(state, id) { return state.controlId !== id ? Object.freeze({ state, accepted: false }) : Object.freeze({ state: Object.freeze({ ...state, running: true }), accepted: true }); }
 export function observeAudioContext(state, active, videoPaused) {
+    if (!Number.isSafeInteger(state.contextObservation + 1))
+        return Object.freeze({ state, id: state.contextObservation, pauseVideo: false });
     const id = state.contextObservation + 1, pauseVideo = !active && state.running && !videoPaused;
     return Object.freeze({ state: Object.freeze({ ...state, contextObservation: id, contextActive: active, resumeAfterContext: pauseVideo || state.resumeAfterContext }), id, pauseVideo });
 }
@@ -46,7 +48,7 @@ export function beginAudioEOF(state, active) {
 }
 export function audioEOFCurrent(state, id) { return state.eofTask === id; }
 export function finishAudioEOF(state, id) { return state.eofTask === id ? Object.freeze({ ...state, eofTask: null }) : state; }
-export function retirePrivateAudio(state) { return Object.freeze({ ...state, controlId: state.controlId + 1, contextObservation: state.contextObservation + 1, contextActive: false, running: false, resumeAfterContext: false, eofTask: null }); }
+export function retirePrivateAudio(state) { return Object.freeze({ ...state, controlId: state.controlId + 1, contextObservation: state.contextObservation + 1, contextActive: false, contextWork: null, running: false, resumeAfterContext: false, eofTask: null }); }
 export function privateAudioDeadline(now, timeout) { return Object.freeze({ until: now + timeout }); }
 export function privateAudioDeadlineOpen(deadline, now) { return now < deadline.until; }
 export function privateAudioReady(status, wait) {
@@ -57,4 +59,17 @@ export function privateAudioReady(status, wait) {
     if (wait.kind === 'verify')
         return status.consumed > 0 && status.feedbackCount > 0 && status.chains === 1;
     return status.eof && status.produced === status.consumed;
+}
+/** One physical context write with latest-observation coalescing; no queued promise chain. */
+export function beginAudioContextWork(state) {
+    if (state.contextWork !== null || state.contextApplied === state.contextObservation)
+        return Object.freeze({ state, request: null });
+    const id = state.contextObservation;
+    return Object.freeze({ state: Object.freeze({ ...state, contextWork: id }), request: Object.freeze({ id, active: state.contextActive }) });
+}
+export function finishAudioContextWork(state, id) {
+    if (state.contextWork !== id)
+        return Object.freeze({ state, accepted: false, playVideo: false });
+    const completion = acknowledgeAudioContext(state, id);
+    return Object.freeze({ state: Object.freeze({ ...completion.state, contextWork: null, contextApplied: id }), accepted: true, playVideo: completion.playVideo });
 }
