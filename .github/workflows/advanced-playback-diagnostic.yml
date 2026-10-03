@@ -1,0 +1,104 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Advanced playback diagnostic replay
+on:
+  push:
+    branches: [codex/qualification-20261003]
+    paths:
+      - .github/workflows/advanced-playback-diagnostic.yml
+      - tests/api-stability/advanced-playback.mjs
+  workflow_dispatch:
+    inputs:
+      source_run:
+        description: Trusted repository run containing source-provider-browser-inputs
+        required: true
+        type: string
+      source_commit:
+        description: Exact 40-character source commit of the provider inventory
+        required: true
+        type: string
+      inventory_sha256:
+        description: Exact SHA256 of bundle-ci-inventory.json
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  firefox:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SOURCE_RUN: ${{ inputs.source_run || '37148023748' }}
+      SOURCE_COMMIT: ${{ inputs.source_commit || '82ff8161bc41b1e26f1704b194f4228bb8bd89c0' }}
+      BUNDLE_INVENTORY_SHA256: ${{ inputs.inventory_sha256 || '283f3a153aaa9e979fabccdaa6b1e6b2f8f75131706c54a8ac4794266d058778' }}
+      BUNDLE_SOURCE_CANDIDATE: '1'
+      BROWSER: firefox
+      DEMUXE_RUNTIME_ROOT: build/bundle-flexibility/ci-assets/assets
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Preserve diagnostic harness identity
+        run: |
+          [[ "$SOURCE_RUN" =~ ^[1-9][0-9]*$ ]]
+          [[ "$SOURCE_COMMIT" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$BUNDLE_INVENTORY_SHA256" =~ ^[a-f0-9]{64}$ ]]
+          mkdir "$RUNNER_TEMP/advanced-diagnostic"
+          cp tests/api-stability/advanced-playback.mjs "$RUNNER_TEMP/advanced-diagnostic/advanced-playback.mjs"
+          git rev-parse HEAD > "$RUNNER_TEMP/advanced-diagnostic/harness-commit.txt"
+          sha256sum tests/api-stability/advanced-playback.mjs > "$RUNNER_TEMP/advanced-diagnostic/harness-sha256.txt"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_COMMIT }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps firefox
+      - name: Install fixture tools and audio service
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg pulseaudio
+          pulseaudio --start --exit-idle-time=-1
+      - uses: actions/download-artifact@v4
+        with:
+          name: source-provider-browser-inputs
+          path: build/bundle-ci-inputs
+          run-id: ${{ env.SOURCE_RUN }}
+          github-token: ${{ github.token }}
+      - name: Assemble exact recorded provider packages without a native rebuild
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
+          node scripts/prepare-bundle-ci.mjs
+          node tests/api-stability/fixtures.mjs
+      - name: Record diagnostic overlay and exact fixture
+        run: |
+          mkdir -p results/advanced-diagnostic
+          cp "$RUNNER_TEMP/advanced-diagnostic/"*.txt results/advanced-diagnostic/
+          sha256sum tests/api-stability/advanced-playback.mjs > results/advanced-diagnostic/original-harness-sha256.txt
+          cp "$RUNNER_TEMP/advanced-diagnostic/advanced-playback.mjs" tests/api-stability/advanced-playback.mjs
+          sha256sum tests/api-stability/advanced-playback.mjs > results/advanced-diagnostic/overlay-harness-sha256.txt
+          git diff -- tests/api-stability/advanced-playback.mjs > results/advanced-diagnostic/diagnostic-overlay.patch
+          printf '%s\n' "$SOURCE_COMMIT" > results/advanced-diagnostic/source-commit.txt
+          printf '%s\n' "$SOURCE_RUN" > results/advanced-diagnostic/source-run.txt
+          printf '%s\n' "$BUNDLE_INVENTORY_SHA256" > results/advanced-diagnostic/inventory-sha256.txt
+          ffmpeg -version > results/advanced-diagnostic/ffmpeg-version.txt
+          sha256sum fixtures/example.mp4 > results/advanced-diagnostic/fixture-sha256.txt
+      - name: Run the existing advanced playback assertions with diagnostic retention
+        env:
+          API_GUARD_REPORT: results/advanced-diagnostic/browser-guard.json
+        run: timeout --kill-after=10s 5m node --import ./tests/api-stability/browser-guard.mjs tests/api-stability/advanced-playback.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: advanced-playback-diagnostic-firefox
+          path: |
+            results/advanced-diagnostic/
+            results/api-stability/advanced-playback/
+            fixtures/example.mp4
+            build/fixtures/api-fixtures.json
+            build/bundle-ci-inputs/bundle-ci-inventory.json
+            build/bundle-ci-consumer/candidate-admission.json
+            build/bundle-flexibility/ci-assets/bundle-manifest.json
