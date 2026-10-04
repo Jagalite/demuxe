@@ -26,13 +26,14 @@ def tar(path,files):
 
 class ReducedTests(unittest.TestCase):
     def setUp(self):
+        self.tag=TAG;self.version=getattr(self,'version','0.3.0-beta.6')
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup);self.d=Path(self.temp.name)
         self.source_files={f'demuxe/native/input{i}':b'native' for i in range(263)}
         self.source_files.update({'demuxe/scripts/reduced_release.py':(v.ROOT/'scripts/reduced_release.py').read_bytes(),'demuxe/scripts/publish-reduced-release.py':(v.ROOT/'scripts/publish-reduced-release.py').read_bytes(),'demuxe/tests/player-component.mjs':''.join(f"await check('case{i}',fn);\n" for i in range(60)).encode()})
         self.build={'inputs':{f'native/input{i}':sha(b'native') for i in range(263)},'artifacts':{'web/engine-hybrid/player.wasm':{'sha256':sha(b'wasm'),'bytes':4}},'sdkSources':{'lib.c':sha(b'sdk')},'configurations':{'config.json':sha(b'config')},'sharedTools':{}}
         self.source_files.update({'toolchain/emscripten/lib.c':b'sdk','build-materials/config.json':b'config','build-materials/build/beta-build.json':self.build})
-        self.source_files['demuxe/docs/release-candidates/0.3.0-beta.6.md']=b'Reduced qualification; historical uncertainty unresolved.'
-        self.project={'name':'demuxe','version':'0.3.0-beta.6','description':'Fixture','repository':'fixture','bugs':'fixture','homepage':'fixture','keywords':[],'exports':{}}
+        self.source_files['demuxe/docs/release-candidates/'+self.version+'.md']=b'Reduced qualification; historical uncertainty unresolved.'
+        self.project={'name':'demuxe','version':self.version,'description':'Fixture','repository':'fixture','bugs':'fixture','homepage':'fixture','keywords':[],'exports':{}}
         self.source_files['demuxe/package.json']=self.project
         self.source_files['demuxe/bin/demuxe.mjs']=b'// fixture CLI'
         self.tagged={n[7:]:sha(b) for n,b in self.source_files.items() if n.startswith('demuxe/')}
@@ -40,7 +41,7 @@ class ReducedTests(unittest.TestCase):
         self.package=v.package_metadata(self.project,license_policy.Policy(v.ROOT).config['packageLicenses'])
         self.runtime_files={'bin/demuxe.mjs':b'// fixture CLI','package.json':self.package,'engine-build.json':self.build,'web/engine-hybrid/player.wasm':b'wasm'}
         self.runtime_files.update({name:("// SPDX-License-Identifier: Apache-2.0\nexport * from './web/generated/"+('player/index.js' if name.startswith('player.') else 'index.js')+"';\n").encode() for name in ('index.js','index.d.ts','player.js','player.d.ts')})
-        self.record={'schema':1,'status':'reduced-developer-beta-tested','fullReleaseQualified':False,'sourceTag':TAG,'sourceCommit':COMMIT,'deferredSuites':sorted(v.DEFERRED),'acceptedFindings':[{'id':'chrome-worker-teardown-historical','status':'accepted-unresolved','authorization':'User accepted last attempt then documented release','limitation':'Historical outcome remains unknown'}],'gateOriginalDirectory':'/gate','evidenceFiles':[]}
+        self.record={'schema':1,'status':'reduced-developer-beta-tested','fullReleaseQualified':False,'sourceTag':self.tag,'sourceCommit':COMMIT,'deferredSuites':sorted(v.DEFERRED),'acceptedFindings':[{'id':'chrome-worker-teardown-historical','status':'accepted-unresolved','authorization':'User accepted last attempt then documented release','limitation':'Historical outcome remains unknown'}],'gateOriginalDirectory':'/gate','evidenceFiles':[]}
         self.gate={'sourceCommit':COMMIT,'completed':True,'passed':True,'fullReleaseQualified':False,'runtimeUnchanged':True,'archiveUnchanged':True,'sourceUnchanged':True,'cwd':'/checkout','rows':[]}
         self.add_asset('gateController','reduced-controller.py',b'# source-bound controller')
         self.add_asset('releaseNotes','reduced-notes.md',b'Reduced qualification; historical uncertainty unresolved.')
@@ -67,9 +68,9 @@ class ReducedTests(unittest.TestCase):
     def add_evidence(self,original,name,value):
         (self.d/name).write_bytes(data(value));self.record['evidenceFiles'].append({'originalPath':original,'file':name,'sha256':sha(value)})
     def repack(self):
-        source_manifest={'sourceTag':TAG,'sourceCommit':COMMIT,'files':{n:sha(b) for n,b in self.source_files.items()}}
+        source_manifest={'sourceTag':self.tag,'sourceCommit':COMMIT,'files':{n:sha(b) for n,b in self.source_files.items()}}
         source=self.d/'demuxe-source.tar.gz';tar(source,{**self.source_files,'source-manifest.json':source_manifest});self.record['source']={'file':source.name,'sha256':v.digest(source)}
-        manifest={'version':'0.3.0-beta.6','sourceTag':TAG,'sourceCommit':COMMIT,'dirtySource':False,'sourceArchive':{'filename':source.name,'sha256':v.digest(source),'bytes':source.stat().st_size},'files':{n:{'sha256':sha(b),'bytes':len(data(b))} for n,b in self.runtime_files.items()}}
+        manifest={'version':self.version,'sourceTag':self.tag,'sourceCommit':COMMIT,'dirtySource':False,'sourceArchive':{'filename':source.name,'sha256':v.digest(source),'bytes':source.stat().st_size},'files':{n:{'sha256':sha(b),'bytes':len(data(b))} for n,b in self.runtime_files.items()}}
         files={'package/'+n:b for n,b in self.runtime_files.items()};files['package/release-manifest.json']=manifest;runtime=self.d/'demuxe.tgz';tar(runtime,files);self.record['runtime']={'file':runtime.name,'sha256':v.digest(runtime)};self.actual_runtime={n[8:]:sha(b) for n,b in files.items()}
     def save(self):
         with tarfile.open(self.d/'demuxe.tgz') as t:outputs={m.name:{'sha256':hashlib.file_digest(t.extractfile(m),'sha256').hexdigest(),'bytes':m.size} for m in t if m.isfile()}
@@ -81,8 +82,17 @@ class ReducedTests(unittest.TestCase):
         # exercise all new provenance/evidence guards before that existing check.
         import license_policy
         with patch.object(v,'tracked_source',return_value=self.tagged),patch.object(license_policy.Policy,'check_package'),patch.object(license_policy,'LEGAL',[]):
-            return v.validate(self.d,TAG,COMMIT)
+            return v.validate(self.d,self.tag,COMMIT)
     def test_valid_reduced_receipt(self):self.assertEqual(self.validate()[1],'0.3.0-beta.6')
+    def test_canonical_rc_receipt(self):
+        self.version='1.0.0-rc.1'
+        with patch.dict(globals(),TAG='reduced-v1.0.0-rc.1'):self.setUp()
+        self.assertEqual(self.validate()[1],self.version)
+    def test_mismatched_rc_tag_and_stable_version(self):
+        for version,tag,message in [('1.0.0-rc.1','reduced-v1.0.0-rc.2','source/tag/version'),('1.0.0-rc.1','reduced-v1.0.0-rc.1-rc.1','source/tag/version'),('1.0.0','reduced-v1.0.0-rc.1','Wrong/private/stable')]:
+            self.version=version
+            with patch.dict(globals(),TAG=tag):self.setUp()
+            with self.assertRaisesRegex(ValueError,message):self.validate()
     def test_missing_or_duplicate_rows(self):
         for rows in [self.gate['rows'][:-1],self.gate['rows'][:-1]+[self.gate['rows'][0]]]:
             self.gate['rows']=rows;self.save()

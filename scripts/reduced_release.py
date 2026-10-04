@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Strict, explicitly reduced developer-beta evidence; never emits full verification."""
+"""Strict, explicitly reduced prerelease evidence; never emits full verification."""
 import ast
 import subprocess
 import hashlib
@@ -168,7 +168,7 @@ def validate(directory, tag, commit):
         version=package.get('version','');optional_manifests={}
         entrypoints={name:tar.extractfile('package/'+name).read() for name in ('index.js','index.d.ts','player.js','player.d.ts') if 'package/'+name in actual}
         require(package.get('name')=='demuxe' and not package.get('private') and re.fullmatch(r'\d+\.\d+\.\d+-[0-9A-Za-z.-]+',version), 'Wrong/private/stable package')
-        require(tag.startswith('reduced-v'+version+'-rc.') and manifest.get('version')==version and manifest.get('sourceCommit')==commit and manifest.get('sourceTag')==tag and manifest.get('dirtySource') is False, 'Runtime source/tag/version mismatch')
+        require((tag=='reduced-v'+version or bool(re.fullmatch(r'\d+\.\d+\.\d+-beta\.\d+',version) and re.fullmatch(re.escape('reduced-v'+version)+r'-rc\.[1-9]\d*',tag))) and manifest.get('version')==version and manifest.get('sourceCommit')==commit and manifest.get('sourceTag')==tag and manifest.get('dirtySource') is False, 'Runtime source/tag/version mismatch')
         require(manifest['sourceArchive']['filename']==source.name and manifest['sourceArchive']['sha256']==record['source']['sha256'] and manifest['sourceArchive']['bytes']==source.stat().st_size, 'Source companion mismatch')
         require(set(actual)=={'package/'+n for n in manifest['files']}|{'package/release-manifest.json'}, 'Runtime inventory mismatch')
         for name,fact in manifest['files'].items():

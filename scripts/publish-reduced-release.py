@@ -55,7 +55,7 @@ def publish(directory,tag,commit,repo):
                 require(release['isDraft'],'Published release incomplete; refusing mutation')
                 gh('release','upload',tag,path,'--repo',repo)
     if release['isDraft']:gh('release','edit',tag,'--repo',repo,'--draft=false','--prerelease','--latest=false')
-    print(f'Published reduced-scope developer beta: https://github.com/{repo}/releases/tag/{tag}')
+    print(f'Published reduced-scope prerelease: https://github.com/{repo}/releases/tag/{tag}')
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--assets',type=Path,required=True);p.add_argument('--tag',required=True);p.add_argument('--commit',required=True)
