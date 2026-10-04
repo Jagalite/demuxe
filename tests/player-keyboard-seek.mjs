@@ -24,8 +24,8 @@ try{
     window.restoreSeek?.();a.settings(false,false);await a.pause();await a.seek(a.player.state.duration/2);
     if(kind==='playing'||kind==='drag')await a.play();
     a.shadowRoot.getElementById('stage').focus();a.revealControls();
-    const core=a.player,original=core.seek;window.observation={calls:[],events:[]};
-    const sample=()=>({at:performance.now(),idle:a.controlState.idle,preview:a.controlState.seekPreview,dragging:a.controlState.dragging,intent:core.state.playbackIntent,time:core.state.currentTime,surfaceTime:core.surface.currentTime,pending:core.state.pendingOperation});
+    const core=a.player,sourceId=core.state.sourceId,original=core.seek;window.observation={calls:[],events:[]};
+    const sample=()=>{const backend=core.current.backend,surface=core.surface;return {at:performance.now(),idle:a.controlState.idle,preview:a.controlState.seekPreview,dragging:a.controlState.dragging,intent:core.state.playbackIntent,time:core.state.currentTime,surfaceTime:surface.currentTime,timelineBias:backend.remux?.timelineBias??0,mode:core.state.activeMode,plan:backend.diagnostics.plan,sameSource:a.player===core&&core.state.sourceId===sourceId,sameSurface:backend.video===surface,pending:core.state.pendingOperation};};
     const seeking=()=>observation.events.push({type:'seeking',...sample()});core.addEventListener('seeking',seeking);
     core.seek=function(target,...args){const call={target,invoked:sample()};observation.calls.push(call);const promise=original.call(this,target,...args);promise.then(()=>{call.completed=sample();},error=>{call.error=String(error);});return promise;};
     window.restoreSeek=()=>{core.seek=original;core.removeEventListener('seeking',seeking);};
@@ -40,7 +40,9 @@ try{
    const o=row.observation;
    if(entry.kind==='volume'||entry.kind==='menu'){assert.equal(o.calls.length,0);assert.equal(o.after.idle,false);if(entry.kind==='volume')assert.ok(o.after.input>o.inputBefore);else assert.equal(o.after.menu,true);}
    else{
-    assert.equal(o.calls.length,1);const c=o.calls[0];assert.equal(c.error,undefined);assert.ok(c.completed);assert.ok(Math.abs(c.completed.surfaceTime-c.target)<.35,JSON.stringify(c));
+    assert.equal(o.calls.length,1);const c=o.calls[0];assert.equal(c.error,undefined);assert.ok(c.completed);assert.equal(c.completed.sameSource,true);assert.equal(c.completed.mode,'native');assert.equal(c.completed.sameSurface,true);
+    // Native remux timestamps include a backend-owned bias; shortcuts seek source time.
+    const actual=c.completed.surfaceTime-c.completed.timelineBias;assert.ok(Number.isFinite(c.completed.timelineBias)&&Number.isFinite(actual)&&Math.abs(actual-c.target)<.35,JSON.stringify(c));
     assert.equal(c.invoked.idle,entry.kind==='playing','Only a playing stage shortcut should hide controls');
     if(entry.kind==='playing')assert.ok(o.events.some(e=>e.type==='seeking'&&e.idle&&e.preview),'Seek must show timeline-only feedback');
     if(entry.kind==='paused')assert.equal(o.after.idle,false);
