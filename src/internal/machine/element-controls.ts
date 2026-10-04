@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type {SessionError} from '../../types.js';
 export type ElementControlsState=Readonly<{
- idle:boolean;seekPreview:boolean;playing:boolean;seeking:boolean;dragging:boolean;stageWasIdle:boolean;
+ idle:boolean;seekPreview:boolean;playing:boolean;playbackIntent:'play'|'pause';playbackStatus:string;seeking:boolean;dragging:boolean;stageWasIdle:boolean;
  menuOpen:boolean;menuTrigger:'open-menu'|'settings-toggle';diagnostics:boolean;diagnosticsUpdated:number;
  openingOperation:number|null;openingStage:string;previewIdentity:string;announcement:string;failure:SessionError|undefined;
 }>;
@@ -27,7 +27,7 @@ export type ElementControlsCommand=
  | Readonly<{type:'clear-error'}>;
 export type ElementControlsDecision=Readonly<{state:ElementControlsState;accepted?:boolean;changed?:boolean;hideAfter?:number;reveal?:boolean;seekPreviewAfter?:number;resetPreview?:boolean}>;
 export function initialElementControls():ElementControlsState {
- return Object.freeze({idle:false,seekPreview:false,playing:false,seeking:false,dragging:false,stageWasIdle:false,menuOpen:false,menuTrigger:'settings-toggle',diagnostics:false,diagnosticsUpdated:0,openingOperation:null,openingStage:'',previewIdentity:'',announcement:'',failure:undefined});
+ return Object.freeze({idle:false,seekPreview:false,playing:false,playbackIntent:'pause',playbackStatus:'idle',seeking:false,dragging:false,stageWasIdle:false,menuOpen:false,menuTrigger:'settings-toggle',diagnostics:false,diagnosticsUpdated:0,openingOperation:null,openingStage:'',previewIdentity:'',announcement:'',failure:undefined});
 }
 function canHide(state:ElementControlsState,facts:ElementControlFacts):boolean {return facts.playing&&!facts.pending&&!state.menuOpen&&!state.dragging&&!facts.focusVisible&&facts.connected;}
 export function transitionElementControls(state:ElementControlsState,command:ElementControlsCommand):ElementControlsDecision {
@@ -48,7 +48,7 @@ export function transitionElementControls(state:ElementControlsState,command:Ele
    return Object.freeze({state:Object.freeze({...state,seeking:command.seeking,seekPreview:state.idle?true:state.seekPreview}),changed:true,reveal:!state.idle,seekPreviewAfter:state.idle&&!command.seeking?800:undefined});
   }
   case 'seek-preview-expired':return Object.freeze({state:Object.freeze({...state,seekPreview:false})});
-  case 'playing':return state.playing===command.playing?Object.freeze({state,changed:false}):Object.freeze({state:Object.freeze({...state,playing:command.playing}),changed:true,reveal:!state.idle||command.intent==='pause'||['ended','error','idle'].includes(command.status)});
+  case 'playing':return state.playing===command.playing&&state.playbackIntent===command.intent&&state.playbackStatus===command.status?Object.freeze({state,changed:false}):Object.freeze({state:Object.freeze({...state,playing:command.playing,playbackIntent:command.intent,playbackStatus:command.status}),changed:true,reveal:!state.idle||command.intent==='pause'||['ended','error','idle'].includes(command.status)});
   case 'opening':return Object.freeze({state:command.operation===null?Object.freeze({...state,openingOperation:null,openingStage:''}):command.operation!==state.openingOperation?Object.freeze({...state,openingOperation:command.operation,openingStage:command.initialStage}):state});
   case 'opening-stage':return Object.freeze({state:Object.freeze({...state,openingStage:command.stage})});
   case 'diagnostics':return Object.freeze({state:Object.freeze({...state,diagnostics:command.show&&command.enabled&&command.controls})});

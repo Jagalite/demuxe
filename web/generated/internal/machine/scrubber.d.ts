@@ -69,6 +69,8 @@ export declare function scrubberPointer(facts: Readonly<{
     disabled: boolean;
     left: number;
     width: number;
+    thumbWidth?: number;
+    step?: number;
     min: number;
     max: number;
     x: number;

@@ -7,6 +7,7 @@ export declare class ScrubberPreview {
     private image;
     private label;
     private api;
+    private targetLabel?;
     private control;
     private generators;
     private presentations;
@@ -19,7 +20,7 @@ export declare class ScrubberPreview {
     private abort;
     private applyClear;
     private readonly move;
-    constructor(timeline: HTMLInputElement, panel: HTMLElement, image: HTMLImageElement, label: HTMLElement, api: () => PlayerPreview | undefined);
+    constructor(timeline: HTMLInputElement, panel: HTMLElement, image: HTMLImageElement, label: HTMLElement, api: () => PlayerPreview | undefined, targetLabel?: HTMLElement | undefined);
     private distance;
     private sample;
     private next;

@@ -66,6 +66,17 @@ test('pointer geometry clamps preview time and panel edges and rejects disabled/
  assert.equal(scrubberPointer({...facts,parentWidth:100}).left,50);
 });
 
+test('pointer time follows the native thumb travel and range step on long and live timelines',()=>{
+ const facts={touch:false,disabled:false,left:94,width:1214,thumbWidth:12,step:.1,min:0,max:1800,x:94+1214*130/1800,parentLeft:0,parentWidth:1402};
+ assert.equal(scrubberPointer(facts).time,122.3); // Previously advertised 2:10 at this position.
+ assert.equal(scrubberPointer({...facts,x:100+1202*130/1800}).time,130);
+ assert.equal(scrubberPointer({...facts,x:94}).time,0);
+ assert.equal(scrubberPointer({...facts,x:1308}).time,1800);
+ assert.equal(scrubberPointer({...facts,min:1000,max:2800,x:100+1202*130/1800}).time,1130);
+ assert.equal(scrubberPointer({...facts,max:12.032,x:1308}).time,12);
+ assert.deepEqual(scrubberPointer({...facts,width:12}),{hide:false});
+});
+
 function shellFixture(decode=async()=>{}){
  const timeline=new EventTarget();timeline.min='0';timeline.max='100';const panel={hidden:true},image={hidden:true,removeAttribute(){delete this.src;},ownerDocument:{createElement(){return {decode,removeAttribute(){delete this.src;}};}}},label={textContent:''};
  return {preview:new ScrubberPreview(timeline,panel,image,label,()=>undefined),timeline,panel,image,label};
