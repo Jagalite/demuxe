@@ -1021,6 +1021,8 @@ export class DemuxePlayerElement extends Base {
                 return;
             let action;
             const state = p.state;
+            const seek = (time) => { if (state.playbackIntent === 'play' && !this.dragging)
+                this.hideControls(); return p.seek(time); };
             if (key === 'f') {
                 event.preventDefault();
                 this.fullscreen();
@@ -1044,18 +1046,18 @@ export class DemuxePlayerElement extends Base {
                 if (ranges?.length) {
                     const start = ranges[0].start, end = Math.max(start, ranges.at(-1).end - .1);
                     if (key === 'home')
-                        action = p.seek(start);
+                        action = seek(start);
                     if (key === 'end')
-                        action = p.seek(end);
+                        action = seek(end);
                     if (/^[0-9]$/.test(key))
-                        action = p.seek(start + (end - start) * Number(key) / 10);
+                        action = seek(start + (end - start) * Number(key) / 10);
                 }
                 if (key === ' ' || key === 'k')
                     action = state.playbackIntent === 'play' ? this.pause() : this.playFromControls();
                 const delta = key === 'arrowleft' ? -5 : key === 'arrowright' ? 5 : key === 'j' ? -this.seekStep : key === 'l' ? this.seekStep : 0;
                 const window = state.seekable;
                 if (delta && window?.length)
-                    action = p.seek(Math.max(window[0].start, Math.min(window.at(-1).end - .05, state.currentTime + delta)));
+                    action = seek(Math.max(window[0].start, Math.min(window.at(-1).end - .05, state.currentTime + delta)));
             }
             if (action) {
                 event.preventDefault();

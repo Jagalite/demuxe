@@ -536,13 +536,14 @@ export class DemuxePlayerElement extends Base {
       if(event.key==='Escape'&&this.controlState.menuOpen){event.preventDefault();this.settings(false);return;}
       if(this.controlState.menuOpen)return;const p=this.core;if(!key||!p)return;
       let action:Promise<unknown>|undefined;const state=p.state;
+      const seek=(time:number)=>{if(state.playbackIntent==='play'&&!this.dragging)this.hideControls();return p.seek(time);};
       if(key==='f'){event.preventDefault();this.fullscreen();return;}
       if(key==='?' ){event.preventDefault();this.settings(true);return;}
       if(key==='m')action=p.setMuted(!state.muted);
       if(key==='arrowup'||key==='arrowdown')action=p.setVolume(Math.max(0,Math.min(1,state.volume+(key==='arrowup'?.05:-.05))));
       if(key==='['||key===']')action=p.setPlaybackRate(Math.max(.5,Math.min(2,state.playbackRate+(key===']'?.25:-.25))));
-      if(!state.pendingOperation&&state.sourceId){if(key==='c'&&!state.trackPolicy.subtitles?.locked&&(!state.subtitlesVisible||state.trackPolicy.subtitles?.allowOff!==false))action=p.subtitleVisible(!state.subtitlesVisible);const ranges=state.seekable;if(ranges?.length){const start=ranges[0].start,end=Math.max(start,ranges.at(-1)!.end-.1);if(key==='home')action=p.seek(start);if(key==='end')action=p.seek(end);if(/^[0-9]$/.test(key))action=p.seek(start+(end-start)*Number(key)/10);}
-      if(key===' '||key==='k')action=state.playbackIntent==='play'?this.pause():this.playFromControls();const delta=key==='arrowleft'?-5:key==='arrowright'?5:key==='j'?-this.seekStep:key==='l'?this.seekStep:0;const window=state.seekable;if(delta&&window?.length)action=p.seek(Math.max(window[0].start,Math.min(window.at(-1)!.end-.05,state.currentTime+delta)));}
+      if(!state.pendingOperation&&state.sourceId){if(key==='c'&&!state.trackPolicy.subtitles?.locked&&(!state.subtitlesVisible||state.trackPolicy.subtitles?.allowOff!==false))action=p.subtitleVisible(!state.subtitlesVisible);const ranges=state.seekable;if(ranges?.length){const start=ranges[0].start,end=Math.max(start,ranges.at(-1)!.end-.1);if(key==='home')action=seek(start);if(key==='end')action=seek(end);if(/^[0-9]$/.test(key))action=seek(start+(end-start)*Number(key)/10);}
+      if(key===' '||key==='k')action=state.playbackIntent==='play'?this.pause():this.playFromControls();const delta=key==='arrowleft'?-5:key==='arrowright'?5:key==='j'?-this.seekStep:key==='l'?this.seekStep:0;const window=state.seekable;if(delta&&window?.length)action=seek(Math.max(window[0].start,Math.min(window.at(-1)!.end-.05,state.currentTime+delta)));}
       if(action){event.preventDefault();this.run(action);}
     });
   }

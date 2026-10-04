@@ -24,6 +24,7 @@ export const browsers = {
   ],
   ui: [
     {file:'player-component', report:'results/player-component', minimum:25},
+    {file:'player-keyboard-seek', report:'results/player-keyboard-seek', minimum:36},
     {file:'player-presentation', report:'results/player-presentation', minimum:12},
     {file:'api-stability/advanced-settings', report:'results/api-stability/advanced', minimum:24},
     {file:'api-stability/advanced-playback', report:'results/api-stability/advanced-playback', minimum:5},

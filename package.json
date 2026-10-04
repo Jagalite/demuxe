@@ -49,7 +49,7 @@
     "fixtures:compatibility": "python3 scripts/compatibility-fixtures.py",
     "test:compatibility": "npm run build && node --test tests/audio-worklet.mjs tests/resource-loader.mjs tests/streaming-expansion.mjs tests/remux-buffering.mjs && node tests/compatibility-expansion.mjs",
     "test:public-api": "npm run build && node tests/public-api.mjs",
-    "test:component": "node tests/player-component.mjs",
+    "test:component": "node tests/player-component.mjs && node tests/player-keyboard-seek.mjs",
     "test:presentation": "node tests/player-presentation.mjs",
     "build:core": "npm run build && python3 scripts/package-core.py",
     "check:licenses": "python3 scripts/check-licenses.py",
@@ -79,7 +79,8 @@
     "test:providers": "node scripts/test-providers.mjs",
     "test:provider-harness": "node --test tests/provider-conformance/*-contracts.mjs && node tests/provider-conformance-installed.mjs",
     "test:stability": "node tests/api-stability/run.mjs unit",
-    "test:stability:browser": "node tests/api-stability/run.mjs browser"
+    "test:stability:browser": "node tests/api-stability/run.mjs browser",
+    "test:keyboard-seek": "node tests/player-keyboard-seek.mjs"
   },
   "devDependencies": {
     "esbuild": "0.28.2",
