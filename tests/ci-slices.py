@@ -33,10 +33,37 @@ class CatalogTests(unittest.TestCase):
         source = load('provider_source_ci_test', 'package-provider-source.py')
         paths = source.application_source_paths('audio-flac')
         required = {'sources.lock.json', 'scripts/ci-slices.py', 'scripts/build-ci-reference.py',
-                    '.github/actions/reference-tools/action.yml', 'licensing/ci-slices.json'}
+                    '.github/actions/reference-tools/action.yml', 'licensing/ci-slices.json',
+                    'packages/provider-shaka/package.json', 'packages/provider-shaka/package-lock.json',
+                    'packages/provider-shaka/typecheck.ts'}
         required.update(row['pin'] if row['kind'] == 'web' else row['evidence'] for row in ci.catalog())
         self.assertTrue(required <= paths, sorted(required - paths))
         self.assertTrue(all((ROOT / name).is_file() for name in required))
+
+    def test_source_inventory_is_unchanged_by_provider_local_installs(self):
+        source = load('provider_source_dependency_test', 'package-provider-source.py')
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root/'licensing').mkdir()
+            config = {'playerCoreSources': [], 'profiles': {'fixture': {'files': [], 'generated': []}},
+                      'targets': {'fixture': {'template': 'packages/provider-fixture/package.json'}}}
+            for name, value in [('provider-packages.json', config), ('ci-slices.json', {'include': []}),
+                                ('provider-runtime-qualification.json', {'evidence': []})]:
+                (root/'licensing'/name).write_text(json.dumps(value))
+            package = root/'packages/provider-fixture'
+            package.mkdir(parents=True)
+            for name in ['package.json', 'package-lock.json', 'index.js', 'typecheck.ts']:
+                (package/name).write_text('fixture')
+            with patch.object(source, 'ROOT', root):
+                before = source.application_source_paths('fixture')
+                for name in ['node_modules/.package-lock.json', 'node_modules/vendor/dist/runtime.js',
+                             'tooling/node_modules/nested/runtime.js']:
+                    path = package/name
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text('installed dependency')
+                self.assertEqual(source.application_source_paths('fixture'), before)
+                self.assertTrue({'packages/provider-fixture/'+name for name in
+                                 ['package.json', 'package-lock.json', 'index.js', 'typecheck.ts']} <= before)
 
     def test_archive_audit_rejects_omitted_ci_inputs_with_valid_inventory(self):
         auditor = load('provider_ci_archive_auditor', 'audit-provider-package.py')

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
-import type Shaka from 'shaka-player';
-import {PlayerError} from './errors.js';
+import {bundledShakaIncluded} from './provider-build.js';
+import type {Shaka} from './shaka-api.js';
+import type {ProviderRuntimeAssets} from './provider-runtime.js';
+import {PlayerError,isPlayerError} from './errors.js';
 import {createShakaRuntime,joinShakaRuntime,acquireShakaRuntime,releaseShakaRuntimeAcquisition,leaveShakaRuntime,finishShakaRuntime,shakaRuntimeLoad,shakaRuntimeDeadline} from './machine/shaka-runtime.js';
 
 type Handle={promise:Promise<typeof Shaka>;resolve:(runtime:typeof Shaka)=>void;reject:(error:Error)=>void;controller?:AbortController;script?:HTMLScriptElement;blob?:string;timer?:ReturnType<typeof setTimeout>;timerToken?:object};
@@ -8,10 +10,12 @@ const aborted=()=>new PlayerError('ABORTED','Shaka runtime loading cancelled');
 /** Shared runtime policy has one module lifetime; executable code, promises,
  * script nodes, fetch controllers and object URLs stay in this adapter. */
 export class ShakaRuntimeLoader {
+ constructor(private readonly providerAssets?:ProviderRuntimeAssets,private readonly bundledIncluded=true){}
  private state=createShakaRuntime();
  private handles=new Map<number,Handle>();
  load(base:URL,signal:AbortSignal):Promise<typeof Shaka>{
   if(signal.aborted)return Promise.reject(aborted());
+  if(!this.providerAssets&&!this.bundledIncluded)return Promise.reject(new PlayerError('DEPLOYMENT_UNAVAILABLE','Shaka provider is not included'));
   const url=new URL('web/vendor/shaka-player.js',base).href,now=performance.now(),joined=joinShakaRuntime(this.state,url,now);this.state=joined.state;
   if(!joined.accepted)return Promise.reject(new PlayerError('ASSET_LOAD_FAILED',joined.error));
   const {load,consumer,start}=joined;
@@ -69,10 +73,16 @@ export class ShakaRuntimeLoader {
   if(!this.current(id))return;
   this.state=acquireShakaRuntime(this.state,id);
   void(async()=>{
-   const response=await fetch(url,{signal:handle.controller!.signal,credentials:'same-origin',redirect:'error'});
-   if(!this.current(id)){try{await response.body?.cancel();}catch{}return;}
-   if(!response.ok)throw Error('Shaka asset response failed');
-   const code=await response.text();if(!this.current(id))return;
+   let code:string;
+   if(this.providerAssets){
+    code=new TextDecoder().decode(await this.providerAssets.bytes('web/vendor/shaka-player.js'));
+   }else{
+    const response=await fetch(url,{signal:handle.controller!.signal,credentials:'same-origin',redirect:'error'});
+    if(!this.current(id)){try{await response.body?.cancel();}catch{}return;}
+    if(!response.ok)throw Error('Shaka asset response failed');
+    code=await response.text();
+   }
+   if(!this.current(id))return;
    const blob=URL.createObjectURL(new Blob(['if(document.currentScript?.isConnected){\n',code,'\n}'],{type:'text/javascript'}));
    if(!this.current(id)){try{URL.revokeObjectURL(blob);}catch{}return;}handle.blob=blob;
    const script=document.createElement('script');
@@ -81,8 +91,14 @@ export class ShakaRuntimeLoader {
    script.onload=()=>{if(!this.current(id))return;const runtime=(globalThis as unknown as {shaka?:typeof Shaka}).shaka;this.finish(id,handle,runtime?.Player?undefined:new PlayerError('ASSET_LOAD_FAILED','Shaka runtime is unavailable'),runtime);};
    script.onerror=()=>this.finish(id,handle,new PlayerError('ASSET_LOAD_FAILED','Shaka runtime execution failed'));
    if(this.current(id)){document.head.append(script);if(!this.current(id))try{script.remove();}catch{}}
-  })().catch(()=>this.finish(id,handle,new PlayerError('ASSET_LOAD_FAILED','Shaka runtime loading failed'))).finally(()=>{this.state=releaseShakaRuntimeAcquisition(this.state,id);if(shakaRuntimeLoad(this.state,id)?.phase!=='ready'&&!this.current(id))this.handles.delete(id);});
+  })().catch(error=>this.finish(id,handle,isPlayerError(error)?error:new PlayerError('ASSET_LOAD_FAILED','Shaka runtime loading failed'))).finally(()=>{this.state=releaseShakaRuntimeAcquisition(this.state,id);if(shakaRuntimeLoad(this.state,id)?.phase!=='ready'&&!this.current(id))this.handles.delete(id);});
  }
 }
-const shared=new ShakaRuntimeLoader();
-export function runtimeAt(base:URL,signal:AbortSignal):Promise<typeof Shaka>{return shared.load(base,signal);}
+const shared=new ShakaRuntimeLoader(undefined,bundledShakaIncluded);
+// Keep caches within the deployment that verified the executable bytes.
+const deployed=new WeakMap<ProviderRuntimeAssets,ShakaRuntimeLoader>();
+export function runtimeAt(base:URL,signal:AbortSignal,assets?:ProviderRuntimeAssets):Promise<typeof Shaka>{
+ if(!assets)return shared.load(base,signal);
+ let loader=deployed.get(assets);if(!loader){loader=new ShakaRuntimeLoader(assets);deployed.set(assets,loader);}
+ return loader.load(base,signal);
+}

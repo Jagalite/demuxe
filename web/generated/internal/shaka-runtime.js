@@ -1,15 +1,24 @@
 // SPDX-License-Identifier: Apache-2.0
-import { PlayerError } from './errors.js';
+import { bundledShakaIncluded } from './provider-build.js';
+import { PlayerError, isPlayerError } from './errors.js';
 import { createShakaRuntime, joinShakaRuntime, acquireShakaRuntime, releaseShakaRuntimeAcquisition, leaveShakaRuntime, finishShakaRuntime, shakaRuntimeLoad, shakaRuntimeDeadline } from './machine/shaka-runtime.js';
 const aborted = () => new PlayerError('ABORTED', 'Shaka runtime loading cancelled');
 /** Shared runtime policy has one module lifetime; executable code, promises,
  * script nodes, fetch controllers and object URLs stay in this adapter. */
 export class ShakaRuntimeLoader {
+    providerAssets;
+    bundledIncluded;
+    constructor(providerAssets, bundledIncluded = true) {
+        this.providerAssets = providerAssets;
+        this.bundledIncluded = bundledIncluded;
+    }
     state = createShakaRuntime();
     handles = new Map();
     load(base, signal) {
         if (signal.aborted)
             return Promise.reject(aborted());
+        if (!this.providerAssets && !this.bundledIncluded)
+            return Promise.reject(new PlayerError('DEPLOYMENT_UNAVAILABLE', 'Shaka provider is not included'));
         const url = new URL('web/vendor/shaka-player.js', base).href, now = performance.now(), joined = joinShakaRuntime(this.state, url, now);
         this.state = joined.state;
         if (!joined.accepted)
@@ -136,17 +145,23 @@ export class ShakaRuntimeLoader {
             return;
         this.state = acquireShakaRuntime(this.state, id);
         void (async () => {
-            const response = await fetch(url, { signal: handle.controller.signal, credentials: 'same-origin', redirect: 'error' });
-            if (!this.current(id)) {
-                try {
-                    await response.body?.cancel();
-                }
-                catch { }
-                return;
+            let code;
+            if (this.providerAssets) {
+                code = new TextDecoder().decode(await this.providerAssets.bytes('web/vendor/shaka-player.js'));
             }
-            if (!response.ok)
-                throw Error('Shaka asset response failed');
-            const code = await response.text();
+            else {
+                const response = await fetch(url, { signal: handle.controller.signal, credentials: 'same-origin', redirect: 'error' });
+                if (!this.current(id)) {
+                    try {
+                        await response.body?.cancel();
+                    }
+                    catch { }
+                    return;
+                }
+                if (!response.ok)
+                    throw Error('Shaka asset response failed');
+                code = await response.text();
+            }
             if (!this.current(id))
                 return;
             const blob = URL.createObjectURL(new Blob(['if(document.currentScript?.isConnected){\n', code, '\n}'], { type: 'text/javascript' }));
@@ -180,9 +195,20 @@ export class ShakaRuntimeLoader {
                     }
                     catch { }
             }
-        })().catch(() => this.finish(id, handle, new PlayerError('ASSET_LOAD_FAILED', 'Shaka runtime loading failed'))).finally(() => { this.state = releaseShakaRuntimeAcquisition(this.state, id); if (shakaRuntimeLoad(this.state, id)?.phase !== 'ready' && !this.current(id))
+        })().catch(error => this.finish(id, handle, isPlayerError(error) ? error : new PlayerError('ASSET_LOAD_FAILED', 'Shaka runtime loading failed'))).finally(() => { this.state = releaseShakaRuntimeAcquisition(this.state, id); if (shakaRuntimeLoad(this.state, id)?.phase !== 'ready' && !this.current(id))
             this.handles.delete(id); });
     }
 }
-const shared = new ShakaRuntimeLoader();
-export function runtimeAt(base, signal) { return shared.load(base, signal); }
+const shared = new ShakaRuntimeLoader(undefined, bundledShakaIncluded);
+// Keep caches within the deployment that verified the executable bytes.
+const deployed = new WeakMap();
+export function runtimeAt(base, signal, assets) {
+    if (!assets)
+        return shared.load(base, signal);
+    let loader = deployed.get(assets);
+    if (!loader) {
+        loader = new ShakaRuntimeLoader(assets);
+        deployed.set(assets, loader);
+    }
+    return loader.load(base, signal);
+}

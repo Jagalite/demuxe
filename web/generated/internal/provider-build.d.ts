@@ -4,3 +4,6 @@
  * identities without adding a Player option or a process-wide registry. */
 export declare const providerDeploymentEnabled: boolean;
 export declare const qualifiedProviderIdentities: Readonly<Record<string, string>>;
+/** Legacy source builds expect explicitly prepared assets. Beta assembly sets
+ * this false when its optional Shaka runtime is deliberately omitted. */
+export declare const bundledShakaIncluded: boolean;

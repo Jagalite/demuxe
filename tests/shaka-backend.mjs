@@ -2,6 +2,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {ShakaBackend} from '../web/generated/internal/shaka-backend.js';
+import {PlayerError} from '../web/generated/internal/errors.js';
 const schemes=new Map();let pendingLoad=false,live=false,inProgress=false,variantOverride;
 class FakePlayer extends EventTarget {
   static version='test';static LoadMode={MEDIA_SOURCE:2};static isBrowserSupported(){return true;}
@@ -265,4 +266,17 @@ test('late default caption attachment preserves a newer explicit subtitle select
  const backend=new ShakaBackend(video(),new URL('https://app.test/'));await backend.openRemote(source);let finish;const player=backend.player;
  player.addTextTrackAsync=()=>new Promise(resolve=>finish=resolve);
  try{const attachment=backend.addTextTrack({src:'https://media.test/caption.vtt',default:true});await backend.selectTrack('sub','shaka-sub-21');const added={id:42,active:false,language:'de'};player.text.push(added);finish(added);await attachment;assert.equal(player.text.find(t=>t.active).id,21);assert.equal(backend.control.selectedSub,'shaka-sub-21');assert.equal(backend.control.external.length,1);}finally{await backend.destroy();}
+});
+
+test('Shaka backend loads its runtime through the configured provider assets',async()=>{
+ const paths=[],assets={async bytes(path){paths.push(path);return new TextEncoder().encode('// fake provider runtime').buffer;}};
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'),undefined,assets);
+ try{await backend.openRemote(source);assert.deepEqual(paths,['web/vendor/shaka-player.js']);assert.equal(backend.diagnostics.plan,'shaka-mse');}
+ finally{await backend.destroy();}
+});
+test('Shaka backend preserves missing-provider classification without using bundled cache',async()=>{
+ const assets={async bytes(){throw new PlayerError('DEPLOYMENT_UNAVAILABLE','Shaka provider is absent');}};
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'),undefined,assets);
+ try{await assert.rejects(backend.openRemote(source),{code:'DEPLOYMENT_UNAVAILABLE'});}
+ finally{await backend.destroy();}
 });

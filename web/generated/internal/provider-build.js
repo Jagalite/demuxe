@@ -4,3 +4,6 @@
  * identities without adding a Player option or a process-wide registry. */
 export const providerDeploymentEnabled = false;
 export const qualifiedProviderIdentities = Object.freeze({});
+/** Legacy source builds expect explicitly prepared assets. Beta assembly sets
+ * this false when its optional Shaka runtime is deliberately omitted. */
+export const bundledShakaIncluded = true;

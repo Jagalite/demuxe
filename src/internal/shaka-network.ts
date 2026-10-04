@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import type Shaka from 'shaka-player';
+import type {Shaka} from './shaka-api.js';
 import type {RemoteSource} from '../types.js';
 import {PlayerError,isPlayerError} from './errors.js';
 import {initialShakaNetwork,shakaNetworkPending,beginShakaNetworkRefresh,settleShakaNetworkRefresh,shakaNetworkRequest,shakaNetworkCurrent,beginShakaNetworkRequest,setShakaNetworkResource,cancelShakaNetworkRequest,expireShakaNetworkRequest,cleanupShakaNetworkRequest,finishShakaNetworkRequest,failShakaNetwork,retireShakaNetwork,shakaNetworkAdmission,receiveShakaNetworkStatus,finishShakaNetworkRefresh,observeShakaNetworkValidator,beginShakaNetworkBody,appendShakaNetworkBody,completeShakaNetworkBody,shakaNetworkResourceIDs,type ShakaNetworkState,type ShakaNetworkFailure,type ShakaNetworkDecision} from './machine/shaka-network.js';

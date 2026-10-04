@@ -9,11 +9,12 @@ import path from 'node:path';
 export async function verifyShakaAssets(root = fileURLToPath(new URL('../', import.meta.url))) {
   const readJSON = async name => JSON.parse(await readFile(path.join(root, name), 'utf8'));
   const [pin, project, lock, installed] = await Promise.all([
-    'third_party/shaka-player.json', 'package.json', 'package-lock.json',
-    'node_modules/shaka-player/package.json',
+    'third_party/shaka-player.json', 'packages/provider-shaka/package.json',
+    'packages/provider-shaka/package-lock.json',
+    'packages/provider-shaka/node_modules/shaka-player/package.json',
   ].map(readJSON));
   const dependency = lock.packages['node_modules/shaka-player'];
-  if (project.dependencies?.['shaka-player'] !== pin.version || installed.version !== pin.version ||
+  if (project.devDependencies?.['shaka-player'] !== pin.version || installed.version !== pin.version ||
       dependency?.version !== pin.version || dependency.integrity !== pin.npmIntegrity) {
     throw new Error('Shaka dependency pin mismatch; review version, asset hashes and notices together');
   }
@@ -21,7 +22,7 @@ export async function verifyShakaAssets(root = fileURLToPath(new URL('../', impo
   const assets = [];
   // Verify every source and retained notice before writing any runtime asset.
   for (const [target, expected] of Object.entries(pin.files)) {
-    const bytes = await readFile(path.join(root, 'node_modules/shaka-player', expected.source));
+    const bytes = await readFile(path.join(root, 'packages/provider-shaka/node_modules/shaka-player', expected.source));
     if (bytes.length !== expected.bytes || sha(bytes) !== expected.sha256) {
       throw new Error('Shaka upstream asset hash mismatch: ' + expected.source);
     }
@@ -29,7 +30,7 @@ export async function verifyShakaAssets(root = fileURLToPath(new URL('../', impo
   }
   for (const notice of pin.notices) {
     const [upstream, retained] = await Promise.all([
-      readFile(path.join(root, 'node_modules/shaka-player', notice.sourcePath)),
+      readFile(path.join(root, 'packages/provider-shaka/node_modules/shaka-player', notice.sourcePath)),
       readFile(path.join(root, notice.noticePath)),
     ]);
     if (sha(upstream) !== notice.sha256 || sha(retained) !== notice.sha256) {

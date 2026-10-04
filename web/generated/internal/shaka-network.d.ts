@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import type Shaka from 'shaka-player';
+import type { Shaka } from './shaka-api.js';
 import type { RemoteSource } from '../types.js';
 import { PlayerError } from './errors.js';
 /** Per-session Shaka transport. The immutable owner admits requests and evidence;

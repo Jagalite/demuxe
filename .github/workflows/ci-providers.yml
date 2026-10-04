@@ -52,6 +52,9 @@ jobs:
       - name: Install pinned SDK
         if: matrix.kind == 'audio' || matrix.kind == 'preparation'
         run: python3 scripts/ci-slices.py install-sdk
+      - name: Install the optional Shaka provider build dependency
+        if: matrix.target == 'shaka'
+        run: npm ci --prefix packages/provider-shaka --ignore-scripts --legacy-peer-deps
       - name: Build and audit exact slice and corresponding source
         env:
           SLICE_TARGET: ${{ matrix.target }}

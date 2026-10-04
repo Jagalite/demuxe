@@ -20,9 +20,9 @@ test('Shaka assets and notices match the locked upstream package', async () => {
 test('a mismatched Shaka install fails before writing runtime assets', async () => {
   await mkdir('build', {recursive: true});
   const root = await mkdtemp(path.resolve('build/shaka-pin-test-'));
-  for (const name of ['third_party/shaka-player.json', 'package.json', 'package-lock.json', 'node_modules/shaka-player/package.json']) {
+  for (const name of ['third_party/shaka-player.json', 'packages/provider-shaka/package.json', 'packages/provider-shaka/package-lock.json', 'packages/provider-shaka/node_modules/shaka-player/package.json']) {
     await mkdir(path.dirname(path.join(root, name)), {recursive: true});
-    const bytes = name === 'node_modules/shaka-player/package.json' ? '{"version":"0.0.0"}' : await readFile(name);
+    const bytes = name === 'packages/provider-shaka/node_modules/shaka-player/package.json' ? '{"version":"0.0.0"}' : await readFile(name);
     await writeFile(path.join(root, name), bytes);
   }
   await assert.rejects(copyShakaAssets(root), /dependency pin mismatch/);

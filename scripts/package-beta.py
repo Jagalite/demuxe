@@ -5,7 +5,7 @@ import argparse,gzip,hashlib,io,json,pathlib,subprocess,tarfile,re
 from license_policy import Policy, LEGAL, encoded
 from private_remux_assets import private_remux_assets, private_mpv_assets, verify_private_release, verify_private_mpv_release
 root=pathlib.Path(__file__).resolve().parent.parent
-p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,default=root/'build/beta');p.add_argument('--yuv',action='store_true');p.add_argument('--release-tag');p.add_argument('--adaptation-build',type=pathlib.Path);p.add_argument('--mpv-subtitles',action='store_true');args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,default=root/'build/beta');p.add_argument('--yuv',action='store_true');p.add_argument('--with-shaka',action='store_true');p.add_argument('--release-tag');p.add_argument('--adaptation-build',type=pathlib.Path);p.add_argument('--mpv-subtitles',action='store_true');args=p.parse_args()
 # The switch remains accepted for older automation. A standard local candidate
 # includes the service whenever its built runtime assets are present.
 mpv_subtitles=args.mpv_subtitles or all((root/'web/engine-subtitles'/('service.'+ext)).is_file() for ext in ('mjs','wasm'))
@@ -57,7 +57,7 @@ if args.release_tag:
  source_path=args.output/f"{project['name']}-{project['version']}-source.tar.gz"
  source_archive={'filename':source_path.name,'sha256':hashlib.sha256(source_path.read_bytes()).hexdigest(),'bytes':source_path.stat().st_size}
 
-subprocess.run(['node',str(root/'scripts/copy-shaka-assets.mjs')],cwd=root,check=True)
+if args.with_shaka:subprocess.run(['node',str(root/'scripts/copy-shaka-assets.mjs')],cwd=root,check=True)
 subprocess.run(['python3',str(root/'scripts/check-licenses.py')],cwd=root,check=True)
 license_policy=Policy(root)
 # The default auto policy needs both private runtimes on non-isolated hosts.
@@ -89,7 +89,8 @@ for entry in registered.values():
   path=(root/'web/webgpu/codecs'/relative).resolve()
   if not path.is_relative_to(root/'web/webgpu/codecs') or not path.is_file():raise SystemExit('Invalid qualified WebGPU codec asset: '+relative)
   add(str(path.relative_to(root)))
-for name in json.loads((root/'third_party/shaka-player.json').read_text())['files']:add(name)
+if args.with_shaka:
+ for name in json.loads((root/'third_party/shaka-player.json').read_text())['files']:add(name)
 engines={'remux':('engine-remux','remux'),'hybrid':('engine-hybrid','player'),'selective':('engine-selective','player'),'software':('engine-software-yuv','player'),'software-rgb':('engine-software-full','player')}
 if mpv_subtitles:engines['subtitles']=('engine-subtitles','service')
 for backend in ['jspi','asyncify']:
@@ -140,6 +141,14 @@ for folder,stem in engines.values():
  for ext in ['mjs','wasm']:
   name=f'web/{folder}/{stem}.{ext}'
   if name not in files:add(name)
+# Distinguish deliberately omitted providers from broken included assets before
+# playback starts. A declared runtime's 404 remains a terminal asset failure.
+provider_build='web/generated/internal/provider-build.js'
+provider_code=files[provider_build].decode('utf8')
+provider_code,count=re.subn(r'export const bundledShakaIncluded = (?:true|false);',
+ 'export const bundledShakaIncluded = '+('true' if args.with_shaka else 'false')+';',provider_code)
+if count!=1:raise SystemExit('Missing bundled Shaka inclusion declaration')
+files[provider_build]=provider_code.encode('utf8')
 for name in ['fixtures/DejaVuSans.ttf','fixtures/FONT-LICENSE.txt','sources.lock.json','toolchain.lock.json','docs/BETA.md','docs/CAPABILITIES.md','docs/SOFTWARE-YUV-PRESENTER.md','docs/INTEGRATION.md','docs/COMPATIBILITY-EXPANSION.md','docs/LICENSING.md','docs/LGPL-RELINK.md','docs/UPSTREAM-MODIFICATIONS.md','docs/RELEASE.md']:add(name)
 files['docs/CAPABILITIES.md']=re.sub(rb'/(?:Users|Volumes|private/var)/[^\s`]+',b'[local evidence path omitted from runtime package]',files['docs/CAPABILITIES.md'])
 for name in LEGAL:add(name)
@@ -169,7 +178,7 @@ package['exports']['./package.json']='./package.json'
 files['package.json']=(json.dumps(package,indent=2)+'\n').encode()
 files['license-map.json']=encoded(license_policy.package_map(files,'player'))
 license_policy.check_package(files,'player')
-manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':[*(['native-direct-mpv'] if mpv_subtitles else []),'native-direct',*(['native-remux-mpv'] if mpv_subtitles else []),'native-remux','shaka-mse','hybrid','software'],'adaptiveStreaming':{'backend':'shaka-mse','version':project['dependencies']['shaka-player'],'assets':'third_party/shaka-player.json','lazy':True},'engines':engines,'optionalQualificationRequired':bool(args.adaptation_build or mpv_subtitles),'defaultSoftwarePresenter':'auto','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'softwareYUV':'Qualified decoded-frame subset only; see docs/SOFTWARE-YUV-PRESENTER.md'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
+manifest={'schema':1,'version':package['version'],'status':'beta-candidate-not-production-qualified','sourceCommit':source_commit,'dirtySource':dirty,'sourceTag':args.release_tag,'sourceArchive':source_archive,'engineBuildRecord':'engine-build.json' if build else None,'publicModes':['native','hybrid','software'],'automaticOrder':[*(['native-direct-mpv'] if mpv_subtitles else []),'native-direct',*(['native-remux-mpv'] if mpv_subtitles else []),'native-remux',*(['shaka-mse'] if args.with_shaka else []),'hybrid','software'],'adaptiveStreaming':{'backend':'shaka-mse','version':json.loads((root/'third_party/shaka-player.json').read_text())['version'],'assets':'third_party/shaka-player.json','lazy':True} if args.with_shaka else None,'engines':engines,'optionalQualificationRequired':bool(args.adaptation_build or mpv_subtitles),'defaultSoftwarePresenter':'auto','qualification':{'functional':'See repository results and clean-consumer results for exact hashes','performance':'Workload-specific; no universal performance claim','production':False,'softwareYUV':'Qualified decoded-frame subset only; see docs/SOFTWARE-YUV-PRESENTER.md'},'files':{n:{'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}for n,b in sorted(files.items())}}
 files['release-manifest.json']=(json.dumps(manifest,indent=2)+'\n').encode()
 # Reject host-specific paths and credential material, including strings in Wasm.
 for name,data in files.items():check_portable_asset(name,data)

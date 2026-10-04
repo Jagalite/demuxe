@@ -2,7 +2,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createShakaRuntime,joinShakaRuntime,leaveShakaRuntime,finishShakaRuntime,shakaRuntimeDeadline} from '../../web/generated/internal/machine/shaka-runtime.js';
-import {ShakaRuntimeLoader} from '../../web/generated/internal/shaka-runtime.js';
+import {ShakaRuntimeLoader,runtimeAt} from '../../web/generated/internal/shaka-runtime.js';
+import {PlayerError} from '../../web/generated/internal/errors.js';
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
 const turn=()=>new Promise(setImmediate);
 test('shared runtime consumers are unique and only the final pending departure cancels',()=>{
@@ -85,4 +86,38 @@ test('deadline during pending response text retains native acquisition charge',a
  const f=fixture(t),body=deferred(),work=f.loader.load(f.base,new AbortController().signal);f.requests[0].resolve({ok:true,text:()=>body.promise});await turn();
  f.now=15000;f.fire();await assert.rejects(work,/timed out/);assert.equal(f.loader.state.loads.length,1);assert.equal(f.loader.handles.size,1);
  body.resolve('');await turn();assert.equal(f.loader.state.loads.length,0);assert.equal(f.loader.handles.size,0);assert.equal(f.scripts.length,0);
+});
+
+test('deployed Shaka executes provider bytes without bypassing acquisition with a direct fetch',async t=>{
+ const f=fixture(t),paths=[],assets={async bytes(path){paths.push(path);return new TextEncoder().encode('// verified provider runtime').buffer;}};
+ const first=runtimeAt(f.base,new AbortController().signal,assets),second=runtimeAt(f.base,new AbortController().signal,assets);
+ await turn();assert.deepEqual(paths,['web/vendor/shaka-player.js']);assert.equal(f.requests.length,0);assert.equal(f.scripts.length,1);
+ f.scripts[0].onload();assert.equal(await first,f.runtime);assert.equal(await second,f.runtime);
+ assert.equal(await runtimeAt(f.base,new AbortController().signal,assets),f.runtime);assert.equal(paths.length,1);
+});
+test('a ready deployment cannot bypass acquisition for a different deployment at the same URL',async t=>{
+ const f=fixture(t),assets={async bytes(){return new ArrayBuffer(0);}};
+ const ready=runtimeAt(f.base,new AbortController().signal,assets);await turn();f.scripts[0].onload();await ready;
+ for(const code of ['DEPLOYMENT_UNAVAILABLE','ASSET_LOAD_FAILED']){
+  const failure=new PlayerError(code,'provider failure'),other={async bytes(){throw failure;}};
+  await assert.rejects(runtimeAt(f.base,new AbortController().signal,other),error=>error===failure);
+ }
+ assert.equal(f.requests.length,0);assert.equal(f.scripts.length,1);
+});
+test('aborted deployment waiters never execute provider bytes that arrive late',async t=>{
+ const f=fixture(t),pending=deferred(),controller=new AbortController(),assets={bytes:()=>pending.promise};
+ const work=runtimeAt(f.base,controller.signal,assets);controller.abort();await assert.rejects(work,{code:'ABORTED'});
+ pending.resolve(new ArrayBuffer(0));await turn();assert.equal(f.scripts.length,0);assert.equal(f.requests.length,0);assert.equal(f.timers.size,0);
+});
+
+test('a missing included bundled Shaka runtime remains an asset failure',async t=>{
+ const f=fixture(t),work=f.loader.load(f.base,new AbortController().signal);
+ f.requests[0].resolve(new Response('',{status:404}));
+ await assert.rejects(work,{code:'ASSET_LOAD_FAILED'});assert.equal(f.scripts.length,0);
+});
+
+test('deliberately omitted bundled Shaka rejects before any asset fetch',async t=>{
+ const f=fixture(t),loader=new ShakaRuntimeLoader(undefined,false);
+ await assert.rejects(loader.load(f.base,new AbortController().signal),{code:'DEPLOYMENT_UNAVAILABLE'});
+ assert.equal(f.requests.length,0);assert.equal(f.scripts.length,0);
 });

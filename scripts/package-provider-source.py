@@ -6,7 +6,7 @@ Input locations may differ from the original build; contents may not. The three
 subtitle-service configurations are excluded because neither provider ships that
 service. The original (possibly dirty) build record is retained without rewriting.
 """
-import argparse, gzip, hashlib, io, json, sys
+import argparse, gzip, hashlib, io, json, os, sys
 from pathlib import Path
 import tarfile
 from license_policy import ROOT, encoded, sha
@@ -36,7 +36,12 @@ def application_source_paths(profile_name=None):
         current.update(name.replace('web/generated/','src/').replace('.js','.ts') for name in profile['generated'])
     current.update(str(p.relative_to(ROOT)) for p in (ROOT/'src').rglob('*.ts'))
     for target in {str(Path(t['template']).parent.relative_to('packages')) for t in config['targets'].values()}:
-        current.update(str(p.relative_to(ROOT)) for p in (ROOT/'packages'/target).rglob('*') if p.is_file())
+        # Provider-local npm installs are build inputs reconstructed from locks,
+        # not application source. Prune them before walking package contents.
+        for directory, folders, files in os.walk(ROOT/'packages'/target):
+            folders[:] = [name for name in folders if name != 'node_modules']
+            current.update(str(p.relative_to(ROOT)) for name in files
+                           if (p := Path(directory)/name).is_file())
     current.update(item['path'] for item in json.loads((ROOT/'licensing/provider-runtime-qualification.json').read_bytes())['evidence'])
     current.update('scripts/'+name for name in ['compile-player-package.mjs','compile-component-providers.mjs','compile-provider-sources.mjs','build-audio-providers.py','record-audio-provider-build.py','prepare-lossless-audio-fixtures.mjs','setup-lossless-component-consumer.mjs','package-player-core.py','package-provider.py','package-provider-source.py','prepare-provider-package.py','audit-provider-package.py','deploy-providers.py','license_policy.py'])
     current.update(str(p.relative_to(ROOT)) for p in (ROOT/'tests').glob('provider-lossless-*.mjs'))

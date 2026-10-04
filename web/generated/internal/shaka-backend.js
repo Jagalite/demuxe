@@ -14,6 +14,7 @@ import { plainVTT } from './plain-vtt.js';
 export class ShakaBackend extends EventTarget {
     video;
     assetBase;
+    providerAssets;
     setWatchdogs(policy) { this.native.setWatchdogs(policy); }
     nativeProgressSample() { return this.native.nativeProgressSample(); }
     ready = Promise.resolve();
@@ -74,10 +75,11 @@ export class ShakaBackend extends EventTarget {
     disposal;
     listeners = [];
     blobs = new Set();
-    constructor(video, assetBase = new URL('../../../', import.meta.url), buffering = bufferingPolicy()) {
+    constructor(video, assetBase = new URL('../../../', import.meta.url), buffering = bufferingPolicy(), providerAssets) {
         super();
         this.video = video;
         this.assetBase = assetBase;
+        this.providerAssets = providerAssets;
         this.control = initialShakaBackend(buffering);
         this.native = new NativePlayer(video, 'never', assetBase);
         for (const type of ['mpv', 'activity', 'error', 'log']) {
@@ -241,7 +243,7 @@ export class ShakaBackend extends EventTarget {
             if (!this.move({ type: 'enter', lease }).accepted)
                 await this.enter(lease);
             this.check(lease);
-            const runtime = this.runtime = await runtimeAt(this.assetBase, this.runtimeLoad.signal);
+            const runtime = this.runtime = await runtimeAt(this.assetBase, this.runtimeLoad.signal, this.providerAssets);
             this.check(lease);
             runtime.polyfill.installAll();
             this.check(lease);

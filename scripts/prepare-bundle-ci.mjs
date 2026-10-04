@@ -49,7 +49,7 @@ if(sourceCandidate){
   const manifest=JSON.parse(await readFile(path.join(root,'node_modules',item.name,'provider-manifest.json')));
   for(const provider of manifest.provides){assert.ok(!identities[provider.id],'Duplicate provider');identities[provider.id]=provider.implementationIdentity;}
  }
- const after=Buffer.from('// SPDX-License-Identifier: Apache-2.0\n// CI TEST CANDIDATES ONLY; not production qualification.\nexport const providerDeploymentEnabled = true;\nexport const qualifiedProviderIdentities = Object.freeze('+JSON.stringify(identities)+');\n');
+ const after=Buffer.from('// SPDX-License-Identifier: Apache-2.0\n// CI TEST CANDIDATES ONLY; not production qualification.\nexport const providerDeploymentEnabled = true;\nexport const bundledShakaIncluded = false;\nexport const qualifiedProviderIdentities = Object.freeze('+JSON.stringify(identities)+');\n');
  await writeFile(file,after);
  await writeFile(path.join(root,'candidate-admission.json'),JSON.stringify({commit:inventory.commit,beforeSHA256:sha(before),afterSHA256:sha(after),identities,releaseQualified:false},null,2)+'\n');
 }

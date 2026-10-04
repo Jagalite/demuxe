@@ -23,7 +23,7 @@ for(const runtime of ['jspi','asyncify']){
  for(const provider of manifest.provides)identities[provider.id]=provider.implementationIdentity;
 }
 const file=consumer+'/node_modules/demuxe/web/generated/internal/provider-build.js';
-const before=await readFile(file),after=Buffer.from('// SPDX-License-Identifier: Apache-2.0\n// LOCAL QUALIFICATION CANDIDATE ONLY: exact installed manifest identities.\nexport const providerDeploymentEnabled = true;\nexport const qualifiedProviderIdentities = Object.freeze('+JSON.stringify(identities)+');\n');
+const before=await readFile(file),after=Buffer.from('// SPDX-License-Identifier: Apache-2.0\n// LOCAL QUALIFICATION CANDIDATE ONLY: exact installed manifest identities.\nexport const providerDeploymentEnabled = true;\nexport const bundledShakaIncluded = false;\nexport const qualifiedProviderIdentities = Object.freeze('+JSON.stringify(identities)+');\n');
 await writeFile(file,after);
 await writeFile(consumer+'/test-qualification.json',JSON.stringify({testOnly:true,releaseQualified:false,archives,identities,coreAdmissionOriginalSHA256:sha(before),coreAdmissionTestSHA256:sha(after)},null,2)+'\n');
 for(const runtime of ['jspi','asyncify'])execFileSync('python3',['scripts/deploy-providers.py','--core',consumer+'/node_modules/demuxe','--provider',consumer+'/node_modules/@demuxe/provider-ffmpeg-ac3-eac3-'+runtime,'--output',consumer+'/deployed-'+runtime],{cwd:root,stdio:'inherit'});

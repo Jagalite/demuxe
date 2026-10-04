@@ -8,6 +8,71 @@ import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 
+const shakaAssets=['web/vendor/shaka-player.js','web/vendor/shaka-player.transmuxer-worker.js'];
+async function optionalShakaFixture(t,adaptiveStreaming){
+  const root=await realpath(await mkdtemp(path.join(tmpdir(),'demuxe-optional-shaka-')));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const pkg=path.join(root,'package'),dest=path.join(root,'deployed'),files={};
+  async function put(name,bytes){
+    await mkdir(path.dirname(path.join(pkg,name)),{recursive:true});
+    await writeFile(path.join(pkg,name),bytes);files[name]={bytes:bytes.length,sha256:hash(bytes)};
+  }
+  for(const name of ['bin/demuxe.mjs','web/engine-hybrid/player.wasm','web/engine-software-yuv/player.wasm','web/engine-software-full/player.wasm','web/engine-remux/remux.wasm','fixtures/DejaVuSans.ttf','LICENSE','third_party/notices.json','third_party/shaka-player.json',...(adaptiveStreaming===null?[]:shakaAssets)]){
+    await put(name,name==='bin/demuxe.mjs'?await readFile(new URL('../bin/demuxe.mjs',import.meta.url)):Buffer.from(name));
+  }
+  await writeFile(path.join(pkg,'package.json'),JSON.stringify({name:'demuxe',version:'test',type:'module'}));
+  async function release(inclusion=adaptiveStreaming){
+    await put('web/generated/internal/provider-build.js',Buffer.from(`export const bundledShakaIncluded = ${inclusion!==null};\n`));
+    await writeFile(path.join(pkg,'release-manifest.json'),JSON.stringify({schema:1,version:'test',publicModes:['native','hybrid','software'],adaptiveStreaming:inclusion,files}));
+  }
+  await release();
+  return {pkg,dest,files,release,run:(...args)=>execFileSync(process.execPath,[path.join(pkg,'bin/demuxe.mjs'),'copy-assets',dest,...args],{stdio:'pipe'})};
+}
+
+test('explicitly omitted Shaka deploys in standard and full asset sets',async t=>{
+  const f=await optionalShakaFixture(t,null);
+  for(const args of [[],['--full']]){
+    f.run(...args);
+    const record=JSON.parse(await readFile(path.join(f.dest,'demuxe-runtime.json')));
+    for(const name of shakaAssets){assert.ok(!record.files[name]);await assert.rejects(readFile(path.join(f.dest,name)),{code:'ENOENT'});}
+    assert.match(await readFile(path.join(f.dest,'web/generated/internal/provider-build.js'),'utf8'),/bundledShakaIncluded = false/);
+  }
+});
+
+test('upgrading to omitted Shaka retires only unchanged assets from the previous deployment',async t=>{
+  const f=await optionalShakaFixture(t,{backend:'shaka-mse'});f.run();
+  await writeFile(path.join(f.dest,'host.txt'),'consumer');
+  await writeFile(path.join(f.dest,shakaAssets[1]),'consumer edit');
+  for(const name of shakaAssets)delete f.files[name];
+  await f.release(null);f.run();
+  await assert.rejects(readFile(path.join(f.dest,shakaAssets[0])),{code:'ENOENT'});
+  assert.equal(await readFile(path.join(f.dest,shakaAssets[1]),'utf8'),'consumer edit');
+  assert.equal(await readFile(path.join(f.dest,'host.txt'),'utf8'),'consumer');
+  const record=JSON.parse(await readFile(path.join(f.dest,'demuxe-runtime.json')));
+  for(const name of shakaAssets)assert.ok(!record.files[name]);
+});
+
+for(const [label,inclusion] of [['included',{backend:'shaka-mse'}],['legacy',undefined]]){
+  test(`${label} Shaka rejects missing inventory entries before deployment`,async t=>{
+    const f=await optionalShakaFixture(t,inclusion);
+    for(const name of shakaAssets){
+      const entry=f.files[name];delete f.files[name];await f.release();
+      assert.throws(()=>f.run(),/Required runtime asset absent/);
+      await assert.rejects(readFile(path.join(f.dest,'demuxe-runtime.json')),{code:'ENOENT'});
+      f.files[name]=entry;
+    }
+  });
+}
+
+test('included Shaka rejects corrupt and physically missing assets before deployment',async t=>{
+  const f=await optionalShakaFixture(t,{backend:'shaka-mse'});
+  await writeFile(path.join(f.pkg,shakaAssets[0]),'corrupt');
+  assert.throws(()=>f.run(),/Package asset hash mismatch/);
+  await rm(path.join(f.pkg,shakaAssets[0]));
+  assert.throws(()=>f.run(),/Missing package asset/);
+  await assert.rejects(readFile(path.join(f.dest,'demuxe-runtime.json')),{code:'ENOENT'});
+});
+
 test('standard/full deployment preserves hashes, paths and safe upgrades', async () => {
   const root = await realpath(await mkdtemp(path.join(tmpdir(), 'demuxe-assets-')));
   try {

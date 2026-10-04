@@ -136,3 +136,11 @@ test('runtime rejects unknown assets without caching failures and normalizes equ
  const [a,b,c]=await Promise.all([runtime.module(path),runtime.module('./'+path),runtime.module('https://example.test/'+path)]);
  assert.equal(a,b);assert.equal(b,c);assert.equal(runtime.modules.size,1);assert.equal(runtime.acquiredBytes.size,1);assert.equal(calls,2);await runtime.destroy();
 });
+
+test('omitting Shaka rejects only its provider recipe without fetching its executable',async t=>{
+ const requests=[];t.mock.method(globalThis,'fetch',async url=>{requests.push(String(url));return Response.json(manifest());});
+ const runtime=new ProviderRuntime(new URL('https://example.test/'),{'ffmpeg-file-preparation':identity});
+ try{await runtime.load();assert.equal(runtime.has(path),true);assert.equal(typeof runtime.rejection('shaka-mse',{},'selected'),'string');
+  await assert.rejects(runtime.bytes('web/vendor/shaka-player.js'),{code:'DEPLOYMENT_UNAVAILABLE'});assert.equal(requests.length,1);
+ }finally{await runtime.destroy();}
+});

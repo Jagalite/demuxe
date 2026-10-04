@@ -60,7 +60,7 @@ if(!candidate){
  }
  for(const source of allowed){if(qualification.sources[source]!==sha(fs.readFileSync(path.join(root,source))))throw Error('Core source changed after provider qualification: '+source);}
 }
-outputs.set('web/generated/internal/provider-build.js',{data:'// SPDX-License-Identifier: Apache-2.0\nexport const providerDeploymentEnabled = true;\nexport const qualifiedProviderIdentities = Object.freeze('+JSON.stringify(qualification.providers)+');\n',inputs:['src/internal/provider-build.ts',qualificationFile]});
+outputs.set('web/generated/internal/provider-build.js',{data:'// SPDX-License-Identifier: Apache-2.0\nexport const providerDeploymentEnabled = true;\nexport const bundledShakaIncluded = false;\nexport const qualifiedProviderIdentities = Object.freeze('+JSON.stringify(qualification.providers)+');\n',inputs:['src/internal/provider-build.ts',qualificationFile]});
 const selected=new Map([...outputs].filter(([name])=>name.endsWith('.js')));
 function references(name,text){
  const ast=ts.createSourceFile(name,text,ts.ScriptTarget.Latest,true);const result=[];

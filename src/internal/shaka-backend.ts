@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import {bufferingPolicy, resolveBuffering, shakaBufferingOptions} from './buffering.js';
 import type {BufferingPolicy} from '../types.js';
-import type Shaka from 'shaka-player';
+import type {Shaka} from './shaka-api.js';
+import type {ProviderRuntimeAssets} from './provider-runtime.js';
 import type {Backend} from './backend.js';
 import type {RemoteSource,TextTrackSource,SubtitleAsset,TrackType} from '../types.js';
 import {NativePlayer} from './native-player.js';
@@ -61,7 +62,7 @@ export class ShakaBackend extends EventTarget implements Backend {
   private disposal?:Promise<void>;
   private listeners:Array<()=>void>=[];
   private blobs=new Set<string>();
-  constructor(private video:HTMLVideoElement,private assetBase=new URL('../../../',import.meta.url),buffering:BufferingPolicy=bufferingPolicy()) {
+  constructor(private video:HTMLVideoElement,private assetBase=new URL('../../../',import.meta.url),buffering:BufferingPolicy=bufferingPolicy(),private providerAssets?:ProviderRuntimeAssets) {
     super();this.control=initialShakaBackend(buffering);this.native=new NativePlayer(video,'never',assetBase);
     for(const type of ['mpv','activity','error','log']) {
       const listener=(event:Event)=>{
@@ -144,7 +145,7 @@ export class ShakaBackend extends EventTarget implements Backend {
     const lease=this.move({type:'open',source:{format:source.format as 'hls'|'dash',live:source.streaming?.live===true,maxBandwidth:source.streaming?.maxBandwidth,representation:source.streaming?.representation}}).lease;if(!lease)throw new PlayerError('INVALID_ARGUMENT','Shaka backend opens only one source');this.failure=undefined;
     try{
       if(!this.move({type:'enter',lease}).accepted)await this.enter(lease);this.check(lease);
-      const runtime=this.runtime=await runtimeAt(this.assetBase,this.runtimeLoad.signal);this.check(lease);runtime.polyfill.installAll();this.check(lease);
+      const runtime=this.runtime=await runtimeAt(this.assetBase,this.runtimeLoad.signal,this.providerAssets);this.check(lease);runtime.polyfill.installAll();this.check(lease);
       const supported=runtime.Player.isBrowserSupported();this.check(lease);if(!supported)throw new PlayerError('UNSUPPORTED_MEDIA','Shaka MSE is unsupported by this browser');
       const player=new runtime.Player();if(!shakaLeaseCurrent(this.control,lease)){await player.destroy();this.check(lease);}this.player=player;this.move({type:'allocate',lease});
       const policy=new ShakaNetworkPolicy(source,runtime);if(!shakaLeaseCurrent(this.control,lease)){policy.destroy();this.check(lease);}this.policy=policy;

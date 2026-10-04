@@ -112,19 +112,46 @@ hosting. No proxy, fixed `/assets/demuxe/` path, or additional Player option is 
 
 ## Adaptive streaming runtime
 
-`npm ci` installs the exact Shaka Player version in `package-lock.json`.
-`npm run build` verifies its version, distribution hashes and retained notices,
-then copies the unmodified non-UI player to `web/vendor/shaka-player.js` and its
-optional transmux worker to `web/vendor/shaka-player.transmuxer-worker.js`.
-These generated copies are ignored by Git. No CDN, npm resolution or Shaka UI
-styles are required in the browser. `package-beta.py` includes both assets, and
-`demuxe copy-assets` verifies and copies them with the rest of the runtime.
+Shaka is an optional runtime provider. The main package has no Shaka npm
+runtime or development dependency, and `npm run build` does not install or copy
+Shaka. The adapter uses a local structural TypeScript contract.
+
+To include Shaka, install the provider's separate build dependency and assemble
+its pinned runtime package:
+
+```sh
+npm ci --prefix packages/provider-shaka --ignore-scripts --legacy-peer-deps
+python3 scripts/prepare-provider-package.py --target shaka --output build/media-components/provider-shaka
+```
+
+Deploy `@demuxe/provider-shaka` alongside the chosen providers using
+`scripts/deploy-providers.py`, or add `shaka` to `dev:providers --providers=...`.
+Omit that provider to omit Shaka's executable bytes. When a provider deployment
+is configured, the backend verifies the declared size and SHA-256 before
+execution. Missing providers permit fallback; corrupt or failed declared assets
+remain terminal asset errors. Browser-native playback and the other deployed
+providers remain available subject to their existing source and feature rules.
+
+Beta archives also omit Shaka by default. Add `--with-shaka` to
+`scripts/package-beta.py` to include the pinned runtime files. For the legacy
+source playground, `npm run build:shaka` materializes the files under
+`web/vendor/`; this requires the separate provider dependency installed above.
+For browser suites that exercise Shaka, `npm run prepare:shaka` installs its
+separate locked dependency and copies the pinned assets; the suite commands
+invoke this explicitly. No CDN, browser npm resolution, or Shaka UI styles are
+required. Deliberately omitted beta runtimes are declared absent before fetching;
+a missing included runtime remains `ASSET_LOAD_FAILED`.
+
+The maintained Shaka admission identity has installed-package evidence for a
+bounded synthetic HLS/DASH playback and seek smoke, native playback with Shaka
+omitted, and omitted/corrupt/missing provider errors. This does not qualify an
+entire release or every streaming format.
 
 The `shaka-mse` backend loads Shaka only when selected. Ordinary file playback
 does not fetch or parse this library. Asset URLs follow the configured
 `assetBase`; source media must separately satisfy the browser's CORS policy.
-The runtime download is shared between waiting players. Destroying a player
-releases its wait immediately; destroying the last waiter aborts the download.
+With bundled assets, the runtime download is shared between waiting players.
+Destroying a player releases its wait immediately; destroying the last waiter aborts the download.
 Successful initialization is cached for subsequent players. The loader fetches
 the CORS-enabled asset and executes it through a temporary Blob script, then
 removes the script, handlers and Blob URL. This makes initial loading cancellable
