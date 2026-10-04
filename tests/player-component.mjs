@@ -490,11 +490,21 @@ await check('outside clicks dismiss menus and screen taps toggle controls',async
  await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('demuxe-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
  const v=page.locator('demuxe-player'),stage=v.locator('#stage'),menu=v.locator('#settings'),shell=v.locator('#shell');
  await page.waitForFunction(()=>document.querySelector('demuxe-player').queueOperation===null&&player.state.playbackIntent==='play');
+ await page.evaluate(()=>{
+  const viewer=document.querySelector('demuxe-player'),menu=viewer.shadowRoot.getElementById('settings'),stage=viewer.shadowRoot.getElementById('stage');window.menuDismissals=[];
+  // Component capture closes the menu; sample the same pointerdown at bubble.
+  // A discrete display transition must not keep a logically hidden menu visible.
+  const observe=event=>{const path=event.composedPath();if(path.includes(menu)||!path.includes(stage)&&event.target?.tagName!=='H1')return;menuDismissals.push({trusted:event.isTrusted,hidden:menu.hidden,open:viewer.controlState.menuOpen,display:getComputedStyle(menu).display});};
+  document.addEventListener('pointerdown',observe);window.stopMenuDismissals=()=>document.removeEventListener('pointerdown',observe);
+ });
+ const assertDismissed=async trusted=>{const observed=await page.evaluate(()=>menuDismissals.at(-1));assert.deepEqual(observed,{trusted,hidden:true,open:false,display:'none'});};
+ try{
  await stage.hover({position:{x:30,y:100}}); // Start menu checks after autoplay has finished hiding controls.
- await v.locator('#settings-toggle').click();await v.locator('#speed').selectOption('1.25');assert.ok(await menu.isVisible());await page.locator('h1').evaluate(el=>el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true})));await menu.waitFor({state:'hidden',timeout:1000});
- await v.locator('#open-menu').click();await stage.click({position:{x:30,y:100}});await menu.waitFor({state:'hidden',timeout:1000});assert.ok(await shell.evaluate(el=>el.classList.contains('idle')));assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).pointerEvents),'none');
+ await v.locator('#settings-toggle').click();await v.locator('#speed').selectOption('1.25');assert.ok(await menu.isVisible());await page.locator('h1').evaluate(el=>el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true})));await menu.waitFor({state:'hidden',timeout:1000});await assertDismissed(false);
+ await v.locator('#open-menu').click();await stage.click({position:{x:30,y:100}});await menu.waitFor({state:'hidden',timeout:1000});await assertDismissed(true);assert.ok(await shell.evaluate(el=>el.classList.contains('idle')));assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).pointerEvents),'none');
  await stage.dispatchEvent('pointerdown',{pointerType:'touch'});await stage.dispatchEvent('pointermove',{pointerType:'touch'});await stage.dispatchEvent('click');assert.equal(await shell.evaluate(el=>el.classList.contains('idle')),false);
  await stage.dispatchEvent('pointerdown',{pointerType:'touch'});await stage.dispatchEvent('click');assert.ok(await shell.evaluate(el=>el.classList.contains('idle')));await stage.focus();await page.keyboard.press('Tab');assert.equal(await shell.evaluate(el=>el.classList.contains('idle')),false);
+ }finally{await page.evaluate(()=>{window.stopMenuDismissals?.();delete window.stopMenuDismissals;});}
 });
 await check('Center transport and bounded ten-second seeks',async()=>{
  await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('demuxe-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
