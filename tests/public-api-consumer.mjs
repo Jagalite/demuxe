@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {observeWorkerCleanup} from './helpers/worker-cleanup.mjs';
 import {chromium,firefox} from 'playwright';import http from 'node:http';import path from 'node:path';import {mkdtemp,mkdir,readFile,writeFile,copyFile} from 'node:fs/promises';import {execFileSync} from 'node:child_process';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';
 const family=process.env.BROWSER||'chrome',stamp=new Date().toISOString().replaceAll(':','-'),out=`results/public-api-consumer/${family}-${stamp}`;await mkdir(out,{recursive:true});console.log(out);
 const archive=path.resolve(process.env.BETA_ARCHIVE||`build/beta/demuxe-${JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version}.tgz`);const root=await mkdtemp(path.resolve('build/public-api-consumer-'));await writeFile(path.join(root,'package.json'),'{"type":"module","private":true}\n');
@@ -24,30 +25,28 @@ const result={family,browser:browser.version(),archiveSHA256:createHash('sha256'
 async function check(name,fn){
  if(process.env.ONLY&&!name.includes(process.env.ONLY))return;
  const attempts=[];
- for(let trial=0;trial<2;trial++){
-  const page=await browser.newPage(),failedRequests=[],pageErrors=[];
+  const page=await browser.newPage(),failedRequests=[],pageErrors=[],cleanup=observeWorkerCleanup(page,{chromium:family==='chrome'});
   page.on('requestfailed',request=>failedRequests.push({url:request.url(),failure:request.failure()}));
   page.on('pageerror',error=>pageErrors.push(String(error)));
-  try{await fn(page);result.checks.push({name,passed:true,attempts});console.log('PASS',name,attempts.length?'after retry':'');return;}
+  try{await fn(page,cleanup);result.checks.push({name,passed:true,attempts,cleanup:await cleanup.collect()});console.log('PASS',name);return;}
   catch(error){
-   const failure={error:String(error.stack),state:await page.evaluate(()=>window.viewer?.player?.state).catch(()=>null),failedRequests,pageErrors,workers:page.workers().map(worker=>worker.url())};attempts.push(failure);
-   const retry=trial===0&&name.includes('application at')&&failure.error.includes('Playback engine worker failed: error');
-   if(retry)console.log('RETRY',name,'after transient worker start failure');
-   else{result.checks.push({name,passed:false,attempts});console.log('FAIL',name,String(error));process.exitCode=1;return;}
-  }finally{await page.evaluate(()=>Promise.all([window.viewer?.destroy(),window.custom?.destroy?.()])).catch(()=>{});await page.close();await writeFile(out+'/result.json',JSON.stringify(result,null,2));}
- }
+   const cleanupEvidence=await cleanup.collect();
+   const failure={cleanup:cleanupEvidence,error:String(error.stack),state:await page.evaluate(()=>window.viewer?.player?.state).catch(()=>null),failedRequests,pageErrors,workers:page.workers().map(worker=>worker.url())};attempts.push(failure);
+   result.checks.push({name,passed:false,attempts});console.log('FAIL',name,String(error));process.exitCode=1;return;
+  }finally{cleanup.dispose();await page.evaluate(()=>Promise.all([window.viewer?.destroy(),window.custom?.destroy?.()])).catch(()=>{});await page.close();await writeFile(out+'/result.json',JSON.stringify(result,null,2));}
 }
 try{
 for(const bundle of [false,true])await check(`${bundle?'bundled':'static'} core-only import has no UI or engine side effects`,async page=>{const requests=[];page.on('request',r=>requests.push(r.url()));await page.goto(origin+'/?coreonly'+(bundle?'&bundle':''));await page.waitForFunction(()=>window.coreOnly);assert.equal(await page.evaluate(()=>customElements.get('demuxe-player')),undefined);assert.ok(!requests.some(u=>/\.wasm|engine-worker|audio-worklet|\/player\/|styles\.js/.test(u)));assert.equal(page.workers().length,0);});
-for(const bundle of [false,true])for(const base of ['/assets/demuxe/','/deep/runtime-v2/'])await check(`${bundle?'bundled':'static'} application at ${base}`,async page=>{const requests=[];page.on('request',r=>requests.push(r.url()));await page.goto(origin+'/?base='+base+(bundle?'&bundle':''));await page.waitForFunction(()=>window.apiReady);await page.evaluate(()=>viewer.ready);assert.ok(!requests.some(u=>/\.wasm|engine-worker|audio-worklet/.test(u)));
+for(const bundle of [false,true])for(const base of ['/assets/demuxe/','/deep/runtime-v2/'])await check(`${bundle?'bundled':'static'} application at ${base}`,async(page,cleanup)=>{const requests=[];page.on('request',r=>requests.push(r.url()));await page.goto(origin+'/?base='+base+(bundle?'&bundle':''));await page.waitForFunction(()=>window.apiReady);await page.evaluate(()=>viewer.ready);assert.ok(!requests.some(u=>/\.wasm|engine-worker|audio-worklet/.test(u)));
 for(const mode of ['native','hybrid','software']){await page.evaluate(async({mode,base})=>{await viewer.player.setMode(mode);await viewer.open({url:location.origin+'/media/movie.mp4'});await viewer.player.setVolume(.4);await viewer.play();},{mode,base});await page.waitForFunction(()=>viewer.player.state.status==='playing'&&viewer.player.state.currentTime>.2);await page.evaluate(async()=>{await viewer.pause();await viewer.seek(1);});assert.ok(await page.evaluate(()=>Math.abs(viewer.player.state.currentTime-1)<.15));}
 await page.evaluate(async base=>{window.custom=new Player(document.querySelector('#custom'),{mode:'native',nativeRemux:'always',assetBase:base});await custom.open({url:location.origin+'/media/remux.mkv'});await custom.play();},base);await page.waitForFunction(()=>custom.state.currentTime>.2);await page.evaluate(()=>custom.seek(1));assert.ok(requests.some(u=>u.includes(base+'web/engine-remux/')));assert.ok(requests.some(u=>u.includes(base+'web/engine-hybrid/')));assert.ok(requests.some(u=>u.includes(base+'web/engine-software-yuv/')));assert.ok(requests.filter(u=>/\.wasm|engine-worker|audio-worklet|DejaVuSans/.test(u)).every(u=>u.startsWith(origin+base)),requests.filter(u=>/\.wasm|engine-worker|audio-worklet|DejaVuSans/.test(u)).join('\n'));
+await cleanup.captureOwners();
 await page.evaluate(()=>Promise.all([viewer.destroy(),custom.destroy()]));
 for(let i=0;i<40&&page.workers().length;i++)await page.waitForTimeout(50);
 assert.equal(page.workers().length,0,`Workers still alive after destroy: ${page.workers().map(worker=>worker.url()).join(', ')}`);
 });
 await check('missing assets have structured errors',async page=>{missingEngine=true;await page.goto(origin+'/?bundle');await page.waitForFunction(()=>window.apiReady);const d=await page.evaluate(async()=>{await viewer.ready;await viewer.player.setMode('hybrid');try{await viewer.open(location.origin+'/media/movie.mp4');}catch(e){return {code:e.code,state:viewer.player.state};}});assert.equal(d.code,'ASSET_LOAD_FAILED');assert.equal(d.state.activeMode,null);missingEngine=false;});
-await check('runtime policy separates private qualification from pthread isolation',async page=>{
+await check('runtime policy separates private qualification from pthread isolation',async(page,cleanup)=>{
  missingEngine=false;const requests=[];page.on('request',request=>requests.push(request.url()));
  await page.goto(origin+'/?unisolated&bundle');await page.waitForFunction(()=>window.apiReady);
  const capabilities=await page.evaluate(()=>({isolated:crossOriginIsolated,jspi:typeof WebAssembly.Suspending==='function'&&typeof WebAssembly.promising==='function'}));
@@ -67,6 +66,7 @@ await check('runtime policy separates private qualification from pthread isolati
  const pthread=await page.evaluate(async()=>{window.custom=new Player(document.querySelector('#custom'),{mode:'hybrid',remuxRuntime:'off'});try{await custom.open(location.origin+'/media/movie.mp4');return null;}catch(error){return error.code;}});
  assert.equal(pthread,'ISOLATION_REQUIRED');
  result.runtimePolicy={capabilities,runtime,before,paused,after,pthread};
+ await cleanup.captureOwners();
  await page.evaluate(()=>Promise.all([viewer.destroy(),custom.destroy()]));
  for(let end=Date.now()+3000;page.workers().length&&Date.now()<end;)await page.waitForTimeout(50);
  assert.equal(page.workers().length,0,'Private runtime workers survive destroy');

@@ -362,14 +362,51 @@ await check('paused screen and gaps between transport buttons toggle the UI',asy
  await v.locator('#stage').dispatchEvent('pointerdown',{pointerType:'touch'});await v.locator('#stage').dispatchEvent('click');assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);
  await v.locator('#stage').dispatchEvent('pointerdown',{pointerType:'touch'});await v.locator('#stage').dispatchEvent('click');assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')));await page.keyboard.press('Tab');assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);
 });
+// Native play completion includes output verification. Observe the UI at that
+// completion boundary, rather than imposing a shorter wall-clock play budget.
+async function observeControlPlay(activate){
+ await page.evaluate(()=>{
+  const original=a.play,observation={done:false};let observationTimer,active=true;window.controlPlayObservation=observation;
+  a.play=async function(...args){
+   const started=performance.now();
+   try{const value=await original.apply(this,args);if(!active)return value;const completed=performance.now();
+    // Registered before the handler resumes: its synchronous hide must precede
+    // this task; a hide deferred to another task must fail this observation.
+    observationTimer=setTimeout(()=>{if(!active)return;try{const surface=a.player?.surface;if(!surface)throw Error('Playback surface unavailable at completion');Object.assign(observation,{done:true,started,completed,observed:performance.now(),idle:a.shadowRoot.getElementById('shell').classList.contains('idle'),focus:a.shadowRoot.activeElement?.id,status:a.player.state.status,paused:surface.paused,time:surface.currentTime});}catch(error){Object.assign(observation,{done:true,error:String(error)});}},0);return value;
+   }catch(error){if(active)Object.assign(observation,{done:true,error:String(error)});throw error;}
+  };
+  window.restoreControlPlay=()=>{active=false;clearTimeout(observationTimer);a.play=original;};
+ });
+ try{
+  await activate();
+  // Matches the native output-verification watchdog; this is a completion
+  // budget, not an extended deadline for hiding an already completed play.
+  await page.waitForFunction(()=>controlPlayObservation.done,undefined,{timeout:10000});
+  const observed=await page.evaluate(()=>controlPlayObservation);
+  assert.equal(observed.error,undefined,JSON.stringify(observed));assert.equal(observed.status,'playing',JSON.stringify(observed));assert.equal(observed.paused,false,JSON.stringify(observed));
+  assert.equal(observed.idle,true,'Controls must be hidden when verified public play completes: '+JSON.stringify(observed));assert.equal(observed.focus,'stage');
+ }catch(error){
+  const facts=await page.evaluate(()=>{const core=a.player,v=core?.surface;return {observation:window.controlPlayObservation,state:core?.state,controls:a.controlState,shell:a.shadowRoot.getElementById('shell').className,verification:core?.current?.backend?.native?.verification,capability:core?.current?.backend?.capability,video:v?{time:v.currentTime,duration:v.duration,paused:v.paused,ended:v.ended,readyState:v.readyState,totalFrames:v.getVideoPlaybackQuality().totalVideoFrames,rect:v.getBoundingClientRect().toJSON(),visibility:document.visibilityState}:null};}).catch(captureError=>({captureError:String(captureError)}));
+  (result.activationFailures??=[]).push(facts);throw error;
+ }finally{await page.evaluate(()=>{window.restoreControlPlay?.();delete window.restoreControlPlay;});}
+}
 await check('Play hides controls immediately for click, K and Space',async()=>{
- const v=page.locator('demuxe-player').first();for(const key of [null,'k','Space']){await v.locator('#stage').focus();await v.dispatchEvent('pointermove',{pointerType:'mouse'});if(key)await page.keyboard.press(key);else await v.locator('#play').click();await page.waitForFunction(()=>a.player.state.status==='playing'&&a.shadowRoot.getElementById('shell').classList.contains('idle'),{},{timeout:1500});await page.waitForTimeout(350);assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'0');assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='paused');assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);}
+ let activationFailure;try{
+ const v=page.locator('demuxe-player').first();for(const key of [null,'k','Space']){await v.locator('#stage').focus();await v.dispatchEvent('pointermove',{pointerType:'mouse'});await observeControlPlay(()=>key?page.keyboard.press(key):v.locator('#play').click());await page.waitForTimeout(350);assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'0');assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='paused');assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);}
+ }catch(error){activationFailure=error;throw error;}finally{
+  try{await page.evaluate(()=>a.pause());}catch(cleanup){if(!activationFailure)throw cleanup;activationFailure.cleanupError=String(cleanup);}
+ }
 });
 await check('late playback updates and held play keys do not reopen controls',async()=>{
- const v=page.locator('demuxe-player').first();await v.locator('#stage').focus();await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='playing'&&a.shadowRoot.getElementById('shell').classList.contains('idle'));
+ let heldFailure;try{
+ await page.evaluate(()=>a.pause());
+ const v=page.locator('demuxe-player').first();await v.locator('#stage').focus();await observeControlPlay(()=>page.keyboard.press('k'));
  // Inject notification orderings at the component boundary; the backend keeps playing.
  await v.evaluate(el=>{const state=el.player.state;el.update({...state,status:'buffering'});el.update({...state,status:'playing'});});assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')));
  await v.locator('#stage').dispatchEvent('keydown',{key:'k',repeat:true,bubbles:true,composed:true});assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')));await page.waitForTimeout(400);assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'0');await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='paused');assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);
+ }catch(error){heldFailure=error;throw error;}finally{
+  try{await page.evaluate(()=>a.pause());}catch(cleanup){if(!heldFailure)throw cleanup;heldFailure.cleanupError=String(cleanup);}
+ }
 });
 await check('hidden seeking briefly reveals only the timeline without a pill',async()=>{
  const v=page.locator('demuxe-player').first();await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#stage').click({position:{x:30,y:100}});
