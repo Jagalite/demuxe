@@ -2,6 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {NativeMpvAudio} from '../../web/generated/internal/native-mpv-audio.js';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import * as workletCore from '../../web/generated/internal/machine/selective-worklet.js';
 import {initialNativeAudio,beginNativeAudio,transitionNativeAudio} from '../../web/generated/internal/machine/native-audio.js';
 import {watchdogPolicy} from '../../web/generated/internal/watchdogs.js';
 function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return{promise,resolve,reject};}
@@ -33,7 +36,7 @@ test('current PCM timestamp starts video once and pause leaves output disabled',
  const timer=clock(t),{audio,calls}=fixture();const playing=audio.play(async()=>calls.push('video-play'));await flush();audio.onOutput(point());await flush();await timer.tick(0);await playing;assert.equal(audio.running,true);assert.equal(Atomics.load(audio.header,12),1);assert.equal(calls.filter(value=>value==='video-play').length,1);assert.equal(audio.machine.publication,null);await audio.pause(()=>calls.push('video-pause'));assert.equal(audio.running,false);assert.equal(Atomics.load(audio.header,12),0);assert.equal(timer.timers.size,0);
 });
 test('early PCM timestamp timeout is rearmed against original absolute deadline',async t=>{
- const timer=clock(t),{audio}=fixture();const playing=audio.play(async()=>{});const rejection=assert.rejects(playing,/Selective PCM timestamp timeout/);await flush();timer.set(100);timer.fire([...timer.timers.keys()][0]);await flush();assert.equal(timer.timers.size,1);assert.equal([...timer.timers.values()][0].due,3000);await timer.tick(2999);assert.ok(audio.firstPoint);await timer.tick(3000);await rejection;assert.equal(audio.firstPoint,undefined);assert.equal(audio.machine.publication,null);assert.equal(Atomics.load(audio.header,12),0);
+ const timer=clock(t),{audio}=fixture();const playing=audio.play(async()=>{});const rejection=assert.rejects(playing,/Selective PCM timestamp timeout/);await flush();timer.set(100);timer.fire([...timer.timers.keys()][0]);await flush();assert.equal(timer.timers.size,1);assert.equal(audio.machine.publication.deadline,3000);assert.equal([...timer.timers.values()][0].due,120);await timer.tick(2999);assert.ok(audio.firstPoint);await timer.tick(3000);await rejection;assert.equal(audio.firstPoint,undefined);assert.equal(audio.machine.publication,null);assert.equal(Atomics.load(audio.header,12),0);
 });
 test('late rate boundary is ignored after pause and next playback retains requested rate',async t=>{
  const timer=clock(t),{audio,video}=fixture();audio.machine={...audio.machine,running:true};const changing=audio.rate(2),rejection=assert.rejects(changing,{name:'AbortError'});await flush();assert.equal(audio.machine.rate.rate,2);await audio.pause(()=>{});await rejection;audio.onOutput(point(0,'rate-boundary',2));await timer.tick(5000);assert.equal(video.playbackRate,1);assert.equal(audio.resumeRate,2);assert.equal(audio.machine.rate,null);assert.equal(timer.timers.size,0);
@@ -97,4 +100,43 @@ test('retired EOF failure cannot report into newer playback',async()=>{
 });
 test('failed PCM timer acquisition never enables audio output or fades in',async t=>{
  clock(t);const {audio,calls}=fixture();globalThis.setTimeout=()=>{throw Error('timer unavailable');};await assert.rejects(audio.play(async()=>{}),/timer unavailable/);assert.equal(Atomics.load(audio.header,12),0);assert.equal(calls.includes('fade-in'),false);assert.equal(audio.firstPoint,undefined);
+});
+
+function linkedWorklet(audio){
+ const capacity=8192,buffer=new SharedArrayBuffer(64+capacity*8+capacity*16);audio.header=new Int32Array(buffer,0,16);
+ let Processor;const messages=[],context={...workletCore,Atomics,Int32Array,Float32Array,Float64Array,currentFrame:0,sampleRate:48000,AudioWorkletProcessor:class{constructor(){this.port={postMessage(message){messages.push(message);audio.onOutput({...message,wallTime:performance.timeOrigin+performance.now()});}};}},registerProcessor(name,value){Processor=value;}};
+ vm.runInNewContext(fs.readFileSync(new URL('../../web/selective-sync-worklet.js',import.meta.url),'utf8').replace(/^import .*;$/gm,''),context);
+ const processor=new Processor({processorOptions:{buffer,capacity,channels:2}}),h=audio.header;
+ return{h,messages,step(){processor.process([],[ [new Float32Array(128),new Float32Array(128)] ]);context.currentFrame+=128;},reset(epoch=2){Atomics.store(h,3,epoch);Atomics.store(h,0,0);Atomics.store(h,2,0);},fill(){processor.pcm.fill(.1);for(let i=0;i<capacity;i++){processor.meta[2*i]=i/48000;processor.meta[2*i+1]=1;}Atomics.store(h,0,capacity);Atomics.store(h,2,1);}};
+}
+for(const order of ['before','after'])test(`real selective worklet publishes first PCM when native AO initializes ${order} play resolution`,async t=>{
+ const timer=clock(t),{audio,calls,engine}=fixture(),link=linkedWorklet(audio),hold=deferred();engine.play=()=>hold.promise;
+ const playing=audio.play(async()=>calls.push('video-play'));let error;const done=playing.catch(value=>{error=value;});await flush();
+ if(order==='before'){link.reset();link.step();link.step();link.fill();}
+ hold.resolve();await flush();
+ if(order==='after'){assert.equal(link.h[14],0);link.reset();link.step();link.step();link.fill();}
+ link.step();await flush();await timer.tick(20);link.step();await flush();await timer.tick(20);
+ if(!calls.includes('video-play'))await timer.tick(3000);await done;
+ assert.equal(error,undefined);assert.equal(link.h[14],2);assert.ok(link.h[5]>0);assert.equal(calls.filter(value=>value==='video-play').length,1);assert.equal(timer.timers.size,0);
+ await audio.pause(()=>{});
+});
+test('publication permit waits for even acknowledged native epoch and coherent reread',async t=>{
+ const timer=clock(t),{audio,calls}=fixture(),link=linkedWorklet(audio),playing=audio.play(async()=>calls.push('video-play'));
+ await flush();link.reset(1);link.step();link.step();link.fill();await timer.tick(20);link.step();assert.equal(link.h[14],0);assert.equal(link.h[5],0);
+ link.reset(2);link.fill();await timer.tick(40);assert.equal(link.h[14],0,'unacknowledged epoch cannot be permitted');link.step();
+ const read=audio.h.bind(audio);let reads=0;audio.h=index=>index===3&&++reads===2?4:read(index);await timer.tick(60);assert.equal(link.h[14],0,'torn epoch snapshot cannot be permitted');audio.h=read;
+ await timer.tick(80);link.step();await flush();await timer.tick(80);await playing;assert.equal(link.h[14],2);assert.equal(calls.filter(value=>value==='video-play').length,1);await audio.pause(()=>{});
+});
+for(const retirement of ['pause','destroy'])test(`retired publication callback cannot authorize late initialized PCM after ${retirement}`,async t=>{
+ const timer=clock(t),{audio,calls}=fixture(),link=linkedWorklet(audio),playing=audio.play(async()=>calls.push('video-play')),rejected=assert.rejects(playing,{name:'AbortError'});
+ await flush();const callback=[...timer.timers.values()][0].callback;
+ if(retirement==='pause')await audio.pause(()=>{});else await audio.destroy();await rejected;
+ link.reset();link.step();link.step();link.fill();callback();link.step();await timer.tick(3000);
+ assert.equal(link.h[14],0);assert.equal(link.h[12],0);assert.equal(link.h[5],0);assert.equal(calls.includes('video-play'),false);assert.equal(timer.timers.size,0);
+});
+test('completed publication does not authorize an unrelated later native reset',async t=>{
+ const timer=clock(t),{audio,calls}=fixture(),link=linkedWorklet(audio);link.reset();link.step();link.step();link.fill();
+ const playing=audio.play(async()=>calls.push('video-play'));await flush();const callback=[...timer.timers.values()][0].callback;link.step();await flush();await timer.tick(0);await playing;
+ const consumed=link.h[5];link.reset(4);link.step();link.fill();callback();link.step();await timer.tick(100);
+ assert.equal(link.h[14],2);assert.equal(link.h[5],consumed);assert.equal(calls.filter(value=>value==='video-play').length,1);assert.equal(timer.timers.size,0);await audio.pause(()=>{});
 });

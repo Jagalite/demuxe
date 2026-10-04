@@ -88,3 +88,9 @@ export function nativeAudioWait(state:NativeAudioState,lease:NativeAudioLease,no
 export function nativeAudioTail(state:NativeAudioState,hasHeader:boolean,duration:number,mediaTime:number):boolean{return state.phase==='active'&&hasHeader&&state.running&&Number.isFinite(duration)&&mediaTime>=duration-.2;}
 export function observeNativeAudioContext(state:NativeAudioState,running:boolean):Readonly<{state:NativeAudioState;action?:'pause'|'resume'}>{if(state.phase!=='active')return Object.freeze({state});if(!running&&(state.running||state.playbackIntent==='play'))return Object.freeze({state:transitionNativeAudio(state,{type:'paused',context:true}),action:'pause'});return Object.freeze({state,...running&&state.contextPaused?{action:'resume' as const}:{}});}
 export function completeNativeAudioFrame(state:NativeAudioState,id:number,hasHeader:boolean,duration:number,mediaTime:number):Readonly<{state:NativeAudioState;accepted:boolean;tail:boolean}>{if(state.phase!=='active'||state.frame!==id)return Object.freeze({state,accepted:false,tail:false});return Object.freeze({state:Object.freeze({...state,frame:null}),accepted:true,tail:nativeAudioTail(state,hasHeader,duration,mediaTime)});}
+
+/** Only an active first-timestamp wait may follow a completed native AO reset.
+ * Once publication succeeds, later epochs need a new explicit playback lease. */
+export function nativeAudioPublicationEpoch(state:NativeAudioState,lease:NativeAudioLease,epoch:number,ack:number,now:number):boolean{
+ return nativeAudioCurrent(state,lease)&&state.publication?.id===lease.id&&state.publication.point===null&&now<state.publication.deadline&&Number.isInteger(epoch)&&!(epoch&1)&&epoch===ack;
+}

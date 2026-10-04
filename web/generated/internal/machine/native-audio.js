@@ -88,3 +88,8 @@ export function observeNativeAudioContext(state, running) { if (state.phase !== 
     return Object.freeze({ state: transitionNativeAudio(state, { type: 'paused', context: true }), action: 'pause' }); return Object.freeze({ state, ...running && state.contextPaused ? { action: 'resume' } : {} }); }
 export function completeNativeAudioFrame(state, id, hasHeader, duration, mediaTime) { if (state.phase !== 'active' || state.frame !== id)
     return Object.freeze({ state, accepted: false, tail: false }); return Object.freeze({ state: Object.freeze({ ...state, frame: null }), accepted: true, tail: nativeAudioTail(state, hasHeader, duration, mediaTime) }); }
+/** Only an active first-timestamp wait may follow a completed native AO reset.
+ * Once publication succeeds, later epochs need a new explicit playback lease. */
+export function nativeAudioPublicationEpoch(state, lease, epoch, ack, now) {
+    return nativeAudioCurrent(state, lease) && state.publication?.id === lease.id && state.publication.point === null && now < state.publication.deadline && Number.isInteger(epoch) && !(epoch & 1) && epoch === ack;
+}

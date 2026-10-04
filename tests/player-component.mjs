@@ -77,6 +77,41 @@ await check('autoplay completion preserves an active timeline drag',async()=>{
  });
  assert.deepEqual(data,{dragging:true,idle:false});
 });
+await check('autoplay completion preserves keyboard focus on timeline and volume',async()=>{
+ for(const target of ['timeline','volume']){
+  try{
+   await page.evaluate(async()=>{
+    await a.close();a.autoplay=true;a.muted=true;
+    const core=a.player,original=core.play;
+    window.focusPlayReached=false;window.focusOpenSettled=false;
+    const barrier=new Promise(resolve=>{window.releaseFocusPlay=resolve;});
+    core.play=async function(...args){const value=await original.apply(this,args);window.focusPlayReached=true;await barrier;return value;};
+    window.restoreFocusPlay=()=>{core.play=original;};
+    const file=new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'keyboard-focus.mp4');
+    window.focusOpen=a.open(file).finally(()=>{window.focusOpenSettled=true;});void focusOpen.catch(()=>{});
+   });
+   await page.waitForFunction(()=>focusPlayReached||focusOpenSettled);
+   assert.equal(await page.evaluate(()=>focusPlayReached),true,'Actual playback must reach the explicit completion barrier');
+   await page.waitForFunction(()=>a.player.surface.currentTime>.1);
+   await page.keyboard.press('Tab');
+   await page.locator('demuxe-player').first().locator(`#${target}`).focus();
+   const before=await page.evaluate(()=>({focus:a.shadowRoot.activeElement?.id,focusVisible:!!a.shadowRoot.activeElement?.matches(':focus-visible'),idle:a.shadowRoot.getElementById('shell').classList.contains('idle'),paused:a.player.surface.paused}));
+   assert.deepEqual(before,{focus:target,focusVisible:true,idle:false,paused:false});
+   await page.evaluate(async()=>{releaseFocusPlay();await focusOpen;});
+   const after=await page.evaluate(()=>({focus:a.shadowRoot.activeElement?.id,focusVisible:!!a.shadowRoot.activeElement?.matches(':focus-visible'),idle:a.shadowRoot.getElementById('shell').classList.contains('idle'),paused:a.player.surface.paused}));
+   assert.deepEqual(after,{focus:target,focusVisible:true,idle:false,paused:false},`Autoplay completion must preserve ${target} keyboard focus`);
+  }finally{
+   await page.evaluate(async()=>{
+    window.releaseFocusPlay?.();window.restoreFocusPlay?.();
+    try{await window.focusOpen?.catch(()=>{});}finally{
+     a.autoplay=false;a.muted=false;await a.close();a.shadowRoot.activeElement?.blur();
+     delete window.releaseFocusPlay;delete window.restoreFocusPlay;delete window.focusOpen;
+     delete window.focusPlayReached;delete window.focusOpenSettled;
+    }
+   });
+  }
+ }
+});
 await check('media picker accepts repeated MKV selections independently of subtitle filtering',async()=>{
  const data=await page.evaluate(()=>{
    const $=id=>a.shadowRoot.getElementById(id),requests=[],selected=[];
@@ -338,8 +373,46 @@ await check('late playback updates and held play keys do not reopen controls',as
 });
 await check('hidden seeking briefly reveals only the timeline without a pill',async()=>{
  const v=page.locator('demuxe-player').first();await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#stage').click({position:{x:30,y:100}});
- for(const key of ['ArrowRight','ArrowLeft']){await page.keyboard.press(key);await page.waitForFunction(()=>a.player.state.pendingOperation===null);await page.waitForTimeout(300);assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')&&el.classList.contains('seek-preview')),JSON.stringify(await v.evaluate(el=>({classes:el.shadowRoot.getElementById('shell').className,status:el.player.state.status,time:el.player.state.currentTime,focus:el.shadowRoot.activeElement?.id}))));await v.locator('#busy').waitFor({state:'hidden',timeout:1000});assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'1');assert.equal(await v.locator('.row').evaluate(el=>getComputedStyle(el).visibility),'hidden');assert.equal(await v.locator('#transport').evaluate(el=>getComputedStyle(el).opacity),'0');assert.match(await v.locator('#time').textContent(),/\d+:\d{2}/);}
- await page.waitForFunction(()=>!a.shadowRoot.getElementById('shell').classList.contains('seek-preview'));await page.waitForTimeout(300);assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'0');
+ for(const key of ['ArrowRight','ArrowLeft']){
+  // Observe in the browser before dispatch: host/RPC delays must not move a
+  // finite preview's assertion beyond its lifetime. Keep the original 300ms
+  // visible sample and the production 800ms expiry, with a bounded observer.
+  await page.evaluate(()=>{
+   window.seekPreviewObservation=new Promise(resolve=>{
+    const core=a.player,shell=a.shadowRoot.getElementById('shell'),samples=[];let began=false,settledAt=null,visibleSample=false,finished=false,expiryTimer;
+    const read=()=>({at:performance.now(),idle:shell.classList.contains('idle'),preview:shell.classList.contains('seek-preview'),pending:a.player.state.pendingOperation?.kind??null,opacity:getComputedStyle(a.shadowRoot.getElementById('controls')).opacity,row:getComputedStyle(a.shadowRoot.querySelector('.row')).visibility,transport:getComputedStyle(a.shadowRoot.getElementById('transport')).opacity,busy:a.shadowRoot.getElementById('busy').hidden,time:a.shadowRoot.getElementById('time').textContent});
+    const finish=error=>{if(finished)return;finished=true;clearInterval(poll);clearTimeout(deadline);clearTimeout(expiryTimer);observer.disconnect();core.removeEventListener('seeking',started);core.removeEventListener('seeked',completed);delete window.cancelSeekPreviewObservation;resolve({error,samples,settledAt});};
+    const inspect=()=>{
+     const sample=read();samples.push(sample);
+
+     if(!began)return;
+     if(!sample.idle)return finish('Seek revealed the full controls');
+     if(settledAt===null&&sample.pending===null){
+      settledAt=sample.at;
+      // Production arms its800ms timer before this completion observation.
+      expiryTimer=setTimeout(()=>{const last=read();samples.push(last);finish(!visibleSample?'No timeline-only preview observed':last.preview?'Preview did not expire after800ms':null);},800);
+     }
+     const elapsed=settledAt===null?null:sample.at-settledAt;
+     if(!visibleSample&&elapsed!==null&&elapsed>=300){
+      if(!sample.preview||sample.opacity!=='1'||sample.row!=='hidden'||sample.transport!=='0'||!sample.busy||! /\d+:\d{2}/.test(sample.time))return finish('Timeline-only preview missing at the300ms browser sample');
+      visibleSample=true;
+     }
+
+    };
+    const started=()=>{began=true;inspect();},completed=()=>inspect();
+    core.addEventListener('seeking',started);core.addEventListener('seeked',completed);
+    window.cancelSeekPreviewObservation=()=>finish('Host interrupted seek observation');
+    const observer=new MutationObserver(inspect);observer.observe(shell,{attributes:true,attributeFilter:['class']});
+    const poll=setInterval(inspect,10),deadline=setTimeout(()=>finish('Seek did not settle within the bounded7000ms observation budget'),7000);
+   });
+  });
+  try{
+   await page.keyboard.press(key);
+   const observation=await page.evaluate(()=>seekPreviewObservation);
+   assert.equal(observation.error,null,JSON.stringify({key,...observation}));
+  }finally{await page.evaluate(()=>window.cancelSeekPreviewObservation?.());}
+ }
+ await page.waitForTimeout(300);assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'0');
 });
 await check('buffering indicator and truthful disjoint timeline ranges',async()=>{
  const v=page.locator('demuxe-player').first();await v.evaluate(el=>{const state=el.player.state;el.update({...state,status:'buffering',playbackIntent:'play',pendingOperation:null,seekable:[{start:10,end:110}],buffered:[{start:10,end:30},{start:60,end:80}]});el.shadowRoot.getElementById('shell').classList.add('idle');});

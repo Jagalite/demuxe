@@ -109,7 +109,7 @@ export class DemuxePlayerElement extends Base {
       if(!opened.accepted)throw new PlayerError('ABORTED','Queue selection superseded');
       if(opened.play){
         const core=this.core;await core?.play();
-        if(this.queueState.operation===operation&&core===this.core&&core?.state.playbackIntent==='play'&&!this.controlState.menuOpen&&!this.dragging&&this.controlsAutoHideDelay>0)this.hideControls();
+        if(this.queueState.operation===operation&&core===this.core&&core?.state.playbackIntent==='play'&&!this.controlState.menuOpen&&!this.dragging&&!this.controlFacts().focusVisible&&this.controlsAutoHideDelay>0)this.hideControls();
       }
     }catch(error){
       // A removed item must not survive as the core's rollback source.
