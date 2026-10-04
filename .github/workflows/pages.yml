@@ -3,7 +3,7 @@ name: Tagged player demo and npm release
 
 on:
   push:
-    tags: ['**', '!modular-*']
+    tags: ['**', '!modular-*', '!reduced-*']
   release:
     types: [published]
   workflow_dispatch:
@@ -219,15 +219,27 @@ jobs:
       - name: Install npm with trusted publishing support
         run: npm install --global npm@11.15.0 --ignore-scripts
       - name: Test release handoff guards
-        run: python3 tests/npm-release.py
+        run: |
+          python3 tests/npm-release.py
+          python3 tests/reduced-release.py
       - name: Download qualified runtime and public source companions
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p build/npm-release
           gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir build/npm-release \
-            --pattern 'verification.json' --pattern '*.tgz' --pattern '*source*.tar.gz'
+            --pattern '*.tgz' --pattern '*source*.tar.gz'
+          if [[ "$RELEASE_TAG" == reduced-* ]]; then
+            gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir build/npm-release --pattern 'reduced-*'
+          else
+            gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir build/npm-release --pattern 'verification.json'
+          fi
       - name: Validate and stage the exact verified archive as latest for npm approval
         run: |
-          python3 scripts/publish-npm-release.py --assets build/npm-release \
-            --tag "$RELEASE_TAG" --commit "$(git rev-parse HEAD)" --stage
+          if [[ "$RELEASE_TAG" == reduced-* ]]; then
+            python3 scripts/publish-reduced-release.py --assets build/npm-release \
+              --tag "$RELEASE_TAG" --commit "$(git rev-parse HEAD)" --stage
+          else
+            python3 scripts/publish-npm-release.py --assets build/npm-release \
+              --tag "$RELEASE_TAG" --commit "$(git rev-parse HEAD)" --stage
+          fi
