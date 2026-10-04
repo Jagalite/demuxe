@@ -47,10 +47,17 @@ try{
  });
  const box=await timeline.boundingBox(),x=Math.round(box.x+box.width*.4),y=box.y+box.height/2;
  await page.mouse.move(x,y);
- const target=await page.evaluate(()=>hoverTarget);
+ const {target,sourceId}=await page.evaluate(()=>({target:hoverTarget,sourceId:element.player.state.sourceId}));
  await page.mouse.click(x,y);
  await page.waitForFunction(target=>!element.player.state.pendingOperation&&Math.abs(element.player.state.currentTime-target)<.15,target);
- const actual=await page.evaluate(()=>element.player.surface.currentTime);
- assert.ok(Math.abs(actual-target)<.15,JSON.stringify({target,actual}));
+ const observation=await page.evaluate(()=>{
+  const player=element.player,backend=player.current.backend,surface=player.surface;
+  // Remux uses a biased media timeline; controls and public state use source time.
+  return {sourceId:player.state.sourceId,mode:player.state.activeMode,plan:backend.diagnostics.plan,sameSurface:backend.video===surface,raw:surface.currentTime,bias:backend.remux?.timelineBias??0};
+ });
+ assert.equal(observation.sourceId,sourceId);assert.equal(observation.mode,'native');assert.equal(observation.sameSurface,true);
+ const actual=observation.raw-observation.bias;
+ assert.ok(Number.isFinite(observation.bias)&&Number.isFinite(actual)&&Math.abs(actual-target)<.15,JSON.stringify({target,actual,...observation}));
+ console.log('TIMELINE_POSITION',JSON.stringify({target,actual,...observation}));
  console.log(`PASS ${family} ${browser.version()}: ${clicks} timeline clicks match hover targets across widths, live windows and forced colors; cached sample time stays separate; real playback reaches the displayed target`);
 }finally{await browser?.close();server.kill();}
