@@ -41,8 +41,9 @@ class ReducedTests(unittest.TestCase):
         self.package=v.package_metadata(self.project,license_policy.Policy(v.ROOT).config['packageLicenses'])
         self.runtime_files={'bin/demuxe.mjs':b'// fixture CLI','package.json':self.package,'engine-build.json':self.build,'web/engine-hybrid/player.wasm':b'wasm'}
         self.runtime_files.update({name:("// SPDX-License-Identifier: Apache-2.0\nexport * from './web/generated/"+('player/index.js' if name.startswith('player.') else 'index.js')+"';\n").encode() for name in ('index.js','index.d.ts','player.js','player.d.ts')})
-        self.record={'schema':1,'status':'reduced-developer-beta-tested','fullReleaseQualified':False,'sourceTag':self.tag,'sourceCommit':COMMIT,'deferredSuites':sorted(v.DEFERRED),'acceptedFindings':[{'id':'chrome-worker-teardown-historical','status':'accepted-unresolved','authorization':'User accepted last attempt then documented release','limitation':'Historical outcome remains unknown'}],'gateOriginalDirectory':'/gate','evidenceFiles':[]}
+        self.record={'schema':1,'status':'reduced-stable-tested' if getattr(self,'stable',False) else 'reduced-developer-beta-tested','fullReleaseQualified':False,'sourceTag':self.tag,'sourceCommit':COMMIT,'deferredSuites':sorted(v.DEFERRED),'acceptedFindings':[{'id':'chrome-worker-teardown-historical','status':'accepted-unresolved','authorization':'User accepted last attempt then documented release','limitation':'Historical outcome remains unknown'}],'gateOriginalDirectory':'/gate','evidenceFiles':[]}
         self.gate={'sourceCommit':COMMIT,'completed':True,'passed':True,'fullReleaseQualified':False,'runtimeUnchanged':True,'archiveUnchanged':True,'sourceUnchanged':True,'cwd':'/checkout','rows':[]}
+        if getattr(self,'stable',False):self.record.update(releaseEligible=True,acceptedGateFailures=[])
         self.add_asset('gateController','reduced-controller.py',b'# source-bound controller')
         self.add_asset('releaseNotes','reduced-notes.md',b'Reduced qualification; historical uncertainty unresolved.')
         self.repack()
@@ -70,7 +71,7 @@ class ReducedTests(unittest.TestCase):
     def repack(self):
         source_manifest={'sourceTag':self.tag,'sourceCommit':COMMIT,'files':{n:sha(b) for n,b in self.source_files.items()}}
         source=self.d/'demuxe-source.tar.gz';tar(source,{**self.source_files,'source-manifest.json':source_manifest});self.record['source']={'file':source.name,'sha256':v.digest(source)}
-        manifest={'version':self.version,'sourceTag':self.tag,'sourceCommit':COMMIT,'dirtySource':False,'sourceArchive':{'filename':source.name,'sha256':v.digest(source),'bytes':source.stat().st_size},'files':{n:{'sha256':sha(b),'bytes':len(data(b))} for n,b in self.runtime_files.items()}}
+        manifest={'status':'beta-candidate-not-production-qualified','qualification':{'production':False},'version':self.version,'sourceTag':self.tag,'sourceCommit':COMMIT,'dirtySource':False,'sourceArchive':{'filename':source.name,'sha256':v.digest(source),'bytes':source.stat().st_size},'files':{n:{'sha256':sha(b),'bytes':len(data(b))} for n,b in self.runtime_files.items()}}
         files={'package/'+n:b for n,b in self.runtime_files.items()};files['package/release-manifest.json']=manifest;runtime=self.d/'demuxe.tgz';tar(runtime,files);self.record['runtime']={'file':runtime.name,'sha256':v.digest(runtime)};self.actual_runtime={n[8:]:sha(b) for n,b in files.items()}
     def save(self):
         with tarfile.open(self.d/'demuxe.tgz') as t:outputs={m.name:{'sha256':hashlib.file_digest(t.extractfile(m),'sha256').hexdigest(),'bytes':m.size} for m in t if m.isfile()}
@@ -82,7 +83,7 @@ class ReducedTests(unittest.TestCase):
         # exercise all new provenance/evidence guards before that existing check.
         import license_policy
         with patch.object(v,'tracked_source',return_value=self.tagged),patch.object(license_policy.Policy,'check_package'),patch.object(license_policy,'LEGAL',[]):
-            return v.validate(self.d,self.tag,COMMIT)
+            return v.validate(self.d,self.tag,COMMIT,stable=getattr(self,'stable',False))
     def test_valid_reduced_receipt(self):self.assertEqual(self.validate()[1],'0.3.0-beta.6')
     def test_canonical_rc_receipt(self):
         self.version='1.0.0-rc.1'
@@ -93,6 +94,98 @@ class ReducedTests(unittest.TestCase):
             self.version=version
             with patch.dict(globals(),TAG=tag):self.setUp()
             with self.assertRaisesRegex(ValueError,message):self.validate()
+    def stable_fixture(self,tag='reduced-v1.0.0'):
+        self.version='1.0.0';self.stable=True
+        with patch.dict(globals(),TAG=tag):self.setUp()
+    def test_stable_requires_explicit_policy(self):
+        self.stable_fixture();self.assertEqual(self.validate()[1],'1.0.0')
+        self.stable=False
+        with self.assertRaisesRegex(ValueError,'tag policy'):self.validate()
+    def test_stable_rejects_prerelease_and_mismatch(self):
+        self.stable=True
+        with self.assertRaisesRegex(ValueError,'tag policy'):self.validate()
+        self.stable_fixture('reduced-v1.0.1')
+        with self.assertRaisesRegex(ValueError,'source/tag/version'):self.validate()
+    def test_stable_status_and_full_claim_fail_closed(self):
+        self.stable_fixture();self.record['status']='reduced-developer-beta-tested';self.save()
+        with self.assertRaisesRegex(ValueError,'status'):self.validate()
+        self.record['status']='reduced-stable-tested';self.record['fullReleaseQualified']=True;self.save()
+        with self.assertRaisesRegex(ValueError,'status'):self.validate()
+    def test_stable_cannot_claim_production_qualification(self):
+        self.stable_fixture();path=self.d/'demuxe.tgz'
+        with tarfile.open(path) as t:files={m.name:t.extractfile(m).read() for m in t if m.isfile()}
+        manifest=json.loads(files['package/release-manifest.json']);manifest['qualification']['production']=True
+        files['package/release-manifest.json']=manifest;tar(path,files);self.record['runtime']['sha256']=v.digest(path);self.save()
+        with self.assertRaisesRegex(ValueError,'truthful limited qualification'):self.validate()
+    def test_existing_published_prerelease_not_promoted(self):
+        self.stable_fixture();calls=[]
+        def gh(*args):
+            calls.append(args)
+            if args[:1]==('api',) and 'git/ref/tags' in args[1]:return json.dumps({'object':{'type':'commit','sha':COMMIT}})
+            if args[:1]==('api',):return json.dumps([[{'tag_name':self.tag}]])
+            if args[:2]==('release','view'):return json.dumps({'isDraft':False,'isPrerelease':True,'assets':[]})
+            raise AssertionError('Unexpected mutation')
+        with patch.object(pub,'validate'),patch.object(pub,'gh',side_effect=gh):
+            with self.assertRaisesRegex(ValueError,'different stable/prerelease policy'):pub.publish(self.d,self.tag,COMMIT,'o/r',stable=True)
+        self.assertFalse(any(c[:2] in [('release','edit'),('release','create'),('release','upload')] for c in calls))
+    def test_stable_integrity_still_required(self):
+        self.stable_fixture();(self.d/self.record['evidenceFiles'][0]['file']).write_text('tampered')
+        with self.assertRaisesRegex(ValueError,'hash mismatch'):self.validate()
+    def test_stable_github_semantics_explicit(self):
+        self.stable_fixture();calls=[]
+        def gh(*args):
+            calls.append(args)
+            if args[:1]==('api',) and 'git/ref/tags' in args[1]:return json.dumps({'object':{'type':'commit','sha':COMMIT}})
+            if args[:1]==('api',):return '[[]]'
+            if args[:2]==('release','view'):return json.dumps({'isDraft':True,'assets':[]})
+            return ''
+        # Full validation is tested above; isolate GitHub API state transitions here.
+        with patch.object(pub,'validate') as validate,patch.object(pub,'gh',side_effect=gh):
+            pub.publish(self.d,self.tag,COMMIT,'o/r',stable=True)
+            validate.assert_called_once_with(self.d,self.tag,COMMIT,stable=True)
+        create=next(c for c in calls if c[:2]==('release','create'));edit=next(c for c in calls if c[:2]==('release','edit'))
+        self.assertIn('--prerelease=false',create);self.assertIn('--prerelease=false',edit);self.assertIn('--latest=true',edit)
+    def test_stable_rejected_before_remote_access_without_opt_in(self):
+        self.stable_fixture()
+        with patch.object(pub,'gh') as gh:
+            with self.assertRaisesRegex(ValueError,'tag policy'):pub.publish(self.d,self.tag,COMMIT,'o/r')
+            gh.assert_not_called()
+    def cleanup_fixture(self):
+        self.stable_fixture();row=next(r for r in self.gate['rows'] if r['label']=='consumer-chrome')
+        entry=next(e for e in self.record['evidenceFiles'] if e['originalPath']==row['reports'][0]['path']);report=json.loads((self.d/entry['file']).read_text())
+        url='http://127.0.0.1:12345/deep/runtime-v2/web/software-full-engine-worker.js'
+        events=[{'kind':'created','id':i,'url':url if i==52 else 'worker'+str(i)} for i in range(1,61)]+[{'kind':'closed','id':i,'url':'worker'+str(i)} for i in range(1,61) if i!=52]
+        attempt={'error':'AssertionError [ERR_ASSERTION]: Workers still alive after destroy: '+url+'\n\n1 !== 0\n\n    at file:///checkout/tests/public-api-consumer.mjs:46:8','failedRequests':[],'pageErrors':[],'workers':[url],'cleanup':{'workersAtObservation':1,'unprobed':0,'dropped':0,'events':events,'owners':{'status':'fulfilled','value':{'connectedIframes':0,'owners':[{'label':'viewer','phase':'closed','iframeConnected':False,'contextState':'closed'},{'label':'custom'}]}},'targets':{'status':'fulfilled','value':{'targetInfos':[{'type':'worker','url':url,'attached':True}]}},'workers':[{'id':52,'url':url,'classification':'target-still-reported','probe':{'status':'timeout'}}]}}
+        report['checks'][5].update(passed=False,attempts=[attempt]);report['passed']=False;row.update(passed=False,exitCode=1,failure='Child exited unsuccessfully');self.gate['passed']=False
+        return row,entry,report,attempt
+    def save_cleanup(self,row,entry,report,derive=True):
+        (self.d/entry['file']).write_bytes(data(report));entry['sha256']=sha(report);row['reports'][0]['sha256']=sha(report)
+        if derive:self.record.update(v.derive_stable_eligibility(self.gate,{sha(report):report},COMMIT,self.record['runtime']['sha256']))
+        self.save()
+    def test_stable_known_cleanup_keeps_raw_failure(self):
+        row,entry,report,attempt=self.cleanup_fixture();self.save_cleanup(row,entry,report)
+        self.assertEqual(self.validate()[1],'1.0.0');self.assertFalse(self.gate['passed']);self.assertFalse(row['passed']);self.assertFalse(report['passed']);self.assertEqual(len(self.record['acceptedGateFailures']),1)
+    def test_cleanup_other_failure_signatures_rejected(self):
+        mutations=[lambda r,a:r['checks'][4].update(passed=False),lambda r,a:a['cleanup']['workers'][0].update(url='http://127.0.0.1:12345/deep/runtime-v2/web/io-worker.js'),lambda r,a:r['checks'][5]['attempts'].append(copy.deepcopy(a)),lambda r,a:a['cleanup'].pop('owners'),lambda r,a:a['pageErrors'].append('unexpected'),lambda r,a:a['failedRequests'].append('unexpected'),lambda r,a:a['cleanup']['workers'][0].update(probe={'status':'fulfilled'}),lambda r,a:r.update(family='firefox'),lambda r,a:r.update(archiveSHA256='0'*64)]
+        for mutate in mutations:
+            with self.subTest(mutate=mutate):
+                row,entry,report,attempt=self.cleanup_fixture();mutate(report,attempt)
+                with self.assertRaises(ValueError):self.save_cleanup(row,entry,report)
+    def test_cleanup_gate_guards_rejected(self):
+        for mutation in ['other-row','source','preservation','firefox']:
+            with self.subTest(mutation=mutation):
+                row,entry,report,attempt=self.cleanup_fixture()
+                if mutation=='other-row':self.gate['rows'][0].update(passed=False,exitCode=1)
+                elif mutation=='source':self.gate['sourceCommit']='b'*40
+                elif mutation=='preservation':self.gate['sourceUnchanged']=False
+                else:row['label']='consumer-firefox'
+                with self.assertRaises(ValueError):self.save_cleanup(row,entry,report)
+    def test_cleanup_receipt_descriptor_cannot_be_forged(self):
+        row,entry,report,attempt=self.cleanup_fixture();self.save_cleanup(row,entry,report);self.record['acceptedGateFailures'][0]['reportSHA256']='0'*64;self.save()
+        with self.assertRaisesRegex(ValueError,'eligibility receipt'):self.validate()
+    def test_prerelease_cannot_use_cleanup_exception(self):
+        row,entry,report,attempt=self.cleanup_fixture();self.save_cleanup(row,entry,report)
+        with self.assertRaisesRegex(ValueError,'Incomplete reduced gate'):v.validate_evidence(self.d,self.record,self.record['runtime']['sha256'],{},self.actual_runtime,[f'case{i}' for i in range(60)])
     def test_missing_or_duplicate_rows(self):
         for rows in [self.gate['rows'][:-1],self.gate['rows'][:-1]+[self.gate['rows'][0]]]:
             self.gate['rows']=rows;self.save()
@@ -167,6 +260,9 @@ class ReducedTests(unittest.TestCase):
         self.assertIn('if [[ "$RELEASE_TAG" == reduced-* ]]; then',text)
         self.assertIn('python3 scripts/publish-reduced-release.py --assets build/npm-release',text)
         self.assertIn('python3 scripts/publish-npm-release.py --assets build/npm-release',text)
+        self.assertIn('test "${{ github.event.release.prerelease }}" = false',text)
+        self.assertIn('test "${{ github.event_name }}" = release',text)
+        self.assertIn('stable_args=(--stable)',text)
     def test_wrong_remote_tag_has_no_mutation(self):
         with patch.object(pub,'validate'),patch.object(pub,'gh',return_value=json.dumps({'object':{'type':'commit','sha':'b'*40}})) as gh:
             with self.assertRaisesRegex(ValueError,'Remote release tag'):pub.publish(self.d,TAG,COMMIT,'o/r')

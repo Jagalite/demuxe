@@ -19,8 +19,8 @@ full=importlib.util.module_from_spec(spec);spec.loader.exec_module(full)
 def gh(*args):
     return subprocess.check_output(['gh',*map(str,args)],text=True)
 
-def publish(directory,tag,commit,repo):
-    validate(directory,tag,commit)
+def publish(directory,tag,commit,repo,*,stable=False):
+    validate(directory,tag,commit,stable=stable)
     ref=json.loads(gh('api',f'repos/{repo}/git/ref/tags/{tag}'))['object']
     seen=set()
     while ref['type']=='tag':
@@ -41,8 +41,9 @@ def publish(directory,tag,commit,repo):
     pages=json.loads(gh('api','--paginate','--slurp',f'repos/{repo}/releases?per_page=100'))
     found=[r for page in pages for r in page if r['tag_name']==tag];require(len(found)<=1,'Duplicate release tag')
     if not found:
-        gh('release','create',tag,'--repo',repo,'--verify-tag','--draft','--prerelease','--title',tag,'--notes-file',asset(directory,record['releaseNotes']['file']))
-    release=json.loads(gh('release','view',tag,'--repo',repo,'--json','isDraft,assets'))
+        gh('release','create',tag,'--repo',repo,'--verify-tag','--draft','--prerelease=false' if stable else '--prerelease','--title',tag,'--notes-file',asset(directory,record['releaseNotes']['file']))
+    release=json.loads(gh('release','view',tag,'--repo',repo,'--json','isDraft,isPrerelease,assets'))
+    if not release['isDraft']:require(release.get('isPrerelease') is (not stable),'Existing published release has different stable/prerelease policy')
     existing={item['name'] for item in release['assets']}
     require(existing<=names,'Unexpected existing release assets; review separately')
     with tempfile.TemporaryDirectory() as temporary:
@@ -54,14 +55,14 @@ def publish(directory,tag,commit,repo):
             else:
                 require(release['isDraft'],'Published release incomplete; refusing mutation')
                 gh('release','upload',tag,path,'--repo',repo)
-    if release['isDraft']:gh('release','edit',tag,'--repo',repo,'--draft=false','--prerelease','--latest=false')
-    print(f'Published reduced-scope prerelease: https://github.com/{repo}/releases/tag/{tag}')
+    if release['isDraft']:gh('release','edit',tag,'--repo',repo,'--draft=false','--prerelease=false' if stable else '--prerelease','--latest=true' if stable else '--latest=false')
+    print(f'Published reduced-scope {"stable release" if stable else "prerelease"}: https://github.com/{repo}/releases/tag/{tag}')
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--assets',type=Path,required=True);p.add_argument('--tag',required=True);p.add_argument('--commit',required=True)
-    action=p.add_mutually_exclusive_group();action.add_argument('--stage',action='store_true');action.add_argument('--github',action='store_true');p.add_argument('--repo');a=p.parse_args()
-    archive,version=validate(a.assets,a.tag,a.commit)
+    action=p.add_mutually_exclusive_group();action.add_argument('--stage',action='store_true');action.add_argument('--github',action='store_true');p.add_argument('--repo');p.add_argument('--stable',action='store_true',help='Explicitly validate/publish a reduced-stable receipt and exact stable version');a=p.parse_args()
+    archive,version=validate(a.assets,a.tag,a.commit,stable=a.stable)
     if a.github:
-        require(bool(a.repo),'--repo required for GitHub publication');publish(a.assets,a.tag,a.commit,a.repo)
+        require(bool(a.repo),'--repo required for GitHub publication');publish(a.assets,a.tag,a.commit,a.repo,stable=a.stable)
     elif a.stage:full.stage(archive,version)
     else:print(f'Validated reduced-scope demuxe@{version}: {archive.name} ({digest(archive)})')

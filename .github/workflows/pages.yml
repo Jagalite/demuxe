@@ -237,8 +237,14 @@ jobs:
       - name: Validate and stage the exact verified archive as latest for npm approval
         run: |
           if [[ "$RELEASE_TAG" == reduced-* ]]; then
+            stable_args=()
+            if [[ "$RELEASE_TAG" =~ ^reduced-v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+              test "${{ github.event_name }}" = release
+              test "${{ github.event.release.prerelease }}" = false
+              stable_args=(--stable)
+            fi
             python3 scripts/publish-reduced-release.py --assets build/npm-release \
-              --tag "$RELEASE_TAG" --commit "$(git rev-parse HEAD)" --stage
+              --tag "$RELEASE_TAG" --commit "$(git rev-parse HEAD)" --stage "${stable_args[@]}"
           else
             python3 scripts/publish-npm-release.py --assets build/npm-release \
               --tag "$RELEASE_TAG" --commit "$(git rev-parse HEAD)" --stage

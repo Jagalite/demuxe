@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Strict, explicitly reduced prerelease evidence; never emits full verification."""
+"""Reduced evidence: prerelease by default, stable by explicit opt-in; never full verification."""
 import ast
 import subprocess
 import hashlib
@@ -76,11 +76,70 @@ def tracked_source(commit):
         process.stdin.close();require(process.wait()==0,'Tagged source reader failed')
     return result
 
-def validate_evidence(directory, record, runtime_hash, source_files, runtime_files, component_names):
+CLEANUP_CASE='bundled application at /deep/runtime-v2/'
+CLEANUP_FINDING='chrome-worker-teardown-historical'
+
+def accepted_cleanup_signature(report, archive_hash):
+    """Recognize only the expressly accepted observation, never call it passed."""
+    require(report.get('family')=='chrome' and report.get('passed') is False and report.get('archiveSHA256')==archive_hash,'Accepted cleanup report identity mismatch')
+    require(not any(report.get(k) for k in ('error','pageErrors','failedRequests','cleanupError')),'Additional consumer failure')
+    checks=report.get('checks',[])
+    expected=['static core-only import has no UI or engine side effects','bundled core-only import has no UI or engine side effects']+[f'{bundle} application at {base}' for bundle in ('static','bundled') for base in ('/assets/demuxe/','/deep/runtime-v2/')]+['missing assets have structured errors','runtime policy separates private qualification from pthread isolation']
+    require([c.get('name') for c in checks]==expected,'Accepted cleanup case set mismatch')
+    failed=[c for c in checks if c.get('passed') is not True]
+    require(len(failed)==1 and failed[0].get('passed') is False and failed[0]['name']==CLEANUP_CASE,'Unaccepted consumer case failure')
+    require(all(c.get('passed') is True and not c.get('attempts') for c in checks if c is not failed[0]),'Additional consumer attempts')
+    attempts=failed[0].get('attempts',[]);require(len(attempts)==1,'Accepted cleanup requires exactly one attempt')
+    attempt=attempts[0]
+    require(attempt.get('failedRequests')==[] and attempt.get('pageErrors')==[],'Accepted cleanup has request/page failures')
+    cleanup=attempt.get('cleanup',{})
+    require(cleanup.get('workersAtObservation')==1 and cleanup.get('unprobed')==0 and cleanup.get('dropped')==0,'Incomplete cleanup diagnostics')
+    workers=cleanup.get('workers',[]);require(len(workers)==1,'Unexpected cleanup worker count')
+    worker=workers[0];url=worker.get('url','')
+    require(re.fullmatch(r'http://127\.0\.0\.1:[1-9]\d*/deep/runtime-v2/web/software-full-engine-worker\.js',url) and worker.get('classification')=='target-still-reported' and worker.get('probe')=={'status':'timeout'},'Unaccepted cleanup worker signature')
+    require(attempt.get('workers')==[url] and isinstance(worker.get('id'),int),'Unbound surviving worker')
+    error=attempt.get('error','');prefix='AssertionError [ERR_ASSERTION]: Workers still alive after destroy: '+url+'\n\n1 !== 0\n\n'
+    require(error.startswith(prefix) and all(line.strip().startswith('at ') for line in error[len(prefix):].splitlines()) and 'tests/public-api-consumer.mjs:' in error,'Unaccepted cleanup assertion')
+    events=cleanup.get('events',[]);created={};closed=set()
+    for event in events:
+        identity=event.get('id');require(isinstance(identity,int) and event.get('kind') in ('created','closed'),'Invalid worker event')
+        if event['kind']=='created':
+            require(identity not in created,'Duplicate worker creation');created[identity]=event.get('url')
+        else:
+            require(identity in created and identity not in closed and created[identity]==event.get('url'),'Unmatched worker closure');closed.add(identity)
+    require(len(created)==60 and len(closed)==59 and set(created)-closed=={worker['id']} and created[worker['id']]==url,'Different worker cleanup recurrence')
+    owners=cleanup.get('owners',{});require(owners.get('status')=='fulfilled','Missing cleanup owner proof')
+    value=owners.get('value',{});require(value.get('connectedIframes')==0 and value.get('owners')==[{'label':'viewer','phase':'closed','iframeConnected':False,'contextState':'closed'},{'label':'custom'}],'Unclosed cleanup owner')
+    targets=cleanup.get('targets',{});require(targets.get('status')=='fulfilled','Missing CDP cleanup proof')
+    worker_targets=[t for t in targets.get('value',{}).get('targetInfos',[]) if t.get('type') in ('worker','shared_worker','service_worker')]
+    require(len(worker_targets)==1 and worker_targets[0].get('type')=='worker' and worker_targets[0].get('url')==url and worker_targets[0].get('attached') is True,'Different CDP cleanup target')
+    return {'workerId':worker['id'],'workerURL':url}
+
+def derive_stable_eligibility(gate, reports_by_sha256, source_commit, archive_hash):
+    """Derive bounded stable eligibility; callers must also validate all bound bytes."""
+    require(gate.get('sourceCommit')==source_commit and gate.get('completed') is True and gate.get('fullReleaseQualified') is False and not gate.get('failure'),'Incomplete stable gate')
+    require(all(gate.get(k) is True for k in ('runtimeUnchanged','archiveUnchanged','sourceUnchanged')),'Gate preservation failed')
+    rows=gate.get('rows',[]);require(len(rows)==len(ROWS) and {r.get('label') for r in rows}==set(ROWS),'Wrong reduced gate rows')
+    failed=[]
+    for row in rows:
+        require(row.get('expectedCount')==ROWS[row['label']] and not row.get('cleanupUnverified'),'Incomplete stable row')
+        if row.get('passed') is True:require(row.get('exitCode')==0 and not row.get('failure'),'Inconsistent passing row')
+        else:failed.append(row)
+    if not failed:
+        require(gate.get('passed') is True,'Inconsistent green gate')
+        return {'releaseEligible':True,'acceptedGateFailures':[]}
+    require(gate.get('passed') is False and len(failed)==1,'Unaccepted failed gate rows')
+    row=failed[0];require(row.get('label')=='consumer-chrome' and row.get('passed') is False and row.get('exitCode')==1 and row.get('failure')=='Child exited unsuccessfully','Unaccepted failed gate row')
+    reports=row.get('reports',[]);require(len(reports)==1,'Missing accepted cleanup report')
+    report_hash=reports[0].get('sha256');require(report_hash in reports_by_sha256,'Unbound accepted cleanup report')
+    signature=accepted_cleanup_signature(reports_by_sha256[report_hash],archive_hash)
+    return {'releaseEligible':True,'acceptedGateFailures':[{'finding':CLEANUP_FINDING,'row':'consumer-chrome','case':CLEANUP_CASE,'sourceCommit':source_commit,'archiveSHA256':archive_hash,'reportSHA256':report_hash,**signature}]}
+
+def validate_evidence(directory, record, runtime_hash, source_files, runtime_files, component_names, *, stable=False):
     gate = json.loads(bound(directory, record['gate']).read_text())
     bindings = json.loads(bound(directory, record['bindings']).read_text())
     require(gate.get('sourceCommit') == record['sourceCommit'], 'Gate commit mismatch')
-    require(gate.get('completed') is True and gate.get('passed') is True and gate.get('fullReleaseQualified') is False, 'Incomplete reduced gate')
+    require(gate.get('completed') is True and (stable or gate.get('passed') is True) and gate.get('fullReleaseQualified') is False, 'Incomplete reduced gate')
     require(all(gate.get(k) is True for k in ('runtimeUnchanged','archiveUnchanged','sourceUnchanged')), 'Gate preservation failed')
     require(bindings.get('archiveSHA256') == runtime_hash, 'Gate archive mismatch')
     require(bindings.get('runtimeFiles')==runtime_files, 'Gate runtime inventory mismatch')
@@ -89,6 +148,10 @@ def validate_evidence(directory, record, runtime_hash, source_files, runtime_fil
     entries = record.get('evidenceFiles', [])
     require(len({e['originalPath'] for e in entries}) == len(entries) and len({e['file'] for e in entries}) == len(entries), 'Duplicate evidence mapping')
     evidence = {e['originalPath']: (bound(directory,e), e['sha256']) for e in entries}
+    eligibility=derive_stable_eligibility(gate,{value[1]:json.loads(value[0].read_text()) for original,value in evidence.items() if original.endswith('/result.json')},record['sourceCommit'],runtime_hash) if stable else {'acceptedGateFailures':[]}
+    if stable:require(record.get('releaseEligible') is True and record.get('acceptedGateFailures')==eligibility['acceptedGateFailures'],'Stable eligibility receipt mismatch')
+    else:require(not record.get('acceptedGateFailures'),'Prerelease cannot accept gate failures')
+    accepted_labels={item['row'] for item in eligibility['acceptedGateFailures']}
     used = set()
     def lookup(original, expected):
         require(original in evidence and evidence[original][1] == expected, 'Missing bound gate evidence')
@@ -96,7 +159,7 @@ def validate_evidence(directory, record, runtime_hash, source_files, runtime_fil
         return evidence[original][0]
     for row in rows:
         label = row['label']
-        require(row.get('passed') is True and row.get('exitCode') == 0 and row.get('expectedCount') == ROWS[label] and not row.get('failure') and not row.get('cleanupUnverified'), 'Failed reduced row: ' + label)
+        require(label in accepted_labels or (row.get('passed') is True and row.get('exitCode') == 0 and row.get('expectedCount') == ROWS[label] and not row.get('failure') and not row.get('cleanupUnverified')), 'Failed reduced row: ' + label)
         log = lookup(str(PurePosixPath(record['gateOriginalDirectory']) / (label+'.log')), row['logSHA256']).read_text()
         require('\nRETRY ' not in '\n'+log, 'Retry not admitted')
         reports = row.get('reports', [])
@@ -116,7 +179,7 @@ def validate_evidence(directory, record, runtime_hash, source_files, runtime_fil
             require(len(checks)==1 and checks[0].get('name')=='audio-tail' and checks[0].get('passed') is True, 'Incomplete audio-tail report')
         else:
             checks=report.get('checks',[])
-            require(report.get('passed') is True and len(checks)==ROWS[label] and all(c.get('passed') is True for c in checks), 'Incomplete component/consumer report')
+            require(label in accepted_labels or (report.get('passed') is True and len(checks)==ROWS[label] and all(c.get('passed') is True for c in checks)), 'Incomplete component/consumer report')
             require(report.get('family')==label.split('-',1)[1], 'Report browser mismatch')
             if label.startswith('keyboard-'):
                 expected=[(kind,key) for kind in ('playing','paused') for key in ['ArrowLeft','ArrowRight','j','l','Home','End',*'0123456789']]+[(kind,'ArrowRight') for kind in ('drag','volume','timeline','menu')]
@@ -127,7 +190,7 @@ def validate_evidence(directory, record, runtime_hash, source_files, runtime_fil
             if label.startswith('consumer-'):
                 expected=['static core-only import has no UI or engine side effects','bundled core-only import has no UI or engine side effects']+[f'{bundle} application at {base}' for bundle in ('static','bundled') for base in ('/assets/demuxe/','/deep/runtime-v2/')]+['missing assets have structured errors','runtime policy separates private qualification from pthread isolation']
                 require([c['name'] for c in checks]==expected,'Wrong consumer case set')
-                require(report.get('archiveSHA256')==runtime_hash and all(not c.get('attempts') for c in checks), 'Consumer archive/retry mismatch')
+                require(report.get('archiveSHA256')==runtime_hash and (label in accepted_labels or all(not c.get('attempts') for c in checks)), 'Consumer archive/retry mismatch')
     require(used==set(evidence), 'Unreferenced evidence asset')
     harness=bindings.get('harnessSourceFixtures',{});cwd=gate['cwd'].rstrip('/')+'/'
     for name, value in source_files.items():
@@ -146,13 +209,13 @@ def package_metadata(project, licenses):
     package['exports']['./package.json']='./package.json'
     return package
 
-def validate(directory, tag, commit):
+def validate(directory, tag, commit, *, stable=False):
     directory=Path(directory)
-    require(re.fullmatch(r'reduced-v\d+\.\d+\.\d+-[0-9A-Za-z.-]+',tag), 'Reduced receipt requires reduced prerelease tag')
+    require(re.fullmatch(r'reduced-v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)' if stable else r'reduced-v\d+\.\d+\.\d+-[0-9A-Za-z.-]+',tag), 'Reduced receipt requires matching stable/prerelease tag policy')
     require(re.fullmatch('[0-9a-f]{40}',commit), 'Invalid commit')
     require(not (directory/'verification.json').exists(), 'Do not mix reduced and full qualification records')
     record=json.loads(asset(directory,'reduced-qualification.json').read_text())
-    require(record.get('schema')==1 and record.get('status')=='reduced-developer-beta-tested' and record.get('fullReleaseQualified') is False, 'Wrong reduced qualification status')
+    require(record.get('schema')==1 and record.get('status')==('reduced-stable-tested' if stable else 'reduced-developer-beta-tested') and record.get('fullReleaseQualified') is False, 'Wrong reduced qualification status')
     require(all(record[key]['file'].startswith('reduced-') for key in ('gate','bindings','gateController','releaseNotes','installedManifest','nativeCorrespondence')) and all(e['file'].startswith('reduced-') for e in record.get('evidenceFiles',[])), 'Evidence assets require reduced- prefix')
     asset_names=[record[k]['file'] for k in ('runtime','source','gate','bindings','gateController','releaseNotes','installedManifest','nativeCorrespondence')]+[e['file'] for e in record.get('evidenceFiles',[])]
     require(len(asset_names)==len(set(asset_names)),'Colliding release asset roles')
@@ -167,8 +230,9 @@ def validate(directory, tag, commit):
         actual=inventory(tar);package=read(tar,'package/package.json');manifest=read(tar,'package/release-manifest.json');build=read(tar,'package/engine-build.json')
         version=package.get('version','');optional_manifests={}
         entrypoints={name:tar.extractfile('package/'+name).read() for name in ('index.js','index.d.ts','player.js','player.d.ts') if 'package/'+name in actual}
-        require(package.get('name')=='demuxe' and not package.get('private') and re.fullmatch(r'\d+\.\d+\.\d+-[0-9A-Za-z.-]+',version), 'Wrong/private/stable package')
-        require((tag=='reduced-v'+version or bool(re.fullmatch(r'\d+\.\d+\.\d+-beta\.\d+',version) and re.fullmatch(re.escape('reduced-v'+version)+r'-rc\.[1-9]\d*',tag))) and manifest.get('version')==version and manifest.get('sourceCommit')==commit and manifest.get('sourceTag')==tag and manifest.get('dirtySource') is False, 'Runtime source/tag/version mismatch')
+        require(package.get('name')=='demuxe' and not package.get('private') and re.fullmatch(r'(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)' if stable else r'\d+\.\d+\.\d+-[0-9A-Za-z.-]+',version), 'Wrong/private/stable package')
+        require((tag=='reduced-v'+version or bool(not stable and re.fullmatch(r'\d+\.\d+\.\d+-beta\.\d+',version) and re.fullmatch(re.escape('reduced-v'+version)+r'-rc\.[1-9]\d*',tag))) and manifest.get('version')==version and manifest.get('sourceCommit')==commit and manifest.get('sourceTag')==tag and manifest.get('dirtySource') is False, 'Runtime source/tag/version mismatch')
+        if stable:require(manifest.get('status')=='beta-candidate-not-production-qualified' and manifest.get('qualification',{}).get('production') is False,'Stable semantic version must retain truthful limited qualification descriptor')
         require(manifest['sourceArchive']['filename']==source.name and manifest['sourceArchive']['sha256']==record['source']['sha256'] and manifest['sourceArchive']['bytes']==source.stat().st_size, 'Source companion mismatch')
         require(set(actual)=={'package/'+n for n in manifest['files']}|{'package/release-manifest.json'}, 'Runtime inventory mismatch')
         for name,fact in manifest['files'].items():
@@ -243,7 +307,7 @@ def validate(directory, tag, commit):
     require(installed.get('outputs')==expected_outputs,'Installed archive inventory mismatch')
     correspondence=json.loads(bound(directory,record['nativeCorrespondence']).read_text())
     require(correspondence.get('candidate')==commit and correspondence.get('recordSHA256')==original_record_hash and correspondence.get('recordedNativeInputsUnchanged') is True,'Native correspondence mismatch')
-    validate_evidence(directory,record,record['runtime']['sha256'],source_files,{n[len('package/'):]:h for n,h in actual.items()},component_names)
+    validate_evidence(directory,record,record['runtime']['sha256'],source_files,{n[len('package/'):]:h for n,h in actual.items()},component_names,stable=stable)
     from license_policy import Policy, archive_files, LEGAL
     Policy(ROOT).check_package(archive_files(runtime),'player')
     for name in LEGAL:require(source_files.get('demuxe/'+name)==digest(ROOT/name), 'Source license material differs')

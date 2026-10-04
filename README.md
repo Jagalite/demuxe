@@ -10,11 +10,12 @@ Demuxe prefers browser playback and adapts or decodes media when needed. It
 handles playback-path selection, track changes, subtitles and fallback. Local
 files stay in the browser; the runtime never uploads them.
 
-**Developer beta.** This README describes the source candidate. Features and
-qualification depend on the exact runtime archive; Chrome and Firefox have
-representative coverage, with broader browser and device support still unqualified.
-Cooperative non-isolated Hybrid/Software playback is included in this source
-candidate and requires matching, verified runtime assets.
+**Version 1.0.0 uses reduced qualification.** Release evidence applies to the exact
+runtime archive. Player and loaded-video checks cover Chrome, Firefox and WebKit;
+broader formats, devices, long-duration playback and performance remain subject to
+the [documented release scope and accepted Chrome cleanup issue](docs/release-candidates/1.0.0.md).
+Cooperative non-isolated Hybrid/Software playback requires matching, verified
+runtime assets.
 
 [Live player demo](https://jagalite.github.io/demuxe/) · [Capabilities](#what-you-can-build) ·
 [Technologies](#technologies) · [Non-isolated playback](#playback-without-cross-origin-isolation) ·
@@ -129,7 +130,7 @@ from a locally assembled candidate. Build and verify an archive using the
 
 ```sh
 # Replace this path with your verified candidate archive.
-npm install /absolute/path/to/demuxe-0.3.0-beta.4.tgz
+npm install /absolute/path/to/demuxe-1.0.0.tgz
 npx demuxe copy-assets public/assets/demuxe
 ```
 
@@ -407,7 +408,8 @@ Open http://127.0.0.1:4179/. Source and issues are at
 
 The repository root is `private: true`. `scripts/package-beta.py` assembles the
 installable package; release qualification applies to the exact verified archive.
-See the [release procedure](docs/RELEASE.md) for packaging and publication gates.
+See the [release procedure](docs/RELEASE.md) for packaging and the
+[explicit reduced stable policy](docs/REDUCED-RELEASE.md) for this release's publication gates.
 
 ## Licensing
 
