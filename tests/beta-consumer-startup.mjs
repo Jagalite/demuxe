@@ -60,3 +60,54 @@ test('ASS ordinary manifested imports before open stay legal while hidden unmani
  f.manifestFiles[path]={sha256:'immutable'};f.requests.push({url,method:'GET',status:200,at:900});f.browserRequests.push({url,method:'GET',at:900});assClean(f);
  const unknown=assFacts();unknown.requests.push({url:new URL('web/unmanifested.js',assetBase).href,method:'GET',status:200,at:1600});assRejected(unknown);
 });
+
+const phaseNode=source.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='classifyPlaybackPhase');assert.ok(phaseNode);
+const classifyPhase=vm.runInNewContext('('+phaseNode.getText(source)+')',{URL});
+function phaseFacts(recovery=false){
+ const phase={at:1000,mode:'native',state:{status:'playing',currentTime:.4,sourceId:1,pendingOperation:null},audioCounterAvailable:true,observation:{instantiations:0},verifications:[],requests:[],browserRequests:[],workers:[],workerEvents:[],diagnostics:{plan:{id:'native-direct'},remuxRuntime:{runtime:'pthread'},backend:{path:'native',plan:'direct'},selection:{attempts:[]},runtimeCapabilities:[{planId:'native-direct',evidence:{outputVerified:true,videoPresented:true,audioProgress:true,audioDecoded:true}}]}};
+ const previous=structuredClone(phase),current=structuredClone(phase),f={name:'automatic-local',previous,current,phase:'first-play',assetBase,manifestFiles:{}};
+ if(recovery){
+  current.at=3000;current.diagnostics.plan.id='native-remux';current.diagnostics.backend={path:'native',plan:'remux',remux:{remux:{transport:'pthread'}}};current.diagnostics.runtimeCapabilities[0].planId='native-remux';
+  current.verifications=[{phase:'first-play',started:1000,finished:2500,budget:1500,plan:'native-direct',automatic:true,sourceKind:'local',nativeRemux:'auto',error:{name:'StartupEvidenceTimeout',message:'Native output evidence timed out',stage:'output',evidenceTimeout:true}}];
+  current.diagnostics.selection.attempts=[{mode:'native',outcome:'skipped',reason:'native-direct: This source policy requires controlled remux transport'},{mode:'native',outcome:'selected',reason:'native-remux: Playback requirements and actual startup accepted'}];
+  const paths=['web/native-remux-source-worker.js','web/native-remux-worker.js','web/native-mse-worker.js','web/engine-remux/remux.mjs','web/engine-remux/remux.wasm','web/source-probe.js'];
+  current.requests=paths.map(path=>({url:new URL(path,assetBase).href,at:2501,method:'GET'}));current.browserRequests=structuredClone(current.requests);current.workers=paths.slice(0,3).map(path=>new URL(path,assetBase).href);current.workerEvents=current.workers.map(url=>({url,at:2501}));f.manifestFiles=Object.fromEntries(paths.map(path=>[path,{sha256:'immutable'}]));
+ }
+ return f;
+}
+const phaseClean=f=>assert.equal(classifyPhase(f).violations.length,0,JSON.stringify(classifyPhase(f)));
+const phaseRejected=f=>assert.ok(classifyPhase(f).violations.length>0,JSON.stringify(f));
+test('first-play separately accepts verified unchanged direct output or exact bounded output recovery',()=>{phaseClean(phaseFacts());phaseClean(phaseFacts(true));});
+test('play recovery rejects absent, wrong, short or nonautomatic original verification failures',()=>{
+ for(const mutate of [f=>f.current.verifications=[],f=>f.current.verifications[0].budget=500,f=>f.current.verifications[0].finished=2499,f=>f.current.verifications[0].error.name='Error',f=>f.current.verifications[0].error.stage='metadata',f=>f.current.verifications[0].automatic=false,f=>f.current.verifications[0].sourceKind='remote',f=>f.current.verifications[0].nativeRemux='always',f=>f.current.diagnostics.selection.attempts=[],f=>f.current.diagnostics.plan.id='hybrid',f=>f.current.diagnostics.backend.remux.remux.transport='jspi',f=>f.current.diagnostics.runtimeCapabilities[0].evidence.audioDecoded=false]){const f=phaseFacts(true);mutate(f);phaseRejected(f);}
+});
+test('post-open traffic still rejects premature, foreign and unselected executables and workers',()=>{
+ for(const mutate of [f=>f.current.workerEvents[0].at=2499,f=>f.current.requests[0].at=2499,f=>f.current.requests.push({url:'https://foreign.test/extra.mjs',method:'GET',at:2501}),f=>f.current.browserRequests.push({url:new URL('web/engine-hybrid/player.wasm',assetBase).href,method:'GET',at:2501}),f=>f.current.workers.push('blob:hidden')]){const f=phaseFacts(true);mutate(f);phaseRejected(f);}
+ const f=phaseFacts();f.current.requests.push({url:new URL('web/source-probe.js',assetBase).href,method:'GET',at:1001});f.manifestFiles['web/source-probe.js']={sha256:'immutable'};phaseRejected(f);
+});
+test('seek/replay cannot relabel an unobserved route change as initial-play recovery',()=>{const f=phaseFacts(true);f.phase='controls';f.current.state.currentTime=1.2;phaseRejected(f);});
+test('captured phase snapshots do not mutate when later traffic or diagnostics change',async()=>{
+ const node=source.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='captureStartupPhase');const capture=vm.runInNewContext('('+node.getText(source)+')',{structuredClone});
+ const f=phaseFacts(),row={requestDetails:[],workerURLs:[],workerEvents:[]};const snapshot=await capture({evaluate:async()=>f.previous},row,'open');row.workerURLs.push('late-worker');row.requestDetails.push({url:'late'});f.previous.diagnostics.plan.id='native-remux';assert.equal(snapshot.workers.length,0);assert.equal(snapshot.requests.length,0);assert.equal(snapshot.diagnostics.plan.id,'native-direct');
+});
+test('observational verifier forwards actual arguments, resolution and original rejection unchanged',async()=>{
+ const node=source.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='observeStartupVerification');let at=10,received;const error=Object.assign(Error('Native output evidence timed out'),{name:'StartupEvidenceTimeout',stage:'output',evidenceTimeout:true});
+ const player={diagnostics:{plan:{id:'native-direct'}},automatic:true,source:{kind:'local'},nativeRemux:'auto',playNativeVerified(...args){received={self:this,args};return args[0]==='failure'?Promise.reject(error):Promise.resolve('exact-value');}};
+ const context={player,performance:{timeOrigin:100,now:()=>at++}};context.window=context;vm.runInNewContext('('+node.getText(source)+')()',context);const intent={};assert.equal(await player.playNativeVerified('success',undefined,1500,intent),'exact-value');assert.equal(received.self,player);assert.equal(received.args[3],intent);await assert.rejects(player.playNativeVerified('failure',undefined,1500,intent),e=>e===error);assert.equal(context.startupVerifications[1].error.stage,'output');
+});
+
+test('phase identity, completion, and verifier clock bounds cannot be omitted or replaced',()=>{for(const mutate of [f=>f.current.state.sourceId=2,f=>f.current.state.pendingOperation={kind:'opening'},f=>delete f.current.verifications[0].finished,f=>f.current.verifications[0].finished=3001,f=>f.current.verifications[0].started=999]){const f=phaseFacts(true);mutate(f);phaseRejected(f);}});
+
+const selectorNode=source.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='selectConsumerCases');assert.ok(selectorNode);
+const selectCases=vm.runInNewContext('('+selectorNode.getText(source)+')');
+test('standard consumer scope stays fixed while explicit optional selection remains available',()=>{const standard=['standard-a','standard-b'],available=[...standard,'optional'];assert.equal(JSON.stringify(selectCases(standard,available,undefined)),JSON.stringify(standard));assert.equal(JSON.stringify(selectCases(standard,available,'all')),JSON.stringify(available));assert.equal(JSON.stringify(selectCases(standard,available,'optional,standard-a')),JSON.stringify(['optional','standard-a']));});
+test('consumer selection rejects unknown, empty, duplicate and unavailable optional cases',()=>{for(const value of ['',',','standard-a,','standard-a,standard-a','missing','optional'])assert.throws(()=>selectCases(['standard-a'],['standard-a'],value));});
+
+test('consumer live loop invokes the scope selector and records exact selected identities',()=>{const text=source.getFullText();assert.match(text,/const selectedCases=selectConsumerCases\(standardCases,cases,process\.env\.CASES\),workerRetries=new Map\(\);result\.caseSelection=\[\.\.\.selectedCases\]/);assert.doesNotMatch(text,/selectedCases=cases\.filter/);assert.match(text,/result\.cases\.length===result\.caseSelection\?\.length/);});
+test('ASS load defers only bitmap output; first-play still requires actual rendered subtitle evidence',()=>{
+ const loading=assFacts();loading.requireBitmap=false;loading.backend.mpvSubtitles.bitmapUpdates=0;assert.equal(classifyAss(loading).violations.length,0);
+ const f=phaseFacts();f.name='automatic-ass';for(const value of [f.previous,f.current]){value.diagnostics.plan.id='native-direct-mpv';value.diagnostics.backend={path:'native',plan:'direct-mpv',mpvSubtitles:{bitmapUpdates:1}};value.diagnostics.runtimeCapabilities[0].planId='native-direct-mpv';}phaseClean(f);f.current.diagnostics.backend.mpvSubtitles.bitmapUpdates=0;phaseRejected(f);
+});
+test('native audio evidence retains Firefox presence limits and requires decoder counters when exposed',()=>{const f=phaseFacts();f.current.audioCounterAvailable=false;f.current.diagnostics.runtimeCapabilities[0].evidence.audioDecoded=false;phaseClean(f);f.current.audioCounterAvailable=true;phaseRejected(f);});
+
+test('fixture preparation normalizes explicit case names exactly like live selection',()=>{const text=source.getFullText();assert.match(text,/process\.env\.CASES\.split\(','\)\.map\(name=>name\.trim\(\)\)\.includes\('native-remux'\)/);assert.match(text,/process\.env\.CASES\.split\(','\)\.map\(name=>name\.trim\(\)\)\.some\(name=>/);assert.equal(JSON.stringify(selectCases(['native-remux'],['native-remux'],' native-remux ')),JSON.stringify(['native-remux']));});
