@@ -58,6 +58,12 @@ export function scrubberPointer(facts) {
         return Object.freeze({ hide: true });
     if (!facts.width || facts.max <= facts.min)
         return Object.freeze({ hide: false });
-    const fraction = Math.max(0, Math.min(1, (facts.x - facts.left) / facts.width)), half = Math.min(120, facts.parentWidth / 2);
-    return Object.freeze({ hide: false, time: facts.min + fraction * (facts.max - facts.min), left: Math.max(half, Math.min(facts.parentWidth - half, facts.x - facts.parentLeft)) });
+    // Native range values follow the thumb's centre, whose travel excludes its width.
+    const thumb = Math.max(0, Math.min(facts.width, facts.thumbWidth ?? 0)), travel = facts.width - thumb;
+    if (travel <= 0)
+        return Object.freeze({ hide: false });
+    const fraction = Math.max(0, Math.min(1, (facts.x - facts.left - thumb / 2) / travel)), half = Math.min(120, facts.parentWidth / 2), span = facts.max - facts.min;
+    const step = facts.step ?? 0, offset = step > 0 ? Math.min(Math.round(fraction * span / step), Math.floor(span / step + 1e-9)) * step : fraction * span;
+    const time = Number((facts.min + offset).toPrecision(12));
+    return Object.freeze({ hide: false, time, left: Math.max(half, Math.min(facts.parentWidth - half, facts.x - facts.parentLeft)) });
 }

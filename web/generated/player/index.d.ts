@@ -196,6 +196,7 @@ export declare class DemuxePlayerElement extends Base {
     private titleProjection;
     private updateTitle;
     private updateSourceLabel;
+    private canPickSubtitle;
     private updateUtilities;
     private lifecycle;
     private get terminal();

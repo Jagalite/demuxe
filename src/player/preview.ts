@@ -27,14 +27,17 @@ export class ScrubberPreview {
     if(event.pointerType==='touch'||this.timeline.disabled){this.hide();return;}
     const api=this.api();if(!api)return;
     const rect=this.timeline.getBoundingClientRect(),parent=this.panel.parentElement!.getBoundingClientRect();
-    const pointer=scrubberPointer({touch:false,disabled:false,left:rect.left,width:rect.width,min:Number(this.timeline.min),max:Number(this.timeline.max),x:event.clientX,parentLeft:parent.left,parentWidth:parent.width});
+    const style=getComputedStyle(this.timeline),scale=rect.width/parseFloat(style.width);
+    const thumbWidth=parseFloat(style.getPropertyValue('--timeline-thumb-size'))*scale;
+    const pointer=scrubberPointer({touch:false,disabled:false,left:rect.left,width:rect.width,thumbWidth,step:Number(this.timeline.step),min:Number(this.timeline.min),max:Number(this.timeline.max),x:event.clientX,parentLeft:parent.left,parentWidth:parent.width});
     if(pointer.time===undefined)return;
     this.panel.style.left=`${pointer.left}px`;
+    if(this.targetLabel)this.targetLabel.textContent=formatTime(pointer.time);
     const hover=this.transition({type:'hover'});if(hover.id===undefined)return;
     if(hover.placeholder){this.image.hidden=true;this.label.textContent=`${formatTime(pointer.time)} · …`;this.panel.hidden=false;}
     void this.sample(api,pointer.time,hover.id).catch(()=>{});
   };
-  constructor(private timeline:HTMLInputElement,private panel:HTMLElement,private image:HTMLImageElement,private label:HTMLElement,private api:()=>PlayerPreview|undefined){
+  constructor(private timeline:HTMLInputElement,private panel:HTMLElement,private image:HTMLImageElement,private label:HTMLElement,private api:()=>PlayerPreview|undefined,private targetLabel?:HTMLElement){
     try{timeline.addEventListener('pointermove',this.move);timeline.addEventListener('pointerleave',this.hide);timeline.addEventListener('pointercancel',this.hide);}catch(error){this.destroy();throw error;}
   }
   private distance(api:PlayerPreview,generation=false){return scrubberDistance(api.strategy,Number(this.timeline.max)-Number(this.timeline.min),generation);}

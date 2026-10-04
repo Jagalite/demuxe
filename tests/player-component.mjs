@@ -47,6 +47,81 @@ await check('unnamed and opaque sources do not expose a generated or stale title
    finally{await a.close();URL.revokeObjectURL(url);}
  });assert.deepEqual(data,{buffer:'',blob:''});
 });
+await check('autoplay hides transport immediately after opening while paused loads and opt-out stay visible',async()=>{
+ const data=await page.evaluate(async()=>{
+   const bytes=await(await fetch('/fixtures/example.mp4')).arrayBuffer(),states=[];
+   try{
+     for(const [autoplay,delay,menu] of [[true,2800,false],[false,2800,false],[true,0,false],[true,2800,true]]){
+       a.autoplay=autoplay;a.controlsAutoHideDelay=delay;a.muted=true;
+       if(menu)a.shadowRoot.getElementById('open-menu').click();
+       await a.open(new File([bytes],'autoplay.mp4'));
+       states.push({playing:a.player.state.playbackIntent==='play',idle:a.shadowRoot.getElementById('shell').classList.contains('idle')});
+       if(autoplay&&delay&&!menu){await a.player.pause();if(a.shadowRoot.getElementById('shell').classList.contains('idle'))throw Error('Pause must reveal controls after autoplay');}
+       if(menu)a.shadowRoot.getElementById('settings-close').click();
+       await a.close();
+     }
+     return states;
+   }finally{a.autoplay=false;a.controlsAutoHideDelay=2800;a.muted=false;await a.close();}
+ });
+ assert.deepEqual(data,[{playing:true,idle:true},{playing:false,idle:false},{playing:true,idle:false},{playing:true,idle:false}]);
+});
+await check('autoplay completion preserves an active timeline drag',async()=>{
+ const data=await page.evaluate(async()=>{
+   const core=a.player,play=core.play;
+   core.play=async()=>{await play.call(core);const timeline=a.shadowRoot.getElementById('timeline');timeline.value='1';timeline.dispatchEvent(new Event('input'));};
+   try{
+     a.autoplay=true;a.muted=true;
+     await a.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'drag.mp4'));
+     return {dragging:a.controlState.dragging,idle:a.shadowRoot.getElementById('shell').classList.contains('idle')};
+   }finally{core.play=play;a.autoplay=false;a.muted=false;await a.close();}
+ });
+ assert.deepEqual(data,{dragging:true,idle:false});
+});
+await check('media picker accepts repeated MKV selections independently of subtitle filtering',async()=>{
+ const data=await page.evaluate(()=>{
+   const $=id=>a.shadowRoot.getElementById(id),requests=[],selected=[];
+   const click=HTMLInputElement.prototype.click,add=a.addFiles;
+   HTMLInputElement.prototype.click=function(){if(this.type==='file'){if(!this.disabled)requests.push(this.id);}else click.call(this);};
+   a.addFiles=files=>selected.push(files.map(file=>file.name));
+   try{
+     $('open').click();$('file').dispatchEvent(new Event('cancel'));$('choose-file').click();
+     const select=()=>{const transfer=new DataTransfer();transfer.items.add(new File(['media'],'first.mkv'));transfer.items.add(new File(['media'],'second.mkv'));$('file').files=transfer.files;$('file').dispatchEvent(new Event('change'));return $('file').files.length===0;};
+     const firstCleared=select();$('choose-file').click();const secondCleared=select();
+     a.showSourceControls=false;$('open').dispatchEvent(new MouseEvent('click'));$('choose-file').dispatchEvent(new MouseEvent('click'));
+     return {unrestricted:$('file').accept===''&&!$('file').webkitdirectory&&$('file').multiple,requests,subtitle:$('subtitleFile').accept,cleared:firstCleared&&secondCleared,selected};
+   }finally{HTMLInputElement.prototype.click=click;a.addFiles=add;a.showSourceControls=true;}
+ });
+ assert.deepEqual(data,{unrestricted:true,requests:['file','file','file'],subtitle:'.srt,.ass,.ssa,.vtt',cleared:true,selected:[['first.mkv','second.mkv'],['first.mkv','second.mkv']]});
+});
+await check('subtitle picker requires loaded media and disables again after clearing',async()=>{
+ const data=await page.evaluate(async()=>{
+   const input=a.shadowRoot.getElementById('subtitleFile'),states=[];
+   const record=()=>states.push(input.disabled);
+   record();a.showSourceControls=false;a.showSourceControls=true;record();
+   await a.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'movie.mp4'));record();
+   a.showSourceControls=false;record();a.showSourceControls=true;record();
+   await a.close();record();
+   let calls=0;const add=a.addSubtitle;a.addSubtitle=async()=>{calls++;};
+   try{
+     const transfer=new DataTransfer();transfer.items.add(new File(['subtitle'],'late.srt'));input.files=transfer.files;
+     input.dispatchEvent(new Event('change'));
+     return {states,calls,cleared:input.files.length===0};
+   }finally{a.addSubtitle=add;}
+ });
+ assert.deepEqual(data,{states:[true,true,false,true,false,true],calls:0,cleared:true});
+});
+await check('live source option is enabled only for streaming formats',async()=>{
+ const states=await page.evaluate(()=>{
+   const format=a.shadowRoot.getElementById('format'),live=a.shadowRoot.getElementById('live'),states=[live.disabled];
+   for(const value of ['hls','dash','file']){format.value=value;format.dispatchEvent(new Event('change'));states.push(live.disabled);}
+   a.showSourceControls=false;a.showSourceControls=true;states.push(live.disabled);
+   format.value='hls';format.dispatchEvent(new Event('change'));a.showSourceControls=false;states.push(live.disabled);
+   a.showSourceControls=true;states.push(live.disabled);
+   format.value='file';format.dispatchEvent(new Event('change'));
+   return states;
+ });
+ assert.deepEqual(states,[true,false,false,true,true,true,false]);
+});
 await check('source picker describes accepted media independently of the native file input',async()=>{
  const v=page.locator('demuxe-player').first();
  await page.evaluate(async()=>{await a.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'Loaded movie.mp4'));a.title='Custom title';a.titleMode='none';});
@@ -64,6 +139,24 @@ await check('source picker describes accepted media independently of the native 
  await page.waitForFunction(()=>a.shadowRoot.getElementById('current-source').textContent==='example.mp4'&&!a.queueOperation);
  await page.evaluate(async()=>{await a.close();a.title='';a.titleMode='auto';});
  assert.equal(await v.locator('#current-source').textContent(),'No media loaded');
+});
+await check('clearing loaded media allows another file selection repeatedly',async()=>{
+ const v=page.locator('demuxe-player').first();
+ for(let attempt=0;attempt<3;attempt++){
+   const chooser=page.waitForEvent('filechooser');await v.locator('#open').click();
+   const picker=await chooser;
+   assert.ok(picker.isMultiple());
+   assert.equal(await picker.element().getAttribute('accept'),null);
+   assert.equal(await picker.element().getAttribute('webkitdirectory'),null);
+   await picker.setFiles('fixtures/example.mp4');
+   await page.waitForFunction(()=>!!a.player.state.sourceId&&!a.queueOperation);
+   assert.equal(await v.locator('#file').inputValue(),'');
+   assert.equal(await v.locator('#subtitleFile').isEnabled(),true);
+   await v.locator('#open-menu').click();await v.locator('#clear-queue').click();
+   await page.waitForFunction(()=>a.player.state.sourceId===null&&!a.queueOperation);
+   assert.equal(await v.locator('#current-source').textContent(),'No media loaded');
+   assert.equal(await v.locator('#subtitleFile').isDisabled(),true);
+ }
 });
 await check('disabled source controls close their menu, block handlers and allow programmatic open',async()=>{
  const data=await page.evaluate(async()=>{
@@ -282,6 +375,8 @@ await check('overlay controls, URL opening, idle reveal and close stay in the co
 await check('outside clicks dismiss menus and screen taps toggle controls',async()=>{
  await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('demuxe-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
  const v=page.locator('demuxe-player'),stage=v.locator('#stage'),menu=v.locator('#settings'),shell=v.locator('#shell');
+ await page.waitForFunction(()=>document.querySelector('demuxe-player').queueOperation===null&&player.state.playbackIntent==='play');
+ await stage.hover({position:{x:30,y:100}}); // Start menu checks after autoplay has finished hiding controls.
  await v.locator('#settings-toggle').click();await v.locator('#speed').selectOption('1.25');assert.ok(await menu.isVisible());await page.locator('h1').evaluate(el=>el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true})));await menu.waitFor({state:'hidden',timeout:1000});
  await v.locator('#open-menu').click();await stage.click({position:{x:30,y:100}});await menu.waitFor({state:'hidden',timeout:1000});assert.ok(await shell.evaluate(el=>el.classList.contains('idle')));assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).pointerEvents),'none');
  await stage.dispatchEvent('pointerdown',{pointerType:'touch'});await stage.dispatchEvent('pointermove',{pointerType:'touch'});await stage.dispatchEvent('click');assert.equal(await shell.evaluate(el=>el.classList.contains('idle')),false);

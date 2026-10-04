@@ -35,9 +35,25 @@ test('seeking while idle shows bounded feedback, while playback intent determine
  let playing=step(state,{type:'playing',playing:true,intent:'play',status:'playing'});assert.equal(playing.reveal,false);
  assert.equal(step(playing.state,{type:'playing',playing:false,intent:'play',status:'buffering'}).reveal,false);
  assert.equal(step(playing.state,{type:'playing',playing:false,intent:'pause',status:'paused'}).reveal,true);
+ const stopping=step(playing.state,{type:'playing',playing:false,intent:'play',status:'paused'});
+ assert.equal(stopping.reveal,false);
+ const paused=step(stopping.state,{type:'playing',playing:false,intent:'pause',status:'paused'});
+ assert.equal(paused.changed,true);assert.equal(paused.reveal,true);
+ assert.equal(step(paused.state,{type:'playing',playing:false,intent:'pause',status:'paused'}).changed,false);
  for(const status of ['ended','error','idle'])assert.equal(step(playing.state,{type:'playing',playing:false,intent:'play',status}).reveal,true);
  assert.equal(step(playing.state,{type:'playing',playing:true,intent:'play',status:'playing'}).changed,false);
  assert.equal(step(initialElementControls(),{type:'seeking',seeking:true}).reveal,true);
+});
+
+test('terminal status after buffering reveals once even when playing and intent are unchanged',()=>{
+ let state=step(initialElementControls(),{type:'playing',playing:true,intent:'play',status:'playing'}).state;
+ state=step(state,{type:'hide'}).state;
+ state=step(state,{type:'playing',playing:false,intent:'play',status:'buffering'}).state;
+ for(const status of ['ended','error','idle']){
+   const terminal=step(state,{type:'playing',playing:false,intent:'play',status});
+   assert.equal(terminal.changed,true);assert.equal(terminal.reveal,true);
+   assert.equal(step(terminal.state,{type:'playing',playing:false,intent:'play',status}).changed,false);
+ }
 });
 
 test('source or route change retires dragging; opening progress cannot carry into a new operation',()=>{

@@ -4,6 +4,8 @@ export type ElementControlsState = Readonly<{
     idle: boolean;
     seekPreview: boolean;
     playing: boolean;
+    playbackIntent: 'play' | 'pause';
+    playbackStatus: string;
     seeking: boolean;
     dragging: boolean;
     stageWasIdle: boolean;

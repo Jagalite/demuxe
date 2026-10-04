@@ -9,6 +9,7 @@ export class ScrubberPreview {
     image;
     label;
     api;
+    targetLabel;
     control = initialScrubber();
     generators = new Map();
     presentations = new Map();
@@ -49,10 +50,14 @@ export class ScrubberPreview {
         if (!api)
             return;
         const rect = this.timeline.getBoundingClientRect(), parent = this.panel.parentElement.getBoundingClientRect();
-        const pointer = scrubberPointer({ touch: false, disabled: false, left: rect.left, width: rect.width, min: Number(this.timeline.min), max: Number(this.timeline.max), x: event.clientX, parentLeft: parent.left, parentWidth: parent.width });
+        const style = getComputedStyle(this.timeline), scale = rect.width / parseFloat(style.width);
+        const thumbWidth = parseFloat(style.getPropertyValue('--timeline-thumb-size')) * scale;
+        const pointer = scrubberPointer({ touch: false, disabled: false, left: rect.left, width: rect.width, thumbWidth, step: Number(this.timeline.step), min: Number(this.timeline.min), max: Number(this.timeline.max), x: event.clientX, parentLeft: parent.left, parentWidth: parent.width });
         if (pointer.time === undefined)
             return;
         this.panel.style.left = `${pointer.left}px`;
+        if (this.targetLabel)
+            this.targetLabel.textContent = formatTime(pointer.time);
         const hover = this.transition({ type: 'hover' });
         if (hover.id === undefined)
             return;
@@ -63,12 +68,13 @@ export class ScrubberPreview {
         }
         void this.sample(api, pointer.time, hover.id).catch(() => { });
     };
-    constructor(timeline, panel, image, label, api) {
+    constructor(timeline, panel, image, label, api, targetLabel) {
         this.timeline = timeline;
         this.panel = panel;
         this.image = image;
         this.label = label;
         this.api = api;
+        this.targetLabel = targetLabel;
         try {
             timeline.addEventListener('pointermove', this.move);
             timeline.addEventListener('pointerleave', this.hide);

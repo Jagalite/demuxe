@@ -126,8 +126,12 @@ export class DemuxePlayerElement extends Base {
             this.queueState = opened.state;
             if (!opened.accepted)
                 throw new PlayerError('ABORTED', 'Queue selection superseded');
-            if (opened.play)
-                await this.core?.play();
+            if (opened.play) {
+                const core = this.core;
+                await core?.play();
+                if (this.queueState.operation === operation && core === this.core && core?.state.playbackIntent === 'play' && !this.controlState.menuOpen && !this.dragging && this.controlsAutoHideDelay > 0)
+                    this.hideControls();
+            }
         }
         catch (error) {
             // A removed item must not survive as the core's rollback source.
@@ -267,6 +271,7 @@ export class DemuxePlayerElement extends Base {
     updateTitle() { const text = this.titleProjection().title; this.$('title').textContent = text; this.$('title').hidden = !text; this.updateSourceLabel(); }
     updateSourceLabel() { const text = this.titleProjection().source; if (this.$('current-source').textContent !== text)
         this.$('current-source').textContent = text; }
+    canPickSubtitle(state = this.core?.state) { return !this.terminal && this.showSourceControls && !!state?.sourceId && !state.pendingOperation && !state.trackPolicy.subtitles?.locked && state.trackPolicy.subtitles?.allowed?.length !== 0; }
     updateUtilities() {
         if (this.terminal)
             return;
@@ -279,7 +284,8 @@ export class DemuxePlayerElement extends Base {
         this.$('empty').hidden = !this.showSourceControls || !!this.core?.state.sourceId;
         for (const id of ['open-menu', 'open', 'choose-file', 'file', 'subtitleFile', 'url', 'format', 'live', 'url-submit'])
             this.$(id).disabled = !this.showSourceControls;
-        this.$('subtitleFile').disabled = !this.showSourceControls || !!this.core?.state.trackPolicy.subtitles?.locked || this.core?.state.trackPolicy.subtitles?.allowed?.length === 0;
+        this.input('subtitleFile').disabled = !this.canPickSubtitle();
+        this.input('live').disabled = !this.showSourceControls || this.$('format').value === 'file';
         this.$('source-options').inert = !this.showSourceControls;
         if (!this.showSourceControls)
             this.$('source-options').hidden = true;
@@ -328,7 +334,7 @@ export class DemuxePlayerElement extends Base {
     isScreenPress(event) { return !event.composedPath().some(node => node instanceof Element && node.matches('button,input,select,textarea,a,summary,[contenteditable],[role="button"],#settings,#error,#diagnostics-overlay')); }
     resizeObserver;
     fullscreenChanged = () => { const active = document.fullscreenElement === this; this.$('fullscreen').setAttribute('aria-pressed', String(active)); this.iconButton('fullscreen', active ? 'collapse' : 'expand', active ? this.labels.exitFullscreen : this.labels.fullscreen); };
-    constructor() { super(); this.newReady(); this.attachShadow({ mode: 'open' }); this.renderShell(); this.hoverPreview = new ScrubberPreview(this.input('timeline'), this.$('thumbnail-preview'), this.$('thumbnail-image'), this.$('thumbnail-time'), () => this.previewThumbnails ? this.core?.preview : undefined); }
+    constructor() { super(); this.newReady(); this.attachShadow({ mode: 'open' }); this.renderShell(); this.hoverPreview = new ScrubberPreview(this.input('timeline'), this.$('thumbnail-preview'), this.$('thumbnail-image'), this.$('thumbnail-time'), () => this.previewThumbnails ? this.core?.preview : undefined, this.$('thumbnail-target')); }
     newReady() { this.readiness = new Promise((resolve, reject) => { this.resolveReady = resolve; this.rejectReady = reject; }); void this.readiness.catch(() => { }); }
     get ready() { return this.readiness; }
     get player() { return this.core; }
@@ -760,7 +766,7 @@ export class DemuxePlayerElement extends Base {
             this.trackOptions('audio', state.audioTracks, state.trackPolicy.audio);
             this.trackOptions('subtitles', state.subtitleTracks, state.trackPolicy.subtitles);
         }
-        this.$('subtitleFile').disabled = !this.showSourceControls || !!state.trackPolicy.subtitles?.locked || state.trackPolicy.subtitles?.allowed?.length === 0;
+        this.input('subtitleFile').disabled = !this.canPickSubtitle(state);
         this.$('speed').value = String(state.playbackRate);
         const buffering = state.status === 'buffering' && state.playbackIntent === 'play' && !pending;
         this.$('buffering-indicator').hidden = !buffering;
@@ -926,6 +932,7 @@ export class DemuxePlayerElement extends Base {
         }
         else
             this.hideControls(true); };
+        this.$('format').onchange = () => this.updateUtilities();
         this.$('remote').onsubmit = event => { event.preventDefault(); if (!this.showSourceControls)
             return; const format = this.$('format').value; this.openFromControls({ url: this.input('url').value, format, ...(format !== 'file' ? { streaming: { live: this.input('live').checked } } : {}) }); };
         this.addEventListener('dragover', event => { if (this.allowFileDrop && event.dataTransfer?.types.includes('Files'))
@@ -971,7 +978,7 @@ export class DemuxePlayerElement extends Base {
             this.input('file').click(); };
         this.input('file').onchange = () => { const files = Array.from(this.input('file').files ?? []); this.input('file').value = ''; if (this.showSourceControls)
             this.addFiles(files); };
-        this.input('subtitleFile').onchange = () => { const file = this.input('subtitleFile').files?.[0]; this.input('subtitleFile').value = ''; if (file && this.showSourceControls)
+        this.input('subtitleFile').onchange = () => { const file = this.input('subtitleFile').files?.[0]; this.input('subtitleFile').value = ''; if (file && this.canPickSubtitle())
             this.run(this.addSubtitle(file)); };
         this.$('previous-file').onclick = () => this.selectQueue(this.queueIndex - 1);
         this.$('next-file').onclick = () => this.selectQueue(this.queueIndex + 1);
