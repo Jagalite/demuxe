@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import type { ProviderPreferences } from '../types.js';
 import type { Probe } from './selection.js';
 export type ComponentPreparedAudio = {
     file: Blob;
@@ -24,7 +25,7 @@ export interface ProviderRuntimeAssets {
     module(path: string): Promise<WebAssembly.Module>;
     bytes(path: string): Promise<ArrayBuffer>;
     preparation?(file: File, runtime: 'pthread' | 'jspi' | 'asyncify', audioTrack?: number): CodecPreparation | undefined;
-    prepareAudio?(file: File, signal: AbortSignal): Promise<ComponentPreparedAudio | undefined>;
+    prepareAudio?(file: File, signal: AbortSignal, runtime?: 'pthread' | 'jspi' | 'asyncify'): Promise<ComponentPreparedAudio | undefined>;
 }
 /** Per-player deployment state. Only the maintained finite recipes are admitted;
  * packaging metadata cannot add compositions or confer build qualification. */
@@ -42,10 +43,15 @@ export declare class ProviderRuntime implements ProviderRuntimeAssets {
     private nextSource;
     private codecSources;
     private profileAvailability;
+    private comparePreparation;
+    private preferBroadPreparation;
+    /** Qualified identities, with codec slices filtered by inspected source facts. */
+    preferenceProviders(source?: object, probe?: Probe, aid?: string): readonly string[];
     codecInspector(runtime: 'pthread' | 'jspi' | 'asyncify'): CodecPreparation | undefined;
     codecPreparation(source: object, probe: Probe | undefined, runtime: 'pthread' | 'jspi' | 'asyncify', aid?: string): CodecPreparation | undefined;
     preparation(file: File, runtime: 'pthread' | 'jspi' | 'asyncify', audioTrack?: number): CodecPreparation | undefined;
-    constructor(base: URL, qualified: Readonly<Record<string, string>>);
+    private readonly providerPreferences;
+    constructor(base: URL, qualified: Readonly<Record<string, string>>, preferences?: ProviderPreferences);
     load(): Promise<void>;
     private loadDeployment;
     /** Explicit legacy artifacts take precedence over the shared mpv artifact. */
@@ -59,7 +65,7 @@ export declare class ProviderRuntime implements ProviderRuntimeAssets {
         channels: 2 | 6 | 8;
     } | undefined;
     private audioProfileRejection;
-    prepareAudio(file: File, signal: AbortSignal): Promise<ComponentPreparedAudio | undefined>;
+    prepareAudio(file: File, signal: AbortSignal, runtime?: 'pthread' | 'jspi' | 'asyncify'): Promise<ComponentPreparedAudio | undefined>;
     private evidence;
     /** The caller invokes this only after existing semantic/source admission.
      * Evidence is scoped to source identity, selected settings and runtime. It

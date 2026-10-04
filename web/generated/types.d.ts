@@ -198,7 +198,15 @@ export type StartupEscalationOptions = {
     /** Cancel an unready direct load and try the fallback. Default: 500. */
     switchAfterMs?: number;
 };
+/** Rules are considered in array order; each provider list is most preferred first.
+ * Unlisted providers retain their default order after listed providers. */
+export type ProviderPreferences = readonly Readonly<{
+    capability: import('./internal/execution-capabilities.js').ExecutionCapabilityId;
+    providers: readonly string[];
+}>[];
 export type PlayerOptions = {
+    /** Rank compatible, deployed, qualified implementations within each capability. */
+    providerPreferences?: ProviderPreferences;
     /** Browser-independent direct-load policy. false retains the ordinary load deadline.
      * Requires 0 <= prefetchAfterMs < switchAfterMs < 25000. */
     startupEscalation?: StartupEscalationOptions | false;

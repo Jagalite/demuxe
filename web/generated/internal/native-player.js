@@ -954,9 +954,9 @@ export class NativePlayer extends EventTarget {
         this.assertLoad(request);
         const codecEngine = source.file && this.audioAdaptation === 'flac24' && this.requestedPlan === 'native-transcode' ? this.providerRuntime?.preparation?.(source.file, this.remuxRuntime, source.audioTrack) : undefined;
         this.assertLoad(request);
-        const preparation = selectNativePreparation({ codecEngine: !!codecEngine, file: !!source.file, adaptation: this.audioAdaptation, selectiveAudio: this.selectiveAudio, embeddedSubtitles: this.mpvSubtitlePlan, externalSubtitles: this.execution?.subtitles === 'external', prepareAudio: !!this.providerRuntime?.prepareAudio });
+        const preparation = selectNativePreparation({ providerPreferences: this.startup?.providerPreferences, runtime: this.remuxRuntime, broadAvailable: !!this.startup?.providerPreferences?.length && (!this.providerRuntime || !!this.providerRuntime.has?.(`web/engine-remux${this.remuxRuntime === 'pthread' ? '' : '-' + this.remuxRuntime}/remux.wasm`)), codecEngine: !!codecEngine, file: !!source.file, adaptation: this.audioAdaptation, selectiveAudio: this.selectiveAudio, embeddedSubtitles: this.mpvSubtitlePlan, externalSubtitles: this.execution?.subtitles === 'external', prepareAudio: !!this.providerRuntime?.prepareAudio });
         if (preparation.audio) {
-            const prepared = await this.awaitLoad(request, this.providerRuntime.prepareAudio(source.file, this.loadSignal(request)));
+            const prepared = await this.awaitLoad(request, this.providerRuntime.prepareAudio(source.file, this.loadSignal(request), this.remuxRuntime));
             if (prepared) {
                 await this.retireRemux(request);
                 const url = this.acquireObjectURL(prepared.file, request);

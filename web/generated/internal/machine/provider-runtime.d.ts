@@ -151,3 +151,18 @@ export declare function selectAudioRepair(input: Readonly<{
     dts: boolean;
     flac: boolean;
 }>): RepairCandidate | undefined;
+export type ProviderPreferencesData = readonly Readonly<{
+    capability: string;
+    providers: readonly string[];
+}>[];
+type PreferenceAssignment = Readonly<{
+    providerId: string;
+    requirements: readonly Readonly<{
+        capability: string;
+    }>[];
+}>;
+/** Compare only candidates for the same admitted requirements. Earlier rules
+ * break conflicts between capabilities; ties preserve the caller's baseline.
+ * Multiple owners of one capability must all satisfy its preference. */
+export declare function compareProviderPreferences(a: readonly PreferenceAssignment[], b: readonly PreferenceAssignment[], preferences: ProviderPreferencesData): number;
+export {};

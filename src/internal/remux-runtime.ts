@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 import type {PlayerOptions,RemuxRuntimePolicy} from '../types.js';
+import {normalizeProviderPreferences} from './provider-cost.js';
 import {PlayerError} from './errors.js';
 import {remuxDeploymentCandidates,resolveRemuxDeployment,type RemuxSelection,type RemuxRuntime} from './machine/remux-deployment.js';
 
-export function selectRemuxRuntime(options:Pick<PlayerOptions,'remuxRuntime'|'experimentalRemuxRuntime'>,
+export function selectRemuxRuntime(options:Pick<PlayerOptions,'remuxRuntime'|'experimentalRemuxRuntime'|'providerPreferences'>,
   capabilities={isolated:globalThis.crossOriginIsolated===true,jspi:typeof WebAssembly!=='undefined'&&
     typeof (WebAssembly as unknown as {Suspending?:unknown}).Suspending==='function'&&
     typeof (WebAssembly as unknown as {promising?:unknown}).promising==='function'}):RemuxSelection {
+  const providerPreferences=normalizeProviderPreferences(options.providerPreferences);
   const legacy=options.experimentalRemuxRuntime;
   if(legacy!==undefined&&!['pthread','jspi','asyncify'].includes(legacy))throw new PlayerError('INVALID_ARGUMENT','Invalid experimental remux runtime');
   if(legacy!==undefined&&options.remuxRuntime!==undefined)throw new PlayerError('INVALID_ARGUMENT','Use remuxRuntime or experimentalRemuxRuntime, not both');
@@ -15,7 +17,8 @@ export function selectRemuxRuntime(options:Pick<PlayerOptions,'remuxRuntime'|'ex
   if(policy==='jspi'&&!capabilities.jspi)throw new PlayerError('UNSUPPORTED_FEATURE','Requested JSPI runtime is unavailable in this browser');
   const runtime:'pthread'|'jspi'|'asyncify'=policy==='off'||(policy==='auto'&&capabilities.isolated)?'pthread':
     policy==='jspi'||policy==='asyncify'?policy:capabilities.jspi?'jspi':'asyncify';
-  return Object.freeze({policy,runtime,...capabilities});
+  const selection={policy,runtime,...capabilities,...(providerPreferences.length?{providerPreferences}:{})};
+  return Object.freeze({...selection,runtime:remuxDeploymentCandidates(selection)[0]??runtime});
 }
 
 /** Deployment filters runtime implementations, never playback-plan order.

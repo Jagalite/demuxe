@@ -52,6 +52,76 @@ provider implementation identities and all input/output file hashes. Each
 provider's license and manifest are retained separately under
 `third_party/providers/` within the runtime data.
 
+## Provider preferences
+
+`PlayerOptions.providerPreferences` controls runtime selection independently of
+which packages ship. Each rule names a capability and lists provider IDs in
+preferred order (these are manifest IDs, not npm package names):
+
+```js
+const player = new Player(container, {
+  assetBase,
+  providerPreferences: [
+    {
+      capability: 'media.prepare.file',
+      providers: ['ffmpeg-file-preparation-jspi', 'ffmpeg-file-preparation-asyncify'],
+    },
+    {
+      capability: 'media.play.complete',
+      providers: ['mpv-software', 'mpv-hybrid'],
+    },
+  ],
+});
+```
+
+Listed providers precede unlisted providers. Earlier rules resolve conflicts
+between capabilities; ties keep the existing order. Omit the option or pass
+`[]` to keep the defaults. The player copies and freezes preferences at
+construction. Duplicate capabilities/IDs, unknown capabilities, empty lists
+and malformed values throw `INVALID_ARGUMENT`. Limits are 64 rules and 256 IDs
+per rule. Unknown or absent provider IDs have no effect on admission.
+
+Preferences apply to automatic runtime selection for broad engines and codec
+slices, Native MP4 preparation versus FFmpeg, and
+complete playback alternatives with identical capability/version/profile
+requirements. Explicit `mode` and `remuxRuntime` policies remain authoritative.
+For example, preferring `mpv-software` over `mpv-hybrid` changes their fallback
+order; native direct playback still runs first when admitted. Providers for
+different jobs do not compete. A capability with only one eligible provider
+has no alternative to rank.
+
+Deployment, source/profile, browser and composition qualification checks still
+apply. Preferences never grant new codec support or combine unqualified
+components. Codec-slice runtime preferences are reconsidered after source
+inspection, and complete players still require a deployed inspection path.
+Automatic recovery follows the preferred playback order while retaining failed
+plan exclusions. Declared asset/integrity failures keep their existing error
+handling. Preview providers retain their separate numeric `priority` API.
+
+The explicit `demuxe/components` API accepts the same rules as the final
+argument to `executeComponentBinding`:
+
+```js
+const preferences = [
+  {capability: 'audio.decode.ac3', providers: ['audio-common', 'audio-ac3']},
+];
+const result = await executeComponentBinding(
+  acquisition, recipe, evidence, scopeKey, 'fine', execute,
+  undefined, // optional measured-cost inputs
+  preferences,
+);
+```
+
+For selection without acquisition, use
+`selectComponentBinding(resolution, baseline, measurement, {recipe, providerPreferences})`.
+The recipe must correspond to the resolution. Explicit preferences take
+precedence over measured speed/CPU ranking, while measured resource exclusions
+remain enforced, including after runtime-absence retries. A changed decision
+reports `reason: 'provider-preference'`. Packet decoder/encoder rules apply to
+these explicit component recipes and the Player's existing bounded component
+path; they do not turn an integrated FFmpeg/mpv engine into interchangeable
+packet decoders.
+
 ## Separate assets
 
 With `delivery: "assets"`, serve the output directory intact:

@@ -3,7 +3,7 @@ import {Player} from '../../web/generated/unified-player.js';
 
 // Construct the real class (including private fields) while replacing only the
 // DOM/presentation boundary. Operation scheduling remains the production code.
-export function unitPlayer() {
+export function unitPlayer(options = {}) {
  const names=['HTMLElement','HTMLCanvasElement','HTMLVideoElement','document'];
  const previous=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(globalThis,name)]));
  const document=new EventTarget();document.baseURI='http://localhost/';
@@ -12,6 +12,6 @@ export function unitPlayer() {
  document.createElement=()=>new Element();
  try {
   Object.assign(globalThis,{HTMLElement:Element,HTMLCanvasElement:class extends Element{},HTMLVideoElement:class extends Element{},document});
-  return new UnitPlayer(new Element(),{assetBase:'http://localhost/',preview:false,watchdogs:false});
+  return new UnitPlayer(new Element(),{assetBase:'http://localhost/',preview:false,watchdogs:false,...options});
  }finally{for(const [name,descriptor]of previous)if(descriptor)Object.defineProperty(globalThis,name,descriptor);else delete globalThis[name];}
 }

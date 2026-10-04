@@ -134,3 +134,11 @@ for(const retire of [false,true])test(`track-policy fault ${retire?'suppresses r
  backend.dispatchEvent(new CustomEvent('mpv',{detail:{event:'property-change',name:'track-list'}}));await closing;
  assert.equal(pauses,1);assert.equal(errors.length,retire?0:1);if(!retire)assert.match(errors[0].message,/excluded by the host policy/);
 });
+test('preferred Software can recover to Hybrid while excluding its failed plan',async t=>{
+ const p=unitPlayer({remuxRuntime:'off',providerPreferences:[{capability:'media.play.complete',providers:['mpv-software','mpv-hybrid']}]});t.after(()=>p.destroy());
+ const session=install(p,{mode:'software'}),calls=[];p.select=async(...args)=>calls.push(args);
+ for(const origin of ['backend','watchdog'])assert.equal(playbackFaultResponse({providerOrdered:p.providerOrderedRecovery,origin,current:true,accepted:true,busy:false,destroyed:false,automatic:true,mode:'software',fault:true,endFileError:true}),'recover');
+ p.recover(session);await p.queue;await tick();assert.equal(calls.length,1);assert.equal(calls[0][4],1);
+ assert.ok(p.tierAttempts.reason(p.source,p.tierConfiguration(p.settings),'software'));
+ assert.equal(recoveryRoute({providerOrdered:true,mode:'hybrid',streaming:false,trigger:'runtime',nativeRemux:'auto'}).start,1);
+});

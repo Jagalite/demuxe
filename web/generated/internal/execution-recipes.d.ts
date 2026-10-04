@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import type { ProviderPreferencesData } from './provider-cost.js';
 import type { PLAYBACK_PLANS } from './playback-plans.js';
 import type { CapabilityRequest } from './execution-capabilities.js';
 import type { CurrentProviderBinding } from './media-providers.js';
@@ -572,3 +573,10 @@ export declare function executionRecipe(planId: string | undefined): RecipeDescr
  * source/runtime-specific evidence must still come from the admission owner.
  */
 export declare function resolvableExecutionRecipe(planId: PlaybackPlanId, runtime?: 'pthread' | 'jspi' | 'asyncify'): ResolvableRecipe;
+/** Preferences order alternatives with identical capability/profile
+ * requirements; admission still filters each candidate. Stable slots survive
+ * refreshed eligibility during discovery. Different jobs keep their established place in route policy. */
+export declare function preferProviderPlans<T extends {
+    id: string;
+    eligible: boolean;
+}>(plans: readonly T[], preferences: ProviderPreferencesData, runtime: 'pthread' | 'jspi' | 'asyncify'): readonly T[];

@@ -35,7 +35,7 @@ export function retireRecovery(state) { return state.pending ? Object.freeze({ .
 export function clearRecovery(state) { return Object.freeze({ ...state, attemptedSession: null, pending: null, failedStreaming: null }); }
 export function recoveryRoute(facts) {
     const remux = !facts.streaming && facts.mode === 'native' && (facts.backendPlan === 'direct' || facts.trigger === 'play' && facts.backendPlan === 'direct-mpv') && facts.nativeRemux !== 'never';
-    return Object.freeze({ start: facts.streaming || remux || facts.mode === 'native' ? 0 : facts.mode === 'hybrid' ? 2 : 3, requirements: Object.freeze(remux ? { nativeRemux: 'always' } : {}) });
+    return Object.freeze({ start: facts.streaming || remux || facts.mode === 'native' ? 0 : facts.providerOrdered ? 1 : facts.mode === 'hybrid' ? 2 : 3, requirements: Object.freeze(remux ? { nativeRemux: 'always' } : {}) });
 }
 /** Pure response policy. Adapter facts describe the observed fault; no physical
  * error objects, handles or callbacks are retained by this decision. */
@@ -46,7 +46,7 @@ export function playbackFaultResponse(facts) {
         return facts.fault ? 'pause-error' : 'forward';
     if (!facts.fault)
         return 'forward';
-    if (facts.automatic && (facts.origin === 'watchdog' || facts.mode !== 'software'))
+    if (facts.automatic && (facts.origin === 'watchdog' || facts.mode !== 'software' || facts.providerOrdered))
         return 'recover';
     return facts.origin === 'watchdog' ? 'pause-error' : facts.endFileError ? 'error' : 'forward';
 }

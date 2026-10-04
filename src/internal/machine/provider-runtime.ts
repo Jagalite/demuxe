@@ -103,3 +103,22 @@ export function selectAudioRepair(input:Readonly<{local:boolean;blob:boolean;siz
   if(!codec||codec==='mlp'&&audio.channels===8||!input.container||!input.flac||!(codec==='dts-hd'?input.dts:input.truehd))return;
   return Object.freeze({codec,channels:audio.channels as 2|6|8});
 }
+
+export type ProviderPreferencesData = readonly Readonly<{capability:string;providers:readonly string[]}>[];
+type PreferenceAssignment = Readonly<{providerId:string;requirements:readonly Readonly<{capability:string}>[]}>;
+/** Compare only candidates for the same admitted requirements. Earlier rules
+ * break conflicts between capabilities; ties preserve the caller's baseline.
+ * Multiple owners of one capability must all satisfy its preference. */
+export function compareProviderPreferences(a: readonly PreferenceAssignment[], b: readonly PreferenceAssignment[], preferences: ProviderPreferencesData): number {
+  for (const rule of preferences) {
+    const rank = (assignments: readonly PreferenceAssignment[]) => {
+      const owners = assignments.filter(a => a.requirements.some(r => r.capability === rule.capability));
+      return owners.length ? Math.max(...owners.map(a => {
+        const index = rule.providers.indexOf(a.providerId); return index < 0 ? rule.providers.length : index;
+      })) : rule.providers.length;
+    };
+    const difference = rank(a) - rank(b);
+    if (difference) return difference;
+  }
+  return 0;
+}

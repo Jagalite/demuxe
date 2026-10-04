@@ -168,7 +168,7 @@ export class NativePlayer extends EventTarget implements Backend {
       time,rate,frames:quality&&video.videoWidth>0?quality.totalVideoFrames-quality.droppedVideoFrames:undefined,videoEnd:this.remux?.trackBounds?.videoEnd};
   }
 
-  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus'|'flac24', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string, buffering:BufferingPolicy=bufferingPolicy(), private loadTimeoutMs=25000, private defaultSubtitleStreamIndex?:number, private remuxRuntime:'pthread'|'jspi'|'asyncify'='pthread',private providerRuntime?:ProviderRuntimeAssets, private startup?:{prefetchAfterMs?:number;prefetch?:()=>void;module?:(path:string)=>Promise<WebAssembly.Module|undefined>}) {
+  constructor(private video: HTMLVideoElement, private remuxPolicy: 'auto' | 'never' | 'always' = 'auto', private assetBase = new URL('../../../',import.meta.url), private bufferedSeeks=false, private audioAdaptation?:'flac'|'opus'|'flac24', private initialAudioTrack?:number, private nativeASS=false, private fonts:FontAsset[]=[], private requestedPlan?:string, buffering:BufferingPolicy=bufferingPolicy(), private loadTimeoutMs=25000, private defaultSubtitleStreamIndex?:number, private remuxRuntime:'pthread'|'jspi'|'asyncify'='pthread',private providerRuntime?:ProviderRuntimeAssets, private startup?:{providerPreferences?:import('./machine/provider-runtime.js').ProviderPreferencesData;prefetchAfterMs?:number;prefetch?:()=>void;module?:(path:string)=>Promise<WebAssembly.Module|undefined>}) {
     super();this.native=initialNativeBackend(buffering);
     const listen=(target:EventTarget,event:string,listener:EventListener)=>{this.assertActive();const remove=()=>target.removeEventListener(event,listener);this.listeners.push(remove);try{target.addEventListener(event,listener);this.assertActive();}catch(error){if(this.stopped)try{remove();}catch{}throw error;}};
     try{video.playsInline = true;this.assertActive();
@@ -438,9 +438,9 @@ export class NativePlayer extends EventTarget implements Backend {
     this.assertLoad(request);
     const codecEngine=source.file&&this.audioAdaptation==='flac24'&&this.requestedPlan==='native-transcode'?this.providerRuntime?.preparation?.(source.file,this.remuxRuntime,source.audioTrack):undefined;
     this.assertLoad(request);
-    const preparation=selectNativePreparation({codecEngine:!!codecEngine,file:!!source.file,adaptation:this.audioAdaptation,selectiveAudio:this.selectiveAudio,embeddedSubtitles:this.mpvSubtitlePlan,externalSubtitles:this.execution?.subtitles==='external',prepareAudio:!!this.providerRuntime?.prepareAudio});
+    const preparation=selectNativePreparation({providerPreferences:this.startup?.providerPreferences,runtime:this.remuxRuntime,broadAvailable:!!this.startup?.providerPreferences?.length&&(!this.providerRuntime||!!this.providerRuntime.has?.(`web/engine-remux${this.remuxRuntime==='pthread'?'':'-'+this.remuxRuntime}/remux.wasm`)),codecEngine:!!codecEngine,file:!!source.file,adaptation:this.audioAdaptation,selectiveAudio:this.selectiveAudio,embeddedSubtitles:this.mpvSubtitlePlan,externalSubtitles:this.execution?.subtitles==='external',prepareAudio:!!this.providerRuntime?.prepareAudio});
     if(preparation.audio){
-      const prepared=await this.awaitLoad(request,this.providerRuntime!.prepareAudio!(source.file!,this.loadSignal(request)));
+      const prepared=await this.awaitLoad(request,this.providerRuntime!.prepareAudio!(source.file!,this.loadSignal(request),this.remuxRuntime));
       if(prepared){
         await this.retireRemux(request);const url=this.acquireObjectURL(prepared.file,request);let installed=false;
         try{

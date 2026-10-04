@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { PlayerOptions, RemuxRuntimePolicy } from '../types.js';
 import { type RemuxSelection, type RemuxRuntime } from './machine/remux-deployment.js';
-export declare function selectRemuxRuntime(options: Pick<PlayerOptions, 'remuxRuntime' | 'experimentalRemuxRuntime'>, capabilities?: {
+export declare function selectRemuxRuntime(options: Pick<PlayerOptions, 'remuxRuntime' | 'experimentalRemuxRuntime' | 'providerPreferences'>, capabilities?: {
     isolated: boolean;
     jspi: boolean;
 }): RemuxSelection;
@@ -13,4 +13,5 @@ export declare function deployedRemuxRuntime(selection: ReturnType<typeof select
     runtime: RemuxRuntime;
     isolated: boolean;
     jspi: boolean;
+    providerPreferences?: import("./provider-cost.js").ProviderPreferencesData;
 }>;

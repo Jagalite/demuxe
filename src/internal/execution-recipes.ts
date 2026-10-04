@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import {compareProviderPreferences} from './provider-cost.js';
+import type {ProviderPreferencesData} from './provider-cost.js';
 import type {PLAYBACK_PLANS} from './playback-plans.js';
 import type {CapabilityRequest} from './execution-capabilities.js';
 import type {CurrentProviderBinding} from './media-providers.js';
@@ -201,4 +203,23 @@ export function resolvableExecutionRecipe(planId: PlaybackPlanId, runtime?: 'pth
     id: binding.id,
     assignments: binding.providers.map(provider => ({providerId: provider.provider, requirements: [provider.request]})),
   }))};
+}
+
+/** Preferences order alternatives with identical capability/profile
+ * requirements; admission still filters each candidate. Stable slots survive
+ * refreshed eligibility during discovery. Different jobs keep their established place in route policy. */
+export function preferProviderPlans<T extends {id:string;eligible:boolean}>(plans:readonly T[],preferences:ProviderPreferencesData,runtime:'pthread'|'jspi'|'asyncify'):readonly T[]{
+ const result=[...plans],groups=new Map<string,number[]>();
+ if(!preferences.length)return result;
+ for(let i=0;i<plans.length;i++){
+  const plan=plans[i],recipe=executionRecipe(plan.id);if(!recipe)continue;
+  const key=JSON.stringify(recipe.requirements.map(r=>[r.capability,r.version,r.profile]).sort());
+  const indices=groups.get(key)??[];indices.push(i);groups.set(key,indices);
+ }
+ const assignments=(plan:T)=>resolvableExecutionRecipe(plan.id as PlaybackPlanId,runtime).bindings.flatMap(b=>b.assignments);
+ for(const indices of groups.values()){
+  const ordered=indices.map(i=>plans[i]).sort((a,b)=>compareProviderPreferences(assignments(a),assignments(b),preferences));
+  indices.forEach((index,i)=>{result[index]=ordered[i];});
+ }
+ return result;
 }

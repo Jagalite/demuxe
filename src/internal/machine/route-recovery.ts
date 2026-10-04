@@ -32,17 +32,17 @@ export function transitionRecovery(state:RecoveryState,change:RecoveryChange):Re
 }
 export function retireRecovery(state:RecoveryState):RecoveryState{return state.pending?Object.freeze({...state,pending:null}):state;}
 export function clearRecovery(state:RecoveryState):RecoveryState{return Object.freeze({...state,attemptedSession:null,pending:null,failedStreaming:null});}
-export function recoveryRoute(facts:Readonly<{mode:PlaybackMode;backendPlan:string|undefined;nativeRemux:'auto'|'never'|'always';streaming:boolean;trigger:'runtime'|'play'}>):Readonly<{start:number;requirements:RouteRequirements}>{
+export function recoveryRoute(facts:Readonly<{providerOrdered?:boolean;mode:PlaybackMode;backendPlan:string|undefined;nativeRemux:'auto'|'never'|'always';streaming:boolean;trigger:'runtime'|'play'}>):Readonly<{start:number;requirements:RouteRequirements}>{
   const remux=!facts.streaming&&facts.mode==='native'&&(facts.backendPlan==='direct'||facts.trigger==='play'&&facts.backendPlan==='direct-mpv')&&facts.nativeRemux!=='never';
-  return Object.freeze({start:facts.streaming||remux||facts.mode==='native'?0:facts.mode==='hybrid'?2:3,requirements:Object.freeze(remux?{nativeRemux:'always' as const}:{})});
+  return Object.freeze({start:facts.streaming||remux||facts.mode==='native'?0:facts.providerOrdered?1:facts.mode==='hybrid'?2:3,requirements:Object.freeze(remux?{nativeRemux:'always' as const}:{})});
 }
 
 /** Pure response policy. Adapter facts describe the observed fault; no physical
  * error objects, handles or callbacks are retained by this decision. */
-export function playbackFaultResponse(facts:Readonly<{origin:'watchdog'|'backend'|'track-policy';current:boolean;accepted:boolean;busy:boolean;destroyed:boolean;automatic:boolean;mode:PlaybackMode;fault:boolean;endFileError?:boolean}>):'ignore'|'recover'|'pause-error'|'error'|'forward'{
+export function playbackFaultResponse(facts:Readonly<{providerOrdered?:boolean;origin:'watchdog'|'backend'|'track-policy';current:boolean;accepted:boolean;busy:boolean;destroyed:boolean;automatic:boolean;mode:PlaybackMode;fault:boolean;endFileError?:boolean}>):'ignore'|'recover'|'pause-error'|'error'|'forward'{
   if(!facts.current||!facts.accepted||facts.destroyed||facts.origin!=='watchdog'&&facts.busy)return 'ignore';
   if(facts.origin==='track-policy')return facts.fault?'pause-error':'forward';
   if(!facts.fault)return 'forward';
-  if(facts.automatic&&(facts.origin==='watchdog'||facts.mode!=='software'))return 'recover';
+  if(facts.automatic&&(facts.origin==='watchdog'||facts.mode!=='software'||facts.providerOrdered))return 'recover';
   return facts.origin==='watchdog'?'pause-error':facts.endFileError?'error':'forward';
 }

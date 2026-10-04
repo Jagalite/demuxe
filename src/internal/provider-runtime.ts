@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import {compareProviderPreferences,normalizeProviderPreferences} from './provider-cost.js';
+import type {ProviderPreferences} from '../types.js';
 import {PlayerError} from './errors.js';
 import {parseProviderDeployment,withProviderAvailability} from './provider-catalog.js';
 import type {ParsedProviderDeployment} from './provider-catalog.js';
@@ -12,7 +14,7 @@ import type {Probe} from './selection.js';
 import {executeComponentBinding} from './component-selection.js';
 import type {ProviderOwner} from './provider-acquisition.js';
 import {providerResolutionError} from './provider-deployment-errors.js';
-import {createProviderRuntime,admitRuntimeLoad,observeRuntimeManifest,acceptRuntimeDeployment,runtimeAssetPath,runtimeAssetOwner,runtimeHasOffer,admitRuntimeRequest,completeRuntimeRequest,retireProviderRuntime,closeProviderRuntime,captureRuntimeProbe,codecProfile,selectCodecInspector,selectAudioRepair,updateCodecSource,storedCodecPreparation,runtimeCompositionEvidence,requiredRuntimeAssets} from './machine/provider-runtime.js';
+import {createProviderRuntime,admitRuntimeLoad,observeRuntimeManifest,acceptRuntimeDeployment,runtimeAssetPath,runtimeAssetOwner,runtimeHasOffer,admitRuntimeRequest,completeRuntimeRequest,retireProviderRuntime,closeProviderRuntime,captureRuntimeProbe,codecProfile,selectCodecInspector,selectCodecPreparation,selectAudioRepair,updateCodecSource,storedCodecPreparation,runtimeCompositionEvidence,requiredRuntimeAssets} from './machine/provider-runtime.js';
 import type {ProviderRuntimeState,CodecSourceState,CodecProfileAvailability} from './machine/provider-runtime.js';
 
 export type ComponentPreparedAudio = {file:Blob;tracks:{id:string;type:string;codec:string;selected:boolean}[];diagnostics:Record<string,unknown>};
@@ -24,7 +26,7 @@ export interface ProviderRuntimeAssets {
   module(path: string): Promise<WebAssembly.Module>;
   bytes(path: string): Promise<ArrayBuffer>;
   preparation?(file:File,runtime:'pthread'|'jspi'|'asyncify',audioTrack?:number):CodecPreparation|undefined;
-  prepareAudio?(file:File,signal:AbortSignal):Promise<ComponentPreparedAudio|undefined>;
+  prepareAudio?(file:File,signal:AbortSignal,runtime?:'pthread'|'jspi'|'asyncify'):Promise<ComponentPreparedAudio|undefined>;
 }
 /** Per-player deployment state. Only the maintained finite recipes are admitted;
  * packaging metadata cannot add compositions or confer build qualification. */
@@ -42,7 +44,26 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
   private codecSources=new WeakMap<Blob,CodecSourceState>();
   private profileAvailability(runtime:'pthread'|'jspi'|'asyncify',offer:string):CodecProfileAvailability[]{
     if(runtime==='pthread')return [];
-    return ['truehd-mlp','dts-hd','ac3-eac3'].map(profile=>{const candidate=codecProfile(profile,runtime);return {profile,offered:this.hasOffer(candidate.providerId,offer),deployed:this.has(candidate.wasmPath)};});
+    return ['truehd-mlp','dts-hd','ac3-eac3'].map(profile=>{const candidate=codecProfile(profile,runtime);return {profile,offered:this.hasOffer(candidate.providerId,offer),deployed:this.has(candidate.wasmPath)};}).sort((a,b)=>this.comparePreparation(codecProfile(a.profile,runtime).providerId,codecProfile(b.profile,runtime).providerId));
+  }
+  private comparePreparation(a:string,b:string):number{
+    const assignment=(providerId:string)=>[{providerId,requirements:[{capability:'media.prepare.file',version:1,profile:'flac24'} as const]}];
+    return compareProviderPreferences(assignment(a),assignment(b),this.providerPreferences);
+  }
+  private preferBroadPreparation(providerId:string,runtime:'pthread'|'jspi'|'asyncify'):boolean{
+    if(!this.providerPreferences.some(rule=>rule.capability==='media.prepare.file'))return false;
+    const suffix=runtime==='pthread'?'':'-'+runtime,broad='ffmpeg-file-preparation'+suffix;
+    return this.hasOffer(broad,'flac24')&&this.has('web/engine-adaptation'+suffix+'/remux.wasm')&&this.comparePreparation(broad,providerId)<0;
+  }
+  /** Qualified identities, with codec slices filtered by inspected source facts. */
+  preferenceProviders(source?:object,probe?:Probe,aid='auto'):readonly string[]{
+    const local=source as {kind?:string;file?:unknown}|undefined;
+    const compatible=probe?(['jspi','asyncify'] as const).flatMap(runtime=>{
+      const hint=selectCodecPreparation({local:local?.kind==='local',file:local?.file instanceof File,runtime,probe:captureRuntimeProbe(probe),aid},this.profileAvailability(runtime,'flac24'));
+      return hint?[hint.providerId]:[];
+    }):undefined;
+    return this.deployment?.catalog.providers.filter(provider=>provider.offers.some(offer=>
+      (offer.capability==='media.prepare.file'||offer.capability==='media.play.complete')&&this.hasOffer(provider.id,offer.profile))).map(provider=>provider.id).filter(id=>!compatible||!/^ffmpeg-(truehd-mlp|dts-hd|ac3-eac3)-/.test(id)||compatible.includes(id))??[];
   }
   codecInspector(runtime:'pthread'|'jspi'|'asyncify'):CodecPreparation|undefined{
     return selectCodecInspector(runtime,this.profileAvailability(runtime,'packet-copy'));
@@ -50,7 +71,8 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
   codecPreparation(source:object,probe:Probe|undefined,runtime:'pthread'|'jspi'|'asyncify',aid='auto'):CodecPreparation|undefined{
     const local=source as {kind?:string;file?:unknown},file=local.file instanceof File;
     const captured=probe?captureRuntimeProbe(probe):undefined;
-    const state=updateCodecSource(file?this.codecSources.get(local.file as File):undefined,{local:local.kind==='local',file,runtime,probe:captured,aid},this.profileAvailability(runtime,'flac24'));
+    let state=updateCodecSource(file?this.codecSources.get(local.file as File):undefined,{local:local.kind==='local',file,runtime,probe:captured,aid},this.profileAvailability(runtime,'flac24'));
+    if(state.hint&&this.preferBroadPreparation(state.hint.providerId,runtime))state={...state,hint:null};
     if(file)this.codecSources.set(local.file as File,state);
     return state.hint??undefined;
   }
@@ -62,7 +84,8 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
     }
     source=this.codecSources.get(file);return hint?storedCodecPreparation(source,runtime,this.has(hint.wasmPath)):undefined;
   }
-  constructor(private base: URL, qualified: Readonly<Record<string, string>>) {this.state=createProviderRuntime(qualified);}
+  private readonly providerPreferences:ProviderPreferences;
+  constructor(private base: URL, qualified: Readonly<Record<string, string>>,preferences?:ProviderPreferences) {this.providerPreferences=normalizeProviderPreferences(preferences);this.state=createProviderRuntime(qualified);}
   load(): Promise<void> {
     const admission=admitRuntimeLoad(this.state,performance.now());this.state=admission.state;
     if(admission.effect==='join')return this.loading!;
@@ -132,8 +155,9 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
     if(['web/engine-adaptation/remux.wasm','web/engine-adaptation-jspi/remux.wasm','web/engine-adaptation-asyncify/remux.wasm'].some(path=>this.has(path)))return;
     throw new PlayerError('DECODE_FAILED','Codec preparation profile rejected this source: '+String(error));
   }
-  async prepareAudio(file:File,signal:AbortSignal):Promise<ComponentPreparedAudio|undefined>{
+  async prepareAudio(file:File,signal:AbortSignal,runtime:'pthread'|'jspi'|'asyncify'='pthread'):Promise<ComponentPreparedAudio|undefined>{
     await this.load();signal=AbortSignal.any([signal,this.controller.signal]);signal.throwIfAborted();
+    if(this.preferBroadPreparation('',runtime))return;
     const readerURL=new URL('web/providers/components/provider-container/src/matroska.js',this.base);
     const ownerURL=new URL('web/providers/components/provider-container/src/owners.js',this.base);
     if(!this.has('web/providers/components/provider-container/src/matroska.js')||!this.has('web/providers/components/provider-container/src/owners.js')||file.size>64*1024*1024)return;
@@ -149,7 +173,7 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
     try{
       let id=this.sources.get(file);if(!id){id=++this.nextSource;this.sources.set(file,id);}
       const recipe=audioRepairRecipe(candidate.codec,candidate.channels),scope=JSON.stringify(['bounded-audio-repair',id,candidate,navigator.userAgent]);
-      const result=await executeComponentBinding(acquisition,recipe,this.evidence(recipe,scope),scope,'fine',binding=>owners.execute(file,candidate.codec,binding as 'fine',signal,candidate.channels));
+      const result=await executeComponentBinding(acquisition,recipe,this.evidence(recipe,scope),scope,'fine',binding=>owners.execute(file,candidate.codec,binding as 'fine',signal,candidate.channels),undefined,this.providerPreferences);
       signal.throwIfAborted();return {file:result.value,tracks:probe.tracks.map(t=>({id:t.id,type:t.type,codec:t.codec,selected:true})),diagnostics:{kind:'codec-components',codec:candidate.codec,channels:candidate.channels,binding:result.decision.bindingId,sourceBytes:file.size,outputBytes:result.value.size}};
     }catch(error){if((error as {code?:string})?.code==='PROVIDER_PROFILE_MISMATCH')return this.audioProfileRejection(error);throw error;}
     finally{signal.removeEventListener('abort',abort);await acquisition.dispose();}

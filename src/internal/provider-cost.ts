@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
+import {EXECUTION_CAPABILITIES} from './execution-capabilities.js';
+import type {ProviderPreferences} from '../types.js';
+export {compareProviderPreferences} from './machine/provider-runtime.js';
+export type {ProviderPreferencesData} from './machine/provider-runtime.js';
+import {PlayerError} from './errors.js';
+
 /** Measured selection within qualified compositions; Player plan order is separate. */
 export type ProviderReadiness = Readonly<{
   providerId: string;
@@ -36,7 +42,7 @@ export type CostPolicy = Readonly<{
 }>;
 export type CostDecision = Readonly<{
   bindingId: string;
-  reason: 'baseline' | 'incomplete-evidence' | 'uncertain-difference' | 'measured-cost';
+  reason: 'baseline' | 'incomplete-evidence' | 'uncertain-difference' | 'measured-cost' | 'provider-preference';
   evidenceIds: readonly string[];
   excluded: readonly string[];
 }>;
@@ -89,4 +95,24 @@ export function compareProviderCosts(bindingIds: readonly string[], baselineId: 
   if (best.bindingId === fallback) return {bindingId: fallback, reason: 'baseline', evidenceIds, excluded};
   if (value(best) + uncertainty(best) >= value(previous) - uncertainty(previous)) return {bindingId: fallback, reason: 'uncertain-difference', evidenceIds, excluded};
   return {bindingId: best.bindingId, reason: 'measured-cost', evidenceIds, excluded};
+}
+
+/** Capture caller policy once. Provider IDs can name optional deployments;
+ * unknown IDs never add offers or qualification. */
+export function normalizeProviderPreferences(value: ProviderPreferences | undefined): ProviderPreferences {
+  if (value === undefined) return Object.freeze([]);
+  const invalid = () => new PlayerError('INVALID_ARGUMENT', 'Invalid providerPreferences: use unique capability rules and nonempty, unique provider IDs');
+  if (!Array.isArray(value) || value.length > 64) throw invalid();
+  const capabilities = new Set<string>();
+  return Object.freeze(Array.from(value, rule => {
+    if (!rule || typeof rule !== 'object' || typeof rule.capability !== 'string' || !Object.prototype.hasOwnProperty.call(EXECUTION_CAPABILITIES, rule.capability)
+      || capabilities.has(rule.capability) || !Array.isArray(rule.providers) || !rule.providers.length || rule.providers.length > 256) throw invalid();
+    capabilities.add(rule.capability);
+    const ids = new Set<string>();
+    const providers = Array.from(rule.providers, (id: string) => {
+      if (typeof id !== 'string' || !id.trim() || id !== id.trim() || id.length > 256 || ids.has(id)) throw invalid();
+      ids.add(id); return id;
+    });
+    return Object.freeze({capability: rule.capability, providers: Object.freeze(providers)});
+  }));
 }

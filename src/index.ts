@@ -32,3 +32,5 @@ export {inspectMedia,CUSTOM_SOURCE_PLAYBACK_LIMIT} from './sources.js';
 export type {CustomSource,InspectionOptions,MediaInspection} from './types.js';
 export type {SeekOptions,PlaybackRange,LoopPolicy,SnapshotOptions,VideoSnapshot} from './types.js';
 export {PlayerPresentation} from './presentation.js';
+
+export type {ProviderPreferences} from './types.js';

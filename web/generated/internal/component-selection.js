@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { compareProviderCosts } from './provider-cost.js';
+import { compareProviderCosts, compareProviderPreferences, normalizeProviderPreferences } from './provider-cost.js';
 import { providerResolutionError } from './provider-deployment-errors.js';
 export class ComponentSelectionError extends Error {
     code;
@@ -13,7 +13,8 @@ export class ComponentSelectionError extends Error {
  * This does not reorder playback plans or turn provider failure into absence.
  * Readiness/deployment/source/browser identity belongs in the cost context.
  * Only the maintained owner supplies evidence; manifests never supply costs. */
-export function selectComponentBinding(resolution, baseline, measurement) {
+export function selectComponentBinding(resolution, baseline, measurement, preference) {
+    const preferences = normalizeProviderPreferences(preference?.providerPreferences);
     const failed = resolution.bindings.find(b => b.state === 'failed');
     if (failed?.state === 'failed')
         throw failed.error;
@@ -21,11 +22,18 @@ export function selectComponentBinding(resolution, baseline, measurement) {
     if (!eligible.length)
         throw providerResolutionError([resolution]) ?? new ComponentSelectionError('QUALIFICATION_REQUIRED', 'No qualified provider-backed recipe remains');
     const fallback = eligible.includes(baseline) ? baseline : eligible[0];
-    if (!measurement)
-        return { bindingId: fallback, reason: 'baseline', evidenceIds: [], excluded: [] };
-    const decision = compareProviderCosts(eligible, fallback, measurement.records, measurement.contextKey, measurement.policy, measurement.now);
+    const decision = measurement ? compareProviderCosts(eligible, fallback, measurement.records, measurement.contextKey, measurement.policy, measurement.now) : { bindingId: fallback, reason: 'baseline', evidenceIds: [], excluded: [] };
     if (!decision)
         throw new ComponentSelectionError('RUNTIME_BUDGET_EXCEEDED', 'No available qualified composition satisfies the measured runtime resource limits');
+    if (preference && preferences.length) {
+        if (preference.recipe.id !== resolution.recipeId)
+            throw new ComponentSelectionError('QUALIFICATION_REQUIRED', 'Preference recipe does not match resolution');
+        const assignments = (id) => preference.recipe.bindings.find(b => b.id === id)?.assignments ?? [];
+        const remaining = eligible.filter(id => !decision.excluded.includes(id));
+        const preferred = [decision.bindingId, ...remaining.filter(id => id !== decision.bindingId)].sort((a, b) => compareProviderPreferences(assignments(a), assignments(b), preferences))[0];
+        if (preferred !== decision.bindingId)
+            return { ...decision, bindingId: preferred, reason: 'provider-preference' };
+    }
     return decision;
 }
 /** Execute a selected composition using existing scoped acquisition. A runtime
@@ -33,7 +41,8 @@ export function selectComponentBinding(resolution, baseline, measurement) {
  * execution failure is terminal here and retains its identity for the plan owner.
  * Cost ranking is used only for the initial readiness snapshot. Resource-limit
  * exclusions survive retries until a new execution supplies fresh evidence. */
-export async function executeComponentBinding(acquisition, recipe, evidence, scopeKey, baseline, execute, measurement) {
+export async function executeComponentBinding(acquisition, recipe, evidence, scopeKey, baseline, execute, measurement, providerPreferences) {
+    const preferences = normalizeProviderPreferences(providerPreferences);
     const excluded = new Set();
     for (let attempt = 0; attempt <= recipe.bindings.length; attempt++) {
         const resolution = acquisition.resolve(recipe, evidence, scopeKey);
@@ -46,7 +55,7 @@ export async function executeComponentBinding(acquisition, recipe, evidence, sco
         // Filter only the pure selection input. Acquisition still receives the
         // original immutable resolution ticket issued for the current catalog.
         const selection = { ...resolution, bindings: resolution.bindings.filter(b => !excluded.has(b.bindingId)) };
-        const selected = selectComponentBinding(selection, baseline, attempt === 0 ? measurement : undefined);
+        const selected = selectComponentBinding(selection, baseline, attempt === 0 ? measurement : undefined, { recipe, providerPreferences: preferences });
         for (const id of selected.excluded)
             excluded.add(id);
         const decision = { ...selected, excluded: [...excluded] };

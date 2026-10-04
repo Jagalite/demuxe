@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {compareProviderPreferences,type ProviderPreferencesData} from './provider-runtime.js';
 export type NativeLoadRequest=Readonly<{id:number;epoch:number;kind:'load'}>;
 export type NativeLoadPolicy=Readonly<{requested:boolean;original:boolean;remux:'auto'|'never'|'always';requiresRemux:boolean;adaptation:'flac'|'opus'|'flac24'|undefined}>;
 type Work=Readonly<{request:NativeLoadRequest;kind:'source'|'audio-track';phase:'plan'|'services'|'rollback'|'resuming';policy:NativeLoadPolicy;position:number;paused:boolean;attemptedAdaptation:boolean}>;
@@ -14,7 +15,7 @@ export function selectNativeLoadRoute(policy:NativeLoadPolicy):Readonly<{route?:
  if(policy.remux==='never')return Object.freeze({error:'Native direct cannot enforce these source permissions; enable native remux or choose Hybrid'});
  return Object.freeze({route:'remux'});
 }
-export function selectNativePreparation(facts:Readonly<{codecEngine:boolean;file:boolean;adaptation:'flac'|'opus'|'flac24'|undefined;selectiveAudio:boolean;embeddedSubtitles:boolean;externalSubtitles:boolean;prepareAudio:boolean}>):Readonly<{audio:boolean;mp4:boolean}>{return Object.freeze({audio:!facts.codecEngine&&facts.file&&facts.adaptation==='flac24'&&!facts.selectiveAudio&&!facts.embeddedSubtitles&&!facts.externalSubtitles&&facts.prepareAudio,mp4:facts.file&&!facts.adaptation&&!facts.selectiveAudio});}
+export function selectNativePreparation(facts:Readonly<{providerPreferences?:ProviderPreferencesData;runtime?:'pthread'|'jspi'|'asyncify';broadAvailable?:boolean;codecEngine:boolean;file:boolean;adaptation:'flac'|'opus'|'flac24'|undefined;selectiveAudio:boolean;embeddedSubtitles:boolean;externalSubtitles:boolean;prepareAudio:boolean}>):Readonly<{audio:boolean;mp4:boolean}>{return Object.freeze({audio:!facts.codecEngine&&facts.file&&facts.adaptation==='flac24'&&!facts.selectiveAudio&&!facts.embeddedSubtitles&&!facts.externalSubtitles&&facts.prepareAudio,mp4:facts.file&&!facts.adaptation&&!facts.selectiveAudio&&!preferBroadRemux(facts)});}
 export type NativeLoadEvent=
  |Readonly<{type:'direct-failed';code:number|undefined;reason:string}>
  |Readonly<{type:'projection-failed';reason:string}>
@@ -41,4 +42,11 @@ export function transitionNativeLoad(state:NativeLoadState,request:NativeLoadReq
  if(event.type==='track-failed')return work.kind==='audio-track'&&work.phase==='plan'?result({...state,work:Object.freeze({...work,phase:'rollback'})},{rollback:true,position:work.position}):result(state,{rollback:false});
  if(work.kind!=='audio-track'||work.phase==='resuming')return result(state,{},false);
  return result({...state,work:Object.freeze({...work,phase:'resuming'})},{resume:!work.paused});
+}
+
+function preferBroadRemux(facts:{providerPreferences?:ProviderPreferencesData;runtime?:'pthread'|'jspi'|'asyncify';broadAvailable?:boolean}):boolean{
+ if(!facts.broadAvailable||!facts.providerPreferences?.length)return false;
+ const assignment=(providerId:string)=>[{providerId,requirements:[{capability:'media.prepare.file',version:1,profile:'packet-copy'} as const]}];
+ const broad='ffmpeg-file-preparation'+(!facts.runtime||facts.runtime==='pthread'?'':'-'+facts.runtime);
+ return compareProviderPreferences(assignment(broad),assignment('selected-mp4-view'),facts.providerPreferences)<0;
 }

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { compareProviderPreferences } from './provider-runtime.js';
 export function initialNativeLoad() { return Object.freeze({ work: null, adapted: false, directFailure: undefined }); }
 export function nativeLoadOpening(state) { return state.work?.phase === 'plan' || state.work?.phase === 'rollback'; }
 export function nativeLoadCurrent(state, request) { return state.work?.request.id === request.id && state.work.request.epoch === request.epoch; }
@@ -13,7 +14,7 @@ export function selectNativeLoadRoute(policy) {
         return Object.freeze({ error: 'Native direct cannot enforce these source permissions; enable native remux or choose Hybrid' });
     return Object.freeze({ route: 'remux' });
 }
-export function selectNativePreparation(facts) { return Object.freeze({ audio: !facts.codecEngine && facts.file && facts.adaptation === 'flac24' && !facts.selectiveAudio && !facts.embeddedSubtitles && !facts.externalSubtitles && facts.prepareAudio, mp4: facts.file && !facts.adaptation && !facts.selectiveAudio }); }
+export function selectNativePreparation(facts) { return Object.freeze({ audio: !facts.codecEngine && facts.file && facts.adaptation === 'flac24' && !facts.selectiveAudio && !facts.embeddedSubtitles && !facts.externalSubtitles && facts.prepareAudio, mp4: facts.file && !facts.adaptation && !facts.selectiveAudio && !preferBroadRemux(facts) }); }
 export function transitionNativeLoad(state, request, event) {
     const result = (next, extra = {}, accepted = true) => Object.freeze({ state: next === state ? state : Object.freeze({ ...next }), accepted, ...extra });
     if (!nativeLoadCurrent(state, request))
@@ -38,4 +39,11 @@ export function transitionNativeLoad(state, request, event) {
     if (work.kind !== 'audio-track' || work.phase === 'resuming')
         return result(state, {}, false);
     return result({ ...state, work: Object.freeze({ ...work, phase: 'resuming' }) }, { resume: !work.paused });
+}
+function preferBroadRemux(facts) {
+    if (!facts.broadAvailable || !facts.providerPreferences?.length)
+        return false;
+    const assignment = (providerId) => [{ providerId, requirements: [{ capability: 'media.prepare.file', version: 1, profile: 'packet-copy' }] }];
+    const broad = 'ffmpeg-file-preparation' + (!facts.runtime || facts.runtime === 'pthread' ? '' : '-' + facts.runtime);
+    return compareProviderPreferences(assignment(broad), assignment('selected-mp4-view'), facts.providerPreferences) < 0;
 }

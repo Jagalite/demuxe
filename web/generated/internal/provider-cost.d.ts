@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
+import type { ProviderPreferences } from '../types.js';
+export { compareProviderPreferences } from './machine/provider-runtime.js';
+export type { ProviderPreferencesData } from './machine/provider-runtime.js';
 /** Measured selection within qualified compositions; Player plan order is separate. */
 export type ProviderReadiness = Readonly<{
     providerId: string;
@@ -36,7 +39,7 @@ export type CostPolicy = Readonly<{
 }>;
 export type CostDecision = Readonly<{
     bindingId: string;
-    reason: 'baseline' | 'incomplete-evidence' | 'uncertain-difference' | 'measured-cost';
+    reason: 'baseline' | 'incomplete-evidence' | 'uncertain-difference' | 'measured-cost' | 'provider-preference';
     evidenceIds: readonly string[];
     excluded: readonly string[];
 }>;
@@ -47,3 +50,6 @@ export declare function providerReadinessKey(facts: readonly ProviderReadiness[]
  * Returns undefined if every measured binding fails resource/deadline limits.
  */
 export declare function compareProviderCosts(bindingIds: readonly string[], baselineId: string, records: readonly MeasuredBindingCost[], contextKey: string, policy: CostPolicy, now: number): CostDecision | undefined;
+/** Capture caller policy once. Provider IDs can name optional deployments;
+ * unknown IDs never add offers or qualification. */
+export declare function normalizeProviderPreferences(value: ProviderPreferences | undefined): ProviderPreferences;

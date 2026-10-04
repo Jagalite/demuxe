@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { CostDecision, CostPolicy, MeasuredBindingCost } from './provider-cost.js';
-import type { RecipeResolution } from './provider-resolution.js';
+import type { ProviderPreferences } from '../types.js';
+import type { ResolvableRecipe, RecipeResolution } from './provider-resolution.js';
 export declare class ComponentSelectionError extends Error {
     readonly code: 'QUALIFICATION_REQUIRED' | 'RUNTIME_BUDGET_EXCEEDED';
     constructor(code: 'QUALIFICATION_REQUIRED' | 'RUNTIME_BUDGET_EXCEEDED', message: string);
@@ -14,13 +15,16 @@ export declare function selectComponentBinding(resolution: RecipeResolution, bas
     contextKey: string;
     policy: CostPolicy;
     now: number;
+}, preference?: {
+    recipe: ResolvableRecipe;
+    providerPreferences: ProviderPreferences;
 }): CostDecision;
 /** Execute a selected composition using existing scoped acquisition. A runtime
  * probe may remove a provider and trigger another admitted binding; an asset or
  * execution failure is terminal here and retains its identity for the plan owner.
  * Cost ranking is used only for the initial readiness snapshot. Resource-limit
  * exclusions survive retries until a new execution supplies fresh evidence. */
-export declare function executeComponentBinding<T>(acquisition: import('./provider-acquisition.js').ProviderAcquisition, recipe: import('./provider-resolution.js').ResolvableRecipe, evidence: readonly import('./provider-resolution.js').CompositionEvidence[], scopeKey: string, baseline: string, execute: (bindingId: string) => Promise<T>, measurement?: Parameters<typeof selectComponentBinding>[2]): Promise<{
+export declare function executeComponentBinding<T>(acquisition: import('./provider-acquisition.js').ProviderAcquisition, recipe: import('./provider-resolution.js').ResolvableRecipe, evidence: readonly import('./provider-resolution.js').CompositionEvidence[], scopeKey: string, baseline: string, execute: (bindingId: string) => Promise<T>, measurement?: Parameters<typeof selectComponentBinding>[2], providerPreferences?: ProviderPreferences): Promise<{
     value: T;
     decision: CostDecision;
 }>;

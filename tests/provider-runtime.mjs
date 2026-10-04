@@ -11,13 +11,13 @@ const manifest=()=>({schema:1,providerContractVersion:1,revision:'one',assets:[{
 test('qualified assets deduplicate compilation and never acquire on admission',async t=>{
  const requests=[];t.mock.method(globalThis,'fetch',async url=>{requests.push(String(url));return String(url).endsWith('.json')?Response.json(manifest()):new Response(wasm);});
  const runtime=new ProviderRuntime(new URL('https://example.test/'),{'ffmpeg-file-preparation':identity});await runtime.load();
- assert.match(runtime.rejection('native-remux',{},'selected','jspi'),/runtime assets/);assert.equal(requests.length,1);
+ assert.match(runtime.rejection('native-remux',{},'selected','jspi'),/runtime assets/);assert.equal(requests.length,1);assert.deepEqual(runtime.preferenceProviders(),['ffmpeg-file-preparation']);
  const [a,b]=await Promise.all([runtime.module(path),runtime.module(path)]);assert.equal(a,b);assert.equal(requests.length,2);await runtime.destroy();await assert.rejects(runtime.bytes(path),e=>e.name==='AbortError');
 });
 test('a manifest cannot self-qualify a changed build',async t=>{
  t.mock.method(globalThis,'fetch',async()=>Response.json(manifest()));
  const runtime=new ProviderRuntime(new URL('https://example.test/'),{'ffmpeg-file-preparation':'reviewed-build'});await runtime.load();
- assert.equal(runtime.has(path),false);assert.equal(runtime.hasOffer('ffmpeg-file-preparation','packet-copy'),false);
+ assert.equal(runtime.has(path),false);assert.equal(runtime.hasOffer('ffmpeg-file-preparation','packet-copy'),false);assert.deepEqual(runtime.preferenceProviders(),[]);
  await assert.rejects(runtime.bytes(path),e=>e.code==='DEPLOYMENT_UNAVAILABLE');await runtime.destroy();
 });
 test('declared corrupt bytes are terminal, not deployment absence',async t=>{

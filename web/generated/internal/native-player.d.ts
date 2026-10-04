@@ -93,6 +93,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
         videoEnd: number | undefined;
     };
     constructor(video: HTMLVideoElement, remuxPolicy?: 'auto' | 'never' | 'always', assetBase?: URL, bufferedSeeks?: boolean, audioAdaptation?: "flac" | "opus" | "flac24" | undefined, initialAudioTrack?: number | undefined, nativeASS?: boolean, fonts?: FontAsset[], requestedPlan?: string | undefined, buffering?: BufferingPolicy, loadTimeoutMs?: number, defaultSubtitleStreamIndex?: number | undefined, remuxRuntime?: 'pthread' | 'jspi' | 'asyncify', providerRuntime?: ProviderRuntimeAssets | undefined, startup?: {
+        providerPreferences?: import("./machine/provider-runtime.js").ProviderPreferencesData;
         prefetchAfterMs?: number;
         prefetch?: () => void;
         module?: (path: string) => Promise<WebAssembly.Module | undefined>;

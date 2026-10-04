@@ -30,7 +30,7 @@ try{
     assert.ok(files.length>0);report.files=files;
     const result=await run(['--test','--test-concurrency=2','--test-timeout=120000',...files],{},15*60*1000,output+'/unit.log');
     report.runs.push(result);assert.equal(result.code,0,JSON.stringify(result));
-    const types=await run(['node_modules/typescript/bin/tsc','--noEmit','--strict','--skipLibCheck','--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext','tests/integration-types.ts','tests/api-stability/consumer-types.ts'],{},120000,output+'/types.log');
+    const types=await run(['node_modules/typescript/bin/tsc','--noEmit','--strict','--skipLibCheck','--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext','tests/integration-types.ts','tests/api-stability/consumer-types.ts','tests/provider-preferences-types.ts'],{},120000,output+'/types.log');
     report.runs.push(types);assert.equal(types.code,0,JSON.stringify(types));
   }else{
     assert.ok(process.env.DEMUXE_RUNTIME_ROOT,'Browser gate requires freshly packaged runtime root');

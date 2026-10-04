@@ -120,3 +120,21 @@ export function selectAudioRepair(input) {
         return;
     return Object.freeze({ codec, channels: audio.channels });
 }
+/** Compare only candidates for the same admitted requirements. Earlier rules
+ * break conflicts between capabilities; ties preserve the caller's baseline.
+ * Multiple owners of one capability must all satisfy its preference. */
+export function compareProviderPreferences(a, b, preferences) {
+    for (const rule of preferences) {
+        const rank = (assignments) => {
+            const owners = assignments.filter(a => a.requirements.some(r => r.capability === rule.capability));
+            return owners.length ? Math.max(...owners.map(a => {
+                const index = rule.providers.indexOf(a.providerId);
+                return index < 0 ? rule.providers.length : index;
+            })) : rule.providers.length;
+        };
+        const difference = rank(a) - rank(b);
+        if (difference)
+            return difference;
+    }
+    return 0;
+}

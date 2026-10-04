@@ -6,6 +6,8 @@ import {playerEffectAuthority} from './internal/machine/transition.js';
 import {ResourceRegistry} from './internal/effects/resources.js';
 import {privatePlaybackRejection,readPrivatePlaybackAssets,type PrivatePlaybackAssets} from './internal/private-playback-admission.js';
 import {providerDeploymentEnabled, qualifiedProviderIdentities} from './internal/provider-build.js';
+import {normalizeProviderPreferences} from './internal/provider-cost.js';
+import {preferProviderPlans} from './internal/execution-recipes.js';
 import {ProviderRuntime} from './internal/provider-runtime.js';
 import {loadProviderModule} from './internal/provider-modules.js';
 import {routingRequirements, missingRoutingFacts} from './internal/probe-requirements.js';
@@ -359,21 +361,28 @@ export class Player extends EventTarget {
   private get remuxSelection(){return this.control.routing.deployment.selection!;}
   private get remuxRuntime(){return this.remuxSelection.runtime;}
   private get privateRemux(){return this.remuxRuntime!=='pthread';}
-  private selectDeployedRuntime(){
+  private get providerOrderedRecovery(){return !!this.remuxSelection.providerPreferences?.some(rule=>rule.capability==='media.play.complete');}
+  private selectDeployedRuntime(source?:Source,probe?:Probe,aid='auto'){
     const provider=this.providerRuntime,owner=this.control.routing.deployment,epoch=this.operationEpoch,operation=this.control.operations.active;
     const current=()=>this.providerRuntime===provider&&playerDeploymentCurrent(this.control,epoch,operation,owner.revision);
     if(!current())return false;if(!provider)return true;
+    let providers:readonly string[]|undefined;
+    if(owner.selection!.providerPreferences?.length){
+      const snapshot:ProviderRuntime['preferenceProviders']=provider.preferenceProviders;if(!current())return false;
+      if(snapshot){providers=snapshot.call(provider,source,probe,aid);if(!current())return false;}
+    }
     const available:Partial<Record<RemuxRuntime,boolean>>={};
-    for(const runtime of remuxDeploymentCandidates(owner.selection!)){
+    for(const runtime of remuxDeploymentCandidates(owner.selection!,providers)){
       const suffix=runtime==='pthread'?'':'-'+runtime;
       const offer:ProviderRuntime['hasOffer']=provider.hasOffer;if(!current())return false;
       const offered=offer.call(provider,'ffmpeg-file-preparation'+suffix,'packet-copy');if(!current())return false;
       let deployed=false;
       if(offered){const has:ProviderRuntime['has']=provider.has;if(!current())return false;deployed=has.call(provider,`web/engine-remux${suffix}/remux.wasm`);if(!current())return false;}
       if(!deployed){const inspect:ProviderRuntime['codecInspector']=provider.codecInspector;if(!current())return false;deployed=!!inspect.call(provider,runtime);if(!current())return false;}
+      if(probe&&providers&&!providers.some(id=>id==='ffmpeg-file-preparation'+suffix||id==='mpv-playback'+suffix||runtime==='pthread'&&(id==='mpv-hybrid'||id==='mpv-software')||/^ffmpeg-(truehd-mlp|dts-hd|ac3-eac3)-/.test(id)&&id.endsWith(suffix)))deployed=false;
       available[runtime]=deployed;if(deployed)break;
     }
-    return this.dispatchControl({type:'routing.deployment',epoch,operation,change:{kind:'resolved',revision:owner.revision,available}}).accepted;
+    return this.dispatchControl({type:'routing.deployment',epoch,operation,change:{kind:'resolved',revision:owner.revision,available,providers}}).accepted;
   }
   private get preparationProviderId(){return 'ffmpeg-file-preparation'+(this.privateRemux?'-'+this.remuxRuntime:'');}
   private get canInspectFFmpeg(){return (globalThis.crossOriginIsolated===true||this.privateRemux)&&(!this.providerRuntime||this.providerRuntime.hasOffer(this.preparationProviderId,'packet-copy')&&this.providerRuntime.has(`web/engine-remux${this.privateRemux?'-'+this.remuxRuntime:''}/remux.wasm`)||!!this.providerRuntime.codecInspector(this.remuxRuntime));}
@@ -465,7 +474,7 @@ export class Player extends EventTarget {
     const fault=this.control.monitor.fault;if(!sampled.accepted||fault?.id!==id)return;
     const error=fault.reason==='hybrid'?new PlayerError('DECODE_FAILED','Hybrid browser decoder became inactive for four consecutive checks'):new PlayerError('PLAYBACK_STALLED',`Native ${fault.reason==='clock'?'playback clock':'video frame counter'} stopped progressing despite buffered media`,null,null,'session',true);
     this.stopWatchdogs();if(this.current!==session||sessionAuthority(this.control,sessionId)!=='accepted')return;this.recordSessionFault(session,error);
-    const response=playbackFaultResponse({origin:'watchdog',current:this.current===session,accepted:sessionAuthority(this.control,sessionId)==='accepted',busy:this.busy,destroyed:this.destroyed,automatic:this.automatic,mode:this.mode,fault:true});
+    const response=playbackFaultResponse({providerOrdered:this.providerOrderedRecovery,origin:'watchdog',current:this.current===session,accepted:sessionAuthority(this.control,sessionId)==='accepted',busy:this.busy,destroyed:this.destroyed,automatic:this.automatic,mode:this.mode,fault:true});
     if(response==='recover')this.recover(session);
     else if(response==='pause-error'){this.updateSettings({pause:true});void this.backendEffect(session,'backend.pause').catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionId)==='accepted')this.emit('error',error);}
   }
@@ -473,6 +482,7 @@ export class Player extends EventTarget {
 
   constructor(container: HTMLElement, options: PlayerOptions = {}) {
     super();
+    const providerPreferences=normalizeProviderPreferences(options.providerPreferences);
     this.startupEscalation=startupEscalationPolicy(options.startupEscalation);
     this.watchdogConfiguration=watchdogPolicy(options.watchdogs);
     this.configuredTrackPolicy=normalizeTrackPolicy(options.trackPolicy);
@@ -480,7 +490,7 @@ export class Player extends EventTarget {
     if (typeof HTMLElement==='undefined') throw new PlayerError('INVALID_ARGUMENT','Player construction requires a browser');
     this.buffering=bufferingPolicy(options.buffering);
     this.assetBase=runtimeBase(options.assetBase);
-    if(providerDeploymentEnabled)this.providerRuntime=new ProviderRuntime(this.assetBase,qualifiedProviderIdentities);
+    if(providerDeploymentEnabled)this.providerRuntime=new ProviderRuntime(this.assetBase,qualifiedProviderIdentities,providerPreferences);
     if (!(container instanceof HTMLElement) || container instanceof HTMLCanvasElement || container instanceof HTMLVideoElement) throw new PlayerError('INVALID_ARGUMENT','Pass a container element; Player owns its video/canvas surface');
     this.#previewController=new PreviewController([
       {id:'shaka',priority:20,canHandle:()=>!!this.current?.backend.previewFrame,
@@ -489,7 +499,7 @@ export class Player extends EventTarget {
       new LocalRemuxPreviewProvider(()=>{
         if(this.busy||this.queued>0||this.previewBuffering()||!['remux','remux-mpv'].includes(backendPlan(this.current?.backend)??''))return undefined;
         return this.previewSource;
-      },container.ownerDocument,video=>new PreviewNativePlayer(video,'always',this.assetBase,false,undefined,undefined,false,[],'native-remux',bufferingPolicy({preload:'auto',profile:'low-latency',memoryBudget:8*1024*1024}),2500,undefined,this.remuxRuntime,this.providerRuntime),options.resourceLimits?.maxDecodePixels),
+      },container.ownerDocument,video=>new PreviewNativePlayer(video,'always',this.assetBase,false,undefined,undefined,false,[],'native-remux',bufferingPolicy({preload:'auto',profile:'low-latency',memoryBudget:8*1024*1024}),2500,undefined,this.remuxRuntime,this.providerRuntime,{providerPreferences:this.remuxSelection.providerPreferences}),options.resourceLimits?.maxDecodePixels),
       new SoftwarePreviewProvider(()=>{
         if(this.busy||this.queued>0||this.previewBuffering())return undefined;
         if(this.previewSource)return {file:this.previewSource,input:this.source?.kind==='local'?this.source.input:undefined};
@@ -525,7 +535,7 @@ export class Player extends EventTarget {
     if(options.allowLossyAudio!==undefined&&typeof options.allowLossyAudio!=='boolean')throw new PlayerError('INVALID_ARGUMENT','Invalid lossy audio permission');
     if(this.audioAdaptation==='opus'&&options.allowLossyAudio!==true)throw new PlayerError('INVALID_ARGUMENT','Opus adaptation requires allowLossyAudio: true');
     this.nativeRemux=options.nativeRemux ?? 'auto';
-    this.dispatchControl({type:'routing.deployment',epoch:this.operationEpoch,operation:this.control.operations.active,change:{kind:'configure',selection:selectRemuxRuntime(options)}});
+    this.dispatchControl({type:'routing.deployment',epoch:this.operationEpoch,operation:this.control.operations.active,change:{kind:'configure',selection:selectRemuxRuntime({remuxRuntime:options.remuxRuntime,experimentalRemuxRuntime:options.experimentalRemuxRuntime,providerPreferences})}});
     this.softwarePresenter=options.softwarePresenter??'auto';
     this.decodeQuality=options.decodeQuality??'exact';
     this.adaptiveFrameDrop=options.adaptiveFrameDrop??false;
@@ -875,7 +885,7 @@ export class Player extends EventTarget {
     current();const append=this.root.append;current();append.call(this.root,surface);current();
       const subtitleTracks=this.sourceInspection?.probe.tracks.filter(t=>t.type==='sub')??[];
       const defaultSubtitleStreamIndex=(subtitleTracks.find(t=>t.default)??subtitleTracks[0])?.index;
-      backend = 'PrivateSoftwarePlayer' in module ? new module.PrivateSoftwarePlayer(surface as HTMLCanvasElement,{providerAssets:this.providerRuntime,mode:mode as 'software'|'hybrid',decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop,videoTrack:this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture),buffering:this.buffering,audioOutput:this.audioOutput,audioFallback:this.audioFallback,runtime:this.remuxRuntime as 'jspi'|'asyncify',assetBase:this.assetBase,duration:this.sourceInspection?.probe.duration,resourceLimits:this.resourceLimits,fonts:this.fonts,prefetchedWasm:()=>this.startupModules?.bytes(`web/engine-mpv-playback-${this.remuxRuntime}/player.wasm`)}) : 'ShakaBackend' in module ? new module.ShakaBackend(surface as HTMLVideoElement,this.assetBase,this.buffering) : 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, forcePreparation?'always':this.nativeRemux,this.assetBase,this.bufferedNativeSeeks,adaptation,['auto','no'].includes(aid)?(this.privateRemux&&recipe?.native?.selectedAudio?this.sourceInspection?.probe.tracks.find(t=>t.type==='audio')?.index:undefined):Number(aid)-1,this.nativeASS,this.fonts,planId,this.buffering,loadTimeoutMs,defaultSubtitleStreamIndex,this.remuxRuntime,this.providerRuntime,{prefetchAfterMs:this.startupEscalation?.prefetchAfterMs,prefetch:prefetchFallback,module:async path=>(await this.startupModules?.ready(path)?.catch(()=>undefined))??(path===`web/engine-remux${this.remuxRuntime==='pthread'?'':'-'+this.remuxRuntime}/remux.wasm`?await this.preparation?.readyModule('engine-remux'):undefined)}) : new module.WasmPlayer(surface as HTMLCanvasElement, {buffering:this.buffering,mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase,prepared,providerAssets:this.providerRuntime,decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop,videoTrack:this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture)});
+      backend = 'PrivateSoftwarePlayer' in module ? new module.PrivateSoftwarePlayer(surface as HTMLCanvasElement,{providerAssets:this.providerRuntime,mode:mode as 'software'|'hybrid',decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop,videoTrack:this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture),buffering:this.buffering,audioOutput:this.audioOutput,audioFallback:this.audioFallback,runtime:this.remuxRuntime as 'jspi'|'asyncify',assetBase:this.assetBase,duration:this.sourceInspection?.probe.duration,resourceLimits:this.resourceLimits,fonts:this.fonts,prefetchedWasm:()=>this.startupModules?.bytes(`web/engine-mpv-playback-${this.remuxRuntime}/player.wasm`)}) : 'ShakaBackend' in module ? new module.ShakaBackend(surface as HTMLVideoElement,this.assetBase,this.buffering,this.providerRuntime) : 'NativePlayer' in module ? new module.NativePlayer(surface as HTMLVideoElement, forcePreparation?'always':this.nativeRemux,this.assetBase,this.bufferedNativeSeeks,adaptation,['auto','no'].includes(aid)?(this.privateRemux&&recipe?.native?.selectedAudio?this.sourceInspection?.probe.tracks.find(t=>t.type==='audio')?.index:undefined):Number(aid)-1,this.nativeASS,this.fonts,planId,this.buffering,loadTimeoutMs,defaultSubtitleStreamIndex,this.remuxRuntime,this.providerRuntime,{providerPreferences:this.remuxSelection.providerPreferences,prefetchAfterMs:this.startupEscalation?.prefetchAfterMs,prefetch:prefetchFallback,module:async path=>(await this.startupModules?.ready(path)?.catch(()=>undefined))??(path===`web/engine-remux${this.remuxRuntime==='pthread'?'':'-'+this.remuxRuntime}/remux.wasm`?await this.preparation?.readyModule('engine-remux'):undefined)}) : new module.WasmPlayer(surface as HTMLCanvasElement, {buffering:this.buffering,mode: mode as 'hybrid' | 'software',softwarePresenter:this.softwarePresenter,audioOutput:this.audioOutput,audioFallback:this.audioFallback,resourceLimits:this.resourceLimits,fonts:this.fonts,assetBase:this.assetBase,prepared,providerAssets:this.providerRuntime,decodeQuality:this.decodeQuality,adaptiveFrameDrop:this.adaptiveFrameDrop,videoTrack:this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture)});
     session={backend,surface};
     await this.registerSession(session,sessionId,true);current();
     const watchdogs=backend.setWatchdogs;current();watchdogs?.call(backend,this.watchdogConfiguration);current();this.observeBackend(session,sessionId);current();return session;
@@ -904,7 +914,7 @@ export class Player extends EventTarget {
       if (type === 'mpv' && detail.event === 'end-file' && detail.reason === 'error') this.recordSessionFault(session,new Error(String(detail.file_error)));
       if(this.current===session&&(session.error||type==='activity'&&['play','pause','playing','ended'].includes(detail)||type==='mpv'&&detail.event==='property-change'&&['pause','eof-reached'].includes(detail.name)))this.startWatchdogs();
       if (this.current === session && sessionAuthority(this.control,sessionEpoch)==='accepted' && !this.busy && !this.destroyed) {
-        const response=playbackFaultResponse({origin:'backend',current:true,accepted:true,busy:this.busy,destroyed:this.destroyed,automatic:this.automatic,mode:this.mode,fault:!!session.error&&(type==='error'||type==='mpv'&&detail.event==='end-file'),endFileError:type==='mpv'&&detail.event==='end-file'&&detail.reason==='error'});
+        const response=playbackFaultResponse({providerOrdered:this.providerOrderedRecovery,origin:'backend',current:true,accepted:true,busy:this.busy,destroyed:this.destroyed,automatic:this.automatic,mode:this.mode,fault:!!session.error&&(type==='error'||type==='mpv'&&detail.event==='end-file'),endFileError:type==='mpv'&&detail.event==='end-file'&&detail.reason==='error'});
         if(response==='recover'){this.recover(session);return;}
         if(response==='error')this.emit('error',session.error);
         if(this.current!==session||sessionAuthority(this.control,sessionEpoch)!=='accepted')return;
@@ -918,7 +928,7 @@ export class Player extends EventTarget {
             const inventory=tracks(this.sourceTracks(),this.sourceSerial,this.mode,backendPlan(session.backend));
             if(this.current!==session||sessionAuthority(this.control,sessionEpoch)!=='accepted')return;
             const forbidden=inventory.some(t=>t.selected&&!trackAllowed(t,t.type==='audio'?this.trackPolicy.audio:t.type==='subtitle'?this.trackPolicy.subtitles:undefined));
-            if(playbackFaultResponse({origin:'track-policy',current:this.current===session,accepted:sessionAuthority(this.control,sessionEpoch)==='accepted',busy:this.busy,destroyed:this.destroyed,automatic:this.automatic,mode:this.mode,fault:forbidden})==='pause-error'){this.updateSettings({pause:true});void this.invokeBackend(backend,'backend.pause').catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionEpoch)==='accepted')this.emit('error',new PlayerError('UNSUPPORTED_FEATURE','Backend selected a track excluded by the host policy'));return;}
+            if(playbackFaultResponse({providerOrdered:this.providerOrderedRecovery,origin:'track-policy',current:this.current===session,accepted:sessionAuthority(this.control,sessionEpoch)==='accepted',busy:this.busy,destroyed:this.destroyed,automatic:this.automatic,mode:this.mode,fault:forbidden})==='pause-error'){this.updateSettings({pause:true});void this.invokeBackend(backend,'backend.pause').catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionEpoch)==='accepted')this.emit('error',new PlayerError('UNSUPPORTED_FEATURE','Backend selected a track excluded by the host policy'));return;}
           }
           if(detail.event==='property-change'&&detail.name==='time-pos')this.dispatchControl({type:'playback.sample',session:sessionEpoch,sequence:++observationSequence,observation:'time',value:Number(detail.data),publishedTime:this.state.currentTime});
           if(detail.event==='property-change'&&detail.name==='pause')this.dispatchControl({type:'playback.sample',session:sessionEpoch,sequence:++observationSequence,observation:'pause',value:detail.data===true,boundary:{time:Number(backend.properties.get('time-pos')??this.state.currentTime),duration:typeof backend.properties.get('duration')==='number'?Number(backend.properties.get('duration')):this.state.duration,ended:detail.ended===true||backend.properties.get('eof-reached')===true}});
@@ -1044,7 +1054,7 @@ export class Player extends EventTarget {
       for(const plan of decisions)if(plan.eligible)rejections[plan.id]=this.providerRuntime.rejection(plan.id,source,JSON.stringify([this.tierConfiguration(settings,requirements),this.remuxRuntime,this.softwarePresenter,inspected?.probe.tracks]),this.remuxRuntime,inspected?.probe,inspectedSettings?.aid);
       decisions=applyDeploymentRejections(decisions,rejections);
     }
-    return decisions;
+    return preferProviderPlans(decisions,this.remuxSelection.providerPreferences??[],this.remuxRuntime);
   }
   private failedStreamingPlan(session:Session):boolean {
     if(this.source?.kind!=='remote'||!['hls','dash'].includes(this.source.options.format??''))return false;
@@ -1352,7 +1362,7 @@ export class Player extends EventTarget {
     finally{if(deadline!==undefined)clearTimeout(deadline);controller.signal.removeEventListener('abort',abort);}
   }
   private async checkInspectedAssets(source:Source,probe:Probe,settings:Settings,sid:string,controller:AbortController,scope?:InspectionLease){
-    this.assertInspection(scope);this.updateInspection({kind:'reset',scope:'assets'},scope);
+    this.assertInspection(scope);if(this.remuxSelection.providerPreferences?.length)this.selectDeployedRuntime(source,probe,settings.aid);this.assertInspection(scope);this.updateInspection({kind:'reset',scope:'assets'},scope);
     if(this.privateRemux){
       const available=await this.optionalAssetsAvailable(['manifest.json','player.mjs','player.wasm'].map(name=>`web/engine-mpv-playback-${this.remuxRuntime}/${name}`),controller,scope);this.assertInspection(scope);this.updateInspection({kind:'assets',value:{playbackAvailable:available}},scope);
       if(this.privatePlaybackAssetsAvailable){
@@ -1579,7 +1589,7 @@ export class Player extends EventTarget {
     return localDiscoveryRemux(planId,{...facts,rejected:retry&&this.tierAttempts.reason(source,this.tierConfiguration(settings,requirements),retry)?[retry]:[]});
   }
   private async discover(source:Source,settings:Settings,preserve:boolean,tracks:(TextTrackSource & {attachmentId?:string})[],target:number|undefined,automatic:boolean,pinnedMode?:PlaybackMode,start=0,requirements:RouteRequirements={}):Promise<void> {
-    if(this.providerRuntime){await this.interruptible(this.providerRuntime.load());this.assertOperation();this.selectDeployedRuntime();}
+    if(this.providerRuntime){await this.interruptible(this.providerRuntime.load());this.assertOperation();this.selectDeployedRuntime(source,this.sourceInspection?.source===source?this.sourceInspection.probe:undefined,settings.aid);}
     const initialNativeReason=automatic?this.admissionContext.nativeReason:undefined;
     this.planDecisions=this.admissible(source,settings,preserve?this.subtitleAssets:[],tracks,initialNativeReason,automatic,requirements);
     this.runtimeCapabilities.begin(source,this.planDecisions);
@@ -1729,7 +1739,7 @@ export class Player extends EventTarget {
         await this.backendEffect(session,'backend.pause').catch(()=>{});this.assertOperation();
         if(this.control.routing.recovery.pending?.id!==id||this.current!==session)return;
         if(!this.dispatchControl({type:'routing.recovery',change:{kind:'paused',id}}).accepted)return;
-        const streaming=this.failedStreamingPlan(session),route=recoveryRoute({mode:this.mode,backendPlan:backendPlan(session.backend),nativeRemux:this.nativeRemux,streaming,trigger:'runtime'});
+        const streaming=this.failedStreamingPlan(session),route=recoveryRoute({providerOrdered:this.providerOrderedRecovery,mode:this.mode,backendPlan:backendPlan(session.backend),nativeRemux:this.nativeRemux,streaming,trigger:'runtime'});
         const priorAttempts:SelectionAttempt[]=[...this.attempts.filter(attempt=>attempt.outcome!=='selected'),{mode:this.mode,outcome:'failed',reason:`${plan.id}: Runtime playback failure: ${session.error?.message??'Playback backend became unavailable'}`}];
         this.assertOperation();if(this.control.routing.recovery.pending?.id!==id||this.current!==session)return;
         await this.select(this.source!,this.settings,true,this.nativeTracks,route.start,undefined,priorAttempts,false,route.requirements);

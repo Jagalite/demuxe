@@ -51,6 +51,7 @@ export declare function transitionRecovery(state: RecoveryState, change: Recover
 export declare function retireRecovery(state: RecoveryState): RecoveryState;
 export declare function clearRecovery(state: RecoveryState): RecoveryState;
 export declare function recoveryRoute(facts: Readonly<{
+    providerOrdered?: boolean;
     mode: PlaybackMode;
     backendPlan: string | undefined;
     nativeRemux: 'auto' | 'never' | 'always';
@@ -63,6 +64,7 @@ export declare function recoveryRoute(facts: Readonly<{
 /** Pure response policy. Adapter facts describe the observed fault; no physical
  * error objects, handles or callbacks are retained by this decision. */
 export declare function playbackFaultResponse(facts: Readonly<{
+    providerOrdered?: boolean;
     origin: 'watchdog' | 'backend' | 'track-policy';
     current: boolean;
     accepted: boolean;

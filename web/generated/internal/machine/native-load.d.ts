@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type ProviderPreferencesData } from './provider-runtime.js';
 export type NativeLoadRequest = Readonly<{
     id: number;
     epoch: number;
@@ -35,6 +36,9 @@ export declare function selectNativeLoadRoute(policy: NativeLoadPolicy): Readonl
     error?: string;
 }>;
 export declare function selectNativePreparation(facts: Readonly<{
+    providerPreferences?: ProviderPreferencesData;
+    runtime?: 'pthread' | 'jspi' | 'asyncify';
+    broadAvailable?: boolean;
     codecEngine: boolean;
     file: boolean;
     adaptation: 'flac' | 'opus' | 'flac24' | undefined;

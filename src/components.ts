@@ -7,3 +7,5 @@ export type {ParsedProviderDeployment} from './internal/provider-catalog.js';
 export {ProviderAcquisition} from './internal/provider-acquisition.js';
 export {executeComponentBinding, selectComponentBinding} from './internal/component-selection.js';
 export type {CompositionEvidence} from './internal/provider-resolution.js';
+
+export type {ProviderPreferences} from './types.js';
