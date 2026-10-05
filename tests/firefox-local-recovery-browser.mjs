@@ -16,7 +16,7 @@ export async function recoveryProbe({kind='resume',rate=1,remote=false,pinned=fa
  player.playNativeVerified=async function(...args){budgets.push(args[2]??2000);return verify.apply(this,args);};
  let result;
  try{
-  const bytes=await(await fetch('/fixtures/example.mp4')).arrayBuffer();
+  const bytes=await(await fetch('/media/original')).arrayBuffer();
   const fixtureSHA256=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
   await player.open(remote?new URL('/media/original',location.href).href:new File([bytes],'example.mp4'));
   const initial=player.diagnostics.plan.id;await player.play();await player.setPlaybackRate(rate);
