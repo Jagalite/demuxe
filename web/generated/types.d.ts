@@ -70,7 +70,10 @@ export type BufferingOptions = {
     behindSeconds?: number;
 };
 export type BufferingPolicy = Readonly<Required<Pick<BufferingOptions, 'preload' | 'profile'>> & Pick<BufferingOptions, 'memoryBudget' | 'aheadSeconds' | 'behindSeconds'>>;
-/** Playback-health heuristics only; operation, network and cleanup deadlines remain bounded. */
+/** Playback-health heuristics only; operation, network and cleanup deadlines remain bounded.
+ * Native progress defaults to 2000 ms (configurable 1000–120000 ms). Eligible
+ * automatic Firefox local direct recovery caps this at 500 ms; disabling
+ * nativeProgress still disables this monitor. Play output verification is separate. */
 export type WatchdogOptions = {
     nativeProgress?: boolean;
     hybridDecoder?: boolean;

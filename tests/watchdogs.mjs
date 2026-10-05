@@ -16,7 +16,7 @@ test('watchdog policy defaults, master disable and independent switches',()=>{
   const partial=watchdogPolicy({[key]:false});assert.equal(partial[key],false);
   for(const other of ['nativeProgress','hybridDecoder','decoderOutput','selectiveAudio'].filter(k=>k!==key))assert.equal(partial[other],true);
  }
- assert.equal(enabled.nativeProgressTimeoutMs,10000);assert.ok(Object.isFrozen(enabled));
+ assert.equal(enabled.nativeProgressTimeoutMs,2000);assert.ok(Object.isFrozen(enabled));
  assert.deepEqual(watchdogPolicy(true),enabled);
  const input={nativeProgress:false};const result=watchdogPolicy(input);input.nativeProgress=true;assert.equal(result.nativeProgress,false);
  for(const value of [null,[],0,'false',{nativeProgress:0},{typo:false},{nativeProgressTimeoutMs:999},{nativeProgressTimeoutMs:Infinity}])assert.throws(()=>watchdogPolicy(value),e=>e.code==='INVALID_ARGUMENT');
@@ -58,14 +58,14 @@ test('sparse frames and unobservable video do not inherit a normal-cadence deadl
   for(let time=0;time<12000;time+=500)assert.equal(w.sample(time,{eligible:true,time:time/1000,frames:2,frameIntervalMs},2000),undefined);
  }
 });
-function nativeSample(videoOverrides={},playerOverrides={}){
+function nativeSample(videoOverrides={},playerOverrides={},allowBufferedWaiting=false){
  const player=Object.create(NativePlayer.prototype);
  const video={currentTime:2,duration:20,playbackRate:1,paused:false,seeking:false,ended:false,error:null,readyState:4,videoWidth:640,
   buffered:{length:1,start:()=>0,end:()=>20},getVideoPlaybackQuality:()=>({totalVideoFrames:20,droppedVideoFrames:2})};
  Object.defineProperties(video,Object.getOwnPropertyDescriptors(videoOverrides));
  const {opening=false,stopped=false,capability={outputVerified:true},...shell}=playerOverrides;
  Object.assign(player,{video,native:{...initialNativeBackend(),stopped,capability,load:{...initialNativeBackend().load,work:opening?{phase:'plan'}:null}},...shell});
- return player.nativeProgressSample();
+ return player.nativeProgressSample(allowBufferedWaiting);
 }
 test('Native eligibility excludes pause, seek, buffering, EOF, and unverified startup',()=>{
  assert.equal(nativeSample().eligible,true);assert.equal(nativeSample().frames,18);
@@ -99,4 +99,9 @@ test('hidden selective audio keeps sync corrections but suppresses heuristic fai
 });
 test('ineligible Native sampling avoids browser quality and buffer reads',()=>{
  assert.equal(nativeSample({paused:true,get buffered(){throw Error('unexpected buffer read');},getVideoPlaybackQuality(){throw Error('unexpected quality read');}}).eligible,false);
+});
+
+test('targeted local buffered waiting is observable without admitting empty buffers or seeks',()=>{
+ assert.equal(nativeSample({readyState:2},{},true).eligible,true);
+ for(const state of [{readyState:1},{readyState:2,buffered:{length:0}},{readyState:2,paused:true},{readyState:2,seeking:true},{readyState:2,ended:true}])assert.equal(nativeSample(state,{},true).eligible,false);
 });

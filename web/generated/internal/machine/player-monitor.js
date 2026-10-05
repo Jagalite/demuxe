@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
+import { NATIVE_OUTPUT_TIMEOUT_MS, FIREFOX_LOCAL_RECOVERY_MS, fastLocalRecovery } from './playback-deadlines.js';
 import { createNativeProgress, resetNativeProgress, sampleNativeProgress } from './telemetry.js';
-export function initialPlayerMonitor() { return Object.freeze({ policy: Object.freeze({ nativeProgress: true, hybridDecoder: true, decoderOutput: true, selectiveAudio: true, nativeProgressTimeoutMs: 10000 }), policyRevision: 0, serial: 0, activity: 0, current: null, fault: null }); }
+export function initialPlayerMonitor() { return Object.freeze({ policy: Object.freeze({ nativeProgress: true, hybridDecoder: true, decoderOutput: true, selectiveAudio: true, nativeProgressTimeoutMs: NATIVE_OUTPUT_TIMEOUT_MS }), policyRevision: 0, serial: 0, activity: 0, current: null, fault: null }); }
 export function stopPlayerMonitor(state) { return state.current || state.fault ? Object.freeze({ ...state, current: null, fault: null }) : state; }
 export function monitorSampleEligible(state, input) {
     return input.session === state.source.acceptedSession && state.source.acceptedEpoch === state.operations.epoch && !state.operations.terminal && !state.source.candidate && state.operations.active === null && state.operations.entries.length === 0 && !state.settings.pause && !input.hidden && !input.retired && !input.error;
@@ -47,7 +48,7 @@ export function transitionPlayerMonitor(state, input) {
                 sample.frameIntervalMs = 1000 * timing.maxIntervalSeconds / (sample.rate ?? 1);
             else
                 sample.frames = undefined;
-            const decision = sampleNativeProgress(progress, input.now, sample, old.policy.nativeProgressTimeoutMs);
+            const decision = sampleNativeProgress(progress, input.now, sample, input.recovery && fastLocalRecovery(input.recovery) ? Math.min(old.policy.nativeProgressTimeoutMs, FIREFOX_LOCAL_RECOVERY_MS) : old.policy.nativeProgressTimeoutMs);
             progress = decision.state;
             if (decision.stalled)
                 reason = decision.stalled;

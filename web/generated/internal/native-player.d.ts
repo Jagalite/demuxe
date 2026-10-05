@@ -79,7 +79,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private listeners;
     private watchdogs;
     setWatchdogs(policy: WatchdogPolicy): void;
-    nativeProgressSample(): {
+    nativeProgressSample(allowBufferedWaiting?: boolean): {
         eligible: boolean;
         time: number;
         rate: number;

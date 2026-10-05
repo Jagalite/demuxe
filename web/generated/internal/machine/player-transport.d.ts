@@ -39,6 +39,7 @@ export type PlayerTransportInput = Readonly<{
     position: number;
     trialSame: boolean;
     trialVerified: boolean;
+    firefox?: boolean;
     local: boolean;
     backendPlan: string | undefined;
     nativeRemux: 'auto' | 'never' | 'always';

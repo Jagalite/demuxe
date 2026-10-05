@@ -113,3 +113,13 @@ for(const automatic of [false,true])test(`Hybrid watchdog ${automatic?'recovers 
  assert.equal(recoveries,automatic?1:0);assert.equal(pauses,automatic?0:1);assert.equal(errors,automatic?0:1);
  assert.equal(p.settings.pause,!automatic);assert.equal(p.control.monitor.current,null);
 });
+
+test('Firefox local progress recovery accelerates only eligible direct sessions',()=>{
+ const recovery={firefox:true,local:true,automatic:true,backendPlan:'direct',nativeRemux:'auto',fallbackAvailable:true};
+ for(const extra of [{},{firefox:false},{local:false},{automatic:false},{nativeRemux:'never'},{fallbackAvailable:false},{backendPlan:'remux'}]){
+  const m=model();m.start();m.sample(0,{recovery:{...recovery,...extra}});m.sample(500,{recovery:{...recovery,...extra}});
+  assert.equal(m.state.monitor.fault?.reason,Object.keys(extra).length?undefined:'clock',JSON.stringify(extra));
+ }
+ const m=model();m.start();for(let now=0;now<4000;now+=500)m.sample(now,{recovery,native:{eligible:true,time:now/1000,rate:1}});
+ assert.equal(m.state.monitor.fault,null);
+});

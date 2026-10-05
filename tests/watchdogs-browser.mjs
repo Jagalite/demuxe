@@ -16,7 +16,7 @@ async function check(name,fn,options={},fixture='fixtures/example.mp4'){
  try{
   await page.goto(server.origin+'/experiment/page.html');
   await page.evaluate(async options=>{
-   const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{watchdogs:{nativeProgressTimeoutMs:1000},...options});
+   const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',watchdogs:{nativeProgressTimeoutMs:1000},...options});
    window.errors=[];player.addEventListener('error',event=>errors.push(event.detail));
    const input=document.createElement('input');input.id='file';input.type='file';document.body.append(input);
   },options);
@@ -42,7 +42,7 @@ const stalled=async(page,part='clock')=>{
  assert.equal(result.same,true);assert.equal(result.cached,undefined);assert.equal(result.errors.length,1);
 };
 try{
- await check('Native detects a frozen clock once without codec fallback',async page=>{await freezeClock(page);await stalled(page);});
+ await check('Pinned Native reports a frozen clock once without changing routes',async page=>{await freezeClock(page);await stalled(page);});
  await check('master disable survives open and runtime enable gets a fresh budget',async page=>{
   await freezeClock(page);await healthy(page);
   assert.equal(await page.evaluate(()=>player.monitor===undefined),true);

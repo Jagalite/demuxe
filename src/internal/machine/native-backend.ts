@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {NATIVE_OUTPUT_TIMEOUT_MS} from './playback-deadlines.js';
 import {initialNativeCaptions,queueNativeCaptionEffect,finishNativeCaptionEffect,beginNativeCaptionSelection,nativeCaptionCurrent,beginNativeCaption,acceptNativeCaption,finishNativeCaption,removeNativeCaption,retireNativeCaptions,updateNativeCaptionSelection,nativeCaptionRemaining,type NativeCaptionEffect,type NativeCaptions,type NativeCaptionRequest,type NativeCaptionKind} from './native-captions.js';
 import {beginNativeEventWait,nativeEventWaitCurrent,nativeEventWaitDeadline,type NativeEventRequest,type NativeEventWait} from './native-wait.js';
 import type {BufferingPolicy} from '../../types.js';
@@ -131,7 +132,7 @@ export function transitionNativeBackend(state:NativeBackendState,command:NativeB
    if(verification.phase==='preflight'||verification.phase==='audio'||verification.phase==='complete')return result(state,{},false);
    if(command.now<verification.deadline)return result(state,{remaining:verification.deadline-command.now});
    const missing=command.readyState>=3&&((verification.active.video&&!command.videoWidth)||(verification.output&&verification.active.audio&&(command.audioBytes===0||command.hasAudio===false)));
-   return result(state,{failure:missing&&(!verification.output||verification.budget>=10000)?'missing-output':'verification-timeout'});
+   return result(state,{failure:missing&&(!verification.output||verification.budget>=NATIVE_OUTPUT_TIMEOUT_MS)?'missing-output':'verification-timeout'});
   }
   if(verification.phase!=='sampling')return result(state,{},false);
   if(command.type==='verify.presented')return result({...state,verification:Object.freeze({...verification,presented:true})},{sample:true});

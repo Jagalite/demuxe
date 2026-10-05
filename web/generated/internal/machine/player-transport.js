@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { FIREFOX_LOCAL_RECOVERY_MS, fastLocalRecovery } from './playback-deadlines.js';
 import { recoveryRoute } from './route-recovery.js';
 export function initialPlayerTransport() { return Object.freeze({ serial: 0, pending: null }); }
 export function retirePlayerTransport(state) { return state.pending ? Object.freeze({ ...state, pending: null }) : state; }
@@ -45,7 +46,7 @@ export function transitionPlayerTransport(state, input) {
         const play = input.type === 'transport.play.begin';
         const bounded = play && state.source.automatic && input.local && input.nativeRemux !== 'never' && !input.trialVerified && ['direct', 'direct-mpv'].includes(input.backendPlan ?? '') && input.fallbackAvailable;
         const pending = Object.freeze({ id: state.transport.serial + 1, epoch: op.epoch, operation: op.id, session: state.source.acceptedSession, kind: play ? 'play' : 'seek', phase: play ? 'verifying' : 'seeking', intent: input.intent, target: play ? input.position : input.target, previous: play ? input.position : input.previous, wasPaused: state.settings.pause, trialSame: play && input.trialSame, trialVerified: play && input.trialVerified, bounded, local: play && input.local, inconclusive: false, backendPlan: play ? input.backendPlan : undefined, nativeRemux: play ? input.nativeRemux : 'auto' });
-        return set(pending, play ? { kind: 'verify', budget: bounded ? 1500 : undefined } : { kind: 'seek', target: input.target });
+        return set(pending, play ? { kind: 'verify', budget: fastLocalRecovery({ ...input, automatic: state.source.automatic }) ? FIREFOX_LOCAL_RECOVERY_MS : bounded ? 1500 : undefined } : { kind: 'seek', target: input.target });
     }
     if (!old || !playerTransportAuthority(state, input.id))
         return no();

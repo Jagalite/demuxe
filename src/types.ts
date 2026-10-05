@@ -30,7 +30,10 @@ export type BufferingProfile = 'low-latency' | 'balanced' | 'resilient';
  * Browser and Shaka cannot enforce it; consult diagnostics. */
 export type BufferingOptions = {preload?:PreloadPolicy; profile?:BufferingProfile; memoryBudget?:number; aheadSeconds?:number; behindSeconds?:number};
 export type BufferingPolicy = Readonly<Required<Pick<BufferingOptions,'preload'|'profile'>> & Pick<BufferingOptions,'memoryBudget'|'aheadSeconds'|'behindSeconds'>>;
-/** Playback-health heuristics only; operation, network and cleanup deadlines remain bounded. */
+/** Playback-health heuristics only; operation, network and cleanup deadlines remain bounded.
+ * Native progress defaults to 2000 ms (configurable 1000–120000 ms). Eligible
+ * automatic Firefox local direct recovery caps this at 500 ms; disabling
+ * nativeProgress still disables this monitor. Play output verification is separate. */
 export type WatchdogOptions = {nativeProgress?:boolean;hybridDecoder?:boolean;decoderOutput?:boolean;selectiveAudio?:boolean;nativeProgressTimeoutMs?:number};
 export type WatchdogPolicy = Readonly<Required<WatchdogOptions>>;
 export type BufferingCapabilities = Readonly<{control:'hint'|'profile'; preload:boolean; profile:boolean; memoryBudget:boolean}>;

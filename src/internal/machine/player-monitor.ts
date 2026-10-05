@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {NATIVE_OUTPUT_TIMEOUT_MS,FIREFOX_LOCAL_RECOVERY_MS,fastLocalRecovery,type NativeRecoveryFacts} from './playback-deadlines.js';
 import type {WatchdogPolicy,PlaybackMode} from '../../types.js';
 import {createNativeProgress,resetNativeProgress,sampleNativeProgress,type NativeProgressState,type NativeProgressSample} from './telemetry.js';
 import type {PlayerControlState} from './state.js';
@@ -12,8 +13,8 @@ export type PlayerMonitorInput=
   |Readonly<{type:'monitor.policy';policy:WatchdogPolicy}>
   |Readonly<{type:'monitor.activity'}>|Readonly<{type:'monitor.stop'}>
   |Readonly<{type:'monitor.reconcile';epoch:number;session:number|null;mode:PlaybackMode;present:boolean;error:boolean;closing:boolean;backendPaused:boolean;backendEOF:boolean;hidden:boolean}>
-  |Readonly<{type:'monitor.sample';id:number;epoch:number;session:number;activity:number;hidden:boolean;retired:boolean;error:boolean;now?:number;native:Readonly<NativeProgressSample>|null;timing:Readonly<{startTime:number;endTime:number;maxIntervalSeconds:number}>|null;hasVideo:boolean;softwareDecoder:boolean}>;
-export function initialPlayerMonitor():PlayerMonitorState{return Object.freeze({policy:Object.freeze({nativeProgress:true,hybridDecoder:true,decoderOutput:true,selectiveAudio:true,nativeProgressTimeoutMs:10000}),policyRevision:0,serial:0,activity:0,current:null,fault:null});}
+  |Readonly<{type:'monitor.sample';id:number;epoch:number;session:number;activity:number;hidden:boolean;retired:boolean;error:boolean;now?:number;recovery?:NativeRecoveryFacts;native:Readonly<NativeProgressSample>|null;timing:Readonly<{startTime:number;endTime:number;maxIntervalSeconds:number}>|null;hasVideo:boolean;softwareDecoder:boolean}>;
+export function initialPlayerMonitor():PlayerMonitorState{return Object.freeze({policy:Object.freeze({nativeProgress:true,hybridDecoder:true,decoderOutput:true,selectiveAudio:true,nativeProgressTimeoutMs:NATIVE_OUTPUT_TIMEOUT_MS}),policyRevision:0,serial:0,activity:0,current:null,fault:null});}
 export function stopPlayerMonitor(state:PlayerMonitorState):PlayerMonitorState{return state.current||state.fault?Object.freeze({...state,current:null,fault:null}):state;}
 export function monitorSampleEligible(state:PlayerControlState,input:Readonly<{session:number;hidden:boolean;retired:boolean;error:boolean}>):boolean{
   return input.session===state.source.acceptedSession&&state.source.acceptedEpoch===state.operations.epoch&&!state.operations.terminal&&!state.source.candidate&&state.operations.active===null&&state.operations.entries.length===0&&!state.settings.pause&&!input.hidden&&!input.retired&&!input.error;
@@ -45,7 +46,7 @@ export function transitionPlayerMonitor(state:PlayerControlState,input:PlayerMon
       if(!Number.isFinite(input.now))return no();
       const sample={...input.native},timing=input.timing;
       if(timing&&sample.time>=timing.startTime&&sample.time<timing.endTime-.25)sample.frameIntervalMs=1000*timing.maxIntervalSeconds/(sample.rate??1);else sample.frames=undefined;
-      const decision=sampleNativeProgress(progress,input.now!,sample,old.policy.nativeProgressTimeoutMs);progress=decision.state;if(decision.stalled)reason=decision.stalled;
+      const decision=sampleNativeProgress(progress,input.now!,sample,input.recovery&&fastLocalRecovery(input.recovery)?Math.min(old.policy.nativeProgressTimeoutMs,FIREFOX_LOCAL_RECOVERY_MS):old.policy.nativeProgressTimeoutMs);progress=decision.state;if(decision.stalled)reason=decision.stalled;
     }
   }else{inactive=input.hasVideo&&input.softwareDecoder?inactive+1:0;if(inactive>=4)reason='hybrid';}
   if(reason)return done(Object.freeze({...old,current:null,fault:Object.freeze({id:current.id,session:current.session,reason})}));

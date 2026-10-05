@@ -204,3 +204,32 @@ test('reentrant source replacement cannot reuse prior-session immediate Play or 
  await p.play();await replacement;
  assert.deepEqual(calls,['old-play','next-play',['verify-next',1500]]);assert.equal(p.control.transport.pending,null);
 });
+
+// Recovery remains symptom-driven: healthy completion never selects a fallback.
+test('Firefox local direct resumes use a short trial without changing initial route',()=>{
+ for(const trialVerified of [false,true]){
+  const m=model(),begin=m.play({firefox:true,trialVerified});
+  assert.equal(begin.transportEffect.budget,500);
+  assert.equal(m.send({type:'transport.complete',id:begin.id}).transportEffect,undefined);
+ }
+ const m=model(),begin=m.play({firefox:true,trialVerified:true});
+ const failed=m.send({type:'transport.play.failed',id:begin.id,compatible:false,inconclusive:true,streaming:false});
+ assert.equal(failed.transportEffect.kind,'fallback');assert.deepEqual(failed.transportEffect.requirements,{nativeRemux:'always'});
+});
+test('Firefox fast resume excludes remote, pinned, disabled-remux and alternative routes',()=>{
+ for(const extra of [{firefox:false},{local:false},{nativeRemux:'never'},{fallbackAvailable:false},{backendPlan:'remux'},{backendPlan:'hybrid'}]){
+  const m=model(),begin=m.play({firefox:true,trialVerified:true,...extra});assert.equal(begin.transportEffect.budget,undefined,JSON.stringify(extra));
+ }
+ const m=model({automatic:false});assert.equal(m.play({firefox:true,trialVerified:true}).transportEffect.budget,undefined);
+});
+test('Firefox quick recovery remains cancelable by Pause before selection',()=>{
+ const m=model(),begin=m.play({firefox:true,trialVerified:true});m.send({type:'play.retire'});
+ assert.equal(m.send({type:'transport.play.failed',id:begin.id,compatible:false,inconclusive:true,streaming:false}).transportEffect.kind,'ignore');
+});
+test('public Firefox resume passes the short budget and retains existing remux recovery',async t=>{
+ const {p}=fixture(t);p.root.ownerDocument.defaultView={navigator:{userAgent:'Mozilla/5.0 Gecko/20100101 Firefox/157.0'}};
+ p.evidence=()=>({outputVerified:true});let selected=0;
+ p.playNativeVerified=async(_backend,_playing,budget)=>{assert.equal(budget,500);throw new StartupEvidenceTimeout('output',budget);};
+ p.select=async(...args)=>{selected++;assert.deepEqual(args[8],{nativeRemux:'always'});};
+ await p.play();assert.equal(selected,1);assert.equal(p.control.transport.pending,null);
+});

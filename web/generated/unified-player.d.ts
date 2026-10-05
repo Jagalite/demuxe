@@ -187,6 +187,7 @@ export declare class Player extends EventTarget {
     get watchdogs(): WatchdogPolicy;
     /** Replaces the watchdog policy immediately; omitted object fields use defaults. */
     setWatchdogs(options: boolean | WatchdogOptions): void;
+    private nativeRecoveryFacts;
     private startWatchdogs;
     private monitorHandleId?;
     private sampleWatchdog;

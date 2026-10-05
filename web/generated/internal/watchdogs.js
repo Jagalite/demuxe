@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { NATIVE_OUTPUT_TIMEOUT_MS } from './machine/playback-deadlines.js';
 import { PlayerError } from './errors.js';
 import { createNativeProgress, resetNativeProgress, sampleNativeProgress } from './machine/telemetry.js';
 export function watchdogPolicy(options = true) {
@@ -9,7 +10,7 @@ export function watchdogPolicy(options = true) {
     for (const key of Object.keys(values))
         if (![...keys, 'nativeProgressTimeoutMs'].includes(key))
             throw new PlayerError('INVALID_ARGUMENT', 'Unknown watchdog option: ' + key);
-    const policy = { nativeProgress: options !== false, hybridDecoder: options !== false, decoderOutput: options !== false, selectiveAudio: options !== false, nativeProgressTimeoutMs: 10000 };
+    const policy = { nativeProgress: options !== false, hybridDecoder: options !== false, decoderOutput: options !== false, selectiveAudio: options !== false, nativeProgressTimeoutMs: NATIVE_OUTPUT_TIMEOUT_MS };
     for (const key of keys)
         if (values[key] !== undefined) {
             if (typeof values[key] !== 'boolean')

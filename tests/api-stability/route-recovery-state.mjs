@@ -142,3 +142,12 @@ test('preferred Software can recover to Hybrid while excluding its failed plan',
  assert.ok(p.tierAttempts.reason(p.source,p.tierConfiguration(p.settings),'software'));
  assert.equal(recoveryRoute({providerOrdered:true,mode:'hybrid',streaming:false,trigger:'runtime',nativeRemux:'auto'}).start,1);
 });
+
+test('runtime progress stalls recover once without poisoning codec capability',async t=>{
+ const p=unitPlayer();t.after(()=>p.destroy());const session=install(p,{error:new PlayerError('PLAYBACK_STALLED','clock stopped')});
+ p.runtimeCapabilities.begin(p.source,[{id:'native-direct',eligible:true}]);let selected=0;
+ p.select=async(...args)=>{selected++;assert.deepEqual(args[8],{nativeRemux:'always'});};
+ p.recover(session);await p.queue;await tick();assert.equal(selected,1);
+ const evidence=p.runtimeCapabilities.snapshot().find(r=>r.planId==='native-direct');assert.equal(evidence.state,'prepared');assert.equal(evidence.failureKind,undefined);
+ p.recover(session);await p.queue;assert.equal(selected,1);
+});

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type NativeRecoveryFacts } from './playback-deadlines.js';
 import type { WatchdogPolicy, PlaybackMode } from '../../types.js';
 import { type NativeProgressState, type NativeProgressSample } from './telemetry.js';
 import type { PlayerControlState } from './state.js';
@@ -51,6 +52,7 @@ export type PlayerMonitorInput = Readonly<{
     retired: boolean;
     error: boolean;
     now?: number;
+    recovery?: NativeRecoveryFacts;
     native: Readonly<NativeProgressSample> | null;
     timing: Readonly<{
         startTime: number;

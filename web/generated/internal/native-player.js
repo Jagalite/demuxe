@@ -9,6 +9,7 @@ import { selectNativeGain, nativeGainOutputWait } from './machine/native-control
 import { initialNativeBackend, nativeRequestCurrent, transitionNativeBackend } from './machine/native-backend.js';
 import { nativeMediaError, compatibilityFailure, StartupEvidenceTimeout, NativeLoadTimeout } from './runtime-capability.js';
 import { PlayerError, isPlayerError } from './errors.js';
+import { NATIVE_OUTPUT_TIMEOUT_MS } from './machine/playback-deadlines.js';
 import { watchdogPolicy } from './watchdogs.js';
 /** Browser media ownership, including listeners, pending loads and object URLs. */
 export class NativePlayer extends EventTarget {
@@ -291,9 +292,9 @@ export class NativePlayer extends EventTarget {
     listeners = [];
     watchdogs = watchdogPolicy();
     setWatchdogs(policy) { this.watchdogs = policy; this.mpvAudio?.setWatchdogs(policy); }
-    nativeProgressSample() {
+    nativeProgressSample(allowBufferedWaiting = false) {
         const video = this.video, time = this.sourceTime(), duration = this.sourceDuration(), rate = video.playbackRate;
-        if (this.stopped || this.opening || this.capability.outputVerified !== true || video.paused || video.seeking || video.ended || video.error || video.readyState < 3 || rate <= 0 || duration > 0 && time >= duration - .25)
+        if (this.stopped || this.opening || this.capability.outputVerified !== true || video.paused || video.seeking || video.ended || video.error || video.readyState < (allowBufferedWaiting ? 2 : 3) || rate <= 0 || duration > 0 && time >= duration - .25)
             return { eligible: false, time, rate };
         // buffered is a browser snapshot getter. Read it once, not per range bound.
         const buffered = video.buffered, mediaTime = video.currentTime;
@@ -586,7 +587,7 @@ export class NativePlayer extends EventTarget {
     }
     /** A paused candidate may prepare current data without presenting it. Only
      * verifyOutput can promote this evidence to executed playback. */
-    async verifyStartup(expected, output = false, signal, outputBudgetMs = 10000) {
+    async verifyStartup(expected, output = false, signal, outputBudgetMs = NATIVE_OUTPUT_TIMEOUT_MS) {
         signal?.throwIfAborted();
         this.assertActive();
         const request = this.changeNative({ type: 'verify.begin', output, budget: outputBudgetMs, expected }).request, previous = this.verificationCancel;
@@ -766,7 +767,7 @@ export class NativePlayer extends EventTarget {
             })().catch(finish);
         });
     }
-    async verifyOutput(signal, outputBudgetMs = 10000) { await this.verifyStartup(this.expectedOutput, true, signal, outputBudgetMs); }
+    async verifyOutput(signal, outputBudgetMs = NATIVE_OUTPUT_TIMEOUT_MS) { await this.verifyStartup(this.expectedOutput, true, signal, outputBudgetMs); }
     preparationError(error) {
         // These are explicit media/profile rejections from the selected audio engine.
         // Source transport, asset failures and cancellations keep their original type.

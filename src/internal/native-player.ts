@@ -15,6 +15,7 @@ import {PlayerError,isPlayerError} from './errors.js';
 import type {CapabilityEvidence} from './runtime-capability.js';
 import type {RemoteSource, TextTrackSource, TrackType, SubtitleAsset, FontAsset} from '../types.js';
 import type {Backend} from './backend.js';
+import {NATIVE_OUTPUT_TIMEOUT_MS} from './machine/playback-deadlines.js';
 import {watchdogPolicy} from './watchdogs.js';
 import type {WatchdogPolicy} from '../types.js';
 
@@ -155,9 +156,9 @@ export class NativePlayer extends EventTarget implements Backend {
   private listeners: Array<() => void> = [];
   private watchdogs=watchdogPolicy();
   setWatchdogs(policy:WatchdogPolicy){this.watchdogs=policy;this.mpvAudio?.setWatchdogs(policy);}
-  nativeProgressSample(){
+  nativeProgressSample(allowBufferedWaiting=false){
     const video=this.video,time=this.sourceTime(),duration=this.sourceDuration(),rate=video.playbackRate;
-    if(this.stopped||this.opening||this.capability.outputVerified!==true||video.paused||video.seeking||video.ended||video.error||video.readyState<3||rate<=0||duration>0&&time>=duration-.25)return {eligible:false,time,rate};
+    if(this.stopped||this.opening||this.capability.outputVerified!==true||video.paused||video.seeking||video.ended||video.error||video.readyState<(allowBufferedWaiting?2:3)||rate<=0||duration>0&&time>=duration-.25)return {eligible:false,time,rate};
     // buffered is a browser snapshot getter. Read it once, not per range bound.
     const buffered=video.buffered,mediaTime=video.currentTime;
     let ahead=0;
@@ -272,7 +273,7 @@ export class NativePlayer extends EventTarget implements Backend {
   }
   /** A paused candidate may prepare current data without presenting it. Only
    * verifyOutput can promote this evidence to executed playback. */
-  async verifyStartup(expected?:{video:boolean;audio:boolean}, output=false,signal?:AbortSignal,outputBudgetMs=10000) {
+  async verifyStartup(expected?:{video:boolean;audio:boolean}, output=false,signal?:AbortSignal,outputBudgetMs=NATIVE_OUTPUT_TIMEOUT_MS) {
     signal?.throwIfAborted();this.assertActive();
     const request=this.changeNative({type:'verify.begin',output,budget:outputBudgetMs,expected}).request!,previous=this.verificationCancel;
     const v=this.video as HTMLVideoElement & {webkitAudioDecodedByteCount?:number;mozDecodedFrames?:number;mozHasAudio?:boolean};
@@ -359,7 +360,7 @@ export class NativePlayer extends EventTarget implements Backend {
       })().catch(finish);
     });
   }
-  async verifyOutput(signal?:AbortSignal,outputBudgetMs=10000){await this.verifyStartup(this.expectedOutput,true,signal,outputBudgetMs);}
+  async verifyOutput(signal?:AbortSignal,outputBudgetMs=NATIVE_OUTPUT_TIMEOUT_MS){await this.verifyStartup(this.expectedOutput,true,signal,outputBudgetMs);}
   private preparationError(error:unknown):unknown {
     // These are explicit media/profile rejections from the selected audio engine.
     // Source transport, asset failures and cancellations keep their original type.

@@ -15,6 +15,7 @@ import {bufferingPolicy, resolveBuffering} from './internal/buffering.js';
 import {PlayerPresentation} from './presentation.js';
 import {isCustomSource,materializeSource} from './sources.js';
 import {playbackStatisticsClockReads,selectPlaybackStatistics} from './internal/machine/telemetry.js';
+import {fastLocalRecovery} from './internal/machine/playback-deadlines.js';
 import {watchdogPolicy} from './internal/watchdogs.js';
 import type {WatchdogOptions,WatchdogPolicy} from './types.js';
 import type {BufferingOptions, BufferingPolicy, BufferingResolution, BufferingState} from './types.js';
@@ -431,6 +432,9 @@ export class Player extends EventTarget {
     if(candidate===this.candidate)candidate?.backend.setWatchdogs?.(policy);
     if(revision===this.control.monitor.policyRevision&&!this.destroyed)this.startWatchdogs();
   }
+  private nativeRecoveryFacts(session:Session){
+    return {firefox:/Firefox\/\d/.test(this.root?.ownerDocument?.defaultView?.navigator?.userAgent??''),local:this.source?.kind==='local',automatic:this.automatic,backendPlan:backendPlan(session.backend),nativeRemux:this.nativeRemux,fallbackAvailable:!!this.planDecisions?.some(plan=>plan.eligible&&!plan.id.startsWith('native-direct'))};
+  }
   private startWatchdogs(){
     const session=this.current,mode=this.mode,epoch=this.operationEpoch,sessionId=this.control.source.acceptedSession;
     const error=!!session?.error,closing=!!this.closing,enabled=mode==='native'?this.watchdogConfiguration.nativeProgress:mode==='hybrid'&&this.watchdogConfiguration.hybridDecoder;
@@ -458,10 +462,10 @@ export class Player extends EventTarget {
     const owner=this.control.monitor.current;if(!owner||owner.id!==id||this.current!==session)return;
     const epoch=this.operationEpoch,activity=this.control.monitor.activity;
     const facts={session:sessionId,hidden:!!this.root.ownerDocument.hidden,retired:!!session.retired,error:!!session.error};
-    const eligible=monitorSampleEligible(this.control,facts);
+    const eligible=monitorSampleEligible(this.control,facts),recovery=this.nativeRecoveryFacts(session);
     let native:NativeProgressSample|null=null,now:number|undefined,timing:null|{startTime:number;endTime:number;maxIntervalSeconds:number}=null,hasVideo=false,softwareDecoder=false;
     if(eligible&&owner.mode==='native'){
-      const sample=session.backend.nativeProgressSample?.();
+      const sample=session.backend.nativeProgressSample?.(fastLocalRecovery(recovery));
       if(sample){native={eligible:sample.eligible,time:sample.time,rate:sample.rate,frames:sample.frames,frameIntervalMs:sample.frameIntervalMs,videoEnd:sample.videoEnd};
         const metadata=this.sourceInspection?.probe.tracks.find(t=>t.type==='video'&&!t.attachedPicture)?.frameTiming;
         if(metadata)timing={startTime:metadata.startTime,endTime:metadata.endTime,maxIntervalSeconds:metadata.maxIntervalSeconds};now=performance.now();}
@@ -470,7 +474,7 @@ export class Player extends EventTarget {
       softwareDecoder=(session.backend.diagnostics as {decoder?:string}|undefined)?.decoder==='software';
     }
     if(this.current!==session)return;
-    const sampled=this.dispatchControl({type:'monitor.sample',id,epoch,session:sessionId,activity,hidden:facts.hidden,retired:facts.retired,error:facts.error,native,now,timing,hasVideo,softwareDecoder});
+    const sampled=this.dispatchControl({type:'monitor.sample',id,epoch,session:sessionId,activity,hidden:facts.hidden,retired:facts.retired,error:facts.error,recovery,native,now,timing,hasVideo,softwareDecoder});
     const fault=this.control.monitor.fault;if(!sampled.accepted||fault?.id!==id)return;
     const error=fault.reason==='hybrid'?new PlayerError('DECODE_FAILED','Hybrid browser decoder became inactive for four consecutive checks'):new PlayerError('PLAYBACK_STALLED',`Native ${fault.reason==='clock'?'playback clock':'video frame counter'} stopped progressing despite buffered media`,null,null,'session',true);
     this.stopWatchdogs();if(this.current!==session||sessionAuthority(this.control,sessionId)!=='accepted')return;this.recordSessionFault(session,error);
@@ -1725,11 +1729,12 @@ export class Player extends EventTarget {
     let queued=false;
     try{
       const plan=executionPlan(this.mode,backendPlan(session.backend),this.settings.af,this.settings.gain,!!(session.backend.diagnostics as {subtitleOverlay?:unknown})?.subtitleOverlay);
-      const evidence=this.evidence(session),message=String(session.error),compatible=compatibilityFailure(session.error);
+      const evidence=this.evidence(session),message=String(session.error),compatible=compatibilityFailure(session.error),stalled=session.error instanceof PlayerError&&session.error.code==='PLAYBACK_STALLED';
       if(this.control.routing.recovery.pending?.id!==id||this.current!==session)return;
-      this.runtimeCapabilities.update(plan.id,'failed',evidence,message,compatible?'compatibility':'terminal',revision);
+      // A progress stall rejects this session, not the browser codec capability.
+      this.runtimeCapabilities.update(plan.id,stalled?'prepared':'failed',evidence,message,stalled?undefined:compatible?'compatibility':'terminal',revision);
       if(this.control.routing.recovery.pending?.id!==id||this.current!==session)return;
-      if(!this.dispatchControl({type:'routing.recovery',change:{kind:'classified',id,compatible}}).accepted)return;
+      if(!this.dispatchControl({type:'routing.recovery',change:{kind:'classified',id,compatible:compatible||stalled}}).accepted)return;
       if(this.control.routing.recovery.pending?.phase==='terminal'){this.dispatchControl({type:'routing.recovery',change:{kind:'finished',id}});void this.backendEffect(session,'backend.pause').catch(()=>{});if(this.current===session&&sessionAuthority(this.control,sessionId)==='accepted')this.emit('error',session.error);return;}
       if(!evidenceInterrupted(session.error))this.tierAttempts.failure(this.source!,this.tierConfiguration(this.settings),plan.id,String(session.error));
       queued=true;
@@ -1881,7 +1886,7 @@ export class Player extends EventTarget {
     try{if(!this.destroyed&&this.queued===0&&this.current){immediateSession=this.current;immediate=this.backendEffect(immediateSession,'backend.play',intentId);}}catch(error){this.dispatchControl({type:'play.settled',id:intentId});this.playRequests.delete(intentId);throw error;}
     immediate?.catch(()=>{});
     return this.enqueue(async()=>{if(intent.signal.aborted)return;if(!this.current)throw Error('No source');const session=this.current;
-      const begin=this.dispatchControl({type:'transport.play.begin',intent:intentId,position:trialPosition,trialSame:session===trialSession,trialVerified:session===trialSession&&trialVerified,local:this.source?.kind==='local',backendPlan:backendPlan(session.backend),nativeRemux:this.nativeRemux,fallbackAvailable:!!this.planDecisions?.some(plan=>plan.eligible&&!plan.id.startsWith('native-direct'))});
+      const begin=this.dispatchControl({type:'transport.play.begin',intent:intentId,position:trialPosition,trialSame:session===trialSession,trialVerified:session===trialSession&&trialVerified,...this.nativeRecoveryFacts(session)});
       if(!begin.accepted)throw new PlayerError('ABORTED','Playback recovery was retired');const id=begin.id!;
       this.updateSettings({pause:false});
       try{
