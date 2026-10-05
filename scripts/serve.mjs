@@ -25,7 +25,16 @@ const server=http.createServer(async(req,res)=>{
   try {
     if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{'Allow':'GET, HEAD'}).end();return;}
     const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
-    if(['/index.js','/player.js'].includes(pathname)){res.setHeader('Content-Type','text/javascript');res.end(`export * from '${pathname==='/player.js'?'./web/generated/player/index.js':runtime===root?'./web/generated/index.js':'./dist/index.js'}';`);return;}
+    if(['/index.js','/player.js'].includes(pathname)){
+      res.setHeader('Content-Type','text/javascript');
+      if(runtime!==root){
+        // Beta archives carry public entries at their root; modular core bundles
+        // expose the generated facade below. Serve the actual installed entry.
+        try{const entry=await readFile(path.join(runtime,pathname.slice(1)));res.end(req.method==='HEAD'?undefined:entry);return;}
+        catch(error){if(error.code!=='ENOENT')throw error;}
+      }
+      res.end(req.method==='HEAD'?undefined:`export * from '${pathname==='/player.js'?'./web/generated/player/index.js':runtime===root?'./web/generated/index.js':'./dist/index.js'}';`);return;
+    }
     if(pathname==='/favicon.ico'){res.writeHead(204).end();return;}
     if(!pathname.startsWith('/dist/')&&pathname!=='/demuxe-providers.json'&&!pathname.startsWith('/web/')&&!pathname.startsWith('/fixtures/')&&!pathname.startsWith('/examples/')&&pathname!=='/'&&!['/index.js','/player.js'].includes(pathname)) {res.writeHead(404).end();return;}
     const facade=['/index.js','/player.js'].includes(pathname);
