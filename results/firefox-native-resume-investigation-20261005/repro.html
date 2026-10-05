@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><title>Firefox native resume diagnostic</title>
+<style>body{font:16px system-ui;margin:24px;background:#17191c;color:#eee}button{padding:10px;margin:8px 8px 8px 0}pre{white-space:pre-wrap}#host{width:640px;height:360px}</style>
+<h1>Native seek / resume diagnostic</h1><p>Uses the unchanged example.mp4 in a plain video element. No Demuxe is imported for these controls.</p>
+<button id="immediate">Immediate resume</button><button id="settled">Resume after 250 ms</button><button id="http">HTTP source</button><p id="status">Ready</p><div id="host"></div><pre id="result"></pre>
+<script src="/probe-page.js"></script><script>
+for(const [id,kind] of [['immediate','plain-cold-longwait'],['settled','plain-cold-settled'],['http','plain-cold-http']])document.getElementById(id).onclick=async()=>{
+ const buttons=[...document.querySelectorAll('button')];buttons.forEach(b=>b.disabled=true);document.getElementById('status').textContent='Running '+kind+' (up to 25 seconds)';
+ try{window.lastResult=await runResumeProbe(kind);document.getElementById('status').textContent=lastResult.failure?'Stalled: '+lastResult.failure:'Completed';document.getElementById('result').textContent=JSON.stringify({failure:lastResult.failure,commands:lastResult.commands.map(c=>({name:c.name,target:c.target,passed:c.passed,milliseconds:c.after.at-c.before.at})),final:lastResult.final},null,2);}
+ catch(e){document.getElementById('status').textContent=String(e);}finally{buttons.forEach(b=>b.disabled=false);}
+};</script>

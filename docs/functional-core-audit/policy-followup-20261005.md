@@ -51,3 +51,7 @@ Reviewed the remaining-policy adapter boundaries after commit `3c1be98a`. Added 
 Pre-fix probes failed for timer-acquisition retirement, late abort-listener registration, and three interrupted media-release sequences. The adapter now releases late-acquired handles, checks retirement between registrations, attempts every final release, and includes host receipt registration inside the resource lifetime. No new persistent fields or core authority were added. Local release-error arrays are bounded by four actions. These are deterministic fault-injection and simulated adapter checks, not browser/native concurrency or endurance qualification.
 
 Validation: 140 affected-suite tests passed; the full unit gate passed 3,405/3,405 (`results/api-stability/gate-unit-all-node-1791232047213`). TypeScript compilation, static core boundaries and source ownership classification passed (895 supported fields reviewed; zero changed sources or pending indexed writes). Browser/native runtime checks were not rerun for this follow-up.
+
+## Archived evidence
+
+The selected receipts in `results/functional-core-review-20261005/` and `results/functional-core-migration-20261005/` retain their original source hashes, counts and pre-commit status. They describe earlier snapshots, not the final current runtime. The 3,405-test gate receipt is retained separately at `results/api-stability/gate-unit-all-node-1791232047213/result.json`. Historical source probes may intentionally fail against later implementations.

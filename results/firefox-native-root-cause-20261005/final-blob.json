@@ -1,0 +1,2480 @@
+{
+  "probeSource": "// SPDX-License-Identifier: Apache-2.0\nwindow.runResumeProbe=async kind=>{\n   const delay=ms=>new Promise(r=>setTimeout(r,ms));\n   const blob=new File([await(await fetch(window.fixtureProbeURL??'/fixtures/example.mp4')).arrayBuffer()],'example.mp4',{type:kind.includes('typed')?'video/mp4':''});\n   const fixtureSHA256=[...new Uint8Array(await crypto.subtle.digest('SHA-256',await blob.arrayBuffer()))].map(v=>v.toString(16).padStart(2,'0')).join('');\n   const traces=[],events=[],commands=[];let p,v,url,loopTimer;\n   const plain=kind.startsWith('plain');\n   if(plain){v=document.createElement('video');v.style.width='640px';v.style.height='360px';v.preload='auto';v.muted=kind.includes('muted');document.querySelector('#host').append(v);url=URL.createObjectURL(blob);v.src=kind.includes('http')?'/fixtures/example.mp4':url;v.load();await new Promise((r,j)=>{v.addEventListener('loadeddata',r,{once:true});v.addEventListener('error',j,{once:true});});}\n   else {const {Player}=await import('/web/generated/index.js');p=new Player(document.querySelector('#host'),{...(kind.includes('automatic')?{}:{mode:'native'}),nativeRemux:kind.includes('remux')?'always':'auto',preview:{debounceMs:0}});await p.open(blob);v=p.surface;await p.setLoop({start:0,end:10});}\n   const ranges=r=>Array.from({length:r.length},(_,i)=>[r.start(i),r.end(i)]);\n   const state=()=>({at:performance.now(),time:v.currentTime,paused:v.paused,ended:v.ended,seeking:v.seeking,ready:v.readyState,network:v.networkState,duration:v.duration,frames:v.getVideoPlaybackQuality().totalVideoFrames,dropped:v.getVideoPlaybackQuality().droppedVideoFrames,buffered:ranges(v.buffered),seekable:ranges(v.seekable),error:v.error?{code:v.error.code,message:v.error.message}:null,preload:v.preload,muted:v.muted,rate:v.playbackRate,player:p?{time:p.state.currentTime,duration:p.state.duration,plan:p.diagnostics.plan?.id,status:p.state.status,intent:p.state.playbackIntent,pending:p.state.pendingOperation}:null});\n   for(const name of ['play','playing','pause','waiting','stalled','seeking','seeked','canplay','canplaythrough','ended','error','suspend','emptied','loadeddata'])v.addEventListener(name,()=>events.push({event:name,...state()}));\n   const sampler=setInterval(()=>traces.push(state()),100);\n   const bounded=async(promise,ms)=>{let timer;try{return await Promise.race([promise,new Promise((_,reject)=>timer=setTimeout(()=>reject(Error('Probe deadline')),ms))]);}finally{clearTimeout(timer);}};\n   const observe=async()=>{const start=v.currentTime,frames=v.getVideoPlaybackQuality().totalVideoFrames;for(let n=0;n<(kind.includes('longwait')?800:100);n++){if(v.currentTime>start+.02&&v.readyState>=3&&v.getVideoPlaybackQuality().totalVideoFrames>frames)return;await delay(25);}throw Error('Plain output stalled');};\n   const run=async(name,target,action)=>{const before=state();try{await bounded(action(),kind.includes('longwait')?24000:12000);commands.push({name,target,before,after:state(),passed:true});}catch(e){commands.push({name,target,before,after:state(),passed:false,error:String(e),code:e.code});throw e;}};\n   let failure,rescue;\n   try{\n    await run('initial-play',0,async()=>{if(p)await p.play();else{await v.play();await observe();}});\n    if(kind.includes('webaudio')){window.probeCtx=new AudioContext();window.probeCtx.createMediaElementSource(v).connect(window.probeCtx.destination);await window.probeCtx.resume();}\n    if(plain)loopTimer=setInterval(()=>{if(v.currentTime>=10){v.currentTime=0;}},25);\n    await delay(kind.includes('cold')?0:30000);\n    if(loopTimer)clearInterval(loopTimer);if(p)await p.setLoop(false);\n    for(const target of (kind.includes('matrix')?[0.5,5,7.1,8,9,10,11]:kind.includes('single9')?[9]:[1,5,9])){\n     if(kind.includes('ratehalf')){if(p)await p.setPlaybackRate(.5);else v.playbackRate=.5;}\n     if(kind.includes('rate2')){if(p)await p.setPlaybackRate(2);else v.playbackRate=2;}\n     if(kind.includes('rate4')){if(p)await p.setPlaybackRate(4);else v.playbackRate=4;}\n     await run('pause',target,async()=>p?await p.pause():v.pause());\n     let seekFrame;if(kind.includes('framegate'))seekFrame=new Promise(resolve=>{const frame=(_,m)=>{if(Math.abs(m.mediaTime-target)<.04)resolve(m.mediaTime);else v.requestVideoFrameCallback(frame);};v.requestVideoFrameCallback(frame);});\n     await run('seek',target,async()=>{if(p)await p.seek(target);else await new Promise(r=>{v.addEventListener('seeked',r,{once:true});v.currentTime=target;});});\n     if(seekFrame)await bounded(seekFrame,2000);\n     if(kind.includes('settled'))await delay(250);\n     await run('play',target,async()=>{if(p){await p.play();v=p.surface;const start=p.state.currentTime,frames=v.getVideoPlaybackQuality().totalVideoFrames;await delay(100);if(!v.ended&&(p.state.currentTime<=start+.02||v.getVideoPlaybackQuality().totalVideoFrames<=frames))throw Error('Accepted play did not continue producing output');if(p.state.currentTime<target-.05)throw Error('Resume lost requested source position');}else{await v.play();await observe();}});\n    }\n   }catch(e){failure=String(e);await delay(3000);if(kind.includes('muterescue')){rescue={before:state()};v.muted=true;await delay(500);rescue.muted=state();v.muted=false;await delay(500);rescue.unmuted=state();}if(kind.includes('reseekrescue')){rescue={before:state()};v.currentTime=9;await delay(1000);rescue.after=state();}}\n   if(p){v=p.surface;await delay(500);}const final=state();clearInterval(sampler);clearInterval(loopTimer);\n   if(p)await p.destroy();else{v.pause();v.removeAttribute('src');v.load();v.remove();URL.revokeObjectURL(url);}\n   if(window.probeCtx){await window.probeCtx.close();window.probeCtx=null;}return {fixtureSHA256,failure,rescue,commands,events,traces,final};\n  };\n",
+  "started": "2026-10-05T14:27:35.920Z",
+  "profile": "/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/demuxe-firefox-resume-VdDlJ7",
+  "connection": "Isolated installed Firefox WebDriver BiDi",
+  "cases": [
+    {
+      "kind": "plain-cold-single9",
+      "result": {
+        "fixtureSHA256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c",
+        "failure": "Error: Plain output stalled",
+        "commands": [
+          {
+            "name": "initial-play",
+            "target": 0,
+            "before": {
+              "at": 268,
+              "time": 0,
+              "paused": true,
+              "ended": false,
+              "seeking": false,
+              "ready": 4,
+              "network": 1,
+              "duration": 12.011,
+              "frames": 0,
+              "dropped": 0,
+              "buffered": [
+                [
+                  0,
+                  12.001
+                ]
+              ],
+              "seekable": [
+                [
+                  0,
+                  12.011
+                ]
+              ],
+              "error": null,
+              "preload": "auto",
+              "muted": false,
+              "rate": 1,
+              "player": null
+            },
+            "after": {
+              "at": 595,
+              "time": 0.059145,
+              "paused": false,
+              "ended": false,
+              "seeking": false,
+              "ready": 4,
+              "network": 1,
+              "duration": 12.011,
+              "frames": 2,
+              "dropped": 0,
+              "buffered": [
+                [
+                  0,
+                  12.001
+                ]
+              ],
+              "seekable": [
+                [
+                  0,
+                  12.011
+                ]
+              ],
+              "error": null,
+              "preload": "auto",
+              "muted": false,
+              "rate": 1,
+              "player": null
+            },
+            "passed": true
+          },
+          {
+            "name": "pause",
+            "target": 9,
+            "before": {
+              "at": 602,
+              "time": 0.059145,
+              "paused": false,
+              "ended": false,
+              "seeking": false,
+              "ready": 4,
+              "network": 1,
+              "duration": 12.011,
+              "frames": 2,
+              "dropped": 0,
+              "buffered": [
+                [
+                  0,
+                  12.001
+                ]
+              ],
+              "seekable": [
+                [
+                  0,
+                  12.011
+                ]
+              ],
+              "error": null,
+              "preload": "auto",
+              "muted": false,
+              "rate": 1,
+              "player": null
+            },
+            "after": {
+              "at": 602,
+              "time": 0.059145,
+              "paused": true,
+              "ended": false,
+              "seeking": false,
+              "ready": 4,
+              "network": 1,
+              "duration": 12.011,
+              "frames": 2,
+              "dropped": 0,
+              "buffered": [
+                [
+                  0,
+                  12.001
+                ]
+              ],
+              "seekable": [
+                [
+                  0,
+                  12.011
+                ]
+              ],
+              "error": null,
+              "preload": "auto",
+              "muted": false,
+              "rate": 1,
+              "player": null
+            },
+            "passed": true
+          },
+          {
+            "name": "seek",
+            "target": 9,
+            "before": {
+              "at": 602,
+              "time": 0.059145,
+              "paused": true,
+              "ended": false,
+              "seeking": false,
+              "ready": 4,
+              "network": 1,
+              "duration": 12.011,
+              "frames": 2,
+              "dropped": 0,
+              "buffered": [
+                [
+                  0,
+                  12.001
+                ]
+              ],
+              "seekable": [
+                [
+                  0,
+                  12.011
+                ]
+              ],
+              "error": null,
+              "preload": "auto",
+              "muted": false,
+              "rate": 1,
+              "player": null
+            },
+            "after": {
+              "at": 629,
+              "time": 9,
+              "paused": true,
+              "ended": false,
+              "seeking": false,
+              "ready": 4,
+              "network": 1,
+              "duration": 12.011,
+              "frames": 2,
+              "dropped": 0,
+              "buffered": [
+                [
+                  0,
+                  12.001
+                ]
+              ],
+              "seekable": [
+                [
+                  0,
+                  12.011
+                ]
+              ],
+              "error": null,
+              "preload": "auto",
+              "muted": false,
+              "rate": 1,
+              "player": null
+            },
+            "passed": true
+          },
+          {
+            "name": "play",
+            "target": 9,
+            "before": {
+              "at": 629,
+              "time": 9,
+              "paused": true,
+              "ended": false,
+              "seeking": false,
+              "ready": 4,
+              "network": 1,
+              "duration": 12.011,
+              "frames": 2,
+              "dropped": 0,
+              "buffered": [
+                [
+                  0,
+                  12.001
+                ]
+              ],
+              "seekable": [
+                [
+                  0,
+                  12.011
+                ]
+              ],
+              "error": null,
+              "preload": "auto",
+              "muted": false,
+              "rate": 1,
+              "player": null
+            },
+            "after": {
+              "at": 3871,
+              "time": 9,
+              "paused": false,
+              "ended": false,
+              "seeking": false,
+              "ready": 2,
+              "network": 1,
+              "duration": 12.011,
+              "frames": 2,
+              "dropped": 0,
+              "buffered": [
+                [
+                  0,
+                  12.001
+                ]
+              ],
+              "seekable": [
+                [
+                  0,
+                  12.011
+                ]
+              ],
+              "error": null,
+              "preload": "auto",
+              "muted": false,
+              "rate": 1,
+              "player": null
+            },
+            "passed": false,
+            "error": "Error: Plain output stalled"
+          }
+        ],
+        "events": [
+          {
+            "event": "canplay",
+            "at": 268,
+            "time": 0,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 0,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "event": "canplaythrough",
+            "at": 268,
+            "time": 0,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 0,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "event": "play",
+            "at": 268,
+            "time": 0,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 0,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "event": "playing",
+            "at": 268,
+            "time": 0,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 0,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "event": "pause",
+            "at": 602,
+            "time": 9,
+            "paused": true,
+            "ended": false,
+            "seeking": true,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "event": "seeking",
+            "at": 621,
+            "time": 9,
+            "paused": true,
+            "ended": false,
+            "seeking": true,
+            "ready": 1,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "event": "seeked",
+            "at": 629,
+            "time": 9,
+            "paused": true,
+            "ended": false,
+            "seeking": false,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "event": "canplay",
+            "at": 630,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "event": "canplaythrough",
+            "at": 630,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "event": "play",
+            "at": 630,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "event": "playing",
+            "at": 630,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "event": "waiting",
+            "at": 773,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          }
+        ],
+        "traces": [
+          {
+            "at": 370,
+            "time": 0,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 0,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 474,
+            "time": 0,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 0,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 578,
+            "time": 0.017562,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 1,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 681,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 4,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 790,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 895,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 1003,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 1113,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 1216,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 1320,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 1423,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 1534,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 1635,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 1735,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 1842,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 1942,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 2043,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 2145,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 2250,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 2352,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 2456,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 2561,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 2671,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 2775,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 2885,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 2991,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 3094,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 3195,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 3299,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 3402,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 3509,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 3612,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 3714,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 3818,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 3928,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 4038,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 4145,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 4255,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 4357,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 4467,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 4577,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 4684,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 4805,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 4915,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 5025,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 5133,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 5241,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 5345,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 5449,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 5559,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 5667,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 5771,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 5878,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 5978,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 6088,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 6199,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 6309,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 6419,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 6521,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 6624,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 6730,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          },
+          {
+            "at": 6833,
+            "time": 9,
+            "paused": false,
+            "ended": false,
+            "seeking": false,
+            "ready": 2,
+            "network": 1,
+            "duration": 12.011,
+            "frames": 2,
+            "dropped": 0,
+            "buffered": [
+              [
+                0,
+                12.001
+              ]
+            ],
+            "seekable": [
+              [
+                0,
+                12.011
+              ]
+            ],
+            "error": null,
+            "preload": "auto",
+            "muted": false,
+            "rate": 1,
+            "player": null
+          }
+        ],
+        "final": {
+          "at": 6879,
+          "time": 9,
+          "paused": false,
+          "ended": false,
+          "seeking": false,
+          "ready": 2,
+          "network": 1,
+          "duration": 12.011,
+          "frames": 2,
+          "dropped": 0,
+          "buffered": [
+            [
+              0,
+              12.001
+            ]
+          ],
+          "seekable": [
+            [
+              0,
+              12.011
+            ]
+          ],
+          "error": null,
+          "preload": "auto",
+          "muted": false,
+          "rate": 1,
+          "player": null
+        }
+      }
+    }
+  ],
+  "session": {
+    "sessionId": "013a46dd-7e89-46d7-9756-2c78b343268e",
+    "capabilities": {
+      "acceptInsecureCerts": false,
+      "browserName": "firefox",
+      "browserVersion": "157.0",
+      "platformName": "mac",
+      "setWindowRect": true,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:157.0) Gecko/20100101 Firefox/157.0",
+      "moz:buildID": "20260924084938",
+      "moz:headless": true,
+      "moz:platformVersion": "25.5.0",
+      "moz:processID": 62488,
+      "moz:profile": "/var/folders/p2/hs2582qs5672qbvtm4z5_9840000gn/T/demuxe-firefox-resume-VdDlJ7",
+      "moz:shutdownTimeout": 60000
+    }
+  },
+  "log": "*** You are running in headless mode.\nWebDriver BiDi listening on ws://127.0.0.1:4209\n1791210456401\tRemoteAgent\tINFO\tPerform WebSocket upgrade for incoming connection from 127.0.0.1:59733\n[GFX1-]: RenderCompositorSWGL failed mapping default framebuffer, no dt\nsysctlbyname for kern.hv_vmm_present failed with status -1",
+  "finished": "2026-10-05T14:27:44.256Z"
+}

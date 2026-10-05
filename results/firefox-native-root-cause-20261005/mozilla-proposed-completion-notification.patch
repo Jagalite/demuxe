@@ -1,0 +1,12 @@
+--- a/dom/media/ChannelMediaDecoder.cpp
++++ b/dom/media/ChannelMediaDecoder.cpp
+@@ -312,6 +312,9 @@
+   if (NS_SUCCEEDED(aStatus)) {
+     // Download ends successfully. This is a stream with a finite length.
+     GetStateMachine()->DispatchIsLiveStream(false);
++    // Local file/blob resources notify completion without data-arrival events.
++    // Recompute and dispatch can-play-through now that their full size is known.
++    DownloadProgressed();
+   }
+ 
+   MediaDecoderOwner* owner = GetOwner();
