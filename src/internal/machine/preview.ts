@@ -11,7 +11,7 @@ export type PreviewControlState=Readonly<{
   options:PreviewSettings;allowed:boolean;suspended:boolean;playbackActive:boolean;disposed:boolean;
   interaction:PreviewInteractionState;strategy:PreviewStrategyData|null;duration:number|null;hoverUntil:number;playbackPosition:number;lastForeground:number;
   sourceId:string;revision:number;serial:number;requestEpoch:number;retiring:number;active:PreviewJobState|null;pending:PreviewJobState|null;
-  caller:Readonly<{id:number;jobId:number}>|null;cache:readonly PreviewCacheEntry[];bytes:number;
+  caller:Readonly<{id:number;jobId:number;deadline:number}>|null;cache:readonly PreviewCacheEntry[];bytes:number;
   counters:Readonly<{requests:number;hits:number;failures:number;cancelled:number}>;
   lastFailure?:Readonly<{provider:string;kind:string}>;
 }>;
@@ -24,7 +24,7 @@ export type PreviewControlEvent=
   |{kind:'dispose'}|{kind:'clear-cache'}|{kind:'limits';maxEntries:number;maxCacheBytes:number}
   |{kind:'cancel-job';id:number}|{kind:'ready';id:number}|{kind:'finish-job';id:number}
   |{kind:'provider';id:number;requiresDecoder:boolean|undefined}|{kind:'selection';id:number;milliseconds:number}
-  |{kind:'failure';provider:string;errorKind:string}|{kind:'caller';jobId:number}|{kind:'settle';failed:boolean};
+  |{kind:'failure';provider:string;errorKind:string}|{kind:'caller';jobId:number;at?:number}|{kind:'settle';failed:boolean};
 
 export function createPreviewControl(settings:Omit<PreviewOptionsData,'pregenerate'|'strategy'>={}):PreviewControlState {
   const options={enabled:true,bucketSeconds:1,debounceMs:50,width:160,maxCacheBytes:4*1024*1024,maxEntries:48,timeoutMs:10000,...settings};
@@ -77,7 +77,7 @@ export function transitionPreviewControl(state:PreviewControlState,event:Preview
       const job=previewJob(state,event.id);return job?Object.freeze({...state,...updateJob(event.id,{selectionMs:job.selectionMs+event.milliseconds})}):state;
     }
     case 'failure':return Object.freeze({...state,counters:Object.freeze({...state.counters,failures:state.counters.failures+1}),lastFailure:Object.freeze({provider:event.provider,kind:event.errorKind})});
-    case 'caller':return state.disposed||state.retiring||!previewJob(state,event.jobId)||previewJob(state,event.jobId)!.aborted?state:Object.freeze({...state,serial:state.serial+1,caller:Object.freeze({id:state.serial+1,jobId:event.jobId})});
+    case 'caller':return state.disposed||state.retiring||!previewJob(state,event.jobId)||previewJob(state,event.jobId)!.aborted?state:Object.freeze({...state,serial:state.serial+1,caller:Object.freeze({id:state.serial+1,jobId:event.jobId,deadline:(event.at??0)+state.options.timeoutMs})});
     case 'settle':return !state.caller?state:Object.freeze({...state,caller:null,counters:event.failed?Object.freeze({...state.counters,cancelled:state.counters.cancelled+1}):state.counters});
   }
 }
@@ -159,4 +159,21 @@ export function unloadPreviewCache(state:PreviewControlState,start:number,end:nu
   const jobs=[state.active,state.pending].filter(job=>job!==null&&contains(job.time)).map(job=>job!.id);
   const removed=state.cache.filter(entry=>contains(JSON.parse(entry.key)[2]));
   return Object.freeze({state:Object.freeze({...state,cache:Object.freeze(state.cache.filter(entry=>!contains(JSON.parse(entry.key)[2]))),bytes:state.bytes-removed.reduce((sum,entry)=>sum+entry.bytes,0)}),jobs:Object.freeze(jobs),removed:removed.length});
+}
+
+export function previewCallerDeadline(state:PreviewControlState,id:number,at:number):'retired'|'wait'|'timeout'{return state.caller?.id!==id?'retired':at<state.caller.deadline?'wait':'timeout';}
+export function previewGenerationOutcome(state:PreviewControlState,at:number,deferred:boolean):'wait'|'next'|'stop'{
+ if(state.disposed)return 'stop';
+ return deferred||state.suspended||at-state.lastForeground<(state.strategy?.type==='demuxe'?100:500)?'wait':'next';
+}
+export function previewResultAccepted(exact:boolean,time:number,result:Readonly<{temporalAccuracy?:string;actualTime?:number|null}>|null):boolean{return result!==null&&(!exact||result.temporalAccuracy==='exact'&&result.actualTime===time);}
+export function previewAttemptExhausted(background:boolean,deferred:boolean):'deferred'|'empty'{return background&&deferred?'deferred':'empty';}
+
+export function previewMediaPlan(facts:Readonly<{width:number;height:number;duration:number;position:number;readyState:number}>,time:number,maxPixels:number):Readonly<{target:number;event:'seeked'|'loadeddata'|null}>|null{
+ if(!Number.isFinite(facts.width)||!Number.isFinite(facts.height)||facts.width<=0||facts.height<=0||facts.width*facts.height>maxPixels||!Number.isFinite(facts.duration)||facts.duration<=0)return null;
+ const target=Math.min(time,Math.max(0,facts.duration-.001));return Object.freeze({target,event:target!==facts.position?'seeked':facts.readyState<2?'loadeddata':null});
+}
+
+export function previewMetadataValid(result:Readonly<{time:number;path:string;width:number;height:number;actualTime?:number|null}>):boolean{
+ return Number.isFinite(result.time)&&result.time>=0&&typeof result.path==='string'&&result.path.length<=256&&Number.isInteger(result.width)&&result.width>=1&&result.width<=2048&&Number.isInteger(result.height)&&result.height>=1&&result.height<=2048&&(result.actualTime==null||Number.isFinite(result.actualTime)&&result.actualTime>=0);
 }

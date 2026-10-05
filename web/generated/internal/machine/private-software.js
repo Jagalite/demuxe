@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-export function initialPrivateSoftware(buffering) { return Object.freeze({ stopped: false, serial: 0, generation: 0, load: null, playback: null, seek: null, userPaused: true, gain: 1, outputVerified: false, presentedDraws: 0, attachments: Object.freeze([]), buffering: buffering ? Object.freeze({ ...buffering }) : undefined }); }
+import { beginWait, observeWait } from './async-policy.js';
+export function initialPrivateSoftware(buffering) { return Object.freeze({ waits: Object.freeze([]), stopped: false, serial: 0, generation: 0, load: null, playback: null, seek: null, userPaused: true, gain: 1, outputVerified: false, presentedDraws: 0, attachments: Object.freeze([]), buffering: buffering ? Object.freeze({ ...buffering }) : undefined }); }
 export function privateSoftwareSourceCurrent(state, generation) { return !state.stopped && state.generation === generation; }
 export function privateSoftwareLoadCurrent(state, load) { return !state.stopped && state.load?.id === load.id; }
 export function beginPrivateSoftwareLoad(state) {
@@ -11,7 +12,7 @@ export function beginPrivateSoftwareLoad(state) {
 export function startPrivateSoftwareLoad(state, load) {
     if (!privateSoftwareLoadCurrent(state, load) || state.load?.phase !== 'preparing')
         return state;
-    return Object.freeze({ ...state, generation: load.generation, load: Object.freeze({ ...load, phase: 'loading' }), playback: null, seek: null, outputVerified: false, presentedDraws: 0, attachments: Object.freeze([]) });
+    return Object.freeze({ ...state, waits: Object.freeze([]), generation: load.generation, load: Object.freeze({ ...load, phase: 'loading' }), playback: null, seek: null, outputVerified: false, presentedDraws: 0, attachments: Object.freeze([]) });
 }
 export function finishPrivateSoftwareLoad(state, load) { return privateSoftwareLoadCurrent(state, load) && state.load?.phase === 'loading' ? Object.freeze({ ...state, load: Object.freeze({ ...load, phase: 'ready' }) }) : state; }
 export function privateSoftwareControlCurrent(state, control) { return privateSoftwareSourceCurrent(state, control.generation) && (control.kind === 'seek' ? state.seek : state.playback)?.id === control.id; }
@@ -54,5 +55,21 @@ export function beginPrivateSoftwareAttachment(state, attachmentId) {
 }
 export function removePrivateSoftwareAttachment(state, attachment) { return privateSoftwareSourceCurrent(state, attachment.generation) && state.attachments.some(item => item.id === attachment.id) ? Object.freeze({ ...state, attachments: Object.freeze(state.attachments.filter(item => item.id !== attachment.id)) }) : state; }
 export function acceptPrivateSoftwareSettings(state, generation, settings) { return privateSoftwareSourceCurrent(state, generation) ? Object.freeze({ ...state, ...settings.gain === undefined ? {} : { gain: settings.gain }, ...settings.buffering === undefined ? {} : { buffering: Object.freeze({ ...settings.buffering }) } }) : state; }
-export function retirePrivateSoftware(state) { return state.stopped ? state : Object.freeze({ ...state, stopped: true, load: null, playback: null, seek: null, attachments: Object.freeze([]) }); }
+export function retirePrivateSoftware(state) { return state.stopped ? state : Object.freeze({ ...state, waits: Object.freeze([]), stopped: true, load: null, playback: null, seek: null, attachments: Object.freeze([]) }); }
 export function privateSoftwareAudioLayout(requested, deviceChannels, rejectFallback) { const wanted = requested === 'auto' ? (deviceChannels >= 8 ? 8 : deviceChannels >= 6 ? 6 : 2) : requested === '7.1' ? 8 : requested === '5.1' ? 6 : 2; return Object.freeze({ channels: wanted <= deviceChannels ? wanted : 2, reject: wanted > deviceChannels && rejectFallback }); }
+export function beginPrivateOutputWait(state, generation, now) {
+    if (!privateSoftwareSourceCurrent(state, generation) || state.waits.length >= 128 || state.serial >= Number.MAX_SAFE_INTEGER)
+        return { state, id: null };
+    const id = state.serial + 1, wait = beginWait(id, now, 'private-output');
+    return { state: Object.freeze({ ...state, serial: id, waits: Object.freeze([...state.waits, Object.freeze({ generation, wait })]) }), id };
+}
+export function observePrivateOutputWait(state, id, now, ready) {
+    const entry = state.waits.find(entry => entry.wait.id === id);
+    if (!entry || !privateSoftwareSourceCurrent(state, entry.generation))
+        return { state, outcome: 'retired' };
+    const wait = observeWait(entry.wait, { id, now, kind: ready ? 'ready' : 'deadline' });
+    if (wait.phase === 'waiting')
+        return { state, outcome: 'wait' };
+    return { state: finishPrivateOutputWait(state, id), outcome: wait.phase === 'ready' ? 'ready' : 'timeout' };
+}
+export function finishPrivateOutputWait(state, id) { return Object.freeze({ ...state, waits: Object.freeze(state.waits.filter(entry => entry.wait.id !== id)) }); }

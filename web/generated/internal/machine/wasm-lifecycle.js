@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
+import { beginWait, observeWait } from './async-policy.js';
 import { createWasmSeek, clearWasmSeek, beginWasmSeek, observeWasmSeek, confirmWasmSeek } from './wasm-seek.js';
 import { createWasmSettings, updateWasmSettings } from './wasm-settings.js';
-export function createWasmLifecycle(decoderOutput = true) { return Object.freeze({ attachmentSerial: 0, attachments: Object.freeze([]), attachmentPending: null, attachmentFailed: false, phase: 'initializing', initSent: false, workerFailed: false, nextRequest: 100, nextWaiter: 1, nextOpen: 1, requests: Object.freeze([]), waiters: Object.freeze([]), open: null, hasFile: false, seek: createWasmSeek(), settings: createWasmSettings(decoderOutput) }); }
+export function createWasmLifecycle(decoderOutput = true) { return Object.freeze({ initialization: null, retirement: null, releaseFailed: false, attachmentSerial: 0, attachments: Object.freeze([]), attachmentPending: null, attachmentFailed: false, phase: 'initializing', initSent: false, workerFailed: false, nextRequest: 100, nextWaiter: 1, nextOpen: 1, requests: Object.freeze([]), waiters: Object.freeze([]), open: null, hasFile: false, seek: createWasmSeek(), settings: createWasmSettings(decoderOutput) }); }
 export function wasmAlive(state) { return state.phase === 'initializing' || state.phase === 'ready'; }
 export function markWasmInitialized(state) { return wasmAlive(state) ? Object.freeze({ ...state, initSent: true }) : state; }
 export function settleWasmInitialization(state, success) { return state.phase === 'initializing' ? Object.freeze({ ...state, phase: success ? 'ready' : 'failed' }) : state; }
@@ -78,9 +79,9 @@ export function confirmWasmPlayerSeek(state, id, target, position, settled) {
 export function retireWasmLifecycle(state) {
     if (state.phase === 'retiring' || state.phase === 'closed')
         return Object.freeze({ state, accepted: false, requests: Object.freeze([]), waiters: Object.freeze([]) });
-    return Object.freeze({ state: Object.freeze({ ...state, phase: 'retiring', open: null, attachmentPending: null, hasFile: false, seek: clearWasmSeek(state.seek), requests: Object.freeze([]), waiters: Object.freeze([]) }), accepted: true, requests: Object.freeze(state.requests.map(item => item.id)), waiters: Object.freeze(state.waiters.map(item => item.id)) });
+    return Object.freeze({ state: Object.freeze({ ...state, initialization: state.initialization ? observeWait(state.initialization, { id: state.initialization.id, kind: 'retire', now: 0 }) : null, phase: 'retiring', open: null, attachmentPending: null, hasFile: false, seek: clearWasmSeek(state.seek), requests: Object.freeze([]), waiters: Object.freeze([]) }), accepted: true, requests: Object.freeze(state.requests.map(item => item.id)), waiters: Object.freeze(state.waiters.map(item => item.id)) });
 }
-export function finishWasmRetirement(state) { return state.phase === 'retiring' ? Object.freeze({ ...state, phase: 'closed' }) : state; }
+export function finishWasmRetirement(state, released = true) { return state.phase === 'retiring' ? Object.freeze({ ...state, phase: released ? 'closed' : 'retiring', releaseFailed: !released }) : state; }
 export function applyWasmSetting(state, input) {
     if (!wasmAlive(state))
         return Object.freeze({ state, accepted: false, send: false });
@@ -102,3 +103,18 @@ export function finishWasmAttachment(state, id, outcome) {
     return Object.freeze({ ...state, attachmentPending: null, attachmentFailed: outcome === 'uncertain', attachments: Object.freeze(attachments) });
 }
 export function wasmAttachmentIdentity(state, index) { return state.attachments.filter(entry => entry.source === state.nextOpen - 1)[index]?.identity; }
+export function beginWasmHandshake(state, kind, now) {
+    if (kind === 'initialization' ? state.phase !== 'initializing' || state.initialization !== null : state.phase !== 'retiring' || state.retirement !== null)
+        return state;
+    return Object.freeze({ ...state, [kind]: beginWait(kind === 'initialization' ? 1 : 2, now, kind) });
+}
+export function observeWasmHandshake(state, kind, event, now) {
+    const old = state[kind];
+    if (!old || (kind === 'initialization' ? state.phase !== 'initializing' : state.phase !== 'retiring'))
+        return { state, effect: 'ignore' };
+    const wait = observeWait(old, { id: old.id, kind: event, now });
+    if (wait === old)
+        return { state, effect: old.phase === 'waiting' ? 'waiting' : 'ignore' };
+    const next = Object.freeze({ ...state, [kind]: wait, ...kind === 'initialization' ? { phase: wait.phase === 'ready' ? 'ready' : 'failed' } : {} });
+    return { state: next, effect: wait.phase === 'ready' ? 'ready' : kind === 'retirement' ? 'contain' : 'reject' };
+}

@@ -12,6 +12,7 @@ export type ShakaSourcePolicy = Readonly<{
     representation?: string;
 }>;
 export type ShakaBackendState = Readonly<{
+    qualityChange: ShakaQualityChange | null;
     epoch: number;
     serial: number;
     phase: 'idle' | 'opening' | 'ready' | 'failed' | 'closed';
@@ -117,3 +118,14 @@ export declare function shakaQualityPlan(state: ShakaBackendState, tracks: reado
     maxBandwidth: number;
 }>;
 export declare function shakaAttachmentSelect(state: ShakaBackendState, lease: ShakaLease): boolean;
+export type ShakaQualityChange = Readonly<{
+    lease: ShakaLease;
+    policy: QualityPolicy;
+    plan: ReturnType<typeof shakaQualityPlan>;
+    phase: 'configure' | 'select' | 'commit' | 'done' | 'rollback' | 'rejected';
+    rollbackFailed: boolean;
+}>;
+export declare function beginShakaQuality(state: ShakaBackendState, lease: ShakaLease, policy: QualityPolicy, plan: ReturnType<typeof shakaQualityPlan>): ShakaBackendState;
+export declare function stepShakaQuality(state: ShakaBackendState, lease: ShakaLease, event: 'configured' | 'selected' | 'failed' | 'restored' | 'restore-failed'): ShakaBackendState;
+export declare function commitShakaQuality(state: ShakaBackendState, lease: ShakaLease): ShakaBackendState;
+export declare function verifyShakaQuality(state: ShakaBackendState, lease: ShakaLease, selected: number | undefined): ShakaBackendState;

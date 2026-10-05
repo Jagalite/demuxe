@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import { beginWait, observeWait } from '../internal/machine/async-policy.js';
+import { previewMediaPlan } from '../internal/machine/preview.js';
 /** Host-authored storyboards can return encoded tiles or references without a decoder. */
 export class AuthoredPreviewProvider {
     lookup;
@@ -43,35 +45,68 @@ export class LocalVideoPreviewProvider {
         let released;
         request.trackCleanup?.(new Promise(resolve => { released = resolve; }));
         const wait = (event, action) => new Promise((resolve, reject) => {
-            const done = () => { cleanup(); resolve(); }, fail = () => { cleanup(); reject(new Error('Preview media decode failed')); }, abort = () => { cleanup(); reject(new DOMException('Preview cancelled', 'AbortError')); };
-            const timer = setTimeout(fail, 1500);
-            const cleanup = () => { clearTimeout(timer); video.removeEventListener(event, done); video.removeEventListener('error', fail); request.signal.removeEventListener('abort', abort); };
-            video.addEventListener(event, done, { once: true });
-            video.addEventListener('error', fail, { once: true });
-            request.signal.addEventListener('abort', abort, { once: true });
-            if (request.signal.aborted) {
-                abort();
-                return;
-            }
+            let state = beginWait(1, performance.now(), 'preview-media');
+            let timer;
+            const cleanup = () => {
+                const errors = [];
+                for (const release of [() => clearTimeout(timer), () => video.removeEventListener(event, done), () => video.removeEventListener('error', fail), () => request.signal.removeEventListener('abort', abort)]) {
+                    try {
+                        release();
+                    }
+                    catch (error) {
+                        errors.push(error);
+                    }
+                }
+                return errors;
+            };
+            const settle = (kind) => {
+                const next = observeWait(state, { id: 1, kind, now: performance.now() });
+                if (next === state)
+                    return;
+                state = next;
+                const errors = cleanup();
+                if (state.phase === 'ready') {
+                    if (errors.length)
+                        reject(errors[0]);
+                    else
+                        resolve();
+                }
+                else
+                    reject(state.phase === 'retired' ? new DOMException('Preview cancelled', 'AbortError') : new Error('Preview media decode failed'));
+            };
+            const done = () => settle('ready'), fail = () => settle('failed'), abort = () => settle('retire');
+            const expire = () => { settle('deadline'); if (state.phase === 'waiting')
+                timer = setTimeout(expire, Math.max(0, state.deadline - performance.now())); };
             try {
+                timer = setTimeout(expire, Math.max(0, state.deadline - performance.now()));
+                video.addEventListener(event, done, { once: true });
+                video.addEventListener('error', fail, { once: true });
+                request.signal.addEventListener('abort', abort, { once: true });
+                if (request.signal.aborted) {
+                    abort();
+                    return;
+                }
                 action();
             }
             catch (error) {
-                cleanup();
-                reject(error);
+                if (state.phase === 'waiting') {
+                    state = observeWait(state, { id: 1, kind: 'failed', now: performance.now() });
+                    cleanup();
+                    reject(error);
+                }
             }
         });
         try {
             await wait('loadedmetadata', () => { video.src = url; });
-            if (!video.videoWidth || !video.videoHeight || video.videoWidth * video.videoHeight > this.maxDecodePixels || !Number.isFinite(video.duration) || video.duration <= 0)
+            const plan = previewMediaPlan({ width: video.videoWidth, height: video.videoHeight, duration: video.duration, position: video.currentTime, readyState: video.readyState }, request.time, this.maxDecodePixels);
+            if (!plan)
                 return null;
             mediaReadyMs = performance.now() - start;
             const seekStart = performance.now();
-            const time = Math.min(request.time, Math.max(0, video.duration - .001));
-            if (time !== video.currentTime)
-                await wait('seeked', () => { video.currentTime = time; });
-            else if (video.readyState < 2)
-                await wait('loadeddata', () => { video.preload = 'auto'; });
+            if (plan.event === 'seeked')
+                await wait(plan.event, () => { video.currentTime = plan.target; });
+            else if (plan.event === 'loadeddata')
+                await wait(plan.event, () => { video.preload = 'auto'; });
             seekMs = performance.now() - seekStart;
             request.signal.throwIfAborted();
             const conversionStart = performance.now();
@@ -137,10 +172,11 @@ export class LocalRemuxPreviewProvider {
             request.signal.throwIfAborted();
             await player.open(source instanceof File ? source : new File([source], 'preview-media'));
             request.signal.throwIfAborted();
-            if (!video.videoWidth || !video.videoHeight || video.videoWidth * video.videoHeight > this.maxDecodePixels || !Number.isFinite(video.duration) || video.duration <= 0)
+            const plan = previewMediaPlan({ width: video.videoWidth, height: video.videoHeight, duration: video.duration, position: video.currentTime, readyState: video.readyState }, request.time, this.maxDecodePixels);
+            if (!plan)
                 return null;
             const mediaReadyMs = performance.now() - start, seekStart = performance.now();
-            await player.seek(Math.min(request.time, Math.max(0, video.duration - .001)));
+            await player.seek(plan.target);
             await player.verifyStartup({ video: true, audio: false });
             request.signal.throwIfAborted();
             const seekMs = performance.now() - seekStart, conversionStart = performance.now();

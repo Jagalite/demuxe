@@ -280,3 +280,18 @@ test('Shaka backend preserves missing-provider classification without using bund
  try{await assert.rejects(backend.openRemote(source),{code:'DEPLOYMENT_UNAVAILABLE'});}
  finally{await backend.destroy();}
 });
+
+test('quality rollback rejection preserves both failures and never accepts the request',async()=>{
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));
+ try{await backend.openRemote(source);const previous=backend.streamingState().requested;backend.player.configure=()=>false;
+  await assert.rejects(backend.setQuality({mode:'manual',id:'variant:4'}),error=>error instanceof AggregateError&&error.errors.length===2);
+  assert.deepEqual(backend.streamingState().requested,previous);assert.equal(backend.control.qualityChange,null);
+ }finally{await backend.destroy();}
+});
+test('quality commit survives a later observation failure without reverting physical configuration',async()=>{
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));
+ try{await backend.openRemote(source);const failure=Error('observation failed');backend.refresh=()=>{throw failure;};
+  await assert.rejects(backend.setQuality({mode:'manual',id:'variant:4'}),e=>e===failure);
+  assert.equal(backend.control.quality.mode,'manual');assert.equal(backend.player.config.abr.enabled,false);assert.equal(backend.control.qualityChange,null);
+ }finally{await backend.destroy();}
+});

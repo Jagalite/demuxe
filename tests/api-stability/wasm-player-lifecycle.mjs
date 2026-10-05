@@ -117,7 +117,7 @@ test('native cleanup deadline still terminates worker, removes owner and closes 
 
 test('throwing physical cleanup cannot strand remaining resources',async t=>{
  const f=await fixture(t),error=Error('containment failure');f.worker.terminate=()=>{f.log.push('terminate');throw error;};
- await assert.rejects(f.player.destroy(),value=>value===error);assert.ok(f.log.includes('owner-remove'));assert.ok(f.log.includes('audio-close'));assert.equal(f.player.lifecycle.phase,'closed');
+ await assert.rejects(f.player.destroy(),value=>value===error);assert.ok(f.log.includes('owner-remove'));assert.ok(f.log.includes('audio-close'));assert.equal(f.player.lifecycle.phase,'retiring');assert.equal(f.player.lifecycle.releaseFailed,true);
 });
 
 

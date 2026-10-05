@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import {beginShakaQuality,stepShakaQuality,commitShakaQuality,verifyShakaQuality} from './machine/shaka-backend.js';
+import {beginAttempts,observeAttempt} from './machine/async-policy.js';
 import {bufferingPolicy, resolveBuffering, shakaBufferingOptions} from './buffering.js';
 import type {BufferingPolicy} from '../types.js';
 import type {Shaka} from './shaka-api.js';
@@ -102,7 +104,9 @@ export class ShakaBackend extends EventTarget implements Backend {
     const type=runtime.net.NetworkingEngine.RequestType.SEGMENT;
     const acquisitionStart=performance.now();
     try{
-      for(const uri of thumbnail.uris){
+      const uris=[...thumbnail.uris];let attempts=beginAttempts(uris.length);
+      while(attempts.phase==='trying'){
+        const index=attempts.index,uri=uris[index];
         request.signal.throwIfAborted();if(!current())return null;
         const networkRequest=runtime.net.NetworkingEngine.makeRequest([uri],{...runtime.net.NetworkingEngine.defaultRetryParameters(),timeout:5000,maxAttempts:1});
         if(thumbnail.startByte||thumbnail.endByte!==null)networkRequest.headers.Range=`bytes=${thumbnail.startByte}-${thumbnail.endByte??''}`;
@@ -117,7 +121,7 @@ export class ShakaBackend extends EventTarget implements Backend {
           const bytes=new Uint8Array(response.data as ArrayBuffer),byteAcquisitionMs=performance.now()-acquisitionStart,conversionStart=performance.now();
           const image=await rasterizePreview(new Blob([bytes],{type:thumbnail.mimeType??'image/jpeg'}),request,{x:thumbnail.positionX,y:thumbnail.positionY,width:thumbnail.width,height:thumbnail.height});
           if(!current())return null;return {time:thumbnail.startTime,actualTime:thumbnail.startTime,width:image.width,height:image.height,path:'shaka-image-track',timestampKind:'interval',temporalAccuracy:'approximate',fidelity:'full',image:{blob:image.blob},metrics:{indexLookupMs,byteAcquisitionMs,resizeConversionMs:performance.now()-conversionStart,bytesFetched:bytes.length,bytesRead:bytes.length}};
-        }catch(error){request.signal.throwIfAborted();if(uri===thumbnail.uris.at(-1))throw error;}
+        }catch(error){request.signal.throwIfAborted();attempts=observeAttempt(attempts,index,'retry');if(attempts.phase==='exhausted')throw error;}
         finally{request.signal.removeEventListener('abort',cancel);}
       }
       return null;
@@ -211,15 +215,33 @@ export class ShakaBackend extends EventTarget implements Backend {
     const allowed=tracks.filter(t=>plan.ids.includes(t.id));
     if(!allowed.length)throw new PlayerError('UNSUPPORTED_FEATURE','No quality satisfies the selected audio and source constraints');
     const old=player.getConfiguration();this.check(lease);
-    try{
-      const configured=player.configure({abr:{enabled:plan.abr},restrictions:{...old.restrictions,maxHeight:plan.maxHeight,maxBandwidth:plan.maxBandwidth}});
-      this.check(lease);if(!configured)throw new PlayerError('UNSUPPORTED_FEATURE','Shaka rejected the quality configuration');
-      if(policy.mode==='manual'){
-        player.selectVariantTrack(allowed[0],false);this.check(lease);
-        if(player.getVariantTracks().find(t=>t.active)?.id!==allowed[0].id)throw new PlayerError('UNSUPPORTED_FEATURE','Shaka did not select the requested quality');
+    this.control=beginShakaQuality(this.control,lease,policy,plan);
+    let failure:unknown;
+    while(this.control.qualityChange?.lease.id===lease.id){
+      const phase=this.control.qualityChange.phase;
+      if(phase==='done'){this.refresh();return;}
+      if(phase==='rejected')throw failure;
+      if(phase==='rollback'){
+        try{const restored=player.configure({abr:old.abr,restrictions:old.restrictions});if(!restored)throw new PlayerError('UNSUPPORTED_FEATURE','Shaka rejected quality rollback');this.control=stepShakaQuality(this.control,lease,'restored');}
+        catch(error){this.control=stepShakaQuality(this.control,lease,'restore-failed');throw new AggregateError([failure,error],'Shaka quality change and rollback failed');}
+        continue;
       }
-      this.check(lease);this.move({type:'quality',lease,value:policy,runtime:true});this.refresh();
-    }catch(error){if(!this.stopped&&this.control.effect?.id===lease.id)player.configure({abr:old.abr,restrictions:old.restrictions});throw error;}
+      this.check(lease);
+      try{
+        if(phase==='configure'){
+          const configured=player.configure({abr:{enabled:plan.abr},restrictions:{...old.restrictions,maxHeight:plan.maxHeight,maxBandwidth:plan.maxBandwidth}});
+          this.check(lease);if(!configured)throw new PlayerError('UNSUPPORTED_FEATURE','Shaka rejected the quality configuration');
+          this.control=stepShakaQuality(this.control,lease,'configured');
+        }else if(phase==='select'){
+          player.selectVariantTrack(allowed[0],false);this.check(lease);
+          const selected=player.getVariantTracks().find(t=>t.active)?.id;this.check(lease);
+          this.control=verifyShakaQuality(this.control,lease,selected);
+          if(this.control.qualityChange?.phase==='rollback')failure=new PlayerError('UNSUPPORTED_FEATURE','Shaka did not select the requested quality');
+        }else this.control=commitShakaQuality(this.control,lease);
+      }catch(error){failure=error;const next=stepShakaQuality(this.control,lease,'failed');if(next===this.control)throw error;this.control=next;}
+    }
+    this.check(lease);
+
     }finally{this.finishControl(lease);}
   }
   async seekToLive(){const player=this.loaded();if(!player.isDynamic())throw new PlayerError('UNSUPPORTED_FEATURE','The source is not live');player.goToLive();await this.native.seek(this.video.currentTime);this.refresh();}

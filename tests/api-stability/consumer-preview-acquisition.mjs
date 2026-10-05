@@ -31,7 +31,8 @@ test('synchronous preview job callback executes only after caller is installed',
  const frame=await c.getFrame({time:1});assert.equal(frame.path,'fixture');await c.destroy();assert.equal(scheduled.live.size,0);
 });
 test('synchronous preview deadline settles its prepublished caller',async t=>{
- const c=new PreviewController([provider],{debounceMs:0});const scheduled=timers(t,h=>{if(h.id===2)h.callback();});
+ let at=0;t.mock.method(performance,'now',()=>at);
+ const c=new PreviewController([provider],{debounceMs:0});const scheduled=timers(t,h=>{if(h.id===2){at=10000;h.callback();}});
  await assert.rejects(c.getFrame({time:1}),{name:'AbortError'});assert.equal(c.callers.size,0);assert.equal(c.jobs.size,0);assert.equal(scheduled.live.size,0);await c.destroy();
 });
 test('preview partial abort-listener registration rolls back and preserves original error',async t=>{

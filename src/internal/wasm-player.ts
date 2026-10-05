@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {beginWasmHandshake,observeWasmHandshake} from './machine/wasm-lifecycle.js';
 import type {ProviderRuntimeAssets} from './provider-runtime.js';
 import {runtimeWorker} from './runtime-worker.js';
 import {bufferingPolicy, resolveBuffering} from './buffering.js';
@@ -82,8 +83,11 @@ export class WasmPlayer extends EventTarget {
     this.audioHeader = new Int32Array(audio,0,16);
     this.ready = new Promise<void>((resolve,reject) => {
       this.rejectReady=reject;
-      const failReady=(error:Error)=>{if(this.lifecycle.phase!=='initializing')return;this.lifecycle=settleWasmInitialization(this.lifecycle,false);this.initializationError=error;reject(error);};
-      const timeout=this.readyTimer=setTimeout(()=>failReady(new Error('Player initialization timed out')),60000);
+      this.lifecycle=beginWasmHandshake(this.lifecycle,'initialization',performance.now());
+      const failReady=(error:Error)=>{const step=observeWasmHandshake(this.lifecycle,'initialization','failed',performance.now());this.lifecycle=step.state;if(step.effect!=='reject')return;this.initializationError=error;reject(error);};
+      let timeout:ReturnType<typeof setTimeout>;
+      const expire=()=>{const step=observeWasmHandshake(this.lifecycle,'initialization','deadline',performance.now());this.lifecycle=step.state;if(step.effect==='waiting'){timeout=this.readyTimer=setTimeout(expire,Math.max(0,this.lifecycle.initialization!.deadline-performance.now()));}else if(step.effect==='reject'){const error=new Error('Player initialization timed out');this.initializationError=error;reject(error);}};
+      timeout=this.readyTimer=setTimeout(expire,Math.max(0,this.lifecycle.initialization!.deadline-performance.now()));
       const workerFailure=(event:ErrorEvent|MessageEvent)=>{
         const failure=claimWasmWorkerFailure(this.lifecycle);this.lifecycle=failure.state;if(!failure.accepted)return;
         event.preventDefault();clearTimeout(timeout);
@@ -98,7 +102,7 @@ export class WasmPlayer extends EventTarget {
           if(!providerAssets||!['web/engine-software-full/player.wasm','web/engine-software-yuv/player.wasm'].includes(path)) {this.worker.postMessage({type:'provider-module',error:'Unexpected provider engine request'});return;}
           void providerAssets.module(path).then(module=>{if(wasmAlive(this.lifecycle))this.worker.postMessage({type:'provider-module',module});},error=>{if(wasmAlive(this.lifecycle))this.worker.postMessage({type:'provider-module',error:String(error)});});
         }
-        else if(data.type==='ready') {if(this.lifecycle.phase!=='initializing')return;this.lifecycle=settleWasmInitialization(this.lifecycle,true);clearTimeout(timeout);this.browserCodecsAbsent=data.browserCodecsAbsent;this.sendTiming(true);resolve();}
+        else if(data.type==='ready') {const step=observeWasmHandshake(this.lifecycle,'initialization','ready',performance.now());this.lifecycle=step.state;if(step.effect==='reject'){clearTimeout(timeout);const error=new Error('Player initialization timed out');this.initializationError=error;reject(error);return;}if(step.effect!=='ready')return;clearTimeout(timeout);this.browserCodecsAbsent=data.browserCodecsAbsent;this.sendTiming(true);resolve();}
         else if(data.type==='error') {clearTimeout(timeout);const error=data.assetFailure?new PlayerError('ASSET_LOAD_FAILED',data.message):data.decoderTimeout?new PlayerError('NETWORK_TIMEOUT',data.message,null,null,'operation',true):data.decoderFailure?new PlayerError('DECODE_FAILED',data.message):new Error(data.message);failReady(isPlayerError(error)?error:new PlayerError('ASSET_LOAD_FAILED','Playback engine initialization failed: '+error.message,null,null,'operation',true));this.fail(error,data.id);}
         else if(data.type==='destroyed') {if(this.diagnostics){this.diagnostics.decoderStats=data.decoderStats;if(data.presentation)this.diagnostics.presentation=data.presentation;}const completed=this.onDestroyed;this.onDestroyed=undefined;completed?.();}
         else if(data.type==='refresh'){void this.refreshAuthorization?.(data.resource).then(update=>{if(wasmAlive(this.lifecycle))this.worker.postMessage({type:'refreshed',id:data.id,update});},()=>{if(wasmAlive(this.lifecycle))this.worker.postMessage({type:'refreshed',id:data.id,error:true});});}
@@ -490,16 +494,19 @@ export class WasmPlayer extends EventTarget {
       let timeout:ReturnType<typeof setTimeout>|undefined;
       try{
         await new Promise<void>((done,no)=>{
-          this.onDestroyed=done;
-          timeout=setTimeout(()=>no(new Error('Native cleanup timed out; worker containment applied')),10000);
+          this.lifecycle=beginWasmHandshake(this.lifecycle,'retirement',performance.now());
+          const complete=(event:'ready'|'deadline')=>{const step=observeWasmHandshake(this.lifecycle,'retirement',event,performance.now());this.lifecycle=step.state;if(step.effect==='ready')done();else if(step.effect==='contain')no(new Error('Native cleanup timed out; worker containment applied'));else if(step.effect==='waiting'&&event==='deadline')timeout=setTimeout(()=>complete('deadline'),Math.max(0,this.lifecycle.retirement!.deadline-performance.now()));};
+          this.onDestroyed=()=>complete('ready');
+          timeout=setTimeout(()=>complete('deadline'),Math.max(0,this.lifecycle.retirement!.deadline-performance.now()));
           this.worker.postMessage({type:'destroy'});
         });
-      }catch(error){if(!failed){failed=true;failure=error;}}
+      }catch(error){this.lifecycle=observeWasmHandshake(this.lifecycle,'retirement','failed',performance.now()).state;if(!failed){failed=true;failure=error;}}
       finally{
         this.onDestroyed=undefined;cleanup(()=>clearTimeout(timeout));
-        cleanup(()=>this.worker.terminate());cleanup(()=>this.workerOwner.remove());
-        try{await this.audioContext.close();}catch(error){if(!failed){failed=true;failure=error;}}
-        this.lifecycle=finishWasmRetirement(this.lifecycle);
+        let released=true;const release=(action:()=>void)=>{try{action();}catch(error){released=false;if(!failed){failed=true;failure=error;}}};
+        release(()=>this.worker.terminate());release(()=>this.workerOwner.remove());
+        try{await this.audioContext.close();}catch(error){released=false;if(!failed){failed=true;failure=error;}}
+        this.lifecycle=finishWasmRetirement(this.lifecycle,released);
       }
       if(failed)throw failure;
     })().then(resolve,reject);

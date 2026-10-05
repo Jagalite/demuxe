@@ -62,7 +62,7 @@ export function transitionPreviewControl(state, event) {
             return job ? Object.freeze({ ...state, ...updateJob(event.id, { selectionMs: job.selectionMs + event.milliseconds }) }) : state;
         }
         case 'failure': return Object.freeze({ ...state, counters: Object.freeze({ ...state.counters, failures: state.counters.failures + 1 }), lastFailure: Object.freeze({ provider: event.provider, kind: event.errorKind }) });
-        case 'caller': return state.disposed || state.retiring || !previewJob(state, event.jobId) || previewJob(state, event.jobId).aborted ? state : Object.freeze({ ...state, serial: state.serial + 1, caller: Object.freeze({ id: state.serial + 1, jobId: event.jobId }) });
+        case 'caller': return state.disposed || state.retiring || !previewJob(state, event.jobId) || previewJob(state, event.jobId).aborted ? state : Object.freeze({ ...state, serial: state.serial + 1, caller: Object.freeze({ id: state.serial + 1, jobId: event.jobId, deadline: (event.at ?? 0) + state.options.timeoutMs }) });
         case 'settle': return !state.caller ? state : Object.freeze({ ...state, caller: null, counters: event.failed ? Object.freeze({ ...state.counters, cancelled: state.counters.cancelled + 1 }) : state.counters });
     }
 }
@@ -161,4 +161,21 @@ export function unloadPreviewCache(state, start, end) {
     const jobs = [state.active, state.pending].filter(job => job !== null && contains(job.time)).map(job => job.id);
     const removed = state.cache.filter(entry => contains(JSON.parse(entry.key)[2]));
     return Object.freeze({ state: Object.freeze({ ...state, cache: Object.freeze(state.cache.filter(entry => !contains(JSON.parse(entry.key)[2]))), bytes: state.bytes - removed.reduce((sum, entry) => sum + entry.bytes, 0) }), jobs: Object.freeze(jobs), removed: removed.length });
+}
+export function previewCallerDeadline(state, id, at) { return state.caller?.id !== id ? 'retired' : at < state.caller.deadline ? 'wait' : 'timeout'; }
+export function previewGenerationOutcome(state, at, deferred) {
+    if (state.disposed)
+        return 'stop';
+    return deferred || state.suspended || at - state.lastForeground < (state.strategy?.type === 'demuxe' ? 100 : 500) ? 'wait' : 'next';
+}
+export function previewResultAccepted(exact, time, result) { return result !== null && (!exact || result.temporalAccuracy === 'exact' && result.actualTime === time); }
+export function previewAttemptExhausted(background, deferred) { return background && deferred ? 'deferred' : 'empty'; }
+export function previewMediaPlan(facts, time, maxPixels) {
+    if (!Number.isFinite(facts.width) || !Number.isFinite(facts.height) || facts.width <= 0 || facts.height <= 0 || facts.width * facts.height > maxPixels || !Number.isFinite(facts.duration) || facts.duration <= 0)
+        return null;
+    const target = Math.min(time, Math.max(0, facts.duration - .001));
+    return Object.freeze({ target, event: target !== facts.position ? 'seeked' : facts.readyState < 2 ? 'loadeddata' : null });
+}
+export function previewMetadataValid(result) {
+    return Number.isFinite(result.time) && result.time >= 0 && typeof result.path === 'string' && result.path.length <= 256 && Number.isInteger(result.width) && result.width >= 1 && result.width <= 2048 && Number.isInteger(result.height) && result.height >= 1 && result.height <= 2048 && (result.actualTime == null || Number.isFinite(result.actualTime) && result.actualTime >= 0);
 }

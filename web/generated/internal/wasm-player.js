@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { beginWasmHandshake, observeWasmHandshake } from './machine/wasm-lifecycle.js';
 import { runtimeWorker } from './runtime-worker.js';
 import { bufferingPolicy, resolveBuffering } from './buffering.js';
 import { PlayerError, isPlayerError } from './errors.js';
@@ -8,7 +9,7 @@ import { selectExternalDecoderConfiguration } from './external-decoder-selection
 import { watchdogPolicy } from './watchdogs.js';
 import { cloneWasmBuffering, validWasmVolume, planWasmGain, effectiveWasmGain, planWasmBuffering, planWasmAudioOutput } from './machine/wasm-settings.js';
 import { wasmSeekBoundary } from './machine/wasm-seek.js';
-import { admitWasmAttachment, wasmAttachmentCurrent, finishWasmAttachment, wasmAttachmentIdentity, createWasmLifecycle, wasmAlive, markWasmInitialized, settleWasmInitialization, claimWasmWorkerFailure, admitWasmRequest, settleWasmRequest, rejectWasmRequests, admitWasmWaiter, settleWasmWaiter, beginWasmOpen, ownsWasmOpen, finishWasmOpen, observeWasmFile, retireWasmLifecycle, finishWasmRetirement, beginWasmPlayerSeek, observeWasmPlayerSeek, confirmWasmPlayerSeek, applyWasmSetting } from './machine/wasm-lifecycle.js';
+import { admitWasmAttachment, wasmAttachmentCurrent, finishWasmAttachment, wasmAttachmentIdentity, createWasmLifecycle, wasmAlive, markWasmInitialized, claimWasmWorkerFailure, admitWasmRequest, settleWasmRequest, rejectWasmRequests, admitWasmWaiter, settleWasmWaiter, beginWasmOpen, ownsWasmOpen, finishWasmOpen, observeWasmFile, retireWasmLifecycle, finishWasmRetirement, beginWasmPlayerSeek, observeWasmPlayerSeek, confirmWasmPlayerSeek, applyWasmSetting } from './machine/wasm-lifecycle.js';
 /** One isolated software engine per player; bounded remote ranges and local File reads; ArrayBuffer inputs remain capped. */
 export class WasmPlayer extends EventTarget {
     loading = new AbortController();
@@ -93,9 +94,19 @@ export class WasmPlayer extends EventTarget {
         this.audioHeader = new Int32Array(audio, 0, 16);
         this.ready = new Promise((resolve, reject) => {
             this.rejectReady = reject;
-            const failReady = (error) => { if (this.lifecycle.phase !== 'initializing')
-                return; this.lifecycle = settleWasmInitialization(this.lifecycle, false); this.initializationError = error; reject(error); };
-            const timeout = this.readyTimer = setTimeout(() => failReady(new Error('Player initialization timed out')), 60000);
+            this.lifecycle = beginWasmHandshake(this.lifecycle, 'initialization', performance.now());
+            const failReady = (error) => { const step = observeWasmHandshake(this.lifecycle, 'initialization', 'failed', performance.now()); this.lifecycle = step.state; if (step.effect !== 'reject')
+                return; this.initializationError = error; reject(error); };
+            let timeout;
+            const expire = () => { const step = observeWasmHandshake(this.lifecycle, 'initialization', 'deadline', performance.now()); this.lifecycle = step.state; if (step.effect === 'waiting') {
+                timeout = this.readyTimer = setTimeout(expire, Math.max(0, this.lifecycle.initialization.deadline - performance.now()));
+            }
+            else if (step.effect === 'reject') {
+                const error = new Error('Player initialization timed out');
+                this.initializationError = error;
+                reject(error);
+            } };
+            timeout = this.readyTimer = setTimeout(expire, Math.max(0, this.lifecycle.initialization.deadline - performance.now()));
             const workerFailure = (event) => {
                 const failure = claimWasmWorkerFailure(this.lifecycle);
                 this.lifecycle = failure.state;
@@ -125,9 +136,17 @@ export class WasmPlayer extends EventTarget {
                         this.worker.postMessage({ type: 'provider-module', error: String(error) }); });
                 }
                 else if (data.type === 'ready') {
-                    if (this.lifecycle.phase !== 'initializing')
+                    const step = observeWasmHandshake(this.lifecycle, 'initialization', 'ready', performance.now());
+                    this.lifecycle = step.state;
+                    if (step.effect === 'reject') {
+                        clearTimeout(timeout);
+                        const error = new Error('Player initialization timed out');
+                        this.initializationError = error;
+                        reject(error);
                         return;
-                    this.lifecycle = settleWasmInitialization(this.lifecycle, true);
+                    }
+                    if (step.effect !== 'ready')
+                        return;
                     clearTimeout(timeout);
                     this.browserCodecsAbsent = data.browserCodecsAbsent;
                     this.sendTiming(true);
@@ -832,12 +851,20 @@ export class WasmPlayer extends EventTarget {
             let timeout;
             try {
                 await new Promise((done, no) => {
-                    this.onDestroyed = done;
-                    timeout = setTimeout(() => no(new Error('Native cleanup timed out; worker containment applied')), 10000);
+                    this.lifecycle = beginWasmHandshake(this.lifecycle, 'retirement', performance.now());
+                    const complete = (event) => { const step = observeWasmHandshake(this.lifecycle, 'retirement', event, performance.now()); this.lifecycle = step.state; if (step.effect === 'ready')
+                        done();
+                    else if (step.effect === 'contain')
+                        no(new Error('Native cleanup timed out; worker containment applied'));
+                    else if (step.effect === 'waiting' && event === 'deadline')
+                        timeout = setTimeout(() => complete('deadline'), Math.max(0, this.lifecycle.retirement.deadline - performance.now())); };
+                    this.onDestroyed = () => complete('ready');
+                    timeout = setTimeout(() => complete('deadline'), Math.max(0, this.lifecycle.retirement.deadline - performance.now()));
                     this.worker.postMessage({ type: 'destroy' });
                 });
             }
             catch (error) {
+                this.lifecycle = observeWasmHandshake(this.lifecycle, 'retirement', 'failed', performance.now()).state;
                 if (!failed) {
                     failed = true;
                     failure = error;
@@ -846,18 +873,30 @@ export class WasmPlayer extends EventTarget {
             finally {
                 this.onDestroyed = undefined;
                 cleanup(() => clearTimeout(timeout));
-                cleanup(() => this.worker.terminate());
-                cleanup(() => this.workerOwner.remove());
+                let released = true;
+                const release = (action) => { try {
+                    action();
+                }
+                catch (error) {
+                    released = false;
+                    if (!failed) {
+                        failed = true;
+                        failure = error;
+                    }
+                } };
+                release(() => this.worker.terminate());
+                release(() => this.workerOwner.remove());
                 try {
                     await this.audioContext.close();
                 }
                 catch (error) {
+                    released = false;
                     if (!failed) {
                         failed = true;
                         failure = error;
                     }
                 }
-                this.lifecycle = finishWasmRetirement(this.lifecycle);
+                this.lifecycle = finishWasmRetirement(this.lifecycle, released);
             }
             if (failed)
                 throw failure;

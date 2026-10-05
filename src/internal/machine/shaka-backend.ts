@@ -3,7 +3,7 @@ import type {BufferingPolicy,QualityPolicy,StreamingState} from '../../types.js'
 export type ShakaLease=Readonly<{epoch:number;id:number;domain:'load'|'quality'|'audio'|'selection'|'buffering'|'attachment'}>;
 export type ShakaSourcePolicy=Readonly<{format:'hls'|'dash';live:boolean;maxBandwidth?:number;representation?:string}>;
 export type ShakaBackendState=Readonly<{
- epoch:number;serial:number;phase:'idle'|'opening'|'ready'|'failed'|'closed';allocated:boolean;
+ qualityChange:ShakaQualityChange|null;epoch:number;serial:number;phase:'idle'|'opening'|'ready'|'failed'|'closed';allocated:boolean;
  effect:ShakaLease|null;requests:readonly ShakaLease[];source:ShakaSourcePolicy|null;failure:number|null;
  buffering:BufferingPolicy;bufferingDefaults:Readonly<Record<string,number>>;
  quality:QualityPolicy;runtimeQuality:boolean;observedQuality:StreamingState['observedQuality'];
@@ -11,7 +11,7 @@ export type ShakaBackendState=Readonly<{
  attachmentIssued:readonly number[];attachmentUncertain:number;
  external:readonly Readonly<{id:number;index:number;request?:number;attachmentId?:string}>[];
 }>;
-export function initialShakaBackend(buffering:BufferingPolicy):ShakaBackendState{return Object.freeze({epoch:0,serial:0,phase:'idle',allocated:false,effect:null,requests:Object.freeze([]),source:null,failure:null,buffering:Object.freeze({...buffering}),bufferingDefaults:Object.freeze({}),quality:Object.freeze({mode:'auto'}),runtimeQuality:false,observedQuality:null,selectionSerial:0,visible:true,selectedSub:'auto',audioDisabled:false,attachmentIssued:Object.freeze([]),attachmentUncertain:0,external:Object.freeze([])});}
+export function initialShakaBackend(buffering:BufferingPolicy):ShakaBackendState{return Object.freeze({qualityChange:null,epoch:0,serial:0,phase:'idle',allocated:false,effect:null,requests:Object.freeze([]),source:null,failure:null,buffering:Object.freeze({...buffering}),bufferingDefaults:Object.freeze({}),quality:Object.freeze({mode:'auto'}),runtimeQuality:false,observedQuality:null,selectionSerial:0,visible:true,selectedSub:'auto',audioDisabled:false,attachmentIssued:Object.freeze([]),attachmentUncertain:0,external:Object.freeze([])});}
 export function shakaLeaseCurrent(state:ShakaBackendState,lease:ShakaLease):boolean{return state.phase!=='closed'&&state.epoch===lease.epoch&&state.requests.some(item=>item.id===lease.id&&item.domain===lease.domain);}
 export type ShakaCommand=
  |Readonly<{type:'open';source:ShakaSourcePolicy}>
@@ -29,7 +29,7 @@ export type ShakaCommand=
  |Readonly<{type:'close'}>;
 export function transitionShakaBackend(state:ShakaBackendState,command:ShakaCommand):Readonly<{state:ShakaBackendState;accepted:boolean;lease?:ShakaLease;reason?:'capacity'}>{
  const result=(next:ShakaBackendState,accepted=true,lease?:ShakaLease)=>Object.freeze({state:next===state?state:Object.freeze({...next}),accepted,...lease?{lease}:{}});
- if(command.type==='close')return state.phase==='closed'?result(state,false):result({...state,epoch:state.epoch+1,phase:'closed',requests:Object.freeze([]),source:null,attachmentIssued:Object.freeze([]),attachmentUncertain:0,external:Object.freeze([]),observedQuality:null,failure:null});
+ if(command.type==='close')return state.phase==='closed'?result(state,false):result({...state,qualityChange:null,epoch:state.epoch+1,phase:'closed',requests:Object.freeze([]),source:null,attachmentIssued:Object.freeze([]),attachmentUncertain:0,external:Object.freeze([]),observedQuality:null,failure:null});
  if(command.type==='leave')return state.effect?.id===command.lease.id&&state.effect.epoch===command.lease.epoch&&state.effect.domain===command.lease.domain?result({...state,effect:null}):result(state,false);
  if(state.phase==='closed')return result(state,false);
  if(command.type==='open'){
@@ -51,7 +51,7 @@ export function transitionShakaBackend(state:ShakaBackendState,command:ShakaComm
   case 'enter':return state.effect?result(state,false):result({...state,effect:lease});
   case 'allocate':return lease.domain!=='load'?result(state,false):result({...state,allocated:true});
   case 'opened':case 'failed':return lease.domain!=='load'?result(state,false):result({...state,phase:command.type==='opened'?'ready':'failed',requests:finish()});
-  case 'finish':return result({...state,requests:finish(),attachmentIssued:Object.freeze(state.attachmentIssued.filter(id=>id!==lease.id)),attachmentUncertain:state.attachmentUncertain+(state.attachmentIssued.includes(lease.id)?1:0)});
+  case 'finish':return result({...state,qualityChange:state.qualityChange?.lease.id===lease.id?null:state.qualityChange,requests:finish(),attachmentIssued:Object.freeze(state.attachmentIssued.filter(id=>id!==lease.id)),attachmentUncertain:state.attachmentUncertain+(state.attachmentIssued.includes(lease.id)?1:0)});
   case 'attachment.issued':return lease.domain!=='attachment'||state.attachmentIssued.includes(lease.id)?result(state,false):result({...state,attachmentIssued:Object.freeze([...state.attachmentIssued,lease.id])});
   case 'defaults':return lease.domain!=='load'?result(state,false):result({...state,bufferingDefaults:Object.freeze({...command.value})});
   case 'quality':return !['load','quality','audio'].includes(lease.domain)?result(state,false):result({...state,quality:Object.freeze({...command.value}),runtimeQuality:command.runtime});
@@ -76,3 +76,29 @@ export function shakaQualityPlan(state:ShakaBackendState,tracks:readonly ShakaVa
 }
 
 export function shakaAttachmentSelect(state:ShakaBackendState,lease:ShakaLease):boolean{return lease.domain==='attachment'&&shakaLeaseCurrent(state,lease)&&state.selectionSerial<=lease.id;}
+
+export type ShakaQualityChange=Readonly<{lease:ShakaLease;policy:QualityPolicy;plan:ReturnType<typeof shakaQualityPlan>;phase:'configure'|'select'|'commit'|'done'|'rollback'|'rejected';rollbackFailed:boolean}>;
+export function beginShakaQuality(state:ShakaBackendState,lease:ShakaLease,policy:QualityPolicy,plan:ReturnType<typeof shakaQualityPlan>):ShakaBackendState{
+ if(!shakaLeaseCurrent(state,lease)||state.effect?.id!==lease.id||lease.domain!=='quality'||plan.failure)return state;
+ return Object.freeze({...state,qualityChange:Object.freeze({lease,policy:Object.freeze({...policy}),plan,phase:'configure',rollbackFailed:false})});
+}
+export function stepShakaQuality(state:ShakaBackendState,lease:ShakaLease,event:'configured'|'selected'|'failed'|'restored'|'restore-failed'):ShakaBackendState{
+ const change=state.qualityChange;if(!change||change.lease.id!==lease.id||state.phase==='closed'||state.epoch!==lease.epoch||state.effect?.id!==lease.id)return state;
+ if(!['failed','restored','restore-failed'].includes(event)&&!shakaLeaseCurrent(state,lease))return state;
+ let phase=change.phase;
+ if(event==='failed'&&['configure','select','commit'].includes(phase))phase='rollback';
+ else if(event==='configured'&&phase==='configure')phase=change.policy.mode==='manual'?'select':'commit';
+ else if(event==='selected'&&phase==='select')phase='commit';
+ else if((event==='restored'||event==='restore-failed')&&phase==='rollback')phase='rejected';
+ else return state;
+ return Object.freeze({...state,qualityChange:Object.freeze({...change,phase,rollbackFailed:event==='restore-failed'})});
+}
+export function commitShakaQuality(state:ShakaBackendState,lease:ShakaLease):ShakaBackendState{
+ const change=state.qualityChange;if(!change||change.lease.id!==lease.id||change.phase!=='commit'||!shakaLeaseCurrent(state,lease)||state.effect?.id!==lease.id)return state;
+ return Object.freeze({...state,quality:change.policy,runtimeQuality:true,qualityChange:Object.freeze({...change,phase:'done'})});
+}
+
+export function verifyShakaQuality(state:ShakaBackendState,lease:ShakaLease,selected:number|undefined):ShakaBackendState{
+ const change=state.qualityChange;if(!change||change.phase!=='select')return state;
+ return stepShakaQuality(state,lease,selected===change.plan.ids[0]?'selected':'failed');
+}

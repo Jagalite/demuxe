@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { beginAttempts, observeAttempt } from '../internal/machine/async-policy.js';
 /** Bounded encoded images; callers supply authorized bytes, never playback surfaces. */
 export async function rasterizePreview(blob, request, crop) {
     request.signal.throwIfAborted();
@@ -31,7 +32,10 @@ export async function previewImageBlob(image, signal) {
     if ('blob' in image)
         return image.blob;
     let last = new Error('No authored image URI');
-    for (const uri of image.uris) {
+    const uris = [...image.uris];
+    let attempts = beginAttempts(uris.length);
+    while (attempts.phase === 'trying') {
+        const index = attempts.index, uri = uris[index];
         try {
             const url = new URL(uri, globalThis.location?.href);
             if (!['http:', 'https:', 'blob:'].includes(url.protocol) || url.username || url.password)
@@ -85,6 +89,7 @@ export async function previewImageBlob(image, signal) {
         catch (error) {
             signal.throwIfAborted();
             last = error;
+            attempts = observeAttempt(attempts, index, 'retry');
         }
     }
     throw last;

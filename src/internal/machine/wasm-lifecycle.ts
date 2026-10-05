@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {beginWait,observeWait,type WaitState} from './async-policy.js';
 import {createWasmSeek,clearWasmSeek,beginWasmSeek,observeWasmSeek,confirmWasmSeek} from './wasm-seek.js';
 import type {WasmSeekState,WasmSeekObservation} from './wasm-seek.js';
 import {createWasmSettings,updateWasmSettings} from './wasm-settings.js';
@@ -7,8 +8,8 @@ import type {WasmSettings,WasmSettingInput} from './wasm-settings.js';
 export type WasmPhase='initializing'|'ready'|'failed'|'retiring'|'closed';
 export type WasmDeadline=Readonly<{id:number;deadline:number}>;
 export type WasmAttachment=Readonly<{id:number;source:number;identity:string|undefined;bytes:number;status:'pending'|'accepted'|'uncertain'}>;
-export type WasmLifecycle=Readonly<{attachmentSerial:number;attachments:readonly WasmAttachment[];attachmentPending:number|null;attachmentFailed:boolean;phase:WasmPhase;initSent:boolean;workerFailed:boolean;nextRequest:number;nextWaiter:number;nextOpen:number;requests:readonly WasmDeadline[];waiters:readonly WasmDeadline[];open:number|null;hasFile:boolean;seek:WasmSeekState;settings:WasmSettings}>;
-export function createWasmLifecycle(decoderOutput=true):WasmLifecycle{return Object.freeze({attachmentSerial:0,attachments:Object.freeze([]),attachmentPending:null,attachmentFailed:false,phase:'initializing',initSent:false,workerFailed:false,nextRequest:100,nextWaiter:1,nextOpen:1,requests:Object.freeze([]),waiters:Object.freeze([]),open:null,hasFile:false,seek:createWasmSeek(),settings:createWasmSettings(decoderOutput)});}
+export type WasmLifecycle=Readonly<{initialization:WaitState|null;retirement:WaitState|null;releaseFailed:boolean;attachmentSerial:number;attachments:readonly WasmAttachment[];attachmentPending:number|null;attachmentFailed:boolean;phase:WasmPhase;initSent:boolean;workerFailed:boolean;nextRequest:number;nextWaiter:number;nextOpen:number;requests:readonly WasmDeadline[];waiters:readonly WasmDeadline[];open:number|null;hasFile:boolean;seek:WasmSeekState;settings:WasmSettings}>;
+export function createWasmLifecycle(decoderOutput=true):WasmLifecycle{return Object.freeze({initialization:null,retirement:null,releaseFailed:false,attachmentSerial:0,attachments:Object.freeze([]),attachmentPending:null,attachmentFailed:false,phase:'initializing',initSent:false,workerFailed:false,nextRequest:100,nextWaiter:1,nextOpen:1,requests:Object.freeze([]),waiters:Object.freeze([]),open:null,hasFile:false,seek:createWasmSeek(),settings:createWasmSettings(decoderOutput)});}
 export function wasmAlive(state:WasmLifecycle):boolean{return state.phase==='initializing'||state.phase==='ready';}
 export function markWasmInitialized(state:WasmLifecycle):WasmLifecycle{return wasmAlive(state)?Object.freeze({...state,initSent:true}):state;}
 export function settleWasmInitialization(state:WasmLifecycle,success:boolean):WasmLifecycle{return state.phase==='initializing'?Object.freeze({...state,phase:success?'ready':'failed'}):state;}
@@ -67,9 +68,9 @@ export function confirmWasmPlayerSeek(state:WasmLifecycle,id:number,target:numbe
 }
 export function retireWasmLifecycle(state:WasmLifecycle):Readonly<{state:WasmLifecycle;accepted:boolean;requests:readonly number[];waiters:readonly number[]}>{
   if(state.phase==='retiring'||state.phase==='closed')return Object.freeze({state,accepted:false,requests:Object.freeze([]),waiters:Object.freeze([])});
-  return Object.freeze({state:Object.freeze({...state,phase:'retiring',open:null,attachmentPending:null,hasFile:false,seek:clearWasmSeek(state.seek),requests:Object.freeze([]),waiters:Object.freeze([])}),accepted:true,requests:Object.freeze(state.requests.map(item=>item.id)),waiters:Object.freeze(state.waiters.map(item=>item.id))});
+  return Object.freeze({state:Object.freeze({...state,initialization:state.initialization?observeWait(state.initialization,{id:state.initialization.id,kind:'retire',now:0}):null,phase:'retiring',open:null,attachmentPending:null,hasFile:false,seek:clearWasmSeek(state.seek),requests:Object.freeze([]),waiters:Object.freeze([])}),accepted:true,requests:Object.freeze(state.requests.map(item=>item.id)),waiters:Object.freeze(state.waiters.map(item=>item.id))});
 }
-export function finishWasmRetirement(state:WasmLifecycle):WasmLifecycle{return state.phase==='retiring'?Object.freeze({...state,phase:'closed'}):state;}
+export function finishWasmRetirement(state:WasmLifecycle,released=true):WasmLifecycle{return state.phase==='retiring'?Object.freeze({...state,phase:released?'closed':'retiring',releaseFailed:!released}):state;}
 
 export function applyWasmSetting(state:WasmLifecycle,input:WasmSettingInput):Readonly<{state:WasmLifecycle;accepted:boolean;send:boolean}>{
  if(!wasmAlive(state))return Object.freeze({state,accepted:false,send:false});
@@ -90,3 +91,14 @@ export function finishWasmAttachment(state:WasmLifecycle,id:number,outcome:'acce
  return Object.freeze({...state,attachmentPending:null,attachmentFailed:outcome==='uncertain',attachments:Object.freeze(attachments)});
 }
 export function wasmAttachmentIdentity(state:WasmLifecycle,index:number):string|undefined{return state.attachments.filter(entry=>entry.source===state.nextOpen-1)[index]?.identity;}
+
+export function beginWasmHandshake(state:WasmLifecycle,kind:'initialization'|'retirement',now:number):WasmLifecycle{
+ if(kind==='initialization'?state.phase!=='initializing'||state.initialization!==null:state.phase!=='retiring'||state.retirement!==null)return state;
+ return Object.freeze({...state,[kind]:beginWait(kind==='initialization'?1:2,now,kind)});
+}
+export function observeWasmHandshake(state:WasmLifecycle,kind:'initialization'|'retirement',event:'ready'|'failed'|'deadline',now:number):Readonly<{state:WasmLifecycle;effect:'ignore'|'waiting'|'ready'|'reject'|'contain'}>{
+ const old=state[kind];if(!old||(kind==='initialization'?state.phase!=='initializing':state.phase!=='retiring'))return {state,effect:'ignore'};
+ const wait=observeWait(old,{id:old.id,kind:event,now});if(wait===old)return {state,effect:old.phase==='waiting'?'waiting':'ignore'};
+ const next=Object.freeze({...state,[kind]:wait,...kind==='initialization'?{phase:wait.phase==='ready'?'ready' as const:'failed' as const}:{}});
+ return {state:next,effect:wait.phase==='ready'?'ready':kind==='retirement'?'contain':'reject'};
+}

@@ -1,5 +1,7 @@
 # Functional-core ownership audit
 
+2026-10-05 follow-up: [remaining policy migration](FUNCTIONAL-CORE-POLICY-COMPLETION-20261005.md) adds preview attempt/wait, worker handshake, quality compensation and private-output wait ownership. The refreshed source inventory has 895 reviewed supported fields and no pending supported annotations, changed sources or indexed writes. The checkpoint details below are historical.
+
 Status: checkpoint 23 completes the scoped source migration and retained-field review on local `main`. [The maintained audit](functional-core-audit/README.md) has 871 explicitly reviewed supported fields, 67 reviewed dormant fields and no pending supported annotations. Focused source checks pass; final integrated package/browser/endurance/performance qualification remains deferred at the user's request. This does not establish v1 readiness. Checkpoint 22's full 2,866-contract receipt remains historical evidence for that earlier revision.
 
 ## Authority boundaries

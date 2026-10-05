@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import { beginShakaQuality, stepShakaQuality, commitShakaQuality, verifyShakaQuality } from './machine/shaka-backend.js';
+import { beginAttempts, observeAttempt } from './machine/async-policy.js';
 import { bufferingPolicy, resolveBuffering, shakaBufferingOptions } from './buffering.js';
 import { NativePlayer } from './native-player.js';
 import { ShakaNetworkPolicy } from './shaka-network.js';
@@ -159,7 +161,10 @@ export class ShakaBackend extends EventTarget {
         const type = runtime.net.NetworkingEngine.RequestType.SEGMENT;
         const acquisitionStart = performance.now();
         try {
-            for (const uri of thumbnail.uris) {
+            const uris = [...thumbnail.uris];
+            let attempts = beginAttempts(uris.length);
+            while (attempts.phase === 'trying') {
+                const index = attempts.index, uri = uris[index];
                 request.signal.throwIfAborted();
                 if (!current())
                     return null;
@@ -192,7 +197,8 @@ export class ShakaBackend extends EventTarget {
                 }
                 catch (error) {
                     request.signal.throwIfAborted();
-                    if (uri === thumbnail.uris.at(-1))
+                    attempts = observeAttempt(attempts, index, 'retry');
+                    if (attempts.phase === 'exhausted')
                         throw error;
                 }
                 finally {
@@ -435,26 +441,59 @@ export class ShakaBackend extends EventTarget {
                 throw new PlayerError('UNSUPPORTED_FEATURE', 'No quality satisfies the selected audio and source constraints');
             const old = player.getConfiguration();
             this.check(lease);
-            try {
-                const configured = player.configure({ abr: { enabled: plan.abr }, restrictions: { ...old.restrictions, maxHeight: plan.maxHeight, maxBandwidth: plan.maxBandwidth } });
-                this.check(lease);
-                if (!configured)
-                    throw new PlayerError('UNSUPPORTED_FEATURE', 'Shaka rejected the quality configuration');
-                if (policy.mode === 'manual') {
-                    player.selectVariantTrack(allowed[0], false);
-                    this.check(lease);
-                    if (player.getVariantTracks().find(t => t.active)?.id !== allowed[0].id)
-                        throw new PlayerError('UNSUPPORTED_FEATURE', 'Shaka did not select the requested quality');
+            this.control = beginShakaQuality(this.control, lease, policy, plan);
+            let failure;
+            while (this.control.qualityChange?.lease.id === lease.id) {
+                const phase = this.control.qualityChange.phase;
+                if (phase === 'done') {
+                    this.refresh();
+                    return;
+                }
+                if (phase === 'rejected')
+                    throw failure;
+                if (phase === 'rollback') {
+                    try {
+                        const restored = player.configure({ abr: old.abr, restrictions: old.restrictions });
+                        if (!restored)
+                            throw new PlayerError('UNSUPPORTED_FEATURE', 'Shaka rejected quality rollback');
+                        this.control = stepShakaQuality(this.control, lease, 'restored');
+                    }
+                    catch (error) {
+                        this.control = stepShakaQuality(this.control, lease, 'restore-failed');
+                        throw new AggregateError([failure, error], 'Shaka quality change and rollback failed');
+                    }
+                    continue;
                 }
                 this.check(lease);
-                this.move({ type: 'quality', lease, value: policy, runtime: true });
-                this.refresh();
+                try {
+                    if (phase === 'configure') {
+                        const configured = player.configure({ abr: { enabled: plan.abr }, restrictions: { ...old.restrictions, maxHeight: plan.maxHeight, maxBandwidth: plan.maxBandwidth } });
+                        this.check(lease);
+                        if (!configured)
+                            throw new PlayerError('UNSUPPORTED_FEATURE', 'Shaka rejected the quality configuration');
+                        this.control = stepShakaQuality(this.control, lease, 'configured');
+                    }
+                    else if (phase === 'select') {
+                        player.selectVariantTrack(allowed[0], false);
+                        this.check(lease);
+                        const selected = player.getVariantTracks().find(t => t.active)?.id;
+                        this.check(lease);
+                        this.control = verifyShakaQuality(this.control, lease, selected);
+                        if (this.control.qualityChange?.phase === 'rollback')
+                            failure = new PlayerError('UNSUPPORTED_FEATURE', 'Shaka did not select the requested quality');
+                    }
+                    else
+                        this.control = commitShakaQuality(this.control, lease);
+                }
+                catch (error) {
+                    failure = error;
+                    const next = stepShakaQuality(this.control, lease, 'failed');
+                    if (next === this.control)
+                        throw error;
+                    this.control = next;
+                }
             }
-            catch (error) {
-                if (!this.stopped && this.control.effect?.id === lease.id)
-                    player.configure({ abr: old.abr, restrictions: old.restrictions });
-                throw error;
-            }
+            this.check(lease);
         }
         finally {
             this.finishControl(lease);

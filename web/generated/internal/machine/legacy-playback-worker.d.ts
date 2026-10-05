@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type WaitState } from './async-policy.js';
 /** Logical authority shared by the two packaged legacy native workers. */
 export interface LegacyPlaybackWorkerState {
+    readonly handshakeSerial: number;
+    readonly handshakes: Readonly<Partial<Record<WorkerHandshakeKind, WaitState>>>;
     readonly demuxFormat: string;
     readonly seekPreroll: number;
     readonly decoderOutputWatchdog: boolean;
@@ -118,3 +121,14 @@ export declare function finishLegacySnapshot(s: LegacyPlaybackWorkerState, id: n
     state: LegacyPlaybackWorkerState;
     publish: boolean;
 };
+export type WorkerHandshakeKind = 'io-open' | 'io-close' | 'decoder' | 'threads';
+export declare function beginLegacyHandshake(state: LegacyPlaybackWorkerState, kind: WorkerHandshakeKind, now: number): Readonly<{
+    state: LegacyPlaybackWorkerState;
+    wait: WaitState | null;
+}>;
+export declare function observeLegacyHandshake(state: LegacyPlaybackWorkerState, kind: WorkerHandshakeKind, id: number, event: 'ready' | 'failed' | 'deadline', now: number): Readonly<{
+    state: LegacyPlaybackWorkerState;
+    effect: 'ignore' | 'waiting' | 'ready' | 'reject' | 'fatal' | 'contain';
+    deadline?: number;
+}>;
+export declare function legacyHandshakeAllowsMessages(state: LegacyPlaybackWorkerState, kind: WorkerHandshakeKind): boolean;

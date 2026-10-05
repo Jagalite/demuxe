@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
+import { beginAttempts, observeAttempt } from '../internal/machine/async-policy.js';
 import { PreviewPregenerator } from './pregeneration.js';
 import { observePreviewInteraction, snapshotPreviewInteraction } from '../internal/machine/preview-interaction.js';
 import { resolvePreviewStrategy } from './strategies.js';
-import { createPreviewControl, transitionPreviewControl, previewJob, previewGenerationAdmission, previewProviderDeferred, previewCanPrefetch, admitPreviewRequest, planPreviewRequest, createPreviewJob, startPreviewJob, lookupPreviewCache, rememberPreviewCache, unloadPreviewCache } from '../internal/machine/preview.js';
+import { previewMetadataValid, previewCallerDeadline, previewGenerationOutcome, previewResultAccepted, previewAttemptExhausted, createPreviewControl, transitionPreviewControl, previewJob, previewGenerationAdmission, previewProviderDeferred, previewCanPrefetch, admitPreviewRequest, planPreviewRequest, createPreviewJob, startPreviewJob, lookupPreviewCache, rememberPreviewCache, unloadPreviewCache } from '../internal/machine/preview.js';
 class PreviewDeferred extends Error {
 }
 const aborted = () => new DOMException('Preview superseded or cancelled', 'AbortError');
@@ -52,7 +53,7 @@ export class PreviewController {
                 return 'next';
             }
             catch (error) {
-                return error instanceof PreviewDeferred || this.state.suspended || now() - this.state.lastForeground < 500 ? 'wait' : 'next';
+                return previewGenerationOutcome(this.state, now(), error instanceof PreviewDeferred);
             }
         }, sample ? (duration) => {
             const at = now();
@@ -360,7 +361,7 @@ export class PreviewController {
         return new Promise((resolve, reject) => {
             let timeout, attached = false;
             const signal = request.signal;
-            this.dispatch({ kind: 'caller', jobId: selected.id });
+            this.dispatch({ kind: 'caller', jobId: selected.id, at: now() });
             const callerId = this.state.caller?.id;
             if (callerId === undefined || this.state.caller?.jobId !== selected.id) {
                 reject(aborted());
@@ -401,7 +402,11 @@ export class PreviewController {
                     cancel();
                     return;
                 }
-                const acquired = setTimeout(cancel, this.options.timeoutMs);
+                const expire = () => { const outcome = previewCallerDeadline(this.state, callerId, now()); if (outcome === 'timeout')
+                    cancel();
+                else if (outcome === 'wait')
+                    timeout = setTimeout(expire, Math.max(0, this.state.caller.deadline - now())); };
+                const acquired = setTimeout(expire, Math.max(0, this.state.caller.deadline - now()));
                 if (!current()) {
                     clearTimeout(acquired);
                     return;
@@ -444,15 +449,18 @@ export class PreviewController {
         void this.run(job).finally(() => { this.dispatch({ kind: 'finish-job', id: job.id }); this.jobs.delete(job.id); this.pump(); });
     }
     async run(job) {
-        let deferred = false;
+        const providers = [...this.providers];
+        let attempts = beginAttempts(providers.length);
         try {
             const scheduler = globalThis.scheduler;
             if (scheduler)
                 await scheduler.postTask(() => { }, { priority: 'background', signal: job.controller.signal });
-            for (const provider of this.providers) {
+            while (attempts.phase === 'trying') {
+                const index = attempts.index, provider = providers[index];
+                const advance = (outcome) => { attempts = observeAttempt(attempts, index, outcome); };
                 job.context.signal.throwIfAborted();
                 if (previewProviderDeferred(this.state, provider.requiresDecoder, provider.allowDuringPlayback)) {
-                    deferred = true;
+                    advance('defer');
                     continue;
                 }
                 this.dispatch({ kind: 'provider', id: job.id, requiresDecoder: provider.requiresDecoder && !provider.allowDuringPlayback });
@@ -466,18 +474,22 @@ export class PreviewController {
                         this.dispatch({ kind: 'selection', id: job.id, milliseconds: now() - start });
                     }
                     job.context.signal.throwIfAborted();
-                    if (!supported)
+                    if (!supported) {
+                        advance('retry');
                         continue;
+                    }
                     if (previewProviderDeferred(this.state, provider.requiresDecoder, provider.allowDuringPlayback)) {
-                        deferred = true;
+                        advance('defer');
                         continue;
                     }
                     const raw = await provider.getFrame(job.context);
                     job.context.signal.throwIfAborted();
                     const result = this.validate(raw);
                     job.context.signal.throwIfAborted();
-                    if (!result || (job.context.exact && (result.temporalAccuracy !== 'exact' || result.actualTime !== job.context.time)))
+                    if (!previewResultAccepted(job.context.exact, job.context.time, result) || !result) {
+                        advance('retry');
                         continue;
+                    }
                     this.remember(this.metadata(job).key, result, this.metadata(job).background);
                     if (this.caller?.job === job) {
                         const c = this.caller, frame = this.frame(result, c.request, job.context.time, 'miss', c.start, c.cacheMs, this.metadata(job).selectionMs);
@@ -485,15 +497,17 @@ export class PreviewController {
                         if (this.caller === c)
                             this.settle(undefined, frame);
                     }
+                    advance('accept');
                     return;
                 }
                 catch (error) {
                     job.context.signal.throwIfAborted();
                     this.dispatch({ kind: 'failure', provider: provider.id, errorKind: error instanceof Error ? error.name : 'Error' });
+                    advance('retry');
                 }
             }
             if (this.caller?.job === job)
-                this.settle(this.metadata(job).background && deferred ? new PreviewDeferred() : undefined);
+                this.settle(previewAttemptExhausted(this.metadata(job).background, attempts.deferred) === 'deferred' ? new PreviewDeferred() : undefined);
         }
         catch {
             if (this.caller?.job === job)
@@ -502,9 +516,7 @@ export class PreviewController {
     }
     validate(result) {
         try {
-            if (!result || !Number.isFinite(result.time) || result.time < 0 || typeof result.path !== 'string' || result.path.length > 256 || !Number.isInteger(result.width) || result.width < 1 || result.width > 2048 || !Number.isInteger(result.height) || result.height < 1 || result.height > 2048)
-                return null;
-            if (result.actualTime != null && (!Number.isFinite(result.actualTime) || result.actualTime < 0))
+            if (!result || !previewMetadataValid({ time: result.time, path: result.path, width: result.width, height: result.height, actualTime: result.actualTime }))
                 return null;
             let image;
             if ('blob' in result.image) {

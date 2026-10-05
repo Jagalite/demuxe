@@ -1,8 +1,24 @@
 // SPDX-License-Identifier: Apache-2.0
-import {initialLegacyPlaybackWorker,reduceLegacyPlaybackWorker,legacySeekComplete,legacyPumpDelay,admitLegacyCommand,finishLegacyCommand,legacyCommandCurrent,armLegacyPump,takeLegacyPump,admitLegacySource,finishLegacySource,initialLegacyPCM,planLegacyPCM,commitLegacyPCM,admitLegacySnapshot,captureLegacySnapshot,finishLegacySnapshot} from './generated/internal/machine/legacy-playback-worker.js';
+import {legacyHandshakeAllowsMessages,beginLegacyHandshake,observeLegacyHandshake,initialLegacyPlaybackWorker,reduceLegacyPlaybackWorker,legacySeekComplete,legacyPumpDelay,admitLegacyCommand,finishLegacyCommand,legacyCommandCurrent,armLegacyPump,takeLegacyPump,admitLegacySource,finishLegacySource,initialLegacyPCM,planLegacyPCM,commitLegacyPCM,admitLegacySnapshot,captureLegacySnapshot,finishLegacySnapshot} from './generated/internal/machine/legacy-playback-worker.js';
 let control=initialLegacyPlaybackWorker();
 let pcmControl=initialLegacyPCM();
 const transition=event=>{control=reduceLegacyPlaybackWorker(control,event);};
+function handshake(kind,ready,failed){
+ const admission=beginLegacyHandshake(control,kind,performance.now());control=admission.state;
+ if(!admission.wait)throw Error('Worker handshake retired');
+ const id=admission.wait.id;let timer;
+ const observe=(event,value)=>{
+  const step=observeLegacyHandshake(control,kind,id,event,performance.now());control=step.state;
+  if(step.effect==='waiting'){if(event==='deadline')timer=setTimeout(()=>observe('deadline'),Math.max(0,step.deadline-performance.now()));return;}
+  if(step.effect==='ignore')return;
+  clearTimeout(timer);
+  if(step.effect==='ready'||step.effect==='contain')ready(value);
+  else failed(value instanceof Error?value:Error(kind+' handshake timed out or retired'),step.effect==='fatal');
+ };
+ timer=setTimeout(()=>observe('deadline'),Math.max(0,admission.wait.deadline-performance.now()));
+ return {ready:value=>observe('ready',value),fail:error=>observe('failed',error),dispose:()=>clearTimeout(timer)};
+}
+
 import {preparedEngine} from './prepared-engine.js';
 import {webgpuDiagnostics} from './webgpu/diagnostics.js';
 import {mpvDecoderOptions} from './generated/internal/decode-policy.js';
@@ -66,14 +82,14 @@ async function closeIO(){
  const old=ioWorker;if(!old)return;ioWorker=null;
  const native=engine;
  const retiring=Promise.resolve().then(async()=>{
-  let deadline,resolveClosed;
+  let closing,resolveClosed;
   try{
-   const closed=new Promise(resolve=>{resolveClosed=resolve;ioClose=resolve;});
+   const closed=new Promise(resolve=>{closing=handshake('io-close',resolve,resolve);resolveClosed=()=>closing.ready();ioClose={worker:old,resolve:resolveClosed};});
    native._web_io_cancel();old.postMessage({type:'close'});
-   deadline=setTimeout(resolveClosed,1500);await closed;
+   await closed;
   }finally{
-   if(ioClose===resolveClosed)ioClose=null;
-   try{clearTimeout(deadline);}finally{old.terminate();}
+   if(ioClose?.resolve===resolveClosed)ioClose=null;
+   try{closing?.dispose();}finally{old.terminate();}
   }
   native.ccall('web_io_root',null,['number','string'],[0,'']);
  });
@@ -88,17 +104,18 @@ async function openRemote(data){
       if(control.closing)throw Error('Player closed');
   const pointer=engine._web_io_ptr();
   ioWorker=new Worker(new URL('./io-worker.js',import.meta.url),{type:'module'});
+  const openingWorker=ioWorker;
   let info;try{info=await new Promise((resolve,reject)=>{
-    const timeout=setTimeout(()=>reject(Error('Remote open timed out')),20000);
+    const opening=handshake('io-open',resolve,reject);
     ioWorker.onmessage=({data:message})=>{
       if(profileEnabled)profile.ioMessages++;
-      if(message.type==='ready'){clearTimeout(timeout);resolve(message.info);}
-      else if(message.type==='error'){clearTimeout(timeout);reject(Error(message.message));post({type:'error',id:data.id,message:message.message});}
+      if(message.type==='ready'){opening.ready(message.info);}
+      else if(message.type==='error'){opening.fail(Error(message.message));post({type:'error',id:data.id,message:message.message});}
       else if(message.type==='stats')ioStats=message.stats;
       else if(message.type==='refresh')post({type:'refresh',id:message.id,resource:message.resource});
-      else if(message.type==='closed')ioClose?.();
+      else if(message.type==='closed'&&ioClose?.worker===openingWorker)ioClose.resolve();
     };
-    ioWorker.onerror=event=>{clearTimeout(timeout);reject(Error(event.message));};
+    ioWorker.onerror=event=>{opening.fail(Error(event.message));};
     ioWorker.postMessage({type:'init',memory:engine.HEAPU8.buffer,pointer,options:data.options??{},file:data.file,canRefresh:data.canRefresh});
   });
   }catch(error){try{await closeIO();}catch{}throw error;}
@@ -266,14 +283,15 @@ self.onmessage = async ({data}) => {
       if(data.decoder==='webcodecs'){
         decoderWorker=new Worker(new URL('./browser-decoder-worker.js',import.meta.url),{type:'module'});
         await new Promise((resolve,reject)=>{
-          const deadline=setTimeout(()=>reject(Error('Decoder service initialization timed out')),5000);
+          const initialization=handshake('decoder',resolve,(error,active)=>{if(active){transition({type:'fail'});retireCommands(error);post({type:'error',message:error.message,assetFailure:true});}else reject(error);});
           decoderWorker.onmessage=({data:message})=>{
-            if(message.ready){clearTimeout(deadline);resolve();}
+            if(!legacyHandshakeAllowsMessages(control,'decoder'))return;
+            if(message.ready)initialization.ready();
             if(message.stats)decoderStats=message.stats;
             if(message.wakeup&&!control.closing)engine._web_decoder_wakeup();
             if(message.error)post({type:'log',message:message.error});
           };
-          decoderWorker.onerror=error=>{clearTimeout(deadline);reject(Error(error.message));};
+          decoderWorker.onerror=error=>initialization.fail(Error(error.message));
           decoderWorker.postMessage({memory:engine.HEAPU8.buffer,pointer:engine._web_decoder_ptr(),disabled:data.disableBrowserCodecs,faultAfter:data.decoderFaultAfter});
         });
         if(control.closing)return;
@@ -332,10 +350,12 @@ self.onmessage = async ({data}) => {
       clean(()=>decoderWorker?.postMessage({type:'cancel'}));
       clean(()=>engine?._web_destroy());if(uploader){clean(()=>uploader.destroy());post({type:'output',data:{kind:'yuv-cleanup',...uploader.stats}});}
       // Native joins precede the queued pthread pool-return messages.
-      const deadline=performance.now()+2000;
-      while(engine?.PThread.runningWorkers.length&&performance.now()<deadline)
+      const joining=beginLegacyHandshake(control,'threads',performance.now());control=joining.state;
+      if(joining.wait){for(;;){
+        const step=observeLegacyHandshake(control,'threads',joining.wait.id,engine?.PThread.runningWorkers.length?'deadline':'ready',performance.now());control=step.state;
+        if(step.effect!=='waiting'){if(step.effect!=='ready')cleanupFailure??=Error('Native thread cleanup did not settle');break;}
         await new Promise(resolve=>setTimeout(resolve,10));
-      if(engine?.PThread.runningWorkers.length)cleanupFailure??=Error('Native thread cleanup did not settle');
+      }}else cleanupFailure??=Error('Native thread cleanup admission failed');
       clean(()=>engine?.PThread.terminateAllThreads());
       clean(()=>decoderWorker?.terminate());decoderWorker=null;
       // Let child termination and queued cleanup run before closing their owner.

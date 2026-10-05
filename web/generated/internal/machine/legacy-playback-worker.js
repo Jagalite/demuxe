@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-export const initialLegacyPlaybackWorker = () => ({ demuxFormat: '', seekPreroll: 0, decoderOutputWatchdog: true, snapshot: null, gpuPauseIntent: null, sourceRendered: 0, source: 0, opening: false, ready: false, initialized: false, closing: false, pumpFailed: false, force: true, paused: true, busyUntil: 0, pendingTarget: null, restarted: false, position: 0, nextDiagnostics: 0, commandSerial: 0x80000000, commands: [], timerSerial: 0, timer: null });
+import { beginWait, observeWait } from './async-policy.js';
+export const initialLegacyPlaybackWorker = () => ({ handshakeSerial: 0, handshakes: {}, demuxFormat: '', seekPreroll: 0, decoderOutputWatchdog: true, snapshot: null, gpuPauseIntent: null, sourceRendered: 0, source: 0, opening: false, ready: false, initialized: false, closing: false, pumpFailed: false, force: true, paused: true, busyUntil: 0, pendingTarget: null, restarted: false, position: 0, nextDiagnostics: 0, commandSerial: 0x80000000, commands: [], timerSerial: 0, timer: null });
 export function reduceLegacyPlaybackWorker(s, e) {
     if (s.closing)
         return s;
@@ -68,3 +69,23 @@ export function legacyCommandCurrent(s, id) { return !s.closing && s.commands.so
 export function admitLegacySnapshot(s, id) { return s.ready && !s.closing && !s.pumpFailed && !s.snapshot && Number.isSafeInteger(id) ? { ...s, snapshot: { id, source: s.source, capturing: false }, force: true } : s; }
 export function captureLegacySnapshot(s) { return s.snapshot && !s.snapshot.capturing && !s.closing ? { ...s, snapshot: { ...s.snapshot, capturing: true } } : s; }
 export function finishLegacySnapshot(s, id, source) { return s.snapshot?.id === id && s.snapshot.source === source ? { state: { ...s, snapshot: null }, publish: !s.closing && !s.pumpFailed && s.source === source } : { state: s, publish: false }; }
+export function beginLegacyHandshake(state, kind, now) {
+    if (state.closing && kind !== 'io-close' && kind !== 'threads' || state.handshakeSerial >= Number.MAX_SAFE_INTEGER)
+        return { state, wait: null };
+    const wait = beginWait(state.handshakeSerial + 1, now, kind);
+    return { state: { ...state, handshakeSerial: wait.id, handshakes: { ...state.handshakes, [kind]: wait } }, wait };
+}
+export function observeLegacyHandshake(state, kind, id, event, now) {
+    const old = state.handshakes[kind];
+    if (!old || old.id !== id)
+        return { state, effect: 'ignore' };
+    if (state.closing && kind !== 'io-close' && kind !== 'threads')
+        return { state: { ...state, handshakes: { ...state.handshakes, [kind]: undefined } }, effect: 'reject' };
+    if (kind === 'decoder' && old.phase === 'ready' && event === 'failed')
+        return { state: { ...state, pumpFailed: true, handshakes: { ...state.handshakes, [kind]: Object.freeze({ ...old, phase: 'failed' }) } }, effect: 'fatal' };
+    const next = observeWait(old, { id, kind: event, now });
+    if (next === old)
+        return { state, effect: old.phase === 'waiting' ? 'waiting' : 'ignore', deadline: old.deadline };
+    return { state: { ...state, handshakes: { ...state.handshakes, [kind]: next } }, effect: next.phase === 'ready' ? 'ready' : kind === 'io-close' ? 'contain' : 'reject' };
+}
+export function legacyHandshakeAllowsMessages(state, kind) { const phase = state.handshakes[kind]?.phase; return !state.closing && (phase === 'waiting' || phase === 'ready'); }

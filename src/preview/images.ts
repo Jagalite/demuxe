@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {beginAttempts,observeAttempt} from '../internal/machine/async-policy.js';
 import type {PreviewContext,PreviewImage} from './controller.js';
 /** Bounded encoded images; callers supply authorized bytes, never playback surfaces. */
 export async function rasterizePreview(blob:Blob,request:Pick<PreviewContext,'width'|'height'|'signal'>,crop?:{x:number;y:number;width:number;height:number}):Promise<{blob:Blob;width:number;height:number}>{
@@ -20,7 +21,9 @@ export async function rasterizePreview(blob:Blob,request:Pick<PreviewContext,'wi
 export async function previewImageBlob(image:PreviewImage,signal:AbortSignal):Promise<Blob>{
   if('blob' in image)return image.blob;
   let last:unknown=new Error('No authored image URI');
-  for(const uri of image.uris){
+  const uris=[...image.uris];let attempts=beginAttempts(uris.length);
+  while(attempts.phase==='trying'){
+    const index=attempts.index,uri=uris[index];
     try{
       const url=new URL(uri,globalThis.location?.href);if(!['http:','https:','blob:'].includes(url.protocol)||url.username||url.password)throw Error('Unsupported preview URI');
       const headers=new Headers();if(image.startByte!==undefined||image.endByte!==undefined)headers.set('Range',`bytes=${image.startByte??0}-${image.endByte??''}`);
@@ -34,7 +37,7 @@ export async function previewImageBlob(image:PreviewImage,signal:AbortSignal):Pr
       try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>4*1024*1024)throw Error('Preview image byte budget exceeded');chunks.push(value);}}finally{await reader.cancel().catch(()=>{});reader.releaseLock();}
       if(expected!==undefined&&size!==expected)throw Error('Preview image range body mismatch');
       const result=await rasterizePreview(new Blob(chunks,{type:response.headers.get('Content-Type')??''}),{width:Math.min(2048,image.crop.width),height:Math.min(2048,image.crop.height),signal},image.crop);return result.blob;
-    }catch(error){signal.throwIfAborted();last=error;}
+    }catch(error){signal.throwIfAborted();last=error;attempts=observeAttempt(attempts,index,'retry');}
   }
   throw last;
 }

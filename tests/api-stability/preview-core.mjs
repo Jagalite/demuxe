@@ -139,7 +139,7 @@ function scheduler(config,bucket=1){let state=createPregeneration(config,bucket)
  test('retired caller timeout cannot cancel a coalesced replacement caller',async t=>{
   const timers=[];t.mock.method(globalThis,'setTimeout',(fn,ms)=>{const handle={fn,ms};timers.push(handle);return handle;});t.mock.method(globalThis,'clearTimeout',()=>{});
   let finish;const c=new PreviewController([{id:'held',priority:0,canHandle:()=>true,getFrame:()=>new Promise(resolve=>finish=resolve)}],{debounceMs:0});
-  const first=c.getFrame({time:1}),rejected=assert.rejects(first,{name:'AbortError'}),oldTimeout=timers.find(item=>item.ms===10000);
+  const first=c.getFrame({time:1}),rejected=assert.rejects(first,{name:'AbortError'}),oldTimeout=timers.find(item=>item.ms>9000&&item.ms<=10000);
   timers.find(item=>item.ms===0).fn();await turn();const latest=c.getFrame({time:1.2});await rejected;oldTimeout.fn();
   assert.equal(c.diagnostics.cancelled,1);finish({time:1,width:8,height:8,path:'held',image:{blob:new Blob(['image'])}});
   assert.equal((await latest).requestedTime,1.2);await c.destroy();

@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
+import {beginWait,observeWait,type WaitState} from './async-policy.js';
 /** Logical authority shared by the two packaged legacy native workers. */
 export interface LegacyPlaybackWorkerState {
+  readonly handshakeSerial:number;readonly handshakes:Readonly<Partial<Record<WorkerHandshakeKind,WaitState>>>;
   readonly demuxFormat:string;readonly seekPreroll:number;readonly decoderOutputWatchdog:boolean; readonly snapshot:Readonly<{id:number;source:number;capturing:boolean}>|null; readonly gpuPauseIntent:boolean|null; readonly sourceRendered:number; readonly source: number; readonly opening: boolean; readonly ready: boolean; readonly initialized: boolean; readonly closing: boolean; readonly pumpFailed: boolean;
   readonly force: boolean; readonly paused: boolean; readonly busyUntil: number;
   readonly pendingTarget: number | null; readonly restarted: boolean; readonly position: number;
   readonly nextDiagnostics: number; readonly commandSerial: number; readonly commands: readonly Readonly<{id:number;source:number}>[];
   readonly timerSerial: number; readonly timer: number | null;
 }
-export const initialLegacyPlaybackWorker = (): LegacyPlaybackWorkerState => ({demuxFormat:'',seekPreroll:0,decoderOutputWatchdog:true,snapshot:null,gpuPauseIntent:null,sourceRendered:0,source:0,opening:false,ready:false,initialized:false,closing:false,pumpFailed:false,force:true,paused:true,busyUntil:0,pendingTarget:null,restarted:false,position:0,nextDiagnostics:0,commandSerial:0x80000000,commands:[],timerSerial:0,timer:null});
+export const initialLegacyPlaybackWorker = (): LegacyPlaybackWorkerState => ({handshakeSerial:0,handshakes:{},demuxFormat:'',seekPreroll:0,decoderOutputWatchdog:true,snapshot:null,gpuPauseIntent:null,sourceRendered:0,source:0,opening:false,ready:false,initialized:false,closing:false,pumpFailed:false,force:true,paused:true,busyUntil:0,pendingTarget:null,restarted:false,position:0,nextDiagnostics:0,commandSerial:0x80000000,commands:[],timerSerial:0,timer:null});
 export type LegacyPlaybackWorkerEvent =
  | {type:'format';format:string;software:boolean}|{type:'decoder-watchdog';enabled:boolean}| {type:'gpu-lost'} | {type:'gpu-intent';paused:boolean} | {type:'gpu-restored'} | {type:'frame-presented'} | {type:'ready'} | {type:'init'} | {type:'close'} | {type:'fail'} | {type:'invalidate'} | {type:'rendered'}
  | {type:'touch'; now:number} | {type:'pause'; paused:boolean; now:number}
@@ -73,3 +75,20 @@ export function legacyCommandCurrent(s:LegacyPlaybackWorkerState,id:number):bool
 export function admitLegacySnapshot(s:LegacyPlaybackWorkerState,id:number):LegacyPlaybackWorkerState{return s.ready&&!s.closing&&!s.pumpFailed&&!s.snapshot&&Number.isSafeInteger(id)?{...s,snapshot:{id,source:s.source,capturing:false},force:true}:s;}
 export function captureLegacySnapshot(s:LegacyPlaybackWorkerState):LegacyPlaybackWorkerState{return s.snapshot&&!s.snapshot.capturing&&!s.closing?{...s,snapshot:{...s.snapshot,capturing:true}}:s;}
 export function finishLegacySnapshot(s:LegacyPlaybackWorkerState,id:number,source:number):{state:LegacyPlaybackWorkerState;publish:boolean}{return s.snapshot?.id===id&&s.snapshot.source===source?{state:{...s,snapshot:null},publish:!s.closing&&!s.pumpFailed&&s.source===source}:{state:s,publish:false};}
+
+export type WorkerHandshakeKind='io-open'|'io-close'|'decoder'|'threads';
+export function beginLegacyHandshake(state:LegacyPlaybackWorkerState,kind:WorkerHandshakeKind,now:number):Readonly<{state:LegacyPlaybackWorkerState;wait:WaitState|null}>{
+ if(state.closing&&kind!=='io-close'&&kind!=='threads'||state.handshakeSerial>=Number.MAX_SAFE_INTEGER)return {state,wait:null};
+ const wait=beginWait(state.handshakeSerial+1,now,kind);
+ return {state:{...state,handshakeSerial:wait.id,handshakes:{...state.handshakes,[kind]:wait}},wait};
+}
+export function observeLegacyHandshake(state:LegacyPlaybackWorkerState,kind:WorkerHandshakeKind,id:number,event:'ready'|'failed'|'deadline',now:number):Readonly<{state:LegacyPlaybackWorkerState;effect:'ignore'|'waiting'|'ready'|'reject'|'fatal'|'contain';deadline?:number}>{
+ const old=state.handshakes[kind];if(!old||old.id!==id)return {state,effect:'ignore'};
+ if(state.closing&&kind!=='io-close'&&kind!=='threads')return {state:{...state,handshakes:{...state.handshakes,[kind]:undefined}},effect:'reject'};
+ if(kind==='decoder'&&old.phase==='ready'&&event==='failed')return {state:{...state,pumpFailed:true,handshakes:{...state.handshakes,[kind]:Object.freeze({...old,phase:'failed'})}},effect:'fatal'};
+ const next=observeWait(old,{id,kind:event,now});
+ if(next===old)return {state,effect:old.phase==='waiting'?'waiting':'ignore',deadline:old.deadline};
+ return {state:{...state,handshakes:{...state.handshakes,[kind]:next}},effect:next.phase==='ready'?'ready':kind==='io-close'?'contain':'reject'};
+}
+
+export function legacyHandshakeAllowsMessages(state:LegacyPlaybackWorkerState,kind:WorkerHandshakeKind):boolean{const phase=state.handshakes[kind]?.phase;return !state.closing&&(phase==='waiting'||phase==='ready');}

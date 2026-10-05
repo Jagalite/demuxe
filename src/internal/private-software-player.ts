@@ -6,7 +6,7 @@ import type {DecodeQuality} from './decode-policy.js';
 import {bufferingPolicy,mpvBufferingOptions,resolveBuffering} from './buffering.js';
 import {runtimeWorker} from './runtime-worker.js';
 import {PlayerError, playerError} from './errors.js';
-import {initialPrivateSoftware,privateSoftwareSourceCurrent,privateSoftwareLoadCurrent,beginPrivateSoftwareLoad,startPrivateSoftwareLoad,finishPrivateSoftwareLoad,privateSoftwareControlCurrent,beginPrivateSoftwareControl,startPrivateSoftwareControl,finishPrivateSoftwareControl,acceptPrivateSoftwarePicture,privateSoftwareEvidence,privateSoftwareReady,acceptPrivateSoftwareOutput,privateSoftwareWait,beginPrivateSoftwareAttachment,removePrivateSoftwareAttachment,acceptPrivateSoftwareSettings,retirePrivateSoftware,privateSoftwareAudioLayout,type PrivateSoftwareControl,type PrivateSoftwareFacts} from './machine/private-software.js';
+import {beginPrivateOutputWait,observePrivateOutputWait,finishPrivateOutputWait,initialPrivateSoftware,privateSoftwareSourceCurrent,privateSoftwareLoadCurrent,beginPrivateSoftwareLoad,startPrivateSoftwareLoad,finishPrivateSoftwareLoad,privateSoftwareControlCurrent,beginPrivateSoftwareControl,startPrivateSoftwareControl,finishPrivateSoftwareControl,acceptPrivateSoftwarePicture,privateSoftwareEvidence,privateSoftwareReady,acceptPrivateSoftwareOutput,privateSoftwareWait,beginPrivateSoftwareAttachment,removePrivateSoftwareAttachment,acceptPrivateSoftwareSettings,retirePrivateSoftware,privateSoftwareAudioLayout,type PrivateSoftwareControl,type PrivateSoftwareFacts} from './machine/private-software.js';
 import {createBackendRequests,admitBackendRequest,settleBackendRequest,failBackendRequests,beginBackendClose,finishBackendClose} from './machine/backend-requests.js';
 
 /** Experimental finite Software Backend. Public admission has its own gates. */
@@ -166,15 +166,23 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     return {tracksKnown:!!tracks,trackCount:tracks?.length??0,video:!!tracks?.some(track=>track.type==='video'&&track.selected),audio:!!tracks?.some(track=>track.type==='audio'&&track.selected),audioCodec:!!this.properties.get('audio-codec-name'),audioWritten:header[0]??0,audioConsumed:header[1]??0,seeking:!!this.diagnostics?.seeking,rendered:Number(this.diagnostics?.rendered),position:Number(this.diagnostics?.presentedPosition)};
   }
   private async waitUntil(predicate:()=>boolean,signal?:AbortSignal,generation=this.generation){
-    const deadline=performance.now()+25000;
-    for(;;){
-      const now=performance.now(),admission=privateSoftwareWait(this.policy,generation,now,deadline,false);
-      if(admission==='timeout')throw new PlayerError('PLAYBACK_STALLED','Private Software output deadline');
+    const admission=beginPrivateOutputWait(this.policy,generation,performance.now());this.policy=admission.state;
+    if(admission.id===null)throw new PlayerError('ABORTED','Private Software wait unavailable');
+    const id=admission.id;
+    try{for(;;){
       this.assertSource(generation);signal?.throwIfAborted();if(this.failed)throw this.failed;
-      const ready=predicate();this.assertSource(generation);signal?.throwIfAborted();if(privateSoftwareWait(this.policy,generation,now,deadline,ready)==='ready')return;
+      let result=observePrivateOutputWait(this.policy,id,performance.now(),false);this.policy=result.state;
+      if(result.outcome==='timeout')throw new PlayerError('PLAYBACK_STALLED','Private Software output deadline');
+      if(result.outcome==='retired')throw new PlayerError('ABORTED','Private Software wait retired');
+      const ready=predicate();this.assertSource(generation);signal?.throwIfAborted();
+      result=observePrivateOutputWait(this.policy,id,performance.now(),ready);this.policy=result.state;
+      if(result.outcome==='ready')return;
+      if(result.outcome==='timeout')throw new PlayerError('PLAYBACK_STALLED','Private Software output deadline');
+      if(result.outcome==='retired')throw new PlayerError('ABORTED','Private Software wait retired');
       await new Promise(resolve=>setTimeout(resolve,15));
-    }
+    }}finally{this.policy=finishPrivateOutputWait(this.policy,id);}
   }
+
   async open(file:File|ArrayBuffer,input?:MediaInputOptions){
     const suffix=file instanceof File?file.name.split('.').at(-1)?.toLowerCase():undefined;
     const demuxer=input?.demuxer??(suffix==='sbc'||suffix==='msbc'?'sbc':'');

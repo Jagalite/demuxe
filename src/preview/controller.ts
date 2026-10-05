@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
+import {beginAttempts,observeAttempt} from '../internal/machine/async-policy.js';
 import {PreviewPregenerator,type AdaptivePregeneration,type CustomPregeneration} from './pregeneration.js';
 import {observePreviewInteraction,snapshotPreviewInteraction} from '../internal/machine/preview-interaction.js';
 import {resolvePreviewStrategy} from './strategies.js';
-import {createPreviewControl,transitionPreviewControl,previewJob,previewGenerationAdmission,previewProviderDeferred,previewCanPrefetch,admitPreviewRequest,planPreviewRequest,createPreviewJob,startPreviewJob,lookupPreviewCache,rememberPreviewCache,unloadPreviewCache,type PreviewControlState,type PreviewControlEvent} from '../internal/machine/preview.js';
+import {previewMetadataValid,previewCallerDeadline,previewGenerationOutcome,previewResultAccepted,previewAttemptExhausted,createPreviewControl,transitionPreviewControl,previewJob,previewGenerationAdmission,previewProviderDeferred,previewCanPrefetch,admitPreviewRequest,planPreviewRequest,createPreviewJob,startPreviewJob,lookupPreviewCache,rememberPreviewCache,unloadPreviewCache,type PreviewControlState,type PreviewControlEvent} from '../internal/machine/preview.js';
 import type {PreviewStrategy,PreviewPregeneration} from '../types.js';
 import type {PreviewOptions} from '../types.js';
 export type {PreviewOptions} from '../types.js';
@@ -66,7 +67,7 @@ export class PreviewController {
   private generator(config:PreviewPregeneration|AdaptivePregeneration|CustomPregeneration,sample?:import('../types.js').PreviewSampler){
     return new PreviewPregenerator(config,this.options.bucketSeconds,async request=>{
       const admission=previewGenerationAdmission(this.state,now());if(admission!=='run')return admission;
-      try{await this.requestWork(request,true);return 'next';}catch(error){return error instanceof PreviewDeferred||this.state.suspended||now()-this.state.lastForeground<500?'wait':'next';}
+      try{await this.requestWork(request,true);return 'next';}catch(error){return previewGenerationOutcome(this.state,now(),error instanceof PreviewDeferred);}
     },sample?(duration)=>{
       const at=now();
       if(previewGenerationAdmission(this.state,at)!=='run')return [];
@@ -226,7 +227,7 @@ export class PreviewController {
     return new Promise((resolve,reject)=>{
       let timeout:ReturnType<typeof setTimeout>|undefined,attached=false;
       const signal=request.signal;
-      this.dispatch({kind:'caller',jobId:selected.id});const callerId=this.state.caller?.id;
+      this.dispatch({kind:'caller',jobId:selected.id,at:now()});const callerId=this.state.caller?.id;
       if(callerId===undefined||this.state.caller?.jobId!==selected.id){reject(aborted());return;}
       const current=()=>this.state.caller?.id===callerId&&this.caller?.job===selected;
       const cancel=()=>{if(current()){this.settle(aborted());this.cancelJob(selected);}};
@@ -239,7 +240,8 @@ export class PreviewController {
       this.callers.set(callerId,{job:selected,request,start,cacheMs,onUpdate:request.onUpdate,resolve,reject,cleanup});
       try{
         if(signal?.aborted){cancel();return;}
-        const acquired=setTimeout(cancel,this.options.timeoutMs);
+        const expire=()=>{const outcome=previewCallerDeadline(this.state,callerId,now());if(outcome==='timeout')cancel();else if(outcome==='wait')timeout=setTimeout(expire,Math.max(0,this.state.caller!.deadline-now()));};
+        const acquired=setTimeout(expire,Math.max(0,this.state.caller!.deadline-now()));
         if(!current()){clearTimeout(acquired);return;}timeout=acquired;
         if(signal?.aborted){cancel();return;}
         if(signal){attached=true;try{signal.addEventListener('abort',cancel,{once:true});}finally{if(!current())signal.removeEventListener('abort',cancel);}}
@@ -254,33 +256,34 @@ export class PreviewController {
     void this.run(job).finally(()=>{this.dispatch({kind:'finish-job',id:job.id});this.jobs.delete(job.id);this.pump();});
   }
   private async run(job:Job){
-    let deferred=false;
+    const providers=[...this.providers];let attempts=beginAttempts(providers.length);
     try{
       const scheduler=(globalThis as typeof globalThis & {scheduler?:{postTask(task:()=>void,options:{priority:'background';signal:AbortSignal}):Promise<void>}}).scheduler;
       if(scheduler)await scheduler.postTask(()=>{}, {priority:'background',signal:job.controller.signal});
-      for(const provider of this.providers){
+      while(attempts.phase==='trying'){
+        const index=attempts.index,provider=providers[index];
+        const advance=(outcome:'retry'|'defer'|'accept')=>{attempts=observeAttempt(attempts,index,outcome);};
         job.context.signal.throwIfAborted();
-        if(previewProviderDeferred(this.state,provider.requiresDecoder,provider.allowDuringPlayback)){deferred=true;continue;}
+        if(previewProviderDeferred(this.state,provider.requiresDecoder,provider.allowDuringPlayback)){advance('defer');continue;}
         this.dispatch({kind:'provider',id:job.id,requiresDecoder:provider.requiresDecoder&&!provider.allowDuringPlayback});
         try{
           const start=now();let supported:boolean;
           try{supported=await provider.canHandle(job.context);}finally{this.dispatch({kind:'selection',id:job.id,milliseconds:now()-start});}
-          job.context.signal.throwIfAborted();if(!supported)continue;
-          if(previewProviderDeferred(this.state,provider.requiresDecoder,provider.allowDuringPlayback)){deferred=true;continue;}
+          job.context.signal.throwIfAborted();if(!supported){advance('retry');continue;}
+          if(previewProviderDeferred(this.state,provider.requiresDecoder,provider.allowDuringPlayback)){advance('defer');continue;}
           const raw=await provider.getFrame(job.context);job.context.signal.throwIfAborted();
-          const result=this.validate(raw);job.context.signal.throwIfAborted();if(!result||(job.context.exact&&(result.temporalAccuracy!=='exact'||result.actualTime!==job.context.time)))continue;
+          const result=this.validate(raw);job.context.signal.throwIfAborted();if(!previewResultAccepted(job.context.exact,job.context.time,result)||!result){advance('retry');continue;}
           this.remember(this.metadata(job).key,result,this.metadata(job).background);
           if(this.caller?.job===job){const c=this.caller,frame=this.frame(result,c.request,job.context.time,'miss',c.start,c.cacheMs,this.metadata(job).selectionMs);this.notify(c.onUpdate,frame);if(this.caller===c)this.settle(undefined,frame);}
-          return;
-        }catch(error){job.context.signal.throwIfAborted();this.dispatch({kind:'failure',provider:provider.id,errorKind:error instanceof Error?error.name:'Error'});}
+          advance('accept');return;
+        }catch(error){job.context.signal.throwIfAborted();this.dispatch({kind:'failure',provider:provider.id,errorKind:error instanceof Error?error.name:'Error'});advance('retry');}
       }
-      if(this.caller?.job===job)this.settle(this.metadata(job).background&&deferred?new PreviewDeferred():undefined);
+      if(this.caller?.job===job)this.settle(previewAttemptExhausted(this.metadata(job).background,attempts.deferred)==='deferred'?new PreviewDeferred():undefined);
     }catch{if(this.caller?.job===job)this.settle(aborted());}
   }
   private validate(result:PreviewResult|null):PreviewResult|null{
     try{
-      if(!result||!Number.isFinite(result.time)||result.time<0||typeof result.path!=='string'||result.path.length>256||!Number.isInteger(result.width)||result.width<1||result.width>2048||!Number.isInteger(result.height)||result.height<1||result.height>2048)return null;
-      if(result.actualTime!=null&&(!Number.isFinite(result.actualTime)||result.actualTime<0))return null;
+      if(!result||!previewMetadataValid({time:result.time,path:result.path,width:result.width,height:result.height,actualTime:result.actualTime}))return null;
       let image:PreviewImage;
       if('blob' in result.image){
         if(!(result.image.blob instanceof Blob)||result.image.blob.size>4*1024*1024)return null;

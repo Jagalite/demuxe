@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type WaitState } from './async-policy.js';
 import type { WasmSeekState, WasmSeekObservation } from './wasm-seek.js';
 import type { WasmSettings, WasmSettingInput } from './wasm-settings.js';
 /** Logical ownership only. Workers, promises, errors and timers remain in the shell. */
@@ -15,6 +16,9 @@ export type WasmAttachment = Readonly<{
     status: 'pending' | 'accepted' | 'uncertain';
 }>;
 export type WasmLifecycle = Readonly<{
+    initialization: WaitState | null;
+    retirement: WaitState | null;
+    releaseFailed: boolean;
     attachmentSerial: number;
     attachments: readonly WasmAttachment[];
     attachmentPending: number | null;
@@ -84,7 +88,7 @@ export declare function retireWasmLifecycle(state: WasmLifecycle): Readonly<{
     requests: readonly number[];
     waiters: readonly number[];
 }>;
-export declare function finishWasmRetirement(state: WasmLifecycle): WasmLifecycle;
+export declare function finishWasmRetirement(state: WasmLifecycle, released?: boolean): WasmLifecycle;
 export declare function applyWasmSetting(state: WasmLifecycle, input: WasmSettingInput): Readonly<{
     state: WasmLifecycle;
     accepted: boolean;
@@ -98,3 +102,8 @@ export declare function admitWasmAttachment(state: WasmLifecycle, bytes: number,
 export declare function wasmAttachmentCurrent(state: WasmLifecycle, id: number): boolean;
 export declare function finishWasmAttachment(state: WasmLifecycle, id: number, outcome: 'accepted' | 'unsubmitted' | 'uncertain'): WasmLifecycle;
 export declare function wasmAttachmentIdentity(state: WasmLifecycle, index: number): string | undefined;
+export declare function beginWasmHandshake(state: WasmLifecycle, kind: 'initialization' | 'retirement', now: number): WasmLifecycle;
+export declare function observeWasmHandshake(state: WasmLifecycle, kind: 'initialization' | 'retirement', event: 'ready' | 'failed' | 'deadline', now: number): Readonly<{
+    state: WasmLifecycle;
+    effect: 'ignore' | 'waiting' | 'ready' | 'reject' | 'contain';
+}>;

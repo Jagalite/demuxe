@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type WaitState } from './async-policy.js';
 import type { BufferingPolicy, AudioOutput } from '../../types.js';
 export type PrivateSoftwareLoad = Readonly<{
     id: number;
@@ -16,6 +17,10 @@ export type PrivateSoftwareAttachment = Readonly<{
     attachmentId: string | undefined;
 }>;
 export type PrivateSoftwareState = Readonly<{
+    waits: readonly Readonly<{
+        generation: number;
+        wait: WaitState;
+    }>[];
     stopped: boolean;
     serial: number;
     generation: number;
@@ -84,3 +89,12 @@ export declare function privateSoftwareAudioLayout(requested: AudioOutput, devic
     channels: 2 | 6 | 8;
     reject: boolean;
 }>;
+export declare function beginPrivateOutputWait(state: PrivateSoftwareState, generation: number, now: number): Readonly<{
+    state: PrivateSoftwareState;
+    id: number | null;
+}>;
+export declare function observePrivateOutputWait(state: PrivateSoftwareState, id: number, now: number, ready: boolean): Readonly<{
+    state: PrivateSoftwareState;
+    outcome: 'wait' | 'ready' | 'retired' | 'timeout';
+}>;
+export declare function finishPrivateOutputWait(state: PrivateSoftwareState, id: number): PrivateSoftwareState;

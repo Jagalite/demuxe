@@ -52,6 +52,7 @@ export type PreviewControlState = Readonly<{
     caller: Readonly<{
         id: number;
         jobId: number;
+        deadline: number;
     }> | null;
     cache: readonly PreviewCacheEntry[];
     bytes: number;
@@ -139,6 +140,7 @@ export type PreviewControlEvent = {
 } | {
     kind: 'caller';
     jobId: number;
+    at?: number;
 } | {
     kind: 'settle';
     failed: boolean;
@@ -188,3 +190,27 @@ export declare function unloadPreviewCache(state: PreviewControlState, start: nu
     jobs: readonly number[];
     removed: number;
 }>;
+export declare function previewCallerDeadline(state: PreviewControlState, id: number, at: number): 'retired' | 'wait' | 'timeout';
+export declare function previewGenerationOutcome(state: PreviewControlState, at: number, deferred: boolean): 'wait' | 'next' | 'stop';
+export declare function previewResultAccepted(exact: boolean, time: number, result: Readonly<{
+    temporalAccuracy?: string;
+    actualTime?: number | null;
+}> | null): boolean;
+export declare function previewAttemptExhausted(background: boolean, deferred: boolean): 'deferred' | 'empty';
+export declare function previewMediaPlan(facts: Readonly<{
+    width: number;
+    height: number;
+    duration: number;
+    position: number;
+    readyState: number;
+}>, time: number, maxPixels: number): Readonly<{
+    target: number;
+    event: 'seeked' | 'loadeddata' | null;
+}> | null;
+export declare function previewMetadataValid(result: Readonly<{
+    time: number;
+    path: string;
+    width: number;
+    height: number;
+    actualTime?: number | null;
+}>): boolean;
