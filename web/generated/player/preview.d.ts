@@ -15,6 +15,8 @@ export declare class ScrubberPreview {
     private imageIds;
     private pendingApi?;
     private displayedURL?;
+    private settleTimer?;
+    private cancelSettle;
     private transition;
     private identity;
     private abort;

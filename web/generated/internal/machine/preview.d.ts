@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type PreviewInteractionState } from './preview-interaction.js';
 import type { PreviewOptions, PreviewStrategy } from '../../types.js';
 export type PreviewSettings = Readonly<Required<Omit<PreviewOptions, 'pregenerate' | 'strategy'>>>;
 export type PreviewRequestData = Readonly<{
@@ -35,6 +36,7 @@ export type PreviewControlState = Readonly<{
     suspended: boolean;
     playbackActive: boolean;
     disposed: boolean;
+    interaction: PreviewInteractionState;
     strategy: PreviewStrategy | null;
     duration: number | null;
     hoverUntil: number;
@@ -81,6 +83,11 @@ export type PreviewControlEvent = {
     sourceId: string;
 } | {
     kind: 'providers';
+} | {
+    kind: 'focus';
+    source: 'hover' | 'playback';
+    time: number;
+    at: number;
 } | {
     kind: 'duration';
     duration: number | null;

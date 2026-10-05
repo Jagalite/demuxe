@@ -17,7 +17,10 @@ export declare const defaultLabels: Readonly<{
     lightTheme: "Light";
     previews: "Timeline thumbnails";
     previewStrategy: "Thumbnail strategy";
+    previewDemuxe: "Demuxe · broad coverage, local detail";
     previewAdaptive: "Adaptive · nearby every 5s";
+    previewGaussian: "Gaussian · dense near hover";
+    previewDirectional: "Directional · follows movement";
     previewUniform: "Evenly spaced · 48 samples";
     previewInterval: "Whole video · every 5s";
     previewOnDemand: "On hover only";

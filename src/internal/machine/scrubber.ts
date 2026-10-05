@@ -8,7 +8,7 @@ export type ScrubberState=Readonly<{
 }>;
 export type ScrubberCommand=
  | Readonly<{type:'allocate'|'hover'|'generate'|'clear'|'hide'|'destroy'}>
- | Readonly<{type:'cache';hover:number;target:ScrubberTarget;hit:boolean;refine:boolean}>
+  | Readonly<{type:'cache';hover:number;target:ScrubberTarget;hit:boolean;refine:boolean;defer?:boolean}>
  | Readonly<{type:'generated';id:number;aborted:boolean;hasFrame:boolean}>
  | Readonly<{type:'generation-finished';id:number}>
  | Readonly<{type:'show';image:number}>
@@ -33,7 +33,7 @@ export function transitionScrubber(state:ScrubberState,command:ScrubberCommand):
   case 'hover':return Object.freeze({state:Object.freeze({...state,hover:state.hover+1,visible:true}),id:state.hover+1,placeholder:!state.visible});
   case 'cache':{
    if(command.hover!==state.hover)return Object.freeze({state,accepted:false});
-   const pending=!command.hit||command.refine?Object.freeze({...command.target}):null;
+   const pending=!command.defer&&(!command.hit||command.refine)?Object.freeze({...command.target}):null;
    return Object.freeze({state:Object.freeze({...state,serial:state.serial+(command.hit?1:0),pending}),accepted:true,show:command.hit});
   }
   case 'generate':{
@@ -56,6 +56,7 @@ export function transitionScrubber(state:ScrubberState,command:ScrubberCommand):
  }
 }
 export function scrubberDistance(strategy:PreviewStrategy|null|undefined,span:number,generation=false):number {
+ if(strategy?.type==='demuxe')return generation?0:span;
  if(generation&&strategy?.type==='adaptive')return (strategy.every??5)/2+1;
  if(strategy?.type==='interval')return (strategy.every??5)*(strategy.unit==='minutes'?60:1)/2+1;
  if(strategy?.type==='adaptive'||strategy?.type==='uniform')return span/(2*(strategy.samples??(strategy.type==='adaptive'?24:48)))+1;

@@ -29,6 +29,7 @@ export type ScrubberCommand = Readonly<{
     target: ScrubberTarget;
     hit: boolean;
     refine: boolean;
+    defer?: boolean;
 }> | Readonly<{
     type: 'generated';
     id: number;

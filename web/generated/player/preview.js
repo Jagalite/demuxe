@@ -17,6 +17,9 @@ export class ScrubberPreview {
     imageIds = new WeakMap();
     pendingApi;
     displayedURL;
+    settleTimer;
+    cancelSettle() { const handle = this.settleTimer; this.settleTimer = undefined; if (handle !== undefined)
+        clearTimeout(handle); }
     transition(command) { const result = transitionScrubber(this.control, command); this.control = result.state; return result; }
     identity(map, value) { let id = map.get(value); if (id === undefined) {
         id = this.transition({ type: 'allocate' }).id;
@@ -61,6 +64,22 @@ export class ScrubberPreview {
         const hover = this.transition({ type: 'hover' });
         if (hover.id === undefined)
             return;
+        this.cancelSettle();
+        if (api.strategy?.type === 'demuxe') {
+            const id = hover.id;
+            const handle = setTimeout(() => {
+                if (this.control.terminal || this.control.hover !== id || this.api() !== api || api.strategy?.type !== 'demuxe')
+                    return;
+                this.settleTimer = undefined;
+                const refinement = this.transition({ type: 'hover' });
+                if (refinement.id !== undefined)
+                    void this.sample(api, pointer.time, refinement.id, true).catch(() => { });
+            }, 180);
+            if (this.control.terminal || this.control.hover !== id)
+                clearTimeout(handle);
+            else
+                this.settleTimer = handle;
+        }
         if (hover.placeholder) {
             this.image.hidden = true;
             this.label.textContent = `${formatTime(pointer.time)} · …`;
@@ -86,15 +105,16 @@ export class ScrubberPreview {
         }
     }
     distance(api, generation = false) { return scrubberDistance(api.strategy, Number(this.timeline.max) - Number(this.timeline.min), generation); }
-    async sample(api, time, hover) {
+    async sample(api, time, hover, settled = false) {
         const owner = this.identity(this.ownerIds, api);
         let frame = null;
         try {
             frame = await api.getFrame({ time, width: 240, height: 135, maxDistance: this.distance(api), cacheOnly: true });
         }
         catch { }
-        const refine = !!frame && api.strategy?.type === 'adaptive' && Math.abs(frame.time - time) > this.distance(api, true);
-        const decision = this.transition({ type: 'cache', hover, target: { owner, time }, hit: !!frame, refine });
+        const demuxe = api.strategy?.type === 'demuxe';
+        const refine = !!frame && (demuxe && settled || api.strategy?.type === 'adaptive' && Math.abs(frame.time - time) > this.distance(api, true));
+        const decision = this.transition({ type: 'cache', hover, target: { owner, time }, hit: !!frame, refine, defer: demuxe && !settled });
         if (!decision.accepted)
             return;
         this.pendingApi = this.control.pending ? api : undefined;
@@ -252,8 +272,8 @@ export class ScrubberPreview {
         }
     }
     clearImage() { this.applyClear(this.transition({ type: 'clear' })); }
-    hide = () => { this.pendingApi = undefined; this.applyClear(this.transition({ type: 'hide' })); };
-    destroy() { this.pendingApi = undefined; this.applyClear(this.transition({ type: 'destroy' })); for (const [name, listener] of [['pointermove', this.move], ['pointerleave', this.hide], ['pointercancel', this.hide]])
+    hide = () => { this.cancelSettle(); this.pendingApi = undefined; this.applyClear(this.transition({ type: 'hide' })); };
+    destroy() { this.cancelSettle(); this.pendingApi = undefined; this.applyClear(this.transition({ type: 'destroy' })); for (const [name, listener] of [['pointermove', this.move], ['pointerleave', this.hide], ['pointercancel', this.hide]])
         try {
             this.timeline.removeEventListener(name, listener);
         }

@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import { createPreviewInteraction, observePreviewInteraction } from './preview-interaction.js';
+import { demuxeStoryboard } from './preview-demuxe.js';
 export function createPreviewControl(settings = {}) {
     const options = { enabled: true, bucketSeconds: 1, debounceMs: 50, width: 160, maxCacheBytes: 4 * 1024 * 1024, maxEntries: 48, timeoutMs: 10000, ...settings };
     for (const [key, value] of Object.entries(options))
@@ -9,7 +11,7 @@ export function createPreviewControl(settings = {}) {
     if (typeof options.enabled !== 'boolean')
         throw new TypeError('Invalid preview enabled option');
     return Object.freeze({ options: Object.freeze(options), allowed: options.enabled, suspended: false, playbackActive: false, disposed: false,
-        strategy: null, duration: null, hoverUntil: 0, playbackPosition: 0, lastForeground: -Infinity, sourceId: 'initial', revision: 0, serial: 0, requestEpoch: 0, retiring: 0,
+        interaction: createPreviewInteraction(), strategy: null, duration: null, hoverUntil: 0, playbackPosition: 0, lastForeground: -Infinity, sourceId: 'initial', revision: 0, serial: 0, requestEpoch: 0, retiring: 0,
         active: null, pending: null, caller: null, cache: Object.freeze([]), bytes: 0, counters: Object.freeze({ requests: 0, hits: 0, failures: 0, cancelled: 0 }) });
 }
 /** Data-only control updates. Resource cancellation and observer delivery use the
@@ -27,7 +29,8 @@ export function transitionPreviewControl(state, event) {
         case 'suspended': return Object.freeze({ ...state, suspended: event.value });
         case 'playback': return Object.freeze({ ...state, playbackActive: event.value });
         case 'strategy': return Object.freeze({ ...state, strategy: event.value.type === 'timestamps' ? Object.freeze({ ...event.value, timestamps: Object.freeze([...event.value.timestamps]) }) : Object.freeze({ ...event.value }) });
-        case 'source': return Object.freeze({ ...state, sourceId: event.sourceId, hoverUntil: 0, playbackPosition: 0 });
+        case 'focus': return Object.freeze({ ...state, interaction: observePreviewInteraction(state.interaction, event.source, event.time, event.at, state.options.bucketSeconds) });
+        case 'source': return Object.freeze({ ...state, interaction: createPreviewInteraction(), sourceId: event.sourceId, hoverUntil: 0, playbackPosition: 0 });
         case 'providers': return Object.freeze({ ...state, revision: state.revision + 1 });
         case 'duration': return Object.freeze({ ...state, duration: event.duration !== null && Number.isFinite(event.duration) && event.duration > 0 ? event.duration : null });
         case 'position': return Number.isFinite(event.time) && event.time >= 0 ? Object.freeze({ ...state, playbackPosition: event.time }) : state;
@@ -67,7 +70,7 @@ export function previewJob(state, id) { return state.active?.id === id ? state.a
 export function previewGenerationAdmission(state, at) {
     if (state.disposed)
         return 'stop';
-    if (state.retiring || !state.allowed || state.suspended || state.active || state.pending || state.caller || at - state.lastForeground < 500)
+    if (state.retiring || !state.allowed || state.suspended || state.active || state.pending || state.caller || at - state.lastForeground < (state.strategy?.type === 'demuxe' ? 100 : 500))
         return 'wait';
     return !state.options.maxCacheBytes || !state.options.maxEntries ? 'stop' : 'run';
 }
@@ -126,8 +129,17 @@ export function rememberPreviewCache(state, entry) {
         return state;
     const cache = [...state.cache];
     let bytes = state.bytes;
+    const capacity = Math.min(state.options.maxEntries, Math.floor(state.options.maxCacheBytes / Math.max(1, entry.bytes, ...cache.map(item => item.bytes))));
+    const broad = new Set(state.strategy?.type === 'demuxe' ? demuxeStoryboard(state.duration ?? 0, capacity, state.options.bucketSeconds) : []);
+    const protectedEntry = (item) => { const key = JSON.parse(item.key); return key[3] === 240 && key[4] === 135 && !key[5] && broad.has(key[2]); };
     while (cache.length && (bytes + entry.bytes > state.options.maxCacheBytes || cache.length >= state.options.maxEntries)) {
-        const index = entry.background ? cache.findIndex(item => item.background) : 0;
+        let index = entry.background ? cache.findIndex(item => item.background) : 0;
+        if (state.strategy?.type === 'demuxe') {
+            // Local LRU can turn over without losing broad coverage. Foreground always wins.
+            index = cache.findIndex(item => !protectedEntry(item));
+            if (index < 0 && !entry.background)
+                index = 0;
+        }
         if (index < 0)
             return Object.freeze({ ...state, cache: Object.freeze(cache), bytes });
         bytes -= cache[index].bytes;

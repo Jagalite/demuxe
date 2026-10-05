@@ -36,12 +36,29 @@ export type WatchdogPolicy = Readonly<Required<WatchdogOptions>>;
 export type BufferingCapabilities = Readonly<{control:'hint'|'profile'; preload:boolean; profile:boolean; memoryBudget:boolean}>;
 export type BufferingResolution = {requestedAheadSeconds?:number; requestedBehindSeconds?:number; requestedMemoryBudget?:number; requestedProfile:BufferingProfile; preload:PreloadPolicy; backend:'browser'|'shaka'|'remux'|'mpv'; control:'hint'|'profile'; cache?:boolean; forwardLimitBytes?:number; backwardLimitBytes?:number; forwardSeconds?:number; backwardSeconds?:number; notes:string[]; settings?:Record<string,unknown>};
 export type PreviewPregeneration = readonly number[] | ({width?:number;height?:number;count?:number|null} & ({timestamps:readonly number[];every?:never;unit?:never;samples?:never}|{every:number;unit?:'seconds'|'minutes';timestamps?:never;samples?:never}|{samples:number;timestamps?:never;every?:never;unit?:never}));
+/** Immutable cache snapshot for a synchronous, side-effect-free sampling callback. */
+export type PreviewSamplingContext = Readonly<{
+  duration:number; focus:number; bucketSeconds:number;
+  /** Preview focus only; velocity is media seconds per real second, dwell is per bucket. */
+  interaction:Readonly<{source:'hover'|'playback';velocity:number;dwellMs:number}>;
+  cachedTimestamps:readonly number[];
+  budget:Readonly<{maxEntries:number;maxBytes:number;usedEntries:number;usedBytes:number;availableEntries:number;availableBytes:number}>;
+}>;
+/** Return at most 256 timestamps in priority order. Invalid results are ignored. */
+export type PreviewSampler = (context:PreviewSamplingContext)=>readonly number[];
 /** Background scheduling; foreground hover requests remain available in every strategy. */
 export type PreviewStrategy =
+  | {type:'custom';sample:PreviewSampler}
+  /** Broad retained coverage plus movement-aware local sampling and settled hover refinement. */
+  | {type:'demuxe'}
   | {type:'on-demand'}
   | {type:'uniform';samples?:number}
   | {type:'interval';every?:number;unit?:'seconds'|'minutes';count?:number|null}
   | {type:'adaptive';samples?:number;every?:number;radius?:number}
+  /** Deterministic normal-density locations around preview focus; sigma is in seconds. */
+  | {type:'gaussian';samples?:number;every?:number;radius?:number;sigma?:number}
+  /** Predict hover focus using velocity over lookAhead real seconds; prediction is bounded. */
+  | {type:'directional';samples?:number;every?:number;radius?:number;lookAhead?:number}
   | {type:'timestamps';timestamps:readonly number[];count?:number|null};
 export type PreviewOptions = {strategy?:PreviewStrategy;pregenerate?:PreviewPregeneration;enabled?:boolean;bucketSeconds?:number;debounceMs?:number;width?:number;maxCacheBytes?:number;maxEntries?:number;timeoutMs?:number};
 export type PreparationComponent = 'inspector' | 'hybrid' | 'software';

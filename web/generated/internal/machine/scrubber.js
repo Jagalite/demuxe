@@ -19,7 +19,7 @@ export function transitionScrubber(state, command) {
         case 'cache': {
             if (command.hover !== state.hover)
                 return Object.freeze({ state, accepted: false });
-            const pending = !command.hit || command.refine ? Object.freeze({ ...command.target }) : null;
+            const pending = !command.defer && (!command.hit || command.refine) ? Object.freeze({ ...command.target }) : null;
             return Object.freeze({ state: Object.freeze({ ...state, serial: state.serial + (command.hit ? 1 : 0), pending }), accepted: true, show: command.hit });
         }
         case 'generate': {
@@ -45,6 +45,8 @@ export function transitionScrubber(state, command) {
     }
 }
 export function scrubberDistance(strategy, span, generation = false) {
+    if (strategy?.type === 'demuxe')
+        return generation ? 0 : span;
     if (generation && strategy?.type === 'adaptive')
         return (strategy.every ?? 5) / 2 + 1;
     if (strategy?.type === 'interval')

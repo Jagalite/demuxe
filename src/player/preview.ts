@@ -13,6 +13,8 @@ export class ScrubberPreview {
   private imageIds=new WeakMap<PreviewFrame['image'],number>();
   private pendingApi?:PlayerPreview;
   private displayedURL?:{url:string;release:()=>void};
+  private settleTimer?:ReturnType<typeof setTimeout>;
+  private cancelSettle(){const handle=this.settleTimer;this.settleTimer=undefined;if(handle!==undefined)clearTimeout(handle);}
   private transition(command:ScrubberCommand){const result=transitionScrubber(this.control,command);this.control=result.state;return result;}
   private identity<T extends object>(map:WeakMap<T,number>,value:T){let id=map.get(value);if(id===undefined){id=this.transition({type:'allocate'}).id!;map.set(value,id);}return id;}
   private abort(map:Map<number,AbortController>,id:number|undefined){if(id===undefined)return;const controller=map.get(id);map.delete(id);controller?.abort();}
@@ -34,6 +36,17 @@ export class ScrubberPreview {
     this.panel.style.left=`${pointer.left}px`;
     if(this.targetLabel)this.targetLabel.textContent=formatTime(pointer.time);
     const hover=this.transition({type:'hover'});if(hover.id===undefined)return;
+    this.cancelSettle();
+    if(api.strategy?.type==='demuxe'){
+      const id=hover.id;
+      const handle=setTimeout(()=>{
+        if(this.control.terminal||this.control.hover!==id||this.api()!==api||api.strategy?.type!=='demuxe')return;
+        this.settleTimer=undefined;
+        const refinement=this.transition({type:'hover'});
+        if(refinement.id!==undefined)void this.sample(api,pointer.time!,refinement.id,true).catch(()=>{});
+      },180);
+      if(this.control.terminal||this.control.hover!==id)clearTimeout(handle);else this.settleTimer=handle;
+    }
     if(hover.placeholder){this.image.hidden=true;this.label.textContent=`${formatTime(pointer.time)} · …`;this.panel.hidden=false;}
     void this.sample(api,pointer.time,hover.id).catch(()=>{});
   };
@@ -41,11 +54,12 @@ export class ScrubberPreview {
     try{timeline.addEventListener('pointermove',this.move);timeline.addEventListener('pointerleave',this.hide);timeline.addEventListener('pointercancel',this.hide);}catch(error){this.destroy();throw error;}
   }
   private distance(api:PlayerPreview,generation=false){return scrubberDistance(api.strategy,Number(this.timeline.max)-Number(this.timeline.min),generation);}
-  private async sample(api:PlayerPreview,time:number,hover:number){
+  private async sample(api:PlayerPreview,time:number,hover:number,settled=false){
     const owner=this.identity(this.ownerIds,api);let frame:PreviewFrame|null=null;
     try{frame=await api.getFrame({time,width:240,height:135,maxDistance:this.distance(api),cacheOnly:true});}catch{}
-    const refine=!!frame&&api.strategy?.type==='adaptive'&&Math.abs(frame.time-time)>this.distance(api,true);
-    const decision=this.transition({type:'cache',hover,target:{owner,time},hit:!!frame,refine});if(!decision.accepted)return;
+    const demuxe=api.strategy?.type==='demuxe';
+    const refine=!!frame&&(demuxe&&settled||api.strategy?.type==='adaptive'&&Math.abs(frame.time-time)>this.distance(api,true));
+    const decision=this.transition({type:'cache',hover,target:{owner,time},hit:!!frame,refine,defer:demuxe&&!settled});if(!decision.accepted)return;
     this.pendingApi=this.control.pending?api:undefined;
     if(decision.show&&frame)void this.show(frame);
     void this.next();
@@ -115,6 +129,6 @@ export class ScrubberPreview {
     }
   }
   private clearImage(){this.applyClear(this.transition({type:'clear'}));}
-  readonly hide=()=>{this.pendingApi=undefined;this.applyClear(this.transition({type:'hide'}));};
-  destroy(){this.pendingApi=undefined;this.applyClear(this.transition({type:'destroy'}));for(const [name,listener] of [['pointermove',this.move],['pointerleave',this.hide],['pointercancel',this.hide]] as const)try{this.timeline.removeEventListener(name,listener);}catch{}}
+  readonly hide=()=>{this.cancelSettle();this.pendingApi=undefined;this.applyClear(this.transition({type:'hide'}));};
+  destroy(){this.cancelSettle();this.pendingApi=undefined;this.applyClear(this.transition({type:'destroy'}));for(const [name,listener] of [['pointermove',this.move],['pointerleave',this.hide],['pointercancel',this.hide]] as const)try{this.timeline.removeEventListener(name,listener);}catch{}}
 }

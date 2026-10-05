@@ -121,8 +121,38 @@ export type PreviewPregeneration = readonly number[] | ({
     every?: never;
     unit?: never;
 }));
+/** Immutable cache snapshot for a synchronous, side-effect-free sampling callback. */
+export type PreviewSamplingContext = Readonly<{
+    duration: number;
+    focus: number;
+    bucketSeconds: number;
+    /** Preview focus only; velocity is media seconds per real second, dwell is per bucket. */
+    interaction: Readonly<{
+        source: 'hover' | 'playback';
+        velocity: number;
+        dwellMs: number;
+    }>;
+    cachedTimestamps: readonly number[];
+    budget: Readonly<{
+        maxEntries: number;
+        maxBytes: number;
+        usedEntries: number;
+        usedBytes: number;
+        availableEntries: number;
+        availableBytes: number;
+    }>;
+}>;
+/** Return at most 256 timestamps in priority order. Invalid results are ignored. */
+export type PreviewSampler = (context: PreviewSamplingContext) => readonly number[];
 /** Background scheduling; foreground hover requests remain available in every strategy. */
 export type PreviewStrategy = {
+    type: 'custom';
+    sample: PreviewSampler;
+}
+/** Broad retained coverage plus movement-aware local sampling and settled hover refinement. */
+ | {
+    type: 'demuxe';
+} | {
     type: 'on-demand';
 } | {
     type: 'uniform';
@@ -137,6 +167,22 @@ export type PreviewStrategy = {
     samples?: number;
     every?: number;
     radius?: number;
+}
+/** Deterministic normal-density locations around preview focus; sigma is in seconds. */
+ | {
+    type: 'gaussian';
+    samples?: number;
+    every?: number;
+    radius?: number;
+    sigma?: number;
+}
+/** Predict hover focus using velocity over lookAhead real seconds; prediction is bounded. */
+ | {
+    type: 'directional';
+    samples?: number;
+    every?: number;
+    radius?: number;
+    lookAhead?: number;
 } | {
     type: 'timestamps';
     timestamps: readonly number[];

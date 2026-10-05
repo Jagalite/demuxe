@@ -12,6 +12,7 @@ const binding=bindPlayer(runtime);binding.play();binding.pause();binding.seek(2)
 subscribeSelector(control,s=>s.volume,value=>value.toFixed(2));
 const preview:PlayerPreview=player.preview;
 preview.getFrame({time:1,width:160});preview.setStrategy({type:'on-demand'});preview.unload({start:0,end:10});
+preview.setStrategy({type:'demuxe'});
 // @ts-expect-error source ownership is not consumer-facing
 preview.setSourceIdentity('foreign');
 // @ts-expect-error destroying the preview belongs to the player

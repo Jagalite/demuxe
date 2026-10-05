@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 /** Config and scheduling are data; timers and provider promises remain in the shell. */
 export function createPregeneration(config, bucket) {
+    const custom = 'strategy' in config && config.strategy === 'custom';
+    const intervalMs = custom ? (config.intervalMs ?? 500) : 500;
+    if (!Number.isFinite(intervalMs) || intervalMs < 100 || intervalMs > 10000)
+        throw new RangeError('Invalid preview scheduler interval');
     const adaptive = 'strategy' in config && config.strategy === 'adaptive' ? config : undefined;
     if (adaptive) {
         const { every, radius } = adaptive;
         if (!Number.isFinite(every) || every <= 0 || !Number.isFinite(radius) || radius < 0 || radius > 3600 || radius / Math.max(every, bucket) > 128)
             throw new RangeError('Invalid adaptive preview interval or radius');
     }
-    const value = (adaptive ? { samples: adaptive.samples } : Array.isArray(config) ? { timestamps: config } : config);
+    const value = (custom ? { timestamps: [] } : adaptive ? { samples: adaptive.samples } : Array.isArray(config) ? { timestamps: config } : config);
     if (!value || typeof value !== 'object')
         throw new TypeError('Invalid preview pregeneration');
     const width = value.width ?? 240, height = value.height ?? 135, limit = value.count ?? Infinity;
@@ -46,7 +50,7 @@ export function createPregeneration(config, bucket) {
             throw new RangeError('Invalid preview interval');
         step = Math.max(interval, bucket);
     }
-    return Object.freeze({ config: Object.freeze({ bucket, width, height, limit, step, samples, sampleOrder, times,
+    return Object.freeze({ config: Object.freeze({ custom, intervalMs, bucket, width, height, limit, step, samples, sampleOrder, times,
             adaptive: adaptive ? Object.freeze({ every: Math.max(adaptive.every, bucket), radius: adaptive.radius }) : undefined }),
         epoch: 0, index: 0, duration: null, enabled: true, finished: false, focus: 0, visited: Object.freeze([]), serial: 0, timer: null, running: null });
 }
@@ -72,8 +76,8 @@ export function transitionPregeneration(previous, event) {
                 cancelTimer();
             break;
         case 'focus':
-            if (state.config.adaptive && Number.isFinite(event.time) && event.time >= 0)
-                state = { ...state, focus: event.time };
+            if ((state.config.adaptive || state.config.custom) && Number.isFinite(event.time) && event.time >= 0)
+                state = { ...state, focus: event.time, visited: event.time !== state.focus && event.resident ? Object.freeze(state.visited.filter(value => event.resident.some(time => key(time) === value))) : state.visited };
             else
                 return Object.freeze({ state, effects: Object.freeze([]) });
             break;
@@ -94,7 +98,12 @@ export function transitionPregeneration(previous, event) {
             const { samples, limit, times, sampleOrder, step, adaptive, width, height } = state.config;
             const broad = state.index < Math.min(limit, samples ?? Infinity);
             let time = times ? times[state.index] : samples ? (sampleOrder[state.index] + .5) * state.duration / samples : state.index * step;
-            if (adaptive && !broad) {
+            if (state.config.custom) {
+                time = event.candidates?.[0] ?? NaN;
+                if (!Number.isFinite(time))
+                    break;
+            }
+            else if (adaptive && !broad) {
                 const { every, radius } = adaptive, center = Math.floor(Math.min(state.focus, state.duration) / every) * every;
                 time = NaN;
                 for (let i = 0; i <= Math.ceil(radius / every) * 2; i++) {
@@ -132,7 +141,7 @@ export function transitionPregeneration(previous, event) {
                 state = { ...state, finished: true };
             else if (event.outcome === 'next') {
                 const visited = state.config.adaptive ? Object.freeze([...state.visited, key(run.request.time)].slice(-512)) : state.visited;
-                state = { ...state, visited, index: state.index + (!state.config.adaptive || run.broad ? 1 : 0) };
+                state = { ...state, visited, index: state.index + (!state.config.custom && (!state.config.adaptive || run.broad) ? 1 : 0) };
             }
             break;
         }
@@ -140,7 +149,7 @@ export function transitionPregeneration(previous, event) {
     if (state.timer === null && !state.running && state.enabled && !state.finished && state.duration !== null) {
         const id = state.serial + 1;
         state = { ...state, serial: id, timer: id };
-        effects.push(Object.freeze({ kind: 'schedule', id, delayMs: 500 }));
+        effects.push(Object.freeze({ kind: 'schedule', id, delayMs: state.config.intervalMs }));
     }
     return Object.freeze({ state: Object.freeze({ ...state }), effects: Object.freeze(effects) });
 }

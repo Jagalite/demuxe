@@ -40,7 +40,7 @@ try{
   r.querySelector('#settings-toggle').click();
   for(const playing of [false,true]){
    if(playing)await p.play();
-   for(const type of ['uniform','interval','on-demand','adaptive']){
+   for(const type of ['demuxe','uniform','interval','on-demand','adaptive','gaussian','directional']){
     s.value=type;s.dispatchEvent(new Event('change',{bubbles:true}));
     checks.push(p.preview.strategy.type===type&&p.state.sourceId===source&&p.state.activeMode===mode&&!p.state.pendingOperation);
    }
@@ -50,7 +50,7 @@ try{
   r.querySelector('#preview-toggle').click();checks.push(s.disabled&&!p.preview.enabled);
   r.querySelector('#preview-toggle').click();checks.push(!s.disabled&&p.preview.strategy.every===2);
   await element.destroy();return checks;
- });assert.equal(strategies.length,11);assert.ok(strategies.every(Boolean));
+ });assert.equal(strategies.length,15);assert.ok(strategies.every(Boolean));
  // Constructor interval mode warms every half minute, truncated by finite duration.
  const interval=await page.evaluate(async()=>{
   const {Player}=await import('/web/generated/index.js');const host=document.createElement('div');document.body.append(host);

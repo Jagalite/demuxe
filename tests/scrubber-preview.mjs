@@ -10,6 +10,39 @@ function fixture(decode=()=>Promise.resolve(),api=()=>undefined) {
  return {preview,panel,image,label,timeline};
 }
 const frame=image=>({time:4,actualTime:4,temporalAccuracy:'exact',image});
+test('Demuxe shows coarse hits during movement and refines only after settling',async()=>{
+ const calls=[],shown=[];const api={strategy:{type:'demuxe'},getFrame:async request=>{calls.push(request);return {...frame({}),time:request.cacheOnly?150:100};}};
+ const {preview,timeline}=fixture(undefined,()=>api);timeline.min='0';timeline.max='1440';preview.show=async f=>{shown.push(f.time);};
+ await preview.sample(api,100,0);await new Promise(setImmediate);
+ assert.equal(calls.length,1);assert.deepEqual(shown,[150]);
+ await preview.sample(api,100,0,true);await new Promise(setImmediate);
+ assert.equal(calls.length,3);assert.equal(calls[2].maxDistance,0);assert.equal(shown.at(-1),100);preview.destroy();
+});
+test('Demuxe cancels deferred refinement on pointer leave and rejects late coarse lookups',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const calls=[];let resolveCache;
+ const api={strategy:{type:'demuxe'},getFrame:r=>{calls.push(r);return calls.length===1?new Promise(resolve=>resolveCache=resolve):Promise.resolve({...frame({}),time:r.time});}};
+ const {preview,timeline}=fixture(undefined,()=>api);timeline.min='0';timeline.max='1440';preview.show=async()=>{};
+ const old=preview.sample(api,100,0);
+ const hover=preview.transition({type:'hover'});await preview.sample(api,200,hover.id,true);await new Promise(setImmediate);
+ resolveCache({...frame({}),time:150});await old;assert.equal(preview.control.pending,null);
+ preview.settleTimer=setTimeout(()=>{throw Error('retired refinement fired');},180);preview.hide();t.mock.timers.tick(200);preview.destroy();
+});
+test('Demuxe pointer movement restarts the settle deadline and refines the latest target only',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const calls=[];
+ const api={strategy:{type:'demuxe'},getFrame:async r=>{calls.push(r);return {...frame({blob:new Blob(['x'])}),time:r.cacheOnly?10:r.time};}};
+ const {preview,timeline,panel}=fixture(undefined,()=>api);
+ Object.assign(timeline,{min:'0',max:'100',step:'1',getBoundingClientRect:()=>({left:0,width:100})});
+ panel.style={};panel.parentElement={getBoundingClientRect:()=>({left:0,width:100})};
+ const original=globalThis.getComputedStyle;globalThis.getComputedStyle=()=>({width:'100',getPropertyValue:()=> '0'});
+ t.after(()=>{if(original)globalThis.getComputedStyle=original;else delete globalThis.getComputedStyle;preview.destroy();});
+ preview.show=async()=>{};
+ preview.move({pointerType:'mouse',clientX:20});await new Promise(setImmediate);t.mock.timers.tick(100);
+ preview.move({pointerType:'mouse',clientX:70});await new Promise(setImmediate);t.mock.timers.tick(179);await new Promise(setImmediate);
+ assert.ok(calls.every(r=>r.cacheOnly));t.mock.timers.tick(1);await new Promise(setImmediate);
+ assert.deepEqual(calls.filter(r=>!r.cacheOnly).map(r=>r.time),[70]);
+ preview.move({pointerType:'mouse',clientX:90});await new Promise(setImmediate);preview.hide();t.mock.timers.tick(200);await new Promise(setImmediate);
+ assert.equal(calls.filter(r=>!r.cacheOnly).length,1);
+});
 test('stationary authored preview times out its image fetch and can recover',async t=>{
  t.mock.timers.enable({apis:['setTimeout']});let signal;
  t.mock.method(globalThis,'fetch',(_url,options)=>{signal=options.signal;return new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(signal.reason),{once:true}));});

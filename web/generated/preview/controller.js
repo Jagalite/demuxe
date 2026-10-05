@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PreviewPregenerator } from './pregeneration.js';
+import { observePreviewInteraction, snapshotPreviewInteraction } from '../internal/machine/preview-interaction.js';
 import { resolvePreviewStrategy } from './strategies.js';
 import { createPreviewControl, transitionPreviewControl, previewJob, previewGenerationAdmission, previewProviderDeferred, previewCanPrefetch, admitPreviewRequest, planPreviewRequest, createPreviewJob, startPreviewJob, lookupPreviewCache, rememberPreviewCache, unloadPreviewCache } from '../internal/machine/preview.js';
 class PreviewDeferred extends Error {
@@ -40,7 +41,7 @@ export class PreviewController {
     get options() { return this.state.options; }
     get sourceId() { return this.state.sourceId; }
     metadata(job) { return previewJob(this.state, job.id); }
-    generator(config) {
+    generator(config, sample) {
         return new PreviewPregenerator(config, this.options.bucketSeconds, async (request) => {
             const admission = previewGenerationAdmission(this.state, now());
             if (admission !== 'run')
@@ -52,14 +53,42 @@ export class PreviewController {
             catch (error) {
                 return error instanceof PreviewDeferred || this.state.suspended || now() - this.state.lastForeground < 500 ? 'wait' : 'next';
             }
-        });
+        }, sample ? (duration) => {
+            const at = now();
+            if (previewGenerationAdmission(this.state, at) !== 'run')
+                return [];
+            const { maxEntries, maxCacheBytes, bucketSeconds } = this.options;
+            const largest = Math.max(1, ...this.state.cache.map(entry => entry.bytes));
+            const capacity = Math.min(maxEntries, Math.floor(maxCacheBytes / largest));
+            const cachedTimestamps = Object.freeze(this.state.cache.filter(entry => { const key = JSON.parse(entry.key); return key[3] === 240 && key[4] === 135 && !key[5]; }).map(entry => JSON.parse(entry.key)[2]));
+            const tracked = this.state.interaction;
+            const current = tracked.source === 'hover' && at >= this.state.hoverUntil ? observePreviewInteraction(tracked, 'playback', this.state.playbackPosition, this.state.hoverUntil, bucketSeconds) : tracked;
+            const focus = current.focus, interaction = snapshotPreviewInteraction(current, at);
+            const context = Object.freeze({ duration, focus, interaction, bucketSeconds, cachedTimestamps, budget: Object.freeze({ maxEntries: this.state.strategy?.type === 'demuxe' ? capacity : maxEntries, maxBytes: maxCacheBytes, usedEntries: this.state.cache.length, usedBytes: this.state.bytes, availableEntries: Math.max(0, maxEntries - this.state.cache.length), availableBytes: Math.max(0, maxCacheBytes - this.state.bytes) }) });
+            const times = sample(context);
+            if (times && typeof times.then === 'function') {
+                void Promise.resolve(times).catch(() => { });
+                return [];
+            }
+            if (!Array.isArray(times) || times.length > 256 || Array.from(times).some(time => !Number.isFinite(time) || time < 0 || time >= duration))
+                return [];
+            const bucket = (time) => bucketSeconds ? Math.floor(time / bucketSeconds) * bucketSeconds : time;
+            const resident = new Set(cachedTimestamps), unique = new Map();
+            for (const time of times) {
+                const key = bucket(time);
+                if (!unique.has(key))
+                    unique.set(key, time);
+            }
+            // Bound the working set using observed frame size as well as the entry limit.
+            return [...unique].slice(0, capacity).filter(([key]) => !resident.has(key)).map(([, time]) => time);
+        } : undefined);
     }
     get strategy() { return this.state.strategy; }
     /** Switch scheduling without changing playback or discarding useful cached images. */
     setStrategy(value) {
         if (this.state.disposed)
             throw aborted();
-        const resolved = resolvePreviewStrategy(value), next = resolved.generation ? this.generator(resolved.generation) : undefined;
+        const resolved = resolvePreviewStrategy(value), next = resolved.generation ? this.generator(resolved.generation, resolved.sample) : undefined;
         this.pregenerator?.stop();
         for (const job of [this.active, this.pending])
             if (job && this.metadata(job)?.background) {
@@ -70,7 +99,7 @@ export class PreviewController {
         this.dispatch({ kind: 'strategy', value: resolved.strategy });
         this.pregenerator = next;
         next?.setEnabled(this.state.allowed);
-        next?.setFocus(this.state.playbackPosition);
+        next?.setFocus(this.state.interaction.focus);
         next?.setDuration(this.state.duration);
     }
     get enabled() { return this.state.allowed; }
@@ -80,9 +109,16 @@ export class PreviewController {
     setSourceIdentity(id) { this.clear(); this.dispatch({ kind: 'source', sourceId: id }); this.setDuration(null); }
     /** Finite VOD duration admits configured source-scoped background generation. */
     setDuration(duration) { this.dispatch({ kind: 'duration', duration }); this.pregenerator?.setDuration(this.state.duration); }
-    setPlaybackPosition(time) { if (!Number.isFinite(time) || time < 0)
-        return; this.dispatch({ kind: 'position', time }); if (now() >= this.state.hoverUntil)
-        this.pregenerator?.setFocus(time); }
+    setPlaybackPosition(time) {
+        if (!Number.isFinite(time) || time < 0)
+            return;
+        const at = now();
+        this.dispatch({ kind: 'position', time });
+        if (at >= this.state.hoverUntil) {
+            this.dispatch({ kind: 'focus', source: 'playback', time, at });
+            this.pregenerator?.setFocus(time, this.state.cache.map(entry => JSON.parse(entry.key)[2]));
+        }
+    }
     setProviders(providers) { this.clear(); this.dispatch({ kind: 'providers' }); this.providers = [...providers].sort((a, b) => a.priority - b.priority); }
     addProvider(provider) { this.setProviders([...this.providers, provider]); let removed = false; return () => { if (!removed) {
         removed = true;
@@ -226,8 +262,10 @@ export class PreviewController {
         if (!request.cacheOnly)
             this.dispatch({ kind: 'foreground', at: now() });
         if (!request.signal?.aborted && Number.isFinite(request.time) && request.time >= 0) {
-            this.dispatch({ kind: 'hover', at: now() });
-            this.pregenerator?.setFocus(request.time);
+            const at = now();
+            this.dispatch({ kind: 'hover', at });
+            this.dispatch({ kind: 'focus', source: 'hover', time: request.time, at });
+            this.pregenerator?.setFocus(request.time, this.state.cache.map(entry => JSON.parse(entry.key)[2]));
         }
         return this.requestWork(request);
     }

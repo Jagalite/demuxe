@@ -5,6 +5,10 @@ export type PregenerationRequest = Readonly<{
     width: number;
     height: number;
 }>;
+export type CustomPregeneration = {
+    strategy: 'custom';
+    intervalMs?: number;
+};
 export type AdaptivePregeneration = {
     strategy: 'adaptive';
     samples: number;
@@ -13,6 +17,8 @@ export type AdaptivePregeneration = {
 };
 export type PregenerationOutcome = 'next' | 'wait' | 'stop';
 type Configuration = Readonly<{
+    custom?: boolean;
+    intervalMs: number;
     bucket: number;
     width: number;
     height: number;
@@ -54,6 +60,7 @@ export type PregenerationEvent = {
 } | {
     kind: 'focus';
     time: number;
+    resident?: readonly number[];
 } | {
     kind: 'reset';
 } | {
@@ -61,6 +68,7 @@ export type PregenerationEvent = {
 } | {
     kind: 'timer';
     id: number;
+    candidates?: readonly number[];
 } | {
     kind: 'completed';
     id: number;
@@ -83,6 +91,6 @@ export type PregenerationTransition = Readonly<{
     effects: readonly PregenerationEffect[];
 }>;
 /** Config and scheduling are data; timers and provider promises remain in the shell. */
-export declare function createPregeneration(config: PreviewPregeneration | AdaptivePregeneration, bucket: number): PregenerationState;
+export declare function createPregeneration(config: PreviewPregeneration | AdaptivePregeneration | CustomPregeneration, bucket: number): PregenerationState;
 export declare function transitionPregeneration(previous: PregenerationState, event: PregenerationEvent): PregenerationTransition;
 export {};

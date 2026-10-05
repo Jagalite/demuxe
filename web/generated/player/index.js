@@ -19,7 +19,7 @@ import { AdvancedSettings, advancedLabels, advancedSettingsStyles } from './adva
 import { applyLayout, presentationStyles } from './presentation.js';
 const Base = (typeof HTMLElement === 'undefined' ? class {
 } : HTMLElement);
-export const defaultLabels = Object.freeze({ ...advancedLabels, appearance: 'Appearance', layout: 'Layout', theme: 'Theme', classic: 'Classic', modern: 'Modern', playground: 'Playground', demuxeTheme: 'Demuxe', lightTheme: 'Light', previews: 'Timeline thumbnails', previewStrategy: 'Thumbnail strategy', previewAdaptive: 'Adaptive · nearby every 5s', previewUniform: 'Evenly spaced · 48 samples', previewInterval: 'Whole video · every 5s', previewOnDemand: 'On hover only', previewCustom: 'Custom', previewHelp: 'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', reading: 'Reading media…', inspecting: 'Inspecting media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
+export const defaultLabels = Object.freeze({ ...advancedLabels, appearance: 'Appearance', layout: 'Layout', theme: 'Theme', classic: 'Classic', modern: 'Modern', playground: 'Playground', demuxeTheme: 'Demuxe', lightTheme: 'Light', previews: 'Timeline thumbnails', previewStrategy: 'Thumbnail strategy', previewDemuxe: 'Demuxe · broad coverage, local detail', previewAdaptive: 'Adaptive · nearby every 5s', previewGaussian: 'Gaussian · dense near hover', previewDirectional: 'Directional · follows movement', previewUniform: 'Evenly spaced · 48 samples', previewInterval: 'Whole video · every 5s', previewOnDemand: 'On hover only', previewCustom: 'Custom', previewHelp: 'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', reading: 'Reading media…', inspecting: 'Inspecting media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
 // Never display opaque URL payloads, origins, credentials, queries or fragments.
 function sourceTitle(source) {
     if (typeof File !== 'undefined' && source instanceof File)
@@ -353,6 +353,12 @@ export class DemuxePlayerElement extends Base {
             value = 'on-demand';
         else if (strategy?.type === 'adaptive' && strategy.samples === 24 && strategy.every === 5 && strategy.radius === 30)
             value = 'adaptive';
+        else if (strategy?.type === 'demuxe')
+            value = 'demuxe';
+        else if (strategy?.type === 'gaussian' && strategy.samples === 25 && strategy.every === 1 && strategy.radius === 30 && strategy.sigma === 10)
+            value = 'gaussian';
+        else if (strategy?.type === 'directional' && strategy.samples === 25 && strategy.every === 1 && strategy.radius === 30 && strategy.lookAhead === .5)
+            value = 'directional';
         else if (strategy?.type === 'uniform' && strategy.samples === 48)
             value = 'uniform';
         else if (strategy?.type === 'interval' && strategy.every === 5 && strategy.unit === 'seconds' && strategy.count == null)
@@ -868,7 +874,7 @@ export class DemuxePlayerElement extends Base {
         this.advanced?.label(this.labels);
         this.$('preview-help').textContent = this.labels.previewHelp;
         this.$('preview-strategy-label').textContent = this.labels.previewStrategy;
-        for (const [value, key] of [['adaptive', 'previewAdaptive'], ['uniform', 'previewUniform'], ['interval', 'previewInterval'], ['on-demand', 'previewOnDemand'], ['custom', 'previewCustom']])
+        for (const [value, key] of [['demuxe', 'previewDemuxe'], ['adaptive', 'previewAdaptive'], ['gaussian', 'previewGaussian'], ['directional', 'previewDirectional'], ['uniform', 'previewUniform'], ['interval', 'previewInterval'], ['on-demand', 'previewOnDemand'], ['custom', 'previewCustom']])
             this.$('preview-strategy').querySelector(`option[value="${value}"]`).textContent = this.labels[key];
         for (const key of ['appearance', 'layout', 'theme'])
             this.$(key + '-label').textContent = this.labels[key];
@@ -964,7 +970,7 @@ export class DemuxePlayerElement extends Base {
         this.$('layout-select').onchange = () => { this.layout = this.$('layout-select').value; };
         this.$('theme-select').onchange = () => { this.theme = this.$('theme-select').value; };
         this.input('preview-toggle').onchange = () => { this.previewThumbnails = this.input('preview-toggle').checked; this.syncPreviewStrategy(); };
-        this.$('preview-strategy').onchange = () => { const type = this.$('preview-strategy').value; if (this.core && ['adaptive', 'uniform', 'interval', 'on-demand'].includes(type))
+        this.$('preview-strategy').onchange = () => { const type = this.$('preview-strategy').value; if (this.core && ['demuxe', 'adaptive', 'gaussian', 'directional', 'uniform', 'interval', 'on-demand'].includes(type))
             this.core.preview.setStrategy({ type }); this.syncPreviewStrategy(); };
         this.$('speed').onchange = () => this.run(this.setPlaybackRate(Number(this.$('speed').value)));
         this.$('audio').onchange = () => this.run(this.selectAudioTrack(this.$('audio').value || null));

@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import {createPreviewInteraction,observePreviewInteraction,type PreviewInteractionState} from './preview-interaction.js';
+import {demuxeStoryboard} from './preview-demuxe.js';
 import type {PreviewOptions,PreviewStrategy} from '../../types.js';
 
 export type PreviewSettings=Readonly<Required<Omit<PreviewOptions,'pregenerate'|'strategy'>>>;
@@ -7,7 +9,7 @@ export type PreviewJobState=Readonly<{id:number;key:string;time:number;width:num
 export type PreviewCacheEntry=Readonly<{key:string;time:number;bytes:number;background:boolean}>;
 export type PreviewControlState=Readonly<{
   options:PreviewSettings;allowed:boolean;suspended:boolean;playbackActive:boolean;disposed:boolean;
-  strategy:PreviewStrategy|null;duration:number|null;hoverUntil:number;playbackPosition:number;lastForeground:number;
+  interaction:PreviewInteractionState;strategy:PreviewStrategy|null;duration:number|null;hoverUntil:number;playbackPosition:number;lastForeground:number;
   sourceId:string;revision:number;serial:number;requestEpoch:number;retiring:number;active:PreviewJobState|null;pending:PreviewJobState|null;
   caller:Readonly<{id:number;jobId:number}>|null;cache:readonly PreviewCacheEntry[];bytes:number;
   counters:Readonly<{requests:number;hits:number;failures:number;cancelled:number}>;
@@ -16,6 +18,7 @@ export type PreviewControlState=Readonly<{
 export type PreviewControlEvent=
   |{kind:'enabled';value:boolean}|{kind:'suspended';value:boolean}|{kind:'playback';value:boolean}
   |{kind:'strategy';value:PreviewStrategy}|{kind:'source';sourceId:string}|{kind:'providers'}
+  |{kind:'focus';source:'hover'|'playback';time:number;at:number}
   |{kind:'duration';duration:number|null}|{kind:'position';time:number}
   |{kind:'foreground';at:number}|{kind:'hover';at:number}|{kind:'request-count';cacheOnly:boolean}|{kind:'retire-work'}|{kind:'retired-work'}
   |{kind:'dispose'}|{kind:'clear-cache'}|{kind:'limits';maxEntries:number;maxCacheBytes:number}
@@ -29,7 +32,7 @@ export function createPreviewControl(settings:Omit<PreviewOptions,'pregenerate'|
   if(options.width<1||options.width>2048||!Number.isInteger(options.width)||options.timeoutMs<1||options.timeoutMs>2147483647||options.debounceMs>2147483647||!Number.isInteger(options.maxEntries))throw new RangeError('Invalid preview limits');
   if(typeof options.enabled!=='boolean')throw new TypeError('Invalid preview enabled option');
   return Object.freeze({options:Object.freeze(options),allowed:options.enabled,suspended:false,playbackActive:false,disposed:false,
-    strategy:null,duration:null,hoverUntil:0,playbackPosition:0,lastForeground:-Infinity,sourceId:'initial',revision:0,serial:0,requestEpoch:0,retiring:0,
+    interaction:createPreviewInteraction(),strategy:null,duration:null,hoverUntil:0,playbackPosition:0,lastForeground:-Infinity,sourceId:'initial',revision:0,serial:0,requestEpoch:0,retiring:0,
     active:null,pending:null,caller:null,cache:Object.freeze([]),bytes:0,counters:Object.freeze({requests:0,hits:0,failures:0,cancelled:0})});
 }
 
@@ -45,7 +48,8 @@ export function transitionPreviewControl(state:PreviewControlState,event:Preview
     case 'suspended':return Object.freeze({...state,suspended:event.value});
     case 'playback':return Object.freeze({...state,playbackActive:event.value});
     case 'strategy':return Object.freeze({...state,strategy:event.value.type==='timestamps'?Object.freeze({...event.value,timestamps:Object.freeze([...event.value.timestamps])}):Object.freeze({...event.value})});
-    case 'source':return Object.freeze({...state,sourceId:event.sourceId,hoverUntil:0,playbackPosition:0});
+    case 'focus':return Object.freeze({...state,interaction:observePreviewInteraction(state.interaction,event.source,event.time,event.at,state.options.bucketSeconds)});
+    case 'source':return Object.freeze({...state,interaction:createPreviewInteraction(),sourceId:event.sourceId,hoverUntil:0,playbackPosition:0});
     case 'providers':return Object.freeze({...state,revision:state.revision+1});
     case 'duration':return Object.freeze({...state,duration:event.duration!==null&&Number.isFinite(event.duration)&&event.duration>0?event.duration:null});
     case 'position':return Number.isFinite(event.time)&&event.time>=0?Object.freeze({...state,playbackPosition:event.time}):state;
@@ -81,7 +85,7 @@ export function transitionPreviewControl(state:PreviewControlState,event:Preview
 export function previewJob(state:PreviewControlState,id:number):PreviewJobState|undefined {return state.active?.id===id?state.active:state.pending?.id===id?state.pending:undefined;}
 export function previewGenerationAdmission(state:PreviewControlState,at:number):'run'|'wait'|'stop' {
   if(state.disposed)return 'stop';
-  if(state.retiring||!state.allowed||state.suspended||state.active||state.pending||state.caller||at-state.lastForeground<500)return 'wait';
+  if(state.retiring||!state.allowed||state.suspended||state.active||state.pending||state.caller||at-state.lastForeground<(state.strategy?.type==='demuxe'?100:500))return 'wait';
   return !state.options.maxCacheBytes||!state.options.maxEntries?'stop':'run';
 }
 export function previewProviderDeferred(state:PreviewControlState,requiresDecoder:boolean|undefined,allowDuringPlayback:boolean|undefined):boolean {return !!(state.playbackActive&&requiresDecoder&&!allowDuringPlayback);}
@@ -130,8 +134,17 @@ export function lookupPreviewCache(state:PreviewControlState,request:PreviewRequ
 export function rememberPreviewCache(state:PreviewControlState,entry:PreviewCacheEntry):PreviewControlState {
   if(entry.bytes>state.options.maxCacheBytes||!state.options.maxEntries)return state;
   const cache=[...state.cache];let bytes=state.bytes;
+  const capacity=Math.min(state.options.maxEntries,Math.floor(state.options.maxCacheBytes/Math.max(1,entry.bytes,...cache.map(item=>item.bytes))));
+  const broad=new Set(state.strategy?.type==='demuxe'?demuxeStoryboard(state.duration??0,capacity,state.options.bucketSeconds):[]);
+  const protectedEntry=(item:PreviewCacheEntry)=>{const key=JSON.parse(item.key);return key[3]===240&&key[4]===135&&!key[5]&&broad.has(key[2]);};
   while(cache.length&&(bytes+entry.bytes>state.options.maxCacheBytes||cache.length>=state.options.maxEntries)){
-    const index=entry.background?cache.findIndex(item=>item.background):0;if(index<0)return Object.freeze({...state,cache:Object.freeze(cache),bytes});
+    let index=entry.background?cache.findIndex(item=>item.background):0;
+    if(state.strategy?.type==='demuxe'){
+      // Local LRU can turn over without losing broad coverage. Foreground always wins.
+      index=cache.findIndex(item=>!protectedEntry(item));
+      if(index<0&&!entry.background)index=0;
+    }
+    if(index<0)return Object.freeze({...state,cache:Object.freeze(cache),bytes});
     bytes-=cache[index].bytes;cache.splice(index,1);
   }
   // Keys are unique for admitted, serialized jobs. Store only detached metadata;

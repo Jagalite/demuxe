@@ -3,15 +3,17 @@ import { createPregeneration, transitionPregeneration } from '../internal/machin
 /** Owns only a timer and provider callback; scheduling authority is immutable. */
 export class PreviewPregenerator {
     run;
+    candidates;
     timer;
     state;
-    constructor(config, bucket, run) {
+    constructor(config, bucket, run, candidates) {
         this.run = run;
+        this.candidates = candidates;
         this.state = createPregeneration(config, bucket);
     }
     setDuration(duration) { this.dispatch({ kind: 'duration', duration }); }
     setEnabled(enabled) { this.dispatch({ kind: 'enabled', enabled }); }
-    setFocus(time) { this.dispatch({ kind: 'focus', time }); }
+    setFocus(time, resident) { this.dispatch({ kind: 'focus', time, resident }); }
     reset() { this.dispatch({ kind: 'reset' }); }
     stop() { this.dispatch({ kind: 'stop' }); }
     dispatch(event) {
@@ -31,8 +33,23 @@ export class PreviewPregenerator {
                 const timer = { id: effect.id };
                 this.timer = timer;
                 try {
-                    const acquired = setTimeout(() => { if (this.timer !== timer || this.state.timer !== effect.id)
-                        return; this.timer = undefined; this.dispatch({ kind: 'timer', id: effect.id }); }, effect.delayMs);
+                    const acquired = setTimeout(() => {
+                        if (this.timer !== timer || this.state.timer !== effect.id)
+                            return;
+                        this.timer = undefined;
+                        const state = this.state;
+                        let candidates = [];
+                        try {
+                            if (state.duration !== null)
+                                candidates = this.candidates?.(state.duration, state.focus) ?? [];
+                        }
+                        catch { /* A host sampler cannot fail playback. */ }
+                        if (this.state.timer !== effect.id)
+                            return;
+                        if (this.state !== state)
+                            candidates = [];
+                        this.dispatch({ kind: 'timer', id: effect.id, candidates });
+                    }, effect.delayMs);
                     timer.handle = acquired;
                     if (this.timer !== timer || this.state.timer !== effect.id)
                         clearTimeout(acquired);
