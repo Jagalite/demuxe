@@ -43,7 +43,6 @@ export class LocalVideoPreviewProvider {
         video.playsInline = true;
         const url = URL.createObjectURL(source);
         let released;
-        request.trackCleanup?.(new Promise(resolve => { released = resolve; }));
         const wait = (event, action) => new Promise((resolve, reject) => {
             let state = beginWait(1, performance.now(), 'preview-media');
             let timer;
@@ -78,14 +77,29 @@ export class LocalVideoPreviewProvider {
             const expire = () => { settle('deadline'); if (state.phase === 'waiting')
                 timer = setTimeout(expire, Math.max(0, state.deadline - performance.now())); };
             try {
-                timer = setTimeout(expire, Math.max(0, state.deadline - performance.now()));
-                video.addEventListener(event, done, { once: true });
-                video.addEventListener('error', fail, { once: true });
-                request.signal.addEventListener('abort', abort, { once: true });
-                if (request.signal.aborted) {
-                    abort();
+                const acquired = setTimeout(expire, Math.max(0, state.deadline - performance.now()));
+                if (state.phase !== 'waiting') {
+                    clearTimeout(acquired);
                     return;
                 }
+                timer = acquired;
+                for (const [target, name, listener] of [[video, event, done], [video, 'error', fail], [request.signal, 'abort', abort]]) {
+                    if (request.signal.aborted)
+                        abort();
+                    if (state.phase !== 'waiting')
+                        return;
+                    try {
+                        target.addEventListener(name, listener, { once: true });
+                    }
+                    finally {
+                        if (state.phase !== 'waiting')
+                            target.removeEventListener(name, listener);
+                    }
+                }
+                if (request.signal.aborted)
+                    abort();
+                if (state.phase !== 'waiting')
+                    return;
                 action();
             }
             catch (error) {
@@ -97,6 +111,7 @@ export class LocalVideoPreviewProvider {
             }
         });
         try {
+            request.trackCleanup?.(new Promise(resolve => { released = resolve; }));
             await wait('loadedmetadata', () => { video.src = url; });
             const plan = previewMediaPlan({ width: video.videoWidth, height: video.videoHeight, duration: video.duration, position: video.currentTime, readyState: video.readyState }, request.time, this.maxDecodePixels);
             if (!plan)
@@ -125,10 +140,17 @@ export class LocalVideoPreviewProvider {
         }
         finally {
             try {
-                video.pause();
-                video.removeAttribute('src');
-                video.load();
-                URL.revokeObjectURL(url);
+                const errors = [];
+                for (const release of [() => video.pause(), () => video.removeAttribute('src'), () => video.load(), () => URL.revokeObjectURL(url)]) {
+                    try {
+                        release();
+                    }
+                    catch (error) {
+                        errors.push(error);
+                    }
+                }
+                if (errors.length)
+                    throw errors[0];
             }
             finally {
                 released?.();

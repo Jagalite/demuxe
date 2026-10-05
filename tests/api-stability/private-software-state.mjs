@@ -83,3 +83,19 @@ for(const boundary of ['draw','close'])test('actual retired picture '+boundary+'
  p.receive({type:'picture',generation:0,pictureId:9,rendered:1,bitmap:{width:2,height:2,close(){closes++;if(boundary==='close')retire();}}});
  assert.equal(closes,1);assert.equal(failures,0);assert.equal(p.policy.stopped,false);assert.equal(p.presentedDraws,0);assert.deepEqual(messages,[{op:'picture-presented',pictureId:9}]);
 });
+
+for(const outcome of ['throw','abort','replace','deadline','ready'])test(`actual private output predicate ${outcome} releases wait authority`,async t=>{
+ const {p}=fixture(),controller=new AbortController(),failure=Error('predicate failure');let now=0,calls=0;
+ t.mock.method(performance,'now',()=>now);
+ const result=p.waitUntil(()=>{calls++;
+  if(outcome==='throw')throw failure;
+  if(outcome==='abort')controller.abort();
+  if(outcome==='replace')p.policy=nextSource(p.policy);
+  if(outcome==='deadline')now=25000;
+  return true;
+ },controller.signal);
+ if(outcome==='ready')await result;
+ else await assert.rejects(result,error=>outcome==='throw'?error===failure:outcome==='deadline'?error.code==='PLAYBACK_STALLED':outcome==='abort'?error.name==='AbortError':error.code==='ABORTED');
+ assert.equal(calls,1);assert.equal(p.policy.waits.length,0);
+ await p.waitUntil(()=>true);assert.equal(p.policy.waits.length,0);
+});

@@ -173,3 +173,59 @@ for(const outcome of ['ready','action-failure'])for(const failing of ['timer','l
   assert.equal(removed.length,4);assert.equal(released,1);
  });
 }
+
+for(const boundary of ['timer','loadedmetadata','error','abort'])test(`local preview retirement during ${boundary} acquisition releases late resources and skips source assignment`,async t=>{
+ const {LocalVideoPreviewProvider}=await import('../../web/generated/preview/providers.js');
+ const controller=new AbortController(),listeners=new Map(),timers=new Set();let now=0,assigned=0,released=0;
+ t.mock.method(performance,'now',()=>now);
+ t.mock.method(globalThis,'setTimeout',fn=>{if(boundary==='timer'){now=1500;fn();}timers.add(17);return 17;});
+ t.mock.method(globalThis,'clearTimeout',id=>timers.delete(id));
+ const add=(kind,fn)=>{if(kind===boundary){controller.abort();if(kind==='abort')fn();}listeners.set(kind,fn);};
+ t.mock.method(controller.signal,'addEventListener',add);
+ t.mock.method(controller.signal,'removeEventListener',kind=>listeners.delete(kind));
+ const video={addEventListener:add,removeEventListener:kind=>listeners.delete(kind),set src(value){assigned++;},pause(){},removeAttribute(){},load(){released++;}};
+ const provider=new LocalVideoPreviewProvider(()=>new Blob(['media']),{createElement:()=>video});
+ await assert.rejects(provider.getFrame({signal:controller.signal,time:0,width:160}));
+ assert.equal(assigned,0);assert.equal(listeners.size,0);assert.equal(timers.size,0);assert.equal(released,1);
+});
+
+for(const failing of ['pause','removeAttribute','load','revoke'])test(`local preview final ${failing} failure cannot skip other media releases`,async t=>{
+ const {LocalVideoPreviewProvider}=await import('../../web/generated/preview/providers.js');
+ const controller=new AbortController();controller.abort();const releases=[];let receipt;
+ const release=kind=>{releases.push(kind);if(kind===failing)throw Error(kind);};
+ t.mock.method(URL,'createObjectURL',()=> 'blob:test');t.mock.method(URL,'revokeObjectURL',()=>release('revoke'));
+ const video={addEventListener(){},removeEventListener(){},pause:()=>release('pause'),removeAttribute:()=>release('removeAttribute'),load:()=>release('load')};
+ const provider=new LocalVideoPreviewProvider(()=>new Blob(['media']),{createElement:()=>video});
+ await assert.rejects(provider.getFrame({signal:controller.signal,time:0,width:160,trackCleanup:p=>{receipt=p;}}));
+ await receipt;assert.deepEqual(releases,['pause','removeAttribute','load','revoke']);
+});
+
+for(const name of ['software-full-engine-worker','filter-retained-engine-worker'])test(`${name}: early deadlines, boundary readiness and superseded decoder failures preserve one owner`,()=>{
+ const source=fs.readFileSync(new URL(`../../web/${name}.js`,import.meta.url),'utf8');
+ const helper=source.slice(source.indexOf('function handshake('),source.indexOf("import {preparedEngine}"));
+ for(const [kind,budget] of [['io-open',20000],['io-close',1500],['decoder',5000],['threads',2000]]){
+  let now=0,id=0;const timers=new Map(),events=[];
+  const context=vm.createContext({...worker,performance:{now:()=>now},Error,setTimeout:(fn,delay)=>{timers.set(++id,{fn,delay});return id;},clearTimeout:id=>timers.delete(id),control:worker.initialLegacyPlaybackWorker()});
+  vm.runInContext(helper+';globalThis.start=handshake;',context);
+  const wait=context.start(kind,()=>events.push('ready-or-contained'),()=>events.push('rejected'));
+  const [key,first]=[...timers][0];timers.delete(key);now=budget-1;first.fn();
+  assert.equal(events.length,0);assert.equal(timers.size,1);assert.equal([...timers.values()][0].delay,1);
+  now=budget;wait.ready();wait.fail(Error('late'));first.fn();
+  assert.deepEqual(events,[kind==='io-close'?'ready-or-contained':'rejected']);assert.equal(timers.size,0);
+  if(kind==='decoder'){
+   events.length=0;const newer=context.start(kind,()=>events.push('new-ready'),()=>events.push('new-failed'));
+   wait.fail(Error('old decoder crash'));newer.ready();wait.ready();wait.fail(Error('old duplicate crash'));
+   assert.deepEqual(events,['new-ready']);assert.equal(context.control.pumpFailed,false);assert.equal(timers.size,0);
+  }
+ }
+});
+
+test('throwing preview cleanup registration still releases its URL and resolves the offered receipt',async t=>{
+ const {LocalVideoPreviewProvider}=await import('../../web/generated/preview/providers.js');
+ const released=[],failure=Error('host refused receipt');let receipt;
+ t.mock.method(URL,'createObjectURL',()=> 'blob:test');t.mock.method(URL,'revokeObjectURL',()=>released.push('url'));
+ const video={pause:()=>released.push('pause'),removeAttribute:()=>released.push('src'),load:()=>released.push('load')};
+ const provider=new LocalVideoPreviewProvider(()=>new Blob(['media']),{createElement:()=>video});
+ await assert.rejects(provider.getFrame({signal:new AbortController().signal,time:0,width:160,trackCleanup:p=>{receipt=p;throw failure;}}),error=>error===failure);
+ await receipt;assert.deepEqual(released,['pause','src','load','url']);
+});

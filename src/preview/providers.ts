@@ -20,7 +20,7 @@ export class LocalVideoPreviewProvider implements PreviewProvider {
     const start=performance.now();let mediaReadyMs=0,seekMs=0;const actualTime=null;
     const video=this.document.createElement('video');video.muted=true;video.preload='metadata';video.playsInline=true;
     const url=URL.createObjectURL(source);
-    let released!:()=>void;request.trackCleanup?.(new Promise<void>(resolve=>{released=resolve;}));
+    let released!:()=>void;
     const wait=(event:string,action:()=>void)=>new Promise<void>((resolve,reject)=>{
       let state=beginWait(1,performance.now(),'preview-media');let timer:ReturnType<typeof setTimeout>|undefined;
       const cleanup=()=>{
@@ -37,13 +37,19 @@ export class LocalVideoPreviewProvider implements PreviewProvider {
       const done=()=>settle('ready'),fail=()=>settle('failed'),abort=()=>settle('retire');
       const expire=()=>{settle('deadline');if(state.phase==='waiting')timer=setTimeout(expire,Math.max(0,state.deadline-performance.now()));};
       try{
-        timer=setTimeout(expire,Math.max(0,state.deadline-performance.now()));
-        video.addEventListener(event,done,{once:true});video.addEventListener('error',fail,{once:true});request.signal.addEventListener('abort',abort,{once:true});
-        if(request.signal.aborted){abort();return;}action();
+        const acquired=setTimeout(expire,Math.max(0,state.deadline-performance.now()));
+        if(state.phase!=='waiting'){clearTimeout(acquired);return;}timer=acquired;
+        for(const [target,name,listener] of [[video,event,done],[video,'error',fail],[request.signal,'abort',abort]] as const){
+          if(request.signal.aborted)abort();if(state.phase!=='waiting')return;
+          try{target.addEventListener(name,listener,{once:true});}
+          finally{if(state.phase!=='waiting')target.removeEventListener(name,listener);}
+        }
+        if(request.signal.aborted)abort();if(state.phase!=='waiting')return;action();
       }catch(error){if(state.phase==='waiting'){state=observeWait(state,{id:1,kind:'failed',now:performance.now()});cleanup();reject(error);}}
 
     });
     try{
+      request.trackCleanup?.(new Promise<void>(resolve=>{released=resolve;}));
       await wait('loadedmetadata',()=>{video.src=url;});
       const plan=previewMediaPlan({width:video.videoWidth,height:video.videoHeight,duration:video.duration,position:video.currentTime,readyState:video.readyState},request.time,this.maxDecodePixels);if(!plan)return null;
       mediaReadyMs=performance.now()-start;const seekStart=performance.now();
@@ -57,7 +63,15 @@ export class LocalVideoPreviewProvider implements PreviewProvider {
       context.drawImage(video,0,0,width,height);
       const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/jpeg',.8));request.signal.throwIfAborted();
       return blob?{time:video.currentTime,width,height,image:{blob},path:this.id,actualTime,temporalAccuracy:'approximate',fidelity:'full',timestampKind:'media-time',metrics:{mediaReadyMs,seekMs,resizeConversionMs:performance.now()-conversionStart,bytesFetched:0,decodedFrames:null}}:null;
-    }finally{try{video.pause();video.removeAttribute('src');video.load();URL.revokeObjectURL(url);}finally{released?.();}}
+    }finally{
+      try{
+        const errors:unknown[]=[];
+        for(const release of [()=>video.pause(),()=>video.removeAttribute('src'),()=>video.load(),()=>URL.revokeObjectURL(url)]){
+          try{release();}catch(error){errors.push(error);}
+        }
+        if(errors.length)throw errors[0];
+      }finally{released?.();}
+    }
   }
 }
 

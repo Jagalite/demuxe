@@ -295,3 +295,18 @@ test('quality commit survives a later observation failure without reverting phys
   assert.equal(backend.control.quality.mode,'manual');assert.equal(backend.player.config.abr.enabled,false);assert.equal(backend.control.qualityChange,null);
  }finally{await backend.destroy();}
 });
+
+for(const boundary of ['select','verify'])test(`quality ${boundary} exception restores configuration and permits a successor`,async()=>{
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));
+ try{
+  await backend.openRemote(source);const player=backend.player,old=structuredClone(player.getConfiguration()),failure=Error(boundary);
+  const select=player.selectVariantTrack.bind(player),tracks=player.getVariantTracks.bind(player);let selected=false;
+  player.selectVariantTrack=track=>{selected=true;if(boundary==='select')throw failure;select(track);};
+  player.getVariantTracks=()=>{if(selected&&boundary==='verify')throw failure;return tracks();};
+  await assert.rejects(backend.setQuality({mode:'manual',id:'variant:4'}),error=>error===failure);
+  assert.deepEqual(player.config.abr,old.abr);assert.deepEqual(player.config.restrictions,old.restrictions);
+  assert.equal(backend.control.quality.mode,'auto');assert.equal(backend.control.qualityChange,null);assert.equal(backend.control.effect,null);
+  player.selectVariantTrack=select;player.getVariantTracks=tracks;
+  await backend.setQuality({mode:'manual',id:'variant:4'});assert.equal(backend.control.quality.mode,'manual');
+ }finally{await backend.destroy();}
+});

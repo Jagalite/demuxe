@@ -36,3 +36,18 @@ Updated hashes are limited to these reviewed source files and their existing ann
 ## Preview cleanup review correction
 
 Reviewed the local media-wait cleanup correction in `src/preview/providers.ts`: the wait remains terminal before release to fence reentry, while all four independent timer/listener removals are attempted. Cleanup failures reject successful readiness; setup/action failures retain their original error. The scratch error list is bounded by four release actions and creates no retained adapter authority. The outer provider finally still releases the media resource and cleanup receipt. Eight regression sequences cover each throwing release after synchronous readiness or action failure, including late readiness/abort callbacks. The readiness regression fails against the pre-fix generated source with an unsettled promise.
+
+## Adversarial coverage follow-up
+
+Reviewed the remaining-policy adapter boundaries after commit `3c1be98a`. Added 24 deterministic adversarial tests across the maintained remaining-policy, Wasm lifecycle, private-software state and Shaka adapter suites:
+
+- Preview acquisition: deadline during timer registration, cancellation during each listener registration, late handle release, and no source assignment after retirement.
+- Preview release: independent pause/source reset/load/URL revocation failures; throwing host cleanup-receipt registration must still release media and settle the offered receipt.
+- Wasm: actual readiness immediately before/at/after the deadline without firing the timer, early-timer rearming, stale timer callbacks, and destruction acknowledgment before/at containment deadline with exactly one physical cleanup.
+- Private Software: predicate throw, abort, source replacement, deadline crossing and success; every outcome releases wait capacity and admits a successor.
+- Shaka: selection and verification exceptions restore configuration, clear transaction ownership, and permit a succeeding quality change.
+- Both production worker interpreters: early deadlines, readiness at each handshake deadline, duplicate callbacks and superseded decoder errors.
+
+Pre-fix probes failed for timer-acquisition retirement, late abort-listener registration, and three interrupted media-release sequences. The adapter now releases late-acquired handles, checks retirement between registrations, attempts every final release, and includes host receipt registration inside the resource lifetime. No new persistent fields or core authority were added. Local release-error arrays are bounded by four actions. These are deterministic fault-injection and simulated adapter checks, not browser/native concurrency or endurance qualification.
+
+Validation: 140 affected-suite tests passed; the full unit gate passed 3,405/3,405 (`results/api-stability/gate-unit-all-node-1791232047213`). TypeScript compilation, static core boundaries and source ownership classification passed (895 supported fields reviewed; zero changed sources or pending indexed writes). Browser/native runtime checks were not rerun for this follow-up.

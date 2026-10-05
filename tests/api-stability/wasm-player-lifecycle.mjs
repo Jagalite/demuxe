@@ -262,3 +262,26 @@ test('actual subtitle rejection before native submission rolls back reserved met
  const f=await fixture(t);f.player.lifecycle={...f.player.lifecycle,requests:Array.from({length:128},(_,index)=>({id:index+1000,deadline:15000}))};
  await assert.rejects(f.player.addSubtitle({format:'srt',label:'full',attachmentId:'full',bytes:new ArrayBuffer(2),select:false}),/queue is full/);assert.equal(f.player.lifecycle.attachments?.length??f.player.attachmentIds.length,0);assert.equal(f.player.lifecycle.attachmentFailed,false);assert.equal(f.messages.filter(message=>message.type==='subtitle').length,0);
 });
+
+for(const at of [59999,60000,60001])test(`actual initialization ready at ${at} observes the deadline before its timer fires`,async t=>{
+ const f=await fixture(t,{ready:false});f.now=at;f.worker.emit({type:'ready'});
+ if(at<60000){await f.player.ready;assert.equal(f.player.lifecycle.phase,'ready');}
+ else{await assert.rejects(f.player.ready,/initialization timed out/);assert.equal(f.player.lifecycle.phase,'failed');}
+ assert.equal([...f.timers].filter(timer=>timer.delay===60000).length,0);
+});
+
+test('early initialization deadline rearms once and late duplicate callback cannot undo readiness',async t=>{
+ const f=await fixture(t,{ready:false}),first=[...f.timers].find(timer=>timer.delay===60000);
+ f.now=100;f.fire(60000,{early:true});
+ assert.equal(f.player.lifecycle.phase,'initializing');assert.equal([...f.timers].filter(timer=>timer.delay===59900).length,1);
+ f.worker.emit({type:'ready'});await f.player.ready;f.now=60000;first.callback();
+ assert.equal(f.player.lifecycle.phase,'ready');assert.equal(f.timers.size,0);
+});
+
+for(const at of [9999,10000])test(`actual destruction acknowledgment at ${at} has one physical cleanup`,async t=>{
+ const f=await fixture(t);f.hook=()=>{};const closing=f.player.destroy();await turn();f.now=at;f.worker.emit({type:'destroyed'});
+ if(at<10000)await closing;else await assert.rejects(closing,/cleanup timed out/);
+ f.worker.emit({type:'destroyed'});assert.equal(f.player.lifecycle.phase,'closed');
+ for(const release of ['terminate','owner-remove','audio-close'])assert.equal(f.log.filter(item=>item===release).length,1);
+ assert.equal(f.timers.size,0);
+});
