@@ -12,7 +12,7 @@ await writeFile(fixture+'/main.mpd',mpd.replace('</Period>',`<AdaptationSet id="
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});let browser;
 try{
  const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',data=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(m)resolve(m[0]);});});
- browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{...(process.env.BROWSER==='chromium'?{}:{channel:'chrome'}),args:['--autoplay-policy=no-user-gesture-required']})});const page=await browser.newPage();await page.route('**/fixtures/preview-test/**',async route=>{const name=basename(new URL(route.request().url()).pathname);await route.fulfill({body:await readFile(fixture+'/'+name),contentType:name.endsWith('.mpd')?'application/dash+xml':name.endsWith('.jpg')?'image/jpeg':'video/mp4'});});await page.goto(origin+'/examples/custom-controls.html');await page.waitForFunction(()=>window.player);
+ browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{...(process.env.BROWSER==='chromium'?{}:{channel:'chrome'}),args:['--autoplay-policy=no-user-gesture-required']})});const page=await browser.newPage();await page.route('**/fixtures/preview-test/**',async route=>{const name=basename(new URL(route.request().url()).pathname);await route.fulfill({body:await readFile(fixture+'/'+name),contentType:name.endsWith('.mpd')?'application/dash+xml':name.endsWith('.jpg')?'image/jpeg':'video/mp4'});});await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');await page.waitForFunction(()=>window.player);
  const result=await page.evaluate(async path=>{
   await window.player.destroy();const {ShakaBackend}=await import('/web/generated/internal/shaka-backend.js');const {PreviewController}=await import('/web/generated/preview/controller.js');
   const v=document.createElement('video');document.body.append(v);const backend=new ShakaBackend(v,new URL('/',location.href));
@@ -24,3 +24,22 @@ try{
  },'/fixtures/preview-test/main.mpd');
  assert.ok(result.frame,JSON.stringify(result));assert.equal(result.before,result.after);assert.equal(result.paused,true);assert.equal(result.frame.actualTime,2);assert.equal(result.frame.width,120);assert.equal(result.frame.path,'shaka-image-track');assert.ok(result.frame.size>0);console.log(JSON.stringify(result,null,2));
 }finally{await browser?.close();server.kill();}
+
+// BEGIN installed-package entrypoint adapter (keep identical across standalone harnesses).
+async function installPackageEntrypoint(page, origin) {
+ const runtime = process.env.DEMUXE_RUNTIME_ROOT;
+ if (!runtime) return;
+ const {readFile} = await import('node:fs/promises');
+ const {join} = await import('node:path');
+ const {createHash} = await import('node:crypto');
+ let manifest;
+ try { manifest = JSON.parse(await readFile(join(runtime, 'release-manifest.json'), 'utf8')); }
+ catch (error) { if (error.code === 'ENOENT') return; throw error; }
+ const entry = manifest.files?.['index.js'];
+ if (!entry || !/^[a-f0-9]{64}$/.test(entry.sha256)) throw Error('Installed package manifest lacks index.js digest');
+ const body = await readFile(join(runtime, 'index.js'));
+ if (body.length !== entry.bytes || createHash('sha256').update(body).digest('hex') !== entry.sha256) throw Error('Installed package index.js differs from manifest');
+ // Exact URL only: all dependencies and other routes retain the real HTTP server.
+ await page.route(url => url.href === new URL('/index.js', origin).href, route => route.fulfill({status:200, contentType:'text/javascript', body}));
+}
+// END installed-package entrypoint adapter.

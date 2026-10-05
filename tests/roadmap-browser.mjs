@@ -14,7 +14,7 @@ try{
  const origin=await new Promise(resolve=>server.stdout.on('data',data=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(m)resolve(m[0]);}));
  browser=await(family==='firefox'?firefox:chromium).launch({headless:true,...(family==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{})});
  const page=await browser.newPage();page.setDefaultTimeout(35000);
- await page.goto(origin+'/examples/custom-controls.html');await page.waitForFunction(()=>window.player);
+ await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');await page.waitForFunction(()=>window.player);
  await page.evaluate(async()=>{await player.destroy();window.api=await import('/web/generated/index.js');window.movie=new Blob([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],{type:'video/mp4'});});
  const check=async(name,run)=>{if(process.env.ONLY&&!name.includes(process.env.ONLY))return;try{const evidence=await run();checks.push({name,passed:true,...(evidence?{evidence}:{})});console.log('PASS',name);}catch(error){checks.push({name,passed:false,error:String(error.stack)});console.log('FAIL',name,String(error));process.exitCode=1;}await writeFile(out+'/result.json',JSON.stringify({family,browser:browser.version(),checks},null,2));};
  const make=mode=>page.evaluate(async mode=>{await window.p?.destroy();window.p=new api.Player(document.querySelector('#surface'),{mode});},mode);
@@ -145,3 +145,22 @@ try{
  });
  await page.evaluate(()=>window.p?.destroy());console.log(out);
 }finally{await browser?.close();server?.kill();}
+
+// BEGIN installed-package entrypoint adapter (keep identical across standalone harnesses).
+async function installPackageEntrypoint(page, origin) {
+ const runtime = process.env.DEMUXE_RUNTIME_ROOT;
+ if (!runtime) return;
+ const {readFile} = await import('node:fs/promises');
+ const {join} = await import('node:path');
+ const {createHash} = await import('node:crypto');
+ let manifest;
+ try { manifest = JSON.parse(await readFile(join(runtime, 'release-manifest.json'), 'utf8')); }
+ catch (error) { if (error.code === 'ENOENT') return; throw error; }
+ const entry = manifest.files?.['index.js'];
+ if (!entry || !/^[a-f0-9]{64}$/.test(entry.sha256)) throw Error('Installed package manifest lacks index.js digest');
+ const body = await readFile(join(runtime, 'index.js'));
+ if (body.length !== entry.bytes || createHash('sha256').update(body).digest('hex') !== entry.sha256) throw Error('Installed package index.js differs from manifest');
+ // Exact URL only: all dependencies and other routes retain the real HTTP server.
+ await page.route(url => url.href === new URL('/index.js', origin).href, route => route.fulfill({status:200, contentType:'text/javascript', body}));
+}
+// END installed-package entrypoint adapter.

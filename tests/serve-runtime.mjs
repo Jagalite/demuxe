@@ -5,7 +5,7 @@ import {readFile,mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
-const names=['public-api','automatic-adaptation','native-fractional-seek','native-ass','native-ass-selection-regressions','native-ass-style-regressions','audio-adaptation','audio-adaptation-lifecycle','in-place-gain','unequal-tail-windows'];
+const names=['roadmap-browser','preview-browser','preview-software','preview-shaka-browser','public-api','automatic-adaptation','native-fractional-seek','native-ass','native-ass-selection-regressions','native-ass-style-regressions','audio-adaptation','audio-adaptation-lifecycle','in-place-gain','unequal-tail-windows'];
 const blocks=await Promise.all(names.map(async name=>{
  const source=await readFile(new URL(`./${name}.mjs`,import.meta.url),'utf8');
  assert.match(source,/await installPackageEntrypoint\(page, origin\);await page.goto/);
