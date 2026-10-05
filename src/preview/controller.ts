@@ -95,6 +95,7 @@ export class PreviewController {
     const resolved=resolvePreviewStrategy(value),next=resolved.generation?this.generator(resolved.generation,resolved.sample):undefined;
     this.pregenerator?.stop();
     for(const job of [this.active,this.pending])if(job&&this.metadata(job)?.background){if(this.caller?.job===job)this.settle(aborted());this.cancelJob(job);}
+    if(this.state.disposed){next?.stop();throw aborted();}
     this.dispatch({kind:'strategy',value:resolved.strategy.type==='custom'?{type:'custom'}:resolved.strategy});this.customStrategy=resolved.strategy.type==='custom'?resolved.strategy:undefined;this.pregenerator=next;
     next?.setEnabled(this.state.allowed);next?.setFocus(this.state.interaction.focus);next?.setDuration(this.state.duration);
   }

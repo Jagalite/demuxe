@@ -97,6 +97,10 @@ export class PreviewController {
                     this.settle(aborted());
                 this.cancelJob(job);
             }
+        if (this.state.disposed) {
+            next?.stop();
+            throw aborted();
+        }
         this.dispatch({ kind: 'strategy', value: resolved.strategy.type === 'custom' ? { type: 'custom' } : resolved.strategy });
         this.customStrategy = resolved.strategy.type === 'custom' ? resolved.strategy : undefined;
         this.pregenerator = next;

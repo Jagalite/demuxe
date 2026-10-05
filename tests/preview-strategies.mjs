@@ -319,3 +319,13 @@ test('custom callback stays in the adapter and is released on replacement and di
  c.setStrategy({type:'custom',sample});await c.destroy();
  assert.equal(c.customStrategy,undefined);assert.equal(c.pregenerator,undefined);assert.equal(c.strategy,null);
 });
+
+test('destroying from a cancelled background request cannot install a replacement strategy',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});let c,cleanup,started;
+ const ready=new Promise(resolve=>started=resolve),sample=()=>[1];
+ const p=provider(request=>{request.signal.addEventListener('abort',()=>{cleanup=c.destroy();},{once:true});started();return new Promise(()=>{});});
+ c=new PreviewController([p],{strategy:{type:'interval',every:5},debounceMs:0});
+ c.setDuration(60);await advance(t);await ready;
+ assert.throws(()=>c.setStrategy({type:'custom',sample}),{name:'AbortError'});await cleanup;
+ assert.equal(c.customStrategy,undefined);assert.equal(c.pregenerator,undefined);
+});
