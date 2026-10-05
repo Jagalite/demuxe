@@ -50,7 +50,7 @@ try{
   r.querySelector('#preview-toggle').click();checks.push(s.disabled&&!p.preview.enabled);
   r.querySelector('#preview-toggle').click();checks.push(!s.disabled&&p.preview.strategy.every===2);
   await element.destroy();return checks;
- });assert.equal(strategies.length,15);assert.ok(strategies.every(Boolean));
+ });assert.equal(strategies.length,17);assert.ok(strategies.every(Boolean));
  // Constructor interval mode warms every half minute, truncated by finite duration.
  const interval=await page.evaluate(async()=>{
   const {Player}=await import('/web/generated/index.js');const host=document.createElement('div');document.body.append(host);
