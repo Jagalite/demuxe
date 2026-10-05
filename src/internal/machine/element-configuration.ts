@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-import type {PreviewOptions,TrackPolicy,WatchdogPolicy} from '../../types.js';
+import type {PreviewOptionsData,TrackPolicy,WatchdogPolicy} from '../../types.js';
 import {copyData} from './data.js';
 export type ElementConfiguration=Readonly<{
  sourceControls:boolean;diagnosticsControl:boolean;fileDrop:boolean;seekStep:number;autoHideDelay:number;
  trackPolicy:TrackPolicy;watchdogs:WatchdogPolicy;labels:Readonly<Record<string,string>>;
- audioPlayback:'auto'|'worklet';preview:PreviewOptions|false|undefined;
+ audioPlayback:'auto'|'worklet';preview:PreviewOptionsData|false|undefined;
  configuredAsset:string|null;reflectionDepth:number;
 }>;
 export type ElementConfigurationCommand=
@@ -14,7 +14,7 @@ export type ElementConfigurationCommand=
  | Readonly<{type:'watchdogs';value:WatchdogPolicy;terminal:boolean}>
  | Readonly<{type:'labels';entries:readonly (readonly [string,unknown])[];keys:readonly string[]}>
  | Readonly<{type:'audio-playback';value:string;hasOwner:boolean}>
- | Readonly<{type:'preview';value:PreviewOptions|false|undefined;hasOwner:boolean}>
+ | Readonly<{type:'preview';value:PreviewOptionsData|false|undefined;hasOwner:boolean}>
  | Readonly<{type:'asset-lock';value:string|null}>
  | Readonly<{type:'reflection';enter:boolean}>;
 export type ElementConfigurationDecision=Readonly<{state:ElementConfiguration;error?:Readonly<{code:'INVALID_ARGUMENT'|'ABORTED';message:string}>}>;

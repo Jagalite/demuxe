@@ -43,6 +43,7 @@ export class PreviewController {
   private cleanups=new Set<Promise<void>>();
   private destruction?:Promise<void>;
   private pregenerator?:PreviewPregenerator;
+  private customStrategy?:Extract<PreviewStrategy,{type:'custom'}>;
   private images=new Map<string,PreviewResult>();
   private jobs=new Map<number,Job>();
   private callers=new Map<number,Caller>();
@@ -87,14 +88,14 @@ export class PreviewController {
       return [...unique].slice(0,capacity).filter(([key])=>!resident.has(key)).map(([,time])=>time);
     }:undefined);
   }
-  get strategy():PreviewStrategy|null{return this.state.strategy;}
+  get strategy():PreviewStrategy|null{return this.state.strategy?.type==='custom'?this.customStrategy??null:this.state.strategy;}
   /** Switch scheduling without changing playback or discarding useful cached images. */
   setStrategy(value:PreviewStrategy){
     if(this.state.disposed)throw aborted();
     const resolved=resolvePreviewStrategy(value),next=resolved.generation?this.generator(resolved.generation,resolved.sample):undefined;
     this.pregenerator?.stop();
     for(const job of [this.active,this.pending])if(job&&this.metadata(job)?.background){if(this.caller?.job===job)this.settle(aborted());this.cancelJob(job);}
-    this.dispatch({kind:'strategy',value:resolved.strategy});this.pregenerator=next;
+    this.dispatch({kind:'strategy',value:resolved.strategy.type==='custom'?{type:'custom'}:resolved.strategy});this.customStrategy=resolved.strategy.type==='custom'?resolved.strategy:undefined;this.pregenerator=next;
     next?.setEnabled(this.state.allowed);next?.setFocus(this.state.interaction.focus);next?.setDuration(this.state.duration);
   }
   get enabled(){return this.state.allowed;}
@@ -167,7 +168,7 @@ export class PreviewController {
     let resolve!:()=>void,reject!:(error:unknown)=>void;this.destruction=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});
     this.dispatch({kind:'dispose'});const errors:unknown[]=[];
     for(const release of [()=>this.clear(),()=>this.pregenerator?.stop()])try{release();}catch(error){errors.push(error);}
-    this.providers=[];this.images.clear();this.dispatch({kind:'clear-cache'});
+    this.providers=[];this.pregenerator=undefined;this.customStrategy=undefined;this.images.clear();this.dispatch({kind:'clear-cache'});
     void this.drain().then(()=>{if(errors.length)reject(errors.length===1?errors[0]:new AggregateError(errors,'Preview cleanup failed'));else resolve();},reject);return this.destruction;
   }
   /** Explicit optional prefetch. Busy lanes decline; a hover always supersedes it. */

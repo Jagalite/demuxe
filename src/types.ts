@@ -47,8 +47,8 @@ export type PreviewSamplingContext = Readonly<{
 /** Return at most 256 timestamps in priority order. Invalid results are ignored. */
 export type PreviewSampler = (context:PreviewSamplingContext)=>readonly number[];
 /** Background scheduling; foreground hover requests remain available in every strategy. */
-export type PreviewStrategy =
-  | {type:'custom';sample:PreviewSampler}
+export type PreviewStrategyData =
+  | {type:'custom'}
   /** Broad retained coverage plus movement-aware local sampling and settled hover refinement. */
   | {type:'demuxe'}
   | {type:'on-demand'}
@@ -60,7 +60,9 @@ export type PreviewStrategy =
   /** Predict hover focus using velocity over lookAhead real seconds; prediction is bounded. */
   | {type:'directional';samples?:number;every?:number;radius?:number;lookAhead?:number}
   | {type:'timestamps';timestamps:readonly number[];count?:number|null};
-export type PreviewOptions = {strategy?:PreviewStrategy;pregenerate?:PreviewPregeneration;enabled?:boolean;bucketSeconds?:number;debounceMs?:number;width?:number;maxCacheBytes?:number;maxEntries?:number;timeoutMs?:number};
+export type PreviewStrategy = Exclude<PreviewStrategyData,{type:'custom'}> | {type:'custom';sample:PreviewSampler};
+export type PreviewOptionsData = {strategy?:PreviewStrategyData;pregenerate?:PreviewPregeneration;enabled?:boolean;bucketSeconds?:number;debounceMs?:number;width?:number;maxCacheBytes?:number;maxEntries?:number;timeoutMs?:number};
+export type PreviewOptions = Omit<PreviewOptionsData,'strategy'> & {strategy?:PreviewStrategy};
 export type PreparationComponent = 'inspector' | 'hybrid' | 'software';
 export type PreparationOptions = 'all' | readonly PreparationComponent[];
 export type PreparationAsset = {name:PreparationComponent|'font';status:'ready'|'failed'|'aborted';bytes:number;milliseconds:number;error?:string};

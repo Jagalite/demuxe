@@ -91,6 +91,7 @@ export declare class PreviewController {
     private cleanups;
     private destruction?;
     private pregenerator?;
+    private customStrategy?;
     private images;
     private jobs;
     private callers;

@@ -71,6 +71,7 @@ export class DemuxePlayerElement extends Base {
     core;
     advanced;
     hoverPreview;
+    customPreviewStrategy;
     configuration = initialElementConfiguration(watchdogPolicy());
     configure(command) { const decision = transitionElementConfiguration(this.configuration, command); if (decision.error)
         throw new PlayerError(decision.error.code, decision.error.message); this.configuration = decision.state; }
@@ -366,8 +367,8 @@ export class DemuxePlayerElement extends Base {
         select.value = value;
         select.disabled = !this.core?.preview.enabled;
     }
-    get previewOptions() { return this.configuration.preview; }
-    set previewOptions(value) { this.configure({ type: 'preview', value, hasOwner: !!this.core }); }
+    get previewOptions() { const value = this.configuration.preview; return value && value.strategy?.type === 'custom' ? { ...value, strategy: this.customPreviewStrategy } : value; }
+    set previewOptions(value) { const custom = value && value.strategy?.type === 'custom' ? value.strategy : undefined; this.configure({ type: 'preview', value: custom && value ? { ...value, strategy: { type: 'custom' } } : value, hasOwner: !!this.core }); this.customPreviewStrategy = custom ? Object.freeze({ ...custom }) : undefined; }
     syncPreviewEnabled() { if (this.core)
         this.core.preview.enabled = elementPreviewEnabled(this.configuration, this.previewThumbnails); }
     get previewThumbnails() { return !this.hasAttribute('no-preview'); }
@@ -420,7 +421,7 @@ export class DemuxePlayerElement extends Base {
                 throw new PlayerError('ABORTED', 'Player element initialization retired'); };
             try {
                 this.configure({ type: 'asset-lock', value: this.getAttribute('asset-base') });
-                const core = initializing = new Player(this.$('surface'), { assetBase: this.assetBase, watchdogs: this.configuration.watchdogs, audioPlayback: this.configuration.audioPlayback, preview: this.configuration.preview ?? { strategy: { type: 'adaptive' }, maxEntries: 96, maxCacheBytes: 16 * 1024 * 1024 }, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
+                const core = initializing = new Player(this.$('surface'), { assetBase: this.assetBase, watchdogs: this.configuration.watchdogs, audioPlayback: this.configuration.audioPlayback, preview: this.previewOptions ?? { strategy: { type: 'adaptive' }, maxEntries: 96, maxCacheBytes: 16 * 1024 * 1024 }, prepare: this.getAttribute('prepare') === 'all' ? 'all' : (this.getAttribute('prepare') ?? '').split(/\s+/).filter(Boolean) });
                 if (!transitionElementLifecycle(this.lifecycle, { type: 'connect-ready', connection: token, connected: this.isConnected }).accepted)
                     throw new PlayerError('ABORTED', 'Player element initialization retired');
                 this.core = core;
@@ -637,6 +638,8 @@ export class DemuxePlayerElement extends Base {
     }
     releaseOwnedResources(terminal) {
         const previous = this.cleanup, connecting = this.connecting, old = this.core, unsubscribe = this.unsubscribe, observer = this.resizeObserver, sourceAbort = this.sourceAbort;
+        if (terminal)
+            this.customPreviewStrategy = undefined;
         this.core = undefined;
         this.unsubscribe = undefined;
         this.resizeObserver = undefined;

@@ -15,6 +15,7 @@ export class PreviewController {
     cleanups = new Set();
     destruction;
     pregenerator;
+    customStrategy;
     images = new Map();
     jobs = new Map();
     callers = new Map();
@@ -83,7 +84,7 @@ export class PreviewController {
             return [...unique].slice(0, capacity).filter(([key]) => !resident.has(key)).map(([, time]) => time);
         } : undefined);
     }
-    get strategy() { return this.state.strategy; }
+    get strategy() { return this.state.strategy?.type === 'custom' ? this.customStrategy ?? null : this.state.strategy; }
     /** Switch scheduling without changing playback or discarding useful cached images. */
     setStrategy(value) {
         if (this.state.disposed)
@@ -96,7 +97,8 @@ export class PreviewController {
                     this.settle(aborted());
                 this.cancelJob(job);
             }
-        this.dispatch({ kind: 'strategy', value: resolved.strategy });
+        this.dispatch({ kind: 'strategy', value: resolved.strategy.type === 'custom' ? { type: 'custom' } : resolved.strategy });
+        this.customStrategy = resolved.strategy.type === 'custom' ? resolved.strategy : undefined;
         this.pregenerator = next;
         next?.setEnabled(this.state.allowed);
         next?.setFocus(this.state.interaction.focus);
@@ -242,6 +244,8 @@ export class PreviewController {
                 errors.push(error);
             }
         this.providers = [];
+        this.pregenerator = undefined;
+        this.customStrategy = undefined;
         this.images.clear();
         this.dispatch({ kind: 'clear-cache' });
         void this.drain().then(() => { if (errors.length)

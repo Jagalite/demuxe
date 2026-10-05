@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import type {PreviewStrategy} from '../../types.js';
+import type {PreviewStrategyData} from '../../types.js';
 export type ScrubberTarget=Readonly<{owner:number;time:number}>;
 export type ScrubberState=Readonly<{
  terminal:boolean;hover:number;serial:number;nextResource:number;nextPresentation:number;
@@ -55,7 +55,7 @@ export function transitionScrubber(state:ScrubberState,command:ScrubberCommand):
   case 'presentation-failed':case 'deadline':return state.presentation?.id===command.id?clear(state):Object.freeze({state,accepted:false});
  }
 }
-export function scrubberDistance(strategy:PreviewStrategy|null|undefined,span:number,generation=false):number {
+export function scrubberDistance(strategy:PreviewStrategyData|null|undefined,span:number,generation=false):number {
  if(strategy?.type==='demuxe')return generation?0:span;
  if(generation&&strategy?.type==='adaptive')return (strategy.every??5)/2+1;
  if(strategy?.type==='interval')return (strategy.every??5)*(strategy.unit==='minutes'?60:1)/2+1;

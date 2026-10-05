@@ -145,9 +145,8 @@ export type PreviewSamplingContext = Readonly<{
 /** Return at most 256 timestamps in priority order. Invalid results are ignored. */
 export type PreviewSampler = (context: PreviewSamplingContext) => readonly number[];
 /** Background scheduling; foreground hover requests remain available in every strategy. */
-export type PreviewStrategy = {
+export type PreviewStrategyData = {
     type: 'custom';
-    sample: PreviewSampler;
 }
 /** Broad retained coverage plus movement-aware local sampling and settled hover refinement. */
  | {
@@ -188,8 +187,14 @@ export type PreviewStrategy = {
     timestamps: readonly number[];
     count?: number | null;
 };
-export type PreviewOptions = {
-    strategy?: PreviewStrategy;
+export type PreviewStrategy = Exclude<PreviewStrategyData, {
+    type: 'custom';
+}> | {
+    type: 'custom';
+    sample: PreviewSampler;
+};
+export type PreviewOptionsData = {
+    strategy?: PreviewStrategyData;
     pregenerate?: PreviewPregeneration;
     enabled?: boolean;
     bucketSeconds?: number;
@@ -198,6 +203,9 @@ export type PreviewOptions = {
     maxCacheBytes?: number;
     maxEntries?: number;
     timeoutMs?: number;
+};
+export type PreviewOptions = Omit<PreviewOptionsData, 'strategy'> & {
+    strategy?: PreviewStrategy;
 };
 export type PreparationComponent = 'inspector' | 'hybrid' | 'software';
 export type PreparationOptions = 'all' | readonly PreparationComponent[];

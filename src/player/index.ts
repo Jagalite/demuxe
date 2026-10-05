@@ -68,6 +68,7 @@ export class DemuxePlayerElement extends Base {
   private core?:PlayerAPI;
   private advanced?:AdvancedSettings;
   private hoverPreview!:ScrubberPreview;
+  private customPreviewStrategy?:Extract<PreviewStrategy,{type:'custom'}>;
   private configuration=initialElementConfiguration(watchdogPolicy());
   private configure(command:ElementConfigurationCommand){const decision=transitionElementConfiguration(this.configuration,command);if(decision.error)throw new PlayerError(decision.error.code,decision.error.message);this.configuration=decision.state;}
   private viewState=initialElementView();
@@ -270,8 +271,8 @@ export class DemuxePlayerElement extends Base {
     else if(strategy?.type==='interval'&&strategy.every===5&&strategy.unit==='seconds'&&strategy.count==null)value='interval';
     select.value=value;select.disabled=!this.core?.preview.enabled;
   }
-  get previewOptions(){return this.configuration.preview;}
-  set previewOptions(value:PreviewOptions|false|undefined){this.configure({type:'preview',value,hasOwner:!!this.core});}
+  get previewOptions():PreviewOptions|false|undefined{const value=this.configuration.preview;return value&&value.strategy?.type==='custom'?{...value,strategy:this.customPreviewStrategy}:value as PreviewOptions|false|undefined;}
+  set previewOptions(value:PreviewOptions|false|undefined){const custom=value&&value.strategy?.type==='custom'?value.strategy:undefined;this.configure({type:'preview',value:custom&&value?{...value,strategy:{type:'custom'}}:value,hasOwner:!!this.core});this.customPreviewStrategy=custom?Object.freeze({...custom}):undefined;}
   private syncPreviewEnabled(){if(this.core)this.core.preview.enabled=elementPreviewEnabled(this.configuration,this.previewThumbnails);}
   get previewThumbnails(){return !this.hasAttribute('no-preview');}
   set previewThumbnails(value:boolean){this.toggleAttribute('no-preview',!value);}
@@ -293,7 +294,7 @@ export class DemuxePlayerElement extends Base {
       let fullscreenListener=false,pointerListener=false;
       const current=()=>initializing?transitionElementLifecycle(this.lifecycle,{type:'owner-ready',connected:this.isConnected,sameOwner:this.core===initializing}).accepted:transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted;
       const check=()=>{if(!current())throw new PlayerError('ABORTED','Player element initialization retired');};
-      try {this.configure({type:'asset-lock',value:this.getAttribute('asset-base')});const core=initializing=new Player(this.$('surface'),{assetBase:this.assetBase,watchdogs:this.configuration.watchdogs,audioPlayback:this.configuration.audioPlayback,preview:this.configuration.preview??{strategy:{type:'adaptive'},maxEntries:96,maxCacheBytes:16*1024*1024},prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});if(!transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted)throw new PlayerError('ABORTED','Player element initialization retired');this.core=core;this.syncPreviewEnabled();check();core.presentation.setFullscreenTarget(this);this.view({type:'reset-owner'});
+      try {this.configure({type:'asset-lock',value:this.getAttribute('asset-base')});const core=initializing=new Player(this.$('surface'),{assetBase:this.assetBase,watchdogs:this.configuration.watchdogs,audioPlayback:this.configuration.audioPlayback,preview:this.previewOptions??{strategy:{type:'adaptive'},maxEntries:96,maxCacheBytes:16*1024*1024},prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});if(!transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted)throw new PlayerError('ABORTED','Player element initialization retired');this.core=core;this.syncPreviewEnabled();check();core.presentation.setFullscreenTarget(this);this.view({type:'reset-owner'});
         for(const type of [...PLAYER_EVENTS,'preparationchange','inspectionchange','mpv','log','source','output'])core.addEventListener(type,event=>{
           if(this.core!==core||this.terminal)return;const detail=(event as CustomEvent).detail;
           if(type==='inspectionchange'&&core.state.pendingOperation?.kind==='opening'){this.control({type:'opening-stage',stage:detail.phase==='reading'?this.labels.reading:this.labels.inspecting});this.update(core.state);}
@@ -371,6 +372,7 @@ export class DemuxePlayerElement extends Base {
   }
   private releaseOwnedResources(terminal:boolean):Promise<void>{
     const previous=this.cleanup,connecting=this.connecting,old=this.core,unsubscribe=this.unsubscribe,observer=this.resizeObserver,sourceAbort=this.sourceAbort;
+    if(terminal)this.customPreviewStrategy=undefined;
     this.core=undefined;this.unsubscribe=undefined;this.resizeObserver=undefined;this.sourceAbort=undefined;
     let resolve!:()=>void,reject!:(error:unknown)=>void;
     const done=this.cleanup=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import type { PreviewStrategy } from '../../types.js';
+import type { PreviewStrategyData } from '../../types.js';
 export type ScrubberTarget = Readonly<{
     owner: number;
     time: number;
@@ -64,7 +64,7 @@ export type ScrubberDecision = Readonly<{
 }>;
 export declare function initialScrubber(): ScrubberState;
 export declare function transitionScrubber(state: ScrubberState, command: ScrubberCommand): ScrubberDecision;
-export declare function scrubberDistance(strategy: PreviewStrategy | null | undefined, span: number, generation?: boolean): number;
+export declare function scrubberDistance(strategy: PreviewStrategyData | null | undefined, span: number, generation?: boolean): number;
 export declare function scrubberPointer(facts: Readonly<{
     touch: boolean;
     disabled: boolean;

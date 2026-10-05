@@ -161,6 +161,7 @@ export declare class DemuxePlayerElement extends Base {
     private core?;
     private advanced?;
     private hoverPreview;
+    private customPreviewStrategy?;
     private configuration;
     private configure;
     private viewState;

@@ -310,3 +310,12 @@ test('density presets use the bounded preview lane, preserve cache and stay disa
   c.enabled=true;for(let i=0;i<8;i++)await advance(t);assert.ok(seen.length>count);
  }finally{await c.destroy();}
 });
+
+test('custom callback stays in the adapter and is released on replacement and disposal',async()=>{
+ const sample=()=>[1,2],c=new PreviewController([],{strategy:{type:'custom',sample}});
+ assert.equal(c.strategy.sample,sample);assert.deepEqual(c.state.strategy,{type:'custom'});
+ assert.ok(Object.isFrozen(c.strategy));
+ c.setStrategy({type:'uniform',samples:2});assert.equal(c.customStrategy,undefined);
+ c.setStrategy({type:'custom',sample});await c.destroy();
+ assert.equal(c.customStrategy,undefined);assert.equal(c.pregenerator,undefined);assert.equal(c.strategy,null);
+});

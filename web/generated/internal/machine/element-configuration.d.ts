@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import type { PreviewOptions, TrackPolicy, WatchdogPolicy } from '../../types.js';
+import type { PreviewOptionsData, TrackPolicy, WatchdogPolicy } from '../../types.js';
 export type ElementConfiguration = Readonly<{
     sourceControls: boolean;
     diagnosticsControl: boolean;
@@ -10,7 +10,7 @@ export type ElementConfiguration = Readonly<{
     watchdogs: WatchdogPolicy;
     labels: Readonly<Record<string, string>>;
     audioPlayback: 'auto' | 'worklet';
-    preview: PreviewOptions | false | undefined;
+    preview: PreviewOptionsData | false | undefined;
     configuredAsset: string | null;
     reflectionDepth: number;
 }>;
@@ -37,7 +37,7 @@ export type ElementConfigurationCommand = Readonly<{
     hasOwner: boolean;
 }> | Readonly<{
     type: 'preview';
-    value: PreviewOptions | false | undefined;
+    value: PreviewOptionsData | false | undefined;
     hasOwner: boolean;
 }> | Readonly<{
     type: 'asset-lock';

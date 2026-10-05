@@ -97,3 +97,15 @@ test('activity projection preserves compile priority, seek labels, idle preparat
  result=elementActivity({...state,sourceId:1,pendingOperation:{kind:'opening'}},[],'Starting Native',labels);assert.equal(result.activity,'Starting Native');
  result=elementActivity({...state,sourceId:1,streamType:'live'},[],'',labels);assert.equal(result.pill,'');assert.equal(result.announcement,'No window');
 });
+
+test('element retains a custom preview callback outside configuration and preserves it on rejected updates',async()=>{
+ const {DemuxePlayerElement}=await import('../../web/generated/player/index.js');
+ const element=Object.create(DemuxePlayerElement.prototype);element.configuration=initial();
+ const sample=()=>[1,2];element.previewOptions={strategy:{type:'custom',sample},maxEntries:4};
+ assert.equal(element.previewOptions.strategy.sample,sample);
+ assert.deepEqual(element.configuration.preview,{strategy:{type:'custom'},maxEntries:4});
+ element.core={};assert.throws(()=>{element.previewOptions={strategy:{type:'uniform'}};},/fixed after initialization/);
+ assert.equal(element.previewOptions.strategy.sample,sample);
+ element.core=undefined;element.previewOptions=false;assert.equal(element.customPreviewStrategy,undefined);
+ assert.equal(element.previewOptions,false);
+});

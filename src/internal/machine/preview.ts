@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 import {createPreviewInteraction,observePreviewInteraction,type PreviewInteractionState} from './preview-interaction.js';
 import {demuxeStoryboard} from './preview-demuxe.js';
-import type {PreviewOptions,PreviewStrategy} from '../../types.js';
+import type {PreviewOptionsData,PreviewStrategyData} from '../../types.js';
 
-export type PreviewSettings=Readonly<Required<Omit<PreviewOptions,'pregenerate'|'strategy'>>>;
+export type PreviewSettings=Readonly<Required<Omit<PreviewOptionsData,'pregenerate'|'strategy'>>>;
 export type PreviewRequestData=Readonly<{time:number;width?:number;height?:number;exact?:boolean;maxDistance?:number;cacheOnly?:boolean}>;
 export type PreviewJobState=Readonly<{id:number;key:string;time:number;width:number;height?:number;exact:boolean;sourceId:string;background:boolean;ready:boolean;aborted:boolean;requiresDecoder?:boolean;selectionMs:number}>;
 export type PreviewCacheEntry=Readonly<{key:string;time:number;bytes:number;background:boolean}>;
 export type PreviewControlState=Readonly<{
   options:PreviewSettings;allowed:boolean;suspended:boolean;playbackActive:boolean;disposed:boolean;
-  interaction:PreviewInteractionState;strategy:PreviewStrategy|null;duration:number|null;hoverUntil:number;playbackPosition:number;lastForeground:number;
+  interaction:PreviewInteractionState;strategy:PreviewStrategyData|null;duration:number|null;hoverUntil:number;playbackPosition:number;lastForeground:number;
   sourceId:string;revision:number;serial:number;requestEpoch:number;retiring:number;active:PreviewJobState|null;pending:PreviewJobState|null;
   caller:Readonly<{id:number;jobId:number}>|null;cache:readonly PreviewCacheEntry[];bytes:number;
   counters:Readonly<{requests:number;hits:number;failures:number;cancelled:number}>;
@@ -17,7 +17,7 @@ export type PreviewControlState=Readonly<{
 }>;
 export type PreviewControlEvent=
   |{kind:'enabled';value:boolean}|{kind:'suspended';value:boolean}|{kind:'playback';value:boolean}
-  |{kind:'strategy';value:PreviewStrategy}|{kind:'source';sourceId:string}|{kind:'providers'}
+  |{kind:'strategy';value:PreviewStrategyData}|{kind:'source';sourceId:string}|{kind:'providers'}
   |{kind:'focus';source:'hover'|'playback';time:number;at:number}
   |{kind:'duration';duration:number|null}|{kind:'position';time:number}
   |{kind:'foreground';at:number}|{kind:'hover';at:number}|{kind:'request-count';cacheOnly:boolean}|{kind:'retire-work'}|{kind:'retired-work'}
@@ -26,7 +26,7 @@ export type PreviewControlEvent=
   |{kind:'provider';id:number;requiresDecoder:boolean|undefined}|{kind:'selection';id:number;milliseconds:number}
   |{kind:'failure';provider:string;errorKind:string}|{kind:'caller';jobId:number}|{kind:'settle';failed:boolean};
 
-export function createPreviewControl(settings:Omit<PreviewOptions,'pregenerate'|'strategy'>={}):PreviewControlState {
+export function createPreviewControl(settings:Omit<PreviewOptionsData,'pregenerate'|'strategy'>={}):PreviewControlState {
   const options={enabled:true,bucketSeconds:1,debounceMs:50,width:160,maxCacheBytes:4*1024*1024,maxEntries:48,timeoutMs:10000,...settings};
   for(const [key,value] of Object.entries(options))if(key!=='enabled'&&(!Number.isFinite(value)||Number(value)<0))throw new RangeError(`Invalid preview ${key}`);
   if(options.width<1||options.width>2048||!Number.isInteger(options.width)||options.timeoutMs<1||options.timeoutMs>2147483647||options.debounceMs>2147483647||!Number.isInteger(options.maxEntries))throw new RangeError('Invalid preview limits');

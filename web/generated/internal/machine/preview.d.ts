@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { type PreviewInteractionState } from './preview-interaction.js';
-import type { PreviewOptions, PreviewStrategy } from '../../types.js';
-export type PreviewSettings = Readonly<Required<Omit<PreviewOptions, 'pregenerate' | 'strategy'>>>;
+import type { PreviewOptionsData, PreviewStrategyData } from '../../types.js';
+export type PreviewSettings = Readonly<Required<Omit<PreviewOptionsData, 'pregenerate' | 'strategy'>>>;
 export type PreviewRequestData = Readonly<{
     time: number;
     width?: number;
@@ -37,7 +37,7 @@ export type PreviewControlState = Readonly<{
     playbackActive: boolean;
     disposed: boolean;
     interaction: PreviewInteractionState;
-    strategy: PreviewStrategy | null;
+    strategy: PreviewStrategyData | null;
     duration: number | null;
     hoverUntil: number;
     playbackPosition: number;
@@ -77,7 +77,7 @@ export type PreviewControlEvent = {
     value: boolean;
 } | {
     kind: 'strategy';
-    value: PreviewStrategy;
+    value: PreviewStrategyData;
 } | {
     kind: 'source';
     sourceId: string;
@@ -143,7 +143,7 @@ export type PreviewControlEvent = {
     kind: 'settle';
     failed: boolean;
 };
-export declare function createPreviewControl(settings?: Omit<PreviewOptions, 'pregenerate' | 'strategy'>): PreviewControlState;
+export declare function createPreviewControl(settings?: Omit<PreviewOptionsData, 'pregenerate' | 'strategy'>): PreviewControlState;
 /** Data-only control updates. Resource cancellation and observer delivery use the
  * committed result; this authority never holds an image, provider or callback. */
 export declare function transitionPreviewControl(state: PreviewControlState, event: PreviewControlEvent): PreviewControlState;
