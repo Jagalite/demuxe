@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import {Player,PreviewController,type PlayerPreview,PlayerPresentation} from 'demuxe';
+import {Player,PreviewController,type PlayerPreview,PlayerPresentation,type PlayerOptions,type StartupEscalationOptions} from 'demuxe';
 import {DemuxePlayerElement} from 'demuxe/player';
 import type {PlaybackRuntime,PlaybackControl,PlayerAPI} from 'demuxe/contracts';
 import {bindPlayer,subscribeSelector} from 'demuxe/integration';
@@ -29,3 +29,10 @@ declare const element:DemuxePlayerElement,media:DemuxeMediaElement;
 element.open(new Blob());element.close();element.destroy();media.bind(runtime);media.dispose();
 const presentation:PlayerPresentation=player.presentation;presentation.setMediaSessionEnabled(false);
 void [api,PreviewController,registerMediaElement,registerVideojsTech,ProviderAcquisition,parseProviderDeployment,audioRepairRecipe];
+
+const escalation:StartupEscalationOptions={prefetchAfterMs:100,switchAfterMs:200};
+const startupOptions:PlayerOptions={startupEscalation:escalation};
+const disabledStartup:PlayerOptions={startupEscalation:false};
+// @ts-expect-error escalation delays must be numeric
+const invalidStartup:StartupEscalationOptions={prefetchAfterMs:'100'};
+void [startupOptions,disabledStartup,invalidStartup];

@@ -55,8 +55,20 @@ export async function checkSequenceModel({mode,seed,rounds}) {
       entry.output={clockDelta:p.state.currentTime-time,pixelChange:movement};
       assert(p.state.currentTime>=time+.12&&movement>=.5,'Playing intent without advancing video output');
     }else{
-      await delay(150);const movement=difference(before,await pixels());
-      entry.output={clockDelta:p.state.currentTime-time,pixelChange:movement};
+      let baseline=before;
+      // Native pause observes transport state before the browser finishes a queued
+      // video paint. Establish its presentation boundary without moving the clock
+      // baseline; private canvas renderers retain the immediate output assertion.
+      if(typeof HTMLVideoElement!=='undefined'&&p.surface instanceof HTMLVideoElement){
+        const video=p.surface;assert(video.paused,'Native video did not pause');
+        await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);
+        baseline=await pixels();
+        entry.output={clockDelta:p.state.currentTime-time,presentationBoundary:'native-video-two-animation-frames',preBoundaryPixelChange:difference(before,baseline)};
+        assert(video.paused,'Native video resumed across presentation boundary');
+        assert(Math.abs(p.state.currentTime-time)<.12,'Paused clock kept moving');assertState();
+      }
+      await delay(150);const movement=difference(baseline,await pixels());
+      entry.output={...entry.output,clockDelta:p.state.currentTime-time,pixelChange:movement};
       assert(Math.abs(p.state.currentTime-time)<.12,'Paused clock kept moving');
       assert(movement<2,'Paused video kept changing');
     }

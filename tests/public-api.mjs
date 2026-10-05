@@ -10,7 +10,8 @@ const errors=[];page.on('pageerror',e=>errors.push(String(e)));
 async function check(name,fn){if(process.env.ONLY&&!name.includes(process.env.ONLY))return;try{await fn();result.checks.push({name,passed:true});console.log('PASS',name);}catch(e){result.checks.push({name,passed:false,error:String(e.stack),state:await page.evaluate(()=>window.player?.state).catch(()=>null)});console.log('FAIL',name,String(e));process.exitCode=1;}await writeFile(out+'/result.json',JSON.stringify(result,null,2));}
 async function make(mode){await page.evaluate(()=>window.player?.destroy());await page.evaluate(async mode=>{const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode});window.historyEvents=[];for(const name of ['statechange','sourcechange','play','playing','pause','seeking','seeked','error'])player.addEventListener(name,e=>historyEvents.push({name,detail:e.detail,state:player.state}));},mode);}
 async function open(){await page.evaluate(async()=>player.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'example.mp4')));}
-try{await page.goto(origin+'/examples/custom-controls.html');await page.waitForFunction(()=>window.player);
+let suiteCompleted=false;
+try{await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');await page.waitForFunction(()=>window.player);
 await check('immutable state, stable identity and no core UI import',async()=>{await make('native');const d=await page.evaluate(()=>{const a=player.state;let calls=0;const off=player.subscribe(()=>calls++);off();off();return {same:a===player.state,frozen:Object.isFrozen(a)&&Object.isFrozen(a.mediaInfo),calls,mode:a.activeMode,ranges:a.seekable,workers:performance.getEntriesByType('resource').filter(e=>/\.wasm(?:$|[?#])|engine-worker|player-element/.test(e.name)).length};});assert.deepEqual(d,{same:true,frozen:true,calls:1,mode:null,ranges:null,workers:0},JSON.stringify(await page.evaluate(()=>performance.getEntriesByType('resource').filter(e=>/\.wasm(?:$|[?#])|engine-worker|player-element/.test(e.name)).map(e=>e.name))));});
 for(const mode of ['native','hybrid','software'])await check(mode+' state events, seek completion, mute and reopen',async()=>{
  await make(mode);await open();let d=await page.evaluate(()=>player.state);assert.equal(d.status,'paused');assert.equal(d.activeMode,mode);assert.ok(d.duration>1);assert.ok(d.mediaInfo.aspectRatio>1);assert.ok(d.seekable?.length,JSON.stringify(d));
@@ -95,4 +96,24 @@ await check('unknown duration and live windows remain truthful (adapter injectio
 await check('waiting and ended reflect observed playback (native events)',async()=>{await make('native');await open();await page.evaluate(()=>player.play());await page.waitForFunction(()=>player.state.currentTime>.15);await page.evaluate(()=>player.surface.dispatchEvent(new Event('waiting')));await page.waitForFunction(()=>player.state.status==='buffering');await page.evaluate(()=>player.surface.dispatchEvent(new Event('playing')));await page.waitForFunction(()=>player.state.status==='playing');await page.evaluate(async()=>{await player.seek(player.state.duration-.25);await player.play();});await page.waitForFunction(()=>player.state.status==='ended');});
 await check('idempotent destroy settles queue and removes workers',async()=>{const d=await page.evaluate(async()=>{const work=player.seek(1).catch(e=>e.code);const a=player.destroy(),b=player.destroy();await a;const error=await player.play().catch(e=>e.code);return {same:a===b,error,work:await work,status:player.state.status};});assert.ok(d.same);assert.equal(d.error,'ABORTED');assert.equal(d.status,'idle');await page.waitForTimeout(200);assert.equal(page.workers().length,0);});
 await check('no uncaught errors',()=>assert.deepEqual(errors,[]));
-}finally{await page.evaluate(()=>window.player?.destroy()).catch(()=>{});await browser.close();server.kill();result.passed=result.checks.every(c=>c.passed);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
+suiteCompleted=true;
+}finally{result.passed=false;try{await page.evaluate(()=>window.player?.destroy()).catch(()=>{});try{await browser.close();}finally{server.kill();}result.passed=suiteCompleted&&result.checks.length>0&&result.checks.every(c=>c.passed);}finally{if(!result.passed)process.exitCode=1;await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}}
+
+// BEGIN installed-package entrypoint adapter (keep identical across standalone harnesses).
+async function installPackageEntrypoint(page, origin) {
+ const runtime = process.env.DEMUXE_RUNTIME_ROOT;
+ if (!runtime) return;
+ const {readFile} = await import('node:fs/promises');
+ const {join} = await import('node:path');
+ const {createHash} = await import('node:crypto');
+ let manifest;
+ try { manifest = JSON.parse(await readFile(join(runtime, 'release-manifest.json'), 'utf8')); }
+ catch (error) { if (error.code === 'ENOENT') return; throw error; }
+ const entry = manifest.files?.['index.js'];
+ if (!entry || !/^[a-f0-9]{64}$/.test(entry.sha256)) throw Error('Installed package manifest lacks index.js digest');
+ const body = await readFile(join(runtime, 'index.js'));
+ if (body.length !== entry.bytes || createHash('sha256').update(body).digest('hex') !== entry.sha256) throw Error('Installed package index.js differs from manifest');
+ // Exact URL only: all dependencies and other routes retain the real HTTP server.
+ await page.route(url => url.href === new URL('/index.js', origin).href, route => route.fulfill({status:200, contentType:'text/javascript', body}));
+}
+// END installed-package entrypoint adapter.

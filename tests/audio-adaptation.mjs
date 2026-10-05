@@ -48,7 +48,7 @@ try{
   try{
    if(process.env.REMUX_WORKER)await page.route('**/native-remux-worker.js',async r=>r.fulfill({response:await r.fetch(),body:await readFile(process.env.REMUX_WORKER)}));
    if(process.env.ENGINE_BUILD)await page.route('**/engine-adaptation/remux.*',async r=>{const name=r.request().url().endsWith('.wasm')?'remux.wasm':'remux.mjs';await r.fulfill({contentType:name.endsWith('.wasm')?'application/wasm':'text/javascript',body:await readFile(process.env.ENGINE_BUILD+'/'+name)});});
-   await page.goto(origin+'/examples/custom-controls.html');
+   await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');
    await page.evaluate(async profile=>{
     await window.player?.destroy();const {Player}=await import('/web/generated/index.js');
     window.errors=[];window.captures=new Map();const append=SourceBuffer.prototype.appendBuffer;
@@ -128,3 +128,22 @@ try{
  }
 }finally{await browser.close();server.kill();}
 console.log(out);
+
+// BEGIN installed-package entrypoint adapter (keep identical across standalone harnesses).
+async function installPackageEntrypoint(page, origin) {
+ const runtime = process.env.DEMUXE_RUNTIME_ROOT;
+ if (!runtime) return;
+ const {readFile} = await import('node:fs/promises');
+ const {join} = await import('node:path');
+ const {createHash} = await import('node:crypto');
+ let manifest;
+ try { manifest = JSON.parse(await readFile(join(runtime, 'release-manifest.json'), 'utf8')); }
+ catch (error) { if (error.code === 'ENOENT') return; throw error; }
+ const entry = manifest.files?.['index.js'];
+ if (!entry || !/^[a-f0-9]{64}$/.test(entry.sha256)) throw Error('Installed package manifest lacks index.js digest');
+ const body = await readFile(join(runtime, 'index.js'));
+ if (body.length !== entry.bytes || createHash('sha256').update(body).digest('hex') !== entry.sha256) throw Error('Installed package index.js differs from manifest');
+ // Exact URL only: all dependencies and other routes retain the real HTTP server.
+ await page.route(url => url.href === new URL('/index.js', origin).href, route => route.fulfill({status:200, contentType:'text/javascript', body}));
+}
+// END installed-package entrypoint adapter.

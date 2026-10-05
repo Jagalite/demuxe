@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {TierAttempts,preferredPlans} from '../web/generated/internal/tier-policy.js';
 import {planAdmission,executionPlan} from '../web/generated/internal/playback-plans.js';
 import {unitPlayer} from './helpers/unit-player.mjs';
+import {acceptSourceIdentity} from './helpers/player-control.mjs';
 import {PlayerError} from '../web/generated/internal/errors.js';
 test('negative evidence is isolated by source, settings and plan, expires and stays bounded',()=>{
  const history=new TierAttempts(),a={},b={};history.failure(a,'captions','native','unsupported',0);
@@ -24,8 +25,9 @@ test('playback decode failure retires only the failed native plan before retryin
   current:{backend:{properties:new Map(),diagnostics:{plan:'direct'},play:async()=>{throw new PlayerError('DECODE_FAILED','Missing selected audio');},verifyOutput:async()=>{},pause:async()=>{}}},
   settings:{pause:true},nativeRemux:'never',tierAttempts:failures,
   runtimeCapabilities:{update(){}},evidence:()=>({}),failedStreamingPlan:()=>false,
-  tierConfiguration:()=> 'same-settings',enqueue:async action=>action(),select:async(...args)=>selected.push(args)});
+  tierConfiguration:()=> 'same-settings',select:async(...args)=>selected.push(args)});
  Object.defineProperty(p,'diagnostics',{value:{plan:{id:'native-direct'}}});
+ acceptSourceIdentity(p,1);
  await p.play();
  assert.equal(selected.length,1);
  assert.equal(selected[0][4],0);

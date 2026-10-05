@@ -106,6 +106,8 @@ export declare function transitionAttachment(state: PlayerControlState, input: A
     state: Readonly<{
         revision: number;
         captureRevision: number;
+        transport: import("./player-transport.js").PlayerTransportState;
+        trackConfirmation: import("./track-confirmation.js").TrackConfirmationState;
         resources: import("./resource-ledger.js").ResourceLedgerState;
         executor: import("./effect-runtime.js").EffectRuntimeState;
         readiness: import("./player-readiness.js").PlayerReadinessState;

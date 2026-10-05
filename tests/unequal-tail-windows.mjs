@@ -33,7 +33,7 @@ try{for(const fixture of ['audio-tail','video-tail','audio-tail-start2','video-t
 
   if(process.env.REPRO_UNQUALIFIED==='1')await page.route('**/native-remux-player.js',async r=>r.fulfill({contentType:'text/javascript',body:(await readFile('web/native-remux-player.js','utf8')).replace('data.windowed&&!windowedBrowserSupported()','false /* retained Firefox seek reproducer */')}));
 
-  await page.goto(origin+'/examples/custom-controls.html');
+  await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');
   await page.evaluate(async combination=>{
    await player.destroy();const {Player}=await import('/web/generated/index.js');window.pumpTrace=[];const {RemuxPlayer}=await import('/web/native-remux-player.js');const pump=RemuxPlayer.prototype.pump;RemuxPlayer.prototype.pump=function(){const row={time:this.video.currentTime,target:this.target,ready:this.targetReady,busy:this.busy,paused:this.video.paused,intent:this.recoveryPlaying,prime:this.primeVideo,sourceEnd:this.remuxStats?.adaptation?.sourceEnd};const last=pumpTrace.at(-1);if(!last||JSON.stringify(last)!==JSON.stringify(row)){pumpTrace.push(row);if(pumpTrace.length>160)pumpTrace.shift();}return pump.call(this);};window.captures=new Map();window.errors=[];window.ends=[];window.publicEnds=[];
    const append=SourceBuffer.prototype.appendBuffer;SourceBuffer.prototype.appendBuffer=function(bytes){if(!captures.has(this))captures.set(this,[]);captures.get(this).push(new Uint8Array(bytes).slice());return append.call(this,bytes)};
@@ -125,3 +125,22 @@ try{for(const fixture of ['audio-tail','video-tail','audio-tail-start2','video-t
  }catch(e){item.error=String(e.stack);item.state=await page.evaluate(()=>({diagnostics:player.diagnostics,errors,ends})).catch(()=>null);process.exitCode=1;}
  finally{await page.evaluate(()=>player.destroy()).catch(()=>{});await page.waitForTimeout(100);item.requests=requests.filter(r=>r.path==='/'+fixture+'.mkv');if(process.env.REMOTE==='1'){assert.ok(item.requests.length>0);assert.ok(item.requests.every(r=>r.authorized));}item.workersAfterDestroy=page.workers().length;assert.equal(item.workersAfterDestroy,0);await page.close();console.log(fixture,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
 }}finally{await browser.close();media.closeAllConnections();await new Promise(r=>media.close(r));server.kill();console.log('Evidence:',out);}
+
+// BEGIN installed-package entrypoint adapter (keep identical across standalone harnesses).
+async function installPackageEntrypoint(page, origin) {
+ const runtime = process.env.DEMUXE_RUNTIME_ROOT;
+ if (!runtime) return;
+ const {readFile} = await import('node:fs/promises');
+ const {join} = await import('node:path');
+ const {createHash} = await import('node:crypto');
+ let manifest;
+ try { manifest = JSON.parse(await readFile(join(runtime, 'release-manifest.json'), 'utf8')); }
+ catch (error) { if (error.code === 'ENOENT') return; throw error; }
+ const entry = manifest.files?.['index.js'];
+ if (!entry || !/^[a-f0-9]{64}$/.test(entry.sha256)) throw Error('Installed package manifest lacks index.js digest');
+ const body = await readFile(join(runtime, 'index.js'));
+ if (body.length !== entry.bytes || createHash('sha256').update(body).digest('hex') !== entry.sha256) throw Error('Installed package index.js differs from manifest');
+ // Exact URL only: all dependencies and other routes retain the real HTTP server.
+ await page.route(url => url.href === new URL('/index.js', origin).href, route => route.fulfill({status:200, contentType:'text/javascript', body}));
+}
+// END installed-package entrypoint adapter.

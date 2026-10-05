@@ -6,7 +6,7 @@ const family=process.env.BROWSER||'chrome',out=`results/optimization-ass-fixes/s
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
 const origin=await new Promise(r=>server.stdout.on('data',b=>{const m=String(b).match(/http:\/\/127\.0\.0\.1:\d+/);if(m)r(m[0])}));
 const browser=await(family==='firefox'?firefox:chromium).launch(family==='firefox'?{headless:true}:{channel:'chrome',headless:true});const page=await browser.newPage();const result={};
-try{await page.goto(origin+'/examples/custom-controls.html');await page.evaluate(async()=>{
+try{await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');await page.evaluate(async()=>{
 await player.destroy();const {Player}=await import('/web/generated/index.js');document.querySelector('#surface').style.width='640px';window.player=new Player(document.querySelector('#surface'),{mode:'native',experimentalNativeASS:true});await player.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'movie.mp4'));
 const ass=`[Script Info]
 ScriptType: v4.00+
@@ -29,3 +29,22 @@ assert.equal(result.half.leftBorder,5);assert.equal(result.half.rightBorder,5);
 await page.evaluate(()=>{document.querySelector('#surface').style.width='640px'});await page.waitForFunction(()=>player.current.backend.mpvSubs.canvas.width===640);result.restored=await measure();assert.deepEqual(result.restored,result.full);
 await page.evaluate(()=>player.destroy());await page.waitForTimeout(100);assert.equal(page.workers().length,0);result.passed=true;console.log(result);
 }finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});try{await closeTestBrowser(browser,family);}finally{server.kill();}await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n')}
+
+// BEGIN installed-package entrypoint adapter (keep identical across standalone harnesses).
+async function installPackageEntrypoint(page, origin) {
+ const runtime = process.env.DEMUXE_RUNTIME_ROOT;
+ if (!runtime) return;
+ const {readFile} = await import('node:fs/promises');
+ const {join} = await import('node:path');
+ const {createHash} = await import('node:crypto');
+ let manifest;
+ try { manifest = JSON.parse(await readFile(join(runtime, 'release-manifest.json'), 'utf8')); }
+ catch (error) { if (error.code === 'ENOENT') return; throw error; }
+ const entry = manifest.files?.['index.js'];
+ if (!entry || !/^[a-f0-9]{64}$/.test(entry.sha256)) throw Error('Installed package manifest lacks index.js digest');
+ const body = await readFile(join(runtime, 'index.js'));
+ if (body.length !== entry.bytes || createHash('sha256').update(body).digest('hex') !== entry.sha256) throw Error('Installed package index.js differs from manifest');
+ // Exact URL only: all dependencies and other routes retain the real HTTP server.
+ await page.route(url => url.href === new URL('/index.js', origin).href, route => route.fulfill({status:200, contentType:'text/javascript', body}));
+}
+// END installed-package entrypoint adapter.
