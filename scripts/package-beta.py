@@ -67,9 +67,6 @@ def add(name):
  f=root/name
  if not f.is_file():raise SystemExit('Missing runtime asset: '+name)
  files[name]=f.read_bytes()
-# Parse real JS/declaration imports; runtime asset URLs are not module imports.
-for name in json.loads(subprocess.check_output(['node',str(root/'scripts/generated-runtime-files.mjs'),str(root)],text=True)):
- add(name)
 for name in ['mpv-subtitle-worker.js','audio-worklet.js','selective-sync-worklet.js','filter-retained-engine-worker.js','retained-decoder-worker.js','external-video-decoder.js','video-presenter.js','webgl-yuv-presenter.js','retained-video.js','subtitle-overlay.js','software-full-engine-worker.js','io-worker.js','range-reader.js','file-reader.js','resource-loader.js','fallback-stream-policy.js','split-mp4.js','native-remux-player.js','worker-remux-controller.js','native-mse-worker.js','native-remux-worker.js','native-remux-source-worker.js','source-probe.js','hybrid-preflight.js','prepared-engine.js','fast-source-inspector.js','selected-mp4-view.js','progressive-mp4.js','video-codec-config.js','remux-packaging.js']:
  add('web/'+name)
 # Worker entrypoints are explicit assets outside the exported module graph.
@@ -141,6 +138,12 @@ for folder,stem in engines.values():
  for ext in ['mjs','wasm']:
   name=f'web/{folder}/{stem}.{ext}'
   if name not in files:add(name)
+# Close imports over the actual selected runtime assets as well as public exports.
+# Worker-only generated modules are not reachable from the exported player graph.
+# Pass assembled bytes because optional engines can come from another build root.
+module_sources={name:data.decode('utf8') for name,data in files.items() if name.startswith('web/') and pathlib.Path(name).suffix in ('.js','.mjs')}
+for name in json.loads(subprocess.check_output(['node',str(root/'scripts/generated-runtime-files.mjs'),str(root),'--packaged'],input=json.dumps(module_sources),text=True)):
+ add(name)
 # Distinguish deliberately omitted providers from broken included assets before
 # playback starts. A declared runtime's 404 remains a terminal asset failure.
 provider_build='web/generated/internal/provider-build.js'
