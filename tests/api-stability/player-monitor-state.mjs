@@ -123,3 +123,12 @@ test('Firefox local progress recovery accelerates only eligible direct sessions'
  const m=model();m.start();for(let now=0;now<4000;now+=500)m.sample(now,{recovery,native:{eligible:true,time:now/1000,rate:1}});
  assert.equal(m.state.monitor.fault,null);
 });
+
+test('ineligible monitor samples do not read browser or route recovery facts',async t=>{
+ const {p,timers}=physical(t);p.startWatchdogs();
+ Object.defineProperty(p.root.ownerDocument,'defaultView',{configurable:true,get(){throw Error('unexpected browser read while ineligible');}});
+ p.root.ownerDocument.hidden=true;assert.doesNotThrow(()=>timers[0].callback());
+ p.root.ownerDocument.hidden=false;
+ const id=p.dispatchControl({type:'operation.admit',kind:'seeking'}).id;
+ assert.doesNotThrow(()=>timers[0].callback());p.dispatchControl({type:'operation.release',id});
+});

@@ -688,10 +688,10 @@ export class Player extends EventTarget {
             return;
         const epoch = this.operationEpoch, activity = this.control.monitor.activity;
         const facts = { session: sessionId, hidden: !!this.root.ownerDocument.hidden, retired: !!session.retired, error: !!session.error };
-        const eligible = monitorSampleEligible(this.control, facts), recovery = this.nativeRecoveryFacts(session);
+        const eligible = monitorSampleEligible(this.control, facts), recovery = eligible && owner.mode === 'native' ? this.nativeRecoveryFacts(session) : undefined;
         let native = null, now, timing = null, hasVideo = false, softwareDecoder = false;
         if (eligible && owner.mode === 'native') {
-            const sample = session.backend.nativeProgressSample?.(fastLocalRecovery(recovery));
+            const sample = session.backend.nativeProgressSample?.(recovery !== undefined && fastLocalRecovery(recovery));
             if (sample) {
                 native = { eligible: sample.eligible, time: sample.time, rate: sample.rate, frames: sample.frames, frameIntervalMs: sample.frameIntervalMs, videoEnd: sample.videoEnd };
                 const metadata = this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture)?.frameTiming;
