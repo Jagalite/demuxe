@@ -7,9 +7,10 @@ import {PlayerError} from '../../web/generated/internal/errors.js';
 import {unitPlayer} from '../helpers/unit-player.mjs';
 import {Player} from '../../web/generated/unified-player.js';
 import {StartupEvidenceTimeout} from '../../web/generated/internal/runtime-capability.js';
-function model({mode='native',paused=false,automatic=true}={}){
+function model({mode='native',paused=false,automatic=true,providerPreferences=[]}={}){
  let state=initialPlayerControl();
  const send=input=>{const before=JSON.stringify(state),old=state,result=transitionPlayer(state,input);assert.equal(JSON.stringify(old),before);state=result.state;return result;};
+ send({type:'routing.deployment',epoch:0,operation:null,change:{kind:'configure',selection:{policy:'off',runtime:'pthread',isolated:true,jspi:false,providerPreferences}}});
  const attempt=send({type:'source.begin',operationEpoch:0,mode,preserve:false,planId:'fixture'}).id;
  for(const type of ['source.created','source.configured','source.opened','source.applied','source.positioned'])send({type,attempt});
  send({type:'source.accept',attempt,operationEpoch:0,settings:{...state.settings,pause:paused},planMatches:true});send({type:'source.finished',attempt});send({type:'source.configure',automatic});
@@ -39,6 +40,23 @@ test('pinned playback pauses on failure and never enters fallback',()=>{
  const d=m.send({type:'transport.play.failed',id:begin.id,compatible:true,inconclusive:false,streaming:false});
  assert.deepEqual(d.transportEffect,{kind:'pause'});assert.equal(m.state.settings.pause,true);
 });
+const softwareFirst=[{capability:'media.play.complete',providers:['mpv-software','mpv-hybrid']}];
+test('provider ordered software can fall back on play, seek and failed restoration',()=>{
+ for(const action of ['play','seek','restore']){
+  const m=model({mode:'software',providerPreferences:softwareFirst}),id=action==='play'?m.play({backendPlan:'software'}).id:m.seek().id;
+  if(action==='restore')m.send({type:'transport.seek.failed',id,boundary:true,terminal:false,code:'INVALID_ARGUMENT',invalidPosition:false,streaming:false});
+  const result=m.send(action==='play'?{type:'transport.play.failed',id,compatible:true,inconclusive:false,streaming:false}:action==='seek'?{type:'transport.seek.failed',id,boundary:false,terminal:false,code:'DECODE_FAILED',invalidPosition:false,streaming:false}:{type:'transport.seek.restore-failed',id,code:'DECODE_FAILED'});
+  assert.equal(result.transportEffect.kind,'fallback');assert.equal(result.transportEffect.start,1);
+ }
+ const m=model({mode:'software'}),id=m.seek().id;
+ assert.equal(m.send({type:'transport.seek.failed',id,boundary:false,terminal:false,code:'DECODE_FAILED',invalidPosition:false,streaming:false}).transportEffect.kind,'reject');
+});
+test('provider preferences preserve pinned and terminal seek rejection',()=>{
+ for(const facts of [{automatic:false,code:'DECODE_FAILED'},{automatic:true,code:'SOURCE_PERMISSION'},{automatic:true,code:'ABORTED'}]){
+  const m=model({mode:'software',providerPreferences:softwareFirst,automatic:facts.automatic}),id=m.seek().id;
+  assert.equal(m.send({type:'transport.seek.failed',id,boundary:false,terminal:false,invalidPosition:false,streaming:false,code:facts.code}).transportEffect.kind,'reject');
+ }
+});
 test('seek admission rejects stale chapters and excluded ranges before issuing work',()=>{
  const m=model();assert.equal(m.seek({sourceId:0}).reason,'invalid');
  m.send({type:'preferences.change',value:{playbackRange:{start:10,end:80}}});
@@ -61,9 +79,9 @@ test('failed restoration uses next automatic route but terminal seeks and cancel
  m.send({type:'operation.cancel',id:m.operation});assert.equal(m.state.transport.pending,null);assert.equal(m.send({type:'transport.complete',id}).accepted,false);
  const terminal=model(),tid=terminal.seek().id;assert.deepEqual(terminal.send({type:'transport.seek.failed',id:tid,boundary:false,terminal:true,code:'SOURCE_PERMISSION',invalidPosition:false,streaming:false}).transportEffect,{kind:'reject'});
 });
-function fixture(t,{automatic=true,mode='native'}={}){
- const p=unitPlayer(),m=model({automatic,mode});m.send({type:'operation.finish',id:m.operation});m.send({type:'operation.release',id:m.operation});
- const deployment=p.control.routing.deployment;p.control={...m.state,routing:{...m.state.routing,deployment}};
+function fixture(t,{automatic=true,mode='native',providerPreferences=[]}={}){
+ const p=unitPlayer(),m=model({automatic,mode,providerPreferences});m.send({type:'operation.finish',id:m.operation});m.send({type:'operation.release',id:m.operation});
+ const deployment={...p.control.routing.deployment,selection:{...p.control.routing.deployment.selection,providerPreferences}};p.control={...m.state,routing:{...m.state.routing,deployment}};
  const calls=[],backend={properties:new Map([['time-pos',42]]),diagnostics:{plan:'direct'},play:async()=>{calls.push('play');},pause:async()=>{calls.push('pause');},seek:async target=>{calls.push(['seek',target]);},destroy:async()=>{}};
  p.current={backend,surface:{remove(){}}};p.source={kind:'local',file:new ArrayBuffer(1)};p.evidence=()=>({});p.acceptEvidence=()=>{};p.updateEvidence=()=>{};p.planDecisions=[{id:'native-remux',eligible:true}];p.settled=async()=>{};
  Object.defineProperty(p,'state',{get:()=>({seekable:null,sourceId:p.control.source.serial})});
@@ -80,6 +98,16 @@ test('public seek fallback preserves requested position and terminal seek never 
  const {p,backend}=fixture(t);const selected=[];p.select=async(...args)=>{selected.push(args);};backend.seek=async()=>{throw new PlayerError('DECODE_FAILED','seek decoder failed');};
  await p.seek(75);assert.equal(selected.length,1);assert.equal(selected[0][5],75);assert.equal(p.control.transport.pending,null);
  backend.seek=async()=>{throw new PlayerError('SOURCE_PERMISSION','denied');};await assert.rejects(p.seek(80),error=>error.code==='SOURCE_PERMISSION');assert.equal(selected.length,1);
+});
+test('public software play and seek use an available preferred successor',async t=>{
+ for(const action of ['play','seek']){
+  const {p,backend}=fixture(t,{mode:'software',providerPreferences:softwareFirst});const selected=[];
+  backend.diagnostics={plan:'software'};backend[action]=async()=>{throw new PlayerError('DECODE_FAILED','recoverable software failure');};
+  p.select=async(...args)=>{selected.push(args);};
+  if(action==='play')await p.play();else await p.seek(75);
+  assert.equal(selected.length,1);assert.equal(selected[0][4],1);assert.equal(selected[0][5],action==='play'?42:75);
+  assert.equal(p.control.transport.pending,null);
+ }
 });
 
 function boundaryFixture(t){

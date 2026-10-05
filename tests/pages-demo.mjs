@@ -95,7 +95,7 @@ try{
    await page.waitForFunction(()=>crossOriginIsolated&&window.player);
    const navigationReadyMs=performance.now()-navigationStart;
    assert.equal(await page.locator('#pages-startup').count(),0);
-   assert.equal(await page.evaluate(()=>document.querySelector('demuxe-player').layout),'playground');
+   assert.equal(await page.evaluate(()=>document.querySelector('demuxe-player').layout),'classic');
    assert.ok(await page.evaluate(()=>navigator.serviceWorker.controller?.scriptURL.endsWith('/pages-isolation-sw.js')));
    if(!result.deployment){
     const response=await page.request.get(new URL('deployment-manifest.json',origin).href);assert.ok(response.ok());

@@ -12,6 +12,7 @@ export function transitionPlayerTransport(state, input) {
     const no = (reason = 'retired', message) => Object.freeze({ state, accepted: false, reason, message, retire: Object.freeze([]) });
     const set = (pending, effect, pause = false) => Object.freeze({ state: Object.freeze({ ...state, revision: state.revision + 1, transport: Object.freeze({ serial: pending?.id ?? state.transport.serial, pending }), ...(pause ? { settings: Object.freeze({ ...state.settings, pause: true }) } : {}) }), accepted: true, id: pending?.id, retire: Object.freeze([]), transportEffect: effect ? Object.freeze({ ...effect }) : undefined });
     const old = state.transport.pending;
+    const providerOrdered = !!state.routing.deployment.selection?.providerPreferences?.some(rule => rule.capability === 'media.play.complete');
     if (input.type === 'transport.finished')
         return old?.id === input.id ? set(null) : no();
     if (input.type === 'transport.play.begin' || input.type === 'transport.seek.begin') {
@@ -66,7 +67,7 @@ export function transitionPlayerTransport(state, input) {
             return step('finished', { kind: 'reject' });
         const inconclusive = old.local && input.inconclusive;
         if (state.source.automatic && state.source.acceptedSession !== null && (input.compatible || inconclusive)) {
-            const route = recoveryRoute({ mode: state.source.mode, backendPlan: old.backendPlan, nativeRemux: old.nativeRemux, streaming: input.streaming, trigger: 'play' });
+            const route = recoveryRoute({ providerOrdered, mode: state.source.mode, backendPlan: old.backendPlan, nativeRemux: old.nativeRemux, streaming: input.streaming, trigger: 'play' });
             return step('selecting', { kind: 'fallback', ...route, target: old.trialSame && !old.trialVerified ? old.target : undefined }, { inconclusive });
         }
         return step('finished', { kind: 'pause' }, {}, true);
@@ -80,13 +81,13 @@ export function transitionPlayerTransport(state, input) {
     }
     if (input.type === 'transport.play.restored')
         return old.phase === 'restoring' ? step('retrying', { kind: 'verify' }) : no();
-    const seekRoute = (streaming = false) => ({ kind: 'fallback', target: old.target, start: streaming || state.source.mode === 'native' ? 0 : state.source.mode === 'hybrid' ? 2 : 3, requirements: Object.freeze({}) });
+    const seekRoute = (streaming = false) => ({ kind: 'fallback', target: old.target, start: streaming || state.source.mode === 'native' ? 0 : providerOrdered ? 1 : state.source.mode === 'hybrid' ? 2 : 3, requirements: Object.freeze({}) });
     if (input.type === 'transport.seek.failed') {
         if (old.phase !== 'seeking')
             return no();
         if (input.boundary)
             return state.source.acceptedSession === old.session ? step('restoring', { kind: 'restore', target: old.previous }) : step('finished', { kind: 'reject' });
-        if (['ABORTED', 'AUTOPLAY_BLOCKED', 'INVALID_ARGUMENT', 'SOURCE_PERMISSION', 'SOURCE_CHANGED'].includes(input.code) || !state.source.automatic || state.source.mode === 'software' || input.terminal || input.invalidPosition)
+        if (['ABORTED', 'AUTOPLAY_BLOCKED', 'INVALID_ARGUMENT', 'SOURCE_PERMISSION', 'SOURCE_CHANGED'].includes(input.code) || !state.source.automatic || state.source.mode === 'software' && !providerOrdered || input.terminal || input.invalidPosition)
             return step('finished', { kind: 'reject' });
         return step('selecting', seekRoute(input.streaming));
     }

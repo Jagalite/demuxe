@@ -47,6 +47,11 @@ export type PregenerationState = Readonly<{
     finished: boolean;
     focus: number;
     visited: readonly number[];
+    ticks: number;
+    attempts: readonly Readonly<{
+        key: number;
+        retryAfter: number;
+    }>[];
     serial: number;
     timer: number | null;
     running: Run | null;

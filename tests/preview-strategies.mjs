@@ -7,6 +7,20 @@ import {createPlayerPreview} from '../web/generated/preview/player-preview.js';
 const advance=async t=>{t.mock.timers.tick(500);await new Promise(setImmediate);};
 const frame=time=>({time,width:8,height:8,image:{blob:new Blob(['image'])},path:'test'});
 const provider=getFrame=>({id:'test',priority:1,canHandle:()=>true,getFrame});
+for(const strategy of [{type:'custom',sample:()=>[0,5,10]},{type:'demuxe'}])for(const failure of ['null','decode','unretainable'])test(`${strategy.type} advances beyond a ${failure} first sample and bounds retries`,async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});let clock=0;t.mock.method(performance,'now',()=>clock);const seen=[];
+ const c=new PreviewController([provider(async r=>{
+  seen.push(r.time);
+  if(r.time===0){if(failure==='null')return null;if(failure==='decode')throw Error('unavailable frame');return {...frame(0),image:{blob:new Blob(['x'.repeat(200001)])}};}
+  return {...frame(r.time),width:240,height:135};
+ })],{strategy,debounceMs:0,maxCacheBytes:200000});
+ try{
+  c.setDuration(120);
+  for(let i=0;i<30;i++){clock+=500;await advance(t);}
+  assert.ok(seen.some(time=>time>0));assert.ok(c.diagnostics.cacheEntries>0);assert.ok(seen.filter(time=>time===0).length<=2);
+  c.setSourceIdentity('new');c.setDuration(120);clock+=500;await advance(t);assert.equal(seen.at(-1),0,'Source reset clears attempt cooldown');
+ }finally{await c.destroy();}
+});
 
 test('Demuxe covers the timeline within budget and reverses its motion bias',async()=>{
  const {resolvePreviewStrategy}=await import('../web/generated/preview/strategies.js');

@@ -12,7 +12,7 @@ type Configuration=Readonly<{
 type Run=Readonly<{id:number;epoch:number;broad:boolean;request:PregenerationRequest}>;
 export type PregenerationState=Readonly<{
   config:Configuration;epoch:number;index:number;duration:number|null;enabled:boolean;finished:boolean;
-  focus:number;visited:readonly number[];serial:number;timer:number|null;running:Run|null;
+  focus:number;visited:readonly number[];ticks:number;attempts:readonly Readonly<{key:number;retryAfter:number}>[];serial:number;timer:number|null;running:Run|null;
 }>;
 export type PregenerationEvent=
   |{kind:'duration';duration:number|null}|{kind:'enabled';enabled:boolean}|{kind:'focus';time:number;resident?:readonly number[]}
@@ -59,7 +59,7 @@ export function createPregeneration(config:PreviewPregeneration|AdaptivePregener
   }
   return Object.freeze({config:Object.freeze({custom,intervalMs,bucket,width,height,limit,step,samples,sampleOrder,times,
     adaptive:adaptive?Object.freeze({every:Math.max(adaptive.every,bucket),radius:adaptive.radius}):undefined}),
-    epoch:0,index:0,duration:null,enabled:true,finished:false,focus:0,visited:Object.freeze([]),serial:0,timer:null,running:null});
+    epoch:0,index:0,duration:null,enabled:true,finished:false,focus:0,visited:Object.freeze([]),ticks:0,attempts:Object.freeze([]),serial:0,timer:null,running:null});
 }
 
 export function transitionPregeneration(previous:PregenerationState,event:PregenerationEvent):PregenerationTransition {
@@ -74,17 +74,20 @@ export function transitionPregeneration(previous:PregenerationState,event:Pregen
     }
     case 'enabled':state={...state,enabled:event.enabled};if(!event.enabled)cancelTimer();break;
     case 'focus':if((state.config.adaptive||state.config.custom)&&Number.isFinite(event.time)&&event.time>=0)state={...state,focus:event.time,visited:event.time!==state.focus&&event.resident?Object.freeze(state.visited.filter(value=>event.resident!.some(time=>key(time)===value))):state.visited};else return Object.freeze({state,effects:Object.freeze([])});break;
-    case 'reset':state={...state,epoch:state.epoch+1,index:0,focus:0,visited:Object.freeze([]),finished:false};cancelTimer();break;
+    case 'reset':state={...state,epoch:state.epoch+1,index:0,focus:0,visited:Object.freeze([]),ticks:0,attempts:Object.freeze([]),finished:false};cancelTimer();break;
     case 'stop':state={...state,epoch:state.epoch+1,finished:true};cancelTimer();break;
     case 'timer':{
       if(event.id!==state.timer)return Object.freeze({state,effects:Object.freeze([])});
-      state={...state,timer:null};
+      state={...state,timer:null,ticks:state.ticks+1};
       if(state.running||!state.enabled||state.finished||state.duration===null)break;
       const {samples,limit,times,sampleOrder,step,adaptive,width,height}=state.config;
       const broad=state.index<Math.min(limit,samples??Infinity);
       let time=times?times[state.index]:samples?(sampleOrder![state.index]+.5)*state.duration/samples:state.index*step;
       if(state.config.custom){
-        time=event.candidates?.[0]??NaN;if(!Number.isFinite(time))break;
+        // A miss, decoder failure or unretainable frame must not monopolize the
+        // working set. Retry completed attempts after ten seconds of scheduler
+        // ticks; deferral leaves the candidate immediately eligible.
+        time=event.candidates?.find(candidate=>!state.attempts.some(attempt=>attempt.key===key(candidate)&&attempt.retryAfter>state.ticks))??NaN;if(!Number.isFinite(time))break;
       }else if(adaptive&&!broad){
         const {every,radius}=adaptive,center=Math.floor(Math.min(state.focus,state.duration)/every)*every;
         time=NaN;
@@ -107,7 +110,8 @@ export function transitionPregeneration(previous:PregenerationState,event:Pregen
       if(event.outcome==='stop')state={...state,finished:true};
       else if(event.outcome==='next'){
         const visited=state.config.adaptive?Object.freeze([...state.visited,key(run.request.time)].slice(-512)):state.visited;
-        state={...state,visited,index:state.index+(!state.config.custom&&(!state.config.adaptive||run.broad)?1:0)};
+        const attempts=state.config.custom?Object.freeze([...state.attempts.filter(attempt=>attempt.key!==key(run.request.time)),Object.freeze({key:key(run.request.time),retryAfter:state.ticks+Math.ceil(10000/state.config.intervalMs)})].slice(-256)):state.attempts;
+        state={...state,visited,attempts,index:state.index+(!state.config.custom&&(!state.config.adaptive||run.broad)?1:0)};
       }
       break;
     }

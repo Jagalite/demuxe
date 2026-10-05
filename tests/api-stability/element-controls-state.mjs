@@ -2,8 +2,26 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {initialElementControls,transitionElementControls} from '../../web/generated/internal/machine/element-controls.js';
+import {DemuxePlayerElement} from '../../web/generated/player/index.js';
+import {initialElementQueue,transitionElementQueue} from '../../web/generated/internal/machine/element-queue.js';
 const step=transitionElementControls;
 const facts={playing:true,pending:false,connected:true,focusVisible:false};
+test('autoplay completion retains keyboard focused timeline and volume controls',async()=>{
+ for(const target of ['timeline','volume']){
+  const element=Object.create(DemuxePlayerElement.prototype);
+  element.lifecycle={terminal:false};element.configuration={autoHideDelay:2800};
+  element.queueState=transitionElementQueue(initialElementQueue(),{type:'append',names:['movie'],terminal:false}).state;
+  element.queueResources=new Map([[element.queueState.items[0].id,{source:'movie',options:{}}]]);
+  element.controlState=initialElementControls();
+  const shadow={activeElement:{id:target,matches:selector=>selector===':focus-visible'}};
+  Object.defineProperty(element,'shadowRoot',{value:shadow});Object.defineProperty(element,'isConnected',{value:true});
+  element.$=id=>({focus:()=>shadow.activeElement={id,matches:()=>false}});
+  element.renderVisibility=()=>{};element.renderQueue=()=>{};element.advanceQueue=()=>{};element.openSource=async()=>{};
+  element.core={state:{sourceId:1,playbackIntent:'play',status:'playing'},play:async()=>{}};
+  await element.activateQueue(0,true);
+  assert.equal(shadow.activeElement.id,target);assert.equal(element.controlFacts().focusVisible,true);assert.equal(element.controlState.idle,false);
+ }
+});
 
 test('auto-hide checks live playback, menu, drag, focus and connection instead of trusting elapsed time',()=>{
  const initial=initialElementControls(),revealed=step(initial,{type:'reveal',playing:true,delay:2800});assert.equal(revealed.hideAfter,2800);

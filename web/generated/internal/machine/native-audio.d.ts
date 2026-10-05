@@ -174,3 +174,6 @@ export declare function completeNativeAudioFrame(state: NativeAudioState, id: nu
     accepted: boolean;
     tail: boolean;
 }>;
+/** Only an active first-timestamp wait may follow a completed native AO reset.
+ * Once publication succeeds, later epochs need a new explicit playback lease. */
+export declare function nativeAudioPublicationEpoch(state: NativeAudioState, lease: NativeAudioLease, epoch: number, ack: number, now: number): boolean;

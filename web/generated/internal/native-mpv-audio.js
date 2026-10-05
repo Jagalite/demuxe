@@ -2,7 +2,7 @@
 import { WasmPlayer } from './wasm-player.js';
 import { PlayerError, playerError } from './errors.js';
 import { watchdogPolicy } from './watchdogs.js';
-import { nativeAudioWait, completeNativeAudioFrame, observeNativeAudioContext, initialNativeAudio, beginNativeAudio, finishNativeAudio, closeNativeAudio, failNativeAudio, nativeAudioCurrent, nativeAudioAlive, nativeAudioEstimate, observeNativeAudioDrift, observeNativeAudioPoint, transitionNativeAudio } from './machine/native-audio.js';
+import { nativeAudioPublicationEpoch, nativeAudioWait, completeNativeAudioFrame, observeNativeAudioContext, initialNativeAudio, beginNativeAudio, finishNativeAudio, closeNativeAudio, failNativeAudio, nativeAudioCurrent, nativeAudioAlive, nativeAudioEstimate, observeNativeAudioDrift, observeNativeAudioPoint, transitionNativeAudio } from './machine/native-audio.js';
 /** Browser presentation clock with isolated mpv demux/decode and timestamped PCM. */
 export class NativeMpvAudio extends EventTarget {
     video;
@@ -393,12 +393,18 @@ export class NativeMpvAudio extends EventTarget {
             const expired = () => {
                 if (this.firstPoint !== waiter)
                     return;
-                const remaining = this.machine.publication.deadline - performance.now();
+                const now = performance.now(), remaining = this.machine.publication.deadline - now;
                 if (this.firstPoint !== waiter || !nativeAudioCurrent(this.machine, lease))
                     return;
+                // AO initialization can finish after the native play command reply.
+                // Refresh only an acknowledged stable epoch while this lease awaits its
+                // first timestamp; never authorize output after retirement or timeout.
+                const epoch = this.h(3), ack = this.h(4);
+                if (nativeAudioPublicationEpoch(this.machine, lease, epoch, ack, now) && this.h(3) === epoch)
+                    this.set(14, epoch);
                 if (remaining > 0) {
                     try {
-                        this.armTimer(waiter.timer, expired, remaining, () => this.firstPoint === waiter && nativeAudioCurrent(this.machine, lease));
+                        this.armTimer(waiter.timer, expired, Math.min(20, remaining), () => this.firstPoint === waiter && nativeAudioCurrent(this.machine, lease));
                     }
                     catch (error) {
                         this.firstPoint = undefined;
@@ -410,7 +416,7 @@ export class NativeMpvAudio extends EventTarget {
                 reject(Error('Selective PCM timestamp timeout'));
             };
             try {
-                this.armTimer(waiter.timer, expired, 3000, () => this.firstPoint === waiter && nativeAudioCurrent(this.machine, lease));
+                this.armTimer(waiter.timer, expired, 20, () => this.firstPoint === waiter && nativeAudioCurrent(this.machine, lease));
             }
             catch (error) {
                 this.firstPoint = undefined;

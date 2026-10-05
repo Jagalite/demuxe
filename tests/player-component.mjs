@@ -77,6 +77,41 @@ await check('autoplay completion preserves an active timeline drag',async()=>{
  });
  assert.deepEqual(data,{dragging:true,idle:false});
 });
+await check('autoplay completion preserves keyboard focus on timeline and volume',async()=>{
+ for(const target of ['timeline','volume']){
+  try{
+   await page.evaluate(async()=>{
+    await a.close();a.autoplay=true;a.muted=true;
+    const core=a.player,original=core.play;
+    window.focusPlayReached=false;window.focusOpenSettled=false;
+    const barrier=new Promise(resolve=>{window.releaseFocusPlay=resolve;});
+    core.play=async function(...args){const value=await original.apply(this,args);window.focusPlayReached=true;await barrier;return value;};
+    window.restoreFocusPlay=()=>{core.play=original;};
+    const file=new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'keyboard-focus.mp4');
+    window.focusOpen=a.open(file).finally(()=>{window.focusOpenSettled=true;});void focusOpen.catch(()=>{});
+   });
+   await page.waitForFunction(()=>focusPlayReached||focusOpenSettled);
+   assert.equal(await page.evaluate(()=>focusPlayReached),true,'Actual playback must reach the explicit completion barrier');
+   await page.waitForFunction(()=>a.player.surface.currentTime>.1);
+   await page.keyboard.press('Tab');
+   await page.locator('demuxe-player').first().locator(`#${target}`).focus();
+   const before=await page.evaluate(()=>({focus:a.shadowRoot.activeElement?.id,focusVisible:!!a.shadowRoot.activeElement?.matches(':focus-visible'),idle:a.shadowRoot.getElementById('shell').classList.contains('idle'),paused:a.player.surface.paused}));
+   assert.deepEqual(before,{focus:target,focusVisible:true,idle:false,paused:false});
+   await page.evaluate(async()=>{releaseFocusPlay();await focusOpen;});
+   const after=await page.evaluate(()=>({focus:a.shadowRoot.activeElement?.id,focusVisible:!!a.shadowRoot.activeElement?.matches(':focus-visible'),idle:a.shadowRoot.getElementById('shell').classList.contains('idle'),paused:a.player.surface.paused}));
+   assert.deepEqual(after,{focus:target,focusVisible:true,idle:false,paused:false},`Autoplay completion must preserve ${target} keyboard focus`);
+  }finally{
+   await page.evaluate(async()=>{
+    window.releaseFocusPlay?.();window.restoreFocusPlay?.();
+    try{await window.focusOpen?.catch(()=>{});}finally{
+     a.autoplay=false;a.muted=false;await a.close();a.shadowRoot.activeElement?.blur();
+     delete window.releaseFocusPlay;delete window.restoreFocusPlay;delete window.focusOpen;
+     delete window.focusPlayReached;delete window.focusOpenSettled;
+    }
+   });
+  }
+ }
+});
 await check('media picker accepts repeated MKV selections independently of subtitle filtering',async()=>{
  const data=await page.evaluate(()=>{
    const $=id=>a.shadowRoot.getElementById(id),requests=[],selected=[];
@@ -376,11 +411,21 @@ await check('outside clicks dismiss menus and screen taps toggle controls',async
  await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('demuxe-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
  const v=page.locator('demuxe-player'),stage=v.locator('#stage'),menu=v.locator('#settings'),shell=v.locator('#shell');
  await page.waitForFunction(()=>document.querySelector('demuxe-player').queueOperation===null&&player.state.playbackIntent==='play');
+ await page.evaluate(()=>{
+  const viewer=document.querySelector('demuxe-player'),menu=viewer.shadowRoot.getElementById('settings'),stage=viewer.shadowRoot.getElementById('stage');window.menuDismissals=[];
+  // Component capture closes the menu; sample the same pointerdown at bubble.
+  // A discrete display transition must not keep a logically hidden menu visible.
+  const observe=event=>{const path=event.composedPath();if(path.includes(menu)||!path.includes(stage)&&event.target?.tagName!=='H1')return;menuDismissals.push({trusted:event.isTrusted,hidden:menu.hidden,open:viewer.controlState.menuOpen,display:getComputedStyle(menu).display});};
+  document.addEventListener('pointerdown',observe);window.stopMenuDismissals=()=>document.removeEventListener('pointerdown',observe);
+ });
+ const assertDismissed=async trusted=>{const observed=await page.evaluate(()=>menuDismissals.at(-1));assert.deepEqual(observed,{trusted,hidden:true,open:false,display:'none'});};
+ try{
  await stage.hover({position:{x:30,y:100}}); // Start menu checks after autoplay has finished hiding controls.
- await v.locator('#settings-toggle').click();await v.locator('#speed').selectOption('1.25');assert.ok(await menu.isVisible());await page.locator('h1').evaluate(el=>el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true})));await menu.waitFor({state:'hidden',timeout:1000});
- await v.locator('#open-menu').click();await stage.click({position:{x:30,y:100}});await menu.waitFor({state:'hidden',timeout:1000});assert.ok(await shell.evaluate(el=>el.classList.contains('idle')));assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).pointerEvents),'none');
+ await v.locator('#settings-toggle').click();await v.locator('#speed').selectOption('1.25');assert.ok(await menu.isVisible());await page.locator('h1').evaluate(el=>el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true})));await menu.waitFor({state:'hidden',timeout:1000});await assertDismissed(false);
+ await v.locator('#open-menu').click();await stage.click({position:{x:30,y:100}});await menu.waitFor({state:'hidden',timeout:1000});await assertDismissed(true);assert.ok(await shell.evaluate(el=>el.classList.contains('idle')));assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).pointerEvents),'none');
  await stage.dispatchEvent('pointerdown',{pointerType:'touch'});await stage.dispatchEvent('pointermove',{pointerType:'touch'});await stage.dispatchEvent('click');assert.equal(await shell.evaluate(el=>el.classList.contains('idle')),false);
  await stage.dispatchEvent('pointerdown',{pointerType:'touch'});await stage.dispatchEvent('click');assert.ok(await shell.evaluate(el=>el.classList.contains('idle')));await stage.focus();await page.keyboard.press('Tab');assert.equal(await shell.evaluate(el=>el.classList.contains('idle')),false);
+ }finally{await page.evaluate(()=>{window.stopMenuDismissals?.();delete window.stopMenuDismissals;});}
 });
 await check('Center transport and bounded ten-second seeks',async()=>{
  await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('demuxe-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);

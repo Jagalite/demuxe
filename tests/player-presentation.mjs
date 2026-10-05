@@ -186,6 +186,9 @@ try{
   assert.equal(await page.locator('#viewer #open-menu').isVisible(),true);
   assert.equal(await page.evaluate(()=>$('utility-actions').parentElement.id),'topbar');
  });
+ await check('removed v1 layouts reject properties and use the attribute default',async()=>{
+  assert.deepEqual(await page.evaluate(()=>['modern','playground'].map(layout=>{let rejected=false;try{viewer.layout=layout;}catch(error){rejected=error.code==='INVALID_ARGUMENT';}viewer.setAttribute('layout',layout);return {rejected,layout:viewer.layout,composition:$('shell').dataset.layout};})),[{rejected:true,layout:'classic',composition:'classic'},{rejected:true,layout:'classic',composition:'classic'}]);
+ });
  await check('invalid attributes use defaults and teardown releases playback',async()=>{
   assert.deepEqual(await page.evaluate(async()=>{viewer.setAttribute('layout','unknown');viewer.setAttribute('theme','unknown');const values=[viewer.layout,viewer.theme,$('shell').dataset.layout];await viewer.destroy();return {values,destroyed:core.isDestroyed};}),{values:['classic','demuxe','classic'],destroyed:true});
   assert.deepEqual(errors,[]);

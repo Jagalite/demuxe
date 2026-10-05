@@ -81,6 +81,7 @@ class ReleaseGuards(unittest.TestCase):
         self.assertEqual(package[:2], ['python3', 'scripts/package-beta.py'])
         self.assertIn('--release-tag', package)
         self.assertIn('--adaptation-build', package)
+        self.assertIn('--with-shaka', package)
 
     def test_unqualified_archive_never_creates_release(self):
         with patch.object(publisher.verify, 'validate', side_effect=ValueError('unqualified')), patch.object(publisher, 'gh') as gh:

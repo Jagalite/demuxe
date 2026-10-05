@@ -144,7 +144,7 @@ def package(tag):
          '--sdk', os.environ['DEMUXE_SDK'], '--archive', ROOT / 'build/downloads/ffmpeg-adaptation.tar.gz',
          '--transcode', '--opus'])
     run(['python3', 'scripts/package-beta.py', '--release-tag', tag, '--output', RELEASE,
-         '--adaptation-build', adaptation()])
+         '--adaptation-build', adaptation(), '--with-shaka'])
 
 
 def result_after(script, pattern, env):

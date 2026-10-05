@@ -79,6 +79,8 @@ button{transition:background .16s,color .16s,border-color .16s,scale .18s var(--
 .controls .timeline,.controls .times{transition:opacity .18s ease,translate .26s var(--motion-ease)}.controls .times{transition-delay:35ms}
 .idle:not(.seek-preview) .controls .timeline,.idle:not(.seek-preview) .controls .times{opacity:0;translate:0 4px;transition-delay:0ms}
 .settings,.diagnostics-overlay,.empty,.notice{opacity:1;translate:0 0;scale:1;transition:opacity .18s ease,translate .24s var(--motion-ease),scale .24s var(--motion-ease),display .24s allow-discrete}
+/* Menus dismiss synchronously; pending discrete display transitions can strand a hidden panel. */
+.settings{transition:opacity .18s ease,translate .24s var(--motion-ease),scale .24s var(--motion-ease)}
 .settings[hidden],.diagnostics-overlay[hidden],.empty[hidden],.notice[hidden]{opacity:0;translate:0 -5px;scale:.985;pointer-events:none}
 .settings[hidden] *,.empty[hidden] *,.notice[hidden] *{pointer-events:none}
 @starting-style{.settings:not([hidden]),.diagnostics-overlay:not([hidden]),.empty:not([hidden]),.notice:not([hidden]){opacity:0;translate:0 -5px;scale:.985}}

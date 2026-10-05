@@ -50,7 +50,7 @@ The new boundary is intentionally small:
 
 The shared settings panel also exposes labeled Layout and Theme selectors. Runtime property/attribute switches are synchronous and do not open/close/pause/seek media. They preserve core identity, source, position, routing, queue, track selection, and component nodes. Focus is restored after reparenting. Theme changes never reparent nodes. With no source, Cinema and Deck keep utility actions in the header so source opening and settings remain available. Layout changes dismiss stale thumbnail geometry but keep the preview service. No render callback receives the engine's host, and no layout registry or duplicate state framework is introduced.
 
-The standalone demo has a layout chooser above the player and a Load example action. Its `?layout=cinema` URL parameter selects an initial layout; the chooser updates that parameter without navigating or replacing playback. Classic remains the default. Modern and Playground are no longer accepted layout property values; obsolete attributes use the existing Classic fallback.
+The standalone demo has a layout chooser above the player and a Load example action. Its `?layout=cinema` URL parameter selects an initial layout; the chooser updates that parameter without navigating or replacing playback. Classic remains the default. Version 1.1.0 intentionally removes the v1 `modern` and `playground` property values. Replace them with one of the layouts above. Removed or unknown attribute values fall back to Classic; removed or unknown property values throw `INVALID_ARGUMENT`.
 
 ## Module map
 
