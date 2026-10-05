@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """The release flag must not bless dirty, unlicensed or mismatched build artifacts."""
-import hashlib, json, pathlib, shutil, subprocess, tempfile, unittest
+import hashlib, json, pathlib, shutil, subprocess, tempfile, unittest, sys, tarfile, os
 ROOT=pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0,str(ROOT/'scripts'))
+from release_deadlines import stage_reader
 class ReleaseGates(unittest.TestCase):
  def setUp(self):
   self.tmp=tempfile.TemporaryDirectory(dir=ROOT/'build');self.root=pathlib.Path(self.tmp.name)
@@ -25,6 +27,16 @@ class ReleaseGates(unittest.TestCase):
   self.assertNotEqual(p.returncode,0);self.assertIn(pattern,p.stderr)
  def test_dirty_tree(self):
   self.write('unreviewed.js','changed');self.run_gate('clean source checkout')
+ def test_packaged_reader_deadlines_include_the_functional_core(self):
+  archive=self.root/'runtime.tgz'
+  with tarfile.open(archive,'w:gz')as bundle:
+   for name in ['range-reader.js','generated/internal/machine/range-reader.js']:
+    bundle.add(ROOT/'web'/name,arcname='package/web/'+name)
+  module=stage_reader(archive,self.root)
+  test=self.root/'range-reader-deadline.mjs';shutil.copy2(ROOT/'tests/range-reader-deadline.mjs',test)
+  result=subprocess.run(['node','--test',str(test)],cwd=self.root,env={**os.environ,'RANGE_READER_MODULE':str(module)},text=True,capture_output=True)
+  self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+  self.assertEqual((module.parent/'generated/internal/machine/range-reader.js').read_bytes(),(ROOT/'web/generated/internal/machine/range-reader.js').read_bytes())
  def test_wrong_tag(self):
   self.write('new.js','new');subprocess.run(['git','add','.'],cwd=self.root,check=True)
   subprocess.run(['git','-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','new'],cwd=self.root,check=True)

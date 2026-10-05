@@ -25,7 +25,6 @@ with tarfile.open(args.archive)as tar:
  if any(n.startswith('web/engine-mpv-') for n in manifest['files']):
   from private_remux_assets import verify_private_mpv_release
   verify_private_mpv_release({n:tar.extractfile('package/'+n).read() for n in manifest['files'] if n.startswith('web/engine-')},build)
- reader=tar.extractfile('package/web/range-reader.js').read()
  for engine in ['ass','adaptation']:
   name='web/engine-'+engine+'/manifest.json'
   if name not in manifest['files']:continue
@@ -122,7 +121,8 @@ for check in extra['checks']:
 evidence.append({'file':str(args.extra.resolve()),'sha256':archive_sha(args.extra),'suite':'public-api-component-cli-exports-typescript','checks':len(extra['checks'])})
 # Run the tagged deterministic deadline tests against this archive's reader bytes.
 with tempfile.TemporaryDirectory(dir=root/'build')as temporary:
- work=pathlib.Path(temporary);module=work/'range-reader.mjs';module.write_bytes(reader)
+ from release_deadlines import stage_reader
+ work=pathlib.Path(temporary);module=stage_reader(args.archive,work)
  with tarfile.open(args.source)as tar:test=tar.extractfile('demuxe/tests/range-reader-deadline.mjs').read()
  testfile=work/'range-reader-deadline.mjs';testfile.write_bytes(test)
  process=subprocess.run(['node','--test',str(testfile)],env={**os.environ,'RANGE_READER_MODULE':str(module)},text=True,capture_output=True)
