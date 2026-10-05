@@ -44,6 +44,12 @@ or 5-second warmup / 20-second measurement windows. Mini/smoke profiles are not
 part of release qualification. Archive, streaming, optional-runtime and clean
 source/build checks remain required.
 
+Endurance campaigns are also outside the publication gate. Performance and
+endurance runs are optional investigations selected according to the change;
+neither is required to produce the release verification record or publish the
+qualified archive. Retain any such results separately with their tested revision
+and archive identity. This does not waive the exact-archive functional checks.
+
 Qualification limits remain explicit; generating media or downloading a sample does not count as a passing
 browser test. Any missing input, changed pinned download, build error,
 qualification failure or archive mismatch stops release publication and npm

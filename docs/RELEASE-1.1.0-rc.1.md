@@ -7,7 +7,7 @@ This version intentionally changes the player layout API. Supported values are `
 
 Changes include provider preferences, bounded AVC presentation ordering, new preview sampling strategies and player compositions. Review fixes preserve selective PCM startup after late native audio initialization, provider-ordered play/seek fallback, preview progress after unsuccessful samples, keyboard focus after autoplay, and immediate settings dismissal. Tagged packaging explicitly includes the Shaka runtime required by its qualification lane.
 
-Use the complete clean-build and exact-archive sequence in [RELEASE.md](RELEASE.md) and [TAG-RELEASE.md](TAG-RELEASE.md), plus the API browser matrix, performance and endurance campaigns. A release-ready claim requires their final receipts. Publication and npm staging are separate actions.
+Use the complete clean-build and exact-archive sequence in [RELEASE.md](RELEASE.md) and [TAG-RELEASE.md](TAG-RELEASE.md), plus the API browser matrix. A release-ready claim requires the final functional qualification and source/package integrity receipts for the candidate. Performance benchmarks and endurance campaigns are optional investigations outside the publication gate; their absence does not block release. Publication and npm staging are separate actions.
 
 
 ## Fast-recovery candidate update
@@ -16,4 +16,4 @@ The unpublished candidate includes the reviewed fast-recovery changes: 2-second 
 
 For this incremental candidate, retain the previous full campaign as historical evidence for its exact archive, and qualify the rebuilt archive separately. Reuse native engine builds only after verifying their source inputs, configurations, and artifact hashes are unchanged. Fresh installed-package checks cover Firefox local seek/resume recovery, healthy/HTTP/remux controls, pinned policy, repeated lifecycle cleanup, and representative native/hybrid/software playback. The earlier unit/type results apply only to unchanged runtime/test bytes; the new receipt must identify the updated source and archive.
 
-This scoped campaign does not claim a fresh nine-hour run, universal compatibility, or publication readiness under the canonical full-archive verifier. Publication remains separate and subject to its existing gates; do not relabel older archive receipts as tests of new bytes.
+The focused recovery checks do not replace the broader exact-archive functional gate. Complete that gate for the updated candidate before publication; do not relabel older archive receipts as tests of new bytes. Repeating the earlier endurance and performance campaigns is not required. Qualification does not claim universal compatibility.

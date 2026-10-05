@@ -8,6 +8,15 @@ One clean build of the baseline, Software, Hybrid, Remux and subtitle-service
 engines is required for this candidate. Universal
 bit-for-bit reproducibility and the historical Linux baseline are separate claims.
 
+The publication gate requires functional browser and installed-package checks,
+the complete correctness catalogue comparison, and source/package integrity
+verification for the exact candidate. Performance benchmarks and endurance
+campaigns are optional investigations outside this gate. Run them when a change
+warrants measurement, such as changes to decoding throughput, scheduling or
+long-running resource ownership. Record their scope and results separately;
+missing campaign results do not block publication or imply measured performance
+or endurance. The required functional checks remain in force for changed archives.
+
 ## Prerequisites
 
 Install native Python 3, CMake, Ninja, pkg-config, Git, curl and Node.js/npm. On the
@@ -78,8 +87,9 @@ Use a new version/tag for changed candidate bytes. The release packaging option
 requires a clean tagged revision, clean-build LGPL closure evidence and matching
 input/configuration/engine hashes. It also produces the source companion with
 the exact relinking instructions. The [migration report](LGPL-MIGRATION-REPORT.md)
-must record the full current catalogue comparison and matched performance checks
-before recommending this configuration as the next release default.
+must record the full current catalogue comparison before recommending this
+configuration as the next release default. Matched performance measurements may
+support performance claims, but are not a publication prerequisite.
 
 ```sh
 python3 scripts/package-beta.py --release-tag <tag> --output build/release \
