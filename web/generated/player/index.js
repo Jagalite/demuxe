@@ -16,10 +16,10 @@ import { themeStyles } from './themes.js';
 import { icons } from './icons.js';
 import { playerShell } from './components.js';
 import { AdvancedSettings, advancedLabels, advancedSettingsStyles } from './advanced-settings.js';
-import { applyLayout, presentationStyles } from './presentation.js';
+import { applyLayout, isPlayerLayout, playerLayouts, presentationStyles } from './presentation.js';
 const Base = (typeof HTMLElement === 'undefined' ? class {
 } : HTMLElement);
-export const defaultLabels = Object.freeze({ ...advancedLabels, appearance: 'Appearance', layout: 'Layout', theme: 'Theme', classic: 'Classic', modern: 'Modern', playground: 'Playground', demuxeTheme: 'Demuxe', lightTheme: 'Light', previews: 'Timeline thumbnails', previewStrategy: 'Thumbnail strategy', previewDemuxe: 'Demuxe · broad coverage, local detail', previewAdaptive: 'Adaptive · nearby every 5s', previewGaussian: 'Gaussian · dense near hover', previewDirectional: 'Directional · follows movement', previewUniform: 'Evenly spaced · 48 samples', previewInterval: 'Whole video · every 5s', previewOnDemand: 'On hover only', previewCustom: 'Custom', previewHelp: 'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', reading: 'Reading media…', inspecting: 'Inspecting media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
+export const defaultLabels = Object.freeze({ ...advancedLabels, appearance: 'Appearance', layout: 'Layout', theme: 'Theme', classic: 'Classic', cinema: 'Cinema', rail: 'Rail', studio: 'Studio', focus: 'Focus', deck: 'Deck', demuxeTheme: 'Demuxe', lightTheme: 'Light', previews: 'Timeline thumbnails', previewStrategy: 'Thumbnail strategy', previewDemuxe: 'Demuxe · broad coverage, local detail', previewAdaptive: 'Adaptive · nearby every 5s', previewGaussian: 'Gaussian · dense near hover', previewDirectional: 'Directional · follows movement', previewUniform: 'Evenly spaced · 48 samples', previewInterval: 'Whole video · every 5s', previewOnDemand: 'On hover only', previewCustom: 'Custom', previewHelp: 'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', reading: 'Reading media…', inspecting: 'Inspecting media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
 // Never display opaque URL payloads, origins, credentials, queries or fragments.
 function sourceTitle(source) {
     if (typeof File !== 'undefined' && source instanceof File)
@@ -46,9 +46,9 @@ function sourceTitle(source) {
 }
 export class DemuxePlayerElement extends Base {
     static observedAttributes = ['layout', 'theme', 'no-preview', 'src', 'controls', 'poster', 'autoplay', 'muted', 'asset-base', 'title', 'title-mode'];
-    get layout() { const value = this.getAttribute('layout'); return value === 'modern' || value === 'playground' ? value : 'classic'; }
+    get layout() { const value = this.getAttribute('layout'); return isPlayerLayout(value) ? value : 'classic'; }
     set layout(value) {
-        if (value !== 'classic' && value !== 'modern' && value !== 'playground')
+        if (!isPlayerLayout(value))
             throw new PlayerError('INVALID_ARGUMENT', 'Unknown player layout');
         this.setAttribute('layout', value);
     }
@@ -878,7 +878,7 @@ export class DemuxePlayerElement extends Base {
             this.$('preview-strategy').querySelector(`option[value="${value}"]`).textContent = this.labels[key];
         for (const key of ['appearance', 'layout', 'theme'])
             this.$(key + '-label').textContent = this.labels[key];
-        for (const [id, keys] of [['layout-select', ['classic', 'modern', 'playground']], ['theme-select', ['demuxeTheme', 'lightTheme']]])
+        for (const [id, keys] of [['layout-select', playerLayouts], ['theme-select', ['demuxeTheme', 'lightTheme']]])
             Array.from(this.$(id).options).forEach((option, index) => option.textContent = this.labels[keys[index]]);
         this.$('shortcuts-help').textContent = this.labels.shortcuts;
         this.renderQueue();
@@ -1027,6 +1027,8 @@ export class DemuxePlayerElement extends Base {
                 return;
             let action;
             const state = p.state;
+            const seek = (time) => { if (state.playbackIntent === 'play' && !this.dragging)
+                this.hideControls(); return p.seek(time); };
             if (key === 'f') {
                 event.preventDefault();
                 this.fullscreen();
@@ -1050,18 +1052,18 @@ export class DemuxePlayerElement extends Base {
                 if (ranges?.length) {
                     const start = ranges[0].start, end = Math.max(start, ranges.at(-1).end - .1);
                     if (key === 'home')
-                        action = p.seek(start);
+                        action = seek(start);
                     if (key === 'end')
-                        action = p.seek(end);
+                        action = seek(end);
                     if (/^[0-9]$/.test(key))
-                        action = p.seek(start + (end - start) * Number(key) / 10);
+                        action = seek(start + (end - start) * Number(key) / 10);
                 }
                 if (key === ' ' || key === 'k')
                     action = state.playbackIntent === 'play' ? this.pause() : this.playFromControls();
                 const delta = key === 'arrowleft' ? -5 : key === 'arrowright' ? 5 : key === 'j' ? -this.seekStep : key === 'l' ? this.seekStep : 0;
                 const window = state.seekable;
                 if (delta && window?.length)
-                    action = p.seek(Math.max(window[0].start, Math.min(window.at(-1).end - .05, state.currentTime + delta)));
+                    action = seek(Math.max(window[0].start, Math.min(window.at(-1).end - .05, state.currentTime + delta)));
             }
             if (action) {
                 event.preventDefault();

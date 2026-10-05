@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {playerLayouts} from './presentation.js';
 import {advancedSettings} from './advanced-settings.js';
 // Stateless component templates. Behavior binds once to their persistent nodes.
 export const topBar = () => `<div id="topbar" class="topbar" part="topbar"><span id="title" class="player-title" part="title" hidden></span><span class="space"></span><div id="utility-actions" class="utility-actions" part="actions"><button id="diagnostics-toggle" aria-pressed="false" aria-controls="diagnostics-overlay"></button><button id="open-menu" aria-expanded="false" aria-controls="settings"></button><button id="settings-toggle" aria-expanded="false" aria-controls="settings"></button><button id="fullscreen" part="fullscreen-button"></button></div></div>`;
@@ -33,4 +34,4 @@ export const playbackRateSelector = () => `<label class="setting-row"><span id="
 
 export const trackSelector = (kind: 'audio' | 'subtitles') => `<label class="setting-row track-setting"><span id="${kind}-label"></span><select id="${kind}" part="${kind}-selector" disabled></select></label>`;
 
-export const appearanceSettings = () => `<fieldset class="appearance-settings"><legend id="appearance-label"></legend><label class="setting-row"><span id="layout-label"></span><select id="layout-select"><option value="classic"></option><option value="modern"></option><option value="playground"></option></select></label><label class="setting-row"><span id="theme-label"></span><select id="theme-select"><option value="demuxe"></option><option value="light"></option></select></label></fieldset>`;
+export const appearanceSettings = () => `<fieldset class="appearance-settings"><legend id="appearance-label"></legend><label class="setting-row"><span id="layout-label"></span><select id="layout-select">${playerLayouts.map(layout=>`<option value="${layout}"></option>`).join('')}</select></label><label class="setting-row"><span id="theme-label"></span><select id="theme-select"><option value="demuxe"></option><option value="light"></option></select></label></fieldset>`;

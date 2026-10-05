@@ -45,10 +45,12 @@ The new boundary is intentionally small:
 
 - **Behavior:** the element remains the lifecycle/source/queue/interaction controller using public Player contracts. Existing preview cancellation remains its own component controller. Consumers can use `Player`, `PlaybackControl`, `subscribeSelector` and `bindPlayer` without importing the element.
 - **Components:** named markup factories compose the shell once. Live nodes and their event handlers are retained for the lifetime of that shell. Shared transport, seek bar, time/volume, utility actions, panels and overlays have stable IDs/parts.
-- **Layouts:** `classic` retains the existing center transport/top utilities. `modern` composes the same transport and utilities into a bottom control dock, with a quieter title bar and container-driven wrapping. `playground` brings the original Pages demo’s framed header and below-video transport strip to the current engine. Its controls remain visible during playback because they sit outside the picture. The media stage is never moved. Layouts contain no playback calls or subscriptions.
-- **Themes:** `demuxe` preserves the warm dark baseline; `light` supplies a contrasting light chrome palette. Theme tokens work with every layout. Modern controls and the light theme use background surfaces for legibility over footage; classic Demuxe retains its original overlays. Consumer host custom properties and shadow parts override defaults.
+- **Layouts:** `classic` retains the existing center transport/top utilities. `cinema` places transport in a broad bottom strip; `rail` puts it on the left edge; `studio` frames the picture with a header and persistent console; `focus` uses a floating transport capsule; and `deck` pairs a playback pad with a timeline desk. Studio and Deck keep their below-picture controls visible during playback. These five options replace Modern and Playground. The media stage is never moved. Layouts contain no playback calls or subscriptions.
+- **Themes:** `demuxe` preserves the warm dark baseline; `light` supplies a contrasting light chrome palette. Theme tokens work with every layout. The framed layouts and the light theme use background surfaces for legibility over footage; classic Demuxe retains its original overlays. Consumer host custom properties and shadow parts override defaults.
 
-The shared settings panel also exposes labeled Layout and Theme selectors. Runtime property/attribute switches are synchronous and do not open/close/pause/seek media. They preserve core identity, source, position, routing, queue, track selection, and component nodes. Focus is restored after reparenting. Theme changes never reparent nodes. With no source, modern keeps utility actions in the header so source opening and settings remain available. Layout changes dismiss stale thumbnail geometry but keep the preview service. No render callback receives the engine's host, and no layout registry or duplicate state framework is introduced.
+The shared settings panel also exposes labeled Layout and Theme selectors. Runtime property/attribute switches are synchronous and do not open/close/pause/seek media. They preserve core identity, source, position, routing, queue, track selection, and component nodes. Focus is restored after reparenting. Theme changes never reparent nodes. With no source, Cinema and Deck keep utility actions in the header so source opening and settings remain available. Layout changes dismiss stale thumbnail geometry but keep the preview service. No render callback receives the engine's host, and no layout registry or duplicate state framework is introduced.
+
+The standalone demo has a layout chooser above the player and a Load example action. Its `?layout=cinema` URL parameter selects an initial layout; the chooser updates that parameter without navigating or replacing playback. Classic remains the default. Modern and Playground are no longer accepted layout property values; obsolete attributes use the existing Classic fallback.
 
 ## Module map
 
@@ -56,7 +58,7 @@ The shared settings panel also exposes labeled Layout and Theme selectors. Runti
 | --- | --- |
 | `src/player/index.ts` | Element lifecycle, source/queue ownership, one shared state renderer and action bindings |
 | `src/player/components.ts` | Semantic component factories, composed once; no playback calls |
-| `src/player/presentation.ts` | Persistent-node composition, layout types, modern positioning and responsive rules |
+| `src/player/presentation.ts` | Persistent-node composition, layout types, layout positioning and responsive rules |
 | `src/player/themes.ts` | Theme defaults and palette-specific legibility rules |
 | `src/player/styles.ts` | Shared component styling and preserved classic geometry/visibility baseline |
 | `src/player/icons.ts` | Shared icon family |
@@ -71,7 +73,7 @@ The classic stylesheet is retained as the compatibility baseline rather than rew
 ```
 
 ```js
-viewer.layout = 'modern';
+viewer.layout = 'cinema';
 viewer.theme = 'light';
 // These affect presentation only. The existing player is retained.
 const core = await viewer.ready;
@@ -81,7 +83,7 @@ await core.seek(30);
 
 Invalid property values throw `INVALID_ARGUMENT`; invalid attribute values fall back to defaults. Defaults are `classic` / `demuxe`. No core Player constructor option is added: UI configuration belongs to the UI element.
 
-Use host CSS variables (`--demuxe-background`, `--demuxe-foreground`, `--demuxe-muted-foreground`, `--demuxe-accent`, `--demuxe-border`, `--demuxe-radius`, `--demuxe-stage-background`, `--demuxe-panel-background`, `--demuxe-control-background`, `--demuxe-overlay-background`, `--demuxe-font`, `--demuxe-color-scheme`, `--demuxe-control-radius`, `--demuxe-motion-ease`) and `::part()` for consumer styling. Existing parts and slots remain supported. New parts expose transport buttons, utility actions, current-time/duration, rate/audio/subtitles selectors and the modern time-display group. Icons inherit currentColor and can be styled through button parts; replacing the icon family can be done by a custom UI, without replacing playback.
+Use host CSS variables (`--demuxe-background`, `--demuxe-foreground`, `--demuxe-muted-foreground`, `--demuxe-accent`, `--demuxe-border`, `--demuxe-radius`, `--demuxe-stage-background`, `--demuxe-panel-background`, `--demuxe-control-background`, `--demuxe-overlay-background`, `--demuxe-font`, `--demuxe-color-scheme`, `--demuxe-control-radius`, `--demuxe-motion-ease`) and `::part()` for consumer styling. Existing parts and slots remain supported. New parts expose transport buttons, utility actions, current-time/duration, rate/audio/subtitles selectors and the shared time-display group. Icons inherit currentColor and can be styled through button parts; replacing the icon family can be done by a custom UI, without replacing playback.
 
 For consumer controls use the existing slots and public contracts; for completely custom layouts use `Player` with an application-owned host and `bindPlayer`/`subscribeSelector` from `demuxe/integration`. Arbitrary runtime layout plugins are intentionally not a new public API. Built-in composition is a small internal extension point: add a layout using the shared nodes and test the migration table above. Do not clone controls or recreate the media surface.
 
@@ -93,6 +95,21 @@ Settings are nonmodal labeled regions with native form controls, not ARIA menus 
 
 This validates UI composition against the maintained H.264/AAC fixture; it does not newly qualify codecs, playback routes, physical touch devices or screen readers. Two legacy playground tests now explicitly pause before clicking Play: the playground has autoplay enabled, so assuming an initially paused source made those checks time out.
 
+### Five-layout replacement verification (2026-10-04)
+
+| Suite | Result | Evidence |
+| --- | --- | --- |
+| Presentation / Chrome 154 | 22/22 assertions passed | [Report](../results/player-presentation/chrome-2026-10-04T19-32-00.153Z/result.json) |
+| Presentation / Firefox | 22/22 passed | [Report](../results/player-presentation/firefox-2026-10-04T19-32-00.153Z/result.json) |
+| Presentation / WebKit | 22/22 passed | [Report](../results/player-presentation/webkit-2026-10-04T19-32-00.153Z/result.json) |
+| Existing component suite / Chrome | 59/59 passed | [Report](../results/player-component/chrome-2026-10-04T19-32-00.153Z/result.json) |
+| Public surface and SSR contracts | 3/3 passed | `node --test tests/api-stability/contracts.mjs` |
+| Standalone demo / 390px | All five chooser options preserve player/source identity, select exactly one option, and keep controls within the player | [Report and captures](../build/player-layout-review-20261004/result.json) |
+
+The presentation matrix now includes Classic plus all five replacements, both themes, desktop and narrow embeds, long timing labels, keyboard focus, touch targets, queue navigation, previews and fullscreen. Initial Chrome and Firefox failures exposed insufficient Cinema picture space in a touch embed and 36px utility targets; the final styles reserve space and keep utility targets at least 44px wide. Failed receipts remain under `results/player-presentation/`.
+
+TypeScript compilation, the full build/license boundary check and the public API inventory checks passed. Generated assets served by the local demo were compared byte-for-byte with the rebuilt files. The Chrome presentation wrapper did not receive its final Playwright close acknowledgement after all tracked browser processes exited; its completed 22-assertion report and process-exit receipt were retained, then the owned idle Node wrapper was stopped. This does not qualify playback engines or a release archive.
+
 ### Implementation verification (2026-09-27)
 
 | Suite | Result | Evidence |
@@ -103,7 +120,7 @@ This validates UI composition against the maintained H.264/AAC fixture; it does 
 
 The existing `node tests/preview-ui.mjs` suite passed. TypeScript and the standard build/license/core-boundary checks passed. Desktop, 400px, light/dark and forced-color captures are alongside the presentation reports. Touch checks use browser emulation. The maintained fixture is `fixtures/example.mp4` (H.264/AAC).
 
-### Review fixes
+### Historical review fixes (Modern layout, replaced 2026-10-04)
 
 Modern controls retain keyboard focusability while visually hidden, including when the timeline is disabled (for example, a live source without a seek window). At widths of 380px and below, utility actions occupy their own row; longer time labels can wrap without pushing controls outside the player. Fullscreen removes the modern embedded stage minimum height, so short landscape windows remain contained. Regression coverage includes 320/360/400px embeds, unavailable seeking with Tab navigation, and 600×280 fullscreen.
 

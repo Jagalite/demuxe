@@ -11,8 +11,11 @@ export declare const defaultLabels: Readonly<{
     layout: "Layout";
     theme: "Theme";
     classic: "Classic";
-    modern: "Modern";
-    playground: "Playground";
+    cinema: "Cinema";
+    rail: "Rail";
+    studio: "Studio";
+    focus: "Focus";
+    deck: "Deck";
     demuxeTheme: "Demuxe";
     lightTheme: "Light";
     previews: "Timeline thumbnails";
