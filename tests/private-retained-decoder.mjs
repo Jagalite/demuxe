@@ -29,8 +29,19 @@ test('reset discards queued frames and rejects callbacks from the old generation
  await s.execute(input(6),signal());assert.equal(queued.closed,1);old.callbacks.output(late);assert.equal(late.closed,1);
  assert.equal(s.snapshot().queued,0);assert.equal(s.snapshot().resets,1);s.cancel();
 });
+test('timestamp getter retirement cannot restore an obsolete private decoder',async()=>{
+ const s=service();await s.execute(input(1),signal());const old=Decoder.current,generation=s.generation,output=frame();
+ Object.defineProperty(output,'timestamp',{get(){s.cancel();return 100000;}});
+ old.callbacks.output(output);
+ assert.equal(s.generation,generation+1);assert.equal(s.snapshot().active,false);assert.equal(s.snapshot().queued,0);assert.equal(output.closed,1);
+});
+test('a throwing private frame timestamp closes its handle and rejects the receive',async()=>{
+ const s=service();await s.execute(input(1),signal());const output=frame(),error=Error('Timestamp read failed');
+ Object.defineProperty(output,'timestamp',{get(){throw error;}});Decoder.current.callbacks.output(output);
+ assert.equal(output.closed,1);assert.equal(s.snapshot().queued,0);await assert.rejects(s.execute(input(4),signal()),value=>value===error);s.cancel();
+});
 test('decoder queue overflow closes excess output and fails explicitly',async()=>{
- const s=service();await s.execute(input(1),signal());const outputs=Array.from({length:33},frame);
+ const s=service();await s.execute(input(1),signal());const outputs=Array.from({length:33},(_,i)=>({...frame(),timestamp:i*33333}));
  for(const output of outputs)Decoder.current.callbacks.output(output);
  assert.equal(s.snapshot().queued,32);assert.equal(outputs[32].closed,1);
  await assert.rejects(s.execute(input(4),signal()),/queue limit/);s.cancel();assert.ok(outputs.every(f=>f.closed===1));
@@ -40,4 +51,17 @@ test('unsupported configuration and bad output cannot leak retained frames',asyn
  await assert.rejects(s.execute(input(4),signal()),/Invalid retained output/);assert.equal(bad.closed,1);s.cancel();
  class Unsupported extends Decoder{static async isConfigSupported(){return {supported:false};}}
  const rejected=new PrivateRetainedDecoder({Decoder:Unsupported});await assert.rejects(rejected.execute(input(1),signal()),/Unsupported retained browser/);assert.equal(rejected.snapshot().active,false);rejected.cancel();
+});
+test('actual AVC adapter orders callback frames, waits for flush, and closes a held tail on reset',async()=>{
+ const s=service(),avc=input(1);avc.fields[13]=1;avc.bytes=Buffer.from('014d400affe10017674d400aeca146fc9808800000030080000018078912cb01000468ce0fc8','hex');
+ await s.execute(avc,signal());const raw=Decoder.current,outputs=[0,125000,42000,83000].map(timestamp=>({...frame(),timestamp}));
+ for(const output of outputs)raw.callbacks.output(output);
+ for(const i of [0,2]){const r=await s.execute(input(4),signal());assert.equal(r.frame,outputs[i]);r.frame.close();}
+ let flushed;raw.flush=()=>new Promise(resolve=>flushed=resolve);await s.execute(input(3),signal());
+ assert.equal((await s.execute(input(4),signal())).result,0);flushed();await Promise.resolve();await Promise.resolve();
+ for(const i of [3,1]){const r=await s.execute(input(4),signal());assert.equal(r.frame,outputs[i]);r.frame.close();}
+ assert.equal((await s.execute(input(4),signal())).result,-541478725);
+ await s.execute(input(6),signal());const held={...frame(),timestamp:0};Decoder.current.callbacks.output(held);assert.equal((await s.execute(input(4),signal())).result,-6);
+ await s.execute(input(6),signal());assert.equal(held.closed,1);const stale=frame();raw.callbacks.output(stale);assert.equal(stale.closed,1);
+ assert.ok(outputs.every(f=>f.closed===1));s.cancel();
 });

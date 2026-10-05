@@ -3,29 +3,30 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as core from '../../web/generated/internal/machine/private-retained-decoder.js';
 import {PrivateRetainedDecoder} from '../../web/private-mpv/retained-decoder.js';
+const accept=(s,g,pts=s.frameSerial+1)=>core.acceptRetainedDecoderFrame(s,g,pts);
 function ready(previous=core.initialRetainedDecoder()){
  let state=core.retireRetainedDecoder(previous,true).state;const check=core.checkRetainedConfiguration(state,state.generation);state=check.state;return core.activateRetainedDecoder(state,state.generation,check.id);
 }
 test('configuration and callback scopes retire independently from monotonically allocated frames',()=>{
- const first=ready(),frame=core.acceptRetainedDecoderFrame(first.state,first.scope),next=ready(frame.state);
- assert.deepEqual(core.retireRetainedDecoder(frame.state).close,[frame.id]);assert.equal(core.acceptRetainedDecoderFrame(next.state,first.scope).id,null);
+ const first=ready(),frame=accept(first.state,first.scope),next=ready(frame.state);
+ assert.deepEqual(core.retireRetainedDecoder(frame.state).close,[frame.id]);assert.equal(accept(next.state,first.scope).id,null);
  assert.equal(core.activateRetainedDecoder(next.state,first.scope.generation).scope,null);assert.equal(core.failRetainedDecoder(next.state,first.scope),next.state);
- const current=core.acceptRetainedDecoderFrame(next.state,next.scope);assert.ok(current.id>frame.id);assert.equal(frame.state.frames.length,1);assert.ok(Object.isFrozen(current.state.frames));
+ const current=accept(next.state,next.scope);assert.ok(current.id>frame.id);assert.equal(frame.state.frames.length,1);assert.ok(Object.isFrozen(current.state.frames));
 });
 test('only the latest support check can activate a configuration within one generation',()=>{
  let state=core.retireRetainedDecoder(core.initialRetainedDecoder(),true).state;const first=core.checkRetainedConfiguration(state,state.generation),second=core.checkRetainedConfiguration(first.state,state.generation);
  assert.equal(core.activateRetainedDecoder(second.state,state.generation,first.id).scope,null);assert.ok(core.activateRetainedDecoder(second.state,state.generation,second.id).scope);
 });
 test('decoder ownership stays at32 and packet admission includes retained browser outputs in its8 window',()=>{
- let {state,scope}=ready();for(let i=0;i<32;i++)state=core.acceptRetainedDecoderFrame(state,scope).state;
- const overflow=core.acceptRetainedDecoderFrame(state,scope);assert.equal(overflow.id,null);assert.equal(overflow.overflow,true);assert.equal(overflow.state.frames.length,32);assert.equal(overflow.state.stats.peakFrames,32);
+ let {state,scope}=ready();for(let i=0;i<32;i++)state=accept(state,scope).state;
+ const overflow=accept(state,scope);assert.equal(overflow.id,null);assert.equal(overflow.overflow,true);assert.equal(overflow.state.frames.length,32);assert.equal(overflow.state.stats.peakFrames,32);
  const packet={queuedPackets:0,size:3,timestamp:0,duration:0};assert.equal(core.retainedPacketPolicy(state,packet),'again');
  const base=ready();assert.equal(core.retainedPacketPolicy(base.state,{...packet,queuedPackets:8}),'again');assert.equal(core.retainedPacketPolicy(base.state,{...packet,queuedPackets:7}),'submit');
  for(const patch of [{size:0},{timestamp:NaN},{duration:-1}])assert.equal(core.retainedPacketPolicy(base.state,{...packet,...patch}),'invalid');
  assert.equal(core.retainedPacketPolicy(base.state,{...packet,size:0,queuedPackets:8}),'again','backpressure precedes packet validation');
 });
 test('full presenter reserves one capacity wait and never consumes a queued frame until explicit capacity release',()=>{
- const initial=ready(),admitted=core.acceptRetainedDecoderFrame(initial.state,initial.scope),blocked=core.receiveRetainedDecoderFrame(admitted.state,0,false);
+ const initial=ready(),admitted=accept(initial.state,initial.scope),blocked=core.receiveRetainedDecoderFrame(admitted.state,0,false);
  assert.ok(blocked.wait);assert.equal(blocked.id,null);assert.deepEqual(blocked.state.frames,[admitted.id]);assert.equal(blocked.state.stats.blockedReceives,1);
  const duplicate=core.receiveRetainedDecoderFrame(blocked.state,0,false);assert.equal(duplicate.state,blocked.state);assert.equal(duplicate.wait,blocked.wait);
  const cleared=core.releaseRetainedDecoderCapacity(blocked.state,blocked.wait),receive=core.receiveRetainedDecoderFrame(cleared,0,true);assert.equal(receive.id,admitted.id);assert.equal(receive.resumed,true);assert.equal(receive.state.frames.length,0);
@@ -48,7 +49,7 @@ test('varied reset output and receive histories keep old state immutable and clo
  let state=core.initialRetainedDecoder();const closed=new Set(),accepted=new Set();
  for(let generation=0;generation<40;generation++){
   const activated=ready(state);state=activated.state;
-  for(let i=0;i<(generation%12)+1;i++){const old=state,serialized=JSON.stringify(old),next=core.acceptRetainedDecoderFrame(state,activated.scope);assert.equal(JSON.stringify(old),serialized);state=next.state;accepted.add(next.id);}
+  for(let i=0;i<(generation%12)+1;i++){const old=state,serialized=JSON.stringify(old),next=accept(state,activated.scope);assert.equal(JSON.stringify(old),serialized);state=next.state;accepted.add(next.id);}
   const received=core.receiveRetainedDecoderFrame(state,0,true);state=received.state;closed.add(received.id);
   const retired=core.retireRetainedDecoder(state);for(const id of retired.close){assert.equal(closed.has(id),false);closed.add(id);}state=retired.state;
  }

@@ -2,6 +2,7 @@
 import {videoCodecConfig,vp9PacketConfig} from './video-codec-config.js';
 import {WebCodecsVideoDecoder} from './external-video-decoder.js';
 import {initialLegacyDecoderWorker,reduceLegacyDecoderWorker,admitLegacyDecoderWork,finishLegacyDecoderWork,legacyDecoderCurrent,admitLegacyDecoderFrame,takeLegacyDecoderFrame,legacyDecoderPacketAdmission,observeLegacyDecoderWait} from './generated/internal/machine/legacy-decoder-worker.js';
+import {videoReorderDepth} from './generated/internal/machine/video-frame-order.js';
 let control=initialLegacyDecoderWorker();
 const transition=event=>{control=reduceLegacyDecoderWorker(control,event);};
 let pendingConfiguration;
@@ -55,12 +56,19 @@ function configure(){
  const current=control.generation;
  const acquired=new WebCodecsVideoDecoder({Decoder:VideoDecoder,error:error=>{if(legacyDecoderCurrent(control,current)){transition({type:'failed',generation:current,error:String(error)});stats.errors++;postMessage({wakeup:true});}},output:frame=>{
   stats.receivedFrames++;
-  const admission=admitLegacyDecoderFrame(control,current);control=admission.state;
-  if(admission.id===null){closeFrame(frame);if(admission.overflow)stats.errors++;return;}
+  // Read browser properties before capturing policy state: an injected decoder
+  // can synchronously retire this generation from a frame accessor.
+  let timestamp;
+  try{timestamp=frame.timestamp;}catch(error){
+   if(legacyDecoderCurrent(control,current)){transition({type:'failed',generation:current,error:String(error)});stats.errors++;}
+   try{closeFrame(frame);}finally{if(legacyDecoderCurrent(control,current))postMessage({wakeup:true});}return;
+  }
+  const admission=admitLegacyDecoderFrame(control,current,timestamp);control=admission.state;
+  if(admission.id===null){closeFrame(frame);if(admission.overflow){stats.errors++;if(legacyDecoderCurrent(control,current))postMessage({wakeup:true});}return;}
   frames.set(admission.id,frame);postMessage({wakeup:true});stats.peakFrames=Math.max(stats.peakFrames,control.frames.length);
  },dequeue:()=>{if(legacyDecoderCurrent(control,current))postMessage({wakeup:true});}});
  if(!legacyDecoderCurrent(control,current)){acquired.destroy();return;}
- decoder=acquired;transition({type:'configure'});acquired.configure(configuration);
+ decoder=acquired;transition({type:'configure',reorderDepth:stats.reorderDepth});acquired.configure(configuration);
 }
 self.onmessage=({data})=>{
  if(data.type==='watchdogs'){transition({type:'watchdog',enabled:data.decoderOutput!==false});postMessage({watchdog:control.watchdog});return;}
@@ -117,7 +125,7 @@ async function pump(){
    // configuration on Software until the bridge preserves that seek contract.
    if(stats.input.kind===2&&description.length>=23&&description[0]===1&&description[22]===0)
     throw Error('Unsupported retained HEVC configuration: in-band parameter sets require Software');
-   pendingConfiguration=null;
+   pendingConfiguration=null;stats.reorderDepth=stats.input.kind===1?videoReorderDepth(stats.input.kind,description):null;
    if(stats.input.kind===4&&(stats.input.profile<0||!stats.input.depth)){
     pendingConfiguration={...stats.input,description};configuration=null;return;
    }
@@ -170,8 +178,9 @@ async function pump(){
     decoder.drain().then(()=>{if(legacyDecoderCurrent(control,epoch)){transition({type:'flushed',generation:epoch});postMessage({wakeup:true});}},error=>{if(legacyDecoderCurrent(control,epoch)){transition({type:'failed',generation:epoch,error:String(error)});postMessage({wakeup:true});}});
    }else if(operation===4){
     if(control.faultAfter&&stats.frames>=control.faultAfter)throw Error('Injected decoder failure');
-    if(control.frames.length){
-     const selected=takeLegacyDecoderFrame(control);control=selected.state;const frame=frames.get(selected.id);frames.delete(selected.id);
+    const selected=takeLegacyDecoderFrame(control);control=selected.state;
+    if(selected.id!==null){
+     const frame=frames.get(selected.id);frames.delete(selected.id);
      try{
       const actualWidth=frame.visibleRect.width,actualHeight=frame.visibleRect.height;
       stats.actualWidth=actualWidth;stats.actualHeight=actualHeight;stats.pixelFormat=frame.format;
@@ -189,7 +198,7 @@ async function pump(){
       transition({type:'delivered'});stats.frames++;result=1;
      }finally{closeFrame(frame);}
     }else if(control.draining)result=control.flushed?EOF:0;
-    else result=decoder.queuedPackets+control.frames.length>=8?0:AGAIN;
+    else result=!legacyDecoderPacketAdmission(control,decoder.queuedPackets)?0:AGAIN;
     // Measure an actual blocked receive, not wall time since the last frame:
     // paused/idle periods and packet reordering do not spend the output budget.
     control=observeLegacyDecoderWait(control,decoder.queuedPackets,performance.now());

@@ -2,6 +2,7 @@
 import {videoCodecConfig,vp9PacketConfig} from '../video-codec-config.js';
 import {WebCodecsVideoDecoder} from '../external-video-decoder.js';
 import {initialRetainedDecoder,retainedDecoderCurrent,retireRetainedDecoder,resetRetainedDecoder,pendingRetainedConfiguration,checkRetainedConfiguration,activateRetainedDecoder,retainedSourcePolicy,acceptRetainedDecoderFrame,closeRetainedDecoderFrame,failRetainedDecoder,retainedPacketPolicy,submittedRetainedPacket,drainRetainedDecoder,flushedRetainedDecoder,releaseRetainedDecoderCapacity,receiveRetainedDecoderFrame,retainedOutputValid,deliveredRetainedFrame} from '../generated/internal/machine/private-retained-decoder.js';
+import {videoReorderDepth} from '../generated/internal/machine/video-frame-order.js';
 const AGAIN=-6;
 const color={bt709:1,bt470bg:5,smpte170m:6,bt2020:9,'bt2020-ncl':9,smpte2084:16,'iec61966-2-1':13};
 // Browser callbacks keep physical frames in this registry. The immutable policy
@@ -62,10 +63,14 @@ export class PrivateRetainedDecoder {
     const activated=activateRetainedDecoder(this.machine,generation,check);this.machine=activated.state;const scope=activated.scope;if(!scope)throw Error('Decoder generation replaced');
     const decoder=new WebCodecsVideoDecoder({Decoder:this.Decoder,
       output:frame=>{
-        const admitted=acceptRetainedDecoderFrame(this.machine,scope);this.machine=admitted.state;
+        // A frame accessor can retire an injected decoder synchronously. Capture
+        // policy state only after that access, so stale output stays retired.
+        let timestamp;
+        try{timestamp=frame.timestamp;}catch(error){try{this.closeFrame(frame);}finally{this.failed(scope,error);}return;}
+        const admitted=acceptRetainedDecoderFrame(this.machine,scope,timestamp);this.machine=admitted.state;
         if(admitted.id!==null)this.frames.set(admitted.id,frame);
         else{
-          if(admitted.overflow)this.failureError=Error('Retained frame queue limit');
+          if(admitted.overflow)this.failureError=Error(admitted.error??'Retained frame queue limit');
           this.closeFrame(frame);
           if(admitted.overflow&&this.current(scope))this.settleCapacity(this.failure);
         }
@@ -81,8 +86,8 @@ export class PrivateRetainedDecoder {
     signal.throwIfAborted();this.assertGeneration(generation);if(this.machine.check!==id)throw Error('Decoder generation replaced');
     if(!support.supported)throw Error('Unsupported retained browser configuration: '+configuration.codec);
   }
-  async prepare(adapted,signal,generation){
-    this.assertGeneration(generation);const decision=checkRetainedConfiguration(this.machine,generation);this.machine=decision.state;
+  async prepare(adapted,signal,generation,reorderDepth=null){
+    this.assertGeneration(generation);const decision=checkRetainedConfiguration(this.machine,generation,reorderDepth);this.machine=decision.state;
     this.configuration=adapted.configuration;this.prefix=adapted.prefix;
     await this.check(signal,generation,decision.id,adapted.configuration);this.configure(generation,decision.id,adapted.configuration);
   }
@@ -93,7 +98,7 @@ export class PrivateRetainedDecoder {
       const source={kind:fields[13]||1,width:fields[5],height:fields[6],depth:fields[8],profile:fields[14],level:fields[15],description:bytes.slice()};
       const policy=retainedSourcePolicy({...source,inBandHEVC:bytes.length>=23&&bytes[0]===1&&bytes[22]===0},this.maxPixels);if(policy.error)throw Error(policy.error);
       if(policy.pending){this.machine=pendingRetainedConfiguration(this.machine,generation);this.pendingSource=source;return {result:0};}
-      await this.prepare(videoCodecConfig({...source,depth:source.depth||8}),signal,generation);return {result:0};
+      await this.prepare(videoCodecConfig({...source,depth:source.depth||8}),signal,generation,source.kind===1?videoReorderDepth(source.kind,source.description):null);return {result:0};
     }
     if(operation===5){this.retire(true);return {result:0};}
     if(operation===6){const configuration=this.configuration,generation=this.retire();if(configuration)this.configure(generation,undefined,configuration);this.assertGeneration(generation);this.machine=resetRetainedDecoder(this.machine,generation);return {result:0};}

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type FrameOrder } from './video-frame-order.js';
 export interface LegacyDecoderWorkerState {
     readonly initialized: boolean;
     readonly closed: boolean;
@@ -10,6 +11,7 @@ export interface LegacyDecoderWorkerState {
     }> | null;
     readonly frameSerial: number;
     readonly frames: readonly number[];
+    readonly ordering: FrameOrder;
     readonly needsKey: boolean;
     readonly shared: boolean;
     readonly draining: boolean;
@@ -35,6 +37,7 @@ export type LegacyDecoderEvent = {
     type: 'reset';
 } | {
     type: 'configure';
+    reorderDepth?: number | null;
 } | {
     type: 'watchdog';
     enabled: boolean;
@@ -61,7 +64,7 @@ export declare function admitLegacyDecoderWork(s: LegacyDecoderWorkerState, tick
 };
 export declare function finishLegacyDecoderWork(s: LegacyDecoderWorkerState, id: number): LegacyDecoderWorkerState;
 export declare function legacyDecoderCurrent(s: LegacyDecoderWorkerState, generation: number): boolean;
-export declare function admitLegacyDecoderFrame(s: LegacyDecoderWorkerState, generation: number): {
+export declare function admitLegacyDecoderFrame(s: LegacyDecoderWorkerState, generation: number, pts: number): {
     state: LegacyDecoderWorkerState;
     id: number | null;
     overflow: boolean;

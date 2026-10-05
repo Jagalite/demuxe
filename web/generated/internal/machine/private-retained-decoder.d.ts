@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type FrameOrder } from './video-frame-order.js';
 export type RetainedDecoderScope = Readonly<{
     generation: number;
     decoder: number;
@@ -24,6 +25,7 @@ export type RetainedDecoderState = Readonly<{
     check: number | null;
     frameSerial: number;
     frames: readonly number[];
+    ordering: FrameOrder;
     needsKey: boolean;
     draining: boolean;
     flushed: boolean;
@@ -44,7 +46,7 @@ export declare function retireRetainedDecoder(state: RetainedDecoderState, clear
 }>;
 export declare function resetRetainedDecoder(state: RetainedDecoderState, generation: number): RetainedDecoderState;
 export declare function pendingRetainedConfiguration(state: RetainedDecoderState, generation: number): RetainedDecoderState;
-export declare function checkRetainedConfiguration(state: RetainedDecoderState, generation: number): Readonly<{
+export declare function checkRetainedConfiguration(state: RetainedDecoderState, generation: number, reorderDepth?: number | null): Readonly<{
     state: RetainedDecoderState;
     id: number | null;
 }>;
@@ -63,10 +65,11 @@ export declare function retainedSourcePolicy(source: Readonly<{
     pending: boolean;
     error: string | null;
 }>;
-export declare function acceptRetainedDecoderFrame(state: RetainedDecoderState, scope: RetainedDecoderScope): Readonly<{
+export declare function acceptRetainedDecoderFrame(state: RetainedDecoderState, scope: RetainedDecoderScope, pts: number): Readonly<{
     state: RetainedDecoderState;
     id: number | null;
     overflow: boolean;
+    error?: string;
 }>;
 export declare function closeRetainedDecoderFrame(state: RetainedDecoderState): RetainedDecoderState;
 export declare function failRetainedDecoder(state: RetainedDecoderState, scope: RetainedDecoderScope): RetainedDecoderState;
