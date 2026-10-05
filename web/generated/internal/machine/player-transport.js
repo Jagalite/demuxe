@@ -66,7 +66,7 @@ export function transitionPlayerTransport(state, input) {
             return step('finished', { kind: 'ignore' });
         if (old.phase === 'retrying')
             return step('finished', { kind: 'reject' });
-        const inconclusive = old.local && input.inconclusive;
+        const inconclusive = input.inconclusive;
         if (state.source.automatic && state.source.acceptedSession !== null && (input.compatible || inconclusive)) {
             const route = recoveryRoute({ providerOrdered, mode: state.source.mode, backendPlan: old.backendPlan, nativeRemux: old.nativeRemux, streaming: input.streaming, trigger: 'play' });
             return step('selecting', { kind: 'fallback', ...route, target: old.trialSame && !old.trialVerified ? old.target : undefined }, { inconclusive });

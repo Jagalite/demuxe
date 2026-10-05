@@ -66,8 +66,8 @@ test('video and clock advancement alone cannot verify audio',async()=>{
 
 // Keep the real operation queue and accepted source identity: transport admission
 // requires both, and the public queue normalizes failures into operation errors.
-test('bounded local output trials preserve position without caching unknown as incompatibility',async()=>{
- for(const [kind,error,allowed] of [['local',new StartupEvidenceTimeout('output'),true],['remote',new StartupEvidenceTimeout('output'),false],['local',new PlayerError('SOURCE_PERMISSION','denied'),false],['local',new DOMException('activation required','NotAllowedError'),false]]){
+test('automatic local and remote output trials preserve position without caching unknown as incompatibility',async()=>{
+ for(const [kind,error,allowed] of [['local',new StartupEvidenceTimeout('output'),true],['remote',new StartupEvidenceTimeout('output'),true],['local',new PlayerError('SOURCE_PERMISSION','denied'),false],['remote',new PlayerError('NETWORK_TIMEOUT','transport timed out'),false],['local',new DOMException('activation required','NotAllowedError'),false]]){
   const p=unitPlayer(),properties=new Map([['time-pos',2]]);let selected,cached=0;
   const backend={properties,diagnostics:{plan:'direct'},play:()=>{properties.set('time-pos',9);return Promise.resolve();},pause:async()=>{},verifyOutput:async()=>{throw error;}};
   Object.assign(p,{current:{backend},source:kind==='remote'?{kind,options:{url:'https://media.test/movie.mp4'}}:{kind},automatic:true,settings:{pause:true},nativeRemux:'auto',evidence:()=>({prepared:true}),failedStreamingPlan:()=>undefined,runtimeCapabilities:{update(){}},tierAttempts:{failure(){cached++;}},select:async(...args)=>{selected=args;}});

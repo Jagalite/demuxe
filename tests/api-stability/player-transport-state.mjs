@@ -94,6 +94,22 @@ test('public play preserves immediate activation and executes bounded retry rest
  const playing=p.play();assert.equal(calls[0],'play');await playing;
  assert.equal(selections,1);assert.deepEqual(calls,[ 'play',['verify',1500],['seek',42],['verify',undefined]]);assert.equal(p.control.transport.pending,null);
 });
+test('remote native output uncertainty recovers without declaring codec incompatibility',async t=>{
+ const {p}=fixture(t);p.source={kind:'remote',url:'https://example.test/movie.mkv',options:{}};
+ const evidence=[],selected=[];p.updateEvidence=(...args)=>evidence.push(args);
+ p.playNativeVerified=async()=>{throw new StartupEvidenceTimeout('output',2000);};
+ p.select=async(...args)=>selected.push(args);
+ await p.play();assert.equal(selected.length,1);assert.equal(selected[0][5],42);
+ assert.deepEqual(selected[0][8],{nativeRemux:'always'});
+ assert.equal(p.control.transport.pending,null);
+ assert.ok(evidence.every(args=>args[1]==='prepared'&&args[4]===undefined));
+});
+test('remote pinned or terminal play failures never enter automatic fallback',()=>{
+ for(const facts of [{automatic:false,inconclusive:true},{automatic:true,inconclusive:false}]){
+  const m=model({automatic:facts.automatic}),begin=m.play({local:false});
+  assert.equal(m.send({type:'transport.play.failed',id:begin.id,compatible:false,inconclusive:facts.inconclusive,streaming:false}).transportEffect.kind,'pause');
+ }
+});
 test('public seek fallback preserves requested position and terminal seek never selects',async t=>{
  const {p,backend}=fixture(t);const selected=[];p.select=async(...args)=>{selected.push(args);};backend.seek=async()=>{throw new PlayerError('DECODE_FAILED','seek decoder failed');};
  await p.seek(75);assert.equal(selected.length,1);assert.equal(selected[0][5],75);assert.equal(p.control.transport.pending,null);

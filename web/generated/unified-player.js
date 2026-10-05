@@ -2972,7 +2972,7 @@ export class Player extends EventTarget {
                 }
                 catch (error) {
                     const compatible = compatibilityFailure(error), retryLocalLoad = error instanceof NativeLoadTimeout ? (error.budgetMs < 25000 ? this.startupFallback(source, plan.id, settings, requirements) : this.localRemuxRetry(source, plan.id, settings, requirements)) : undefined;
-                    const inconclusiveOutput = automatic && source.kind === 'local' && error instanceof StartupEvidenceTimeout && error.stage === 'output';
+                    const inconclusiveOutput = automatic && error instanceof StartupEvidenceTimeout && error.stage === 'output';
                     const failure = { id: plan.id, message: String(error), code: playerError(error).code, compatible, interrupted: evidenceInterrupted(error), nativeTimeout: error instanceof NativeLoadTimeout, budget: error instanceof NativeLoadTimeout ? error.budgetMs : 0, retryRemux: retryLocalLoad, inconclusiveOutput, caption: error instanceof BrowserCaptionUnsupported ? error.message : undefined, fast: this.fastInspectedSource === source };
                     let decision = change({ kind: 'failed', id, attempt: lease, failure });
                     if (compatible && !failure.interrupted)
