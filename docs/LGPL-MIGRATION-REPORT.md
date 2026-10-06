@@ -23,7 +23,9 @@ retains `build/tag-release/catalogue-comparison.json` and
 `build/release/verification.json`; both are included in the release evidence.
 This supports the functional developer-beta candidate, not physical HDR,
 multichannel/object fidelity, exhaustive API coverage or new performance claims.
-The remote Linux tag workflow and publication remain unrun. Historical migration
+The subsequent RC2 Linux publication attempt was blocked by Firefox observer
+assertions; [RC3](RELEASE-1.1.0-rc.3.md) corrects those checks and requires fresh
+archive qualification. RC2 was not published. Historical migration
 measurements below apply only to their original revisions.
 
 ## Historical migration record: 0.3.0-beta.4

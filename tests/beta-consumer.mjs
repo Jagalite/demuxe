@@ -41,7 +41,7 @@ if(!manifest.files['web/engine-subtitles/service.wasm'])cases.splice(cases.index
 const standardCases=[...cases];
 if(process.env.ADAPTATION_FIXTURE){cases.push('native-adaptation','native-opus');if(manifest.files['web/engine-subtitles/service.wasm'])cases.push('native-adaptation-ass-gain');await copyFile(process.env.ADAPTATION_FIXTURE,path.join(root,'media/adaptation.mkv'));}
 if(process.env.AUTOMATIC_ADAPTATION_FIXTURE){cases.push('automatic-lossless');await copyFile(process.env.AUTOMATIC_ADAPTATION_FIXTURE,path.join(root,'media/automatic.mkv'));}
-try{let caseIndex=0;const selectedCases=selectConsumerCases(standardCases,cases,process.env.CASES),workerRetries=new Map();result.caseSelection=[...selectedCases];for(let caseNumber=0;caseNumber<selectedCases.length;caseNumber++){const name=selectedCases[caseNumber];if(caseIndex++) {await browser.close();browser=await launchBrowser();}missingEngine=name==='missing-engine';const page=await browser.newPage();const r={name,requests:[],requestDetails:[],workerURLs:[],workerEvents:[],failedResponses:[],pageErrors:[],attempts:workerRetries.has(name)?[workerRetries.get(name)]:[]};let expectedErrors=[];activeAssRequests=name==='automatic-ass'?(r.serverRequests=[]):null;result.cases.push(r);page.on('worker',worker=>{r.workerURLs.push(worker.url());r.workerEvents.push({url:worker.url(),at:Date.now()});});page.on('request',q=>{r.requests.push(q.url());r.requestDetails.push({url:q.url(),method:q.method(),at:Date.now()});});page.on('response',response=>{if(response.status()>=400)r.failedResponses.push({url:response.url(),status:response.status()});});page.on('pageerror',error=>r.pageErrors.push(String(error)));page.setDefaultTimeout(30000);
+try{let caseIndex=0;const selectedCases=selectConsumerCases(standardCases,cases,process.env.CASES),workerRetries=new Map();result.caseSelection=[...selectedCases];for(let caseNumber=0;caseNumber<selectedCases.length;caseNumber++){const name=selectedCases[caseNumber];if(caseIndex++) {await browser.close();browser=await launchBrowser();}missingEngine=name==='missing-engine';const page=await browser.newPage();const r={name,requests:[],requestDetails:[],workerURLs:[],workerEvents:[],failedResponses:[],pageErrors:[],attempts:workerRetries.has(name)?[workerRetries.get(name)]:[]};let expectedErrors=[];activeAssRequests=directCases.includes(name)||name==='automatic-ass'?(r.serverRequests=[]):null;result.cases.push(r);page.on('worker',worker=>{r.workerURLs.push(worker.url());r.workerEvents.push({url:worker.url(),at:Date.now()});});page.on('request',q=>{r.requests.push(q.url());r.requestDetails.push({url:q.url(),method:q.method(),at:Date.now()});});page.on('response',response=>{if(response.status()>=400)r.failedResponses.push({url:response.url(),status:response.status()});});page.on('pageerror',error=>r.pageErrors.push(String(error)));page.setDefaultTimeout(30000);
 if(directCases.includes(name)||name==='automatic-ass')await page.addInitScript(observeDirectStartup);
 try{if(playbackCases.includes(name)){await runPrivatePlaybackCase(page,name,r);r.passed=true;console.log('PASS',name);continue;}if(mpvCases.includes(name)){await runPrivateMpvCase(page,name,r);r.passed=true;console.log('PASS',name);continue;}await page.goto(origin+((name.includes('isolation')&&!name.endsWith('-isolated'))?'/?noisolation':'/'));await page.waitForFunction(()=>window.API);assert.deepEqual(await page.evaluate(()=>API.PLAYBACK_MODES),['native','hybrid','software']);
 
@@ -320,7 +320,7 @@ function observeStartupVerification(){
  };
 }
 async function captureStartupPhase(page,row,name){
- const snapshot=await page.evaluate(()=>({at:performance.timeOrigin+performance.now(),observation:{...directStartup,policy:player.startupEscalation??null},diagnostics:player.diagnostics,mode:player.mode,state:player.state,audioCounterAvailable:typeof player.surface?.webkitAudioDecodedByteCount==='number',verifications:startupVerifications}));
+ const snapshot=await page.evaluate(()=>({at:performance.timeOrigin+performance.now(),firefox:/Firefox\/\d/.test(navigator.userAgent),observation:{...directStartup,policy:player.startupEscalation??null},diagnostics:player.diagnostics,mode:player.mode,state:player.state,audioCounterAvailable:typeof player.surface?.webkitAudioDecodedByteCount==='number',verifications:startupVerifications}));
  // Deep copies are essential: later workers and completed HTTP responses must
  // never rewrite the evidence for an earlier operation.
  return structuredClone({...snapshot,name,requests:row.serverRequests??row.requestDetails,browserRequests:row.requestDetails,workers:row.workerURLs,workerEvents:row.workerEvents});
@@ -332,12 +332,17 @@ function classifyPlaybackPhase({name,previous,current,phase,assetBase,manifestFi
  if(previous.state.sourceId===null||previous.state.sourceId===undefined||current.state.sourceId!==previous.state.sourceId||current.state.pendingOperation!==null)violations.push('Phase changed source identity or has an unfinished operation');
  if(!Number.isFinite(previous.at)||!Number.isFinite(current.at)||current.at<previous.at||records.some(r=>!Number.isFinite(r.started)||!Number.isFinite(r.finished)||r.finished<r.started||r.finished>current.at||r.started<previous.at))violations.push('Incomplete or out-of-window verification observation');
  const failure=failures[0],recovery=phase==='first-play'&&changed&&before===direct&&plan===remux;
+ // First-play transport recovery is distinct from the configurable open timeout.
+ // pthread remux can use window MSE; only the selected worker owner needs an MSE worker.
+ const outputBudget=previous.firefox===true?500:1500,mseOwner=backend?.remux?.mseOwner??'window',workerMSE=plan===remux&&mseOwner==='worker';
+ if(typeof previous.firefox!=='boolean'||current.firefox!==previous.firefox)violations.push('Missing or changed browser recovery policy observation');
+ if(plan===remux&&(!['window','worker'].includes(mseOwner)||workerMSE&&runtime!=='pthread'))violations.push('Invalid selected MSE owner');
  if(current.mode!=='native'||![direct,remux].includes(plan)||current.state.status!=='playing'||!(current.state.currentTime>(phase==='controls'?1.15:.3)))violations.push('Native phase lacks selected route and observed playback progress');
  if(!['pthread','jspi','asyncify'].includes(runtime)||runtime!==previous.diagnostics.remuxRuntime.runtime)violations.push('Native phase runtime changed or is unsupported');
  if(current.observation.instantiations!==previous.observation.instantiations)violations.push('Unexpected main-thread phase instantiation');
  if(changed&&!recovery)violations.push('Unexpected post-open route change');
  if(recovery){
-  if(name!=='automatic-local'&&!ass||failures.length!==1||failure?.plan!==direct||failure?.budget!==1500||failure?.automatic!==true||failure?.sourceKind!=='local'||failure?.nativeRemux!=='auto'||failure?.error?.name!=='StartupEvidenceTimeout'||failure?.error?.stage!=='output'||failure?.error?.message!=='Native output evidence timed out'||failure?.error?.evidenceTimeout!==true||!Number.isFinite(failure?.started)||!Number.isFinite(failure?.finished)||failure.finished-failure.started<1500||failure.started<previous.at)violations.push('Missing exact bounded original native output-timeout evidence');
+  if(name!=='automatic-local'&&!ass||failures.length!==1||failure?.plan!==direct||failure?.budget!==outputBudget||failure?.automatic!==true||failure?.sourceKind!=='local'||failure?.nativeRemux!=='auto'||failure?.error?.name!=='StartupEvidenceTimeout'||failure?.error?.stage!=='output'||failure?.error?.message!=='Native output evidence timed out'||failure?.error?.evidenceTimeout!==true||!Number.isFinite(failure?.started)||!Number.isFinite(failure?.finished)||failure.finished-failure.started<outputBudget||failure.started<previous.at)violations.push('Missing exact bounded original native output-timeout evidence');
   const attempts=current.diagnostics.selection.attempts,skip=attempts.findIndex(a=>a.mode==='native'&&a.outcome==='skipped'&&a.reason===direct+': '+(ass?'Source policy requires controlled remux transport':'This source policy requires controlled remux transport')),selected=attempts.findIndex(a=>a.mode==='native'&&a.outcome==='selected'&&a.reason===remux+': Playback requirements and actual startup accepted');
   if(skip<0||selected<=skip||attempts.some(a=>a.outcome==='failed'))violations.push('Missing exact controlled-remux recovery selection');
  }else if(failures.length)violations.push('Unaccounted native verification failure');
@@ -347,7 +352,7 @@ function classifyPlaybackPhase({name,previous,current,phase,assetBase,manifestFi
  if(!evidence?.outputVerified||!evidence?.videoPresented||!evidence?.audioProgress||current.audioCounterAvailable&&!evidence?.audioDecoded)violations.push('Native phase lacks observed audio progress and presented video evidence');
  if(ass&&!(backend?.mpvSubtitles?.bitmapUpdates>0))violations.push('ASS phase lacks rendered subtitle output');
  const stem=`web/engine-remux${runtime==='pthread'?'':'-'+runtime}/remux`,subtitle='web/engine-subtitles/service';
- const workerPaths=plan===remux?['web/native-remux-source-worker.js','web/native-remux-worker.js',...runtime==='pthread'?['web/native-mse-worker.js']:[],...ass?['web/mpv-subtitle-worker.js','web/io-worker.js',subtitle+'.mjs']:[]]:ass?['web/mpv-subtitle-worker.js','web/io-worker.js',subtitle+'.mjs']:[];
+ const workerPaths=plan===remux?['web/native-remux-source-worker.js','web/native-remux-worker.js',...workerMSE?['web/native-mse-worker.js']:[],...ass?['web/mpv-subtitle-worker.js','web/io-worker.js',subtitle+'.mjs']:[]]:ass?['web/mpv-subtitle-worker.js','web/io-worker.js',subtitle+'.mjs']:[];
  const roots=new Set(['filter-retained-engine-worker.js','software-full-engine-worker.js','retained-decoder-worker.js','native-mse-worker.js','native-remux-worker.js','native-remux-source-worker.js','io-worker.js','mpv-subtitle-worker.js','browser-decoder-worker.js','audio-worker.js','playback-worker.js','source-probe.js']);
  const allowed=new Set([...workerPaths,...plan===remux?['web/source-probe.js',stem+'.mjs',stem+'.wasm']:[],...ass?[subtitle+'.wasm']:[]]);
  const pathOf=url=>{try{const u=new URL(url);return u.href.startsWith(assetBase)?u.href.slice(assetBase.length):null;}catch{return null;}};
@@ -355,19 +360,19 @@ function classifyPlaybackPhase({name,previous,current,phase,assetBase,manifestFi
  const workers=current.workerEvents.slice(previous.workerEvents.length);
  if(current.workers.length!==current.workerEvents.length||current.workers.some((u,i)=>u!==current.workerEvents[i]?.url))violations.push('Phase worker evidence mismatch');
  for(const event of workers)if(!workerPaths.includes(pathOf(event.url))||!manifestFiles[pathOf(event.url)]||!Number.isFinite(event.at)||!Number.isFinite(minimum)||event.at<minimum)violations.push('Unselected or premature phase worker: '+event.url);
- if(recovery)for(const path of ['web/native-remux-source-worker.js','web/native-remux-worker.js',...runtime==='pthread'?['web/native-mse-worker.js']:[]])if(!workers.some(e=>e.url===new URL(path,assetBase).href))violations.push('Missing actual recovery worker: '+path);
+ if(recovery)for(const path of ['web/native-remux-source-worker.js','web/native-remux-worker.js',...workerMSE?['web/native-mse-worker.js']:[]])if(!workers.some(e=>e.url===new URL(path,assetBase).href))violations.push('Missing actual recovery worker: '+path);
  const requests=current.requests.slice(previous.requests.length),browserRequests=current.browserRequests.slice(previous.browserRequests.length);
  for(const request of [...requests,...browserRequests]){
   if(request.method==='HEAD')continue;
   const pathname=new URL(request.url).pathname;if(!/\.(?:m?js|wasm)$/i.test(pathname))continue;
   const path=pathOf(request.url);
   if(request.method!=='GET'||!manifestFiles[path])violations.push('Foreign or unmanifested phase executable: '+request.url);
-  if(ass&&!current.requests.some(r=>r.url===request.url&&r.method===request.method&&[200,206].includes(r.status)))violations.push('Phase executable lacks local successful HTTP proof: '+request.url);
+  if(!current.requests.some(r=>r.url===request.url&&r.method===request.method&&[200,206].includes(r.status)))violations.push('Phase executable lacks local successful HTTP proof: '+request.url);
   if(pathname.endsWith('.wasm')||/\/engine-[^/]+\/[^/]+\.(?:m?js)$/.test(pathname)||!pathname.includes('/web/generated/')&&roots.has(pathname.split('/').at(-1))){
    if(!allowed.has(path)||!Number.isFinite(request.at)||!Number.isFinite(minimum)||request.at<minimum)violations.push('Unselected or premature phase executable: '+request.url);
   }
  }
- if(recovery)for(const path of [stem+'.mjs',stem+'.wasm'])if(!current.requests.some(r=>r.url===new URL(path,assetBase).href&&r.method==='GET'))violations.push('Missing selected recovery module body: '+path);
+ if(recovery)for(const path of [stem+'.mjs',stem+'.wasm'])if(!current.requests.some(r=>r.url===new URL(path,assetBase).href&&r.method==='GET'&&[200,206].includes(r.status)))violations.push('Missing selected recovery module body: '+path);
  return{violations,outcome:recovery?'native-remux-after-observed-output-timeout':plan,verification:failure??null,phase};
 }
 

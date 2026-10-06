@@ -1,7 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # 1.1.0-rc.2 release readiness
 
-Local qualification completed on 2026-10-06 for **`v1.1.0-rc.2` at `842ec2cffba3a185d36b6202a311159861935bcd`**. The canonical verifier passed, followed by all 12 installed-archive API shards. This is a qualified functional developer-beta candidate; the remote Linux tag workflow and publication have not run.
+Local qualification completed on 2026-10-06 for **`v1.1.0-rc.2` at `842ec2cffba3a185d36b6202a311159861935bcd`**. The canonical verifier passed, followed by all 12 installed-archive API shards. The subsequent Linux publication attempt was blocked as recorded below.
+
+**Publication update:** the tag was pushed, but [Linux release run 37484951060](https://github.com/Jagalite/demuxe/actions/runs/37484951060) blocked publication in Firefox consumer qualification. `automatic-local` and `automatic-ass` recovered and produced output, but the observer expected a 1,500 ms recovery deadline instead of the existing Firefox-specific 500 ms rule and required worker-owned MSE on the window-owned path. The direct case also lacked HTTP-server proof for Firefox worker imports. Original failure receipts are retained in `build/rc2-remote-evidence/`. RC2 was not published; [RC3](RELEASE-1.1.0-rc.3.md) supersedes this publication attempt with corrected observer checks. The local evidence below remains valid only for its recorded bytes and environment.
 
 The candidate includes the functional-core policy migration, adversarial asynchronous state coverage, installed-browser boundary gates, corrected modular package dependencies, and stricter release-report validation. The tested tag and archive are frozen. These closeout notes and publishing-guide corrections are subsequent documentation and do not change the qualified source identity.
 
