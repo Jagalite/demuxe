@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {spawnSync} from 'node:child_process';
 import {beginWait,observeWait,beginAttempts,observeAttempt} from '../../web/generated/internal/machine/async-policy.js';
 import * as worker from '../../web/generated/internal/machine/legacy-playback-worker.js';
 import * as wasm from '../../web/generated/internal/machine/wasm-lifecycle.js';
@@ -228,4 +229,9 @@ test('throwing preview cleanup registration still releases its URL and resolves 
  const provider=new LocalVideoPreviewProvider(()=>new Blob(['media']),{createElement:()=>video});
  await assert.rejects(provider.getFrame({signal:new AbortController().signal,time:0,width:160,trackCleanup:p=>{receipt=p;throw failure;}}),error=>error===failure);
  await receipt;assert.deepEqual(released,['pause','src','load','url']);
+});
+
+for(const file of ['browser.mjs','browser-guard.mjs'])test(`${file}: unsupported browser cannot silently qualify as Chromium`,()=>{
+ const result=spawnSync(process.execPath,[new URL(file,import.meta.url).pathname],{encoding:'utf8',env:{...process.env,BROWSER:'webkit'},timeout:10000});
+ assert.equal(result.status,1);assert.match(result.stderr,/Unsupported browser family/);
 });

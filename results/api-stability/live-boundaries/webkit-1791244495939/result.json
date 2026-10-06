@@ -1,0 +1,1193 @@
+{
+  "family": "webkit",
+  "negativeControl": false,
+  "passed": true,
+  "scope": "Source-runtime live boundary checks; not installed-package or release qualification",
+  "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+  "checks": [
+    {
+      "scenario": "preview-success",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 227.74000000000004,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 253.60000000000005,
+            "kind": "url-acquired"
+          },
+          {
+            "at": 593.3000000000001,
+            "kind": "loadedmetadata"
+          },
+          {
+            "at": 593.94,
+            "kind": "seeking"
+          },
+          {
+            "at": 766.58,
+            "kind": "seeked"
+          },
+          {
+            "at": 1820.54,
+            "kind": "url-released"
+          },
+          {
+            "at": 1820.5600000000002,
+            "kind": "fulfilled"
+          },
+          {
+            "at": 1828.6000000000001,
+            "kind": "abort"
+          },
+          {
+            "at": 1828.6200000000001,
+            "kind": "emptied"
+          }
+        ],
+        "remainingURLs": 0,
+        "bytes": 1029
+      }
+    },
+    {
+      "scenario": "preview-abort-load",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 188.94000000000003,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 193.74,
+            "kind": "url-acquired"
+          },
+          {
+            "at": 204.08,
+            "kind": "cancel"
+          },
+          {
+            "at": 205.82000000000002,
+            "kind": "url-released"
+          },
+          {
+            "at": 206.08,
+            "kind": "rejected",
+            "name": "AbortError",
+            "message": "Preview cancelled"
+          },
+          {
+            "at": 206.26000000000002,
+            "kind": "abort"
+          },
+          {
+            "at": 206.26000000000002,
+            "kind": "emptied"
+          }
+        ],
+        "remainingURLs": 0,
+        "bytes": 0
+      }
+    },
+    {
+      "scenario": "preview-abort-seek",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 90.68,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 91.56,
+            "kind": "url-acquired"
+          },
+          {
+            "at": 273.5,
+            "kind": "loadedmetadata"
+          },
+          {
+            "at": 274.24000000000007,
+            "kind": "seeking"
+          },
+          {
+            "at": 274.24000000000007,
+            "kind": "cancel"
+          },
+          {
+            "at": 274.54,
+            "kind": "url-released"
+          },
+          {
+            "at": 274.76,
+            "kind": "rejected",
+            "name": "AbortError",
+            "message": "Preview cancelled"
+          },
+          {
+            "at": 274.84000000000003,
+            "kind": "abort"
+          },
+          {
+            "at": 274.84000000000003,
+            "kind": "emptied"
+          }
+        ],
+        "remainingURLs": 0,
+        "bytes": 0
+      }
+    },
+    {
+      "scenario": "preview-invalid-media",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 75.34,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 76.34,
+            "kind": "url-acquired"
+          },
+          {
+            "at": 107.10000000000001,
+            "kind": "error"
+          },
+          {
+            "at": 107.56,
+            "kind": "url-released"
+          },
+          {
+            "at": 107.80000000000001,
+            "kind": "rejected",
+            "name": "Error",
+            "message": "Preview media decode failed"
+          },
+          {
+            "at": 107.9,
+            "kind": "emptied"
+          }
+        ],
+        "remainingURLs": 0,
+        "bytes": 0
+      }
+    },
+    {
+      "scenario": "destroy-during-open",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 86.18,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 225.54000000000002,
+            "kind": "state",
+            "status": "idle",
+            "source": null,
+            "intent": "pause"
+          },
+          {
+            "at": 226.52000000000004,
+            "kind": "destroy-request"
+          },
+          {
+            "at": 230.24000000000004,
+            "kind": "destroyed",
+            "outcomes": [
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              }
+            ]
+          }
+        ],
+        "remainingURLs": 0
+      }
+    },
+    {
+      "scenario": "destroy-command-burst",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 118.4,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 276.54,
+            "kind": "state",
+            "status": "idle",
+            "source": null,
+            "intent": "pause"
+          },
+          {
+            "at": 277.74000000000007,
+            "kind": "state",
+            "status": "idle",
+            "source": null,
+            "intent": "pause"
+          },
+          {
+            "at": 331.62,
+            "kind": "url-acquired"
+          },
+          {
+            "at": 555.1,
+            "kind": "state",
+            "status": "paused",
+            "source": 1,
+            "intent": "pause"
+          },
+          {
+            "at": 559.2600000000001,
+            "kind": "state",
+            "status": "paused",
+            "source": 1,
+            "intent": "pause"
+          },
+          {
+            "at": 560.28,
+            "kind": "state",
+            "status": "paused",
+            "source": 1,
+            "intent": "pause"
+          },
+          {
+            "at": 561.58,
+            "kind": "destroy-request"
+          },
+          {
+            "at": 564.44,
+            "kind": "url-released"
+          },
+          {
+            "at": 566.74,
+            "kind": "destroyed",
+            "outcomes": [
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              },
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              },
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              },
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              }
+            ]
+          }
+        ],
+        "remainingURLs": 0
+      }
+    },
+    {
+      "scenario": "hybrid-destroy-during-open",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 106.04,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 294.6,
+            "kind": "state",
+            "status": "idle",
+            "source": null,
+            "intent": "pause"
+          },
+          {
+            "at": 295.20000000000005,
+            "kind": "destroy-request"
+          },
+          {
+            "at": 297.58,
+            "kind": "destroyed",
+            "outcomes": [
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              }
+            ]
+          }
+        ],
+        "remainingURLs": 0
+      }
+    },
+    {
+      "scenario": "hybrid-destroy-command-burst",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 93.30000000000001,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 244.94000000000003,
+            "kind": "state",
+            "status": "idle",
+            "source": null,
+            "intent": "pause"
+          },
+          {
+            "at": 246.34000000000003,
+            "kind": "state",
+            "status": "idle",
+            "source": null,
+            "intent": "pause"
+          },
+          {
+            "at": 2613.92,
+            "kind": "state",
+            "status": "paused",
+            "source": 1,
+            "intent": "pause"
+          },
+          {
+            "at": 2625.7400000000002,
+            "kind": "state",
+            "status": "paused",
+            "source": 1,
+            "intent": "pause"
+          },
+          {
+            "at": 2628.84,
+            "kind": "state",
+            "status": "paused",
+            "source": 1,
+            "intent": "pause"
+          },
+          {
+            "at": 2631.6200000000003,
+            "kind": "destroy-request"
+          },
+          {
+            "at": 2759.9600000000005,
+            "kind": "destroyed",
+            "outcomes": [
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              },
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              },
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              },
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              }
+            ]
+          }
+        ],
+        "remainingURLs": 0
+      }
+    },
+    {
+      "scenario": "software-destroy-during-open",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 132.78,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 253.78,
+            "kind": "state",
+            "status": "idle",
+            "source": null,
+            "intent": "pause"
+          },
+          {
+            "at": 254.52,
+            "kind": "destroy-request"
+          },
+          {
+            "at": 257.24,
+            "kind": "destroyed",
+            "outcomes": [
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              }
+            ]
+          }
+        ],
+        "remainingURLs": 0
+      }
+    },
+    {
+      "scenario": "software-destroy-command-burst",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 90.82000000000001,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 204.34000000000003,
+            "kind": "state",
+            "status": "idle",
+            "source": null,
+            "intent": "pause"
+          },
+          {
+            "at": 205.62000000000003,
+            "kind": "state",
+            "status": "idle",
+            "source": null,
+            "intent": "pause"
+          },
+          {
+            "at": 1619.7,
+            "kind": "state",
+            "status": "paused",
+            "source": 1,
+            "intent": "pause"
+          },
+          {
+            "at": 1630.6600000000003,
+            "kind": "state",
+            "status": "paused",
+            "source": 1,
+            "intent": "pause"
+          },
+          {
+            "at": 1631.96,
+            "kind": "state",
+            "status": "paused",
+            "source": 1,
+            "intent": "pause"
+          },
+          {
+            "at": 1633.7800000000002,
+            "kind": "destroy-request"
+          },
+          {
+            "at": 1713.1200000000001,
+            "kind": "destroyed",
+            "outcomes": [
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              },
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              },
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              },
+              {
+                "status": "rejected",
+                "code": "ABORTED",
+                "name": "PlayerError"
+              }
+            ]
+          }
+        ],
+        "remainingURLs": 0
+      }
+    },
+    {
+      "scenario": "network-inspection-cancel",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 154.74,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 367.78000000000003,
+            "kind": "inspection-aborted"
+          },
+          {
+            "at": 389.06,
+            "kind": "successor-accepted"
+          },
+          {
+            "at": 391.0400000000001,
+            "kind": "network",
+            "requests": [
+              {
+                "fault": "hold",
+                "range": "bytes=0-65535",
+                "at": 1791244516415
+              },
+              {
+                "fault": "ok",
+                "range": "bytes=0-65535",
+                "at": 1791244516445
+              },
+              {
+                "fault": "ok",
+                "range": "bytes=1356055-1372303",
+                "at": 1791244516457
+              }
+            ],
+            "aborted": 1,
+            "released": true,
+            "held": 0
+          }
+        ],
+        "network": {
+          "requests": [
+            {
+              "fault": "hold",
+              "range": "bytes=0-65535",
+              "at": 1791244516415
+            },
+            {
+              "fault": "ok",
+              "range": "bytes=0-65535",
+              "at": 1791244516445
+            },
+            {
+              "fault": "ok",
+              "range": "bytes=1356055-1372303",
+              "at": 1791244516457
+            }
+          ],
+          "aborted": 1,
+          "released": true,
+          "held": 0
+        }
+      }
+    },
+    {
+      "scenario": "network-auth-cancel",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 120.02000000000001,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 369.56000000000006,
+            "kind": "refresh-entered"
+          },
+          {
+            "at": 381.88000000000005,
+            "kind": "inspection-aborted"
+          },
+          {
+            "at": 596.1,
+            "kind": "successor-accepted"
+          },
+          {
+            "at": 601.1800000000001,
+            "kind": "network",
+            "requests": [
+              {
+                "fault": "auth",
+                "range": "bytes=0-65535",
+                "at": 1791244517125
+              },
+              {
+                "fault": "ok",
+                "range": "bytes=0-65535",
+                "at": 1791244517316
+              },
+              {
+                "fault": "ok",
+                "range": "bytes=1356055-1372303",
+                "at": 1791244517354
+              }
+            ],
+            "aborted": 0,
+            "released": false,
+            "held": 0
+          }
+        ],
+        "network": {
+          "requests": [
+            {
+              "fault": "auth",
+              "range": "bytes=0-65535",
+              "at": 1791244517125
+            },
+            {
+              "fault": "ok",
+              "range": "bytes=0-65535",
+              "at": 1791244517316
+            },
+            {
+              "fault": "ok",
+              "range": "bytes=1356055-1372303",
+              "at": 1791244517354
+            }
+          ],
+          "aborted": 0,
+          "released": false,
+          "held": 0
+        }
+      }
+    },
+    {
+      "scenario": "network-auth-success",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 101.70000000000002,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 255.6,
+            "kind": "refresh-entered"
+          },
+          {
+            "at": 273.22,
+            "kind": "inspection-accepted",
+            "format": "mov,mp4,m4a,3gp,3g2,mj2"
+          },
+          {
+            "at": 278.62000000000006,
+            "kind": "successor-accepted"
+          },
+          {
+            "at": 281.86,
+            "kind": "network",
+            "requests": [
+              {
+                "fault": "auth",
+                "range": "bytes=0-65535",
+                "at": 1791244517927
+              },
+              {
+                "fault": "ok",
+                "range": "bytes=0-65535",
+                "at": 1791244517929
+              },
+              {
+                "fault": "ok",
+                "range": "bytes=1356055-1372303",
+                "at": 1791244517942
+              },
+              {
+                "fault": "ok",
+                "range": "bytes=0-65535",
+                "at": 1791244517947
+              },
+              {
+                "fault": "ok",
+                "range": "bytes=1356055-1372303",
+                "at": 1791244517950
+              }
+            ],
+            "aborted": 0,
+            "released": false,
+            "held": 0
+          }
+        ],
+        "network": {
+          "requests": [
+            {
+              "fault": "auth",
+              "range": "bytes=0-65535",
+              "at": 1791244517927
+            },
+            {
+              "fault": "ok",
+              "range": "bytes=0-65535",
+              "at": 1791244517929
+            },
+            {
+              "fault": "ok",
+              "range": "bytes=1356055-1372303",
+              "at": 1791244517942
+            },
+            {
+              "fault": "ok",
+              "range": "bytes=0-65535",
+              "at": 1791244517947
+            },
+            {
+              "fault": "ok",
+              "range": "bytes=1356055-1372303",
+              "at": 1791244517950
+            }
+          ],
+          "aborted": 0,
+          "released": false,
+          "held": 0
+        }
+      }
+    },
+    {
+      "scenario": "network-auth-rejected",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 75.46,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 242.64000000000001,
+            "kind": "refresh-entered"
+          },
+          {
+            "at": 269.12,
+            "kind": "successor-accepted"
+          },
+          {
+            "at": 272.86000000000007,
+            "kind": "network",
+            "requests": [
+              {
+                "fault": "auth",
+                "range": "bytes=0-65535",
+                "at": 1791244518488
+              },
+              {
+                "fault": "ok",
+                "range": "bytes=0-65535",
+                "at": 1791244518496
+              },
+              {
+                "fault": "ok",
+                "range": "bytes=1356055-1372303",
+                "at": 1791244518512
+              }
+            ],
+            "aborted": 0,
+            "released": false,
+            "held": 0
+          }
+        ],
+        "network": {
+          "requests": [
+            {
+              "fault": "auth",
+              "range": "bytes=0-65535",
+              "at": 1791244518488
+            },
+            {
+              "fault": "ok",
+              "range": "bytes=0-65535",
+              "at": 1791244518496
+            },
+            {
+              "fault": "ok",
+              "range": "bytes=1356055-1372303",
+              "at": 1791244518512
+            }
+          ],
+          "aborted": 0,
+          "released": false,
+          "held": 0
+        }
+      }
+    },
+    {
+      "scenario": "network-epoch-reuse",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 102.12,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 280.32,
+            "kind": "network",
+            "requests": [
+              {
+                "fault": "hold",
+                "range": "bytes=0-1023",
+                "at": 1791244519063
+              },
+              {
+                "fault": "hold",
+                "range": "bytes=0-1023",
+                "at": 1791244519070
+              }
+            ],
+            "aborted": 1,
+            "released": true,
+            "held": 0
+          }
+        ],
+        "network": {
+          "requests": [
+            {
+              "fault": "hold",
+              "range": "bytes=0-1023",
+              "at": 1791244519063
+            },
+            {
+              "fault": "hold",
+              "range": "bytes=0-1023",
+              "at": 1791244519070
+            }
+          ],
+          "aborted": 1,
+          "released": true,
+          "held": 0
+        }
+      }
+    },
+    {
+      "scenario": "network-retry-success",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 79.26,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 253.38,
+            "kind": "network",
+            "requests": [
+              {
+                "fault": "retry",
+                "range": "bytes=0-1023",
+                "at": 1791244519500
+              },
+              {
+                "fault": "retry",
+                "range": "bytes=0-1023",
+                "at": 1791244519571
+              }
+            ],
+            "aborted": 0,
+            "released": false,
+            "held": 0
+          }
+        ],
+        "network": {
+          "requests": [
+            {
+              "fault": "retry",
+              "range": "bytes=0-1023",
+              "at": 1791244519500
+            },
+            {
+              "fault": "retry",
+              "range": "bytes=0-1023",
+              "at": 1791244519571
+            }
+          ],
+          "aborted": 0,
+          "released": false,
+          "held": 0
+        }
+      }
+    },
+    {
+      "scenario": "network-representation-change",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 73.54,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 180.72000000000003,
+            "kind": "identity-rejected",
+            "message": "Media representation changed"
+          },
+          {
+            "at": 182.4,
+            "kind": "network",
+            "requests": [
+              {
+                "fault": "changed",
+                "range": "bytes=0-1023",
+                "at": 1791244519995
+              },
+              {
+                "fault": "changed",
+                "range": "bytes=1024-2047",
+                "at": 1791244519997
+              }
+            ],
+            "aborted": 0,
+            "released": false,
+            "held": 0
+          }
+        ],
+        "network": {
+          "requests": [
+            {
+              "fault": "changed",
+              "range": "bytes=0-1023",
+              "at": 1791244519995
+            },
+            {
+              "fault": "changed",
+              "range": "bytes=1024-2047",
+              "at": 1791244519997
+            }
+          ],
+          "aborted": 0,
+          "released": false,
+          "held": 0
+        }
+      }
+    },
+    {
+      "scenario": "network-player-open-cancel",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 91.14000000000001,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 266.32,
+            "kind": "request-held"
+          },
+          {
+            "at": 274.12,
+            "kind": "open-aborted"
+          },
+          {
+            "at": 796.6200000000001,
+            "kind": "replacement-accepted",
+            "source": 1,
+            "bytes": 76646,
+            "states": [
+              {
+                "source": null,
+                "status": "idle"
+              },
+              {
+                "source": null,
+                "status": "idle"
+              },
+              {
+                "source": null,
+                "status": "idle"
+              },
+              {
+                "source": null,
+                "status": "idle"
+              },
+              {
+                "source": 1,
+                "status": "paused"
+              },
+              {
+                "source": 1,
+                "status": "paused"
+              },
+              {
+                "source": 1,
+                "status": "paused"
+              },
+              {
+                "source": 1,
+                "status": "paused"
+              },
+              {
+                "source": 1,
+                "status": "paused"
+              },
+              {
+                "source": 1,
+                "status": "paused"
+              }
+            ]
+          },
+          {
+            "at": 798.9600000000002,
+            "kind": "network",
+            "requests": [
+              {
+                "fault": "hold",
+                "range": "bytes=0-65535",
+                "at": 1791244520485
+              }
+            ],
+            "aborted": 1,
+            "released": true,
+            "held": 0
+          }
+        ],
+        "network": {
+          "requests": [
+            {
+              "fault": "hold",
+              "range": "bytes=0-65535",
+              "at": 1791244520485
+            }
+          ],
+          "aborted": 1,
+          "released": true,
+          "held": 0
+        }
+      }
+    },
+    {
+      "scenario": "network-player-auth-destroy",
+      "passed": true,
+      "errors": [],
+      "evidence": {
+        "trace": [
+          {
+            "at": 76.02000000000001,
+            "kind": "fixture",
+            "sha256": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c"
+          },
+          {
+            "at": 209.06000000000003,
+            "kind": "refresh-entered"
+          },
+          {
+            "at": 229.52000000000004,
+            "kind": "request-held"
+          },
+          {
+            "at": 388.20000000000005,
+            "kind": "open-aborted"
+          },
+          {
+            "at": 791.42,
+            "kind": "replacement-accepted",
+            "source": 1,
+            "bytes": 76646,
+            "states": [
+              {
+                "source": null,
+                "status": "idle"
+              },
+              {
+                "source": null,
+                "status": "idle"
+              },
+              {
+                "source": null,
+                "status": "idle"
+              }
+            ]
+          },
+          {
+            "at": 793.5400000000001,
+            "kind": "network",
+            "requests": [
+              {
+                "fault": "auth",
+                "range": "bytes=0-65535",
+                "at": 1791244521505
+              }
+            ],
+            "aborted": 0,
+            "released": false,
+            "held": 0
+          }
+        ],
+        "network": {
+          "requests": [
+            {
+              "fault": "auth",
+              "range": "bytes=0-65535",
+              "at": 1791244521505
+            }
+          ],
+          "aborted": 0,
+          "released": false,
+          "held": 0
+        }
+      }
+    }
+  ],
+  "hashes": {
+    "fixtures/example.mp4": "6c9cac6f4212f470d79a9f829f29ba459e6c3e401fab9feb6d757a10a507404c",
+    "tests/api-stability/live-boundaries.mjs": "3826d6f9c1498afc01d244237bcdc06e9d763d0e3e5950ca07b4c70c0154c1f0",
+    "tests/api-stability/live-check-helpers.mjs": "6bf8b2909069636dc1e1f96c111f6d0581104febd3e67c4c9dc9e95a6cc9568b",
+    "tests/api-stability/live-network-scenarios.mjs": "89fee3b8b1e775c7828d3adc0a040dc198a1a48901e17eb50d14345c7bbc9e37",
+    "tests/api-stability/live-fault-server.mjs": "0d6c8cc08d08821614e368aec484d9cf367fb5acce03ff3b217645ec2e3f92fa",
+    "web/range-reader.js": "a3d4275667fcd675e01bc1169ef61b522cfabf1cb0ae778abf712cb8a15c0586",
+    "web/generated/sources.js": "8edc49f85792498e7f64c8b50c459748957c15dbc7f00c7d52af20473baefcd1",
+    "tests/api-stability/live-boundary-scenarios.mjs": "420cc1a0beb36f2a51c6406d0a1320ad948dea52d6f0425992c6c289c193a50b",
+    "web/generated/preview/providers.js": "d1fac76111a638f434c40ef95c15ef753e364bea62387a1fcbabaa08ca92c75d",
+    "web/generated/internal/machine/async-policy.js": "9c676d0c2419654745e2a19081d708756b6eeb636bf6b14e6230821d1c7f209a",
+    "web/generated/internal/machine/preview.js": "d18d5e39ce90f3413fc41ad5ad58ee974de3dc8f0ffd60735ebb7c3fd2db2025"
+  },
+  "origin": "http://127.0.0.1:55926",
+  "assetOrigin": "http://127.0.0.1:55923",
+  "servedHashes": {
+    "web/range-reader.js": "a3d4275667fcd675e01bc1169ef61b522cfabf1cb0ae778abf712cb8a15c0586",
+    "web/generated/sources.js": "8edc49f85792498e7f64c8b50c459748957c15dbc7f00c7d52af20473baefcd1",
+    "web/generated/preview/providers.js": "d1fac76111a638f434c40ef95c15ef753e364bea62387a1fcbabaa08ca92c75d",
+    "web/generated/internal/machine/async-policy.js": "9c676d0c2419654745e2a19081d708756b6eeb636bf6b14e6230821d1c7f209a",
+    "web/generated/internal/machine/preview.js": "d18d5e39ce90f3413fc41ad5ad58ee974de3dc8f0ffd60735ebb7c3fd2db2025"
+  },
+  "browser": "26.0"
+}

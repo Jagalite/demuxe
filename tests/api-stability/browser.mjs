@@ -7,6 +7,7 @@ import {checkSequenceModel} from './sequence-model.mjs';
 import {checkRuntimeBuffering} from '../buffering/runtime-policy-browser.mjs';
 
 const family=process.env.BROWSER??'chromium';
+if(!['chromium','chrome','firefox'].includes(family))throw Error('Unsupported browser family for sequence suite: '+family);
 const directory=`results/api-stability/scenarios/${family}-${Date.now()}`;
 await mkdir(directory,{recursive:true});
 const report={family,passed:false,checks:[]};

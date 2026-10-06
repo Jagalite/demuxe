@@ -55,3 +55,39 @@ Validation: 140 affected-suite tests passed; the full unit gate passed 3,405/3,4
 ## Archived evidence
 
 The selected receipts in `results/functional-core-review-20261005/` and `results/functional-core-migration-20261005/` retain their original source hashes, counts and pre-commit status. They describe earlier snapshots, not the final current runtime. The 3,405-test gate receipt is retained separately at `results/api-stability/gate-unit-all-node-1791232047213/result.json`. Historical source probes may intentionally fail against later implementations.
+
+## Live browser boundary discovery
+
+`tests/api-stability/live-boundaries.mjs` runs ten source-runtime scenarios with explicit `BROWSER=chromium`, `BROWSER=firefox`, or `BROWSER=webkit`; unknown families fail instead of falling back to Chromium. Run each separately:
+
+```sh
+BROWSER=chromium node tests/api-stability/live-boundaries.mjs
+BROWSER=firefox node tests/api-stability/live-boundaries.mjs
+BROWSER=webkit node tests/api-stability/live-boundaries.mjs
+```
+
+The shared `live-boundary-scenarios.mjs` checks decoded preview output, cancellation triggered by actual `loadstart` and `seeking` events, invalid-media rejection, and destruction during open or queued play/seek/pause work in Native, Hybrid and Software modes. It verifies settled operations, detached media sources, revoked observed object URLs, retired subscriptions and removed player-owned DOM. Context isolation and bounded scenario/cleanup waits contain failures. Each report retains browser version, revision, harness/fixture/selected-runtime hashes, served-asset comparisons, timestamped event/state traces, unexpected page errors and failure screenshots. Browser-side hashing checks the actual fixture bytes used.
+
+Run the deliberate cleanup mutation to test the oracle (expected nonzero exit and a failed `preview-success` case):
+
+```sh
+LIVE_NEGATIVE_CONTROL=retain-preview-source BROWSER=chromium node tests/api-stability/live-boundaries.mjs
+```
+
+The mutation suppresses removal of the actual preview element's source attribute; it does not edit production files. Failed negative controls remain failed reports and are never counted as passing live scenarios.
+
+This is an optional discovery suite, separate from packaged release gates. It intentionally rejects `DEMUXE_RUNTIME_ROOT` so source hashes cannot be mistaken for installed-package identity. It does not qualify shipping Safari, all network faults, Shaka/live-stream quality changes, private-engine output, audible fidelity, OS/GPU allocation release, or endurance. The older sequence harness still supports Chromium/Firefox only; it and the API browser guard now explicitly reject unsupported families rather than silently launch Chromium. The sampled runtime hashes are not a complete package manifest.
+
+The final live matrix passed 10/10 cases in each family (30 total): Chromium `chromium-1791239861942`, Firefox `firefox-1791239867194`, and WebKit `webkit-1791239878233`, under `results/api-stability/live-boundaries/`. The deliberate retained-source mutation failed at the intended cleanup assertion. The focused remaining-policy suite passed 42/42, including the two unsupported-browser regression cases. No production runtime failure was found in this bounded cohort; broader live campaigns remain separate.
+
+## Live network campaign
+
+Nine added scenarios cover held real-HTTP reads, aborted/successful/rejected credential refresh, epoch reuse, 503 retry, changed representation identity, cancelled remote open with accepted replacement output, and destruction during pending credential refresh. Server-side request-close barriers distinguish physical network cancellation from promise rejection. All 19 scenarios passed in Chromium, Firefox and WebKit (57 total) in `chromium-1791241514809`, `firefox-1791241532127` and `webkit-1791241546772` under `results/api-stability/live-boundaries/`. Earlier failed runs hit Chromium loopback policy because of the intercepted test document; the final harness serves a real HTTP document and proxies unchanged source assets without disabling browser security. This same-origin cohort does not qualify cross-origin auth/CORS or every streaming backend. No production source changed.
+
+Validation after the network campaign: the full unit gate passed 3,410/3,410 with consumer type checks (`results/api-stability/gate-unit-all-node-1791241608001/result.json`). The retained-source negative control still fails at the expected live cleanup assertion (`chromium-1791241605944`). The fault-server and range-deadline focused suites passed 13/13.
+
+### Live-harness review fixes
+
+Failure trace collection and screenshots now have independent deadlines, so an unresponsive page cannot indefinitely block context cleanup. Range recovery assertions require exactly 16 bytes and matching contents. Coverage receipts must contain successful checks, browser/revision metadata, all required input hashes, and matching served runtime hashes before they can claim matching inputs. A shared input manifest includes the new helper module.
+
+Four maintained regression tests cover stalled and closed diagnostic pages, empty/truncated/oversized/corrupt reads, and malformed or incomplete receipts. The refreshed unit gate passed 3,414 tests and consumer typechecks (`results/api-stability/gate-unit-all-node-1791244496769/result.json`). All 19 scenarios passed again in Chromium, Firefox and WebKit (57 total); the coverage map points to the three `*-1791244495939/result.json` receipts. The retained-preview-source negative control failed as expected and preserved its trace and screenshot (`chromium-1791244525271/result.json`). The first rerun exposed a missing test-helper HTTP route, which was corrected in the fault server before the successful reruns. These remain source-runtime boundary checks, not installed-package qualification.

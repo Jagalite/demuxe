@@ -2,6 +2,7 @@
 // Preloaded by the suite runner, including for older browser harnesses.
 import {chromium,firefox} from 'playwright';
 import {writeFileSync} from 'node:fs';
+if(!['chromium','chrome','firefox'].includes(process.env.BROWSER??'chromium'))throw Error('Unsupported browser family for API guard: '+process.env.BROWSER);
 const errors=[],seen=new WeakSet();let pages=0,launches=0;
 function observe(page){if(seen.has(page))return;seen.add(page);pages++;page.on('pageerror',error=>errors.push(String(error.stack)));page.on('crash',()=>errors.push('Browser page crashed'));}
 for(const [family,type]of [['chromium',chromium],['firefox',firefox]]){

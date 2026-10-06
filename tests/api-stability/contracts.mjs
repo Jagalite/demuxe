@@ -28,3 +28,15 @@ test('all package entrypoints import in SSR without registering browser globals'
   assert.equal(globalThis.customElements,undefined);
   assert.equal(globalThis.document,undefined);
 });
+
+test('behavior map accounts for every declared runtime API without treating inventory as full coverage',async()=>{
+ const {buildCoverage}=await import('../../scripts/report-api-coverage.mjs');
+ const current=await buildCoverage(),recorded=JSON.parse(await readFile('docs/api-behavior-coverage.json','utf8'));
+ assert.deepEqual(current.unmapped,[],'Review newly exported runtime members and record their behavior family or gap');
+ const mapping=report=>report.runtime.map(({key,status,behaviorGroup,liveAssertions})=>({key,status,behaviorGroup,liveAssertions}));
+ assert.deepEqual(mapping(recorded),mapping(current),'Refresh the reviewed member-level coverage report');
+ assert.deepEqual(recorded.structural,current.structural,'Type/data contract inventory drifted');
+ assert.ok(current.dataContracts.every(row=>row.status==='structural-only'));
+ assert.equal(current.summary.fullyCovered,0,'This family-level inventory must not claim exhaustive behavior coverage');
+ for(const group of current.behaviorGroups){assert.ok(group.gaps.length,group.id);assert.ok(group.states&&group.failures&&group.backends,group.id);}
+});

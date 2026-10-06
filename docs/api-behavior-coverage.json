@@ -1,0 +1,6583 @@
+{
+  "schema": 1,
+  "scope": "Declared runtime exports, class members and constructors for all seven published entrypoints; structural export/member snapshot includes types. Inherited platform APIs and nested option/event/return-value semantics need separate review.",
+  "interpretation": "Mapped-partial links a member to a reviewed behavior family and relevant test implementations. It does not assert that every member or behavior in that family is directly tested. Live evidence applies only to the listed assertions and sampled input hashes; it is not complete package or release qualification.",
+  "summary": {
+    "entrypoints": 7,
+    "exportDeclarations": 130,
+    "runtimeItems": 222,
+    "mappedPartial": 222,
+    "unmapped": 0,
+    "withRecentLiveAssertions": 7,
+    "fullyCovered": 0,
+    "structuralOnlyContracts": 101
+  },
+  "behaviorGroups": [
+    {
+      "id": "construction",
+      "apis": [
+        ".#Player.constructor",
+        ".#PlayerError.constructor",
+        ".#PreviewController.constructor",
+        ".#AuthoredPreviewProvider.constructor",
+        ".#LocalVideoPreviewProvider.constructor",
+        ".#SoftwarePreviewProvider.constructor",
+        ".#PlayerPresentation.constructor",
+        "./player#DemuxePlayerElement.constructor",
+        "./integration#PlaybackBinding.constructor",
+        "./media-element#DemuxeMediaElement.constructor",
+        "./components#ProviderAcquisition.constructor"
+      ],
+      "behavior": "Construct owners, apply options and roll back partial acquisition",
+      "states": "constructing, active, retired during construction",
+      "failures": "invalid host/options, resource acquisition failure, reentry",
+      "backends": "DOM owners, providers and backend-independent facades",
+      "unit": [
+        "tests/api-stability/player-acquisition.mjs",
+        "tests/api-stability/consumer-preview-acquisition.mjs",
+        "tests/api-stability/provider-acquisition-state.mjs",
+        "tests/integration.mjs"
+      ],
+      "browser": [
+        "tests/player-component.mjs",
+        "tests/integration-browser.mjs"
+      ],
+      "gaps": [
+        "Full constructor-option cross-product is not audited",
+        "Provider and error constructors need dedicated individual assertion review"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "source-lifecycle",
+      "apis": [
+        ".#Player.open",
+        ".#Player.openRemote",
+        ".#Player.close",
+        ".#Player.destroy",
+        ".#Player.ready",
+        ".#Player.isDestroyed"
+      ],
+      "behavior": "Admit a source, retire old work, join cleanup, permit close/reopen",
+      "states": "idle, opening, ready, closing, destroyed",
+      "failures": "abort, replacement, stale completion, cleanup failure",
+      "backends": "Native, Hybrid, Software; streaming path separately",
+      "unit": [
+        "tests/api-stability/source-acceptance-state.mjs",
+        "tests/api-stability/player-teardown.mjs",
+        "tests/api-stability/wasm-player-lifecycle.mjs"
+      ],
+      "browser": [
+        "tests/api-stability/browser.mjs",
+        "tests/api-stability/live-boundary-scenarios.mjs",
+        "tests/api-stability/live-network-scenarios.mjs"
+      ],
+      "gaps": [
+        "Network failures across Hybrid/Software remote opens, adaptive streams and custom sources beyond the bounded Native file cases",
+        "Close/reopen combined with authentication failure and cleanup errors"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "transport",
+      "apis": [
+        ".#Player.play",
+        ".#Player.pause",
+        ".#Player.seek",
+        ".#Player.rate",
+        ".#Player.volume",
+        ".#Player.setVolume",
+        ".#Player.setMuted",
+        ".#Player.setPlaybackRate"
+      ],
+      "behavior": "Preserve accepted intent and latest seek; validate and apply settings",
+      "states": "idle, paused, playing, seeking, buffering, retired",
+      "failures": "invalid arguments, supersession, reentry, operation failure",
+      "backends": "Native, Hybrid, Software",
+      "unit": [
+        "tests/api-stability/player-transport-state.mjs",
+        "tests/api-stability/settings-adversarial-sequences.mjs",
+        "tests/play-pause-cancellation.mjs"
+      ],
+      "browser": [
+        "tests/api-stability/browser.mjs",
+        "tests/api-stability/sequence-model.mjs"
+      ],
+      "gaps": [
+        "Every command pair under delayed network/output and replacement",
+        "Browser activation, backgrounding and device changes across all routes"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "observation",
+      "apis": [
+        ".#Player.state",
+        ".#Player.subscribe",
+        ".#Player.addEventListener",
+        ".#Player.removeEventListener",
+        ".#Player.properties",
+        ".#Player.diagnostics",
+        ".#Player.capabilities",
+        ".#Player.mediaInfo",
+        ".#Player.surface",
+        ".#Player.host",
+        ".#Player.getStats",
+        ".#Player.getPlaybackExplanation",
+        ".#Player.audioDiagnostics"
+      ],
+      "behavior": "Publish immutable current-source observations and retire subscriptions",
+      "states": "idle, active, replaced, destroyed",
+      "failures": "observer throws, reentry, stale backend events",
+      "backends": "All routed backends; raw diagnostics differ",
+      "unit": [
+        "tests/api-stability/player-publication-state.mjs",
+        "tests/api-stability/player-projection.mjs",
+        "tests/roadmap-contracts.mjs"
+      ],
+      "browser": [
+        "tests/public-api.mjs",
+        "tests/api-stability/browser.mjs"
+      ],
+      "gaps": [
+        "Event ordering and every state projection under live faults",
+        "Raw properties/audio diagnostics are not individually audited here"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "routing",
+      "apis": [
+        ".#Player.mode",
+        ".#Player.automaticSelection",
+        ".#Player.setMode",
+        ".#Player.setAutomaticSelection",
+        ".#Player.trackPolicy",
+        ".#Player.setVideoFilters",
+        ".#Player.setAudioFilters",
+        ".#Player.setAudioGain",
+        ".#Player.setToneMapping",
+        ".#Player.setWatchdogs",
+        ".#Player.watchdogs"
+      ],
+      "behavior": "Admit compatible routes and preserve intent/settings across transitions",
+      "states": "unloaded, active, selecting, recovering, retired",
+      "failures": "unsupported capability, asset failure, source replacement",
+      "backends": "Route-dependent Native, Hybrid, Software",
+      "unit": [
+        "tests/api-stability/player-route-adversarial.mjs",
+        "tests/api-stability/settings-routing-core.mjs",
+        "tests/api-stability/startup-adversarial-sequences.mjs"
+      ],
+      "browser": [
+        "tests/automatic-selection.mjs",
+        "tests/api-stability/sequence-model.mjs"
+      ],
+      "gaps": [
+        "Live recovery for every filter/codec/provider combination",
+        "Concurrent route change with attachment, preview and network failures"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "preparation",
+      "apis": [
+        ".#Player.prepare",
+        ".#Player.preparationReady",
+        ".#Player.preparationProgress"
+      ],
+      "behavior": "Share/cancel preparation and report progress without reviving retired owners",
+      "states": "unprepared, preparing, ready, failed, destroyed",
+      "failures": "fetch failure, cancellation, concurrent consumers",
+      "backends": "Asset/provider dependent",
+      "unit": [
+        "tests/api-stability/engine-preparation-state.mjs",
+        "tests/engine-preparation.mjs"
+      ],
+      "browser": [
+        "tests/asset-deployment-browser.mjs"
+      ],
+      "gaps": [
+        "Cross-browser cancellation during compile/instantiate",
+        "Cache corruption and deployment revision changes"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "tracks-attachments",
+      "apis": [
+        ".#Player.selectTrack",
+        ".#Player.selectAudioTrack",
+        ".#Player.selectSubtitleTrack",
+        ".#Player.subtitleVisible",
+        ".#Player.addSubtitle",
+        ".#Player.attachSubtitle",
+        ".#Player.addFont",
+        ".#Player.attachFont",
+        ".#Player.addTextTrack",
+        ".#Player.attachTextTrack",
+        ".#Player.removeAttachment"
+      ],
+      "behavior": "Keep track intent and attachment identity scoped to the accepted source",
+      "states": "opening, ready, replacing, destroyed",
+      "failures": "forged/stale handle, partial attachment, superseded selection",
+      "backends": "Native text/ASS, Hybrid, Software, Shaka have different support",
+      "unit": [
+        "tests/api-stability/attachment-state.mjs",
+        "tests/api-stability/track-selection-state.mjs",
+        "tests/track-policy.mjs"
+      ],
+      "browser": [
+        "tests/roadmap-browser.mjs",
+        "tests/api-stability/browser.mjs",
+        "tests/native-subtitle-selection-timing.mjs"
+      ],
+      "gaps": [
+        "Live attach/remove/select races across every supported backend",
+        "Missing fonts, failed subtitle transfers and source replacement combinations"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "timing-style",
+      "apis": [
+        ".#Player.getTimingSettings",
+        ".#Player.setSubtitleDelay",
+        ".#Player.setAudioDelay",
+        ".#Player.setSubtitleStyle"
+      ],
+      "behavior": "Validate timing/style settings and apply effective values on supported routes",
+      "states": "idle, ready, switching, destroyed",
+      "failures": "invalid values, backend rejection, retired setting",
+      "backends": "Capability dependent; plain-text style scope",
+      "unit": [
+        "tests/api-stability/settings-transactions.mjs",
+        "tests/api-stability/advanced-controls-state.mjs"
+      ],
+      "browser": [
+        "tests/api-stability/advanced-settings.mjs",
+        "tests/roadmap-browser.mjs"
+      ],
+      "gaps": [
+        "Actual subtitle/audio synchronization after overlapping timing changes",
+        "Explicit unsupported-route and style coverage per browser"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "buffering",
+      "apis": [
+        ".#Player.getBuffering",
+        ".#Player.setBuffering"
+      ],
+      "behavior": "Resolve requested buffering policy into route-specific effective state",
+      "states": "paused, playing, buffering, replacing",
+      "failures": "invalid policy, configure rejection, source retirement",
+      "backends": "Native hints versus mpv/Shaka controls",
+      "unit": [
+        "tests/buffering-policy.mjs",
+        "tests/shaka-backend.mjs"
+      ],
+      "browser": [
+        "tests/buffering/runtime-policy-browser.mjs"
+      ],
+      "gaps": [
+        "Live transfer interruption during policy changes",
+        "Authentication refresh and memory pressure across streaming routes"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "streaming-quality",
+      "apis": [
+        ".#Player.getStreamingState",
+        ".#Player.setQuality",
+        ".#Player.seekToLive"
+      ],
+      "behavior": "Constrain quality by source/audio intent and restore failed configurations",
+      "states": "loaded, selecting, buffering, live, retired",
+      "failures": "configure/select/verify failure, rollback failure, supersession",
+      "backends": "Shaka; other routes capability-gated",
+      "unit": [
+        "tests/shaka-backend.mjs",
+        "tests/api-stability/shaka-selection.mjs",
+        "tests/api-stability/remaining-policy-sequences.mjs"
+      ],
+      "browser": [
+        "tests/shaka-lifecycle.mjs"
+      ],
+      "gaps": [
+        "Cross-browser quality/audio races under segment failures",
+        "Live-edge movement and authorization refresh during rollback"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "ranges-output",
+      "apis": [
+        ".#Player.seekChapter",
+        ".#Player.getPlaybackRange",
+        ".#Player.setPlaybackRange",
+        ".#Player.getLoop",
+        ".#Player.setLoop",
+        ".#Player.stepFrame",
+        ".#Player.snapshot",
+        ".#Player.resize"
+      ],
+      "behavior": "Keep range/loop/chapter actions source-scoped and expose actual image output",
+      "states": "paused, playing, boundary, replaced, destroyed",
+      "failures": "invalid range, stale chapter, unsupported frame step, snapshot retirement",
+      "backends": "Feature-dependent Native, Hybrid, Software",
+      "unit": [
+        "tests/roadmap-contracts.mjs",
+        "tests/api-stability/playback-boundary.mjs",
+        "tests/api-stability/player-actions.mjs"
+      ],
+      "browser": [
+        "tests/roadmap-browser.mjs",
+        "tests/api-stability/browser.mjs"
+      ],
+      "gaps": [
+        "Boundary combinations with reverse step, EOF, source replacement and resize",
+        "Live snapshot cancellation and pixel correctness on every supported route"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "audio-device",
+      "apis": [
+        ".#Player.getAudioOutputDevice",
+        ".#Player.setAudioOutputDevice"
+      ],
+      "behavior": "Select an output device with capability and permission checks",
+      "states": "active, changing device, retired",
+      "failures": "unsupported sink, permission rejection, device failure",
+      "backends": "Browser/device capability dependent",
+      "unit": [
+        "tests/api-stability/player-actions.mjs"
+      ],
+      "browser": [
+        "tests/roadmap-browser.mjs"
+      ],
+      "gaps": [
+        "Real device removal, permission revocation and repeated changes",
+        "Per-browser physical routing and audible output remain unverified"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "preview-facade",
+      "apis": [
+        ".#Player.preview"
+      ],
+      "behavior": "Expose source-scoped image requests and cache controls",
+      "states": "idle, paused, playing, seeking, replacing, destroyed",
+      "failures": "abort, stale completion, cache pressure, provider failure",
+      "backends": "Browser/remux/software/authored/Shaka providers",
+      "unit": [
+        "tests/preview-facade.mjs",
+        "tests/api-stability/preview-route-isolation.mjs"
+      ],
+      "browser": [
+        "tests/preview-browser.mjs",
+        "tests/preview-software.mjs",
+        "tests/preview-shaka-browser.mjs"
+      ],
+      "gaps": [
+        "Provider fallback during live network/decoder failures",
+        "All exact-time and cache-boundary combinations across browsers"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "preview-controller",
+      "apis": [
+        ".#PreviewController.addProvider",
+        ".#PreviewController.cacheLimits",
+        ".#PreviewController.clear",
+        ".#PreviewController.destroy",
+        ".#PreviewController.diagnostics",
+        ".#PreviewController.drain",
+        ".#PreviewController.enabled",
+        ".#PreviewController.getFrame",
+        ".#PreviewController.prefetch",
+        ".#PreviewController.request",
+        ".#PreviewController.setCacheLimits",
+        ".#PreviewController.setDuration",
+        ".#PreviewController.setPlaybackActive",
+        ".#PreviewController.setPlaybackPosition",
+        ".#PreviewController.setProviders",
+        ".#PreviewController.setSourceIdentity",
+        ".#PreviewController.setStrategy",
+        ".#PreviewController.setSuspended",
+        ".#PreviewController.strategy",
+        ".#PreviewController.unload"
+      ],
+      "behavior": "Arbitrate callers, providers, generation and bounded cache ownership",
+      "states": "queued, active, suspended, retired",
+      "failures": "late provider, aborted caller, invalid output, resource acquisition failure",
+      "backends": "Provider independent",
+      "unit": [
+        "tests/api-stability/preview-core.mjs",
+        "tests/api-stability/consumer-preview-acquisition.mjs",
+        "tests/api-stability/remaining-policy-sequences.mjs"
+      ],
+      "browser": [
+        "tests/preview-options-browser.mjs",
+        "tests/preview-ui.mjs"
+      ],
+      "gaps": [
+        "Every public mutator during an in-flight live request",
+        "Repeated provider replacement and failed cancellation"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "preview-providers",
+      "apis": [
+        ".#LocalVideoPreviewProvider.allowDuringPlayback",
+        ".#LocalVideoPreviewProvider.canHandle",
+        ".#LocalVideoPreviewProvider.getFrame",
+        ".#LocalVideoPreviewProvider.id",
+        ".#LocalVideoPreviewProvider.priority",
+        ".#LocalVideoPreviewProvider.requiresDecoder",
+        ".#AuthoredPreviewProvider.canHandle",
+        ".#AuthoredPreviewProvider.getFrame",
+        ".#AuthoredPreviewProvider.id",
+        ".#AuthoredPreviewProvider.priority",
+        ".#SoftwarePreviewProvider.canHandle",
+        ".#SoftwarePreviewProvider.getFrame",
+        ".#SoftwarePreviewProvider.id",
+        ".#SoftwarePreviewProvider.priority",
+        ".#SoftwarePreviewProvider.requiresDecoder"
+      ],
+      "behavior": "Produce validated preview images and release temporary resources",
+      "states": "loading, seeking, decoding, cancelled, complete",
+      "failures": "bad media, cancellation, cleanup failures",
+      "backends": "Authored, local browser, software",
+      "unit": [
+        "tests/preview.mjs",
+        "tests/api-stability/remaining-policy-sequences.mjs"
+      ],
+      "browser": [
+        "tests/api-stability/live-boundary-scenarios.mjs",
+        "tests/preview-software.mjs"
+      ],
+      "gaps": [
+        "Software cancellation at actual decoder output and worker failure",
+        "Authored callback reentry and mutable metadata in live hosts"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "presentation",
+      "apis": [
+        ".#Player.presentation",
+        ".#PlayerPresentation.destroy",
+        ".#PlayerPresentation.exitFullscreen",
+        ".#PlayerPresentation.exitPictureInPicture",
+        ".#PlayerPresentation.locksSurface",
+        ".#PlayerPresentation.requestFullscreen",
+        ".#PlayerPresentation.requestPictureInPicture",
+        ".#PlayerPresentation.setFullscreenTarget",
+        ".#PlayerPresentation.setMediaSessionEnabled",
+        ".#PlayerPresentation.state"
+      ],
+      "behavior": "Own fullscreen/PiP/media-session transitions without destroying borrowed playback",
+      "states": "idle, entering, active, exiting, destroyed",
+      "failures": "permission rejection, unsupported API, late browser completion",
+      "backends": "Browser/API dependent",
+      "unit": [
+        "tests/roadmap-contracts.mjs",
+        "tests/api-stability/presentation-state.mjs"
+      ],
+      "browser": [
+        "tests/integration-presentation.mjs",
+        "tests/player-presentation.mjs"
+      ],
+      "gaps": [
+        "Shipping Safari and OS media-session/device interactions",
+        "Fullscreen/PiP races with destruction and tab backgrounding"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "inspection",
+      "apis": [
+        ".#inspectMedia"
+      ],
+      "behavior": "Inspect bounded custom/local sources without taking borrowed ownership",
+      "states": "reading, cancelled, complete",
+      "failures": "short read, identity change, read failure, budget exceeded",
+      "backends": "Source inspection, before route selection",
+      "unit": [
+        "tests/roadmap-contracts.mjs",
+        "tests/api-stability/byte-reader.mjs",
+        "tests/api-stability/live-fault-server-contracts.mjs"
+      ],
+      "browser": [
+        "tests/roadmap-browser.mjs",
+        "tests/api-stability/live-network-scenarios.mjs"
+      ],
+      "gaps": [
+        "Custom-source inspection races, cross-origin credentials and repeated authorization failures beyond the local HTTP cases"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "bindings",
+      "apis": [
+        "./integration#subscribeSelector",
+        "./integration#bindPlayer",
+        "./integration#createPlayerBinding",
+        "./integration#PlaybackBinding.diagnostics",
+        "./integration#PlaybackBinding.dispose",
+        "./integration#PlaybackBinding.disposed",
+        "./integration#PlaybackBinding.pause",
+        "./integration#PlaybackBinding.play",
+        "./integration#PlaybackBinding.run",
+        "./integration#PlaybackBinding.seek",
+        "./integration#PlaybackBinding.setMuted",
+        "./integration#PlaybackBinding.setPlaybackRate",
+        "./integration#PlaybackBinding.setVolume",
+        "./integration#PlaybackBinding.sourceAuthority",
+        "./integration#PlaybackBinding.state",
+        "./integration#PlaybackBinding.subscribe"
+      ],
+      "behavior": "Forward commands and preserve owned/borrowed lifetimes",
+      "states": "bound, active, disposed",
+      "failures": "observer throws, late failure, reentrant disposal",
+      "backends": "Backend independent",
+      "unit": [
+        "tests/integration.mjs",
+        "tests/api-stability/binding-state.mjs"
+      ],
+      "browser": [
+        "tests/integration-browser.mjs",
+        "tests/api-stability/browser.mjs"
+      ],
+      "gaps": [
+        "Host-framework remount and event races across all browsers"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "media-element",
+      "apis": [
+        "./media-element#registerMediaElement",
+        "./media-element#DemuxeMediaElement.bind",
+        "./media-element#DemuxeMediaElement.buffered",
+        "./media-element#DemuxeMediaElement.currentSrc",
+        "./media-element#DemuxeMediaElement.currentTime",
+        "./media-element#DemuxeMediaElement.disconnectedCallback",
+        "./media-element#DemuxeMediaElement.dispose",
+        "./media-element#DemuxeMediaElement.duration",
+        "./media-element#DemuxeMediaElement.ended",
+        "./media-element#DemuxeMediaElement.error",
+        "./media-element#DemuxeMediaElement.muted",
+        "./media-element#DemuxeMediaElement.pause",
+        "./media-element#DemuxeMediaElement.paused",
+        "./media-element#DemuxeMediaElement.play",
+        "./media-element#DemuxeMediaElement.playbackRate",
+        "./media-element#DemuxeMediaElement.seekable",
+        "./media-element#DemuxeMediaElement.seeking",
+        "./media-element#DemuxeMediaElement.src",
+        "./media-element#DemuxeMediaElement.state",
+        "./media-element#DemuxeMediaElement.volume"
+      ],
+      "behavior": "Project media semantics and detach borrowed bindings",
+      "states": "unbound, bound, disconnected, disposed",
+      "failures": "invalid ranges, stale event, ownership mismatch",
+      "backends": "Backend independent DOM facade",
+      "unit": [
+        "tests/integration.mjs",
+        "tests/api-stability/element-lifecycle-state.mjs"
+      ],
+      "browser": [
+        "tests/integration-browser.mjs",
+        "tests/api-stability/browser.mjs"
+      ],
+      "gaps": [
+        "Attribute/property/event ordering during live rebind and DOM adoption"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "player-element",
+      "apis": [
+        "./player#definePlayerElement",
+        "./player#defaultLabels",
+        "./player#DemuxePlayerElement.addSubtitle",
+        "./player#DemuxePlayerElement.allowFileDrop",
+        "./player#DemuxePlayerElement.assetBase",
+        "./player#DemuxePlayerElement.attributeChangedCallback",
+        "./player#DemuxePlayerElement.audioPlayback",
+        "./player#DemuxePlayerElement.autoplay",
+        "./player#DemuxePlayerElement.close",
+        "./player#DemuxePlayerElement.connectedCallback",
+        "./player#DemuxePlayerElement.controls",
+        "./player#DemuxePlayerElement.controlsAutoHideDelay",
+        "./player#DemuxePlayerElement.destroy",
+        "./player#DemuxePlayerElement.disconnectedCallback",
+        "./player#DemuxePlayerElement.labels",
+        "./player#DemuxePlayerElement.layout",
+        "./player#DemuxePlayerElement.muted",
+        "./player#DemuxePlayerElement.open",
+        "./player#DemuxePlayerElement.pause",
+        "./player#DemuxePlayerElement.play",
+        "./player#DemuxePlayerElement.player",
+        "./player#DemuxePlayerElement.poster",
+        "./player#DemuxePlayerElement.previewOptions",
+        "./player#DemuxePlayerElement.previewThumbnails",
+        "./player#DemuxePlayerElement.ready",
+        "./player#DemuxePlayerElement.seek",
+        "./player#DemuxePlayerElement.seekStep",
+        "./player#DemuxePlayerElement.selectAudioTrack",
+        "./player#DemuxePlayerElement.selectSubtitleTrack",
+        "./player#DemuxePlayerElement.setMuted",
+        "./player#DemuxePlayerElement.setPlaybackRate",
+        "./player#DemuxePlayerElement.setVolume",
+        "./player#DemuxePlayerElement.showDiagnostics",
+        "./player#DemuxePlayerElement.showSourceControls",
+        "./player#DemuxePlayerElement.src",
+        "./player#DemuxePlayerElement.theme",
+        "./player#DemuxePlayerElement.titleMode",
+        "./player#DemuxePlayerElement.trackPolicy",
+        "./player#DemuxePlayerElement.watchdogs",
+        "./player#DemuxePlayerElement.static observedAttributes"
+      ],
+      "behavior": "Keep custom-element options, controls and player ownership coherent",
+      "states": "disconnected, connecting, active, remounted, destroyed",
+      "failures": "invalid attribute, late construction, acquisition failure",
+      "backends": "DOM UI over routed backends",
+      "unit": [
+        "tests/api-stability/element-configuration-state.mjs",
+        "tests/api-stability/element-controls-state.mjs",
+        "tests/api-stability/consumer-review.mjs"
+      ],
+      "browser": [
+        "tests/player-component.mjs",
+        "tests/player-presentation.mjs"
+      ],
+      "gaps": [
+        "Per-member UI assertions are not individually mapped yet",
+        "Keyboard, accessibility, focus and touch combinations across browsers"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "videojs",
+      "apis": [
+        "./adapters/videojs#registerVideojsTech"
+      ],
+      "behavior": "Adapt borrowed/owned player lifetime to Video.js",
+      "states": "registered, bound, disposed",
+      "failures": "cross-document owner, registration/reentry failure",
+      "backends": "External Video.js host",
+      "unit": [
+        "tests/integration.mjs",
+        "tests/api-stability/videojs-state.mjs"
+      ],
+      "browser": [
+        "tests/integration-browser.mjs"
+      ],
+      "gaps": [
+        "Version-specific Video.js live remount and source-error recovery"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "components",
+      "apis": [
+        "./components#audioRepairRecipe",
+        "./components#g726RawRepairRecipe",
+        "./components#packetCopyRecipe",
+        "./components#webmPacketCopyRecipe",
+        "./components#parseProviderDeployment",
+        "./components#executeComponentBinding",
+        "./components#selectComponentBinding",
+        "./components#ProviderAcquisition.acquire",
+        "./components#ProviderAcquisition.catalog",
+        "./components#ProviderAcquisition.dispose",
+        "./components#ProviderAcquisition.readAsset",
+        "./components#ProviderAcquisition.resolve"
+      ],
+      "behavior": "Select admitted provider recipes and bound asset acquisition",
+      "states": "unresolved, acquiring, executing, disposed",
+      "failures": "missing asset, unsupported codec, stale owner, corrupt response",
+      "backends": "Qualified component/codec/deployment combinations only",
+      "unit": [
+        "tests/component-selection.mjs",
+        "tests/provider-acquisition.mjs",
+        "tests/provider-owner-failures.mjs"
+      ],
+      "browser": [
+        "tests/bundle-playback.mjs",
+        "tests/provider-conformance-installed.mjs"
+      ],
+      "gaps": [
+        "Complete recipe/codec/browser/deployment cross-product is not qualified",
+        "Cancellation and corrupt assets during execution in installed consumers"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "public-constants-errors",
+      "apis": [
+        ".#PLAYBACK_MODES",
+        ".#PLAYER_EVENTS",
+        ".#CUSTOM_SOURCE_PLAYBACK_LIMIT",
+        ".#PlayerError.toJSON"
+      ],
+      "behavior": "Expose stable constants and serializable public error data",
+      "states": "import, error construction, serialization",
+      "failures": "invalid/hostile error payload",
+      "backends": "Backend independent",
+      "unit": [
+        "tests/api-stability/contracts.mjs",
+        "tests/api-stability/error-classification.mjs"
+      ],
+      "browser": [],
+      "gaps": [
+        "Constant values and every error-code payload need a dedicated member-level assertion audit"
+      ],
+      "status": "partial"
+    }
+  ],
+  "runtime": [
+    {
+      "key": "./adapters/videojs#registerVideojsTech",
+      "entry": "./adapters/videojs",
+      "export": "registerVideojsTech",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "videojs",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./components#audioRepairRecipe",
+      "entry": "./components",
+      "export": "audioRepairRecipe",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "components",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./components#executeComponentBinding",
+      "entry": "./components",
+      "export": "executeComponentBinding",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "components",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./components#g726RawRepairRecipe",
+      "entry": "./components",
+      "export": "g726RawRepairRecipe",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "components",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./components#packetCopyRecipe",
+      "entry": "./components",
+      "export": "packetCopyRecipe",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "components",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./components#parseProviderDeployment",
+      "entry": "./components",
+      "export": "parseProviderDeployment",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "components",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./components#ProviderAcquisition.acquire",
+      "entry": "./components",
+      "export": "ProviderAcquisition",
+      "member": "acquire",
+      "status": "mapped-partial",
+      "behaviorGroup": "components",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./components#ProviderAcquisition.catalog",
+      "entry": "./components",
+      "export": "ProviderAcquisition",
+      "member": "catalog",
+      "status": "mapped-partial",
+      "behaviorGroup": "components",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./components#ProviderAcquisition.constructor",
+      "entry": "./components",
+      "export": "ProviderAcquisition",
+      "member": "constructor",
+      "status": "mapped-partial",
+      "behaviorGroup": "construction",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./components#ProviderAcquisition.dispose",
+      "entry": "./components",
+      "export": "ProviderAcquisition",
+      "member": "dispose",
+      "status": "mapped-partial",
+      "behaviorGroup": "components",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./components#ProviderAcquisition.readAsset",
+      "entry": "./components",
+      "export": "ProviderAcquisition",
+      "member": "readAsset",
+      "status": "mapped-partial",
+      "behaviorGroup": "components",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./components#ProviderAcquisition.resolve",
+      "entry": "./components",
+      "export": "ProviderAcquisition",
+      "member": "resolve",
+      "status": "mapped-partial",
+      "behaviorGroup": "components",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./components#selectComponentBinding",
+      "entry": "./components",
+      "export": "selectComponentBinding",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "components",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./components#webmPacketCopyRecipe",
+      "entry": "./components",
+      "export": "webmPacketCopyRecipe",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "components",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#bindPlayer",
+      "entry": "./integration",
+      "export": "bindPlayer",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#createPlayerBinding",
+      "entry": "./integration",
+      "export": "createPlayerBinding",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.constructor",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "constructor",
+      "status": "mapped-partial",
+      "behaviorGroup": "construction",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.diagnostics",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "diagnostics",
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.dispose",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "dispose",
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.disposed",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "disposed",
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.pause",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "pause",
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.play",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "play",
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.run",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "run",
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.seek",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "seek",
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.setMuted",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "setMuted",
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.setPlaybackRate",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "setPlaybackRate",
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.setVolume",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "setVolume",
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.sourceAuthority",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "sourceAuthority",
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.state",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "state",
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#PlaybackBinding.subscribe",
+      "entry": "./integration",
+      "export": "PlaybackBinding",
+      "member": "subscribe",
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./integration#subscribeSelector",
+      "entry": "./integration",
+      "export": "subscribeSelector",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "bindings",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.bind",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "bind",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.buffered",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "buffered",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.constructor",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "constructor",
+      "status": "mapped-partial",
+      "behaviorGroup": "construction",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.currentSrc",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "currentSrc",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.currentTime",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "currentTime",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.disconnectedCallback",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "disconnectedCallback",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.dispose",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "dispose",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.duration",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "duration",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.ended",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "ended",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.error",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "error",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.muted",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "muted",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.pause",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "pause",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.paused",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "paused",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.play",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "play",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.playbackRate",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "playbackRate",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.seekable",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "seekable",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.seeking",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "seeking",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.src",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "src",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.state",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "state",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#DemuxeMediaElement.volume",
+      "entry": "./media-element",
+      "export": "DemuxeMediaElement",
+      "member": "volume",
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./media-element#registerMediaElement",
+      "entry": "./media-element",
+      "export": "registerMediaElement",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "media-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#defaultLabels",
+      "entry": "./player",
+      "export": "defaultLabels",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#definePlayerElement",
+      "entry": "./player",
+      "export": "definePlayerElement",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.addSubtitle",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "addSubtitle",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.allowFileDrop",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "allowFileDrop",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.assetBase",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "assetBase",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.attributeChangedCallback",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "attributeChangedCallback",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.audioPlayback",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "audioPlayback",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.autoplay",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "autoplay",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.close",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "close",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.connectedCallback",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "connectedCallback",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.constructor",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "constructor",
+      "status": "mapped-partial",
+      "behaviorGroup": "construction",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.controls",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "controls",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.controlsAutoHideDelay",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "controlsAutoHideDelay",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.destroy",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "destroy",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.disconnectedCallback",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "disconnectedCallback",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.labels",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "labels",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.layout",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "layout",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.muted",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "muted",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.open",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "open",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.pause",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "pause",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.play",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "play",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.player",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "player",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.poster",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "poster",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.previewOptions",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "previewOptions",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.previewThumbnails",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "previewThumbnails",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.ready",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "ready",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.seek",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "seek",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.seekStep",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "seekStep",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.selectAudioTrack",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "selectAudioTrack",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.selectSubtitleTrack",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "selectSubtitleTrack",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.setMuted",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "setMuted",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.setPlaybackRate",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "setPlaybackRate",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.setVolume",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "setVolume",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.showDiagnostics",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "showDiagnostics",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.showSourceControls",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "showSourceControls",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.src",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "src",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.static observedAttributes",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "static observedAttributes",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.theme",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "theme",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.titleMode",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "titleMode",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.trackPolicy",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "trackPolicy",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": "./player#DemuxePlayerElement.watchdogs",
+      "entry": "./player",
+      "export": "DemuxePlayerElement",
+      "member": "watchdogs",
+      "status": "mapped-partial",
+      "behaviorGroup": "player-element",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#AuthoredPreviewProvider.canHandle",
+      "entry": ".",
+      "export": "AuthoredPreviewProvider",
+      "member": "canHandle",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#AuthoredPreviewProvider.constructor",
+      "entry": ".",
+      "export": "AuthoredPreviewProvider",
+      "member": "constructor",
+      "status": "mapped-partial",
+      "behaviorGroup": "construction",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#AuthoredPreviewProvider.getFrame",
+      "entry": ".",
+      "export": "AuthoredPreviewProvider",
+      "member": "getFrame",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#AuthoredPreviewProvider.id",
+      "entry": ".",
+      "export": "AuthoredPreviewProvider",
+      "member": "id",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#AuthoredPreviewProvider.priority",
+      "entry": ".",
+      "export": "AuthoredPreviewProvider",
+      "member": "priority",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#CUSTOM_SOURCE_PLAYBACK_LIMIT",
+      "entry": ".",
+      "export": "CUSTOM_SOURCE_PLAYBACK_LIMIT",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "public-constants-errors",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#inspectMedia",
+      "entry": ".",
+      "export": "inspectMedia",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "inspection",
+      "liveAssertions": [
+        "network-inspection-cancel",
+        "network-auth-cancel",
+        "network-auth-success",
+        "network-auth-rejected"
+      ],
+      "liveEvidence": [
+        {
+          "file": "results/api-stability/live-boundaries/chromium-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "chromium",
+          "browser": "145.0.7632.6",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/firefox-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "firefox",
+          "browser": "146.0.1",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/webkit-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "webkit",
+          "browser": "26.0",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        }
+      ]
+    },
+    {
+      "key": ".#LocalVideoPreviewProvider.allowDuringPlayback",
+      "entry": ".",
+      "export": "LocalVideoPreviewProvider",
+      "member": "allowDuringPlayback",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#LocalVideoPreviewProvider.canHandle",
+      "entry": ".",
+      "export": "LocalVideoPreviewProvider",
+      "member": "canHandle",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#LocalVideoPreviewProvider.constructor",
+      "entry": ".",
+      "export": "LocalVideoPreviewProvider",
+      "member": "constructor",
+      "status": "mapped-partial",
+      "behaviorGroup": "construction",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#LocalVideoPreviewProvider.getFrame",
+      "entry": ".",
+      "export": "LocalVideoPreviewProvider",
+      "member": "getFrame",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [
+        "preview-success",
+        "preview-abort-load",
+        "preview-abort-seek",
+        "preview-invalid-media"
+      ],
+      "liveEvidence": [
+        {
+          "file": "results/api-stability/live-boundaries/chromium-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "chromium",
+          "browser": "145.0.7632.6",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/firefox-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "firefox",
+          "browser": "146.0.1",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/webkit-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "webkit",
+          "browser": "26.0",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        }
+      ]
+    },
+    {
+      "key": ".#LocalVideoPreviewProvider.id",
+      "entry": ".",
+      "export": "LocalVideoPreviewProvider",
+      "member": "id",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#LocalVideoPreviewProvider.priority",
+      "entry": ".",
+      "export": "LocalVideoPreviewProvider",
+      "member": "priority",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#LocalVideoPreviewProvider.requiresDecoder",
+      "entry": ".",
+      "export": "LocalVideoPreviewProvider",
+      "member": "requiresDecoder",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PLAYBACK_MODES",
+      "entry": ".",
+      "export": "PLAYBACK_MODES",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "public-constants-errors",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PLAYER_EVENTS",
+      "entry": ".",
+      "export": "PLAYER_EVENTS",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "public-constants-errors",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.addEventListener",
+      "entry": ".",
+      "export": "Player",
+      "member": "addEventListener",
+      "status": "mapped-partial",
+      "behaviorGroup": "observation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.addFont",
+      "entry": ".",
+      "export": "Player",
+      "member": "addFont",
+      "status": "mapped-partial",
+      "behaviorGroup": "tracks-attachments",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.addSubtitle",
+      "entry": ".",
+      "export": "Player",
+      "member": "addSubtitle",
+      "status": "mapped-partial",
+      "behaviorGroup": "tracks-attachments",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.addTextTrack",
+      "entry": ".",
+      "export": "Player",
+      "member": "addTextTrack",
+      "status": "mapped-partial",
+      "behaviorGroup": "tracks-attachments",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.attachFont",
+      "entry": ".",
+      "export": "Player",
+      "member": "attachFont",
+      "status": "mapped-partial",
+      "behaviorGroup": "tracks-attachments",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.attachSubtitle",
+      "entry": ".",
+      "export": "Player",
+      "member": "attachSubtitle",
+      "status": "mapped-partial",
+      "behaviorGroup": "tracks-attachments",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.attachTextTrack",
+      "entry": ".",
+      "export": "Player",
+      "member": "attachTextTrack",
+      "status": "mapped-partial",
+      "behaviorGroup": "tracks-attachments",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.audioDiagnostics",
+      "entry": ".",
+      "export": "Player",
+      "member": "audioDiagnostics",
+      "status": "mapped-partial",
+      "behaviorGroup": "observation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.automaticSelection",
+      "entry": ".",
+      "export": "Player",
+      "member": "automaticSelection",
+      "status": "mapped-partial",
+      "behaviorGroup": "routing",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.capabilities",
+      "entry": ".",
+      "export": "Player",
+      "member": "capabilities",
+      "status": "mapped-partial",
+      "behaviorGroup": "observation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.close",
+      "entry": ".",
+      "export": "Player",
+      "member": "close",
+      "status": "mapped-partial",
+      "behaviorGroup": "source-lifecycle",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.constructor",
+      "entry": ".",
+      "export": "Player",
+      "member": "constructor",
+      "status": "mapped-partial",
+      "behaviorGroup": "construction",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.destroy",
+      "entry": ".",
+      "export": "Player",
+      "member": "destroy",
+      "status": "mapped-partial",
+      "behaviorGroup": "source-lifecycle",
+      "liveAssertions": [
+        "network-player-auth-destroy",
+        "destroy-during-open",
+        "destroy-command-burst",
+        "hybrid-destroy-during-open",
+        "hybrid-destroy-command-burst",
+        "software-destroy-during-open",
+        "software-destroy-command-burst"
+      ],
+      "liveEvidence": [
+        {
+          "file": "results/api-stability/live-boundaries/chromium-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "chromium",
+          "browser": "145.0.7632.6",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/firefox-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "firefox",
+          "browser": "146.0.1",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/webkit-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "webkit",
+          "browser": "26.0",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        }
+      ]
+    },
+    {
+      "key": ".#Player.diagnostics",
+      "entry": ".",
+      "export": "Player",
+      "member": "diagnostics",
+      "status": "mapped-partial",
+      "behaviorGroup": "observation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.getAudioOutputDevice",
+      "entry": ".",
+      "export": "Player",
+      "member": "getAudioOutputDevice",
+      "status": "mapped-partial",
+      "behaviorGroup": "audio-device",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.getBuffering",
+      "entry": ".",
+      "export": "Player",
+      "member": "getBuffering",
+      "status": "mapped-partial",
+      "behaviorGroup": "buffering",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.getLoop",
+      "entry": ".",
+      "export": "Player",
+      "member": "getLoop",
+      "status": "mapped-partial",
+      "behaviorGroup": "ranges-output",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.getPlaybackExplanation",
+      "entry": ".",
+      "export": "Player",
+      "member": "getPlaybackExplanation",
+      "status": "mapped-partial",
+      "behaviorGroup": "observation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.getPlaybackRange",
+      "entry": ".",
+      "export": "Player",
+      "member": "getPlaybackRange",
+      "status": "mapped-partial",
+      "behaviorGroup": "ranges-output",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.getStats",
+      "entry": ".",
+      "export": "Player",
+      "member": "getStats",
+      "status": "mapped-partial",
+      "behaviorGroup": "observation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.getStreamingState",
+      "entry": ".",
+      "export": "Player",
+      "member": "getStreamingState",
+      "status": "mapped-partial",
+      "behaviorGroup": "streaming-quality",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.getTimingSettings",
+      "entry": ".",
+      "export": "Player",
+      "member": "getTimingSettings",
+      "status": "mapped-partial",
+      "behaviorGroup": "timing-style",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.host",
+      "entry": ".",
+      "export": "Player",
+      "member": "host",
+      "status": "mapped-partial",
+      "behaviorGroup": "observation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.isDestroyed",
+      "entry": ".",
+      "export": "Player",
+      "member": "isDestroyed",
+      "status": "mapped-partial",
+      "behaviorGroup": "source-lifecycle",
+      "liveAssertions": [
+        "destroy-command-burst",
+        "hybrid-destroy-command-burst",
+        "software-destroy-command-burst"
+      ],
+      "liveEvidence": [
+        {
+          "file": "results/api-stability/live-boundaries/chromium-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "chromium",
+          "browser": "145.0.7632.6",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/firefox-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "firefox",
+          "browser": "146.0.1",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/webkit-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "webkit",
+          "browser": "26.0",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        }
+      ]
+    },
+    {
+      "key": ".#Player.mediaInfo",
+      "entry": ".",
+      "export": "Player",
+      "member": "mediaInfo",
+      "status": "mapped-partial",
+      "behaviorGroup": "observation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.mode",
+      "entry": ".",
+      "export": "Player",
+      "member": "mode",
+      "status": "mapped-partial",
+      "behaviorGroup": "routing",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.open",
+      "entry": ".",
+      "export": "Player",
+      "member": "open",
+      "status": "mapped-partial",
+      "behaviorGroup": "source-lifecycle",
+      "liveAssertions": [
+        "network-player-open-cancel"
+      ],
+      "liveEvidence": [
+        {
+          "file": "results/api-stability/live-boundaries/chromium-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "chromium",
+          "browser": "145.0.7632.6",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/firefox-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "firefox",
+          "browser": "146.0.1",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/webkit-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "webkit",
+          "browser": "26.0",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        }
+      ]
+    },
+    {
+      "key": ".#Player.openRemote",
+      "entry": ".",
+      "export": "Player",
+      "member": "openRemote",
+      "status": "mapped-partial",
+      "behaviorGroup": "source-lifecycle",
+      "liveAssertions": [
+        "network-player-open-cancel",
+        "network-player-auth-destroy"
+      ],
+      "liveEvidence": [
+        {
+          "file": "results/api-stability/live-boundaries/chromium-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "chromium",
+          "browser": "145.0.7632.6",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/firefox-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "firefox",
+          "browser": "146.0.1",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/webkit-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "webkit",
+          "browser": "26.0",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        }
+      ]
+    },
+    {
+      "key": ".#Player.pause",
+      "entry": ".",
+      "export": "Player",
+      "member": "pause",
+      "status": "mapped-partial",
+      "behaviorGroup": "transport",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.play",
+      "entry": ".",
+      "export": "Player",
+      "member": "play",
+      "status": "mapped-partial",
+      "behaviorGroup": "transport",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.preparationProgress",
+      "entry": ".",
+      "export": "Player",
+      "member": "preparationProgress",
+      "status": "mapped-partial",
+      "behaviorGroup": "preparation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.preparationReady",
+      "entry": ".",
+      "export": "Player",
+      "member": "preparationReady",
+      "status": "mapped-partial",
+      "behaviorGroup": "preparation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.prepare",
+      "entry": ".",
+      "export": "Player",
+      "member": "prepare",
+      "status": "mapped-partial",
+      "behaviorGroup": "preparation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.presentation",
+      "entry": ".",
+      "export": "Player",
+      "member": "presentation",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.preview",
+      "entry": ".",
+      "export": "Player",
+      "member": "preview",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-facade",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.properties",
+      "entry": ".",
+      "export": "Player",
+      "member": "properties",
+      "status": "mapped-partial",
+      "behaviorGroup": "observation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.rate",
+      "entry": ".",
+      "export": "Player",
+      "member": "rate",
+      "status": "mapped-partial",
+      "behaviorGroup": "transport",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.ready",
+      "entry": ".",
+      "export": "Player",
+      "member": "ready",
+      "status": "mapped-partial",
+      "behaviorGroup": "source-lifecycle",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.removeAttachment",
+      "entry": ".",
+      "export": "Player",
+      "member": "removeAttachment",
+      "status": "mapped-partial",
+      "behaviorGroup": "tracks-attachments",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.removeEventListener",
+      "entry": ".",
+      "export": "Player",
+      "member": "removeEventListener",
+      "status": "mapped-partial",
+      "behaviorGroup": "observation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.resize",
+      "entry": ".",
+      "export": "Player",
+      "member": "resize",
+      "status": "mapped-partial",
+      "behaviorGroup": "ranges-output",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.seek",
+      "entry": ".",
+      "export": "Player",
+      "member": "seek",
+      "status": "mapped-partial",
+      "behaviorGroup": "transport",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.seekChapter",
+      "entry": ".",
+      "export": "Player",
+      "member": "seekChapter",
+      "status": "mapped-partial",
+      "behaviorGroup": "ranges-output",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.seekToLive",
+      "entry": ".",
+      "export": "Player",
+      "member": "seekToLive",
+      "status": "mapped-partial",
+      "behaviorGroup": "streaming-quality",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.selectAudioTrack",
+      "entry": ".",
+      "export": "Player",
+      "member": "selectAudioTrack",
+      "status": "mapped-partial",
+      "behaviorGroup": "tracks-attachments",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.selectSubtitleTrack",
+      "entry": ".",
+      "export": "Player",
+      "member": "selectSubtitleTrack",
+      "status": "mapped-partial",
+      "behaviorGroup": "tracks-attachments",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.selectTrack",
+      "entry": ".",
+      "export": "Player",
+      "member": "selectTrack",
+      "status": "mapped-partial",
+      "behaviorGroup": "tracks-attachments",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setAudioDelay",
+      "entry": ".",
+      "export": "Player",
+      "member": "setAudioDelay",
+      "status": "mapped-partial",
+      "behaviorGroup": "timing-style",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setAudioFilters",
+      "entry": ".",
+      "export": "Player",
+      "member": "setAudioFilters",
+      "status": "mapped-partial",
+      "behaviorGroup": "routing",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setAudioGain",
+      "entry": ".",
+      "export": "Player",
+      "member": "setAudioGain",
+      "status": "mapped-partial",
+      "behaviorGroup": "routing",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setAudioOutputDevice",
+      "entry": ".",
+      "export": "Player",
+      "member": "setAudioOutputDevice",
+      "status": "mapped-partial",
+      "behaviorGroup": "audio-device",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setAutomaticSelection",
+      "entry": ".",
+      "export": "Player",
+      "member": "setAutomaticSelection",
+      "status": "mapped-partial",
+      "behaviorGroup": "routing",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setBuffering",
+      "entry": ".",
+      "export": "Player",
+      "member": "setBuffering",
+      "status": "mapped-partial",
+      "behaviorGroup": "buffering",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setLoop",
+      "entry": ".",
+      "export": "Player",
+      "member": "setLoop",
+      "status": "mapped-partial",
+      "behaviorGroup": "ranges-output",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setMode",
+      "entry": ".",
+      "export": "Player",
+      "member": "setMode",
+      "status": "mapped-partial",
+      "behaviorGroup": "routing",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setMuted",
+      "entry": ".",
+      "export": "Player",
+      "member": "setMuted",
+      "status": "mapped-partial",
+      "behaviorGroup": "transport",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setPlaybackRange",
+      "entry": ".",
+      "export": "Player",
+      "member": "setPlaybackRange",
+      "status": "mapped-partial",
+      "behaviorGroup": "ranges-output",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setPlaybackRate",
+      "entry": ".",
+      "export": "Player",
+      "member": "setPlaybackRate",
+      "status": "mapped-partial",
+      "behaviorGroup": "transport",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setQuality",
+      "entry": ".",
+      "export": "Player",
+      "member": "setQuality",
+      "status": "mapped-partial",
+      "behaviorGroup": "streaming-quality",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setSubtitleDelay",
+      "entry": ".",
+      "export": "Player",
+      "member": "setSubtitleDelay",
+      "status": "mapped-partial",
+      "behaviorGroup": "timing-style",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setSubtitleStyle",
+      "entry": ".",
+      "export": "Player",
+      "member": "setSubtitleStyle",
+      "status": "mapped-partial",
+      "behaviorGroup": "timing-style",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setToneMapping",
+      "entry": ".",
+      "export": "Player",
+      "member": "setToneMapping",
+      "status": "mapped-partial",
+      "behaviorGroup": "routing",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setVideoFilters",
+      "entry": ".",
+      "export": "Player",
+      "member": "setVideoFilters",
+      "status": "mapped-partial",
+      "behaviorGroup": "routing",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setVolume",
+      "entry": ".",
+      "export": "Player",
+      "member": "setVolume",
+      "status": "mapped-partial",
+      "behaviorGroup": "transport",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.setWatchdogs",
+      "entry": ".",
+      "export": "Player",
+      "member": "setWatchdogs",
+      "status": "mapped-partial",
+      "behaviorGroup": "routing",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.snapshot",
+      "entry": ".",
+      "export": "Player",
+      "member": "snapshot",
+      "status": "mapped-partial",
+      "behaviorGroup": "ranges-output",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.state",
+      "entry": ".",
+      "export": "Player",
+      "member": "state",
+      "status": "mapped-partial",
+      "behaviorGroup": "observation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.stepFrame",
+      "entry": ".",
+      "export": "Player",
+      "member": "stepFrame",
+      "status": "mapped-partial",
+      "behaviorGroup": "ranges-output",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.subscribe",
+      "entry": ".",
+      "export": "Player",
+      "member": "subscribe",
+      "status": "mapped-partial",
+      "behaviorGroup": "observation",
+      "liveAssertions": [
+        "destroy-command-burst",
+        "hybrid-destroy-command-burst",
+        "software-destroy-command-burst"
+      ],
+      "liveEvidence": [
+        {
+          "file": "results/api-stability/live-boundaries/chromium-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "chromium",
+          "browser": "145.0.7632.6",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/firefox-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "firefox",
+          "browser": "146.0.1",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        },
+        {
+          "file": "results/api-stability/live-boundaries/webkit-1791244495939/result.json",
+          "status": "passed-recorded-inputs-match",
+          "family": "webkit",
+          "browser": "26.0",
+          "revision": "b73a76aa6c29e6452a84b18d2cb9df4f2786ec3f",
+          "checks": [
+            "preview-success",
+            "preview-abort-load",
+            "preview-abort-seek",
+            "preview-invalid-media",
+            "destroy-during-open",
+            "destroy-command-burst",
+            "hybrid-destroy-during-open",
+            "hybrid-destroy-command-burst",
+            "software-destroy-during-open",
+            "software-destroy-command-burst",
+            "network-inspection-cancel",
+            "network-auth-cancel",
+            "network-auth-success",
+            "network-auth-rejected",
+            "network-epoch-reuse",
+            "network-retry-success",
+            "network-representation-change",
+            "network-player-open-cancel",
+            "network-player-auth-destroy"
+          ]
+        }
+      ]
+    },
+    {
+      "key": ".#Player.subtitleVisible",
+      "entry": ".",
+      "export": "Player",
+      "member": "subtitleVisible",
+      "status": "mapped-partial",
+      "behaviorGroup": "tracks-attachments",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.surface",
+      "entry": ".",
+      "export": "Player",
+      "member": "surface",
+      "status": "mapped-partial",
+      "behaviorGroup": "observation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.trackPolicy",
+      "entry": ".",
+      "export": "Player",
+      "member": "trackPolicy",
+      "status": "mapped-partial",
+      "behaviorGroup": "routing",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.volume",
+      "entry": ".",
+      "export": "Player",
+      "member": "volume",
+      "status": "mapped-partial",
+      "behaviorGroup": "transport",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#Player.watchdogs",
+      "entry": ".",
+      "export": "Player",
+      "member": "watchdogs",
+      "status": "mapped-partial",
+      "behaviorGroup": "routing",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerError.constructor",
+      "entry": ".",
+      "export": "PlayerError",
+      "member": "constructor",
+      "status": "mapped-partial",
+      "behaviorGroup": "construction",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerError.toJSON",
+      "entry": ".",
+      "export": "PlayerError",
+      "member": "toJSON",
+      "status": "mapped-partial",
+      "behaviorGroup": "public-constants-errors",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerPresentation.constructor",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "constructor",
+      "status": "mapped-partial",
+      "behaviorGroup": "construction",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerPresentation.destroy",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "destroy",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerPresentation.exitFullscreen",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "exitFullscreen",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerPresentation.exitPictureInPicture",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "exitPictureInPicture",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerPresentation.locksSurface",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "locksSurface",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerPresentation.requestFullscreen",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "requestFullscreen",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerPresentation.requestPictureInPicture",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "requestPictureInPicture",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerPresentation.setFullscreenTarget",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "setFullscreenTarget",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerPresentation.setMediaSessionEnabled",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "setMediaSessionEnabled",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerPresentation.state",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "state",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.addProvider",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "addProvider",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.cacheLimits",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "cacheLimits",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.clear",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "clear",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.constructor",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "constructor",
+      "status": "mapped-partial",
+      "behaviorGroup": "construction",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.destroy",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "destroy",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.diagnostics",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "diagnostics",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.drain",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "drain",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.enabled",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "enabled",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.getFrame",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "getFrame",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.prefetch",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "prefetch",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.request",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "request",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.setCacheLimits",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "setCacheLimits",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.setDuration",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "setDuration",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.setPlaybackActive",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "setPlaybackActive",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.setPlaybackPosition",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "setPlaybackPosition",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.setProviders",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "setProviders",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.setSourceIdentity",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "setSourceIdentity",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.setStrategy",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "setStrategy",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.setSuspended",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "setSuspended",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.strategy",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "strategy",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PreviewController.unload",
+      "entry": ".",
+      "export": "PreviewController",
+      "member": "unload",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-controller",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#SoftwarePreviewProvider.canHandle",
+      "entry": ".",
+      "export": "SoftwarePreviewProvider",
+      "member": "canHandle",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#SoftwarePreviewProvider.constructor",
+      "entry": ".",
+      "export": "SoftwarePreviewProvider",
+      "member": "constructor",
+      "status": "mapped-partial",
+      "behaviorGroup": "construction",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#SoftwarePreviewProvider.getFrame",
+      "entry": ".",
+      "export": "SoftwarePreviewProvider",
+      "member": "getFrame",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#SoftwarePreviewProvider.id",
+      "entry": ".",
+      "export": "SoftwarePreviewProvider",
+      "member": "id",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#SoftwarePreviewProvider.priority",
+      "entry": ".",
+      "export": "SoftwarePreviewProvider",
+      "member": "priority",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#SoftwarePreviewProvider.requiresDecoder",
+      "entry": ".",
+      "export": "SoftwarePreviewProvider",
+      "member": "requiresDecoder",
+      "status": "mapped-partial",
+      "behaviorGroup": "preview-providers",
+      "liveAssertions": [],
+      "liveEvidence": []
+    }
+  ],
+  "dataContracts": [
+    {
+      "entry": ".",
+      "export": "AttachmentHandle",
+      "members": [
+        "id",
+        "kind",
+        "sourceId"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "AudioOutput",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "BufferingCapabilities",
+      "members": [
+        "control",
+        "memoryBudget",
+        "preload",
+        "profile"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "BufferingOptions",
+      "members": [
+        "aheadSeconds",
+        "behindSeconds",
+        "memoryBudget",
+        "preload",
+        "profile"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "BufferingPolicy",
+      "members": [
+        "aheadSeconds",
+        "behindSeconds",
+        "memoryBudget",
+        "preload",
+        "profile"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "BufferingProfile",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "BufferingResolution",
+      "members": [
+        "backend",
+        "backwardLimitBytes",
+        "backwardSeconds",
+        "cache",
+        "control",
+        "forwardLimitBytes",
+        "forwardSeconds",
+        "notes",
+        "preload",
+        "requestedAheadSeconds",
+        "requestedBehindSeconds",
+        "requestedMemoryBudget",
+        "requestedProfile",
+        "settings"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "BufferingState",
+      "members": [
+        "active",
+        "buffered",
+        "cached",
+        "capabilities",
+        "effective",
+        "requested"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "Capabilities",
+      "members": [
+        "audioFilters",
+        "customFonts",
+        "customRequestHeaders",
+        "externalSubtitles",
+        "externalTextTracks",
+        "mpvSubtitles",
+        "videoFilters"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "Chapter",
+      "members": [
+        "end",
+        "id",
+        "start",
+        "title"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "CustomSource",
+      "members": [
+        "close",
+        "id",
+        "kind",
+        "name",
+        "ownership",
+        "read",
+        "size",
+        "transport",
+        "type"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "Diagnostics",
+      "members": [
+        "adaptiveFrameDrop",
+        "audioFilters",
+        "audioGain",
+        "backend",
+        "buffering",
+        "decodeQuality",
+        "mode",
+        "plan",
+        "planAdmission",
+        "preview",
+        "remuxRuntime",
+        "resourceLimits",
+        "runtimeCapabilities",
+        "selection",
+        "switching",
+        "toneMapping",
+        "videoFilters",
+        "watchdogs"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "FeatureAvailability",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "InspectionOptions",
+      "members": [
+        "assetBase",
+        "maxBytes",
+        "maxReads",
+        "signal",
+        "timeoutMs"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "LoopPolicy",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "MediaInfo",
+      "members": [
+        "aspectRatio",
+        "audio",
+        "chapters",
+        "color",
+        "displayHeight",
+        "displayWidth",
+        "metadataCoverage",
+        "rotation",
+        "subtitle",
+        "tags",
+        "video",
+        "videoTracks"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "MediaInputOptions",
+      "members": [
+        "demuxer"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "MediaInspection",
+      "members": [
+        "bytesRead",
+        "chapters",
+        "completeFor",
+        "duration",
+        "format",
+        "id",
+        "reads",
+        "reason",
+        "sourceIdentity",
+        "status",
+        "tags",
+        "tracks"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "MediaSourceInput",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "MediaTrack",
+      "members": [
+        "attachedPicture",
+        "bitDepth",
+        "channelLayout",
+        "channels",
+        "codec",
+        "default",
+        "external",
+        "forced",
+        "frameRate",
+        "id",
+        "label",
+        "language",
+        "profile",
+        "roles",
+        "sampleRate",
+        "selected",
+        "streamIndex",
+        "title",
+        "type"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "ModeChangeDetail",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "OpenOptions",
+      "members": [
+        "demuxer",
+        "signal",
+        "startTime",
+        "trackPolicy"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "OperationKind",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PendingOperation",
+      "members": [
+        "id",
+        "kind"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlaybackDecisionCode",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlaybackEvent",
+      "members": [
+        "data",
+        "event",
+        "name"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlaybackExplanation",
+      "members": [
+        "admission",
+        "attempts",
+        "audio",
+        "automatic",
+        "decodeQuality",
+        "fidelity",
+        "mode",
+        "planId",
+        "sourceId",
+        "subtitle",
+        "video"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlaybackMode",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlaybackRange",
+      "members": [
+        "end",
+        "start"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlaybackStats",
+      "members": [
+        "acceptedAtMs",
+        "decodedFrames",
+        "droppedFrames",
+        "firstPlayingMs",
+        "lastSeekMs",
+        "openToAcceptanceMs",
+        "presentedFrames",
+        "rebufferCount",
+        "rebufferMs",
+        "seekCount",
+        "sessionEpoch",
+        "sourceId",
+        "throughputBitsPerSecond"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlayerCapabilities",
+      "members": [
+        "audioFilters",
+        "buffering",
+        "customFonts",
+        "customRequestHeaders",
+        "deployment",
+        "externalSubtitles",
+        "externalTextTracks",
+        "features",
+        "mpvSubtitles",
+        "videoFilters"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlayerErrorCode",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlayerEventMap",
+      "members": [
+        "capabilitieschange",
+        "durationchange",
+        "ended",
+        "error",
+        "modechange",
+        "pause",
+        "play",
+        "playing",
+        "ratechange",
+        "seeked",
+        "seeking",
+        "selectionchange",
+        "sourcechange",
+        "statechange",
+        "timeupdate",
+        "trackschange",
+        "volumechange",
+        "waiting"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlayerEventName",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlayerOptions",
+      "members": [
+        "adaptiveFrameDrop",
+        "allowLossyAudio",
+        "assetBase",
+        "audioFallback",
+        "audioFilters",
+        "audioGain",
+        "audioOutput",
+        "audioPlayback",
+        "automaticAudioAdaptation",
+        "automaticSelection",
+        "buffering",
+        "decodeQuality",
+        "experimentalAudioAdaptation",
+        "experimentalBackgroundPromotion",
+        "experimentalBufferedNativeSeeks",
+        "experimentalHybridAudioFilters",
+        "experimentalMpvSubtitles",
+        "experimentalNativeASS",
+        "experimentalRemuxRuntime",
+        "height",
+        "mode",
+        "nativeRemux",
+        "prepare",
+        "preview",
+        "providerPreferences",
+        "remuxRuntime",
+        "resourceLimits",
+        "softwarePresenter",
+        "startupEscalation",
+        "toneMapping",
+        "trackPolicy",
+        "videoFilters",
+        "watchdogs",
+        "width"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlayerPreview",
+      "members": [
+        "addProvider",
+        "cacheLimits",
+        "clear",
+        "diagnostics",
+        "enabled",
+        "getFrame",
+        "prefetch",
+        "request",
+        "setCacheLimits",
+        "setProviders",
+        "setStrategy",
+        "strategy",
+        "unload"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlayerState",
+      "members": [
+        "activeMode",
+        "audioOutputDevice",
+        "audioTracks",
+        "automaticSelection",
+        "buffered",
+        "cached",
+        "capabilities",
+        "currentTime",
+        "duration",
+        "error",
+        "loop",
+        "mediaInfo",
+        "muted",
+        "pendingOperation",
+        "playbackIntent",
+        "playbackRange",
+        "playbackRate",
+        "seekable",
+        "sourceId",
+        "status",
+        "streamType",
+        "streaming",
+        "subtitleTracks",
+        "subtitlesVisible",
+        "timing",
+        "trackPolicy",
+        "volume"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreloadPolicy",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreparationAsset",
+      "members": [
+        "bytes",
+        "error",
+        "milliseconds",
+        "name",
+        "status"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreparationComponent",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreparationOptions",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreparationProgress",
+      "members": [
+        "name",
+        "status"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreparationReport",
+      "members": [
+        "assets",
+        "milliseconds"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreviewContext",
+      "members": [
+        "exact",
+        "height",
+        "publish",
+        "signal",
+        "sourceId",
+        "time",
+        "trackCleanup",
+        "width"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreviewFrame",
+      "members": [
+        "actualTime",
+        "bucketTime",
+        "cache",
+        "fidelity",
+        "height",
+        "image",
+        "metrics",
+        "path",
+        "requestedTime",
+        "sourceId",
+        "temporalAccuracy",
+        "time",
+        "timestampKind",
+        "width"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreviewImage",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreviewMetrics",
+      "members": [
+        "byteAcquisitionMs",
+        "bytesFetched",
+        "bytesRead",
+        "cacheLookupMs",
+        "decodedFrames",
+        "decoderInitializationMs",
+        "frameDecodeMs",
+        "indexLookupMs",
+        "mediaReadyMs",
+        "providerSelectionMs",
+        "resizeConversionMs",
+        "seekMs",
+        "totalMs"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreviewOptions",
+      "members": [
+        "bucketSeconds",
+        "debounceMs",
+        "enabled",
+        "maxCacheBytes",
+        "maxEntries",
+        "pregenerate",
+        "strategy",
+        "timeoutMs",
+        "width"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreviewPregeneration",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreviewProvider",
+      "members": [
+        "allowDuringPlayback",
+        "canHandle",
+        "getFrame",
+        "id",
+        "priority",
+        "requiresDecoder"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreviewRequest",
+      "members": [
+        "cacheOnly",
+        "exact",
+        "height",
+        "maxDistance",
+        "signal",
+        "time",
+        "width"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreviewResult",
+      "members": [
+        "actualTime",
+        "fidelity",
+        "height",
+        "image",
+        "metrics",
+        "path",
+        "temporalAccuracy",
+        "time",
+        "timestampKind",
+        "width"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreviewSampler",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreviewSamplingContext",
+      "members": [
+        "bucketSeconds",
+        "budget",
+        "cachedTimestamps",
+        "duration",
+        "focus",
+        "interaction"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PreviewStrategy",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "ProviderPreferences",
+      "members": [
+        "[Symbol.iterator]",
+        "[Symbol.unscopables]",
+        "at",
+        "concat",
+        "entries",
+        "every",
+        "filter",
+        "find",
+        "findIndex",
+        "flat",
+        "flatMap",
+        "forEach",
+        "includes",
+        "indexOf",
+        "join",
+        "keys",
+        "lastIndexOf",
+        "length",
+        "map",
+        "reduce",
+        "reduceRight",
+        "slice",
+        "some",
+        "toLocaleString",
+        "toString",
+        "values"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "QualityPolicy",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "RemoteSource",
+      "members": [
+        "allowedOrigins",
+        "credentials",
+        "demuxer",
+        "format",
+        "headers",
+        "immutable",
+        "refreshAuthorization",
+        "streaming",
+        "url"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "RemuxRuntimePolicy",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "ResourceLimits",
+      "members": [
+        "maxAllocationBytes",
+        "maxDecodePixels"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "SeekOptions",
+      "members": [
+        "policy",
+        "signal"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "SelectionChangeDetail",
+      "members": [
+        "mode",
+        "outcome",
+        "reason"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "SessionError",
+      "members": [
+        "code",
+        "message",
+        "operation",
+        "operationId",
+        "retryable",
+        "scope"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "SnapshotOptions",
+      "members": [
+        "height",
+        "includeSubtitles",
+        "width"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "StartupEscalationOptions",
+      "members": [
+        "prefetchAfterMs",
+        "switchAfterMs"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "StreamingOptions",
+      "members": [
+        "live",
+        "maxBandwidth",
+        "representation"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "StreamingQuality",
+      "members": [
+        "audioCodec",
+        "bandwidth",
+        "dynamicRange",
+        "frameRate",
+        "height",
+        "id",
+        "videoCodec",
+        "width"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "StreamingState",
+      "members": [
+        "live",
+        "observedQuality",
+        "presentedId",
+        "qualities",
+        "requested",
+        "selectedId",
+        "transition"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "SubtitleOptions",
+      "members": [
+        "label",
+        "language",
+        "select"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "SubtitleStyle",
+      "members": [
+        "borderSize",
+        "color",
+        "fontFamily",
+        "fontSize"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "TextTrackSource",
+      "members": [
+        "default",
+        "label",
+        "language",
+        "src"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "TimeRange",
+      "members": [
+        "end",
+        "start"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "TimingSettings",
+      "members": [
+        "audioDelay",
+        "effectiveAudioDelay",
+        "effectiveSubtitleDelay",
+        "styleScope",
+        "subtitleDelay",
+        "subtitleStyle"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "ToneMapping",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "TrackMatch",
+      "members": [
+        "codec",
+        "language",
+        "streamIndex",
+        "title"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "TrackPolicy",
+      "members": [
+        "audio",
+        "subtitles"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "TrackType",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "TrackTypePolicy",
+      "members": [
+        "allowAuto",
+        "allowOff",
+        "allowed",
+        "default",
+        "locked"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "VideoSnapshot",
+      "members": [
+        "actualTime",
+        "blob",
+        "height",
+        "includesSubtitles",
+        "mediaTime",
+        "width"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "WatchdogOptions",
+      "members": [
+        "decoderOutput",
+        "hybridDecoder",
+        "nativeProgress",
+        "nativeProgressTimeoutMs",
+        "selectiveAudio"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "WatchdogPolicy",
+      "members": [
+        "decoderOutput",
+        "hybridDecoder",
+        "nativeProgress",
+        "nativeProgressTimeoutMs",
+        "selectiveAudio"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./contracts",
+      "export": "PlaybackControl",
+      "members": [
+        "addEventListener",
+        "getPlaybackExplanation",
+        "getStats",
+        "host",
+        "isDestroyed",
+        "pause",
+        "play",
+        "presentation",
+        "preview",
+        "removeEventListener",
+        "seek",
+        "seekChapter",
+        "seekToLive",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "setLoop",
+        "setMuted",
+        "setPlaybackRange",
+        "setPlaybackRate",
+        "setQuality",
+        "setVolume",
+        "state",
+        "subscribe",
+        "subtitleVisible"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./contracts",
+      "export": "PlaybackRuntime",
+      "members": [
+        "addEventListener",
+        "close",
+        "destroy",
+        "getPlaybackExplanation",
+        "getStats",
+        "host",
+        "isDestroyed",
+        "open",
+        "pause",
+        "play",
+        "presentation",
+        "preview",
+        "removeEventListener",
+        "seek",
+        "seekChapter",
+        "seekToLive",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "setLoop",
+        "setMuted",
+        "setPlaybackRange",
+        "setPlaybackRate",
+        "setQuality",
+        "setVolume",
+        "state",
+        "subscribe",
+        "subtitleVisible"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./contracts",
+      "export": "PlayerAPI",
+      "members": [
+        "addEventListener",
+        "addFont",
+        "addSubtitle",
+        "addTextTrack",
+        "attachFont",
+        "attachSubtitle",
+        "attachTextTrack",
+        "audioDiagnostics",
+        "automaticSelection",
+        "capabilities",
+        "close",
+        "destroy",
+        "diagnostics",
+        "dispatchEvent",
+        "getAudioOutputDevice",
+        "getBuffering",
+        "getLoop",
+        "getPlaybackExplanation",
+        "getPlaybackRange",
+        "getStats",
+        "getStreamingState",
+        "getTimingSettings",
+        "host",
+        "isDestroyed",
+        "mediaInfo",
+        "mode",
+        "open",
+        "openRemote",
+        "pause",
+        "play",
+        "preparationProgress",
+        "preparationReady",
+        "prepare",
+        "presentation",
+        "preview",
+        "properties",
+        "rate",
+        "ready",
+        "removeAttachment",
+        "removeEventListener",
+        "resize",
+        "seek",
+        "seekChapter",
+        "seekToLive",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "selectTrack",
+        "setAudioDelay",
+        "setAudioFilters",
+        "setAudioGain",
+        "setAudioOutputDevice",
+        "setAutomaticSelection",
+        "setBuffering",
+        "setLoop",
+        "setMode",
+        "setMuted",
+        "setPlaybackRange",
+        "setPlaybackRate",
+        "setQuality",
+        "setSubtitleDelay",
+        "setSubtitleStyle",
+        "setToneMapping",
+        "setVideoFilters",
+        "setVolume",
+        "setWatchdogs",
+        "snapshot",
+        "state",
+        "stepFrame",
+        "subscribe",
+        "subtitleVisible",
+        "surface",
+        "trackPolicy",
+        "volume",
+        "watchdogs"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./contracts",
+      "export": "StateSource",
+      "members": [
+        "state",
+        "subscribe"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./player",
+      "export": "PlayerLabels",
+      "members": [
+        "addFiles",
+        "addSubtitle",
+        "appearance",
+        "applyLoop",
+        "applyRange",
+        "applySettings",
+        "audio",
+        "audioDelay",
+        "audioFilter",
+        "audioSettings",
+        "autoMode",
+        "autoQuality",
+        "automatic",
+        "back",
+        "buffering",
+        "chapter",
+        "chooseChapter",
+        "chooseOutput",
+        "cinema",
+        "classic",
+        "clearQueue",
+        "clearRange",
+        "closeMedia",
+        "closeSettings",
+        "customFilter",
+        "deck",
+        "defaultOutput",
+        "demuxeTheme",
+        "diagnostics",
+        "drop",
+        "empty",
+        "exitFullscreen",
+        "exitPictureInPicture",
+        "filterHelp",
+        "filterPreset",
+        "flip",
+        "focus",
+        "fontFile",
+        "format",
+        "forward",
+        "fullscreen",
+        "gain",
+        "goLive",
+        "grayscale",
+        "hybridMode",
+        "inspecting",
+        "layout",
+        "lightTheme",
+        "live",
+        "loadedMedia",
+        "loading",
+        "loopInactive",
+        "markEnd",
+        "markStart",
+        "maxBandwidth",
+        "maxHeight",
+        "mediaFile",
+        "mediaSession",
+        "mirror",
+        "modeHelp",
+        "moreOptions",
+        "mute",
+        "nativeMode",
+        "navigationSettings",
+        "negative",
+        "next",
+        "nextFrame",
+        "noEffect",
+        "noFullscreen",
+        "noMedia",
+        "noWindow",
+        "off",
+        "open",
+        "openForSettings",
+        "openURL",
+        "outputUnavailable",
+        "pause",
+        "pictureInPicture",
+        "play",
+        "playbackMode",
+        "presentationSettings",
+        "previewAdaptive",
+        "previewCustom",
+        "previewDemuxe",
+        "previewDirectional",
+        "previewGaussian",
+        "previewHelp",
+        "previewInterval",
+        "previewOnDemand",
+        "previewStrategy",
+        "previewUniform",
+        "previews",
+        "previous",
+        "previousFrame",
+        "queue",
+        "rail",
+        "rangeEnd",
+        "rangeInactive",
+        "rangeStart",
+        "reading",
+        "remove",
+        "repeat",
+        "repeatAll",
+        "repeatOff",
+        "repeatRange",
+        "resetSettings",
+        "resume",
+        "retry",
+        "saveSnapshot",
+        "seek",
+        "seeking",
+        "settings",
+        "shortcuts",
+        "snapshotSubtitles",
+        "softwareMode",
+        "speed",
+        "streamLive",
+        "streamQuality",
+        "streamingSettings",
+        "studio",
+        "subtitleBorder",
+        "subtitleColor",
+        "subtitleDelay",
+        "subtitleFile",
+        "subtitleFont",
+        "subtitleSettings",
+        "subtitleSize",
+        "subtitleStyleHelp",
+        "subtitles",
+        "subtitlesVisible",
+        "switching",
+        "theme",
+        "toneMapping",
+        "unknown",
+        "unmute",
+        "unnamed",
+        "url",
+        "videoFilter",
+        "videoSettings",
+        "volume"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./player",
+      "export": "PlayerLayout",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./player",
+      "export": "PlayerTheme",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./player",
+      "export": "PlayerTitleMode",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./integration",
+      "export": "BindingError",
+      "members": [
+        "error",
+        "origin",
+        "sourceId"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./integration",
+      "export": "BindingOptions",
+      "members": [
+        "onOperationError"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./integration",
+      "export": "PlaybackControl",
+      "members": [
+        "addEventListener",
+        "getPlaybackExplanation",
+        "getStats",
+        "host",
+        "isDestroyed",
+        "pause",
+        "play",
+        "presentation",
+        "preview",
+        "removeEventListener",
+        "seek",
+        "seekChapter",
+        "seekToLive",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "setLoop",
+        "setMuted",
+        "setPlaybackRange",
+        "setPlaybackRate",
+        "setQuality",
+        "setVolume",
+        "state",
+        "subscribe",
+        "subtitleVisible"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./integration",
+      "export": "PlaybackRuntime",
+      "members": [
+        "addEventListener",
+        "close",
+        "destroy",
+        "getPlaybackExplanation",
+        "getStats",
+        "host",
+        "isDestroyed",
+        "open",
+        "pause",
+        "play",
+        "presentation",
+        "preview",
+        "removeEventListener",
+        "seek",
+        "seekChapter",
+        "seekToLive",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "setLoop",
+        "setMuted",
+        "setPlaybackRange",
+        "setPlaybackRate",
+        "setQuality",
+        "setVolume",
+        "state",
+        "subscribe",
+        "subtitleVisible"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./integration",
+      "export": "PlayerAPI",
+      "members": [
+        "addEventListener",
+        "addFont",
+        "addSubtitle",
+        "addTextTrack",
+        "attachFont",
+        "attachSubtitle",
+        "attachTextTrack",
+        "audioDiagnostics",
+        "automaticSelection",
+        "capabilities",
+        "close",
+        "destroy",
+        "diagnostics",
+        "dispatchEvent",
+        "getAudioOutputDevice",
+        "getBuffering",
+        "getLoop",
+        "getPlaybackExplanation",
+        "getPlaybackRange",
+        "getStats",
+        "getStreamingState",
+        "getTimingSettings",
+        "host",
+        "isDestroyed",
+        "mediaInfo",
+        "mode",
+        "open",
+        "openRemote",
+        "pause",
+        "play",
+        "preparationProgress",
+        "preparationReady",
+        "prepare",
+        "presentation",
+        "preview",
+        "properties",
+        "rate",
+        "ready",
+        "removeAttachment",
+        "removeEventListener",
+        "resize",
+        "seek",
+        "seekChapter",
+        "seekToLive",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "selectTrack",
+        "setAudioDelay",
+        "setAudioFilters",
+        "setAudioGain",
+        "setAudioOutputDevice",
+        "setAutomaticSelection",
+        "setBuffering",
+        "setLoop",
+        "setMode",
+        "setMuted",
+        "setPlaybackRange",
+        "setPlaybackRate",
+        "setQuality",
+        "setSubtitleDelay",
+        "setSubtitleStyle",
+        "setToneMapping",
+        "setVideoFilters",
+        "setVolume",
+        "setWatchdogs",
+        "snapshot",
+        "state",
+        "stepFrame",
+        "subscribe",
+        "subtitleVisible",
+        "surface",
+        "trackPolicy",
+        "volume",
+        "watchdogs"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./integration",
+      "export": "StateSource",
+      "members": [
+        "state",
+        "subscribe"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./components",
+      "export": "ComponentAudioCodec",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./components",
+      "export": "CompositionEvidence",
+      "members": [
+        "bindingId",
+        "implementationIdentities",
+        "recipeId",
+        "scopeKey"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./components",
+      "export": "G726RawBits",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./components",
+      "export": "G726RawCodec",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./components",
+      "export": "ParsedProviderDeployment",
+      "members": [
+        "assets",
+        "catalog",
+        "providerAssets"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": "./components",
+      "export": "ProviderPreferences",
+      "members": [
+        "[Symbol.iterator]",
+        "[Symbol.unscopables]",
+        "at",
+        "concat",
+        "entries",
+        "every",
+        "filter",
+        "find",
+        "findIndex",
+        "flat",
+        "flatMap",
+        "forEach",
+        "includes",
+        "indexOf",
+        "join",
+        "keys",
+        "lastIndexOf",
+        "length",
+        "map",
+        "reduce",
+        "reduceRight",
+        "slice",
+        "some",
+        "toLocaleString",
+        "toString",
+        "values"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    }
+  ],
+  "structural": {
+    ".": {
+      "AttachmentHandle": [
+        "id",
+        "kind",
+        "sourceId"
+      ],
+      "AudioOutput": [],
+      "AuthoredPreviewProvider": [
+        "canHandle",
+        "getFrame",
+        "id",
+        "priority"
+      ],
+      "BufferingCapabilities": [
+        "control",
+        "memoryBudget",
+        "preload",
+        "profile"
+      ],
+      "BufferingOptions": [
+        "aheadSeconds",
+        "behindSeconds",
+        "memoryBudget",
+        "preload",
+        "profile"
+      ],
+      "BufferingPolicy": [
+        "aheadSeconds",
+        "behindSeconds",
+        "memoryBudget",
+        "preload",
+        "profile"
+      ],
+      "BufferingProfile": [],
+      "BufferingResolution": [
+        "backend",
+        "backwardLimitBytes",
+        "backwardSeconds",
+        "cache",
+        "control",
+        "forwardLimitBytes",
+        "forwardSeconds",
+        "notes",
+        "preload",
+        "requestedAheadSeconds",
+        "requestedBehindSeconds",
+        "requestedMemoryBudget",
+        "requestedProfile",
+        "settings"
+      ],
+      "BufferingState": [
+        "active",
+        "buffered",
+        "cached",
+        "capabilities",
+        "effective",
+        "requested"
+      ],
+      "Capabilities": [
+        "audioFilters",
+        "customFonts",
+        "customRequestHeaders",
+        "externalSubtitles",
+        "externalTextTracks",
+        "mpvSubtitles",
+        "videoFilters"
+      ],
+      "Chapter": [
+        "end",
+        "id",
+        "start",
+        "title"
+      ],
+      "CUSTOM_SOURCE_PLAYBACK_LIMIT": [],
+      "CustomSource": [
+        "close",
+        "id",
+        "kind",
+        "name",
+        "ownership",
+        "read",
+        "size",
+        "transport",
+        "type"
+      ],
+      "Diagnostics": [
+        "adaptiveFrameDrop",
+        "audioFilters",
+        "audioGain",
+        "backend",
+        "buffering",
+        "decodeQuality",
+        "mode",
+        "plan",
+        "planAdmission",
+        "preview",
+        "remuxRuntime",
+        "resourceLimits",
+        "runtimeCapabilities",
+        "selection",
+        "switching",
+        "toneMapping",
+        "videoFilters",
+        "watchdogs"
+      ],
+      "FeatureAvailability": [],
+      "InspectionOptions": [
+        "assetBase",
+        "maxBytes",
+        "maxReads",
+        "signal",
+        "timeoutMs"
+      ],
+      "inspectMedia": [],
+      "LocalVideoPreviewProvider": [
+        "allowDuringPlayback",
+        "canHandle",
+        "getFrame",
+        "id",
+        "priority",
+        "requiresDecoder"
+      ],
+      "LoopPolicy": [],
+      "MediaInfo": [
+        "aspectRatio",
+        "audio",
+        "chapters",
+        "color",
+        "displayHeight",
+        "displayWidth",
+        "metadataCoverage",
+        "rotation",
+        "subtitle",
+        "tags",
+        "video",
+        "videoTracks"
+      ],
+      "MediaInputOptions": [
+        "demuxer"
+      ],
+      "MediaInspection": [
+        "bytesRead",
+        "chapters",
+        "completeFor",
+        "duration",
+        "format",
+        "id",
+        "reads",
+        "reason",
+        "sourceIdentity",
+        "status",
+        "tags",
+        "tracks"
+      ],
+      "MediaSourceInput": [],
+      "MediaTrack": [
+        "attachedPicture",
+        "bitDepth",
+        "channelLayout",
+        "channels",
+        "codec",
+        "default",
+        "external",
+        "forced",
+        "frameRate",
+        "id",
+        "label",
+        "language",
+        "profile",
+        "roles",
+        "sampleRate",
+        "selected",
+        "streamIndex",
+        "title",
+        "type"
+      ],
+      "ModeChangeDetail": [],
+      "OpenOptions": [
+        "demuxer",
+        "signal",
+        "startTime",
+        "trackPolicy"
+      ],
+      "OperationKind": [],
+      "PendingOperation": [
+        "id",
+        "kind"
+      ],
+      "PLAYBACK_MODES": [],
+      "PlaybackDecisionCode": [],
+      "PlaybackEvent": [
+        "data",
+        "event",
+        "name"
+      ],
+      "PlaybackExplanation": [
+        "admission",
+        "attempts",
+        "audio",
+        "automatic",
+        "decodeQuality",
+        "fidelity",
+        "mode",
+        "planId",
+        "sourceId",
+        "subtitle",
+        "video"
+      ],
+      "PlaybackMode": [],
+      "PlaybackRange": [
+        "end",
+        "start"
+      ],
+      "PlaybackStats": [
+        "acceptedAtMs",
+        "decodedFrames",
+        "droppedFrames",
+        "firstPlayingMs",
+        "lastSeekMs",
+        "openToAcceptanceMs",
+        "presentedFrames",
+        "rebufferCount",
+        "rebufferMs",
+        "seekCount",
+        "sessionEpoch",
+        "sourceId",
+        "throughputBitsPerSecond"
+      ],
+      "Player": [
+        "addEventListener",
+        "addFont",
+        "addSubtitle",
+        "addTextTrack",
+        "attachFont",
+        "attachSubtitle",
+        "attachTextTrack",
+        "audioDiagnostics",
+        "automaticSelection",
+        "capabilities",
+        "close",
+        "destroy",
+        "diagnostics",
+        "getAudioOutputDevice",
+        "getBuffering",
+        "getLoop",
+        "getPlaybackExplanation",
+        "getPlaybackRange",
+        "getStats",
+        "getStreamingState",
+        "getTimingSettings",
+        "host",
+        "isDestroyed",
+        "mediaInfo",
+        "mode",
+        "open",
+        "openRemote",
+        "pause",
+        "play",
+        "preparationProgress",
+        "preparationReady",
+        "prepare",
+        "presentation",
+        "preview",
+        "properties",
+        "rate",
+        "ready",
+        "removeAttachment",
+        "removeEventListener",
+        "resize",
+        "seek",
+        "seekChapter",
+        "seekToLive",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "selectTrack",
+        "setAudioDelay",
+        "setAudioFilters",
+        "setAudioGain",
+        "setAudioOutputDevice",
+        "setAutomaticSelection",
+        "setBuffering",
+        "setLoop",
+        "setMode",
+        "setMuted",
+        "setPlaybackRange",
+        "setPlaybackRate",
+        "setQuality",
+        "setSubtitleDelay",
+        "setSubtitleStyle",
+        "setToneMapping",
+        "setVideoFilters",
+        "setVolume",
+        "setWatchdogs",
+        "snapshot",
+        "state",
+        "stepFrame",
+        "subscribe",
+        "subtitleVisible",
+        "surface",
+        "trackPolicy",
+        "volume",
+        "watchdogs"
+      ],
+      "PLAYER_EVENTS": [],
+      "PlayerCapabilities": [
+        "audioFilters",
+        "buffering",
+        "customFonts",
+        "customRequestHeaders",
+        "deployment",
+        "externalSubtitles",
+        "externalTextTracks",
+        "features",
+        "mpvSubtitles",
+        "videoFilters"
+      ],
+      "PlayerError": [
+        "toJSON"
+      ],
+      "PlayerErrorCode": [],
+      "PlayerEventMap": [
+        "capabilitieschange",
+        "durationchange",
+        "ended",
+        "error",
+        "modechange",
+        "pause",
+        "play",
+        "playing",
+        "ratechange",
+        "seeked",
+        "seeking",
+        "selectionchange",
+        "sourcechange",
+        "statechange",
+        "timeupdate",
+        "trackschange",
+        "volumechange",
+        "waiting"
+      ],
+      "PlayerEventName": [],
+      "PlayerOptions": [
+        "adaptiveFrameDrop",
+        "allowLossyAudio",
+        "assetBase",
+        "audioFallback",
+        "audioFilters",
+        "audioGain",
+        "audioOutput",
+        "audioPlayback",
+        "automaticAudioAdaptation",
+        "automaticSelection",
+        "buffering",
+        "decodeQuality",
+        "experimentalAudioAdaptation",
+        "experimentalBackgroundPromotion",
+        "experimentalBufferedNativeSeeks",
+        "experimentalHybridAudioFilters",
+        "experimentalMpvSubtitles",
+        "experimentalNativeASS",
+        "experimentalRemuxRuntime",
+        "height",
+        "mode",
+        "nativeRemux",
+        "prepare",
+        "preview",
+        "providerPreferences",
+        "remuxRuntime",
+        "resourceLimits",
+        "softwarePresenter",
+        "startupEscalation",
+        "toneMapping",
+        "trackPolicy",
+        "videoFilters",
+        "watchdogs",
+        "width"
+      ],
+      "PlayerPresentation": [
+        "destroy",
+        "exitFullscreen",
+        "exitPictureInPicture",
+        "locksSurface",
+        "requestFullscreen",
+        "requestPictureInPicture",
+        "setFullscreenTarget",
+        "setMediaSessionEnabled",
+        "state"
+      ],
+      "PlayerPreview": [
+        "addProvider",
+        "cacheLimits",
+        "clear",
+        "diagnostics",
+        "enabled",
+        "getFrame",
+        "prefetch",
+        "request",
+        "setCacheLimits",
+        "setProviders",
+        "setStrategy",
+        "strategy",
+        "unload"
+      ],
+      "PlayerState": [
+        "activeMode",
+        "audioOutputDevice",
+        "audioTracks",
+        "automaticSelection",
+        "buffered",
+        "cached",
+        "capabilities",
+        "currentTime",
+        "duration",
+        "error",
+        "loop",
+        "mediaInfo",
+        "muted",
+        "pendingOperation",
+        "playbackIntent",
+        "playbackRange",
+        "playbackRate",
+        "seekable",
+        "sourceId",
+        "status",
+        "streamType",
+        "streaming",
+        "subtitleTracks",
+        "subtitlesVisible",
+        "timing",
+        "trackPolicy",
+        "volume"
+      ],
+      "PreloadPolicy": [],
+      "PreparationAsset": [
+        "bytes",
+        "error",
+        "milliseconds",
+        "name",
+        "status"
+      ],
+      "PreparationComponent": [],
+      "PreparationOptions": [],
+      "PreparationProgress": [
+        "name",
+        "status"
+      ],
+      "PreparationReport": [
+        "assets",
+        "milliseconds"
+      ],
+      "PreviewContext": [
+        "exact",
+        "height",
+        "publish",
+        "signal",
+        "sourceId",
+        "time",
+        "trackCleanup",
+        "width"
+      ],
+      "PreviewController": [
+        "addProvider",
+        "cacheLimits",
+        "clear",
+        "destroy",
+        "diagnostics",
+        "drain",
+        "enabled",
+        "getFrame",
+        "prefetch",
+        "request",
+        "setCacheLimits",
+        "setDuration",
+        "setPlaybackActive",
+        "setPlaybackPosition",
+        "setProviders",
+        "setSourceIdentity",
+        "setStrategy",
+        "setSuspended",
+        "strategy",
+        "unload"
+      ],
+      "PreviewFrame": [
+        "actualTime",
+        "bucketTime",
+        "cache",
+        "fidelity",
+        "height",
+        "image",
+        "metrics",
+        "path",
+        "requestedTime",
+        "sourceId",
+        "temporalAccuracy",
+        "time",
+        "timestampKind",
+        "width"
+      ],
+      "PreviewImage": [],
+      "PreviewMetrics": [
+        "byteAcquisitionMs",
+        "bytesFetched",
+        "bytesRead",
+        "cacheLookupMs",
+        "decodedFrames",
+        "decoderInitializationMs",
+        "frameDecodeMs",
+        "indexLookupMs",
+        "mediaReadyMs",
+        "providerSelectionMs",
+        "resizeConversionMs",
+        "seekMs",
+        "totalMs"
+      ],
+      "PreviewOptions": [
+        "bucketSeconds",
+        "debounceMs",
+        "enabled",
+        "maxCacheBytes",
+        "maxEntries",
+        "pregenerate",
+        "strategy",
+        "timeoutMs",
+        "width"
+      ],
+      "PreviewPregeneration": [],
+      "PreviewProvider": [
+        "allowDuringPlayback",
+        "canHandle",
+        "getFrame",
+        "id",
+        "priority",
+        "requiresDecoder"
+      ],
+      "PreviewRequest": [
+        "cacheOnly",
+        "exact",
+        "height",
+        "maxDistance",
+        "signal",
+        "time",
+        "width"
+      ],
+      "PreviewResult": [
+        "actualTime",
+        "fidelity",
+        "height",
+        "image",
+        "metrics",
+        "path",
+        "temporalAccuracy",
+        "time",
+        "timestampKind",
+        "width"
+      ],
+      "PreviewSampler": [],
+      "PreviewSamplingContext": [
+        "bucketSeconds",
+        "budget",
+        "cachedTimestamps",
+        "duration",
+        "focus",
+        "interaction"
+      ],
+      "PreviewStrategy": [],
+      "ProviderPreferences": [
+        "[Symbol.iterator]",
+        "[Symbol.unscopables]",
+        "at",
+        "concat",
+        "entries",
+        "every",
+        "filter",
+        "find",
+        "findIndex",
+        "flat",
+        "flatMap",
+        "forEach",
+        "includes",
+        "indexOf",
+        "join",
+        "keys",
+        "lastIndexOf",
+        "length",
+        "map",
+        "reduce",
+        "reduceRight",
+        "slice",
+        "some",
+        "toLocaleString",
+        "toString",
+        "values"
+      ],
+      "QualityPolicy": [],
+      "RemoteSource": [
+        "allowedOrigins",
+        "credentials",
+        "demuxer",
+        "format",
+        "headers",
+        "immutable",
+        "refreshAuthorization",
+        "streaming",
+        "url"
+      ],
+      "RemuxRuntimePolicy": [],
+      "ResourceLimits": [
+        "maxAllocationBytes",
+        "maxDecodePixels"
+      ],
+      "SeekOptions": [
+        "policy",
+        "signal"
+      ],
+      "SelectionChangeDetail": [
+        "mode",
+        "outcome",
+        "reason"
+      ],
+      "SessionError": [
+        "code",
+        "message",
+        "operation",
+        "operationId",
+        "retryable",
+        "scope"
+      ],
+      "SnapshotOptions": [
+        "height",
+        "includeSubtitles",
+        "width"
+      ],
+      "SoftwarePreviewProvider": [
+        "canHandle",
+        "getFrame",
+        "id",
+        "priority",
+        "requiresDecoder"
+      ],
+      "StartupEscalationOptions": [
+        "prefetchAfterMs",
+        "switchAfterMs"
+      ],
+      "StreamingOptions": [
+        "live",
+        "maxBandwidth",
+        "representation"
+      ],
+      "StreamingQuality": [
+        "audioCodec",
+        "bandwidth",
+        "dynamicRange",
+        "frameRate",
+        "height",
+        "id",
+        "videoCodec",
+        "width"
+      ],
+      "StreamingState": [
+        "live",
+        "observedQuality",
+        "presentedId",
+        "qualities",
+        "requested",
+        "selectedId",
+        "transition"
+      ],
+      "SubtitleOptions": [
+        "label",
+        "language",
+        "select"
+      ],
+      "SubtitleStyle": [
+        "borderSize",
+        "color",
+        "fontFamily",
+        "fontSize"
+      ],
+      "TextTrackSource": [
+        "default",
+        "label",
+        "language",
+        "src"
+      ],
+      "TimeRange": [
+        "end",
+        "start"
+      ],
+      "TimingSettings": [
+        "audioDelay",
+        "effectiveAudioDelay",
+        "effectiveSubtitleDelay",
+        "styleScope",
+        "subtitleDelay",
+        "subtitleStyle"
+      ],
+      "ToneMapping": [],
+      "TrackMatch": [
+        "codec",
+        "language",
+        "streamIndex",
+        "title"
+      ],
+      "TrackPolicy": [
+        "audio",
+        "subtitles"
+      ],
+      "TrackType": [],
+      "TrackTypePolicy": [
+        "allowAuto",
+        "allowOff",
+        "allowed",
+        "default",
+        "locked"
+      ],
+      "VideoSnapshot": [
+        "actualTime",
+        "blob",
+        "height",
+        "includesSubtitles",
+        "mediaTime",
+        "width"
+      ],
+      "WatchdogOptions": [
+        "decoderOutput",
+        "hybridDecoder",
+        "nativeProgress",
+        "nativeProgressTimeoutMs",
+        "selectiveAudio"
+      ],
+      "WatchdogPolicy": [
+        "decoderOutput",
+        "hybridDecoder",
+        "nativeProgress",
+        "nativeProgressTimeoutMs",
+        "selectiveAudio"
+      ]
+    },
+    "./contracts": {
+      "PlaybackControl": [
+        "addEventListener",
+        "getPlaybackExplanation",
+        "getStats",
+        "host",
+        "isDestroyed",
+        "pause",
+        "play",
+        "presentation",
+        "preview",
+        "removeEventListener",
+        "seek",
+        "seekChapter",
+        "seekToLive",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "setLoop",
+        "setMuted",
+        "setPlaybackRange",
+        "setPlaybackRate",
+        "setQuality",
+        "setVolume",
+        "state",
+        "subscribe",
+        "subtitleVisible"
+      ],
+      "PlaybackRuntime": [
+        "addEventListener",
+        "close",
+        "destroy",
+        "getPlaybackExplanation",
+        "getStats",
+        "host",
+        "isDestroyed",
+        "open",
+        "pause",
+        "play",
+        "presentation",
+        "preview",
+        "removeEventListener",
+        "seek",
+        "seekChapter",
+        "seekToLive",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "setLoop",
+        "setMuted",
+        "setPlaybackRange",
+        "setPlaybackRate",
+        "setQuality",
+        "setVolume",
+        "state",
+        "subscribe",
+        "subtitleVisible"
+      ],
+      "PlayerAPI": [
+        "addEventListener",
+        "addFont",
+        "addSubtitle",
+        "addTextTrack",
+        "attachFont",
+        "attachSubtitle",
+        "attachTextTrack",
+        "audioDiagnostics",
+        "automaticSelection",
+        "capabilities",
+        "close",
+        "destroy",
+        "diagnostics",
+        "dispatchEvent",
+        "getAudioOutputDevice",
+        "getBuffering",
+        "getLoop",
+        "getPlaybackExplanation",
+        "getPlaybackRange",
+        "getStats",
+        "getStreamingState",
+        "getTimingSettings",
+        "host",
+        "isDestroyed",
+        "mediaInfo",
+        "mode",
+        "open",
+        "openRemote",
+        "pause",
+        "play",
+        "preparationProgress",
+        "preparationReady",
+        "prepare",
+        "presentation",
+        "preview",
+        "properties",
+        "rate",
+        "ready",
+        "removeAttachment",
+        "removeEventListener",
+        "resize",
+        "seek",
+        "seekChapter",
+        "seekToLive",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "selectTrack",
+        "setAudioDelay",
+        "setAudioFilters",
+        "setAudioGain",
+        "setAudioOutputDevice",
+        "setAutomaticSelection",
+        "setBuffering",
+        "setLoop",
+        "setMode",
+        "setMuted",
+        "setPlaybackRange",
+        "setPlaybackRate",
+        "setQuality",
+        "setSubtitleDelay",
+        "setSubtitleStyle",
+        "setToneMapping",
+        "setVideoFilters",
+        "setVolume",
+        "setWatchdogs",
+        "snapshot",
+        "state",
+        "stepFrame",
+        "subscribe",
+        "subtitleVisible",
+        "surface",
+        "trackPolicy",
+        "volume",
+        "watchdogs"
+      ],
+      "StateSource": [
+        "state",
+        "subscribe"
+      ]
+    },
+    "./player": {
+      "defaultLabels": [],
+      "definePlayerElement": [],
+      "DemuxePlayerElement": [
+        "addSubtitle",
+        "allowFileDrop",
+        "assetBase",
+        "attributeChangedCallback",
+        "audioPlayback",
+        "autoplay",
+        "close",
+        "connectedCallback",
+        "controls",
+        "controlsAutoHideDelay",
+        "destroy",
+        "disconnectedCallback",
+        "labels",
+        "layout",
+        "muted",
+        "open",
+        "pause",
+        "play",
+        "player",
+        "poster",
+        "previewOptions",
+        "previewThumbnails",
+        "ready",
+        "seek",
+        "seekStep",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "setMuted",
+        "setPlaybackRate",
+        "setVolume",
+        "showDiagnostics",
+        "showSourceControls",
+        "src",
+        "static observedAttributes",
+        "theme",
+        "titleMode",
+        "trackPolicy",
+        "watchdogs"
+      ],
+      "PlayerLabels": [
+        "addFiles",
+        "addSubtitle",
+        "appearance",
+        "applyLoop",
+        "applyRange",
+        "applySettings",
+        "audio",
+        "audioDelay",
+        "audioFilter",
+        "audioSettings",
+        "autoMode",
+        "autoQuality",
+        "automatic",
+        "back",
+        "buffering",
+        "chapter",
+        "chooseChapter",
+        "chooseOutput",
+        "cinema",
+        "classic",
+        "clearQueue",
+        "clearRange",
+        "closeMedia",
+        "closeSettings",
+        "customFilter",
+        "deck",
+        "defaultOutput",
+        "demuxeTheme",
+        "diagnostics",
+        "drop",
+        "empty",
+        "exitFullscreen",
+        "exitPictureInPicture",
+        "filterHelp",
+        "filterPreset",
+        "flip",
+        "focus",
+        "fontFile",
+        "format",
+        "forward",
+        "fullscreen",
+        "gain",
+        "goLive",
+        "grayscale",
+        "hybridMode",
+        "inspecting",
+        "layout",
+        "lightTheme",
+        "live",
+        "loadedMedia",
+        "loading",
+        "loopInactive",
+        "markEnd",
+        "markStart",
+        "maxBandwidth",
+        "maxHeight",
+        "mediaFile",
+        "mediaSession",
+        "mirror",
+        "modeHelp",
+        "moreOptions",
+        "mute",
+        "nativeMode",
+        "navigationSettings",
+        "negative",
+        "next",
+        "nextFrame",
+        "noEffect",
+        "noFullscreen",
+        "noMedia",
+        "noWindow",
+        "off",
+        "open",
+        "openForSettings",
+        "openURL",
+        "outputUnavailable",
+        "pause",
+        "pictureInPicture",
+        "play",
+        "playbackMode",
+        "presentationSettings",
+        "previewAdaptive",
+        "previewCustom",
+        "previewDemuxe",
+        "previewDirectional",
+        "previewGaussian",
+        "previewHelp",
+        "previewInterval",
+        "previewOnDemand",
+        "previewStrategy",
+        "previewUniform",
+        "previews",
+        "previous",
+        "previousFrame",
+        "queue",
+        "rail",
+        "rangeEnd",
+        "rangeInactive",
+        "rangeStart",
+        "reading",
+        "remove",
+        "repeat",
+        "repeatAll",
+        "repeatOff",
+        "repeatRange",
+        "resetSettings",
+        "resume",
+        "retry",
+        "saveSnapshot",
+        "seek",
+        "seeking",
+        "settings",
+        "shortcuts",
+        "snapshotSubtitles",
+        "softwareMode",
+        "speed",
+        "streamLive",
+        "streamQuality",
+        "streamingSettings",
+        "studio",
+        "subtitleBorder",
+        "subtitleColor",
+        "subtitleDelay",
+        "subtitleFile",
+        "subtitleFont",
+        "subtitleSettings",
+        "subtitleSize",
+        "subtitleStyleHelp",
+        "subtitles",
+        "subtitlesVisible",
+        "switching",
+        "theme",
+        "toneMapping",
+        "unknown",
+        "unmute",
+        "unnamed",
+        "url",
+        "videoFilter",
+        "videoSettings",
+        "volume"
+      ],
+      "PlayerLayout": [],
+      "PlayerTheme": [],
+      "PlayerTitleMode": []
+    },
+    "./integration": {
+      "BindingError": [
+        "error",
+        "origin",
+        "sourceId"
+      ],
+      "BindingOptions": [
+        "onOperationError"
+      ],
+      "bindPlayer": [],
+      "createPlayerBinding": [],
+      "PlaybackBinding": [
+        "diagnostics",
+        "dispose",
+        "disposed",
+        "pause",
+        "play",
+        "run",
+        "seek",
+        "setMuted",
+        "setPlaybackRate",
+        "setVolume",
+        "sourceAuthority",
+        "state",
+        "subscribe"
+      ],
+      "PlaybackControl": [
+        "addEventListener",
+        "getPlaybackExplanation",
+        "getStats",
+        "host",
+        "isDestroyed",
+        "pause",
+        "play",
+        "presentation",
+        "preview",
+        "removeEventListener",
+        "seek",
+        "seekChapter",
+        "seekToLive",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "setLoop",
+        "setMuted",
+        "setPlaybackRange",
+        "setPlaybackRate",
+        "setQuality",
+        "setVolume",
+        "state",
+        "subscribe",
+        "subtitleVisible"
+      ],
+      "PlaybackRuntime": [
+        "addEventListener",
+        "close",
+        "destroy",
+        "getPlaybackExplanation",
+        "getStats",
+        "host",
+        "isDestroyed",
+        "open",
+        "pause",
+        "play",
+        "presentation",
+        "preview",
+        "removeEventListener",
+        "seek",
+        "seekChapter",
+        "seekToLive",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "setLoop",
+        "setMuted",
+        "setPlaybackRange",
+        "setPlaybackRate",
+        "setQuality",
+        "setVolume",
+        "state",
+        "subscribe",
+        "subtitleVisible"
+      ],
+      "PlayerAPI": [
+        "addEventListener",
+        "addFont",
+        "addSubtitle",
+        "addTextTrack",
+        "attachFont",
+        "attachSubtitle",
+        "attachTextTrack",
+        "audioDiagnostics",
+        "automaticSelection",
+        "capabilities",
+        "close",
+        "destroy",
+        "diagnostics",
+        "dispatchEvent",
+        "getAudioOutputDevice",
+        "getBuffering",
+        "getLoop",
+        "getPlaybackExplanation",
+        "getPlaybackRange",
+        "getStats",
+        "getStreamingState",
+        "getTimingSettings",
+        "host",
+        "isDestroyed",
+        "mediaInfo",
+        "mode",
+        "open",
+        "openRemote",
+        "pause",
+        "play",
+        "preparationProgress",
+        "preparationReady",
+        "prepare",
+        "presentation",
+        "preview",
+        "properties",
+        "rate",
+        "ready",
+        "removeAttachment",
+        "removeEventListener",
+        "resize",
+        "seek",
+        "seekChapter",
+        "seekToLive",
+        "selectAudioTrack",
+        "selectSubtitleTrack",
+        "selectTrack",
+        "setAudioDelay",
+        "setAudioFilters",
+        "setAudioGain",
+        "setAudioOutputDevice",
+        "setAutomaticSelection",
+        "setBuffering",
+        "setLoop",
+        "setMode",
+        "setMuted",
+        "setPlaybackRange",
+        "setPlaybackRate",
+        "setQuality",
+        "setSubtitleDelay",
+        "setSubtitleStyle",
+        "setToneMapping",
+        "setVideoFilters",
+        "setVolume",
+        "setWatchdogs",
+        "snapshot",
+        "state",
+        "stepFrame",
+        "subscribe",
+        "subtitleVisible",
+        "surface",
+        "trackPolicy",
+        "volume",
+        "watchdogs"
+      ],
+      "StateSource": [
+        "state",
+        "subscribe"
+      ],
+      "subscribeSelector": []
+    },
+    "./media-element": {
+      "DemuxeMediaElement": [
+        "bind",
+        "buffered",
+        "currentSrc",
+        "currentTime",
+        "disconnectedCallback",
+        "dispose",
+        "duration",
+        "ended",
+        "error",
+        "muted",
+        "pause",
+        "paused",
+        "play",
+        "playbackRate",
+        "seekable",
+        "seeking",
+        "src",
+        "state",
+        "volume"
+      ],
+      "registerMediaElement": []
+    },
+    "./adapters/videojs": {
+      "registerVideojsTech": []
+    },
+    "./components": {
+      "audioRepairRecipe": [],
+      "ComponentAudioCodec": [],
+      "CompositionEvidence": [
+        "bindingId",
+        "implementationIdentities",
+        "recipeId",
+        "scopeKey"
+      ],
+      "executeComponentBinding": [],
+      "G726RawBits": [],
+      "G726RawCodec": [],
+      "g726RawRepairRecipe": [],
+      "packetCopyRecipe": [],
+      "ParsedProviderDeployment": [
+        "assets",
+        "catalog",
+        "providerAssets"
+      ],
+      "parseProviderDeployment": [],
+      "ProviderAcquisition": [
+        "acquire",
+        "catalog",
+        "dispose",
+        "readAsset",
+        "resolve"
+      ],
+      "ProviderPreferences": [
+        "[Symbol.iterator]",
+        "[Symbol.unscopables]",
+        "at",
+        "concat",
+        "entries",
+        "every",
+        "filter",
+        "find",
+        "findIndex",
+        "flat",
+        "flatMap",
+        "forEach",
+        "includes",
+        "indexOf",
+        "join",
+        "keys",
+        "lastIndexOf",
+        "length",
+        "map",
+        "reduce",
+        "reduceRight",
+        "slice",
+        "some",
+        "toLocaleString",
+        "toString",
+        "values"
+      ],
+      "selectComponentBinding": [],
+      "webmPacketCopyRecipe": []
+    }
+  },
+  "unmapped": []
+}
