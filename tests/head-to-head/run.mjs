@@ -17,6 +17,7 @@ import {remuxEvidence,requireRemuxCPU,nonisolatedPlaybackLanes,playbackLane,requ
 import {referenceAudio,waitReferenceAudio} from './specialist-audio.mjs';
 import {referenceFixture} from './specialist-contract.mjs';
 import {validatePlaybackRate} from './playback-rate.mjs';
+import {campaignExitCode} from './completion.mjs';
 
 const here=import.meta.dirname,repo=path.resolve(here,'../..');
 const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'string'},cases:{type:'string',default:'all'},
@@ -106,7 +107,7 @@ for(const key of new Set(selected.map(c=>c.fixture))){
 }
 const output=path.resolve(args.output??`results/head-to-head/${stamp}-${args.performance?'performance':'correctness'}`);
 await fs.mkdir(path.dirname(output),{recursive:true});await fs.mkdir(output); // EEXIST intentionally prevents overwrites.
-const sourceNames=['campaign-progress.mjs','benchmark-browser.mjs','browser-exit.mjs','performance-metrics.mjs','playback-rate.mjs','component-trials.mjs','initial-output.mjs','remux-evidence.mjs','specialist-audio.mjs','specialist-contract.mjs','run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
+const sourceNames=['campaign-progress.mjs','benchmark-browser.mjs','browser-exit.mjs','performance-metrics.mjs','playback-rate.mjs','completion.mjs','component-trials.mjs','initial-output.mjs','remux-evidence.mjs','specialist-audio.mjs','specialist-contract.mjs','run.mjs','server.mjs','checks.mjs','adapters.mjs','harness.html','matrix.json','assets.lock.json','setup.py','expand.py','planned.json','subtitle-ocr.swift','bitmap.py'];
 const sourceHashes={};
 await fs.mkdir(path.join(output,'files','harness'),{recursive:true});
 for(const name of sourceNames){const bytes=name==='matrix.json'?Buffer.from(JSON.stringify(matrix,null,2)+'\n'):await fs.readFile(path.join(here,name));sourceHashes[name]=hash(bytes);await fs.writeFile(path.join(output,'files','harness',name),bytes);}
@@ -469,4 +470,4 @@ for(const name of (await fs.readdir(output,{recursive:true})).sort()) {
 }
 await fs.writeFile(path.join(output,'manifest.json'),JSON.stringify({schema:1,scope:'Captured run files; prepared dependency/fixture/runtime hashes are in assets-manifest.json.',sha256:captured},null,2)+'\n');
 console.log(JSON.stringify({output,...summary.counts},null,2));
-process.exitCode=summary.passed?0:1;
+process.exitCode=campaignExitCode(summary,{catalogue:args.catalogue,selection:args.cases});

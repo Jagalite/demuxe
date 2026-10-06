@@ -46,6 +46,9 @@ screens. The wrapper accepts that exit only with a fresh, finalized, complete
 report whose counts, identities and completion hash agree. The comparison still
 rejects regressions and changed limitations. Missing or partial output, skipped
 cases, crashes and inconsistent exit statuses stop the release sequence.
+The full correctness runner also stops with a distinct failure if no browser
+identity or no successful playback screen was observed, preventing an entirely
+unobserved catalogue from being treated as unchanged limitations.
 
 The catalogue runs once per fixture per release version: published baseline and
 candidate. It does not pass `--performance`, so there are no CPU benchmark rounds

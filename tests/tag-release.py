@@ -67,9 +67,10 @@ class ReleaseGuards(unittest.TestCase):
         self.assertEqual(run.call_count,1)
 
     def test_catalogue_signal_is_not_a_completed_failure(self):
-        with patch.object(pipeline,'WORK',self.root),patch.object(pipeline,'run',side_effect=subprocess.CalledProcessError(-9,['node'])) as run:
-            with self.assertRaises(subprocess.CalledProcessError):pipeline.run_catalogue_correctness(self.root/'old',self.root/'new')
-        self.assertEqual(run.call_count,1)
+        for code in [-9,2]:
+            with self.subTest(code=code),patch.object(pipeline,'WORK',self.root),patch.object(pipeline,'run',side_effect=subprocess.CalledProcessError(code,['node'])) as run:
+                with self.assertRaises(subprocess.CalledProcessError):pipeline.run_catalogue_correctness(self.root/'old',self.root/'new')
+            self.assertEqual(run.call_count,1)
 
     def test_catalogue_stale_output_is_rejected_before_launch(self):
         (self.root/'baseline').mkdir()
