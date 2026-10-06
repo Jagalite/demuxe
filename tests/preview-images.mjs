@@ -3,6 +3,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {previewImageDimensions} from '../web/generated/internal/machine/preview-image.js';
 import {previewImageBlob,rasterizePreview} from '../web/generated/preview/images.js';
+import {previewPNG} from './helpers/preview-image.mjs';
 const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a+1sAAAAASUVORK5CYII=','base64');
 const signal=()=>new AbortController().signal;
 function large(){const bytes=Buffer.from(png);bytes.writeUInt32BE(4097,16);bytes.writeUInt32BE(4097,20);return bytes;}
@@ -57,4 +58,36 @@ test('Blob previews honor encoded budget, cancellation and retain already-sized 
   const blob=new Blob([png]);assert.equal(await previewImageBlob({blob},signal(),{width:240,height:135}),blob);
   await assert.rejects(previewImageBlob({blob:new Blob([new Uint8Array(4*1024*1024+1)])},signal()),/byte budget/);
   const abort=new AbortController();abort.abort();await assert.rejects(previewImageBlob({blob},abort.signal),e=>e.name==='AbortError');
+});
+test('URL previews honor requested bounds, preserve crop geometry and do not upscale',async t=>{
+  const draws=[];
+  const replacements={
+    createImageBitmap:async blob=>({...previewImageDimensions(new Uint8Array(await blob.arrayBuffer())),close(){}}),
+    OffscreenCanvas:class {
+      constructor(width,height){this.width=width;this.height=height;}
+      getContext(){return {drawImage:(...args)=>draws.push(args.slice(1))};}
+      async convertToBlob(){return new Blob([previewPNG(this.width,this.height)]);}
+    },
+  };
+  for(const [key,value] of Object.entries(replacements)){
+    const previous=Object.getOwnPropertyDescriptor(globalThis,key);
+    Object.defineProperty(globalThis,key,{configurable:true,writable:true,value});
+    t.after(()=>{if(previous)Object.defineProperty(globalThis,key,previous);else delete globalThis[key];});
+  }
+  const blob=new Blob([previewPNG(1920,1080)],{type:'image/png'}),url=URL.createObjectURL(blob);
+  t.after(()=>URL.revokeObjectURL(url));
+  const full={x:0,y:0,width:1920,height:1080};
+  for(const [crop,size,expected] of [
+    [full,{width:160,height:90},[160,90]],
+    [{x:100,y:50,width:960,height:540},{width:120,height:120},[120,68]],
+    [full,{width:100,height:20},[36,20]],
+    [full,{width:3840,height:2160},[1920,1080]],
+    [full,undefined,[1920,1080]],
+  ]){
+    const output=await previewImageBlob({uris:[url],crop},signal(),size);
+    assert.deepEqual(previewImageDimensions(new Uint8Array(await output.arrayBuffer())),{width:expected[0],height:expected[1]});
+    assert.deepEqual(draws.at(-1),[crop.x,crop.y,crop.width,crop.height,0,0,...expected]);
+  }
+  const direct=await previewImageBlob({blob},signal(),{width:160,height:90});
+  assert.deepEqual(previewImageDimensions(new Uint8Array(await direct.arrayBuffer())),{width:160,height:90});
 });

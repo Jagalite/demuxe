@@ -44,10 +44,10 @@ export async function previewImageBlob(image:PreviewImage,signal:AbortSignal,siz
       let expected:number|undefined;
       if(headers.has('Range')){const match=/^bytes (\d+)-(\d+)\/(\d+)$/.exec(response.headers.get('Content-Range')??'');if(response.status!==206||!match||Number(match[1])!==(image.startByte??0)||(image.endByte!==undefined&&Number(match[2])!==image.endByte)){await response.body?.cancel();throw Error('Preview image range mismatch');}expected=Number(match[2])-Number(match[1])+1;}
       const reader=response.body?.getReader();if(!reader)throw Error('Empty preview image');
-      const chunks:Uint8Array<ArrayBuffer>[]=[];let size=0;
-      try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>4*1024*1024)throw Error('Preview image byte budget exceeded');chunks.push(value);}}finally{await reader.cancel().catch(()=>{});reader.releaseLock();}
-      if(expected!==undefined&&size!==expected)throw Error('Preview image range body mismatch');
-      const result=await rasterizePreview(new Blob(chunks,{type:response.headers.get('Content-Type')??''}),{width:Math.min(2048,image.crop.width),height:Math.min(2048,image.crop.height),signal},image.crop);return result.blob;
+      const chunks:Uint8Array<ArrayBuffer>[]=[];let encodedBytes=0;
+      try{while(true){const {done,value}=await reader.read();if(done)break;encodedBytes+=value.length;if(encodedBytes>4*1024*1024)throw Error('Preview image byte budget exceeded');chunks.push(value);}}finally{await reader.cancel().catch(()=>{});reader.releaseLock();}
+      if(expected!==undefined&&encodedBytes!==expected)throw Error('Preview image range body mismatch');
+      const result=await rasterizePreview(new Blob(chunks,{type:response.headers.get('Content-Type')??''}),{width:Math.min(size?.width??2048,image.crop.width),height:Math.min(size?.height??2048,image.crop.height),signal},image.crop);return result.blob;
     }catch(error){signal.throwIfAborted();last=error;attempts=observeAttempt(attempts,index,'retry');}
   }
   throw last;
