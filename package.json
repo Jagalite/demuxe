@@ -1,6 +1,6 @@
 {
   "name": "demuxe",
-  "version": "1.1.0-rc.1",
+  "version": "1.1.0-rc.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -79,6 +79,7 @@
     "test:providers": "node scripts/test-providers.mjs",
     "test:provider-harness": "node --test tests/provider-conformance/*-contracts.mjs && node tests/provider-conformance-installed.mjs",
     "test:stability": "node tests/api-stability/run.mjs unit",
+    "test:stability:release": "node tests/api-stability/live-boundaries.mjs --archive",
     "test:stability:browser": "node tests/api-stability/run.mjs browser",
     "build:shaka": "node scripts/copy-shaka-assets.mjs",
     "prepare:shaka": "npm ci --prefix packages/provider-shaka --ignore-scripts --legacy-peer-deps && npm run build:shaka"

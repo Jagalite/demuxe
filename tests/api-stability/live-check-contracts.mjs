@@ -36,3 +36,21 @@ test('only complete successful receipts can be used for input matching',()=>{
  ];
  for(const mutate of mutations){const r=receipt();mutate(r);assert.equal(validLiveReceipt(r),false,String(mutate));}
 });
+
+test('installed runtime rejects modified bytes, missing files and unsafe manifest paths',async()=>{
+ const {mkdtemp,writeFile,rm}=await import('node:fs/promises');
+ const {tmpdir}=await import('node:os');
+ const {createHash}=await import('node:crypto');
+ const {verifyInstalledFiles}=await import('./live-runtime.mjs');
+ const root=await mkdtemp(tmpdir()+'/demuxe-manifest-test-');
+ try{
+  const bytes=Buffer.from('runtime'),entry={bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
+  await writeFile(root+'/index.js',bytes);
+  await verifyInstalledFiles(root,{files:{'index.js':entry}});
+  await assert.rejects(verifyInstalledFiles(root,{files:{}}),/Missing runtime inventory/);
+  await assert.rejects(verifyInstalledFiles(root,{files:{'../index.js':entry}}),/Unsafe runtime path/);
+  await assert.rejects(verifyInstalledFiles(root,{files:{'missing.js':entry}}),/ENOENT/);
+  await writeFile(root+'/index.js','changed');
+  await assert.rejects(verifyInstalledFiles(root,{files:{'index.js':entry}}),/Installed runtime differs/);
+ }finally{await rm(root,{recursive:true,force:true});}
+});

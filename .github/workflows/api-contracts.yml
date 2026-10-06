@@ -19,6 +19,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Check functional core source boundary
         run: node scripts/check-functional-core.mjs
+      - run: python3 tests/release-boundaries.py
       - run: npm run build
       - name: Check core package declaration boundary
         run: node scripts/compile-player-package.mjs > /dev/null

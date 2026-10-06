@@ -64,6 +64,7 @@ jobs:
         run: |
           python3 tests/pages-build.py
           python3 tests/tag-release.py
+          python3 tests/release-boundaries.py
           python3 tests/lgpl-catalogue.py
           python3 tests/npm-release.py
       - name: Install the locked Emscripten SDK
@@ -134,6 +135,7 @@ jobs:
             results/beta/
             results/shaka-package/
             results/release-extra/
+            results/api-stability/live-boundaries/
             results/public-api-consumer/
       - name: Retain unqualified runtime for failed release diagnosis
         if: failure() && github.event_name == 'push'

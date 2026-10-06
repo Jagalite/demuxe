@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Qualify public entrypoints and current component behavior against one immutable archive.
+import {liveBoundaryCases} from './api-stability/live-boundary-scenarios.mjs';
+import {liveNetworkCases} from './api-stability/live-network-scenarios.mjs';
 import {execFileSync,spawnSync} from 'node:child_process';
 import {readFileSync,writeFileSync,mkdirSync,mkdtempSync,readdirSync,statSync} from 'node:fs';
 import path from 'node:path';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';
@@ -7,7 +9,7 @@ const sha=b=>createHash('sha256').update(b).digest('hex');
 const archive=path.resolve(process.env.BETA_ARCHIVE),root=mkdtempSync(path.resolve('build/release-extra-'));
 const out=path.resolve('results/release-extra/'+new Date().toISOString().replaceAll(':','-'));mkdirSync(out,{recursive:true});console.log(out);
 writeFileSync(path.join(root,'package.json'),'{"private":true,"type":"module"}\n');
-const env={...process.env,npm_config_cache:path.join(root,'npm-cache')};delete env.ONLY;delete env.CASES;
+const env={...process.env,npm_config_cache:path.join(root,'npm-cache')};delete env.ONLY;delete env.CASES;delete env.LIVE_NEGATIVE_CONTROL;
 execFileSync('npm',['install','--offline','--ignore-scripts','--no-audit','--no-fund',archive],{cwd:root,env});
 const sourceExports=JSON.parse(readFileSync('package.json')).exports;
 const pkgRoot=path.join(root,'node_modules/demuxe'),metadata=JSON.parse(readFileSync(path.join(pkgRoot,'package.json'))),manifest=JSON.parse(readFileSync(path.join(pkgRoot,'release-manifest.json')));
@@ -19,7 +21,16 @@ execFileSync('npm',['exec','--offline','--','demuxe','copy-assets','public/asset
 const runtime=JSON.parse(readFileSync(path.join(root,'public/assets/demuxe/demuxe-runtime.json')));assert.ok(runtime.files['web/engine-hybrid/player.wasm']);
 execFileSync(process.execPath,['--input-type=module','-e',`import {Player,PLAYBACK_MODES} from 'demuxe';import {definePlayerElement} from 'demuxe/player';import {createRequire} from 'node:module';const pkg=createRequire(import.meta.url)('demuxe/package.json');for(const name of ${JSON.stringify(Object.keys(sourceExports).map(n=>n==='.'?'demuxe':'demuxe/'+n.slice(2)))})await import(name);if(pkg.name!=='demuxe'||typeof Player!=='function'||typeof definePlayerElement!=='function'||typeof HTMLElement!=='undefined'||PLAYBACK_MODES.join(',')!=='native,hybrid,software')throw Error('exports/SSR');`],{cwd:root,env});
 const pack=JSON.parse(execFileSync('npm',['pack','--dry-run','--json','--ignore-scripts'],{cwd:pkgRoot,env,encoding:'utf8'}))[0];writeFileSync(path.join(out,'npm-pack.json'),JSON.stringify(pack,null,2)+'\n');
-const harnesses=['tests/release-extra.mjs','tests/beta-consumer.mjs','tests/beta-streaming.mjs','tests/public-api-consumer.mjs','tests/public-api.mjs','tests/player-component.mjs','tests/player-menu-review.mjs','tests/copy-assets.mjs','scripts/serve.mjs'];
+const harnesses=['tests/release-extra.mjs','tests/beta-consumer.mjs','tests/beta-streaming.mjs','tests/public-api-consumer.mjs','tests/public-api.mjs','tests/player-component.mjs','tests/player-menu-review.mjs','tests/copy-assets.mjs','scripts/serve.mjs',...['live-boundaries','live-boundary-scenarios','live-network-scenarios','live-fault-server','live-check-helpers','live-runtime'].map(name=>'tests/api-stability/'+name+'.mjs')];
 const record={archiveSHA256:sha(readFileSync(archive)),sourceCommit:manifest.sourceCommit,harnesses:Object.fromEntries(harnesses.map(n=>[n,sha(readFileSync(n))])),metadata,pack:{bytes:statSync(archive).size,unpackedSize:pack.unpackedSize,fileCount:pack.entryCount},checks:[],passed:false};
-const jobs=[['cli','node',['--test','tests/copy-assets.mjs'],{}],...['chrome','firefox'].flatMap(f=>[['consumer-'+f,'node',['tests/public-api-consumer.mjs'],{BROWSER:f}],['public-api-'+f,'node',['tests/public-api.mjs'],{BROWSER:f}],['component-'+f,'node',['tests/player-component.mjs'],{BROWSER:f}]]),['menu-review','node',['tests/player-menu-review.mjs'],{}]];
-try{for(const [name,command,args,extra]of jobs){console.log('RUN',name);const run=spawnSync(command,args,{env:{...env,...extra,BETA_ARCHIVE:archive,DEMUXE_RUNTIME_ROOT:pkgRoot},encoding:'utf8',maxBuffer:30*1024*1024});writeFileSync(path.join(out,name+'.log'),(run.stdout||'')+(run.stderr||''));record.checks.push({name,passed:run.status===0,log:name+'.log',sha256:sha(readFileSync(path.join(out,name+'.log')))});writeFileSync(path.join(out,'result.json'),JSON.stringify(record,null,2));if(run.status!==0)throw Error(name+' failed: '+run.stdout+'\n'+run.stderr);console.log('PASS',name);}record.passed=true;}finally{writeFileSync(path.join(out,'result.json'),JSON.stringify(record,null,2)+'\n');}
+const jobs=[['cli','node',['--test','tests/copy-assets.mjs'],{}],...['chrome','firefox'].flatMap(f=>[['consumer-'+f,'node',['tests/public-api-consumer.mjs'],{BROWSER:f}],['public-api-'+f,'node',['tests/public-api.mjs'],{BROWSER:f}],['component-'+f,'node',['tests/player-component.mjs'],{BROWSER:f}]]),...['chromium','firefox','webkit'].map(f=>['boundaries-'+f,'node',['tests/api-stability/live-boundaries.mjs'],{BROWSER:f}]),['menu-review','node',['tests/player-menu-review.mjs'],{}]];
+try{for(const [name,command,args,extra]of jobs){console.log('RUN',name);const run=spawnSync(command,args,{env:{...env,...extra,BETA_ARCHIVE:archive,DEMUXE_RUNTIME_ROOT:pkgRoot},encoding:'utf8',timeout:20*60*1000,maxBuffer:30*1024*1024});writeFileSync(path.join(out,name+'.log'),(run.stdout||'')+(run.stderr||''));const check={name,passed:run.status===0,log:name+'.log',sha256:sha(readFileSync(path.join(out,name+'.log')))};
+ if(name.startsWith('boundaries-')&&check.passed){
+  const matches=[...(run.stdout||'').matchAll(/^Live boundary report: (.+)$/gm)];assert.equal(matches.length,1,'Expected one live boundary receipt');
+  const bytes=readFileSync(path.join(matches[0][1],'result.json')),receipt=JSON.parse(bytes);
+  assert.equal(receipt.passed,true);assert.equal(receipt.negativeControl,false);assert.equal(receipt.archiveSHA256,record.archiveSHA256);assert.equal(receipt.family,name.slice('boundaries-'.length));
+  assert.deepEqual(receipt.checks.map(row=>row.scenario).sort(),[...liveBoundaryCases,...liveNetworkCases].sort());
+  assert.ok(receipt.checks.every(row=>row.passed&&row.errors.length===0));
+  check.receipt=name+'.json';check.receiptSHA256=sha(bytes);writeFileSync(path.join(out,check.receipt),bytes);
+ }
+ record.checks.push(check);writeFileSync(path.join(out,'result.json'),JSON.stringify(record,null,2));if(run.status!==0)throw Error(name+' failed: '+run.stdout+'\n'+run.stderr);console.log('PASS',name);}record.passed=true;}finally{writeFileSync(path.join(out,'result.json'),JSON.stringify(record,null,2)+'\n');}

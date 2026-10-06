@@ -111,3 +111,8 @@ The live boundary runner now also uses `live-fault-server.mjs` and `live-network
 The fault server supplies a real HTTP document and proxies source assets. The initial intercepted-page setup was rejected by Chromium loopback-access policy; those failed setup reports are not product failures. Browser security settings remain enabled. The successful cohort uses same-origin fault endpoints and therefore does not qualify cross-origin CORS, cookie, permission or redirect behavior. HTTP bytes/ranges, ETag changes, held responses, refresh rejection and retry behavior have two maintained server contract tests.
 
 Run the same three `BROWSER=... node tests/api-stability/live-boundaries.mjs` commands for the expanded suite. No native engine rebuild is required. Streaming-quality rollback, attachment races and broader device transitions remain open campaigns.
+
+
+## Installed release boundary gate
+
+`BETA_ARCHIVE=/absolute/path/to/candidate.tgz BROWSER=chromium npm run test:stability:release` independently installs the archive offline, verifies its complete manifest, and runs the 19 boundary cases. Repeat for `firefox` and `webkit`. The release-extra campaign runs all three automatically; the final release verifier requires their complete receipts and checks the archive, source, harness, fixture and served runtime identities. The tagged release workflow retains these receipts. Source-runtime receipts in the member inventory remain separate historical evidence.
