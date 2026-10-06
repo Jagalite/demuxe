@@ -16,7 +16,8 @@ import {initialElementQueue,transitionElementQueue,queueSelectionAllowed,queueCl
 import {formatTime, outputDimensions, resolveSeekTarget, shortcut} from './interaction.js';
 import {ScrubberPreview} from './preview.js';
 import {styles} from './styles.js';
-import {mobileStyles, mobileControlsQuery} from './mobile.js';
+import {mobileStyles, mobileControlsQuery, type PlayerControlsMode} from './mobile.js';
+export type {PlayerControlsMode} from './mobile.js';
 import {themeStyles} from './themes.js';
 import {icons} from './icons.js';
 import {playerShell} from './components.js';
@@ -45,7 +46,12 @@ function sourceTitle(source:MediaSourceInput):string {
 type QueueItem={source:MediaSourceInput;options:OpenOptions;name:string};
 
 export class DemuxePlayerElement extends Base {
-  static observedAttributes=['layout','theme','no-preview','src','controls','poster','autoplay','muted','asset-base','title','title-mode'];
+  static observedAttributes=['layout','theme','controls-mode','no-preview','src','controls','poster','autoplay','muted','asset-base','title','title-mode'];
+  get controlsMode():PlayerControlsMode {const value=this.getAttribute('controls-mode');return value==='mobile'||value==='desktop'?value:'auto';}
+  set controlsMode(value:PlayerControlsMode){
+    if(!['auto','mobile','desktop'].includes(value))throw new PlayerError('INVALID_ARGUMENT','Unknown player controls mode');
+    this.setAttribute('controls-mode',value);
+  }
   get layout():PlayerLayout {const value=this.getAttribute('layout');return isPlayerLayout(value)?value:'classic';}
   set layout(value:PlayerLayout){
     if(!isPlayerLayout(value))throw new PlayerError('INVALID_ARGUMENT','Unknown player layout');
@@ -309,7 +315,7 @@ export class DemuxePlayerElement extends Base {
   private input(id:string){return this.$(id) as HTMLInputElement;}
   connectedCallback(){
     const connection=transitionElementLifecycle(this.lifecycle,{type:'connect'});this.lifecycle=connection.state;const token=connection.connection!;if(!connection.accepted)return;
-    for(const name of ['layout','theme','watchdogs','trackPolicy','previewOptions','previewThumbnails','assetBase','labels','controls','poster','autoplay','muted','title','titleMode','showSourceControls','showDiagnostics','allowFileDrop','seekStep','controlsAutoHideDelay','src'])if(Object.prototype.hasOwnProperty.call(this,name)){const value=(this as any)[name];delete (this as any)[name];(this as any)[name]=value;}
+    for(const name of ['layout','theme','controlsMode','watchdogs','trackPolicy','previewOptions','previewThumbnails','assetBase','labels','controls','poster','autoplay','muted','title','titleMode','showSourceControls','showDiagnostics','allowFileDrop','seekStep','controlsAutoHideDelay','src'])if(Object.prototype.hasOwnProperty.call(this,name)){const value=(this as any)[name];delete (this as any)[name];(this as any)[name]=value;}
     if(this.core)return;
     const rejectReady=this.rejectReady;
     this.connecting=(async()=>{await this.cleanup;if(!transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted)return;
@@ -347,6 +353,13 @@ export class DemuxePlayerElement extends Base {
   });}
   attributeChangedCallback(name:string,old:string|null,value:string|null){
     if(old===value||this.configuration.reflectionDepth>0||this.terminal)return;
+    if(name==='controls-mode'){
+      const focused=this.shadowRoot?.activeElement as HTMLElement|null;
+      this.hoverPreview?.hide();this.reconcileSettings();
+      if(!this.controlState.menuOpen&&focused&&['open-menu','diagnostics-toggle','volume'].some(id=>this.$(id)===focused)&&!focused.getClientRects().length)
+        this.$(focused===this.$('volume')?'mute':'settings-toggle').focus({preventScroll:true});
+      return;
+    }
     if(name==='layout'){this.updatePresentation();return;}
     if(name==='theme'){this.$('shell').dataset.theme=this.theme;this.syncAppearance();return;}
     if(name==='no-preview'){this.syncPreviewEnabled();this.input('preview-toggle').checked=this.previewThumbnails;if(!this.previewThumbnails)this.hoverPreview.hide();}
@@ -519,7 +532,7 @@ export class DemuxePlayerElement extends Base {
   }
   private reconcileSettings=()=>{
     if(!this.controlState.menuOpen||!this.isConnected)return;
-    const panel=this.$('settings') as HTMLDialogElement,modal=!!this.settingsMedia?.matches;
+    const panel=this.$('settings') as HTMLDialogElement,modal=this.controlsMode==='mobile'||(this.controlsMode==='auto'&&!!this.settingsMedia?.matches);
     if(panel.open&&panel.matches(':modal')===modal)return;
     const focused=this.shadowRoot!.activeElement as HTMLElement|null,scroll=panel.scrollTop;
     if(panel.open)panel.close();

@@ -87,7 +87,7 @@ Use host CSS variables (`--demuxe-background`, `--demuxe-foreground`, `--demuxe-
 
 For consumer controls use the existing slots and public contracts; for completely custom layouts use `Player` with an application-owned host and `bindPlayer`/`subscribeSelector` from `demuxe/integration`. Arbitrary runtime layout plugins are intentionally not a new public API. Built-in composition is a small internal extension point: add a layout using the shared nodes and test the migration table above. Do not clone controls or recreate the media surface.
 
-Settings are nonmodal labeled regions with native form controls, not ARIA menus (which would require a different keyboard model). They deliberately do not trap focus. Tab focus reveals hidden chrome. New layouts must retain this and provide space for future capability-aware Demuxe controls. Browser semantic/keyboard checks are not a physical screen-reader audit.
+Settings use a labeled dialog with native form controls. Desktop presentation is nonmodal; mobile presentation uses a modal sheet with focus contained inside it. `controls-mode="auto|mobile|desktop"` (or `viewer.controlsMode`) selects control presentation independently of layout and theme. Auto follows viewport width and pointer capability. Overrides and viewport changes reconcile an open panel while retaining its form nodes, values and focus. Tab focus reveals hidden chrome. Browser semantic/keyboard checks are not a physical screen-reader audit.
 
 ## Validation scope
 

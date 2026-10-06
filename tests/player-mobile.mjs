@@ -92,6 +92,79 @@ try{
  await page.keyboard.press('Escape');
  console.log('PASS open tablet menus follow rotation in both directions, retaining form edits, focus and media-opening controls');
 
+ // Switching presentation must not strand keyboard focus on a hidden control.
+ for(const [id,target] of [['open-menu','settings-toggle'],['diagnostics-toggle','settings-toggle'],['volume','mute']]){
+  assert.equal(await page.evaluate(({id,target})=>{
+   viewer.controlsMode='desktop';viewer.revealControls();$(id).focus();
+   viewer.controlsMode='mobile';
+   return viewer.shadowRoot.activeElement===$(target);
+  },{id,target}),true,`mobile override restores focus from ${id} to ${target}`);
+ }
+ await page.evaluate(()=>viewer.controlsMode='auto');
+ // Host overrides must control both CSS and dialog behavior across layouts/themes.
+ for(const [width,height,mode] of [[1280,800,'mobile'],[800,1000,'mobile'],[390,844,'desktop'],[320,568,'desktop']]){
+  await page.setViewportSize({width,height});
+  for(const layout of ['classic','cinema','rail','studio','focus','deck'])for(const theme of ['demuxe','light']){
+   const result=await page.evaluate(({mode,layout,theme})=>{
+    viewer.controlsMode=mode;viewer.layout=layout;viewer.theme=theme;viewer.revealControls();
+    const visible=id=>$(id).getClientRects().length>0&&getComputedStyle($(id)).visibility!=='hidden';
+    return {mode:viewer.controlsMode,attribute:viewer.getAttribute('controls-mode'),folder:visible('open-menu'),volume:visible('volume'),layout:viewer.layout,theme:viewer.theme};
+   },{mode,layout,theme});
+   assert.deepEqual(result,{mode,attribute:mode,folder:mode==='desktop',volume:mode==='desktop',layout,theme});
+   const bounds=await page.evaluate(()=>{
+    const shell=$('shell').getBoundingClientRect();
+    return ['play','back','forward','timeline','settings-toggle','fullscreen','mute','time','duration'].map(id=>{
+     const r=$(id).getBoundingClientRect();return {id,inside:r.width>0&&r.height>0&&r.left>=shell.left-1&&r.right<=shell.right+1&&r.top>=shell.top-1&&r.bottom<=shell.bottom+1};
+    });
+   });
+   assert.ok(bounds.every(control=>control.inside),JSON.stringify({mode,layout,theme,width,height,bounds}));
+   await page.locator('#viewer #settings-toggle').click();
+   assert.equal(await page.evaluate(()=>$('settings').matches(':modal')),mode==='mobile');
+   assert.equal(await page.locator('#viewer #settings-source').isVisible(),mode==='mobile');
+   await page.keyboard.press('Escape');
+  }
+ }
+ // Live overrides preserve media, nodes, edited fields and keyboard focus.
+ await page.evaluate(()=>{viewer.layout='classic';viewer.theme='demuxe';viewer.controlsMode='mobile';});
+ await page.locator('#viewer #settings-toggle').click();
+ await page.locator('#viewer #settings-source').click();
+ await page.locator('#viewer #url').fill('https://example.test/override-edit.mp4');
+ await page.locator('#viewer #url').focus();
+ assert.equal(await page.evaluate(()=>{
+  const core=viewer.player,node=$('url'),source=core.state.sourceId,time=core.state.currentTime;
+  viewer.controlsMode='desktop';
+  const desktop=!$('settings').matches(':modal')&&$('error').parentElement===$('shell');
+  viewer.controlsMode='mobile';
+  return desktop&&$('settings').matches(':modal')&&$('error').parentElement===$('settings')&&
+   viewer.shadowRoot.activeElement===node&&node.value==='https://example.test/override-edit.mp4'&&
+   viewer.player===core&&core.state.sourceId===source&&core.state.currentTime===time;
+ }),true);
+ await page.setViewportSize({width:1280,height:800});
+ assert.equal(await page.evaluate(()=>$('settings').matches(':modal')),true,'forced mobile survives viewport changes');
+ await page.evaluate(()=>viewer.controlsMode='auto');
+ // WebKit delivers viewport media-query changes asynchronously.
+ await page.waitForFunction(()=>!$('settings').matches(':modal'));
+ await page.setViewportSize({width:390,height:844});
+ await page.waitForFunction(()=>$('settings').matches(':modal'));
+ await page.evaluate(()=>viewer.setAttribute('controls-mode','desktop'));
+ assert.equal(await page.evaluate(()=>$('settings').matches(':modal')),false);
+ await page.evaluate(()=>viewer.setAttribute('controls-mode','invalid'));
+ assert.equal(await page.evaluate(()=>viewer.controlsMode==='auto'&&$('settings').matches(':modal')),true);
+ await page.evaluate(()=>viewer.removeAttribute('controls-mode'));
+ assert.equal(await page.evaluate(()=>viewer.controlsMode==='auto'&&$('settings').matches(':modal')),true);
+ assert.equal(await page.evaluate(()=>{try{viewer.controlsMode='invalid';return false;}catch(error){return error.code==='INVALID_ARGUMENT'&&viewer.controlsMode==='auto';}}),true);
+ await page.keyboard.press('Escape');
+ await page.screenshot({path:`${out}/override-auto-restored.png`});
+ // Properties assigned before custom-element registration must be upgraded too.
+ assert.equal(await page.evaluate(async()=>{
+  const {DemuxePlayerElement}=await import('/player.js');
+  const host=document.createElement('override-test-player');host.controlsMode='mobile';host.setAttribute('controls','');
+  document.body.append(host);customElements.define('override-test-player',class extends DemuxePlayerElement{});
+  try{await host.ready;return host.controlsMode==='mobile'&&host.getAttribute('controls-mode')==='mobile'&&!Object.hasOwn(host,'controlsMode');}
+  finally{await host.destroy();host.remove();}
+ }),true);
+ console.log('PASS controls-mode overrides across six layouts and both themes; runtime/attribute changes, auto restoration, validation and pre-registration properties');
+
  await page.setViewportSize({width:390,height:844});
  await page.locator('#viewer #settings-toggle').click();
  await page.evaluate(async()=>{

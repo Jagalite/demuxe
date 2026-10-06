@@ -3,6 +3,8 @@ import { Player } from '../unified-player.js';
 import type { WatchdogOptions, WatchdogPolicy } from '../types.js';
 import type { TrackPolicy } from '../types.js';
 import type { PreviewOptions, MediaSourceInput, OpenOptions, SubtitleOptions } from '../types.js';
+import { type PlayerControlsMode } from './mobile.js';
+export type { PlayerControlsMode } from './mobile.js';
 import { type PlayerLayout, type PlayerTheme } from './presentation.js';
 export type { PlayerLayout, PlayerTheme } from './presentation.js';
 declare const Base: typeof HTMLElement;
@@ -152,6 +154,8 @@ export type PlayerLabels = Partial<Record<keyof typeof defaultLabels, string>>;
 export type PlayerTitleMode = 'auto' | 'custom' | 'source' | 'none';
 export declare class DemuxePlayerElement extends Base {
     static observedAttributes: string[];
+    get controlsMode(): PlayerControlsMode;
+    set controlsMode(value: PlayerControlsMode);
     get layout(): PlayerLayout;
     set layout(value: PlayerLayout);
     get theme(): PlayerTheme;

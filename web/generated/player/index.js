@@ -46,7 +46,13 @@ function sourceTitle(source) {
     }
 }
 export class DemuxePlayerElement extends Base {
-    static observedAttributes = ['layout', 'theme', 'no-preview', 'src', 'controls', 'poster', 'autoplay', 'muted', 'asset-base', 'title', 'title-mode'];
+    static observedAttributes = ['layout', 'theme', 'controls-mode', 'no-preview', 'src', 'controls', 'poster', 'autoplay', 'muted', 'asset-base', 'title', 'title-mode'];
+    get controlsMode() { const value = this.getAttribute('controls-mode'); return value === 'mobile' || value === 'desktop' ? value : 'auto'; }
+    set controlsMode(value) {
+        if (!['auto', 'mobile', 'desktop'].includes(value))
+            throw new PlayerError('INVALID_ARGUMENT', 'Unknown player controls mode');
+        this.setAttribute('controls-mode', value);
+    }
     get layout() { const value = this.getAttribute('layout'); return isPlayerLayout(value) ? value : 'classic'; }
     set layout(value) {
         if (!isPlayerLayout(value))
@@ -429,7 +435,7 @@ export class DemuxePlayerElement extends Base {
         const token = connection.connection;
         if (!connection.accepted)
             return;
-        for (const name of ['layout', 'theme', 'watchdogs', 'trackPolicy', 'previewOptions', 'previewThumbnails', 'assetBase', 'labels', 'controls', 'poster', 'autoplay', 'muted', 'title', 'titleMode', 'showSourceControls', 'showDiagnostics', 'allowFileDrop', 'seekStep', 'controlsAutoHideDelay', 'src'])
+        for (const name of ['layout', 'theme', 'controlsMode', 'watchdogs', 'trackPolicy', 'previewOptions', 'previewThumbnails', 'assetBase', 'labels', 'controls', 'poster', 'autoplay', 'muted', 'title', 'titleMode', 'showSourceControls', 'showDiagnostics', 'allowFileDrop', 'seekStep', 'controlsAutoHideDelay', 'src'])
             if (Object.prototype.hasOwnProperty.call(this, name)) {
                 const value = this[name];
                 delete this[name];
@@ -547,6 +553,14 @@ export class DemuxePlayerElement extends Base {
     attributeChangedCallback(name, old, value) {
         if (old === value || this.configuration.reflectionDepth > 0 || this.terminal)
             return;
+        if (name === 'controls-mode') {
+            const focused = this.shadowRoot?.activeElement;
+            this.hoverPreview?.hide();
+            this.reconcileSettings();
+            if (!this.controlState.menuOpen && focused && ['open-menu', 'diagnostics-toggle', 'volume'].some(id => this.$(id) === focused) && !focused.getClientRects().length)
+                this.$(focused === this.$('volume') ? 'mute' : 'settings-toggle').focus({ preventScroll: true });
+            return;
+        }
         if (name === 'layout') {
             this.updatePresentation();
             return;
@@ -910,7 +924,7 @@ export class DemuxePlayerElement extends Base {
     reconcileSettings = () => {
         if (!this.controlState.menuOpen || !this.isConnected)
             return;
-        const panel = this.$('settings'), modal = !!this.settingsMedia?.matches;
+        const panel = this.$('settings'), modal = this.controlsMode === 'mobile' || (this.controlsMode === 'auto' && !!this.settingsMedia?.matches);
         if (panel.open && panel.matches(':modal') === modal)
             return;
         const focused = this.shadowRoot.activeElement, scroll = panel.scrollTop;

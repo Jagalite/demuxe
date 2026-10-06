@@ -283,4 +283,17 @@ See [integration contracts and compatibility profiles](API-INTEGRATION.md) for p
 
 ## Layouts and themes
 
+Control presentation is independent of layout and theme. Use `controls-mode="auto"` (the default), `"mobile"`, or `"desktop"`, or set `viewer.controlsMode` to the same values. Automatic mode enables mobile controls at viewport widths up to 600px, or up to 960px with a coarse pointer. Mobile mode forces larger controls, a simplified toolbar and modal settings sheet; desktop mode keeps the toolbar actions and nonmodal settings panel. Container-responsive layout rules still apply in desktop mode.
+
+```html
+<demuxe-player controls theme="light" controls-mode="mobile"></demuxe-player>
+```
+
+```js
+viewer.controlsMode = 'desktop'; // Force desktop controls, including on phones.
+viewer.controlsMode = 'auto';    // Resume viewport and pointer detection.
+```
+
+Switching updates an open settings panel without replacing form nodes or changing playback. If it hides the focused Open, Diagnostics or Volume control, focus moves to Settings or Mute. Missing or unknown attributes fall back to `auto`; invalid property values throw `INVALID_ARGUMENT`. TypeScript consumers can import `PlayerControlsMode` from `demuxe/player`.
+
 The default `layout="classic" theme="demuxe"` preserves the existing player. Choose `cinema` for centered bottom controls, `rail` for side transport, `studio` for a framed console, `focus` for a floating transport capsule, or `deck` for a playback pad beside the timeline. Modern and Playground have been replaced by these five options. Set `viewer.theme = "light"` for an independent light palette. Switching preserves the playback core and component nodes. See [presentation architecture and behavior inventory](PLAYER-PRESENTATION.md) and [interactive example](../examples/player-presentation.html).
