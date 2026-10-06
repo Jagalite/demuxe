@@ -16,7 +16,7 @@ import {waitInitialOutput} from './initial-output.mjs';
 import {remuxEvidence,requireRemuxCPU,nonisolatedPlaybackLanes,playbackLane,requiresNonisolated} from './remux-evidence.mjs';
 import {referenceAudio,waitReferenceAudio} from './specialist-audio.mjs';
 import {referenceFixture} from './specialist-contract.mjs';
-import {rateObservation,validatePlaybackRate} from './playback-rate.mjs';
+import {validatePlaybackRate} from './playback-rate.mjs';
 
 const here=import.meta.dirname,repo=path.resolve(here,'../..');
 const {values:args}=parseArgs({options:{assets:{type:'string'},output:{type:'string'},cases:{type:'string',default:'all'},
@@ -249,9 +249,8 @@ async function correctness(page,config,result,directory) {
   await page.evaluate(()=>api.rate(1.25));const r1=(await snap()).position;await delay(800);const r2=(await snap()).position;
   result.rateAdvance=r2-r1; // Preserve immediate observation; queued output may still be settling.
   stage('sustained-playback-rate');await delay(1200);
-  const rateSample=async()=>{const began=performance.now(),state=await snap(),finished=performance.now();return rateObservation(state,began,finished);};
-  const firstRate=await rateSample();await delay(2000);const lastRate=await rateSample();
-  result.rateSamples=[firstRate,lastRate];result.rateMeasurement=validatePlaybackRate(result.rateSamples);
+  result.rateSamples=await deadline(page.evaluate(()=>api.playbackRateSamples()),6000,'playback-rate observation');
+  result.rateMeasurement=validatePlaybackRate(result.rateSamples);
   await page.evaluate(()=>api.rate(1));
   if(config.live) {
     stage('live-window');

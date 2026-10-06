@@ -41,6 +41,12 @@ and backward seeks, near-EOF and cleanup. Live streams use bounded progression
 checks. Existing unsupported/blocked cases stay explicit and are compared with
 the baseline; inclusion alone is not a passing output claim.
 
+A completed catalogue run can exit nonzero because it contains blocked or failed
+screens. The wrapper accepts that exit only with a fresh, finalized, complete
+report whose counts, identities and completion hash agree. The comparison still
+rejects regressions and changed limitations. Missing or partial output, skipped
+cases, crashes and inconsistent exit statuses stop the release sequence.
+
 The catalogue runs once per fixture per release version: published baseline and
 candidate. It does not pass `--performance`, so there are no CPU benchmark rounds
 or 5-second warmup / 20-second measurement windows. Mini/smoke profiles are not

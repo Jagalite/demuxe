@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Public-API adapters adapted from the retained comparison and qualification harnesses.
 import {demuxeLaneOptions} from './remux-evidence.mjs';
+import {observePlaybackRate} from './playback-rate.mjs';
 const stage = document.querySelector('#stage');
 let player, config, overlay, overlayCanvas, overlayTimer, observer;
 const observedMedia = [];
@@ -162,6 +163,10 @@ export async function start(c) {
   return snapshot();
 }
 
+export function playbackRateSamples(){
+  return observePlaybackRate(()=>config.player==='demuxe'?player.state.currentTime:
+    config.player==='videojs'?player.currentTime():config.player==='libmedia'?Number(player.currentTime)/1000:player.currentTime);
+}
 export function snapshot() {
   const video=surfaces('video').find(v=>v.currentSrc && v.videoWidth);
   let state={};
@@ -268,4 +273,4 @@ export async function stop() {
   const remaining=surfaces('video').length+surfaces('canvas').length+stage.querySelectorAll('movi-player').length;
   return {remainingSurfaces:remaining,contexts:contexts.map(c=>c.state)};
 }
-window.api={start,snapshot,seek,pause,resume,rate,stop,subtitles,selectAudioCodec};
+window.api={start,snapshot,playbackRateSamples,seek,pause,resume,rate,stop,subtitles,selectAudioCodec};

@@ -5,6 +5,26 @@ export function rateObservation(state,beganMs,finishedMs){
   if(!Number.isFinite(state.position)||state.position<0)throw Error('Playback-rate position is invalid');
   return {wallMs:(beganMs+finishedMs)/2,snapshotWallMs:finishedMs-beganMs,position:state.position};
 }
+// Public state may be cached between native timeupdate events. Timestamp changes
+// in that state in the page, rather than assigning an IPC time to an old value.
+export async function observePlaybackRate(readPosition,{now=()=>performance.now(),sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms))}={}){
+  const began=now();
+  let previous={position:readPosition(),beganMs:began},first;
+  rateObservation(previous,began,now());
+  while(now()-began<5000){
+    await sleep(10);
+    const readBegan=now(),position=readPosition(),finished=now();
+    rateObservation({position},readBegan,finished);
+    if(position<previous.position)throw Error('Playback-rate timeline moved backward');
+    if(position!==previous.position){
+      const sample=rateObservation({position},previous.beganMs,finished);
+      if(!first)first=sample;
+      else if(sample.wallMs-first.wallMs>=2000)return [first,sample];
+    }
+    previous={position,beganMs:readBegan};
+  }
+  throw Error('Playback-rate public state did not provide a bounded progression window');
+}
 export function validatePlaybackRate(samples,rate=1.25){
   if(!Array.isArray(samples)||samples.length!==2||rate!==1.25)throw Error('Invalid sustained playback-rate window');
   for(const sample of samples)if(!Number.isFinite(sample.wallMs)||!Number.isFinite(sample.position)||sample.position<0||!Number.isFinite(sample.snapshotWallMs)||sample.snapshotWallMs<0||sample.snapshotWallMs>250)throw Error('Invalid sustained playback-rate observation');

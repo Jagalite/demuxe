@@ -159,8 +159,41 @@ def result_after(script, pattern, env):
 def run_catalogue_correctness(baseline, assets):
     # One full correctness pass per version; CPU benchmarks are opt-in elsewhere.
     for lane, snapshot in [('baseline', baseline), ('candidate', assets)]:
-        run(['node', 'tests/head-to-head/run.mjs', '--assets', snapshot,
-             '--output', WORK / lane, '--catalogue', '--cases', 'demuxe'])
+        output = WORK / lane
+        if output.exists():
+            raise ValueError('Catalogue output must be fresh: ' + str(output))
+        code = 0
+        try:
+            run(['node', 'tests/head-to-head/run.mjs', '--assets', snapshot,
+                 '--output', output, '--catalogue', '--cases', 'demuxe'])
+        except subprocess.CalledProcessError as error:
+            if error.returncode != 1:
+                raise
+            code = error.returncode
+        # The runner returns 1 for completed blocked/failed screens as well as
+        # crashes. Only a fresh, finalized, complete report may reach comparison;
+        # the comparison and final verifier still decide release qualification.
+        summary_path = output / 'summary.json'
+        summary = json.loads(summary_path.read_text())
+        captured = json.loads((output / 'manifest.json').read_text())
+        fixtures = json.loads((snapshot / 'fixtures/catalogue.json').read_text())
+        expected = {f'demuxe.auto.{name}' for name in fixtures}
+        cases = summary.get('cases', [])
+        counts = {status: sum(case.get('status') == status for case in cases)
+                  for status in ['passed', 'failed', 'blocked', 'skipped']}
+        all_passed = bool(cases) and counts['passed'] == len(cases)
+        if (not summary.get('finishedAt') or summary.get('kind') != 'correctness'
+                or Path(summary.get('assets', '')).resolve() != snapshot.resolve()
+                or captured.get('sha256', {}).get('summary.json') != digest(summary_path)
+                or not expected or len(cases) != len(expected)
+                or {case.get('id') for case in cases} != expected
+                or len(summary.get('selected', [])) != len(expected)
+                or set(summary.get('selected', [])) != expected
+                or sum(counts.values()) != len(cases) or counts['skipped']
+                or summary.get('counts') != counts
+                or summary.get('passed') is not all_passed
+                or code != (0 if all_passed else 1)):
+            raise ValueError('Incomplete or inconsistent catalogue report: ' + str(output))
 
 
 def qualify(tag):
