@@ -14,7 +14,10 @@ helpers. The workflow performs the complete release sequence:
    downloads and validates the specialist samples.
 6. Run the Chrome/Firefox archive consumers, streaming, Shaka, optional-runtime,
    public API/component/CLI tests, the complete correctness catalogue against both the
-   published baseline and candidate, and the final release verifier.
+   published baseline and candidate, and the final release verifier. Boundary
+   checks require all 19 scenarios in Chromium, Firefox and WebKit on independent
+   installations of the archive. All six maintained API shards must also pass
+   in Chromium and Firefox on that same archive before artifacts are uploaded.
 7. Upload the qualified artifacts, then deploy Pages and publish a GitHub Release
    containing the runtime, source companions, hashes and verification evidence.
 8. Stage the exact qualified archive on npm with the `beta` tag. Approve it in
