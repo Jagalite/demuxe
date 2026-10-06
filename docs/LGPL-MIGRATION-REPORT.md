@@ -2,7 +2,33 @@
 
 # Apache/LGPL engine migration: release qualification record
 
-This is the next-release work record for `0.3.0-beta.4`. The published
+## Current candidate: 1.1.0-rc.2
+
+Local qualification on 2026-10-06 passed for `v1.1.0-rc.2` at
+`842ec2cffba3a185d36b6202a311159861935bcd`. Its clean-built runtime SHA-256 is
+`0d1bcf68b9feb578d0ba38716acf1fe001e04af37b6fe577494e944b3cb55f55`.
+The complete current 80-row catalogue compared the pinned published GPL baseline
+with this candidate using matching fixtures and the same Chrome 154 browser.
+The baseline recorded 58 passes, five failures and 17 explicit limits; the
+candidate recorded 63 passes, zero failures and the same 17 limits. Eight limited
+rows also passed their bounded screen. The comparison qualified with 71 passing
+screens, nine remaining blocked rows, zero regressions, zero newly blocked rows
+and zero changed pre-existing limitations. All five baseline failures passed on
+the candidate.
+
+The canonical archive/source verifier and all 12 installed-archive API shards
+passed. Results and exact artifact identities are recorded in
+[the candidate release notes](RELEASE-1.1.0-rc.2.md). The qualification worktree
+retains `build/tag-release/catalogue-comparison.json` and
+`build/release/verification.json`; both are included in the release evidence.
+This supports the functional developer-beta candidate, not physical HDR,
+multichannel/object fidelity, exhaustive API coverage or new performance claims.
+The remote Linux tag workflow and publication remain unrun. Historical migration
+measurements below apply only to their original revisions.
+
+## Historical migration record: 0.3.0-beta.4
+
+The following is the original release work record for `0.3.0-beta.4`. The published
 `0.3.0-beta.3` runtime and all earlier GPL releases retain their existing
 licenses and binary labels. The candidate evidence below uses a fresh clean
 engine build, the complete 71-row catalogue and matched performance runs.

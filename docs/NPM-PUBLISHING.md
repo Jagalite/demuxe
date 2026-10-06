@@ -24,10 +24,11 @@ release. Publishing a release is the maintainer's attestation that its verificat
 record was produced by the release gates.
 
 Only a non-private `demuxe` prerelease version is accepted. The job uses
-`npm stage publish <verified archive> --tag beta --access public --ignore-scripts --provenance`;
+`npm stage publish <verified archive> --tag latest --access public --ignore-scripts --provenance`;
 it never publishes the private repository root or rebuilds the archive.
-Stable versions need a separate release policy and are rejected. `latest` is not
-updated. Staging success means awaiting approval, not publicly published.
+Stable versions need a separate release policy and are rejected. Approval updates
+`latest`; the independent `beta` alias is unchanged. Staging success means awaiting
+approval, not publicly published.
 The job ends after staging; it does not poll the public registry for a version
 that is still private. An already public version is checked against the archive's
 SHA-512 integrity: identical bytes are a successful no-op without changing
@@ -37,7 +38,7 @@ new archive.
 ## Approving a version
 
 Open npm's **Staged Packages** tab, review the package version, provenance and
-`beta` tag, click **Approve**, and complete 2FA. Approval publishes the staged
+`latest` tag, click **Approve**, and complete 2FA. Approval publishes the staged
 version. See [npm staged publishing](https://docs.npmjs.com/staged-publishing/).
 The workflow cannot approve or reject versions on your behalf.
 

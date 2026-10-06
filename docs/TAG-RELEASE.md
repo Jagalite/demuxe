@@ -20,7 +20,7 @@ helpers. The workflow performs the complete release sequence:
    in Chromium and Firefox on that same archive before artifacts are uploaded.
 7. Upload the qualified artifacts, then deploy Pages and publish a GitHub Release
    containing the runtime, source companions, hashes and verification evidence.
-8. Stage the exact qualified archive on npm with the `beta` tag. Approve it in
+8. Stage the exact qualified archive on npm with the `latest` tag. Approve it in
    npm’s **Staged Packages** UI with 2FA to make it public.
 
 The archive formats are `.tgz` and `.tar.gz`, not ZIP. No externally hosted
