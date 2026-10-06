@@ -126,8 +126,17 @@ try{
    for(const viewport of [{width:1280,height:900},{width:390,height:844},{width:600,height:280}]){
     await page.setViewportSize(viewport);
     await page.locator('#viewer #settings-toggle').click();
-    assert.equal(await page.evaluate(()=>getComputedStyle(document.querySelector('demuxe-player').shadowRoot.getElementById('transport')).opacity),'1');
+    await page.locator('#viewer #settings').waitFor({state:'visible'});
+    assert.equal(await page.locator('#viewer #settings-toggle').getAttribute('aria-expanded'),'true');
+    // Narrow layouts deliberately hide transport behind the settings panel.
+    // Assert the settled layout, then require restoration after dismissal.
+    await page.waitForFunction(()=>{
+     const viewer=document.querySelector('demuxe-player'),style=getComputedStyle(viewer.shadowRoot.getElementById('transport'));
+     return viewer.clientWidth<=600?style.visibility==='hidden':style.visibility==='visible'&&style.opacity==='1';
+    });
     await page.keyboard.press('Escape');
+    await page.locator('#viewer #settings').waitFor({state:'hidden'});
+    await page.waitForFunction(()=>{const style=getComputedStyle(document.querySelector('demuxe-player').shadowRoot.getElementById('transport'));return style.visibility==='visible'&&style.opacity==='1';});
     const geometry=await page.evaluate(()=>{const v=document.querySelector('demuxe-player'),r=v.getBoundingClientRect();return ['play','timeline','fullscreen'].map(id=>{const b=v.shadowRoot.getElementById(id).getBoundingClientRect();return {id,inside:b.left>=r.left&&b.right<=r.right&&b.top>=r.top&&b.bottom<=r.bottom&&b.bottom<=innerHeight};});});
     assert.ok(geometry.every(control=>control.inside),JSON.stringify({viewport,geometry}));
    }
