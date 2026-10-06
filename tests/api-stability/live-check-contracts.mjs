@@ -54,3 +54,19 @@ test('installed runtime rejects modified bytes, missing files and unsafe manifes
   await assert.rejects(verifyInstalledFiles(root,{files:{'index.js':entry}}),/Installed runtime differs/);
  }finally{await rm(root,{recursive:true,force:true});}
 });
+
+test('archive API gate fails closed instead of using an ambient source runtime',async()=>{
+ const {mkdtemp,readFile,rm}=await import('node:fs/promises');
+ const {tmpdir}=await import('node:os');
+ const {spawnSync}=await import('node:child_process');
+ const root=await mkdtemp(tmpdir()+'/demuxe-missing-archive-');
+ try{
+  const missing=root+'/absent.tgz';
+  const child=spawnSync(process.execPath,['tests/api-stability/run.mjs','browser','core'],{env:{...process.env,BETA_ARCHIVE:missing,DEMUXE_RUNTIME_ROOT:process.cwd(),BROWSER:'chromium'},encoding:'utf8',timeout:10000});
+  assert.equal(child.status,1);
+  assert.match(child.stderr,/ENOENT/);assert.ok(child.stderr.includes(missing));
+  const output=/API stability report: (.+)/.exec(child.stdout)?.[1];assert.ok(output);
+  const receipt=JSON.parse(await readFile(output+'/result.json','utf8'));
+  assert.equal(receipt.passed,false);assert.deepEqual(receipt.runs,[]);
+ }finally{await rm(root,{recursive:true,force:true});}
+});

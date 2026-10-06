@@ -4,6 +4,7 @@ import {mkdir,readFile,readdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import {installLiveRuntime} from './live-runtime.mjs';
 import {contracts,browsers} from './suites.mjs';
 const [tier,group]=process.argv.slice(2);
 if(!['unit','browser'].includes(tier)||tier==='browser'&&(!browsers[group]||group==='bundles'))throw Error('Usage: run.mjs unit | browser core|ui|integration|preview|sequences');
@@ -24,6 +25,7 @@ function run(args,env,timeoutMs,log){
     child.once('exit',(code,signal)=>{clearTimeout(timer);terminate();writeFile(log,Buffer.concat(chunks)).then(()=>resolve({code,signal,timedOut}),reject);});
   });
 }
+let installed;
 try{
   if(tier==='unit'){
     const files=Object.values(contracts).flat().map(name=>`tests/${name}.mjs`);
@@ -33,6 +35,11 @@ try{
     const types=await run(['node_modules/typescript/bin/tsc','--noEmit','--strict','--skipLibCheck','--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext','tests/integration-types.ts','tests/api-stability/consumer-types.ts','tests/provider-preferences-types.ts'],{},120000,output+'/types.log');
     report.runs.push(types);assert.equal(types.code,0,JSON.stringify(types));
   }else{
+    if(process.env.BETA_ARCHIVE){
+      installed=await installLiveRuntime(process.env.BETA_ARCHIVE);
+      process.env.DEMUXE_RUNTIME_ROOT=installed.runtimeRoot;
+      Object.assign(report,{runtimeRoot:installed.runtimeRoot,archiveSHA256:installed.archiveSHA256,runtimeSourceCommit:installed.manifest.sourceCommit,runtimeQualification:'installed-beta-archive',runtimeFiles:installed.manifest.files});
+    }else{
     assert.ok(process.env.DEMUXE_RUNTIME_ROOT,'Browser gate requires freshly packaged runtime root');
     report.runtimeRoot=path.resolve(process.env.DEMUXE_RUNTIME_ROOT);
     const manifestPath=path.join(report.runtimeRoot,'../bundle-manifest.json'),bytes=await readFile(manifestPath),manifest=JSON.parse(bytes);
@@ -45,6 +52,7 @@ try{
     report.inventoryPath=path.resolve(process.env.API_BUNDLE_INVENTORY??'build/bundle-ci-inputs/bundle-ci-inventory.json');
     const inventoryBytes=await readFile(report.inventoryPath),inventory=JSON.parse(inventoryBytes);report.inventorySHA256=sha(inventoryBytes);
     report.runtimeSourceCommit=inventory.commit;report.runtimeQualification=inventory.qualification;
+    }
     report.fixtureSHA256=sha(await readFile('fixtures/example.mp4'));
     for(const suite of browsers[group]){
       const previous=new Set(suite.report?await results(suite.report):[]),guard=path.join(output,suite.file.replaceAll('/','-')+'-guard.json');
@@ -67,4 +75,4 @@ try{
     assert.ok(report.runs.every(run=>run.passed),'One or more browser suites failed');
   }
   report.passed=true;
-}finally{await writeFile(output+'/result.json',JSON.stringify(report,null,2)+'\n');console.log('API stability report:',output);}
+}finally{await installed?.cleanup();await writeFile(output+'/result.json',JSON.stringify(report,null,2)+'\n');console.log('API stability report:',output);}

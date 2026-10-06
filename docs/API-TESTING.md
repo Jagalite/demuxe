@@ -116,3 +116,5 @@ Run the same three `BROWSER=... node tests/api-stability/live-boundaries.mjs` co
 ## Installed release boundary gate
 
 `BETA_ARCHIVE=/absolute/path/to/candidate.tgz BROWSER=chromium npm run test:stability:release` independently installs the archive offline, verifies its complete manifest, and runs the 19 boundary cases. Repeat for `firefox` and `webkit`. The release-extra campaign runs all three automatically; the final release verifier requires their complete receipts and checks the archive, source, harness, fixture and served runtime identities. The tagged release workflow retains these receipts. Source-runtime receipts in the member inventory remain separate historical evidence.
+
+`BETA_ARCHIVE=/absolute/path/to/candidate.tgz node tests/api-stability/archive-matrix.mjs` runs all six maintained API shards in Chromium and Firefox against independent installations of that archive. It records fixture recipes and hashes, then restores the prior fixture bytes. The tagged workflow requires this matrix before retaining publishable release artifacts.
