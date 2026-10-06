@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import {previewPNG} from '../helpers/preview-image.mjs';
 import {initialScrubber,transitionScrubber,scrubberDistance,scrubberPointer} from '../../web/generated/internal/machine/scrubber.js';
 import {ScrubberPreview} from '../../web/generated/player/preview.js';
 const step=transitionScrubber;
@@ -81,11 +82,11 @@ function shellFixture(decode=async()=>{}){
  const timeline=new EventTarget();timeline.min='0';timeline.max='100';const panel={hidden:true},image={hidden:true,removeAttribute(){delete this.src;},ownerDocument:{createElement(){return {decode,removeAttribute(){delete this.src;}};}}},label={textContent:''};
  return {preview:new ScrubberPreview(timeline,panel,image,label,()=>undefined),timeline,panel,image,label};
 }
-const frame=blob=>({time:3,actualTime:3,temporalAccuracy:'exact',image:{blob:new Blob([blob])}});
+const frame=()=>({time:3,actualTime:3,width:1,height:1,temporalAccuracy:'exact',image:{blob:new Blob([previewPNG()],{type:'image/png'})}});
 
 test('shell URL cleanup remains exact after abort followed by late image decode',async t=>{
  let finish;const revoked=[];t.mock.method(URL,'revokeObjectURL',url=>revoked.push(url));const f=shellFixture(()=>new Promise(resolve=>finish=resolve));
- const pending=f.preview.show(frame('old'));await Promise.resolve();f.preview.hide();assert.equal(revoked.length,1);finish();await pending;assert.equal(revoked.length,1);assert.equal(f.panel.hidden,true);f.preview.destroy();assert.equal(revoked.length,1);
+ const pending=f.preview.show(frame('old'));await new Promise(setImmediate);f.preview.hide();assert.equal(revoked.length,1);finish();await pending;assert.equal(revoked.length,1);assert.equal(f.panel.hidden,true);f.preview.destroy();assert.equal(revoked.length,1);
 });
 
 test('shell revokes an acquired URL if image element construction fails',async t=>{

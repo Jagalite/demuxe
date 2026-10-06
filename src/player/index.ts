@@ -13,7 +13,7 @@ import {initialElementView,transitionElementView,elementTitle,elementTrackOption
 import {initialElementControls,transitionElementControls,type ElementControlsCommand} from '../internal/machine/element-controls.js';
 import {initialElementLifecycle,transitionElementLifecycle,elementSourceCurrent} from '../internal/machine/element-lifecycle.js';
 import {initialElementQueue,transitionElementQueue,queueSelectionAllowed,queueClosesRollback} from '../internal/machine/element-queue.js';
-import {formatTime, outputDimensions, shortcut} from './interaction.js';
+import {formatTime, outputDimensions, resolveSeekTarget, shortcut} from './interaction.js';
 import {ScrubberPreview} from './preview.js';
 import {styles} from './styles.js';
 import {mobileStyles, mobileControlsQuery} from './mobile.js';
@@ -246,6 +246,7 @@ export class DemuxePlayerElement extends Base {
   private seekPreviewTimer?:ReturnType<typeof setTimeout>;
   private hideTimer?:ReturnType<typeof setTimeout>;
   private timelinePointer?:number;
+  private scrubTime?:number;
   private showScrubPosition(){
     if(this.timelinePointer===undefined)return;
     const input=this.input('timeline'),badge=this.$('scrub-position');
@@ -258,7 +259,7 @@ export class DemuxePlayerElement extends Base {
     badge.hidden=false;
   }
   private finishTimelineDrag(){
-    const pointer=this.timelinePointer;this.timelinePointer=undefined;
+    const pointer=this.timelinePointer;this.timelinePointer=undefined;this.scrubTime=undefined;
     this.control({type:'drag',active:false});this.$('scrub-position').hidden=true;
     const input=this.input('timeline');
     if(pointer!==undefined&&input.hasPointerCapture(pointer))input.releasePointerCapture(pointer);
@@ -426,6 +427,9 @@ export class DemuxePlayerElement extends Base {
   private clearError(){this.control({type:'clear-error'});this.$('error').hidden=true;}
   private announce(text:string,visual=true){this.$('status').classList.toggle('sr',!visual);if(!this.control({type:'announce',text}).changed)return;this.$('status').textContent=text;}
   private geometry(state:PlayerState){const ratio=state.mediaInfo.aspectRatio,{width,height}=ratio?outputDimensions(ratio):{width:0,height:0};const decision=this.view({type:'geometry',ratio,pending:!!state.pendingOperation,width,height});if(decision.clearAspect)this.$('stage').style.removeProperty('--media-aspect');else this.$('stage').style.setProperty('--media-aspect',String(decision.aspect));if(decision.resize)this.core?.resize(decision.resize.width,decision.resize.height);}
+  private text(id:string,value:string){const element=this.$(id);if(element.textContent!==value)element.textContent=value;}
+  private attr(id:string,name:string,value:string){const element=this.$(id);if(element.getAttribute(name)!==value)element.setAttribute(name,value);}
+  private setHidden(id:string,value:boolean){const element=this.$(id);if(element.hidden!==value)element.hidden=value;}
   private update(state:PlayerState){
     this.advanced?.reconcile();
     if(this.controlState.menuOpen)this.advanced?.update(state);
@@ -438,32 +442,37 @@ export class DemuxePlayerElement extends Base {
     this.updateSourceLabel();
     if(this.view({type:'observe-source',sourceId:state.sourceId}).changed)this.updateTitle();
     const labels=this.labels,pending=state.pendingOperation!==null;
-    this.$('topbar').hidden=!this.controls;
+    this.setHidden('topbar',!this.controls);
     const seeking=state.pendingOperation?.kind==='seeking',seekChange=this.control({type:'seeking',seeking});if(seekChange.changed){clearTimeout(this.seekPreviewTimer);this.renderVisibility();if(seekChange.seekPreviewAfter!==undefined)this.seekPreviewTimer=setTimeout(()=>{this.control({type:'seek-preview-expired'});this.renderVisibility();},seekChange.seekPreviewAfter);if(seekChange.reveal)this.revealControls();}
     const playing=state.status==='playing',playChange=this.control({type:'playing',playing,intent:state.playbackIntent,status:state.status});if(playChange.changed){this.$('shell').classList.toggle('playing',playing);if(playChange.reveal)this.revealControls();}
-    this.$('controls').hidden=!this.controls||!state.sourceId;this.$('transport').hidden=!this.controls||!state.sourceId;this.$('empty').hidden=!this.showSourceControls||!!state.sourceId;this.$('poster').hidden=!this.poster||!!state.sourceId;
+    this.setHidden('controls',!this.controls||!state.sourceId);this.setHidden('transport',!this.controls||!state.sourceId);this.setHidden('empty',!this.showSourceControls||!!state.sourceId);this.setHidden('poster',!this.poster||!!state.sourceId);
     this.iconButton('play',state.playbackIntent==='play'?'pause':'play',state.playbackIntent==='play'?labels.pause:labels.play);(this.$('play') as HTMLButtonElement).disabled=!state.sourceId||pending;
-    this.iconButton('mute',state.muted?'muted':'volume',state.muted?labels.unmute:labels.mute);this.$('mute').setAttribute('aria-pressed',String(state.muted));
+    this.iconButton('mute',state.muted?'muted':'volume',state.muted?labels.unmute:labels.mute);this.attr('mute','aria-pressed',String(state.muted));
     this.configure({type:'reflection',enter:true});try{this.toggleAttribute('muted',state.muted);}finally{this.configure({type:'reflection',enter:false});}
     if(this.shadowRoot!.activeElement!==this.$('volume'))this.input('volume').value=String(state.volume);this.$('volume').style.setProperty('--volume-progress',`${Number(this.input('volume').value)*100}%`);
     const window=state.seekable;this.input('timeline').disabled=pending||!window?.length;for(const id of ['back','forward'])(this.$(id) as HTMLButtonElement).disabled=pending||!window?.length;
-    if(window?.length){this.input('timeline').min=String(window[0].start);this.input('timeline').max=String(window.at(-1)!.end);}
-    if(!this.dragging){this.input('timeline').value=String(state.currentTime);this.input('timeline').setAttribute('aria-valuetext',formatTime(state.currentTime));this.$('time').textContent=formatTime(state.currentTime);this.$('duration').textContent=state.streamType==='live'?labels.live:state.duration===null?labels.unknown:formatTime(state.duration);this.timelineProgress();}
+    if(window?.length){this.attr('timeline','min',String(window[0].start));this.attr('timeline','max',String(window.at(-1)!.end));}
+    if(!this.dragging)this.input('timeline').value=String(state.currentTime);
+    else {const target=resolveSeekTarget(Number(this.input('timeline').value),state.seekable,this.scrubTime??state.currentTime,state.playbackRange);if(target!==null)this.input('timeline').value=String(target);this.scrubTime=Number(this.input('timeline').value);}
+    const displayedTime=formatTime(this.dragging?Number(this.input('timeline').value):state.currentTime);
+    this.attr('timeline','aria-valuetext',displayedTime);this.text('time',displayedTime);
+    this.text('duration',state.streamType==='live'?labels.live:state.duration===null?labels.unknown:formatTime(state.duration));
+    this.timelineProgress();if(this.dragging)this.showScrubPosition();
     if(this.view({type:'tracks',audio:state.audioTracks,subtitles:state.subtitleTracks,policy:state.trackPolicy}).changed){this.trackOptions('audio',state.audioTracks,state.trackPolicy.audio);this.trackOptions('subtitles',state.subtitleTracks,state.trackPolicy.subtitles);}
     this.input('subtitleFile').disabled=!this.canPickSubtitle(state);
     (this.$('speed') as HTMLSelectElement).value=String(state.playbackRate);
-    const buffering=state.status==='buffering'&&state.playbackIntent==='play'&&!pending;this.$('buffering-indicator').hidden=!buffering;this.$('shell').classList.toggle('buffering',buffering);this.bufferedProgress(state);
+    const buffering=state.status==='buffering'&&state.playbackIntent==='play'&&!pending;this.setHidden('buffering-indicator',!buffering);this.$('shell').classList.toggle('buffering',buffering);this.bufferedProgress(state);
     const opening=state.pendingOperation?.kind==='opening';
     this.control({type:'opening',operation:opening?state.pendingOperation!.id:null,initialStage:this.labels.inspecting});
     const activityView=elementActivity(state,this.core?.preparationProgress??[],this.openingStage,labels),{activity,pill}=activityView;
-    this.$('busy').hidden=!pill||seeking||buffering;this.$('busy').textContent=pill;
+    this.setHidden('busy',!pill||seeking||buffering);this.text('busy',pill);
     // Preparation status shares the toolbar's alignment and responsive padding.
     // Keep playback activity in the stage, including when controls are hidden.
     const busy=this.$('busy'),inToolbar=!state.sourceId&&this.controls;
     if(inToolbar&&busy.parentElement!==this.$('topbar'))this.$('title').after(busy);
     else if(!inToolbar&&busy.parentElement!==this.$('stage'))this.$('stage').append(busy);
-    this.$('busy').dataset.complete=String(activityView.complete);
-    this.$('busy').setAttribute('aria-label',activityView.description);
+    this.attr('busy','data-complete',String(activityView.complete));
+    this.attr('busy','aria-label',activityView.description);
     if(!this.lastFailure)this.announce(activityView.announcement,!pill);
     this.geometry(state);this.updateDiagnostics();
   }
@@ -488,12 +497,15 @@ export class DemuxePlayerElement extends Base {
     for(const [key,value] of Object.entries(d.backend??{}))if(['string','number','boolean'].includes(typeof value))lines.push(`${key}  ${String(value)}`);
     this.$('diagnostics-overlay').textContent=lines.join('\n');
   }
+  private bufferedKey='';
   private bufferedProgress(state:PlayerState){const ranges=state.seekable,min=ranges?.[0]?.start??0,max=ranges?.at(-1)?.end??0,span=max-min;
+    const key=JSON.stringify([min,max,state.buffered??state.cached??[]]);if(key===this.bufferedKey)return;this.bufferedKey=key;
     const layers=span>0?(state.buffered??state.cached??[]).filter(r=>Number.isFinite(r.start)&&Number.isFinite(r.end)&&r.end>r.start&&r.end>min&&r.start<max).map(r=>{const start=Math.max(0,(r.start-min)/span*100),end=Math.min(100,(r.end-min)/span*100);return `linear-gradient(to right,transparent ${start}%,color-mix(in srgb,var(--demuxe-foreground) 45%,transparent) ${start}% ${end}%,transparent ${end}%)`;}):[];
     this.$('timeline').style.setProperty('--buffered',layers.join(',')||'linear-gradient(transparent,transparent)');
   }
   private timelineProgress(){const input=this.input('timeline'),min=Number(input.min),max=Number(input.max);input.style.setProperty('--progress',`${max>min?Math.max(0,Math.min(100,(Number(input.value)-min)/(max-min)*100)):0}%`);}
-  private skip(delta:number){const state=this.core?.state,ranges=state?.seekable;if(!state||state.pendingOperation||!ranges?.length)return;const target=state.currentTime+delta;const range=ranges.find(r=>target<=r.end)??ranges.at(-1)!;this.run(this.seek(Math.max(range.start,Math.min(range.end-.05,target))));}
+  private seekFromControls(time:number){const state=this.core?.state;const target=state&&!state.pendingOperation?resolveSeekTarget(time,state.seekable,state.currentTime,state.playbackRange):null;return target===null?Promise.resolve():this.seek(target);}
+  private skip(delta:number){const state=this.core?.state;if(state)this.run(this.seekFromControls(state.currentTime+delta));}
   private trackOptions(id:string,list:readonly MediaTrack[],policy?:TrackTypePolicy){
     const select=this.$(id) as HTMLSelectElement,projection=elementTrackOptions(list,policy,this.labels);select.replaceChildren();
     for(const option of projection.options)select.add(new Option(option.label,option.id));
@@ -540,7 +552,7 @@ export class DemuxePlayerElement extends Base {
     else if(restoreFocus){const trigger=this.$(this.menuTrigger);(trigger.getClientRects().length?trigger:this.$('settings-toggle')).focus();}
   }
   private fullscreen(){const active=document.fullscreenElement===this;const request=active?this.core?.presentation.exitFullscreen():this.core?.presentation.requestFullscreen();if(!request){this.announce(this.labels.noFullscreen);return;}void request.then(()=>{this.fullscreenChanged();},()=>this.announce(this.labels.noFullscreen));}
-  private iconButton(id:string,icon:keyof typeof icons,label:string){const button=this.$(id);if(button.dataset.icon!==icon){button.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${icons[icon]}</svg>`;button.dataset.icon=icon;}if(icon==='back'||icon==='forward')button.querySelector('text')!.textContent=String(this.seekStep);button.classList.add('icon-button');button.setAttribute('aria-label',label);button.setAttribute('title',label);}
+  private iconButton(id:string,icon:keyof typeof icons,label:string){const button=this.$(id);if(button.dataset.icon!==icon){button.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${icons[icon]}</svg>`;button.dataset.icon=icon;}if(icon==='back'||icon==='forward')button.querySelector('text')!.textContent=String(this.seekStep);if(!button.classList.contains('icon-button'))button.classList.add('icon-button');this.attr(id,'aria-label',label);this.attr(id,'title',label);}
   private labelControls(){
     this.advanced?.label(this.labels);
     this.$('settings-source').textContent=this.labels.open;this.$('settings-diagnostics').textContent=this.labels.diagnostics;
@@ -576,14 +588,14 @@ export class DemuxePlayerElement extends Base {
     this.input('volume').onchange=()=>this.run(this.setVolume(Number(this.input('volume').value)));
     this.input('timeline').onpointerdown=event=>{
       if(!event.isPrimary||event.button!==0||this.input('timeline').disabled)return;
-      this.timelinePointer=event.pointerId;this.control({type:'drag',active:true});this.revealControls();
+      this.timelinePointer=event.pointerId;this.scrubTime=Number(this.input('timeline').value);this.control({type:'drag',active:true});this.revealControls();
       this.input('timeline').setPointerCapture(event.pointerId);
       this.showScrubPosition();
     };
     this.input('timeline').onpointerup=event=>{if(event.pointerId===this.timelinePointer)this.finishTimelineDrag();};
     this.input('timeline').onlostpointercapture=()=>{if(this.timelinePointer!==undefined){this.finishTimelineDrag();if(this.core)this.update(this.core.state);}};
-    this.input('timeline').oninput=()=>{this.control({type:'drag',active:true});const text=formatTime(Number(this.input('timeline').value));this.$('time').textContent=text;this.timelineProgress();this.input('timeline').setAttribute('aria-valuetext',text);this.showScrubPosition();};
-    this.input('timeline').onchange=()=>{const value=Number(this.input('timeline').value);this.finishTimelineDrag();this.run(this.seek(value));};
+    this.input('timeline').oninput=()=>{this.control({type:'drag',active:true});const state=this.core?.state,target=state?resolveSeekTarget(Number(this.input('timeline').value),state.seekable,this.scrubTime??state.currentTime,state.playbackRange):null;if(target!==null)this.input('timeline').value=String(target);this.scrubTime=Number(this.input('timeline').value);const text=formatTime(this.scrubTime);this.$('time').textContent=text;this.timelineProgress();this.input('timeline').setAttribute('aria-valuetext',text);this.showScrubPosition();};
+    this.input('timeline').onchange=()=>{const value=Number(this.input('timeline').value);this.finishTimelineDrag();this.run(this.seekFromControls(value));};
     this.input('timeline').onpointercancel=()=>{this.finishTimelineDrag();if(this.core)this.update(this.core.state);};
     this.$('settings-source').onclick=()=>this.settings(true,true,'open-menu');
     this.$('settings-diagnostics').onclick=()=>{this.settings(false);this.setDiagnostics(!this.controlState.diagnostics);};
@@ -620,14 +632,14 @@ export class DemuxePlayerElement extends Base {
       if(event.key==='Escape'&&this.controlState.menuOpen){event.preventDefault();this.settings(false);return;}
       if(this.controlState.menuOpen)return;const p=this.core;if(!key||!p)return;
       let action:Promise<unknown>|undefined;const state=p.state;
-      const seek=(time:number)=>{if(state.playbackIntent==='play'&&!this.dragging)this.hideControls();return p.seek(time);};
+      const seek=(time:number)=>{if(state.playbackIntent==='play'&&!this.dragging)this.hideControls();return this.seekFromControls(time);};
       if(key==='f'){event.preventDefault();this.fullscreen();return;}
       if(key==='?' ){event.preventDefault();this.settings(true);return;}
       if(key==='m')action=p.setMuted(!state.muted);
       if(key==='arrowup'||key==='arrowdown')action=p.setVolume(Math.max(0,Math.min(1,state.volume+(key==='arrowup'?.05:-.05))));
       if(key==='['||key===']')action=p.setPlaybackRate(Math.max(.5,Math.min(2,state.playbackRate+(key===']'?.25:-.25))));
       if(!state.pendingOperation&&state.sourceId){if(key==='c'&&!state.trackPolicy.subtitles?.locked&&(!state.subtitlesVisible||state.trackPolicy.subtitles?.allowOff!==false))action=p.subtitleVisible(!state.subtitlesVisible);const ranges=state.seekable;if(ranges?.length){const start=ranges[0].start,end=Math.max(start,ranges.at(-1)!.end-.1);if(key==='home')action=seek(start);if(key==='end')action=seek(end);if(/^[0-9]$/.test(key))action=seek(start+(end-start)*Number(key)/10);}
-      if(key===' '||key==='k')action=state.playbackIntent==='play'?this.pause():this.playFromControls();const delta=key==='arrowleft'?-5:key==='arrowright'?5:key==='j'?-this.seekStep:key==='l'?this.seekStep:0;const window=state.seekable;if(delta&&window?.length)action=seek(Math.max(window[0].start,Math.min(window.at(-1)!.end-.05,state.currentTime+delta)));}
+      if(key===' '||key==='k')action=state.playbackIntent==='play'?this.pause():this.playFromControls();const delta=key==='arrowleft'?-5:key==='arrowright'?5:key==='j'?-this.seekStep:key==='l'?this.seekStep:0;const window=state.seekable;if(delta&&window?.length)action=seek(state.currentTime+delta);}
       if(action){event.preventDefault();this.run(action);}
     });
   }

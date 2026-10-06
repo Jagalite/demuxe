@@ -223,6 +223,7 @@ export declare class DemuxePlayerElement extends Base {
     private seekPreviewTimer?;
     private hideTimer?;
     private timelinePointer?;
+    private scrubTime?;
     private showScrubPosition;
     private finishTimelineDrag;
     private controlFacts;
@@ -290,11 +291,16 @@ export declare class DemuxePlayerElement extends Base {
     private clearError;
     private announce;
     private geometry;
+    private text;
+    private attr;
+    private setHidden;
     private update;
     private setDiagnostics;
     private updateDiagnostics;
+    private bufferedKey;
     private bufferedProgress;
     private timelineProgress;
+    private seekFromControls;
     private skip;
     private trackOptions;
     private settingsMedia?;

@@ -1,5 +1,13 @@
 # Custom preview sampling
 
+Authored preview images must be PNG, JPEG or static WebP. Both Blob and URL
+images are checked before decoding: at most 4 MiB encoded and 16,777,216 pixels.
+Unknown formats and animated WebP are declined; provide a static thumbnail instead.
+Blob images larger than the provider's declared thumbnail dimensions are resized
+for display. These limits apply to previews, not playback. Background generation
+parks while the document is hidden or playback pressure suspends previews, keeping
+resident thumbnails available.
+
 Use `player.preview.setStrategy({type: 'custom', sample})` or pass the same
 strategy in `PlayerOptions.preview.strategy`. Built-in strategies remain available;
 the player element displays a custom strategy as Custom.

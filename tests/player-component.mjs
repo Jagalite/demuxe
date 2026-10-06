@@ -613,5 +613,9 @@ await check('failed observer acquisition rolls back the partially initialized pl
   finally{globalThis.ResizeObserver=Original;element.remove();}
  });assert.equal(data.rejected,true);assert.equal(data.retained,false);assert.ok(data.disconnected>=1);
 });
+await check('all UI seek controls respect gaps, moving DVR windows and playback limits',async()=>{
+ const {probePlayerSeekControls}=await import('./helpers/player-seek-controls.mjs');
+ assert.deepEqual(await page.evaluate(probePlayerSeekControls),{keyboard:20,button:20,slider:20,dragReverse:9.95,reverse:9.95,live:{label:'1:50',value:110,aria:'1:50',committed:110},limited:8.95});
+});
 await page.emulateMedia({forcedColors:'none'});await page.waitForTimeout(150);await page.setViewportSize({width:1280,height:1000});await page.screenshot({path:out+'/desktop.png',fullPage:true});
 }finally{await page.evaluate(()=>Promise.all([...document.querySelectorAll('demuxe-player')].map(p=>p.destroy()))).catch(()=>{});await browser.close();server.kill();result.passed=result.checks.every(c=>c.passed);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}

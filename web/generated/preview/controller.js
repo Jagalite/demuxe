@@ -105,12 +105,12 @@ export class PreviewController {
         this.dispatch({ kind: 'strategy', value: resolved.strategy.type === 'custom' ? { type: 'custom' } : resolved.strategy });
         this.customStrategy = resolved.strategy.type === 'custom' ? resolved.strategy : undefined;
         this.pregenerator = next;
-        next?.setEnabled(this.state.allowed);
+        next?.setEnabled(this.state.allowed && !this.state.suspended);
         next?.setFocus(this.state.interaction.focus);
         next?.setDuration(this.state.duration);
     }
     get enabled() { return this.state.allowed; }
-    set enabled(value) { this.dispatch({ kind: 'enabled', value }); this.pregenerator?.setEnabled(value); if (!value)
+    set enabled(value) { this.dispatch({ kind: 'enabled', value }); this.pregenerator?.setEnabled(value && !this.state.suspended); if (!value)
         this.clear(); }
     get diagnostics() { return { ...this.state.counters, sourceId: this.sourceId, cacheBytes: this.state.bytes, cacheEntries: this.state.cache.length, active: !!this.state.active, pending: !!this.state.pending, lastFailure: this.state.lastFailure ? { ...this.state.lastFailure } : undefined }; }
     setSourceIdentity(id) { this.clear(); this.dispatch({ kind: 'source', sourceId: id }); this.setDuration(null); }
@@ -182,7 +182,7 @@ export class PreviewController {
             throw errors.length === 1 ? errors[0] : new AggregateError(errors, 'Preview cancellation failed');
     }
     /** Playback pressure cancels generation, but resident thumbnails remain usable. */
-    setSuspended(value) { this.dispatch({ kind: 'suspended', value }); if (value)
+    setSuspended(value) { this.dispatch({ kind: 'suspended', value }); this.pregenerator?.setEnabled(this.state.allowed && !value); if (value)
         this.cancelWork(); }
     /** Suppress expensive decoder providers while allowing independent native previews. */
     setPlaybackActive(value) {

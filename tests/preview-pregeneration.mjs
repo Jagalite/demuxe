@@ -5,6 +5,29 @@ import {PreviewPregenerator} from '../web/generated/preview/pregeneration.js';
 import {PreviewController} from '../web/generated/preview/controller.js';
 const advance=async t=>{t.mock.timers.tick(500);await new Promise(setImmediate);};
 const result=time=>({time,width:8,height:8,image:{blob:new Blob(['image'])},path:'test'});
+test('suspension parks timers across strategy changes and enable/reset without discarding cached frames',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ const timer=setTimeout;let callbacks=0,calls=0;
+ globalThis.setTimeout=(fn,delay,...args)=>timer(()=>{callbacks++;fn(...args);},delay);
+ const c=new PreviewController([{id:'fixture',priority:1,canHandle:()=>true,getFrame:async r=>{calls++;return result(r.time);}}],{strategy:{type:'adaptive'},debounceMs:0});
+ try{
+  c.setDuration(600);
+  const first=c.getFrame({time:5});t.mock.timers.tick(0);await new Promise(setImmediate);await first;
+  c.setSuspended(true);const before=callbacks;
+  for(const type of ['adaptive','demuxe']){
+   c.setStrategy({type});c.enabled=true;c.setDuration(600);c.setPlaybackPosition(20);
+   for(let i=0;i<300;i++){t.mock.timers.tick(100);await new Promise(setImmediate);}
+   assert.equal(callbacks,before);assert.equal(calls,1);
+   assert.equal((await c.getFrame({time:5,cacheOnly:true})).cache,'hit');
+  }
+  c.setSuspended(false);
+  // Foreground quiet periods use performance.now, independently of fake timers.
+  c.clear();c.setSourceIdentity('resumed');c.setDuration(600);
+  c.setStrategy({type:'timestamps',timestamps:[30]});
+  for(let i=0;i<4;i++)await advance(t);
+  assert.ok(callbacks>before);
+ }finally{await c.destroy();globalThis.setTimeout=timer;}
+});
 test('timestamp lists retain original times while sorting and deduplicating buckets with a count limit',async t=>{
  t.mock.timers.enable({apis:['setTimeout']});const seen=[];
  const p=new PreviewPregenerator({timestamps:[8,2.3,2.8,4,12],count:2},1,async r=>{seen.push(r.time);return 'next';});

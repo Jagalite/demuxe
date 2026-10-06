@@ -1,10 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 import { beginAttempts, observeAttempt } from '../internal/machine/async-policy.js';
-/** Bounded encoded images; callers supply authorized bytes, never playback surfaces. */
-export async function rasterizePreview(blob, request, crop) {
-    request.signal.throwIfAborted();
+import { previewImageDimensions } from '../internal/machine/preview-image.js';
+async function inspectImage(blob, signal) {
+    signal.throwIfAborted();
     if (blob.size > 4 * 1024 * 1024)
         throw Error('Preview image byte budget exceeded');
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    signal.throwIfAborted();
+    return previewImageDimensions(bytes);
+}
+/** Bounded encoded images; callers supply authorized bytes, never playback surfaces. */
+export async function rasterizePreview(blob, request, crop) {
+    await inspectImage(blob, request.signal);
+    request.signal.throwIfAborted();
     const bitmap = await createImageBitmap(blob);
     try {
         request.signal.throwIfAborted();
@@ -28,9 +36,13 @@ export async function rasterizePreview(blob, request, crop) {
 }
 /** Public references are explicitly authored by the host; no playback credentials
  * are inherited. Authenticated sources should supply Blob results instead. */
-export async function previewImageBlob(image, signal) {
-    if ('blob' in image)
+export async function previewImageBlob(image, signal, size) {
+    if ('blob' in image) {
+        const dimensions = await inspectImage(image.blob, signal), width = size?.width ?? 2048, height = size?.height ?? 2048;
+        if (dimensions.width > width || dimensions.height > height)
+            return (await rasterizePreview(image.blob, { width, height, signal })).blob;
         return image.blob;
+    }
     let last = new Error('No authored image URI');
     const uris = [...image.uris];
     let attempts = beginAttempts(uris.length);

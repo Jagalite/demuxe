@@ -98,10 +98,10 @@ export class PreviewController {
     for(const job of [this.active,this.pending])if(job&&this.metadata(job)?.background){if(this.caller?.job===job)this.settle(aborted());this.cancelJob(job);}
     if(this.state.disposed){next?.stop();throw aborted();}
     this.dispatch({kind:'strategy',value:resolved.strategy.type==='custom'?{type:'custom'}:resolved.strategy});this.customStrategy=resolved.strategy.type==='custom'?resolved.strategy:undefined;this.pregenerator=next;
-    next?.setEnabled(this.state.allowed);next?.setFocus(this.state.interaction.focus);next?.setDuration(this.state.duration);
+    next?.setEnabled(this.state.allowed&&!this.state.suspended);next?.setFocus(this.state.interaction.focus);next?.setDuration(this.state.duration);
   }
   get enabled(){return this.state.allowed;}
-  set enabled(value:boolean){this.dispatch({kind:'enabled',value});this.pregenerator?.setEnabled(value);if(!value)this.clear();}
+  set enabled(value:boolean){this.dispatch({kind:'enabled',value});this.pregenerator?.setEnabled(value&&!this.state.suspended);if(!value)this.clear();}
   get diagnostics(){return {...this.state.counters,sourceId:this.sourceId,cacheBytes:this.state.bytes,cacheEntries:this.state.cache.length,active:!!this.state.active,pending:!!this.state.pending,lastFailure:this.state.lastFailure?{...this.state.lastFailure}:undefined};}
   setSourceIdentity(id:string){this.clear();this.dispatch({kind:'source',sourceId:id});this.setDuration(null);}
   /** Finite VOD duration admits configured source-scoped background generation. */
@@ -132,7 +132,7 @@ export class PreviewController {
     if(errors.length)throw errors.length===1?errors[0]:new AggregateError(errors,'Preview cancellation failed');
   }
   /** Playback pressure cancels generation, but resident thumbnails remain usable. */
-  setSuspended(value:boolean){this.dispatch({kind:'suspended',value});if(value)this.cancelWork();}
+  setSuspended(value:boolean){this.dispatch({kind:'suspended',value});this.pregenerator?.setEnabled(this.state.allowed&&!value);if(value)this.cancelWork();}
   /** Suppress expensive decoder providers while allowing independent native previews. */
   setPlaybackActive(value:boolean){
     this.dispatch({kind:'playback',value});

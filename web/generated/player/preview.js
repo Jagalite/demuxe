@@ -187,7 +187,7 @@ export class ScrubberPreview {
             if (!current())
                 return;
             if (needsImage) {
-                const blob = await previewImageBlob(frame.image, signal);
+                const blob = await previewImageBlob(frame.image, signal, { width: frame.width, height: frame.height });
                 if (!current())
                     return;
                 const url = URL.createObjectURL(blob);

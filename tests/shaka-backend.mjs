@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import {previewPNG} from './helpers/preview-image.mjs';
 import {ShakaBackend} from '../web/generated/internal/shaka-backend.js';
 import {PlayerError} from '../web/generated/internal/errors.js';
 const schemes=new Map();let pendingLoad=false,live=false,inProgress=false,variantOverride;
@@ -142,7 +143,7 @@ test('preview uses indexed Shaka tracks and isolated image transport without mov
  runtime.util.AbortableOperation=class {constructor(promise,abort){this.promise=promise;this.abort=abort;}};
  let closed=0;globalThis.createImageBitmap=async()=>({width:640,height:360,close(){closed++;}});
  globalThis.OffscreenCanvas=class{getContext(){return {drawImage(){}};}async convertToBlob(){return new Blob(['jpg']);}};
- globalThis.fetch=async(url,init)=>{assert.equal(init.priority,'low');return new Response(new Uint8Array([1,2]),{status:200});};
+ globalThis.fetch=async(url,init)=>{assert.equal(init.priority,'low');return new Response(previewPNG(640,360),{status:200});};
  backend.policy.fetcher=globalThis.fetch;
  backend.player.getManifest=()=>({imageStreams:[{id:12,segmentIndex:{}}]});
  backend.player.getImageTracks=()=>[{id:12,width:160}];

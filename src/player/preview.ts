@@ -99,7 +99,7 @@ export class ScrubberPreview {
       signal.addEventListener('abort',cancelDeadline,{once:true});
       if(!current())return;
       if(needsImage){
-        const blob=await previewImageBlob(frame.image,signal);if(!current())return;
+        const blob=await previewImageBlob(frame.image,signal,{width:frame.width,height:frame.height});if(!current())return;
         const url=URL.createObjectURL(blob);let released=false;
         const release=()=>{if(!released){released=true;URL.revokeObjectURL(url);}};
         const resource=acquiredURL={url,release};if(!current())return;

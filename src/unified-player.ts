@@ -552,7 +552,7 @@ export class Player extends EventTarget {
     if(this.automatic&&(this.settings.vf||this.settings.af||this.toneMapping!=='off'))this.currentMode=this.settings.vf||this.toneMapping!=='off'||!this.hybridAudioFilters||!qualifiedAudioFilter(this.settings.af)?'software':'hybrid';
     this.validateFilters(this.currentMode, this.settings);
     this.root = document.createElement('div');this.root.className = 'demuxe-player';container.append(this.root);
-    this.root.ownerDocument.addEventListener('visibilitychange',()=>{this.dispatchControl({type:'monitor.activity'});this.startWatchdogs();},{signal:this.lifetime.signal});
+    this.root.ownerDocument.addEventListener('visibilitychange',()=>{this.dispatchControl({type:'monitor.activity'});this.startWatchdogs();this.schedulePublish();},{signal:this.lifetime.signal});
     this.publish();
     if(prepare.length)void this.prepare(prepare);
   }
@@ -666,11 +666,12 @@ export class Player extends EventTarget {
     const input=capturePlayerObservation({...controls,tracks:list,streaming:this.captureStreamingState(session,sourceId),capabilityFacts:this.capabilityFacts(session,source),properties:session?.backend.properties??this.empty,surface:session?.surface});
     // Host reads can invoke application code. Never install a sample from a
     // retired tuple, or overwrite a publication made by that application code.
+    const previewHidden=this.root.ownerDocument.hidden===true;
     if(!current()){this.schedulePublish();return;}
     const prepared=this.dispatchControl({type:'publication.prepare',id:serial,captureRevision:acceptedControl,input});
     if(!prepared.accepted){this.schedulePublish();return;}
     const projection=prepared.publication!,preview=projection.preview;
-    for(const apply of [()=>this.#previewController.setPlaybackActive(preview.playbackActive),()=>this.#previewController.setSuspended(preview.suspended),()=>this.#previewController.setDuration(preview.duration),()=>this.#previewController.setPlaybackPosition(preview.position)]){
+    for(const apply of [()=>this.#previewController.setPlaybackActive(preview.playbackActive),()=>this.#previewController.setSuspended(preview.suspended||previewHidden),()=>this.#previewController.setDuration(preview.duration),()=>this.#previewController.setPlaybackPosition(preview.position)]){
       apply();if(!current()){this.schedulePublish();return;}
     }
     const next=projection.state;

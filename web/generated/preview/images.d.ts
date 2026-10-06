@@ -13,4 +13,7 @@ export declare function rasterizePreview(blob: Blob, request: Pick<PreviewContex
 }>;
 /** Public references are explicitly authored by the host; no playback credentials
  * are inherited. Authenticated sources should supply Blob results instead. */
-export declare function previewImageBlob(image: PreviewImage, signal: AbortSignal): Promise<Blob>;
+export declare function previewImageBlob(image: PreviewImage, signal: AbortSignal, size?: {
+    width: number;
+    height: number;
+}): Promise<Blob>;

@@ -9,7 +9,7 @@ import { initialElementView, transitionElementView, elementTitle, elementTrackOp
 import { initialElementControls, transitionElementControls } from '../internal/machine/element-controls.js';
 import { initialElementLifecycle, transitionElementLifecycle, elementSourceCurrent } from '../internal/machine/element-lifecycle.js';
 import { initialElementQueue, transitionElementQueue, queueSelectionAllowed, queueClosesRollback } from '../internal/machine/element-queue.js';
-import { formatTime, outputDimensions, shortcut } from './interaction.js';
+import { formatTime, outputDimensions, resolveSeekTarget, shortcut } from './interaction.js';
 import { ScrubberPreview } from './preview.js';
 import { styles } from './styles.js';
 import { mobileStyles, mobileControlsQuery } from './mobile.js';
@@ -325,6 +325,7 @@ export class DemuxePlayerElement extends Base {
     seekPreviewTimer;
     hideTimer;
     timelinePointer;
+    scrubTime;
     showScrubPosition() {
         if (this.timelinePointer === undefined)
             return;
@@ -340,6 +341,7 @@ export class DemuxePlayerElement extends Base {
     finishTimelineDrag() {
         const pointer = this.timelinePointer;
         this.timelinePointer = undefined;
+        this.scrubTime = undefined;
         this.control({ type: 'drag', active: false });
         this.$('scrub-position').hidden = true;
         const input = this.input('timeline');
@@ -727,6 +729,12 @@ export class DemuxePlayerElement extends Base {
     else
         this.$('stage').style.setProperty('--media-aspect', String(decision.aspect)); if (decision.resize)
         this.core?.resize(decision.resize.width, decision.resize.height); }
+    text(id, value) { const element = this.$(id); if (element.textContent !== value)
+        element.textContent = value; }
+    attr(id, name, value) { const element = this.$(id); if (element.getAttribute(name) !== value)
+        element.setAttribute(name, value); }
+    setHidden(id, value) { const element = this.$(id); if (element.hidden !== value)
+        element.hidden = value; }
     update(state) {
         this.advanced?.reconcile();
         if (this.controlState.menuOpen)
@@ -751,7 +759,7 @@ export class DemuxePlayerElement extends Base {
         if (this.view({ type: 'observe-source', sourceId: state.sourceId }).changed)
             this.updateTitle();
         const labels = this.labels, pending = state.pendingOperation !== null;
-        this.$('topbar').hidden = !this.controls;
+        this.setHidden('topbar', !this.controls);
         const seeking = state.pendingOperation?.kind === 'seeking', seekChange = this.control({ type: 'seeking', seeking });
         if (seekChange.changed) {
             clearTimeout(this.seekPreviewTimer);
@@ -767,14 +775,14 @@ export class DemuxePlayerElement extends Base {
             if (playChange.reveal)
                 this.revealControls();
         }
-        this.$('controls').hidden = !this.controls || !state.sourceId;
-        this.$('transport').hidden = !this.controls || !state.sourceId;
-        this.$('empty').hidden = !this.showSourceControls || !!state.sourceId;
-        this.$('poster').hidden = !this.poster || !!state.sourceId;
+        this.setHidden('controls', !this.controls || !state.sourceId);
+        this.setHidden('transport', !this.controls || !state.sourceId);
+        this.setHidden('empty', !this.showSourceControls || !!state.sourceId);
+        this.setHidden('poster', !this.poster || !!state.sourceId);
         this.iconButton('play', state.playbackIntent === 'play' ? 'pause' : 'play', state.playbackIntent === 'play' ? labels.pause : labels.play);
         this.$('play').disabled = !state.sourceId || pending;
         this.iconButton('mute', state.muted ? 'muted' : 'volume', state.muted ? labels.unmute : labels.mute);
-        this.$('mute').setAttribute('aria-pressed', String(state.muted));
+        this.attr('mute', 'aria-pressed', String(state.muted));
         this.configure({ type: 'reflection', enter: true });
         try {
             this.toggleAttribute('muted', state.muted);
@@ -790,16 +798,24 @@ export class DemuxePlayerElement extends Base {
         for (const id of ['back', 'forward'])
             this.$(id).disabled = pending || !window?.length;
         if (window?.length) {
-            this.input('timeline').min = String(window[0].start);
-            this.input('timeline').max = String(window.at(-1).end);
+            this.attr('timeline', 'min', String(window[0].start));
+            this.attr('timeline', 'max', String(window.at(-1).end));
         }
-        if (!this.dragging) {
+        if (!this.dragging)
             this.input('timeline').value = String(state.currentTime);
-            this.input('timeline').setAttribute('aria-valuetext', formatTime(state.currentTime));
-            this.$('time').textContent = formatTime(state.currentTime);
-            this.$('duration').textContent = state.streamType === 'live' ? labels.live : state.duration === null ? labels.unknown : formatTime(state.duration);
-            this.timelineProgress();
+        else {
+            const target = resolveSeekTarget(Number(this.input('timeline').value), state.seekable, this.scrubTime ?? state.currentTime, state.playbackRange);
+            if (target !== null)
+                this.input('timeline').value = String(target);
+            this.scrubTime = Number(this.input('timeline').value);
         }
+        const displayedTime = formatTime(this.dragging ? Number(this.input('timeline').value) : state.currentTime);
+        this.attr('timeline', 'aria-valuetext', displayedTime);
+        this.text('time', displayedTime);
+        this.text('duration', state.streamType === 'live' ? labels.live : state.duration === null ? labels.unknown : formatTime(state.duration));
+        this.timelineProgress();
+        if (this.dragging)
+            this.showScrubPosition();
         if (this.view({ type: 'tracks', audio: state.audioTracks, subtitles: state.subtitleTracks, policy: state.trackPolicy }).changed) {
             this.trackOptions('audio', state.audioTracks, state.trackPolicy.audio);
             this.trackOptions('subtitles', state.subtitleTracks, state.trackPolicy.subtitles);
@@ -807,14 +823,14 @@ export class DemuxePlayerElement extends Base {
         this.input('subtitleFile').disabled = !this.canPickSubtitle(state);
         this.$('speed').value = String(state.playbackRate);
         const buffering = state.status === 'buffering' && state.playbackIntent === 'play' && !pending;
-        this.$('buffering-indicator').hidden = !buffering;
+        this.setHidden('buffering-indicator', !buffering);
         this.$('shell').classList.toggle('buffering', buffering);
         this.bufferedProgress(state);
         const opening = state.pendingOperation?.kind === 'opening';
         this.control({ type: 'opening', operation: opening ? state.pendingOperation.id : null, initialStage: this.labels.inspecting });
         const activityView = elementActivity(state, this.core?.preparationProgress ?? [], this.openingStage, labels), { activity, pill } = activityView;
-        this.$('busy').hidden = !pill || seeking || buffering;
-        this.$('busy').textContent = pill;
+        this.setHidden('busy', !pill || seeking || buffering);
+        this.text('busy', pill);
         // Preparation status shares the toolbar's alignment and responsive padding.
         // Keep playback activity in the stage, including when controls are hidden.
         const busy = this.$('busy'), inToolbar = !state.sourceId && this.controls;
@@ -822,8 +838,8 @@ export class DemuxePlayerElement extends Base {
             this.$('title').after(busy);
         else if (!inToolbar && busy.parentElement !== this.$('stage'))
             this.$('stage').append(busy);
-        this.$('busy').dataset.complete = String(activityView.complete);
-        this.$('busy').setAttribute('aria-label', activityView.description);
+        this.attr('busy', 'data-complete', String(activityView.complete));
+        this.attr('busy', 'aria-label', activityView.description);
         if (!this.lastFailure)
             this.announce(activityView.announcement, !pill);
         this.geometry(state);
@@ -860,14 +876,20 @@ export class DemuxePlayerElement extends Base {
                 lines.push(`${key}  ${String(value)}`);
         this.$('diagnostics-overlay').textContent = lines.join('\n');
     }
+    bufferedKey = '';
     bufferedProgress(state) {
         const ranges = state.seekable, min = ranges?.[0]?.start ?? 0, max = ranges?.at(-1)?.end ?? 0, span = max - min;
+        const key = JSON.stringify([min, max, state.buffered ?? state.cached ?? []]);
+        if (key === this.bufferedKey)
+            return;
+        this.bufferedKey = key;
         const layers = span > 0 ? (state.buffered ?? state.cached ?? []).filter(r => Number.isFinite(r.start) && Number.isFinite(r.end) && r.end > r.start && r.end > min && r.start < max).map(r => { const start = Math.max(0, (r.start - min) / span * 100), end = Math.min(100, (r.end - min) / span * 100); return `linear-gradient(to right,transparent ${start}%,color-mix(in srgb,var(--demuxe-foreground) 45%,transparent) ${start}% ${end}%,transparent ${end}%)`; }) : [];
         this.$('timeline').style.setProperty('--buffered', layers.join(',') || 'linear-gradient(transparent,transparent)');
     }
     timelineProgress() { const input = this.input('timeline'), min = Number(input.min), max = Number(input.max); input.style.setProperty('--progress', `${max > min ? Math.max(0, Math.min(100, (Number(input.value) - min) / (max - min) * 100)) : 0}%`); }
-    skip(delta) { const state = this.core?.state, ranges = state?.seekable; if (!state || state.pendingOperation || !ranges?.length)
-        return; const target = state.currentTime + delta; const range = ranges.find(r => target <= r.end) ?? ranges.at(-1); this.run(this.seek(Math.max(range.start, Math.min(range.end - .05, target)))); }
+    seekFromControls(time) { const state = this.core?.state; const target = state && !state.pendingOperation ? resolveSeekTarget(time, state.seekable, state.currentTime, state.playbackRange) : null; return target === null ? Promise.resolve() : this.seek(target); }
+    skip(delta) { const state = this.core?.state; if (state)
+        this.run(this.seekFromControls(state.currentTime + delta)); }
     trackOptions(id, list, policy) {
         const select = this.$(id), projection = elementTrackOptions(list, policy, this.labels);
         select.replaceChildren();
@@ -954,7 +976,8 @@ export class DemuxePlayerElement extends Base {
         button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${icons[icon]}</svg>`;
         button.dataset.icon = icon;
     } if (icon === 'back' || icon === 'forward')
-        button.querySelector('text').textContent = String(this.seekStep); button.classList.add('icon-button'); button.setAttribute('aria-label', label); button.setAttribute('title', label); }
+        button.querySelector('text').textContent = String(this.seekStep); if (!button.classList.contains('icon-button'))
+        button.classList.add('icon-button'); this.attr(id, 'aria-label', label); this.attr(id, 'title', label); }
     labelControls() {
         this.advanced?.label(this.labels);
         this.$('settings-source').textContent = this.labels.open;
@@ -1052,6 +1075,7 @@ export class DemuxePlayerElement extends Base {
             if (!event.isPrimary || event.button !== 0 || this.input('timeline').disabled)
                 return;
             this.timelinePointer = event.pointerId;
+            this.scrubTime = Number(this.input('timeline').value);
             this.control({ type: 'drag', active: true });
             this.revealControls();
             this.input('timeline').setPointerCapture(event.pointerId);
@@ -1064,8 +1088,9 @@ export class DemuxePlayerElement extends Base {
             if (this.core)
                 this.update(this.core.state);
         } };
-        this.input('timeline').oninput = () => { this.control({ type: 'drag', active: true }); const text = formatTime(Number(this.input('timeline').value)); this.$('time').textContent = text; this.timelineProgress(); this.input('timeline').setAttribute('aria-valuetext', text); this.showScrubPosition(); };
-        this.input('timeline').onchange = () => { const value = Number(this.input('timeline').value); this.finishTimelineDrag(); this.run(this.seek(value)); };
+        this.input('timeline').oninput = () => { this.control({ type: 'drag', active: true }); const state = this.core?.state, target = state ? resolveSeekTarget(Number(this.input('timeline').value), state.seekable, this.scrubTime ?? state.currentTime, state.playbackRange) : null; if (target !== null)
+            this.input('timeline').value = String(target); this.scrubTime = Number(this.input('timeline').value); const text = formatTime(this.scrubTime); this.$('time').textContent = text; this.timelineProgress(); this.input('timeline').setAttribute('aria-valuetext', text); this.showScrubPosition(); };
+        this.input('timeline').onchange = () => { const value = Number(this.input('timeline').value); this.finishTimelineDrag(); this.run(this.seekFromControls(value)); };
         this.input('timeline').onpointercancel = () => { this.finishTimelineDrag(); if (this.core)
             this.update(this.core.state); };
         this.$('settings-source').onclick = () => this.settings(true, true, 'open-menu');
@@ -1143,7 +1168,7 @@ export class DemuxePlayerElement extends Base {
             let action;
             const state = p.state;
             const seek = (time) => { if (state.playbackIntent === 'play' && !this.dragging)
-                this.hideControls(); return p.seek(time); };
+                this.hideControls(); return this.seekFromControls(time); };
             if (key === 'f') {
                 event.preventDefault();
                 this.fullscreen();
@@ -1178,7 +1203,7 @@ export class DemuxePlayerElement extends Base {
                 const delta = key === 'arrowleft' ? -5 : key === 'arrowright' ? 5 : key === 'j' ? -this.seekStep : key === 'l' ? this.seekStep : 0;
                 const window = state.seekable;
                 if (delta && window?.length)
-                    action = seek(Math.max(window[0].start, Math.min(window.at(-1).end - .05, state.currentTime + delta)));
+                    action = seek(state.currentTime + delta);
             }
             if (action) {
                 event.preventDefault();
