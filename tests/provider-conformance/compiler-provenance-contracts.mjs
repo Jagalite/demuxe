@@ -6,7 +6,23 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
+import {providerAssetGraph} from '../../scripts/provider-asset-graph.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
+
+test('fresh mpv compiler outputs form a complete packaged import closure without native builds',async()=>{
+ const profile=JSON.parse(await readFile(path.join(root,'licensing/provider-packages.json'))).profiles.mpv;
+ const compiled=JSON.parse(execFileSync(process.execPath,['scripts/compile-provider-sources.mjs','mpv'],{cwd:root,maxBuffer:8*1024*1024,encoding:'utf8'}));
+ // Native assets are leaves here; their bytes and provenance have separate gates.
+ const files=Object.fromEntries(profile.engines.map(name=>[name,'']));
+ for(const name of profile.files)files[name]=/\.m?js$/.test(name)?await readFile(path.join(root,profile.fileOverrides?.[name]??name),'utf8'):'';
+ for(const [name,output] of Object.entries(compiled))files[name]=output.data;
+ const graph=providerAssetGraph(files,profile.computedImports);
+ assert.ok(graph.roots.length>0);
+ const deadline='web/generated/internal/machine/playback-deadlines.js';
+ assert.ok(Object.values(graph.dependencies).some(deps=>deps.includes(deadline)));
+ delete files[deadline];
+ assert.throws(()=>providerAssetGraph(files,profile.computedImports),/Missing compiled provider import: .*playback-deadlines/);
+});
 
 test('every provider machine module is compiled from its TypeScript source',async()=>{
  const config=JSON.parse(await readFile(path.join(root,'licensing/provider-packages.json')));
