@@ -88,3 +88,21 @@ test('Pause during original-position restoration prevents a second backend play'
  const playing=p.play();await restoring;const paused=p.pause();finish();await Promise.all([playing,paused]);
  assert.deepEqual(calls,['play','pause']);assert.equal(p.settings.pause,true);assert.equal(p.control.transport.pending,null);
 });
+
+test('EOF replay seeks before backend play and output verification',async()=>{
+ const {p,backend,calls}=fixture();backend.properties.set('eof-reached',true);
+ backend.seek=async target=>{calls.push(['seek',target]);backend.properties.set('eof-reached',false);};
+ backend.verifyOutput=async()=>calls.push('verified');
+ await p.play();assert.deepEqual(calls,[['seek',0],'play','verified']);
+});
+test('Pause while EOF replay is seeking prevents resumed playback',async()=>{
+ const {p,backend,calls}=fixture();backend.properties.set('eof-reached',true);let release,started;
+ const ready=new Promise(resolve=>started=resolve);backend.seek=()=>{started();return new Promise(resolve=>release=resolve);};
+ const playing=p.play();await ready;const paused=p.pause();release();await Promise.all([playing,paused]);assert.deepEqual(calls,['pause']);
+});
+
+test('EOF replay honors the configured range start',async()=>{
+ const {p,backend,calls}=fixture();backend.properties.set('eof-reached',true);p.getPlaybackRange=()=>({start:2,end:12});
+ backend.seek=async target=>{calls.push(['seek',target]);backend.properties.set('eof-reached',false);};
+ await p.play();assert.deepEqual(calls,[['seek',2],'play']);
+});

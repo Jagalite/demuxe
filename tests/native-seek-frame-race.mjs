@@ -125,3 +125,10 @@ test('windowed Native ranges retain the public object shape through refresh',asy
  assert.deepEqual(ranges(player.properties.get('native-seekable')),[{start:0,end:30}]);
  remux.ranges=()=>[];player.refresh();assert.deepEqual(ranges(player.properties.get('native-buffered')),[]);
 });
+
+test('direct seek cannot skip a submillisecond source-frame boundary',async()=>{
+ const {player,video}=fixture();player.remux=undefined;video.currentTime=.0332;video.seeking=false;
+ player.refresh=()=>{};let waits=0;player.wait=async(event,action)=>{waits++;action();};
+ await player.seekVideo(.0334);assert.equal(video.currentTime,.0334);assert.equal(waits,1);
+ await player.seekVideo(.0334);assert.equal(waits,1);
+});

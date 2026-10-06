@@ -13,7 +13,7 @@ import type {ExternalDecodeIntent} from './external-decoder-selection.js';
 import type {DecodeQuality} from './decode-policy.js';
 import {watchdogPolicy} from './watchdogs.js';
 import type {WatchdogPolicy} from '../types.js';
-import {cloneWasmBuffering,validWasmVolume,planWasmGain,effectiveWasmGain,planWasmBuffering,planWasmAudioOutput} from './machine/wasm-settings.js';
+import {cloneWasmBuffering,validWasmVolume,planWasmGain,planWasmBuffering,planWasmAudioOutput} from './machine/wasm-settings.js';
 import {wasmSeekBoundary} from './machine/wasm-seek.js';
 import {admitWasmAttachment,wasmAttachmentCurrent,finishWasmAttachment,wasmAttachmentIdentity,createWasmLifecycle,wasmAlive,markWasmInitialized,settleWasmInitialization,claimWasmWorkerFailure,admitWasmRequest,settleWasmRequest,rejectWasmRequests,admitWasmWaiter,settleWasmWaiter,beginWasmOpen,ownsWasmOpen,finishWasmOpen,observeWasmFile,retireWasmLifecycle,finishWasmRetirement,beginWasmPlayerSeek,observeWasmPlayerSeek,confirmWasmPlayerSeek,applyWasmSetting} from './machine/wasm-lifecycle.js';
 export type PlayerEvent = {event:string; id?:number; name?:string; data?:unknown; error?:string; [key:string]:unknown};
@@ -376,7 +376,7 @@ export class WasmPlayer extends EventTarget {
     const accepted=applyWasmSetting(this.lifecycle,{kind:'volume',value:percent});this.lifecycle=accepted.state;if(!accepted.accepted)throw this.unavailableError();
     // mpv may have queued PCM before acknowledging mute. Silence that output
     // at the browser graph too, without applying normal volume twice.
-    this.gainNode?.gain.setValueAtTime(effectiveWasmGain(this.lifecycle.settings),this.audioContext.currentTime);
+    await this.gain(this.lifecycle.settings.gain);
   }
   async gain(value:number) {
     if(!planWasmGain(this.lifecycle.settings,value,!!this.gainNode).valid)throw new Error('Gain must be between 0 and 1');

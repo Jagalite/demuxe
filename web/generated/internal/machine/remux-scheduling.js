@@ -69,7 +69,7 @@ export function selectRemuxPumpContinuation(state, buffer, facts, context) {
     if (ahead < 5 && (ranges.at(-1)?.[1] ?? NaN) > now + 12)
         return result({ kind: 'fail', error: 'Remux timeline gap exceeds forward buffer budget' });
     if (buffer.eof && !buffer.pending)
-        return result({ kind: 'eof', ...facts.audioAdaptation && (facts.adaptationEnd ?? 0) > 0 ? { duration: facts.adaptationEnd } : {} });
+        return result({ kind: 'eof', ...facts.audioAdaptation && (facts.adaptationEnd ?? 0) > 0 ? { duration: Math.max(facts.adaptationEnd, ...(facts.laneEnds ?? facts.ranges.map(range => range[1]))) } : {} });
     const preparedAhead = facts.audioAdaptation ? Math.max(0, (facts.adaptationEnd ?? now) - now) : 0;
     if (!buffer.eof && preparedAhead >= 5 && ahead < .25 && !facts.paused)
         return result({ kind: 'fail', error: 'Adapted track timelines cannot progress within the preparation budget; use Hybrid' });

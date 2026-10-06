@@ -1349,7 +1349,7 @@ export class NativePlayer extends EventTarget {
             this.refresh();
             return;
         }
-        if (Math.abs(this.video.currentTime - seconds) < .001 && !this.video.seeking)
+        if (this.video.currentTime === seconds && !this.video.seeking)
             return;
         current();
         await this.wait('seeked', () => { current(); this.video.currentTime = seconds; });

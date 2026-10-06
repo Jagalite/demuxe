@@ -649,7 +649,7 @@ export class NativePlayer extends EventTarget implements Backend {
       current();if(this.video.seeking)await this.wait('seeked',()=>{});
       current();if(!paused)await remux.play();current();this.refresh();return;
     }
-    if (Math.abs(this.video.currentTime - seconds) < .001 && !this.video.seeking) return;
+    if (this.video.currentTime === seconds && !this.video.seeking) return;
     current();await this.wait('seeked', () => {current();this.video.currentTime = seconds;});current();this.refresh();
   }
   private seekPresented(target:number, action:()=>Promise<unknown>):Promise<void> {

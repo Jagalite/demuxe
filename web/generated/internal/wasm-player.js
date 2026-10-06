@@ -7,7 +7,7 @@ import { resolveDecodePolicy } from './decode-policy.js';
 import { webgpuDecoderSupported } from './webgpu-codecs.js';
 import { selectExternalDecoderConfiguration } from './external-decoder-selection.js';
 import { watchdogPolicy } from './watchdogs.js';
-import { cloneWasmBuffering, validWasmVolume, planWasmGain, effectiveWasmGain, planWasmBuffering, planWasmAudioOutput } from './machine/wasm-settings.js';
+import { cloneWasmBuffering, validWasmVolume, planWasmGain, planWasmBuffering, planWasmAudioOutput } from './machine/wasm-settings.js';
 import { wasmSeekBoundary } from './machine/wasm-seek.js';
 import { admitWasmAttachment, wasmAttachmentCurrent, finishWasmAttachment, wasmAttachmentIdentity, createWasmLifecycle, wasmAlive, markWasmInitialized, claimWasmWorkerFailure, admitWasmRequest, settleWasmRequest, rejectWasmRequests, admitWasmWaiter, settleWasmWaiter, beginWasmOpen, ownsWasmOpen, finishWasmOpen, observeWasmFile, retireWasmLifecycle, finishWasmRetirement, beginWasmPlayerSeek, observeWasmPlayerSeek, confirmWasmPlayerSeek, applyWasmSetting } from './machine/wasm-lifecycle.js';
 /** One isolated software engine per player; bounded remote ranges and local File reads; ArrayBuffer inputs remain capped. */
@@ -639,7 +639,7 @@ export class WasmPlayer extends EventTarget {
             throw this.unavailableError();
         // mpv may have queued PCM before acknowledging mute. Silence that output
         // at the browser graph too, without applying normal volume twice.
-        this.gainNode?.gain.setValueAtTime(effectiveWasmGain(this.lifecycle.settings), this.audioContext.currentTime);
+        await this.gain(this.lifecycle.settings.gain);
     }
     async gain(value) {
         if (!planWasmGain(this.lifecycle.settings, value, !!this.gainNode).valid)

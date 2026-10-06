@@ -2,13 +2,13 @@
 export type LegacyRetainedFrame=Readonly<{id:number;key:number}>;
 export type LegacyRetainedRequest=Readonly<{id:number;key:number;deadline:number;scheduled:boolean;epoch:number}>;
 export type LegacyRetainedPresentation=Readonly<{
- epoch:number;generation:number;minGeneration:number;minPts:number;selectedSerial:number;closed:boolean;serial:number;
+ preroll:boolean;epoch:number;generation:number;minGeneration:number;minPts:number;selectedSerial:number;closed:boolean;serial:number;
  frames:readonly LegacyRetainedFrame[];held:LegacyRetainedFrame|null;pending:readonly LegacyRetainedRequest[];
  drawing:Readonly<{id:number;frame:number;redraw:boolean}>|null;position:number|null;received:number;drawn:number;redraws:number;dropped:number;peakRetained:number;peakPending:number;missing:number;
 }>;
-export function initialLegacyRetainedPresentation():LegacyRetainedPresentation{return Object.freeze({epoch:0,generation:-1,minGeneration:-1,minPts:-Infinity,selectedSerial:0,closed:false,serial:0,frames:Object.freeze([]),held:null,pending:Object.freeze([]),drawing:null,position:null,received:0,drawn:0,redraws:0,dropped:0,peakRetained:0,peakPending:0,missing:0});}
+export function initialLegacyRetainedPresentation():LegacyRetainedPresentation{return Object.freeze({preroll:false,epoch:0,generation:-1,minGeneration:-1,minPts:-Infinity,selectedSerial:0,closed:false,serial:0,frames:Object.freeze([]),held:null,pending:Object.freeze([]),drawing:null,position:null,received:0,drawn:0,redraws:0,dropped:0,peakRetained:0,peakPending:0,missing:0});}
 export type LegacyRetainedInput=
- |Readonly<{type:'reset';target?:number;closed?:boolean}>
+ |Readonly<{type:'reset';target?:number;closed?:boolean;preroll?:boolean}>
  |Readonly<{type:'receive';pts:number;generation:number;pendingTarget:number|null}>
  |Readonly<{type:'select';serial:number;key:number;now:number;delay:number;redraw:boolean}>
  |Readonly<{type:'schedule';key:number}>
@@ -24,7 +24,7 @@ export function transitionLegacyRetainedPresentation(state:LegacyRetainedPresent
  const patch=(value:Partial<LegacyRetainedPresentation>)=>Object.freeze({...state,...value});
  const clear=(next:LegacyRetainedPresentation,closed:boolean,minPts:number,minGeneration:number)=>Object.freeze({...next,epoch:Math.min(Number.MAX_SAFE_INTEGER,next.epoch+1),closed:closed||next.epoch>=Number.MAX_SAFE_INTEGER,minPts,minGeneration,frames:Object.freeze([]),held:null,pending:Object.freeze([]),drawing:null,position:null,selectedSerial:0});
  const ids=(next:LegacyRetainedPresentation)=>Object.freeze([...next.frames.map(f=>f.id),...next.held?[next.held.id]:[]]);
- if(input.type==='reset')return result(clear(state,!!input.closed,input.target===undefined?-Infinity:input.target*1e6-150000,state.generation+1),{close:ids(state),cancel:Object.freeze(state.pending.map(r=>r.id)),...state.epoch>=Number.MAX_SAFE_INTEGER?{error:'Retained epoch exhausted'}:{}});
+ if(input.type==='reset')return result(Object.freeze({...clear(state,!!input.closed,input.target===undefined?-Infinity:input.target*1e6-150000,state.generation+1),preroll:!!input.preroll}),{close:ids(state),cancel:Object.freeze(state.pending.map(r=>r.id)),...state.epoch>=Number.MAX_SAFE_INTEGER?{error:'Retained epoch exhausted'}:{}});
  if(input.type==='receive'){
   let next=patch({received:state.received+1}),close=empty,cancel=empty;
   const discard=(error?:string)=>result(Object.freeze({...next,dropped:next.dropped+1}),{discard:true,close,cancel,...error?{error}:{}});
@@ -40,7 +40,13 @@ export function transitionLegacyRetainedPresentation(state:LegacyRetainedPresent
   }
   if(input.pendingTarget!==null&&input.pts/1e6<input.pendingTarget-.15)return discard();
   if(next.frames.some(frame=>frame.key===key))return discard('Duplicate retained frame timestamp');
-  if(legacyRetainedNeedsPump(next))return discard('Retained frame bound exceeded');
+  if(legacyRetainedNeedsPump(next)){
+   // Back-step decodes from an earlier keyframe without presenting preroll.
+   // Retain a bounded tail until mpv selects the adjacent frame.
+   const oldest=next.preroll?next.frames.find(frame=>!next.pending.some(r=>r.key===frame.key)):undefined;
+   if(!oldest)return discard('Retained frame bound exceeded');
+   close=Object.freeze([...close,oldest.id]);next=Object.freeze({...next,frames:Object.freeze(next.frames.filter(frame=>frame!==oldest))});
+  }
   if(!Number.isSafeInteger(next.serial+1))return discard('Retained identity exhausted');
   const frame=Object.freeze({id:next.serial+1,key}),frames=Object.freeze([...next.frames,frame]);
   return result(Object.freeze({...next,serial:frame.id,frames,peakRetained:Math.max(next.peakRetained,frames.length+(next.held?1:0))}),{close,cancel,accept:frame.id});
@@ -50,7 +56,7 @@ export function transitionLegacyRetainedPresentation(state:LegacyRetainedPresent
   if(!Number.isSafeInteger(input.serial)||!Number.isFinite(input.key)||!Number.isFinite(input.now)||!Number.isFinite(input.delay))return result(state,{accepted:false,error:'Invalid retained selection'});
   if(input.serial===state.selectedSerial)return result(state,{accepted:false});
   const minPts=Math.max(state.minPts,input.key),old=state.frames.filter(frame=>frame.key<minPts&&!state.pending.some(r=>r.key===frame.key)),frames=Object.freeze(state.frames.filter(frame=>!old.includes(frame))),close=Object.freeze(old.map(frame=>frame.id));
-  const next=patch({minPts,selectedSerial:input.serial,frames});
+  const next=patch({preroll:false,minPts,selectedSerial:input.serial,frames});
   if(input.redraw&&state.held?.key===input.key){if(!Number.isSafeInteger(state.serial+1))return result(next,{close,error:'Retained identity exhausted'});const id=state.serial+1;return result(Object.freeze({...next,serial:id,drawing:Object.freeze({id,frame:state.held.id,redraw:true})}),{close,redraw:state.held.id,drawing:id});}
   if(input.key<0||state.pending.some(request=>request.key===input.key))return result(next,{close,accepted:false});
   if(state.pending.length>=8)return result(next,{close,error:'Pending presentation bound exceeded'});

@@ -5,7 +5,7 @@ export function createWasmSettings(decoderOutput = true) { return Object.freeze(
 export function validWasmVolume(value) { return Number.isFinite(value) && value >= 0 && value <= 100; }
 export function validWasmGain(value) { return Number.isFinite(value) && value >= 0 && value <= 1; }
 export function effectiveWasmGain(state, gain = state.gain) { return state.volume === 0 ? 0 : gain; }
-export function planWasmGain(state, value, hasStage) { return Object.freeze({ valid: validWasmGain(value), createStage: !hasStage && value !== 1, effective: effectiveWasmGain(state, value) }); }
+export function planWasmGain(state, value, hasStage) { return Object.freeze({ valid: validWasmGain(value), createStage: !hasStage && (value !== 1 || state.volume === 0), effective: effectiveWasmGain(state, value) }); }
 export function updateWasmSettings(state, input) {
     if (input.kind === 'volume' || input.kind === 'gain') {
         if (!(input.kind === 'volume' ? validWasmVolume(input.value) : validWasmGain(input.value)))

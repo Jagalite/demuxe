@@ -46,7 +46,7 @@ function retainedStep(input,acquire){
  for(const id of decision.close){const frame=frames.get(id);frames.delete(id);try{if(frame)closeOwned(frame);}catch(error){failure??=error;}}
  if(failure)throw failure;return decision;
 }
-function cleanupFrames(target,closed=true){retainedStep({type:'reset',target,closed});}
+function cleanupFrames(target,closed=true,preroll=false){retainedStep({type:'reset',target,closed,preroll});}
 function receiveFrame(message){
  if(legacyRetainedNeedsPump(retainedControl))tick();
  const beforeGeneration=retainedControl.generation;
@@ -86,7 +86,9 @@ function presentReady(key){
  const delay=request.deadline-performance.now();if(!current())return;if(delay<=0)draw();else arm(delay);
 }
 function presentSelected(){
- const before=retainedControl,serial=engine._web_selected_serial(),key=Math.round(engine._web_selected_pts()*1e6),redraw=!!engine._web_selected_redraw(),delay=engine._web_selected_delay(),now=performance.now();
+ // Preserve nearest-microsecond rounding when seconds conversion puts a half
+ // boundary one floating-point ulp below .5. Frame identities stay exact.
+ const before=retainedControl,serial=engine._web_selected_serial(),microseconds=engine._web_selected_pts()*1e6,key=Math.round(microseconds+Math.abs(microseconds)*Number.EPSILON),redraw=!!engine._web_selected_redraw(),delay=engine._web_selected_delay(),now=performance.now();
  if(before!==retainedControl)return;
  const overlay=subtitles.read(engine);if(before!==retainedControl)return;
  const decision=retainedStep({type:'select',serial,key,redraw,delay,now});if(decision.error)throw Error(decision.error);
@@ -391,7 +393,10 @@ self.onmessage = async ({data}) => {
       const result=engine.ccall('web_add_subtitle','number',['number','string','string','string','number'],[data.id,path,data.label??'',data.language??'',+data.select]);
       if(result<0)throw Error('Could not add subtitle: '+result);
       transition({type:'touch',now:performance.now()});schedulePump(0);
-    } else if (data.type === 'command') submit(data.id,data.args);
+    } else if (data.type === 'command') {
+      if(data.args[0]==='frame-back-step'){cleanupFrames(undefined,false,true);subtitles.clear();}
+      submit(data.id,data.args);
+    }
     else if (data.type === 'resize') {transition({type:'touch',now:performance.now()});schedulePump(0);subtitles.clear();canvas.width=data.width;canvas.height=data.height;transition({type:'invalidate'});}
     else if (data.type === 'destroy') {
       if(control.closing)return;

@@ -83,6 +83,7 @@ export type RemuxPumpFacts = Readonly<{
     playbackRate: number;
     ranges: readonly RemuxRange[];
     laneStarts: readonly (number | null)[];
+    laneEnds?: readonly number[];
     audioAdaptation: boolean;
     adaptationEnd: number | undefined;
     duration: number;

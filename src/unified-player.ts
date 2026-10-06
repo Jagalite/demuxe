@@ -1880,11 +1880,11 @@ export class Player extends EventTarget {
     const request=this.dispatchControl({type:'play.request'});if(!request.accepted)return Promise.reject(new PlayerError(request.reason==='destroyed'?'ABORTED':'INVALID_ARGUMENT','Playback request capacity unavailable'));
     const intentId=request.id!;let intent:AbortController;try{intent=new AbortController();}catch(error){this.dispatchControl({type:'play.settled',id:intentId});throw error;}this.playRequests.set(intentId,intent);
     // An unverified trial must not consume the user's requested playback position.
-    const trialSession=this.current,trialPosition=Math.max(0,Number(this.current?.backend.properties.get('time-pos'))||0);
+    const trialSession=this.current,trialPosition=this.current?.backend.properties.get('eof-reached')===true?(this.getPlaybackRange()?.start??0):Math.max(0,Number(this.current?.backend.properties.get('time-pos'))||0);
     const trialVerified=this.evidence(this.current).outputVerified===true;
     // Initiate resume before yielding the user's activation to the operation queue.
     let immediate:Promise<void>|undefined,immediateSession:Session|undefined;
-    try{if(!this.destroyed&&this.queued===0&&this.current){immediateSession=this.current;immediate=this.backendEffect(immediateSession,'backend.play',intentId);}}catch(error){this.dispatchControl({type:'play.settled',id:intentId});this.playRequests.delete(intentId);throw error;}
+    try{if(!this.destroyed&&this.queued===0&&this.current&&this.current.backend.properties.get('eof-reached')!==true){immediateSession=this.current;immediate=this.backendEffect(immediateSession,'backend.play',intentId);}}catch(error){this.dispatchControl({type:'play.settled',id:intentId});this.playRequests.delete(intentId);throw error;}
     immediate?.catch(()=>{});
     return this.enqueue(async()=>{if(intent.signal.aborted)return;if(!this.current)throw Error('No source');const session=this.current;
       const begin=this.dispatchControl({type:'transport.play.begin',intent:intentId,position:trialPosition,trialSame:session===trialSession,trialVerified:session===trialSession&&trialVerified,...this.nativeRecoveryFacts(session)});
@@ -1892,6 +1892,10 @@ export class Player extends EventTarget {
       this.updateSettings({pause:false});
       try{
         try{
+          if(session.backend.properties.get('eof-reached')===true){
+            await session.backend.seek(this.getPlaybackRange()?.start??0);this.assertOperation();
+            if(intent.signal.aborted)return;
+          }
           const playing=immediateSession===session&&immediate?immediate:this.backendEffect(session,'backend.play',intentId);
           if(this.mode==='native')await this.playNativeVerified(session.backend,playing,begin.transportEffect?.budget,intent.signal);else await playing;
           this.assertOperation();if(this.current===session){const plan=this.diagnostics.plan;if(plan)this.acceptEvidence(plan.id,session);}

@@ -9,7 +9,7 @@ export type WasmSettingInput=Readonly<{kind:'buffer-policy';policy:BufferingPoli
 export function validWasmVolume(value:number):boolean{return Number.isFinite(value)&&value>=0&&value<=100;}
 export function validWasmGain(value:number):boolean{return Number.isFinite(value)&&value>=0&&value<=1;}
 export function effectiveWasmGain(state:WasmSettings,gain=state.gain):number{return state.volume===0?0:gain;}
-export function planWasmGain(state:WasmSettings,value:number,hasStage:boolean):Readonly<{valid:boolean;createStage:boolean;effective:number}>{return Object.freeze({valid:validWasmGain(value),createStage:!hasStage&&value!==1,effective:effectiveWasmGain(state,value)});}
+export function planWasmGain(state:WasmSettings,value:number,hasStage:boolean):Readonly<{valid:boolean;createStage:boolean;effective:number}>{return Object.freeze({valid:validWasmGain(value),createStage:!hasStage&&(value!==1||state.volume===0),effective:effectiveWasmGain(state,value)});}
 export function updateWasmSettings(state:WasmSettings,input:WasmSettingInput):Readonly<{state:WasmSettings;accepted:boolean;send:boolean}>{
  if(input.kind==='volume'||input.kind==='gain'){
   if(!(input.kind==='volume'?validWasmVolume(input.value):validWasmGain(input.value)))return Object.freeze({state,accepted:false,send:false});

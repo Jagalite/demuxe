@@ -98,3 +98,17 @@ test('actual gap continuation waits for a reentrant final fragment append before
  p.sb.appendBuffer=()=>{appends++;p.sb.updating=true;};p.pump();assert.equal(p.eof,true);assert.equal(p.pending.length,1);assert.equal(requests.includes('eof'),false);
  p.ranges=()=>[[0,4]];p.pump();assert.equal(appends,1);assert.equal(requests.includes('eof'),false);const receipt=p.bufferState.updates[0];p.sb.updating=false;p.updateFinished(p.sb,p.generation,receipt.id);assert.equal(requests.filter(request=>request==='eof').length,1);
 });
+
+test('adapted EOF retains the longest buffered lane, not the intersection or audio end',()=>{
+ const next=selectRemuxPump(schedule(),buffer({eof:true}),pumpFacts({position:10,ranges:[[0,12.005]],laneEnds:[12.016,12.005],audioAdaptation:true,adaptationEnd:12.011})).action.next;
+ assert.deepEqual(next,{kind:'eof',duration:12.016});
+});
+
+test('MSE finalizes multiplexed track duration without an unsafe explicit shrink',t=>{
+ const {p,requests}=shell(t);p.transitionLifecycle({type:'accept',generation:p.generation});
+ p.sb.buffered={length:1,start:()=>1,end:()=>13.005};p.ranges=()=>[[0,12.005]];
+ p.audioAdaptation={};p.remuxStats={adaptation:{sourceEnd:12.011}};p.lifecycle=Object.freeze({...p.lifecycle,buffer:buffer({eof:true})});
+ let duration=40;Object.defineProperty(p.media,'duration',{get:()=>duration,set:()=>assert.fail('Cannot infer coded-track end from intersected buffered ranges')});
+ p.media.endOfStream=()=>{requests.push('eof');duration=13.026;};p.pump();
+ assert.ok(requests.includes('eof'));assert.equal(p.duration,13.026-p.timelineBias);
+});

@@ -57,3 +57,10 @@ test('audio layout plans use advertised device width and explicit fallback polic
  assert.deepEqual(planWasmAudioOutput('7.1',6,'stereo'),{channels:2,unavailable:false});
  assert.deepEqual(planWasmAudioOutput('7.1',6,'reject'),{channels:2,unavailable:true});
 });
+
+test('first mute requires a physical gain stage even at default independent gain',()=>{
+ const state=updateWasmSettings(createWasmSettings(),{kind:'volume',value:0}).state;
+ assert.deepEqual(planWasmGain(state,1,false),{valid:true,createStage:true,effective:0});
+ const unmuted=updateWasmSettings(state,{kind:'volume',value:100}).state;
+ assert.deepEqual(planWasmGain(unmuted,1,true),{valid:true,createStage:false,effective:1});
+});

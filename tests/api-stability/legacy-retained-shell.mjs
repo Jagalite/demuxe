@@ -69,3 +69,21 @@ for(const retirement of ['source','close','fail'])test(`snapshot completion cann
  f.control=retirement==='source'?playbackCore.admitLegacySource(f.control).state:playbackCore.reduceLegacyPlaybackWorker(f.control,{type:retirement});
  resolve('old png');await Promise.resolve();assert.equal(f.replies.length,0);assert.equal(f.control.snapshot,null);
 });
+
+for(const arrivalFirst of [true,false])test(`half-microsecond seconds conversion retains exact frame identity: arrivalFirst=${arrivalFirst}`,()=>{
+ const f=fixture(),image=frame('rounded');f.key=12854687.499999998;f.delay=0;assert.equal(Math.round((12854687.499999998/1e6)*1e6),12854687);
+ if(arrivalFirst)f.receive(image,1,12854688);
+ f.h.presentSelected();if(!arrivalFirst)f.receive(image,1,12854688);
+ assert.deepEqual(f.drawn,['rounded']);assert.equal(f.h.state.pending.length,0);assert.equal(f.h.state.position,12.854688);
+ f.h.cleanupFrames();assert.equal(image.closed,1);
+});
+test('distinct integer timestamps remain distinct frame identities',()=>{
+ const f=fixture(),image=frame('other');f.key=12854687;f.delay=0;f.receive(image,1,12854688);f.h.presentSelected();assert.deepEqual(f.drawn,[]);
+ f.now=501;assert.throws(()=>f.h.presentSelected(),/did not arrive/);f.h.cleanupFrames();assert.equal(image.closed,1);
+});
+test('backward stepping bounds keyframe preroll and presents the selected predecessor',()=>{
+ const f=fixture(),images=[];f.receive(frame('old'),1,3266667);f.h.cleanupFrames(undefined,false,true);
+ for(let i=0;i<90;i++){const image=frame('preroll-'+i);images.push(image);f.receive(image,2,266667+i*33333);assert.ok(f.h.frames.size<=16);}
+ f.key=266667+89*33333;f.serial=2;f.delay=0;f.h.presentSelected();assert.deepEqual(f.drawn,['preroll-89']);assert.equal(f.h.state.preroll,false);
+ f.h.cleanupFrames();assert.ok(images.every(image=>image.closed===1));
+});

@@ -11,6 +11,7 @@ export type LegacyRetainedRequest = Readonly<{
     epoch: number;
 }>;
 export type LegacyRetainedPresentation = Readonly<{
+    preroll: boolean;
     epoch: number;
     generation: number;
     minGeneration: number;
@@ -40,6 +41,7 @@ export type LegacyRetainedInput = Readonly<{
     type: 'reset';
     target?: number;
     closed?: boolean;
+    preroll?: boolean;
 }> | Readonly<{
     type: 'receive';
     pts: number;

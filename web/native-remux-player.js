@@ -340,7 +340,7 @@ export class RemuxPlayer {
   if(result.changed)this.onBufferingChange?.();
  }
  pumpFacts(){
-  const physical={position:this.video.currentTime-this.timelineBias,paused:this.video.paused,readyState:this.video.readyState,playbackRate:this.video.playbackRate,ranges:this.ranges(),laneStarts:(this.sbs??[]).map(sb=>sb.buffered?.length?sb.buffered.start(0)-this.timelineBias:null),audioAdaptation:!!this.audioAdaptation,adaptationEnd:this.remuxStats?.adaptation?.sourceEnd,duration:this.duration};
+  const physical={position:this.video.currentTime-this.timelineBias,paused:this.video.paused,readyState:this.video.readyState,playbackRate:this.video.playbackRate,ranges:this.ranges(),laneStarts:(this.sbs??[]).map(sb=>sb.buffered?.length?sb.buffered.start(0)-this.timelineBias:null),laneEnds:(this.sbs??[]).flatMap(sb=>sb.buffered?.length?[sb.buffered.end(sb.buffered.length-1)-this.timelineBias]:[]),audioAdaptation:!!this.audioAdaptation,adaptationEnd:this.remuxStats?.adaptation?.sourceEnd,duration:this.duration};
   return {...physical,targetReady:this.targetReady,playing:this.recoveryPlaying};
  }
  pump(){
@@ -366,8 +366,14 @@ export class RemuxPlayer {
    const next=continuationFacts?selectRemuxPumpContinuation(this.schedule,this.bufferState,continuationFacts,action.continuation):action.next;
    if(next.kind==='fail'){this.fail(next.error,undefined,generation);return;}
    if(next.kind==='eof'){
-    if(next.duration!==undefined){this.transitionNegotiation({type:'duration',duration:next.duration},generation);if(!this.windowed)this.media.duration=this.duration+this.timelineBias;}
-    if(this.generationCurrent(generation)&&this.media.readyState==='open')this.media.endOfStream();return;
+    // SourceBuffer.buffered intersects multiplexed tracks; it cannot bound the
+    // highest coded timestamp. Let MSE finalize duration from its track buffers.
+    if(this.generationCurrent(generation)&&this.media.readyState==='open')this.media.endOfStream();
+    if(this.generationCurrent(generation)&&next.duration!==undefined){
+     const finalized=!this.windowed&&Number.isFinite(this.media.duration)?Math.max(next.duration,this.media.duration-this.timelineBias):next.duration;
+     this.transitionNegotiation({type:'duration',duration:finalized},generation);
+    }
+    return;
    }
    if(next.kind==='pull'){const pull=this.transitionBuffer({type:'pull'},generation);if(pull.accepted)this.worker.postMessage({type:'next',id:pull.pullId});}
   }catch(error){this.fail(String(error),undefined,generation);}

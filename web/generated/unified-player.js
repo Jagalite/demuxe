@@ -3296,12 +3296,12 @@ export class Player extends EventTarget {
         }
         this.playRequests.set(intentId, intent);
         // An unverified trial must not consume the user's requested playback position.
-        const trialSession = this.current, trialPosition = Math.max(0, Number(this.current?.backend.properties.get('time-pos')) || 0);
+        const trialSession = this.current, trialPosition = this.current?.backend.properties.get('eof-reached') === true ? (this.getPlaybackRange()?.start ?? 0) : Math.max(0, Number(this.current?.backend.properties.get('time-pos')) || 0);
         const trialVerified = this.evidence(this.current).outputVerified === true;
         // Initiate resume before yielding the user's activation to the operation queue.
         let immediate, immediateSession;
         try {
-            if (!this.destroyed && this.queued === 0 && this.current) {
+            if (!this.destroyed && this.queued === 0 && this.current && this.current.backend.properties.get('eof-reached') !== true) {
                 immediateSession = this.current;
                 immediate = this.backendEffect(immediateSession, 'backend.play', intentId);
             }
@@ -3325,6 +3325,12 @@ export class Player extends EventTarget {
             this.updateSettings({ pause: false });
             try {
                 try {
+                    if (session.backend.properties.get('eof-reached') === true) {
+                        await session.backend.seek(this.getPlaybackRange()?.start ?? 0);
+                        this.assertOperation();
+                        if (intent.signal.aborted)
+                            return;
+                    }
                     const playing = immediateSession === session && immediate ? immediate : this.backendEffect(session, 'backend.play', intentId);
                     if (this.mode === 'native')
                         await this.playNativeVerified(session.backend, playing, begin.transportEffect?.budget, intent.signal);
