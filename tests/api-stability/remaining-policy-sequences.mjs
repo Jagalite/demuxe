@@ -232,6 +232,8 @@ test('throwing preview cleanup registration still releases its URL and resolves 
 });
 
 for(const file of ['browser.mjs','browser-guard.mjs'])test(`${file}: unsupported browser cannot silently qualify as Chromium`,()=>{
- const result=spawnSync(process.execPath,[new URL(file,import.meta.url).pathname],{encoding:'utf8',env:{...process.env,BROWSER:'webkit'},timeout:10000});
+ const loader='data:text/javascript,'+encodeURIComponent(`export async function resolve(name,context,next){if(name==='playwright')throw Error('Browser runtime imported before family validation');return next(name,context);}`);
+ const preload='data:text/javascript,'+encodeURIComponent(`import {register} from 'node:module';register(${JSON.stringify(loader)},import.meta.url);`);
+ const result=spawnSync(process.execPath,['--import',preload,new URL(file,import.meta.url).pathname],{encoding:'utf8',env:{...process.env,BROWSER:'webkit'},timeout:10000});
  assert.equal(result.status,1);assert.match(result.stderr,/Unsupported browser family/);
 });

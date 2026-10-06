@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-import {chromium,firefox} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdir,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -8,6 +7,7 @@ import {checkRuntimeBuffering} from '../buffering/runtime-policy-browser.mjs';
 
 const family=process.env.BROWSER??'chromium';
 if(!['chromium','chrome','firefox'].includes(family))throw Error('Unsupported browser family for sequence suite: '+family);
+const {chromium,firefox}=await import('playwright');
 const directory=`results/api-stability/scenarios/${family}-${Date.now()}`;
 await mkdir(directory,{recursive:true});
 const report={family,passed:false,checks:[]};
