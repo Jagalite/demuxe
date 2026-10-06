@@ -55,7 +55,7 @@ export const behaviorGroups=[
  ['tests/api-stability/contracts.mjs','tests/api-stability/error-classification.mjs'],[],['Constant values and every error-code payload need a dedicated member-level assertion audit'])
 ];
 export const recentLiveEvidence={
- receipts:['results/api-stability/live-boundaries/chromium-1791247455926/result.json','results/api-stability/live-boundaries/firefox-1791247455926/result.json','results/api-stability/live-boundaries/webkit-1791247455926/result.json'],
+ receipts:['results/api-stability/live-boundaries/chromium-1791247593436/result.json','results/api-stability/live-boundaries/firefox-1791247637804/result.json','results/api-stability/live-boundaries/webkit-1791247455926/result.json'],
  // Only explicitly asserted members receive evidence; incidental calls are not coverage.
  members:{'.#inspectMedia':['network-inspection-cancel','network-auth-cancel','network-auth-success','network-auth-rejected'],'.#Player.openRemote':['network-player-open-cancel','network-player-auth-destroy'],'.#Player.open':['network-player-open-cancel'],'.#LocalVideoPreviewProvider.getFrame':['preview-success','preview-abort-load','preview-abort-seek','preview-invalid-media'],'.#Player.destroy':['network-player-auth-destroy','destroy-during-open','destroy-command-burst','hybrid-destroy-during-open','hybrid-destroy-command-burst','software-destroy-during-open','software-destroy-command-burst'],'.#Player.isDestroyed':['destroy-command-burst','hybrid-destroy-command-burst','software-destroy-command-burst'],'.#Player.subscribe':['destroy-command-burst','hybrid-destroy-command-burst','software-destroy-command-burst']}
 };
